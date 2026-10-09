@@ -2,22 +2,18 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Upload;
 
+use App\Http\Requests\Agent\Source\File\AnalyzeKnowledgeFileRequest;
 use Domain\Agent\Actions\Sources\AgentSourceAnalyzeFileAction;
 use Domain\Agent\Data\Sources\KnowledgeAnalyzeResourceData;
-use Illuminate\Http\Request;
 
+/**
+ * Measures a file (pages or minutes) before it is uploaded, so the owner sees
+ * whether it fits the quota.
+ */
 class AgentKnowledgeFilesAnalyzeController
 {
-    public function __invoke(Request $request, AgentSourceAnalyzeFileAction $action): KnowledgeAnalyzeResourceData
+    public function __invoke(AnalyzeKnowledgeFileRequest $request, AgentSourceAnalyzeFileAction $action): KnowledgeAnalyzeResourceData
     {
-        $request->validate([
-            // Extension-based: exotic OCR formats share generic MIMEs, so the
-            // mimes rule can't gate them. max:51200 = Mistral's 50 MB cap.
-            'file' => ['required', 'file', 'extensions:'.implode(',', ocr_supported_extensions()), 'max:51200'],
-        ]);
-
-        $file = $request->file('file');
-
-        return $action->execute($file, $request->user());
+        return $action->execute($request->file('file'), $request->user());
     }
 }

@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * One message on a support ticket, from the ticket's author or from staff
+ * (`type`).
+ *
  * @property int $id
  * @property int $ticket_id
  * @property int|null $user_id

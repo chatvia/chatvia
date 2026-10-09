@@ -5,6 +5,10 @@ namespace Domain\Analytics\Events;
 use DateTimeInterface;
 use Illuminate\Foundation\Events\Dispatchable;
 
+/**
+ * Knowledge sources were used to answer a message (one event per retrieval
+ * batch).
+ */
 class SourceRetrieved
 {
     use Dispatchable;

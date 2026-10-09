@@ -1,9 +1,10 @@
 <?php
 
+use App\Http\Rules\HasMessageCreditsForPdf;
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Models\UserCredit;
-use Domain\Conversation\Rules\HasMessageCreditsForPdf;
-use Domain\Knowledge\Document\PdfInfo;
+use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -50,7 +51,7 @@ function workspaceWithMessages(int $messages): User
 function runCreditsRule(?int $workspaceUserId, mixed $value): bool
 {
     $failed = false;
-    (new HasMessageCreditsForPdf($workspaceUserId))->validate('file', $value, function () use (&$failed): void {
+    (new HasMessageCreditsForPdf(app(Entitlements::class), $workspaceUserId))->validate('file', $value, function () use (&$failed): void {
         $failed = true;
     });
 

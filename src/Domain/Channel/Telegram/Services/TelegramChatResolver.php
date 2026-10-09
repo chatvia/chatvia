@@ -3,8 +3,10 @@
 namespace Domain\Channel\Telegram\Services;
 
 use Domain\Channel\Services\ChannelConversationResolver;
+use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,12 +19,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TelegramChatResolver extends ChannelConversationResolver
 {
-    /**
-     * @param  array{first_name?: string|null, username?: string|null}  $from
-     */
-    public function resolve(AgentTelegramBot $bot, int|string $chatId, array $from = []): TelegramChat
+    public function resolve(AgentTelegramBot $bot, int|string $chatId, TelegramSenderData $sender = new TelegramSenderData): TelegramChat
     {
-        $firstName = $from['first_name'] ?? null;
+        $firstName = $sender->firstName;
 
         return $this->resolveMapping(
             lookup: TelegramChat::query()
@@ -39,7 +38,7 @@ class TelegramChatResolver extends ChannelConversationResolver
                 'title' => $firstName !== null ? "Telegram · {$firstName}" : 'Telegram',
                 'attributes' => [
                     'first_name' => $firstName,
-                    'username' => $from['username'] ?? null,
+                    'username' => $sender->username,
                 ],
             ],
         );
@@ -54,12 +53,13 @@ class TelegramChatResolver extends ChannelConversationResolver
     {
         $title = $chat->first_name !== null ? "Telegram · {$chat->first_name}" : 'Telegram';
 
-        $this->memory
-            ->withContext($chat->bot->agent, $chat->session->external_id)
-            ->createConversation(title: $title, source: ConversationSource::Telegram);
+        $conversationId = $this->startConversation->execute(
+            new ChatScopeData($chat->bot->agent, $chat->session->external_id),
+            ConversationSource::Telegram,
+            $title,
+        );
 
-        // The conversation createConversation() just made is the newest for the session.
-        $conversation = $chat->session->conversations()->latest('id')->firstOrFail();
+        $conversation = $chat->session->conversations()->where('external_id', $conversationId)->firstOrFail();
 
         $chat->update(['chat_conversation_id' => $conversation->id]);
 

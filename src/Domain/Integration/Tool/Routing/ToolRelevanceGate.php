@@ -5,7 +5,7 @@ namespace Domain\Integration\Tool\Routing;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
-use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
+use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 

@@ -9,6 +9,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Someone in a handed-off conversation started or stopped typing. Broadcast
+ * at once to the conversation's presence channel as `typing`.
+ */
 class TypingStarted implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;
@@ -16,7 +20,8 @@ class TypingStarted implements ShouldBroadcastNow
     public function __construct(
         public string $conversationId,
         public bool $isTyping,
-        public string $typerType, // 'user', 'agent'
+        // `user` for the visitor, `agent` for the operator (MessageRole values).
+        public string $typerType,
         public ?string $typerName = null,
         public ?string $typerId = null,
     ) {}

@@ -2,15 +2,18 @@
 
 namespace Domain\Channel\Messenger\Jobs;
 
-use Domain\Channel\Messenger\Actions\HandleMessengerMessageAction;
+use Domain\Channel\Actions\HandleChannelMessageAction;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
+use Domain\Channel\Messenger\Services\MessengerAdapter;
+use Domain\Channel\Messenger\Services\MessengerClient;
+use Domain\Channel\Messenger\Services\MessengerThreadResolver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Carries one inbound Messenger message from the webhook (which must answer
  * quickly or Meta retries and eventually disables the subscription) to
- * {@see HandleMessengerMessageAction} on the queue.
+ * {@see HandleChannelMessageAction} (as a {@see MessengerAdapter}) on the queue.
  */
 class HandleMessengerMessageJob implements ShouldQueue
 {
@@ -25,8 +28,8 @@ class HandleMessengerMessageJob implements ShouldQueue
         public readonly string $text,
     ) {}
 
-    public function handle(HandleMessengerMessageAction $action): void
+    public function handle(HandleChannelMessageAction $action, MessengerClient $client, MessengerThreadResolver $resolver): void
     {
-        $action->execute($this->page, $this->psid, $this->text);
+        $action->execute(new MessengerAdapter($client, $resolver, $this->page, $this->psid), $this->text);
     }
 }

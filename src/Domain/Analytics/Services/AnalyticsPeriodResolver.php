@@ -20,32 +20,29 @@ class AnalyticsPeriodResolver
 {
     public function resolve(User $workspace, AnalyticsFilterData $filter): Period
     {
-        $start = $filter->startDate;
-        $end = $filter->endDate;
-
-        if ($start !== null && $start !== '' && $end !== null && $end !== '') {
+        if (filled($filter->startDate) && filled($filter->endDate)) {
             return new Period(
-                CarbonImmutable::parse($start)->startOfDay(),
-                CarbonImmutable::parse($end)->endOfDay(),
-                'custom',
+                CarbonImmutable::parse($filter->startDate)->startOfDay(),
+                CarbonImmutable::parse($filter->endDate)->endOfDay(),
                 'the selected range',
             );
         }
 
         $now = CarbonImmutable::now();
+        $named = $filter->period ?? AnalyticsPeriod::CurrentCycle;
 
-        return match ($filter->period ?? AnalyticsPeriod::CurrentCycle) {
-            AnalyticsPeriod::Today => new Period($now->startOfDay(), $now, 'today', 'today'),
-            AnalyticsPeriod::Last7Days => new Period($now->subDays(6)->startOfDay(), $now, 'last_7_days', 'the last 7 days'),
-            AnalyticsPeriod::Last30Days => new Period($now->subDays(29)->startOfDay(), $now, 'last_30_days', 'the last 30 days'),
-            AnalyticsPeriod::ThisMonth => new Period($now->startOfMonth(), $now, 'this_month', 'this month'),
+        return match ($named) {
+            AnalyticsPeriod::Today => new Period($now->startOfDay(), $now, 'today', $named),
+            AnalyticsPeriod::Last7Days => new Period($now->subDays(6)->startOfDay(), $now, 'the last 7 days', $named),
+            AnalyticsPeriod::Last30Days => new Period($now->subDays(29)->startOfDay(), $now, 'the last 30 days', $named),
+            AnalyticsPeriod::ThisMonth => new Period($now->startOfMonth(), $now, 'this month', $named),
             AnalyticsPeriod::LastMonth => new Period(
                 $now->subMonthNoOverflow()->startOfMonth(),
                 $now->subMonthNoOverflow()->endOfMonth(),
-                'last_month',
                 'last month',
+                $named,
             ),
-            AnalyticsPeriod::AllTime => new Period(CarbonImmutable::create(2020, 1, 1), $now, 'all_time', 'all time'),
+            AnalyticsPeriod::AllTime => new Period(CarbonImmutable::create(2020, 1, 1), $now, 'all time', $named),
             AnalyticsPeriod::PreviousCycle => $this->previousCycle($workspace, $now),
             AnalyticsPeriod::CurrentCycle => $this->currentCycle($workspace, $now),
         };
@@ -59,14 +56,14 @@ class AnalyticsPeriodResolver
             return new Period(
                 CarbonImmutable::parse($credit->started_at),
                 CarbonImmutable::parse($credit->ends_at),
-                'current_cycle',
                 'this billing cycle',
+                AnalyticsPeriod::CurrentCycle,
             );
         }
 
         // No active credit row (e.g. brand-new or lapsed account) — fall back to
         // the calendar month so the tools still return something sensible.
-        return new Period($now->startOfMonth(), $now, 'current_cycle', 'this billing cycle');
+        return new Period($now->startOfMonth(), $now, 'this billing cycle', AnalyticsPeriod::CurrentCycle);
     }
 
     private function previousCycle(User $workspace, CarbonImmutable $now): Period
@@ -84,8 +81,8 @@ class AnalyticsPeriodResolver
             return new Period(
                 CarbonImmutable::parse($previous->started_at),
                 CarbonImmutable::parse($previous->ends_at),
-                'previous_cycle',
                 'the previous billing cycle',
+                AnalyticsPeriod::PreviousCycle,
             );
         }
 
@@ -98,8 +95,8 @@ class AnalyticsPeriodResolver
         return new Period(
             $currentStart->subDays($length + 1),
             $currentStart->subSecond(),
-            'previous_cycle',
             'the previous billing cycle',
+            AnalyticsPeriod::PreviousCycle,
         );
     }
 }

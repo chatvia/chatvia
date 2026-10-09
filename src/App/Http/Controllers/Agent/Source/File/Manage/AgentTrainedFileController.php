@@ -2,58 +2,54 @@
 
 namespace App\Http\Controllers\Agent\Source\File\Manage;
 
+use App\Http\Requests\Agent\Source\File\LinkSourceFileRequest;
+use App\Http\Requests\Agent\Source\File\ListTrainedFilesRequest;
 use Domain\Agent\Actions\Sources\UnlinkSourceFileFromAgentAction;
 use Domain\Agent\Data\Resources\Sources\AgentSourcesListData;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Actions\AttachSourceToAgentAction;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Http\Request;
 
+/**
+ * The shared file pool of a workspace: lists trained files an agent does not
+ * use yet, and links or unlinks one. Agent access is checked by the route
+ * middleware; access to the file by its policy.
+ */
 class AgentTrainedFileController
 {
     /**
      * @return AgentSourcesListData[]
      */
-    public function index(Request $request, Agent $agent): array
+    public function index(ListTrainedFilesRequest $request, Agent $agent): array
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $request->validate([
-            'type' => ['required', 'in:pdf,word,audio,video'],
-        ]);
-
-        $data = $request->user()
-            ->sourceFiles()
+        // Files belong to the workspace (the agent's owner), not to the
+        // teammate who is looking.
+        $files = SourceFile::query()
+            ->where('user_id', $agent->user_id)
+            ->where('status', SourceStatus::Completed)
+            ->where('filetype', $request->fileType())
+            ->whereDoesntHave('agents', fn ($query) => $query->where('agents.id', $agent->id))
             ->with('agents', fn ($query) => $query->select('agents.id', 'name'))
-            ->where('status', SourceStatus::Completed->value)
-            ->when($request->filled('type'), fn ($q) => $q->where('filetype', $request->input('type')))
-            ->whereDoesntHave('agents', fn ($q) => $q->where('agents.id', $agent->id))
             ->select('id', 'filename', 'filetype', 'length')
             ->get();
 
-        return AgentSourcesListData::fromSources($data);
+        return AgentSourcesListData::fromSources($files);
     }
 
-    public function store(Request $request, Agent $agent, int $fileId): void
+    public function store(LinkSourceFileRequest $request, Agent $agent, int $fileId, AttachSourceToAgentAction $attach): void
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $request->validate(['file_id' => ['required', 'exists:source_files,id']]);
-
-        /** @var SourceFile $file */
-        $file = SourceFile::findOrFail($fileId);
+        $file = SourceFile::query()->findOrFail($fileId);
 
         abort_if($request->user()->cannot('view', $file), 403);
 
-        $agent->files()->attach($file->id);
+        $attach->execute($agent, $file);
     }
 
-    public function destroy(Request $request, Agent $agent, SourceFile $file, UnlinkSourceFileFromAgentAction $unlink): void
+    public function destroy(Agent $agent, SourceFile $file, UnlinkSourceFileFromAgentAction $unlink): void
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
         if (! $unlink->execute($agent, $file)) {
-            abort(400, 'File is linked to multiple agents and cannot be unlinked.');
+            abort(400, __('File is linked to multiple agents and cannot be unlinked.'));
         }
     }
 }

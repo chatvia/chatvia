@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Settings\Prompt;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Prompt\Data\CreatePromptData;
+use Domain\Agent\Prompt\Data\CreatePromptData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 

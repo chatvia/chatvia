@@ -1,8 +1,8 @@
 <?php
 
+use App\Marketing\Mail\ContactMail;
 use Illuminate\Support\Facades\Mail;
 use RyanChandler\LaravelCloudflareTurnstile\Facades\Turnstile;
-use Support\Cms\Marketing\Mail\ContactMail;
 
 /**
  * The contact form sends to `chatvia.contact_email`. When that is not set the

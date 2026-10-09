@@ -2,6 +2,9 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+/**
+ * Masks US Social Security Numbers in the NNN-NN-NNNN form ([US_SSN_n]).
+ */
 final class UsSsnFilter extends PiiFilter
 {
     protected function pattern(): string

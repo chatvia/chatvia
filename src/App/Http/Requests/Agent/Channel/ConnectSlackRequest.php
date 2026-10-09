@@ -2,12 +2,13 @@
 
 namespace App\Http\Requests\Agent\Channel;
 
+use Domain\Channel\Slack\Data\ConnectSlackData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Connect a Slack app to an agent: the app's bot token (xoxb-…) and signing
  * secret, both from the workspace's own Slack app. Authorization is the
- * route's `agent.permission:agent.setup` middleware.
+ * route's `agent.permission:agent.channels` middleware.
  */
 class ConnectSlackRequest extends FormRequest
 {
@@ -33,18 +34,16 @@ class ConnectSlackRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'bot_token.regex' => 'That doesn’t look like a Slack bot token — it should start with xoxb- (find it under OAuth & Permissions in your Slack app).',
-            'signing_secret.min' => 'That doesn’t look like a Slack signing secret (find it under Basic Information in your Slack app).',
+            'bot_token.regex' => __('That doesn’t look like a Slack bot token — it should start with xoxb- (find it under OAuth & Permissions in your Slack app).'),
+            'signing_secret.min' => __('That doesn’t look like a Slack signing secret (find it under Basic Information in your Slack app).'),
         ];
     }
 
-    public function botToken(): string
+    public function toData(): ConnectSlackData
     {
-        return $this->string('bot_token')->toString();
-    }
-
-    public function signingSecret(): string
-    {
-        return $this->string('signing_secret')->toString();
+        return new ConnectSlackData(
+            botToken: $this->string('bot_token')->toString(),
+            signingSecret: $this->string('signing_secret')->toString(),
+        );
     }
 }

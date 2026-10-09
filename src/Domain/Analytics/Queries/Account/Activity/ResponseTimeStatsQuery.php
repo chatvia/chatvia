@@ -4,6 +4,7 @@ namespace Domain\Analytics\Queries\Account\Activity;
 
 use Domain\Analytics\Data\Account\Activity\ResponseTimeStatsData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
+use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 
 /**
@@ -43,7 +44,7 @@ class ResponseTimeStatsQuery extends AccountAnalyticsQuery
 
         $bindings = fn (string $role): array => [
             $scope->workspace->id,
-            'message_sent',
+            AnalyticsEventType::MessageSent->value,
             $role,
             $scope->period->start->toDateTimeString(),
             $scope->period->end->toDateTimeString(),

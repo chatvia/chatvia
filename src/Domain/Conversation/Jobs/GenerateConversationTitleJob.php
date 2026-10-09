@@ -3,12 +3,17 @@
 namespace Domain\Conversation\Jobs;
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
+/**
+ * Names a conversation from its first exchange, on the `messages` queue. The
+ * title call's tokens are attributed to the agent's workspace.
+ */
 class GenerateConversationTitleJob implements AttributesTokenUsage, ShouldQueue
 {
     use Queueable;
@@ -22,11 +27,9 @@ class GenerateConversationTitleJob implements AttributesTokenUsage, ShouldQueue
         $this->onQueue('messages');
     }
 
-    public function handle(ChatMemory $memory): void
+    public function handle(GenerateConversationTitleAction $generateTitle): void
     {
-        $memory
-            ->withContext($this->agent, $this->externalSessionId, $this->conversationId)
-            ->updateConversationTitleFromMessages();
+        $generateTitle->execute(new ChatScopeData($this->agent, $this->externalSessionId, $this->conversationId));
     }
 
     public function tokenWorkspaceId(): ?int

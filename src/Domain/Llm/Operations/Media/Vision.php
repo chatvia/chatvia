@@ -2,58 +2,55 @@
 
 namespace Domain\Llm\Operations\Media;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Services\LlmChat;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
+/**
+ * Describes an image in words with a vision model (`chatvia.ai.models.vision`),
+ * so images inside documents can be embedded and found by search. The model
+ * answers `no_info` for images that carry no information (logos, decoration);
+ * those get no description.
+ */
 class Vision
 {
+    /** The model's answer for an image that is not worth describing. */
+    private const string NO_INFO = 'no_info';
+
     public function __construct(
-        public LlmProviderInterface $provider,
+        private readonly LlmChat $chat,
     ) {}
 
-    public function describeImage(string $image): bool|string
+    /**
+     * @param  string  $image  a data URI, a URL, or a local file path
+     * @return string|null null when the image carries no information
+     */
+    public function describeImage(string $image): ?string
     {
         if (file_exists($image)) {
             $image = Image::decodePath($image)->encode(new JpegEncoder)->toDataUri()->toString();
         }
 
-        $prompt = prompt('image/describe');
-
-        $response = $this->provider->completion([
-            'model' => config('chatvia.ai.models.vision'),
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => $prompt,
-                        ],
-                        [
-                            'type' => 'image_url',
-                            'image_url' => [
-                                'url' => $image,
-                            ],
-                        ],
-                    ],
-                ],
+        $description = $this->chat->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.vision'),
+            messages: [
+                ChatMessageData::userWithAttachment(prompt('image/describe'), [
+                    'type' => 'image_url',
+                    'image_url' => ['url' => $image],
+                ]),
             ],
-        ])->json();
+        ))->content;
 
-        $result = $response['choices'][0]['message']['content'] ?? 'no_info';
-
-        if (str_contains($result, 'no_info')) {
-            return false;
-        }
-
-        return $result;
+        return $description === '' || str_contains($description, self::NO_INFO) ? null : $description;
     }
 
-    public function fromDataUrl(string $imageContent): bool|string
+    /**
+     * Describe an image given as raw bytes (any format Intervention can read).
+     */
+    public function describeImageBytes(string $bytes): ?string
     {
-        $imageDataUri = Image::decode($imageContent)->encode(new JpegEncoder)->toDataUri()->toString();
-
-        return $this->describeImage($imageDataUri);
+        return $this->describeImage(Image::decode($bytes)->encode(new JpegEncoder)->toDataUri()->toString());
     }
 }

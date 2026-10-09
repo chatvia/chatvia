@@ -7,10 +7,11 @@ use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Illuminate\Support\Collection;
 
 /**
- * Thin accessor over `config/connectors.php`. The config is the source of
- * truth — this service just hands out typed records the rest of the app
- * (controllers, Vue serializers, the authorizer) can use without hand-
- * touching arrays.
+ * Read-only access to the connector catalog. `config/connectors.php` (the
+ * presets) and `config/mcp.php` (the first-party builtin servers) are the
+ * source of truth; this service hands out typed records and answers the
+ * catalog questions the rest of the app asks — which connectors exist, which
+ * are builtins, and which URL is a connector's canonical one.
  */
 class ConnectorCatalog
 {
@@ -84,10 +85,56 @@ class ConnectorCatalog
             return null;
         }
 
-        if (! in_array($connector->authStrategy, ['token', 'none'], true)) {
-            return null;
+        return $connector->authStrategy->connectsDirectly() ? $connector : null;
+    }
+
+    /**
+     * The connector's canonical MCP URL: the preset's configured `mcp_url`
+     * (config/connectors.php), or `{app.url}/mcp/{slug}` for builtins
+     * (config/mcp.php). Null when the catalog defines no fixed endpoint —
+     * i.e. the workspace supplies the URL at connect time.
+     */
+    public function canonicalUrl(string $connectorSlug): ?string
+    {
+        $preset = $this->find($connectorSlug);
+        if ($preset !== null) {
+            return $preset->mcpUrl !== '' ? $preset->mcpUrl : null;
         }
 
-        return $connector;
+        foreach ((array) config('mcp.builtin', []) as $entry) {
+            if (($entry['slug'] ?? null) === $connectorSlug) {
+                return $this->builtinUrl($connectorSlug);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Where a Chatvia-hosted builtin MCP server lives.
+     */
+    public function builtinUrl(string $slug): string
+    {
+        return rtrim((string) config('app.url'), '/').'/mcp/'.$slug;
+    }
+
+    /**
+     * Whether a server with this connector slug + URL may share the central
+     * tool catalog: only when the URL is the connector's CANONICAL one. A
+     * preset whose URL is workspace-supplied (requires_url / BYO-OAuth, e.g.
+     * Zendesk or Salesforce) is tenant-specific — its tool definitions must
+     * stay per-server so one workspace can never write tool text another
+     * workspace's agents read.
+     */
+    public function sharesCentralCatalog(?string $connectorSlug, ?string $url): bool
+    {
+        if ($connectorSlug === null) {
+            return false;
+        }
+
+        $canonical = $this->canonicalUrl($connectorSlug);
+
+        return $canonical !== null
+            && rtrim((string) $url, '/') === rtrim($canonical, '/');
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatSession;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Services\Memory\TurnState;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -20,11 +20,14 @@ use Illuminate\Support\Collection;
  */
 class ConversationSearchController
 {
-    private const MAX_RESULTS = 50;
+    private const int MAX_RESULTS = 50;
 
-    private const MAX_SEARCHED_CONVERSATIONS = 1000;
+    private const int MAX_SEARCHED_CONVERSATIONS = 1000;
 
-    public function __invoke(Request $request, TurnState $turnState, WidgetVerification $verification): array
+    /**
+     * @return array<int, array{id: string, title: string, timestamp: int}>
+     */
+    public function __invoke(Request $request, HostedChatSession $chatSession, WidgetVerification $verification): array
     {
         $term = trim((string) $request->query('q', ''));
         if ($term === '') {
@@ -34,7 +37,7 @@ class ConversationSearchController
         $agent = current_agent();
 
         // A search is a read: look up the visitor's session, never create one.
-        $sessionId = $agent !== null ? $turnState->findSession($agent) : null;
+        $sessionId = $agent !== null ? $chatSession->find($agent) : null;
 
         if ($agent === null || $sessionId === null) {
             return [];
@@ -86,7 +89,7 @@ class ConversationSearchController
             ->filter()
             ->map(fn (Conversation $conversation): array => [
                 'id' => $conversation->external_id,
-                'title' => $conversation->title ?? 'New Chat',
+                'title' => $conversation->title ?? Conversation::DEFAULT_TITLE,
                 'timestamp' => $conversation->created_at?->timestamp ?? 0,
             ])
             ->values()

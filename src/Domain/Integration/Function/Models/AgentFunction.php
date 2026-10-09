@@ -4,6 +4,9 @@ namespace Domain\Integration\Function\Models;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
+use Domain\Integration\Tool\Contracts\AttachableToAgents;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -20,6 +23,14 @@ use Pgvector\Laravel\Vector;
 use Support\Concerns\HasExternalId;
 
 /**
+ * A webhook-backed tool the workspace defines once (Settings → Functions) and
+ * attaches to agents through the `agent_function` pivot. When the model calls
+ * the tool, Chatvia sends the arguments to `webhook_url` with the configured
+ * verb and credentials (`auth_config`, encrypted at rest).
+ *
+ * The domain glossary calls this concept a "FunctionTool"; the class keeps its
+ * historical name because it is referenced from persisted data.
+ *
  * @property int $id
  * @property string $external_id
  * @property int $user_id
@@ -28,10 +39,10 @@ use Support\Concerns\HasExternalId;
  * @property string $description
  * @property ArrayObject<array-key, mixed> $parameters_schema
  * @property string $webhook_url
- * @property string $webhook_method
+ * @property FunctionWebhookMethod $webhook_method
  * @property array<array-key, mixed>|null $webhook_headers
  * @property string $webhook_secret
- * @property string $auth_type
+ * @property FunctionAuthType $auth_type
  * @property array<string, string>|null $auth_config
  * @property int $timeout_ms
  * @property int $max_response_bytes
@@ -75,14 +86,19 @@ use Support\Concerns\HasExternalId;
 #[Guarded(['id'])]
 #[Table(name: 'functions')]
 #[RouteKey('external_id')]
-class AgentFunction extends Model
+class AgentFunction extends Model implements AttachableToAgents
 {
     use HasExternalId, HasFactory;
+
+    /** How long a webhook call may take when the function sets no timeout. */
+    public const int DEFAULT_TIMEOUT_MS = 10_000;
 
     protected function casts(): array
     {
         return [
             'parameters_schema' => AsArrayObject::class,
+            'webhook_method' => FunctionWebhookMethod::class,
+            'auth_type' => FunctionAuthType::class,
             'webhook_headers' => 'encrypted:array',
             'webhook_secret' => 'encrypted',
             'auth_config' => 'encrypted:array',
@@ -116,5 +132,14 @@ class AgentFunction extends Model
     public function agents(): BelongsToMany
     {
         return $this->belongsToMany(Agent::class, 'agent_function', 'function_id', 'agent_id');
+    }
+
+    /**
+     * Flip the workspace-wide on/off switch. A disabled function keeps its
+     * attachments but is offered to no agent.
+     */
+    public function toggleEnabled(): void
+    {
+        $this->update(['is_enabled' => ! $this->is_enabled]);
     }
 }

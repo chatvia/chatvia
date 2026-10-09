@@ -6,6 +6,9 @@ use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A team and its owner, as the team page and role editor show it.
+ */
 #[TypeScript]
 class TeamData extends Data
 {

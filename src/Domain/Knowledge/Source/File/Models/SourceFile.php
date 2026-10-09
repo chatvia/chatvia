@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\QueryBuilders\SourceFileQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -20,11 +21,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Support\Concerns\HasExternalId;
 use Support\MimeType;
-use Support\Traits\Chunkable;
 use Support\Traits\HasStorageFile;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
+ * A file uploaded as knowledge: a document (PDF, office file, image, text,
+ * ebook) or a media file (audio, video). One row per stored file; agents use
+ * it through the polymorphic `agent_sources` pivot, so several agents can share
+ * one upload. Its chunks hold the searchable content.
+ *
  * @property int $id
  * @property string|null $external_id
  * @property int $user_id
@@ -44,7 +48,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * @property string|null $internal_chunking_batch_id
  * @property string|null $external_parsing_job_id
  * @property array<array-key, mixed>|null $metadata
- * @property string $status
+ * @property SourceStatus $status
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
@@ -165,11 +169,6 @@ class SourceFile extends Model implements ChunkableContract
         return MimeType::isVideo($this->mime_type);
     }
 
-    public function download(): StreamedResponse
-    {
-        return Storage::download($this->filepath);
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -179,11 +178,12 @@ class SourceFile extends Model implements ChunkableContract
     {
         return [
             'metadata' => 'json',
+            'status' => SourceStatus::class,
         ];
     }
 
     public function isIngested(): bool
     {
-        return $this->status === SourceStatus::Completed->value;
+        return $this->status === SourceStatus::Completed;
     }
 }

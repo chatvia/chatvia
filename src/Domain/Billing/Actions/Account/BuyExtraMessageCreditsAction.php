@@ -2,28 +2,35 @@
 
 namespace Domain\Billing\Actions\Account;
 
-use Domain\Billing\Data\BuyExtraMessageCreditsData;
+use Domain\Billing\Data\Account\BuyExtraMessageCreditsData;
+use Domain\Billing\Data\Stripe\StripeMetadata;
+use Domain\Billing\Enums\MessageCreditAddon;
+use Domain\Billing\Enums\PurchaseType;
 use Laravel\Cashier\Checkout;
 
+/**
+ * Opens a Stripe Checkout for extra-message packs. The credits are granted by
+ * the webhook once the checkout completes, keyed on the checkout session so a
+ * redelivered event cannot grant them twice.
+ */
 class BuyExtraMessageCreditsAction
 {
     public function execute(BuyExtraMessageCreditsData $data): Checkout
     {
-        $items = [
-            config('billing.addons.extra_message_credits.stripe_price_id') => $data->quantity,
-        ];
+        $pack = MessageCreditAddon::ExtraMessageCredits;
 
-        $session = [
-            'success_url' => route('billing.success'),
-            'cancel_url' => route('billing.index'),
-            'metadata' => [
-                'id' => 'extra_message_credits',
-                'type' => 'addon',
-                'quantity' => $data->quantity,
-                'messages' => 1000 * $data->quantity,
+        return $data->user->accountBillingOrFail()->checkout(
+            [$pack->stripePriceId() => $data->quantity],
+            [
+                'success_url' => $data->urls->successUrl,
+                'cancel_url' => $data->urls->cancelUrl,
+                'metadata' => [
+                    StripeMetadata::ID => $pack->value,
+                    StripeMetadata::TYPE => PurchaseType::Addon->value,
+                    StripeMetadata::QUANTITY => $data->quantity,
+                    StripeMetadata::MESSAGES => $pack->unitMessages() * $data->quantity,
+                ],
             ],
-        ];
-
-        return $data->user->accountBilling()->checkout($items, $session);
+        );
     }
 }

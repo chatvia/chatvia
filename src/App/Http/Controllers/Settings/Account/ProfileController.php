@@ -13,6 +13,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Support\Enums\User\DateFormat;
 
+/**
+ * The profile settings page: name, email and profile photo.
+ */
 class ProfileController
 {
     public function edit(Request $request): Response

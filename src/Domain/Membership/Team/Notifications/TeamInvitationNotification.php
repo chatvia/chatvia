@@ -7,6 +7,11 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\URL;
 
+/**
+ * Email that invites someone to join a team under a role. The accept button is
+ * a signed link to the invitation page; the link stops working after
+ * {@see Invitation::TTL_DAYS} days.
+ */
 class TeamInvitationNotification extends Notification
 {
     public function __construct(
@@ -34,7 +39,7 @@ class TeamInvitationNotification extends Notification
             ->line(__(':owner has invited you to join their team **:team** as a **:role**.', ['owner' => $owner->name, 'team' => $team->name, 'role' => $role->name]))
             ->line(__('Click the button below to accept the invitation and create your account.'))
             ->action(__('Accept Invitation'), $acceptUrl)
-            ->line(__('This invitation will expire in 7 days.'))
+            ->line(__('This invitation will expire in :days days.', ['days' => Invitation::TTL_DAYS]))
             ->line(__("If you didn't expect this invitation, you can ignore this email."));
     }
 

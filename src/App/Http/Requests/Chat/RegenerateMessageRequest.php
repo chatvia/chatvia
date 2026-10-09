@@ -36,6 +36,7 @@ class RegenerateMessageRequest extends FormRequest
         }
 
         $conversation = Conversation::query()
+            ->forAgent($agent->id)
             ->where('external_id', $conversationId)
             ->first();
 
@@ -46,7 +47,7 @@ class RegenerateMessageRequest extends FormRequest
         // read as a forbidden (or CSRF) error. The genuine ownership gate
         // below still returns 403.
         if ($conversation === null || $conversation->session?->agent_id !== $agent->id) {
-            abort(404, 'Conversation not found.');
+            abort(404, __('Conversation not found.'));
         }
 
         // Mirrors EnsureChatIsAccessible's protected-agent gate: an
@@ -69,5 +70,20 @@ class RegenerateMessageRequest extends FormRequest
             'assistant_message_id' => ['required', 'string'],
             'user_message_id' => ['required', 'string'],
         ];
+    }
+
+    public function conversationId(): string
+    {
+        return $this->string('conversation_id')->toString();
+    }
+
+    public function assistantMessageId(): string
+    {
+        return $this->string('assistant_message_id')->toString();
+    }
+
+    public function userMessageId(): string
+    {
+        return $this->string('user_message_id')->toString();
     }
 }

@@ -5,18 +5,17 @@ namespace App\Http\Requests\Agent\Source\Text;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Shared rules + authorize for the agent-source-text store + update routes.
- * The Action signature differs (create takes an Agent, update takes a
- * SourceText too), so each controller method still resolves the SourceText
- * via the route param — but validation + authz live here, not inline.
+ * Validates the text of a new or changed text source (at least 500
+ * characters). Access to the agent is checked by the route middleware.
  */
 class AgentSourceTextRequest extends FormRequest
 {
+    /**
+     * Access to the agent is checked by the route middleware.
+     */
     public function authorize(): bool
     {
-        $agent = $this->route('agent');
-
-        return $agent !== null && $this->user()?->can('update', $agent);
+        return true;
     }
 
     /**
@@ -27,5 +26,10 @@ class AgentSourceTextRequest extends FormRequest
         return [
             'content' => ['required', 'min:500'],
         ];
+    }
+
+    public function textContent(): string
+    {
+        return (string) $this->validated('content');
     }
 }

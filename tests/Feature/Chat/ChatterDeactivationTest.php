@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
@@ -24,7 +25,7 @@ beforeEach(function (): void {
     ]);
 
     // Provisions the chatter + the agent_user grant so the sign-in token resolves.
-    $this->chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    $this->chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
     $this->host = $this->agent->sub_domain.'.chatvia.test';
 });
 
@@ -77,4 +78,14 @@ it('blocks a reactivated-then-deactivated chatter again', function (): void {
     app(ReactivateAccountAction::class)->execute($this->chatter);
     signIn();
     expect(Auth::guard('web')->id())->toBe($this->chatter->id);
+});
+
+it('tells a signed-out deactivated chatter why they were signed out', function (): void {
+    signIn();
+    app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
+    Auth::forgetGuards();
+
+    $this->get('https://'.$this->host.'/chat')
+        ->assertRedirectContains('/chat/login')
+        ->assertSessionHas('error', 'Your account has been deactivated.');
 });

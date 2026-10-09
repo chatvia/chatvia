@@ -1,12 +1,12 @@
 <?php
 
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Chunker::chunkDocument() asks the LLM for a page summary + questions. Its
+ * Chunker::enhancePage() asks the LLM for a page summary + questions. Its
  * cost must come from the provider's reported token usage, and the raw model
  * output (derived from customer content) must not be written to the logs.
  */
@@ -45,7 +45,7 @@ it('prices the call from the provider usage tokens', function (): void {
         'completion_tokens' => 1_000,
     ]))]);
 
-    $chunk = app(Chunker::class)->chunkDocument(new PageData(pageNumber: 1, content: 'Oceans cover most of Earth.', checksum: 'c'));
+    $chunk = app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Oceans cover most of Earth.', checksum: 'c'));
 
     // 10,000 × 1.0 / 1M × 100 = 1.0 cent; 1,000 × 2.0 / 1M × 100 = 0.2 cents.
     expect($chunk->cost)->toEqualWithDelta(1.2, 1e-9)
@@ -55,7 +55,7 @@ it('prices the call from the provider usage tokens', function (): void {
 it('estimates the cost when the provider reports no usage', function (): void {
     Http::fake(['*' => Http::response(chunkerResponse(null))]);
 
-    $chunk = app(Chunker::class)->chunkDocument(new PageData(pageNumber: 1, content: 'Oceans cover most of Earth.', checksum: 'c'));
+    $chunk = app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Oceans cover most of Earth.', checksum: 'c'));
 
     expect($chunk->cost)->toBeGreaterThan(0.0);
 });
@@ -64,7 +64,7 @@ it('does not log the model output', function (): void {
     Http::fake(['*' => Http::response(chunkerResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
     Log::spy();
 
-    app(Chunker::class)->chunkDocument(new PageData(pageNumber: 1, content: 'Secret customer page.', checksum: 'c'));
+    app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Secret customer page.', checksum: 'c'));
 
     Log::shouldNotHaveReceived('info');
 });

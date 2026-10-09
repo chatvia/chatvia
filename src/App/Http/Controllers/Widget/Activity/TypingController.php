@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers\Widget\Activity;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Widget\WidgetTypingRequest;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Messages\BroadcastChatTypingAction;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Broadcasts the visitor's typing indicator to the operator watching a
+ * handed-off conversation.
+ */
 class TypingController
 {
+    use InteractsWithWidgetRequest;
+
     public function __invoke(
         WidgetTypingRequest $request,
         BroadcastChatTypingAction $broadcastTyping,
@@ -17,12 +24,12 @@ class TypingController
     ): JsonResponse|WidgetAckData {
         $conversation = $findConversation->execute(
             $request->string('conversation_id')->toString(),
-            (string) $request->header('X-SESSION-ID'),
-            current_agent_from_widget(),
+            (string) $this->widgetSessionId($request),
+            $this->widgetAgent(),
         );
 
         if (! $conversation) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+            return response()->json(['error' => 'Unauthorized'], JsonResponse::HTTP_FORBIDDEN);
         }
 
         $broadcastTyping->execute($request->toData($conversation));

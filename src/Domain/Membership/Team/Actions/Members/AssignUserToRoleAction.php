@@ -6,12 +6,12 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 
+/**
+ * Puts a user on a team under a role (public API). A user holds one role per
+ * team, so assigning a member again moves them to the new role.
+ */
 class AssignUserToRoleAction
 {
-    /**
-     * Attach the user to the team under the given role, or move them to it if
-     * they are already a member (one role per user per team).
-     */
     public function execute(Team $team, Role $role, User $user): void
     {
         if ($team->members()->where('users.id', $user->id)->exists()) {

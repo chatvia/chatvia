@@ -8,6 +8,11 @@ use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One scored case of an eval run, as the run drill-down shows it: pass/score,
+ * the agent's (possibly truncated) answer, the judge's rationale, and the
+ * sources and tools the agent used.
+ */
 #[TypeScript]
 class EvalResultResourceData extends Data
 {

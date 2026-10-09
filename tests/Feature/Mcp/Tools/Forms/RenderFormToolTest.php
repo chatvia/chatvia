@@ -8,6 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Http\Request;
@@ -79,7 +80,7 @@ it('still renders the form for a different session that has not submitted', func
         ->assertOk()
         ->assertStructuredContent(fn (AssertableJson $json): AssertableJson => $json->has('form')->etc());
 
-    expect(FormSubmission::where('chat_conversation_id', $convB->id)->where('status', FormSubmission::STATUS_PENDING)->exists())->toBeTrue();
+    expect(FormSubmission::where('chat_conversation_id', $convB->id)->where('status', FormSubmissionStatus::Pending)->exists())->toBeTrue();
 });
 
 it('resolves the form when the model passes its display name instead of the slug', function (string $key): void {
@@ -95,7 +96,7 @@ it('resolves the form when the model passes its display name instead of the slug
             ->where('form.definition_slug', 'book-a-demo')
             ->etc());
 
-    expect(FormSubmission::where('chat_conversation_id', $conversation->id)->where('status', FormSubmission::STATUS_PENDING)->exists())->toBeTrue();
+    expect(FormSubmission::where('chat_conversation_id', $conversation->id)->where('status', FormSubmissionStatus::Pending)->exists())->toBeTrue();
 })->with([
     'display name' => 'Book a demo',
     'upper-cased name' => 'BOOK A DEMO',

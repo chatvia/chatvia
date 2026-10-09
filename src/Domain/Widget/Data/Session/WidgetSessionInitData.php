@@ -5,9 +5,9 @@ namespace Domain\Widget\Data\Session;
 use Spatie\LaravelData\Data;
 
 /**
- * Input for InitializeWidgetSessionAction — carries the optional client-supplied
- * session/thread identifiers and the request metadata we capture when minting a
- * brand-new session (IP, user agent, locale, etc.).
+ * Input for InitializeWidgetSessionAction: the session and conversation ids
+ * the widget remembered (if any), plus the request details stored on a newly
+ * started session (IP, user agent, language, referrer and page URL).
  */
 class WidgetSessionInitData extends Data
 {

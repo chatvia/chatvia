@@ -6,6 +6,9 @@ use App\Http\Requests\Billing\BuyExtraMessageCreditsRequest;
 use Domain\Billing\Actions\Account\BuyExtraMessageCreditsAction;
 use Laravel\Cashier\Checkout;
 
+/**
+ * Starts a Stripe Checkout for extra-message packs.
+ */
 class CheckoutExtraMessagesController
 {
     public function __invoke(

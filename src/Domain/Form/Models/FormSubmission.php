@@ -5,6 +5,7 @@ namespace Domain\Form\Models;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -30,7 +31,7 @@ use Support\Concerns\HasExternalId;
  * @property int $agent_id
  * @property int|null $chat_conversation_id
  * @property int|null $chat_message_id
- * @property string $status
+ * @property FormSubmissionStatus $status
  * @property array<string, mixed>|null $values
  * @property string|null $values_checksum
  * @property string|null $request_id
@@ -47,6 +48,9 @@ use Support\Concerns\HasExternalId;
  * @property-read string|null $message
  *
  * @method static \Database\Factories\FormSubmissionFactory factory($count = null, $state = [])
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormSubmission submitted()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormSubmission abandoned()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|FormSubmission duplicateOf(int $formDefinitionId, string $checksum)
  *
  * @mixin \Eloquent
  */
@@ -56,15 +60,10 @@ class FormSubmission extends Model
 {
     use HasExternalId, HasFactory;
 
-    public const STATUS_PENDING = 'pending';
-
-    public const STATUS_SUBMITTED = 'submitted';
-
-    public const STATUS_EXPIRED = 'expired';
-
     protected function casts(): array
     {
         return [
+            'status' => FormSubmissionStatus::class,
             'values' => 'array',
             'expires_at' => 'datetime',
             'submitted_at' => 'datetime',
@@ -125,7 +124,7 @@ class FormSubmission extends Model
         }
 
         return self::query()
-            ->where('status', self::STATUS_SUBMITTED)
+            ->where('status', FormSubmissionStatus::Submitted)
             ->whereIn('form_definition_id', $formDefinitionIds)
             ->whereHas('conversation', fn (Builder $query): Builder => $query->where('chat_session_id', $sessionId))
             ->distinct()
@@ -142,8 +141,33 @@ class FormSubmission extends Model
     protected function duplicateOf(Builder $query, int $formDefinitionId, string $checksum): void
     {
         $query->where('form_definition_id', $formDefinitionId)
-            ->where('status', self::STATUS_SUBMITTED)
+            ->where('status', FormSubmissionStatus::Submitted)
             ->where('values_checksum', $checksum);
+    }
+
+    /**
+     * Captured contacts — the rows the Forms pages, exports and analytics show.
+     */
+    #[Scope]
+    protected function submitted(Builder $query): void
+    {
+        $query->where('status', FormSubmissionStatus::Submitted);
+    }
+
+    /**
+     * Pending forms whose time to be sent has passed. They can never be claimed
+     * and carry no answers.
+     */
+    #[Scope]
+    protected function abandoned(Builder $query): void
+    {
+        $query->where('status', FormSubmissionStatus::Pending)
+            ->where('expires_at', '<', now());
+    }
+
+    public function isPending(): bool
+    {
+        return $this->status === FormSubmissionStatus::Pending;
     }
 
     public function isExpired(): bool
@@ -163,44 +187,32 @@ class FormSubmission extends Model
 
     protected function name(): Attribute
     {
-        return Attribute::make(get: function () {
-            return $this->field('name');
-        });
+        return Attribute::get(fn (): ?string => $this->field('name'));
     }
 
     protected function email(): Attribute
     {
-        return Attribute::make(get: function () {
-            return $this->field('email');
-        });
+        return Attribute::get(fn (): ?string => $this->field('email'));
     }
 
     protected function phone(): Attribute
     {
-        return Attribute::make(get: function () {
-            return $this->field('phone');
-        });
+        return Attribute::get(fn (): ?string => $this->field('phone'));
     }
 
     protected function jobTitle(): Attribute
     {
-        return Attribute::make(get: function () {
-            return $this->field('job_title');
-        });
+        return Attribute::get(fn (): ?string => $this->field('job_title'));
     }
 
     protected function company(): Attribute
     {
-        return Attribute::make(get: function () {
-            return $this->field('company');
-        });
+        return Attribute::get(fn (): ?string => $this->field('company'));
     }
 
     protected function location(): Attribute
     {
-        return Attribute::make(get: function () {
-            return $this->field('location');
-        });
+        return Attribute::get(fn (): ?string => $this->field('location'));
     }
 
     public function getMessageAttribute(): ?string

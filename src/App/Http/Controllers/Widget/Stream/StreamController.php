@@ -2,53 +2,57 @@
 
 namespace App\Http\Controllers\Widget\Stream;
 
-use App\Identity\Workspace\Models\User;
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
+use App\Http\Responses\SseResponder;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Widget\Services\WidgetVerification;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * Streams the agent's reply to a widget message (server-sent events). This is
+ * the endpoint that costs LLM tokens, so it has its own, tighter rate limit.
+ */
 readonly class StreamController
 {
+    use InteractsWithWidgetRequest;
+
     public function __construct(
         private ChatStreamService $chatStreamService,
         private StreamRequestDataFactory $factory,
     ) {}
 
-    public function __invoke(Request $request, WidgetVerification $verification): StreamedResponse
+    public function __invoke(Request $request, WidgetVerification $verification, SseResponder $sse): StreamedResponse
     {
-        $sessionId = $request->header('X-SESSION-ID');
-        $conversationId = $request->header('X-CONVERSATION-ID');
-        $agent = current_agent_from_widget();
-        abort_if($agent === null, 404);
+        $agent = $this->widgetAgent();
+        $sessionId = $this->widgetSessionId($request);
+        $conversationId = $this->widgetConversationId($request);
 
-        // Session must belong to THIS agent — without scoping a caller can
-        // submit a session id minted under agent A and stream against agent B.
-        $session = $verification->verifySessionExternalId($sessionId, $agent);
+        // The session must belong to THIS agent, or a session started under
+        // agent A could stream against agent B.
+        abort_if(! $verification->verifySessionExternalId($sessionId, $agent), JsonResponse::HTTP_FORBIDDEN, 'Invalid session id');
+        abort_if($conversationId === null, JsonResponse::HTTP_BAD_REQUEST, 'Missing conversation id');
 
-        abort_if(! $session, 403, 'Invalid session id');
+        // Playground status comes only from the verified widget session (set
+        // during the auth exchange from the bootstrap token's `ctx` claim);
+        // a hand-made Referer or header cannot switch it on.
+        $isPlayground = $request->attributes->getBoolean(EnsureWidgetIsAccessible::PLAYGROUND_ATTRIBUTE);
 
-        // Playground status comes from the verified widget-session payload
-        // (set during /auth/exchange when the bootstrap JWT carries
-        // `ctx: 'playground'`). The middleware attaches it to the request;
-        // anything else — including a hand-crafted Referer — is ignored.
-        $isPlayground = $request->attributes->getBoolean('widget_is_playground');
-
-        // The authenticated chatter resolved by EnsureWidgetIsAccessible for
-        // protected agents; null for public agents (anonymous visitors). Drives
-        // the per-chatter message limit and analytics chatter_user_id.
-        $chatter = $request->attributes->get('widget_user');
-
-        return $this->chatStreamService->stream(
+        return $sse->respond($this->chatStreamService->stream(
             $this->factory->forWidget(
                 $request,
                 $agent,
-                $sessionId,
+                (string) $sessionId,
                 $conversationId,
                 $isPlayground,
-                $chatter instanceof User ? $chatter : null,
+                // The signed-in chatter on a protected agent (null for an
+                // anonymous visitor): drives the per-chatter message limit and
+                // the analytics chatter id.
+                $this->widgetUser($request),
             ),
-        );
+        ));
     }
 }

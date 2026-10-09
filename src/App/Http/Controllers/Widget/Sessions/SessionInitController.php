@@ -2,35 +2,28 @@
 
 namespace App\Http\Controllers\Widget\Sessions;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Requests\Widget\InitializeWidgetSessionRequest;
 use Domain\Widget\Actions\InitializeWidgetSessionAction;
-use Domain\Widget\Data\Session\WidgetSessionInitData;
 use Domain\Widget\Data\Session\WidgetSessionInitResultData;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
+/**
+ * Widget boot: resumes or starts the visitor's session and conversation.
+ */
 class SessionInitController
 {
-    public function __invoke(
-        Request $request,
-        InitializeWidgetSessionAction $initialize,
-    ): JsonResponse|WidgetSessionInitResultData {
-        $data = new WidgetSessionInitData(
-            existingSessionId: $request->header('X-SESSION-ID'),
-            existingConversationId: $request->header('X-CONVERSATION-ID'),
-            ipAddress: $request->ip(),
-            userAgent: $request->userAgent(),
-            acceptLanguage: $request->header('Accept-Language'),
-            referrerUrl: $request->header('Referer'),
-            pageUrl: $request->input('page_url'),
-        );
+    use InteractsWithWidgetRequest;
 
-        // On a protected agent EnsureWidgetIsAccessible attached the resolved
-        // chatter; bind the (new or resolved) session to them. Null for public
-        // agents (anonymous visitors), leaving their session unscoped as before.
+    public function __invoke(
+        InitializeWidgetSessionRequest $request,
+        InitializeWidgetSessionAction $initialize,
+    ): WidgetSessionInitResultData {
+        // On a protected agent the session is bound to the signed-in chatter;
+        // an anonymous visitor on a public agent has none.
         return $initialize->execute(
-            current_agent_from_widget(),
-            $data,
-            $request->attributes->get('widget_user'),
+            $this->widgetAgent(),
+            $request->toData(),
+            $this->widgetUser($request),
         );
     }
 }

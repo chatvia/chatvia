@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Services\UserCreditSystem;
@@ -124,7 +125,7 @@ it('returns 403 on a private agent when the auth user does not own the conversat
     $agent = regenerateAgent(isPublic: false);
     $owner = User::factory()->create();
 
-    $intruder = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Intruder')->refresh();
+    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->user, $agent, 'Intruder'))->refresh();
 
     $conversation = regenerateConversation($agent, $owner);
     ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());

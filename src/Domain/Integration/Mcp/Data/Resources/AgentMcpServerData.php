@@ -7,6 +7,10 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A workspace MCP server as the Connectors pages show it — never its
+ * credentials. Enum columns go out as their string values.
+ */
 #[TypeScript]
 class AgentMcpServerData extends Data
 {
@@ -38,8 +42,8 @@ class AgentMcpServerData extends Data
             connector_slug: $server->connector_slug,
             description: $server->description,
             url: $server->url,
-            transport: $server->transport,
-            auth_type: $server->auth_type,
+            transport: $server->transport->value,
+            auth_type: $server->auth_type->value,
             timeout_ms: $server->timeout_ms,
             is_enabled: $server->is_enabled,
             catalog_tools_count: $server->catalog_tools_count,

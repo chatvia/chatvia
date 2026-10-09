@@ -2,10 +2,18 @@
 
 namespace App\Http\Requests\Api\V1\Source;
 
+use App\Http\Requests\Concerns\ReadsUploadedSourceFile;
+use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a knowledge-file upload through the public API. Access to the
+ * agent is checked by the route middleware.
+ */
 class UploadSourceFileRequest extends FormRequest
 {
+    use ReadsUploadedSourceFile;
+
     public function authorize(): bool
     {
         return true;
@@ -19,5 +27,10 @@ class UploadSourceFileRequest extends FormRequest
         return [
             'file' => ['required', 'file'],
         ];
+    }
+
+    public function toData(): UploadedSourceFileData
+    {
+        return $this->uploadedSourceFile();
     }
 }

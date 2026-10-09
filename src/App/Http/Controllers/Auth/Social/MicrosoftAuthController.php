@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 
+/**
+ * Starts the Microsoft OAuth round-trip (sign-in or account link).
+ */
 class MicrosoftAuthController
 {
     public function __invoke(Request $request)

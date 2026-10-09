@@ -2,38 +2,35 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatSession;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
 
+/**
+ * The history of one of the hosted-chat visitor's conversations, with each
+ * message's uploaded files so the chat can show them under their bubble.
+ */
 class ConversationMessageController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, TurnState $session, MessageAttachmentHydrator $hydrator): array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function __invoke(string $conversationId, ChatMemory $memory, HostedChatSession $session, MessageAttachmentHydrator $hydrator): array
     {
         $agent = current_agent();
+        $scope = $session->scope($agent, $conversationId);
+        $memory->withScope($scope);
 
-        $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent), $conversationId);
-
-        abort_if(
-            boolean: ! $memory->conversationExists(),
-            code: 404
-        );
+        abort_if(! $memory->conversationExists(), 404);
 
         $messages = $memory->getMessagesForConversation();
 
-        // Hydrate each message with its attachments so UserChatBubble can
-        // render the file chips per-bubble.
         $conversation = Conversation::query()
+            ->inSession($scope->sessionId, $agent->id)
             ->where('external_id', $conversationId)
             ->first();
 
-        if ($conversation) {
-            $messages = $hydrator->hydrate($messages, $conversation);
-        }
-
-        return $messages;
+        return $conversation !== null ? $hydrator->hydrate($messages, $conversation) : $messages;
     }
 }

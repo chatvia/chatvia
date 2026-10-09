@@ -5,6 +5,10 @@ namespace App\Http\Resources\Api\V1\Conversations;
 use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Data;
 
+/**
+ * One message of a conversation in the public API (nested in
+ * {@see ConversationDetailData}): who wrote it, the text and when.
+ */
 class ConversationMessageData extends Data
 {
     public function __construct(
@@ -18,7 +22,7 @@ class ConversationMessageData extends Data
     {
         return new self(
             id: $message->id,
-            role: $message->role,
+            role: $message->role->value,
             content: $message->content,
             created_at: $message->created_at?->toIso8601String(),
         );

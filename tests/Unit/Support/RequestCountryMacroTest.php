@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Security\Services\NetworkAccessGuard;
 use Illuminate\Http\Request;
 
 function requestWithCountryHeader(?string $cfCountry): Request
@@ -22,4 +23,18 @@ it('ignores Cloudflare non-country sentinels and falls back', function (string $
 
 it('returns null when there is no country header and the IP is unresolvable', function (): void {
     expect(requestWithCountryHeader(null)->country())->toBeNull();
+});
+
+it('geolocates the real visitor from CF-Connecting-IP, never the Cloudflare edge', function (): void {
+    $guard = Mockery::mock(NetworkAccessGuard::class);
+    $guard->shouldReceive('countryFor')->once()->with('198.51.100.7')->andReturn('DE');
+    app()->instance(NetworkAccessGuard::class, $guard);
+
+    $request = Request::create('https://chatvia.test/', 'GET', server: [
+        'HTTP_CF_IPCOUNTRY' => 'XX',
+        'HTTP_CF_CONNECTING_IP' => '198.51.100.7',
+        'REMOTE_ADDR' => '172.70.1.1',
+    ]);
+
+    expect($request->country())->toBe('de');
 });

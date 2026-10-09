@@ -5,29 +5,23 @@ namespace App\Http\Controllers\Agent\Capability;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Actions\Agent\EnableAgentCapabilityAction;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Domain\Integration\Mcp\Services\McpException;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
+/**
+ * Turn a first-party capability on for this agent. The first enable in the
+ * workspace connects it, which syncs its tools; a failure comes back as a 422
+ * with a message the page can show.
+ */
 class EnableAgentCapabilityController
 {
-    public function __construct(
-        private readonly ConnectorCatalog $catalog,
-    ) {}
-
-    public function __invoke(
-        Request $request,
-        Agent $agent,
-        string $slug,
-        EnableAgentCapabilityAction $enable,
-    ): JsonResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $capability = $this->catalog->capabilities()->get($slug);
-        abort_unless($capability !== null, 404, 'Capability not found.');
+    public function __invoke(Agent $agent, string $slug, ConnectorCatalog $catalog, EnableAgentCapabilityAction $enable): JsonResponse
+    {
+        $capability = $catalog->capabilities()->get($slug);
+        abort_unless($capability !== null, 404, __('Capability not found.'));
 
         try {
-            $enable->execute($agent, $request->user(), $capability);
+            $enable->execute($agent, $capability);
         } catch (McpException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         }

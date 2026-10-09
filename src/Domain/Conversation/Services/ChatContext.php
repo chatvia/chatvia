@@ -2,11 +2,26 @@
 
 namespace Domain\Conversation\Services;
 
-use Domain\Conversation\Data\Messages\ChatInputPayload;
-use Domain\Conversation\Services\Data\StreamRequestData;
+use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Data\Tooling\EmittedToolCallData;
+use Domain\Conversation\Data\Turn\QaMatchData;
+use Domain\Conversation\Data\Turn\RetrievedSourceData;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Illuminate\Support\Collection;
 use Spectra\Support\Tracking\StreamingTracker;
 
+/**
+ * The working state of one chat turn while it streams: the request, the
+ * visitor's message, the history sent to the LLM, what knowledge was found,
+ * and everything the stream adds as it goes (the visible answer, usage, tool
+ * calls, artifacts). Built by {@see Turn\TurnContextFactory}, enriched by
+ * {@see Turn\KnowledgeEnricher}, filled by the streaming sources and the tool
+ * loop, and finally recorded by {@see Turn\AssistantReplyRecorder}.
+ *
+ * It is deliberately mutable: the streaming code appends to it on every
+ * chunk, and the request and identifiers stay read-only.
+ */
 class ChatContext
 {
     public string $streamedMessage = '';
@@ -23,11 +38,12 @@ class ChatContext
      */
     public ?array $usage = null;
 
+    /** @var Collection<int, RetrievedSourceData> */
     public Collection $sources;
 
     public ?float $confidenceScore = null;
 
-    public ?object $qaMatch = null;
+    public ?QaMatchData $qaMatch = null;
 
     /**
      * Spectra cost/usage tracker bound to the current LLM stream. Set by
@@ -38,9 +54,10 @@ class ChatContext
 
     /**
      * Tool calls accumulated from the LLM stream within the current tool-loop
-     * iteration. Each entry has the partial shape `['id' => string,
-     * 'name' => string, 'arguments' => string]`. Mutated by
-     * OpenAiCompatibleTransformer, drained by ToolLoopRunner between iterations.
+     * iteration, as they arrive in pieces. Each entry has the partial shape
+     * `['id' => string, 'name' => string, 'arguments' => string]`. Filled by
+     * OpenAiCompatibleTransformer, drained by ToolLoopRunner through
+     * {@see takeToolCalls()} between iterations.
      *
      * @var array<int, array{id: string, name: string, arguments: string}>
      */
@@ -103,9 +120,12 @@ class ChatContext
 
     private ?float $endTime = null;
 
+    /**
+     * @param  array<int, array<string, mixed>>  $llmMessages  the history sent to the LLM (OpenAI message shape)
+     */
     public function __construct(
         public readonly StreamRequestData $requestData,
-        public readonly ChatInputPayload $payload,
+        public readonly UserTurnData $payload,
         public readonly array $llmMessages,
         public readonly ?string $userMessageId,
         public readonly string $assistantMessageId,
@@ -145,44 +165,26 @@ class ChatContext
      */
     public function applyToolCallDelta(array $delta): void
     {
-        $index = $delta['index'] ?? 0;
-        $current = $this->pendingToolCalls[$index] ?? [
-            'id' => '',
-            'name' => '',
-            'arguments' => '',
-        ];
-
-        if (isset($delta['id']) && is_string($delta['id'])) {
-            $current['id'] = $delta['id'];
-        }
-
-        $function = $delta['function'] ?? null;
-        if (is_array($function)) {
-            if (isset($function['name']) && is_string($function['name'])) {
-                $current['name'] = $function['name'];
-            }
-            if (isset($function['arguments']) && is_string($function['arguments'])) {
-                $current['arguments'] .= $function['arguments'];
-            }
-        }
-
-        $this->pendingToolCalls[$index] = $current;
+        $this->pendingToolCalls = ToolCallDeltas::merge($this->pendingToolCalls, $delta);
     }
 
     /**
-     * Drain and return the accumulated tool calls, leaving the buffer empty
-     * for the next iteration.
+     * Drain and return the complete tool calls, leaving the buffer empty for
+     * the next iteration.
      *
-     * @return array<int, array{id: string, name: string, arguments: string}>
+     * @return array<int, EmittedToolCallData>
      */
     public function takeToolCalls(): array
     {
-        $calls = array_values($this->pendingToolCalls);
+        $calls = array_map(EmittedToolCallData::fromStreamBuffer(...), array_values($this->pendingToolCalls));
         $this->pendingToolCalls = [];
 
         return $calls;
     }
 
+    /**
+     * @param  Collection<int, RetrievedSourceData>  $sources
+     */
     public function setSources(Collection $sources): void
     {
         $this->sources = $sources;
@@ -193,12 +195,12 @@ class ChatContext
         $this->confidenceScore = $confidenceScore;
     }
 
-    public function setQAMatch(?object $qaMatch): void
+    public function setQaMatch(?QaMatchData $qaMatch): void
     {
         $this->qaMatch = $qaMatch;
     }
 
-    public function hasQAMatch(): bool
+    public function hasQaMatch(): bool
     {
         return $this->qaMatch !== null;
     }

@@ -5,6 +5,7 @@ namespace Domain\Guardrail\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Enums\GuardOutcome;
+use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
@@ -32,6 +33,7 @@ use Support\Concerns\HasExternalId;
  * @property GuardStage $stage
  * @property GuardType $guard_type
  * @property GuardOutcome $outcome
+ * @property GuardSeverity|null $severity
  * @property array<string, mixed>|null $detail
  */
 #[Guarded(['id'])]
@@ -94,7 +96,7 @@ class GuardrailEvent extends Model
             'guard_type' => $this->guard_type->value,
             'guard_label' => $this->guard_type->label(),
             'outcome' => $this->outcome->value,
-            'severity' => $this->severity,
+            'severity' => $this->severity?->value,
             'detail' => $this->detail,
             'snippet' => $this->snippet,
             'trace_id' => $this->trace_id,
@@ -108,6 +110,7 @@ class GuardrailEvent extends Model
             'stage' => GuardStage::class,
             'guard_type' => GuardType::class,
             'outcome' => GuardOutcome::class,
+            'severity' => GuardSeverity::class,
             'detail' => 'array',
             'created_at' => 'datetime',
         ];

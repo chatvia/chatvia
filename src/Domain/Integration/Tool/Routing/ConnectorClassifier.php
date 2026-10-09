@@ -4,7 +4,6 @@ namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -186,20 +185,14 @@ class ConnectorClassifier
      */
     private function reachableConnectors(Agent $agent): array
     {
-        $rows = DB::table('mcp_servers as s')
-            ->join('agent_mcp_server as ams', function ($join) use ($agent): void {
-                $join->on('ams.mcp_server_id', '=', 's.id')
-                    ->where('ams.agent_id', $agent->id);
-            })
-            ->where('s.is_enabled', true)
-            ->select('s.slug', 's.name', 's.description')
-            ->distinct()
-            ->get();
+        $servers = $agent->mcpServers()
+            ->where('mcp_servers.is_enabled', true)
+            ->get(['mcp_servers.slug', 'mcp_servers.name', 'mcp_servers.description']);
 
         $connectors = [];
-        foreach ($rows as $row) {
-            $desc = trim((string) $row->description);
-            $connectors[$row->slug] = $desc !== '' ? $row->name.': '.$desc : (string) $row->name;
+        foreach ($servers as $server) {
+            $description = trim((string) $server->description);
+            $connectors[$server->slug] = $description !== '' ? $server->name.': '.$description : $server->name;
         }
 
         return $connectors;

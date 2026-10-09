@@ -3,7 +3,7 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\SourceRetrieved;
-use Domain\Knowledge\Ingestion\Actions\Stats\UpdateRetrievalStatsAction;
+use Domain\Knowledge\Retrieval\Actions\UpdateRetrievalStatsAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 

@@ -2,45 +2,29 @@
 
 namespace Domain\Llm\Operations\Query;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Services\LlmChat;
 
+/**
+ * Writes a short title for a conversation from its first messages, with the
+ * model set in `chatvia.ai.models.title`.
+ */
 class TitleGenerator
 {
     public function __construct(
-        public LlmProviderInterface $provider
+        private readonly LlmChat $chat,
     ) {}
 
     public function generate(string $messages): string
     {
-
-        $response = $this->provider->completion([
-            'model' => config('chatvia.ai.models.title'),
-            'max_tokens' => 50,
-            'messages' => [
-                [
-                    'role' => 'system',
-                    'content' => '
-                    You are an AI writer. Your task is to find a meaningful title for the given text.
-                    You must return your response in plain text format.
-                    Make it concise
-                    ',
-                ],
-                [
-                    'role' => 'user',
-                    'content' => 'The text is: '.$messages,
-                ],
+        return $this->chat->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.title'),
+            messages: [
+                ChatMessageData::system(prompt('conversation/title')),
+                ChatMessageData::user('The text is: '.$messages),
             ],
-        ])->throw();
-
-        // Handle both direct string response and nested JSON structure
-        $result = $response->json('choices.0.message.content') ?? $response->json('content');
-
-        // If still null, try to get the full response and extract content
-        if ($result === null) {
-            $json = $response->json();
-            $result = $json['choices'][0]['message']['content'] ?? $json['content'] ?? '';
-        }
-
-        return is_array($result) ? ($result['content'] ?? '') : (string) $result;
+            maxTokens: 50,
+        ))->content;
     }
 }

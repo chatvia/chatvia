@@ -2,59 +2,64 @@
 
 namespace App\Http\Controllers\Widget\Conversations;
 
-use Domain\Conversation\Services\Memory\ChatMemory;
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
+use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * The widget's "clear chat" (one conversation, named by X-CONVERSATION-ID) and
+ * "clear all" (no conversation header). This is a view reset, not erasure: the
+ * conversation stays in the customer's chat log. Only the owner/admin delete
+ * path (AdminDeleteConversationAction) erases content.
+ */
 class ConversationDeleteController
 {
+    use InteractsWithWidgetRequest;
+
     public function __invoke(
         Request $request,
-        ChatMemory $memory,
         WidgetVerification $widgetVerification,
+        ClearConversationForVisitorAction $clearConversation,
+        ClearSessionConversationsForVisitorAction $clearSession,
     ): JsonResponse|WidgetAckData {
-        $agent = current_agent_from_widget();
-        abort_if($agent === null, 404);
-        $widgetUser = $request->attributes->get('widget_user');
-        $sessionId = $request->header('X-SESSION-ID');
-        $conversationId = $request->header('X-CONVERSATION-ID');
+        $sessionId = $this->widgetSessionId($request);
 
-        // On a protected agent, only the session's owning chatter may delete its
-        // threads — block deleting another signed-in visitor's history (including
-        // the delete-all branch) by replaying their client-supplied session id.
-        if ($widgetUser && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
-            return response()->json(['error' => 'Invalid session'], 404);
+        if ($sessionId === null) {
+            return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $memory
-            ->withContext($agent, $sessionId);
+        $agent = $this->widgetAgent();
+        $widgetUser = $this->widgetUser($request);
+        $conversationId = $this->widgetConversationId($request);
 
-        if ($conversationId) {
-            // Confirm the conversation actually belongs to THIS agent (and, on a
-            // protected agent, the authenticated chatter) before touching it —
-            // guarantees a conversation id from another agent's or chatter's
-            // session can't be deleted by spoofing X-AGENT-ID / X-SESSION-ID.
-            $thread = $widgetVerification->verifyConversationId($conversationId, $agent, $widgetUser);
-
-            if (! $thread) {
-                return response()->json(['error' => 'Invalid thread'], 404);
-            }
-
-            $chatMemory = $memory->setConversationId($conversationId);
-
-            if ($chatMemory->conversationExists()) {
-                // Visitor-facing "clear" is a view reset, NOT erasure: the
-                // persisted conversation stays intact so the customer can still
-                // see what was discussed in their chat log. The owner/admin
-                // delete path (AdminDeleteConversationAction) is what actually
-                // erases content.
-                $chatMemory->clearConversationForVisitor();
-            }
-        } else {
-            $memory->clearAllConversationsForVisitor();
+        // On a protected agent only the chatter who owns the session may clear
+        // its threads — including "clear all" — so a replayed session id
+        // cannot wipe another signed-in visitor's history.
+        if ($widgetUser !== null && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
+            return response()->json(['error' => 'Invalid session'], JsonResponse::HTTP_NOT_FOUND);
         }
+
+        $scope = new ChatScopeData($agent, $sessionId);
+
+        if ($conversationId === null) {
+            $clearSession->execute($scope);
+
+            return new WidgetAckData;
+        }
+
+        // The conversation must belong to THIS agent (and, on a protected
+        // agent, to the signed-in chatter), so faking X-AGENT-ID or
+        // X-SESSION-ID cannot clear a conversation of another agent or chatter.
+        if (! $widgetVerification->verifyConversationId($conversationId, $agent, $widgetUser)) {
+            return response()->json(['error' => 'Invalid thread'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $clearConversation->execute($scope->forConversation($conversationId));
 
         return new WidgetAckData;
     }

@@ -2,6 +2,7 @@
 
 namespace Domain\Llm\Operations\Pricing;
 
+use Domain\Llm\Data\Chat\ChatUsageData;
 use Domain\Llm\Services\TikToken;
 
 /**
@@ -26,16 +27,14 @@ class CostCalculator
     }
 
     /**
-     * Cost of one LLM call from the provider's own `usage` block
-     * (`prompt_tokens` / `completion_tokens`), which is what the provider bills.
-     *
-     * @param  array{prompt_tokens?: int|numeric-string, completion_tokens?: int|numeric-string}|null  $usage
+     * Cost of one LLM call from the token usage the provider reported, which is
+     * what the provider bills. No usage means no cost.
      */
-    public function costInCentsFromUsage(?array $usage, float $pricePerInputMilToken, float $pricePerOutputMilToken): float
+    public function costInCentsFromUsage(?ChatUsageData $usage, float $pricePerInputMilToken, float $pricePerOutputMilToken): float
     {
         return $this->costInCents(
-            inputTokens: (int) ($usage['prompt_tokens'] ?? 0),
-            outputTokens: (int) ($usage['completion_tokens'] ?? 0),
+            inputTokens: $usage->promptTokens ?? 0,
+            outputTokens: $usage->completionTokens ?? 0,
             pricePerInputMilToken: $pricePerInputMilToken,
             pricePerOutputMilToken: $pricePerOutputMilToken,
         );

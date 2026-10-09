@@ -254,6 +254,12 @@ return [
         // it stays bounded as a chat grows — older messages are dropped. Raise
         // it to give the model more follow-up context, lower it to save tokens.
         'history_messages' => (int) env('AGENT_HISTORY_MESSAGES', 3),
+
+        // The base URL each agent's Hosted Chat lives under, as
+        // `{scheme}://{sub_domain}.{host}{:port}`. Leave it empty to use
+        // APP_URL. Set it when agents are served from a different host than
+        // the dashboard (the host needs a wildcard DNS record).
+        'hosting_url' => env('AGENT_HOSTING_URL'),
     ],
 
     /*
@@ -320,6 +326,8 @@ return [
             'tables' => 'mistral-small-3.2-24b-instruct-2506',
             'chunker' => 'llama-3.1-70b-instruct',
             'title' => 'mistral-small-3.2-24b-instruct-2506',
+            // Suggests a subdomain name for a new agent (the "generate" button).
+            'subdomain' => 'mistral-small-3.2-24b-instruct-2506',
             'form_description' => 'mistral-small-3.2-24b-instruct-2506',
             'tone' => 'mistral-small-3.2-24b-instruct-2506',
             'topic' => 'mistral-small-3.2-24b-instruct-2506',

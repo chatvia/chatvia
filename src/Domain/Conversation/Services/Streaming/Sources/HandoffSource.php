@@ -2,11 +2,17 @@
 
 namespace Domain\Conversation\Services\Streaming\Sources;
 
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Generator;
 use Illuminate\Support\Str;
 
+/**
+ * Acknowledges a message sent while a human operator holds the conversation.
+ * No answer is generated: the message was already recorded and relayed to the
+ * operator before this runs.
+ */
 class HandoffSource
 {
     /**
@@ -14,7 +20,7 @@ class HandoffSource
      * to a human. No assistant content is generated — the user message has
      * already been persisted and broadcast to the admin upstream.
      *
-     * @return Generator<StreamEvent>
+     * @return Generator<int, StreamEvent>
      */
     public function events(Conversation $conversation): Generator
     {
@@ -32,7 +38,7 @@ class HandoffSource
         // conversation handle (sent back as the X-CONVERSATION-ID header), so it
         // MUST be the external UUID — never the internal PK.
         yield StreamEvent::meta($id, 'handoff', [
-            'status' => 'human',
+            'status' => HandoffStatus::Human->value,
             'conversation_id' => $conversation->external_id,
             'external_conversation_id' => $conversation->external_id,
         ]);

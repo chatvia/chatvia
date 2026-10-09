@@ -6,6 +6,9 @@ use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Set one connector tool's permission (allow / approval / blocked).
+ */
 class SetConnectorToolPermissionRequest extends FormRequest
 {
     public function authorize(): bool

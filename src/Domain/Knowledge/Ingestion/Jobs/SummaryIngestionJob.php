@@ -15,6 +15,10 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
+/**
+ * Writes the summary chunk of a source on its own queue, next to its chunk
+ * batch. See CreateSourceSummaryAction.
+ */
 class SummaryIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels, TracksTokenUsage;

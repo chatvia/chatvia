@@ -3,29 +3,27 @@
 namespace Domain\Conversation\Services\Streaming\Sources;
 
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Generator;
 use Throwable;
 
 /**
- * Streams a guardrail refusal for an input the guards blocked (prompt-injection,
- * off-topic, or toxic). Mirrors QASource's canned-answer envelope, but persists
- * via {@see ChatService::persistAssistantMessage} so a refused turn is recorded
- * in history yet NEVER billed — no LLM ran. The block itself was already logged
- * by the input guard in ChatService::initializeChatContext.
- *
- * @see QASource
+ * Streams a guardrail refusal for a message the input guards blocked
+ * (prompt injection, off-topic or toxic). Same canned-answer envelope as
+ * {@see QaSource}, but the refusal is recorded for the history only and never
+ * billed — no model ran. The block itself was already logged when the turn's
+ * context was built.
  */
 class GuardBlockSource
 {
     public function __construct(
-        private readonly ChatService $chatService,
+        private readonly AssistantReplyRecorder $replyRecorder,
     ) {}
 
     /**
-     * @return Generator<StreamEvent>
+     * @return Generator<int, StreamEvent>
      */
     public function events(ChatContext $context): Generator
     {
@@ -47,23 +45,24 @@ class GuardBlockSource
             yield StreamEvent::delta($assistantId, $refusal);
 
             $context->markEndTime();
-            $this->chatService->persistAssistantMessage($context);
+            $this->replyRecorder->recordRefusal($context);
 
             yield StreamEvent::done($assistantId, 'complete', $context->getResponseTimeMs());
         } catch (ClientDisconnected) {
-            $context->markEndTime();
-            $this->safePersist($context);
+            $this->recordAfterFailure($context);
         } catch (Throwable $e) {
-            $context->markEndTime();
-            $this->safePersist($context);
+            $this->recordAfterFailure($context);
             report($e);
         }
     }
 
-    private function safePersist(ChatContext $context): void
+    /** Keep the refusal even when the stream broke; never throw from here. */
+    private function recordAfterFailure(ChatContext $context): void
     {
+        $context->markEndTime();
+
         try {
-            $this->chatService->persistAssistantMessage($context);
+            $this->replyRecorder->recordRefusal($context);
         } catch (Throwable $e) {
             report($e);
         }

@@ -8,22 +8,24 @@ use Throwable;
 
 /**
  * Shared transport for the Meta Graph–backed channel clients (Messenger,
- * Instagram), both plain HTTP with no SDK. Holds the best-effort {@see call}
- * helper and the message {@see chunk} splitter; the Graph host, the per-message
- * character cap, and the log label vary per channel and are supplied by the
- * subclass.
+ * Instagram, WhatsApp), all plain HTTP with no SDK. Holds the best-effort
+ * {@see call} helper and the message {@see chunk} splitter; the per-message
+ * character cap and the log label vary per channel and are supplied by the
+ * subclass. Each channel posts its own message shape on top.
  *
  * Every call is best-effort: a Meta outage logs and returns a safe value rather
- * than throwing into the webhook/job path. (WhatsApp talks to the same Graph
- * host but posts a different message shape and so keeps its own client.)
+ * than throwing into the webhook/job path.
  */
 abstract class MetaGraphClient
 {
     /**
-     * The versioned Graph base URL for this channel
-     * (e.g. `https://graph.facebook.com/v25.0`).
+     * The versioned Graph base URL (e.g. `https://graph.facebook.com/v25.0`);
+     * the version comes from `services.meta.graph_version`.
      */
-    abstract protected function graphBaseUrl(): string;
+    protected function graphBaseUrl(): string
+    {
+        return 'https://graph.facebook.com/'.config('services.meta.graph_version', 'v25.0');
+    }
 
     /**
      * The platform's single-message character cap.
@@ -48,7 +50,8 @@ abstract class MetaGraphClient
 
             $response = $method === 'get'
                 ? $pending->get($this->graphBaseUrl().$path, $params)
-                : $pending->asJson()->post($this->graphBaseUrl().$path, $params);
+                // An object, so a POST without parameters sends `{}`, not `[]`.
+                : $pending->asJson()->post($this->graphBaseUrl().$path, (object) $params);
 
             $json = $response->json();
 

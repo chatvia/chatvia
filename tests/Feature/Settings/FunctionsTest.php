@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Services\TeamService;
 
@@ -49,7 +50,7 @@ it('updates basic fields', function (): void {
 
     $fresh = $fn->fresh();
     expect($fresh->description)->toBe('Brand new description');
-    expect($fresh->webhook_method)->toBe('GET');
+    expect($fresh->webhook_method)->toBe(FunctionWebhookMethod::Get);
 });
 
 it('keeps the existing secret when auth_value is left blank', function (): void {

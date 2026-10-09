@@ -3,43 +3,38 @@
 namespace Domain\Knowledge\Source\File\Actions;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Data\KnowledgeBase\KnowledgeFileData;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
+/**
+ * Lists every knowledge file of the user's workspace with the agent that uses
+ * it, for the account-wide knowledge base page. A file used by two agents is
+ * listed twice. Scoped to the workspace, not to the signed-in row, so a
+ * teammate sees the owner's files like every other surface.
+ */
 class ListUserKnowledgeFilesAction
 {
     /**
-     * @return array<int, KnowledgeFileData>
+     * @return list<KnowledgeFileData>
      */
     public function execute(User $user): array
     {
-        $data = SourceFile::query()
-            ->join('agent_sources', function ($join): void {
-                $join->on('source_files.id', '=', 'agent_sources.sourceable_id')
-                    ->where('agent_sources.sourceable_type', '=', Relation::getMorphAlias(SourceFile::class));
-            })
-            ->join('agents', 'agents.id', '=', 'agent_sources.agent_id')
-            // Workspace scope, not the logged-in row — an employee sees the
-            // workspace owner's knowledge files, matching every other surface.
-            ->where('agents.user_id', $user->workspace()->id)
-            ->select([
-                'source_files.*',
-                'agents.id as agent_id',
-                'agents.name as agent_name',
-                'agents.sub_domain as agent_sub_domain',
-            ])
+        $workspaceId = $user->workspace()->id;
+        // Used both as the whereHas filter (a query builder) and as the eager
+        // load constraint (the relation).
+        $workspaceAgents = fn (Builder|MorphToMany $agents) => $agents->where('agents.user_id', $workspaceId);
+
+        return SourceFile::query()
+            ->whereHas('agents', $workspaceAgents)
+            ->with(['agents' => $workspaceAgents])
             ->get()
-            ->map(function (SourceFile $file) {
-                $file->setAttribute('agent', (object) [
-                    'id' => $file->getAttribute('agent_id'),
-                    'name' => $file->getAttribute('agent_name'),
-                    'sub_domain' => $file->getAttribute('agent_sub_domain'),
-                ]);
-
-                return $file;
-            });
-
-        return KnowledgeFileData::fromCollection($data);
+            ->flatMap(fn (SourceFile $file): array => $file->agents
+                ->map(fn (Agent $agent): KnowledgeFileData => KnowledgeFileData::fromFile($file, $agent))
+                ->all())
+            ->values()
+            ->all();
     }
 }

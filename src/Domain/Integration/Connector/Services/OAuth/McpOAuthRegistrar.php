@@ -3,6 +3,8 @@
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Illuminate\Support\Facades\Http;
 use Support\Http\SafeUrl;
@@ -125,15 +127,18 @@ class McpOAuthRegistrar
         ]));
     }
 
+    /**
+     * Where providers send the browser back after consent.
+     */
     public function redirectUri(): string
     {
         return rtrim(config('app.url'), '/').'/connectors/oauth/callback';
     }
 
     /**
-     * Lookup helper for background flows (token refresh) that don't have a
-     * PendingOAuthState in hand. Lives here so the flow service can stay
-     * model-free and the registrar owns all DCR-cache access.
+     * The registered client for an authorization server — for background
+     * token refreshes, which have no pending flow in hand. The registrar owns
+     * every read of the registration cache.
      */
     public function findByAuthServer(string $authServerUrl): ?ConnectorOAuthClient
     {

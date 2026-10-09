@@ -33,7 +33,18 @@ trait InteractsWithMetaWebhooks
         return response('Forbidden', 403);
     }
 
-    protected function hasValidMetaSignature(Request $request, string $appSecret): bool
+    /**
+     * Whether the POST carries a valid signature from Chatvia's Meta app. An
+     * unset app secret verifies nothing.
+     */
+    protected function isSignedByMeta(Request $request): bool
+    {
+        $appSecret = (string) config('services.meta.app_secret');
+
+        return $appSecret !== '' && $this->hasValidMetaSignature($request, $appSecret);
+    }
+
+    private function hasValidMetaSignature(Request $request, string $appSecret): bool
     {
         $header = (string) $request->header('X-Hub-Signature-256');
 

@@ -5,8 +5,8 @@ namespace Domain\Channel\Instagram\Services;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Models\InstagramThread;
 use Domain\Channel\Services\ChannelConversationResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -21,10 +21,10 @@ use Illuminate\Database\Eloquent\Model;
 class InstagramThreadResolver extends ChannelConversationResolver
 {
     public function __construct(
-        ChatMemory $memory,
+        StartConversationAction $startConversation,
         private readonly InstagramClient $client,
     ) {
-        parent::__construct($memory);
+        parent::__construct($startConversation);
     }
 
     public function resolve(AgentInstagramAccount $account, string $igsid): InstagramThread

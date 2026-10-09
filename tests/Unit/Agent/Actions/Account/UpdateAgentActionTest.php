@@ -4,7 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Account\UpdateAgentAction;
 use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
-use Domain\Prompt\Models\AgentPrompt;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Support\Str;
 
 /**

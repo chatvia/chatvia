@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api\V1\Chat;
 use App\Http\Resources\Api\V1\Conversations\ConversationDetailData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Actions\Conversations\AdminDeleteConversationAction;
 use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
+use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
@@ -34,7 +34,7 @@ class ConversationController
      */
     public function show(Request $request, Agent $agent, Conversation $conversation): ConversationDetailData
     {
-        abort_unless($conversation->session->agent_id === $agent->id, 404);
+        abort_unless($conversation->belongsToAgent($agent), 404);
 
         return ConversationDetailData::fromModel($conversation);
     }
@@ -44,7 +44,7 @@ class ConversationController
      */
     public function destroy(Request $request, Agent $agent, Conversation $conversation, AdminDeleteConversationAction $deleteConversation): JsonResponse
     {
-        abort_unless($conversation->session->agent_id === $agent->id, 404);
+        abort_unless($conversation->belongsToAgent($agent), 404);
 
         $deleteConversation->execute($agent, $conversation, $request->user());
 

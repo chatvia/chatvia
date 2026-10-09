@@ -1,10 +1,10 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
-use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Services\EvalAgentRunner;
@@ -45,7 +45,7 @@ function fakeChatService(?Closure $onInit = null): ChatService
                 ($this->onInit)($data);
             }
 
-            $payload = ChatInputPayload::from([
+            $payload = UserTurnData::from([
                 'external_session_id' => $data->externalSessionId,
                 'external_conversation_id' => $data->conversationId,
                 'external_message_id' => 'eval-msg',

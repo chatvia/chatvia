@@ -7,6 +7,10 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
+/**
+ * HTTP client for the hosted chunk.fit text splitter (`services.chunkfit`).
+ * Used through ChunkFitTextSplitter when that splitter is configured.
+ */
 class ChunkFitClient
 {
     /**

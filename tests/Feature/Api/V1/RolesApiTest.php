@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
@@ -201,7 +202,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
     it('assigns a user to a role', function (): void {
         $role = makeRole($this->user, 'Support');
         $agent = makeRoleAgent($this->user, 'Bot');
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
 
         $this->withHeaders(roleHeaders($this->token))
             ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
@@ -217,7 +218,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
         $roleA = makeRole($this->user, 'A');
         $roleB = makeRole($this->user, 'B');
         $agent = makeRoleAgent($this->user, 'Bot');
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
 
         foreach ([$roleA, $roleB] as $role) {
             $this->withHeaders(roleHeaders($this->token))
@@ -234,7 +235,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
     it('forbids a workspace member without permission from assigning users to a role', function (): void {
         $role = makeRole($this->user, 'Support');
         $agent = makeRoleAgent($this->user, 'Bot');
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
         $memberToken = makeMemberToken($this->user, $this->team);
 
         $this->withHeaders(roleHeaders($memberToken))
@@ -249,7 +250,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
     it('404s when assigning through a different team in the same workspace', function (): void {
         $role = makeRole($this->user, 'Primary-team role');
         $agent = makeRoleAgent($this->user, 'Bot');
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
         $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Other team'));
 
         $this->withHeaders(roleHeaders($this->token))

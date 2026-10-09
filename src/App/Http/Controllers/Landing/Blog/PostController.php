@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers\Landing\Blog;
 
-use Illuminate\Contracts\View\Factory;
+use App\Marketing\Models\Post;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\Request;
-use Support\Cms\Marketing\Models\Post;
 
+/**
+ * One public blog post, bound by its slug.
+ */
 class PostController
 {
-    public function __invoke(Request $request, Post $post): Factory|View
+    public function __invoke(Post $post): View
     {
-        return view('landing.post', [
-            'post' => $post,
-        ]);
+        return view('landing.post', ['post' => $post]);
     }
 }

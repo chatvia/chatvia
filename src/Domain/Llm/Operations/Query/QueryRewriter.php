@@ -2,72 +2,69 @@
 
 namespace Domain\Llm\Operations\Query;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Query\RewrittenQueryData;
+use Domain\Llm\Services\LlmChat;
 use Throwable;
 
+/**
+ * Rewrites a visitor's chat message into a clearer search query and detects
+ * its language, before the knowledge-base search. Rewriting only improves
+ * retrieval, so when it is switched off (`chatvia.ai.query.rewriter.enabled`)
+ * or the call fails, the message is used unchanged.
+ */
 class QueryRewriter
 {
-    public function __construct(public LlmProviderInterface $provider) {}
+    public function __construct(
+        private readonly LlmChat $chat,
+    ) {}
 
-    /**
-     * @return array{lang: string|null, query: string}
-     */
-    public function rewrite(string $userQuery, $previousQuery = null): array
+    public function rewrite(string $userQuery, ?string $previousQuery = null): RewrittenQueryData
     {
         if (config('chatvia.ai.query.rewriter.enabled') === false) {
-            return [
-                'lang' => null,
-                'query' => $userQuery,
-            ];
+            return RewrittenQueryData::unchanged($userQuery);
         }
 
         try {
-            $response = $this->provider->completion([
-                'model' => config('chatvia.ai.query.rewriter.model'),
-                'temperature' => 0.0,
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => prompt('knowledge/rewrite-query'),
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => '
-                        User Query is: <UserQuery>'.$userQuery.'</UserQuery>.
-                        Previous Query is: <PreviousQuery>'.$previousQuery.'</PreviousQuery>.
-                    ',
-                    ],
+            $reply = $this->chat->send(new ChatRequestData(
+                model: (string) config('chatvia.ai.query.rewriter.model'),
+                messages: [
+                    ChatMessageData::system(prompt('knowledge/rewrite-query')),
+                    ChatMessageData::user(prompt('knowledge/rewrite-query-user', [
+                        'user_query' => $userQuery,
+                        'previous_query' => $previousQuery,
+                    ])),
                 ],
-            ])->json('choices.0.message.content');
+                temperature: 0.0,
+            ));
         } catch (Throwable $e) {
-            // Rewriting only improves retrieval; a failed call must not fail the chat turn.
+            // A failed rewrite must not fail the chat turn.
             report($e);
 
-            return ['lang' => null, 'query' => $userQuery];
+            return RewrittenQueryData::unchanged($userQuery);
         }
 
-        return $this->parse(is_string($response) ? $response : '', $userQuery);
+        return $this->parse($reply->content, $userQuery);
     }
 
     /**
      * The prompt asks for `<iso-639-1>|<rewritten query>`. Models do not always
      * follow it, so anything else falls back to the original query.
-     *
-     * @return array{lang: string|null, query: string}
      */
-    private function parse(string $response, string $userQuery): array
+    private function parse(string $reply, string $userQuery): RewrittenQueryData
     {
-        $response = trim($response);
+        $reply = trim($reply);
 
-        if (! str_contains($response, '|')) {
-            return ['lang' => null, 'query' => $response !== '' ? $response : $userQuery];
+        if (! str_contains($reply, '|')) {
+            return RewrittenQueryData::unchanged($reply !== '' ? $reply : $userQuery);
         }
 
-        [$lang, $query] = array_map(trim(...), explode('|', $response, 2));
+        [$language, $query] = array_map(trim(...), explode('|', $reply, 2));
 
-        return [
-            'lang' => preg_match('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $lang) === 1 ? $lang : 'en',
-            'query' => $query !== '' ? $query : $userQuery,
-        ];
+        return new RewrittenQueryData(
+            language: preg_match('/^[a-z]{2,3}(-[A-Za-z]{2,4})?$/', $language) === 1 ? $language : 'en',
+            query: $query !== '' ? $query : $userQuery,
+        );
     }
 }

@@ -4,9 +4,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Models\InstagramThread;
 use Domain\Channel\Instagram\Services\InstagramThreadResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 use Tests\Support\Instagram\FakeInstagramClient;
 
@@ -33,7 +33,7 @@ function instagramResolverAccount(): AgentInstagramAccount
 
 function instagramResolver(FakeInstagramClient $client): InstagramThreadResolver
 {
-    return new InstagramThreadResolver(app(ChatMemory::class), $client);
+    return new InstagramThreadResolver(app(StartConversationAction::class), $client);
 }
 
 it('creates a Session + Conversation + mapping on first contact', function (): void {

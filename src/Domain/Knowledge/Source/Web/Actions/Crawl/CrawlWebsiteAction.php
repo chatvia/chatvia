@@ -3,36 +3,43 @@
 namespace Domain\Knowledge\Source\Web\Actions\Crawl;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Crawler\Crawler;
+use Domain\Knowledge\Source\Web\Services\Firecrawl;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Finalises FireCrawl discovery: narrows the discovered pages to the ingest set
- * and persists one URL row per page. Invoked by WebsiteCrawlerJob once `/map`
- * returns; each page is scraped later, when its URL is trained.
+ * Discovers a website's pages and stores one URL row per page to train.
+ *
+ * FireCrawl's synchronous `/map` returns the site's links in one call. The
+ * whole site is mapped (not only the seed's path, which would find nothing for
+ * a deep link on a site that keeps its default language at the root), and the
+ * include/exclude path globs are applied here, locally. Each page is scraped
+ * later, when its URL is trained.
  */
 class CrawlWebsiteAction
 {
     public function __construct(
+        private readonly Firecrawl $firecrawl,
         private readonly Crawler $crawler,
     ) {}
 
-    /**
-     * @param  array<string, string>  $pages  url => markdown (markdown is '' for `/map` discovery)
-     * @param  int  $startedAt  epoch seconds discovery was kicked off, for the duration figure
-     */
-    public function execute(
-        SourceWebsite $website,
-        CrawlerData $data,
-        array $pages,
-        Agent $agent,
-        int $startedAt,
-        ?string $internalJobId = null,
-    ): void {
-        $selected = $this->crawler->filterPages($data, $pages);
+    public function execute(SourceWebsite $website, CrawlerData $data, Agent $agent, ?string $internalJobId = null): void
+    {
+        $startedAt = time();
+
+        $links = $this->firecrawl->map(
+            $this->crawler->rootUrl($data->url),
+            $data->country,
+            $data->languages,
+            $data->limit ?? Crawler::DEFAULT_LIMIT,
+        );
+
+        // `/map` yields URLs only, so every page maps to empty Markdown.
+        $selected = $this->crawler->filterPages($data, array_fill_keys($links, ''));
 
         // Idempotent: a retried job or a re-crawl must not stack duplicate URL
         // rows on top of a previous discovery. One transaction, so a failure
@@ -41,7 +48,7 @@ class CrawlWebsiteAction
             $website->urls()->delete();
 
             $website->update([
-                'status' => 'crawled',
+                'status' => SourceStatus::Crawled,
                 'took_in_seconds' => max(1, time() - $startedAt),
                 'internal_ingestion_job_id' => $internalJobId,
             ]);
@@ -53,6 +60,6 @@ class CrawlWebsiteAction
 
         $website->refresh();
 
-        WebsiteCrawlStarted::dispatch($website, $agent);
+        WebsiteCrawlStarted::dispatch($website, $agent->external_id);
     }
 }

@@ -8,6 +8,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Deletes a custom team role. Only the owner may; the owner and admin roles
+ * are protected, and a role that members still hold is refused with a flash.
+ */
 class TeamRoleDeleteController
 {
     public function __invoke(
@@ -16,24 +20,18 @@ class TeamRoleDeleteController
         int $roleId,
         DeleteTeamRoleAction $delete,
     ): RedirectResponse {
-        $user = $request->user();
+        abort_if($request->user()->cannot('update', $team), 403, __('Only the team owner can delete roles.'));
 
-        if ($user->cannot('update', $team)) {
-            abort(403, 'Only the team owner can delete roles.');
-        }
+        $role = $team->roles()->findOrFail($roleId);
 
-        $roleModel = $team->roles()->findOrFail($roleId);
-
-        if (in_array($roleModel->code, ['owner', 'admin'])) {
-            abort(403, 'Cannot delete the owner or admin role.');
-        }
+        abort_if($role->isProtected(), 403, __('Cannot delete the owner or admin role.'));
 
         try {
-            $delete->execute($team, $roleModel);
+            $delete->execute($team, $role);
         } catch (DomainValidationException $e) {
             return back()->with('error', $e->getMessage());
         }
 
-        return back()->with('success', 'Role deleted successfully.');
+        return back()->with('success', __('Role deleted successfully.'));
     }
 }

@@ -5,6 +5,10 @@ namespace Domain\Membership\Team\Data\Resources\Permissions;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * Label, tooltip and prerequisites of one permission code, built from
+ * config('team-permissions.permissions').
+ */
 #[TypeScript]
 class PermissionMetaData extends Data
 {

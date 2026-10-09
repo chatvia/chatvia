@@ -3,10 +3,13 @@
 namespace App\Http\Requests\Billing;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Data\BillingAddressData;
-use Domain\Billing\Data\UpdateBillingInformationData;
+use Domain\Billing\Data\Account\BillingAddressData;
+use Domain\Billing\Data\Account\UpdateBillingInformationData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * The billing details form: name, email and postal address.
+ */
 class UpdateBillingInformationRequest extends FormRequest
 {
     public function authorize(): bool

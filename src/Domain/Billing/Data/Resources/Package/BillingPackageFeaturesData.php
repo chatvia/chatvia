@@ -6,6 +6,9 @@ use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The marketing feature lists of a plan, per billing cycle.
+ */
 #[TypeScript]
 class BillingPackageFeaturesData extends Data
 {

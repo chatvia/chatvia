@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings\Account;
 
 use App\Http\Requests\Settings\Account\RequestDataExportRequest;
+use App\Identity\Workspace\Actions\DataExport\DeleteDataExportAction;
 use App\Identity\Workspace\Actions\DataExport\RequestDataExportAction;
 use App\Identity\Workspace\Enums\DataExportStatus;
 use App\Identity\Workspace\Exceptions\ActiveDataExportExistsException;
@@ -18,6 +19,11 @@ use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
+/**
+ * The GDPR data export page: shows the current export, starts a new one,
+ * downloads a ready ZIP and deletes an export. Only the owner of an export may
+ * download or delete it (see DataExportPolicy).
+ */
 class DataExportController
 {
     public function edit(Request $request): Response
@@ -63,7 +69,7 @@ class DataExportController
             $action->execute($request->toData());
         } catch (ActiveDataExportExistsException) {
             return back()->withErrors([
-                'data_export' => 'You already have a data export being prepared or ready to download.',
+                'data_export' => __('You already have a data export being prepared or ready to download.'),
             ]);
         }
 
@@ -81,17 +87,13 @@ class DataExportController
         return Storage::disk('local')->download($export->file_path, $filename);
     }
 
-    public function destroy(DataExport $export): RedirectResponse
+    public function destroy(DataExport $export, DeleteDataExportAction $deleteExport): RedirectResponse
     {
         if (Gate::denies('delete', $export)) {
             throw new AccessDeniedHttpException;
         }
 
-        if ($export->file_path) {
-            Storage::disk('local')->delete($export->file_path);
-        }
-
-        $export->delete();
+        $deleteExport->execute($export);
 
         return back()->with('status', 'data-export-deleted');
     }

@@ -4,6 +4,7 @@ namespace Domain\Evaluation\Models;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -20,7 +21,7 @@ use Support\Concerns\HasExternalId;
  * with failed cases is still closed.
  *
  * @property string $external_id
- * @property string $status
+ * @property EvalRunStatus $status
  * @property int|null $agent_id
  * @property float|null $avg_score
  * @property Carbon|null $started_at
@@ -31,12 +32,6 @@ use Support\Concerns\HasExternalId;
 class EvalRun extends Model
 {
     use HasExternalId;
-
-    public const STATUS_RUNNING = 'running';
-
-    public const STATUS_COMPLETED = 'completed';
-
-    public const STATUS_FAILED = 'failed';
 
     /**
      * @return BelongsTo<Agent, $this>
@@ -80,6 +75,7 @@ class EvalRun extends Model
     protected function casts(): array
     {
         return [
+            'status' => EvalRunStatus::class,
             'avg_score' => 'float',
             'started_at' => 'datetime',
             'finished_at' => 'datetime',

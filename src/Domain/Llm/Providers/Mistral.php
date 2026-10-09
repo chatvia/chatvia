@@ -4,6 +4,10 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 
+/**
+ * Chat completions through Mistral's API. Mistral can read a whole PDF passed
+ * by URL, so it is also the document-reading LLM (see DocumentLlm).
+ */
 class Mistral extends AbstractLlmProvider
 {
     /**

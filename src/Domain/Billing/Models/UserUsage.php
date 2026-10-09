@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * What one credit cycle used: messages charged (the billing counter) and LLM
+ * tokens (analytics only).
+ *
  * @property int $id
  * @property int $user_credit_id
  * @property int $messages

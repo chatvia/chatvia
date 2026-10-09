@@ -5,6 +5,9 @@ namespace Domain\Billing\Data\Resources\Subscription;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * Unexpired extra messages, bought by hand and by auto-recharge.
+ */
 #[TypeScript]
 class BillingAddonMessageCreditsData extends Data
 {

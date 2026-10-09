@@ -3,9 +3,9 @@
      Pass `class` for the <address> element. --}}
 @php
     $companyLines = array_values(array_filter([
-        \Support\Cms\Marketing\CompanyDetails::name(),
-        ...\Support\Cms\Marketing\CompanyDetails::addressLines(),
-        \Support\Cms\Marketing\CompanyDetails::vatId() !== null ? 'VAT '.\Support\Cms\Marketing\CompanyDetails::vatId() : null,
+        \App\Marketing\CompanyDetails::name(),
+        ...\App\Marketing\CompanyDetails::addressLines(),
+        \App\Marketing\CompanyDetails::vatId() !== null ? 'VAT '.\App\Marketing\CompanyDetails::vatId() : null,
     ]));
 @endphp
 @if ($companyLines !== [])

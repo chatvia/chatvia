@@ -3,28 +3,24 @@
 namespace App\Http\Controllers\Billing\Checkout;
 
 use App\Http\Controllers\Billing\Checkout\Concerns\RunsAddonCheckout;
-use App\Identity\Workspace\Models\User;
-use Domain\Billing\Actions\Subscriptions\SubscribeRemoveBrandingAction;
+use App\Http\Requests\Billing\SubscribeRemoveBrandingRequest;
+use Domain\Billing\Actions\Addons\SubscribeAddonAction;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Laravel\Cashier\Checkout;
 
 /**
- * Starts a Stripe checkout for the Remove Branding add-on.
+ * Starts a Stripe checkout for the Remove Branding add-on. No checkout is
+ * needed when the add-on is already active.
  */
 class CheckoutRemoveBrandingController
 {
     use RunsAddonCheckout;
 
-    public function __invoke(Request $request, SubscribeRemoveBrandingAction $action): Checkout|RedirectResponse
+    public function __invoke(SubscribeRemoveBrandingRequest $request, SubscribeAddonAction $subscribe): Checkout|RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        // No checkout when the add-on is already active.
         return $this->runAddonCheckout(
-            fn (): ?Checkout => $action->execute($user),
-            'Branding is already removed.',
+            fn (): ?Checkout => $subscribe->execute($request->toData()),
+            __('Branding is already removed.'),
         );
     }
 }

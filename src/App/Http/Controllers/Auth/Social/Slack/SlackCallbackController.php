@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Auth\Social\Slack;
 
-use App\Identity\Workspace\Social\SocialOauthCallback;
+use App\Http\Auth\SocialOauthCallback;
 use Illuminate\Http\RedirectResponse;
 use Support\Enums\User\SocialProvider;
 
+/**
+ * Slack's OAuth return URL; the shared SocialOauthCallback does the work.
+ */
 class SlackCallbackController
 {
     public function __invoke(SocialOauthCallback $callback): RedirectResponse

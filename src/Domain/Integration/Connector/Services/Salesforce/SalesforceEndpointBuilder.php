@@ -3,6 +3,8 @@
 namespace Domain\Integration\Connector\Services\Salesforce;
 
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
+use Domain\Integration\Connector\Data\Salesforce\SalesforceOrgData;
+use Domain\Integration\Connector\Enums\SalesforceEnvironment;
 
 /**
  * Derives the Salesforce Hosted MCP server URL + OAuth endpoints from a
@@ -14,7 +16,7 @@ use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 class SalesforceEndpointBuilder
 {
     /** The Hosted MCP servers a workspace can connect (path suffix = server name). */
-    public const SERVERS = [
+    public const array SERVERS = [
         'sobject-all',
         'sobject-reads',
         'invocable-actions',
@@ -24,27 +26,22 @@ class SalesforceEndpointBuilder
         'tableau-next',
     ];
 
-    public function build(
-        string $clientId,
-        ?string $clientSecret,
-        string $environment,
-        ?string $myDomain,
-        string $server,
-    ): BringYourOwnOAuthData {
-        $isSandbox = $environment === 'sandbox';
+    public function build(SalesforceOrgData $org): BringYourOwnOAuthData
+    {
+        $isSandbox = $org->environment === SalesforceEnvironment::Sandbox;
 
         // OAuth login host: the org's My Domain if given (required for orgs that
         // enforce it), else the generic prod/sandbox login host.
-        $loginHost = $myDomain !== null && trim($myDomain) !== ''
-            ? rtrim(trim($myDomain), '/')
+        $loginHost = $org->myDomain !== null && trim($org->myDomain) !== ''
+            ? rtrim(trim($org->myDomain), '/')
             : ($isSandbox ? 'https://test.salesforce.com' : 'https://login.salesforce.com');
 
         $segment = $isSandbox ? 'sandbox' : 'platform';
 
         return new BringYourOwnOAuthData(
-            clientId: $clientId,
-            clientSecret: $clientSecret !== null && trim($clientSecret) !== '' ? trim($clientSecret) : null,
-            mcpUrl: "https://api.salesforce.com/platform/mcp/v1/{$segment}/{$server}",
+            clientId: $org->clientId,
+            clientSecret: $org->clientSecret !== null && trim($org->clientSecret) !== '' ? trim($org->clientSecret) : null,
+            mcpUrl: "https://api.salesforce.com/platform/mcp/v1/{$segment}/{$org->server}",
             authServerUrl: $loginHost,
             authorizationEndpoint: $loginHost.'/services/oauth2/authorize',
             tokenEndpoint: $loginHost.'/services/oauth2/token',

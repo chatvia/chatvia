@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 
+/**
+ * Shows (or, with `?download=1`, downloads) the stored file behind a file,
+ * text or website source of the caller's workspace, streamed from storage.
+ */
 class SourceFileViewController
 {
     public function __invoke(Request $request, string $type, string $externalId)
@@ -35,7 +39,7 @@ class SourceFileViewController
             ->first();
 
         if (! $record?->filepath) {
-            abort(404, 'Invalid source file.');
+            abort(404, __('Invalid source file.'));
         }
 
         // Tenant isolation lives in the source policies (view → workspace
@@ -46,13 +50,13 @@ class SourceFileViewController
         $filepath = $record->filepath;
 
         if (! Storage::exists($filepath)) {
-            abort(404, 'File not found.');
+            abort(404, __('File not found.'));
         }
 
         $stream = Storage::readStream($filepath);
 
         if ($stream === false) {
-            abort(404, 'File not found.');
+            abort(404, __('File not found.'));
         }
 
         $filename = basename($filepath);

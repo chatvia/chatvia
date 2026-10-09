@@ -8,7 +8,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Attach / detach account-level functions to a specific agent.
@@ -21,7 +20,7 @@ class AgentFunctionAttachmentController
      *
      * @return array{data: list<FunctionData>}
      */
-    public function index(Request $request, Agent $agent): array
+    public function index(Agent $agent): array
     {
         return ['data' => $agent->functions()->get()
             ->map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f))->all()];
@@ -45,7 +44,7 @@ class AgentFunctionAttachmentController
     /**
      * Detach function from agent
      */
-    public function destroy(Request $request, Agent $agent, string $function): JsonResponse
+    public function destroy(Agent $agent, string $function): JsonResponse
     {
         $agent->detachFunction($this->resolveFunction($agent, $function));
 

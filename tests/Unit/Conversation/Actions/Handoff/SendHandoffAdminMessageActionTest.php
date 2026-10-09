@@ -1,14 +1,18 @@
 <?php
 
+use App\Http\Resources\Handoff\HandoffMessageResultPayloadData;
 use App\Identity\Workspace\Models\User;
+use Domain\Conversation\Actions\Activity\MarkMessagesReadAction;
 use Domain\Conversation\Actions\Handoff\SendHandoffAdminMessageAction;
-use Domain\Conversation\Data\Handoff\HandoffMessageResultPayloadData;
 use Domain\Conversation\Data\Handoff\SendHandoffAdminMessageData;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\HandoffStatus;
+use Domain\Conversation\Enums\MessageReader;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Event;
 
 /**
@@ -34,7 +38,7 @@ function handoffMessageSetup(): array
     $conversation = Conversation::factory()->withoutTitle()->create([
         'chat_session_id' => $session->id,
         'source' => ConversationSource::Widget,
-        'handoff_status' => 'human',
+        'handoff_status' => HandoffStatus::Human,
         'handoff_user_id' => $owner->id,
     ]);
 
@@ -48,10 +52,11 @@ it('stores the reply under the same external id it caches and broadcasts', funct
         new SendHandoffAdminMessageData($conversation, $owner, 'Hi, I can help.'),
     );
 
-    expect($message)->not->toBeNull();
+    expect($message)->not->toBeNull()
+        ->and($message->role)->toBe(MessageRole::Operator);
 
     Event::assertDispatched(MessagePosted::class, fn (MessagePosted $e): bool => $e->messageId === $message->external_id
-        && $e->role === 'agent');
+        && $e->role === MessageRole::Operator->value);
 });
 
 it('persists the visitor read receipt for the operator reply', function (): void {
@@ -61,9 +66,10 @@ it('persists the visitor read receipt for the operator reply', function (): void
         new SendHandoffAdminMessageData($conversation, $owner, 'Hi, I can help.'),
     );
 
-    $marked = app(ChatMemory::class)
-        ->withContext($conversation->session->agent, $session->external_id, $conversation->external_id)
-        ->markMessagesAsRead('user');
+    $marked = app(MarkMessagesReadAction::class)->execute(
+        new ChatScopeData($conversation->session->agent, $session->external_id, $conversation->external_id),
+        MessageReader::Visitor,
+    );
 
     expect($marked)->toBe(1)
         ->and($message->fresh()->read_at)->not->toBeNull();

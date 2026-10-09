@@ -5,6 +5,10 @@ namespace App\Http\Requests\Agent\Form;
 use Domain\Form\Data\RewriteFormDescriptionData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Ask the LLM to rewrite a form's "when to show this form" instruction. The
+ * form does not have to be saved yet, so its name and type come along.
+ */
 class RewriteFormDescriptionRequest extends FormRequest
 {
     public function authorize(): bool

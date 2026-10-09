@@ -3,35 +3,41 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\UpdateSecurityPolicyAction;
 use Domain\Security\Data\SecurityActorData;
-use Domain\Security\Data\WorkspaceSecurityPolicyData;
+use Domain\Security\Data\SecurityPolicyFormData;
+use Domain\Security\Enums\GeoMode;
+use Domain\Security\Enums\IpAllowlistMode;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Event;
 
+beforeEach(function (): void {
+    // Billing off turns every plan capability on, the SIEM webhook included.
+    config(['billing.enabled' => false]);
+});
+
 function policyActor(User $user): SecurityActorData
 {
     return SecurityActorData::forUser($user, '203.0.113.7', 'TestAgent/1.0');
 }
 
-it('persists the workspace policy and encrypts the webhook secret', function (): void {
+it('persists the form settings and encrypts the webhook secret', function (): void {
     Event::fake([SecurityEventOccurred::class]);
     $user = User::factory()->create();
 
-    $policy = app(UpdateSecurityPolicyAction::class)->execute(
+    app(UpdateSecurityPolicyAction::class)->execute(
         $user,
-        new WorkspaceSecurityPolicyData(
+        new SecurityPolicyFormData(
             retention_conversations_days: 60,
             retention_audit_days: 120,
-            ip_allowlist_mode: 'dashboard',
+            ip_allowlist_mode: IpAllowlistMode::Dashboard,
             ip_allowlist: ['203.0.113.0/24', '198.51.100.7'],
-            geo_mode: 'allow',
-            geo_countries: ['AE', 'SA'],
+            geo_mode: GeoMode::Allow,
+            geo_countries: ['ae', 'sa'],
             webhook_url: 'https://hooks.example.com/siem',
             webhook_secret: 'shh-secret',
             webhook_enabled: true,
-            scim_enabled: true,
         ),
         policyActor($user),
     );
@@ -41,13 +47,50 @@ it('persists the workspace policy and encrypts the webhook secret', function ():
     expect((int) $fresh->workspace_id)->toBe($user->id)
         ->and($fresh->retention_conversations_days)->toBe(60)
         ->and($fresh->retention_audit_days)->toBe(120)
-        ->and($fresh->ip_allowlist_mode)->toBe('dashboard')
+        ->and($fresh->ip_allowlist_mode)->toBe(IpAllowlistMode::Dashboard)
         ->and($fresh->ip_allowlist)->toBe(['203.0.113.0/24', '198.51.100.7'])
-        ->and($fresh->geo_mode)->toBe('allow')
-        ->and($fresh->geo_countries)->toBe(['AE', 'SA'])
+        ->and($fresh->geo_mode)->toBe(GeoMode::Allow)
+        ->and($fresh->geo_countries)->toBe(['ae', 'sa'])
         ->and($fresh->webhook_enabled)->toBeTrue()
-        ->and($fresh->scim_enabled)->toBeTrue()
         ->and($fresh->webhook_secret)->toBe('shh-secret'); // decrypted by the cast
+});
+
+it('keeps the settings the form does not own', function (): void {
+    $user = User::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($user->id)->update([
+        'retention_leads_days' => 90,
+        'anonymize_after_days' => 30,
+        'webhook_events' => ['auth.login'],
+        'scim_enabled' => true,
+    ]);
+
+    app(UpdateSecurityPolicyAction::class)->execute($user, new SecurityPolicyFormData(retention_audit_days: 200), policyActor($user));
+
+    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->id);
+
+    expect($fresh->retention_leads_days)->toBe(90)
+        ->and($fresh->anonymize_after_days)->toBe(30)
+        ->and($fresh->webhook_events)->toBe(['auth.login'])
+        ->and($fresh->scim_enabled)->toBeTrue()
+        ->and($fresh->retention_audit_days)->toBe(200);
+});
+
+it('keeps the stored webhook when the plan has no SIEM webhook', function (): void {
+    config(['billing.enabled' => true]);
+    $user = User::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($user->id)->update(['webhook_url' => 'https://old.example.com/siem']);
+
+    app(UpdateSecurityPolicyAction::class)->execute(
+        $user,
+        new SecurityPolicyFormData(webhook_url: 'https://new.example.com/siem', webhook_secret: 'shh', webhook_enabled: true),
+        policyActor($user),
+    );
+
+    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->id);
+
+    expect($fresh->webhook_url)->toBe('https://old.example.com/siem')
+        ->and($fresh->webhook_enabled)->toBeFalse()
+        ->and($fresh->webhook_secret)->toBeNull();
 });
 
 it('emits a category-specific audit event per changed group', function (): void {
@@ -56,10 +99,10 @@ it('emits a category-specific audit event per changed group', function (): void 
 
     app(UpdateSecurityPolicyAction::class)->execute(
         $user,
-        new WorkspaceSecurityPolicyData(
+        new SecurityPolicyFormData(
             retention_conversations_days: 30,
-            ip_allowlist_mode: 'dashboard',
-            scim_enabled: true,
+            ip_allowlist_mode: IpAllowlistMode::Dashboard,
+            webhook_enabled: true,
         ),
         policyActor($user),
     );
@@ -75,7 +118,7 @@ it('never leaks the webhook secret into audit metadata, only a rotation flag', f
 
     app(UpdateSecurityPolicyAction::class)->execute(
         $user,
-        new WorkspaceSecurityPolicyData(webhook_secret: 'shh-secret'),
+        new SecurityPolicyFormData(webhook_secret: 'shh-secret'),
         policyActor($user),
     );
 
@@ -91,7 +134,7 @@ it('rejects a non-https webhook URL (SSRF guard)', function (): void {
 
     expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
         $user,
-        new WorkspaceSecurityPolicyData(webhook_url: 'http://hooks.example.com/siem'),
+        new SecurityPolicyFormData(webhook_url: 'http://hooks.example.com/siem'),
         policyActor($user),
     ))->toThrow(UnsafeWebhookUrlException::class);
 });
@@ -102,7 +145,7 @@ it('rejects a webhook URL pointing at an internal address (SSRF guard)', functio
 
     expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
         $user,
-        new WorkspaceSecurityPolicyData(webhook_url: $url),
+        new SecurityPolicyFormData(webhook_url: $url),
         policyActor($user),
     ))->toThrow(UnsafeWebhookUrlException::class);
 

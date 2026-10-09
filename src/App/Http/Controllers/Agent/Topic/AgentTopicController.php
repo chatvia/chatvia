@@ -17,6 +17,12 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Support\Exceptions\SystemTopicProtectedException;
 
+/**
+ * The agent's topics page: lists the agent's topics (or every topic the
+ * workspace may attach), attaches or creates one, renames one, and removes
+ * one from the agent. Access to the agent and the `agent.topics.manage`
+ * permission are checked by route middleware.
+ */
 class AgentTopicController
 {
     public function index(Request $request, Agent $agent): Response|JsonResponse
@@ -68,7 +74,7 @@ class AgentTopicController
 
             $attach->execute($agent, $topic);
 
-            return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
+            return response()->json(['message' => __('Topic added successfully'), 'topic' => $topic]);
         }
 
         $topic = $createTopic->execute(
@@ -77,7 +83,7 @@ class AgentTopicController
             (string) $request->validated('description'),
         );
 
-        return response()->json(['message' => 'Topic created successfully', 'topic' => $topic]);
+        return response()->json(['message' => __('Topic created successfully'), 'topic' => $topic]);
     }
 
     public function update(
@@ -86,11 +92,7 @@ class AgentTopicController
         Topic $topic,
         UpdateTopicAction $updateTopic,
     ): JsonResponse {
-        abort_unless(
-            $agent->topics()->where('topics.id', $topic->id)->exists(),
-            404,
-            'Topic not found for this agent',
-        );
+        abort_unless($agent->topics()->where('topics.id', $topic->id)->exists(), 404, __('Topic not found for this agent'));
 
         try {
             $updateTopic->execute(
@@ -105,25 +107,18 @@ class AgentTopicController
             return response()->json(['message' => $e->getMessage()], 403);
         }
 
-        return response()->json(['message' => 'Topic updated successfully', 'topic' => $topic]);
+        return response()->json(['message' => __('Topic updated successfully'), 'topic' => $topic]);
     }
 
     public function destroy(
-        Request $request,
         Agent $agent,
         Topic $topic,
         DetachTopicFromAgentAction $detach,
     ): JsonResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        abort_unless(
-            $agent->topics()->where('topics.id', $topic->id)->exists(),
-            404,
-            'Topic not found for this agent',
-        );
+        abort_unless($agent->topics()->where('topics.id', $topic->id)->exists(), 404, __('Topic not found for this agent'));
 
         $detach->execute($agent, $topic);
 
-        return response()->json(['message' => 'Topic removed successfully']);
+        return response()->json(['message' => __('Topic removed successfully')]);
     }
 }

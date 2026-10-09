@@ -2,8 +2,8 @@
 
 namespace Domain\Billing\Contracts;
 
-use App\Identity\Workspace\Concerns\InteractsWithWorkspaceQuotas;
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Concerns\InteractsWithWorkspaceQuotas;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Billing\Services\Entitlements\StripeEntitlements;
 use Domain\Billing\Services\Entitlements\UnlimitedEntitlements;

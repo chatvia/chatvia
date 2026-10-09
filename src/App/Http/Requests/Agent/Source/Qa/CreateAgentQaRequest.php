@@ -2,17 +2,24 @@
 
 namespace App\Http\Requests\Agent\Source\Qa;
 
+use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a new curated Q&A entry for an agent and turns it into a
+ * QaEntryData. Access to the agent and the `agent.sources.train.qa` permission
+ * are checked by the route middleware.
+ */
 class CreateAgentQaRequest extends FormRequest
 {
     use AgentQaRequestRules;
 
+    /**
+     * Access to the agent is checked by the route middleware.
+     */
     public function authorize(): bool
     {
-        $agent = $this->route('agent');
-
-        return $agent !== null && $this->user()?->can('update', $agent);
+        return true;
     }
 
     /**
@@ -21,5 +28,10 @@ class CreateAgentQaRequest extends FormRequest
     public function rules(): array
     {
         return $this->qaRules();
+    }
+
+    public function toData(): QaEntryData
+    {
+        return $this->qaEntryData();
     }
 }

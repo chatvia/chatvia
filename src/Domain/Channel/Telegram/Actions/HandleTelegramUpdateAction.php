@@ -2,70 +2,49 @@
 
 namespace Domain\Channel\Telegram\Actions;
 
+use Domain\Channel\Actions\HandleChannelMessageAction;
 use Domain\Channel\Services\ChannelAccessGate;
-use Domain\Channel\Services\ChannelLocale;
+use Domain\Channel\Services\Replies\TypingReplyStrategy;
 use Domain\Channel\Telegram\Jobs\HandleTelegramUpdateJob;
-use Domain\Channel\Telegram\Models\AgentTelegramBot;
-use Domain\Channel\Telegram\Services\TelegramChatResolver;
-use Domain\Channel\Telegram\Services\TelegramClient;
+use Domain\Channel\Telegram\Services\TelegramAdapter;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
-use Domain\Channel\Telegram\Services\TelegramReplyRunner;
 
 /**
- * Handles one inbound Telegram text message end to end: resolve the chat's
- * Session + Conversation, run the agent through the real pipeline to get a reply,
- * and send it back. Invoked off the webhook via {@see HandleTelegramUpdateJob}.
+ * Handles one inbound Telegram text message end to end. The same turn as
+ * {@see HandleChannelMessageAction}, plus Telegram's slash commands: once the
+ * chat's Session + Conversation are resolved, a command may answer with a
+ * canned message (no LLM, no billing) or swap the text for its prompt.
+ * Invoked off the webhook via {@see HandleTelegramUpdateJob}.
  *
- * Messaging channels are for PUBLIC agents only: a Telegram sender is anonymous
- * and can't satisfy a protected agent's access model. Connecting is blocked for
- * protected agents at the controller; this is the runtime backstop for an agent
- * flipped to protected after it was already connected.
+ * Messaging channels are for PUBLIC agents only ({@see ChannelAccessGate}).
  */
 class HandleTelegramUpdateAction
 {
-    /** Shown in the channel's own name, so every channel shares one translation. */
-    private const CHANNEL_NAME = 'Telegram';
-
     public function __construct(
-        private readonly TelegramChatResolver $resolver,
-        private readonly TelegramReplyRunner $runner,
-        private readonly TelegramClient $client,
         private readonly ChannelAccessGate $gate,
+        private readonly TypingReplyStrategy $replies,
         private readonly TelegramCommandRouter $commands,
     ) {}
 
-    /**
-     * @param  array{first_name?: string|null, username?: string|null}  $from
-     */
-    public function execute(AgentTelegramBot $bot, string $chatId, string $text, array $from = []): void
+    public function execute(TelegramAdapter $channel, string $text): void
     {
-        // Protected agents are never answered on Telegram (defence in depth).
-        if (! $this->gate->allows($bot->agent, fn () => $this->client->sendMessage($bot->bot_token, $chatId, ChannelLocale::text($bot->agent, 'This assistant isn’t available on :channel right now.', ['channel' => self::CHANNEL_NAME])))) {
+        if (! $this->gate->allows($channel)) {
             return;
         }
 
-        $chat = $this->resolver->resolve($bot, $chatId, $from);
+        $chat = $channel->resolveConversation();
 
         // A slash command resolves to either a canned message (sent directly — no
         // LLM, no billing) or a prompt to run through the agent. A plain message,
         // or an unknown /command, returns null and runs the pipeline as-is.
-        $outcome = $this->commands->handle($bot, $chat, $text, $from);
+        $outcome = $this->commands->handle($channel->bot(), $chat, $text, $channel->sender());
 
         if ($outcome !== null && ! $outcome->runThroughAgent) {
-            $this->client->sendMessage($bot->bot_token, $chatId, $outcome->text);
-            $chat->forceFill(['last_message_at' => now()])->save();
-
-            return;
+            $channel->sendMessage($outcome->text);
+        } else {
+            $this->replies->deliver($channel, $chat, $outcome?->text ?? $text);
         }
 
-        // Either a prompt-mode command (run its prompt) or a normal turn (the
-        // original text). Instant "typing…" while the agent (RAG + LLM) works.
-        $this->client->sendChatAction($bot->bot_token, $chatId);
-
-        $reply = $this->runner->reply($chat, $outcome?->text ?? $text);
-
-        $this->client->sendMessage($bot->bot_token, $chatId, $reply);
-
-        $chat->forceFill(['last_message_at' => now()])->save();
+        $chat->markReplied();
     }
 }

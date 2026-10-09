@@ -9,6 +9,11 @@ use App\Identity\Workspace\Jobs\PrepareDataExportJob;
 use App\Identity\Workspace\Models\DataExport;
 use Illuminate\Support\Str;
 
+/**
+ * Starts a GDPR data export: records it and queues the job that builds the
+ * ZIP. Refused while another export is still being prepared or can be
+ * downloaded.
+ */
 class RequestDataExportAction
 {
     public function execute(RequestDataExportData $data): DataExport

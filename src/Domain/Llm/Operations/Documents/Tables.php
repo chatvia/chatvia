@@ -2,34 +2,33 @@
 
 namespace Domain\Llm\Operations\Documents;
 
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Services\LlmChat;
 
+/**
+ * Turns the Markdown tables found on a document page into plain prose, so the
+ * table content can be embedded and found by search (model:
+ * `chatvia.ai.models.tables`).
+ */
 class Tables
 {
     public function __construct(
-        public LlmProviderInterface $provider
+        private readonly LlmChat $chat,
     ) {}
 
+    /**
+     * @param  list<string>  $tables  Markdown tables
+     */
     public function describe(array $tables): string
     {
-        $tables = collect($tables)->implode("\n\n");
-
-        $prompt = prompt('tables/describe', [
-            'tables' => $tables,
-        ]);
-
-        $response = $this->provider->completion([
-            'model' => config('chatvia.ai.models.tables'),
-            'temperature' => 0.0,
-            'max_tokens' => 512,
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => $prompt,
-                ],
+        return $this->chat->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.tables'),
+            messages: [
+                ChatMessageData::user(prompt('tables/describe', ['tables' => implode("\n\n", $tables)])),
             ],
-        ])->json();
-
-        return $response['choices'][0]['message']['content'];
+            temperature: 0.0,
+            maxTokens: 512,
+        ))->content;
     }
 }

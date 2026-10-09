@@ -2,8 +2,8 @@
 
 namespace Domain\Knowledge\Source\Web\Actions\Crawl;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
@@ -15,15 +15,25 @@ use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
 use Throwable;
 
+/**
+ * Adds a website as a knowledge source of an agent and starts discovering its
+ * pages (see {@see WebsiteCrawlerJob}).
+ *
+ * The seed URL is fetched once from our own servers to follow its redirect,
+ * so this is an SSRF surface: the URL and any redirect target must be public,
+ * redirects are never followed by the client, and the request connects to the
+ * exact address that was checked. The website is keyed to the agent's owner,
+ * so it belongs to the workspace, not to the teammate who added it.
+ */
 class StartAgentWebsiteCrawlAction
 {
     /**
      * @throws DomainValidationException
      */
-    public function execute(Agent $agent, User $user, CrawlerData $data): SourceWebsite
+    public function execute(Agent $agent, CrawlerData $data): SourceWebsite
     {
         if ($agent->websites()->where('url', $data->url)->exists()) {
-            throw new DomainValidationException('url', 'This website has already been added to this agent.');
+            throw new DomainValidationException('url', __('This website has already been added to this agent.'));
         }
 
         // SSRF guard on the seed URL before any server-side fetch. The probe
@@ -38,10 +48,10 @@ class StartAgentWebsiteCrawlAction
                 ->get($data->url)
                 ->throw();
         } catch (UnsafeUrlException $e) {
-            throw new DomainValidationException('url', 'This URL is not allowed.');
+            throw new DomainValidationException('url', __('This URL is not allowed.'));
         } catch (Throwable $throwable) {
             report($throwable);
-            throw new DomainValidationException('url', 'Failed to fetch the website. Please check the URL and try again.');
+            throw new DomainValidationException('url', __('Failed to fetch the website. Please check the URL and try again.'));
         }
 
         if ($response->redirect()) {
@@ -59,7 +69,7 @@ class StartAgentWebsiteCrawlAction
                 // Knowledge belongs to the workspace, not whoever crawled it — key to
                 // the agent's owner so an employee's deletion can't cascade it away.
                 'user_id' => $agent->user_id,
-                'status' => 'crawling',
+                'status' => SourceStatus::Crawling,
                 'options' => $data->exclude('url')->toArray(),
             ]);
 
@@ -68,7 +78,7 @@ class StartAgentWebsiteCrawlAction
             return $website;
         });
 
-        WebsiteCrawlStarted::dispatch($website, $agent);
+        WebsiteCrawlStarted::dispatch($website, $agent->external_id);
         WebsiteCrawlerJob::dispatch($website, $data, $agent);
 
         return $website;
@@ -108,7 +118,7 @@ class StartAgentWebsiteCrawlAction
 
             return $ips[0];
         } catch (UnsafeUrlException $e) {
-            throw new DomainValidationException('url', 'This URL is not allowed: '.$e->getMessage());
+            throw new DomainValidationException('url', __('This URL is not allowed: :reason', ['reason' => $e->getMessage()]));
         }
     }
 

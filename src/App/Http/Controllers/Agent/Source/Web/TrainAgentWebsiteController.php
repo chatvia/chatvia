@@ -2,26 +2,34 @@
 
 namespace App\Http\Controllers\Agent\Source\Web;
 
+use App\Http\Requests\Agent\Source\Web\TrainAgentWebsiteRequest;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Web\Actions\Source\RecrawlSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Actions\Source\RetrainSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
- * Kick off training for a website source — optionally re-crawling its URLs
- * first (`recrawl=true`) before re-ingesting.
+ * Starts training a website source — optionally discovering its URLs again
+ * first (`recrawl=true`).
  */
 class TrainAgentWebsiteController
 {
-    public function __invoke(Request $request, Agent $agent, SourceWebsite $website, RetrainSourceWebsiteAction $retrain): RedirectResponse
-    {
+    public function __invoke(
+        TrainAgentWebsiteRequest $request,
+        Agent $agent,
+        SourceWebsite $website,
+        RecrawlSourceWebsiteAction $recrawl,
+        RetrainSourceWebsiteAction $retrain,
+    ): RedirectResponse {
         abort_if($request->user()->cannot('update', $website), 404);
 
-        $validated = $request->validate(['recrawl' => ['nullable', 'boolean']]);
+        if ($request->recrawl()) {
+            $recrawl->execute($website, $agent);
+        } else {
+            $retrain->execute($website, $agent);
+        }
 
-        $retrain->execute($website, $agent, (bool) ($validated['recrawl'] ?? false));
-
-        return back()->with('success', 'Training started successfully');
+        return back()->with('success', __('Training started successfully'));
     }
 }

@@ -6,6 +6,10 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
+/**
+ * Welcome email for a new trial account: how to sign in. It never contains a
+ * password.
+ */
 class TrialWelcomeNotification extends Notification
 {
     use Queueable;

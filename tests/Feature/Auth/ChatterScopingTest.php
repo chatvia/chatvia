@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
@@ -14,7 +15,7 @@ beforeEach(function (): void {
 });
 
 it('flags API-created users as chatters', function (): void {
-    $user = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    $user = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
     expect($user->type)->toBe(UserType::Chatter)
         ->and($user->source)->toBe(UserSource::Api)
@@ -25,8 +26,8 @@ it('flags API-created users as chatters', function (): void {
 it('keeps chatters separate from team members in the informational counts', function (): void {
     $before = $this->owner->teamMembersCount();
 
-    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
-    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'John');
+    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'John'));
 
     expect($this->owner->fresh()->teamMembersCount())->toBe($before);
 });
@@ -34,8 +35,8 @@ it('keeps chatters separate from team members in the informational counts', func
 it('counts chatters toward the shared workspace_users quota', function (): void {
     $before = $this->owner->workspaceUsersCount();
 
-    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
-    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'John');
+    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'John'));
 
     expect($this->owner->fresh()->workspaceUsersCount())->toBe($before + 2);
 });
@@ -43,19 +44,19 @@ it('counts chatters toward the shared workspace_users quota', function (): void 
 it('does not create a team when a chatter is created', function (): void {
     $teamsBefore = Team::count();
 
-    app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
     expect(Team::count())->toBe($teamsBefore);
 });
 
 it('excludes chatters from the team member list', function (): void {
-    $user = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    $user = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
     expect($this->owner->primaryTeam()->members()->where('users.id', $user->id)->exists())->toBeFalse();
 });
 
 it('attaches the agent grant on creation so canAccessAgent passes', function (): void {
-    $user = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    $user = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
     expect($user->canAccessAgent($this->agent))->toBeTrue();
 });
@@ -63,7 +64,7 @@ it('attaches the agent grant on creation so canAccessAgent passes', function ():
 it('refuses canAccessAgent for an agent the chatter was not granted', function (): void {
     $other = createAgent($this->owner);
 
-    $user = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+    $user = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
     expect($user->canAccessAgent($other))->toBeFalse();
 });
@@ -74,7 +75,7 @@ describe('dashboard access', function (): void {
     });
 
     it('blocks a chatter', function (): void {
-        $user = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $user = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
 
         expect($user->canAccessDashboard())->toBeFalse();
     });

@@ -6,6 +6,11 @@ use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Spatie\LaravelData\Data;
 
+/**
+ * What the analysis model found in a conversation (or one message): the
+ * agent's topics that apply, new topic suggestions, sentiment, tone and
+ * language.
+ */
 class ConversationAnalysisData extends Data
 {
     /**

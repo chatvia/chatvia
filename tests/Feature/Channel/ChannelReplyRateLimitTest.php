@@ -3,7 +3,9 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Models\UserCredit;
+use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\ChannelReplyRunner;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
@@ -70,14 +72,14 @@ it('refuses a channel turn once the agent is over its per-minute cap', function 
     // its generic "something went wrong" message instead of the throttle copy.
     RateLimiter::hit('agent-chat-rate:'.$agent->id, 60);
 
-    $reply = app(ChannelReplyRunner::class)->reply(
+    $reply = app(ChannelReplyRunner::class)->reply(new ChannelTurnData(
         agent: $agent,
         sessionExternalId: (string) Str::uuid(),
         conversationExternalId: (string) Str::uuid(),
         message: 'spam',
-        source: 'telegram',
+        source: ConversationSource::Telegram,
         requestIdPrefix: 'tg_',
-    );
+    ));
 
     expect($reply)->toContain('too many messages');
 });

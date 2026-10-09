@@ -4,15 +4,22 @@ namespace App\Http\Controllers\Agent;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Team\Models\Team;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
+/**
+ * The agent's home link: sends the user to the first agent page they may use.
+ * Workspace owners and team owners land on the Playground; a teammate lands
+ * on the first page their team permissions allow, the chat log otherwise.
+ */
 class AgentManagerController
 {
     /**
-     * Permission to route mapping - ordered by priority.
+     * Permission → page, in order of preference.
+     *
+     * @var array<string, string>
      */
-    private array $permissionRoutes = [
+    private const array PAGE_BY_PERMISSION = [
         'agent.setup' => 'agents.playground',
 
         // Analytics
@@ -22,7 +29,6 @@ class AgentManagerController
         'agent.analytics.topics' => 'agents.analytics.topics',
         'agent.analytics.sources' => 'agents.analytics.sources',
 
-        // Chat/History has highest priority
         'agent.chat.view' => 'agents.logs',
 
         // Sources (any training permission)
@@ -33,43 +39,29 @@ class AgentManagerController
         'agent.sources.train.audio' => 'agents.sources.audio',
         'agent.sources.train.video' => 'agents.sources.video',
 
-        // Leads
         'agent.leads.view' => 'agents.forms.index',
 
-        // Topics
         'agent.topics.add' => 'agents.topics.index',
-
-        // Setup/Config (lowest priority for staff)
     ];
 
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent): RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
         $team = current_team();
 
-        // If user is the agent owner or team owner, go to default page
-        if ($user->isWorkspace() || ($team instanceof Team && $user->ownsTeam($team))) {
-            return $this->redirectToDefaultPage($agent);
+        if ($user->isWorkspace() || ($team !== null && $user->ownsTeam($team))) {
+            return redirect()->route('agents.playground', ['agent' => $agent]);
         }
 
-        // For employees, find the first page they have access to (one permission lookup).
-        if ($team) {
-            $granted = $user->teamPermissions($team);
+        $granted = $team !== null ? $user->teamPermissions($team) : [];
 
-            foreach ($this->permissionRoutes as $permission => $routeName) {
-                if (in_array($permission, $granted, true)) {
-                    return redirect()->route($routeName, ['agent' => $agent]);
-                }
+        foreach (self::PAGE_BY_PERMISSION as $permission => $routeName) {
+            if (in_array($permission, $granted, true)) {
+                return redirect()->route($routeName, ['agent' => $agent]);
             }
         }
 
-        // Fallback: if no specific permission, redirect to chat logs
         return redirect()->route('agents.logs', ['agent' => $agent]);
-    }
-
-    private function redirectToDefaultPage(Agent $agent)
-    {
-        return redirect()->route('agents.playground', ['agent' => $agent]);
     }
 }

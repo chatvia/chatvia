@@ -7,6 +7,10 @@ use Domain\Billing\Actions\Subscriptions\SubscribeUserAction;
 use Illuminate\Http\RedirectResponse;
 use Laravel\Cashier\Checkout;
 
+/**
+ * Starts a Stripe Checkout for a plan, or goes back to the dashboard when the
+ * plan cannot be bought self-serve.
+ */
 class BillingSubscribeController
 {
     public function __invoke(SubscribeRequest $request, SubscribeUserAction $subscribe): Checkout|RedirectResponse

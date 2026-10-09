@@ -9,9 +9,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
 /**
- * Embeds the shared `connector_tools` catalog for one connector_slug. Dispatched
- * by McpCatalog::refresh() (preset path) + SyncBuiltinMcpRegistry. NULL-guarded,
- * so it's a no-op once a connector's tools are already embedded.
+ * Embeds the shared `connector_tools` catalog for one connector_slug.
+ * Dispatched by SyncMcpServerCatalogAction (shared-catalog path) and
+ * SyncBuiltinConnectorsAction. NULL-guarded, so it's a no-op once a
+ * connector's tools are already embedded.
  */
 class EmbedConnectorToolsJob implements AttributesTokenUsage, ShouldQueue
 {

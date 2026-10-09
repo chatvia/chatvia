@@ -2,8 +2,9 @@
 
 namespace Domain\Billing\Listeners;
 
-use Domain\Billing\Actions\Subscriptions\SyncAddonQuotasAction;
-use Domain\Billing\Enums\Addon;
+use Domain\Billing\Actions\Addons\SyncAddonQuotasAction;
+use Domain\Billing\Data\Stripe\StripeEventData;
+use Domain\Billing\Data\Stripe\StripeMetadata;
 use Domain\Billing\Models\UserBilling;
 use Laravel\Cashier\Events\WebhookHandled;
 
@@ -14,15 +15,12 @@ use Laravel\Cashier\Events\WebhookHandled;
  * It listens to Cashier's WebhookHandled (not WebhookReceived) on purpose:
  * Cashier has already written the change to the local `subscriptions` table by
  * then, so {@see SyncAddonQuotasAction} rebuilds the quotas from fresh rows.
- *
- * An add-on subscription is recognised by its metadata. Cashier's Checkout
- * overwrites the `type` metadata key with the Cashier subscription type
- * (`extra_agents`, `members`, …), so both `type` and our own `addon` key are
- * checked against the {@see Addon} cases.
+ * An add-on subscription is recognised by its metadata
+ * ({@see StripeMetadata::subscriptionAddon()}).
  */
 class SyncAddonQuotasFromStripe
 {
-    private const SUBSCRIPTION_EVENTS = [
+    private const array SUBSCRIPTION_EVENTS = [
         'customer.subscription.created',
         'customer.subscription.updated',
         'customer.subscription.deleted',
@@ -39,31 +37,21 @@ class SyncAddonQuotasFromStripe
             return;
         }
 
-        if (! in_array($event->payload['type'] ?? null, self::SUBSCRIPTION_EVENTS, true)) {
+        $stripeEvent = StripeEventData::fromPayload($event->payload);
+
+        if (! in_array($stripeEvent->type, self::SUBSCRIPTION_EVENTS, true)) {
             return;
         }
 
-        $subscription = $event->payload['data']['object'] ?? [];
-
-        if (! $this->isAddonSubscription($subscription)) {
+        if ($stripeEvent->metadata()->subscriptionAddon() === null) {
             return;
         }
 
-        $billing = UserBilling::query()->where('stripe_id', $subscription['customer'] ?? null)->first();
+        $customerId = $stripeEvent->object['customer'] ?? null;
+        $billing = UserBilling::forStripeCustomer(is_string($customerId) ? $customerId : null);
 
         if ($billing !== null) {
             $this->syncAddonQuotas->execute($billing);
         }
-    }
-
-    /**
-     * @param  array<string, mixed>  $subscription
-     */
-    private function isAddonSubscription(array $subscription): bool
-    {
-        $metadata = $subscription['metadata'] ?? [];
-
-        return Addon::tryFrom((string) ($metadata['addon'] ?? '')) !== null
-            || Addon::tryFrom((string) ($metadata['type'] ?? '')) !== null;
     }
 }

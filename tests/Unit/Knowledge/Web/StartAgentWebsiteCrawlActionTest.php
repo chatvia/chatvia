@@ -30,7 +30,6 @@ it('creates and attaches the website, then starts the crawl', function (): void 
 
     $website = app(StartAgentWebsiteCrawlAction::class)->execute(
         $agent,
-        $agent->user,
         new CrawlerData(url: 'https://docs.example.test/start'),
     );
 
@@ -54,7 +53,6 @@ it('rejects a redirect into a private address outside local and testing', functi
 
     expect(fn () => app(StartAgentWebsiteCrawlAction::class)->execute(
         $agent,
-        $agent->user,
         new CrawlerData(url: 'http://93.184.215.14/start'),
     ))->toThrow(DomainValidationException::class);
 

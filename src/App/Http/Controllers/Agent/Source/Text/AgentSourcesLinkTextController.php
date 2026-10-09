@@ -4,22 +4,25 @@ namespace App\Http\Controllers\Agent\Source\Text;
 
 use App\Http\Requests\Agent\Source\LinkSourceTextRequest;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\Text\Actions\AttachSourceTextToAgentAction;
+use Domain\Knowledge\Source\Actions\AttachSourceToAgentAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Lets the agent use a text the workspace already trained.
+ */
 class AgentSourcesLinkTextController
 {
-    public function __invoke(LinkSourceTextRequest $request, Agent $agent, int $textId, AttachSourceTextToAgentAction $attach): JsonResponse
+    public function __invoke(LinkSourceTextRequest $request, Agent $agent, int $textId, AttachSourceToAgentAction $attach): JsonResponse
     {
-        $text = SourceText::findOrFail($textId);
+        $text = SourceText::query()->findOrFail($textId);
 
         abort_if($request->user()->cannot('view', $text), 403);
 
         if (! $attach->execute($agent, $text)) {
-            return response()->json(['message' => 'This text is already attached to the agent.'], 422);
+            return response()->json(['message' => __('This text is already attached to the agent.')], 422);
         }
 
-        return response()->json(['message' => 'Text successfully attached to agent.']);
+        return response()->json(['message' => __('Text successfully attached to agent.')]);
     }
 }

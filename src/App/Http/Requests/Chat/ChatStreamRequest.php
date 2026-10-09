@@ -5,6 +5,9 @@ namespace App\Http\Requests\Chat;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates one hosted-chat message before its answer streams.
+ */
 class ChatStreamRequest extends FormRequest
 {
     /**
@@ -37,8 +40,7 @@ class ChatStreamRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'message.required' => 'Please enter a message',
-            'agent.required_if' => 'Agent is required when using playground mode',
+            'message.required' => __('Please enter a message'),
         ];
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
+use App\Identity\Chatter\Listeners\SendChatterPasswordResetLink;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
 use App\Identity\Workspace\Events\DataExportReady;
 use App\Identity\Workspace\Events\MagicLinkRequested;
@@ -16,18 +18,29 @@ use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Observers\UserObserver;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
+use App\Marketing\Models\Post;
+use App\Marketing\Observers\PostObserver;
+use App\Mcp\CodeDefinedToolDefinitions;
+use Domain\Agent\Events\AgentToolsChanged;
+use Domain\Agent\Listeners\ForgetAgentToolPool;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Observers\AgentObserver;
+use Domain\Analytics\Events\MessageSent;
+use Domain\Analytics\Listeners\QueueMessageAnalysis;
 use Domain\Analytics\Listeners\RecordAnalytics;
 use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Events\MessageCreditsLow;
+use Domain\Billing\Events\TrialWorkspaceProvisioned;
+use Domain\Billing\Listeners\ChargeAssistantReply;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Listeners\RecordLlmTokenUsage;
+use Domain\Billing\Listeners\SendTrialWelcomeEmails;
 use Domain\Billing\Listeners\SyncAddonQuotasFromStripe;
 use Domain\Billing\Listeners\TriggerAutoRecharge;
 use Domain\Billing\Services\Entitlements\StripeEntitlements;
 use Domain\Billing\Services\Entitlements\UnlimitedEntitlements;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
+use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\SessionLocationUnknown;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Listeners\LocateSession;
@@ -41,8 +54,11 @@ use Domain\Form\Models\FormDefinition;
 use Domain\Form\Observers\FormDefinitionObserver;
 use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
+use Domain\Integration\Connector\Services\OAuth\OAuthTokenRefresher;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Observers\AgentFunctionObserver;
+use Domain\Integration\Mcp\Contracts\AccessTokenRefresher;
+use Domain\Integration\Mcp\Contracts\BuiltinToolDefinitions;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Domain\Integration\Mcp\Listeners\UpdateMcpInvocationCounters;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -68,9 +84,9 @@ use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Knowledge\Source\Text\Observers\AgentTextObserver;
+use Domain\Knowledge\Source\Text\Observers\SourceTextObserver;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Web\Observers\AgentWebsiteObserver;
+use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -98,8 +114,7 @@ use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Laravel\Cashier\Events\WebhookHandled;
 use Laravel\Cashier\Events\WebhookReceived;
-use Support\Cms\Marketing\Models\Post;
-use Support\Cms\Marketing\Observers\PostObserver;
+use Support\Autoload\LegacyNamespaceAutoloader;
 
 /**
  * Domain wiring: observers, DI bindings against contracts, and event
@@ -113,9 +128,21 @@ class DomainServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Old letter-case spellings of renamed namespaces (`Source\QA`,
+        // `Data\OCR`) still sit in queued payloads, caches and a shipped
+        // migration; keep them loadable.
+        LegacyNamespaceAutoloader::register();
+
         // Tool dispatcher: routes by tool name to either the webhook
         // (AgentFunctions) or MCP backend.
         $this->app->bind(ToolDispatcherInterface::class, RoutingToolDispatcher::class);
+
+        // The MCP client asks for a fresh OAuth token through this contract, so
+        // it does not depend on the connector OAuth flow (which syncs tool
+        // catalogs through the client). Builtin tool definitions are read from
+        // the code-defined MCP servers in App\Mcp.
+        $this->app->bind(AccessTokenRefresher::class, OAuthTokenRefresher::class);
+        $this->app->bind(BuiltinToolDefinitions::class, CodeDefinedToolDefinitions::class);
 
         // SSE stream transformer: parses the upstream OpenAI-compatible byte
         // stream into envelope events. Kept behind an interface as the seam the
@@ -264,8 +291,8 @@ class DomainServiceProvider extends ServiceProvider
         FormDefinition::observe(FormDefinitionObserver::class);
         AgentMcpServer::observe(AgentMcpServerObserver::class);
         SourceFile::observe(SourceFileObserver::class);
-        SourceText::observe(AgentTextObserver::class);
-        SourceWebsite::observe(AgentWebsiteObserver::class);
+        SourceText::observe(SourceTextObserver::class);
+        SourceWebsite::observe(SourceWebsiteObserver::class);
         SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
         Post::observe(PostObserver::class);
     }
@@ -294,12 +321,17 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
         Event::listen(WebhookReceived::class, HandleStripeWebhook::class);
         Event::listen(WebhookHandled::class, SyncAddonQuotasFromStripe::class);
+        Event::listen(TrialWorkspaceProvisioned::class, SendTrialWelcomeEmails::class);
+        Event::listen(ChatterPasswordResetRequested::class, SendChatterPasswordResetLink::class);
         Event::listen(SessionLocationUnknown::class, LocateSession::class);
+        Event::listen(AssistantReplyCompleted::class, ChargeAssistantReply::class);
+        Event::listen(MessageSent::class, QueueMessageAnalysis::class);
         Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
         Event::listen(LlmTokensConsumed::class, RecordLlmTokenUsage::class);
         Event::listen(ToolCallCompleted::class, RecordToolCallAudit::class);
         Event::listen(GuardrailTriggered::class, RecordGuardrailEvent::class);
         Event::listen(McpToolInvoked::class, UpdateMcpInvocationCounters::class);
+        Event::listen(AgentToolsChanged::class, ForgetAgentToolPool::class);
         Event::listen(AgentRateLimitExceeded::class, SendAgentRateLimitNotification::class);
         Event::listen(FormSubmitted::class, PushSubmissionToCrm::class);
 

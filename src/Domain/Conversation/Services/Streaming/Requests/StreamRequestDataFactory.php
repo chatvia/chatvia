@@ -4,12 +4,17 @@ namespace Domain\Conversation\Services\Streaming\Requests;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Data\StreamRequestData;
-use Domain\Conversation\Services\Data\StreamRequestMessageData;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Request;
 use RuntimeException;
 
+/**
+ * Turns an incoming chat request (hosted chat or widget) into the
+ * {@see StreamRequestData} a turn runs on. The one sanctioned place where the
+ * domain reads the HTTP request; everything after it gets plain values.
+ */
 class StreamRequestDataFactory
 {
     /**

@@ -7,6 +7,10 @@ use Domain\Agent\Models\Agent;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
+/**
+ * Short-lived tokens that let the dashboard open a private agent's chat for
+ * the signed-in user, cached until they expire.
+ */
 class ChatterAuthTokenService
 {
     /**

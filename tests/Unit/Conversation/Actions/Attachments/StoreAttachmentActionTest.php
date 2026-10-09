@@ -2,7 +2,7 @@
 
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
-use Domain\Knowledge\Document\PdfInfo;
+use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;

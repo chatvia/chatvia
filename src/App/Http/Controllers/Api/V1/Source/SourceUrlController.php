@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\Api\V1\Source;
 
 use App\Http\Requests\Api\V1\Source\CrawlSourceUrlRequest;
-use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
 use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Crawl a website and ingest its content. The crawler follows links inside
@@ -24,20 +22,16 @@ class SourceUrlController
      */
     public function store(CrawlSourceUrlRequest $request, Agent $agent, StartAgentWebsiteCrawlAction $startCrawl): JsonResponse
     {
-        // Crawl ownership stays with the agent's owner — the API token may belong
-        // to a workspace member but the source file/website ends up on the
-        // workspace account.
-        /** @var User $owner */
-        $owner = $agent->user;
-
-        $website = $startCrawl->execute($agent, $owner, $request->toData());
+        // The website is keyed to the agent's owner (the workspace account),
+        // even when the API token belongs to a workspace member.
+        $website = $startCrawl->execute($agent, $request->toData());
 
         return response()->json([
             'data' => [
                 'id' => $website->id,
                 'kind' => 'url',
                 'name' => $website->url,
-                'status' => $website->status,
+                'status' => $website->status?->value,
             ],
         ], 201);
     }
@@ -45,7 +39,7 @@ class SourceUrlController
     /**
      * Delete URL source
      */
-    public function destroy(Request $request, Agent $agent, int $source, DeleteSourceWebsiteAction $deleteWebsite): JsonResponse
+    public function destroy(Agent $agent, int $source, DeleteSourceWebsiteAction $deleteWebsite): JsonResponse
     {
         /** @var SourceWebsite $website */
         $website = $agent->websites()->where('source_websites.id', $source)->firstOrFail();

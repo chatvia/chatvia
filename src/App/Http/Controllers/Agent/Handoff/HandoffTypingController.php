@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Agent\Handoff;
 
 use App\Http\Requests\Agent\Handoff\AgentHandoffTypingRequest;
+use App\Http\Resources\Handoff\HandoffTypingResultData;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\BroadcastChatTypingAction;
-use Domain\Conversation\Data\Handoff\HandoffTypingResultData;
-use Domain\Conversation\Exceptions\HandoffOperationException;
 use Domain\Conversation\Models\Conversation;
-use Illuminate\Http\JsonResponse;
 
+/**
+ * Broadcasts the operator's typing indicator to the visitor. Agent access is
+ * checked by the route's `can.access.agent` middleware.
+ */
 class HandoffTypingController
 {
     public function __invoke(
@@ -17,23 +19,17 @@ class HandoffTypingController
         Agent $agent,
         Conversation $conversation,
         BroadcastChatTypingAction $broadcastTyping,
-    ): JsonResponse|HandoffTypingResultData {
-        try {
-            $user = $request->user();
+    ): HandoffTypingResultData {
+        abort_unless($conversation->belongsToAgent($agent), 403, __('Unauthorized.'));
 
-            if (! $conversation->isOperableBy($user, $agent)) {
-                throw HandoffOperationException::unauthorized();
-            }
+        abort_unless(
+            $conversation->isHeldBy($request->user()),
+            403,
+            __('You must take over this conversation before sending typing indicators.'),
+        );
 
-            if (! $conversation->isHandedOff() || $conversation->handoff_user_id !== $user->id) {
-                throw HandoffOperationException::forbidden('You must take over this conversation before sending typing indicators.');
-            }
+        $broadcastTyping->execute($request->toData($conversation));
 
-            $broadcastTyping->execute($request->toData($conversation));
-
-            return new HandoffTypingResultData;
-        } catch (HandoffOperationException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], $e->status);
-        }
+        return new HandoffTypingResultData;
     }
 }

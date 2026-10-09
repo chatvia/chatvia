@@ -2,56 +2,45 @@
 
 namespace Domain\Billing\Actions\Subscriptions;
 
-use Domain\Billing\Data\SubscribeData;
+use Domain\Billing\Data\Stripe\StripeMetadata;
+use Domain\Billing\Data\Subscriptions\SubscribeData;
+use Domain\Billing\Enums\PurchaseType;
+use Domain\Billing\Models\UserBilling;
 use Laravel\Cashier\Checkout;
 use Laravel\Cashier\SubscriptionBuilder;
 
+/**
+ * Opens a Stripe Checkout for a self-serve plan (with the configured trial).
+ * Returns null for a plan that is not configured or is sold through sales
+ * only (Enterprise has no Stripe price).
+ */
 class SubscribeUserAction
 {
     public function execute(SubscribeData $data): ?Checkout
     {
-        $plans = config('billing.packages');
+        $plan = ((array) config('billing.packages', []))[$data->package] ?? null;
 
-        if (! isset($plans[$data->package])) {
+        if (! is_array($plan) || ($plan['contact_sales'] ?? false)) {
             return null;
         }
 
-        // Contact-sales packages (Enterprise) have no Stripe price — they are
-        // provisioned manually through the demo/sales flow, never self-serve.
-        if ($plans[$data->package]['contact_sales'] ?? false) {
-            return null;
-        }
+        $stripePriceId = $data->yearly ? $plan['stripe_yearly_price_id'] : $plan['stripe_monthly_price_id'];
+        $package = strtolower($data->package);
 
-        $stripePriceId = $data->yearly
-            ? $plans[$data->package]['stripe_yearly_price_id']
-            : $plans[$data->package]['stripe_monthly_price_id'];
-
-        // Provision the account's billing row on demand. Seeded accounts (and
-        // any user created before the UserObserver provisioned one) reach
-        // checkout without a `user_billing` row, so accountBilling() is null.
-        // Cashier needs the Billable row to exist before it can open checkout;
-        // firstOrCreate is idempotent for everyone who already has one.
+        // Seeded accounts (and any created before the UserObserver provisioned
+        // one) reach checkout without a billing row; Cashier needs it first.
         $billing = $data->user->workspace()->billing()->firstOrCreate([]);
 
-        // Push our local email/name onto the Stripe customer BEFORE the
-        // checkout session is created. Without this, customers that were
-        // created without an email (or before {@see UserBilling::stripeEmail()}
-        // was added) show an empty email field in Stripe Checkout because
-        // Cashier passes `customer: <id>` and Stripe reads the email from
-        // the customer record. createAsStripeCustomer fires only when
-        // stripe_id is null — for everyone else we sync explicitly.
-        if ($billing->hasStripeId()) {
-            $billing->syncStripeCustomerDetails();
-        }
+        $this->syncCustomerDetails($billing);
 
         return $billing
             ->newSubscription(type: 'default', prices: $stripePriceId)
             ->withMetadata([
-                'id' => strtolower($data->package),
-                'type' => 'subscription',
-                'from_package' => $data->user->plan,
-                'to_package' => strtolower($data->package),
-                'is_yearly' => $data->yearly,
+                StripeMetadata::ID => $package,
+                StripeMetadata::TYPE => PurchaseType::Subscription->value,
+                StripeMetadata::FROM_PACKAGE => $data->user->plan,
+                StripeMetadata::TO_PACKAGE => $package,
+                StripeMetadata::IS_YEARLY => $data->yearly,
                 'user_subscribed' => (bool) $billing->subscribed(),
             ])
             ->when(config('billing.trial.days') !== 0, function (SubscriptionBuilder $subscription): void {
@@ -60,8 +49,22 @@ class SubscribeUserAction
             ->allowPromotionCodes()
             ->alwaysInvoice()
             ->checkout([
-                'success_url' => route('billing.success'),
-                'cancel_url' => route('billing.index'),
+                'success_url' => $data->urls->successUrl,
+                'cancel_url' => $data->urls->cancelUrl,
             ]);
+    }
+
+    /**
+     * Push our email and name onto an existing Stripe customer before the
+     * checkout opens. Cashier passes `customer: <id>` and Stripe reads the
+     * email from the customer record, so a customer created without one would
+     * show an empty email field. A new customer gets them from
+     * {@see UserBilling::stripeEmail()} when Cashier creates it.
+     */
+    private function syncCustomerDetails(UserBilling $billing): void
+    {
+        if ($billing->hasStripeId()) {
+            $billing->syncStripeCustomerDetails();
+        }
     }
 }

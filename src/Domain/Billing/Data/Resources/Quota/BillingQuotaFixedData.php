@@ -5,6 +5,10 @@ namespace Domain\Billing\Data\Resources\Quota;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A plan's limits that do not depend on the billing cycle (agents, pages,
+ * seats, …).
+ */
 #[TypeScript]
 class BillingQuotaFixedData extends Data
 {

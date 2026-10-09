@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Billing\Capabilities;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * JSON list of the plan features the signed-in account has.
+ */
 class CapabilityController
 {
     public function __invoke(Request $request): JsonResponse

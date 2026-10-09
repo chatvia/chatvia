@@ -8,6 +8,9 @@ use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One eval case as the Evals page lists and edits it.
+ */
 #[TypeScript]
 class EvalCaseResourceData extends Data
 {

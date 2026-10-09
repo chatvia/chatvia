@@ -30,7 +30,7 @@ class McpServerController
         $owner = $user->workspace();
 
         $servers = $owner->mcpServers()
-            ->whereNull('connector_slug')
+            ->custom()
             ->latest()
             ->get();
 
@@ -66,7 +66,7 @@ class McpServerController
 
         /** @var AgentMcpServer $server */
         $server = $user->workspace()->mcpServers()
-            ->whereNull('connector_slug')
+            ->custom()
             ->where('external_id', $externalId)
             ->firstOrFail();
 

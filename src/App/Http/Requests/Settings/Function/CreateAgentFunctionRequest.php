@@ -2,14 +2,20 @@
 
 namespace App\Http\Requests\Settings\Function;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Rules\SafeWebhookUrl;
-use Domain\Integration\Function\Data\CreateAgentFunctionData;
+use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Rules\ValidParametersSchema;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Spatie\LaravelData\Optional;
 
+/**
+ * The Settings → Functions "new function" form. The parameters schema arrives
+ * as JSON text from the editor; credentials arrive flat and are stored as the
+ * typed `auth_config` by the Action.
+ */
 class CreateAgentFunctionRequest extends FormRequest
 {
     public function authorize(): bool
@@ -35,47 +41,30 @@ class CreateAgentFunctionRequest extends FormRequest
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => ['required', 'string', new ValidParametersSchema],
             'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
-            'webhook_method' => ['sometimes', 'in:POST,GET,PATCH,DELETE'],
+            'webhook_method' => ['sometimes', Rule::enum(FunctionWebhookMethod::class)],
             'auth_type' => ['sometimes', Rule::enum(FunctionAuthType::class)],
-            // Flat form payload; `toData()` reshapes these into the
-            // structured `auth_config` array per auth_type.
             'auth_header_name' => ['nullable', 'required_if:auth_type,header', 'string', 'max:128'],
             'auth_value' => ['nullable', 'required_if:auth_type,bearer,header,hmac', 'string', 'max:8192'],
             'requires_approval' => ['sometimes', 'boolean'],
         ];
     }
 
-    public function toData(): CreateAgentFunctionData
+    public function toData(): FunctionDefinitionData
     {
-        /** @var User $user */
-        $user = $this->user();
-
         /** @var array<string, mixed> $schema */
         $schema = json_decode($this->string('parameters_schema')->toString(), true);
 
-        $authType = $this->string('auth_type', 'none')->toString();
-
-        $authConfig = match ($authType) {
-            'bearer' => ['token' => (string) $this->input('auth_value')],
-            'header' => [
-                'name' => (string) $this->input('auth_header_name'),
-                'value' => (string) $this->input('auth_value'),
-            ],
-            'hmac' => ['secret' => (string) $this->input('auth_value')],
-            default => null,
-        };
-
-        return new CreateAgentFunctionData(
-            user: $user,
+        return new FunctionDefinitionData(
             internal_name: $this->string('internal_name')->toString(),
             display_name: $this->string('display_name')->toString() ?: null,
             description: $this->string('description')->toString(),
             parameters_schema: $schema,
             webhook_url: $this->string('webhook_url')->toString(),
-            webhook_method: $this->string('webhook_method', 'POST')->toString(),
-            auth_type: $authType,
-            auth_config: $authConfig,
-            requires_approval: $this->has('requires_approval') ? $this->boolean('requires_approval') : null,
+            webhook_method: $this->enum('webhook_method', FunctionWebhookMethod::class) ?? FunctionWebhookMethod::Post,
+            auth_type: $this->enum('auth_type', FunctionAuthType::class) ?? FunctionAuthType::None,
+            auth_header_name: $this->input('auth_header_name'),
+            auth_value: $this->input('auth_value'),
+            requires_approval: $this->has('requires_approval') ? $this->boolean('requires_approval') : new Optional,
         );
     }
 }

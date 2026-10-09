@@ -2,10 +2,16 @@
 
 namespace App\Http\Requests\Team;
 
+use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Data\UpdateMemberRoleData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Moves a team member to another role. Only the owner may (TeamPolicy::
+ * updateTeamMember), and only to a role a member can hold — never the owner role.
+ */
 class UpdateMemberRoleRequest extends FormRequest
 {
     public function authorize(): bool
@@ -28,5 +34,14 @@ class UpdateMemberRoleRequest extends FormRequest
         return [
             'role' => ['required', 'string', Rule::in($validRoles)],
         ];
+    }
+
+    public function toData(Team $team, User $member): UpdateMemberRoleData
+    {
+        return new UpdateMemberRoleData(
+            team: $team,
+            member: $member,
+            roleCode: $this->string('role')->toString(),
+        );
     }
 }

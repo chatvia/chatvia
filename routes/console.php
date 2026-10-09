@@ -13,9 +13,10 @@ Schedule::command('app:cache-message-usage')->everyFiveMinutes();
 
 Schedule::command('app:prune-expired-data-exports')->dailyAt('00:15');
 
-// Daily cleanup of visitor-uploaded chat attachments. Keeps the Scaleway
-// public bucket from accumulating PDFs indefinitely. The 30-day window is
-// the default; override with `--days=N` for a one-off pass.
+// Daily cleanup of visitor-uploaded chat attachments: files whose
+// conversation expired or was deleted, and uploads that never joined a
+// conversation (after 30 days; override with `--days=N`). Rows and stored
+// files are deleted together.
 Schedule::command('app:prune-chat-attachments')->dailyAt('03:00');
 
 // Soft-deletes conversations past their per-plan retention horizon. Runs

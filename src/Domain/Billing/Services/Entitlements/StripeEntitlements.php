@@ -5,7 +5,7 @@ namespace Domain\Billing\Services\Entitlements;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
-use Domain\Billing\Services\Billing;
+use Domain\Billing\Services\PlanCatalog;
 use Domain\Billing\Services\UserCreditSystem;
 
 /**
@@ -18,7 +18,7 @@ final readonly class StripeEntitlements implements Entitlements
 {
     public function __construct(
         private UserCreditSystem $creditSystem,
-        private Billing $plans,
+        private PlanCatalog $plans,
     ) {}
 
     public function enforced(): bool

@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+/**
+ * The sign-in page of a protected agent's hosted chat.
+ */
 class ChatShowLoginController
 {
     /**

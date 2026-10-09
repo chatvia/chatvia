@@ -6,6 +6,10 @@ use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a website added as a knowledge source through the public API.
+ * Access to the agent is checked by the route middleware.
+ */
 class CrawlSourceUrlRequest extends FormRequest
 {
     public function authorize(): bool

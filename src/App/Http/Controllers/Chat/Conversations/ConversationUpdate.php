@@ -2,29 +2,27 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatSession;
+use App\Http\Requests\Chat\RenameConversationRequest;
+use Domain\Conversation\Actions\Conversations\RenameConversationAction;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
 
+/**
+ * Renames one of the hosted-chat visitor's conversations.
+ */
 class ConversationUpdate
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, TurnState $session): void
+    public function __invoke(RenameConversationRequest $request, string $conversationId, RenameConversationAction $renameConversation, HostedChatSession $session): void
     {
         $agent = current_agent();
-        $callerSession = $session->firstOrCreateSession($agent);
+        $scope = $session->scope($agent, $conversationId);
 
-        // Scope the conversation to the CALLER's session + agent so a user
-        // can't rename another user's conversation by external id.
+        // Only a conversation in the CALLER's session of this agent.
         Conversation::query()
+            ->inSession($scope->sessionId, $agent->id)
             ->where('external_id', $conversationId)
-            ->whereHas('session', function ($q) use ($callerSession, $agent): void {
-                $q->where('external_id', $callerSession)->where('agent_id', $agent->id);
-            })
             ->firstOrFail();
 
-        $memory
-            ->withContext($agent, $callerSession, $conversationId)
-            ->updateConversationTitle($request->input('title'));
+        $renameConversation->execute($scope, $request->title());
     }
 }

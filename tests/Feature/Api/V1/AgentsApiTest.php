@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
@@ -334,7 +335,7 @@ describe('POST /api/v1/chatters/sign', function (): void {
 
     it('returns a ready-to-open url for a chatter', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
 
         $response = $this->withHeaders(authHeaders($this->token))
             ->postJson('/api/v1/chatters/sign', [
@@ -367,7 +368,7 @@ describe('POST /api/v1/chatters/sign', function (): void {
 
     it('rejects ttl_seconds beyond the max', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
 
         $this->withHeaders(authHeaders($this->token))
             ->postJson('/api/v1/chatters/sign', [
@@ -393,7 +394,7 @@ describe('AgentSignInTokenService', function (): void {
 
     it('issues a token resolving to the agent + user, multi-use until expiry', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateChatterAction::class)->execute($this->user, $agent, 'Jane');
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
         $service = app(AgentSignInTokenService::class);
 
         $token = $service->issue($endUser, $agent)['token'];

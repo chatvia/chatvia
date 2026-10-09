@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\SetAgentStartersAction;
+use Domain\Agent\Data\Settings\Copy\StarterData;
 use Domain\Agent\Models\AgentStarter;
 use Domain\Llm\Operations\Translate\TextTranslator;
 
@@ -13,15 +14,15 @@ beforeEach(function (): void {
 
 it('writes the agent starters as an ordered list and assigns each an id', function (): void {
     $result = app(SetAgentStartersAction::class)->execute($this->agent, [
-        ['text' => 'First?', 'icon' => 'SparklesIcon'],
-        ['text' => 'Second?', 'icon' => null],
+        new StarterData(null, 'First?', 'SparklesIcon'),
+        new StarterData(null, 'Second?', null),
     ]);
 
     expect(array_column($result, 'text'))->toBe(['First?', 'Second?'])
         ->and(array_column($result, 'icon'))->toBe(['SparklesIcon', null])
-        ->and($result[0]['id'])->not->toBeEmpty()
-        ->and($result[1]['id'])->not->toBeEmpty()
-        ->and($result[0]['id'])->not->toBe($result[1]['id']);
+        ->and($result[0]->id)->not->toBeEmpty()
+        ->and($result[1]->id)->not->toBeEmpty()
+        ->and($result[0]->id)->not->toBe($result[1]->id);
 
     expect(array_column($this->agent->starterSet()->first()->starters, 'text'))->toBe(['First?', 'Second?']);
 });
@@ -29,10 +30,10 @@ it('writes the agent starters as an ordered list and assigns each an id', functi
 it('replaces existing starters and keeps a single row', function (): void {
     $action = app(SetAgentStartersAction::class);
 
-    $action->execute($this->agent, [['text' => 'old', 'icon' => null]]);
+    $action->execute($this->agent, [new StarterData(null, 'old', null)]);
     $action->execute($this->agent->fresh(), [
-        ['text' => 'new-a', 'icon' => null],
-        ['text' => 'new-b', 'icon' => 'BoltIcon'],
+        new StarterData(null, 'new-a', null),
+        new StarterData(null, 'new-b', 'BoltIcon'),
     ]);
 
     expect(AgentStarter::where('agent_id', $this->agent->id)->count())->toBe(1)
@@ -41,13 +42,13 @@ it('replaces existing starters and keeps a single row', function (): void {
 
 it('reindexes sparse keys, drops blanks, and defaults a missing icon to null', function (): void {
     $result = app(SetAgentStartersAction::class)->execute($this->agent, [
-        3 => ['text' => 'b'],
-        5 => ['text' => '   '], // blank → dropped
-        7 => ['text' => 'a'],
+        3 => new StarterData(null, 'b'),
+        5 => new StarterData(null, '   '), // blank → dropped
+        7 => new StarterData(null, 'a'),
     ]);
 
     expect(array_column($result, 'text'))->toBe(['b', 'a'])
-        ->and($result[0]['icon'])->toBeNull();
+        ->and($result[0]->icon)->toBeNull();
 });
 
 it('stores the AI translations the translator returns', function (): void {
@@ -55,10 +56,10 @@ it('stores the AI translations the translator returns', function (): void {
         ->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?', 'fr' => 'Salut ?']]);
 
     $result = app(SetAgentStartersAction::class)->execute($this->agent, [
-        ['text' => 'Hello?', 'icon' => null],
+        new StarterData(null, 'Hello?', null),
     ]);
 
-    expect($result[0]['translations'])->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
+    expect($result[0]->translations)->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
 });
 
 it('translates only the enabled languages', function (): void {
@@ -74,7 +75,7 @@ it('translates only the enabled languages', function (): void {
         });
 
     app(SetAgentStartersAction::class)->execute($this->agent->fresh(), [
-        ['text' => 'Hello?', 'icon' => null],
+        new StarterData(null, 'Hello?', null),
     ]);
 
     expect(array_keys($captured))->toBe(['de', 'fr']);
@@ -89,14 +90,14 @@ it('preserves manual overrides and skips re-translation when the text is unchang
 
     $action = app(SetAgentStartersAction::class);
 
-    $first = $action->execute($this->agent->fresh(), [['text' => 'Hi?', 'icon' => null]]);
-    $id = $first[0]['id'];
+    $first = $action->execute($this->agent->fresh(), [new StarterData(null, 'Hi?', null)]);
+    $id = $first[0]->id;
 
     // Same text + a hand-typed German override → the translator must NOT run again.
     $second = $action->execute($this->agent->fresh(), [
-        ['id' => $id, 'text' => 'Hi?', 'icon' => null, 'overrides' => ['de' => 'Servus?']],
+        new StarterData($id, 'Hi?', null, overrides: ['de' => 'Servus?']),
     ]);
 
-    expect($second[0]['translations'])->toBe(['de' => 'Hallo?'])
-        ->and($second[0]['overrides'])->toBe(['de' => 'Servus?']);
+    expect($second[0]->translations)->toBe(['de' => 'Hallo?'])
+        ->and($second[0]->overrides)->toBe(['de' => 'Servus?']);
 });

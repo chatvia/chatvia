@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Agent\ChatLog;
 
+use App\Http\Requests\Agent\ChatLog\ListChatLogConversationsRequest;
+use Domain\Agent\Actions\ChatLog\ListChatLogConversationsAction;
 use Domain\Agent\Data\Resources\ChatLog\Conversations\ChatLogConversationsResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Actions\Conversations\AdminDeleteConversationAction;
+use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,22 +18,9 @@ use Illuminate\Http\Request;
  */
 class ConversationController
 {
-    public function index(Request $request, Agent $agent): ChatLogConversationsResourceData
+    public function index(ListChatLogConversationsRequest $request, Agent $agent, ListChatLogConversationsAction $list): ChatLogConversationsResourceData
     {
-        return ChatLogConversationsResourceData::fromAgent(
-            agent: $agent,
-            page: $request->integer('page', 1),
-            topicFilter: $request->query('topic'),
-            sentimentFilter: $request->query('sentiment'),
-            toneFilter: $request->query('tone'),
-            startDate: $request->query('start_date'),
-            endDate: $request->query('end_date'),
-            countryFilter: $request->query('country'),
-            confidenceScoreFilter: $request->query('confidence_score'),
-            feedbackFilter: $request->query('feedback'),
-            sourceFilter: $request->query('source'),
-            onlineOnly: $request->boolean('online_only'),
-        );
+        return $list->execute($agent, $request->toData());
     }
 
     public function destroy(
@@ -47,6 +36,6 @@ class ConversationController
 
         $deleteConversation->execute($agent, $conversation, $request->user());
 
-        return response()->json(['success' => true, 'message' => 'Conversation deleted successfully.']);
+        return response()->json(['success' => true, 'message' => __('Conversation deleted successfully.')]);
     }
 }

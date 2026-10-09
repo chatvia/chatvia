@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Account\DeletePaymentMethodAction;
+use Domain\Billing\Data\Account\PaymentMethodData;
 use Domain\Billing\Models\UserBilling;
 
 it('returns false when no matching payment method can be resolved', function (): void {
@@ -12,7 +13,7 @@ it('returns false when no matching payment method can be resolved', function ():
     $user = User::factory()->workspace()->create();
     $user->billing()->firstOrCreate([]);
 
-    $result = app(DeletePaymentMethodAction::class)->execute($user, 'pm_does_not_exist');
+    $result = app(DeletePaymentMethodAction::class)->execute(new PaymentMethodData($user, 'pm_does_not_exist'));
 
     expect($result)->toBeFalse();
 });
@@ -25,5 +26,5 @@ it('throws when called on a user without any billing row at all', function (): v
     $user = User::factory()->workspace()->create();
     UserBilling::query()->where('user_id', $user->id)->delete();
 
-    app(DeletePaymentMethodAction::class)->execute($user, 'pm_does_not_exist');
+    app(DeletePaymentMethodAction::class)->execute(new PaymentMethodData($user, 'pm_does_not_exist'));
 })->throws(RuntimeException::class);

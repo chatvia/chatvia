@@ -6,6 +6,10 @@ use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Creating or editing a team role from the role editor. Only the owner may
+ * (TeamPolicy::update).
+ */
 class SaveTeamRoleRequest extends FormRequest
 {
     public function authorize(): bool

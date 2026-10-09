@@ -2,6 +2,7 @@
 
 namespace Domain\Evaluation\Actions;
 
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Models\EvalResult;
 use Domain\Evaluation\Models\EvalRun;
@@ -23,7 +24,7 @@ class FinalizeEvalRunAction
         $failed = $results->count() - $passed;
 
         $run->update([
-            'status' => $cancelled ? EvalRun::STATUS_FAILED : EvalRun::STATUS_COMPLETED,
+            'status' => $cancelled ? EvalRunStatus::Failed : EvalRunStatus::Completed,
             'passed_count' => $passed,
             'failed_count' => $failed,
             'avg_score' => $results->isEmpty() ? null : round((float) $results->avg('score'), 4),

@@ -4,6 +4,10 @@ namespace Domain\Agent\Data\Resources\Sources;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * A trained knowledge source with the agents it is attached to, for the
+ * "link an existing source" picker.
+ */
 class AgentSourcesListData extends Data
 {
     public function __construct(

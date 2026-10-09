@@ -3,6 +3,7 @@
 namespace Domain\Guardrail\Data;
 
 use Domain\Guardrail\Enums\GuardOutcome;
+use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Guardrail\Enums\GuardStage;
 use Domain\Guardrail\Enums\GuardType;
 
@@ -20,7 +21,7 @@ final readonly class GuardVerdictData
         public GuardType $guardType,
         public GuardStage $stage,
         public GuardOutcome $outcome,
-        public ?string $severity = null,
+        public ?GuardSeverity $severity = null,
         public array $detail = [],
     ) {}
 }

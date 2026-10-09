@@ -3,38 +3,28 @@
 namespace App\Http\Controllers\Landing\Marketing;
 
 use App\Http\Requests\Landing\ContactRequest;
+use App\Marketing\Actions\SendContactMessageAction;
+use App\Marketing\Services\ContactInbox;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Mail;
-use Support\Cms\Marketing\Mail\ContactMail;
 
 /**
- * Public contact page. Messages go to `chatvia.contact_email`; when that is
- * not set, the form is turned off and the page says so.
+ * Public contact page. Messages go to the install's contact inbox
+ * (`chatvia.contact_email`); when none is set the form is off and the page
+ * says so.
  */
 class ContactController
 {
-    public function show(): View
+    public function show(ContactInbox $inbox): View
     {
-        return view('landing.contact', ['contactEnabled' => $this->recipient() !== null]);
+        return view('landing.contact', ['contactEnabled' => $inbox->isOpen()]);
     }
 
-    public function submit(ContactRequest $request): View
+    public function submit(ContactRequest $request, SendContactMessageAction $sendMessage): View
     {
-        $recipient = $this->recipient();
+        $sent = $sendMessage->execute($request->toData());
 
-        if ($recipient === null) {
-            return view('landing.contact', ['contactEnabled' => false]);
-        }
-
-        Mail::to($recipient)->send(new ContactMail($request->validated()));
-
-        return view('landing.contact', ['contactEnabled' => true, 'submitted' => true]);
-    }
-
-    private function recipient(): ?string
-    {
-        $email = config('chatvia.contact_email');
-
-        return is_string($email) && $email !== '' ? $email : null;
+        return view('landing.contact', $sent
+            ? ['contactEnabled' => true, 'submitted' => true]
+            : ['contactEnabled' => false]);
     }
 }

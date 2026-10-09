@@ -20,7 +20,8 @@ class HandedOff implements ShouldBroadcastNow
 
     public function __construct(
         public string $conversationId,
-        public string $status, // 'ai', 'pending', 'human', 'returned'
+        // A HandoffStatus value, or EndHandoffChatAction::ENDED_BY_VISITOR.
+        public string $status,
         public ?string $adminId = null,
         public ?string $adminName = null,
     ) {}

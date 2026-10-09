@@ -8,6 +8,10 @@ use Domain\Knowledge\Source\Text\Data\TrainedTextRowData;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
+/**
+ * Lists the workspace's trained texts the agent does not use yet (the
+ * "attach an existing text" dialog).
+ */
 class AgentSourcesTrainedTextsListController
 {
     /**

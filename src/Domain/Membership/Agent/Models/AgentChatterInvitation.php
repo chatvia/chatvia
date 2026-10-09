@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 /**
  * A pending chatter invitation to an agent. One row per outstanding link;
  * deleted on accept. The `token` column carries the secret used in the
- * invitation URL — it replaces the previous signed-URL approach.
+ * invitation URL. A link stays valid for {@see self::TTL_DAYS} days.
  *
  * @property int $id
  * @property int $agent_id
@@ -25,6 +25,9 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class AgentChatterInvitation extends Model
 {
+    /** How many days an invitation link stays valid after it is sent. */
+    public const int TTL_DAYS = 7;
+
     protected function casts(): array
     {
         return [

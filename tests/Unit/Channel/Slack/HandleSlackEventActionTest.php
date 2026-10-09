@@ -1,14 +1,14 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Channel\Services\ChannelAccessGate;
 use Domain\Channel\Slack\Actions\HandleSlackEventAction;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
+use Domain\Channel\Slack\Services\SlackAdapter;
 use Domain\Channel\Slack\Services\SlackChannelResolver;
-use Domain\Channel\Slack\Services\SlackReplyRunner;
-use Domain\Conversation\Services\Memory\ChatMemory;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Illuminate\Support\Str;
+use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Slack\FakeSlackClient;
 
 /**
@@ -34,47 +34,23 @@ function slackHandleApp(bool $public = true): AgentSlackApp
 }
 
 /**
- * @param  list<string>  $partials
+ * Run one Slack message through the handle action, wired to the stubbed
+ * pipeline.
  */
-function stubSlackReplyRunner(string $reply, array $partials = []): SlackReplyRunner
+function slackHandle(FakeSlackClient $client, StubChannelReplyRunner $runner, AgentSlackApp $app, string $channelId, string $text, ?string $threadTs = null): void
 {
-    return new class($reply, $partials) extends SlackReplyRunner
-    {
-        public ?string $received = null;
-
-        public function __construct(private string $canned, private array $partials) {}
-
-        public function reply(SlackChannel $channel, string $message, ?Closure $onPartial = null): string
-        {
-            $this->received = $message;
-
-            foreach ($this->partials as $partial) {
-                if ($onPartial !== null) {
-                    $onPartial($partial);
-                }
-            }
-
-            return $this->canned;
-        }
-    };
-}
-
-function slackHandleAction(FakeSlackClient $client, SlackReplyRunner $runner): HandleSlackEventAction
-{
-    return new HandleSlackEventAction(
-        new SlackChannelResolver(app(ChatMemory::class), $client),
-        $runner,
-        $client,
-        new ChannelAccessGate,
+    (new HandleSlackEventAction($runner->handler()))->execute(
+        new SlackAdapter($client, new SlackChannelResolver(app(StartConversationAction::class), $client), $app, $channelId, $threadTs),
+        $text,
     );
 }
 
 it('posts a placeholder, streams partials into it, and lands the final reply', function (): void {
     $app = slackHandleApp();
     $client = new FakeSlackClient;
-    $runner = stubSlackReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
+    $runner = new StubChannelReplyRunner('Hello from the agent', ['Hello', 'Hello from']);
 
-    slackHandleAction($client, $runner)->execute($app, 'C123CHAN', '<@U0BOT> hi there');
+    slackHandle($client, $runner, $app, 'C123CHAN', '<@U0BOT> hi there');
 
     // One placeholder post, then a partial edit per push + the final edit.
     expect($client->posted)->toHaveCount(1)
@@ -89,7 +65,7 @@ it('posts a placeholder, streams partials into it, and lands the final reply', f
         ->and($client->updates[2]['ts'])->toBe($client->nextTs);
 
     // The bot's own mention is stripped before the pipeline sees the text.
-    expect($runner->received)->toBe('hi there');
+    expect($runner->received())->toBe('hi there');
 
     $channel = SlackChannel::query()->firstOrFail();
     expect($channel->channel_id)->toBe('C123CHAN')
@@ -100,7 +76,7 @@ it('replies in the thread the mention came from', function (): void {
     $app = slackHandleApp();
     $client = new FakeSlackClient;
 
-    slackHandleAction($client, stubSlackReplyRunner('ok'))->execute($app, 'C123CHAN', '<@U0BOT> hi', '1699.000001');
+    slackHandle($client, new StubChannelReplyRunner('ok'), $app, 'C123CHAN', '<@U0BOT> hi', '1699.000001');
 
     expect($client->posted[0]['threadTs'])->toBe('1699.000001');
 });
@@ -108,10 +84,10 @@ it('replies in the thread the mention came from', function (): void {
 it('keeps one channel mapping across multiple inbound messages', function (): void {
     $app = slackHandleApp();
     $client = new FakeSlackClient;
-    $action = slackHandleAction($client, stubSlackReplyRunner('ok'));
+    $runner = new StubChannelReplyRunner('ok');
 
-    $action->execute($app, 'C900', 'first');
-    $action->execute($app, 'C900', 'second');
+    slackHandle($client, $runner, $app, 'C900', 'first');
+    slackHandle($client, $runner, $app, 'C900', 'second');
 
     expect(SlackChannel::query()->count())->toBe(1);
     expect($client->posted)->toHaveCount(2);
@@ -120,12 +96,12 @@ it('keeps one channel mapping across multiple inbound messages', function (): vo
 it('does nothing when the message is only the mention itself', function (): void {
     $app = slackHandleApp();
     $client = new FakeSlackClient;
-    $runner = stubSlackReplyRunner('should never run');
+    $runner = new StubChannelReplyRunner('should never run');
 
-    slackHandleAction($client, $runner)->execute($app, 'C123CHAN', '<@U0BOT>');
+    slackHandle($client, $runner, $app, 'C123CHAN', '<@U0BOT>');
 
     expect($client->posted)->toBeEmpty();
-    expect($runner->received)->toBeNull();
+    expect($runner->received())->toBeNull();
     expect(SlackChannel::query()->count())->toBe(0);
 });
 
@@ -133,20 +109,20 @@ it('bails before the pipeline when the placeholder cannot be posted', function (
     $app = slackHandleApp();
     $client = new FakeSlackClient;
     $client->nextTs = null; // kicked from the channel / missing scope
-    $runner = stubSlackReplyRunner('should never run');
+    $runner = new StubChannelReplyRunner('should never run');
 
-    slackHandleAction($client, $runner)->execute($app, 'C123CHAN', 'hello');
+    slackHandle($client, $runner, $app, 'C123CHAN', 'hello');
 
-    expect($runner->received)->toBeNull();
+    expect($runner->received())->toBeNull();
     expect($client->updates)->toBeEmpty();
 });
 
 it('refuses to answer on a protected agent and creates no channel', function (): void {
     $app = slackHandleApp(public: false);
     $client = new FakeSlackClient;
-    $runner = stubSlackReplyRunner('should never be sent');
+    $runner = new StubChannelReplyRunner('should never be sent');
 
-    slackHandleAction($client, $runner)->execute($app, 'C123CHAN', 'hello');
+    slackHandle($client, $runner, $app, 'C123CHAN', 'hello');
 
     // Gated before the pipeline: a single "unavailable" notice, no channel row.
     expect($client->posted)->toHaveCount(1)

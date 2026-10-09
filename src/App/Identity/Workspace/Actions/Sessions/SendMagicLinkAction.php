@@ -2,9 +2,9 @@
 
 namespace App\Identity\Workspace\Actions\Sessions;
 
+use App\Http\Auth\MagicLinkSignIn;
 use App\Identity\Workspace\Data\Sessions\SendMagicLinkData;
 use App\Identity\Workspace\Events\MagicLinkRequested;
-use App\Identity\Workspace\Magic\TwoFactorAwareLoginAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use MagicLink\MagicLink;
@@ -38,7 +38,7 @@ class SendMagicLinkAction
         }
 
         $magicLink = MagicLink::create(
-            action: new TwoFactorAwareLoginAction(
+            action: new MagicLinkSignIn(
                 userId: $user->id,
                 redirectUrl: $redirectUrl,
             ),

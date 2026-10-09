@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 
 /**
@@ -17,14 +17,12 @@ use Illuminate\Support\Facades\Password;
  */
 class ForgotPasswordController
 {
-    public function __invoke(Request $request): RedirectResponse
+    public function __invoke(ForgotPasswordRequest $request): RedirectResponse
     {
-        $request->validate(['email' => ['required', 'email']]);
-
         // Fire-and-forget: we don't surface INVALID_USER / PASSWORD_RESET errors
         // to the client. Password::sendResetLink internally no-ops for unknown
         // emails, so the only side-effect skipped here is the error response.
-        Password::sendResetLink($request->only('email'));
+        Password::sendResetLink(['email' => $request->emailAddress()]);
 
         return back()->with('status', __(Password::RESET_LINK_SENT));
     }

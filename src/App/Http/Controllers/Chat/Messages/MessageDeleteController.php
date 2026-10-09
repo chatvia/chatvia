@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
-use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
+use App\Http\Chat\HostedChatSession;
+use App\Http\Requests\Chat\DeleteMessageRequest;
+use Domain\Conversation\Actions\Messages\DeleteMessagePairAction;
 
+/**
+ * Removes a message and the one before it from the hosted-chat visitor's
+ * live history.
+ */
 class MessageDeleteController
 {
-    public function __invoke(Request $request, ChatMemory $memory, TurnState $session): void
+    public function __invoke(DeleteMessageRequest $request, DeleteMessagePairAction $deletePair, HostedChatSession $session): void
     {
-        $request->validate([
-            'conversation_id' => ['required', 'string'],
-            'message_id' => ['required', 'string'],
-        ]);
-
-        $agent = current_agent();
-
-        $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent), $request->input('conversation_id'))
-            ->deleteMessage($request->input('message_id'));
+        $deletePair->execute(
+            $session->scope(current_agent(), $request->conversationId()),
+            $request->messageId(),
+        );
     }
 }

@@ -5,6 +5,10 @@ namespace App\Identity\Workspace\Policies;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 
+/**
+ * Only the account that asked for a data export may download (while it is
+ * ready) or delete it.
+ */
 class DataExportPolicy
 {
     public function download(User $user, DataExport $export): bool

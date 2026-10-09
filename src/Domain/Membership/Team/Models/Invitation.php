@@ -9,6 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
+ * A pending invitation for an email address to join a team under a role. The
+ * accept link is a signed URL built from the row id; the row is deleted when
+ * the invitation is accepted or cancelled. It stays valid for
+ * {@see self::TTL_DAYS} days from `created_at` (resending refreshes it).
+ *
  * @property int $id
  * @property int $team_id
  * @property int $role_id
@@ -36,6 +41,14 @@ use Illuminate\Support\Carbon;
 #[Table(name: 'team_invitations')]
 class Invitation extends Model
 {
+    /** How many days an invitation link stays valid after it is (re)sent. */
+    public const int TTL_DAYS = 7;
+
+    public function hasExpired(): bool
+    {
+        return $this->created_at->copy()->addDays(self::TTL_DAYS)->isPast();
+    }
+
     /**
      * Resolve an implicit route binding.
      *

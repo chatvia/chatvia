@@ -9,6 +9,11 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * A message was posted into a handed-off conversation (by the visitor or the
+ * operator). Broadcast at once to the conversation's presence channel as
+ * `message`.
+ */
 class MessagePosted implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;
@@ -17,7 +22,8 @@ class MessagePosted implements ShouldBroadcastNow
         public string $conversationId,
         public string $messageId,
         public string $content,
-        public string $role, // 'user', 'assistant', 'agent'
+        // A MessageRole value (`agent` is a human operator).
+        public string $role,
         public ?string $senderName = null,
         public ?string $senderId = null,
     ) {}

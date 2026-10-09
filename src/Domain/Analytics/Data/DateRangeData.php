@@ -2,7 +2,6 @@
 
 namespace Domain\Analytics\Data;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Spatie\LaravelData\Data;
 
@@ -12,36 +11,31 @@ use Spatie\LaravelData\Data;
  *  - `start` is at 00:00 of its day
  *  - `end` is at 23:59:59 of its day
  *
- * `fromRequestOrLastDays()` is the canonical constructor used by the
- * analytics controllers (Tone, Sentiment, Overview, …). It replaces the
- * historical inline expression `now()->subDays(6)->startOfDay()` that was
- * duplicated across 6 files. The default of 7 days INCLUSIVE matches the
- * legacy expression (today + the previous 6 days = 7 buckets).
+ * Missing dates fall back to the default window: the last
+ * {@see self::DEFAULT_DAYS} days including today.
  */
 class DateRangeData extends Data
 {
     /**
      * Default range length in days, INCLUSIVE — today plus the previous 6
-     * gives 7 buckets, matching the legacy `now()->subDays(6)->startOfDay()`.
+     * gives 7 daily buckets.
      */
-    private const DEFAULT_DAYS = 7;
+    public const int DEFAULT_DAYS = 7;
 
     public function __construct(
         public Carbon $start,
         public Carbon $end,
     ) {}
 
-    public static function fromRequestOrLastDays(Request $request, int $days = self::DEFAULT_DAYS): self
+    /**
+     * Build a range from optional `Y-m-d` (or any Carbon-parsable) dates.
+     */
+    public static function fromDates(?string $start, ?string $end, int $days = self::DEFAULT_DAYS): self
     {
-        $start = $request->input('start_date')
-            ? Carbon::parse((string) $request->input('start_date'))->startOfDay()
-            : now()->subDays(max(0, $days - 1))->startOfDay();
-
-        $end = $request->input('end_date')
-            ? Carbon::parse((string) $request->input('end_date'))->endOfDay()
-            : now()->endOfDay();
-
-        return new self($start, $end);
+        return new self(
+            $start !== null && $start !== '' ? Carbon::parse($start)->startOfDay() : now()->subDays(max(0, $days - 1))->startOfDay(),
+            $end !== null && $end !== '' ? Carbon::parse($end)->endOfDay() : now()->endOfDay(),
+        );
     }
 
     /**

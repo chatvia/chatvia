@@ -2,7 +2,7 @@
 
 namespace Domain\Analytics\Jobs;
 
-use Domain\Analytics\Actions\AnalyzeConversationAction;
+use Domain\Analytics\Actions\Analysis\AnalyzeConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;

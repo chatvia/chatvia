@@ -3,6 +3,8 @@
 namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Support\Http\SafeUrl;

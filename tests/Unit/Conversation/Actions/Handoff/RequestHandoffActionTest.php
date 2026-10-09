@@ -3,8 +3,9 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
-use Domain\Conversation\Exceptions\HandoffOperationException;
+use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Support\Facades\Event;
@@ -53,8 +54,8 @@ it('transitions handoff_status from ai to pending and broadcasts HandedOff', fun
 
     $result = app(RequestHandoffAction::class)->execute($conversation);
 
-    expect($result)->toBe('pending')
-        ->and($conversation->fresh()->handoff_status)->toBe('pending');
+    expect($result)->toBe(HandoffStatus::Pending)
+        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending);
 
     Event::assertDispatched(HandedOff::class, function (HandedOff $event) use ($conversation): bool {
         return $event->conversationId === $conversation->external_id
@@ -69,8 +70,8 @@ it('returns "human" without dispatching when the conversation is already with a 
 
     $result = app(RequestHandoffAction::class)->execute($conversation);
 
-    expect($result)->toBe('human')
-        ->and($conversation->fresh()->handoff_status)->toBe('human');
+    expect($result)->toBe(HandoffStatus::Human)
+        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Human);
 
     Event::assertNotDispatched(HandedOff::class);
 });
@@ -80,24 +81,24 @@ it('returns "pending" without dispatching when handoff was already requested', f
 
     $result = app(RequestHandoffAction::class)->execute($conversation);
 
-    expect($result)->toBe('pending')
-        ->and($conversation->fresh()->handoff_status)->toBe('pending');
+    expect($result)->toBe(HandoffStatus::Pending)
+        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending);
 
     Event::assertNotDispatched(HandedOff::class);
 });
 
-it('throws HandoffOperationException::forbidden when the plan does not include HANDOFF', function (): void {
+it('refuses with HandoffUnavailableException when the plan does not include HANDOFF', function (): void {
     // No pro-plan subscription seeded → starter plan, no HANDOFF capability.
     $conversation = makeHandoffScenario(initialStatus: 'ai', proPlan: false);
 
     expect(fn () => app(RequestHandoffAction::class)->execute($conversation))
-        ->toThrow(HandoffOperationException::class, 'Handoff is not available on this plan.');
+        ->toThrow(HandoffUnavailableException::class, 'Handoff is not available on this plan.');
 
-    expect($conversation->fresh()->handoff_status)->toBe('ai');
+    expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
     Event::assertNotDispatched(HandedOff::class);
 });
 
-it('throws HandoffOperationException::forbidden when the agent has handoff_enabled=false in widget settings', function (): void {
+it('refuses with HandoffUnavailableException when the agent has handoff_enabled=false in widget settings', function (): void {
     // Pro plan grants capability, but the per-agent toggle is off.
     $conversation = makeHandoffScenario(
         initialStatus: 'ai',
@@ -106,8 +107,8 @@ it('throws HandoffOperationException::forbidden when the agent has handoff_enabl
     );
 
     expect(fn () => app(RequestHandoffAction::class)->execute($conversation))
-        ->toThrow(HandoffOperationException::class, 'Live chat is turned off for this agent.');
+        ->toThrow(HandoffUnavailableException::class, 'Live chat is turned off for this agent.');
 
-    expect($conversation->fresh()->handoff_status)->toBe('ai');
+    expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
     Event::assertNotDispatched(HandedOff::class);
 });

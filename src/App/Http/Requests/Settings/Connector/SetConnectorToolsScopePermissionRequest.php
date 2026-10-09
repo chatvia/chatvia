@@ -7,6 +7,10 @@ use Domain\Integration\Mcp\Enums\McpToolScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Set the same permission on every tool in one scope (read or write) of a
+ * connector.
+ */
 class SetConnectorToolsScopePermissionRequest extends FormRequest
 {
     public function authorize(): bool

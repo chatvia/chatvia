@@ -6,16 +6,26 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\Resources\Members\ManagedUserData;
 use Domain\Membership\Team\Data\Resources\Members\TeamInvitationData;
 use Domain\Membership\Team\Data\Resources\Members\TeamMemberData;
+use Domain\Membership\Team\Data\Resources\Roles\TeamRoleData;
+use Domain\Membership\Team\Data\Resources\Team\TeamAgentData;
 use Domain\Membership\Team\Data\Resources\Team\TeamData;
+use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamPermissionCatalog;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * The team page: members with their roles, the team's roles and agents,
+ * pending invitations, and the managed users who can be added without an
+ * invitation. Non-members are sent back.
+ */
 class TeamShowController
 {
-    public function __invoke(Request $request, Team $team, TeamService $teamService)
+    public function __invoke(Request $request, Team $team, TeamPermissionCatalog $catalog): Response|RedirectResponse
     {
         $user = $request->user();
 
@@ -50,34 +60,30 @@ class TeamShowController
                 ),
             ));
 
-        $roles = $teamService->teamRoles($team);
-
-        $agents = $teamService->teamAgents($team);
-
         $pendingInvitations = $team
             ->invitations()
             ->with('role')
             ->get()
-            ->map(fn ($invitation): TeamInvitationData => TeamInvitationData::fromModel($invitation));
+            ->map(fn (Invitation $invitation): TeamInvitationData => TeamInvitationData::fromModel($invitation));
 
         $currentMemberIds = $allMembers->pluck('id')->toArray();
         $managedUsers = $user->managedUsers()
             ->whereNotIn('id', $currentMemberIds)
             ->get()
-            ->map(fn ($managedUser): ManagedUserData => ManagedUserData::fromModel($managedUser));
+            ->map(fn (User $managedUser): ManagedUserData => ManagedUserData::fromModel($managedUser));
 
         return Inertia::render('teams/Show', [
             'team' => TeamData::fromModel($team),
             'members' => $members,
-            'roles' => $roles,
-            'agents' => $agents,
+            'roles' => TeamRoleData::collectForTeam($team),
+            'agents' => TeamAgentData::collectForTeam($team),
             'pendingInvitations' => $pendingInvitations,
             'managedUsers' => $managedUsers,
             'isOwner' => $user->ownsTeam($team),
-            'userRole' => $user->teamRole($team)->code ?? 'owner',
-            'availableRoles' => $teamService->defaultRoles(),
-            'permissionsConfig' => $teamService->permissionsConfig(),
-            'permissionGroups' => $teamService->permissionGroups(),
+            'userRole' => $user->teamRole($team)?->code ?? Role::OWNER_CODE,
+            'availableRoles' => $catalog->defaultRoles(),
+            'permissionsConfig' => $catalog->permissions(),
+            'permissionGroups' => $catalog->groups(),
         ]);
     }
 }

@@ -2,6 +2,10 @@
 
 namespace Domain\Conversation\Services\Streaming\Sse;
 
+/**
+ * Why a streamed turn ended with an error. The chat clients switch on these
+ * strings (and on whether a retry can help), so they must not change.
+ */
 enum ErrorCode: string
 {
     case SubscriptionExpired = 'subscription_expired';

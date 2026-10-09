@@ -2,6 +2,7 @@
 
 namespace Domain\Agent\Data\Resources\ChatLog\Handoff;
 
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -25,7 +26,7 @@ class ChatLogHandoffStatusData extends Data
         $conversation->loadMissing('handoffUser');
 
         return new self(
-            status: $conversation->handoff_status ?? 'ai',
+            status: ($conversation->handoff_status ?? HandoffStatus::Ai)->value,
             admin_id: $conversation->handoff_user_id,
             admin_name: $conversation->handoffUser?->name,
             handoff_at: $conversation->handoff_at?->toIso8601String(),

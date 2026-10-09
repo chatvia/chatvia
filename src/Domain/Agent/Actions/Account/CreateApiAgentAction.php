@@ -5,10 +5,10 @@ namespace Domain\Agent\Actions\Account;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\CreateApiAgentData;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
 use Domain\Agent\Services\AgentLocator as AgentService;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Membership\Team\Actions\Team\ResolveOwnedTeamAction;
-use Domain\Prompt\Actions\ResolveAgentPromptIdAction;
 use Illuminate\Support\Facades\DB;
 use Support\Enums\CreatedVia;
 

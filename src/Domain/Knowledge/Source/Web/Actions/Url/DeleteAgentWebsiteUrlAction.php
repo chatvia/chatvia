@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Removes one crawled URL from a website source together with the chunks
- * that only this URL produced.
+ * that only this URL produced. Chunks are shared by checksum across a website's
+ * pages, so a chunk another URL still points at is kept.
  */
 class DeleteAgentWebsiteUrlAction
 {

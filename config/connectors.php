@@ -222,7 +222,7 @@ return [
         // `registration_endpoint` (auth.atlassian.com/{id}/dcr/register), so we
         // discover + register automatically like Linear/Fireflies. No
         // pre-registered Atlassian app or env vars needed. (Leaving the explicit
-        // oauth_* endpoints here would trip McpOAuthFlow's pre-flight guard and
+        // oauth_* endpoints here would trip the OAuth start's pre-flight guard and
         // force the pre-registered path, so they must stay absent.)
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.atlassian.com/v1/mcp/authv2',
@@ -511,7 +511,7 @@ return [
         // Fireflies' hosted MCP is a spec-compliant OAuth 2.1 server with
         // Dynamic Client Registration (its metadata advertises a
         // `registration_endpoint`), so — like Linear — we just point at the
-        // MCP URL and McpOAuthFlow discovers + registers automatically. No
+        // MCP URL and the OAuth flow discovers + registers automatically. No
         // pre-registered app or env vars needed (unlike GitHub, which lacks
         // DCR). Users sign in with Fireflies instead of pasting an API key.
         'auth_strategy' => 'oauth',
@@ -548,7 +548,7 @@ return [
         // supplies its SerpApi API key, sent as a Bearer token. SerpApi also
         // accepts a path-based key (/KEY/mcp), but the header form keeps the key
         // out of the stored `url` and lets every workspace share the canonical
-        // catalog (shouldUseCentralCatalog matches on the fixed mcp_url).
+        // catalog (ConnectorCatalog::sharesCentralCatalog matches on the fixed mcp_url).
         'auth_strategy' => 'token',
         'auth_type' => 'bearer',
         'token_label' => 'SerpApi API key',

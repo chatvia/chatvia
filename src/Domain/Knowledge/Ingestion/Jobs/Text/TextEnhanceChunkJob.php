@@ -3,9 +3,10 @@
 namespace Domain\Knowledge\Ingestion\Jobs\Text;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Actions\Chunks\EnhanceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\ChunkEnhanceText;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Usage\AttributesTokenUsage;
@@ -15,6 +16,13 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
+/**
+ * Enhances the chunk of a text source or a media transcript part, from its
+ * text only. See {@see EnhanceChunkAction}.
+ *
+ * The property keeps the name `sourceText` although it may hold a media
+ * SourceFile: jobs already on the queue are unserialized by property name.
+ */
 class TextEnhanceChunkJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Queueable, TracksTokenUsage;
@@ -42,14 +50,14 @@ class TextEnhanceChunkJob implements AttributesTokenUsage, ShouldBeUnique, Shoul
         return $this->agent->user_id;
     }
 
-    public function handle(ChunkEnhanceText $enhanceText): void
+    public function handle(EnhanceChunkAction $action): void
     {
-        $enhanceText->enhanceText(
-            $this->chunk,
-            $this->page,
-            $this->previousPage,
-            $this->nextPage,
-        );
+        $action->execute(new EnhanceChunkData(
+            chunk: $this->chunk,
+            page: $this->page,
+            previousPage: $this->previousPage,
+            nextPage: $this->nextPage,
+        ));
     }
 
     public function failed(Throwable $e): void

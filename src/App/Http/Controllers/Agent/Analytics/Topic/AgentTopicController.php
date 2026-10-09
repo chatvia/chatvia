@@ -4,18 +4,17 @@ namespace App\Http\Controllers\Agent\Analytics\Topic;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
+/**
+ * The agent's topic analytics page; its data loads from
+ * {@see AgentTopicsDataController} and {@see SuggestedTopicsDataController}.
+ */
 class AgentTopicController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Agent $agent): Response
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
         return Inertia::render('agents/Topics', [
             'agent' => AgentResourceData::fromModel($agent),
             'enabled' => $agent->analyticsEnabled('topics'),

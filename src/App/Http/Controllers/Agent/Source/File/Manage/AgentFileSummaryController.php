@@ -6,24 +6,21 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Http\Request;
 
+/**
+ * Returns the analysis metadata of a file's summary chunk (type, audience,
+ * topics, …) for the file details panel.
+ */
 class AgentFileSummaryController
 {
-    public function __invoke(Request $request, Agent $agent, SourceFile $file)
+    /**
+     * @return array<string, mixed>
+     */
+    public function __invoke(Request $request, Agent $agent, SourceFile $file): array
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        // {file} binds globally by id — confirm it belongs to the caller's
-        // tenant before returning its summary metadata (cross-tenant leak).
+        // {file} binds globally by id: confirm it belongs to the caller's
+        // workspace before returning its metadata.
         abort_if($request->user()->cannot('view', $file), 404);
 
-        $metadata = $file
-            ->summary()
-            ->select('metadata')
-            ->value('metadata');
-
-        return $metadata ?? [];
+        return $file->summary()->value('metadata') ?? [];
     }
 }

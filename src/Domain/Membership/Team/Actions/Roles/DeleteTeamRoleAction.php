@@ -6,6 +6,10 @@ use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Support\Exceptions\DomainValidationException;
 
+/**
+ * Deletes a custom team role. Refused while any member still holds the role,
+ * so nobody is left on the team without one.
+ */
 class DeleteTeamRoleAction
 {
     /**
@@ -16,7 +20,7 @@ class DeleteTeamRoleAction
         $membersWithRole = $team->members()->wherePivot('role_id', $role->id)->count();
 
         if ($membersWithRole > 0) {
-            throw new DomainValidationException('role', 'Cannot delete this role. '.$membersWithRole.' member(s) are assigned to it.');
+            throw new DomainValidationException('role', __('Cannot delete this role. :count member(s) are assigned to it.', ['count' => $membersWithRole]));
         }
 
         $role->delete();

@@ -63,7 +63,7 @@ it('trusts no outside domain when no always-allowed origins are configured', fun
     config(['chatvia.widget.always_allowed_origins' => []]);
     $agent = agentWithSites(['customer.example']);
 
-    expect(app(WidgetVerification::class)->verifyByAgentExternalId($agent->external_id, originRequest($origin)))
+    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, originRequest($origin)))
         ->toBeFalse();
 })->with([
     'https://chatvia.ai',
@@ -75,7 +75,7 @@ it('allows the agent\'s own sites', function (): void {
     config(['chatvia.widget.always_allowed_origins' => []]);
     $agent = agentWithSites(['customer.example']);
 
-    expect(app(WidgetVerification::class)->verifyByAgentExternalId($agent->external_id, originRequest('https://www.customer.example')))
+    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, originRequest('https://www.customer.example')))
         ->toBeTrue();
 });
 
@@ -85,8 +85,8 @@ it('allows the configured install-wide origins for every agent', function (): vo
 
     $verification = app(WidgetVerification::class);
 
-    expect($verification->verifyByAgentExternalId($agent->external_id, originRequest('https://chatvia.ai')))->toBeTrue()
-        ->and($verification->verifyByAgentExternalId($agent->external_id, originRequest('https://evil.example')))->toBeFalse();
+    expect($verification->isRequestFromAllowedSite($agent, originRequest('https://chatvia.ai')))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, originRequest('https://evil.example')))->toBeFalse();
 });
 
 it('allows localhost only in the local environment', function (): void {
@@ -94,7 +94,7 @@ it('allows localhost only in the local environment', function (): void {
     app()['env'] = 'local';
     $agent = agentWithSites([]);
 
-    expect(app(WidgetVerification::class)->verifyByAgentExternalId($agent->external_id, originRequest('http://localhost:5173')))
+    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, originRequest('http://localhost:5173')))
         ->toBeTrue();
 });
 
@@ -115,7 +115,37 @@ it('lets the widget load on the APP_URL host with the default config', function 
 
     $verification = app(WidgetVerification::class);
 
-    expect($verification->verifyByAgentExternalId($agent->external_id, originRequest('https://'.$appHost)))->toBeTrue()
-        ->and($verification->verifyByAgentExternalId($agent->external_id, originRequest('https://www.'.$appHost)))->toBeTrue()
-        ->and($verification->verifyByAgentExternalId($agent->external_id, originRequest('https://chatvia.ai')))->toBe($appHost === 'chatvia.ai');
+    expect($verification->isRequestFromAllowedSite($agent, originRequest('https://'.$appHost)))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, originRequest('https://www.'.$appHost)))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, originRequest('https://chatvia.ai')))->toBe($appHost === 'chatvia.ai');
 });
+
+it('falls back from Origin to Referer to the request host', function (): void {
+    config(['chatvia.widget.always_allowed_origins' => []]);
+    $agent = agentWithSites(['customer.example']);
+    $verification = app(WidgetVerification::class);
+
+    $fromReferer = Request::create('/widget/verify', 'GET');
+    $fromReferer->headers->set('Referer', 'https://customer.example/pricing');
+
+    $fromHost = Request::create('https://customer.example/widget/verify', 'GET');
+
+    $originWins = originRequest('https://evil.example');
+    $originWins->headers->set('Referer', 'https://customer.example/');
+
+    expect($verification->isRequestFromAllowedSite($agent, $fromReferer))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, $fromHost))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, $originWins))->toBeFalse();
+});
+
+it('matches a wildcard site on the bare domain and on every subdomain', function (string $origin, bool $allowed): void {
+    config(['chatvia.widget.always_allowed_origins' => []]);
+    $agent = agentWithSites(['*.customer.example']);
+
+    expect(app(WidgetVerification::class)->isRequestFromAllowedSite($agent, originRequest($origin)))->toBe($allowed);
+})->with([
+    'bare domain' => ['https://customer.example', true],
+    'subdomain' => ['https://help.customer.example', true],
+    'deep subdomain' => ['https://a.b.customer.example', true],
+    'look-alike' => ['https://evilcustomer.example', false],
+]);

@@ -3,7 +3,11 @@
 namespace Domain\Channel\Teams\Jobs;
 
 use Domain\Channel\Teams\Actions\HandleTeamsActivityAction;
+use Domain\Channel\Teams\Data\TeamsActivityData;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
+use Domain\Channel\Teams\Services\TeamsAdapter;
+use Domain\Channel\Teams\Services\TeamsChatResolver;
+use Domain\Channel\Teams\Services\TeamsClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -27,8 +31,8 @@ class HandleTeamsActivityJob implements ShouldQueue
         public readonly array $activity,
     ) {}
 
-    public function handle(HandleTeamsActivityAction $action): void
+    public function handle(HandleTeamsActivityAction $action, TeamsClient $client, TeamsChatResolver $resolver): void
     {
-        $action->execute($this->bot, $this->activity);
+        $action->execute(new TeamsAdapter($client, $resolver, $this->bot, TeamsActivityData::fromArray($this->activity)));
     }
 }

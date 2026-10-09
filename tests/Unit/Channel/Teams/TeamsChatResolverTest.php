@@ -4,9 +4,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Teams\Models\TeamsChat;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 
 /**
@@ -32,7 +32,7 @@ function teamsResolverBot(): AgentTeamsBot
 
 function teamsResolver(): TeamsChatResolver
 {
-    return new TeamsChatResolver(app(ChatMemory::class));
+    return new TeamsChatResolver(app(StartConversationAction::class));
 }
 
 it('creates a Session + Conversation + mapping on first contact', function (): void {

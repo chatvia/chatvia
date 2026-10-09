@@ -15,8 +15,6 @@ class UpdateAgentTemperatureController
 {
     public function __invoke(UpdateAgentTemperatureRequest $request, Agent $agent): void
     {
-        abort_if(! $request->user()->can('view', $agent), 404);
-
         $agent->setSetting('temperature', (float) $request->validated('temperature'), 'llm_settings');
     }
 }

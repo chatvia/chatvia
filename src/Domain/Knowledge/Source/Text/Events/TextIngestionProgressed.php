@@ -10,6 +10,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Pushes a text source's ingestion progress (0-100) to the agent's Text
+ * sources page after each new chunk.
+ */
 class TextIngestionProgressed implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;

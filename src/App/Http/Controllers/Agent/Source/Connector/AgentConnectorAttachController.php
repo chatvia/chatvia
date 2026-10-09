@@ -6,23 +6,21 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Data\Agent\AgentConnectorAttachResultData;
 use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Illuminate\Http\Request;
 
+/**
+ * Attach one of the workspace's connectors to this agent. Access is gated by
+ * the route middleware (`can.access.agent`, `agent.permission:…`).
+ */
 class AgentConnectorAttachController
 {
-    public function __invoke(
-        Request $request,
-        Agent $agent,
-        string $slug,
-    ): AgentConnectorAttachResultData {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
+    public function __invoke(Agent $agent, string $slug): AgentConnectorAttachResultData
+    {
         $server = AgentMcpServer::query()
             ->ownedBySameAccountAs($agent)
             ->where('slug', $slug)
             ->first();
 
-        abort_unless($server !== null, 404, 'Connector not found in your account.');
+        abort_unless($server !== null, 404, __('Connector not found in your account.'));
 
         $agent->attachConnector($server);
 

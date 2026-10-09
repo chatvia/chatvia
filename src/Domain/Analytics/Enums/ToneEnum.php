@@ -2,6 +2,11 @@
 
 namespace Domain\Analytics\Enums;
 
+/**
+ * The visitor's tone, as the analysis model classifies it. Stored on messages
+ * and conversations and in the daily tone rollup. The values (and the class
+ * name, which an early migration references) must not change.
+ */
 enum ToneEnum: string
 {
     case NEUTRAL = 'neutral';

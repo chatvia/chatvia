@@ -5,11 +5,17 @@ namespace App\Http\Requests\Agent\Connector;
 use Domain\Integration\Mcp\Data\Agent\SetConnectorAlwaysAvailableData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Turn "always on" on or off for a connector attached to an agent.
+ */
 class SetConnectorAlwaysAvailableRequest extends FormRequest
 {
+    /**
+     * The `can.access.agent` + `agent.permission:…` route middleware gate access.
+     */
     public function authorize(): bool
     {
-        return $this->user()?->can('update', $this->route('agent')) ?? false;
+        return true;
     }
 
     /**

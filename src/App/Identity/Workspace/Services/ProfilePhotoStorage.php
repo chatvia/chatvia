@@ -9,6 +9,10 @@ use Illuminate\Support\Str;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
+/**
+ * Stores profile photos: cropped to a small square, re-encoded as JPEG, on the
+ * public assets disk. The original upload is never kept.
+ */
 class ProfilePhotoStorage
 {
     // Avatars render small (≤96px); a 200×200 square is plenty for retina and

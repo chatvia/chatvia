@@ -9,6 +9,10 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Http\Request;
 
+/**
+ * The discovered pages (URLs) of one of the agent's websites: a searchable,
+ * paginated list, and removing one page with the chunks only it produced.
+ */
 class AgentWebsiteLinkController
 {
     public function index(Request $request, Agent $agent, SourceWebsite $website): Paginator

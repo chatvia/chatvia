@@ -15,6 +15,6 @@ class ChangeTicketPriorityController
     {
         $ticket->update(['priority' => $request->toData($ticket)->priority]);
 
-        return back()->with('success', 'Ticket priority updated successfully.');
+        return back()->with('success', __('Ticket priority updated successfully.'));
     }
 }

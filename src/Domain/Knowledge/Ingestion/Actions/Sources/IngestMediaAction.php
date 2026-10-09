@@ -3,33 +3,42 @@
 namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
-use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\TokenSplitter;
 use Domain\Knowledge\Source\Enums\SourceStatus;
-use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Llm\Contracts\Transcriber;
-use Illuminate\Bus\Batch;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\File\File;
 
+/**
+ * Ingest an audio or video file: compress the audio, transcribe it with the
+ * configured Transcriber, then split the transcript and chunk each part in one
+ * batch.
+ *
+ * Transcription is the slow and paid step, so it is done once: the transcript
+ * is cached by the file's checksum and stored in `parser_filepath`, and a retry
+ * chunks the stored transcript without downloading the audio again.
+ */
 class IngestMediaAction
 {
     public function __construct(
         private readonly AudioCompressor $audioCompressor,
         private readonly TokenSplitter $splitter,
         private readonly Transcriber $transcriber,
+        private readonly DispatchSourceIngestionBatchAction $dispatchBatch,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
     {
-        if ($sourceFile->status === SourceStatus::Completed->value) {
+        if ($sourceFile->isIngested()) {
             return;
         }
 
@@ -38,67 +47,46 @@ class IngestMediaAction
         $sourceFile->update([
             'internal_ingestion_job_id' => $internalJobId,
             'parser' => 'whisper',
-            'status' => SourceStatus::Processing->value,
+            'status' => SourceStatus::Processing,
         ]);
 
+        $transcript = $this->transcript($sourceFile, $agent);
+
+        if (trim($transcript) === '') {
+            throw new RuntimeException('The transcript is empty: there is nothing to chunk.');
+        }
+
+        $jobs = collect($this->splitter->split($transcript))
+            ->map(fn (PageData $page): MediaChunkIngestionJob => new MediaChunkIngestionJob($agent, $sourceFile, $page));
+
+        $this->dispatchBatch->execute($sourceFile, $agent, $jobs);
+
+        $sourceFile->update(['took_in_seconds' => (int) ceil(microtime(true) - $startTime)]);
+    }
+
+    /**
+     * The stored transcript on a retry; otherwise download, compress and
+     * transcribe the audio (cached by checksum) and store the transcript.
+     */
+    private function transcript(SourceFile $sourceFile, Agent $agent): string
+    {
         if ($sourceFile->parser_filepath) {
-            // A retry reuses the stored transcript instead of the audio itself.
-            $transcription = $sourceFile->readContents('parser_filepath');
-        } else {
-            // The audio is only downloaded on a cache miss, and the local copy
-            // is deleted once it has been transcribed.
-            $transcription = Cache::remember('ingestion:media:transcription:file:'.$sourceFile->checksum, now()->addMonth(), fn (): string => $sourceFile->withLocalFile(function ($file): string {
-                $compressedFilePath = $this->audioCompressor->process($file->getPathname());
-
-                return $this->transcriber->transcribe($compressedFilePath);
-            }));
-
-            $filePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/audio/'.Str::uuid()->toString().'.txt';
-
-            Storage::put($filePath, $transcription);
-
-            $sourceFile->update(['parser_filepath' => $filePath]);
+            return $sourceFile->readContents('parser_filepath');
         }
 
-        if (empty($transcription)) {
-            throw new RuntimeException('No valid pages data available for chunking');
-        }
+        $transcript = Cache::remember(
+            'ingestion:media:transcription:file:'.$sourceFile->checksum,
+            now()->addMonth(),
+            fn (): string => $sourceFile->withLocalFile(
+                fn (File $file): string => $this->transcriber->transcribe($this->audioCompressor->process($file->getPathname())),
+            ),
+        );
 
-        $sourceFile->refresh();
+        $path = KnowledgeStoragePath::forAgent($agent, 'audio').'/'.Str::uuid()->toString().'.txt';
+        Storage::put($path, $transcript);
 
-        dispatch(new SummaryIngestionJob($sourceFile));
+        $sourceFile->update(['parser_filepath' => $path]);
 
-        $texts = collect($this->splitter->split($transcription));
-
-        $jobs = collect($texts)->map(fn (PageData $page): MediaChunkIngestionJob => new MediaChunkIngestionJob($agent, $sourceFile, $page));
-
-        $sourceFileId = $sourceFile->id;
-        $agentExternalId = $agent->external_id;
-
-        $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent File ID: '.$sourceFileId)
-            ->allowFailures() // one failed chunk must not cancel the batch
-            ->finally(function (Batch $batch) use ($sourceFileId, $agentExternalId): void {
-                $file = SourceFile::find($sourceFileId);
-
-                if (! $file) {
-                    return;
-                }
-
-                $file->update(['status' => SourceStatus::Completed->value]);
-
-                FileIngestionProgressed::dispatch($file, $agentExternalId);
-            })
-            ->dispatch();
-
-        $endTime = microtime(true);
-
-        $tookInSeconds = ceil($endTime - $startTime);
-
-        $sourceFile->update([
-            'expected_chunks' => count($texts),
-            'internal_chunking_batch_id' => $batch->id,
-            'took_in_seconds' => $tookInSeconds,
-        ]);
+        return $transcript;
     }
 }

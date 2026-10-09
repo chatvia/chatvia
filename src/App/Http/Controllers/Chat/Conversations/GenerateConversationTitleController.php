@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatSession;
+use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\JsonResponse;
 
@@ -16,23 +17,26 @@ use Illuminate\Http\JsonResponse;
  */
 class GenerateConversationTitleController
 {
-    public function __invoke(string $conversationId, ChatMemory $memory, TurnState $session): JsonResponse
-    {
+    public function __invoke(
+        string $conversationId,
+        ChatMemory $memory,
+        HostedChatSession $session,
+        GenerateConversationTitleAction $generateTitle,
+        TokenUsageContext $usage,
+    ): JsonResponse {
         $agent = current_agent();
+        $scope = $session->scope($agent, $conversationId);
 
-        $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent), $conversationId);
+        abort_if(! $memory->withScope($scope)->conversationExists(), 404);
 
-        abort_if(! $memory->conversationExists(), 404);
+        $conversation = Conversation::query()
+            ->inSession($scope->sessionId, $agent->id)
+            ->where('external_id', $conversationId)
+            ->first();
 
-        $conversation = Conversation::where('external_id', $conversationId)->first();
-
-        if ($conversation && $conversation->needsTitle()) {
-            app(TokenUsageContext::class)->track(
-                $agent->user_id,
-                fn () => $memory->updateConversationTitleFromMessages(),
-                'chat',
-            );
+        if ($conversation?->needsTitle()) {
+            // The title is an LLM call: attribute its tokens to the workspace.
+            $usage->track($agent->user_id, fn () => $generateTitle->execute($scope), 'chat');
             $conversation->refresh();
         }
 

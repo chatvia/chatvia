@@ -4,15 +4,21 @@ namespace App\Http\Requests\Agent\Crud;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Account\CreateAgentData;
+use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Models\Team;
+use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class CreateAgentRequest extends FormRequest
 {
-    public function authorize(): bool
+    /**
+     * The agent policy decides: only the owner of the selected team may add an
+     * agent to it (a not-found when no team is selected yet).
+     */
+    public function authorize(): Response
     {
-        return Auth::check();
+        return Gate::inspect('create', [Agent::class, current_team()]);
     }
 
     public function rules(): array

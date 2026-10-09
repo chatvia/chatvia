@@ -10,6 +10,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One page of a conversation's messages in the chat log, with the
+ * conversation's title, captured lead and handoff state.
+ */
 #[TypeScript]
 class ChatLogMessagesResourceData extends Data
 {

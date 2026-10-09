@@ -3,7 +3,8 @@
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Actions\Crawl\CrawlWebsiteAction;
 use Domain\Knowledge\Source\Web\Actions\Url\DeleteAgentWebsiteUrlAction;
 use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
@@ -13,6 +14,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 
 /**
  * Multi-step writes on website and YouTube sources run in one transaction,
@@ -85,16 +87,17 @@ it('keeps the previous URL list when saving the new one fails', function (): voi
         throw new RuntimeException('database unavailable');
     });
 
+    config(['services.firecrawl.endpoint' => 'https://firecrawl.test/v2', 'services.firecrawl.key' => 'fc-test']);
+    Http::fake(['https://firecrawl.test/v2/map' => Http::response(['links' => ['https://docs.example.test/new']])]);
+
     expect(fn () => app(CrawlWebsiteAction::class)->execute(
         $website,
         new CrawlerData(url: $website->url),
-        ['https://docs.example.test/new' => ''],
         $agent,
-        time(),
     ))->toThrow(RuntimeException::class);
 
     expect($website->urls()->pluck('url')->all())->toBe(['https://docs.example.test/old'])
-        ->and($website->fresh()->status)->toBe('crawling');
+        ->and($website->fresh()->status)->toBe(SourceStatus::Crawling);
 
     Event::assertNotDispatched(WebsiteCrawlStarted::class);
 });

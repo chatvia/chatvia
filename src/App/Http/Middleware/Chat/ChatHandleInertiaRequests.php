@@ -2,14 +2,25 @@
 
 namespace App\Http\Middleware\Chat;
 
+use App\Http\Middleware\Web\HandleInertiaRequests;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
 
+/**
+ * Inertia root for the hosted chat (`chat` group): the props every chat page
+ * shares — product branding, the signed-in user, Ziggy routes, the current
+ * agent subdomain and the per-chat upload limit. The dashboard has its own
+ * root middleware ({@see HandleInertiaRequests}).
+ */
 class ChatHandleInertiaRequests extends Middleware
 {
     protected $rootView = 'app';
 
+    /**
+     * @return array<string, mixed>
+     */
+    #[\Override]
     public function share(Request $request): array
     {
         $user = $request->user();

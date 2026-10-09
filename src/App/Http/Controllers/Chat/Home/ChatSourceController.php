@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers\Chat\Home;
 
+use App\Http\Chat\HostedChatSession;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
 
+/**
+ * The knowledge sources the answers of one hosted-chat conversation were
+ * based on, keyed by assistant message id.
+ */
 class ChatSourceController
 {
-    public function __invoke(Request $request, string $conversationId, ChatMemory $memory, TurnState $session): array
+    /**
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    public function __invoke(string $conversationId, ChatMemory $memory, HostedChatSession $session): array
     {
-        $agent = current_agent();
-
         return $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent), $conversationId)
+            ->withScope($session->scope(current_agent(), $conversationId))
             ->getSources();
     }
 }

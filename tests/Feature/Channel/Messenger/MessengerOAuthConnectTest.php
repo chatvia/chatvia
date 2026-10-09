@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Channel\Data\MetaPageData;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Services\MessengerClient;
 use Domain\Channel\Services\MetaOAuthClient;
@@ -34,7 +35,7 @@ class FakeMetaOAuthClient extends MetaOAuthClient
 
     public function pages(string $userToken): array
     {
-        return $this->pagesList;
+        return array_map(static fn (array $page): MetaPageData => MetaPageData::from($page), $this->pagesList);
     }
 }
 

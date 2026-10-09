@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Knowledge\Document\LibreOffice;
+use Domain\Knowledge\Document\Conversion\LibreOffice;
 use Illuminate\Database\Eloquent\Attributes\Unguarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;

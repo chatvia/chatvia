@@ -3,6 +3,7 @@
 namespace Domain\Security\Services;
 
 use Domain\Analytics\Services\IP2Country;
+use Domain\Security\Enums\GeoMode;
 use Illuminate\Support\Facades\Cache;
 use Symfony\Component\HttpFoundation\IpUtils;
 
@@ -19,6 +20,10 @@ use Symfony\Component\HttpFoundation\IpUtils;
  */
 class NetworkAccessGuard
 {
+    public function __construct(
+        private readonly IP2Country $geolocation,
+    ) {}
+
     /**
      * Whether a request from $ip / $country satisfies BOTH the IP allowlist and
      * the geo rule. Composed from the two independent predicates below so the
@@ -28,7 +33,7 @@ class NetworkAccessGuard
      * @param  array<int, string>  $ipAllowlist  allowed IPs / CIDRs
      * @param  array<int, string>  $geoCountries  ISO-3166 alpha-2 codes
      */
-    public function passes(array $ipAllowlist, string $geoMode, array $geoCountries, string $ip, ?string $country): bool
+    public function passes(array $ipAllowlist, GeoMode $geoMode, array $geoCountries, string $ip, ?string $country): bool
     {
         return $this->ipAllowed($ipAllowlist, $ip)
             && $this->geoAllowed($geoMode, $geoCountries, $country);
@@ -46,23 +51,22 @@ class NetworkAccessGuard
     }
 
     /**
-     * Geo verdict in isolation. geo_mode 'off' imposes no restriction, and an
-     * unresolved country fails OPEN — a geo-IP outage must not lock a workspace
-     * out. Country comparison is case-insensitive (the provider and the countries
+     * Geo verdict in isolation. Off imposes no restriction, and an unresolved
+     * country fails OPEN — a geo-IP outage must not lock a workspace out.
+     * Country comparison is case-insensitive (the provider and the countries
      * table can differ in case).
      *
      * @param  array<int, string>  $geoCountries  ISO-3166 alpha-2 codes
      */
-    public function geoAllowed(string $geoMode, array $geoCountries, ?string $country): bool
+    public function geoAllowed(GeoMode $geoMode, array $geoCountries, ?string $country): bool
     {
-        // Fail open when the country can't be resolved, or geo isn't in use.
-        if ($country === null || ! in_array($geoMode, ['allow', 'deny'], true)) {
+        if ($country === null || $geoMode === GeoMode::Off) {
             return true;
         }
 
         $listed = in_array(strtolower($country), array_map('strtolower', $geoCountries), true);
 
-        return $geoMode === 'allow' ? $listed : ! $listed;
+        return $geoMode === GeoMode::Allow ? $listed : ! $listed;
     }
 
     /**
@@ -79,7 +83,7 @@ class NetworkAccessGuard
             return $cached !== '' ? $cached : null;
         }
 
-        $country = IP2Country::getCountryByIP($ip) ?: null;
+        $country = $this->geolocation->countryCode($ip);
 
         if ($country !== null) {
             Cache::put($key, $country, now()->addDay());

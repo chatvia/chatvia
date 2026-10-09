@@ -26,6 +26,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Connection;
@@ -287,7 +288,7 @@ function seedAnalyticsChats(Agent $alpha, Agent $beta, Agent $noise): void
     $form = FormDefinition::factory()->forAgent($alpha)->create(['slug' => 'contact-us', 'is_active' => true]);
     FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $widget->id, 'created_at' => '2026-06-10 09:30:00']);
     FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $hosted->id, 'created_at' => '2026-06-12 14:05:00']);
-    FormSubmission::factory()->forDefinition($form)->create(['status' => FormSubmission::STATUS_PENDING, 'chat_conversation_id' => $hosted->id, 'created_at' => '2026-06-12 14:06:00']);
+    FormSubmission::factory()->forDefinition($form)->create(['status' => FormSubmissionStatus::Pending, 'chat_conversation_id' => $hosted->id, 'created_at' => '2026-06-12 14:06:00']);
 
     $betaForm = FormDefinition::factory()->forAgent($beta)->create(['slug' => 'callback', 'is_active' => true]);
     FormSubmission::factory()->forDefinition($betaForm)->submitted()->create(['created_at' => '2026-05-21 08:05:00']);

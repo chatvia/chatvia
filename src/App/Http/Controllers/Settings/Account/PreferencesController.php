@@ -7,6 +7,9 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Support\Enums\User\DateFormat;
 
+/**
+ * Saves display preferences: date format and interface language.
+ */
 class PreferencesController
 {
     /**

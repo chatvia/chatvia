@@ -5,8 +5,8 @@ namespace Domain\Channel\Slack\Services;
 use Domain\Channel\Services\ChannelConversationResolver;
 use Domain\Channel\Slack\Models\AgentSlackApp;
 use Domain\Channel\Slack\Models\SlackChannel;
+use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -21,10 +21,10 @@ use Illuminate\Database\Eloquent\Model;
 class SlackChannelResolver extends ChannelConversationResolver
 {
     public function __construct(
-        ChatMemory $memory,
+        StartConversationAction $startConversation,
         private readonly SlackClient $client,
     ) {
-        parent::__construct($memory);
+        parent::__construct($startConversation);
     }
 
     public function resolve(AgentSlackApp $app, string $channelId): SlackChannel

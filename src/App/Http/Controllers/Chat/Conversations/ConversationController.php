@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatSession;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
 
+/**
+ * The hosted chat's sidebar: the visitor's visible conversations, newest first.
+ */
 class ConversationController
 {
-    public function __invoke(Request $request, ChatMemory $memory, TurnState $session): array
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function __invoke(ChatMemory $memory, HostedChatSession $session): array
     {
-        $agent = current_agent();
-
         return $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent))
-            ->getConversationsForCurrentSession(
-                onlyVisible: true,
-                orderByDate: true,
-            );
+            ->withScope($session->scope(current_agent()))
+            ->visibleConversationsNewestFirst();
     }
 }

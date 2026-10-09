@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Connector\OAuth;
 
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthDiscoverer;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
-use Domain\Integration\Connector\Services\OAuth\OAuthServerMetadata;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;

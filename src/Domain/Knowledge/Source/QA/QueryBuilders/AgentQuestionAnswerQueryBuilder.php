@@ -1,12 +1,15 @@
 <?php
 
-namespace Domain\Knowledge\Source\QA\QueryBuilders;
+namespace Domain\Knowledge\Source\Qa\QueryBuilders;
 
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
+ * Queries over curated Q&A entries: the strict phrase search that decides
+ * whether a message is answered from a Q&A entry.
+ *
  * @template TModel of AgentQuestionAnswer
  *
  * @extends Builder<TModel>

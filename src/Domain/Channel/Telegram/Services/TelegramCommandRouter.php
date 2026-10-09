@@ -3,6 +3,7 @@
 namespace Domain\Channel\Telegram\Services;
 
 use Domain\Channel\Services\ChannelLocale;
+use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 
@@ -46,10 +47,8 @@ class TelegramCommandRouter
      * Resolve $text to a command outcome — a canned message or a prompt to run —
      * or null to let the message fall through to the normal agent pipeline (a
      * plain message, or an unknown /command we'd rather let the LLM field).
-     *
-     * @param  array{first_name?: string|null, username?: string|null}  $from
      */
-    public function handle(AgentTelegramBot $bot, TelegramChat $chat, string $text, array $from = []): ?TelegramCommandOutcome
+    public function handle(AgentTelegramBot $bot, TelegramChat $chat, string $text, TelegramSenderData $sender = new TelegramSenderData): ?TelegramCommandOutcome
     {
         $name = $this->parse($text);
 
@@ -81,7 +80,7 @@ class TelegramCommandRouter
             $value = ChannelLocale::text($bot->agent, 'Hello');
         }
 
-        $value = $this->interpolate($bot, $value, $from);
+        $value = $this->interpolate($bot, $value, $sender);
 
         return $entry['type'] === 'prompt'
             ? TelegramCommandOutcome::prompt($value)
@@ -205,13 +204,13 @@ class TelegramCommandRouter
     }
 
     /** Replace the {name} placeholder with the sender's first name (or a neutral fallback). */
-    private function interpolate(AgentTelegramBot $bot, string $value, array $from): string
+    private function interpolate(AgentTelegramBot $bot, string $value, TelegramSenderData $sender): string
     {
         if (! str_contains($value, '{name}')) {
             return $value;
         }
 
-        $name = trim((string) ($from['first_name'] ?? ''));
+        $name = trim((string) $sender->firstName);
 
         return str_replace('{name}', $name !== '' ? $name : ChannelLocale::text($bot->agent, 'there'), $value);
     }

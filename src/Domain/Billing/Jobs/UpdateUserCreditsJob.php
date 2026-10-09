@@ -2,7 +2,7 @@
 
 namespace Domain\Billing\Jobs;
 
-use Domain\Billing\Actions\Account\ConsumeMessageCreditsAction;
+use Domain\Billing\Actions\Credits\ConsumeMessageCreditsAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;

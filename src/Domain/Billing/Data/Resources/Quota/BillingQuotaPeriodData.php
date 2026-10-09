@@ -5,6 +5,9 @@ namespace Domain\Billing\Data\Resources\Quota;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A plan's limits for one billing cycle (messages).
+ */
 #[TypeScript]
 class BillingQuotaPeriodData extends Data
 {

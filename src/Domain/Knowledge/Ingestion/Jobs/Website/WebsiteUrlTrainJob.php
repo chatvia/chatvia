@@ -4,8 +4,8 @@ namespace Domain\Knowledge\Ingestion\Jobs\Website;
 
 use DateTimeInterface;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
-use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Middleware\ThrottleFirecrawl;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Llm\Usage\AttributesTokenUsage;
@@ -13,11 +13,17 @@ use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
 
+/**
+ * Scrapes and chunks one page of a website. See {@see TrainWebsiteUrlAction}.
+ * FireCrawl calls are rate limited across all workers by
+ * {@see ThrottleFirecrawl}.
+ */
 class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
-    use Batchable, \Illuminate\Foundation\Queue\Queueable;
+    use Batchable, Queueable;
     use TracksTokenUsage {
         middleware as tokenUsageMiddleware;
     }
@@ -79,11 +85,7 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
 
     public function failed(Throwable $e): void
     {
-        $this->websiteUrl->update(['status' => 'failed']);
-
-        UrlIngestionStarted::dispatch($this->websiteUrl, $this->agent->external_id);
-
-        report($e);
+        app(MarkSourceFailedAction::class)->execute($this->websiteUrl, $this->agent, $e);
     }
 
     public function uniqueId(): string

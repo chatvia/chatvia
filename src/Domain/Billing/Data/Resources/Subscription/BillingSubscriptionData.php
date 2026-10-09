@@ -6,6 +6,10 @@ use Laravel\Cashier\Subscription;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The plan subscription as shown on the billing page (times in milliseconds
+ * for the browser).
+ */
 #[TypeScript]
 class BillingSubscriptionData extends Data
 {

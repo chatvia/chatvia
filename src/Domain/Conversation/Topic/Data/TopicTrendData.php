@@ -7,6 +7,9 @@ use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One topic's conversation count for each day of the chart range.
+ */
 #[TypeScript]
 class TopicTrendData extends Data
 {

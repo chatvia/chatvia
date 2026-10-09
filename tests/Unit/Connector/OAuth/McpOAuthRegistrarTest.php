@@ -1,8 +1,8 @@
 <?php
 
+use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
-use Domain\Integration\Connector\Services\OAuth\OAuthServerMetadata;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 

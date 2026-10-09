@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -7,11 +8,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Regression: AgentObserver::deleting passes FQCNs to exclusiveSourceIds()
- * while agent_sources.sourceable_type stores morph aliases — the lookup
- * matched zero rows, so exclusively-owned sources (rows, storage, chunks)
- * survived agent deletion forever. exclusiveSourceIds() now resolves an FQCN
- * to its morph alias before comparing.
+ * Regression: agent deletion passes FQCNs to exclusiveSourceIds() while
+ * agent_sources.sourceable_type stores morph aliases — the lookup matched zero
+ * rows, so exclusively-owned sources (rows, storage, chunks) survived agent
+ * deletion forever. exclusiveSourceIds() now resolves an FQCN to its morph
+ * alias before comparing.
  */
 function cleanupSourceText(Agent $agent): SourceText
 {
@@ -46,7 +47,7 @@ it('deletes exclusively-owned sources when the agent is deleted, keeps shared on
     $agent->texts()->attach($shared->id);
     $other->texts()->attach($shared->id);
 
-    $agent->delete();
+    app(DeleteAgentAction::class)->execute($agent);
 
     expect(SourceText::find($exclusive->id))->toBeNull()
         ->and(SourceText::find($shared->id))->not->toBeNull();

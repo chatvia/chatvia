@@ -6,6 +6,9 @@ use App\Http\Requests\Auth\SendMagicLinkRequest;
 use App\Identity\Workspace\Actions\Sessions\SendMagicLinkAction;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Sends a chatter a one-time sign-in link for a protected agent.
+ */
 class ChatMagicLinkController
 {
     public function __invoke(SendMagicLinkRequest $request, SendMagicLinkAction $sendLink): RedirectResponse

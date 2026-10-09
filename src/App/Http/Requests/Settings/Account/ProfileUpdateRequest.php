@@ -8,6 +8,9 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * The profile form: name, email and an optional new photo.
+ */
 class ProfileUpdateRequest extends FormRequest
 {
     public function authorize(): bool

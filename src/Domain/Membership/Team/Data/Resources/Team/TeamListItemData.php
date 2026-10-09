@@ -3,10 +3,15 @@
 namespace Domain\Membership\Team\Data\Resources\Team;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One card on the Teams page: a team the user owns or belongs to, with the
+ * user's role in it and its member and agent counts.
+ */
 #[TypeScript]
 class TeamListItemData extends Data
 {
@@ -32,7 +37,7 @@ class TeamListItemData extends Data
             owner: TeamOwnerData::fromModel($team->owner),
             is_owner: $user->ownsTeam($team),
             is_primary: $user->isPrimaryTeam($team),
-            role: $user->teamRole($team)?->code ?? 'owner',
+            role: $user->teamRole($team)?->code ?? Role::OWNER_CODE,
             // members_count comes from withCount('members') in the controller;
             // +1 for the owner who isn't on the pivot.
             members_count: ($team->members_count ?? $team->members()->count()) + 1,

@@ -3,6 +3,7 @@
 namespace Domain\Form\Data;
 
 use Carbon\CarbonInterface;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Enums\FormType;
 
 /**
@@ -24,7 +25,7 @@ final readonly class InlineFormData
         public array $schema,
         public string $submitLabel,
         public string $successMessage,
-        public string $status,
+        public FormSubmissionStatus $status,
         public ?CarbonInterface $expiresAt,
     ) {}
 }

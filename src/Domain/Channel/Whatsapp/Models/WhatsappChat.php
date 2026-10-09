@@ -2,9 +2,8 @@
 
 namespace Domain\Channel\Whatsapp\Models;
 
+use Domain\Channel\Concerns\MapsChannelConversation;
 use Domain\Channel\Contracts\ChannelConversationMapping;
-use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,28 +23,14 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class WhatsappChat extends Model implements ChannelConversationMapping
 {
+    use MapsChannelConversation;
+
     /**
      * @return BelongsTo<AgentWhatsappNumber, $this>
      */
     public function number(): BelongsTo
     {
         return $this->belongsTo(AgentWhatsappNumber::class, 'agent_whatsapp_number_id');
-    }
-
-    /**
-     * @return BelongsTo<Session, $this>
-     */
-    public function session(): BelongsTo
-    {
-        return $this->belongsTo(Session::class, 'chat_session_id');
-    }
-
-    /**
-     * @return BelongsTo<Conversation, $this>
-     */
-    public function conversation(): BelongsTo
-    {
-        return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 
     protected function casts(): array

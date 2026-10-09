@@ -4,6 +4,10 @@ namespace Domain\Agent\Data\Settings;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * The model an agent answers with (by its public name) and the generation
+ * settings to store with it.
+ */
 class UpdateAgentLlmData extends Data
 {
     public function __construct(

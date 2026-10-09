@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Prompt\Models\AgentPrompt;
+use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

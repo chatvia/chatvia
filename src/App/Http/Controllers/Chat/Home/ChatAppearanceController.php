@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Home;
 
+/**
+ * The agent's appearance settings for the hosted chat, with the per-language
+ * texts; the page picks the visitor's language itself.
+ */
 class ChatAppearanceController
 {
     public function __invoke()

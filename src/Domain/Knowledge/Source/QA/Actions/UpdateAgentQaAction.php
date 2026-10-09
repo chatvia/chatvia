@@ -1,20 +1,21 @@
 <?php
 
-namespace Domain\Knowledge\Source\QA\Actions;
+namespace Domain\Knowledge\Source\Qa\Actions;
 
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Data\QaEntryData;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
+/**
+ * Replaces the title, questions and answer of a curated Q&A entry.
+ */
 class UpdateAgentQaAction
 {
-    /**
-     * @param  array<int, array{question: string}>  $questions
-     */
-    public function execute(AgentQuestionAnswer $qa, string $title, array $questions, string $answer): AgentQuestionAnswer
+    public function execute(AgentQuestionAnswer $qa, QaEntryData $data): AgentQuestionAnswer
     {
         $qa->update([
-            'title' => $title,
-            'questions' => collect($questions)->pluck('question')->filter()->implode("\n"),
-            'answer' => $answer,
+            'title' => $data->title,
+            'questions' => $data->questionLines(),
+            'answer' => $data->answer,
         ]);
 
         return $qa;

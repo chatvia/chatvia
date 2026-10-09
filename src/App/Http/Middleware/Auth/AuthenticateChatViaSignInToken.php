@@ -5,7 +5,7 @@ namespace App\Http\Middleware\Auth;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Closure;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\AgentLocator as AgentService;
+use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,10 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Sits in the chat middleware group AFTER the agent is resolved from the
  * subdomain and BEFORE EnsureChatIsAccessible. A token that resolves to the
- * current agent logs in its real (external) user on the web guard, then we
- * redirect to the same URL without the token (keeping it out of history). From
- * there everything behaves like any authenticated chat user — conversations,
- * leads, logout all just work.
+ * current agent signs its user in on the web guard, then a GET is redirected
+ * to the same URL without the token (keeping it out of the browser history).
+ * From there the visitor is an ordinary signed-in chat user.
  *
  * The token is multi-use until its TTL, so it survives browser prefetch /
  * double requests. An expired / unknown token (or one minted for another agent)
@@ -66,6 +65,6 @@ class AuthenticateChatViaSignInToken
             return null;
         }
 
-        return AgentService::resolveAgentFromSubdomain($slug);
+        return AgentLocator::resolveAgentFromSubdomain($slug);
     }
 }

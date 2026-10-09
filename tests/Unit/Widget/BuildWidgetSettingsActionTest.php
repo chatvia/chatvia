@@ -126,3 +126,54 @@ it('hides the powered-by credit when the install turns it off', function (): voi
     expect($settings->branding->enabled)->toBeFalse()
         ->and($settings->chatvia_branding)->toBeFalse();
 });
+
+it('resolves bubbles for the visitor language, an override winning over the translation', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('bubbles', [
+        ['text' => 'Hi', 'translations' => ['de' => 'Hallo', 'fr' => 'Bonjour'], 'overrides' => ['fr' => 'Salut']],
+    ], 'widget');
+
+    $action = app(BuildWidgetSettingsAction::class);
+
+    expect($action->execute($agent->fresh(), 'de-DE')->bubbles)->toBe(['Hallo'])
+        ->and($action->execute($agent->fresh(), 'FR')->bubbles)->toBe(['Salut'])
+        ->and($action->execute($agent->fresh(), 'es')->bubbles)->toBe(['Hi'])
+        ->and($action->execute($agent->fresh(), 'auto')->bubbles)->toBe(['Hi']);
+});
+
+it('lets a pinned widget language win over the visitor language', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('language', 'de', 'widget');
+    $agent->setSetting('bubbles', [['text' => 'Hi', 'translations' => ['de' => 'Hallo'], 'overrides' => []]], 'widget');
+    $agent->setSetting('welcome_message', 'Hello', 'appearance');
+    $agent->setSetting('text_translations', ['welcome_message' => ['de' => 'Willkommen']], 'appearance');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh(), 'fr');
+
+    expect($settings->bubbles)->toBe(['Hallo'])
+        ->and($settings->welcome_message)->toBe('Willkommen');
+});
+
+it('drops an empty bubble from both parallel lists so their indexes stay aligned', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('bubbles', [
+        ['text' => '', 'translations' => ['de' => 'Nur Deutsch'], 'overrides' => []],
+        ['text' => 'Second', 'translations' => ['de' => 'Zweite'], 'overrides' => []],
+    ], 'widget');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->bubbles)->toBe(['Second'])
+        ->and($settings->bubble_translations)->toBe([['de' => 'Zweite']]);
+});
+
+it('leaves a locale out of a text map when its stored override is empty', function (): void {
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('chat_window_title', 'Support', 'appearance');
+    $agent->setSetting('text_translations', ['chat_window_title' => ['de' => 'Hilfe', 'fr' => 'Aide']], 'appearance');
+    $agent->setSetting('text_overrides', ['chat_window_title' => ['fr' => '']], 'appearance');
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->text_translations)->toBe(['title' => ['de' => 'Hilfe']]);
+});

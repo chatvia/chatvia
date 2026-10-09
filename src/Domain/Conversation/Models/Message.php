@@ -2,10 +2,11 @@
 
 namespace Domain\Conversation\Models;
 
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -17,6 +18,12 @@ use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
 /**
+ * One message of a conversation in the chat log: a visitor message, an AI
+ * reply, or a human operator's reply during a handoff (see MessageRole). Holds
+ * what analytics and billing read back — usage, cost, timing, confidence,
+ * feedback — and a BM25 copy of the text for search, kept in step with the
+ * text on every save.
+ *
  * @property int $id
  * @property string $external_id
  * @property int $chat_conversation_id
@@ -28,7 +35,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $content
  * @property string|null $content_bm25
  * @property array<array-key, mixed>|null $metadata
- * @property string $role
+ * @property MessageRole $role
  * @property float|null $confidence_score
  * @property string|null $sentiment
  * @property string|null $tone
@@ -114,6 +121,7 @@ class Message extends Model
     protected function casts(): array
     {
         return [
+            'role' => MessageRole::class,
             'confidence_score' => 'float',
             'metadata' => 'array',
             'read_at' => 'datetime',
@@ -140,7 +148,7 @@ class Message extends Model
     protected static function booted(): void
     {
         // Keep the searchable BM25 vector in sync with `content` on every write
-        // path (StoreMessageAction, handoff, factories, updates) — content_bm25
+        // path (the message store actions, handoff, factories, updates) — content_bm25
         // is a pure function of content, so deriving it on the model avoids each
         // caller having to remember. Tokenized DB-side with the same llmlingua2
         // model the query side uses (see MessageQueryBuilder::searchContent).
@@ -165,6 +173,9 @@ class Message extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<Conversation, $this>
+     */
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'chat_conversation_id');

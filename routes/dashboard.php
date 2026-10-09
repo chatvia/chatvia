@@ -30,7 +30,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard'])->group(function 
         ->name('analytics.chat.stream');
 
     Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');
-    Route::get('my/knowledge-base/download/{agentFile}', KnowledgeFilesDownload::class)->name('knowledge-base.download');
+    Route::get('my/knowledge-base/download/{sourceFile}', KnowledgeFilesDownload::class)->name('knowledge-base.download');
 
     Route::get('my/usage', UsageController::class)->name('usage');
 

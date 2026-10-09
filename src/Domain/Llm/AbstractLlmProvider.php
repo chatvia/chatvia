@@ -10,6 +10,12 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Base for the OpenAI-compatible chat providers: streaming through Guzzle,
+ * non-streaming through the Laravel HTTP client (with token usage tracking),
+ * and hooks to adjust the request body per provider. New non-streaming callers
+ * use LlmChat, which wraps completion() in typed request and response objects.
+ */
 abstract class AbstractLlmProvider implements LlmProviderInterface
 {
     /**
@@ -62,7 +68,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
         // Attribute this non-streaming call's tokens to the active workspace
         // (rewrite, title, chunker, vision, tables, analysis, ...) for analytics.
         // No scope open → no-op. Streaming replies report usage out-of-band and are
-        // recorded by StoreMessageAction, so stream() is deliberately not hooked.
+        // recorded by StoreAssistantMessageAction, so stream() is deliberately not hooked.
         app(TokenUsageContext::class)->addFromResponse($response);
 
         return $response;

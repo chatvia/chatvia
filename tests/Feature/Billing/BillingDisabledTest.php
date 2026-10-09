@@ -5,16 +5,16 @@ use App\Identity\Workspace\Models\User;
 use App\Providers\AppServiceProvider;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentLocator;
-use Domain\Billing\Actions\Account\ConsumeMessageCreditsAction;
+use Domain\Billing\Actions\Credits\ConsumeMessageCreditsAction;
 use Domain\Billing\Contracts\Entitlements;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
 use Domain\Billing\Enums\MessageAdmission;
 use Domain\Billing\Listeners\HandleStripeWebhook;
 use Domain\Billing\Models\UserCredit;
 use Domain\Billing\Services\MessageSendGate;
 use Domain\Evaluation\Actions\RunEvalSuiteAction;
+use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Models\EvalCase;
-use Domain\Evaluation\Models\EvalRun;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Security\Enums\SecurityFeature;
@@ -25,13 +25,13 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookReceived;
 use Laravel\Pennant\Feature;
 use Stripe\Stripe;
 use Support\Enums\User\UserType;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * A self-hosted install can run without Stripe (BILLING_ENABLED=false). Then
@@ -141,11 +141,11 @@ describe('sending messages', function (): void {
             'active' => true,
         ]);
 
-        expect(app(RunEvalSuiteAction::class)->execute($agent)->status)->toBe(EvalRun::STATUS_RUNNING);
+        expect(app(RunEvalSuiteAction::class)->execute($agent)->status)->toBe(EvalRunStatus::Running);
 
         config(['billing.enabled' => true]);
 
-        expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))->toThrow(ValidationException::class);
+        expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))->toThrow(DomainValidationException::class);
     });
 
     it('does not charge or warn when a reply is billed', function (): void {
@@ -174,7 +174,7 @@ describe('plan features', function (): void {
     it('turns every capability on', function (): void {
         $owner = billingOffOwner();
 
-        foreach (CapabilityEnum::cases() as $capability) {
+        foreach (Capability::cases() as $capability) {
             expect($owner->hasCapability($capability))->toBeTrue();
         }
 
@@ -190,7 +190,7 @@ describe('plan features', function (): void {
         $owner = billingOffOwner();
         $employee = User::factory()->employee($owner)->create();
 
-        expect($employee->hasCapability(CapabilityEnum::AUDIT))->toBeTrue();
+        expect($employee->hasCapability(Capability::Audit))->toBeTrue();
     });
 
     it('keeps conversations for the configured number of days', function (): void {
@@ -203,8 +203,8 @@ describe('plan features', function (): void {
         config(['billing.enabled' => true]);
         $owner = billingOffOwner();
 
-        expect($owner->hasCapability(CapabilityEnum::API))->toBeFalse()
-            ->and($owner->hasCapability(CapabilityEnum::EVALS))->toBeFalse()
+        expect($owner->hasCapability(Capability::Api))->toBeFalse()
+            ->and($owner->hasCapability(Capability::Evals))->toBeFalse()
             ->and($owner->capabilities->retentionDays)->toBe(90)
             ->and($owner->canHideBranding())->toBeFalse()
             ->and($owner->hasActiveSubscription())->toBeFalse();

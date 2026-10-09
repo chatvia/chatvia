@@ -3,7 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
 use Domain\Evaluation\Models\EvalCase;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 
 /**
  * The "From knowledge" picker contract: QA pairs are split per-line and deduped
@@ -34,7 +34,7 @@ it('lists QA-pair questions, deduped, and flags ones already used as a case inpu
         'active' => true,
     ]);
 
-    $candidates = app(ListKnowledgeQuestionCandidatesAction::class)->execute($agent);
+    $candidates = array_map(fn ($candidate): array => $candidate->toArray(), app(ListKnowledgeQuestionCandidatesAction::class)->execute($agent));
 
     $questions = array_column($candidates, 'question');
 

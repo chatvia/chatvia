@@ -5,6 +5,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\TextFile\TextFileIngestionJob;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Queue\TimeoutExceededException;
 
 /**
@@ -24,7 +25,7 @@ it('marks the source file failed when a long ingestion job times out', function 
     $job->failed(new TimeoutExceededException($jobClass.' has timed out.'));
 
     expect($file->fresh())
-        ->status->toBe('failed')
+        ->status->toBe(SourceStatus::Failed)
         ->failure_reason->toContain('has timed out');
 })->with([
     'document' => [DocumentIngestionJob::class, 1800],

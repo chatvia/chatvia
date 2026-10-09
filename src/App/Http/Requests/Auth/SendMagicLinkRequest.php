@@ -6,6 +6,9 @@ use App\Identity\Workspace\Data\Sessions\SendMagicLinkData;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * The magic-link sign-in form: one email address.
+ */
 class SendMagicLinkRequest extends FormRequest
 {
     public function authorize(): bool

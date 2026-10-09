@@ -7,7 +7,7 @@ use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Listeners\SendTeamInvitationEmail;
 use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
-use RuntimeException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Persists a pending team invitation and announces it.
@@ -18,16 +18,22 @@ use RuntimeException;
  *
  * The owner-side business gates (active subscription, seat limit) and the
  * already-a-member / direct-attach branches stay in
- * {@see InviteTeamMemberAction}; this
- * Action is the narrow "create the invitation record" step it delegates to.
+ * {@see InviteTeamMemberAction}; this Action is the narrow "create the
+ * invitation record" step it delegates to.
  */
 class CreateTeamInvitationAction
 {
+    /**
+     * @throws DomainValidationException when the email already belongs to the team or the role does not exist
+     */
     public function execute(Team $team, string $email, string $roleCode): Invitation
     {
-        $this->guardInvitation($team, $email, $roleCode);
+        if ($team->hasUserWithEmail($email)) {
+            throw new DomainValidationException('email', __('This user already belongs to the team.'));
+        }
 
-        $role = $team->roles()->where('code', $roleCode)->firstOrFail();
+        $role = $team->roles()->where('code', $roleCode)->first()
+            ?? throw new DomainValidationException('role', __("The role ':role' does not exist for this team.", ['role' => $roleCode]));
 
         $invitation = $team->invitations()->create([
             'email' => $email,
@@ -37,16 +43,5 @@ class CreateTeamInvitationAction
         TeamInvitationCreated::dispatch($invitation, $email);
 
         return $invitation;
-    }
-
-    private function guardInvitation(Team $team, string $email, string $roleCode): void
-    {
-        if ($team->hasUserWithEmail($email)) {
-            throw new RuntimeException('This user already belongs to the team.');
-        }
-
-        if (! $team->roles()->where('code', $roleCode)->exists()) {
-            throw new RuntimeException("The role '{$roleCode}' does not exist for this team.");
-        }
     }
 }

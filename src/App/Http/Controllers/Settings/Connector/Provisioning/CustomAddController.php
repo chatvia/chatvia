@@ -4,64 +4,56 @@ namespace App\Http\Controllers\Settings\Connector\Provisioning;
 
 use App\Http\Controllers\Concerns\BindsConnectorOAuthToSession;
 use App\Http\Requests\Settings\Connector\AddCustomConnectorRequest;
-use App\Identity\Workspace\Models\User;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthException;
-use Domain\Integration\Connector\Services\OAuth\McpOAuthFlow;
-use Domain\Integration\Mcp\Actions\ProvisionCustomMcpServerAction;
-use Domain\Integration\Mcp\Data\ProvisionCustomMcpServerData;
+use Domain\Integration\Connector\Actions\Account\AddCustomConnectorAction;
+use Domain\Integration\Connector\Actions\OAuth\BeginCustomConnectorOAuthAction;
+use Domain\Integration\Connector\Data\Custom\AddCustomConnectorData;
+use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Mcp\Services\McpException;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Illuminate\Http\JsonResponse;
 use Throwable;
 
 /**
- * Adds a user-supplied (custom) MCP server at the account level. For OAuth strategy
- * returns `{ redirect_url }` so the UI can navigate; for token / no-auth, provisions
- * immediately via the Action.
+ * Adds a custom MCP server (by URL) to the workspace. With the OAuth strategy
+ * it returns `{ redirect_url }` for the browser to follow; with a token or no
+ * auth it adds and syncs the server straight away.
  */
 class CustomAddController
 {
     use BindsConnectorOAuthToSession;
 
-    public function __construct(
-        private readonly McpOAuthFlow $oauthFlow,
-    ) {}
-
     public function __invoke(
         AddCustomConnectorRequest $request,
-        ProvisionCustomMcpServerAction $provision,
+        AddCustomConnectorAction $add,
+        BeginCustomConnectorOAuthAction $beginOAuth,
     ): JsonResponse {
         $data = $request->toData();
 
-        if ($data->auth_strategy === 'oauth') {
-            try {
-                $redirectUrl = $this->oauthFlow->beginCustom(
-                    user: $data->user,
-                    name: $data->name,
-                    slug: $this->uniqueCustomSlugForUser($data->user, $data->name),
-                    mcpUrl: $data->url,
-                    sessionBinding: $this->connectorOAuthSessionBinding($request),
-                );
-            } catch (McpOAuthException $e) {
-                return response()->json(['message' => $e->getMessage()], 422);
-            }
+        return $data->auth_strategy === ConnectorAuthStrategy::Oauth
+            ? $this->startOAuth($request, $data, $beginOAuth)
+            : $this->add($data, $add);
+    }
 
-            return response()->json(['redirect_url' => $redirectUrl]);
+    private function startOAuth(AddCustomConnectorRequest $request, AddCustomConnectorData $data, BeginCustomConnectorOAuthAction $beginOAuth): JsonResponse
+    {
+        try {
+            $redirectUrl = $beginOAuth->execute($data, $this->connectorOAuthSessionBinding($request));
+        } catch (McpOAuthException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
 
+        return response()->json(['redirect_url' => $redirectUrl]);
+    }
+
+    private function add(AddCustomConnectorData $data, AddCustomConnectorAction $add): JsonResponse
+    {
         try {
-            $result = $provision->execute(new ProvisionCustomMcpServerData(
-                user: $data->user,
-                name: $data->name,
-                url: $data->url,
-                strategy: $data->auth_strategy,
-                token: $data->token,
-            ));
+            $result = $add->execute($data);
         } catch (Throwable $e) {
             $message = $e instanceof McpException
                 ? $e->getMessage()
-                : 'Could not connect to the MCP server: '.$e->getMessage();
+                : __('Could not connect to the MCP server: :reason', ['reason' => $e->getMessage()]);
 
             return response()->json(['message' => $message], 422);
         }
@@ -70,24 +62,5 @@ class CustomAddController
             'data' => AgentMcpServerData::fromModel($result->server),
             'tools_count' => $result->tools_count,
         ], 201);
-    }
-
-    /**
-     * The OAuth callback saves the server under the workspace owner, so the
-     * slug must be unique among the owner's servers.
-     */
-    private function uniqueCustomSlugForUser(User $user, string $name): string
-    {
-        $owner = $user->workspace();
-        $base = AgentMcpServer::makeSlug($name);
-        $slug = $base;
-        $i = 2;
-
-        while ($owner->mcpServers()->where('slug', $slug)->exists()) {
-            $slug = substr($base, 0, 38).'_'.$i;
-            $i++;
-        }
-
-        return $slug;
     }
 }

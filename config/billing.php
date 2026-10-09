@@ -305,7 +305,7 @@ return [
         | Not purchasable through Stripe Checkout. `contact_sales` tells the
         | pricing UIs to show "Custom" instead of a price and route the CTA to
         | the demo/contact form. Prices are 0 and the Stripe price IDs are null,
-        | so this package never matches a Stripe webhook in getPackageByPriceId().
+        | so this package never matches a Stripe price in PlanCatalog::planForPrice().
         | The quota_limits below are display-only — Enterprise accounts are
         | provisioned manually, never via the self-serve subscription flow.
         */

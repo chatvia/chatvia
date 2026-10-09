@@ -8,10 +8,10 @@ use Domain\Evaluation\Enums\EvalQuestionSource;
 use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Bulk-creates eval cases from knowledge-base questions picked in the
@@ -31,6 +31,8 @@ class CreateEvalCasesFromQuestionsAction
 
     /**
      * @return Collection<int, EvalCase>
+     *
+     * @throws DomainValidationException when a picked question no longer exists for this agent
      */
     public function execute(CreateEvalCasesFromQuestionsData $data, Agent $agent): Collection
     {
@@ -43,9 +45,7 @@ class CreateEvalCasesFromQuestionsAction
             $found = $item->type === EvalQuestionSource::Chunk ? $chunks->has($item->id) : $qas->has($item->id);
 
             if (! $found) {
-                throw ValidationException::withMessages([
-                    'items' => 'Some selected questions are no longer available.',
-                ]);
+                throw new DomainValidationException('items', __('Some selected questions are no longer available.'));
             }
         }
 

@@ -1,5 +1,5 @@
 @php
-    use Support\Cms\Marketing\CompanyDetails;
+    use App\Marketing\CompanyDetails;
 
     $brand = (string) config('chatvia.brand.name');
     $processorName = CompanyDetails::name();

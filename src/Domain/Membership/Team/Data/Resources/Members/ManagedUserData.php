@@ -6,6 +6,10 @@ use App\Identity\Workspace\Models\User;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A user the workspace owner manages who can be added to a team straight away,
+ * without an emailed invitation.
+ */
 #[TypeScript]
 class ManagedUserData extends Data
 {

@@ -25,7 +25,7 @@ function fakeIpLocation(array $body): void
 
 function locate(Session $session, ?string $countryCode): void
 {
-    (new LocateSession)->handle(new SessionLocationUnknown($session, $countryCode));
+    app(LocateSession::class)->handle(new SessionLocationUnknown($session, $countryCode));
 }
 
 it('stamps the request-resolved country and ignores a disagreeing IP geo', function (): void {

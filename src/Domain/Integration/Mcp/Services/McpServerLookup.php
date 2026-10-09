@@ -5,7 +5,6 @@ namespace Domain\Integration\Mcp\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Container\Attributes\Scoped;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Finds the workspace MCP server behind an `mcp__{slug}__{tool}` name, once
@@ -57,10 +56,8 @@ class McpServerLookup
 
             $this->attached[$key] = $server !== null
                 && $server->is_enabled
-                && DB::table('agent_mcp_server')
-                    ->where('agent_id', $agent->id)
-                    ->where('mcp_server_id', $server->id)
-                    ->exists()
+                // Pivot-only probe: the server row is already loaded.
+                && $agent->mcpServers()->newPivotQuery()->where('mcp_server_id', $server->id)->exists()
                 ? $server
                 : null;
         }

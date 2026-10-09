@@ -2,6 +2,10 @@
 
 namespace Domain\Conversation\Services\Streaming\Sse;
 
+/**
+ * The kinds of event in a streamed chat turn. The chat clients switch on
+ * these strings, so they must not change.
+ */
 enum EventType: string
 {
     case Start = 'start';

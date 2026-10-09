@@ -88,11 +88,6 @@ class InstagramClient extends MetaGraphClient
         ]);
     }
 
-    protected function graphBaseUrl(): string
-    {
-        return 'https://graph.facebook.com/'.config('services.meta.graph_version', 'v25.0');
-    }
-
     protected function messageLimit(): int
     {
         return self::MESSAGE_LIMIT;

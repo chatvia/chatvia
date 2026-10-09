@@ -2,10 +2,11 @@
 
 use Domain\Agent\Models\Agent as AgentModel;
 use Domain\Agent\Services\AgentLocator;
-use Domain\Knowledge\Document\LibreOffice;
+use Domain\Knowledge\Document\Conversion\LibreOffice;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use Domain\Widget\WidgetHeaders;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Support\MimeType;
@@ -165,14 +166,15 @@ if (! function_exists('has_permission_to_agent')) {
             return false;
         }
 
-        // Team owners have all permissions
+        $teamService = app(TeamService::class);
+
+        // A team owner holds every permission — but only on the agents of
+        // their own workspace, never on another workspace's agent.
         if ($user->ownsTeam($team)) {
-            return true;
+            return $teamService->canAccessAgent($user, $team, $agent);
         }
 
         // Check agent access first, then permission
-        $teamService = app(TeamService::class);
-
         if (! $teamService->canAccessAgent($user, $team, $agent)) {
             return false;
         }
@@ -306,11 +308,8 @@ if (! function_exists('file_category')) {
 if (! function_exists('current_agent_from_widget')) {
     function current_agent_from_widget(): ?AgentModel
     {
-        // Header is `X-AGENT-ID` (hyphenated) — matches what the widget sends
-        // and what every other widget controller looks up. The previous
-        // `x-agent_id` (underscore) never matched, so this helper always
-        // returned null on endpoints that route through it.
-        $agentId = request()->header('X-AGENT-ID');
+        // The agent's external id, sent by the embedded widget on every call.
+        $agentId = request()->header(WidgetHeaders::AGENT_ID);
 
         if ($agentId === null) {
             return null;

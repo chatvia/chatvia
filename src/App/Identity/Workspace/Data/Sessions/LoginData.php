@@ -4,6 +4,9 @@ namespace App\Identity\Workspace\Data\Sessions;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * Email-and-password credentials for the hosted-chat login.
+ */
 class LoginData extends Data
 {
     public function __construct(

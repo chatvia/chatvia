@@ -7,6 +7,10 @@ use Spatie\LaravelData\Data;
 use Spatie\LaravelData\DataCollection;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * The agent's Functions page payload: every workspace function with whether
+ * this agent uses it.
+ */
 #[TypeScript]
 class AgentFunctionsListResourceData extends Data
 {

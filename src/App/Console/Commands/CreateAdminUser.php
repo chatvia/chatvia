@@ -2,61 +2,42 @@
 
 namespace App\Console\Commands;
 
-use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Services\TeamService;
+use App\Identity\Workspace\Actions\Account\CreateAdminUserAction;
+use App\Identity\Workspace\Data\Account\CreateAdminUserData;
+use App\Identity\Workspace\Exceptions\EmailAlreadyTakenException;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Support\Enums\User\UserType;
 
 /**
- * Creates an admin account: access to the admin panel plus a normal
- * workspace with its default team, so the account can build agents straight
- * away. On a self-hosted install this is the usual way to create the first
- * account.
+ * Creates an admin account from the command line (see
+ * {@see CreateAdminUserAction}). The password is asked for when it is not
+ * passed, so it stays out of the shell history.
  */
 #[Description('Create an admin user')]
 #[Signature('admin:create-user {email} {name} {password?}')]
 class CreateAdminUser extends Command
 {
-    /**
-     * Execute the console command.
-     */
-    public function handle(TeamService $teams): int
+    public function handle(CreateAdminUserAction $createAdmin): int
     {
-        $email = $this->argument('email');
-        $name = $this->argument('name');
-        $password = $this->argument('password') ?? $this->secret('Enter password for the admin user');
+        $data = new CreateAdminUserData(
+            name: (string) $this->argument('name'),
+            email: (string) $this->argument('email'),
+            password: (string) ($this->argument('password') ?? $this->secret('Enter password for the admin user')),
+        );
 
-        // Check if user already exists
-        if (User::where('email', $email)->exists()) {
+        try {
+            $admin = $createAdmin->execute($data);
+        } catch (EmailAlreadyTakenException) {
             $this->error('User with this email already exists!');
 
-            return 1;
+            return self::FAILURE;
         }
 
-        // Create the admin user and the team it works in.
-        $user = DB::transaction(function () use ($name, $email, $password, $teams): User {
-            $user = User::create([
-                'name' => $name,
-                'email' => $email,
-                'password' => Hash::make($password),
-                'email_verified_at' => now(),
-                'type' => UserType::Admin,
-            ]);
-
-            $teams->createDefaultTeam($user);
-            $user->bootstrapCurrentTeam();
-
-            return $user;
-        });
-
         $this->info('Admin user created successfully!');
-        $this->info("Email: {$user->email}");
-        $this->info("Name: {$user->name}");
+        $this->info("Email: {$admin->email}");
+        $this->info("Name: {$admin->name}");
 
-        return 0;
+        return self::SUCCESS;
     }
 }

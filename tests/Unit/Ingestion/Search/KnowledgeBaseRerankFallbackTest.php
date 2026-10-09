@@ -5,10 +5,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceChunkAction;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
-use Domain\Knowledge\Ingestion\Jobs\UpdateRetrievalStatsJob;
-use Domain\Knowledge\Ingestion\Services\Search\KnowledgeBase;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
+use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Queue;
 

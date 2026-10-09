@@ -6,124 +6,102 @@ use App\Http\Requests\Agent\Form\RewriteFormDescriptionRequest;
 use App\Http\Requests\Agent\Form\SaveFormDefinitionRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Form\Actions\DeleteFormDefinitionAction;
+use Domain\Form\Actions\EnableFormsCapabilityAction;
 use Domain\Form\Actions\RewriteFormDescriptionAction;
 use Domain\Form\Actions\SaveFormDefinitionAction;
 use Domain\Form\Data\FormDefinitionData;
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
-use Domain\Form\Models\FormSubmission;
-use Domain\Integration\Connector\Actions\Agent\DisableAgentCapabilityAction;
-use Domain\Integration\Connector\Actions\Agent\EnableAgentCapabilityAction;
-use Domain\Integration\Connector\Services\ConnectorCatalog;
-use Domain\Integration\Mcp\Services\McpException;
 use Domain\Llm\Usage\TokenUsageContext;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * The agent's inline-form builder: the Forms page, create / update / delete
+ * of a form, and the AI rewrite of a form's "when to show it" instruction.
+ * Access is gated by the route middleware; a form must belong to the agent.
+ */
 class AgentFormController
 {
-    public function index(Request $request, Agent $agent): Response
-    {
-        abort_if($request->user()->cannot('view', $agent), 404);
+    /** The submission fields a form field can be mapped to (lead-shaped readers use them). */
+    private const array LEAD_FIELDS = [
+        'name' => 'Name',
+        'email' => 'Email',
+        'phone' => 'Phone',
+        'job_title' => 'Job title',
+        'company' => 'Company',
+        'location' => 'Location',
+        'message' => 'Message',
+    ];
 
+    public function index(Agent $agent): Response
+    {
         return Inertia::render('agents/Forms/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'forms' => FormDefinitionData::collect(
                 FormDefinition::query()
                     ->forAgent($agent)
-                    ->withCount(['submissions as submissions_count' => fn ($q) => $q->where('status', FormSubmission::STATUS_SUBMITTED)])
+                    ->withCount(['submissions as submissions_count' => fn (Builder $query): Builder => $query->where('status', FormSubmissionStatus::Submitted)])
                     ->orderBy('name')
                     ->get(),
             ),
-            'leadFields' => [
-                ['key' => 'name', 'label' => 'Name'],
-                ['key' => 'email', 'label' => 'Email'],
-                ['key' => 'phone', 'label' => 'Phone'],
-                ['key' => 'job_title', 'label' => 'Job title'],
-                ['key' => 'company', 'label' => 'Company'],
-                ['key' => 'location', 'label' => 'Location'],
-                ['key' => 'message', 'label' => 'Message'],
-            ],
+            'leadFields' => array_map(
+                fn (string $key, string $label): array => ['key' => $key, 'label' => __($label)],
+                array_keys(self::LEAD_FIELDS),
+                self::LEAD_FIELDS,
+            ),
         ]);
     }
 
-    public function store(
-        SaveFormDefinitionRequest $request,
-        Agent $agent,
-        SaveFormDefinitionAction $action,
-        EnableAgentCapabilityAction $enable,
-        ConnectorCatalog $catalog,
-    ): RedirectResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $action->execute($agent, $request->toData());
-
-        // A defined form is useless unless the agent can render it, so adding the
-        // first form turns the Forms capability on (idempotent once enabled).
-        $capability = $catalog->capabilities()->get('forms');
-        if ($capability !== null && ! $agent->isFormsEnabled()) {
-            try {
-                $enable->execute($agent, $request->user(), $capability);
-            } catch (McpException $e) {
-                // Provisioning the builtin failed (remote tools/list); the form is
-                // still saved and the owner can enable Forms manually.
-                report($e);
-            }
-        }
+    public function store(SaveFormDefinitionRequest $request, Agent $agent, SaveFormDefinitionAction $save, EnableFormsCapabilityAction $enableForms): RedirectResponse
+    {
+        $save->execute($agent, $request->toData());
+        $enableForms->execute($agent);
 
         return back();
     }
 
     /**
-     * Rewrite the form's "when to show this form" instruction with the LLM, so the
-     * owner can turn a rough note into a precise, intent-based trigger. Returns the
-     * suggestion as JSON for the editor to drop into the textarea — it isn't saved
-     * until the owner saves the form.
+     * Rewrite the form's "when to show this form" instruction with the LLM, so
+     * the owner can turn a rough note into a precise, intent-based trigger. The
+     * suggestion comes back as JSON for the editor; nothing is saved until the
+     * owner saves the form.
      */
-    public function rewriteDescription(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $action): JsonResponse
+    public function rewriteDescription(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $rewrite, TokenUsageContext $usage): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
-        $agentInstructions = app(TokenUsageContext::class)->track(
+        $instructions = $usage->track(
             $agent->user_id,
-            fn (): string => $action->execute($request->toData()),
+            fn (): string => $rewrite->execute($request->toData()),
             'form',
         );
 
-        return response()->json(['agent_instructions' => $agentInstructions]);
+        return response()->json(['agent_instructions' => $instructions]);
     }
 
-    public function update(SaveFormDefinitionRequest $request, Agent $agent, FormDefinition $form, SaveFormDefinitionAction $action): RedirectResponse
+    public function update(SaveFormDefinitionRequest $request, Agent $agent, FormDefinition $form, SaveFormDefinitionAction $save): RedirectResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
-        abort_unless($form->agent_id === $agent->id, 404);
+        $this->ensureFormOfAgent($agent, $form);
 
-        $action->execute($agent, $request->toData(), $form);
+        $save->execute($agent, $request->toData(), $form);
 
         return back();
     }
 
-    public function destroy(
-        Request $request,
-        Agent $agent,
-        FormDefinition $form,
-        DisableAgentCapabilityAction $disable,
-        ConnectorCatalog $catalog,
-    ): RedirectResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-        abort_unless($form->agent_id === $agent->id, 404);
+    public function destroy(Agent $agent, FormDefinition $form, DeleteFormDefinitionAction $delete): RedirectResponse
+    {
+        $this->ensureFormOfAgent($agent, $form);
 
-        $form->delete();
-
-        // Removing the last form turns the capability back off — there's nothing
-        // left for the agent to render.
-        $capability = $catalog->capabilities()->get('forms');
-        if ($capability !== null && FormDefinition::query()->forAgent($agent)->doesntExist()) {
-            $disable->execute($agent, $capability);
-        }
+        $delete->execute($agent, $form);
 
         return back();
+    }
+
+    private function ensureFormOfAgent(Agent $agent, FormDefinition $form): void
+    {
+        abort_unless($form->agent_id === $agent->id, 404);
     }
 }

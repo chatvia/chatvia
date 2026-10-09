@@ -12,6 +12,10 @@ use Spatie\LaravelPdf\PdfBuilder;
 use Support\Browsershot\BrowsershotConfigurator;
 use Support\Localization\Country\Models\Country;
 
+/**
+ * Self-service Data Processing Agreement: the form page, and the PDF filled in
+ * with the visitor's company details.
+ */
 class DpaController
 {
     /** How long a rendered DPA PDF is reused for an identical request. */
@@ -32,19 +36,13 @@ class DpaController
     /** Render a customer-specific DPA (both parties filled in) as a downloadable PDF. */
     public function download(DownloadDpaRequest $request): PdfBuilder
     {
-        $validated = $request->validated();
+        $customer = $request->toData();
 
-        $filename = Str::slug((string) config('chatvia.brand.name')).'-DPA-'.Str::slug($validated['company_name']);
+        $filename = Str::slug((string) config('chatvia.brand.name')).'-DPA-'.Str::slug($customer->companyName);
 
         $pdf = Pdf::withBrowsershot(fn (Browsershot $browsershot): Browsershot => $this->browsershotConfig->configure($browsershot))
             ->view('pdf.dpa', [
-                'companyName' => $validated['company_name'],
-                'registrationNumber' => ($validated['registration_number'] ?? null) ?: null,
-                'registeredAddress' => ($validated['registered_address'] ?? null) ?: null,
-                'country' => ($validated['country'] ?? null) ?: null,
-                'contactEmail' => ($validated['contact_email'] ?? null) ?: null,
-                'signatoryName' => ($validated['signatory_name'] ?? null) ?: null,
-                'signatoryTitle' => ($validated['signatory_title'] ?? null) ?: null,
+                ...$customer->toArray(),
                 'bodyHtml' => $this->dpaBodyHtml(),
                 'generatedAt' => now()->isoFormat('D MMMM YYYY'),
             ]);

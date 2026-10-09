@@ -5,6 +5,7 @@ namespace Domain\Conversation\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Services\Memory\ChatCache;
@@ -30,6 +31,13 @@ use Support\Concerns\HasExternalId;
 use Support\Localization\Language\Models\Language;
 
 /**
+ * One conversation between an agent and a visitor (or chatter), on the
+ * surface it started on: the database copy behind the chat log, analytics and
+ * handoff. The live history the chat streams from is the chat memory; this row
+ * holds the retention horizon (`expires_at`), who answers right now
+ * (`handoff_status`), and whether the visitor cleared it from their view.
+ * Deleting it also deletes its uploaded files and its live memory.
+ *
  * @property int $id
  * @property string $external_id
  * @property int $chat_session_id
@@ -42,7 +50,7 @@ use Support\Localization\Language\Models\Language;
  * @property string|null $tone
  * @property Carbon|null $analyzed_at
  * @property int|null $handoff_user_id
- * @property string $handoff_status
+ * @property HandoffStatus|null $handoff_status null only on a freshly created model before refresh (the column defaults to `ai`)
  * @property Carbon|null $handoff_at
  * @property Carbon|null $last_activity_at
  * @property Carbon|null $expires_at
@@ -130,6 +138,12 @@ class Conversation extends Model
     /** Placeholder title every conversation is created with until it's named. */
     public const string DEFAULT_TITLE = 'New Chat';
 
+    /** `deleted_by` value for a conversation the visitor cleared from their widget. */
+    public const string DELETED_BY_VISITOR = 'user';
+
+    /** `deleted_by` value for an admin delete with no known acting user. */
+    public const string DELETED_BY_ADMIN = 'admin';
+
     /**
      * True while the conversation still carries its placeholder title, i.e. it
      * has not been named from its messages yet.
@@ -144,6 +158,7 @@ class Conversation extends Model
         return [
             'title' => EncryptedTolerant::class,
             'source' => ConversationSource::class,
+            'handoff_status' => HandoffStatus::class,
             'handoff_at' => 'datetime',
             'last_activity_at' => 'datetime',
             'expires_at' => 'datetime',
@@ -181,7 +196,7 @@ class Conversation extends Model
 
             // Flush every Redis entry tagged with this conversation
             // (messages, sources, ...) so the cache matches the DB on
-            // every delete path: ConversationManager::deleteConversation,
+            // every delete path: DeleteConversationAction,
             // AdminDeleteConversationAction, and the scheduled prune.
             Cache::driver('chat')
                 ->tags(ChatCache::conversationTag($conversation->external_id))
@@ -304,7 +319,7 @@ class Conversation extends Model
      */
     public function isHandedOff(): bool
     {
-        return $this->handoff_status === 'human';
+        return $this->handoff_status === HandoffStatus::Human;
     }
 
     public function displayName(): ?string
@@ -340,20 +355,23 @@ class Conversation extends Model
         return Gate::forUser($admin)->allows('access-agent', $agent);
     }
 
-    public function canBeReturnedBy(User $admin): bool
+    /**
+     * True while this operator holds the conversation: it is with a human and
+     * that human is them. Only the holder may reply, type or hand it back.
+     */
+    public function isHeldBy(User $admin): bool
     {
         return $this->isHandedOff() && $this->handoff_user_id === $admin->id;
     }
 
     /**
-     * Admin-side operability check used by handoff-write endpoints.
-     * Bundles the `access-agent` Gate with a session-agent equality guard
-     * so the 4 handoff controllers don't each duplicate the same `if`.
+     * Whether this conversation belongs to the given agent. The dashboard's
+     * handoff routes bind the agent and the conversation separately, so they
+     * check the pair with this before acting.
      */
-    public function isOperableBy(User $admin, Agent $agent): bool
+    public function belongsToAgent(Agent $agent): bool
     {
-        return Gate::forUser($admin)->allows('access-agent', $agent)
-            && $this->agent_id === $agent->id;
+        return $this->agent_id === $agent->id;
     }
 
     /**

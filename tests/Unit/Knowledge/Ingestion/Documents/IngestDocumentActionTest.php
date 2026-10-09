@@ -4,7 +4,7 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
@@ -53,7 +53,7 @@ it('is idempotent: a SourceFile already in the ingested state returns immediatel
     ]);
     $agent->files()->attach($sourceFile->id);
 
-    (new IngestDocumentAction(idaFakeParser()))->execute($sourceFile, $agent);
+    app()->make(IngestDocumentAction::class, ['parser' => idaFakeParser()])->execute($sourceFile, $agent);
 
     Bus::assertNothingBatched();
     Event::assertNotDispatched(FileIngestionProgressed::class);
@@ -70,7 +70,7 @@ it('routes ingestion via a Bus batch named with the SourceFile id', function ():
     ]);
     $agent->files()->attach($sourceFile->id);
 
-    (new IngestDocumentAction(idaFakeParser()))->execute($sourceFile, $agent);
+    app()->make(IngestDocumentAction::class, ['parser' => idaFakeParser()])->execute($sourceFile, $agent);
 
     Bus::assertBatched(function ($batch) use ($sourceFile): bool {
         return str_contains((string) $batch->name, (string) $sourceFile->id);
@@ -112,7 +112,7 @@ it('reads the document with the configured parser and records the parser name', 
         }
     };
 
-    (new IngestDocumentAction($parser))->execute($sourceFile, $agent);
+    app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
 
     $fresh = $sourceFile->fresh();
 

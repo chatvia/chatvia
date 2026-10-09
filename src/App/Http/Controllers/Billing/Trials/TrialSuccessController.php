@@ -2,53 +2,62 @@
 
 namespace App\Http\Controllers\Billing\Trials;
 
+use App\Http\Auth\TwoFactorAwareSignIn;
 use App\Identity\Workspace\Services\PasswordSetup;
-use Domain\Billing\Models\UserBilling;
+use Domain\Billing\Actions\Trials\ResolveTrialCheckoutAccountAction;
+use Domain\Billing\Exceptions\InvalidTrialCheckoutException;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Laravel\Cashier\Cashier;
+use Throwable;
 
+/**
+ * Where Stripe sends a visitor after the trial checkout. A brand-new account
+ * created by that checkout is signed in (through the two-factor check) and
+ * asked to choose its password; an existing account is sent to the login page
+ * instead; while the webhook has not created the account yet, a "processing"
+ * page is shown. The rules live in {@see ResolveTrialCheckoutAccountAction}.
+ */
 class TrialSuccessController
 {
-    public function __invoke(Request $request, PasswordSetup $passwordSetup)
-    {
+    public function __invoke(
+        Request $request,
+        ResolveTrialCheckoutAccountAction $resolveAccount,
+        TwoFactorAwareSignIn $signIn,
+        PasswordSetup $passwordSetup,
+    ): RedirectResponse|View {
         $sessionId = $request->query('session_id');
 
-        if (! $sessionId) {
-            return redirect()->route('home')->with('error', 'Invalid session.');
+        if (! is_string($sessionId) || $sessionId === '') {
+            return to_route('home')->with('error', __('Invalid session.'));
         }
 
         try {
-            // Retrieve the Stripe checkout session
-            $session = Cashier::stripe()->checkout->sessions->retrieve($sessionId);
-
-            if (! $session || ! $session->customer) {
-                return redirect()->route('home')->with('error', 'Unable to retrieve checkout session.');
-            }
-
-            // Find the user by Stripe customer ID (lives on user_billing).
-            $user = UserBilling::query()->where('stripe_id', $session->customer)->first()?->user;
-
-            if (! $user) {
-                return view('landing.payment-success');
-            }
-
-            // Log the user in automatically
-            Auth::login($user);
-
-            // Brand-new accounts were provisioned with a random password the
-            // owner has never seen — have them choose a real one first.
-            if ($passwordSetup->isRequired($user)) {
-                return redirect()->route('password.setup');
-            }
-
-            // Redirect to billing success page (same as upgrading)
-            return redirect()->route('billing.success');
-
-        } catch (\Exception $e) {
+            $result = $resolveAccount->execute($sessionId);
+        } catch (InvalidTrialCheckoutException) {
+            return to_route('home')->with('error', __('Unable to retrieve checkout session.'));
+        } catch (Throwable $e) {
             report($e);
 
-            return redirect()->route('home')->with('error', 'Unable to complete login. Please check your email for login instructions.');
+            return to_route('home')->with('error', __('Unable to complete login. Please check your email for login instructions.'));
         }
+
+        $user = $result->user;
+
+        if ($user === null) {
+            return view('landing.payment-success');
+        }
+
+        $next = $passwordSetup->isRequired($user) ? route('password.setup') : route('billing.success');
+
+        if ($user->is($request->user())) {
+            return redirect()->to($next);
+        }
+
+        if (! $result->maySignInAutomatically) {
+            return to_route('login')->with('status', __('Your subscription is ready. Sign in to continue.'));
+        }
+
+        return $signIn->respond($user, $next);
     }
 }

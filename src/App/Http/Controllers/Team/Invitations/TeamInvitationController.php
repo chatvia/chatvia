@@ -18,9 +18,9 @@ class TeamInvitationController
 {
     public function show(Request $request, Invitation $invitation): Response
     {
-        if ($invitation->created_at->addDays(7)->isPast()) {
+        if ($invitation->hasExpired()) {
             return Inertia::render('auth/InvitationExpired', [
-                'message' => 'This invitation has expired.',
+                'message' => __('This invitation has expired.'),
             ]);
         }
 
@@ -32,7 +32,7 @@ class TeamInvitationController
 
         if (! $owner->hasActiveSubscription()) {
             return Inertia::render('auth/InvitationInvalid', [
-                'message' => 'The team owner does not have an active subscription. Please contact them to upgrade their plan.',
+                'message' => __('The team owner does not have an active subscription. Please contact them to upgrade their plan.'),
                 'team' => ['name' => $team->name],
             ]);
         }

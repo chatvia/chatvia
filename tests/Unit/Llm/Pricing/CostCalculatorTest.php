@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Llm\Data\Chat\ChatUsageData;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 
 /**
@@ -25,7 +26,7 @@ it('does not turn a small embedding cost into zero', function (): void {
 
 it('prices a call from the provider usage block', function (): void {
     $cents = (new CostCalculator)->costInCentsFromUsage(
-        ['prompt_tokens' => 2_000, 'completion_tokens' => 500, 'total_tokens' => 2_500],
+        ChatUsageData::fromUsage(['prompt_tokens' => 2_000, 'completion_tokens' => 500, 'total_tokens' => 2_500]),
         2.0,
         8.0,
     );

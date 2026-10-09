@@ -2,16 +2,34 @@
 
 namespace Domain\Conversation\Actions\Handoff;
 
+use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
-use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\MessagePosted;
-use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
 
+/**
+ * Delivers a visitor's message to the human operator holding the
+ * conversation: adds it to the conversation (live memory now, chat log via
+ * the queue) and broadcasts it to the operator. The AI is not involved.
+ * Returns the new message id, or null when the conversation is not with a
+ * human or its session has no agent any more.
+ */
 class SendVisitorHandoffMessageAction
 {
+    /** Message source that marks a visitor message sent during a handoff. */
+    public const string SOURCE = 'handoff';
+
+    /** Model label stored when the agent has no model configured. */
+    private const string UNKNOWN_MODEL = 'unknown';
+
+    /** Sender name shown to the operator when the visitor is anonymous. */
+    private const string ANONYMOUS_SENDER = 'Visitor';
+
     public function __construct(
-        private readonly ChatMemory $chatMemory,
+        private readonly AddMessageToConversationAction $addMessage,
     ) {}
 
     public function execute(SendVisitorHandoffMessageData $data): ?string
@@ -31,34 +49,33 @@ class SendVisitorHandoffMessageAction
 
         $messageId = (string) Str::uuid();
 
-        $payload = new ChatInputPayload(
-            external_session_id: $session->external_id,
-            external_conversation_id: $conversation->external_id,
-            external_message_id: $messageId,
-            model: $data->model ?? $agent->llm?->external_name ?? 'unknown',
-            message: $data->content,
-            sent_at: now(),
-            ip_address: $data->ipAddress,
-            user_agent: $data->userAgent,
-            referrer_url: $data->referrerUrl,
-            page_url: $data->pageUrl,
-            locale: $data->locale,
-            source: 'handoff',
+        $this->addMessage->execute(
+            new ChatScopeData($agent, $session->external_id, $conversation->external_id),
+            new UserTurnData(
+                external_session_id: $session->external_id,
+                external_conversation_id: $conversation->external_id,
+                external_message_id: $messageId,
+                model: $data->model ?? $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
+                message: $data->content,
+                sent_at: now(),
+                ip_address: $data->ipAddress,
+                user_agent: $data->userAgent,
+                referrer_url: $data->referrerUrl,
+                page_url: $data->pageUrl,
+                locale: $data->locale,
+                source: self::SOURCE,
+            ),
         );
 
-        $this->chatMemory
-            ->withContext($agent, $session->external_id, $conversation->external_id)
-            ->addMessageViaPayload($payload);
-
-        // The widget compares sender_id against its own session UUID
-        // (widget.sessionId) to detect its own echoed messages, so broadcast the
-        // external session id — never the internal PK.
+        // The widget compares sender_id with its own session id to spot its
+        // own echoed messages, so broadcast the external session id — never
+        // the internal key.
         MessagePosted::dispatch(
             $conversation->external_id,
             $messageId,
             $data->content,
-            'user',
-            $conversation->displayName() ?? 'Visitor',
+            MessageRole::User->value,
+            $conversation->displayName() ?? self::ANONYMOUS_SENDER,
             $session->external_id,
         );
 

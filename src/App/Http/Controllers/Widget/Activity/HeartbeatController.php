@@ -2,42 +2,43 @@
 
 namespace App\Http\Controllers\Widget\Activity;
 
+use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
+/**
+ * Periodic "still here" ping from an open widget. Moves the conversation's
+ * last-activity time forward so it counts as live in the operator inbox.
+ */
 readonly class HeartbeatController
 {
-    public function __invoke(
-        Request $request,
-        FindWidgetConversationAction $findConversation,
-    ): JsonResponse|WidgetAckData {
-        $sessionId = $request->header('X-SESSION-ID');
-        $conversationId = $request->input('conversation_id') ?? $request->header('X-CONVERSATION-ID');
+    use InteractsWithWidgetRequest;
 
-        if (! $sessionId) {
-            return response()->json(['error' => 'Missing session'], 400);
+    public function __invoke(Request $request, FindWidgetConversationAction $findConversation): JsonResponse|WidgetAckData
+    {
+        $sessionId = $this->widgetSessionId($request);
+        $conversationId = $request->input('conversation_id') ?? $this->widgetConversationId($request);
+
+        if ($sessionId === null) {
+            return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        if ($conversationId) {
-            // Confirm the conversation belongs to the requesting session AND
-            // agent — without this, anyone with a guessed conversation id
-            // could falsify activity timestamps for other visitors.
-            $conversation = $findConversation->execute(
-                $conversationId,
-                $sessionId,
-                current_agent_from_widget(),
-            );
-
-            if (! $conversation) {
-                return response()->json(['error' => 'Conversation not found'], 404);
-            }
-
-            Conversation::where('external_id', $conversationId)
-                ->update(['last_activity_at' => now()]);
+        if (! $conversationId) {
+            return new WidgetAckData;
         }
+
+        // The conversation must belong to this session and agent, or anyone
+        // with a guessed id could move another visitor's activity time.
+        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $this->widgetAgent());
+
+        if (! $conversation) {
+            return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        Conversation::query()->whereKey($conversation->getKey())->update(['last_activity_at' => now()]);
 
         return new WidgetAckData;
     }

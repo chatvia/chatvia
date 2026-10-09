@@ -10,6 +10,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Pushes a website's training progress (0-100) to the agent's Web sources page
+ * while its URLs are scraped and chunked.
+ */
 class WebsiteIngestionProgressed implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;

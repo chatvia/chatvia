@@ -19,8 +19,6 @@ class AgentDeployController
 {
     public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService): Response
     {
-        abort_if(! $request->user()->can('view', $agent), 404);
-
         return Inertia::render('agents/Deploy', [
             'agent' => AgentResourceData::fromModel($agent),
             // Private agents embed with a server-minted JWT — the snippets show a

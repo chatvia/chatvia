@@ -7,6 +7,10 @@ use Domain\Conversation\Models\Conversation;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * One row of the chat-log list: the conversation's activity, first message,
+ * surface, visitor location and device, and analysis.
+ */
 #[TypeScript]
 class ChatLogConversationData extends Data
 {

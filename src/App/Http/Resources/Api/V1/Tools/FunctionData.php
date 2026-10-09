@@ -4,7 +4,6 @@ namespace App\Http\Resources\Api\V1\Tools;
 
 use Carbon\CarbonInterface;
 use Domain\Integration\Function\Enums\FunctionAuthType;
-use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 
@@ -82,10 +81,10 @@ class FunctionData extends Data
             parameters_schema: (array) ($function->parameters_schema ?? []),
             webhook: new FunctionWebhookData(
                 url: $function->webhook_url,
-                method: FunctionWebhookMethod::from($function->webhook_method),
+                method: $function->webhook_method,
                 has_headers: $function->webhook_headers !== null && $function->webhook_headers !== [],
             ),
-            auth_type: FunctionAuthType::from($function->auth_type),
+            auth_type: $function->auth_type,
             has_auth_value: $function->auth_config !== null,
             timeout_ms: $function->timeout_ms,
             is_enabled: (bool) $function->is_enabled,

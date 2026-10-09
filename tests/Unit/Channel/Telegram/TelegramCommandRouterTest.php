@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Telegram\Data\TelegramSenderData;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
@@ -52,7 +53,7 @@ it('answers /start with the default "Hello" message', function (): void {
 it('uses an edited /start message and interpolates {name}', function (): void {
     $bot = botWithCommands([['command' => 'start', 'description' => 'Start', 'type' => 'message', 'value' => 'Hi {name}!']]);
 
-    $outcome = commandRouter()->handle($bot, new TelegramChat, '/start', ['first_name' => 'Sam']);
+    $outcome = commandRouter()->handle($bot, new TelegramChat, '/start', new TelegramSenderData('Sam'));
 
     expect($outcome->runThroughAgent)->toBeFalse()
         ->and($outcome->text)->toBe('Hi Sam!');
@@ -108,7 +109,7 @@ it('registers a "/" menu of built-ins followed by custom commands', function ():
 
 it('rotates to a fresh conversation on /reset, keeping the session', function (): void {
     $bot = botWithCommands();
-    $chat = app(TelegramChatResolver::class)->resolve($bot, '4242', ['first_name' => 'Ann']);
+    $chat = app(TelegramChatResolver::class)->resolve($bot, '4242', new TelegramSenderData('Ann'));
 
     $originalConversationId = $chat->chat_conversation_id;
     $sessionId = $chat->chat_session_id;

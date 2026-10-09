@@ -3,16 +3,13 @@
 namespace Domain\Knowledge\Ingestion\Actions\Documents;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Document\Pandoc;
+use Domain\Knowledge\Document\Conversion\Pandoc;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Data\OCR\PageData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
-use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Knowledge\Source\Enums\SourceStatus;
-use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Bus\Batch;
-use Illuminate\Support\Facades\Bus;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Ingest a text SourceFile by splitting its content directly with the
@@ -21,16 +18,16 @@ use Illuminate\Support\Facades\Bus;
  * .md/.markdown) read as-is and structured-text ebooks (.epub, .fb2) whose
  * markdown is extracted by Pandoc.
  *
- * The same splitter as the website-Markdown path partitions the text. Each
- * chunk becomes one PageData and rides the SHARED DocumentChunkIngestionJob
- * batch — identical embedding, enhancement, progress, and completion handling
- * as the document path.
+ * Each part becomes one PageData and rides the same DocumentChunkIngestionJob
+ * batch as the document path, so embedding, enhancement, progress and
+ * completion work the same way.
  */
 class IngestTextFileAction
 {
     public function __construct(
         private readonly TextSplitter $splitter,
         private readonly Pandoc $pandoc,
+        private readonly DispatchSourceIngestionBatchAction $dispatchBatch,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -39,19 +36,12 @@ class IngestTextFileAction
             return;
         }
 
-        // Ebooks are structured text — extract their markdown with Pandoc so
-        // the splitter has headings to work with. Raw
-        // text files are already chunk-ready and read as-is.
-        $text = $sourceFile->isEbook()
-            ? $sourceFile->withLocalFile(fn ($file): string => $this->pandoc->toMarkdown($file->getPathname(), $sourceFile->extension()))
-            : $sourceFile->readContents();
-
-        $pages = collect($this->splitter->split($text))
+        $pages = collect($this->splitter->split($this->text($sourceFile)))
             ->values()
-            ->map(fn (string $chunk, int $index): PageData => new PageData(
+            ->map(fn (string $part, int $index): PageData => new PageData(
                 pageNumber: $index + 1,
-                content: $chunk,
-                checksum: md5($chunk),
+                content: $part,
+                checksum: md5($part),
             ));
 
         $sourceFile->update([
@@ -59,56 +49,25 @@ class IngestTextFileAction
             'parser' => $this->splitter->name(),
         ]);
 
-        // Empty/whitespace-only input produces no chunks — finish cleanly so the
-        // UI doesn't hang on "ingesting" waiting for a batch that never runs.
-        if ($pages->isEmpty()) {
-            $sourceFile->update([
-                'status' => SourceStatus::Completed->value,
-                'expected_chunks' => 0,
-            ]);
+        $this->dispatchBatch->execute(
+            $sourceFile,
+            $agent,
+            DocumentChunkIngestionJob::forPages($agent, $sourceFile, $pages),
+        );
+    }
 
-            FileIngestionProgressed::dispatch($sourceFile, $agent->external_id);
-
-            return;
+    /**
+     * Ebooks are structured text: Pandoc extracts their Markdown so the
+     * splitter has headings to work with. Raw text files are read as-is.
+     */
+    private function text(SourceFile $sourceFile): string
+    {
+        if (! $sourceFile->isEbook()) {
+            return $sourceFile->readContents();
         }
 
-        $jobs = $pages->map(fn (PageData $page, int $index): DocumentChunkIngestionJob => new DocumentChunkIngestionJob(
-            $agent,
-            $sourceFile,
-            $page,
-            $index > 0 ? $pages[$index - 1] : null,
-            $index < $pages->count() - 1 ? $pages[$index + 1] : null,
-        ));
-
-        SummaryIngestionJob::dispatch($sourceFile);
-
-        $sourceFile->update([
-            'status' => SourceStatus::Processing->value,
-            'expected_chunks' => $pages->count(),
-        ]);
-
-        $agentFileId = $sourceFile->id;
-        $agentExternalId = $agent->external_id;
-
-        $batch = Bus::batch($jobs)
-            ->name('Ingestion Agent Text File ID: '.$agentFileId)
-            ->allowFailures() // one failed chunk must not cancel the batch
-            ->finally(function (Batch $batch) use ($agentFileId, $agentExternalId): void {
-                $file = SourceFile::find($agentFileId);
-
-                if (! $file) {
-                    return;
-                }
-
-                $file->update(['status' => SourceStatus::Completed->value]);
-
-                // Authoritative "ingestion finished" signal — see IngestDocumentAction.
-                FileIngestionProgressed::dispatch($file, $agentExternalId);
-            })
-            ->dispatch();
-
-        $sourceFile->update([
-            'internal_chunking_batch_id' => $batch->id,
-        ]);
+        return $sourceFile->withLocalFile(
+            fn (File $file): string => $this->pandoc->toMarkdown($file->getPathname(), $sourceFile->extension()),
+        );
     }
 }

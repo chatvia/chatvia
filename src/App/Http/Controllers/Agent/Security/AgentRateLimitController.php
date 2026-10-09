@@ -4,21 +4,19 @@ namespace App\Http\Controllers\Agent\Security;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * Per-agent chat rate-limit page — caps how many messages the agent answers per
  * minute across all visitors, with an optional owner email when it trips. The
- * write endpoint is {@see UpdateAgentSecuritySettingsController}.
+ * write endpoint is {@see UpdateAgentSecuritySettingsController}. Gated by
+ * `agent.permission:agent.identity.manage` on the route.
  */
 class AgentRateLimitController
 {
-    public function __invoke(Request $request, Agent $agent): Response
+    public function __invoke(Agent $agent): Response
     {
-        abort_unless(has_permission_to_agent($agent, 'agent.identity.manage'), 404);
-
         $security = $agent->settings('security');
 
         return Inertia::render('agents/security/RateLimiting', [

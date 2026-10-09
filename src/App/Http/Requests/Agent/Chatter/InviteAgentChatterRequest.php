@@ -6,6 +6,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\InviteAgentChatterData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Inviting someone to chat with one agent. The email is normalised (trimmed,
+ * lower-cased) before it reaches the Action.
+ */
 class InviteAgentChatterRequest extends FormRequest
 {
     public function authorize(): bool

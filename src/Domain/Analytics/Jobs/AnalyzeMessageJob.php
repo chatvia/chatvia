@@ -2,7 +2,7 @@
 
 namespace Domain\Analytics\Jobs;
 
-use Domain\Analytics\Actions\AnalyzeMessageAction;
+use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 

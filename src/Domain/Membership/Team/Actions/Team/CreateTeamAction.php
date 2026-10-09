@@ -2,15 +2,21 @@
 
 namespace Domain\Membership\Team\Actions\Team;
 
+use Domain\Membership\Team\Actions\Roles\CreateDefaultRolesAction;
 use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Models\Team;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Creates a team for its owner together with the default roles, in one
+ * transaction so a team never exists without its roles. Used for every new
+ * team: the dashboard, the API, registration and trial provisioning (through
+ * TeamService::createDefaultTeam).
+ */
 class CreateTeamAction
 {
     public function __construct(
-        private readonly TeamService $teamService,
+        private readonly CreateDefaultRolesAction $createDefaultRoles,
     ) {}
 
     public function execute(CreateTeamData $data): Team
@@ -21,7 +27,7 @@ class CreateTeamAction
                 'user_id' => $data->owner->id,
             ]);
 
-            $this->teamService->createDefaultRoles($team);
+            $this->createDefaultRoles->execute($team);
 
             return $team;
         });

@@ -91,7 +91,6 @@ use App\Http\Controllers\Agent\Source\Function\AgentFunctionAttachController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionDeleteController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionsListController;
-use App\Http\Controllers\Agent\Source\Function\AgentFunctionTestController;
 use App\Http\Controllers\Agent\Source\Qa\AgentQaController;
 use App\Http\Controllers\Agent\Source\Qa\DetachAgentQaController;
 use App\Http\Controllers\Agent\Source\Text\AgentSourcesLinkTextController;
@@ -132,25 +131,37 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
     // by name, which resolves to the un-prefixed URL.
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
-        Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
-        Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
-        Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');
-        Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
-        Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->middleware('capability:sentiment')->name('sentiment.data');
-        Route::get('analytics/tone', AgentToneController::class)->name('analytics.tone');
-        Route::get('analytics/tone/data', AgentToneDataController::class)->middleware('capability:tone')->name('tone.data');
-        Route::get('analytics/topics', AgentTopicController::class)->name('analytics.topics');
-        Route::get('analytics/topics/data', AgentTopicsDataController::class)->middleware('capability:topics')->name('topics.data');
+        // Analytics pages and their data — each gated by its own analytics
+        // permission, the same one the agent menu uses to show the page.
+        Route::middleware('agent.permission:agent.analytics.chats')->group(function (): void {
+            Route::get('analytics', AgentAnalyticsController::class)->name('analytics');
+            Route::get('analytics/data', AgentAnalyticsDataController::class)->name('analytics.data');
+            Route::get('analytics/chart-data', AgentChartDataController::class)->name('analytics.chart-data');
+        });
+        Route::middleware('agent.permission:agent.analytics.sentiment')->group(function (): void {
+            Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
+            Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->middleware('capability:sentiment')->name('sentiment.data');
+        });
+        Route::middleware('agent.permission:agent.analytics.tone')->group(function (): void {
+            Route::get('analytics/tone', AgentToneController::class)->name('analytics.tone');
+            Route::get('analytics/tone/data', AgentToneDataController::class)->middleware('capability:tone')->name('tone.data');
+        });
+        Route::middleware('agent.permission:agent.analytics.topics')->group(function (): void {
+            Route::get('analytics/topics', AgentTopicController::class)->name('analytics.topics');
+            Route::get('analytics/topics/data', AgentTopicsDataController::class)->middleware('capability:topics')->name('topics.data');
 
-        // Emergent (discovered) topic suggestions — surfaced from the consolidated
-        // analysis pass; promotion turns one into a real, agent-attached topic.
-        Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->middleware('capability:topics')->name('topics.suggestions');
+            // Emergent (discovered) topic suggestions — surfaced from the consolidated
+            // analysis pass; promotion turns one into a real, agent-attached topic.
+            Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->middleware('capability:topics')->name('topics.suggestions');
+        });
         Route::middleware(['capability:topics', 'agent.permission:agent.topics.manage'])->group(function (): void {
             Route::post('analytics/topics/suggestions/promote', PromoteSuggestedTopicController::class)->name('topics.suggestions.promote');
             Route::delete('analytics/topics/suggestions', DismissSuggestedTopicController::class)->name('topics.suggestions.dismiss');
         });
-        Route::get('analytics/sources', AgentSourceController::class)->name('analytics.sources');
-        Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
+        Route::middleware('agent.permission:agent.analytics.sources')->group(function (): void {
+            Route::get('analytics/sources', AgentSourceController::class)->name('analytics.sources');
+            Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
+        });
 
         // Topics Management — the index page is allowed through so the Vue
         // LockedFeature card can render on Starter/Standard; the mutations
@@ -181,12 +192,12 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Knowledge
         Route::get('sources', AgentKnowledgeSourceController::class)->name('sources');
         Route::get('sources/stats', AgentKnowledgeSourcesStatsController::class)->name('sources.stats');
-        Route::get('sources/files', AgentKnowledgeFileController::class)->name('sources.files');
-        Route::get('sources/files/data', AgentSourceFileController::class)->name('sources.files.data');
+        Route::get('sources/files', AgentKnowledgeFileController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files');
+        Route::get('sources/files/data', AgentSourceFileController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.data');
         Route::get('sources/markdown', AgentKnowledgeMarkdownController::class)->name('sources.markdown');
-        Route::get('sources/audio', AgentSourceAudioController::class)->name('sources.audio');
-        Route::get('sources/video', AgentSourceVideoController::class)->name('sources.video');
-        Route::get('sources/web', AgentKnowledgeWebController::class)->name('sources.web');
+        Route::get('sources/audio', AgentSourceAudioController::class)->middleware('agent.permission:agent.sources.train.audio')->name('sources.audio');
+        Route::get('sources/video', AgentSourceVideoController::class)->middleware('agent.permission:agent.sources.train.video')->name('sources.video');
+        Route::get('sources/web', AgentKnowledgeWebController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.web');
 
         // YouTube sources are not finished (added videos are never ingested),
         // so they stay off unless FEATURE_YOUTUBE_SOURCES turns them on.
@@ -222,8 +233,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
             ->middleware('agent.permission:agent.sources.train.functions')->name('sources.functions.attach');
         Route::delete('sources/functions/{function}', AgentFunctionDeleteController::class)
             ->middleware('agent.permission:agent.sources.train.functions')->name('sources.functions.detach');
-        Route::post('sources/functions/{function}/test', AgentFunctionTestController::class)
-            ->middleware('agent.permission:agent.sources.train.functions')->name('sources.functions.test');
 
         // Connectors page — agents attach existing account-level connectors
         // via the pivot. Creation/deletion of connector rows happens in
@@ -242,7 +251,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');
 
-        Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->name('sources.files.upload');
+        Route::post('sources/files/upload', AgentKnowledgeFileUploadController::class)->middleware('agent.permission:agent.sources.train.files')->name('sources.files.upload');
         Route::delete('sources/text/{id}', [AgentTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.text.destroy');
         Route::delete('sources/files/{file}', AgentSourceFileDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.files.delete');
         Route::delete('sources/files/uploaded/all', AgentKnowledgeUploadedFilesDeleteController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.uploaded-files');
@@ -375,7 +384,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Handoff (Admin Takeover) Routes — Pro-only capability.
         Route::middleware('capability:handoff')->group(function (): void {
             Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
-            Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->name('handoff.takeover');
+            Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->middleware('agent.permission:agent.chat.takeover')->name('handoff.takeover');
             Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
             Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
             Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
@@ -416,13 +425,15 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // widget data-auth) on their backend; regenerating invalidates every
         // token previously signed for this agent — so the destructive POST must
         // require the same permission the (read) GET above already enforces.
-        Route::get('identity', AgentIdentityController::class)->name('identity');
+        Route::get('identity', AgentIdentityController::class)
+            ->middleware('agent.permission:agent.identity.manage')->name('identity');
         Route::post('identity/regenerate', RegenerateAgentAuthSecretController::class)
             ->middleware('agent.permission:agent.identity.manage')->name('identity.regenerate');
 
         // Per-agent chat rate-limit — its own page under Security, saved via the
         // settings endpoint below.
-        Route::get('security/rate-limiting', AgentRateLimitController::class)->name('security.rate-limit');
+        Route::get('security/rate-limiting', AgentRateLimitController::class)
+            ->middleware('agent.permission:agent.identity.manage')->name('security.rate-limit');
         Route::post('security/settings', UpdateAgentSecuritySettingsController::class)
             ->middleware('agent.permission:agent.identity.manage')->name('security.settings.update');
 

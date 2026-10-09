@@ -4,8 +4,10 @@ namespace Domain\Integration\Mcp\Models;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use Domain\Integration\Mcp\Enums\McpTransport;
+use Domain\Integration\Tool\Contracts\AttachableToAgents;
 use Domain\Integration\Tool\Data\ToolName;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -22,6 +24,16 @@ use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
 /**
+ * An MCP server a workspace connected — a catalog connector (Notion, Stripe,
+ * Charts, …) or a custom server added by URL. The row is owned by the
+ * workspace owner (`user_id`) and agents opt in through the
+ * `agent_mcp_server` pivot. Tool definitions live either in the shared
+ * `connector_tools` catalog (canonical-URL connectors, see
+ * `uses_central_catalog`) or in this server's own `mcp_tools` rows.
+ *
+ * The domain glossary calls this concept an "McpServer"; the class keeps its
+ * historical name because it is referenced from persisted data.
+ *
  * @property int $id
  * @property string $external_id
  * @property int|null $user_id
@@ -32,8 +44,8 @@ use Support\Concerns\HasExternalId;
  * @property string|null $description
  * @property string $slug
  * @property string $url
- * @property string $transport
- * @property string $auth_type
+ * @property McpTransport $transport
+ * @property McpAuthType $auth_type
  * @property string|null $auth_value
  * @property array<array-key, mixed>|null $headers
  * @property int $timeout_ms
@@ -56,6 +68,7 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, Agent> $agents
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer attachedToAgent(\Domain\Agent\Models\Agent $agent)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer custom()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer ownedBySameAccountAs(\Domain\Agent\Models\Agent $agent)
@@ -90,14 +103,25 @@ use Support\Concerns\HasExternalId;
 #[Guarded(['id'])]
 #[Table(name: 'mcp_servers')]
 #[RouteKey('external_id')]
-class AgentMcpServer extends Model
+class AgentMcpServer extends Model implements AttachableToAgents
 {
     use HasExternalId, HasFactory;
+
+    /**
+     * How long one MCP request may take before it times out. Long-running
+     * tools (deep research, code execution) need minutes, not seconds.
+     */
+    public const int DEFAULT_TIMEOUT_MS = 300_000;
+
+    /** How early before expiry an OAuth access token counts as stale. */
+    private const int TOKEN_EXPIRY_MARGIN_SECONDS = 30;
 
     protected function casts(): array
     {
         return [
             'category' => McpServerCategory::class,
+            'transport' => McpTransport::class,
+            'auth_type' => McpAuthType::class,
             'headers' => 'encrypted:array',
             'auth_value' => 'encrypted',
             'oauth_refresh_token' => 'encrypted',
@@ -128,7 +152,7 @@ class AgentMcpServer extends Model
             return false;
         }
 
-        return $this->oauth_expires_at->lt(now()->addSeconds(30));
+        return $this->oauth_expires_at->lt(now()->addSeconds(self::TOKEN_EXPIRY_MARGIN_SECONDS));
     }
 
     protected static function booted(): void
@@ -185,7 +209,7 @@ class AgentMcpServer extends Model
     /**
      * True when this server's tools live in the shared connector_tools catalog
      * rather than its own per-server mcp_tools rows. Reads the persisted column
-     * (kept in sync by McpCatalog::refresh()) so the PHP branch points and the
+     * (kept in sync by SyncMcpServerCatalogAction) so the PHP branch points and the
      * raw-SQL read paths (ToolRegistry, ToolHybridSearch) can never disagree
      * about a server's storage shape.
      */
@@ -194,48 +218,6 @@ class AgentMcpServer extends Model
         // (bool) — a freshly create()d instance hasn't loaded the column's DB
         // default, so the attribute can be null in memory.
         return (bool) $this->uses_central_catalog;
-    }
-
-    /**
-     * Whether a server with this slug + URL may share the central catalog:
-     * only when the URL is the connector's CANONICAL one. A preset whose URL
-     * is workspace-supplied (requires_url / BYO-OAuth, e.g. Zendesk or
-     * Salesforce) is tenant-specific — its tool definitions must stay
-     * per-server so one workspace can never write tool text another
-     * workspace's agents read.
-     */
-    public static function shouldUseCentralCatalog(?string $connectorSlug, ?string $url): bool
-    {
-        if ($connectorSlug === null) {
-            return false;
-        }
-
-        $canonical = self::canonicalConnectorUrl($connectorSlug);
-
-        return $canonical !== null
-            && rtrim((string) $url, '/') === rtrim($canonical, '/');
-    }
-
-    /**
-     * The connector's canonical MCP URL: the preset's configured `mcp_url`
-     * (config/connectors.php), or `{app.url}/mcp/{slug}` for builtins
-     * (config/mcp.php). Null when the catalog defines no fixed endpoint —
-     * i.e. the workspace supplies the URL at connect time.
-     */
-    public static function canonicalConnectorUrl(string $connectorSlug): ?string
-    {
-        $preset = app(ConnectorCatalog::class)->find($connectorSlug);
-        if ($preset !== null) {
-            return $preset->mcpUrl !== '' ? $preset->mcpUrl : null;
-        }
-
-        foreach ((array) config('mcp.builtin', []) as $entry) {
-            if (($entry['slug'] ?? null) === $connectorSlug) {
-                return rtrim((string) config('app.url'), '/').'/mcp/'.$connectorSlug;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -259,11 +241,7 @@ class AgentMcpServer extends Model
     {
         $query
             ->where('user_id', $agent->user_id)
-            ->whereExists(function ($q) use ($agent): void {
-                $q->from('agent_mcp_server')
-                    ->whereColumn('agent_mcp_server.mcp_server_id', 'mcp_servers.id')
-                    ->where('agent_mcp_server.agent_id', $agent->id);
-            });
+            ->whereHas('agents', fn (Builder $agents): Builder => $agents->whereKey($agent->id));
     }
 
     /**
@@ -278,12 +256,76 @@ class AgentMcpServer extends Model
         $query->where('user_id', $agent->user_id);
     }
 
+    /**
+     * Servers the workspace added by URL — no catalog entry behind them.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function custom(Builder $query): void
+    {
+        $query->whereNull('connector_slug');
+    }
+
+    /**
+     * A slug-safe form of a name: lowercase letters, digits and underscores,
+     * at most 40 characters (the column width).
+     */
     public static function makeSlug(string $input): string
     {
         $slug = preg_replace('/[^a-z0-9_]+/', '_', strtolower($input)) ?? 'mcp';
         $slug = trim($slug, '_');
 
         return $slug === '' ? 'mcp' : substr($slug, 0, 40);
+    }
+
+    /**
+     * A slug for a new server that no other server of this workspace owner
+     * uses yet: the name's slug, or the slug with `_2`, `_3`, … appended.
+     * Slugs are unique per owner, and the slug is the routing prefix of every
+     * tool name, so a clash would mix two servers' tools.
+     */
+    public static function uniqueSlugFor(User $owner, string $name): string
+    {
+        $base = self::makeSlug($name);
+        $slug = $base;
+
+        for ($suffix = 2; $owner->mcpServers()->where('slug', $slug)->exists(); $suffix++) {
+            $slug = substr($base, 0, 38).'_'.$suffix;
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Record a successful catalog sync: when it ran, how many tools the server
+     * advertises, and that the last error (if any) is resolved.
+     */
+    public function markCatalogSynced(int $toolsCount): void
+    {
+        $this->forceFill([
+            'catalog_cached_at' => now(),
+            'catalog_tools_count' => $toolsCount,
+            'last_error' => null,
+        ])->save();
+    }
+
+    /**
+     * Keep a failed connect / refresh visible on the row so the dashboard can
+     * show the workspace what went wrong.
+     */
+    public function recordError(string $message): void
+    {
+        $this->forceFill(['last_error' => $message])->save();
+    }
+
+    /**
+     * Flip the workspace-wide on/off switch. A disabled server keeps its
+     * attachments but contributes no tools to any agent.
+     */
+    public function toggleEnabled(): void
+    {
+        $this->forceFill(['is_enabled' => ! $this->is_enabled])->save();
     }
 
     /**

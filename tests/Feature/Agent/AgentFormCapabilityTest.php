@@ -5,7 +5,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Integration\Connector\Actions\Agent\EnableAgentCapabilityAction;
-use Domain\Integration\Mcp\Services\McpException;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Testing\TestResponse;

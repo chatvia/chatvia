@@ -2,18 +2,19 @@
 
 namespace Domain\Security\Data;
 
+use Domain\Security\Enums\GeoMode;
+use Domain\Security\Enums\IpAllowlistMode;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * The writable shape of a workspace's {@see WorkspaceSecurityPolicy}. Built
- * from the security-policy FormRequest on the write path and from the model on
- * the read path.
+ * A workspace's {@see WorkspaceSecurityPolicy} as the Security settings page
+ * shows it. The page saves through SecurityPolicyFormData instead, which holds
+ * only what the form may change.
  *
- * `webhook_secret` is write-only: {@see self::fromModel()} never populates it,
- * so the encrypted secret is never serialized back to the client. A non-null
- * value on the write path rotates it; null leaves the stored secret untouched.
+ * `webhook_secret` is never populated, so the encrypted secret is never
+ * serialized back to the client.
  */
 #[TypeScript]
 class WorkspaceSecurityPolicyData extends Data
@@ -24,10 +25,10 @@ class WorkspaceSecurityPolicyData extends Data
         public ?int $retention_audit_days = null,
         public ?int $retention_analytics_days = null,
         public ?int $anonymize_after_days = null,
-        public string $ip_allowlist_mode = 'off',
+        public IpAllowlistMode $ip_allowlist_mode = IpAllowlistMode::Off,
         /** @var array<int, string> */
         public array $ip_allowlist = [],
-        public string $geo_mode = 'off',
+        public GeoMode $geo_mode = GeoMode::Off,
         /** @var array<int, string> */
         public array $geo_countries = [],
         public ?string $webhook_url = null,

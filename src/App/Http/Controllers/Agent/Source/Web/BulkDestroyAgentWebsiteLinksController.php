@@ -2,30 +2,28 @@
 
 namespace App\Http\Controllers\Agent\Source\Web;
 
+use App\Http\Requests\Agent\Source\Web\BulkDestroyWebsiteLinksRequest;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Web\Actions\Url\DeleteAgentWebsiteUrlsAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
- * Bulk-delete a set of URLs from a trained website in one call.
+ * Removes several pages from a trained website in one call, each with the
+ * chunks only it produced.
  */
 class BulkDestroyAgentWebsiteLinksController
 {
     public function __invoke(
-        Request $request,
+        BulkDestroyWebsiteLinksRequest $request,
         Agent $agent,
         SourceWebsite $website,
+        DeleteAgentWebsiteUrlsAction $deleteUrls,
     ): JsonResponse {
         abort_if($request->user()->cannot('delete', $website), 404);
 
-        $validated = $request->validate([
-            'link_ids' => ['required', 'array'],
-            'link_ids.*' => ['required', 'integer', 'exists:source_website_urls,id'],
-        ]);
+        $count = $deleteUrls->execute($website, $request->linkIds());
 
-        $count = $website->urls()->whereIn('id', $validated['link_ids'])->delete();
-
-        return response()->json(['message' => 'Links deleted successfully.', 'count' => $count]);
+        return response()->json(['message' => __('Links deleted successfully.'), 'count' => $count]);
     }
 }

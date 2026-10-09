@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api\V1\Team;
 
 use Carbon\CarbonInterface;
+use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Spatie\LaravelData\Data;
 
@@ -52,7 +53,7 @@ class RoleData extends Data
     {
         $permissions = $role->permissions
             ->pluck('name')
-            ->reject(fn (string $name): bool => $name === 'agents.access-all')
+            ->reject(fn (string $name): bool => $name === Permission::ACCESS_ALL_AGENTS)
             ->values()
             ->all();
 
@@ -60,7 +61,7 @@ class RoleData extends Data
             id: $role->external_id,
             name: $role->name,
             description: $role->description,
-            all_agents: $role->permissions->contains(fn ($permission): bool => $permission->name === 'agents.access-all'),
+            all_agents: $role->permissions->contains(fn (Permission $permission): bool => $permission->name === Permission::ACCESS_ALL_AGENTS),
             agent_ids: $role->agents->pluck('external_id')->all(),
             permissions: $permissions,
             created_at: $role->created_at,

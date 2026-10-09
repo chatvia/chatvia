@@ -46,6 +46,9 @@ class FormDefinition extends Model
 {
     use HasExternalId, HasFactory;
 
+    /** The capability (builtin connector) an agent needs to show its forms in chat. */
+    public const string CAPABILITY_SLUG = 'forms';
+
     protected function casts(): array
     {
         return [
@@ -71,6 +74,19 @@ class FormDefinition extends Model
     public function submissions(): HasMany
     {
         return $this->hasMany(FormSubmission::class);
+    }
+
+    /**
+     * Delete some of this form's submissions, chosen by external id. An empty
+     * list deletes nothing.
+     *
+     * @param  list<string>  $externalIds
+     */
+    public function deleteSubmissions(array $externalIds): void
+    {
+        if ($externalIds !== []) {
+            $this->submissions()->whereIn('external_id', $externalIds)->delete();
+        }
     }
 
     #[Scope]

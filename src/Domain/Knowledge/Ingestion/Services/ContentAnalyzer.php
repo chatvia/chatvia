@@ -2,81 +2,55 @@
 
 namespace Domain\Knowledge\Ingestion\Services;
 
-use Domain\Analytics\Data\ContentAnalysisData;
+use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
+use Domain\Knowledge\Ingestion\Data\Analysis\ContentAnalysisData;
+use Domain\Llm\Data\Chat\ChatMessageData;
+use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
+use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Services\DocumentLlm;
-use Exception;
-use Illuminate\Http\Client\Response;
+use Domain\Llm\Services\StructuredCompletion;
 
 /**
  * Classifies a whole document (type, language, audience, likely questions),
  * read as a PDF from a signed URL by the configured document-reading LLM
- * (`chatvia.ai.models.analysis`).
+ * (`chatvia.ai.models.analysis`). The reply must follow a strict JSON schema.
  */
 class ContentAnalyzer
 {
     public function __construct(
         private readonly DocumentLlm $documentLlm,
+        private readonly StructuredCompletion $completion,
     ) {}
 
-    public function fromUrl(string $documentUrl): ContentAnalysisData
+    /**
+     * @throws DocumentLlmUnavailableException
+     * @throws InvalidStructuredReplyException when the reply holds no JSON
+     */
+    public function analyze(string $documentUrl): AnalyzedDocumentData
     {
-        return $this->parse($this->complete($documentUrl));
+        $reply = $this->completion->using($this->documentLlm->provider())->send(new ChatRequestData(
+            model: (string) config('chatvia.ai.models.analysis'),
+            messages: [
+                ChatMessageData::userWithAttachment(prompt('summarization/system'), [
+                    'type' => 'document_url',
+                    'document_url' => $documentUrl,
+                ]),
+            ],
+            maxTokens: 1024,
+            responseSchema: new ResponseSchemaData('document_analysis', $this->fileAnalysisSchema()),
+        ));
+
+        return new AnalyzedDocumentData(
+            analysis: ContentAnalysisData::from($reply->requireData()),
+            usage: $reply->response->usage,
+        );
     }
 
     /**
-     * The raw completion response, for callers that also need its `usage`.
-     *
-     * @throws DocumentLlmUnavailableException
+     * @return array<string, mixed>
      */
-    public function complete(string $documentUrl): Response
-    {
-        return $this->documentLlm->provider()->completion([
-            'model' => (string) config('chatvia.ai.models.analysis'),
-            'max_tokens' => 1024,
-            'messages' => [
-                [
-                    'role' => 'user',
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => prompt('summarization/system'),
-                        ],
-                        [
-                            'type' => 'document_url',
-                            'document_url' => $documentUrl,
-                        ],
-                    ],
-                ],
-            ],
-            'response_format' => [
-                'type' => 'json_schema',
-                'json_schema' => [
-                    'name' => 'document_analysis',
-                    'strict' => true,
-                    'schema' => $this->fileAnalysisSchema(),
-                ],
-            ],
-        ]);
-    }
-
-    public function parse(Response $completion): ContentAnalysisData
-    {
-        $response = $completion->json();
-
-        if (! isset($response['choices'][0]['message']['content'])) {
-            throw new Exception('No valid response content found');
-        }
-
-        $content = $response['choices'][0]['message']['content'];
-
-        $data = is_string($content)
-            ? json_decode($content, true, 512, JSON_THROW_ON_ERROR)
-            : $content;
-
-        return ContentAnalysisData::from($data);
-    }
-
     private function fileAnalysisSchema(): array
     {
         return [

@@ -7,10 +7,10 @@ use Illuminate\Support\Str;
 
 /**
  * Supplies the browser-session secret that ties a connector OAuth flow to the
- * session that started it (see McpOAuthFlow). The secret lives only in the
- * user's session, so an authorize link opened in another browser or account
- * cannot finish the flow. It is kept across session-id regeneration because
- * Laravel carries session data over when it rotates the id.
+ * session that started it (see CompleteConnectorOAuthAction). The secret lives
+ * only in the user's session, so an authorize link opened in another browser
+ * or account cannot finish the flow. It is kept across session-id regeneration
+ * because Laravel carries session data over when it rotates the id.
  */
 trait BindsConnectorOAuthToSession
 {

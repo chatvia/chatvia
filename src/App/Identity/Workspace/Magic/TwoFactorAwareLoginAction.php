@@ -2,34 +2,13 @@
 
 namespace App\Identity\Workspace\Magic;
 
-use App\Identity\Workspace\Login\TwoFactorAwareLogin;
-use App\Identity\Workspace\Models\User;
-use Illuminate\Http\RedirectResponse;
-use MagicLink\Actions\ActionAbstract;
+use App\Http\Auth\MagicLinkSignIn;
 
 /**
- * Magic-link landing action. The package calls run() when the recipient opens
- * the emailed URL. Delegates the "log in vs. bounce to 2FA challenge" decision
- * to App\Identity\Workspace\Login\TwoFactorAwareLogin so social and magic-link paths share
- * one rule.
+ * The previous name of {@see MagicLinkSignIn}. Magic links store their action
+ * serialized, so links emailed before the rename still name this class; it is
+ * kept until those links have expired (they live 15 minutes), then can go.
+ *
+ * @deprecated use {@see MagicLinkSignIn}
  */
-class TwoFactorAwareLoginAction extends ActionAbstract
-{
-    public function __construct(
-        public int $userId,
-        public string $redirectUrl,
-        public bool $remember = false,
-    ) {}
-
-    public function run(): RedirectResponse
-    {
-        /** @var User|null $user */
-        $user = User::query()->find($this->userId);
-
-        if ($user === null) {
-            return new RedirectResponse(route('login'));
-        }
-
-        return TwoFactorAwareLogin::redirect($user, $this->redirectUrl, $this->remember);
-    }
-}
+class TwoFactorAwareLoginAction extends MagicLinkSignIn {}

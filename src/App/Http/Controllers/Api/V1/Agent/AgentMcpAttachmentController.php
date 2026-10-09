@@ -8,7 +8,6 @@ use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Attach / detach MCP servers to a specific agent.
@@ -21,7 +20,7 @@ class AgentMcpAttachmentController
      *
      * @return array{data: list<McpServerData>}
      */
-    public function index(Request $request, Agent $agent): array
+    public function index(Agent $agent): array
     {
         return ['data' => $agent->mcpServers()->get()
             ->map(fn (AgentMcpServer $s): McpServerData => McpServerData::fromModel($s))->all()];
@@ -45,7 +44,7 @@ class AgentMcpAttachmentController
     /**
      * Detach connector from agent
      */
-    public function destroy(Request $request, Agent $agent, string $mcp): JsonResponse
+    public function destroy(Agent $agent, string $mcp): JsonResponse
     {
         $agent->detachConnector($this->resolveServer($agent, $mcp));
 

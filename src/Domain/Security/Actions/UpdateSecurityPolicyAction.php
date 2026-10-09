@@ -4,7 +4,7 @@ namespace Domain\Security\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Data\SecurityActorData;
-use Domain\Security\Data\WorkspaceSecurityPolicyData;
+use Domain\Security\Data\SecurityPolicyFormData;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Exceptions\UnsafeWebhookUrlException;
@@ -12,10 +12,14 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Support\Http\SafeUrl;
 
 /**
- * The single write path for the keystone {@see WorkspaceSecurityPolicy}. Guards
- * the SIEM webhook URL against SSRF, persists the change, and emits one audit
- * event per changed category (network / retention / other) so each surfaces
- * under its specific {@see SecurityAuditAction} with a before/after diff.
+ * The write path of the Security settings page for the keystone
+ * {@see WorkspaceSecurityPolicy}. It applies what the form owns — the network
+ * rules and conversation/audit retention, plus the SIEM webhook when the plan
+ * includes it — and keeps every other stored setting (leads/analytics/anonymise
+ * retention, the webhook event list, SCIM). It guards the SIEM webhook URL
+ * against SSRF, saves, and emits one audit event per changed category
+ * (network / retention / other) so each surfaces under its specific
+ * {@see SecurityAuditAction} with a before/after diff.
  *
  * The `webhook_secret` is write-only: a non-null value rotates it, null leaves
  * the stored secret untouched, and its value is NEVER placed in audit metadata.
@@ -25,51 +29,70 @@ use Support\Http\SafeUrl;
  */
 class UpdateSecurityPolicyAction
 {
-    /** @var array<int, string> */
-    private const RETENTION_FIELDS = [
+    /** @var list<string> */
+    private const array RETENTION_FIELDS = [
         'retention_conversations_days', 'retention_leads_days', 'retention_audit_days',
         'retention_analytics_days', 'anonymize_after_days',
     ];
 
-    /** @var array<int, string> */
-    private const NETWORK_FIELDS = ['ip_allowlist_mode', 'ip_allowlist', 'geo_mode', 'geo_countries'];
+    /** @var list<string> */
+    private const array NETWORK_FIELDS = ['ip_allowlist_mode', 'ip_allowlist', 'geo_mode', 'geo_countries'];
 
-    public function execute(User $workspace, WorkspaceSecurityPolicyData $data, SecurityActorData $actor): WorkspaceSecurityPolicy
+    /** @var list<string> */
+    private const array OTHER_FIELDS = ['webhook_url', 'webhook_enabled', 'webhook_events', 'scim_enabled'];
+
+    /**
+     * @throws UnsafeWebhookUrlException when the webhook URL is not a public https URL
+     */
+    public function execute(User $workspace, SecurityPolicyFormData $form, SecurityActorData $actor): WorkspaceSecurityPolicy
     {
-        $this->guardWebhookUrl($data->webhook_url);
+        $canUseWebhook = (bool) $workspace->capabilities->siemWebhook;
+
+        if ($canUseWebhook) {
+            $this->guardWebhookUrl($form->webhook_url);
+        }
 
         $policy = WorkspaceSecurityPolicy::forWorkspace($workspace->id);
         $original = $policy->getOriginal();
 
-        $attributes = [
-            'retention_conversations_days' => $data->retention_conversations_days,
-            'retention_leads_days' => $data->retention_leads_days,
-            'retention_audit_days' => $data->retention_audit_days,
-            'retention_analytics_days' => $data->retention_analytics_days,
-            'anonymize_after_days' => $data->anonymize_after_days,
-            'ip_allowlist_mode' => $data->ip_allowlist_mode,
-            'ip_allowlist' => $data->ip_allowlist,
-            'geo_mode' => $data->geo_mode,
-            'geo_countries' => $data->geo_countries,
-            'webhook_url' => $data->webhook_url,
-            'webhook_enabled' => $data->webhook_enabled,
-            'webhook_events' => $data->webhook_events,
-            'scim_enabled' => $data->scim_enabled,
-        ];
-
-        // A new secret rotates the stored one; null leaves it untouched.
-        $secretRotated = $data->webhook_secret !== null && $data->webhook_secret !== '';
-        if ($secretRotated) {
-            $attributes['webhook_secret'] = $data->webhook_secret;
-        }
-
-        $policy->fill($attributes);
+        $policy->fill($this->attributes($form, $canUseWebhook));
         $changed = $policy->getDirty();
         $policy->save();
 
-        $this->emitAuditEvents($workspace, $actor, $original, $changed, $secretRotated);
+        $this->emitAuditEvents($workspace, $actor, $original, $changed, $canUseWebhook && $form->rotatesWebhookSecret());
 
         return $policy;
+    }
+
+    /**
+     * The policy columns the form may change. Without the SIEM capability the
+     * stored webhook settings are kept, so a request cannot enable or change it.
+     *
+     * @return array<string, mixed>
+     */
+    private function attributes(SecurityPolicyFormData $form, bool $canUseWebhook): array
+    {
+        $attributes = [
+            'retention_conversations_days' => $form->retention_conversations_days,
+            'retention_audit_days' => $form->retention_audit_days,
+            'ip_allowlist_mode' => $form->ip_allowlist_mode,
+            'ip_allowlist' => $form->ip_allowlist,
+            'geo_mode' => $form->geo_mode,
+            'geo_countries' => $form->geo_countries,
+        ];
+
+        if (! $canUseWebhook) {
+            return $attributes;
+        }
+
+        $attributes['webhook_url'] = $form->webhook_url;
+        $attributes['webhook_enabled'] = $form->webhook_enabled;
+
+        if ($form->rotatesWebhookSecret()) {
+            $attributes['webhook_secret'] = $form->webhook_secret;
+        }
+
+        return $attributes;
     }
 
     /**
@@ -91,8 +114,7 @@ class UpdateSecurityPolicyAction
             $this->dispatch($workspace, $actor, SecurityAuditAction::PolicyIpAllowlistChanged, $networkDiff);
         }
 
-        $otherFields = ['webhook_url', 'webhook_enabled', 'webhook_events', 'scim_enabled'];
-        $otherDiff = $this->diffFor($original, $changed, $otherFields);
+        $otherDiff = $this->diffFor($original, $changed, self::OTHER_FIELDS);
         if ($secretRotated) {
             $otherDiff['webhook_secret_rotated'] = true;
         }

@@ -13,7 +13,7 @@ use Domain\Integration\Tool\Routing\SemanticToolRouter;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
-use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\Support\FakeEmbeddingsProvider;

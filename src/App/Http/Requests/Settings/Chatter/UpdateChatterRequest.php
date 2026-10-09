@@ -6,6 +6,10 @@ use App\Identity\Chatter\Data\UpdateChatterAccessData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * A chatter's access settings from the Members sheet: monthly message cap and
+ * on/off switch.
+ */
 class UpdateChatterRequest extends FormRequest
 {
     public function authorize(): bool

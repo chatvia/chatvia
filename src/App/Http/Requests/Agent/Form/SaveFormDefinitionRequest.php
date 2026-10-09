@@ -7,6 +7,10 @@ use Domain\Form\Enums\FormType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Create or update one of an agent's inline forms: its texts, type and the
+ * field schema the chat renders (at most 30 fields).
+ */
 class SaveFormDefinitionRequest extends FormRequest
 {
     public function authorize(): bool

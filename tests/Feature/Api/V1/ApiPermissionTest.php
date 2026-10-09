@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -184,7 +185,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     });
 
     it('forbids a member WITHOUT account.chatters.manage from deleting a chatter', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, []);
 
         $this->withHeaders(permHeaders($token))
@@ -195,7 +196,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     });
 
     it('lets a member WITH account.chatters.manage delete a chatter', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, ['account.chatters.manage']);
 
         $this->withHeaders(permHeaders($token))
@@ -204,7 +205,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     });
 
     it('forbids a member WITHOUT account.chatters.manage from revoking agent access', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute($this->owner, $this->agent, 'Jane');
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, []);
 
         $this->withHeaders(permHeaders($token))

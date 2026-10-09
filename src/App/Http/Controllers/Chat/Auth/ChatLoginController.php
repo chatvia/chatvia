@@ -8,6 +8,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Signs a chatter in to a protected agent's hosted chat with a password.
+ */
 class ChatLoginController
 {
     public function __invoke(LoginRequest $request, LoginUserToAgentAction $loginToAgent): RedirectResponse

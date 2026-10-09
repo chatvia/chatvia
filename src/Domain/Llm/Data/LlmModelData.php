@@ -6,6 +6,9 @@ use Domain\Llm\Models\Llm;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * A catalog model as the model picker shows it.
+ */
 #[TypeScript]
 class LlmModelData extends Data
 {

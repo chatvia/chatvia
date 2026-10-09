@@ -11,6 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * A support ticket a workspace user opened from the dashboard's Support page.
+ * It is assigned to a staff user (see CreateTicketAction) and collects
+ * {@see TicketReply} rows from both sides.
+ *
  * @property int $id
  * @property int|null $user_id
  * @property int|null $assigned_to

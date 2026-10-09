@@ -1,0 +1,22 @@
+<?php
+
+namespace Domain\Knowledge\Ingestion\Data\Chunking;
+
+use Spatie\LaravelData\Data;
+
+/**
+ * What the chunker LLM wrote about one page: a short summary that puts the page
+ * in context, the questions the page answers, and the cost of that call in
+ * cents.
+ */
+final class ChunkEnhancementData extends Data
+{
+    /**
+     * @param  list<string>  $questions
+     */
+    public function __construct(
+        public string $summary,
+        public array $questions,
+        public float $cost,
+    ) {}
+}

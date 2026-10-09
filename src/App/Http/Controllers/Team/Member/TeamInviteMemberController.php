@@ -7,6 +7,9 @@ use Domain\Membership\Team\Actions\Members\InviteTeamMemberAction;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Adds a managed user to a team, or emails an invitation to a new address.
+ */
 class TeamInviteMemberController
 {
     public function __invoke(
@@ -16,6 +19,6 @@ class TeamInviteMemberController
     ): RedirectResponse {
         $invite->execute($request->toData($team));
 
-        return back()->with('success', 'Invitation sent successfully.');
+        return back()->with('success', __('Invitation sent successfully.'));
     }
 }

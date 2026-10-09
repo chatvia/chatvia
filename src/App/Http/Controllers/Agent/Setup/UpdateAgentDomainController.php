@@ -7,6 +7,10 @@ use Domain\Agent\Actions\Settings\SetAgentDomainAction;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 
+/**
+ * Sets or removes the custom domain of an agent's Hosted Chat. The quota
+ * check lives in SetAgentDomainAction; gated by `agent.permission:agent.setup`.
+ */
 class UpdateAgentDomainController
 {
     public function __invoke(
@@ -14,8 +18,6 @@ class UpdateAgentDomainController
         Agent $agent,
         SetAgentDomainAction $setDomain,
     ): RedirectResponse {
-        abort_if($request->user()->cannot('update', $agent), 404);
-
         $newValue = $request->toData()->domain;
 
         // The quota gate lives in the Action. A DomainValidationException it

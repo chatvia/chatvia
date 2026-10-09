@@ -1,10 +1,11 @@
 <?php
 
+use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormSubmission;
 
 it('deletes pending submissions past their TTL', function (): void {
     $expired = FormSubmission::factory()->create([
-        'status' => FormSubmission::STATUS_PENDING,
+        'status' => FormSubmissionStatus::Pending,
         'expires_at' => now()->subHour(),
     ]);
 
@@ -15,7 +16,7 @@ it('deletes pending submissions past their TTL', function (): void {
 
 it('keeps pending submissions still within their TTL', function (): void {
     $live = FormSubmission::factory()->create([
-        'status' => FormSubmission::STATUS_PENDING,
+        'status' => FormSubmissionStatus::Pending,
         'expires_at' => now()->addHour(),
     ]);
 

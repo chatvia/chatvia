@@ -2,9 +2,9 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpClient;
-use Domain\Integration\Mcp\Services\McpException;
 use Domain\Integration\Mcp\Services\McpToolDispatcher;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Illuminate\Support\Facades\Event;

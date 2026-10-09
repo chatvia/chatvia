@@ -4,6 +4,10 @@ namespace Domain\Llm\Providers;
 
 use Domain\Llm\AbstractLlmProvider;
 
+/**
+ * Chat completions through the Scaleway Generative APIs (open-weight models
+ * such as Qwen3, hosted in the EU).
+ */
 class Scaleway extends AbstractLlmProvider
 {
     /**

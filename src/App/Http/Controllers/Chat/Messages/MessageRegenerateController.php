@@ -2,25 +2,30 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
+use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\RegenerateMessageRequest;
 use Domain\Conversation\Actions\Messages\RegenerateMessageAction;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * Removes the last exchange from the hosted-chat history so the client can
+ * send the visitor's message again for a new answer.
+ */
 class MessageRegenerateController
 {
     public function __invoke(
         RegenerateMessageRequest $request,
         RegenerateMessageAction $regenerate,
+        HostedChatSession $session,
     ): JsonResponse {
         $result = $regenerate->execute(
-            agent: current_agent(),
-            conversationId: $request->string('conversation_id')->toString(),
-            assistantMessageId: $request->string('assistant_message_id')->toString(),
-            userMessageId: $request->string('user_message_id')->toString(),
+            $session->scope(current_agent(), $request->conversationId()),
+            $request->assistantMessageId(),
+            $request->userMessageId(),
         );
 
-        if (! $result) {
-            return response()->json(['error' => 'User message not found'], 404);
+        if ($result === null) {
+            return response()->json(['error' => __('User message not found')], 404);
         }
 
         return response()->json([

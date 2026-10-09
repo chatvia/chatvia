@@ -21,6 +21,6 @@ class ReplyToTicketController
             'message' => $data->message,
         ]);
 
-        return back()->with('success', 'Reply added successfully');
+        return back()->with('success', __('Reply added successfully'));
     }
 }

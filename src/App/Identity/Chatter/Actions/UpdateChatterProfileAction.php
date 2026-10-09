@@ -8,6 +8,10 @@ use App\Identity\Workspace\Services\ProfilePhotoStorage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * A chatter edits their own profile on the hosted chat: name, password (the
+ * current one is checked first) and photo.
+ */
 class UpdateChatterProfileAction
 {
     public function __construct(

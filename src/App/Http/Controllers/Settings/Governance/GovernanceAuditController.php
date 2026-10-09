@@ -6,6 +6,7 @@ use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,7 +45,7 @@ class GovernanceAuditController
             'rows' => $rows,
             'agents' => $agents,
             'connectors' => $this->connectorOptions($workspaceId),
-            'outcomes' => ['auto', 'approved', 'denied', 'rate_limited'],
+            'outcomes' => array_column(ToolCallOutcome::cases(), 'value'),
             'filters' => [
                 'outcome' => $request->filled('outcome') ? (string) $request->string('outcome') : null,
                 'connector' => $request->filled('connector') ? (string) $request->string('connector') : null,

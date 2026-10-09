@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Identity\Workspace\Models\User;
-use Domain\Dashboard\Actions\GetDashboardStatsAction;
+use Domain\Analytics\Actions\Dashboard\GetDashboardStatsAction;
+use Domain\Analytics\Data\Dashboard\DashboardStatsData;
 use Illuminate\Http\Request;
 
+/**
+ * JSON numbers for the dashboard home page, for the viewer's workspace and
+ * current team.
+ */
 class DashboardStatsController
 {
-    /**
-     * @return array<string, mixed>
-     */
-    public function __invoke(Request $request, GetDashboardStatsAction $getStats): array
+    public function __invoke(Request $request, GetDashboardStatsAction $getStats): DashboardStatsData
     {
         /** @var User $user */
         $user = $request->user();

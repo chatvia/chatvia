@@ -1,11 +1,10 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatContext;
-use Domain\Conversation\Services\ChatService;
-use Domain\Conversation\Services\Data\StreamRequestData;
-use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
@@ -15,10 +14,12 @@ use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -32,13 +33,13 @@ use Psr\Http\Message\ResponseInterface;
  * inside ToolLoopRunner — these tests fake ToolLoopRunner to script its return /
  * yields and verify LlmSource's surrounding behavior.
  */
-function noopChatService(): ChatService
+function noopReplyRecorder(): AssistantReplyRecorder
 {
-    return new readonly class extends ChatService
+    return new class extends AssistantReplyRecorder
     {
         public function __construct() {}
 
-        public function handleChatCompletion(ChatContext $context): void
+        public function recordCompletedReply(ChatContext $context): void
         {
             // intentional no-op for tests
         }
@@ -139,7 +140,7 @@ function makeChatContext(Agent $agent, Llm $llm): ChatContext
         requestId: 'req_'.Str::random(12),
     );
 
-    $payload = ChatInputPayload::from([
+    $payload = UserTurnData::from([
         'external_session_id' => $requestData->externalSessionId,
         'external_conversation_id' => $requestData->conversationId,
         'external_message_id' => (string) Str::uuid(),
@@ -161,7 +162,7 @@ function makeLlmSource(ToolLoopRunner $runner): LlmSource
 {
     return new LlmSource(
         llmProvider: noopLlmProvider(),
-        chatService: noopChatService(),
+        replyRecorder: noopReplyRecorder(),
         dedupe: new RequestDedupeStore,
         toolSelector: noopToolSelector(),
         runner: $runner,
@@ -169,6 +170,7 @@ function makeLlmSource(ToolLoopRunner $runner): LlmSource
         // inspectOutput() is a clean no-op (no classifier call, no events).
         guardrails: app(GuardrailService::class),
         guardrailRecorder: app(GuardrailRecorder::class),
+        tokenUsage: app(TokenUsageContext::class),
     );
 }
 
@@ -244,8 +246,8 @@ it('on ClientDisconnected does not surface an error and persists for replay (par
     // the same assistant_message_id without a duplicate upstream call.
     $cached = app(RequestDedupeStore::class)->find($context->requestData->requestId);
     expect($cached)->not->toBeNull()
-        ->and($cached['content'])->toBe('partial reply')
-        ->and($cached['assistant_message_id'])->toBe($context->assistantMessageId);
+        ->and($cached->content)->toBe('partial reply')
+        ->and($cached->assistant_message_id)->toBe($context->assistantMessageId);
 });
 
 it('on UpstreamStreamClosed surfaces a user-friendly upstream-unavailable error and done(error)', function (): void {

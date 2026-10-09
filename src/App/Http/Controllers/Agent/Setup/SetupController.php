@@ -6,10 +6,11 @@ use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Agent\Prompt\Models\AgentPrompt;
+use Domain\Billing\Enums\Capability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Data\LlmModelData;
-use Domain\Prompt\Models\AgentPrompt;
+use Domain\Llm\Models\Llm;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,8 +27,6 @@ class SetupController
 {
     public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService): Response
     {
-        abort_if(! $request->user()->can('view', $agent), 404);
-
         $agent->loadMissing(['llm', 'agentPrompt']);
 
         $prompts = $request->user()->workspace()->prompts()
@@ -42,7 +41,8 @@ class SetupController
 
         $selectedModel = $agent->llm?->external_name;
 
-        $catalog = $request->user()->formattedLlms()->map(function (LlmModelData $llm) use ($selectedModel) {
+        $catalog = Llm::catalog()->map(function (Llm $model) use ($selectedModel): LlmModelData {
+            $llm = LlmModelData::fromLlmModel($model);
             $llm->is_selected = $llm->id === $selectedModel;
 
             return $llm;
@@ -64,7 +64,7 @@ class SetupController
             'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent->id),
             'prompts' => $prompts,
             'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
-            'canUseHandoff' => $agent->team?->hasCapability(CapabilityEnum::HANDOFF) ?? false,
+            'canUseHandoff' => $agent->team?->hasCapability(Capability::Handoff) ?? false,
             // Whether the workspace may hide the "Powered by Chatvia" badge. Only
             // then does the Branding section expose the show/hide toggle; otherwise
             // the badge always shows and there's nothing to choose.

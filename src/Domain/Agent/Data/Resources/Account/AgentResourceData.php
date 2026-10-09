@@ -4,10 +4,15 @@ namespace Domain\Agent\Data\Resources\Account;
 
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
+/**
+ * An agent as the dashboard shows it: identity, addresses and persona, plus
+ * the list-only counts when built for the agents list.
+ */
 #[TypeScript]
 class AgentResourceData extends Data
 {
@@ -53,11 +58,11 @@ class AgentResourceData extends Data
     }
 
     /**
-     * Create from model with stats (total_messages, total_members).
-     * total_messages comes from the analytics rollups (set as an attribute by
-     * AgentController::index); total_members from withTotalMembers().
+     * For the agents list: adds the all-time message total (from the analytics
+     * rollups) and the workspace member count (selected by
+     * {@see AgentQueryBuilder::withTotalMembers()}).
      */
-    public static function fromModelWithStats(Agent $agent): self
+    public static function fromModelWithStats(Agent $agent, int $totalMessages): self
     {
         return new self(
             id: $agent->id,
@@ -74,16 +79,18 @@ class AgentResourceData extends Data
             chat_embed_url: $agent->chat_embed_url,
             created_at: $agent->created_at,
             updated_at: $agent->updated_at,
-            total_messages: $agent->total_messages ?? 0,
-            total_members: $agent->total_members ?? 0,
+            total_messages: $totalMessages,
+            total_members: (int) ($agent->total_members ?? 0),
         );
     }
 
     /**
-     * Create a collection of AgentResourceData from a collection of Agent models.
+     * @param  Collection<int, Agent>  $agents
+     * @param  array<int, int>  $messageTotals  agent id → all-time messages
+     * @return Collection<int, self>
      */
-    public static function collection(Collection $agents): Collection
+    public static function listWithStats(Collection $agents, array $messageTotals): Collection
     {
-        return $agents->map(fn (Agent $agent): AgentResourceData => self::fromModelWithStats($agent));
+        return $agents->map(fn (Agent $agent): self => self::fromModelWithStats($agent, $messageTotals[$agent->id] ?? 0));
     }
 }

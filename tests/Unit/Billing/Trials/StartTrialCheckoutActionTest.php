@@ -1,7 +1,8 @@
 <?php
 
 use Domain\Billing\Actions\Trials\StartTrialCheckoutAction;
-use Domain\Billing\Data\StartTrialCheckoutData;
+use Domain\Billing\Data\Stripe\CheckoutUrlsData;
+use Domain\Billing\Data\Trials\StartTrialCheckoutData;
 
 it('throws InvalidArgumentException when the requested package is not configured', function (): void {
     // Negative path doesn't hit Stripe — config lookup runs first and bails.
@@ -14,5 +15,6 @@ it('throws InvalidArgumentException when the requested package is not configured
         package: 'does-not-exist',
         yearly: false,
         userIp: '127.0.0.1',
+        urls: new CheckoutUrlsData(successUrl: 'https://example.test/ok', cancelUrl: 'https://example.test/back'),
     )))->toThrow(InvalidArgumentException::class, 'Unknown billing package: does-not-exist');
 });

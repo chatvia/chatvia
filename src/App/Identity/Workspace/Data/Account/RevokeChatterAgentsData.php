@@ -4,6 +4,9 @@ namespace App\Identity\Workspace\Data\Account;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * API payload for removing a chatter's access to some agents.
+ */
 class RevokeChatterAgentsData extends Data
 {
     public function __construct(

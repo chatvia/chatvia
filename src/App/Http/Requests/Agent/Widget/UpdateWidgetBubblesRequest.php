@@ -2,18 +2,23 @@
 
 namespace App\Http\Requests\Agent\Widget;
 
+use Domain\Agent\Data\Settings\Copy\BubbleData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * The agent's widget chat-bubble prompts from Setup → Chat Bubbles: each with
+ * its text and the owner's manual per-language edits. Authorization is the
+ * route's `agent.permission:agent.setup` middleware.
+ */
 class UpdateWidgetBubblesRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Access is gated by the route middleware (agent.permission:agent.setup).
         return true;
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, list<string>>
      */
     public function rules(): array
     {
@@ -26,12 +31,13 @@ class UpdateWidgetBubblesRequest extends FormRequest
     }
 
     /**
-     * The validated widget bubbles, ready for SetWidgetBubblesAction.
-     *
-     * @return array<int, array{text: string, overrides?: array<string, string>}>
+     * @return list<BubbleData>
      */
-    public function bubbles(): array
+    public function toData(): array
     {
-        return $this->validated('bubbles') ?? [];
+        return array_values(array_map(static fn (array $bubble): BubbleData => new BubbleData(
+            text: (string) $bubble['text'],
+            overrides: array_filter((array) ($bubble['overrides'] ?? []), is_string(...)),
+        ), (array) ($this->validated('bubbles') ?? [])));
     }
 }

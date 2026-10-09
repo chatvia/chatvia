@@ -2,23 +2,20 @@
 
 namespace App\Http\Controllers\Agent\Analytics\Topic;
 
+use App\Http\Requests\Agent\Analytics\SuggestedTopicLabelRequest;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Actions\PromoteSuggestedTopicAction;
+use Domain\Analytics\Actions\Topics\PromoteSuggestedTopicAction;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
+/**
+ * Turns an emergent topic suggestion into a real topic of the agent.
+ */
 class PromoteSuggestedTopicController
 {
-    public function __invoke(Request $request, Agent $agent, PromoteSuggestedTopicAction $promote): JsonResponse
+    public function __invoke(SuggestedTopicLabelRequest $request, Agent $agent, PromoteSuggestedTopicAction $promote): JsonResponse
     {
-        abort_if($request->user()->cannot('update', $agent), 404);
+        $topic = $promote->execute($agent, $request->label());
 
-        $validated = $request->validate([
-            'label' => ['required', 'string', 'max:255'],
-        ]);
-
-        $topic = $promote->execute($agent, $validated['label']);
-
-        return response()->json(['message' => 'Topic added successfully', 'topic' => $topic]);
+        return response()->json(['message' => __('Topic added successfully'), 'topic' => $topic]);
     }
 }

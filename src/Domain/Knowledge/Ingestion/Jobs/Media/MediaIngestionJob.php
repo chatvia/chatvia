@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Jobs\Media;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Ingestion\Actions\Sources\IngestMediaAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Llm\Usage\AttributesTokenUsage;
@@ -13,9 +14,13 @@ use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
+/**
+ * Transcribes an audio or video file and starts its chunk batch. See
+ * {@see IngestMediaAction}. Long recordings take hours to transcribe, hence the
+ * long timeout and the dedicated audio and video queues.
+ */
 class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
@@ -54,6 +59,9 @@ class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQ
         return 'ingestion:media:'.$this->sourceFile->id;
     }
 
+    /**
+     * @return list<string>
+     */
     public function tags(): array
     {
         return [
@@ -65,18 +73,6 @@ class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQ
 
     public function failed(Throwable $exception): void
     {
-        $jobId = $this->job->getJobId();
-
-        Log::error('IngestionJob failed', [
-            'source_file_id' => $this->sourceFile->id,
-            'job_id' => $jobId,
-            'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString(),
-        ]);
-
-        $this->sourceFile->update([
-            'status' => 'failed',
-            'failure_reason' => $exception->getMessage(),
-        ]);
+        app(MarkSourceFailedAction::class)->execute($this->sourceFile, $this->agent, $exception);
     }
 }

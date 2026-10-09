@@ -2,12 +2,18 @@
 
 namespace App\Http\Requests\Billing;
 
+use App\Http\Requests\Billing\Concerns\ReturnsToBillingPage;
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Data\BuyExtraMessageCreditsData;
+use Domain\Billing\Data\Account\BuyExtraMessageCreditsData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Buy extra-message packs through Stripe Checkout.
+ */
 class BuyExtraMessageCreditsRequest extends FormRequest
 {
+    use ReturnsToBillingPage;
+
     public function authorize(): bool
     {
         return true;
@@ -31,6 +37,7 @@ class BuyExtraMessageCreditsRequest extends FormRequest
         return new BuyExtraMessageCreditsData(
             user: $user,
             quantity: $this->integer('quantity'),
+            urls: $this->checkoutUrls(),
         );
     }
 }

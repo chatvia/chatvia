@@ -2,10 +2,15 @@
 
 namespace Domain\Membership\Team\Data;
 
-use Domain\Membership\Team\Services\TeamService;
+use Domain\Membership\Team\Services\TeamPermissionCatalog;
 use Illuminate\Validation\Rule;
 use Spatie\LaravelData\Data;
 
+/**
+ * Public-API request body for creating or updating a team role. Spatie Data
+ * validates it from the request; the controller turns it into
+ * {@see SaveTeamRoleData} for the role Actions.
+ */
 class RolePayloadData extends Data
 {
     public function __construct(
@@ -42,7 +47,7 @@ class RolePayloadData extends Data
             'agent_ids' => ['sometimes', 'array'],
             'agent_ids.*' => ['string'],
             'permissions' => ['sometimes', 'array'],
-            'permissions.*' => ['string', Rule::in(app(TeamService::class)->permissionCodes())],
+            'permissions.*' => ['string', Rule::in(app(TeamPermissionCatalog::class)->codes())],
         ];
     }
 }

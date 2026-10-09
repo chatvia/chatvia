@@ -2,24 +2,21 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
-use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
-use Illuminate\Http\Request;
+use App\Http\Chat\HostedChatSession;
+use App\Http\Requests\Chat\MessageFeedbackRequest;
+use Domain\Conversation\Actions\Activity\RecordMessageFeedbackAction;
 
+/**
+ * Records the hosted-chat visitor's rating of an assistant reply.
+ */
 class MessageFeedbackController
 {
-    public function __invoke(Request $request, ChatMemory $memory, TurnState $session): void
+    public function __invoke(MessageFeedbackRequest $request, RecordMessageFeedbackAction $recordFeedback, HostedChatSession $session): void
     {
-        $validated = $request->validate([
-            'conversation_id' => ['required', 'string'],
-            'message_id' => ['required', 'string'],
-            'feedback' => ['nullable', 'in:positive,negative'],
-        ]);
-
-        $agent = current_agent();
-
-        $memory
-            ->withContext($agent, $session->firstOrCreateSession($agent), $validated['conversation_id'])
-            ->feedback($validated['message_id'], $validated['feedback'] ?? null);
+        $recordFeedback->execute(
+            $session->scope(current_agent(), $request->conversationId()),
+            $request->messageId(),
+            $request->feedback(),
+        );
     }
 }

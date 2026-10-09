@@ -4,7 +4,7 @@ namespace Domain\Membership\Team\Models;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\CapabilityEnum;
+use Domain\Billing\Enums\Capability;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +16,11 @@ use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
 /**
+ * A team inside a workspace: a group of agents plus the teammates who work on
+ * them. The owner (`user_id`) holds every permission without a pivot row;
+ * everyone else joins through `team_user` with exactly one {@see Role}. Billing
+ * is keyed to the owner, so plan checks resolve through {@see self::$owner}.
+ *
  * @property int $id
  * @property string $external_id
  * @property int $user_id
@@ -64,9 +69,19 @@ class Team extends Model
      * Whether this team's plan includes a capability. Billing is workspace-
      * owner-scoped, so this resolves through the team owner's plan.
      */
-    public function hasCapability(CapabilityEnum $capability): bool
+    public function hasCapability(Capability $capability): bool
     {
         return $this->owner?->hasCapability($capability) ?? false;
+    }
+
+    /**
+     * Teammates can be invited (or invitations resent) only while the owner
+     * has an active subscription — an invitation that can never be accepted
+     * is pointless.
+     */
+    public function canInviteMembers(): bool
+    {
+        return $this->owner->hasActiveSubscription();
     }
 
     /**
@@ -92,7 +107,7 @@ class Team extends Model
      */
     public function invitableRoles(): HasMany
     {
-        return $this->roles()->where('code', '!=', 'owner');
+        return $this->roles()->where('code', '!=', Role::OWNER_CODE);
     }
 
     /**
@@ -113,6 +128,9 @@ class Team extends Model
         return $this->hasMany(Invitation::class);
     }
 
+    /**
+     * Whether the owner or any member already uses this email address.
+     */
     public function hasUserWithEmail(string $email): bool
     {
         return $this->owner->email === $email

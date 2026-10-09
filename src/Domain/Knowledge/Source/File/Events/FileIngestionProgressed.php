@@ -10,6 +10,12 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * Pushes a file's ingestion progress (0-100) to the agent's Files page. Per-
+ * chunk events can stay below 100 (duplicate or blank pages create no chunk),
+ * so the batch's completion step always sends a final one after the status
+ * flips to ingested.
+ */
 class FileIngestionProgressed implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithBroadcasting, InteractsWithSockets, SerializesModels;

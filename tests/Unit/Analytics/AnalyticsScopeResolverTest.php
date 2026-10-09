@@ -26,7 +26,7 @@ it('covers the whole account by default, over the current cycle', function (): v
 
     expect($scope->agentId)->toBeNull()
         ->and($scope->agentIds)->toEqualCanonicalizing([$this->alpha->id, $this->beta->id])
-        ->and($scope->period->key)->toBe('current_cycle');
+        ->and($scope->period->named)->toBe(AnalyticsPeriod::CurrentCycle);
 });
 
 it('narrows to one of the workspace\'s agents', function (): void {
@@ -37,7 +37,7 @@ it('narrows to one of the workspace\'s agents', function (): void {
 
     expect($scope->agentId)->toBe($this->beta->id)
         ->and($scope->agentIds)->toBe([$this->beta->id])
-        ->and($scope->period->key)->toBe('last_7_days')
+        ->and($scope->period->named)->toBe(AnalyticsPeriod::Last7Days)
         ->and($scope->period->start->toDateString())->toBe('2026-06-09');
 });
 
@@ -59,7 +59,8 @@ it('lets explicit dates win over the named period', function (): void {
         new AnalyticsFilterData(period: AnalyticsPeriod::AllTime, startDate: '2026-03-01', endDate: '2026-03-31'),
     );
 
-    expect($scope->period->key)->toBe('custom')
+    expect($scope->period->named)->toBeNull()
+        ->and($scope->period->key())->toBe('custom')
         ->and($scope->period->start->toDateTimeString())->toBe('2026-03-01 00:00:00')
         ->and($scope->period->end->toDateTimeString())->toBe('2026-03-31 23:59:59');
 });

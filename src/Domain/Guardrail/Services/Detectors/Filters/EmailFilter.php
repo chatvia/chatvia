@@ -2,6 +2,9 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+/**
+ * Masks email addresses ([EMAIL_n]).
+ */
 final class EmailFilter extends PiiFilter
 {
     protected function pattern(): string

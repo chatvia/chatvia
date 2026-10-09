@@ -3,7 +3,6 @@
 namespace Domain\Form\Actions;
 
 use Domain\Form\Models\FormDefinition;
-use Domain\Form\Models\FormSubmission;
 
 /**
  * Build a CSV of a form's submissions — one column per defined field plus a
@@ -29,7 +28,7 @@ class ExportSubmissionsCsvAction
         }
 
         $query = $form->submissions()
-            ->where('status', FormSubmission::STATUS_SUBMITTED)
+            ->submitted()
             ->latest('id');
         if ($onlyExternalIds !== []) {
             $query->whereIn('external_id', $onlyExternalIds);

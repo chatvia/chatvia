@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Memory;
 
 use Domain\Conversation\Data\Attachments\AttachmentData;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -10,7 +11,7 @@ use Domain\Form\Models\FormSubmission;
 
 /**
  * Hydrates an in-memory message list (as returned by
- * {@see MessageManager::getMessagesForConversation()}) with each message's
+ * {@see ChatMemory::getMessagesForConversation()}) with each message's
  * uploaded attachments, so the chat UI can render file chips under the bubble
  * that owns them.
  *
@@ -95,7 +96,11 @@ class MessageAttachmentHydrator
         $statuses = FormSubmission::query()
             ->select(['external_id', 'status'])
             ->whereIn('external_id', array_unique($instanceIds))
-            ->pluck('status', 'external_id')
+            ->get()
+            ->mapWithKeys(static fn (FormSubmission $submission): array => [
+                // The artifact is sent as JSON, so it carries the plain value.
+                $submission->external_id => $submission->status->value,
+            ])
             ->all();
 
         if ($statuses === []) {
@@ -166,7 +171,7 @@ class MessageAttachmentHydrator
         $timestamp = null;
 
         foreach ($messages as $message) {
-            if (($message['role'] ?? null) === 'user' && isset($message['id'])) {
+            if (($message['role'] ?? null) === MessageRole::User->value && isset($message['id'])) {
                 $externalId = $message['id'];
                 // MessageData::$timestamp is unix seconds; coerce defensively
                 // in case older cached rows are missing it.

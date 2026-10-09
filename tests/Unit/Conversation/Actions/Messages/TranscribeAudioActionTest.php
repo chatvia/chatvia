@@ -35,17 +35,21 @@ it('transcribes the compressed audio with the configured transcriber and removes
         }
     };
 
+    $recording = UploadedFile::fake()->create('clip.webm', 5, 'audio/webm');
+
     $text = (new TranscribeAudioAction(taaCompressor(), $transcriber))
-        ->execute(UploadedFile::fake()->create('clip.webm', 5, 'audio/webm'));
+        ->execute($recording->getRealPath(), 'webm');
 
     expect($text)->toBe('hello there')
         ->and($transcriber->fileExisted)->toBeTrue()
-        ->and(file_exists((string) $transcriber->path))->toBeFalse();
+        ->and(file_exists((string) $transcriber->path))->toBeFalse()
+        ->and(file_exists($recording->getRealPath()))->toBeTrue();
 });
 
 it('fails with the "not configured" error when no transcriber is set up', function (): void {
     $action = new TranscribeAudioAction(taaCompressor(), new NullTranscriber);
+    $recording = UploadedFile::fake()->create('clip.webm', 5, 'audio/webm');
 
-    expect(fn (): string => $action->execute(UploadedFile::fake()->create('clip.webm', 5, 'audio/webm')))
+    expect(fn (): string => $action->execute($recording->getRealPath(), 'webm'))
         ->toThrow(TranscriptionNotConfiguredException::class);
 });

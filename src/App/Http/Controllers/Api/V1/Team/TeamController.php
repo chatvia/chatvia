@@ -50,7 +50,7 @@ class TeamController
 
         if (! $owner->canCreateTeam()) {
             throw ValidationException::withMessages([
-                'name' => 'You have reached your team limit.',
+                'name' => __('You have reached your team limit.'),
             ]);
         }
 

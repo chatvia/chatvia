@@ -8,6 +8,11 @@ use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+/**
+ * The dashboard playground: try the agent on every surface. A protected
+ * agent gets a short-lived sign-in token so the preview can chat as the
+ * signed-in user.
+ */
 class AgentPlaygroundController
 {
     public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService)

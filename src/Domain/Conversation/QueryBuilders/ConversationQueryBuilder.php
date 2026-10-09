@@ -2,19 +2,39 @@
 
 namespace Domain\Conversation\QueryBuilders;
 
+use Domain\Conversation\Enums\ConfidenceBand;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
+ * Query scopes for conversations: the chat-log filters and the lookups that
+ * keep a conversation inside the session it belongs to.
+ *
  * @template TModel of Conversation
  *
  * @extends Builder<TModel>
  */
 class ConversationQueryBuilder extends Builder
 {
+    /** A visitor counts as online while their conversation was active this recently. */
+    public const int ONLINE_WINDOW_MINUTES = 3;
+
     public function forAgent(int $agentId): self
     {
         return $this->where('agent_id', $agentId);
+    }
+
+    /**
+     * Only conversations of one visitor session of one agent. Lookups by a
+     * client-supplied conversation id go through this, so an id from another
+     * session or agent never matches.
+     */
+    public function inSession(string $sessionExternalId, int $agentId): self
+    {
+        return $this->whereHas('session', static function (Builder $query) use ($sessionExternalId, $agentId): void {
+            $query->where('external_id', $sessionExternalId)->where('agent_id', $agentId);
+        });
     }
 
     public function withSessionAndTopic(): self
@@ -59,12 +79,12 @@ class ConversationQueryBuilder extends Builder
     {
         return $this->when($confidenceScore, function ($query) use ($confidenceScore): void {
             $query->whereHas('messages', function ($q) use ($confidenceScore): void {
-                $q->where('role', 'assistant');
-                match ($confidenceScore) {
-                    'high' => $q->where('confidence_score', '>=', 0.8),
-                    'medium' => $q->whereBetween('confidence_score', [0.65, 0.8]),
-                    'low' => $q->where('confidence_score', '<', 0.65),
-                    default => null,
+                $q->where('role', MessageRole::Assistant);
+                match (ConfidenceBand::tryFrom($confidenceScore)) {
+                    ConfidenceBand::High => $q->where('confidence_score', '>=', ConfidenceBand::HIGH_FLOOR),
+                    ConfidenceBand::Medium => $q->whereBetween('confidence_score', [ConfidenceBand::MEDIUM_FLOOR, ConfidenceBand::HIGH_FLOOR]),
+                    ConfidenceBand::Low => $q->where('confidence_score', '<', ConfidenceBand::MEDIUM_FLOOR),
+                    null => null,
                 };
             });
         });
@@ -74,7 +94,7 @@ class ConversationQueryBuilder extends Builder
     {
         return $this->when($feedback, function ($query) use ($feedback): void {
             $query->whereHas('messages', function ($q) use ($feedback): void {
-                $q->where('role', 'assistant')
+                $q->where('role', MessageRole::Assistant)
                     ->whereNotNull('feedback')
                     ->where('feedback', $feedback);
             });
@@ -92,8 +112,7 @@ class ConversationQueryBuilder extends Builder
     public function filterByOnlineStatus(?bool $onlineOnly): self
     {
         return $this->when($onlineOnly, function ($query): void {
-            // Consider users "online" if active within the last 3 minutes
-            $query->where('last_activity_at', '>=', now()->subMinutes(3));
+            $query->where('last_activity_at', '>=', now()->subMinutes(self::ONLINE_WINDOW_MINUTES));
         });
     }
 

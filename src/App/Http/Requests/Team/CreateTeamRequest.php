@@ -6,6 +6,10 @@ use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\CreateTeamData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Creating a team from the Teams page. The team-count quota is checked in the
+ * controller so it can answer with a field error.
+ */
 class CreateTeamRequest extends FormRequest
 {
     public function authorize(): bool

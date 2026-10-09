@@ -3,86 +3,52 @@
 namespace Domain\Knowledge\Ingestion\Actions\Website;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
-use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
+/**
+ * Trains a website: runs one {@see WebsiteUrlTrainJob} per pending URL as a
+ * Bus batch. One failed page must not cancel the others (`allowFailures`); the
+ * batch's `finally` step runs {@see CompleteWebsiteIngestionAction}.
+ */
 class StartWebsiteIngestionAction
 {
     public function execute(SourceWebsite $website, Agent $agent, ?string $internalJobId = null): void
     {
-        $website->update(['status' => SourceStatus::Processing->value]);
+        $website->update(['status' => SourceStatus::Processing]);
 
-        $website->refresh();
-
-        WebsiteCrawlStarted::dispatch($website, $agent);
+        WebsiteCrawlStarted::dispatch($website->refresh(), $agent->external_id);
 
         $untrainedUrls = $website->untrainedUrls;
 
-        $jobs = collect($untrainedUrls)->map(function (AgentWebsiteUrl $url) use ($agent) {
-            return new WebsiteUrlTrainJob($url, $agent);
-        });
+        $jobs = $untrainedUrls->map(fn (AgentWebsiteUrl $url): WebsiteUrlTrainJob => new WebsiteUrlTrainJob($url, $agent));
 
+        // The callbacks are serialized with the batch, so they capture ids
+        // only and load the models again when they run.
         $websiteId = $website->id;
         $agentId = $agent->id;
 
-        $batch = Bus::batch($jobs)
+        $batch = Bus::batch($jobs->all())
             ->name("Website Ingestion: agent={$agentId} website={$websiteId}")
-            ->before(function (Batch $batch) use ($websiteId): void {
+            ->before(static function (Batch $batch) use ($websiteId): void {
                 SourceWebsite::query()
                     ->whereKey($websiteId)
                     ->update(['internal_chunking_batch_id' => $batch->id]);
             })
-            ->allowFailures() // one failed URL must not cancel the batch
-            ->finally(function (Batch $batch) use ($websiteId, $agentId): void {
+            ->allowFailures()
+            ->finally(static function () use ($websiteId, $agentId): void {
                 $agent = Agent::find($agentId);
                 $website = SourceWebsite::find($websiteId);
 
-                if (! $agent || ! $website) {
-                    return;
+                // The website or the agent may have been deleted meanwhile.
+                if ($agent !== null && $website !== null) {
+                    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
                 }
-
-                DB::transaction(function () use ($website): void {
-                    $locked = SourceWebsite::query()
-                        ->whereKey($website->id)
-                        ->lockForUpdate()
-                        ->first();
-
-                    if (! $locked) {
-                        return;
-                    }
-
-                    $locked->update(['status' => SourceStatus::Completed->value]);
-                    $locked->decrement('expected_chunks', $locked->urls()->count());
-                });
-
-                $website->refresh();
-
-                // Save entire chunks into file
-                $text = $website->chunks()
-                    ->select('chunk')
-                    ->pluck('chunk')
-                    ->implode("\n\n");
-
-                $filePath = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/websites/'.$website->id.'/'.Str::uuid()->toString().'.txt';
-
-                Storage::put($filePath, $text);
-
-                $website->update(['filepath' => $filePath]);
-
-                SummaryIngestionJob::dispatchIf(config('chatvia.ai.chunker.enhance') === true, $website);
-
-                WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
-                WebsiteCrawlStarted::dispatch($website, $agent);
             })
             ->dispatch();
 

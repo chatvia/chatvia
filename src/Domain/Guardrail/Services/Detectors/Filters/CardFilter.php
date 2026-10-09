@@ -2,6 +2,10 @@
 
 namespace Domain\Guardrail\Services\Detectors\Filters;
 
+/**
+ * Masks payment card numbers ([CARD_n]); only digit runs that pass the Luhn
+ * check count, so ordinary long numbers stay readable.
+ */
 final class CardFilter extends PiiFilter
 {
     protected function pattern(): string

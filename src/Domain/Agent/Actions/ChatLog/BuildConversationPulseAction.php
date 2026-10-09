@@ -9,6 +9,7 @@ use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseResourceData;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseSnapshotData;
 use Domain\Agent\Data\Resources\ChatLog\Pulse\ChatLogPulseSummaryData;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Illuminate\Support\Collection;
@@ -29,7 +30,7 @@ class BuildConversationPulseAction
             ->orderBy('created_at')
             ->get(['id', 'role', 'content', 'tone', 'sentiment', 'created_at']);
 
-        $userMessages = $allMessages->where('role', 'user')->values();
+        $userMessages = $allMessages->where('role', MessageRole::User)->values();
 
         $points = $userMessages
             ->map(fn (Message $message, int $index): ChatLogPulseMessageData => $this->point($message, $index));

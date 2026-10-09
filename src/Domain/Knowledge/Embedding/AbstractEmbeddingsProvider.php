@@ -5,6 +5,11 @@ namespace Domain\Knowledge\Embedding;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * Base for the embedding providers: the cached query-embedding entry point and
+ * the shared configuration helpers. Documents and queries are embedded
+ * separately because some models expect a different input for each.
+ */
 abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
 {
     /**

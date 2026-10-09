@@ -3,6 +3,8 @@
 namespace Domain\Security\Models;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Security\Enums\GeoMode;
+use Domain\Security\Enums\IpAllowlistMode;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,9 +25,9 @@ use Illuminate\Support\Facades\Cache;
  * @property int|null $retention_audit_days
  * @property int|null $retention_analytics_days
  * @property int|null $anonymize_after_days
- * @property string $ip_allowlist_mode
+ * @property IpAllowlistMode $ip_allowlist_mode
  * @property array<int, string>|null $ip_allowlist
- * @property string $geo_mode
+ * @property GeoMode $geo_mode
  * @property array<int, string>|null $geo_countries
  * @property string|null $webhook_url
  * @property string|null $webhook_secret
@@ -68,7 +70,9 @@ class WorkspaceSecurityPolicy extends Model
             'retention_audit_days' => 'integer',
             'retention_analytics_days' => 'integer',
             'anonymize_after_days' => 'integer',
+            'ip_allowlist_mode' => IpAllowlistMode::class,
             'ip_allowlist' => 'array',
+            'geo_mode' => GeoMode::class,
             'geo_countries' => 'array',
             'webhook_secret' => 'encrypted',
             'webhook_enabled' => 'boolean',

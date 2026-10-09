@@ -3,16 +3,17 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Policies\AgentPolicy;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Gate;
 
 /**
- * AgentPolicy matrix. The view/update/delete abilities
- * all delegate to `User::canAccessAgent($agent)`, so the matrix below maps
- * to the *real* contract: who can touch an agent.
+ * AgentPolicy matrix. The view/update/delete abilities follow the dashboard
+ * access rule (the same as the `access-agent` Gate); create needs the target
+ * team's owner.
  *
- *  - Admin             → always allowed
+ *  - Admin             → every agent
  *  - Workspace owner   → only their own agents
- *  - Chatter           → only agents on the accessible-agents pivot
+ *  - Chatter           → never (chatters don't manage agents)
  *  - Unrelated user    → denied
  */
 beforeEach(function (): void {
@@ -24,14 +25,22 @@ it('viewAny is granted only to admins', function (): void {
         ->and($this->policy->viewAny(User::factory()->workspace()->create()))->toBeFalse();
 });
 
-it('create is granted to admins and workspace owners but not to chatters', function (): void {
+it('create is granted only to the owner of the target team', function (): void {
     $workspace = User::factory()->workspace()->create();
+    $team = app(TeamService::class)->createDefaultTeam($workspace);
+    $otherOwner = User::factory()->workspace()->create();
     $admin = User::factory()->admin()->create();
-    $chatter = User::factory()->chatter($workspace)->create();
 
-    expect($this->policy->create($admin))->toBeTrue()
-        ->and($this->policy->create($workspace))->toBeTrue()
-        ->and($this->policy->create($chatter))->toBeFalse();
+    expect($this->policy->create($workspace, $team)->allowed())->toBeTrue()
+        ->and($this->policy->create($otherOwner, $team)->allowed())->toBeFalse()
+        ->and($this->policy->create($admin, $team)->allowed())->toBeFalse();
+});
+
+it('create is a not-found when no team is selected', function (): void {
+    $response = $this->policy->create(User::factory()->workspace()->create(), null);
+
+    expect($response->denied())->toBeTrue()
+        ->and($response->status())->toBe(404);
 });
 
 it('view/update/delete grant the workspace owner access to their own agents', function (): void {
@@ -52,23 +61,14 @@ it('view/update/delete deny an unrelated workspace owner', function (): void {
         ->and($this->policy->delete($intruder, $agent))->toBeFalse();
 });
 
-it('regression guard: AgentPolicy and the access-agent Gate disagree about admin escape hatch', function (): void {
-    // NOTE: this test documents a real divergence in the codebase. The
-    // `Gate::define('access-agent', ...)` in AppServiceProvider has an
-    // `if ($user->isAdmin()) return true` early return — admins get access
-    // to ANY agent. AgentPolicy::view delegates to User::canAccessAgent()
-    // which has NO admin special-case; without a currentTeam, an admin is
-    // denied. Two authz paths, two answers. Worth flagging for the next
-    // sweep — either align canAccessAgent to grant admins, or document
-    // that the Gate is the canonical entry point for admin access.
+it('agrees with the access-agent Gate, including for staff', function (): void {
     $agent = Agent::factory()->create();
     $admin = User::factory()->admin()->create();
+    $intruder = Agent::factory()->create()->user;
 
-    // The policy denies, demonstrating the divergence:
-    expect($this->policy->view($admin, $agent))->toBeFalse();
-
-    // The Gate, however, allows:
-    expect(Gate::forUser($admin)->allows('access-agent', $agent))->toBeTrue();
+    expect($this->policy->view($admin, $agent))->toBe(Gate::forUser($admin)->allows('access-agent', $agent))
+        ->and($this->policy->view($admin, $agent))->toBeTrue()
+        ->and($this->policy->view($intruder, $agent))->toBe(Gate::forUser($intruder)->allows('access-agent', $agent));
 });
 
 it('view denies a chatter that has not been granted access to the agent on the pivot', function (): void {

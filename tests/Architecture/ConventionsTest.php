@@ -176,26 +176,6 @@ it('Domain models do not carry HTTP-leakage Request names', function (): void {
  * everything else by globbing the controllers tree.
  */
 const INLINE_VALIDATE_ALLOWLIST = [
-    'src/App/Http/Controllers/Agent/Analytics/Overview/AgentAnalyticsDataController.php',
-    'src/App/Http/Controllers/Agent/Analytics/Topic/DismissSuggestedTopicController.php',
-    'src/App/Http/Controllers/Agent/Analytics/Topic/PromoteSuggestedTopicController.php',
-    'src/App/Http/Controllers/Agent/ChatLog/AgentChatLogReviseAnswerController.php',
-    'src/App/Http/Controllers/Agent/Lead/AgentLeadSettingsController.php',
-    'src/App/Http/Controllers/Agent/Security/AgentSecurityUpdateController.php',
-    'src/App/Http/Controllers/Agent/Settings/AgentSettingsController.php',
-    'src/App/Http/Controllers/Agent/Source/File/Manage/AgentSourceFileController.php',
-    'src/App/Http/Controllers/Agent/Source/File/Manage/AgentTrainedFileController.php',
-    'src/App/Http/Controllers/Agent/Source/File/Upload/AgentKnowledgeFilesAnalyzeController.php',
-    'src/App/Http/Controllers/Agent/Source/Web/AgentTrainedWebsiteController.php',
-    'src/App/Http/Controllers/Agent/Source/Web/BulkDestroyAgentWebsiteLinksController.php',
-    'src/App/Http/Controllers/Agent/Source/Web/TrainAgentWebsiteController.php',
-    'src/App/Http/Controllers/Agent/Source/Youtube/AgentYoutubeController.php',
-    'src/App/Http/Controllers/Agent/Starters/AgentStarterController.php',
-    'src/App/Http/Controllers/Api/V1/Team/RoleMemberController.php',
-    'src/App/Http/Controllers/Auth/ForgotPasswordController.php',
-    'src/App/Http/Controllers/Chat/Messages/MessageDeleteController.php',
-    'src/App/Http/Controllers/Chat/Messages/MessageFeedbackController.php',
-    'src/App/Http/Controllers/Settings/Connector/Catalog/ConnectController.php',
 ];
 
 it('controllers use FormRequest + toData() instead of inline $request->validate()', function (): void {
@@ -234,15 +214,8 @@ it('controllers use FormRequest + toData() instead of inline $request->validate(
  * through WidgetVerification so the cross-tenant defence is grep-able in one place.
  */
 const EXTERNAL_ID_LOOKUP_ALLOWLIST = [
-    // ConversationDeleteController + ConversationUpdate now scope the lookup to
-    // the caller's session + agent via whereHas('session'), so they no longer
-    // trip the bare-inline-lookup detector and are removed from this allowlist.
-    'src/App/Http/Controllers/Chat/Conversations/GenerateConversationTitleController.php',
-    'src/App/Http/Controllers/Widget/Activity/HeartbeatController.php',
-    'src/Domain/Conversation/Services/ChatStreamService.php',
-    'src/Domain/Conversation/Services/Memory/ConversationManager.php',
-    // WidgetVerification *is* the canonical lookup site — exempt.
-    'src/Domain/Widget/Services/WidgetVerification.php',
+    // Empty: every lookup by external id is scoped to the caller's session or
+    // agent (see ConversationQueryBuilder::inSession and WidgetVerification).
 ];
 
 it('Conversation/Session external_id lookups go through WidgetVerification', function (): void {

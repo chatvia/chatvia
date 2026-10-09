@@ -3,8 +3,12 @@
 namespace App\Http\Requests\Analytics;
 
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
+use Domain\Analytics\Data\Chat\AnalyticsChatTurnData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * One "Ask your data" question plus the earlier turns the browser replays.
+ */
 class AnalyticsChatStreamRequest extends FormRequest
 {
     public function authorize(): bool
@@ -32,10 +36,10 @@ class AnalyticsChatStreamRequest extends FormRequest
     {
         return new AnalyticsChatRequestData(
             message: (string) $this->validated('message'),
-            history: array_map(
-                static fn (array $turn): array => ['role' => $turn['role'], 'content' => $turn['content']],
+            history: array_values(array_map(
+                static fn (array $turn): AnalyticsChatTurnData => new AnalyticsChatTurnData($turn['role'], $turn['content']),
                 $this->validated('history') ?? [],
-            ),
+            )),
             userMessageId: $this->validated('user_message_id'),
         );
     }

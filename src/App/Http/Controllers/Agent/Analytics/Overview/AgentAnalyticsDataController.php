@@ -2,27 +2,18 @@
 
 namespace App\Http\Controllers\Agent\Analytics\Overview;
 
+use App\Http\Requests\Agent\Analytics\AnalyticsDateRangeRequest;
+use Domain\Agent\Actions\Analytics\BuildAgentStatsAction;
 use Domain\Agent\Data\Resources\Stats\StatsResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Data\DateRangeData;
-use Illuminate\Http\Request;
 
+/**
+ * Headline numbers for the agent analytics overview over a date range.
+ */
 class AgentAnalyticsDataController
 {
-    public function __invoke(Request $request, Agent $agent): StatsResourceData
+    public function __invoke(AnalyticsDateRangeRequest $request, Agent $agent, BuildAgentStatsAction $build): StatsResourceData
     {
-        abort_if(
-            boolean: $request->user()->cannot('view', $agent),
-            code: 404,
-        );
-
-        $request->validate([
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-        ]);
-
-        $range = DateRangeData::fromRequestOrLastDays($request);
-
-        return StatsResourceData::fromAgent($agent, $range->start, $range->end);
+        return $build->execute($agent, $request->toData());
     }
 }

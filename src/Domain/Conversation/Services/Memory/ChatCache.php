@@ -6,9 +6,17 @@ use App\Identity\Chatter\Actions\DeleteChatterAction;
 use Carbon\CarbonInterface;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Observers\AgentObserver;
+use Domain\Conversation\Actions\Sessions\StartChatSessionAction;
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * The tagged cache store behind the live chat memory. Every entry carries the
+ * workspace ⊃ agent ⊃ session tags (plus the conversation tag for
+ * conversation-scoped entries), so a workspace, an agent, a session or one
+ * conversation can each be dropped with a single flush. Values are encrypted
+ * at rest ({@see CacheCipher}).
+ */
 class ChatCache
 {
     public function __construct(
@@ -17,12 +25,10 @@ class ChatCache
     ) {}
 
     /**
-     * Session-wide tagged cache. Use this for entries that span the whole
-     * session (the conversation list, session data). Conversation-scoped
-     * writes go through {@see self::put()} with the $conversationId arg so
-     * they also pick up a per-conversation tag.
+     * The session tag on its own: every entry of the session carries it, so
+     * flushing it drops the whole session's memory at once.
      */
-    public function getTaggedCache(): TaggedCache
+    private function getTaggedCache(): TaggedCache
     {
         return Cache::driver('chat')->tags(self::sessionTag($this->sessionId));
     }
@@ -40,6 +46,17 @@ class ChatCache
             value: CacheCipher::encrypt($value),
             ttl: $this->getMessageRetention()
         );
+    }
+
+    /**
+     * Write a session-wide entry with its own lifetime instead of the
+     * per-plan retention: forever when `$until` is null.
+     */
+    public function putUntil(string $key, mixed $value, ?CarbonInterface $until): void
+    {
+        $until === null
+            ? $this->tagsFor(null)->forever($key, CacheCipher::encrypt($value))
+            : $this->tagsFor(null)->put($key, CacheCipher::encrypt($value), $until);
     }
 
     public function get(string $key, mixed $default = [], ?string $conversationId = null): mixed
@@ -83,9 +100,8 @@ class ChatCache
 
     /**
      * Per-workspace tag. Every chat-memory entry carries it (see
-     * {@see self::tagsFor()}, {@see self::rememberOwner()} and
-     * {@see TurnState::getChatCache()}), so account teardown can drop an
-     * entire workspace's Redis chat memory with a single
+     * {@see self::tagsFor()} and {@see self::rememberOwner()}), so account
+     * teardown can drop an entire workspace's Redis chat memory with a single
      * `tags(workspaceTag($id))->flush()` instead of walking every session and
      * conversation — including the `forever` ownership markers and member
      * session entries that otherwise never expire.
@@ -132,12 +148,10 @@ class ChatCache
 
     /**
      * The ordered tag prefix every session-scoped entry shares —
-     * workspace ⊃ agent ⊃ session, broad to narrow. Single source of truth so
-     * the two builders that touch the session-data key — {@see self::tagsFor()}
-     * (which may append a conversation tag) and {@see TurnState::getChatCache()}
-     * — cannot drift: tagged-cache reads hash the full ordered tag set, so any
-     * divergence in tags or order yields a different namespace and the read
-     * silently misses.
+     * workspace ⊃ agent ⊃ session, broad to narrow. Tagged-cache reads hash
+     * the full ordered tag set, so every reader and writer must build it here
+     * ({@see self::tagsFor()} does): any difference in tags or order gives a
+     * different namespace and the read silently misses.
      *
      * @return list<string>
      */
@@ -166,8 +180,8 @@ class ChatCache
      * the conversation is deleted) and the workspace tag (so account teardown
      * sweeps it too — see {@see self::workspaceTag()}). Stored `forever`
      * because chatters on protected agents keep their conversations until
-     * explicitly deleted — matching how {@see TurnState::initializeSession()}
-     * stores the session itself, which is exactly why the workspace tag
+     * explicitly deleted — matching how {@see StartChatSessionAction}
+     * stores a signed-in chatter's session, which is exactly why the workspace tag
      * matters: without it these markers never expire and outlive the deleted
      * workspace. `$workspaceExternalId` is the agent owner's external id
      * ({@see Agent::workspaceExternalId()}).
@@ -204,16 +218,6 @@ class ChatCache
         return "conversations:{$conversationId}:sources";
     }
 
-    public function getAgent(): Agent
-    {
-        return $this->agent;
-    }
-
-    public function getSessionId(): string
-    {
-        return $this->sessionId;
-    }
-
     /**
      * Tag combo for a write. Conversation-scoped writes carry both the
      * session tag (so a session-wide flush still wipes them) and the
@@ -225,10 +229,7 @@ class ChatCache
         // single-agent teardown each flush all matching chat memory in one
         // call; the optional conversation tag keeps the per-conversation flush
         // working. ORDER MATTERS: tagged-cache reads hash the full ordered tag
-        // set, so the prefix is centralized in {@see self::sessionTags()} and
-        // MUST match every other reader of the session-data key — in particular
-        // {@see TurnState::getChatCache()} — or the namespaces diverge and
-        // reads silently miss.
+        // set, so the prefix is centralized in {@see self::sessionTags()}.
         $tags = self::sessionTags($this->agent->workspaceExternalId(), $this->agent->external_id, $this->sessionId);
         if ($conversationId !== null) {
             $tags[] = self::conversationTag($conversationId);

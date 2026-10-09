@@ -2,107 +2,108 @@
 
 namespace Domain\Conversation\Actions\Conversations;
 
+use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
-use Domain\Conversation\Data\Messages\ChatInputPayload;
+use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Conversation\Services\Memory\TurnState;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Llm\Data\Query\RewrittenQueryData;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Str;
 
+/**
+ * Opens a hosted-chat conversation from the visitor's first message: starts
+ * the conversation, records the message (PII masked), and claims the files
+ * uploaded before the conversation existed. The answer streams afterwards
+ * through the normal turn, which reuses this recorded message.
+ */
 class CreateConversationAction
 {
+    /** Model label stored when the agent has no model configured. */
+    private const string UNKNOWN_MODEL = 'unknown';
+
     public function __construct(
-        private readonly ChatMemory $memory,
-        private readonly TurnState $session,
+        private readonly StartConversationAction $startConversation,
+        private readonly AddMessageToConversationAction $addMessage,
         private readonly QueryRewriter $queryRewriter,
         private readonly TokenUsageContext $usage,
         private readonly GuardrailService $guardrails,
     ) {}
 
+    /**
+     * @return string the new conversation's external id
+     */
     public function execute(CreateConversationData $data): string
     {
-        // First-turn rewrite consumes tokens — attribute them to the workspace,
-        // mirroring the streaming path (ChatStreamService) which wraps the same
-        // rewrite + search in a scope.
-        ['lang' => $lang, 'query' => $query] = $this->usage->track(
-            $data->agent->user_id,
-            fn (): array => $this->queryRewriter->rewrite($data->message),
+        $agent = $data->scope->agent;
+
+        // The first-turn rewrite uses tokens: attribute them to the workspace,
+        // as the streaming turn does for its own rewrite and search.
+        $rewritten = $this->usage->track(
+            $agent->user_id,
+            fn (): RewrittenQueryData => $this->queryRewriter->rewrite($data->message),
             'conversation-create',
         );
 
-        $sessionId = $this->session->firstOrCreateSession($data->agent);
+        $conversationId = $this->startConversation->execute($data->scope, ConversationSource::HostedChat);
+        $scope = $data->scope->forConversation($conversationId);
 
-        $conversationId = $this->memory
-            ->withContext($data->agent, $sessionId)
-            ->createConversation(title: 'New Chat', source: ConversationSource::HostedChat);
+        // PII is masked before anything is stored, so the record and the
+        // replayed history never hold a raw identifier. The streaming turn
+        // masks the same text the same way, so its match on this first
+        // message still lines up. Blocking is left to the streaming turn.
+        $this->addMessage->execute($scope, new UserTurnData(
+            external_session_id: $data->scope->sessionId,
+            external_conversation_id: $conversationId,
+            external_message_id: Str::uuid()->toString(),
+            model: $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
+            message: $this->guardrails->redactPii($agent, $data->message),
+            sent_at: now(),
+            message_for_llm: $this->guardrails->redactPii($agent, $rewritten->query),
+            user_id: $data->chatterUserId,
+            language: $rewritten->language,
+            ip_address: $data->ipAddress,
+            user_agent: $data->userAgent,
+            referrer_url: $data->referrerUrl,
+            page_url: $data->pageUrl,
+            locale: $data->locale,
+        ));
 
-        // Mask PII before it is persisted so the stored message and the replayed
-        // history never hold a raw identifier — the streaming path masks the same
-        // text identically, so the first-turn reuse-match in ChatService still
-        // lines up. No classifier call here; blocking is handled in streaming.
-        $storedMessage = $this->guardrails->redactPii($data->agent, $data->message);
-
-        $payload = ChatInputPayload::from([
-            'external_session_id' => $sessionId,
-            'external_conversation_id' => $conversationId,
-            'external_message_id' => Str::uuid()->toString(),
-            'model' => $data->agent->llm?->external_name ?? 'unknown',
-            'message' => $storedMessage,
-            'sent_at' => now(),
-            'message_for_llm' => $this->guardrails->redactPii($data->agent, $query),
-            'user_id' => $data->chatterUserId,
-            'language' => $lang,
-            'ip_address' => $data->ipAddress,
-            'user_agent' => $data->userAgent,
-            'referrer_url' => $data->referrerUrl,
-            'page_url' => $data->pageUrl,
-            'locale' => $data->locale,
-        ]);
-
-        $this->memory->setConversationId($conversationId)
-            ->addMessageViaPayload($payload);
-
-        // Bind orphan attachment rows (uploaded before the conversation
-        // existed, on the Home.vue path) to this new conversation. The
-        // streaming pipeline will pick up any PDFs as `pdfAttachments` and
-        // route the next turn through PdfSource.
-        $this->claimAttachments($conversationId, $data->attachmentIds);
+        // Files uploaded on the home screen, before the conversation existed,
+        // now belong to it; PDFs among them route the next turn to the
+        // document LLM.
+        $this->claimAttachments($scope->sessionId, $conversationId, $data->attachmentIds, $agent->id);
 
         return $conversationId;
     }
 
     /**
-     * @param  array<int, string>  $attachmentIds  External UUIDs of orphan rows.
+     * @param  array<int, string>  $attachmentIds  external ids of orphan rows
      */
-    private function claimAttachments(string $conversationExternalId, array $attachmentIds): void
+    private function claimAttachments(string $sessionId, string $conversationId, array $attachmentIds, int $agentId): void
     {
         if ($attachmentIds === []) {
             return;
         }
 
         $conversation = Conversation::query()
-            ->where('external_id', $conversationExternalId)
+            ->inSession($sessionId, $agentId)
+            ->where('external_id', $conversationId)
             ->first();
 
-        if (! $conversation) {
+        if ($conversation === null) {
             return;
         }
 
-        // Cap orphan claims at the same per-chat ceiling enforced by
-        // MaxConversationAttachments — otherwise a script that bypassed
-        // the composer and uploaded N orphans pre-conversation could
-        // smuggle them all in here, defeating the upload-side limit on
-        // every subsequent turn.
+        // The same per-chat ceiling as the upload limit: a script that skipped
+        // the composer and uploaded more orphans cannot smuggle them all in.
         $max = (int) config('chatvia.agent.files.upload.max_files');
-        $attachmentIds = array_slice($attachmentIds, 0, $max);
 
         Attachment::query()
-            ->whereIn('external_id', $attachmentIds)
+            ->whereIn('external_id', array_slice($attachmentIds, 0, $max))
             ->whereNull('chat_conversation_id')
             ->update(['chat_conversation_id' => $conversation->id]);
     }

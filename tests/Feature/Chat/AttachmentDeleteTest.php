@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
+use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Services\UserCreditSystem;
@@ -183,7 +184,7 @@ it('refuses to delete on a private agent when the auth user does not own the con
     // refresh(): CreateChatterAction returns the in-memory User::create()
     // instance, which lacks DB-defaulted columns (current_team_id) that the
     // Inertia share reads under strict mode.
-    $intruder = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Intruder')->refresh();
+    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->user, $agent, 'Intruder'))->refresh();
 
     $conversation = makeConversation($agent, $owner);
     ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
@@ -205,7 +206,7 @@ it('lets the rightful owner delete on a private agent', function (): void {
     // This route carries no {conversationId}, so EnsureChatIsAccessible
     // gates it on agent membership (canAccessAgent) — the owner must be a
     // provisioned chatter of the agent, not a bare factory user.
-    $owner = app(CreateChatterAction::class)->execute($agent->user, $agent, 'Owner')->refresh();
+    $owner = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->user, $agent, 'Owner'))->refresh();
 
     $conversation = makeConversation($agent, $owner);
     ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());

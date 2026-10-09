@@ -4,6 +4,11 @@ namespace Domain\Knowledge\Source\Web\Data\Crawler;
 
 use Spatie\LaravelData\Data;
 
+/**
+ * How to discover a website's pages: the seed URL, an optional page limit, the
+ * include/exclude path globs (comma separated, matched locally) and FireCrawl's
+ * location options.
+ */
 class CrawlerData extends Data
 {
     /**

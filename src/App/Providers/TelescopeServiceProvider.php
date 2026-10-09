@@ -26,7 +26,7 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $isLocal = $this->app->environment('local');
 
         // No isRequest()/isClientRequest() outside local — never persist full prod request payloads.
-        Telescope::filter(fn (IncomingEntry $entry) => $isLocal ||
+        Telescope::filter(fn (IncomingEntry $entry): bool => $isLocal ||
                $entry->isReportableException() ||
                $entry->isFailedRequest() ||
                $entry->isFailedJob() ||

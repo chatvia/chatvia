@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
 use Rector\Config\RectorConfig;
+use Rector\TypeDeclaration\Rector\ClassMethod\StrictArrayParamDimFetchRector;
 use Rector\TypeDeclaration\Rector\StmtsAwareInterface\SafeDeclareStrictTypesRector;
 
 /*
@@ -20,7 +22,13 @@ use Rector\TypeDeclaration\Rector\StmtsAwareInterface\SafeDeclareStrictTypesRect
  *   can prove are free of scalar type coercion.
  *
  * Shipped migrations are skipped on purpose: they already ran in production
- * and must never change.
+ * and must never change. Generated caches are skipped too.
+ *
+ * Two rules are skipped in tests:
+ * - turning `fn () => $this->method()` into `$this->method(...)` changes what
+ *   `$this` is bound to when a test rebinds the closure with `->call()`;
+ * - typing a closure parameter as `array` because the body reads `$x['key']`
+ *   breaks Laravel's HTTP fakes, which pass ArrayAccess Request objects.
  */
 return RectorConfig::configure()
     ->withPaths([
@@ -43,5 +51,10 @@ return RectorConfig::configure()
     )
     ->withRules([
         SafeDeclareStrictTypesRector::class,
+    ])
+    ->withSkip([
+        __DIR__.'/bootstrap/cache',
+        ArrowFunctionDelegatingCallToFirstClassCallableRector::class => [__DIR__.'/tests'],
+        StrictArrayParamDimFetchRector::class => [__DIR__.'/tests'],
     ])
     ->withComposerBased(laravel: true);

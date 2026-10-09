@@ -51,3 +51,19 @@ it('refuses a panel session without two-factor, a deactivated admin and a non-ad
     Auth::guard('admin')->login($owner);
     expect(app(StaffToolsAccess::class)->allows())->toBeFalse();
 });
+
+it('skips two-factor on a local machine but still needs an active admin on the panel guard', function (): void {
+    $this->app['env'] = 'local';
+
+    Auth::guard('admin')->login(staffAdmin(withTwoFactor: false));
+    expect(app(StaffToolsAccess::class)->allows())->toBeTrue();
+
+    $deactivated = staffAdmin(withTwoFactor: false);
+    $deactivated->update(['deactivated_at' => now()]);
+    Auth::guard('admin')->login($deactivated);
+    expect(app(StaffToolsAccess::class)->allows())->toBeFalse();
+
+    Auth::guard('admin')->logout();
+    $this->actingAs(staffAdmin(withTwoFactor: false), 'web');
+    expect(app(StaffToolsAccess::class)->allows())->toBeFalse();
+});

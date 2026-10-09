@@ -67,7 +67,7 @@ class MistralOcr
             $tables = [];
 
             if ($page['images']) {
-                $images = collect($page['images'])->map(fn ($image) => $image['image_base64'])->toArray();
+                $images = collect($page['images'])->map(fn ($image): mixed => $image['image_base64'])->toArray();
             }
 
             if ($page['tables']) {

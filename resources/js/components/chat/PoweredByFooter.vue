@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useBrand } from '@/composables/useBrand';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 /**
  * The small "Powered by …" credit under the hosted chat. The label and link
@@ -12,6 +13,7 @@ const props = defineProps<{
     show: boolean;
 }>();
 
+const { t } = useI18n();
 const { brand } = useBrand();
 
 const visible = computed(() => props.show && brand.value.powered_by.enabled);
@@ -29,7 +31,7 @@ const visible = computed(() => props.show && brand.value.powered_by.enabled);
         >
             <!-- Decorative: the label next to it already names the product. -->
             <img src="/images/logo.svg" alt="" class="h-3.5 w-3.5 opacity-70" />
-            Powered by {{ brand.powered_by.label }}
+            {{ t('chat.powered_by', { label: brand.powered_by.label }) }}
         </component>
     </div>
 </template>

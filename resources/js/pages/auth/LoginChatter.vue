@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Chatter sign-in for a protected agent's hosted chat: password or magic
+// link, plus social sign-in. Uses the agent's colour theme so the page
+// matches the chat the chatter is trying to reach.
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';

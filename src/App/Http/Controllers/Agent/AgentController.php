@@ -34,7 +34,7 @@ class AgentController
             return Inertia::render('agents/AgentsIndex');
         }
 
-        $team = current_team();
+        $team = $request->user()?->currentOrPrimaryTeam();
 
         if (! $team) {
             return collect();

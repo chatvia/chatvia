@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Envoyer le message",
+        "stop_streaming": "Arrêter la génération"
+    },
+    "chat": {
+        "scroll_to_bottom": "Faire défiler vers le bas",
+        "copy_code": "Copier le code dans le presse-papiers",
+        "loading_chart": "Chargement du graphique…",
+        "powered_by": "Propulsé par {label}",
+        "stream_errors": {
+            "unreachable": "Impossible de joindre le serveur. Veuillez réessayer.",
+            "http_status": "Le serveur a renvoyé le statut {status}.",
+            "interrupted": "La connexion a été interrompue.",
+            "malformed": "Données invalides reçues du serveur."
+        }
+    },
+    "messages": {
+        "edit_message": "Modifier le message"
+    },
+    "sources": {
+        "file_with_page": "{file} (Page {page})",
+        "fallback_title": "Source {number}",
+        "chunk_label": "Extrait {index}"
+    },
+    "sidebar": {
+        "save_title": "Enregistrer le titre",
+        "show_password": "Afficher le mot de passe",
+        "hide_password": "Masquer le mot de passe",
+        "user_fallback": "Utilisateur"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "À l'instant"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Accès au microphone refusé. Veuillez autoriser l'accès au microphone pour enregistrer.",
+            "microphone_not_found": "Aucun microphone trouvé. Veuillez connecter un microphone et réessayer.",
+            "microphone_failed": "Impossible d'accéder au microphone",
+            "transcription_failed": "Échec de la transcription"
+        },
+        "file_uploader": {
+            "analyze_failed": "Impossible d'analyser le fichier",
+            "analyze_timed_out": "Délai d'analyse dépassé – le fichier est peut-être trop volumineux"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Actualiser les messages",
+            "delete_conversation": "Supprimer la conversation",
+            "sidebar": {
+                "refresh_conversations": "Actualiser les conversations",
+                "remove_filter": "Retirer le filtre"
+            },
+            "handoff": {
+                "send_message": "Envoyer le message",
+                "errors": {
+                    "connect_failed": "Impossible de se connecter au canal de discussion",
+                    "takeover_failed": "Impossible de prendre en charge la conversation",
+                    "return_failed": "Impossible de rendre la conversation à l'IA",
+                    "send_failed": "Impossible d'envoyer le message"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stable"
+            }
+        }
+    }
+}

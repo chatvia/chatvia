@@ -5,15 +5,19 @@
             "description": "Zobacz, jakich źródeł, funkcji i serwerów MCP ten agent faktycznie używa",
             "load_error": "Nie udało się załadować danych użycia",
             "try_again": "Spróbuj ponownie",
-            "tabs": { "knowledge": "Wiedza", "functions": "Funkcje", "mcp": "MCP" },
+            "tabs": {
+                "knowledge": "Wiedza",
+                "functions": "Funkcje",
+                "mcp": "MCP"
+            },
             "knowledge_empty": "Nie pobrano jeszcze żadnych źródeł wiedzy",
             "knowledge_empty_hint": "Pliki, strony internetowe, fragmenty tekstu i filmy YouTube pojawią się tutaj, gdy agent z nich skorzysta.",
             "functions_empty": "Brak wywołań funkcji",
             "functions_empty_hint": "Funkcje webhook pojawią się tutaj, gdy agent je wywoła.",
             "mcp_empty": "Brak wywołań narzędzi MCP",
             "mcp_empty_hint": "Poszczególne narzędzia z podłączonych serwerów MCP pojawią się tutaj, gdy agent je wywoła.",
-            "retrievals": "{count} pobranie | {count} pobrania | {count} pobrań",
-            "calls": "{count} wywołanie | {count} wywołania | {count} wywołań",
+            "retrievals": "{count} pobranie | {count} pobrań",
+            "calls": "{count} wywołanie | {count} wywołań",
             "last_used": "Ostatnio użyte {time}",
             "last_called": "Ostatnio wywołane {time}",
             "via_server": "przez {name}",
@@ -26,12 +30,12 @@
             },
             "relative": {
                 "just_now": "właśnie teraz",
-                "minutes_ago": "{count} minuta temu | {count} minuty temu | {count} minut temu",
-                "hours_ago": "{count} godzina temu | {count} godziny temu | {count} godzin temu",
-                "days_ago": "{count} dzień temu | {count} dni temu | {count} dni temu",
-                "weeks_ago": "{count} tydzień temu | {count} tygodnie temu | {count} tygodni temu",
-                "months_ago": "{count} miesiąc temu | {count} miesiące temu | {count} miesięcy temu",
-                "years_ago": "{count} rok temu | {count} lata temu | {count} lat temu"
+                "minutes_ago": "{count} minuta temu | {count} minut temu",
+                "hours_ago": "{count} godzina temu | {count} godzin temu",
+                "days_ago": "{count} dzień temu | {count} dni temu",
+                "weeks_ago": "{count} tydzień temu | {count} tygodni temu",
+                "months_ago": "{count} miesiąc temu | {count} miesięcy temu",
+                "years_ago": "{count} rok temu | {count} lat temu"
             }
         }
     }

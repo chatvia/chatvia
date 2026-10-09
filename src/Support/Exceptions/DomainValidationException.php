@@ -11,7 +11,11 @@ use RuntimeException;
  * redirects back with the field error.
  *
  * Controllers can also catch it directly when they need a different
- * response shape (a flash, a redirect, a 403 — see SystemTopicProtectedException).
+ * response shape (a flash, a redirect, a 403 — see the Topic domain's
+ * SystemTopicProtectedException).
+ *
+ * It lives in Support, not in one domain, because every domain throws it: a
+ * small shared-kernel type that depends on nothing but PHP itself.
  */
 class DomainValidationException extends RuntimeException
 {

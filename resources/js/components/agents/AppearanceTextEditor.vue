@@ -1,11 +1,15 @@
 <script setup lang="ts">
+/**
+ * The Info editor of the Setup page: chat title, welcome message and composer
+ * placeholder. The "Default" tab edits the base strings; each flag tab edits
+ * that language's manual translation (placeholder = the AI translation).
+ */
+import type { LocaleMap } from '@/api/agentSetup';
 import AppearanceTextFields from '@/components/agents/AppearanceTextFields.vue';
-import { LOCALES } from '@/i18n';
-import { Globe } from 'lucide-vue-next';
+import TranslationLanguageTabs from '@/components/agents/setup/TranslationLanguageTabs.vue';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-type LocaleMap = Record<string, Record<string, string>>;
 type FieldKey = 'chat_window_title' | 'welcome_message' | 'composer_placeholder';
 
 const props = withDefaults(
@@ -39,13 +43,6 @@ const { t } = useI18n();
 
 // 'default' = base strings; otherwise a locale code.
 const selected = ref<string>('default');
-
-// Flag tabs limited to the supported languages (falls back to all when no
-// allow-list is supplied).
-const tabs = computed(() => {
-    const allowed = Object.keys(props.languages).filter((code) => code !== 'auto');
-    return allowed.length ? LOCALES.filter((l) => allowed.includes(l.code)) : LOCALES;
-});
 
 const isDefault = computed(() => selected.value === 'default');
 
@@ -96,35 +93,7 @@ const hasOverride = (code: string): boolean =>
     <div class="space-y-5">
         <!-- Language tabs (flags). The first tab edits the base text; each flag
              tab edits that language's override. -->
-        <div class="border-b">
-            <div class="-mb-px flex items-center gap-1 overflow-x-auto pb-px">
-                <button
-                    type="button"
-                    class="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
-                    :class="isDefault ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent'"
-                    :title="t('agents.setup.sections.appearance_translations_default_tip')"
-                    @click="selected = 'default'"
-                >
-                    <Globe class="h-4 w-4" />
-                    {{ t('agents.setup.sections.appearance_translations_default') }}
-                </button>
-                <button
-                    v-for="tab in tabs"
-                    :key="tab.code"
-                    type="button"
-                    class="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
-                    :class="
-                        selected === tab.code ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent'
-                    "
-                    :title="tab.nativeName"
-                    @click="selected = tab.code"
-                >
-                    <img :src="`/images/flags/${tab.flag}.svg`" :alt="tab.nativeName" class="h-4 w-5 rounded-[2px] object-cover" />
-                    <span class="uppercase">{{ tab.code }}</span>
-                    <span v-if="hasOverride(tab.code)" class="bg-primary h-1.5 w-1.5 rounded-full"></span>
-                </button>
-            </div>
-        </div>
+        <TranslationLanguageTabs v-model="selected" :languages="languages" :has-override="hasOverride" />
 
         <AppearanceTextFields
             :welcome-message="fieldValue('welcome_message')"

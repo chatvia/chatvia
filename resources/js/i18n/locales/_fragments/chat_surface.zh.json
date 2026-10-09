@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "发送消息",
+        "stop_streaming": "停止生成"
+    },
+    "chat": {
+        "scroll_to_bottom": "滚动到底部",
+        "copy_code": "将代码复制到剪贴板",
+        "loading_chart": "正在加载图表…",
+        "powered_by": "由 {label} 提供支持",
+        "stream_errors": {
+            "unreachable": "无法连接到服务器，请重试。",
+            "http_status": "服务器返回状态 {status}。",
+            "interrupted": "连接已中断。",
+            "malformed": "从服务器收到无效数据。"
+        }
+    },
+    "messages": {
+        "edit_message": "编辑消息"
+    },
+    "sources": {
+        "file_with_page": "{file}（第 {page} 页）",
+        "fallback_title": "来源 {number}",
+        "chunk_label": "片段 {index}"
+    },
+    "sidebar": {
+        "save_title": "保存标题",
+        "show_password": "显示密码",
+        "hide_password": "隐藏密码",
+        "user_fallback": "用户"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "刚刚"
+        },
+        "voice_recorder": {
+            "microphone_denied": "麦克风访问被拒绝。请允许访问麦克风以进行录音。",
+            "microphone_not_found": "未找到麦克风。请连接麦克风后重试。",
+            "microphone_failed": "无法访问麦克风",
+            "transcription_failed": "转写失败"
+        },
+        "file_uploader": {
+            "analyze_failed": "无法分析文件",
+            "analyze_timed_out": "分析超时 - 文件可能过大"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "刷新消息",
+            "delete_conversation": "删除对话",
+            "sidebar": {
+                "refresh_conversations": "刷新对话",
+                "remove_filter": "移除筛选"
+            },
+            "handoff": {
+                "send_message": "发送消息",
+                "errors": {
+                    "connect_failed": "无法连接到聊天频道",
+                    "takeover_failed": "无法接管对话",
+                    "return_failed": "无法将对话交还给 AI",
+                    "send_failed": "无法发送消息"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "稳定"
+            }
+        }
+    }
+}

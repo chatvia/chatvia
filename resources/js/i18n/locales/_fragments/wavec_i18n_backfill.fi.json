@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Tiedot",
+        "arguments": "Argumentit"
+    },
+    "messages": {
+        "responding": "Avustaja vastaa…",
+        "response_complete": "Vastaus valmis",
+        "copy_message": "Kopioi viesti",
+        "feedback_helpful": "Hyvä vastaus",
+        "feedback_not_helpful": "Huono vastaus"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "Aina päällä",
+                "always_hint": "Tarjoa tämän liittimen työkaluja joka vuorolla, vaikka viesti ei selvästi tarvitsisi niitä. Enintään 10 aina päällä olevaa työkalua agenttia kohden.",
+                "always_failed": "Aina päällä -asetuksen päivittäminen epäonnistui"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Kielet",
+                "bubbles": "Chat-kuplat"
+            },
+            "toasts": {
+                "languages_saved": "Kielet tallennettu",
+                "languages_error": "Kieliä ei voitu tallentaa"
+            },
+            "behavior": {
+                "language_switcher": "Kielivalitsin"
+            },
+            "sections": {
+                "appearance_translations_default": "Oletus",
+                "appearance_translations_default_tip": "Kirjoittamasi teksti — käännetään automaattisesti kaikille kielille.",
+                "appearance_translations_default_hint": "Tämä on kirjoittamasi teksti. Kun tallennat, se käännetään automaattisesti kaikille kielille, ja se näytetään aina, kun kävijän kieli ei ole luettelossa.",
+                "appearance_translations_lang_hint": "Muokkaa tätä kieltä tässä. Jätä kenttä tyhjäksi, jos haluat käyttää automaattista käännöstä — muokkauksesi säilytetään aina.",
+                "starters_generate": "Luo tekoälyllä",
+                "starters_generate_title": "Luo aloitusviestejä tekoälyllä",
+                "starters_generate_description": "Valitse, kuinka monta luodaan tietämyskannastasi, ja valitse sitten lisättävät.",
+                "starters_generate_count": "Kuinka monta?",
+                "starters_generate_button": "Luo",
+                "starters_generating": "Luodaan…",
+                "starters_generate_hint": "Valitse määrä ja luo ehdotuksia tietämyskannastasi.",
+                "starters_translate_empty": "Lisää ensin aloitusviestit Oletus-välilehdellä ja käännä ne sitten tässä."
+            },
+            "languages": {
+                "title": "Käyttöliittymän kielet",
+                "description": "Valitse, mitä kieliä tämä agentti tukee. Käytössä olevat kielet näkyvät isännöidyn chatin kielivalitsimessa, ja niille tulee omat kielikohtaiset kentät Tiedot- ja Aloitusviestit-osioissa.",
+                "select_all": "Valitse kaikki",
+                "clear_all": "Tyhjennä kaikki",
+                "count": "{count}/{total} valittu",
+                "hint": "Jos haluat piilottaa kävijän kielivalitsimen kokonaan, poista se käytöstä Käyttäytyminen-osiossa.",
+                "min_required": "Vähintään yksi kieli vaaditaan."
+            },
+            "bubbles_add": "Lisää kupla",
+            "bubbles_remove": "Poista kupla",
+            "bubbles_empty": "Ei vielä chat-kuplia.",
+            "bubbles_translate_empty": "Lisää ensin kupla, jotta voit kääntää sen."
+        },
+        "forms": {
+            "subtitle": "Kuvaus",
+            "subtitle_placeholder": "esim. Kerro meille yrityksestäsi, niin otamme yhteyttä.",
+            "subtitle_hint": "Näytetään kävijälle lomakkeen otsikon alla."
+        },
+        "evals": {
+            "run": {
+                "back": "Takaisin arviointeihin",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Käynnissä",
+                "completed": "Valmis",
+                "failed": "Epäonnistui"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Muokkaa aihetta {topic}",
+                "delete_topic_aria": "Poista aihe {topic}"
+            }
+        },
+        "topics_index": {
+            "examples": "esim. {titles}",
+            "previous_page": "Edellinen sivu",
+            "next_page": "Seuraava sivu"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Luo tili"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Näytä tai piilota käyttöoikeudet"
+            },
+            "rename_team": "Nimeä tiimi uudelleen",
+            "save_team_name": "Tallenna tiimin nimi"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Viestit tässä kuussa"
+    },
+    "usage": {
+        "no_limit": "Ei rajaa"
+    },
+    "nav": {
+        "open_user_menu": "Avaa käyttäjävalikko"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Tervetuloa Chatviaan",
+            "intro": "Luodaan ensimmäinen tekoälyagenttisi. Se vie vain minuutin.",
+            "what_title": "Mikä on agentti?",
+            "what_body": "Agentti on tekoälyavustaja, jonka koulutat omalla sisällölläsi. Se vastaa asiakkaillesi verkkosivustollasi, chat-widgetissä ja viestisovelluksissa.",
+            "how_title": "Miten se toimii?",
+            "how_body": "Ensin luot agentin ja annat sille nimen. Sitten koulutat sen tiedostoillasi, verkkosivustoillasi ja teksteilläsi, jotta se osaa vastata kysymyksiin.",
+            "start": "Luo ensimmäinen agenttini",
+            "video_caption": "Katso, miten se toimii"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Kopioi kehotteen tunnus"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Kopioi funktion tunnus"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Kopioi API-avain"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Kopioi palvelimen tunnus"
+        },
+        "json_editor": {
+            "aria_label": "JSON-editori"
+        },
+        "time_ago": {
+            "just_now": "Juuri nyt"
+        },
+        "voice_recorder": {
+            "pause_recording": "Keskeytä tallennus",
+            "resume_recording": "Jatka tallennusta",
+            "cancel_recording": "Peruuta tallennus",
+            "play_recording": "Toista tallenne",
+            "pause_playback": "Keskeytä toisto"
+        }
+    }
+}

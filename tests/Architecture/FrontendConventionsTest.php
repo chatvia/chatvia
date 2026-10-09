@@ -81,7 +81,7 @@ it('reads localStorage through safeStorage on the boot and hosted-chat paths', f
     // The hosted chat can run in an iframe where touching localStorage throws;
     // at boot that would stop the whole app from mounting.
     $files = [
-        'utils/eventBus.js',
+        'utils/eventBus.ts',
         'composables/useAppearance.ts',
         'components/chat/ChatLayout.vue',
         'components/chat/ChatSidebar.vue',
@@ -101,7 +101,7 @@ it('uses one shared Echo connection', function () use ($frontendOffenders): void
 });
 
 it('builds the delete confirmation on AlertDialog', function () use ($frontendSource): void {
-    $source = $frontendSource('components/ui/DeleteConfirmationDialog.vue');
+    $source = $frontendSource('components/common/DeleteConfirmationDialog.vue');
 
     expect($source)->toContain('<AlertDialog')
         ->and($source)->not->toContain("from '@/components/ui/dialog'");
@@ -109,8 +109,11 @@ it('builds the delete confirmation on AlertDialog', function () use ($frontendSo
 
 it('only puts attributes the embed script reads into the Command Bar snippet', function () use ($frontendSource): void {
     // widget/src/embed.js never reads data-trigger / data-placement; the bar
-    // takes both from the agent's saved settings.
-    $source = $frontendSource('pages/agents/Deploy.vue');
+    // takes both from the agent's saved settings. Every install snippet the
+    // Deploy page shows is built in installSnippets.ts.
+    $source = $frontendSource('components/agents/deploy/installSnippets.ts');
+
+    expect($source)->toContain('data-mode="bar"');
 
     expect($source)->not->toContain('data-trigger')
         ->and($source)->not->toContain('data-placement');

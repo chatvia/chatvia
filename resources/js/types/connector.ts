@@ -1,5 +1,14 @@
 /**
- * Mirrors App\Data\Connectors\ConnectorData on the server.
+ * Frontend shapes of the connector catalog and the workspace's MCP servers.
+ *
+ * Hand-written mirrors of the PHP Data classes (narrower unions than the
+ * generated `Domain.Integration.*` types where the UI branches on a value);
+ * the enum-like unions are taken from the generated types so they stay in
+ * sync with the server.
+ */
+
+/**
+ * Mirrors Domain\Integration\Connector\Data\Catalog\ConnectorData on the server.
  */
 export interface Connector {
     slug: string;
@@ -8,7 +17,7 @@ export interface Connector {
     category: string;
     icon: string;
     brandColor: string;
-    authStrategy: 'token' | 'oauth' | 'none';
+    authStrategy: Domain.Integration.Connector.Enums.ConnectorAuthStrategy;
     mcpUrl: string;
     provider: 'chatvia' | 'featured';
     logoUrl: string | null;
@@ -28,7 +37,7 @@ export interface Connector {
 }
 
 /**
- * Mirrors App\Data\Resources\Agent\AgentMcpServerData on the server.
+ * Mirrors Domain\Integration\Mcp\Data\Resources\AgentMcpServerData on the server.
  */
 export interface AgentMcpServer {
     external_id: string;
@@ -55,19 +64,21 @@ export interface AgentMcpServer {
  * yet.
  */
 export interface ConnectorRow {
-    kind: 'featured' | 'custom';
+    kind: Domain.Integration.Connector.Enums.ConnectorRowKind;
     connector: Connector | null;
     server: AgentMcpServer | null;
 }
 
+/** Mirrors Domain\Integration\Connector\Data\Account\AccountConnectorsResourceData. */
 export interface ConnectorListResponse {
     featured: ConnectorRow[];
     custom: ConnectorRow[];
 }
 
-export type McpToolPermission = 'allow' | 'approval' | 'blocked';
-export type McpToolScope = 'read' | 'write';
+export type McpToolPermission = Domain.Integration.Mcp.Enums.McpToolPermission;
+export type McpToolScope = Domain.Integration.Mcp.Enums.McpToolScope;
 
+/** Mirrors Domain\Integration\Connector\Data\Catalog\ConnectorToolData. */
 export interface McpTool {
     id?: number;
     name: string;
@@ -78,6 +89,7 @@ export interface McpTool {
     permission: McpToolPermission;
 }
 
+/** Mirrors Domain\Integration\Connector\Data\Catalog\ConnectorToolsResourceData. */
 export interface ConnectorToolsResponse {
     tools: McpTool[];
     cached_at: string | null;

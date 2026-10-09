@@ -32,7 +32,9 @@
         "uploading": "جارٍ الرفع…",
         "upload_failed": "فشل الرفع",
         "delete_failed": "تعذّرت إزالة المرفق",
-        "upload_limit_reached": "يمكنك إرفاق {count} ملف | يمكنك إرفاق {count} ملفات"
+        "upload_limit_reached": "يمكنك إرفاق {count} ملف | يمكنك إرفاق {count} ملفات",
+        "send_message": "إرسال الرسالة",
+        "stop_streaming": "إيقاف التوليد"
     },
     "header": {
         "toggle_sidebar": "إظهار/إخفاء الشريط الجانبي",
@@ -87,7 +89,11 @@
         "search_group_yesterday": "الأمس",
         "search_group_previous_7_days": "آخر 7 أيام",
         "search_group_previous_30_days": "آخر 30 يوماً",
-        "search_group_older": "أقدم"
+        "search_group_older": "أقدم",
+        "save_title": "حفظ العنوان",
+        "show_password": "إظهار كلمة المرور",
+        "hide_password": "إخفاء كلمة المرور",
+        "user_fallback": "مستخدم"
     },
     "chat": {
         "message_limit_reached": "لقد وصلت إلى الحد الأقصى للرسائل",
@@ -101,6 +107,16 @@
             "submit_failed": "حدث خطأ ما. حاول مرة أخرى.",
             "expired": "انتهت صلاحية هذا النموذج.",
             "unavailable": "لا يمكن إرسال هذا النموذج هنا."
+        },
+        "scroll_to_bottom": "الانتقال إلى الأسفل",
+        "copy_code": "نسخ الشيفرة إلى الحافظة",
+        "loading_chart": "جارٍ تحميل المخطط…",
+        "powered_by": "مدعوم من {label}",
+        "stream_errors": {
+            "unreachable": "تعذّر الوصول إلى الخادم. يُرجى المحاولة مرة أخرى.",
+            "http_status": "أعاد الخادم الحالة {status}.",
+            "interrupted": "انقطع الاتصال.",
+            "malformed": "تلقّينا بيانات غير صالحة من الخادم."
         }
     },
     "messages": {
@@ -120,7 +136,8 @@
         "response_complete": "اكتمل الرد",
         "copy_message": "نسخ الرسالة",
         "feedback_helpful": "رد جيد",
-        "feedback_not_helpful": "رد سيئ"
+        "feedback_not_helpful": "رد سيئ",
+        "edit_message": "تعديل الرسالة"
     },
     "errors": {
         "subscription_expired": "انتهى الاشتراك",
@@ -139,7 +156,10 @@
         "title": "مصادر المعرفة",
         "source_count": "{count} مصدر | {count} مصادر",
         "description": "تم استخدام {count} مصدر لإنشاء هذا الرد | تم استخدام {count} مصادر لإنشاء هذا الرد",
-        "page_label": "صفحة {page}"
+        "page_label": "صفحة {page}",
+        "file_with_page": "{file} (صفحة {page})",
+        "fallback_title": "المصدر {number}",
+        "chunk_label": "المقطع {index}"
     },
     "home": {
         "logo_alt": "الشعار",
@@ -394,7 +414,9 @@
                 "expires_in_days": "تنتهي خلال {count} يوم | تنتهي خلال {count} أيام",
                 "expires_in_one_month": "تنتهي خلال شهر واحد",
                 "expires_in_months": "تنتهي خلال {count} شهر | تنتهي خلال {count} أشهر",
-                "conversations_count": "{count} محادثة | {count} محادثات"
+                "conversations_count": "{count} محادثة | {count} محادثات",
+                "refresh_conversations": "تحديث المحادثات",
+                "remove_filter": "إزالة عامل التصفية"
             },
             "pagination": {
                 "prev": "السابق",
@@ -503,7 +525,8 @@
                 "peak_negative": "ذروة سلبية",
                 "sentiment_timeline": "الخط الزمني للمشاعر",
                 "message_details": "تفاصيل الرسائل",
-                "waiting": "قيد الانتظار…"
+                "waiting": "قيد الانتظار…",
+                "trend_stable_label": "مستقر"
             },
             "handoff": {
                 "locked_description": "رقِّ خطتك لتولّي المحادثات المباشرة من سجل المحادثات.",
@@ -527,7 +550,14 @@
                 "read": "مقروءة",
                 "sent": "مُرسَلة",
                 "visitor_typing": "الزائر يكتب",
-                "message_placeholder": "اكتب رسالة…"
+                "message_placeholder": "اكتب رسالة…",
+                "send_message": "إرسال الرسالة",
+                "errors": {
+                    "connect_failed": "تعذّر الاتصال بقناة المحادثة",
+                    "takeover_failed": "تعذّر تولّي المحادثة",
+                    "return_failed": "تعذّرت إعادة المحادثة إلى الذكاء الاصطناعي",
+                    "send_failed": "تعذّر إرسال الرسالة"
+                }
             },
             "revise": {
                 "title": "تعديل الإجابة",
@@ -556,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "تعذّر تحميل نبض المحادثة. يرجى المحاولة مجدداً."
-            }
+            },
+            "refresh_messages": "تحديث الرسائل",
+            "delete_conversation": "حذف المحادثة"
         },
         "guardrails": {
             "title": "ضوابط الأمان",
@@ -703,7 +735,9 @@
                     "mean_score": "متوسط الدرجة عبر جميع الحالات",
                     "tokens": "الرموز",
                     "tokens_note": "إجمالي الرموز المستهلكة في هذا التشغيل"
-                }
+                },
+                "back": "العودة إلى التقييمات",
+                "latency_value": "{ms} مللي ثانية"
             },
             "index": {
                 "title": "التقييمات",
@@ -825,6 +859,11 @@
                 "json_schema": "مخطط JSON",
                 "llm_judge": "تقييم بنموذج لغوي",
                 "tool_call": "استدعاء أداة"
+            },
+            "statuses": {
+                "running": "قيد التشغيل",
+                "completed": "مكتمل",
+                "failed": "فشل"
             }
         },
         "identity_verification": {
@@ -972,7 +1011,9 @@
                 "delete_error": "تعذّر حذف الموضوع. يرجى المحاولة مجدداً.",
                 "load_error": "تعذّر تحميل المواضيع. يرجى المحاولة مجدداً.",
                 "permission_denied": "تم رفض الإذن",
-                "permission_denied_description": "ليس لديك إذن لإدارة المواضيع."
+                "permission_denied_description": "ليس لديك إذن لإدارة المواضيع.",
+                "edit_topic_aria": "تعديل {topic}",
+                "delete_topic_aria": "حذف {topic}"
             }
         },
         "sources": {
@@ -1200,7 +1241,9 @@
                 "created_at": "أُنشئ في {date}",
                 "used_by_agents": "مُستخدَم لدى {count} وكيل",
                 "delete_title": "حذف مُدخَل سؤال وجواب",
-                "delete_description": "هل أنت متأكد من رغبتك في حذف مُدخَل سؤال وجواب هذا؟ لا يمكن التراجع عن هذا الإجراء."
+                "delete_description": "هل أنت متأكد من رغبتك في حذف مُدخَل سؤال وجواب هذا؟ لا يمكن التراجع عن هذا الإجراء.",
+                "remove_question": "إزالة السؤال",
+                "actions": "الإجراءات"
             },
             "youtube": {
                 "load_failed": "فشل تحميل مقاطع يوتيوب",
@@ -1905,7 +1948,10 @@
             "remove_error": "تعذّر إزالة الموضوع",
             "fill_fields": "يرجى ملء جميع الحقول",
             "created": "تم إنشاء الموضوع وإضافته بنجاح",
-            "create_error": "تعذّر إنشاء الموضوع"
+            "create_error": "تعذّر إنشاء الموضوع",
+            "examples": "مثل: {titles}",
+            "previous_page": "الصفحة السابقة",
+            "next_page": "الصفحة التالية"
         },
         "usage": {
             "title": "رؤى الاستخدام",
@@ -2868,7 +2914,8 @@
                 "all_agents": "جميع الوكلاء",
                 "no_agents_assigned": "لا يوجد وكلاء مُسندون",
                 "agent_count": "{count} وكيل | {count} وكلاء",
-                "delete_description": "هل أنت متأكد أنك تريد حذف الدور \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء."
+                "delete_description": "هل أنت متأكد أنك تريد حذف الدور \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+                "toggle_permissions": "إظهار الأذونات أو إخفاؤها"
             },
             "members": {
                 "title": "أعضاء الفريق",
@@ -2921,7 +2968,9 @@
                 "description": "الأعضاء الذين يحملون هذا الدور. يمكنك إزالة وصولهم إلى هذا الفريق.",
                 "empty": "لا يوجد أعضاء بهذا الدور بعد.",
                 "close": "إغلاق"
-            }
+            },
+            "rename_team": "إعادة تسمية الفريق",
+            "save_team_name": "حفظ اسم الفريق"
         },
         "roles": {
             "details": "تفاصيل الدور",
@@ -3339,7 +3388,8 @@
                 "create_title": "إضافة موجّه",
                 "description": "اكتب موجّه نظام قابلاً لإعادة الاستخدام مرة واحدة، ثم أرفقه بأي وكيل من صفحة الشخصية الخاصة به. تعديله هنا يُحدّث كل وكيل يستخدمه.",
                 "id_label": "المعرّف",
-                "copy_id_title": "انسخ معرّف الموجّه — مرّره كـ prompt_id عند إنشاء أو تحديث وكيل عبر API"
+                "copy_id_title": "انسخ معرّف الموجّه — مرّره كـ prompt_id عند إنشاء أو تحديث وكيل عبر API",
+                "copy_id": "نسخ معرّف الموجّه"
             },
             "form": {
                 "name": "الاسم",
@@ -3376,7 +3426,8 @@
                 "description": "تتيح الوظائف لوكلائك استدعاء واجهات برمجة التطبيقات الخاصة بك كأدوات لنموذج اللغة. {name} و{description} هما ما يراه النموذج عند تقرير ما إذا كان سيستدعيها — كن محدداً. {learn_more}",
                 "learn_more": "اعرف المزيد",
                 "id_label": "المعرّف",
-                "copy_id_title": "انسخ معرّف الوظيفة — مرّره كـ function_id عند الإرفاق عبر API"
+                "copy_id_title": "انسخ معرّف الوظيفة — مرّره كـ function_id عند الإرفاق عبر API",
+                "copy_id": "نسخ معرّف الوظيفة"
             },
             "form": {
                 "name": "الاسم",
@@ -3441,7 +3492,8 @@
                 "title": "انسخ مفتاح API الجديد",
                 "description": "هذه هي المرة الوحيدة التي سترى فيها {name}. احفظه في مكان آمن — إذا فقدته، أنشئ واحداً جديداً.",
                 "warning": "تعامل مع هذا كأنه كلمة مرور. أي شخص يملكه يمكنه تجهيز وكلاء نيابةً عنك.",
-                "confirm": "لقد حفظته بأمان"
+                "confirm": "لقد حفظته بأمان",
+                "copy": "نسخ مفتاح API"
             },
             "revoke_dialog": {
                 "title": "إبطال مفتاح API",
@@ -3740,7 +3792,8 @@
         "account": "الحساب",
         "workspace": "مساحة العمل",
         "logout": "تسجيل الخروج",
-        "language": "اللغة"
+        "language": "اللغة",
+        "open_user_menu": "فتح قائمة المستخدم"
     },
     "account": {
         "layout": {
@@ -4011,7 +4064,9 @@
             "toast_max_files_title": "تم بلوغ الحد الأقصى للملفات",
             "toast_max_files_description": "يمكنك رفع {max} ملفات كحد أقصى فقط.",
             "toast_file_size_title": "تجاوز حد حجم الملف",
-            "toast_file_size_description": "الملفات التالية تتجاوز حد {maxSize} ميغابايت: {fileList}"
+            "toast_file_size_description": "الملفات التالية تتجاوز حد {maxSize} ميغابايت: {fileList}",
+            "analyze_failed": "تعذّر تحليل الملف",
+            "analyze_timed_out": "انتهت مهلة التحليل - قد يكون الملف كبيرًا جدًا"
         },
         "voice_recorder": {
             "title_default": "تسجيل ملاحظة صوتية",
@@ -4029,7 +4084,16 @@
             "tips_heading": "نصائح:",
             "tip_speak_clearly": "تحدث بوضوح وبوتيرة ثابتة",
             "tip_quiet_environment": "استخدم بيئة هادئة للحصول على أفضل النتائج",
-            "tip_max_duration": "الحد الأقصى لطول التسجيل: دقيقة واحدة | الحد الأقصى لطول التسجيل: {minutes} دقائق"
+            "tip_max_duration": "الحد الأقصى لطول التسجيل: دقيقة واحدة | الحد الأقصى لطول التسجيل: {minutes} دقائق",
+            "pause_recording": "إيقاف التسجيل مؤقتًا",
+            "resume_recording": "استئناف التسجيل",
+            "cancel_recording": "إلغاء التسجيل",
+            "play_recording": "تشغيل التسجيل",
+            "pause_playback": "إيقاف التشغيل مؤقتًا",
+            "microphone_denied": "تم رفض الوصول إلى الميكروفون. يُرجى السماح بالوصول إلى الميكروفون للتسجيل.",
+            "microphone_not_found": "لم يتم العثور على ميكروفون. يُرجى توصيل ميكروفون والمحاولة مرة أخرى.",
+            "microphone_failed": "تعذّر الوصول إلى الميكروفون",
+            "transcription_failed": "فشل تحويل الصوت إلى نص"
         },
         "date_range": {
             "pick_range": "اختر نطاقاً زمنياً",
@@ -4115,7 +4179,8 @@
             "toast_disconnected": "تم قطع اتصال {name}",
             "toast_disconnect_failed": "فشل",
             "set_all": "تعيين الكل",
-            "toast_bulk_permission": "تم تعيين {count} أداة إلى ”{permission}“ | تم تعيين {count} أداة إلى ”{permission}“"
+            "toast_bulk_permission": "تم تعيين {count} أداة إلى ”{permission}“ | تم تعيين {count} أداة إلى ”{permission}“",
+            "copy_server_id": "نسخ معرّف الخادم"
         },
         "member_sheet": {
             "sr_description": "إدارة حدود هذا المحادث ووصوله إلى الوكلاء وحالته.",
@@ -4244,6 +4309,12 @@
             "toggle_sidebar": "تبديل الشريط الجانبي",
             "sidebar": "الشريط الجانبي",
             "sidebar_description": "يعرض الشريط الجانبي على الجوال."
+        },
+        "json_editor": {
+            "aria_label": "محرر JSON"
+        },
+        "time_ago": {
+            "just_now": "الآن"
         }
     },
     "connectors": {

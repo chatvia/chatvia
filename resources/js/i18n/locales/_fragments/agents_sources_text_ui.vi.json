@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "Xóa câu hỏi",
+                "actions": "Thao tác"
+            }
+        }
+    }
+}

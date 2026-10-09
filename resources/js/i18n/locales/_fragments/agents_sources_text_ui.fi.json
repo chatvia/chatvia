@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "Poista kysymys",
+                "actions": "Toiminnot"
+            }
+        }
+    }
+}

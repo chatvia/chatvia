@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Widget\Forms;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Chat\Forms\SubmitInlineFormRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\SubmitFormAction;
 use Domain\Form\Data\SubmitFormData;
 use Domain\Form\Enums\FormClaimFailure;
@@ -24,11 +26,11 @@ class SubmitInlineFormController
 
     public function __invoke(
         SubmitInlineFormRequest $request,
+        #[WidgetAgent] Agent $agent,
         FormSubmission $formInstance,
         SubmitFormAction $action,
         WidgetVerification $verification,
     ): JsonResponse {
-        $agent = $this->widgetAgent();
         abort_unless($formInstance->agent_id === $agent->id, JsonResponse::HTTP_NOT_FOUND);
 
         $conversation = $verification->verifyConversationId(

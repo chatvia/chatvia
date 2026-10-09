@@ -5,12 +5,12 @@ namespace Support;
 /**
  * Single source of truth for mime-type group membership. Reads from
  * config/mimes.php so adding a new mime in one place reaches all readers
- * (Agent::pdfFiles() relation, SourceFile::isPdfFile() predicate, the
- * get_file_type()/is_audio_file()/is_video_file() helpers, controller
- * filters).
+ * (the is_pdf_file()/is_audio_file()/is_video_file() helpers, the knowledge
+ * base's file categories, model relations and controller filters).
  */
-class MimeType
+final class MimeType
 {
+    /** Category slug => config/mimes.php group key. */
     private const array CATEGORIES = [
         'pdf' => 'pdf',
         'word' => 'word',
@@ -43,15 +43,18 @@ class MimeType
     }
 
     /**
-     * Resolve a mime type into the canonical category slug used by SourceFile::filetype.
-     * Returns null when the type is unrecognised.
+     * Resolve a mime type into its category slug (pdf, word, text,
+     * presentation, image, spreadsheet, audio, video). Returns null when the
+     * type is unrecognised.
      */
     public static function category(string $mimeType): ?string
     {
-        return array_find_key(self::CATEGORIES, fn ($configKey): bool => self::matches($mimeType, $configKey));
+        return array_find_key(self::CATEGORIES, fn (string $configKey): bool => self::matches($mimeType, $configKey));
     }
 
     /**
+     * The MIME types of one config/mimes.php group (empty for an unknown key).
+     *
      * @return array<int, string>
      */
     public static function group(string $configKey): array

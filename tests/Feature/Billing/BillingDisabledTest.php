@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Providers\AppServiceProvider;
 use Domain\Agent\Models\Agent;
@@ -30,7 +31,6 @@ use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Events\WebhookReceived;
 use Laravel\Pennant\Feature;
 use Stripe\Stripe;
-use Support\Enums\User\UserType;
 use Support\Exceptions\DomainValidationException;
 
 /**

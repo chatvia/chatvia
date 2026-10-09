@@ -2,6 +2,7 @@
 
 namespace Support\Concerns;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 /**
@@ -13,9 +14,9 @@ trait HasExternalId
 {
     protected static function bootHasExternalId(): void
     {
-        static::creating(function ($model): void {
-            if (! $model->external_id) {
-                $model->external_id = (string) Str::uuid7();
+        static::creating(function (Model $model): void {
+            if (! $model->getAttribute('external_id')) {
+                $model->setAttribute('external_id', (string) Str::uuid7());
             }
         });
     }

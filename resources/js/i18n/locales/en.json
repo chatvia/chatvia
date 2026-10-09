@@ -32,7 +32,9 @@
         "uploading": "Uploading…",
         "upload_failed": "Upload failed",
         "delete_failed": "Could not remove attachment",
-        "upload_limit_reached": "You can attach up to {count} file | You can attach up to {count} files"
+        "upload_limit_reached": "You can attach up to {count} file | You can attach up to {count} files",
+        "send_message": "Send message",
+        "stop_streaming": "Stop generating"
     },
     "header": {
         "toggle_sidebar": "Toggle sidebar",
@@ -87,7 +89,11 @@
         "loading_agents": "Loading agents...",
         "no_agents": "No agents found.",
         "switching_agent": "Switching...",
-        "switch_to_agent": "Switch to {name}"
+        "switch_to_agent": "Switch to {name}",
+        "save_title": "Save title",
+        "show_password": "Show password",
+        "hide_password": "Hide password",
+        "user_fallback": "User"
     },
     "chat": {
         "message_limit_reached": "You've reached your message limit",
@@ -101,6 +107,16 @@
             "submit_failed": "Something went wrong. Please try again.",
             "expired": "This form has expired.",
             "unavailable": "This form can't be submitted here."
+        },
+        "scroll_to_bottom": "Scroll to bottom",
+        "copy_code": "Copy code to clipboard",
+        "loading_chart": "Loading chart…",
+        "powered_by": "Powered by {label}",
+        "stream_errors": {
+            "unreachable": "Could not reach the server. Please try again.",
+            "http_status": "Server returned status {status}.",
+            "interrupted": "The connection was interrupted.",
+            "malformed": "Received malformed data from the server."
         }
     },
     "messages": {
@@ -120,7 +136,8 @@
         "response_complete": "Response complete",
         "copy_message": "Copy message",
         "feedback_helpful": "Good response",
-        "feedback_not_helpful": "Bad response"
+        "feedback_not_helpful": "Bad response",
+        "edit_message": "Edit message"
     },
     "errors": {
         "subscription_expired": "Subscription expired",
@@ -139,7 +156,10 @@
         "title": "Knowledge Sources",
         "source_count": "{count} Source | {count} Sources",
         "description": "{count} source used to generate this response | {count} sources used to generate this response",
-        "page_label": "Page {page}"
+        "page_label": "Page {page}",
+        "file_with_page": "{file} (Page {page})",
+        "fallback_title": "Source {number}",
+        "chunk_label": "Chunk {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -394,7 +414,9 @@
                 "expires_in_days": "Expires in {count} day | Expires in {count} days",
                 "expires_in_one_month": "Expires in 1 month",
                 "expires_in_months": "Expires in {count} month | Expires in {count} months",
-                "conversations_count": "{count} conversation | {count} conversations"
+                "conversations_count": "{count} conversation | {count} conversations",
+                "refresh_conversations": "Refresh conversations",
+                "remove_filter": "Remove filter"
             },
             "pagination": {
                 "prev": "Previous",
@@ -503,7 +525,8 @@
                 "peak_negative": "Peak negative",
                 "sentiment_timeline": "Sentiment timeline",
                 "message_details": "Message details",
-                "waiting": "Pending…"
+                "waiting": "Pending…",
+                "trend_stable_label": "Stable"
             },
             "handoff": {
                 "locked_description": "Upgrade your plan to take over live conversations from the chat log.",
@@ -527,7 +550,14 @@
                 "read": "Read",
                 "sent": "Sent",
                 "visitor_typing": "Visitor is typing",
-                "message_placeholder": "Type a message…"
+                "message_placeholder": "Type a message…",
+                "send_message": "Send message",
+                "errors": {
+                    "connect_failed": "Failed to connect to chat channel",
+                    "takeover_failed": "Failed to take over conversation",
+                    "return_failed": "Failed to return conversation to AI",
+                    "send_failed": "Failed to send message"
+                }
             },
             "revise": {
                 "title": "Revise answer",
@@ -556,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Could not load conversation pulse. Please try again."
-            }
+            },
+            "refresh_messages": "Refresh messages",
+            "delete_conversation": "Delete conversation"
         },
         "guardrails": {
             "title": "Guardrails",
@@ -703,7 +735,9 @@
                     "mean_score": "Mean score across all cases",
                     "tokens": "Tokens",
                     "tokens_note": "Total tokens consumed by this run"
-                }
+                },
+                "back": "Back to evals",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Evals",
@@ -825,6 +859,11 @@
                 "json_schema": "JSON schema",
                 "llm_judge": "LLM judge",
                 "tool_call": "Tool call"
+            },
+            "statuses": {
+                "running": "Running",
+                "completed": "Completed",
+                "failed": "Failed"
             }
         },
         "identity_verification": {
@@ -972,7 +1011,9 @@
                 "delete_error": "Could not delete topic. Please try again.",
                 "load_error": "Could not load topics. Please try again.",
                 "permission_denied": "Permission denied",
-                "permission_denied_description": "You don't have permission to manage topics."
+                "permission_denied_description": "You don't have permission to manage topics.",
+                "edit_topic_aria": "Edit {topic}",
+                "delete_topic_aria": "Delete {topic}"
             }
         },
         "sources": {
@@ -1200,7 +1241,9 @@
                 "created_at": "Created {date}",
                 "used_by_agents": "Used by {count} agents",
                 "delete_title": "Delete Q&A Entry",
-                "delete_description": "Are you sure you want to delete this Q&A entry? This action cannot be undone."
+                "delete_description": "Are you sure you want to delete this Q&A entry? This action cannot be undone.",
+                "remove_question": "Remove question",
+                "actions": "Actions"
             },
             "youtube": {
                 "load_failed": "Failed to load YouTube videos",
@@ -1905,7 +1948,10 @@
             "remove_error": "Failed to remove topic",
             "fill_fields": "Please fill in all fields",
             "created": "Topic created and added successfully",
-            "create_error": "Failed to create topic"
+            "create_error": "Failed to create topic",
+            "examples": "e.g. {titles}",
+            "previous_page": "Previous page",
+            "next_page": "Next page"
         },
         "usage": {
             "title": "Usage Insights",
@@ -2868,7 +2914,8 @@
                 "all_agents": "All agents",
                 "no_agents_assigned": "No agents assigned",
                 "agent_count": "{count} agent | {count} agents",
-                "delete_description": "Are you sure you want to delete the \"{name}\" role? This action cannot be undone."
+                "delete_description": "Are you sure you want to delete the \"{name}\" role? This action cannot be undone.",
+                "toggle_permissions": "Show or hide permissions"
             },
             "members": {
                 "title": "Team Members",
@@ -2921,7 +2968,9 @@
                 "description": "Members with this role. You can remove their access to this team.",
                 "empty": "No members with this role yet.",
                 "close": "Close"
-            }
+            },
+            "rename_team": "Rename team",
+            "save_team_name": "Save team name"
         },
         "roles": {
             "details": "Role Details",
@@ -3339,7 +3388,8 @@
                 "create_title": "Add a prompt",
                 "description": "Write a reusable system prompt once, then attach it to any agent from its Persona page. Editing it here updates every agent that uses it.",
                 "id_label": "ID",
-                "copy_id_title": "Copy prompt ID — pass as prompt_id when creating/updating an agent via the API"
+                "copy_id_title": "Copy prompt ID — pass as prompt_id when creating/updating an agent via the API",
+                "copy_id": "Copy prompt ID"
             },
             "form": {
                 "name": "Name",
@@ -3376,7 +3426,8 @@
                 "description": "Functions let your agents call your own APIs as LLM tools. The {name} and {description} are what the model sees when deciding whether to call it — be specific. {learn_more}",
                 "learn_more": "Learn more",
                 "id_label": "ID",
-                "copy_id_title": "Copy function ID — pass as function_id when attaching via the API"
+                "copy_id_title": "Copy function ID — pass as function_id when attaching via the API",
+                "copy_id": "Copy function ID"
             },
             "form": {
                 "name": "Name",
@@ -3441,7 +3492,8 @@
                 "title": "Copy your new API key",
                 "description": "This is the only time you'll see {name}. Store it somewhere safe — if you lose it, generate a new one.",
                 "warning": "Treat this like a password. Anyone with it can provision agents on your behalf.",
-                "confirm": "I've stored it safely"
+                "confirm": "I've stored it safely",
+                "copy": "Copy API key"
             },
             "revoke_dialog": {
                 "title": "Revoke API key",
@@ -3740,7 +3792,8 @@
         "account": "Account",
         "workspace": "Workspace",
         "logout": "Log out",
-        "language": "Language"
+        "language": "Language",
+        "open_user_menu": "Open user menu"
     },
     "account": {
         "layout": {
@@ -4011,7 +4064,9 @@
             "toast_max_files_title": "Maximum file limit reached",
             "toast_max_files_description": "You can only upload a maximum of {max} files.",
             "toast_file_size_title": "File size limit exceeded",
-            "toast_file_size_description": "The following file(s) exceed the {maxSize} MB limit: {fileList}"
+            "toast_file_size_description": "The following file(s) exceed the {maxSize} MB limit: {fileList}",
+            "analyze_failed": "Failed to analyze file",
+            "analyze_timed_out": "Analysis timed out - file may be too large"
         },
         "voice_recorder": {
             "title_default": "Record Voice Note",
@@ -4029,7 +4084,16 @@
             "tips_heading": "Tips:",
             "tip_speak_clearly": "Speak clearly and at a steady pace",
             "tip_quiet_environment": "Use a quiet environment for best results",
-            "tip_max_duration": "Maximum recording length: {minutes} minute | Maximum recording length: {minutes} minutes"
+            "tip_max_duration": "Maximum recording length: {minutes} minute | Maximum recording length: {minutes} minutes",
+            "pause_recording": "Pause recording",
+            "resume_recording": "Resume recording",
+            "cancel_recording": "Cancel recording",
+            "play_recording": "Play recording",
+            "pause_playback": "Pause playback",
+            "microphone_denied": "Microphone access denied. Please allow microphone access to record.",
+            "microphone_not_found": "No microphone found. Please connect a microphone and try again.",
+            "microphone_failed": "Failed to access microphone",
+            "transcription_failed": "Transcription failed"
         },
         "date_range": {
             "pick_range": "Pick a date range",
@@ -4115,7 +4179,8 @@
             "toast_disconnected": "Disconnected {name}",
             "toast_disconnect_failed": "Failed",
             "set_all": "Set all",
-            "toast_bulk_permission": "Set {count} tool to “{permission}” | Set {count} tools to “{permission}”"
+            "toast_bulk_permission": "Set {count} tool to “{permission}” | Set {count} tools to “{permission}”",
+            "copy_server_id": "Copy server ID"
         },
         "member_sheet": {
             "sr_description": "Manage this chatter's limits, agent access, and status.",
@@ -4244,6 +4309,12 @@
             "toggle_sidebar": "Toggle Sidebar",
             "sidebar": "Sidebar",
             "sidebar_description": "Displays the mobile sidebar."
+        },
+        "json_editor": {
+            "aria_label": "JSON editor"
+        },
+        "time_ago": {
+            "just_now": "Just now"
         }
     },
     "connectors": {

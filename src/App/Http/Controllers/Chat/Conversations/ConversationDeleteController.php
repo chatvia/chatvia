@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\DeleteConversationAction;
 use Domain\Conversation\Models\Conversation;
 
@@ -11,9 +13,12 @@ use Domain\Conversation\Models\Conversation;
  */
 class ConversationDeleteController
 {
-    public function __invoke(string $conversationId, DeleteConversationAction $deleteConversation, HostedChatSession $session): void
-    {
-        $agent = current_agent();
+    public function __invoke(
+        string $conversationId,
+        #[HostedChatAgent] Agent $agent,
+        DeleteConversationAction $deleteConversation,
+        HostedChatSession $session,
+    ): void {
         $scope = $session->scope($agent, $conversationId);
 
         // The conversation must be in the CALLER's session of this agent, so

@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+/**
+ * ⌘K command palette for the hosted chat: "New chat" plus recent
+ * conversations grouped by date, or server search hits once the visitor types.
+ * Fully keyboard navigable (arrows + Enter).
+ */
+import type { ChatConversationSummary as Conversation } from '@/types/chat';
 import dayjs from 'dayjs';
 import { Edit, Loader2, MessageSquare, Search } from 'lucide-vue-next';
 import { computed, nextTick, ref, watch } from 'vue';
@@ -6,13 +12,6 @@ import { useI18n } from 'vue-i18n';
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface Conversation {
-    id: string | number;
-    title: string;
-    // Unix seconds (Conversation.created_at) — used for the date buckets.
-    timestamp?: number;
-}
 
 const props = defineProps<{
     open: boolean;

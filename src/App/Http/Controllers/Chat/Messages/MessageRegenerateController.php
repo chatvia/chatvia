@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\RegenerateMessageRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\RegenerateMessageAction;
 use Illuminate\Http\JsonResponse;
 
@@ -15,11 +17,12 @@ class MessageRegenerateController
 {
     public function __invoke(
         RegenerateMessageRequest $request,
+        #[HostedChatAgent] Agent $agent,
         RegenerateMessageAction $regenerate,
         HostedChatSession $session,
     ): JsonResponse {
         $result = $regenerate->execute(
-            $session->scope(current_agent(), $request->conversationId()),
+            $session->scope($agent, $request->conversationId()),
             $request->assistantMessageId(),
             $request->userMessageId(),
         );

@@ -17,7 +17,9 @@
         "mcp_tool": "MCP ツール",
         "function": "関数",
         "approve": "承認",
-        "deny": "拒否"
+        "deny": "拒否",
+        "details": "詳細",
+        "arguments": "引数"
     },
     "composer": {
         "default_placeholder": "メッセージ…",
@@ -30,7 +32,9 @@
         "uploading": "アップロード中…",
         "upload_failed": "アップロードに失敗しました",
         "delete_failed": "添付ファイルを削除できませんでした",
-        "upload_limit_reached": "添付できるファイルは最大 {count} 件です | 添付できるファイルは最大 {count} 件です"
+        "upload_limit_reached": "添付できるファイルは最大 {count} 件です | 添付できるファイルは最大 {count} 件です",
+        "send_message": "メッセージを送信",
+        "stop_streaming": "生成を停止"
     },
     "header": {
         "toggle_sidebar": "サイドバーを切り替え",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "昨日",
         "search_group_previous_7_days": "過去7日間",
         "search_group_previous_30_days": "過去30日間",
-        "search_group_older": "それ以前"
+        "search_group_older": "それ以前",
+        "save_title": "タイトルを保存",
+        "show_password": "パスワードを表示",
+        "hide_password": "パスワードを隠す",
+        "user_fallback": "ユーザー"
     },
     "chat": {
         "message_limit_reached": "メッセージの上限に達しました",
@@ -99,7 +107,17 @@
             "expired": "このフォームは有効期限が切れています。",
             "unavailable": "このフォームはここでは送信できません。"
         },
-        "conversation_gone": "この会話はすでに存在しません。"
+        "conversation_gone": "この会話はすでに存在しません。",
+        "scroll_to_bottom": "一番下へスクロール",
+        "copy_code": "コードをクリップボードにコピー",
+        "loading_chart": "グラフを読み込み中…",
+        "powered_by": "Powered by {label}",
+        "stream_errors": {
+            "unreachable": "サーバーに接続できませんでした。もう一度お試しください。",
+            "http_status": "サーバーがステータス {status} を返しました。",
+            "interrupted": "接続が中断されました。",
+            "malformed": "サーバーから不正なデータを受信しました。"
+        }
     },
     "messages": {
         "send": "送信",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "添付ファイルを削除",
         "delete_attachment_title": "このファイルを削除しますか?",
         "delete_attachment_description": "削除すると、アシスタントは今後の返信でこのファイルにアクセスできなくなります。",
-        "delete_attachment_failed": "ファイルを削除できませんでした。もう一度お試しください。"
+        "delete_attachment_failed": "ファイルを削除できませんでした。もう一度お試しください。",
+        "responding": "アシスタントが応答しています…",
+        "response_complete": "応答が完了しました",
+        "copy_message": "メッセージをコピー",
+        "feedback_helpful": "良い応答",
+        "feedback_not_helpful": "悪い応答",
+        "edit_message": "メッセージを編集"
     },
     "errors": {
         "subscription_expired": "サブスクリプションが期限切れです",
@@ -132,7 +156,10 @@
         "title": "ナレッジソース",
         "source_count": "{count} 件のソース | {count} 件のソース",
         "description": "この応答の生成に {count} 件のソースを使用しました | この応答の生成に {count} 件のソースを使用しました",
-        "page_label": "{page} ページ"
+        "page_label": "{page} ページ",
+        "file_with_page": "{file}（{page} ページ）",
+        "fallback_title": "ソース {number}",
+        "chunk_label": "チャンク {index}"
     },
     "home": {
         "logo_alt": "ロゴ",
@@ -387,7 +414,9 @@
                 "expires_in_days": "{count} 日後に期限切れ | {count} 日後に期限切れ",
                 "expires_in_one_month": "1 か月後に期限切れ",
                 "expires_in_months": "{count} か月後に期限切れ | {count} か月後に期限切れ",
-                "conversations_count": "{count} 件の会話 | {count} 件の会話"
+                "conversations_count": "{count} 件の会話 | {count} 件の会話",
+                "refresh_conversations": "会話を更新",
+                "remove_filter": "フィルターを削除"
             },
             "pagination": {
                 "prev": "前へ",
@@ -496,7 +525,8 @@
                 "peak_negative": "最もネガティブ",
                 "sentiment_timeline": "感情のタイムライン",
                 "message_details": "メッセージの詳細",
-                "waiting": "保留中…"
+                "waiting": "保留中…",
+                "trend_stable_label": "安定"
             },
             "handoff": {
                 "locked_description": "チャットログからライブ会話を引き継ぐには、プランをアップグレードしてください。",
@@ -520,7 +550,14 @@
                 "read": "既読",
                 "sent": "送信済み",
                 "visitor_typing": "訪問者が入力中です",
-                "message_placeholder": "メッセージを入力…"
+                "message_placeholder": "メッセージを入力…",
+                "send_message": "メッセージを送信",
+                "errors": {
+                    "connect_failed": "チャットチャンネルに接続できませんでした",
+                    "takeover_failed": "会話を引き継げませんでした",
+                    "return_failed": "会話を AI に戻せませんでした",
+                    "send_failed": "メッセージを送信できませんでした"
+                }
             },
             "revise": {
                 "title": "回答を修正",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "会話のパルスを読み込めませんでした。もう一度お試しください。"
-            }
+            },
+            "refresh_messages": "メッセージを更新",
+            "delete_conversation": "会話を削除"
         },
         "guardrails": {
             "title": "ガードレール",
@@ -696,7 +735,9 @@
                     "mean_score": "全ケースの平均スコア",
                     "tokens": "トークン",
                     "tokens_note": "この実行で消費した総トークン数"
-                }
+                },
+                "back": "評価一覧に戻る",
+                "latency_value": "{ms} ミリ秒"
             },
             "index": {
                 "title": "評価",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON スキーマ",
                 "llm_judge": "LLM 審査員",
                 "tool_call": "ツール呼び出し"
+            },
+            "statuses": {
+                "running": "実行中",
+                "completed": "完了",
+                "failed": "失敗"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "トピックを削除できませんでした。もう一度お試しください。",
                 "load_error": "トピックを読み込めませんでした。もう一度お試しください。",
                 "permission_denied": "権限がありません",
-                "permission_denied_description": "トピックを管理する権限がありません。"
+                "permission_denied_description": "トピックを管理する権限がありません。",
+                "edit_topic_aria": "{topic} を編集",
+                "delete_topic_aria": "{topic} を削除"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "作成日 {date}",
                 "used_by_agents": "{count} 件のエージェントで使用中",
                 "delete_title": "Q&Aエントリを削除",
-                "delete_description": "このQ&Aエントリを削除してもよろしいですか？この操作は取り消せません。"
+                "delete_description": "このQ&Aエントリを削除してもよろしいですか？この操作は取り消せません。",
+                "remove_question": "質問を削除",
+                "actions": "操作"
             },
             "youtube": {
                 "load_failed": "YouTube動画の読み込みに失敗しました",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "有効",
                 "no_match": "一致するコネクタがありません。",
                 "soon": "近日公開",
-                "connect_first": "まず設定でこのMCPを接続してください"
+                "connect_first": "まず設定でこのMCPを接続してください",
+                "column_always": "常に有効",
+                "always_hint": "メッセージで明らかに必要とされていない場合でも、このコネクタのツールを毎ターン提供します。常に有効にできるツールは、エージェントごとに最大 10 個です。",
+                "always_failed": "「常に有効」の設定を更新できませんでした"
             },
             "functions": {
                 "load_failed": "関数の読み込みに失敗しました",
@@ -1582,7 +1635,9 @@
                 "branding": "ブランディング",
                 "behavior": "動作",
                 "settings": "設定",
-                "domain": "ドメイン"
+                "domain": "ドメイン",
+                "languages": "言語",
+                "bubbles": "チャットバブル"
             },
             "view_only_title": "閲覧のみ",
             "view_only_description": "セットアップを編集する権限がありません。",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "エージェント ID をクリップボードにコピーしました",
                 "privacy_saved": "プライバシーポリシーのリンクを保存しました",
                 "privacy_error": "プライバシーポリシーのリンクを保存できませんでした",
-                "branding_saved": "ブランディングを更新しました"
+                "branding_saved": "ブランディングを更新しました",
+                "languages_saved": "言語を保存しました",
+                "languages_error": "言語を保存できませんでした"
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "これらのオリジンのみがウィジェットを読み込めます。",
                 "keyboard_trigger": "キーボードトリガー",
-                "placement": "配置"
+                "placement": "配置",
+                "language_switcher": "言語切り替え"
             },
             "embed": {
                 "surface_preview": "画面プレビュー"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "訪問者には「チャットすることで、プライバシーポリシーに同意したものとみなされます。」と表示されます。非表示にするには空欄のままにします。",
                 "branding_badge": "「Powered by Chatvia」バッジを表示",
-                "branding_badge_hint": "このエージェントのチャットとウィジェットに Chatvia バッジを表示します。"
-            }
+                "branding_badge_hint": "このエージェントのチャットとウィジェットに Chatvia バッジを表示します。",
+                "appearance_translations_default": "デフォルト",
+                "appearance_translations_default_tip": "入力したテキストは、すべての言語に自動で翻訳されます。",
+                "appearance_translations_default_hint": "ここに入力するのが元のテキストです。保存すると自動ですべての言語に翻訳され、訪問者の言語が一覧にない場合はこのテキストが表示されます。",
+                "appearance_translations_lang_hint": "この言語のテキストをここで編集します。自動翻訳を使う場合は空欄のままにしてください。編集した内容は常に保持されます。",
+                "starters_generate": "AI で生成",
+                "starters_generate_title": "AI で会話のきっかけを生成",
+                "starters_generate_description": "ナレッジベースから生成する数を選び、追加するものを選択してください。",
+                "starters_generate_count": "いくつ生成しますか？",
+                "starters_generate_button": "生成",
+                "starters_generating": "生成中…",
+                "starters_generate_hint": "数を選んで、ナレッジベースから候補を生成します。",
+                "starters_translate_empty": "まず「デフォルト」タブできっかけを追加してから、ここで翻訳してください。"
+            },
+            "languages": {
+                "title": "UI 言語",
+                "description": "このエージェントが対応する言語を選択します。有効にした言語はホスト型チャットの言語切り替えに表示され、「情報」と「スターター」に言語ごとの入力欄が追加されます。",
+                "select_all": "すべて選択",
+                "clear_all": "すべてクリア",
+                "count": "{total} 件中 {count} 件を選択済み",
+                "hint": "訪問者向けの言語切り替えを完全に非表示にするには、「動作」でオフにしてください。",
+                "min_required": "少なくとも 1 つの言語が必要です。"
+            },
+            "bubbles_add": "バブルを追加",
+            "bubbles_remove": "バブルを削除",
+            "bubbles_empty": "チャットバブルはまだありません。",
+            "bubbles_translate_empty": "翻訳するには、まずバブルを追加してください。"
         },
         "topics_index": {
             "title": "トピック",
@@ -1865,7 +1948,10 @@
             "remove_error": "トピックの削除に失敗しました",
             "fill_fields": "すべての項目を入力してください",
             "created": "トピックを作成して追加しました",
-            "create_error": "トピックの作成に失敗しました"
+            "create_error": "トピックの作成に失敗しました",
+            "examples": "例：{titles}",
+            "previous_page": "前のページ",
+            "next_page": "次のページ"
         },
         "usage": {
             "title": "使用状況インサイト",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "「マッピング先」とは？",
             "maps_to_help_title": "連絡先フィールドへのマッピング",
             "maps_to_help_1": "この項目を、名前・メール・電話番号などの標準的な連絡先属性としてタグ付けします。これにより、訪問者が入力した値は単なる匿名の回答ではなく、その連絡先情報として認識されます。",
-            "maps_to_help_2": "マッピングされた項目はリードの詳細情報を埋め、リード一覧、重複検出、CSV エクスポートを支えます。タグ付けせずに回答だけを取得したい場合は「—」のままにしてください。"
+            "maps_to_help_2": "マッピングされた項目はリードの詳細情報を埋め、リード一覧、重複検出、CSV エクスポートを支えます。タグ付けせずに回答だけを取得したい場合は「—」のままにしてください。",
+            "subtitle": "説明",
+            "subtitle_placeholder": "例：貴社について教えてください。折り返しご連絡いたします。",
+            "subtitle_hint": "フォームのタイトルの下に、訪問者向けに表示されます。"
         },
         "submissions": {
             "page_title": "送信内容",
@@ -2103,7 +2192,8 @@
             "sending_link": "リンクを送信しています...",
             "or_continue_with": "または次で続行",
             "no_account": "アカウントをお持ちではありませんか？",
-            "start_free_trial": "無料トライアルを開始"
+            "start_free_trial": "無料トライアルを開始",
+            "create_account": "アカウントを作成"
         },
         "register": {
             "title": "アカウントを作成",
@@ -2824,7 +2914,8 @@
                 "all_agents": "すべてのエージェント",
                 "no_agents_assigned": "割り当てられたエージェントなし",
                 "agent_count": "{count} 個のエージェント | {count} 個のエージェント",
-                "delete_description": "「{name}」ロールを削除してよろしいですか？この操作は取り消せません。"
+                "delete_description": "「{name}」ロールを削除してよろしいですか？この操作は取り消せません。",
+                "toggle_permissions": "権限の表示を切り替え"
             },
             "members": {
                 "title": "チームメンバー",
@@ -2877,7 +2968,9 @@
                 "description": "このロールを持つメンバーです。このチームへのアクセスを削除できます。",
                 "empty": "このロールを持つメンバーはまだいません。",
                 "close": "閉じる"
-            }
+            },
+            "rename_team": "チーム名を変更",
+            "save_team_name": "チーム名を保存"
         },
         "roles": {
             "details": "ロールの詳細",
@@ -3161,7 +3254,8 @@
         "volume_month": "過去30日間のメッセージ量",
         "last_week": "先週",
         "last_month": "先月",
-        "messages_tooltip": "{n} 件のメッセージ | {n} 件のメッセージ"
+        "messages_tooltip": "{n} 件のメッセージ | {n} 件のメッセージ",
+        "messages_this_month": "今月のメッセージ"
     },
     "support": {
         "title": "サポート",
@@ -3250,7 +3344,8 @@
         "tokens_note": "今回のサイクルで消費した量 — 参考情報のみです。プランはメッセージ単位で請求されます。",
         "of": "/ {limit}",
         "remaining": "残り {count}",
-        "load_error": "使用状況データを読み込めません。"
+        "load_error": "使用状況データを読み込めません。",
+        "no_limit": "無制限"
     },
     "analytics_chat": {
         "title": "データに質問",
@@ -3293,7 +3388,8 @@
                 "create_title": "プロンプトを追加",
                 "description": "再利用可能なシステムプロンプトを一度作成し、各エージェントのペルソナページから任意のエージェントに添付できます。ここで編集すると、それを使用しているすべてのエージェントが更新されます。",
                 "id_label": "ID",
-                "copy_id_title": "プロンプトIDをコピー — API でエージェントを作成/更新する際に prompt_id として渡します"
+                "copy_id_title": "プロンプトIDをコピー — API でエージェントを作成/更新する際に prompt_id として渡します",
+                "copy_id": "プロンプトIDをコピー"
             },
             "form": {
                 "name": "名前",
@@ -3330,7 +3426,8 @@
                 "description": "関数を使うと、エージェントが独自の API を LLM ツールとして呼び出せます。{name} と {description} は、呼び出すかどうかを判断する際にモデルが参照する情報です — 具体的に記述してください。{learn_more}",
                 "learn_more": "詳細を見る",
                 "id_label": "ID",
-                "copy_id_title": "関数IDをコピー — API で添付する際に function_id として渡します"
+                "copy_id_title": "関数IDをコピー — API で添付する際に function_id として渡します",
+                "copy_id": "関数IDをコピー"
             },
             "form": {
                 "name": "名前",
@@ -3395,7 +3492,8 @@
                 "title": "新しい API キーをコピー",
                 "description": "{name} が表示されるのはこの一度きりです。安全な場所に保管してください — 紛失した場合は新しいキーを生成してください。",
                 "warning": "これはパスワードと同様に扱ってください。これを持つ人は誰でもあなたの代わりにエージェントをプロビジョニングできます。",
-                "confirm": "安全に保管しました"
+                "confirm": "安全に保管しました",
+                "copy": "API キーをコピー"
             },
             "revoke_dialog": {
                 "title": "API キーを失効",
@@ -3694,7 +3792,8 @@
         "account": "アカウント",
         "workspace": "ワークスペース",
         "logout": "ログアウト",
-        "language": "言語"
+        "language": "言語",
+        "open_user_menu": "ユーザーメニューを開く"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "ファイル数の上限に達しました",
             "toast_max_files_description": "アップロードできるファイルは最大 {max} 件です。",
             "toast_file_size_title": "ファイルサイズの上限を超過しました",
-            "toast_file_size_description": "次のファイルは {maxSize} MB の上限を超えています: {fileList}"
+            "toast_file_size_description": "次のファイルは {maxSize} MB の上限を超えています: {fileList}",
+            "analyze_failed": "ファイルを分析できませんでした",
+            "analyze_timed_out": "分析がタイムアウトしました - ファイルが大きすぎる可能性があります"
         },
         "voice_recorder": {
             "title_default": "音声メモを録音",
@@ -3983,7 +4084,16 @@
             "tips_heading": "ヒント:",
             "tip_speak_clearly": "一定のペースではっきりと話してください",
             "tip_quiet_environment": "最良の結果を得るには静かな環境をご利用ください",
-            "tip_max_duration": "録音の最大長: {minutes} 分 | 録音の最大長: {minutes} 分"
+            "tip_max_duration": "録音の最大長: {minutes} 分 | 録音の最大長: {minutes} 分",
+            "pause_recording": "録音を一時停止",
+            "resume_recording": "録音を再開",
+            "cancel_recording": "録音をキャンセル",
+            "play_recording": "録音を再生",
+            "pause_playback": "再生を一時停止",
+            "microphone_denied": "マイクへのアクセスが拒否されました。録音するにはマイクへのアクセスを許可してください。",
+            "microphone_not_found": "マイクが見つかりません。マイクを接続してもう一度お試しください。",
+            "microphone_failed": "マイクにアクセスできませんでした",
+            "transcription_failed": "文字起こしに失敗しました"
         },
         "date_range": {
             "pick_range": "期間を選択",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "{name} の接続を解除しました",
             "toast_disconnect_failed": "失敗しました",
             "set_all": "すべて設定",
-            "toast_bulk_permission": "{count} 個のツールを「{permission}」に設定しました | {count} 個のツールを「{permission}」に設定しました"
+            "toast_bulk_permission": "{count} 個のツールを「{permission}」に設定しました | {count} 個のツールを「{permission}」に設定しました",
+            "copy_server_id": "サーバー ID をコピー"
         },
         "member_sheet": {
             "sr_description": "このチャッターの上限、エージェントへのアクセス、ステータスを管理します。",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "サイドバーを切り替え",
             "sidebar": "サイドバー",
             "sidebar_description": "モバイル用サイドバーを表示します。"
+        },
+        "json_editor": {
+            "aria_label": "JSON エディター"
+        },
+        "time_ago": {
+            "just_now": "たった今"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Amplitude プロジェクトからプロダクト分析（イベント、チャート、コホート）をクエリします。"
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia へようこそ",
+            "intro": "最初の AI エージェントを作成しましょう。1 分ほどで完了します。",
+            "what_title": "エージェントとは？",
+            "what_body": "エージェントは、独自のコンテンツで学習させる AI アシスタントです。ウェブサイト、チャットウィジェット、メッセージングアプリでお客様の質問に回答します。",
+            "how_title": "どのような仕組みですか？",
+            "how_body": "まずエージェントを作成して名前を付けます。次に、ファイル、ウェブサイト、テキストで学習させると、質問に回答できるようになります。",
+            "start": "最初のエージェントを作成",
+            "video_caption": "動画で仕組みを見る"
         }
     }
 }

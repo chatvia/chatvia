@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// Accept a team invitation. New users set a name and password (and accept
+// the legal terms); existing users only confirm with their password.
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';

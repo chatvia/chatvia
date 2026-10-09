@@ -17,7 +17,9 @@
         "mcp_tool": "MCP-verktyg",
         "function": "Funktion",
         "approve": "Godkänn",
-        "deny": "Neka"
+        "deny": "Neka",
+        "details": "Detaljer",
+        "arguments": "Argument"
     },
     "composer": {
         "default_placeholder": "Meddelande...",
@@ -30,7 +32,9 @@
         "uploading": "Laddar upp…",
         "upload_failed": "Uppladdningen misslyckades",
         "delete_failed": "Det gick inte att ta bort bilagan",
-        "upload_limit_reached": "Du kan bifoga upp till {count} fil | Du kan bifoga upp till {count} filer"
+        "upload_limit_reached": "Du kan bifoga upp till {count} fil | Du kan bifoga upp till {count} filer",
+        "send_message": "Skicka meddelande",
+        "stop_streaming": "Stoppa genereringen"
     },
     "header": {
         "toggle_sidebar": "Växla sidopanel",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Igår",
         "search_group_previous_7_days": "Senaste 7 dagarna",
         "search_group_previous_30_days": "Senaste 30 dagarna",
-        "search_group_older": "Äldre"
+        "search_group_older": "Äldre",
+        "save_title": "Spara titel",
+        "show_password": "Visa lösenord",
+        "hide_password": "Dölj lösenord",
+        "user_fallback": "Användare"
     },
     "chat": {
         "message_limit_reached": "Du har nått din meddelandegräns",
@@ -99,7 +107,17 @@
             "expired": "Det här formuläret har gått ut.",
             "unavailable": "Det här formuläret kan inte skickas här."
         },
-        "conversation_gone": "Den här konversationen finns inte längre."
+        "conversation_gone": "Den här konversationen finns inte längre.",
+        "scroll_to_bottom": "Rulla längst ned",
+        "copy_code": "Kopiera koden till urklipp",
+        "loading_chart": "Läser in diagram…",
+        "powered_by": "Drivs av {label}",
+        "stream_errors": {
+            "unreachable": "Det gick inte att nå servern. Försök igen.",
+            "http_status": "Servern returnerade status {status}.",
+            "interrupted": "Anslutningen avbröts.",
+            "malformed": "Tog emot ogiltiga data från servern."
+        }
     },
     "messages": {
         "send": "Skicka",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Ta bort bilaga",
         "delete_attachment_title": "Ta bort den här filen?",
         "delete_attachment_description": "När du tar bort den kommer assistenten inte längre att ha tillgång till den här filen i framtida svar.",
-        "delete_attachment_failed": "Det gick inte att ta bort filen. Försök igen."
+        "delete_attachment_failed": "Det gick inte att ta bort filen. Försök igen.",
+        "responding": "Assistenten svarar…",
+        "response_complete": "Svaret är klart",
+        "copy_message": "Kopiera meddelande",
+        "feedback_helpful": "Bra svar",
+        "feedback_not_helpful": "Dåligt svar",
+        "edit_message": "Redigera meddelande"
     },
     "errors": {
         "subscription_expired": "Abonnemanget har gått ut",
@@ -132,7 +156,10 @@
         "title": "Kunskapskällor",
         "source_count": "{count} källa | {count} källor",
         "description": "{count} källa användes för att generera det här svaret | {count} källor användes för att generera det här svaret",
-        "page_label": "Sida {page}"
+        "page_label": "Sida {page}",
+        "file_with_page": "{file} (Sida {page})",
+        "fallback_title": "Källa {number}",
+        "chunk_label": "Utdrag {index}"
     },
     "home": {
         "logo_alt": "Logotyp",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Går ut om {count} dag | Går ut om {count} dagar",
                 "expires_in_one_month": "Går ut om 1 månad",
                 "expires_in_months": "Går ut om {count} månad | Går ut om {count} månader",
-                "conversations_count": "{count} konversation | {count} konversationer"
+                "conversations_count": "{count} konversation | {count} konversationer",
+                "refresh_conversations": "Uppdatera konversationer",
+                "remove_filter": "Ta bort filter"
             },
             "pagination": {
                 "prev": "Föregående",
@@ -496,7 +525,8 @@
                 "peak_negative": "Mest negativ",
                 "sentiment_timeline": "Känslolägestidslinje",
                 "message_details": "Meddelandedetaljer",
-                "waiting": "Väntar…"
+                "waiting": "Väntar…",
+                "trend_stable_label": "Stabil"
             },
             "handoff": {
                 "locked_description": "Uppgradera din plan för att ta över live-konversationer från chattloggen.",
@@ -520,7 +550,14 @@
                 "read": "Läst",
                 "sent": "Skickat",
                 "visitor_typing": "Besökaren skriver",
-                "message_placeholder": "Skriv ett meddelande…"
+                "message_placeholder": "Skriv ett meddelande…",
+                "send_message": "Skicka meddelande",
+                "errors": {
+                    "connect_failed": "Det gick inte att ansluta till chattkanalen",
+                    "takeover_failed": "Det gick inte att ta över konversationen",
+                    "return_failed": "Det gick inte att lämna tillbaka konversationen till AI",
+                    "send_failed": "Det gick inte att skicka meddelandet"
+                }
             },
             "revise": {
                 "title": "Revidera svar",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Det gick inte att ladda konversationspuls. Försök igen."
-            }
+            },
+            "refresh_messages": "Uppdatera meddelanden",
+            "delete_conversation": "Radera konversation"
         },
         "guardrails": {
             "title": "Skyddsräcken",
@@ -696,7 +735,9 @@
                     "mean_score": "Medelpoäng för alla fall",
                     "tokens": "Tokens",
                     "tokens_note": "Totalt antal tokens som förbrukades av den här körningen"
-                }
+                },
+                "back": "Tillbaka till utvärderingar",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Utvärderingar",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON-schema",
                 "llm_judge": "LLM-domare",
                 "tool_call": "Verktygsanrop"
+            },
+            "statuses": {
+                "running": "Körs",
+                "completed": "Klar",
+                "failed": "Misslyckades"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Det gick inte att ta bort ämnet. Försök igen.",
                 "load_error": "Det gick inte att ladda ämnen. Försök igen.",
                 "permission_denied": "Åtkomst nekad",
-                "permission_denied_description": "Du har inte behörighet att hantera ämnen."
+                "permission_denied_description": "Du har inte behörighet att hantera ämnen.",
+                "edit_topic_aria": "Redigera {topic}",
+                "delete_topic_aria": "Ta bort {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Skapad {date}",
                 "used_by_agents": "Används av {count} agenter",
                 "delete_title": "Ta bort Q&A-post",
-                "delete_description": "Är du säker på att du vill ta bort den här Q&A-posten? Åtgärden kan inte ångras."
+                "delete_description": "Är du säker på att du vill ta bort den här Q&A-posten? Åtgärden kan inte ångras.",
+                "remove_question": "Ta bort fråga",
+                "actions": "Åtgärder"
             },
             "youtube": {
                 "load_failed": "Det gick inte att läsa in YouTube-videor",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Aktiverad",
                 "no_match": "Inga kopplingar matchar.",
                 "soon": "Snart",
-                "connect_first": "Anslut den här MCP i Inställningar först"
+                "connect_first": "Anslut den här MCP i Inställningar först",
+                "column_always": "Alltid på",
+                "always_hint": "Erbjud den här kopplingens verktyg i varje tur, även när meddelandet inte uppenbart behöver dem. Högst 10 alltid aktiva verktyg per agent.",
+                "always_failed": "Det gick inte att uppdatera inställningen Alltid på"
             },
             "functions": {
                 "load_failed": "Det gick inte att läsa in funktioner",
@@ -1582,7 +1635,9 @@
                 "branding": "Varumärke",
                 "behavior": "Beteende",
                 "settings": "Inställningar",
-                "domain": "Domän"
+                "domain": "Domän",
+                "languages": "Språk",
+                "bubbles": "Chattbubblor"
             },
             "view_only_title": "Skrivskyddad",
             "view_only_description": "Du har inte behörighet att redigera inställningarna.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "Agent-ID kopierat till urklipp",
                 "privacy_saved": "Länk till integritetspolicy sparad",
                 "privacy_error": "Det gick inte att spara länken till integritetspolicyn",
-                "branding_saved": "Varumärke uppdaterat"
+                "branding_saved": "Varumärke uppdaterat",
+                "languages_saved": "Språk sparade",
+                "languages_error": "Det gick inte att spara språk"
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Bara dessa ursprung får ladda widgeten.",
                 "keyboard_trigger": "Tangentbordsgenväg",
-                "placement": "Placering"
+                "placement": "Placering",
+                "language_switcher": "Språkväljare"
             },
             "embed": {
                 "surface_preview": "Ytförhandsvisning"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Visas för besökare som “Genom att chatta godkänner du vår integritetspolicy.” Lämna tomt för att dölja.",
                 "branding_badge": "Visa \"Powered by Chatvia\"-märket",
-                "branding_badge_hint": "Visa Chatvia-märket i den här agentens chatt och widget."
-            }
+                "branding_badge_hint": "Visa Chatvia-märket i den här agentens chatt och widget.",
+                "appearance_translations_default": "Standard",
+                "appearance_translations_default_tip": "Texten du skriver — översätts automatiskt till alla språk.",
+                "appearance_translations_default_hint": "Det här är texten du skriver. När du sparar översätts den automatiskt till alla språk, och den visas när besökarens språk inte finns i listan.",
+                "appearance_translations_lang_hint": "Redigera det här språket här. Lämna ett fält tomt för att använda den automatiska översättningen — dina ändringar behålls alltid.",
+                "starters_generate": "Generera med AI",
+                "starters_generate_title": "Generera startfrågor med AI",
+                "starters_generate_description": "Välj hur många som ska genereras från din kunskapsbas och välj sedan vilka som ska läggas till.",
+                "starters_generate_count": "Hur många?",
+                "starters_generate_button": "Generera",
+                "starters_generating": "Genererar…",
+                "starters_generate_hint": "Välj ett antal och generera förslag från din kunskapsbas.",
+                "starters_translate_empty": "Lägg först till startfrågor på fliken Standard och översätt dem sedan här."
+            },
+            "languages": {
+                "title": "Gränssnittsspråk",
+                "description": "Välj vilka språk den här agenten stöder. Aktiverade språk visas i språkväljaren för Hosted Chat och får egna fält per språk under Info och Startfrågor.",
+                "select_all": "Välj alla",
+                "clear_all": "Rensa alla",
+                "count": "{count} av {total} valda",
+                "hint": "Om du vill dölja besökarens språkväljare helt stänger du av den under Beteende.",
+                "min_required": "Minst ett språk krävs."
+            },
+            "bubbles_add": "Lägg till bubbla",
+            "bubbles_remove": "Ta bort bubbla",
+            "bubbles_empty": "Inga chattbubblor ännu.",
+            "bubbles_translate_empty": "Lägg först till en bubbla för att kunna översätta den."
         },
         "topics_index": {
             "title": "Ämnen",
@@ -1865,7 +1948,10 @@
             "remove_error": "Det gick inte att ta bort ämnet",
             "fill_fields": "Fyll i alla fält",
             "created": "Ämnet skapades och lades till",
-            "create_error": "Det gick inte att skapa ämnet"
+            "create_error": "Det gick inte att skapa ämnet",
+            "examples": "t.ex. {titles}",
+            "previous_page": "Föregående sida",
+            "next_page": "Nästa sida"
         },
         "usage": {
             "title": "Användningsinsikter",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "Vad betyder ”Kopplas till”?",
             "maps_to_help_title": "Kopplas till ett kontaktfält",
             "maps_to_help_1": "Märker det här fältet som ett standardattribut för kontakter — Namn, E-post, Telefon och så vidare. Värdet som besökaren anger känns då igen som den kontaktuppgiften, inte bara som ett anonymt svar.",
-            "maps_to_help_2": "Kopplade fält fyller i leadens uppgifter — och driver leadlistan, dubblettidentifiering och CSV-export. Lämna det som ”—” för att fånga svaret utan att märka det."
+            "maps_to_help_2": "Kopplade fält fyller i leadens uppgifter — och driver leadlistan, dubblettidentifiering och CSV-export. Lämna det som ”—” för att fånga svaret utan att märka det.",
+            "subtitle": "Beskrivning",
+            "subtitle_placeholder": "t.ex. Berätta om ditt företag så hör vi av oss.",
+            "subtitle_hint": "Visas för besökaren under formulärets titel."
         },
         "submissions": {
             "page_title": "Inskick",
@@ -2103,7 +2192,8 @@
             "sending_link": "Skickar länk...",
             "or_continue_with": "Eller fortsätt med",
             "no_account": "Har du inget konto?",
-            "start_free_trial": "Starta gratis provperiod"
+            "start_free_trial": "Starta gratis provperiod",
+            "create_account": "Skapa ett konto"
         },
         "register": {
             "title": "Skapa ett konto",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Alla agenter",
                 "no_agents_assigned": "Inga agenter tilldelade",
                 "agent_count": "{count} agent | {count} agenter",
-                "delete_description": "Är du säker på att du vill ta bort rollen \"{name}\"? Det går inte att ångra."
+                "delete_description": "Är du säker på att du vill ta bort rollen \"{name}\"? Det går inte att ångra.",
+                "toggle_permissions": "Visa eller dölj behörigheter"
             },
             "members": {
                 "title": "Teammedlemmar",
@@ -2877,7 +2968,9 @@
                 "description": "Medlemmar med den här rollen. Du kan ta bort deras åtkomst till det här teamet.",
                 "empty": "Inga medlemmar med den här rollen ännu.",
                 "close": "Stäng"
-            }
+            },
+            "rename_team": "Byt namn på team",
+            "save_team_name": "Spara teamnamn"
         },
         "roles": {
             "details": "Rolldetaljer",
@@ -3161,7 +3254,8 @@
         "volume_month": "Meddelandevolym de senaste 30 dagarna",
         "last_week": "Förra veckan",
         "last_month": "Förra månaden",
-        "messages_tooltip": "{n} meddelande | {n} meddelanden"
+        "messages_tooltip": "{n} meddelande | {n} meddelanden",
+        "messages_this_month": "Meddelanden denna månad"
     },
     "support": {
         "title": "Support",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Förbrukat denna period — endast för information; din plan faktureras per meddelanden.",
         "of": "av {limit}",
         "remaining": "{count} kvar",
-        "load_error": "Det gick inte att läsa in användningsdata."
+        "load_error": "Det gick inte att läsa in användningsdata.",
+        "no_limit": "Ingen gräns"
     },
     "analytics_chat": {
         "title": "Fråga din data",
@@ -3293,7 +3388,8 @@
                 "create_title": "Lägg till en prompt",
                 "description": "Skriv en återanvändbar systemprompt en gång och bifoga den sedan till valfri agent från dess Persona-sida. Redigerar du den här uppdateras varje agent som använder den.",
                 "id_label": "ID",
-                "copy_id_title": "Kopiera prompt-ID — skicka som prompt_id när du skapar/uppdaterar en agent via API:et"
+                "copy_id_title": "Kopiera prompt-ID — skicka som prompt_id när du skapar/uppdaterar en agent via API:et",
+                "copy_id": "Kopiera prompt-ID"
             },
             "form": {
                 "name": "Namn",
@@ -3330,7 +3426,8 @@
                 "description": "Funktioner låter dina agenter anropa dina egna API:er som LLM-verktyg. {name} och {description} är vad modellen ser när den avgör om den ska anropa den — var specifik. {learn_more}",
                 "learn_more": "Läs mer",
                 "id_label": "ID",
-                "copy_id_title": "Kopiera funktions-ID — skicka som function_id när du bifogar via API:et"
+                "copy_id_title": "Kopiera funktions-ID — skicka som function_id när du bifogar via API:et",
+                "copy_id": "Kopiera funktions-ID"
             },
             "form": {
                 "name": "Namn",
@@ -3395,7 +3492,8 @@
                 "title": "Kopiera din nya API-nyckel",
                 "description": "Det här är enda gången du ser {name}. Förvara den på ett säkert ställe — om du tappar bort den måste du generera en ny.",
                 "warning": "Behandla den här som ett lösenord. Vem som helst med den kan skapa agenter åt dig.",
-                "confirm": "Jag har sparat den på ett säkert ställe"
+                "confirm": "Jag har sparat den på ett säkert ställe",
+                "copy": "Kopiera API-nyckel"
             },
             "revoke_dialog": {
                 "title": "Återkalla API-nyckel",
@@ -3694,7 +3792,8 @@
         "account": "Konto",
         "workspace": "Arbetsyta",
         "logout": "Logga ut",
-        "language": "Språk"
+        "language": "Språk",
+        "open_user_menu": "Öppna användarmenyn"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Maxgränsen för filer är nådd",
             "toast_max_files_description": "Du kan bara ladda upp maximalt {max} filer.",
             "toast_file_size_title": "Filstorleksgränsen överskreds",
-            "toast_file_size_description": "Följande fil(er) överskrider gränsen på {maxSize} MB: {fileList}"
+            "toast_file_size_description": "Följande fil(er) överskrider gränsen på {maxSize} MB: {fileList}",
+            "analyze_failed": "Det gick inte att analysera filen",
+            "analyze_timed_out": "Analysen tog för lång tid – filen kan vara för stor"
         },
         "voice_recorder": {
             "title_default": "Spela in röstmeddelande",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Tips:",
             "tip_speak_clearly": "Tala tydligt och i ett jämnt tempo",
             "tip_quiet_environment": "Använd en tyst miljö för bästa resultat",
-            "tip_max_duration": "Maximal inspelningstid: {minutes} minut | Maximal inspelningstid: {minutes} minuter"
+            "tip_max_duration": "Maximal inspelningstid: {minutes} minut | Maximal inspelningstid: {minutes} minuter",
+            "pause_recording": "Pausa inspelningen",
+            "resume_recording": "Återuppta inspelningen",
+            "cancel_recording": "Avbryt inspelningen",
+            "play_recording": "Spela upp inspelningen",
+            "pause_playback": "Pausa uppspelningen",
+            "microphone_denied": "Åtkomst till mikrofonen nekades. Tillåt åtkomst till mikrofonen för att spela in.",
+            "microphone_not_found": "Ingen mikrofon hittades. Anslut en mikrofon och försök igen.",
+            "microphone_failed": "Det gick inte att komma åt mikrofonen",
+            "transcription_failed": "Transkriberingen misslyckades"
         },
         "date_range": {
             "pick_range": "Välj ett datumintervall",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "Kopplade från {name}",
             "toast_disconnect_failed": "Misslyckades",
             "set_all": "Ställ in alla",
-            "toast_bulk_permission": "Ställde in {count} verktyg på ”{permission}” | Ställde in {count} verktyg på ”{permission}”"
+            "toast_bulk_permission": "Ställde in {count} verktyg på ”{permission}” | Ställde in {count} verktyg på ”{permission}”",
+            "copy_server_id": "Kopiera server-ID"
         },
         "member_sheet": {
             "sr_description": "Hantera den här chatterns gränser, agentåtkomst och status.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Växla sidopanel",
             "sidebar": "Sidopanel",
             "sidebar_description": "Visar den mobila sidopanelen."
+        },
+        "json_editor": {
+            "aria_label": "JSON-redigerare"
+        },
+        "time_ago": {
+            "just_now": "Just nu"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Hämta produktanalys — händelser, diagram och kohorter — från ditt Amplitude-projekt."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Välkommen till Chatvia",
+            "intro": "Nu skapar vi din första AI-agent. Det tar bara en minut.",
+            "what_title": "Vad är en agent?",
+            "what_body": "En agent är en AI-assistent som du tränar på ditt eget innehåll. Den svarar dina kunder på din webbplats, i chattwidgeten och i meddelandeappar.",
+            "how_title": "Hur fungerar det?",
+            "how_body": "Först skapar du en agent och ger den ett namn. Sedan tränar du den med dina filer, webbplatser och texter så att den kan svara på frågor.",
+            "start": "Skapa min första agent",
+            "video_caption": "Se hur det fungerar"
         }
     }
 }

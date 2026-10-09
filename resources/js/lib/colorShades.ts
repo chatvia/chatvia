@@ -1,3 +1,7 @@
+/**
+ * The Tailwind colour stops a theme palette defines, and a helper that snaps
+ * any shade value to the nearest real stop.
+ */
 // Tailwind exposes only these 11 stops per color (see resources/css/app.css).
 // Any other value — e.g. an intermediate 550 produced by an older slider — has
 // no `--{theme}-{shade}` custom property, so referencing it yields a blank

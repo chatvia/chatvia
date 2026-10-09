@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Export;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\ExportChatRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ChatExportFormat;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
@@ -30,9 +32,12 @@ readonly class ChatExportController
         private MarkdownRenderer $markdown,
     ) {}
 
-    public function __invoke(ExportChatRequest $request, string $conversationId): PdfBuilder|BinaryFileResponse
-    {
-        $this->memory->withScope($this->session->scope(current_agent(), $conversationId));
+    public function __invoke(
+        ExportChatRequest $request,
+        string $conversationId,
+        #[HostedChatAgent] Agent $agent,
+    ): PdfBuilder|BinaryFileResponse {
+        $this->memory->withScope($this->session->scope($agent, $conversationId));
 
         $messages = $this->messages($request->messageId());
         $filename = Str::slug($this->memory->getConversationById($conversationId)?->title ?? '');

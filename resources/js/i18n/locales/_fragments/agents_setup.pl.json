@@ -216,7 +216,7 @@
                 "starters_add": "Dodaj starter",
                 "starters_tip": "Dobre wiadomości startowe to konkretne pytania, które prezentują możliwości Twojego agenta",
                 "starters_add_label": "Dodaj startery",
-                "starters_add_count": "Dodaj {count} starter | Dodaj {count} startery | Dodaj {count} starterów",
+                "starters_add_count": "Dodaj {count} starter | Dodaj {count} starterów",
                 "appearance_chat_title": "Tytuł okna czatu",
                 "appearance_chat_title_placeholder": "Czat z naszym asystentem AI",
                 "appearance_welcome": "Wiadomość powitalna",

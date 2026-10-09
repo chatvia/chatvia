@@ -2,13 +2,13 @@
 
 namespace App\Http\Requests\Team;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Membership\Team\Data\InviteTeamMemberData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Support\Enums\User\UserType;
 
 /**
  * Adding someone to a team: either a managed user picked by id or an email

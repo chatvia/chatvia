@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 use Domain\Widget\Services\WidgetVerification;
@@ -22,6 +24,7 @@ class ConversationMessageController
      */
     public function __invoke(
         Request $request,
+        #[WidgetAgent] Agent $agent,
         ChatMemory $memory,
         WidgetVerification $verification,
         MessageAttachmentHydrator $hydrator,
@@ -32,8 +35,6 @@ class ConversationMessageController
         if ($sessionId === null || $conversationId === null) {
             return response()->json(['error' => 'Missing thread/session ID'], JsonResponse::HTTP_BAD_REQUEST);
         }
-
-        $agent = $this->widgetAgent();
 
         // The conversation must belong to this agent, or a conversation id from
         // agent A could be read while faking agent B. On a protected agent it

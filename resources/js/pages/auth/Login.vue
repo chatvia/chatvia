@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Workspace sign-in: password or magic link (tabs), passkeys (button and
+// browser autofill), and social sign-in. Passkey autofill is armed on mount
+// and cancelled on leave so the browser prompt does not outlive the page.
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Embed;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatPageProps;
+use Domain\Agent\Models\Agent;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -11,10 +13,8 @@ use Inertia\Response;
  */
 class ChatEmbedController
 {
-    public function __invoke(string $conversationId): Response
+    public function __invoke(string $conversationId, #[HostedChatAgent] ?Agent $agent): Response
     {
-        $agent = current_agent();
-
         return Inertia::render('chat/Chat', [
             ...HostedChatPageProps::for($agent),
             'agent_id' => $agent?->id,

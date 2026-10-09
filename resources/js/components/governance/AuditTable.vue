@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// The tool-call audit log table shared by the per-agent Audit page and the
+// workspace Governance page: outcome / connector (/ agent) filters, cursor
+// pagination, and a detail dialog with the call's arguments and result.
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,42 +18,12 @@ import { Marked } from 'marked';
 import { markedHighlight } from 'marked-highlight';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { AuditPaginator, AuditRow } from './types';
 
 const { t } = useI18n();
 
-interface AuditRow {
-    id: number;
-    created_at: string | null;
-    outcome: string;
-    agent_id: number | null;
-    agent_name: string;
-    agent_external_id: string | null;
-    user_id: number | null;
-    user_name: string | null;
-    avatar: string | null;
-    trace_id: string | null;
-    tool_name: string | null;
-    tool_kind: string | null;
-    connector_slug: string | null;
-    connector_name: string | null;
-    is_error: boolean;
-    gated: boolean;
-    latency_ms: number | null;
-    arguments: unknown;
-    result_text: string | null;
-    conversation_external_id: string | null;
-}
-
-// Cursor paginator: the audit log is unbounded, so the backend never
-// computes a total — prev/next URLs are the whole navigation contract.
-interface Paginator<T> {
-    data: T[];
-    prev_page_url: string | null;
-    next_page_url: string | null;
-}
-
 interface Props {
-    rows: Paginator<AuditRow>;
+    rows: AuditPaginator;
     outcomes: string[];
     connectors: { slug: string; name: string }[];
     agents?: { id: number; name: string }[];

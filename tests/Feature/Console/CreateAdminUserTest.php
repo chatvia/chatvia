@@ -1,9 +1,9 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Enums\MessageAdmission;
 use Domain\Billing\Services\MessageSendGate;
-use Support\Enums\User\UserType;
 
 /**
  * `admin:create-user` is how a self-hosted install creates its first account,

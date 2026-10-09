@@ -1,4 +1,12 @@
 <script setup lang="ts">
+/**
+ * One visitor prompt in the hosted chat: the text bubble with its attachment
+ * chips, and hover actions to copy, edit (re-asks the question) or delete the
+ * prompt together with its reply.
+ */
+import { deleteConversationAttachment, deleteMessage as deleteMessageRequest } from '@/api/chat';
+import { errorMessage } from '@/api/http';
+import MessageAttachmentChip from '@/components/chat/MessageAttachmentChip.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -12,74 +20,50 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import type { Message } from '@/types/chat';
-import { usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import { Check, Copy, Edit3, Trash2, X } from 'lucide-vue-next';
+import type { ChatAttachment, Message } from '@/types/chat';
+import { useClipboard } from '@vueuse/core';
+import { Check, Copy, Edit3, Trash2 } from 'lucide-vue-next';
 import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
-const { t } = useI18n();
+type MessageId = string | number;
 
 const props = defineProps<{
     message: Message;
-    assistantMessageId?: string | number;
+    assistantMessageId?: MessageId;
     conversationId?: string;
     isRTL?: boolean;
 }>();
 
 const emit = defineEmits<{
-    messageUpdated: [id: string | number, content: string];
-    messageDeleted: [id: string | number];
-    messageEdited: [userMessageId: string | number, assistantMessageId: string | number, newContent: string];
-    attachmentDeleted: [messageId: string | number, attachmentId: string];
+    messageUpdated: [id: MessageId, content: string];
+    messageDeleted: [id: MessageId];
+    messageEdited: [userMessageId: MessageId, assistantMessageId: MessageId, newContent: string];
+    attachmentDeleted: [messageId: MessageId, attachmentId: string];
 }>();
 
-const page = usePage();
-const _user = (page.props as any).auth?.user;
+const { t } = useI18n();
+const { copy, copied: isCopied } = useClipboard({ legacy: true, copiedDuring: 2000 });
 
 const isEditing = ref(false);
 const editedContent = ref('');
-const isCopied = ref(false);
 
-// Read attachments from the message itself. The backend hydrates this
-// field per-message in ConversationMessageController; freshly-sent
-// messages get them from Chat.vue's messageAdded (ChatComposer emit).
-const attachments = computed<Array<{ id: string; url: string; filename: string; mime_type: string; size_bytes: number }>>(
-    () => (props.message as any).attachments ?? props.message.metadata?.attachments ?? [],
-);
+// The server merges attachments onto each message; fresh prompts carry the
+// composer's copy, and older ones may only have it under metadata.
+const attachments = computed<ChatAttachment[]>(() => props.message.attachments ?? props.message.metadata?.attachments ?? []);
 
-function formatBytes(bytes: number): string {
-    if (!bytes) return '';
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return Math.round(bytes / 1024) + ' KB';
-    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-}
-
-// Resolve a chip icon from public/images/icons/files/{ext}.svg, with a
-// generic fallback when we don't ship an icon for that type yet. Add a
-// new SVG to that folder and the chip picks it up automatically.
-const KNOWN_EXTENSIONS = new Set(['pdf']);
-function iconForFile(att: { filename: string; mime_type: string }): string {
-    const ext = att.filename.split('.').pop()?.toLowerCase();
-    if (ext && KNOWN_EXTENSIONS.has(ext)) {
-        return `/images/icons/files/${ext}.svg`;
-    }
-    if (att.mime_type === 'application/pdf') return '/images/icons/files/pdf.svg';
-    return '/images/icons/files/file.svg';
-}
+/** Server ids only: a missing id cannot be acted on yet. */
+const persistedId = computed<MessageId | null>(() => (props.message.id === undefined || props.message.id === null ? null : props.message.id));
 
 function startEditing() {
     editedContent.value = props.message.content;
     isEditing.value = true;
 
     nextTick(() => {
-        const textarea = document.getElementById(`edit-user-${props.message.id}`);
-        if (textarea) {
-            (textarea as HTMLTextAreaElement).focus();
-            (textarea as HTMLTextAreaElement).select();
-        }
+        const textarea = document.getElementById(`edit-user-${props.message.id}`) as HTMLTextAreaElement | null;
+        textarea?.focus();
+        textarea?.select();
     });
 }
 
@@ -88,20 +72,20 @@ function cancelEditing() {
     editedContent.value = '';
 }
 
+// With a paired reply the edit regenerates it; otherwise the prompt is updated in place.
 function saveEditedMessage() {
-    if (!editedContent.value.trim() || props.message.id === undefined) return;
+    const content = editedContent.value.trim();
+    if (!content || persistedId.value === null) return;
 
-    // If assistant message ID exists, emit messageEdited for regeneration flow
     if (props.assistantMessageId !== undefined) {
-        emit('messageEdited', props.message.id, props.assistantMessageId, editedContent.value.trim());
+        emit('messageEdited', persistedId.value, props.assistantMessageId, content);
     } else {
-        // Fallback to old behavior
-        emit('messageUpdated', props.message.id, editedContent.value.trim());
+        emit('messageUpdated', persistedId.value, content);
     }
     isEditing.value = false;
 }
 
-function handleEditKeyDown(event: KeyboardEvent) {
+function onEditKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         saveEditedMessage();
@@ -110,54 +94,30 @@ function handleEditKeyDown(event: KeyboardEvent) {
     }
 }
 
-async function copyToClipboard() {
-    try {
-        await navigator.clipboard.writeText(props.message.content);
-        isCopied.value = true;
-        setTimeout(() => {
-            isCopied.value = false;
-        }, 2000);
-    } catch (err) {
-        console.error('Failed to copy text:', err);
-    }
-}
-
+/**
+ * The chip disappears immediately; the server delete also removes the stored
+ * file, so earlier replies that referenced it can no longer re-read it (the
+ * confirmation dialog warns about this).
+ */
 async function deleteAttachment(attachmentId: string) {
-    if (!props.conversationId || props.message.id === undefined) return;
+    if (!props.conversationId || persistedId.value === null) return;
 
-    // Optimistic emit so the chip disappears with the dialog close. The
-    // server delete fires the model's `deleting` hook → S3 wipe. The Mistral
-    // document_url retry path for any past assistant turn that referenced
-    // this file will 404 — which is what the AlertDialog warned about.
-    emit('attachmentDeleted', props.message.id, attachmentId);
+    emit('attachmentDeleted', persistedId.value, attachmentId);
     try {
-        await axios.delete(
-            route('chat.conversations.attachments.delete', {
-                conversationId: props.conversationId,
-                attachment: attachmentId,
-            }),
-        );
-    } catch (e: unknown) {
-        const err = e as { response?: { data?: { message?: string } } };
-        const msg = err.response?.data?.message ?? t('messages.delete_attachment_failed', 'Could not remove the file. Please try again.');
-        toast.error(msg);
+        await deleteConversationAttachment(props.conversationId, attachmentId);
+    } catch (error) {
+        toast.error(errorMessage(error, t('messages.delete_attachment_failed')));
     }
 }
 
 async function deleteMessage() {
-    if (props.message.id !== undefined && props.conversationId) {
-        try {
-            await axios.delete(route('chat.messages.delete'), {
-                data: {
-                    conversation_id: props.conversationId,
-                    message_id: props.message.id,
-                },
-            });
+    if (persistedId.value === null || !props.conversationId) return;
 
-            emit('messageDeleted', props.message.id);
-        } catch (error) {
-            console.error('Failed to delete message:', error);
-        }
+    try {
+        await deleteMessageRequest(props.conversationId, persistedId.value);
+        emit('messageDeleted', persistedId.value);
+    } catch {
+        // The message stays in place, which tells the visitor the delete did not happen.
     }
 }
 </script>
@@ -165,7 +125,6 @@ async function deleteMessage() {
 <template>
     <div class="group flex w-full items-start justify-end gap-3">
         <div class="flex min-w-0 flex-1 flex-col items-end">
-            <!-- Edit mode - full width card -->
             <div v-if="isEditing" class="w-full max-w-2xl">
                 <div class="bg-muted rounded-2xl p-4">
                     <Textarea
@@ -173,7 +132,7 @@ async function deleteMessage() {
                         v-model="editedContent"
                         class="text-foreground min-h-[60px] w-full resize-none !border-0 bg-transparent p-0 text-[15px] leading-relaxed !shadow-none !ring-0 focus:!border-0 focus:!ring-0 focus:!outline-none focus-visible:!ring-0 focus-visible:!outline-none"
                         :rows="3"
-                        @keydown="handleEditKeyDown"
+                        @keydown="onEditKeydown"
                     />
                     <div class="mt-4 flex justify-end gap-2">
                         <Button variant="outline" @click="cancelEditing" class="h-9 rounded-full px-5 text-sm font-medium">{{
@@ -189,64 +148,19 @@ async function deleteMessage() {
                 </div>
             </div>
 
-            <!-- Normal display mode. Attachment chips render BELOW the
-                 bubble (user just sent these — they should appear after
-                 the message text). Each chip uses a custom file icon
-                 from public/images/icons/files/ keyed off the extension. -->
+            <!-- Attachment chips sit below the text: the visitor just sent them after typing. -->
             <div v-else class="flex max-w-[75%] flex-col items-end gap-2">
-                <!-- Text bubble -->
                 <div v-if="message.content?.trim()" class="bg-primary text-primary-foreground rounded-2xl rounded-ee-md px-4 py-3 shadow-sm">
                     <p class="text-[15px] leading-relaxed break-words whitespace-pre-wrap" :data-rtl="isRTL">{{ message.content }}</p>
                 </div>
 
-                <!-- Attachment chips. Hovering reveals a small X — clicking
-                     opens an AlertDialog that warns the assistant will lose
-                     access to the file. -->
                 <div v-if="attachments.length > 0" class="flex flex-wrap justify-end gap-2">
-                    <div v-for="att in attachments" :key="att.id" class="group/chip relative">
-                        <a
-                            :href="att.url"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="bg-card text-foreground hover:bg-muted/50 inline-flex max-w-[260px] items-center gap-2 rounded-lg border px-3 py-2 text-xs transition-colors"
-                        >
-                            <img :src="iconForFile(att)" :alt="att.mime_type" class="h-6 w-6 shrink-0" />
-                            <div class="flex min-w-0 flex-col items-start leading-tight">
-                                <span class="max-w-[180px] truncate font-medium">{{ att.filename }}</span>
-                                <span class="text-muted-foreground text-[11px]">{{ formatBytes(att.size_bytes) }}</span>
-                            </div>
-                        </a>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <button
-                                    type="button"
-                                    class="bg-card text-muted-foreground absolute -end-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full border opacity-0 shadow-sm transition-opacity group-hover/chip:opacity-100 hover:bg-red-500/10 hover:text-red-600 focus:opacity-100"
-                                    :aria-label="t('messages.delete_attachment_aria', 'Remove attachment')"
-                                >
-                                    <X class="h-3 w-3" />
-                                </button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent class="rounded-2xl">
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>{{ t('messages.delete_attachment_title', 'Remove this file?') }}</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        {{
-                                            t(
-                                                'messages.delete_attachment_description',
-                                                'After you remove it, the assistant will no longer have access to this file in future replies.',
-                                            )
-                                        }}
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel class="rounded-lg">{{ t('common.cancel') }}</AlertDialogCancel>
-                                    <AlertDialogAction @click="deleteAttachment(att.id)" class="rounded-lg bg-red-600 hover:bg-red-700">
-                                        {{ t('common.delete') }}
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
+                    <MessageAttachmentChip
+                        v-for="attachment in attachments"
+                        :key="attachment.id"
+                        :attachment="attachment"
+                        @remove="deleteAttachment"
+                    />
                 </div>
             </div>
 
@@ -255,7 +169,8 @@ async function deleteMessage() {
                     size="icon"
                     variant="ghost"
                     class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
-                    @click="copyToClipboard"
+                    :aria-label="t('messages.copy_message')"
+                    @click="copy(message.content)"
                 >
                     <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
                     <Copy v-else class="h-3.5 w-3.5" />
@@ -265,13 +180,19 @@ async function deleteMessage() {
                     size="icon"
                     variant="ghost"
                     class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
+                    :aria-label="t('messages.edit_message')"
                     @click="startEditing"
                 >
                     <Edit3 class="h-3.5 w-3.5" />
                 </Button>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button size="icon" variant="ghost" class="text-muted-foreground h-7 w-7 hover:bg-red-500/10 hover:text-red-600">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            class="text-muted-foreground h-7 w-7 hover:bg-red-500/10 hover:text-red-600"
+                            :aria-label="t('common.delete')"
+                        >
                             <Trash2 class="h-3.5 w-3.5" />
                         </Button>
                     </AlertDialogTrigger>
@@ -294,21 +215,10 @@ async function deleteMessage() {
 </template>
 
 <style scoped>
-/* RTL Support for user message content */
+/* Right-to-left prompt text, in a system Arabic font when one is installed. */
 [data-rtl='true'] {
-    text-align: right;
+    text-align: start;
     direction: rtl;
-    font-family:
-        'Noto Sans Arabic',
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        Roboto,
-        sans-serif;
-}
-
-/* Arabic Font Support for RTL content */
-[data-rtl='true'] p {
     font-family:
         'Noto Sans Arabic',
         -apple-system,

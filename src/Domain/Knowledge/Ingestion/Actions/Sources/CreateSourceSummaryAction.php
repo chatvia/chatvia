@@ -2,6 +2,8 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
+use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ContentAnalyzer;
@@ -28,6 +30,8 @@ class CreateSourceSummaryAction
         private readonly Summarizer $summarizer,
         private readonly CostCalculator $costCalculator,
         private readonly DocumentLlm $documentLlm,
+        private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly LibreOffice $office,
     ) {}
 
     public function execute(SourceFile|SourceText|SourceWebsite $source): ?Chunk
@@ -50,14 +54,14 @@ class CreateSourceSummaryAction
             'chunk' => $summaryText,
             'summary' => '',
             'questions' => $questions !== '' ? $questions : null,
-            'questions_embedding' => $questions !== '' ? embed($questions, true) : null,
+            'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
             'questions_embedding_bm25' => $questions !== '' ? Bm25Tokenizer::expression($questions) : null,
             'chunked_using_model' => config('chatvia.ai.models.chunker'),
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
                 $this->llmCost($analyzed, $summary) + $this->embeddingCost($plainSummary) + $this->embeddingCost($questions),
             ),
             'tokens' => TikToken::countTokens($summaryText),
-            'embedding' => embed($plainSummary, true),
+            'embedding' => $this->embeddings->embed($plainSummary, true),
             'embedding_bm25' => Bm25Tokenizer::expression($plainSummary),
             'metadata' => $analyzed->analysis->metadata->toArray(),
             'checksum' => hash('xxh128', $summaryText),
@@ -74,7 +78,7 @@ class CreateSourceSummaryAction
      */
     private function readDocument(SourceFile|SourceText|SourceWebsite $source): array
     {
-        return $source->withPdf(function (string $pdfPath) use ($source): array {
+        return $source->withPdf($this->office, function (string $pdfPath) use ($source): array {
             $pdfUrl = Storage::temporaryUrl($pdfPath, now()->addDay());
 
             $analyzed = $this->contentAnalyzer->analyze($pdfUrl);

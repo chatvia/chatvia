@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Activity;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Activity\MarkMessagesReadAction;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -23,16 +25,17 @@ readonly class MarkReadController
         private MarkMessagesReadAction $markRead,
     ) {}
 
-    public function __invoke(Request $request, FindWidgetConversationAction $findConversation): JsonResponse|WidgetMarkReadResultData
-    {
+    public function __invoke(
+        Request $request,
+        #[WidgetAgent] Agent $agent,
+        FindWidgetConversationAction $findConversation,
+    ): JsonResponse|WidgetMarkReadResultData {
         $sessionId = $this->widgetSessionId($request);
         $conversationId = $request->input('conversation_id') ?? $this->widgetConversationId($request);
 
         if ($sessionId === null || ! $conversationId) {
             return response()->json(['error' => 'Missing required parameters'], JsonResponse::HTTP_BAD_REQUEST);
         }
-
-        $agent = $this->widgetAgent();
 
         // Without this check anyone with a conversation id could mark another
         // visitor's messages as read.

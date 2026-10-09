@@ -17,7 +17,9 @@
         "mcp_tool": "Công cụ MCP",
         "function": "Hàm",
         "approve": "Phê duyệt",
-        "deny": "Từ chối"
+        "deny": "Từ chối",
+        "details": "Chi tiết",
+        "arguments": "Đối số"
     },
     "composer": {
         "default_placeholder": "Tin nhắn…",
@@ -30,7 +32,9 @@
         "uploading": "Đang tải lên…",
         "upload_failed": "Tải lên thất bại",
         "delete_failed": "Không thể xóa tệp đính kèm",
-        "upload_limit_reached": "Bạn có thể đính kèm tối đa {count} tệp | Bạn có thể đính kèm tối đa {count} tệp"
+        "upload_limit_reached": "Bạn có thể đính kèm tối đa {count} tệp | Bạn có thể đính kèm tối đa {count} tệp",
+        "send_message": "Gửi tin nhắn",
+        "stop_streaming": "Dừng tạo"
     },
     "header": {
         "toggle_sidebar": "Bật/tắt thanh bên",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Hôm qua",
         "search_group_previous_7_days": "7 ngày trước",
         "search_group_previous_30_days": "30 ngày trước",
-        "search_group_older": "Cũ hơn"
+        "search_group_older": "Cũ hơn",
+        "save_title": "Lưu tiêu đề",
+        "show_password": "Hiện mật khẩu",
+        "hide_password": "Ẩn mật khẩu",
+        "user_fallback": "Người dùng"
     },
     "chat": {
         "message_limit_reached": "Bạn đã đạt giới hạn tin nhắn",
@@ -99,7 +107,17 @@
             "expired": "Biểu mẫu này đã hết hạn.",
             "unavailable": "Không thể gửi biểu mẫu này tại đây."
         },
-        "conversation_gone": "Cuộc trò chuyện này không còn tồn tại."
+        "conversation_gone": "Cuộc trò chuyện này không còn tồn tại.",
+        "scroll_to_bottom": "Cuộn xuống cuối",
+        "copy_code": "Sao chép mã vào bộ nhớ tạm",
+        "loading_chart": "Đang tải biểu đồ…",
+        "powered_by": "Được hỗ trợ bởi {label}",
+        "stream_errors": {
+            "unreachable": "Không thể kết nối tới máy chủ. Vui lòng thử lại.",
+            "http_status": "Máy chủ trả về trạng thái {status}.",
+            "interrupted": "Kết nối đã bị gián đoạn.",
+            "malformed": "Nhận được dữ liệu không hợp lệ từ máy chủ."
+        }
     },
     "messages": {
         "send": "Gửi",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Xóa tệp đính kèm",
         "delete_attachment_title": "Xóa tệp này?",
         "delete_attachment_description": "Sau khi bạn xóa, trợ lý sẽ không còn truy cập được tệp này trong các phản hồi sau.",
-        "delete_attachment_failed": "Không thể xóa tệp. Vui lòng thử lại."
+        "delete_attachment_failed": "Không thể xóa tệp. Vui lòng thử lại.",
+        "responding": "Trợ lý đang phản hồi…",
+        "response_complete": "Đã phản hồi xong",
+        "copy_message": "Sao chép tin nhắn",
+        "feedback_helpful": "Phản hồi tốt",
+        "feedback_not_helpful": "Phản hồi chưa tốt",
+        "edit_message": "Sửa tin nhắn"
     },
     "errors": {
         "subscription_expired": "Gói đăng ký đã hết hạn",
@@ -132,7 +156,10 @@
         "title": "Nguồn tri thức",
         "source_count": "{count} Nguồn | {count} Nguồn",
         "description": "{count} nguồn được dùng để tạo phản hồi này | {count} nguồn được dùng để tạo phản hồi này",
-        "page_label": "Trang {page}"
+        "page_label": "Trang {page}",
+        "file_with_page": "{file} (Trang {page})",
+        "fallback_title": "Nguồn {number}",
+        "chunk_label": "Đoạn {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Hết hạn sau {count} ngày | Hết hạn sau {count} ngày",
                 "expires_in_one_month": "Hết hạn sau 1 tháng",
                 "expires_in_months": "Hết hạn sau {count} tháng | Hết hạn sau {count} tháng",
-                "conversations_count": "{count} cuộc trò chuyện | {count} cuộc trò chuyện"
+                "conversations_count": "{count} cuộc trò chuyện | {count} cuộc trò chuyện",
+                "refresh_conversations": "Làm mới cuộc trò chuyện",
+                "remove_filter": "Bỏ bộ lọc"
             },
             "pagination": {
                 "prev": "Trước",
@@ -496,7 +525,8 @@
                 "peak_negative": "Tiêu cực cao nhất",
                 "sentiment_timeline": "Dòng thời gian cảm xúc",
                 "message_details": "Chi tiết tin nhắn",
-                "waiting": "Đang chờ…"
+                "waiting": "Đang chờ…",
+                "trend_stable_label": "Ổn định"
             },
             "handoff": {
                 "locked_description": "Nâng cấp gói dịch vụ để tiếp quản các cuộc trò chuyện trực tiếp từ nhật ký trò chuyện.",
@@ -520,7 +550,14 @@
                 "read": "Đã đọc",
                 "sent": "Đã gửi",
                 "visitor_typing": "Khách truy cập đang nhập",
-                "message_placeholder": "Nhập tin nhắn…"
+                "message_placeholder": "Nhập tin nhắn…",
+                "send_message": "Gửi tin nhắn",
+                "errors": {
+                    "connect_failed": "Không thể kết nối tới kênh trò chuyện",
+                    "takeover_failed": "Không thể tiếp quản cuộc trò chuyện",
+                    "return_failed": "Không thể trả cuộc trò chuyện lại cho AI",
+                    "send_failed": "Không thể gửi tin nhắn"
+                }
             },
             "revise": {
                 "title": "Chỉnh sửa câu trả lời",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Không thể tải nhịp cảm xúc cuộc trò chuyện. Vui lòng thử lại."
-            }
+            },
+            "refresh_messages": "Làm mới tin nhắn",
+            "delete_conversation": "Xóa cuộc trò chuyện"
         },
         "guardrails": {
             "title": "Quy tắc kiểm soát",
@@ -696,7 +735,9 @@
                     "mean_score": "Điểm trung bình trên tất cả trường hợp",
                     "tokens": "Token",
                     "tokens_note": "Tổng số token mà lần chạy này tiêu thụ"
-                }
+                },
+                "back": "Quay lại đánh giá",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Đánh giá",
@@ -818,6 +859,11 @@
                 "json_schema": "Lược đồ JSON",
                 "llm_judge": "Giám khảo LLM",
                 "tool_call": "Lệnh gọi công cụ"
+            },
+            "statuses": {
+                "running": "Đang chạy",
+                "completed": "Hoàn tất",
+                "failed": "Thất bại"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Không thể xóa chủ đề. Vui lòng thử lại.",
                 "load_error": "Không thể tải chủ đề. Vui lòng thử lại.",
                 "permission_denied": "Không có quyền",
-                "permission_denied_description": "Bạn không có quyền quản lý chủ đề."
+                "permission_denied_description": "Bạn không có quyền quản lý chủ đề.",
+                "edit_topic_aria": "Chỉnh sửa {topic}",
+                "delete_topic_aria": "Xóa {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Đã tạo {date}",
                 "used_by_agents": "Được {count} trợ lý AI sử dụng",
                 "delete_title": "Xóa mục Hỏi & Đáp",
-                "delete_description": "Bạn có chắc muốn xóa mục Hỏi & Đáp này không? Hành động này không thể hoàn tác."
+                "delete_description": "Bạn có chắc muốn xóa mục Hỏi & Đáp này không? Hành động này không thể hoàn tác.",
+                "remove_question": "Xóa câu hỏi",
+                "actions": "Thao tác"
             },
             "youtube": {
                 "load_failed": "Không tải được video YouTube",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Đã bật",
                 "no_match": "Không có trình kết nối nào khớp.",
                 "soon": "Sắp ra mắt",
-                "connect_first": "Hãy kết nối MCP này trong Cài đặt trước"
+                "connect_first": "Hãy kết nối MCP này trong Cài đặt trước",
+                "column_always": "Luôn bật",
+                "always_hint": "Cung cấp các công cụ của trình kết nối này ở mọi lượt, kể cả khi tin nhắn không rõ ràng cần đến chúng. Mỗi trợ lý AI có tối đa 10 công cụ luôn bật.",
+                "always_failed": "Không cập nhật được cài đặt luôn bật"
             },
             "functions": {
                 "load_failed": "Không tải được hàm",
@@ -1582,7 +1635,9 @@
                 "branding": "Thương hiệu",
                 "behavior": "Hành vi",
                 "settings": "Cài đặt",
-                "domain": "Tên miền"
+                "domain": "Tên miền",
+                "languages": "Ngôn ngữ",
+                "bubbles": "Bong bóng chat"
             },
             "view_only_title": "Chỉ xem",
             "view_only_description": "Bạn không có quyền chỉnh sửa Thiết lập.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "Đã sao chép ID trợ lý AI vào bộ nhớ tạm",
                 "privacy_saved": "Đã lưu liên kết chính sách quyền riêng tư",
                 "privacy_error": "Không thể lưu liên kết chính sách quyền riêng tư",
-                "branding_saved": "Đã cập nhật thương hiệu"
+                "branding_saved": "Đã cập nhật thương hiệu",
+                "languages_saved": "Đã lưu ngôn ngữ",
+                "languages_error": "Không thể lưu ngôn ngữ"
             },
             "settings": {
                 "composer_title": "Tùy chọn ô soạn tin",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Chỉ những nguồn gốc này mới được phép tải widget.",
                 "keyboard_trigger": "Phím tắt kích hoạt",
-                "placement": "Vị trí đặt"
+                "placement": "Vị trí đặt",
+                "language_switcher": "Trình chuyển ngôn ngữ"
             },
             "embed": {
                 "surface_preview": "Xem trước bề mặt"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Hiển thị cho khách truy cập dưới dạng “Bằng cách trò chuyện, bạn đồng ý với chính sách quyền riêng tư của chúng tôi.” Để trống để ẩn.",
                 "branding_badge": "Hiển thị huy hiệu \"Powered by Chatvia\"",
-                "branding_badge_hint": "Hiển thị huy hiệu Chatvia trên trang trò chuyện và widget của trợ lý AI này."
-            }
+                "branding_badge_hint": "Hiển thị huy hiệu Chatvia trên trang trò chuyện và widget của trợ lý AI này.",
+                "appearance_translations_default": "Mặc định",
+                "appearance_translations_default_tip": "Văn bản bạn viết — được tự động dịch sang mọi ngôn ngữ.",
+                "appearance_translations_default_hint": "Đây là văn bản bạn viết. Khi bạn lưu, văn bản sẽ được tự động dịch sang mọi ngôn ngữ và được hiển thị khi ngôn ngữ của khách truy cập không có trong danh sách.",
+                "appearance_translations_lang_hint": "Chỉnh sửa ngôn ngữ này tại đây. Để trống một trường để dùng bản dịch tự động — các chỉnh sửa của bạn luôn được giữ lại.",
+                "starters_generate": "Tạo bằng AI",
+                "starters_generate_title": "Tạo câu mở đầu bằng AI",
+                "starters_generate_description": "Chọn số lượng cần tạo từ cơ sở kiến thức của bạn, sau đó chọn những câu muốn thêm.",
+                "starters_generate_count": "Bao nhiêu?",
+                "starters_generate_button": "Tạo",
+                "starters_generating": "Đang tạo…",
+                "starters_generate_hint": "Chọn số lượng và tạo gợi ý từ cơ sở kiến thức của bạn.",
+                "starters_translate_empty": "Hãy thêm câu mở đầu ở tab Mặc định trước, sau đó dịch chúng tại đây."
+            },
+            "languages": {
+                "title": "Ngôn ngữ giao diện",
+                "description": "Chọn những ngôn ngữ mà trợ lý AI này hỗ trợ. Các ngôn ngữ được bật sẽ xuất hiện trong trình chuyển ngôn ngữ của trò chuyện được lưu trữ và có các trường riêng cho từng ngôn ngữ trong Thông tin và Câu mở đầu.",
+                "select_all": "Chọn tất cả",
+                "clear_all": "Xóa tất cả",
+                "count": "Đã chọn {count} trên {total}",
+                "hint": "Để ẩn hoàn toàn trình chuyển ngôn ngữ dành cho khách truy cập, hãy tắt nó trong Hành vi.",
+                "min_required": "Cần có ít nhất một ngôn ngữ."
+            },
+            "bubbles_add": "Thêm bong bóng",
+            "bubbles_remove": "Xóa bong bóng",
+            "bubbles_empty": "Chưa có bong bóng chat nào.",
+            "bubbles_translate_empty": "Hãy thêm một bong bóng trước để dịch."
         },
         "topics_index": {
             "title": "Chủ đề",
@@ -1865,7 +1948,10 @@
             "remove_error": "Không thể xóa chủ đề",
             "fill_fields": "Vui lòng điền đầy đủ các trường",
             "created": "Đã tạo và thêm chủ đề thành công",
-            "create_error": "Không thể tạo chủ đề"
+            "create_error": "Không thể tạo chủ đề",
+            "examples": "ví dụ: {titles}",
+            "previous_page": "Trang trước",
+            "next_page": "Trang sau"
         },
         "usage": {
             "title": "Thông tin sử dụng",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "“Ánh xạ tới” nghĩa là gì?",
             "maps_to_help_title": "Ánh xạ tới một trường liên hệ",
             "maps_to_help_1": "Gắn thẻ trường này là một thuộc tính liên hệ tiêu chuẩn — Tên, Email, Số điện thoại, v.v. Giá trị mà khách truy cập nhập sẽ được nhận diện là thông tin liên hệ đó, chứ không chỉ là một câu trả lời ẩn danh.",
-            "maps_to_help_2": "Các trường được ánh xạ sẽ điền vào chi tiết của khách hàng tiềm năng — hỗ trợ danh sách khách hàng tiềm năng, phát hiện trùng lặp và xuất CSV. Để là “—” để thu thập câu trả lời mà không gắn thẻ."
+            "maps_to_help_2": "Các trường được ánh xạ sẽ điền vào chi tiết của khách hàng tiềm năng — hỗ trợ danh sách khách hàng tiềm năng, phát hiện trùng lặp và xuất CSV. Để là “—” để thu thập câu trả lời mà không gắn thẻ.",
+            "subtitle": "Mô tả",
+            "subtitle_placeholder": "ví dụ: Hãy cho chúng tôi biết về công ty của bạn, chúng tôi sẽ liên hệ lại.",
+            "subtitle_hint": "Hiển thị cho khách truy cập bên dưới tiêu đề biểu mẫu."
         },
         "submissions": {
             "page_title": "Lượt gửi",
@@ -2103,7 +2192,8 @@
             "sending_link": "Đang gửi liên kết...",
             "or_continue_with": "Hoặc tiếp tục với",
             "no_account": "Chưa có tài khoản?",
-            "start_free_trial": "Bắt đầu dùng thử miễn phí"
+            "start_free_trial": "Bắt đầu dùng thử miễn phí",
+            "create_account": "Tạo tài khoản"
         },
         "register": {
             "title": "Tạo tài khoản",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Tất cả Trợ lý AI",
                 "no_agents_assigned": "Chưa gán Trợ lý AI nào",
                 "agent_count": "{count} Trợ lý AI | {count} Trợ lý AI",
-                "delete_description": "Bạn có chắc chắn muốn xóa vai trò \"{name}\" không? Hành động này không thể hoàn tác."
+                "delete_description": "Bạn có chắc chắn muốn xóa vai trò \"{name}\" không? Hành động này không thể hoàn tác.",
+                "toggle_permissions": "Hiện hoặc ẩn quyền"
             },
             "members": {
                 "title": "Thành viên nhóm",
@@ -2877,7 +2968,9 @@
                 "description": "Các thành viên có vai trò này. Bạn có thể gỡ bỏ quyền truy cập của họ vào nhóm này.",
                 "empty": "Chưa có thành viên nào với vai trò này.",
                 "close": "Đóng"
-            }
+            },
+            "rename_team": "Đổi tên nhóm",
+            "save_team_name": "Lưu tên nhóm"
         },
         "roles": {
             "details": "Chi tiết vai trò",
@@ -3161,7 +3254,8 @@
         "volume_month": "Khối lượng tin nhắn trong 30 ngày qua",
         "last_week": "Tuần trước",
         "last_month": "Tháng trước",
-        "messages_tooltip": "{n} tin nhắn | {n} tin nhắn"
+        "messages_tooltip": "{n} tin nhắn | {n} tin nhắn",
+        "messages_this_month": "Tin nhắn trong tháng này"
     },
     "support": {
         "title": "Hỗ trợ",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Đã dùng trong chu kỳ này — chỉ để tham khảo; gói của bạn được tính phí theo tin nhắn.",
         "of": "trên {limit}",
         "remaining": "Còn lại {count}",
-        "load_error": "Không thể tải dữ liệu mức sử dụng."
+        "load_error": "Không thể tải dữ liệu mức sử dụng.",
+        "no_limit": "Không giới hạn"
     },
     "analytics_chat": {
         "title": "Hỏi dữ liệu của bạn",
@@ -3293,7 +3388,8 @@
                 "create_title": "Thêm câu lệnh",
                 "description": "Viết một câu lệnh hệ thống có thể tái sử dụng một lần, rồi đính kèm vào bất kỳ trợ lý AI nào từ trang Tính cách của trợ lý. Chỉnh sửa tại đây sẽ cập nhật mọi trợ lý AI đang dùng nó.",
                 "id_label": "ID",
-                "copy_id_title": "Sao chép ID câu lệnh — truyền dưới dạng prompt_id khi tạo/cập nhật trợ lý AI qua API"
+                "copy_id_title": "Sao chép ID câu lệnh — truyền dưới dạng prompt_id khi tạo/cập nhật trợ lý AI qua API",
+                "copy_id": "Sao chép ID câu lệnh"
             },
             "form": {
                 "name": "Tên",
@@ -3330,7 +3426,8 @@
                 "description": "Hàm cho phép trợ lý AI của bạn gọi các API của riêng bạn như công cụ LLM. {name} và {description} là những gì mô hình thấy khi quyết định có gọi nó hay không — hãy cụ thể. {learn_more}",
                 "learn_more": "Tìm hiểu thêm",
                 "id_label": "ID",
-                "copy_id_title": "Sao chép ID hàm — truyền dưới dạng function_id khi đính kèm qua API"
+                "copy_id_title": "Sao chép ID hàm — truyền dưới dạng function_id khi đính kèm qua API",
+                "copy_id": "Sao chép ID hàm"
             },
             "form": {
                 "name": "Tên",
@@ -3395,7 +3492,8 @@
                 "title": "Sao chép khóa API mới của bạn",
                 "description": "Đây là lần duy nhất bạn thấy {name}. Hãy lưu nó ở nơi an toàn — nếu làm mất, hãy tạo khóa mới.",
                 "warning": "Hãy coi nó như một mật khẩu. Bất kỳ ai có nó đều có thể tạo trợ lý AI thay mặt bạn.",
-                "confirm": "Tôi đã lưu nó an toàn"
+                "confirm": "Tôi đã lưu nó an toàn",
+                "copy": "Sao chép khóa API"
             },
             "revoke_dialog": {
                 "title": "Thu hồi khóa API",
@@ -3694,7 +3792,8 @@
         "account": "Tài khoản",
         "workspace": "Không gian làm việc",
         "logout": "Đăng xuất",
-        "language": "Ngôn ngữ"
+        "language": "Ngôn ngữ",
+        "open_user_menu": "Mở menu người dùng"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Đã đạt giới hạn tệp tối đa",
             "toast_max_files_description": "Bạn chỉ có thể tải lên tối đa {max} tệp.",
             "toast_file_size_title": "Đã vượt giới hạn kích thước tệp",
-            "toast_file_size_description": "Các tệp sau vượt quá giới hạn {maxSize} MB: {fileList}"
+            "toast_file_size_description": "Các tệp sau vượt quá giới hạn {maxSize} MB: {fileList}",
+            "analyze_failed": "Không thể phân tích tệp",
+            "analyze_timed_out": "Phân tích quá thời gian - tệp có thể quá lớn"
         },
         "voice_recorder": {
             "title_default": "Ghi âm ghi chú giọng nói",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Mẹo:",
             "tip_speak_clearly": "Nói rõ ràng và với tốc độ đều đặn",
             "tip_quiet_environment": "Dùng môi trường yên tĩnh để có kết quả tốt nhất",
-            "tip_max_duration": "Độ dài ghi âm tối đa: {minutes} phút | Độ dài ghi âm tối đa: {minutes} phút"
+            "tip_max_duration": "Độ dài ghi âm tối đa: {minutes} phút | Độ dài ghi âm tối đa: {minutes} phút",
+            "pause_recording": "Tạm dừng ghi âm",
+            "resume_recording": "Tiếp tục ghi âm",
+            "cancel_recording": "Hủy ghi âm",
+            "play_recording": "Phát bản ghi",
+            "pause_playback": "Tạm dừng phát",
+            "microphone_denied": "Quyền truy cập micrô bị từ chối. Vui lòng cho phép truy cập micrô để ghi âm.",
+            "microphone_not_found": "Không tìm thấy micrô. Vui lòng kết nối micrô và thử lại.",
+            "microphone_failed": "Không thể truy cập micrô",
+            "transcription_failed": "Chuyển giọng nói thành văn bản thất bại"
         },
         "date_range": {
             "pick_range": "Chọn khoảng ngày",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "Đã ngắt kết nối {name}",
             "toast_disconnect_failed": "Thất bại",
             "set_all": "Đặt tất cả",
-            "toast_bulk_permission": "Đã đặt {count} công cụ thành “{permission}” | Đã đặt {count} công cụ thành “{permission}”"
+            "toast_bulk_permission": "Đã đặt {count} công cụ thành “{permission}” | Đã đặt {count} công cụ thành “{permission}”",
+            "copy_server_id": "Sao chép ID máy chủ"
         },
         "member_sheet": {
             "sr_description": "Quản lý giới hạn, quyền truy cập Trợ lý AI và trạng thái của người dùng này.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Bật/tắt thanh bên",
             "sidebar": "Thanh bên",
             "sidebar_description": "Hiển thị thanh bên trên di động."
+        },
+        "json_editor": {
+            "aria_label": "Trình soạn thảo JSON"
+        },
+        "time_ago": {
+            "just_now": "Vừa xong"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Truy vấn phân tích sản phẩm — sự kiện, biểu đồ và nhóm khách hàng — từ dự án Amplitude của bạn."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chào mừng bạn đến với Chatvia",
+            "intro": "Hãy tạo trợ lý AI đầu tiên của bạn. Chỉ mất một phút.",
+            "what_title": "Trợ lý AI là gì?",
+            "what_body": "Trợ lý AI là trợ lý mà bạn huấn luyện bằng chính nội dung của mình. Trợ lý trả lời khách hàng của bạn trên trang web, tiện ích trò chuyện và các ứng dụng nhắn tin.",
+            "how_title": "Hoạt động như thế nào?",
+            "how_body": "Trước tiên, bạn tạo một trợ lý AI và đặt tên cho nó. Sau đó, bạn huấn luyện nó bằng tệp, trang web và văn bản của mình để nó có thể trả lời câu hỏi.",
+            "start": "Tạo trợ lý AI đầu tiên",
+            "video_caption": "Xem cách hoạt động"
         }
     }
 }

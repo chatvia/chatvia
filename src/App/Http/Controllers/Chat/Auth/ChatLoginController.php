@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Identity\Workspace\Actions\Sessions\LoginUserToAgentAction;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -13,9 +15,12 @@ use Illuminate\Validation\ValidationException;
  */
 class ChatLoginController
 {
-    public function __invoke(LoginRequest $request, LoginUserToAgentAction $loginToAgent): RedirectResponse
-    {
-        $user = $loginToAgent->execute($request->toData(), current_agent());
+    public function __invoke(
+        LoginRequest $request,
+        #[HostedChatAgent] Agent $agent,
+        LoginUserToAgentAction $loginToAgent,
+    ): RedirectResponse {
+        $user = $loginToAgent->execute($request->toData(), $agent);
 
         if (! $user) {
             RateLimiter::hit($request->throttleKey());

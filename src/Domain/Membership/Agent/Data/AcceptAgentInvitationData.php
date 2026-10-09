@@ -2,11 +2,11 @@
 
 namespace Domain\Membership\Agent\Data;
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Spatie\LaravelData\Data;
-use Support\Enums\User\SocialProvider;
 
 /**
  * Input for {@see AcceptAgentInvitationAction::execute}. `invitation` is the

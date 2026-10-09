@@ -2,10 +2,10 @@
 
 namespace Domain\Helpdesk\Actions;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Data\CreateTicketData;
 use Domain\Helpdesk\Models\Ticket;
-use Support\Enums\User\UserType;
 
 /**
  * Opens a support ticket for the submitting user and assigns it: to the user

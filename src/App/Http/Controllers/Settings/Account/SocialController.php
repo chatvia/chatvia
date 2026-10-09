@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Settings\Account;
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\UserSocial;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Support\Enums\User\SocialProvider;
 
 /**
  * Linked social sign-in accounts: list, connect and disconnect.

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Accept an invitation to chat with an agent: create the chatter account
+// with a password, or continue with a social provider using the invite's
+// own OAuth URLs so the invitation is kept.
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';

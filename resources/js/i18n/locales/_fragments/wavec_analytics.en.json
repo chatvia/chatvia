@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "topics_index": {
+            "examples": "e.g. {titles}",
+            "previous_page": "Previous page",
+            "next_page": "Next page"
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Edit {topic}",
+                "delete_topic_aria": "Delete {topic}"
+            }
+        }
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Just now"
+        }
+    }
+}

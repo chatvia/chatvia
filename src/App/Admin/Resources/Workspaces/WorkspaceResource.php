@@ -4,6 +4,7 @@ namespace App\Admin\Resources\Workspaces;
 
 use App\Admin\Resources\Workspaces\Pages\ListWorkspaces;
 use App\Admin\Resources\Workspaces\Pages\ViewWorkspace;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use BackedEnum;
 use Filament\Actions\ViewAction;
@@ -16,7 +17,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Support\Enums\User\UserType;
 
 /**
  * Read-only oversight of customer accounts — the `users` rows with

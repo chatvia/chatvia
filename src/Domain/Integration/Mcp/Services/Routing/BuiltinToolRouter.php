@@ -4,6 +4,7 @@ namespace Domain\Integration\Mcp\Services\Routing;
 
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -28,6 +29,10 @@ class BuiltinToolRouter
 
     /** RRF constant — the Cormack et al. default, as in ToolHybridSearch. */
     private const RRF_K = 60;
+
+    public function __construct(
+        private readonly EmbeddingsProviderInterface $embeddings,
+    ) {}
 
     /**
      * @param  array<int, McpServerCategory>  $categories
@@ -82,7 +87,7 @@ class BuiltinToolRouter
     private function embedQuestion(string $question): ?array
     {
         try {
-            $vector = embed_query($question);
+            $vector = $this->embeddings->embedQuery($question);
 
             return is_array($vector) ? $vector : null;
         } catch (Throwable $e) {

@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * The Branding section's fields: theme color, avatar, logo, privacy-policy
+ * link and (when the plan allows) the "Powered by" badge switch. Purely
+ * presentational; the Setup page owns the forms and saves.
+ */
 import ColorThemePicker from '@/components/agents/ColorThemePicker.vue';
 import ImageUploadField from '@/components/agents/ImageUploadField.vue';
 import { Button } from '@/components/ui/button';

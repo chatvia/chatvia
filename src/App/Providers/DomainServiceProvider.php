@@ -131,7 +131,10 @@ class DomainServiceProvider extends ServiceProvider
         // Old letter-case spellings of renamed namespaces (`Source\QA`,
         // `Data\OCR`) still sit in queued payloads, caches and a shipped
         // migration; keep them loadable.
-        LegacyNamespaceAutoloader::register();
+        LegacyNamespaceAutoloader::register([
+            'Domain\\Knowledge\\Source\\QA\\' => 'Domain\\Knowledge\\Source\\Qa\\',
+            'Domain\\Knowledge\\Ingestion\\Data\\OCR\\' => 'Domain\\Knowledge\\Ingestion\\Data\\Ocr\\',
+        ]);
 
         // Tool dispatcher: routes by tool name to either the webhook
         // (AgentFunctions) or MCP backend.

@@ -69,7 +69,7 @@ it('records nothing when the completion response carries no usage', function ():
     Event::assertNotDispatched(LlmTokensConsumed::class);
 });
 
-it('embed() attributes usage.total_tokens to the active scope', function (): void {
+it('an embedding call attributes usage.total_tokens to the active scope', function (): void {
     Event::fake([LlmTokensConsumed::class]);
 
     Http::fake(['*' => Http::response([

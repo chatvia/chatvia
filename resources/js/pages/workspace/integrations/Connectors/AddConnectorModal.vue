@@ -1,10 +1,16 @@
 <script lang="ts" setup>
+/**
+ * "Add connector" dialog: register a custom MCP server by URL with OAuth, a
+ * bearer token or no auth. OAuth servers continue with a full-page redirect to
+ * the server's sign-in; the others are added straight away.
+ */
+import { addCustomConnector } from '@/api/connectors';
+import { errorMessage, validationErrors } from '@/api/http';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { AgentMcpServer } from '@/types/connector';
-import axios from 'axios';
 import { LoaderCircle } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -56,26 +62,24 @@ async function submit(): Promise<void> {
     saving.value = true;
 
     try {
-        const response = await axios.post(route('integrations.connectors.custom.add'), {
+        const response = await addCustomConnector({
             name: name.value.trim(),
             url: url.value.trim(),
             auth_strategy: strategy.value,
             token: strategy.value === 'token' ? token.value : null,
         });
 
-        if (response.data.redirect_url) {
+        if ('redirect_url' in response) {
             // OAuth: full-page redirect to the upstream authorize endpoint.
-            window.location.href = response.data.redirect_url;
+            window.location.href = response.redirect_url;
             return;
         }
 
         toast.success(t('workspace.connectors.add_modal.added', { name: name.value }));
-        emit('added', response.data.data);
+        emit('added', response.data);
         emit('update:open', false);
-    } catch (e: unknown) {
-        const err = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-        error.value =
-            err.response?.data?.message ?? Object.values(err.response?.data?.errors ?? {}).flat()[0] ?? t('workspace.connectors.add_modal.error');
+    } catch (err) {
+        error.value = errorMessage(err, Object.values(validationErrors(err))[0] ?? t('workspace.connectors.add_modal.error'));
     } finally {
         saving.value = false;
     }

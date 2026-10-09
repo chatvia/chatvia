@@ -1,5 +1,7 @@
 <?php
 
+use App\Identity\Workspace\Enums\SocialProvider;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
 use Carbon\CarbonInterface;
@@ -11,8 +13,6 @@ use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Support\Enums\User\SocialProvider;
-use Support\Enums\User\UserType;
 
 /**
  * AcceptAgentInvitationAction is the account-binding step at the end of an

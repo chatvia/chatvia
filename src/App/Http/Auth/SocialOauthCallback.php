@@ -4,6 +4,7 @@ namespace App\Http\Auth;
 
 use App\Identity\Workspace\Actions\Social\LinkSocialAccountAction;
 use App\Identity\Workspace\Actions\Social\SocialLoginAction;
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -11,7 +12,6 @@ use Laravel\Socialite\AbstractUser;
 use Laravel\Socialite\Contracts\User;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
-use Support\Enums\User\SocialProvider;
 
 /**
  * The landing of /auth/{provider}/callback, shared by every social provider.

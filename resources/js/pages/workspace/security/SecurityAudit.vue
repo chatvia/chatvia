@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Workspace security audit log (sign-ins, permission and policy changes):
+// category / outcome filters, cursor pagination and a detail dialog with the
+// request metadata. Workspaces without the Security suite see a teaser.
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

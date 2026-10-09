@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
@@ -19,12 +21,12 @@ class GenerateConversationTitleController
 {
     public function __invoke(
         string $conversationId,
+        #[HostedChatAgent] Agent $agent,
         ChatMemory $memory,
         HostedChatSession $session,
         GenerateConversationTitleAction $generateTitle,
         TokenUsageContext $usage,
     ): JsonResponse {
-        $agent = current_agent();
         $scope = $session->scope($agent, $conversationId);
 
         abort_if(! $memory->withScope($scope)->conversationExists(), 404);

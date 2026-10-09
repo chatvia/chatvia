@@ -1,8 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Enums\DateFormat;
 use App\Identity\Workspace\Models\User;
 use Inertia\Testing\AssertableInertia;
-use Support\Enums\User\DateFormat;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();

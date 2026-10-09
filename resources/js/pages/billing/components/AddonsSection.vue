@@ -1,58 +1,20 @@
 <script lang="ts" setup>
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+// The add-ons card on the billing page: auto-recharge, extra message credits
+// and the monthly add-ons (extra agents, custom domains, remove branding,
+// members). Each card handles its own checkout or cancel and asks the page to
+// reload the billing data afterwards.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { useForm } from '@inertiajs/vue3';
-import { Bot, CheckCircle, CreditCard, Globe, Loader2, MessageCircle, Sparkles, Users, Zap } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { Bot, Globe, Sparkles, Users } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { RecurringAddonLabels } from '../types';
+import AutoRechargeAddonCard from './addons/AutoRechargeAddonCard.vue';
+import MessageCreditsAddonCard from './addons/MessageCreditsAddonCard.vue';
+import RecurringAddonCard from './addons/RecurringAddonCard.vue';
+import RemoveBrandingAddonCard from './addons/RemoveBrandingAddonCard.vue';
 
-const { t } = useI18n();
-
-interface AutoRecharge {
-    enabled: boolean;
-    threshold: number;
-    amount: number;
-    last_triggered_at: string | null;
-}
-
-interface MessageCreditsState {
-    manual_messages: number;
-    auto_recharge_messages: number;
-}
-
-interface AddonSubscriptionState {
-    active: boolean;
-    quantity: number;
-    cancels_at: string | null;
-}
-
-interface AddonsData {
-    auto_recharge: AutoRecharge;
-    extra_message_credits: MessageCreditsState;
-    extra_agents: AddonSubscriptionState;
-    custom_domains: AddonSubscriptionState;
-    remove_branding: AddonSubscriptionState;
-    members: AddonSubscriptionState;
-}
-
-const props = defineProps<{
-    addons: AddonsData;
+defineProps<{
+    addons: Domain.Billing.Data.Resources.Subscription.BillingAddonsData;
     subscribed: boolean;
 }>();
 
@@ -60,169 +22,43 @@ const emit = defineEmits<{
     refresh: [];
 }>();
 
-// --- Extra Message Credits (one-time purchase) ---
-const isCreditsDialogOpen = ref(false);
-const creditsQuantity = ref(1);
-const isPurchasing = ref(false);
-const extraMessagesUnitPrice = 9;
-const totalCreditsPrice = computed(() => (creditsQuantity.value * extraMessagesUnitPrice).toFixed(2));
+const { t } = useI18n();
 
-const purchaseExtraMessages = (): void => {
-    isPurchasing.value = true;
-    window.location.href = route('billing.addons.extra-message-credits', { quantity: creditsQuantity.value });
-};
+const extraAgentsLabels = computed<RecurringAddonLabels>(() => ({
+    title: t('billing.addons.extra_agents.title'),
+    summary: t('billing.addons.extra_agents.summary'),
+    perUnit: t('billing.addons.per_agent'),
+    cancelTitle: t('billing.addons.extra_agents.cancel_title'),
+    cancelDescription: t('billing.addons.extra_agents.cancel_description'),
+    changeTitle: t('billing.addons.extra_agents.change_title'),
+    subscribeTitle: t('billing.addons.extra_agents.subscribe_title'),
+    dialogDescription: t('billing.addons.extra_agents.dialog_description'),
+    quantityLabel: t('billing.addons.extra_agents.quantity_label'),
+}));
 
-const totalExtraCredits = computed(
-    () => props.addons.extra_message_credits.manual_messages + props.addons.extra_message_credits.auto_recharge_messages,
-);
+const customDomainsLabels = computed<RecurringAddonLabels>(() => ({
+    title: t('billing.addons.custom_domains.title'),
+    summary: t('billing.addons.custom_domains.summary'),
+    perUnit: t('billing.addons.per_domain'),
+    cancelTitle: t('billing.addons.custom_domains.cancel_title'),
+    cancelDescription: t('billing.addons.custom_domains.cancel_description'),
+    changeTitle: t('billing.addons.custom_domains.change_title'),
+    subscribeTitle: t('billing.addons.custom_domains.subscribe_title'),
+    dialogDescription: t('billing.addons.custom_domains.dialog_description'),
+    quantityLabel: t('billing.addons.custom_domains.quantity_label'),
+}));
 
-// --- Auto Recharge ---
-const isAutoRechargeDialogOpen = ref(false);
-const autoRechargeForm = useForm({
-    enabled: props.addons.auto_recharge.enabled,
-    threshold: props.addons.auto_recharge.threshold,
-    amount: props.addons.auto_recharge.amount,
-});
-
-watch(
-    () => props.addons.auto_recharge,
-    (next) => {
-        autoRechargeForm.enabled = next.enabled;
-        autoRechargeForm.threshold = next.threshold;
-        autoRechargeForm.amount = next.amount;
-    },
-);
-
-const autoRechargeUnitPrice = 10;
-const autoRechargeUnits = computed(() => Math.max(1, Math.ceil(autoRechargeForm.amount / 1000)));
-const autoRechargeChargeEstimate = computed(() => (autoRechargeUnits.value * autoRechargeUnitPrice).toFixed(2));
-
-const saveAutoRecharge = (): void => {
-    autoRechargeForm.post(route('billing.addons.auto-recharge.update'), {
-        preserveScroll: true,
-        onSuccess: () => {
-            isAutoRechargeDialogOpen.value = false;
-            emit('refresh');
-        },
-    });
-};
-
-// --- Extra AI Agents (recurring subscription) ---
-const isExtraAgentsDialogOpen = ref(false);
-const extraAgentsQuantity = ref(Math.max(1, props.addons.extra_agents.quantity || 1));
-const isSubscribingExtraAgents = ref(false);
-const extraAgentsUnitPrice = 5;
-const extraAgentsTotal = computed(() => (extraAgentsQuantity.value * extraAgentsUnitPrice).toFixed(2));
-
-watch(
-    () => props.addons.extra_agents.quantity,
-    (qty) => {
-        if (qty > 0) {
-            extraAgentsQuantity.value = qty;
-        }
-    },
-);
-
-const subscribeExtraAgents = (): void => {
-    isSubscribingExtraAgents.value = true;
-    window.location.href = route('billing.addons.extra-agents', { quantity: extraAgentsQuantity.value });
-};
-
-const cancelExtraAgentsForm = useForm({});
-const cancelExtraAgents = (): void => {
-    cancelExtraAgentsForm.post(route('billing.addons.extra-agents.cancel'), {
-        preserveScroll: true,
-        onSuccess: () => emit('refresh'),
-    });
-};
-
-// --- Custom Domains (recurring subscription) ---
-const isCustomDomainsDialogOpen = ref(false);
-const customDomainsQuantity = ref(Math.max(1, props.addons.custom_domains.quantity || 1));
-const isSubscribingCustomDomains = ref(false);
-const customDomainsUnitPrice = 29;
-const customDomainsTotal = computed(() => (customDomainsQuantity.value * customDomainsUnitPrice).toFixed(2));
-
-watch(
-    () => props.addons.custom_domains.quantity,
-    (qty) => {
-        if (qty > 0) {
-            customDomainsQuantity.value = qty;
-        }
-    },
-);
-
-const subscribeCustomDomains = (): void => {
-    isSubscribingCustomDomains.value = true;
-    window.location.href = route('billing.addons.custom-domains', { quantity: customDomainsQuantity.value });
-};
-
-const cancelCustomDomainsForm = useForm({});
-const cancelCustomDomains = (): void => {
-    cancelCustomDomainsForm.post(route('billing.addons.custom-domains.cancel'), {
-        preserveScroll: true,
-        onSuccess: () => emit('refresh'),
-    });
-};
-
-// --- Remove Branding (recurring subscription, flat monthly, no quantity) ---
-const isSubscribingRemoveBranding = ref(false);
-const subscribeRemoveBranding = (): void => {
-    isSubscribingRemoveBranding.value = true;
-    window.location.href = route('billing.addons.remove-branding');
-};
-
-const cancelRemoveBrandingForm = useForm({});
-const cancelRemoveBranding = (): void => {
-    cancelRemoveBrandingForm.post(route('billing.addons.remove-branding.cancel'), {
-        preserveScroll: true,
-        onSuccess: () => emit('refresh'),
-    });
-};
-
-// --- Members (recurring subscription) ---
-const isMembersDialogOpen = ref(false);
-const membersQuantity = ref(Math.max(1, props.addons.members.quantity || 1));
-const isSubscribingMembers = ref(false);
-const membersUnitPrice = 9;
-const membersTotal = computed(() => (membersQuantity.value * membersUnitPrice).toFixed(2));
-
-watch(
-    () => props.addons.members.quantity,
-    (qty) => {
-        if (qty > 0) {
-            membersQuantity.value = qty;
-        }
-    },
-);
-
-const subscribeMembers = (): void => {
-    isSubscribingMembers.value = true;
-    window.location.href = route('billing.addons.members', { quantity: membersQuantity.value });
-};
-
-const cancelMembersForm = useForm({});
-const cancelMembers = (): void => {
-    cancelMembersForm.post(route('billing.addons.members.cancel'), {
-        preserveScroll: true,
-        onSuccess: () => emit('refresh'),
-    });
-};
-
-const handleNumericKeyPress = (event: KeyboardEvent): void => {
-    if (
-        [8, 9, 27, 13, 46].indexOf(event.keyCode) !== -1 ||
-        (event.keyCode === 65 && event.ctrlKey === true) ||
-        (event.keyCode === 67 && event.ctrlKey === true) ||
-        (event.keyCode === 86 && event.ctrlKey === true) ||
-        (event.keyCode === 88 && event.ctrlKey === true)
-    ) {
-        return;
-    }
-    if ((event.shiftKey || event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105)) {
-        event.preventDefault();
-    }
-};
+const membersLabels = computed<RecurringAddonLabels>(() => ({
+    title: t('billing.addons.members.title'),
+    summary: t('billing.addons.members.summary'),
+    perUnit: t('billing.addons.per_member'),
+    cancelTitle: t('billing.addons.members.cancel_title'),
+    cancelDescription: t('billing.addons.members.cancel_description'),
+    changeTitle: t('billing.addons.members.change_title'),
+    subscribeTitle: t('billing.addons.members.subscribe_title'),
+    dialogDescription: t('billing.addons.members.dialog_description'),
+    quantityLabel: t('billing.addons.members.quantity_label'),
+}));
 </script>
 
 <template>
@@ -236,545 +72,56 @@ const handleNumericKeyPress = (event: KeyboardEvent): void => {
         </CardHeader>
         <CardContent>
             <div class="grid gap-4 sm:grid-cols-2">
-                <!-- Auto Recharge Credits -->
-                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
-                                <CreditCard class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <h3 class="text-sm font-semibold">{{ t('billing.addons.auto_recharge.title') }}</h3>
-                        </div>
-                        <Badge v-if="addons.auto_recharge.enabled" variant="default" class="gap-1">
-                            <CheckCircle class="h-3 w-3" />
-                            {{ t('billing.addons.auto_recharge.on') }}
-                        </Badge>
-                        <Badge v-else variant="outline">{{ t('billing.addons.auto_recharge.off') }}</Badge>
-                    </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">
-                        {{
-                            t('billing.addons.auto_recharge.summary', {
-                                amount: addons.auto_recharge.amount.toLocaleString(),
-                                threshold: addons.auto_recharge.threshold.toLocaleString(),
-                            })
-                        }}
-                    </p>
-                    <div class="mt-auto flex items-end justify-between pt-1">
-                        <div>
-                            <span class="text-lg font-bold">€10</span>
-                            <span class="text-muted-foreground text-xs"> / 1,000</span>
-                        </div>
-                        <Dialog v-model:open="isAutoRechargeDialogOpen">
-                            <DialogTrigger as-child>
-                                <Button variant="outline" size="sm">{{
-                                    addons.auto_recharge.enabled ? t('billing.addons.auto_recharge.manage') : t('billing.addons.auto_recharge.enable')
-                                }}</Button>
-                            </DialogTrigger>
-                            <DialogContent class="sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle class="flex items-center gap-2">
-                                        <CreditCard class="text-primary h-5 w-5" />
-                                        {{ t('billing.addons.auto_recharge.dialog_title') }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{ t('billing.addons.auto_recharge.dialog_description') }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div class="space-y-4 py-4">
-                                    <div class="flex items-center justify-between rounded-lg border p-3">
-                                        <Label for="auto-recharge-enabled" class="flex-1 cursor-pointer">
-                                            <div class="font-medium">{{ t('billing.addons.auto_recharge.enable_label') }}</div>
-                                            <div class="text-muted-foreground text-xs">{{ t('billing.addons.auto_recharge.enable_hint') }}</div>
-                                        </Label>
-                                        <Switch id="auto-recharge-enabled" v-model="autoRechargeForm.enabled" />
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label for="auto-recharge-threshold">{{ t('billing.addons.auto_recharge.threshold_label') }}</Label>
-                                        <Input
-                                            id="auto-recharge-threshold"
-                                            v-model.number="autoRechargeForm.threshold"
-                                            type="number"
-                                            min="100"
-                                            max="100000"
-                                            step="100"
-                                            :disabled="!autoRechargeForm.enabled"
-                                            @keydown="handleNumericKeyPress"
-                                        />
-                                        <p class="text-muted-foreground text-xs">{{ t('billing.addons.auto_recharge.threshold_hint') }}</p>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label for="auto-recharge-amount">{{ t('billing.addons.auto_recharge.amount_label') }}</Label>
-                                        <Input
-                                            id="auto-recharge-amount"
-                                            v-model.number="autoRechargeForm.amount"
-                                            type="number"
-                                            min="1000"
-                                            max="100000"
-                                            step="1000"
-                                            :disabled="!autoRechargeForm.enabled"
-                                            @keydown="handleNumericKeyPress"
-                                        />
-                                    </div>
-                                    <div class="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
-                                        <div class="flex items-center justify-between text-sm">
-                                            <span class="font-medium">{{ t('billing.addons.auto_recharge.each_recharge') }}</span>
-                                            <span class="font-bold">€{{ autoRechargeChargeEstimate }}</span>
-                                        </div>
-                                        <p class="text-muted-foreground mt-1 text-xs">
-                                            {{ t('billing.addons.auto_recharge.charged_note') }}
-                                        </p>
-                                    </div>
-                                </div>
-                                <DialogFooter class="gap-2">
-                                    <Button variant="outline" @click="isAutoRechargeDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
-                                    <Button :disabled="autoRechargeForm.processing" class="gap-2" @click="saveAutoRecharge">
-                                        <Loader2 v-if="autoRechargeForm.processing" class="h-4 w-4 animate-spin" />
-                                        {{ t('billing.addons.auto_recharge.save') }}
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </div>
+                <AutoRechargeAddonCard :auto-recharge="addons.auto_recharge" @refresh="emit('refresh')" />
 
-                <!-- Extra Message Credits -->
-                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
-                                <MessageCircle class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <h3 class="text-sm font-semibold">{{ t('billing.addons.extra_credits.title') }}</h3>
-                        </div>
-                        <Badge v-if="totalExtraCredits > 0" variant="default" class="gap-1">
-                            <Zap class="h-3 w-3" />
-                            {{ totalExtraCredits.toLocaleString() }}
-                        </Badge>
-                    </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">
-                        {{ t('billing.addons.extra_credits.summary') }}
-                    </p>
-                    <div class="mt-auto flex items-end justify-between pt-1">
-                        <div>
-                            <span class="text-lg font-bold">€9</span>
-                            <span class="text-muted-foreground text-xs"> / 1,000</span>
-                        </div>
-                        <Dialog v-model:open="isCreditsDialogOpen">
-                            <DialogTrigger as-child>
-                                <Button variant="outline" size="sm">{{ t('billing.addons.extra_credits.buy') }}</Button>
-                            </DialogTrigger>
-                            <DialogContent class="sm:max-w-md">
-                                <DialogHeader>
-                                    <DialogTitle class="flex items-center gap-2">
-                                        <Zap class="text-primary h-5 w-5" />
-                                        {{ t('billing.addons.extra_credits.dialog_title') }}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {{ t('billing.addons.extra_credits.dialog_description') }}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div class="space-y-4 py-4">
-                                    <div class="space-y-2">
-                                        <Label for="credits-quantity">{{ t('billing.addons.extra_credits.quantity_label') }}</Label>
-                                        <Input
-                                            id="credits-quantity"
-                                            v-model.number="creditsQuantity"
-                                            type="number"
-                                            min="1"
-                                            max="100"
-                                            @keydown="handleNumericKeyPress"
-                                        />
-                                    </div>
-                                    <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-                                        <div class="flex items-center justify-between">
-                                            <span class="font-medium">{{ t('billing.addons.extra_credits.total_messages') }}</span>
-                                            <span class="font-bold">{{ (creditsQuantity * 1000).toLocaleString() }}</span>
-                                        </div>
-                                        <div class="mt-2 flex items-center justify-between">
-                                            <span class="font-medium">{{ t('billing.addons.extra_credits.total_price') }}</span>
-                                            <span class="text-primary font-bold">€{{ totalCreditsPrice }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <DialogFooter class="gap-2">
-                                    <Button variant="outline" @click="isCreditsDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
-                                    <Button :disabled="isPurchasing || creditsQuantity < 1" class="gap-2" @click="purchaseExtraMessages">
-                                        <Loader2 v-if="isPurchasing" class="h-4 w-4 animate-spin" />
-                                        <CreditCard v-else class="h-4 w-4" />
-                                        {{
-                                            isPurchasing
-                                                ? t('billing.common.processing')
-                                                : t('billing.addons.extra_credits.purchase_for', { amount: totalCreditsPrice })
-                                        }}
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </div>
+                <MessageCreditsAddonCard :credits="addons.extra_message_credits" />
 
-                <!-- Extra AI Agents -->
-                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
-                                <Bot class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <h3 class="text-sm font-semibold">{{ t('billing.addons.extra_agents.title') }}</h3>
-                        </div>
-                        <Badge v-if="addons.extra_agents.active" variant="default" class="gap-1">
-                            <CheckCircle class="h-3 w-3" />
-                            +{{ addons.extra_agents.quantity }}
-                        </Badge>
-                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
-                    </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">{{ t('billing.addons.extra_agents.summary') }}</p>
-                    <p v-if="addons.extra_agents.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        {{ t('billing.addons.common.ends', { date: addons.extra_agents.cancels_at }) }}
-                    </p>
-                    <div class="mt-auto flex items-end justify-between gap-2 pt-1">
-                        <div>
-                            <span class="text-lg font-bold">€5</span>
-                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_agent') }}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <AlertDialog v-if="addons.extra_agents.active">
-                                <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>{{ t('billing.addons.extra_agents.cancel_title') }}</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            {{ t('billing.addons.extra_agents.cancel_description') }}
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelExtraAgents">{{ t('billing.addons.common.yes_cancel') }}</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            <Dialog v-model:open="isExtraAgentsDialogOpen">
-                                <DialogTrigger as-child>
-                                    <Button variant="outline" size="sm" :disabled="!subscribed">
-                                        {{ addons.extra_agents.active ? t('billing.addons.common.change') : t('billing.addons.common.subscribe') }}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent class="sm:max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle class="flex items-center gap-2">
-                                            <Bot class="text-primary h-5 w-5" />
-                                            {{
-                                                addons.extra_agents.active
-                                                    ? t('billing.addons.extra_agents.change_title')
-                                                    : t('billing.addons.extra_agents.subscribe_title')
-                                            }}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            {{ t('billing.addons.extra_agents.dialog_description') }}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div class="space-y-4 py-4">
-                                        <div class="space-y-2">
-                                            <Label for="extra-agents-quantity">{{ t('billing.addons.extra_agents.quantity_label') }}</Label>
-                                            <Input
-                                                id="extra-agents-quantity"
-                                                v-model.number="extraAgentsQuantity"
-                                                type="number"
-                                                min="1"
-                                                max="100"
-                                                @keydown="handleNumericKeyPress"
-                                            />
-                                        </div>
-                                        <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-                                            <div class="flex items-center justify-between">
-                                                <span class="font-medium">{{ t('billing.addons.common.monthly_cost') }}</span>
-                                                <span class="text-primary font-bold">€{{ extraAgentsTotal }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <DialogFooter class="gap-2">
-                                        <Button variant="outline" @click="isExtraAgentsDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
-                                        <Button
-                                            :disabled="isSubscribingExtraAgents || extraAgentsQuantity < 1"
-                                            class="gap-2"
-                                            @click="subscribeExtraAgents"
-                                        >
-                                            <Loader2 v-if="isSubscribingExtraAgents" class="h-4 w-4 animate-spin" />
-                                            {{
-                                                addons.extra_agents.active
-                                                    ? t('billing.addons.common.update_quantity')
-                                                    : t('billing.addons.common.subscribe')
-                                            }}
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </div>
-                </div>
+                <RecurringAddonCard
+                    :addon="addons.extra_agents"
+                    :subscribed="subscribed"
+                    :icon="Bot"
+                    :labels="extraAgentsLabels"
+                    price="€5"
+                    :unit-price="5"
+                    :max-quantity="100"
+                    input-id="extra-agents-quantity"
+                    badge-prefix="+"
+                    checkout-route="billing.addons.extra-agents"
+                    cancel-route="billing.addons.extra-agents.cancel"
+                    @refresh="emit('refresh')"
+                />
 
-                <!-- Custom Domain -->
-                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
-                                <Globe class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <h3 class="text-sm font-semibold">{{ t('billing.addons.custom_domains.title') }}</h3>
-                        </div>
-                        <Badge v-if="addons.custom_domains.active" variant="default" class="gap-1">
-                            <CheckCircle class="h-3 w-3" />
-                            {{ addons.custom_domains.quantity }}
-                        </Badge>
-                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
-                    </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">{{ t('billing.addons.custom_domains.summary') }}</p>
-                    <p v-if="addons.custom_domains.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        {{ t('billing.addons.common.ends', { date: addons.custom_domains.cancels_at }) }}
-                    </p>
-                    <div class="mt-auto flex items-end justify-between gap-2 pt-1">
-                        <div>
-                            <span class="text-lg font-bold">€29</span>
-                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_domain') }}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <AlertDialog v-if="addons.custom_domains.active">
-                                <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>{{ t('billing.addons.custom_domains.cancel_title') }}</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            {{ t('billing.addons.custom_domains.cancel_description') }}
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelCustomDomains">{{
-                                            t('billing.addons.common.yes_cancel')
-                                        }}</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            <Dialog v-model:open="isCustomDomainsDialogOpen">
-                                <DialogTrigger as-child>
-                                    <Button variant="outline" size="sm" :disabled="!subscribed">
-                                        {{ addons.custom_domains.active ? t('billing.addons.common.change') : t('billing.addons.common.subscribe') }}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent class="sm:max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle class="flex items-center gap-2">
-                                            <Globe class="text-primary h-5 w-5" />
-                                            {{
-                                                addons.custom_domains.active
-                                                    ? t('billing.addons.custom_domains.change_title')
-                                                    : t('billing.addons.custom_domains.subscribe_title')
-                                            }}
-                                        </DialogTitle>
-                                        <DialogDescription>{{ t('billing.addons.custom_domains.dialog_description') }}</DialogDescription>
-                                    </DialogHeader>
-                                    <div class="space-y-4 py-4">
-                                        <div class="space-y-2">
-                                            <Label for="custom-domains-quantity">{{ t('billing.addons.custom_domains.quantity_label') }}</Label>
-                                            <Input
-                                                id="custom-domains-quantity"
-                                                v-model.number="customDomainsQuantity"
-                                                type="number"
-                                                min="1"
-                                                max="50"
-                                                @keydown="handleNumericKeyPress"
-                                            />
-                                        </div>
-                                        <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-                                            <div class="flex items-center justify-between">
-                                                <span class="font-medium">{{ t('billing.addons.common.monthly_cost') }}</span>
-                                                <span class="text-primary font-bold">€{{ customDomainsTotal }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <DialogFooter class="gap-2">
-                                        <Button variant="outline" @click="isCustomDomainsDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
-                                        <Button
-                                            :disabled="isSubscribingCustomDomains || customDomainsQuantity < 1"
-                                            class="gap-2"
-                                            @click="subscribeCustomDomains"
-                                        >
-                                            <Loader2 v-if="isSubscribingCustomDomains" class="h-4 w-4 animate-spin" />
-                                            {{
-                                                addons.custom_domains.active
-                                                    ? t('billing.addons.common.update_quantity')
-                                                    : t('billing.addons.common.subscribe')
-                                            }}
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </div>
-                </div>
+                <RecurringAddonCard
+                    :addon="addons.custom_domains"
+                    :subscribed="subscribed"
+                    :icon="Globe"
+                    :labels="customDomainsLabels"
+                    price="€29"
+                    :unit-price="29"
+                    :max-quantity="50"
+                    input-id="custom-domains-quantity"
+                    badge-prefix=""
+                    checkout-route="billing.addons.custom-domains"
+                    cancel-route="billing.addons.custom-domains.cancel"
+                    @refresh="emit('refresh')"
+                />
 
-                <!-- Remove Branding -->
-                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
-                                <Sparkles class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <h3 class="text-sm font-semibold">{{ t('billing.addons.remove_branding.title') }}</h3>
-                        </div>
-                        <Badge v-if="addons.remove_branding.active" variant="default" class="gap-1">
-                            <CheckCircle class="h-3 w-3" />
-                            {{ t('billing.addons.remove_branding.active') }}
-                        </Badge>
-                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
-                    </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">
-                        {{ t('billing.addons.remove_branding.summary') }}
-                    </p>
-                    <p v-if="addons.remove_branding.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        {{ t('billing.addons.common.ends', { date: addons.remove_branding.cancels_at }) }}
-                    </p>
-                    <div class="mt-auto flex items-end justify-between gap-2 pt-1">
-                        <div>
-                            <span class="text-lg font-bold">€19</span>
-                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_month') }}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <AlertDialog v-if="addons.remove_branding.active">
-                                <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>{{ t('billing.addons.remove_branding.cancel_title') }}</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            {{ t('billing.addons.remove_branding.cancel_description') }}
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelRemoveBranding">{{
-                                            t('billing.addons.common.yes_cancel')
-                                        }}</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            <Button
-                                v-else
-                                variant="outline"
-                                size="sm"
-                                class="gap-2"
-                                :disabled="!subscribed || isSubscribingRemoveBranding"
-                                @click="subscribeRemoveBranding"
-                            >
-                                <Loader2 v-if="isSubscribingRemoveBranding" class="h-4 w-4 animate-spin" />
-                                {{ t('billing.addons.common.subscribe') }}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+                <RemoveBrandingAddonCard :addon="addons.remove_branding" :subscribed="subscribed" @refresh="emit('refresh')" />
 
-                <!-- Members -->
-                <div class="bg-muted/30 hover:bg-muted/50 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex items-center gap-2">
-                            <div class="bg-background flex h-9 w-9 items-center justify-center rounded-md border">
-                                <Users class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <h3 class="text-sm font-semibold">{{ t('billing.addons.members.title') }}</h3>
-                        </div>
-                        <Badge v-if="addons.members.active" variant="default" class="gap-1">
-                            <CheckCircle class="h-3 w-3" />
-                            +{{ addons.members.quantity }}
-                        </Badge>
-                        <Badge v-else variant="outline">{{ t('billing.addons.common.none') }}</Badge>
-                    </div>
-                    <p class="text-muted-foreground text-xs leading-relaxed">{{ t('billing.addons.members.summary') }}</p>
-                    <p v-if="addons.members.cancels_at" class="text-xs text-orange-600 dark:text-orange-400">
-                        {{ t('billing.addons.common.ends', { date: addons.members.cancels_at }) }}
-                    </p>
-                    <div class="mt-auto flex items-end justify-between gap-2 pt-1">
-                        <div>
-                            <span class="text-lg font-bold">€9</span>
-                            <span class="text-muted-foreground text-xs">{{ t('billing.addons.per_member') }}</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <AlertDialog v-if="addons.members.active">
-                                <AlertDialogTrigger as-child>
-                                    <Button variant="ghost" size="sm" class="text-destructive h-8 px-2">{{ t('billing.common.cancel') }}</Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>{{ t('billing.addons.members.cancel_title') }}</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            {{ t('billing.addons.members.cancel_description') }}
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>{{ t('billing.addons.common.keep_subscription') }}</AlertDialogCancel>
-                                        <AlertDialogAction @click="cancelMembers">{{ t('billing.addons.common.yes_cancel') }}</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                            <Dialog v-model:open="isMembersDialogOpen">
-                                <DialogTrigger as-child>
-                                    <Button variant="outline" size="sm" :disabled="!subscribed">
-                                        {{ addons.members.active ? t('billing.addons.common.change') : t('billing.addons.common.subscribe') }}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent class="sm:max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle class="flex items-center gap-2">
-                                            <Users class="text-primary h-5 w-5" />
-                                            {{
-                                                addons.members.active
-                                                    ? t('billing.addons.members.change_title')
-                                                    : t('billing.addons.members.subscribe_title')
-                                            }}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            {{ t('billing.addons.members.dialog_description') }}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div class="space-y-4 py-4">
-                                        <div class="space-y-2">
-                                            <Label for="members-quantity">{{ t('billing.addons.members.quantity_label') }}</Label>
-                                            <Input
-                                                id="members-quantity"
-                                                v-model.number="membersQuantity"
-                                                type="number"
-                                                min="1"
-                                                max="200"
-                                                @keydown="handleNumericKeyPress"
-                                            />
-                                        </div>
-                                        <div class="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
-                                            <div class="flex items-center justify-between">
-                                                <span class="font-medium">{{ t('billing.addons.common.monthly_cost') }}</span>
-                                                <span class="text-primary font-bold">€{{ membersTotal }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <DialogFooter class="gap-2">
-                                        <Button variant="outline" @click="isMembersDialogOpen = false">{{ t('billing.common.cancel') }}</Button>
-                                        <Button :disabled="isSubscribingMembers || membersQuantity < 1" class="gap-2" @click="subscribeMembers">
-                                            <Loader2 v-if="isSubscribingMembers" class="h-4 w-4 animate-spin" />
-                                            {{
-                                                addons.members.active
-                                                    ? t('billing.addons.common.update_quantity')
-                                                    : t('billing.addons.common.subscribe')
-                                            }}
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </div>
-                </div>
+                <RecurringAddonCard
+                    :addon="addons.members"
+                    :subscribed="subscribed"
+                    :icon="Users"
+                    :labels="membersLabels"
+                    price="€9"
+                    :unit-price="9"
+                    :max-quantity="200"
+                    input-id="members-quantity"
+                    badge-prefix="+"
+                    checkout-route="billing.addons.members"
+                    cancel-route="billing.addons.members.cancel"
+                    @refresh="emit('refresh')"
+                />
             </div>
 
             <p v-if="!subscribed" class="text-muted-foreground mt-4 text-center text-xs">

@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import InputError from '@/components/InputError.vue';
+// Header dropdown that lists the user's teams (loaded the first time it opens),
+// switches the active team, and offers a quick "create team" dialog.
+import { listSwitcherTeams, type SwitcherTeam } from '@/api/teams';
+import CreateTeamDialog from '@/components/CreateTeamDialog.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,44 +13,32 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { getInitials } from '@/composables/useInitials';
 import type { Auth, SharedData } from '@/types';
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import { Check, ChevronsUpDown, Loader2, Plus, Settings, Users } from 'lucide-vue-next';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { Check, ChevronsUpDown, Loader2, Plus, Settings } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-interface Team {
-    id: number;
-    external_id: string;
-    name: string;
-    is_owner: boolean;
-    is_primary: boolean;
-}
-
 const page = usePage<SharedData>();
 const auth = computed(() => page.props.auth as Auth);
-const currentTeam = computed(() => page.props.currentTeam as Team | null);
+const currentTeam = computed(() => page.props.currentTeam);
 // Teammates (employees) are blocked from the teams-management routes by the
 // backend `DenyIfEmployee` middleware, so they must not see Manage/Create here.
 const isEmployee = computed(() => auth.value.user.type === 'employee');
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
-const teams = ref<Team[]>([]);
+const teams = ref<SwitcherTeam[]>([]);
 const isLoading = ref(false);
 
 const fetchTeams = async () => {
     if (teams.value.length > 0) return;
     isLoading.value = true;
     try {
-        const response = await axios.get(route('my.teams.list'));
-        teams.value = response.data.teams;
+        teams.value = await listSwitcherTeams();
     } finally {
         isLoading.value = false;
     }
@@ -58,13 +48,9 @@ watch(isOpen, (open) => {
     if (open) fetchTeams();
 });
 
-const createForm = useForm({
-    name: '',
-});
-
 const isSwitching = ref(false);
 
-const switchTeam = (team: Team) => {
+const switchTeam = (team: SwitcherTeam) => {
     if (team.id === currentTeam.value?.id || isSwitching.value) return;
 
     isSwitching.value = true;
@@ -88,16 +74,6 @@ const switchTeam = (team: Team) => {
 const openCreateDialog = () => {
     isOpen.value = false;
     isCreateDialogOpen.value = true;
-};
-
-const createTeam = () => {
-    createForm.post(route('teams.store'), {
-        onSuccess: () => {
-            isCreateDialogOpen.value = false;
-            createForm.reset();
-            teams.value = []; // Reset to refetch on next open
-        },
-    });
 };
 </script>
 
@@ -154,40 +130,7 @@ const createTeam = () => {
             </DropdownMenuContent>
         </DropdownMenu>
 
-        <!-- Create Team Dialog -->
-        <Dialog v-model:open="isCreateDialogOpen">
-            <DialogContent class="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{{ t('teams.index.create_dialog.title') }}</DialogTitle>
-                    <DialogDescription>{{ t('teams.index.create_dialog.description') }}</DialogDescription>
-                </DialogHeader>
-                <form @submit.prevent="createTeam">
-                    <div class="grid gap-4 py-4">
-                        <div class="grid gap-2">
-                            <Label for="team-name">{{ t('teams.index.create_dialog.name_label') }}</Label>
-                            <div class="relative">
-                                <Users class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                <Input
-                                    id="team-name"
-                                    v-model="createForm.name"
-                                    :placeholder="t('teams.index.create_dialog.name_placeholder')"
-                                    class="ps-9"
-                                    required
-                                />
-                            </div>
-                            <InputError :message="createForm.errors.name" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false">{{ t('teams.common.cancel') }}</Button>
-                        <Button type="submit" :disabled="createForm.processing">
-                            <Loader2 v-if="createForm.processing" class="me-2 size-4 animate-spin" />
-                            <Plus v-else class="me-2 size-4" />
-                            {{ t('teams.index.create_team') }}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+        <!-- Clearing the list makes the next open refetch it, new team included. -->
+        <CreateTeamDialog v-model:open="isCreateDialogOpen" @created="teams = []" />
     </div>
 </template>

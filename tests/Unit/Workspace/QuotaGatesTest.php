@@ -1,8 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
-use Support\Enums\User\UserType;
 
 /**
  * The quota gates must not fatal for a brand-new account that has no

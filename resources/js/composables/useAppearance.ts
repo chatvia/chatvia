@@ -1,5 +1,9 @@
+/**
+ * Light / dark / system theme for the dashboard: `initializeTheme()` applies the
+ * saved choice at boot, `useAppearance()` reads and changes it. The choice is
+ * kept in localStorage (client) and a cookie (so the server can render it).
+ */
 import { safeStorage } from '@/lib/safeStorage';
-import axios from 'axios';
 import { onMounted, ref } from 'vue';
 
 type Appearance = 'light' | 'dark' | 'system';
@@ -91,75 +95,5 @@ export function useAppearance() {
     return {
         appearance,
         updateAppearance,
-    };
-}
-
-// Add interface for appearance data
-export interface AppearanceData {
-    avatar: string | null;
-    logo: string | null;
-    color_theme: string | null;
-    color_shade: number | null;
-    welcome_message: string | null;
-    chat_window_title: string | null;
-    composer_placeholder: string | null;
-}
-
-/**
- * Apply theme colors based on current appearance data and dark mode state
- */
-const applyThemeColors = (appearance: AppearanceData) => {
-    if (!appearance.color_theme) return;
-
-    const theme = appearance.color_theme;
-    const shade = appearance.color_shade || 500;
-
-    // Check if dark mode is active
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    // In dark mode, use lighter borders for visibility; in light mode, use subtle borders
-    const borderShade = isDarkMode ? '400' : '200';
-
-    document.documentElement.style.setProperty('--primary', `var(--${theme}-${shade})`);
-    document.documentElement.style.setProperty('--color-border', `var(--${theme}-border)`);
-    document.documentElement.style.setProperty('--border', `var(--${theme}-${borderShade})`);
-    document.documentElement.style.setProperty('--ring', `var(--${theme}-${shade})`);
-};
-
-/**
- * Composable for fetching and managing appearance data
- */
-export function useFetchAppearance() {
-    const appearance = ref<AppearanceData | null>(null);
-    const isLoading = ref(false);
-    const error = ref<string | null>(null);
-
-    const fetchAppearance = async () => {
-        if (isLoading.value) return;
-
-        isLoading.value = true;
-        error.value = null;
-
-        try {
-            // You can modify this route based on your API endpoint
-            const response = await axios.get(route('chat.appearance'));
-            appearance.value = response.data;
-
-            // Apply theme colors if appearance data is available
-            if (appearance.value) {
-                applyThemeColors(appearance.value);
-            }
-        } catch (err: any) {
-            error.value = err.response?.data?.message || 'Failed to fetch appearance data';
-            console.error('Failed to fetch appearance:', err);
-        } finally {
-            isLoading.value = false;
-        }
-    };
-
-    return {
-        appearance,
-        isLoading,
-        error,
-        fetchAppearance,
     };
 }

@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Two-step account deletion. Step 1 asks for the password and emails a
+// confirmation link; once the link is followed the page loads with
+// `confirmed` and step 2 offers the final, irreversible delete.
 import { Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';

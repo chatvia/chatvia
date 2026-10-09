@@ -7,6 +7,7 @@ use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Process;
 use InvalidArgumentException;
@@ -37,7 +38,7 @@ class LocalDocumentParser implements DocumentParser
             throw new InvalidArgumentException('File does not exist');
         }
 
-        if (is_image_file($filePath)) {
+        if (SourceFileTypes::isImage($filePath)) {
             throw DocumentParsingException::imagesNeedOcr();
         }
 

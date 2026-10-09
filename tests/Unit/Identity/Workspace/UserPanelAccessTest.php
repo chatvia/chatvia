@@ -1,8 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
-use Support\Enums\User\UserType;
 
 /**
  * The Filament admin panel (App\Admin\AdminPanelProvider) is gated to internal

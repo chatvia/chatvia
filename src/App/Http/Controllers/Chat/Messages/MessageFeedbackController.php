@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\MessageFeedbackRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Activity\RecordMessageFeedbackAction;
 
 /**
@@ -11,10 +13,14 @@ use Domain\Conversation\Actions\Activity\RecordMessageFeedbackAction;
  */
 class MessageFeedbackController
 {
-    public function __invoke(MessageFeedbackRequest $request, RecordMessageFeedbackAction $recordFeedback, HostedChatSession $session): void
-    {
+    public function __invoke(
+        MessageFeedbackRequest $request,
+        #[HostedChatAgent] Agent $agent,
+        RecordMessageFeedbackAction $recordFeedback,
+        HostedChatSession $session,
+    ): void {
         $recordFeedback->execute(
-            $session->scope(current_agent(), $request->conversationId()),
+            $session->scope($agent, $request->conversationId()),
             $request->messageId(),
             $request->feedback(),
         );

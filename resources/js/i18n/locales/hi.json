@@ -17,7 +17,9 @@
         "mcp_tool": "MCP टूल",
         "function": "फ़ंक्शन",
         "approve": "अनुमोदित करें",
-        "deny": "अस्वीकार करें"
+        "deny": "अस्वीकार करें",
+        "details": "विवरण",
+        "arguments": "आर्ग्युमेंट"
     },
     "composer": {
         "default_placeholder": "संदेश…",
@@ -30,7 +32,9 @@
         "uploading": "अपलोड हो रहा है…",
         "upload_failed": "अपलोड विफल रहा",
         "delete_failed": "अटैचमेंट नहीं हटाया जा सका",
-        "upload_limit_reached": "आप अधिकतम {count} फ़ाइल अटैच कर सकते हैं | आप अधिकतम {count} फ़ाइलें अटैच कर सकते हैं"
+        "upload_limit_reached": "आप अधिकतम {count} फ़ाइल अटैच कर सकते हैं | आप अधिकतम {count} फ़ाइलें अटैच कर सकते हैं",
+        "send_message": "संदेश भेजें",
+        "stop_streaming": "जनरेट करना रोकें"
     },
     "header": {
         "toggle_sidebar": "साइडबार टॉगल करें",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "कल",
         "search_group_previous_7_days": "पिछले 7 दिन",
         "search_group_previous_30_days": "पिछले 30 दिन",
-        "search_group_older": "पुराने"
+        "search_group_older": "पुराने",
+        "save_title": "शीर्षक सहेजें",
+        "show_password": "पासवर्ड दिखाएँ",
+        "hide_password": "पासवर्ड छिपाएँ",
+        "user_fallback": "उपयोगकर्ता"
     },
     "chat": {
         "message_limit_reached": "आप अपनी संदेश सीमा तक पहुँच गए हैं",
@@ -99,7 +107,17 @@
             "expired": "यह फ़ॉर्म समाप्त हो चुका है।",
             "unavailable": "यह फ़ॉर्म यहाँ सबमिट नहीं किया जा सकता।"
         },
-        "conversation_gone": "यह बातचीत अब मौजूद नहीं है।"
+        "conversation_gone": "यह बातचीत अब मौजूद नहीं है।",
+        "scroll_to_bottom": "नीचे स्क्रॉल करें",
+        "copy_code": "कोड क्लिपबोर्ड पर कॉपी करें",
+        "loading_chart": "चार्ट लोड हो रहा है…",
+        "powered_by": "{label} द्वारा संचालित",
+        "stream_errors": {
+            "unreachable": "सर्वर तक नहीं पहुँच सके। कृपया फिर से प्रयास करें।",
+            "http_status": "सर्वर ने स्थिति {status} लौटाई।",
+            "interrupted": "कनेक्शन बाधित हो गया।",
+            "malformed": "सर्वर से अमान्य डेटा मिला।"
+        }
     },
     "messages": {
         "send": "भेजें",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "अटैचमेंट हटाएं",
         "delete_attachment_title": "इस फ़ाइल को हटाएं?",
         "delete_attachment_description": "इसे हटाने के बाद, सहायक के पास भविष्य के उत्तरों में इस फ़ाइल तक पहुंच नहीं रहेगी।",
-        "delete_attachment_failed": "फ़ाइल नहीं हटाई जा सकी। कृपया फिर से प्रयास करें।"
+        "delete_attachment_failed": "फ़ाइल नहीं हटाई जा सकी। कृपया फिर से प्रयास करें।",
+        "responding": "असिस्टेंट जवाब दे रहा है…",
+        "response_complete": "उत्तर पूरा हुआ",
+        "copy_message": "संदेश कॉपी करें",
+        "feedback_helpful": "अच्छा उत्तर",
+        "feedback_not_helpful": "खराब उत्तर",
+        "edit_message": "संदेश संपादित करें"
     },
     "errors": {
         "subscription_expired": "सदस्यता समाप्त हो गई",
@@ -132,7 +156,10 @@
         "title": "ज्ञान स्रोत",
         "source_count": "{count} स्रोत | {count} स्रोत",
         "description": "इस उत्तर को तैयार करने के लिए {count} स्रोत का उपयोग किया गया | इस उत्तर को तैयार करने के लिए {count} स्रोत का उपयोग किया गया",
-        "page_label": "पृष्ठ {page}"
+        "page_label": "पृष्ठ {page}",
+        "file_with_page": "{file} (पृष्ठ {page})",
+        "fallback_title": "स्रोत {number}",
+        "chunk_label": "खंड {index}"
     },
     "home": {
         "logo_alt": "लोगो",
@@ -387,7 +414,9 @@
                 "expires_in_days": "{count} दिन में समाप्त होता है | {count} दिनों में समाप्त होता है",
                 "expires_in_one_month": "1 महीने में समाप्त होता है",
                 "expires_in_months": "{count} महीने में समाप्त होता है | {count} महीनों में समाप्त होता है",
-                "conversations_count": "{count} बातचीत | {count} बातचीतें"
+                "conversations_count": "{count} बातचीत | {count} बातचीतें",
+                "refresh_conversations": "बातचीत रीफ़्रेश करें",
+                "remove_filter": "फ़िल्टर हटाएँ"
             },
             "pagination": {
                 "prev": "पिछला",
@@ -496,7 +525,8 @@
                 "peak_negative": "सर्वाधिक नकारात्मक",
                 "sentiment_timeline": "भावना टाइमलाइन",
                 "message_details": "संदेश विवरण",
-                "waiting": "लंबित…"
+                "waiting": "लंबित…",
+                "trend_stable_label": "स्थिर"
             },
             "handoff": {
                 "locked_description": "चैट लॉग से लाइव बातचीत संभालने के लिए अपना प्लान अपग्रेड करें।",
@@ -520,7 +550,14 @@
                 "read": "पढ़ा गया",
                 "sent": "भेजा गया",
                 "visitor_typing": "विज़िटर टाइप कर रहा है",
-                "message_placeholder": "एक संदेश टाइप करें…"
+                "message_placeholder": "एक संदेश टाइप करें…",
+                "send_message": "संदेश भेजें",
+                "errors": {
+                    "connect_failed": "चैट चैनल से कनेक्ट नहीं हो सका",
+                    "takeover_failed": "बातचीत अपने हाथ में नहीं ली जा सकी",
+                    "return_failed": "बातचीत AI को वापस नहीं दी जा सकी",
+                    "send_failed": "संदेश नहीं भेजा जा सका"
+                }
             },
             "revise": {
                 "title": "उत्तर संशोधित करें",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "बातचीत पल्स लोड नहीं हो सका। कृपया फिर से प्रयास करें।"
-            }
+            },
+            "refresh_messages": "संदेश रीफ़्रेश करें",
+            "delete_conversation": "बातचीत हटाएँ"
         },
         "guardrails": {
             "title": "गार्डरेल",
@@ -696,7 +735,9 @@
                     "mean_score": "सभी केस में औसत स्कोर",
                     "tokens": "टोकन",
                     "tokens_note": "इस रन द्वारा खपत किए गए कुल टोकन"
-                }
+                },
+                "back": "मूल्यांकन पर वापस जाएं",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "मूल्यांकन",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON स्कीमा",
                 "llm_judge": "LLM जज",
                 "tool_call": "टूल कॉल"
+            },
+            "statuses": {
+                "running": "चल रहा है",
+                "completed": "पूर्ण",
+                "failed": "विफल"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "विषय हटाया नहीं जा सका। कृपया फिर से प्रयास करें।",
                 "load_error": "विषय लोड नहीं किए जा सके। कृपया फिर से प्रयास करें।",
                 "permission_denied": "अनुमति अस्वीकृत",
-                "permission_denied_description": "आपके पास विषय प्रबंधित करने की अनुमति नहीं है।"
+                "permission_denied_description": "आपके पास विषय प्रबंधित करने की अनुमति नहीं है।",
+                "edit_topic_aria": "{topic} संपादित करें",
+                "delete_topic_aria": "{topic} हटाएं"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "{date} को बनाया गया",
                 "used_by_agents": "{count} एजेंट द्वारा उपयोग किया गया",
                 "delete_title": "Q&A प्रविष्टि हटाएं",
-                "delete_description": "क्या आप वाकई इस Q&A प्रविष्टि को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।"
+                "delete_description": "क्या आप वाकई इस Q&A प्रविष्टि को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+                "remove_question": "प्रश्न हटाएँ",
+                "actions": "कार्रवाइयाँ"
             },
             "youtube": {
                 "load_failed": "YouTube वीडियो लोड करने में विफल",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "सक्षम",
                 "no_match": "कोई कनेक्टर मेल नहीं खाता।",
                 "soon": "जल्द ही",
-                "connect_first": "पहले इस MCP को सेटिंग्स में कनेक्ट करें"
+                "connect_first": "पहले इस MCP को सेटिंग्स में कनेक्ट करें",
+                "column_always": "हमेशा चालू",
+                "always_hint": "हर टर्न में इस कनेक्टर के टूल उपलब्ध कराएं, भले ही संदेश को साफ़ तौर पर उनकी ज़रूरत न हो। प्रति एजेंट अधिकतम 10 हमेशा-चालू टूल।",
+                "always_failed": "हमेशा-चालू सेटिंग अपडेट करने में विफल"
             },
             "functions": {
                 "load_failed": "फ़ंक्शन लोड करने में विफल",
@@ -1582,7 +1635,9 @@
                 "branding": "ब्रांडिंग",
                 "behavior": "व्यवहार",
                 "settings": "सेटिंग्स",
-                "domain": "डोमेन"
+                "domain": "डोमेन",
+                "languages": "भाषाएं",
+                "bubbles": "चैट बबल"
             },
             "view_only_title": "केवल देखें",
             "view_only_description": "आपके पास सेटअप संपादित करने की अनुमति नहीं है।",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "एजेंट ID क्लिपबोर्ड पर कॉपी की गई",
                 "privacy_saved": "गोपनीयता नीति लिंक सहेजा गया",
                 "privacy_error": "गोपनीयता नीति लिंक सहेजा नहीं जा सका",
-                "branding_saved": "ब्रांडिंग अपडेट की गई"
+                "branding_saved": "ब्रांडिंग अपडेट की गई",
+                "languages_saved": "भाषाएं सहेजी गईं",
+                "languages_error": "भाषाएं सहेजी नहीं जा सकीं"
             },
             "settings": {
                 "composer_title": "कंपोज़र विकल्प",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "केवल इन मूल साइटों को विजेट लोड करने की अनुमति है।",
                 "keyboard_trigger": "कीबोर्ड ट्रिगर",
-                "placement": "प्लेसमेंट"
+                "placement": "प्लेसमेंट",
+                "language_switcher": "भाषा स्विचर"
             },
             "embed": {
                 "surface_preview": "सतह पूर्वावलोकन"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "आगंतुकों को इस रूप में दिखाया जाता है: “चैट करके, आप हमारी गोपनीयता नीति से सहमत होते हैं।” छिपाने के लिए खाली छोड़ें।",
                 "branding_badge": "\"Powered by Chatvia\" बैज दिखाएं",
-                "branding_badge_hint": "इस एजेंट की चैट और विजेट पर Chatvia बैज दिखाएं।"
-            }
+                "branding_badge_hint": "इस एजेंट की चैट और विजेट पर Chatvia बैज दिखाएं।",
+                "appearance_translations_default": "डिफ़ॉल्ट",
+                "appearance_translations_default_tip": "आपके द्वारा लिखा गया टेक्स्ट — हर भाषा में अपने-आप अनुवादित होता है।",
+                "appearance_translations_default_hint": "यह वह टेक्स्ट है जो आप लिखते हैं। सहेजने पर इसका हर भाषा में अपने-आप अनुवाद हो जाता है, और जब भी किसी विज़िटर की भाषा सूची में नहीं होती, तब यही दिखाया जाता है।",
+                "appearance_translations_lang_hint": "इस भाषा को यहां संपादित करें। स्वचालित अनुवाद का उपयोग करने के लिए फ़ील्ड खाली छोड़ें — आपके संपादन हमेशा सुरक्षित रहते हैं।",
+                "starters_generate": "AI से बनाएं",
+                "starters_generate_title": "AI से स्टार्टर बनाएं",
+                "starters_generate_description": "चुनें कि आपके नॉलेज बेस से कितने स्टार्टर बनाने हैं, फिर तय करें कि कौन-से जोड़ने हैं।",
+                "starters_generate_count": "कितने?",
+                "starters_generate_button": "बनाएं",
+                "starters_generating": "बनाए जा रहे हैं…",
+                "starters_generate_hint": "एक संख्या चुनें और अपने नॉलेज बेस से सुझाव बनाएं।",
+                "starters_translate_empty": "पहले डिफ़ॉल्ट टैब पर स्टार्टर जोड़ें, फिर यहां उनका अनुवाद करें।"
+            },
+            "languages": {
+                "title": "UI भाषाएं",
+                "description": "चुनें कि यह एजेंट किन भाषाओं का समर्थन करता है। सक्षम भाषाएं Hosted Chat के भाषा स्विचर में दिखती हैं और जानकारी व स्टार्टर में उनके लिए अलग भाषा-वार फ़ील्ड मिलते हैं।",
+                "select_all": "सभी चुनें",
+                "clear_all": "सभी हटाएं",
+                "count": "{total} में से {count} चयनित",
+                "hint": "विज़िटर के लिए भाषा स्विचर को पूरी तरह छिपाने के लिए, इसे व्यवहार में बंद करें।",
+                "min_required": "कम से कम एक भाषा आवश्यक है।"
+            },
+            "bubbles_add": "बबल जोड़ें",
+            "bubbles_remove": "बबल हटाएं",
+            "bubbles_empty": "अभी तक कोई चैट बबल नहीं।",
+            "bubbles_translate_empty": "अनुवाद करने के लिए पहले एक बबल जोड़ें।"
         },
         "topics_index": {
             "title": "विषय",
@@ -1865,7 +1948,10 @@
             "remove_error": "विषय हटाने में विफल",
             "fill_fields": "कृपया सभी फ़ील्ड भरें",
             "created": "विषय सफलतापूर्वक बनाया और जोड़ा गया",
-            "create_error": "विषय बनाने में विफल"
+            "create_error": "विषय बनाने में विफल",
+            "examples": "उदा. {titles}",
+            "previous_page": "पिछला पेज",
+            "next_page": "अगला पेज"
         },
         "usage": {
             "title": "उपयोग अंतर्दृष्टि",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "“मैप करता है” का क्या मतलब है?",
             "maps_to_help_title": "एक संपर्क फ़ील्ड से मैप करता है",
             "maps_to_help_1": "इस फ़ील्ड को एक मानक संपर्क विशेषता के रूप में टैग करता है — नाम, ईमेल, फ़ोन, इत्यादि। विज़िटर जो मान दर्ज करता है उसे फिर उस संपर्क जानकारी के रूप में पहचाना जाता है, न कि केवल एक गुमनाम उत्तर के रूप में।",
-            "maps_to_help_2": "मैप किए गए फ़ील्ड लीड के विवरण भरते हैं — लीड सूची, डुप्लिकेट पहचान, और CSV एक्सपोर्ट को सक्षम करते हैं। उत्तर को बिना टैग किए कैप्चर करने के लिए इसे “—” पर ही छोड़ दें।"
+            "maps_to_help_2": "मैप किए गए फ़ील्ड लीड के विवरण भरते हैं — लीड सूची, डुप्लिकेट पहचान, और CSV एक्सपोर्ट को सक्षम करते हैं। उत्तर को बिना टैग किए कैप्चर करने के लिए इसे “—” पर ही छोड़ दें।",
+            "subtitle": "विवरण",
+            "subtitle_placeholder": "उदा. हमें अपनी कंपनी के बारे में बताएं और हम आपसे संपर्क करेंगे।",
+            "subtitle_hint": "विज़िटर को फ़ॉर्म शीर्षक के नीचे दिखाया जाता है।"
         },
         "submissions": {
             "page_title": "सबमिशन",
@@ -2103,7 +2192,8 @@
             "sending_link": "लिंक भेजा जा रहा है...",
             "or_continue_with": "या इसके साथ जारी रखें",
             "no_account": "खाता नहीं है?",
-            "start_free_trial": "निःशुल्क परीक्षण शुरू करें"
+            "start_free_trial": "निःशुल्क परीक्षण शुरू करें",
+            "create_account": "एक खाता बनाएं"
         },
         "register": {
             "title": "एक खाता बनाएं",
@@ -2824,7 +2914,8 @@
                 "all_agents": "सभी एजेंट",
                 "no_agents_assigned": "कोई एजेंट असाइन नहीं किया गया",
                 "agent_count": "{count} एजेंट | {count} एजेंट",
-                "delete_description": "क्या आप वाकई \"{name}\" भूमिका को हटाना चाहते हैं? इस कार्रवाई को पूर्ववत नहीं किया जा सकता।"
+                "delete_description": "क्या आप वाकई \"{name}\" भूमिका को हटाना चाहते हैं? इस कार्रवाई को पूर्ववत नहीं किया जा सकता।",
+                "toggle_permissions": "अनुमतियां दिखाएं या छिपाएं"
             },
             "members": {
                 "title": "टीम के सदस्य",
@@ -2877,7 +2968,9 @@
                 "description": "इस भूमिका वाले सदस्य। आप इस टीम तक उनकी पहुंच हटा सकते हैं।",
                 "empty": "अभी इस भूमिका वाला कोई सदस्य नहीं।",
                 "close": "बंद करें"
-            }
+            },
+            "rename_team": "टीम का नाम बदलें",
+            "save_team_name": "टीम का नाम सहेजें"
         },
         "roles": {
             "details": "भूमिका विवरण",
@@ -3161,7 +3254,8 @@
         "volume_month": "पिछले 30 दिनों में संदेश वॉल्यूम",
         "last_week": "पिछला सप्ताह",
         "last_month": "पिछला महीना",
-        "messages_tooltip": "{n} संदेश | {n} संदेश"
+        "messages_tooltip": "{n} संदेश | {n} संदेश",
+        "messages_this_month": "इस महीने के संदेश"
     },
     "support": {
         "title": "सहायता",
@@ -3250,7 +3344,8 @@
         "tokens_note": "इस चक्र में खपत — केवल जानकारी के लिए; आपके प्लान का बिल संदेशों में बनता है।",
         "of": "{limit} में से",
         "remaining": "{count} शेष",
-        "load_error": "उपयोग डेटा लोड करने में असमर्थ।"
+        "load_error": "उपयोग डेटा लोड करने में असमर्थ।",
+        "no_limit": "कोई सीमा नहीं"
     },
     "analytics_chat": {
         "title": "अपने डेटा से पूछें",
@@ -3293,7 +3388,8 @@
                 "create_title": "एक प्रॉम्प्ट जोड़ें",
                 "description": "एक पुन: उपयोग करने योग्य सिस्टम प्रॉम्प्ट एक बार लिखें, फिर इसे किसी भी एजेंट के पर्सोना पेज से उससे जोड़ें। इसे यहाँ संपादित करने से इसका उपयोग करने वाला हर एजेंट अपडेट हो जाता है।",
                 "id_label": "ID",
-                "copy_id_title": "प्रॉम्प्ट ID कॉपी करें — API के ज़रिए एजेंट बनाते/अपडेट करते समय इसे prompt_id के रूप में पास करें"
+                "copy_id_title": "प्रॉम्प्ट ID कॉपी करें — API के ज़रिए एजेंट बनाते/अपडेट करते समय इसे prompt_id के रूप में पास करें",
+                "copy_id": "प्रॉम्प्ट ID कॉपी करें"
             },
             "form": {
                 "name": "नाम",
@@ -3330,7 +3426,8 @@
                 "description": "फ़ंक्शन आपके एजेंट को आपकी अपनी API को LLM टूल के रूप में कॉल करने देते हैं। {name} और {description} वही हैं जो मॉडल यह तय करते समय देखता है कि इसे कॉल करना है या नहीं — विशिष्ट रहें। {learn_more}",
                 "learn_more": "और जानें",
                 "id_label": "ID",
-                "copy_id_title": "फ़ंक्शन ID कॉपी करें — API के ज़रिए जोड़ते समय इसे function_id के रूप में पास करें"
+                "copy_id_title": "फ़ंक्शन ID कॉपी करें — API के ज़रिए जोड़ते समय इसे function_id के रूप में पास करें",
+                "copy_id": "फ़ंक्शन ID कॉपी करें"
             },
             "form": {
                 "name": "नाम",
@@ -3395,7 +3492,8 @@
                 "title": "अपनी नई API कुंजी कॉपी करें",
                 "description": "यह एकमात्र बार है जब आप {name} देखेंगे। इसे किसी सुरक्षित जगह पर रखें — यदि आप इसे खो देते हैं, तो एक नई जेनरेट करें।",
                 "warning": "इसे एक पासवर्ड की तरह मानें। इसके साथ कोई भी आपकी ओर से एजेंट प्रोविज़न कर सकता है।",
-                "confirm": "मैंने इसे सुरक्षित रूप से संग्रहीत कर लिया है"
+                "confirm": "मैंने इसे सुरक्षित रूप से संग्रहीत कर लिया है",
+                "copy": "API कुंजी कॉपी करें"
             },
             "revoke_dialog": {
                 "title": "API कुंजी रद्द करें",
@@ -3694,7 +3792,8 @@
         "account": "खाता",
         "workspace": "वर्कस्पेस",
         "logout": "लॉग आउट करें",
-        "language": "भाषा"
+        "language": "भाषा",
+        "open_user_menu": "उपयोगकर्ता मेनू खोलें"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "अधिकतम फ़ाइल सीमा पहुंच गई",
             "toast_max_files_description": "आप अधिकतम {max} फ़ाइलें ही अपलोड कर सकते हैं।",
             "toast_file_size_title": "फ़ाइल आकार सीमा पार हो गई",
-            "toast_file_size_description": "निम्न फ़ाइल(फ़ाइलें) {maxSize} MB सीमा से अधिक हैं: {fileList}"
+            "toast_file_size_description": "निम्न फ़ाइल(फ़ाइलें) {maxSize} MB सीमा से अधिक हैं: {fileList}",
+            "analyze_failed": "फ़ाइल का विश्लेषण नहीं हो सका",
+            "analyze_timed_out": "विश्लेषण का समय समाप्त हो गया - फ़ाइल बहुत बड़ी हो सकती है"
         },
         "voice_recorder": {
             "title_default": "वॉइस नोट रिकॉर्ड करें",
@@ -3983,7 +4084,16 @@
             "tips_heading": "सुझाव:",
             "tip_speak_clearly": "स्पष्ट रूप से और एक समान गति से बोलें",
             "tip_quiet_environment": "सर्वोत्तम परिणामों के लिए शांत वातावरण का उपयोग करें",
-            "tip_max_duration": "अधिकतम रिकॉर्डिंग अवधि: {minutes} मिनट | अधिकतम रिकॉर्डिंग अवधि: {minutes} मिनट"
+            "tip_max_duration": "अधिकतम रिकॉर्डिंग अवधि: {minutes} मिनट | अधिकतम रिकॉर्डिंग अवधि: {minutes} मिनट",
+            "pause_recording": "रिकॉर्डिंग रोकें",
+            "resume_recording": "रिकॉर्डिंग फिर से शुरू करें",
+            "cancel_recording": "रिकॉर्डिंग रद्द करें",
+            "play_recording": "रिकॉर्डिंग चलाएं",
+            "pause_playback": "प्लेबैक रोकें",
+            "microphone_denied": "माइक्रोफ़ोन की अनुमति नहीं मिली। रिकॉर्ड करने के लिए कृपया माइक्रोफ़ोन की अनुमति दें।",
+            "microphone_not_found": "कोई माइक्रोफ़ोन नहीं मिला। कृपया माइक्रोफ़ोन जोड़ें और फिर से प्रयास करें।",
+            "microphone_failed": "माइक्रोफ़ोन तक पहुँच नहीं हो सकी",
+            "transcription_failed": "ट्रांसक्रिप्शन विफल रहा"
         },
         "date_range": {
             "pick_range": "एक तिथि सीमा चुनें",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "{name} डिस्कनेक्ट किया गया",
             "toast_disconnect_failed": "विफल",
             "set_all": "सभी सेट करें",
-            "toast_bulk_permission": "{count} टूल को “{permission}” पर सेट किया | {count} टूल को “{permission}” पर सेट किया"
+            "toast_bulk_permission": "{count} टूल को “{permission}” पर सेट किया | {count} टूल को “{permission}” पर सेट किया",
+            "copy_server_id": "सर्वर ID कॉपी करें"
         },
         "member_sheet": {
             "sr_description": "इस चैटर की सीमाएं, एजेंट एक्सेस और स्थिति प्रबंधित करें।",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "साइडबार टॉगल करें",
             "sidebar": "साइडबार",
             "sidebar_description": "मोबाइल साइडबार दिखाता है।"
+        },
+        "json_editor": {
+            "aria_label": "JSON एडिटर"
+        },
+        "time_ago": {
+            "just_now": "अभी-अभी"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "अपने Amplitude प्रोजेक्ट से प्रोडक्ट एनालिटिक्स — इवेंट, चार्ट और कोहोर्ट — क्वेरी करें।"
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia में आपका स्वागत है",
+            "intro": "आइए आपका पहला AI एजेंट बनाएं। इसमें बस एक मिनट लगता है।",
+            "what_title": "एजेंट क्या है?",
+            "what_body": "एजेंट एक AI असिस्टेंट है जिसे आप अपनी सामग्री पर प्रशिक्षित करते हैं। यह आपकी वेबसाइट, चैट विजेट और मैसेजिंग ऐप्स पर आपके ग्राहकों को जवाब देता है।",
+            "how_title": "यह कैसे काम करता है?",
+            "how_body": "पहले आप एक एजेंट बनाते हैं और उसे एक नाम देते हैं। फिर आप उसे अपनी फ़ाइलों, वेबसाइटों और टेक्स्ट से प्रशिक्षित करते हैं ताकि वह सवालों के जवाब दे सके।",
+            "start": "मेरा पहला एजेंट बनाएं",
+            "video_caption": "देखें यह कैसे काम करता है"
         }
     }
 }

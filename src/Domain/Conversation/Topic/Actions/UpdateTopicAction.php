@@ -3,9 +3,9 @@
 namespace Domain\Conversation\Topic\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Topic\Exceptions\SystemTopicProtectedException;
 use Domain\Conversation\Topic\Models\Topic;
 use Support\Exceptions\DomainValidationException;
-use Support\Exceptions\SystemTopicProtectedException;
 
 /**
  * Renames / re-describes a workspace topic. Topics belong to the workspace

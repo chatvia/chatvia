@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// OAuth sign-in buttons (Google and Slack always; Microsoft and GitHub on
+// request). Each is a full-page redirect so the provider can take over.
 import { Button } from '@/components/ui/button';
 import { computed } from 'vue';
 

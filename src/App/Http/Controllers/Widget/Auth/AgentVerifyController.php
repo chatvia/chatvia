@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Widget\Auth;
 
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\Data\Auth\WidgetAgentVerifyResultData;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
@@ -14,10 +16,11 @@ use Illuminate\Http\Request;
  */
 class AgentVerifyController
 {
-    public function __invoke(Request $request, WidgetVerification $widgetVerification): JsonResponse|WidgetAgentVerifyResultData
-    {
-        $agent = current_agent_from_widget();
-
+    public function __invoke(
+        Request $request,
+        #[WidgetAgent] ?Agent $agent,
+        WidgetVerification $widgetVerification,
+    ): JsonResponse|WidgetAgentVerifyResultData {
         if ($agent === null || ! $widgetVerification->isRequestFromAllowedSite($agent, $request)) {
             return response()->json(new WidgetAgentVerifyResultData(verified: false), JsonResponse::HTTP_FORBIDDEN);
         }

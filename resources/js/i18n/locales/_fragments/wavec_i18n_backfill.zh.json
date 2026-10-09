@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "详情",
+        "arguments": "参数"
+    },
+    "messages": {
+        "responding": "助手正在回复…",
+        "response_complete": "回复完成",
+        "copy_message": "复制消息",
+        "feedback_helpful": "回复很好",
+        "feedback_not_helpful": "回复不佳"
+    },
+    "agents": {
+        "evals": {
+            "run": {
+                "back": "返回评估",
+                "latency_value": "{ms} 毫秒"
+            },
+            "statuses": {
+                "running": "运行中",
+                "completed": "已完成",
+                "failed": "失败"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "编辑 {topic}",
+                "delete_topic_aria": "删除 {topic}"
+            }
+        },
+        "sources": {
+            "connectors": {
+                "column_always": "始终启用",
+                "always_hint": "即使消息并不明显需要，也在每轮对话中提供此连接器的工具。每个智能体最多可有 10 个始终启用的工具。",
+                "always_failed": "更新“始终启用”设置失败"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "语言",
+                "bubbles": "聊天气泡"
+            },
+            "toasts": {
+                "languages_saved": "语言已保存",
+                "languages_error": "无法保存语言"
+            },
+            "behavior": {
+                "language_switcher": "语言切换器"
+            },
+            "sections": {
+                "appearance_translations_default": "默认",
+                "appearance_translations_default_tip": "您编写的文本，会自动翻译成每种语言。",
+                "appearance_translations_default_hint": "这是您编写的文本。保存后，它会自动翻译成每种语言；当访客的语言不在列表中时，将显示此文本。",
+                "appearance_translations_lang_hint": "在此编辑该语言。将字段留空即可使用自动翻译——您的编辑内容始终会被保留。",
+                "starters_generate": "使用 AI 生成",
+                "starters_generate_title": "使用 AI 生成开场白",
+                "starters_generate_description": "选择要根据知识库生成的数量，然后挑选要添加的内容。",
+                "starters_generate_count": "生成多少个？",
+                "starters_generate_button": "生成",
+                "starters_generating": "正在生成…",
+                "starters_generate_hint": "选择数量，然后根据知识库生成建议。",
+                "starters_translate_empty": "请先在“默认”选项卡中添加开场白，然后在此处翻译。"
+            },
+            "languages": {
+                "title": "界面语言",
+                "description": "选择此智能体支持的语言。已启用的语言会出现在托管聊天的语言切换器中，并在“信息”和“开场白”中拥有各自的语言字段。",
+                "select_all": "全选",
+                "clear_all": "全部清除",
+                "count": "已选择 {count} / {total}",
+                "hint": "如需完全隐藏访客语言切换器，请在“行为”中将其关闭。",
+                "min_required": "至少需要一种语言。"
+            },
+            "bubbles_add": "添加气泡",
+            "bubbles_remove": "移除气泡",
+            "bubbles_empty": "暂无聊天气泡。",
+            "bubbles_translate_empty": "请先添加气泡，然后再进行翻译。"
+        },
+        "topics_index": {
+            "examples": "例如：{titles}",
+            "previous_page": "上一页",
+            "next_page": "下一页"
+        },
+        "forms": {
+            "subtitle": "描述",
+            "subtitle_placeholder": "例如：请介绍一下您的公司，我们会与您联系。",
+            "subtitle_hint": "显示在表单标题下方，供访客查看。"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "创建账户"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "显示或隐藏权限"
+            },
+            "rename_team": "重命名团队",
+            "save_team_name": "保存团队名称"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "本月消息数"
+    },
+    "usage": {
+        "no_limit": "无限制"
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "复制提示词 ID"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "复制函数 ID"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "复制 API 密钥"
+            }
+        }
+    },
+    "nav": {
+        "open_user_menu": "打开用户菜单"
+    },
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "暂停录制",
+            "resume_recording": "继续录制",
+            "cancel_recording": "取消录制",
+            "play_recording": "播放录音",
+            "pause_playback": "暂停播放"
+        },
+        "connector_sheet": {
+            "copy_server_id": "复制服务器 ID"
+        },
+        "json_editor": {
+            "aria_label": "JSON 编辑器"
+        },
+        "time_ago": {
+            "just_now": "刚刚"
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "欢迎使用 Chatvia",
+            "intro": "让我们创建您的第一个 AI 智能体。只需一分钟。",
+            "what_title": "什么是智能体？",
+            "what_body": "智能体是用您自己的内容训练的 AI 助手。它会在您的网站、聊天挂件和消息应用中回答客户的问题。",
+            "how_title": "它是如何运作的？",
+            "how_body": "首先创建一个智能体并为其命名。然后用您的文件、网站和文本训练它，让它能够回答问题。",
+            "start": "创建我的第一个智能体",
+            "video_caption": "观看运作方式"
+        }
+    }
+}

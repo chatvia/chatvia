@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Send melding",
+        "stop_streaming": "Stopp genereringen"
+    },
+    "chat": {
+        "scroll_to_bottom": "Rull til bunnen",
+        "copy_code": "Kopier koden til utklippstavlen",
+        "loading_chart": "Laster inn diagram…",
+        "powered_by": "Drevet av {label}",
+        "stream_errors": {
+            "unreachable": "Kunne ikke nå serveren. Prøv igjen.",
+            "http_status": "Serveren returnerte status {status}.",
+            "interrupted": "Tilkoblingen ble avbrutt.",
+            "malformed": "Mottok ugyldige data fra serveren."
+        }
+    },
+    "messages": {
+        "edit_message": "Rediger melding"
+    },
+    "sources": {
+        "file_with_page": "{file} (Side {page})",
+        "fallback_title": "Kilde {number}",
+        "chunk_label": "Utdrag {index}"
+    },
+    "sidebar": {
+        "save_title": "Lagre tittel",
+        "show_password": "Vis passord",
+        "hide_password": "Skjul passord",
+        "user_fallback": "Bruker"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Akkurat nå"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Tilgang til mikrofonen ble avslått. Tillat tilgang til mikrofonen for å ta opp.",
+            "microphone_not_found": "Fant ingen mikrofon. Koble til en mikrofon og prøv igjen.",
+            "microphone_failed": "Kunne ikke få tilgang til mikrofonen",
+            "transcription_failed": "Transkripsjonen mislyktes"
+        },
+        "file_uploader": {
+            "analyze_failed": "Kunne ikke analysere filen",
+            "analyze_timed_out": "Analysen fikk tidsavbrudd – filen kan være for stor"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Oppdater meldinger",
+            "delete_conversation": "Slett samtale",
+            "sidebar": {
+                "refresh_conversations": "Oppdater samtaler",
+                "remove_filter": "Fjern filter"
+            },
+            "handoff": {
+                "send_message": "Send melding",
+                "errors": {
+                    "connect_failed": "Kunne ikke koble til chattekanalen",
+                    "takeover_failed": "Kunne ikke overta samtalen",
+                    "return_failed": "Kunne ikke gi samtalen tilbake til AI",
+                    "send_failed": "Kunne ikke sende meldingen"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stabil"
+            }
+        }
+    }
+}

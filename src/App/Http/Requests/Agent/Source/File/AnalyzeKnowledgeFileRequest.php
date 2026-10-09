@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Agent\Source\File;
 
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -22,7 +23,7 @@ class AnalyzeKnowledgeFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'extensions:'.implode(',', ocr_supported_extensions()), 'max:51200'],
+            'file' => ['required', 'file', 'extensions:'.implode(',', SourceFileTypes::supportedExtensions()), 'max:51200'],
         ];
     }
 }

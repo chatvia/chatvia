@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageVisualsData;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
@@ -29,6 +30,7 @@ class EnhanceChunkAction
         private readonly Chunker $chunker,
         private readonly PageVisualsDescriber $visuals,
         private readonly CostCalculator $costCalculator,
+        private readonly EmbeddingsProviderInterface $embeddings,
     ) {}
 
     public function execute(EnhanceChunkData $data): void
@@ -49,10 +51,10 @@ class EnhanceChunkAction
         $questions = implode("\n", $enhancement->questions);
 
         $chunk->update([
-            'embedding' => embed($embeddingText),
+            'embedding' => $this->embeddings->embed($embeddingText),
             'embedding_bm25' => Bm25Tokenizer::expression($embeddingText),
             'questions' => $questions !== '' ? $questions : null,
-            'questions_embedding' => $questions !== '' ? embed($questions, true) : null,
+            'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
             'questions_embedding_bm25' => $questions !== '' ? Bm25Tokenizer::expression($questions) : null,
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
                 $enhancement->cost + $this->embeddingCost($embeddingText) + $this->embeddingCost($questions),

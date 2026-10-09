@@ -14,6 +14,7 @@ import 'vue3-colorpicker/style.css';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
+import type { SharedData } from './types';
 import { createChatEventBus } from './utils/eventBus';
 
 const chatEventBus = createChatEventBus();
@@ -28,23 +29,12 @@ configureEcho({
     enabledTransports: ['ws', 'wss'],
 });
 
-// Extend ImportMeta interface for Vite...
-interface ImportMetaEnv {
-    readonly VITE_APP_NAME: string;
-    [key: string]: string | boolean | undefined;
-}
-
-interface _ImportMeta {
-    readonly env: ImportMetaEnv;
-    readonly glob: <T>(pattern: string) => Record<string, () => Promise<T>>;
-}
-
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     setup({ el, App, props, plugin }) {
-        const initialLocale = (props.initialPage?.props as any)?.locale;
+        const initialLocale: unknown = props.initialPage?.props?.locale;
         if (typeof initialLocale === 'string' && initialLocale.length > 0) {
             void setI18nLocale(resolveLocale(initialLocale));
         }
@@ -72,14 +62,14 @@ createInertiaApp({
 });
 
 // Global error handler for Laravel validation errors and flash messages
-router.on('navigate', (event: any) => {
+router.on('navigate', (event) => {
     const page = event.detail.page;
     const { props } = page;
 
     // Sync the active i18n locale (and document dir/lang) with whatever
     // the server resolved for this Inertia page (chat surfaces send `locale`).
     // `auto` falls back to the browser language; anything else is forced.
-    const incomingLocale = (props as any)?.locale;
+    const incomingLocale: unknown = props.locale;
     if (typeof incomingLocale === 'string' && incomingLocale.length > 0) {
         void setI18nLocale(resolveLocale(incomingLocale));
     }
@@ -90,8 +80,8 @@ router.on('navigate', (event: any) => {
 
         // Show each error as a toast
         Object.entries(errors).forEach(([_field, messages]) => {
-            const messageArray = Array.isArray(messages) ? messages : [messages];
-            messageArray.forEach((message: string) => {
+            const messageArray: string[] = Array.isArray(messages) ? messages : [messages];
+            messageArray.forEach((message) => {
                 toast.error(message, {
                     duration: 5000,
                 });
@@ -101,7 +91,7 @@ router.on('navigate', (event: any) => {
 
     // Handle Laravel flash messages
     if (props.flash) {
-        const flash = props.flash as any;
+        const flash: SharedData['flash'] = props.flash;
 
         if (flash.success) {
             toast.success(flash.success, {

@@ -1,3 +1,8 @@
+/**
+ * Locale-aware date labels for charts and lists ("Jan 5", "Mon", "5"), in the
+ * active vue-i18n language. For calendar dates in the user's preferred format
+ * use `useDateFormat` instead.
+ */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 

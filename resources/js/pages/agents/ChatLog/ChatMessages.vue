@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * Messages tab of the chat log: the selected conversation's transcript (with
+ * search highlighting), per-message tone, sentiment, confidence, tokens and
+ * feedback, the "Revise" shortcut, and paging.
+ */
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -33,20 +38,16 @@ const {
     getToneDisplayName,
     getToneBadgeColor,
     getConfidenceColor,
+    getSentimentDisplayName,
 } = useChatLog();
 
 function clearSearch() {
     search.value = '';
 }
 
-function getConfidenceScore(message: Message): number {
-    if (message.role === 'assistant') {
-        const messageWithScore = message as any;
-        if (messageWithScore.confidence_score) {
-            return messageWithScore.confidence_score;
-        }
-    }
-    return 1.0;
+// Some assistant rows carry a retrieval confidence; without one the answer counts as fully confident.
+function getConfidenceScore(message: Message & { confidence_score?: number | null }): number {
+    return message.role === 'assistant' && message.confidence_score ? message.confidence_score : 1.0;
 }
 
 function formatConfidenceScore(score: number): string {
@@ -73,6 +74,13 @@ function getFeedbackInfo(feedback: string | null): { color: string; label: strin
 
 function openReviseDialog(message: Message) {
     emit('open-revise', message);
+}
+
+const hasMorePages = computed(() => (messagesData.value?.last_page ?? 0) > 1);
+
+function goToPage(offset: number) {
+    const current = messagesData.value?.current_page ?? 1;
+    if (currentConversationId.value) void fetchMessages(currentConversationId.value, current + offset);
 }
 </script>
 
@@ -106,11 +114,11 @@ function openReviseDialog(message: Message) {
                         <!-- Message Bubble -->
                         <div
                             class="rounded-2xl px-4 py-3"
-                            :class="m.role === 'user' ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted/60 rounded-bl-md'"
+                            :class="m.role === 'user' ? 'bg-primary text-primary-foreground rounded-ee-md' : 'bg-muted/60 rounded-es-md'"
                         >
                             <div v-if="search" v-html="highlightText(m.content, search)" class="prose dark:prose-invert max-w-none"></div>
                             <div v-else-if="m.role === 'user'" class="text-base leading-relaxed break-words whitespace-pre-wrap">{{ m.content }}</div>
-                            <MessageCard v-else :message="m" :hide-feedback="true" />
+                            <MessageCard v-else :message="m" />
                         </div>
 
                         <!-- Meta Information -->
@@ -140,7 +148,7 @@ function openReviseDialog(message: Message) {
                                     'text-muted-foreground': m.sentiment === 'neutral',
                                 }"
                             >
-                                {{ m.sentiment }}
+                                {{ getSentimentDisplayName(m.sentiment) }}
                             </span>
 
                             <span
@@ -243,26 +251,14 @@ function openReviseDialog(message: Message) {
     </ScrollArea>
 
     <!-- Pagination -->
-    <div v-if="currentConversationId && messagesData?.last_page > 1" class="flex-shrink-0 border-t p-3">
+    <div v-if="currentConversationId && hasMorePages" class="flex-shrink-0 border-t p-3">
         <div class="flex items-center justify-between">
-            <Button
-                variant="ghost"
-                size="sm"
-                class="h-8 text-xs"
-                :disabled="!messagesData?.prev_page_url || isLoadingMessages"
-                @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page - 1)"
-            >
+            <Button variant="ghost" size="sm" class="h-8 text-xs" :disabled="!messagesData?.prev_page_url || isLoadingMessages" @click="goToPage(-1)">
                 <LoaderCircle v-if="isLoadingMessages" class="me-1 h-3 w-3 animate-spin" />
                 {{ t('agents.chatlog.pagination.prev') }}
             </Button>
             <span class="text-muted-foreground text-[11px] tabular-nums"> {{ messagesData?.current_page }} / {{ messagesData?.last_page }} </span>
-            <Button
-                variant="ghost"
-                size="sm"
-                class="h-8 text-xs"
-                :disabled="!messagesData?.next_page_url || isLoadingMessages"
-                @click="currentConversationId && fetchMessages(currentConversationId, messagesData.current_page + 1)"
-            >
+            <Button variant="ghost" size="sm" class="h-8 text-xs" :disabled="!messagesData?.next_page_url || isLoadingMessages" @click="goToPage(1)">
                 <LoaderCircle v-if="isLoadingMessages" class="me-1 h-3 w-3 animate-spin" />
                 {{ t('agents.chatlog.pagination.next') }}
             </Button>

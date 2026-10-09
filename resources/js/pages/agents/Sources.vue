@@ -1,9 +1,14 @@
 <script lang="ts" setup>
+/**
+ * Source-usage analytics: which knowledge sources, functions and MCP tools the
+ * agent used, how often and when last, in three tabs.
+ */
+import { errorMessage } from '@/api/http';
+import { fetchSourceUsage, type FunctionUsageItem, type KnowledgeUsageItem, type McpToolUsageItem } from '@/api/sourceUsage';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import axios from 'axios';
 import { Activity, Database, FileText, Globe, LoaderCircle, Plug, Type, Wrench, Youtube } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -16,30 +21,9 @@ interface Props {
 
 const props = defineProps<Props>();
 
-interface KnowledgeItem {
-    name: string;
-    sub_kind: string;
-    mime_type: string | null;
-    count: number;
-    last_used_at: string | null;
-}
-
-interface FunctionItem {
-    name: string;
-    description: string;
-    count: number;
-    last_used_at: string | null;
-}
-
-interface McpToolItem {
-    tool_name: string;
-    tool_description: string | null;
-    server_name: string;
-    server_slug: string;
-    connector_slug: string | null;
-    count: number;
-    last_used_at: string | null;
-}
+type KnowledgeItem = KnowledgeUsageItem;
+type FunctionItem = FunctionUsageItem;
+type McpToolItem = McpToolUsageItem;
 
 const loading = ref(true);
 const error = ref<string | null>(null);
@@ -59,12 +43,12 @@ const fetchData = async () => {
     error.value = null;
 
     try {
-        const response = await axios.get(route('agents.analytics.sources.data', props.agent.external_id));
-        knowledge.value = response.data.knowledge ?? [];
-        functions.value = response.data.functions ?? [];
-        mcpTools.value = response.data.mcp_tools ?? [];
-    } catch (err: any) {
-        error.value = err.response?.data?.message || t('agents.usage.load_error');
+        const usage = await fetchSourceUsage(props.agent.external_id);
+        knowledge.value = usage.knowledge ?? [];
+        functions.value = usage.functions ?? [];
+        mcpTools.value = usage.mcp_tools ?? [];
+    } catch (err) {
+        error.value = errorMessage(err, t('agents.usage.load_error'));
         console.error('Error fetching sources analytics:', err);
     } finally {
         loading.value = false;

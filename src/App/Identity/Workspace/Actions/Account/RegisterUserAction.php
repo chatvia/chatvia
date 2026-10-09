@@ -3,12 +3,12 @@
 namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Data\Account\RegisterUserData;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Support\Enums\User\UserType;
 
 /**
  * Create a new workspace owner from the sign-up form, together with the

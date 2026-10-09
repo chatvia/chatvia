@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\Widget\Auth;
 
-use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\Data\Auth\WidgetAuthTokenData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,15 +23,12 @@ use Illuminate\Http\Request;
  */
 class AuthExchangeController
 {
-    use InteractsWithWidgetRequest;
-
     public function __invoke(
         Request $request,
+        #[WidgetAgent] Agent $agent,
         AgentSignInTokenService $signInTokens,
         WidgetAuthSessionService $sessions,
     ): JsonResponse {
-        $agent = $this->widgetAgent();
-
         $verified = $signInTokens->verifyWithClaims($request->string('token')->toString(), $agent);
 
         if (! $verified) {

@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\InviteAgentChatterAction;
@@ -9,7 +10,6 @@ use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\Event;
-use Support\Enums\User\UserType;
 
 /**
  * InviteAgentChatterAction is the FIRST line of defence in the agent-invitation

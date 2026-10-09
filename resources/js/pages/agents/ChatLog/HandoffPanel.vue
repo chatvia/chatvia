@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * Live Chat tab of the chat log: the visitor's online and typing state, take
+ * over / return to AI, and — once taken over — the transcript plus a reply box
+ * that streams the operator's messages into the visitor's widget.
+ */
 import MessageCard from '@/components/chat/MessageCard.vue';
 import LockedFeature from '@/components/LockedFeature.vue';
 import { Badge } from '@/components/ui/badge';
@@ -13,18 +18,19 @@ import { useChatLog } from './useChatLog';
 
 const { t } = useI18n();
 
-const { currentConversationId, messagesData: _messagesData, messages, handoff, fetchMessages, appendMessage, formatTimeAgo } = useChatLog();
+const { currentConversationId, messages, handoff, fetchMessages, appendMessage, formatTimeAgo } = useChatLog();
 
 const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('handoff'));
 
+/** How long after the last keystroke the operator counts as "stopped typing". */
+const TYPING_IDLE_MS = 1000;
+
 const messageInput = ref('');
-const messagesContainer = ref<any>(null);
 const scrollAnchor = ref<HTMLElement | null>(null);
 const isTyping = ref(false);
 let typingDebounce: ReturnType<typeof setTimeout> | null = null;
 
-// Handle message input typing
 function handleTyping() {
     if (!handoff.isHandedOff.value) return;
 
@@ -37,10 +43,16 @@ function handleTyping() {
     typingDebounce = setTimeout(() => {
         isTyping.value = false;
         handoff.sendTyping(false);
-    }, 1000);
+    }, TYPING_IDLE_MS);
 }
 
-// Send message
+async function reloadAndScroll() {
+    if (!currentConversationId.value) return;
+    await fetchMessages(currentConversationId.value);
+    scrollToBottom();
+}
+
+// useHandoff already shows request errors in the panel, so failures only need local handling here.
 async function sendMessage() {
     if (!messageInput.value.trim() || handoff.isSendingMessage.value) return;
 
@@ -49,85 +61,56 @@ async function sendMessage() {
 
     try {
         await handoff.sendMessage(content);
-        // Refresh messages to show the new one
-        if (currentConversationId.value) {
-            await fetchMessages(currentConversationId.value);
-            scrollToBottom();
-        }
-    } catch (_err) {
-        // Error already handled in composable
-        messageInput.value = content; // Restore message on error
+        await reloadAndScroll();
+    } catch {
+        messageInput.value = content;
     }
 }
 
-// Take over conversation
 async function handleTakeOver() {
     try {
         await handoff.takeOver();
-        // Refresh messages
-        if (currentConversationId.value) {
-            await fetchMessages(currentConversationId.value);
-            scrollToBottom();
-        }
-    } catch (_err) {
-        // Error handled in composable
+        await reloadAndScroll();
+    } catch {
+        // Shown by useHandoff (see above).
     }
 }
 
-// Return to AI
 async function handleReturn() {
     try {
         await handoff.returnToAi();
-    } catch (_err) {
-        // Error handled in composable
+    } catch {
+        // Shown by useHandoff (see above).
     }
 }
 
 function scrollToBottom() {
-    nextTick(() => {
-        // Use scroll anchor - most reliable method
-        if (scrollAnchor.value) {
-            scrollAnchor.value.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        }
-    });
+    nextTick(() => scrollAnchor.value?.scrollIntoView({ behavior: 'smooth', block: 'end' }));
 }
 
-// Watch for new messages from WebSocket
+// Messages pushed over the channel are appended locally, with no refetch.
+// The visitor's own messages count as read as soon as they arrive here.
 watch(
     () => handoff.newMessageReceived.value,
-    (newMsg) => {
-        if (newMsg && currentConversationId.value) {
-            // Append message directly to the local state (no server refetch needed)
-            appendMessage(newMsg);
-            scrollToBottom();
+    (newMessage) => {
+        if (!newMessage || !currentConversationId.value) return;
 
-            // Mark user messages as read when we receive them
-            if (newMsg.role === 'user') {
-                handoff.markMessagesAsRead();
-            }
-        }
-    },
-);
-
-// Watch for messages count change
-watch(
-    () => messages.value.length,
-    () => {
+        appendMessage(newMessage);
         scrollToBottom();
+        if (newMessage.role === 'user') void handoff.markMessagesAsRead();
     },
 );
 
-// Watch for typing state changes to scroll
+watch(() => messages.value.length, scrollToBottom);
+
 watch(
     () => handoff.userIsTyping.value,
     (isTyping) => {
-        if (isTyping) {
-            scrollToBottom();
-        }
+        if (isTyping) scrollToBottom();
     },
 );
 
-// Scroll to bottom on mount
+// Waits a moment for the panel to lay out before the first scroll.
 onMounted(() => {
     setTimeout(scrollToBottom, 100);
 });
@@ -219,7 +202,7 @@ onMounted(() => {
         <!-- Chat Interface (handed off) -->
         <template v-else>
             <!-- Messages -->
-            <ScrollArea ref="messagesContainer" class="h-0 flex-1">
+            <ScrollArea class="h-0 flex-1">
                 <div v-if="!currentConversationId" class="text-muted-foreground flex h-full flex-col items-center justify-center py-20">
                     <MessageSquare class="mb-3 h-10 w-10 opacity-30" />
                     <p class="text-sm">{{ t('agents.chatlog.handoff.select_conversation') }}</p>
@@ -248,16 +231,16 @@ onMounted(() => {
                                 <div
                                     class="rounded-2xl px-4 py-3"
                                     :class="{
-                                        'bg-primary text-primary-foreground rounded-br-md': m.role === 'user',
-                                        'bg-muted/60 rounded-bl-md': m.role === 'assistant',
-                                        'rounded-bl-md border border-amber-200 bg-amber-100 dark:border-amber-800 dark:bg-amber-900/30':
+                                        'bg-primary text-primary-foreground rounded-ee-md': m.role === 'user',
+                                        'bg-muted/60 rounded-es-md': m.role === 'assistant',
+                                        'rounded-es-md border border-amber-200 bg-amber-100 dark:border-amber-800 dark:bg-amber-900/30':
                                             m.role === 'agent',
                                     }"
                                 >
                                     <div v-if="m.role === 'user'" class="text-base leading-relaxed break-words whitespace-pre-wrap">
                                         {{ m.content }}
                                     </div>
-                                    <MessageCard v-else :message="m" :hide-feedback="true" />
+                                    <MessageCard v-else :message="m" />
                                 </div>
 
                                 <!-- Time and Read Status -->
@@ -315,7 +298,13 @@ onMounted(() => {
                         @input="handleTyping"
                         @keydown.enter.exact.prevent="sendMessage"
                     />
-                    <Button type="submit" size="icon" class="h-11 w-11 shrink-0" :disabled="!messageInput.trim() || handoff.isSendingMessage.value">
+                    <Button
+                        type="submit"
+                        size="icon"
+                        class="h-11 w-11 shrink-0"
+                        :disabled="!messageInput.trim() || handoff.isSendingMessage.value"
+                        :aria-label="t('agents.chatlog.handoff.send_message')"
+                    >
                         <LoaderCircle v-if="handoff.isSendingMessage.value" class="h-4 w-4 animate-spin" />
                         <Send v-else class="h-4 w-4" />
                     </Button>

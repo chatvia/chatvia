@@ -1,0 +1,11 @@
+{
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "إيقاف التسجيل مؤقتًا",
+            "resume_recording": "استئناف التسجيل",
+            "cancel_recording": "إلغاء التسجيل",
+            "play_recording": "تشغيل التسجيل",
+            "pause_playback": "إيقاف التشغيل مؤقتًا"
+        }
+    }
+}

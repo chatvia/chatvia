@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
 use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -23,6 +25,7 @@ class ConversationDeleteController
 
     public function __invoke(
         Request $request,
+        #[WidgetAgent] Agent $agent,
         WidgetVerification $widgetVerification,
         ClearConversationForVisitorAction $clearConversation,
         ClearSessionConversationsForVisitorAction $clearSession,
@@ -33,7 +36,6 @@ class ConversationDeleteController
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $agent = $this->widgetAgent();
         $widgetUser = $this->widgetUser($request);
         $conversationId = $this->widgetConversationId($request);
 

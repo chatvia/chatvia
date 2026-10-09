@@ -151,7 +151,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
             ]);
 
             $row->forceFill([
-                'embedding' => embed($text),
+                'embedding' => app(EmbeddingsProviderInterface::class)->embed($text),
                 'embedding_bm25' => Bm25Tokenizer::expression($text),
             ])->save();
 

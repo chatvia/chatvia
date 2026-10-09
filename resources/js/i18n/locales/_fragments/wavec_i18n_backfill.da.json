@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Detaljer",
+        "arguments": "Argumenter"
+    },
+    "messages": {
+        "responding": "Assistenten svarer…",
+        "response_complete": "Svaret er færdigt",
+        "copy_message": "Kopiér besked",
+        "feedback_helpful": "Godt svar",
+        "feedback_not_helpful": "Dårligt svar"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "Altid aktiv",
+                "always_hint": "Tilbyd denne forbindelses værktøjer i hver tur, også når beskeden ikke tydeligt har brug for dem. Højst 10 altid aktive værktøjer pr. agent.",
+                "always_failed": "Det lykkedes ikke at opdatere indstillingen “Altid aktiv”"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Sprog",
+                "bubbles": "Chatbobler"
+            },
+            "toasts": {
+                "languages_saved": "Sprog gemt",
+                "languages_error": "Kunne ikke gemme sprog"
+            },
+            "behavior": {
+                "language_switcher": "Sprogskifter"
+            },
+            "sections": {
+                "appearance_translations_default": "Standard",
+                "appearance_translations_default_tip": "Den tekst, du skriver — automatisk oversat til alle sprog.",
+                "appearance_translations_default_hint": "Dette er den tekst, du skriver. Når du gemmer, oversættes den automatisk til alle sprog, og den vises, når en besøgendes sprog ikke er på listen.",
+                "appearance_translations_lang_hint": "Redigér dette sprog her. Lad et felt stå tomt for at bruge den automatiske oversættelse — dine ændringer bevares altid.",
+                "starters_generate": "Generér med AI",
+                "starters_generate_title": "Generér startere med AI",
+                "starters_generate_description": "Vælg, hvor mange der skal genereres ud fra din vidensbase, og vælg derefter, hvilke der skal tilføjes.",
+                "starters_generate_count": "Hvor mange?",
+                "starters_generate_button": "Generér",
+                "starters_generating": "Genererer…",
+                "starters_generate_hint": "Vælg et antal, og generér forslag ud fra din vidensbase.",
+                "starters_translate_empty": "Tilføj først startere på fanen Standard, og oversæt dem derefter her."
+            },
+            "languages": {
+                "title": "Sprog i brugerfladen",
+                "description": "Vælg, hvilke sprog denne agent understøtter. Aktiverede sprog vises i sprogskifteren i den hostede chat og får deres egne felter pr. sprog under Info og Startere.",
+                "select_all": "Vælg alle",
+                "clear_all": "Fravælg alle",
+                "count": "{count} af {total} valgt",
+                "hint": "Hvis du vil skjule sprogskifteren helt for besøgende, kan du slå den fra under Adfærd.",
+                "min_required": "Mindst ét sprog er påkrævet."
+            },
+            "bubbles_add": "Tilføj boble",
+            "bubbles_remove": "Fjern boble",
+            "bubbles_empty": "Ingen chatbobler endnu.",
+            "bubbles_translate_empty": "Tilføj først en boble for at kunne oversætte den."
+        },
+        "forms": {
+            "subtitle": "Beskrivelse",
+            "subtitle_placeholder": "f.eks. Fortæl os om din virksomhed, så kontakter vi dig.",
+            "subtitle_hint": "Vises for den besøgende under formularens titel."
+        },
+        "evals": {
+            "run": {
+                "back": "Tilbage til evalueringer",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Kører",
+                "completed": "Fuldført",
+                "failed": "Mislykkedes"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Redigér {topic}",
+                "delete_topic_aria": "Slet {topic}"
+            }
+        },
+        "topics_index": {
+            "examples": "f.eks. {titles}",
+            "previous_page": "Forrige side",
+            "next_page": "Næste side"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Opret en konto"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Vis eller skjul tilladelser"
+            },
+            "rename_team": "Omdøb team",
+            "save_team_name": "Gem teamnavn"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Beskeder denne måned"
+    },
+    "usage": {
+        "no_limit": "Ingen grænse"
+    },
+    "nav": {
+        "open_user_menu": "Åbn brugermenu"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Velkommen til Chatvia",
+            "intro": "Lad os oprette din første AI-agent. Det tager kun et minut.",
+            "what_title": "Hvad er en agent?",
+            "what_body": "En agent er en AI-assistent, som du træner på dit eget indhold. Den besvarer dine kunders spørgsmål på din hjemmeside, i chat-widgetten og i beskedapps.",
+            "how_title": "Hvordan virker det?",
+            "how_body": "Først opretter du en agent og giver den et navn. Derefter træner du den med dine filer, hjemmesider og tekster, så den kan besvare spørgsmål.",
+            "start": "Opret min første agent",
+            "video_caption": "Se, hvordan det virker"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Kopiér prompt-ID"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Kopiér funktions-ID"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Kopiér API-nøgle"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Kopiér server-ID"
+        },
+        "json_editor": {
+            "aria_label": "JSON-editor"
+        },
+        "time_ago": {
+            "just_now": "Lige nu"
+        },
+        "voice_recorder": {
+            "pause_recording": "Sæt optagelse på pause",
+            "resume_recording": "Genoptag optagelse",
+            "cancel_recording": "Annullér optagelse",
+            "play_recording": "Afspil optagelse",
+            "pause_playback": "Sæt afspilning på pause"
+        }
+    }
+}

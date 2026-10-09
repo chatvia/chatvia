@@ -1,22 +1,19 @@
 <script setup lang="ts">
+/**
+ * The chat composer: a growing textarea with file upload, voice input and a
+ * send/stop button. Used by the hosted chat's Home and Chat pages; the page
+ * decides where uploads go and what happens with the sent message.
+ */
+import ComposerAttachmentChips from '@/components/chat/ComposerAttachmentChips.vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useComposerAttachments } from '@/composables/chat/useComposerAttachments';
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
-import axios from 'axios';
-import { ArrowUp, FileText, Loader2, Mic, Plus, Square, X } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import type { ChatAttachment } from '@/types/chat';
+import { ArrowUp, Loader2, Mic, Plus, Square } from 'lucide-vue-next';
+import { computed, nextTick, onMounted, ref, toRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { toast } from 'vue-sonner';
-
-interface Attachment {
-    id: string;
-    url: string;
-    filename: string;
-    mime_type: string;
-    size_bytes: number;
-    pages?: number | null;
-}
 
 interface Props {
     isThinking?: boolean;
@@ -32,16 +29,11 @@ interface Props {
     deleteEndpoint?: (id: string) => string;
     /** Accept attribute for the file picker; defaults to PDF only. */
     uploadAccept?: string;
-    /** Show the "+" / file-upload button. Defaults to on. Set false to
-     *  hide it for FAQ-only / compliance agents that don't accept uploads. */
+    /** Show the "+" / file-upload button. Set false for agents that don't accept uploads. */
     allowFileUploads?: boolean;
-    /** Show the mic / speech-to-text button. Defaults to on. Set false to
-     *  hide it for agents that shouldn't expose voice recording. */
+    /** Show the mic / speech-to-text button. Set false for agents without voice input. */
     allowVoiceInput?: boolean;
-    /** Per-chat upload ceiling. Mirrors `agent.files.upload.max_files` —
-     *  pass it through from `$page.props.maxFilesPerChat`. The composer
-     *  greys out the "+" button once the local attachments list hits this,
-     *  but the server enforces the same value so a bypass still 422s. */
+    /** Per-chat upload ceiling (`agent.files.upload.max_files`). The server enforces it too. */
     maxFiles?: number;
 }
 
@@ -51,224 +43,131 @@ const props = withDefaults(defineProps<Props>(), {
     allowVoiceInput: true,
     maxFiles: 2,
 });
+
+const emit = defineEmits<{
+    messageAdded: [content: string, attachments: ChatAttachment[]];
+    attachmentUploaded: [attachment: ChatAttachment];
+    stopStreaming: [];
+}>();
+
 const { t } = useI18n();
 
+/** The textarea grows with its content up to this height, then scrolls. */
+const MAX_TEXTAREA_HEIGHT_PX = 200;
+
 const userInput = ref(props.text || '');
-const messageInput = ref<HTMLTextAreaElement>();
+const messageInput = ref<InstanceType<typeof Textarea> | null>(null);
+const fileInput = ref<HTMLInputElement>();
 const isFocused = ref(false);
 
-// Voice recording
-const {
-    isRecording,
-    isTranscribing,
-    isSupported: isVoiceSupported,
-    startRecording,
-    stopRecording,
-    cancelRecording: _cancelRecording,
-} = useVoiceRecorder();
+const { isRecording, isTranscribing, isSupported: isVoiceSupported, startRecording, stopRecording } = useVoiceRecorder();
 
+const {
+    attachments,
+    isUploading,
+    isBusy: isAttachmentBusy,
+    canUploadMore,
+    limitMessage,
+    ensureRoom,
+    upload,
+    remove: removeAttachment,
+    takeAll: takeAttachments,
+} = useComposerAttachments({
+    uploadEndpoint: toRef(props, 'uploadEndpoint'),
+    uploadHeaders: toRef(props, 'uploadHeaders'),
+    deleteEndpoint: toRef(props, 'deleteEndpoint'),
+    maxFiles: toRef(props, 'maxFiles'),
+    onUploaded: (attachment) => emit('attachmentUploaded', attachment),
+});
+
+// Also drives the textarea's start padding, so the caret is not flush with
+// the edge when the button is hidden.
+const showUploadButton = computed(() => props.allowFileUploads && !!props.uploadEndpoint && !props.isThinking && !props.disabled);
+
+const canSend = computed(() => (userInput.value.trim() !== '' || attachments.value.length > 0) && !props.disabled && !isAttachmentBusy.value);
+
+function focusInput() {
+    messageInput.value?.focus();
+}
+
+/** Sizes the textarea to its content (from an input event, or after the text changed in code). */
+function adjustTextareaHeight(event?: Event) {
+    const textarea = (event?.target as HTMLTextAreaElement | undefined) ?? messageInput.value?.el;
+    if (!textarea) return;
+
+    textarea.style.height = 'auto';
+    textarea.style.height = `${Math.min(MAX_TEXTAREA_HEIGHT_PX, textarea.scrollHeight)}px`;
+}
+
+// A starter picked on Home fills the composer.
 watch(
     () => props.text,
     (newText) => {
         if (newText !== undefined && newText !== userInput.value) {
             userInput.value = newText;
-            nextTick(() => {
-                if (messageInput.value) {
-                    adjustTextareaHeight();
-                }
-            });
+            nextTick(() => adjustTextareaHeight());
         }
     },
     { immediate: true },
 );
 
-const emit = defineEmits<{
-    messageAdded: [content: string, attachments: Attachment[]];
-    attachmentUploaded: [attachment: Attachment];
-    stopStreaming: [];
-}>();
-
-// Attachments
-const fileInput = ref<HTMLInputElement>();
-const attachments = ref<Attachment[]>([]);
-const isUploading = ref(false);
-// In-flight DELETE count. We must not let `sendMessage` fire while a delete
-// is still in flight: StoreMessageAction claims every unattached file by
-// conversation id (it doesn't read the payload's attachment list), so a
-// quick X-then-Enter would smuggle a "removed" file into the next turn.
-const pendingDeleteCount = ref(0);
-
-// True while the local attachments list is below the per-chat ceiling.
-// Server enforces the same value (MaxConversationAttachments), but gating
-// here saves a roundtrip and avoids a confusing error toast on the click
-// after the user already saw the chips fill up. Tracks only the current
-// turn — if the conversation already has files from prior turns, the
-// server's 422 surfaces via the catch block below.
-const canUploadMore = computed(() => attachments.value.length < props.maxFiles);
-
-// Whether the left "+" upload button is shown. Drives both its v-if and the
-// textarea's left padding (so the caret doesn't sit flush against the edge
-// when the button is hidden for upload-disabled agents).
-const showUploadButton = computed(() => props.allowFileUploads && !!props.uploadEndpoint && !props.isThinking && !props.disabled);
-
-const triggerFilePicker = () => {
-    if (!canUploadMore.value) {
-        toast.error(t('composer.upload_limit_reached', { count: props.maxFiles }, `You can attach up to ${props.maxFiles} files.`));
-        return;
-    }
-    fileInput.value?.click();
-};
-
-const handleFileSelected = async (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-    if (!file || !props.uploadEndpoint) return;
-
-    // Defensive double-check — covers the edge case where another tab or
-    // a race appended an attachment between triggerFilePicker() and the
-    // OS file dialog returning.
-    if (!canUploadMore.value) {
-        target.value = '';
-        toast.error(t('composer.upload_limit_reached', { count: props.maxFiles }, `You can attach up to ${props.maxFiles} files.`));
-        return;
-    }
-
-    target.value = '';
-
-    isUploading.value = true;
-    const form = new FormData();
-    form.append('file', file);
-
-    try {
-        const response = await axios.post(props.uploadEndpoint, form, {
-            headers: { 'Content-Type': 'multipart/form-data', ...(props.uploadHeaders ?? {}) },
-        });
-        const attachment = response.data.data as Attachment;
-        attachments.value.push(attachment);
-        emit('attachmentUploaded', attachment);
-    } catch (e: unknown) {
-        const err = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-        const msg = err.response?.data?.errors?.file?.[0] ?? err.response?.data?.message ?? t('composer.upload_failed', 'Upload failed');
-        toast.error(msg);
-    } finally {
-        isUploading.value = false;
-    }
-};
-
-const removeAttachment = async (id: string) => {
-    const idx = attachments.value.findIndex((a) => a.id === id);
-    if (idx === -1) return;
-    const att = attachments.value[idx];
-
-    // Optimistic UI: drop the chip first so the click feels instant. If the
-    // server delete fails, we put it back — silently leaving it removed
-    // client-side would still send the file to the LLM, because
-    // StoreMessageAction sweeps every unattached file on the conversation
-    // into the next turn regardless of what the client claims is attached.
-    attachments.value = attachments.value.filter((a) => a.id !== id);
-
-    if (!props.deleteEndpoint) return;
-
-    pendingDeleteCount.value++;
-    try {
-        await axios.delete(props.deleteEndpoint(id));
-    } catch (e: unknown) {
-        attachments.value.splice(idx, 0, att);
-        const err = e as { response?: { data?: { message?: string } } };
-        const msg = err.response?.data?.message ?? t('composer.delete_failed', 'Could not remove attachment');
-        toast.error(msg);
-    } finally {
-        pendingDeleteCount.value--;
-    }
-};
-
-const handleEnterKey = (event: KeyboardEvent) => {
-    if (!event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-    } else {
-        adjustTextareaHeight(event);
-    }
-};
-
-const adjustTextareaHeight = (event?: Event) => {
-    const textarea = (event?.target as HTMLTextAreaElement) || messageInput.value;
-    if (!textarea || !textarea.style) return;
-
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(200, textarea.scrollHeight) + 'px';
-};
-
 watch(userInput, () => {
-    nextTick(() => {
-        adjustTextareaHeight();
-    });
+    nextTick(() => adjustTextareaHeight());
 });
-
-const stopStreaming = () => {
-    emit('stopStreaming');
-};
-
-const sendMessage = () => {
-    if (!userInput.value.trim() && attachments.value.length === 0) return;
-    if (isUploading.value) return;
-    // Block while a remove is still hitting the server (see comment on
-    // pendingDeleteCount) — otherwise the server's orphan sweep races us.
-    if (pendingDeleteCount.value > 0) return;
-
-    emit('messageAdded', userInput.value, [...attachments.value]);
-    userInput.value = '';
-    attachments.value = [];
-
-    if (messageInput.value && messageInput.value.style) {
-        messageInput.value.style.height = 'auto';
-    }
-};
-
-const handleFocus = () => {
-    isFocused.value = true;
-};
-
-const handleBlur = () => {
-    isFocused.value = false;
-};
 
 onMounted(() => {
-    nextTick(() => {
-        if (messageInput.value && typeof messageInput.value.focus === 'function') {
-            messageInput.value.focus();
-        }
-    });
+    nextTick(focusInput);
 });
 
-const canSend = () =>
-    (userInput.value.trim() !== '' || attachments.value.length > 0) && !props.disabled && !isUploading.value && pendingDeleteCount.value === 0;
+function triggerFilePicker() {
+    if (ensureRoom()) fileInput.value?.click();
+}
 
-const formatBytes = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
-    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-};
+async function onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) await upload(file);
+}
 
-// Voice recording handlers
-const toggleRecording = async () => {
-    if (isRecording.value) {
-        const transcript = await stopRecording();
-        if (transcript) {
-            // Append transcript to existing input
-            userInput.value = userInput.value ? `${userInput.value} ${transcript}` : transcript;
-
-            nextTick(() => {
-                adjustTextareaHeight();
-                if (messageInput.value && typeof messageInput.value.focus === 'function') {
-                    messageInput.value.focus();
-                }
-            });
-        }
-    } else {
-        await startRecording();
+function onEnter(event: KeyboardEvent) {
+    if (event.shiftKey) {
+        adjustTextareaHeight(event);
+        return;
     }
-};
+
+    event.preventDefault();
+    sendMessage();
+}
+
+// Waits for uploads and removals: a send during a removal would still carry the removed file.
+function sendMessage() {
+    if (!userInput.value.trim() && attachments.value.length === 0) return;
+    if (isAttachmentBusy.value) return;
+
+    emit('messageAdded', userInput.value, takeAttachments());
+    userInput.value = '';
+
+    const textarea = messageInput.value?.el;
+    if (textarea) textarea.style.height = 'auto';
+}
+
+/** The transcript is appended to whatever was already typed. */
+async function toggleRecording() {
+    if (!isRecording.value) {
+        await startRecording();
+        return;
+    }
+
+    const transcript = await stopRecording();
+    if (!transcript) return;
+
+    userInput.value = userInput.value ? `${userInput.value} ${transcript}` : transcript;
+    nextTick(() => {
+        adjustTextareaHeight();
+        focusInput();
+    });
+}
 </script>
 
 <template>
@@ -289,32 +188,12 @@ const toggleRecording = async () => {
                 ]"
             >
                 <!-- Attachment chips sit above the input row when present. -->
-                <div v-if="attachments.length > 0 || isUploading" class="flex flex-wrap gap-2 px-4 pt-3">
-                    <div
-                        v-for="att in attachments"
-                        :key="att.id"
-                        class="bg-muted/70 text-foreground flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs"
-                    >
-                        <FileText class="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-                        <span class="max-w-[180px] truncate font-medium">{{ att.filename }}</span>
-                        <span class="text-muted-foreground">{{ formatBytes(att.size_bytes) }}</span>
-                        <span v-if="att.pages" class="text-muted-foreground">
-                            · {{ t('composer.pdf_pages', { count: att.pages }, { plural: att.pages }) }}
-                        </span>
-                        <button
-                            type="button"
-                            @click="removeAttachment(att.id)"
-                            class="text-muted-foreground hover:bg-background hover:text-foreground -me-1 rounded-md p-0.5 transition-colors"
-                            :aria-label="t('composer.remove_attachment', 'Remove attachment')"
-                        >
-                            <X class="h-3.5 w-3.5" />
-                        </button>
-                    </div>
-                    <div v-if="isUploading" class="text-muted-foreground bg-muted/70 flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs">
-                        <Loader2 class="h-3.5 w-3.5 animate-spin" />
-                        {{ t('composer.uploading', 'Uploading…') }}
-                    </div>
-                </div>
+                <ComposerAttachmentChips
+                    v-if="attachments.length > 0 || isUploading"
+                    :attachments="attachments"
+                    :uploading="isUploading"
+                    @remove="removeAttachment"
+                />
 
                 <!-- Input row: attach · textarea · voice + send/stop, all on one
                      line. The textarea (flex-1) pushes the actions to the end. -->
@@ -331,30 +210,26 @@ const toggleRecording = async () => {
                                 size="icon"
                                 variant="ghost"
                                 class="hover:bg-muted text-muted-foreground hover:text-foreground h-9 w-9 shrink-0 rounded-full transition-colors"
-                                :aria-label="t('composer.attach_file', 'Attach a PDF')"
+                                :aria-label="t('composer.attach_file')"
                             >
                                 <Plus class="h-5 w-5" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
-                            {{
-                                !canUploadMore
-                                    ? t('composer.upload_limit_reached', { count: maxFiles }, `You can attach up to ${maxFiles} files.`)
-                                    : t('composer.attach_file', 'Attach a PDF')
-                            }}
+                            {{ !canUploadMore ? limitMessage() : t('composer.attach_file') }}
                         </TooltipContent>
                     </Tooltip>
-                    <input ref="fileInput" type="file" :accept="uploadAccept" class="hidden" @change="handleFileSelected" />
+                    <input ref="fileInput" type="file" :accept="uploadAccept" class="hidden" @change="onFileSelected" />
 
                     <!-- Middle: textarea. Grows in place; the row stays single-line
                          until the text actually wraps. -->
                     <Textarea
                         ref="messageInput"
                         v-model="userInput"
-                        @keydown.enter="handleEnterKey"
+                        @keydown.enter="onEnter"
                         @input="adjustTextareaHeight"
-                        @focus="handleFocus"
-                        @blur="handleBlur"
+                        @focus="isFocused = true"
+                        @blur="isFocused = false"
                         :placeholder="disabled ? t('composer.disabled') : placeholder || t('composer.default_placeholder')"
                         class="text-foreground placeholder:text-muted-foreground/50 max-h-[200px] min-h-[24px] flex-1 resize-none !border-0 !bg-transparent py-2 text-[15px] leading-relaxed !shadow-none focus-visible:!border-0 focus-visible:ring-0 focus-visible:outline-none dark:!bg-transparent"
                         :class="showUploadButton ? 'px-1' : 'px-3'"
@@ -391,10 +266,10 @@ const toggleRecording = async () => {
 
                         <Button
                             v-if="isThinking"
-                            @click="stopStreaming"
+                            @click="emit('stopStreaming')"
                             size="icon"
                             class="bg-foreground text-background hover:bg-foreground/90 h-9 w-9 shrink-0 rounded-full"
-                            :aria-label="t('composer.stop_streaming', 'Stop generating')"
+                            :aria-label="t('composer.stop_streaming')"
                         >
                             <Square class="h-4 w-4 fill-current" />
                         </Button>
@@ -402,15 +277,13 @@ const toggleRecording = async () => {
                         <Button
                             v-else
                             @click="sendMessage"
-                            :disabled="!canSend()"
+                            :disabled="!canSend"
                             size="icon"
                             class="h-9 w-9 shrink-0 rounded-full transition-all duration-200"
-                            :class="[
-                                canSend() ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm' : 'bg-muted text-muted-foreground',
-                            ]"
-                            :aria-label="t('composer.send_message', 'Send message')"
+                            :class="[canSend ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm' : 'bg-muted text-muted-foreground']"
+                            :aria-label="t('composer.send_message')"
                         >
-                            <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend() }" />
+                            <ArrowUp class="h-5 w-5" :class="{ 'stroke-[2.5px]': canSend }" />
                         </Button>
                     </div>
                 </div>

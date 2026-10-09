@@ -1,10 +1,16 @@
 <script lang="ts" setup>
+/**
+ * Connect Salesforce with the workspace's own OAuth client (Salesforce has no
+ * shared app): collects the consumer key/secret, environment, MCP server and
+ * optional My Domain, then hands the browser to Salesforce's consent screen.
+ */
+import { connectSalesforce, type SalesforceConnectPayload } from '@/api/connectors';
+import { errorMessage, validationErrors } from '@/api/http';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Connector } from '@/types/connector';
-import axios from 'axios';
 import { ExternalLink, LoaderCircle } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -57,7 +63,7 @@ async function submit(): Promise<void> {
     saving.value = true;
 
     try {
-        const payload: Record<string, string> = {
+        const payload: SalesforceConnectPayload = {
             client_id: clientId.value.trim(),
             environment: environment.value,
             server: server.value,
@@ -65,14 +71,12 @@ async function submit(): Promise<void> {
         if (clientSecret.value.trim()) payload.client_secret = clientSecret.value.trim();
         if (myDomain.value.trim()) payload.my_domain = myDomain.value.trim();
 
-        const response = await axios.post(route('integrations.connectors.salesforce.connect'), payload);
+        const response = await connectSalesforce(payload);
         // Full-page navigation to Salesforce's consent screen.
-        window.location.href = response.data.redirect_url;
-    } catch (e: unknown) {
-        const axiosErr = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-        const errors = axiosErr.response?.data?.errors;
-        error.value =
-            axiosErr.response?.data?.message ?? errors?.client_id?.[0] ?? errors?.my_domain?.[0] ?? t('workspace.connectors.salesforce.error');
+        window.location.href = response.redirect_url;
+    } catch (err) {
+        const fieldErrors = validationErrors(err);
+        error.value = errorMessage(err, fieldErrors.client_id ?? fieldErrors.my_domain ?? t('workspace.connectors.salesforce.error'));
         saving.value = false;
     }
 }

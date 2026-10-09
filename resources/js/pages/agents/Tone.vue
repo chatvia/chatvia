@@ -1,39 +1,29 @@
-<script lang="ts" setup>
-import AnalyticsDisabled from '@/components/AnalyticsDisabled.vue';
-import LockedFeature from '@/components/LockedFeature.vue';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
+<script setup lang="ts">
+/**
+ * Tone analytics: how visitors sounded (neutral, frustrated, urgent, confused,
+ * satisfied) per day and in total. This page only describes the tone buckets;
+ * MessageDimensionAnalytics does the gating, loading and charts it shares
+ * with the Sentiment page.
+ */
+import { fetchToneBreakdown, type ToneBucket } from '@/api/analytics';
+import MessageDimensionAnalytics from '@/components/analytics/MessageDimensionAnalytics.vue';
+import type {
+    DimensionBreakdown,
+    DimensionCopy,
+    DimensionLineSeries,
+    DimensionPieSlice,
+    DimensionPointStyle,
+    DimensionSummaryCard,
+} from '@/components/analytics/messageDimension';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import axios from 'axios';
-import {
-    ArcElement,
-    CategoryScale,
-    Chart as ChartJS,
-    Tooltip as ChartTooltip,
-    Filler,
-    Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    Title,
-    type ChartOptions,
-} from 'chart.js';
-import { Info, LoaderCircle, MessageCircle } from 'lucide-vue-next';
-import { computed, onMounted, ref } from 'vue';
-import { Line, Pie } from 'vue-chartjs';
+import { MessageCircle } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-const { t } = useI18n();
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, ChartTooltip, Legend, Filler);
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     // Per-agent on/off switch (Setup → Settings). Independent of the plan
-    // capability below: the plan must allow it AND the owner must not have
+    // capability: the plan must allow it AND the owner must not have
     // switched it off.
     enabled: boolean;
     // Master switch: when the chat log is off there are no stored messages to
@@ -43,282 +33,52 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { hasCapability } = useCapabilityGuard();
-const hasAccess = computed(() => hasCapability('tone'));
+const { t } = useI18n();
 
-// Local mirror of the per-agent switch so flipping it on from the disabled
-// state swaps straight to the charts without a full page reload.
-const isEnabled = ref(props.enabled);
-const enabling = ref(false);
+const loadTone = async (): Promise<DimensionBreakdown<ToneBucket>> => {
+    const response = await fetchToneBreakdown(props.agent.external_id);
 
-const enableTone = async () => {
-    if (!props.chatlogEnabled) return;
-    enabling.value = true;
-    try {
-        await axios.post(route('agents.settings.update', { agent: props.agent.external_id, group: 'analytics' }), { tone: true });
-        isEnabled.value = true;
-        fetchToneData();
-    } catch (err) {
-        console.error('Could not enable tone analysis:', err);
-    } finally {
-        enabling.value = false;
-    }
+    return { byDate: response.toneByDate, totals: response.totalTones };
 };
 
-const loading = ref(true);
-const toneData = ref<any>(null);
-const error = ref<string | null>(null);
-const activeView = ref<'graph' | 'pie'>('graph');
+const copy = computed<DimensionCopy>(() => ({
+    lockedDescription: t('agents.tone.locked_description'),
+    disabledTitle: t('agents.tone.disabled_title'),
+    disabledDescription: t('agents.tone.disabled_description'),
+    blockedReason: t('agents.tone.blocked_reason'),
+    liveAnalytics: t('agents.tone.live_analytics'),
+    loadError: t('agents.tone.load_error'),
+    tryAgain: t('agents.tone.try_again'),
+    chartTitle: t('agents.tone.tone_distribution'),
+    graph: t('agents.tone.graph'),
+    pieChart: t('agents.tone.pie_chart'),
+}));
 
-const fetchToneData = async () => {
-    loading.value = true;
-    error.value = null;
+const POINT: DimensionPointStyle = { pointRadius: 3 };
 
-    try {
-        const response = await axios.get(route('agents.tone.data', props.agent.external_id));
-        toneData.value = response.data;
-    } catch (err: any) {
-        error.value = err.response?.data?.message || t('agents.tone.load_error');
-        console.error('Error fetching tone data:', err);
-    } finally {
-        loading.value = false;
-    }
-};
+const lineSeries = computed<DimensionLineSeries<ToneBucket>[]>(() => [
+    { key: 'neutral', label: t('agents.tone.neutral_label'), color: 'rgb(156, 163, 175)', point: POINT },
+    { key: 'frustrated', label: t('agents.tone.frustrated_label'), color: 'rgb(239, 68, 68)', point: POINT },
+    { key: 'urgent', label: t('agents.tone.urgent_label'), color: 'rgb(251, 146, 60)', point: POINT },
+    { key: 'confused', label: t('agents.tone.confused_label'), color: 'rgb(168, 85, 247)', point: POINT },
+    { key: 'satisfied', label: t('agents.tone.satisfied_label'), color: 'rgb(74, 222, 128)', point: POINT },
+]);
 
-// Format date for display (e.g., "Dec 3")
-const formatDate = (dateStr: string): string => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
+const pieSlices = computed<DimensionPieSlice<ToneBucket>[]>(() => [
+    { key: 'neutral', label: t('agents.tone.neutral'), color: 'rgb(156, 163, 175)' },
+    { key: 'frustrated', label: t('agents.tone.frustrated'), color: 'rgb(239, 68, 68)' },
+    { key: 'urgent', label: t('agents.tone.urgent'), color: 'rgb(251, 146, 60)' },
+    { key: 'confused', label: t('agents.tone.confused'), color: 'rgb(168, 85, 247)' },
+    { key: 'satisfied', label: t('agents.tone.satisfied'), color: 'rgb(74, 222, 128)' },
+    { key: 'unspecified', label: t('agents.tone.unspecified'), color: 'rgb(203, 213, 225)' },
+]);
 
-// Line chart data
-const lineChartData = computed(() => {
-    if (!toneData.value) return null;
-
-    return {
-        labels: toneData.value.toneByDate.map((d: any) => formatDate(d.date)),
-        datasets: [
-            {
-                label: t('agents.tone.neutral_label'),
-                data: toneData.value.toneByDate.map((d: any) => d.neutral),
-                borderColor: 'rgb(156, 163, 175)',
-                backgroundColor: 'rgba(156, 163, 175, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(156, 163, 175)',
-            },
-            {
-                label: t('agents.tone.frustrated_label'),
-                data: toneData.value.toneByDate.map((d: any) => d.frustrated),
-                borderColor: 'rgb(239, 68, 68)',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(239, 68, 68)',
-            },
-            {
-                label: t('agents.tone.urgent_label'),
-                data: toneData.value.toneByDate.map((d: any) => d.urgent),
-                borderColor: 'rgb(251, 146, 60)',
-                backgroundColor: 'rgba(251, 146, 60, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(251, 146, 60)',
-            },
-            {
-                label: t('agents.tone.confused_label'),
-                data: toneData.value.toneByDate.map((d: any) => d.confused),
-                borderColor: 'rgb(168, 85, 247)',
-                backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(168, 85, 247)',
-            },
-            {
-                label: t('agents.tone.satisfied_label'),
-                data: toneData.value.toneByDate.map((d: any) => d.satisfied),
-                borderColor: 'rgb(74, 222, 128)',
-                backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 3,
-                pointBackgroundColor: 'rgb(74, 222, 128)',
-            },
-        ],
-    };
-});
-
-const lineChartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-        mode: 'index',
-        intersect: false,
-    },
-    plugins: {
-        legend: {
-            display: true,
-            position: 'bottom',
-            labels: {
-                usePointStyle: true,
-                padding: 20,
-                font: {
-                    size: 12,
-                },
-            },
-        },
-        tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: 12,
-            titleFont: {
-                size: 14,
-            },
-            bodyFont: {
-                size: 13,
-            },
-            displayColors: true,
-            callbacks: {
-                label: function (context) {
-                    return `${context.dataset.label}: ${context.parsed.y}`;
-                },
-            },
-        },
-    },
-    scales: {
-        x: {
-            grid: {
-                display: true,
-                color: 'rgba(0, 0, 0, 0.05)',
-            },
-            ticks: {
-                font: {
-                    size: 11,
-                },
-            },
-        },
-        y: {
-            beginAtZero: true,
-            grid: {
-                display: true,
-                color: 'rgba(0, 0, 0, 0.05)',
-            },
-            ticks: {
-                font: {
-                    size: 11,
-                },
-                precision: 0,
-            },
-        },
-    },
-};
-
-// Pie chart data
-const pieChartData = computed(() => {
-    if (!toneData.value) return null;
-
-    const totals = toneData.value.totalTones;
-
-    return {
-        labels: [
-            t('agents.tone.neutral'),
-            t('agents.tone.frustrated'),
-            t('agents.tone.urgent'),
-            t('agents.tone.confused'),
-            t('agents.tone.satisfied'),
-            t('agents.tone.unspecified'),
-        ],
-        datasets: [
-            {
-                data: [totals.neutral, totals.frustrated, totals.urgent, totals.confused, totals.satisfied, totals.unspecified],
-                backgroundColor: [
-                    'rgb(156, 163, 175)',
-                    'rgb(239, 68, 68)',
-                    'rgb(251, 146, 60)',
-                    'rgb(168, 85, 247)',
-                    'rgb(74, 222, 128)',
-                    'rgb(203, 213, 225)',
-                ],
-                borderColor: '#fff',
-                borderWidth: 2,
-            },
-        ],
-    };
-});
-
-const pieChartOptions: ChartOptions<'pie'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: {
-            display: true,
-            position: 'bottom',
-            labels: {
-                usePointStyle: true,
-                padding: 20,
-                font: {
-                    size: 12,
-                },
-            },
-        },
-        tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: 12,
-            titleFont: {
-                size: 14,
-            },
-            bodyFont: {
-                size: 13,
-            },
-            callbacks: {
-                label: function (context) {
-                    const label = context.label || '';
-                    const value = context.parsed || 0;
-                    const total = toneData.value?.totalTones?.total || 0;
-                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                    return `${label}: ${value} (${percentage}%)`;
-                },
-            },
-        },
-    },
-};
-
-// Summary stats
-const summaryStats = computed(() => {
-    if (!toneData.value) return null;
-
-    const totals = toneData.value.totalTones;
-    const total = totals.total;
-
-    return {
-        neutral: {
-            count: totals.neutral,
-            percentage: total > 0 ? ((totals.neutral / total) * 100).toFixed(1) : '0',
-        },
-        frustrated: {
-            count: totals.frustrated,
-            percentage: total > 0 ? ((totals.frustrated / total) * 100).toFixed(1) : '0',
-        },
-        satisfied: {
-            count: totals.satisfied,
-            percentage: total > 0 ? ((totals.satisfied / total) * 100).toFixed(1) : '0',
-        },
-        unspecified: {
-            count: totals.unspecified,
-            percentage: total > 0 ? ((totals.unspecified / total) * 100).toFixed(1) : '0',
-        },
-        total: total,
-    };
-});
-
-onMounted(() => {
-    if (hasAccess.value && props.chatlogEnabled && isEnabled.value) {
-        fetchToneData();
-    }
-});
+const summaryCards = computed<DimensionSummaryCard<ToneBucket>[]>(() => [
+    { key: 'neutral', label: t('agents.tone.neutral'), badgeVariant: 'secondary' },
+    { key: 'frustrated', label: t('agents.tone.frustrated'), badgeClass: 'bg-red-100 text-red-700 hover:bg-red-100' },
+    { key: 'satisfied', label: t('agents.tone.satisfied'), badgeClass: 'bg-green-100 text-green-700 hover:bg-green-100' },
+    { key: 'unspecified', label: t('agents.tone.unspecified'), badgeVariant: 'outline' },
+]);
 </script>
 
 <template>
@@ -327,136 +87,16 @@ onMounted(() => {
             <MessageCircle class="h-5 w-5" />
         </template>
 
-        <!-- Show locked feature if user doesn't have access -->
-        <LockedFeature v-if="!hasAccess" :description="t('agents.tone.locked_description')" />
-
-        <!-- Plan allows it, but the owner switched it off for this agent -->
-        <AnalyticsDisabled
-            v-else-if="!chatlogEnabled || !isEnabled"
-            :title="t('agents.tone.disabled_title')"
-            :description="t('agents.tone.disabled_description')"
-            :can-enable="chatlogEnabled"
-            :blocked-reason="t('agents.tone.blocked_reason')"
-            :enabling="enabling"
-            @enable="enableTone"
+        <MessageDimensionAnalytics
+            :agent="agent"
+            :enabled="enabled"
+            :chatlog-enabled="chatlogEnabled"
+            feature="tone"
+            :load="loadTone"
+            :copy="copy"
+            :line-series="lineSeries"
+            :pie-slices="pieSlices"
+            :summary-cards="summaryCards"
         />
-
-        <!-- Show content if user has access -->
-        <template v-else>
-            <!-- Live Analytics Indicator -->
-            <div class="mb-6 flex justify-end">
-                <div class="flex items-center gap-2">
-                    <div class="relative flex h-2 w-2">
-                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                        <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500"></span>
-                    </div>
-                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.live_analytics') }}</p>
-                </div>
-            </div>
-
-            <!-- Loading State -->
-            <div v-if="loading" class="flex items-center justify-center py-12">
-                <LoaderCircle class="text-muted-foreground h-8 w-8 animate-spin" />
-            </div>
-
-            <!-- Error State -->
-            <div v-else-if="error" class="flex items-center justify-center py-12">
-                <Card class="max-w-md">
-                    <CardContent class="pt-6">
-                        <div class="space-y-2 text-center">
-                            <p class="text-destructive font-medium">{{ error }}</p>
-                            <button @click="fetchToneData" class="text-muted-foreground hover:text-foreground text-sm underline">
-                                {{ t('agents.tone.try_again') }}
-                            </button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Content -->
-            <div v-else-if="toneData" class="space-y-6">
-                <!-- Summary Stats -->
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
-                    <Card>
-                        <CardContent class="!p-4">
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.neutral') }}</p>
-                                    <Badge variant="secondary"> {{ summaryStats?.neutral.percentage }}% </Badge>
-                                </div>
-                                <p class="text-2xl font-bold">{{ summaryStats?.neutral.count }}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent class="!p-4">
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.frustrated') }}</p>
-                                    <Badge class="bg-red-100 text-red-700 hover:bg-red-100"> {{ summaryStats?.frustrated.percentage }}% </Badge>
-                                </div>
-                                <p class="text-2xl font-bold">{{ summaryStats?.frustrated.count }}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent class="!p-4">
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.satisfied') }}</p>
-                                    <Badge class="bg-green-100 text-green-700 hover:bg-green-100"> {{ summaryStats?.satisfied.percentage }}% </Badge>
-                                </div>
-                                <p class="text-2xl font-bold">{{ summaryStats?.satisfied.count }}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent class="!p-4">
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-muted-foreground text-sm">{{ t('agents.tone.unspecified') }}</p>
-                                    <Badge variant="outline"> {{ summaryStats?.unspecified.percentage }}% </Badge>
-                                </div>
-                                <p class="text-2xl font-bold">{{ summaryStats?.unspecified.count }}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <!-- Tone Chart -->
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <CardTitle>{{ t('agents.tone.tone_distribution') }}</CardTitle>
-                                <Info class="text-muted-foreground h-4 w-4" />
-                            </div>
-                            <Tabs v-model="activeView" class="w-auto">
-                                <TabsList>
-                                    <TabsTrigger value="graph" @click="activeView = 'graph'"> {{ t('agents.tone.graph') }} </TabsTrigger>
-                                    <TabsTrigger value="pie" @click="activeView = 'pie'"> {{ t('agents.tone.pie_chart') }} </TabsTrigger>
-                                </TabsList>
-                            </Tabs>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <!-- Line Chart -->
-                        <div v-if="activeView === 'graph'" class="h-96">
-                            <Line v-if="lineChartData" :data="lineChartData" :options="lineChartOptions" />
-                        </div>
-
-                        <!-- Pie Chart -->
-                        <div v-else class="flex h-96 items-center justify-center">
-                            <div class="w-full max-w-md">
-                                <Pie v-if="pieChartData" :data="pieChartData" :options="pieChartOptions" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        </template>
     </AgentLayout>
 </template>

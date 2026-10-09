@@ -2,10 +2,9 @@
 
 namespace App\Http\Middleware\Auth;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Closure;
-use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,9 +37,9 @@ class AuthenticateChatViaSignInToken
             return $next($request);
         }
 
-        $agent = $this->resolveAgent($request);
+        $agent = HostedChatAgent::from($request);
 
-        if (! $agent) {
+        if ($agent === null) {
             return $next($request);
         }
 
@@ -55,16 +54,5 @@ class AuthenticateChatViaSignInToken
         }
 
         return $next($request);
-    }
-
-    private function resolveAgent(Request $request): ?Agent
-    {
-        $slug = $request->agentSlug();
-
-        if (! $slug) {
-            return null;
-        }
-
-        return AgentLocator::resolveAgentFromSubdomain($slug);
     }
 }

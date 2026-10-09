@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Invitations\AcceptTeamInvitationAction;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
@@ -14,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserType;
 use Support\Exceptions\DomainValidationException;
 
 /**

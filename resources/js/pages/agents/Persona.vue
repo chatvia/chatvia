@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * The agent's Persona page: name, subdomain and instructions — either a saved
+ * library prompt or inline text (mutually exclusive), saved together.
+ */
+import { generateRandomSubdomain } from '@/api/agentPersona';
 import HeaderActions from '@/components/HeaderActions.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,22 +13,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
 import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-interface PromptOption {
-    id: string;
-    name: string;
-    prompt: string;
-}
-
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
-    prompts: PromptOption[];
+    prompts: Domain.Agent.Prompt.Data.Resources.AgentPromptPickerData[];
 }
 
 const props = defineProps<Props>();
@@ -55,21 +53,20 @@ const updateGeneralSettings = () => {
         ...(mode.value === 'saved' ? { prompt_id: data.prompt_id } : { system_instructions: data.system_instructions }),
     })).patch(route('agents.update', props.agent.external_id), {
         preserveScroll: true,
-        onSuccess: () => {
-            isSubmitting.value = false;
-        },
-        onError: () => {
+        onFinish: () => {
             isSubmitting.value = false;
         },
     });
 };
 
-const generateNewSubdomain = () => {
+const generateNewSubdomain = async () => {
     isGeneratingSubdomain.value = true;
-    axios.get(route('generate-random-subdomain')).then((response) => {
+    try {
+        form.sub_domain = await generateRandomSubdomain();
+    } finally {
+        // Also on failure, so the button doesn't spin forever.
         isGeneratingSubdomain.value = false;
-        form.sub_domain = response.data.name;
-    });
+    }
 };
 
 // Computed properties for header actions
@@ -148,6 +145,7 @@ const hasFormErrors = computed(() => {
                                             variant="ghost"
                                             class="ms-1 h-6 w-6 p-0"
                                             size="icon"
+                                            :aria-label="t('agents.persona.generate_subdomain')"
                                             @click="generateNewSubdomain"
                                             :disabled="isGeneratingSubdomain"
                                         >
@@ -165,7 +163,6 @@ const hasFormErrors = computed(() => {
                                             >
                                                 <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
                                             </svg>
-                                            <span class="sr-only">{{ t('agents.persona.generate_subdomain') }}</span>
                                         </Button>
                                     </div>
                                     <p v-if="form.errors.sub_domain" class="text-destructive text-sm">
@@ -188,7 +185,7 @@ const hasFormErrors = computed(() => {
                                     <TabsContent value="saved" class="mt-4 space-y-3">
                                         <div v-if="prompts.length === 0" class="text-muted-foreground rounded-lg border py-8 text-center text-sm">
                                             {{ t('agents.persona.no_prompts_prefix') }}
-                                            <Link href="/my/workspace/library/prompts" class="text-foreground underline underline-offset-2">{{
+                                            <Link :href="route('library.prompts.edit')" class="text-foreground underline underline-offset-2">{{
                                                 t('agents.persona.create_one')
                                             }}</Link>
                                             {{ t('agents.persona.no_prompts_suffix') }}

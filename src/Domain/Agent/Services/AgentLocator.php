@@ -12,7 +12,11 @@ use Domain\Agent\Models\Agent as AgentModel;
  */
 class AgentLocator
 {
-    public static function resolveAgentFromSubdomain($subdomain): ?AgentModel
+    /**
+     * The agent whose subdomain or external id is $subdomain. Callers pass a
+     * non-empty slug: a NULL lookup would match agents without a subdomain.
+     */
+    public static function resolveAgentFromSubdomain(string $subdomain): ?AgentModel
     {
         return AgentModel::query()
             ->where('sub_domain', $subdomain)

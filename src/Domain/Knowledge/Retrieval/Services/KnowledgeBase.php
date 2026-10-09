@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Retrieval\Services;
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
@@ -34,6 +35,7 @@ class KnowledgeBase
     public function __construct(
         private readonly HybridChunkSearch $hybridSearch,
         private readonly Reranker $reranker,
+        private readonly EmbeddingsProviderInterface $embeddings,
     ) {}
 
     /**
@@ -55,7 +57,7 @@ class KnowledgeBase
         // example Qwen3's instruction prefix), unlike document embeddings, and
         // are cached for 24h: a sub-millisecond embed_ms means a cache hit.
         $embedStart = microtime(true);
-        $queryVector = '['.implode(',', embed_query($query)).']';
+        $queryVector = '['.implode(',', $this->embeddings->embedQuery($query)).']';
         $embedMs = $this->elapsedMs($embedStart);
 
         $sqlStart = microtime(true);

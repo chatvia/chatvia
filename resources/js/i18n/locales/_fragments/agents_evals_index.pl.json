@@ -61,14 +61,14 @@
                     "no_search_results": "Brak pytań pasujących do wyszukiwania.",
                     "no_questions": "Nie znaleziono jeszcze żadnych pytań w bazie wiedzy tego agenta.",
                     "add_cases": "Dodaj przypadki",
-                    "add_count": "Dodaj {count} przypadek | Dodaj {count} przypadki | Dodaj {count} przypadków"
+                    "add_count": "Dodaj {count} przypadek | Dodaj {count} przypadków"
                 },
                 "delete_case_title": "Usuń przypadek",
                 "delete_case_description": "Usunąć „{name}\"? Wyniki poprzednich uruchomień zachowają swoją kopię tego przypadku — wpłynie to tylko na przyszłe uruchomienia.",
                 "delete_run_title": "Usuń uruchomienie",
                 "delete_run_description": "Usunąć to uruchomienie wraz z wynikami dla poszczególnych przypadków? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
                 "clear_runs_title": "Wyczyść historię uruchomień",
-                "clear_runs_description": "Usunąć wszystkie {count} uruchomienie tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomienia tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomień tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
+                "clear_runs_description": "Usunąć wszystkie {count} uruchomienie tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone. | Usunąć wszystkie {count} uruchomień tego agenta wraz z wynikami? Tej operacji nie można cofnąć. Przypadki nie zostaną naruszone.",
                 "clear_all": "Wyczyść wszystko",
                 "scorers": {
                     "contains": {
@@ -95,7 +95,7 @@
                 "toasts": {
                     "case_updated": "Przypadek zaktualizowany",
                     "case_added": "Przypadek dodany",
-                    "cases_added": "{count} przypadek dodany | {count} przypadki dodane | {count} przypadków dodanych",
+                    "cases_added": "{count} przypadek dodany | {count} przypadków dodanych",
                     "case_deleted": "Przypadek usunięty",
                     "run_started": "Uruchomienie ewaluacji rozpoczęte",
                     "run_start_error": "Nie można uruchomić zestawu",

@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Detaljer",
+        "arguments": "Argument"
+    },
+    "messages": {
+        "responding": "Assistenten svarar…",
+        "response_complete": "Svaret är klart",
+        "copy_message": "Kopiera meddelande",
+        "feedback_helpful": "Bra svar",
+        "feedback_not_helpful": "Dåligt svar"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "Alltid på",
+                "always_hint": "Erbjud den här kopplingens verktyg i varje tur, även när meddelandet inte uppenbart behöver dem. Högst 10 alltid aktiva verktyg per agent.",
+                "always_failed": "Det gick inte att uppdatera inställningen Alltid på"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Språk",
+                "bubbles": "Chattbubblor"
+            },
+            "toasts": {
+                "languages_saved": "Språk sparade",
+                "languages_error": "Det gick inte att spara språk"
+            },
+            "behavior": {
+                "language_switcher": "Språkväljare"
+            },
+            "sections": {
+                "appearance_translations_default": "Standard",
+                "appearance_translations_default_tip": "Texten du skriver — översätts automatiskt till alla språk.",
+                "appearance_translations_default_hint": "Det här är texten du skriver. När du sparar översätts den automatiskt till alla språk, och den visas när besökarens språk inte finns i listan.",
+                "appearance_translations_lang_hint": "Redigera det här språket här. Lämna ett fält tomt för att använda den automatiska översättningen — dina ändringar behålls alltid.",
+                "starters_generate": "Generera med AI",
+                "starters_generate_title": "Generera startfrågor med AI",
+                "starters_generate_description": "Välj hur många som ska genereras från din kunskapsbas och välj sedan vilka som ska läggas till.",
+                "starters_generate_count": "Hur många?",
+                "starters_generate_button": "Generera",
+                "starters_generating": "Genererar…",
+                "starters_generate_hint": "Välj ett antal och generera förslag från din kunskapsbas.",
+                "starters_translate_empty": "Lägg först till startfrågor på fliken Standard och översätt dem sedan här."
+            },
+            "languages": {
+                "title": "Gränssnittsspråk",
+                "description": "Välj vilka språk den här agenten stöder. Aktiverade språk visas i språkväljaren för Hosted Chat och får egna fält per språk under Info och Startfrågor.",
+                "select_all": "Välj alla",
+                "clear_all": "Rensa alla",
+                "count": "{count} av {total} valda",
+                "hint": "Om du vill dölja besökarens språkväljare helt stänger du av den under Beteende.",
+                "min_required": "Minst ett språk krävs."
+            },
+            "bubbles_add": "Lägg till bubbla",
+            "bubbles_remove": "Ta bort bubbla",
+            "bubbles_empty": "Inga chattbubblor ännu.",
+            "bubbles_translate_empty": "Lägg först till en bubbla för att kunna översätta den."
+        },
+        "forms": {
+            "subtitle": "Beskrivning",
+            "subtitle_placeholder": "t.ex. Berätta om ditt företag så hör vi av oss.",
+            "subtitle_hint": "Visas för besökaren under formulärets titel."
+        },
+        "evals": {
+            "run": {
+                "back": "Tillbaka till utvärderingar",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Körs",
+                "completed": "Klar",
+                "failed": "Misslyckades"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Redigera {topic}",
+                "delete_topic_aria": "Ta bort {topic}"
+            }
+        },
+        "topics_index": {
+            "examples": "t.ex. {titles}",
+            "previous_page": "Föregående sida",
+            "next_page": "Nästa sida"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Skapa ett konto"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Visa eller dölj behörigheter"
+            },
+            "rename_team": "Byt namn på team",
+            "save_team_name": "Spara teamnamn"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Meddelanden denna månad"
+    },
+    "usage": {
+        "no_limit": "Ingen gräns"
+    },
+    "nav": {
+        "open_user_menu": "Öppna användarmenyn"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Välkommen till Chatvia",
+            "intro": "Nu skapar vi din första AI-agent. Det tar bara en minut.",
+            "what_title": "Vad är en agent?",
+            "what_body": "En agent är en AI-assistent som du tränar på ditt eget innehåll. Den svarar dina kunder på din webbplats, i chattwidgeten och i meddelandeappar.",
+            "how_title": "Hur fungerar det?",
+            "how_body": "Först skapar du en agent och ger den ett namn. Sedan tränar du den med dina filer, webbplatser och texter så att den kan svara på frågor.",
+            "start": "Skapa min första agent",
+            "video_caption": "Se hur det fungerar"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Kopiera prompt-ID"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Kopiera funktions-ID"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Kopiera API-nyckel"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Kopiera server-ID"
+        },
+        "json_editor": {
+            "aria_label": "JSON-redigerare"
+        },
+        "time_ago": {
+            "just_now": "Just nu"
+        },
+        "voice_recorder": {
+            "pause_recording": "Pausa inspelningen",
+            "resume_recording": "Återuppta inspelningen",
+            "cancel_recording": "Avbryt inspelningen",
+            "play_recording": "Spela upp inspelningen",
+            "pause_playback": "Pausa uppspelningen"
+        }
+    }
+}

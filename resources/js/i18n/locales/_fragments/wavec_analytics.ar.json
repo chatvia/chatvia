@@ -1,0 +1,20 @@
+{
+    "agents": {
+        "topics_index": {
+            "examples": "مثل: {titles}",
+            "previous_page": "الصفحة السابقة",
+            "next_page": "الصفحة التالية"
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "تعديل {topic}",
+                "delete_topic_aria": "حذف {topic}"
+            }
+        }
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "الآن"
+        }
+    }
+}

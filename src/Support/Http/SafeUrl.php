@@ -106,7 +106,10 @@ final class SafeUrl
     }
 
     /**
-     * @return string[]
+     * The IP addresses a host resolves to (the host itself for an IP literal),
+     * or an empty list when it does not resolve.
+     *
+     * @return list<string>
      */
     public static function resolve(string $host): array
     {

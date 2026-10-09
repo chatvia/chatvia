@@ -2,11 +2,11 @@
 
 namespace App\Mcp;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\Request;
-use Support\Enums\User\UserType;
 
 /**
  * Turns the identity of a signed internal MCP request into a

@@ -17,7 +17,9 @@
         "mcp_tool": "Herramienta MCP",
         "function": "Función",
         "approve": "Aprobar",
-        "deny": "Rechazar"
+        "deny": "Rechazar",
+        "details": "Detalles",
+        "arguments": "Argumentos"
     },
     "composer": {
         "default_placeholder": "Mensaje...",
@@ -30,7 +32,9 @@
         "uploading": "Subiendo…",
         "upload_failed": "Error al subir",
         "delete_failed": "No se pudo eliminar el adjunto",
-        "upload_limit_reached": "Puedes adjuntar hasta {count} archivo | Puedes adjuntar hasta {count} archivos"
+        "upload_limit_reached": "Puedes adjuntar hasta {count} archivo | Puedes adjuntar hasta {count} archivos",
+        "send_message": "Enviar mensaje",
+        "stop_streaming": "Detener la generación"
     },
     "header": {
         "toggle_sidebar": "Mostrar/ocultar barra lateral",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Ayer",
         "search_group_previous_7_days": "Últimos 7 días",
         "search_group_previous_30_days": "Últimos 30 días",
-        "search_group_older": "Más antiguos"
+        "search_group_older": "Más antiguos",
+        "save_title": "Guardar título",
+        "show_password": "Mostrar contraseña",
+        "hide_password": "Ocultar contraseña",
+        "user_fallback": "Usuario"
     },
     "chat": {
         "message_limit_reached": "Alcanzaste el límite de mensajes",
@@ -99,7 +107,17 @@
             "expired": "Este formulario ha caducado.",
             "unavailable": "Este formulario no se puede enviar aquí."
         },
-        "conversation_gone": "Esta conversación ya no existe."
+        "conversation_gone": "Esta conversación ya no existe.",
+        "scroll_to_bottom": "Desplazarse hasta abajo",
+        "copy_code": "Copiar el código al portapapeles",
+        "loading_chart": "Cargando gráfico…",
+        "powered_by": "Con la tecnología de {label}",
+        "stream_errors": {
+            "unreachable": "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+            "http_status": "El servidor devolvió el estado {status}.",
+            "interrupted": "La conexión se interrumpió.",
+            "malformed": "Se recibieron datos no válidos del servidor."
+        }
     },
     "messages": {
         "send": "Enviar",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Eliminar adjunto",
         "delete_attachment_title": "¿Eliminar este archivo?",
         "delete_attachment_description": "Después de eliminarlo, el asistente ya no tendrá acceso a este archivo en respuestas futuras.",
-        "delete_attachment_failed": "No se pudo eliminar el archivo. Por favor, inténtalo de nuevo."
+        "delete_attachment_failed": "No se pudo eliminar el archivo. Por favor, inténtalo de nuevo.",
+        "responding": "El asistente está respondiendo…",
+        "response_complete": "Respuesta completada",
+        "copy_message": "Copiar mensaje",
+        "feedback_helpful": "Buena respuesta",
+        "feedback_not_helpful": "Mala respuesta",
+        "edit_message": "Editar mensaje"
     },
     "errors": {
         "subscription_expired": "Suscripción vencida",
@@ -132,7 +156,10 @@
         "title": "Fuentes de conocimiento",
         "source_count": "{count} fuente | {count} fuentes",
         "description": "{count} fuente utilizada para generar esta respuesta | {count} fuentes utilizadas para generar esta respuesta",
-        "page_label": "Página {page}"
+        "page_label": "Página {page}",
+        "file_with_page": "{file} (Página {page})",
+        "fallback_title": "Fuente {number}",
+        "chunk_label": "Fragmento {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Vence en {count} día | Vence en {count} días",
                 "expires_in_one_month": "Vence en 1 mes",
                 "expires_in_months": "Vence en {count} mes | Vence en {count} meses",
-                "conversations_count": "{count} conversación | {count} conversaciones"
+                "conversations_count": "{count} conversación | {count} conversaciones",
+                "refresh_conversations": "Actualizar conversaciones",
+                "remove_filter": "Quitar filtro"
             },
             "pagination": {
                 "prev": "Anterior",
@@ -496,7 +525,8 @@
                 "peak_negative": "Pico negativo",
                 "sentiment_timeline": "Línea de tiempo del sentimiento",
                 "message_details": "Detalles del mensaje",
-                "waiting": "Pendiente…"
+                "waiting": "Pendiente…",
+                "trend_stable_label": "Estable"
             },
             "handoff": {
                 "locked_description": "Actualiza tu plan para tomar el control de conversaciones en vivo desde el registro de chat.",
@@ -520,7 +550,14 @@
                 "read": "Leído",
                 "sent": "Enviado",
                 "visitor_typing": "El visitante está escribiendo",
-                "message_placeholder": "Escribe un mensaje…"
+                "message_placeholder": "Escribe un mensaje…",
+                "send_message": "Enviar mensaje",
+                "errors": {
+                    "connect_failed": "No se pudo conectar al canal del chat",
+                    "takeover_failed": "No se pudo tomar el control de la conversación",
+                    "return_failed": "No se pudo devolver la conversación a la IA",
+                    "send_failed": "No se pudo enviar el mensaje"
+                }
             },
             "revise": {
                 "title": "Revisar respuesta",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "No se pudo cargar el pulso de la conversación. Por favor, inténtalo de nuevo."
-            }
+            },
+            "refresh_messages": "Actualizar mensajes",
+            "delete_conversation": "Eliminar conversación"
         },
         "guardrails": {
             "title": "Restricciones",
@@ -696,7 +735,9 @@
                     "mean_score": "Puntuación media de todos los casos",
                     "tokens": "Tokens",
                     "tokens_note": "Total de tokens consumidos en esta ejecución"
-                }
+                },
+                "back": "Volver a evaluaciones",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Evaluaciones",
@@ -818,6 +859,11 @@
                 "json_schema": "Esquema JSON",
                 "llm_judge": "LLM judge",
                 "tool_call": "Llamada a herramienta"
+            },
+            "statuses": {
+                "running": "En curso",
+                "completed": "Completada",
+                "failed": "Fallida"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "No se pudo eliminar el tema. Por favor, inténtalo de nuevo.",
                 "load_error": "No se pudieron cargar los temas. Por favor, inténtalo de nuevo.",
                 "permission_denied": "Permiso denegado",
-                "permission_denied_description": "No tienes permiso para gestionar temas."
+                "permission_denied_description": "No tienes permiso para gestionar temas.",
+                "edit_topic_aria": "Editar {topic}",
+                "delete_topic_aria": "Eliminar {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Creado {date}",
                 "used_by_agents": "Usado por {count} agentes",
                 "delete_title": "Eliminar entrada de P&R",
-                "delete_description": "¿Estás seguro de que quieres eliminar esta entrada de P&R? Esta acción no se puede deshacer."
+                "delete_description": "¿Estás seguro de que quieres eliminar esta entrada de P&R? Esta acción no se puede deshacer.",
+                "remove_question": "Quitar pregunta",
+                "actions": "Acciones"
             },
             "youtube": {
                 "load_failed": "Error al cargar los videos de YouTube",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Habilitado",
                 "no_match": "Ningún conector coincide.",
                 "soon": "Próximamente",
-                "connect_first": "Primero conecta este MCP en Configuración"
+                "connect_first": "Primero conecta este MCP en Configuración",
+                "column_always": "Siempre activo",
+                "always_hint": "Ofrece las herramientas de este conector en cada turno, aunque el mensaje no parezca necesitarlas. Máximo 10 herramientas siempre activas por agente.",
+                "always_failed": "Error al actualizar la opción “Siempre activo”"
             },
             "functions": {
                 "load_failed": "Error al cargar las funciones",
@@ -1582,7 +1635,9 @@
                 "branding": "Marca",
                 "behavior": "Comportamiento",
                 "settings": "Ajustes",
-                "domain": "Dominio"
+                "domain": "Dominio",
+                "languages": "Idiomas",
+                "bubbles": "Burbujas de chat"
             },
             "view_only_title": "Solo lectura",
             "view_only_description": "No tienes permiso para editar la configuración.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "ID del agente copiado al portapapeles",
                 "privacy_saved": "Enlace de la política de privacidad guardado",
                 "privacy_error": "No se pudo guardar el enlace de la política de privacidad",
-                "branding_saved": "Marca actualizada"
+                "branding_saved": "Marca actualizada",
+                "languages_saved": "Idiomas guardados",
+                "languages_error": "No se pudieron guardar los idiomas"
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Solo estos orígenes tienen permitido cargar el widget.",
                 "keyboard_trigger": "Atajo de teclado",
-                "placement": "Ubicación"
+                "placement": "Ubicación",
+                "language_switcher": "Selector de idioma"
             },
             "embed": {
                 "surface_preview": "Vista previa de la superficie"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Se muestra a los visitantes como “Al chatear, aceptas nuestra política de privacidad.” Déjalo vacío para ocultarlo.",
                 "branding_badge": "Mostrar la insignia \"Powered by Chatvia\"",
-                "branding_badge_hint": "Muestra la insignia de Chatvia en el chat y el widget de este agente."
-            }
+                "branding_badge_hint": "Muestra la insignia de Chatvia en el chat y el widget de este agente.",
+                "appearance_translations_default": "Predeterminado",
+                "appearance_translations_default_tip": "El texto que escribes, traducido automáticamente a todos los idiomas.",
+                "appearance_translations_default_hint": "Este es el texto que escribes. Al guardar, se traduce automáticamente a todos los idiomas y se muestra siempre que el idioma del visitante no esté en la lista.",
+                "appearance_translations_lang_hint": "Edita este idioma aquí. Deja un campo vacío para usar la traducción automática; tus cambios siempre se conservan.",
+                "starters_generate": "Generar con IA",
+                "starters_generate_title": "Generar iniciadores con IA",
+                "starters_generate_description": "Elige cuántos generar a partir de tu base de conocimiento y luego selecciona cuáles agregar.",
+                "starters_generate_count": "¿Cuántos?",
+                "starters_generate_button": "Generar",
+                "starters_generating": "Generando…",
+                "starters_generate_hint": "Elige un número y genera sugerencias a partir de tu base de conocimiento.",
+                "starters_translate_empty": "Primero agrega iniciadores en la pestaña Predeterminado y luego tradúcelos aquí."
+            },
+            "languages": {
+                "title": "Idiomas de la interfaz",
+                "description": "Elige qué idiomas admite este agente. Los idiomas habilitados aparecen en el selector de idioma del chat alojado y tienen sus propios campos por idioma en Información e Iniciadores.",
+                "select_all": "Seleccionar todo",
+                "clear_all": "Deseleccionar todo",
+                "count": "{count} de {total} seleccionados",
+                "hint": "Para ocultar por completo el selector de idioma para los visitantes, desactívalo en Comportamiento.",
+                "min_required": "Se requiere al menos un idioma."
+            },
+            "bubbles_add": "Agregar burbuja",
+            "bubbles_remove": "Eliminar burbuja",
+            "bubbles_empty": "Aún no hay burbujas de chat.",
+            "bubbles_translate_empty": "Primero agrega una burbuja para poder traducirla."
         },
         "topics_index": {
             "title": "Temas",
@@ -1865,7 +1948,10 @@
             "remove_error": "Error al eliminar el tema",
             "fill_fields": "Por favor, completa todos los campos",
             "created": "Tema creado y agregado correctamente",
-            "create_error": "Error al crear el tema"
+            "create_error": "Error al crear el tema",
+            "examples": "p. ej. {titles}",
+            "previous_page": "Página anterior",
+            "next_page": "Página siguiente"
         },
         "usage": {
             "title": "Estadísticas de uso",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "¿Qué significa «Asignar a»?",
             "maps_to_help_title": "Asignar a un campo de contacto",
             "maps_to_help_1": "Etiqueta este campo como un atributo de contacto estándar: nombre, correo electrónico, teléfono, etc. El valor que introduce el visitante se reconoce entonces como ese dato de contacto, no como una simple respuesta anónima.",
-            "maps_to_help_2": "Los campos asignados completan los datos del lead, lo que alimenta la lista de leads, la detección de duplicados y la exportación a CSV. Déjalo como «—» para capturar la respuesta sin etiquetarla."
+            "maps_to_help_2": "Los campos asignados completan los datos del lead, lo que alimenta la lista de leads, la detección de duplicados y la exportación a CSV. Déjalo como «—» para capturar la respuesta sin etiquetarla.",
+            "subtitle": "Descripción",
+            "subtitle_placeholder": "p. ej. Cuéntanos sobre tu empresa y nos pondremos en contacto contigo.",
+            "subtitle_hint": "Se muestra al visitante debajo del título del formulario."
         },
         "submissions": {
             "page_title": "Envíos",
@@ -2103,7 +2192,8 @@
             "sending_link": "Enviando enlace...",
             "or_continue_with": "O continúa con",
             "no_account": "¿No tienes una cuenta?",
-            "start_free_trial": "Comenzar prueba gratis"
+            "start_free_trial": "Comenzar prueba gratis",
+            "create_account": "Crear una cuenta"
         },
         "register": {
             "title": "Crear una cuenta",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Todos los agentes",
                 "no_agents_assigned": "Sin agentes asignados",
                 "agent_count": "{count} agente | {count} agentes",
-                "delete_description": "¿Estás seguro de que quieres eliminar el rol \"{name}\"? Esta acción no se puede deshacer."
+                "delete_description": "¿Estás seguro de que quieres eliminar el rol \"{name}\"? Esta acción no se puede deshacer.",
+                "toggle_permissions": "Mostrar u ocultar permisos"
             },
             "members": {
                 "title": "Miembros del equipo",
@@ -2877,7 +2968,9 @@
                 "description": "Miembros con este rol. Puedes eliminar su acceso a este equipo.",
                 "empty": "Aún no hay miembros con este rol.",
                 "close": "Cerrar"
-            }
+            },
+            "rename_team": "Renombrar equipo",
+            "save_team_name": "Guardar nombre del equipo"
         },
         "roles": {
             "details": "Detalles del rol",
@@ -3161,7 +3254,8 @@
         "volume_month": "Volumen de mensajes en los últimos 30 días",
         "last_week": "Última semana",
         "last_month": "Último mes",
-        "messages_tooltip": "{n} mensaje | {n} mensajes"
+        "messages_tooltip": "{n} mensaje | {n} mensajes",
+        "messages_this_month": "Mensajes este mes"
     },
     "support": {
         "title": "Soporte",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Consumidos en este ciclo — solo informativo; tu plan se factura por mensajes.",
         "of": "de {limit}",
         "remaining": "{count} restantes",
-        "load_error": "No se pueden cargar los datos de uso."
+        "load_error": "No se pueden cargar los datos de uso.",
+        "no_limit": "Sin límite"
     },
     "analytics_chat": {
         "title": "Pregunta a tus datos",
@@ -3293,7 +3388,8 @@
                 "create_title": "Agregar un prompt",
                 "description": "Escribe un prompt de sistema reutilizable una vez y luego adjúntalo a cualquier agente desde su página de Persona. Al editarlo aquí se actualiza en todos los agentes que lo usan.",
                 "id_label": "ID",
-                "copy_id_title": "Copiar ID del prompt — pásalo como prompt_id al crear/actualizar un agente mediante la API"
+                "copy_id_title": "Copiar ID del prompt — pásalo como prompt_id al crear/actualizar un agente mediante la API",
+                "copy_id": "Copiar ID del prompt"
             },
             "form": {
                 "name": "Nombre",
@@ -3330,7 +3426,8 @@
                 "description": "Las funciones permiten que tus agentes llamen a tus propias APIs como herramientas LLM. El {name} y la {description} son lo que el modelo ve al decidir si invocarla — sé específico. {learn_more}",
                 "learn_more": "Más información",
                 "id_label": "ID",
-                "copy_id_title": "Copiar ID de la función — pásalo como function_id al vincularla mediante la API"
+                "copy_id_title": "Copiar ID de la función — pásalo como function_id al vincularla mediante la API",
+                "copy_id": "Copiar ID de la función"
             },
             "form": {
                 "name": "Nombre",
@@ -3395,7 +3492,8 @@
                 "title": "Copia tu nueva clave API",
                 "description": "Esta es la única vez que verás {name}. Guárdala en un lugar seguro — si la pierdes, genera una nueva.",
                 "warning": "Trátala como una contraseña. Cualquiera que la tenga podrá provisionar agentes en tu nombre.",
-                "confirm": "Ya la guardé de forma segura"
+                "confirm": "Ya la guardé de forma segura",
+                "copy": "Copiar clave API"
             },
             "revoke_dialog": {
                 "title": "Revocar clave API",
@@ -3694,7 +3792,8 @@
         "account": "Cuenta",
         "workspace": "Espacio de trabajo",
         "logout": "Cerrar sesión",
-        "language": "Idioma"
+        "language": "Idioma",
+        "open_user_menu": "Abrir menú de usuario"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Límite máximo de archivos alcanzado",
             "toast_max_files_description": "Solo puedes subir un máximo de {max} archivos.",
             "toast_file_size_title": "Tamaño de archivo excedido",
-            "toast_file_size_description": "El/los siguiente(s) archivo(s) supera(n) el límite de {maxSize} MB: {fileList}"
+            "toast_file_size_description": "El/los siguiente(s) archivo(s) supera(n) el límite de {maxSize} MB: {fileList}",
+            "analyze_failed": "No se pudo analizar el archivo",
+            "analyze_timed_out": "Se agotó el tiempo del análisis: puede que el archivo sea demasiado grande"
         },
         "voice_recorder": {
             "title_default": "Grabar nota de voz",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Consejos:",
             "tip_speak_clearly": "Habla con claridad y a un ritmo constante",
             "tip_quiet_environment": "Usa un entorno tranquilo para mejores resultados",
-            "tip_max_duration": "Duración máxima de grabación: {minutes} minuto | Duración máxima de grabación: {minutes} minutos"
+            "tip_max_duration": "Duración máxima de grabación: {minutes} minuto | Duración máxima de grabación: {minutes} minutos",
+            "pause_recording": "Pausar grabación",
+            "resume_recording": "Reanudar grabación",
+            "cancel_recording": "Cancelar grabación",
+            "play_recording": "Reproducir grabación",
+            "pause_playback": "Pausar reproducción",
+            "microphone_denied": "Acceso al micrófono denegado. Permite el acceso al micrófono para grabar.",
+            "microphone_not_found": "No se encontró ningún micrófono. Conecta un micrófono e inténtalo de nuevo.",
+            "microphone_failed": "No se pudo acceder al micrófono",
+            "transcription_failed": "La transcripción falló"
         },
         "date_range": {
             "pick_range": "Selecciona un rango de fechas",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "{name} desconectado",
             "toast_disconnect_failed": "Error",
             "set_all": "Aplicar a todas",
-            "toast_bulk_permission": "Se estableció {count} herramienta en «{permission}» | Se establecieron {count} herramientas en «{permission}»"
+            "toast_bulk_permission": "Se estableció {count} herramienta en «{permission}» | Se establecieron {count} herramientas en «{permission}»",
+            "copy_server_id": "Copiar ID del servidor"
         },
         "member_sheet": {
             "sr_description": "Administra los límites, el acceso a agentes y el estado de este chatter.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Alternar barra lateral",
             "sidebar": "Barra lateral",
             "sidebar_description": "Muestra la barra lateral en móvil."
+        },
+        "json_editor": {
+            "aria_label": "Editor JSON"
+        },
+        "time_ago": {
+            "just_now": "Justo ahora"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Consulta análisis de producto — eventos, gráficos y cohortes — desde tu proyecto de Amplitude."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Bienvenido a Chatvia",
+            "intro": "Vamos a crear tu primer agente de IA. Solo te llevará un minuto.",
+            "what_title": "¿Qué es un agente?",
+            "what_body": "Un agente es un asistente de IA que entrenas con tu propio contenido. Responde a tus clientes en tu sitio web, en el widget de chat y en las aplicaciones de mensajería.",
+            "how_title": "¿Cómo funciona?",
+            "how_body": "Primero creas un agente y le das un nombre. Luego lo entrenas con tus archivos, sitios web y textos para que pueda responder preguntas.",
+            "start": "Crear mi primer agente",
+            "video_caption": "Mira cómo funciona"
         }
     }
 }

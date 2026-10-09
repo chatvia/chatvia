@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Services\Clients;
 
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Domain\Llm\Providers\Mistral;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Collection;
@@ -123,7 +124,7 @@ class MistralOcr
         try {
             $tempUrl = Storage::temporaryUrl($filePath, now()->addHour());
 
-            return is_image_file($file) ? $this->fromImageUrl($tempUrl) : $this->fromUrl($tempUrl);
+            return SourceFileTypes::isImage($file) ? $this->fromImageUrl($tempUrl) : $this->fromUrl($tempUrl);
         } finally {
             Storage::delete($filePath);
         }

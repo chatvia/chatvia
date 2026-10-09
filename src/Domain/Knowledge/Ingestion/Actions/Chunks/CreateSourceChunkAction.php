@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
@@ -19,6 +20,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class CreateSourceChunkAction
 {
+    public function __construct(
+        private readonly EmbeddingsProviderInterface $embeddings,
+    ) {}
+
     /**
      * @return Chunk|null null when a chunk with the same checksum already
      *                    exists for this source (idempotent re-runs).
@@ -49,7 +54,7 @@ class CreateSourceChunkAction
                 'chunked_using_model' => config('chatvia.ai.models.chunker'),
                 'cost_in_micro_cents' => 0,
                 'tokens' => TikToken::countTokens($page->content),
-                'embedding' => embed($page->content, true),
+                'embedding' => $this->embeddings->embed($page->content, true),
                 'embedding_bm25' => Bm25Tokenizer::expression($page->content),
                 'metadata' => [],
             ],

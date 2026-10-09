@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Agent\Invitations;
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
-use Support\Enums\User\SocialProvider;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**

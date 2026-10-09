@@ -8,9 +8,8 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 /**
- * Pins the per-agent permission gate on the dashboard source routes so migrating
- * the inline has_permission_to_agent() checks onto the `agent.permission:<perm>`
- * route middleware is provably behavior-preserving.
+ * Pins the per-agent permission gate (the `agent.permission:<perm>` route
+ * middleware) on the dashboard source routes.
  *
  * A teammate WITH agent access but WITHOUT the permission must get 403; the owner
  * and a teammate WITH the permission must pass. Both teammates share the same

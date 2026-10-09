@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
@@ -9,7 +10,6 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
 use Laravel\Pulse\Facades\Pulse;
 use Laravel\Telescope\Telescope;
-use Support\Enums\User\UserType;
 
 /**
  * `php artisan db:seed`. Reference data (the LLM catalogue) is seeded

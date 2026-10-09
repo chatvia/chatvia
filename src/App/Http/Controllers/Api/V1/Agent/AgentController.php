@@ -38,7 +38,7 @@ class AgentController
         // The same visibility rule as the dashboard's agent list: owners see
         // every agent in their teams, a teammate only the agents their role
         // reaches — so a member token never lists agents it can't access.
-        $query = $visibility->query($user, current_team())->with(['team', 'agentPrompt'])->latest();
+        $query = $visibility->query($user, $user->currentOrPrimaryTeam())->with(['team', 'agentPrompt'])->latest();
 
         $team = $request->team();
 

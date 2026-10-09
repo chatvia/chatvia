@@ -1,7 +1,11 @@
-<script setup>
+<script setup lang="ts">
+/**
+ * Top bar of the hosted chat: reopen-sidebar and expand toggles on one side;
+ * incognito badge, delete-conversation, language and theme switchers on the
+ * other. When the theme switcher is hidden it applies the owner's default theme.
+ */
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -12,104 +16,74 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { updateTheme } from '@/composables/useAppearance';
 import { safeStorage } from '@/lib/safeStorage';
+import type { ChatDefaultTheme } from '@/types/chat';
+import { useChatEventBus } from '@/utils/eventBus';
 import { Maximize2, Minimize2, PanelLeft, Trash2 } from 'lucide-vue-next';
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+interface Props {
+    isSidebarOpen?: boolean;
+    removeSidebar?: boolean;
+    enableThemeSwitcher?: boolean;
+    defaultTheme?: ChatDefaultTheme;
+    enableChatExpand?: boolean;
+    /** Visitor language picker: off for the dashboard playground, on for hosted chat when enabled. */
+    enableLanguageSwitcher?: boolean;
+    /** Language codes offered by the switcher (Setup → Languages). Empty means every locale. */
+    enabledLanguages?: string[];
+}
 
-const chatEventBus = inject('chatEventBus');
-
-const isChatExpanded = computed(() => chatEventBus.isChatExpanded.value);
-
-const props = defineProps({
-    tokenCount: {
-        type: Number,
-        default: 0,
-    },
-    isSidebarOpen: {
-        type: Boolean,
-        default: false,
-    },
-    removeSidebar: {
-        type: Boolean,
-        default: false,
-    },
-    enableThemeSwitcher: {
-        type: Boolean,
-        default: true,
-    },
-    defaultTheme: {
-        type: String,
-        default: 'auto',
-        validator: (value) => ['auto', 'light', 'dark'].includes(value),
-    },
-    enableChatExpand: {
-        type: Boolean,
-        default: true,
-    },
-    // Visitor-facing language picker. Off for the dashboard/playground; on for
-    // the hosted/embedded chat surfaces (gated by embed.show_language_switcher).
-    enableLanguageSwitcher: {
-        type: Boolean,
-        default: false,
-    },
-    // Allow-list of language codes for the switcher (Setup → Languages). Empty ⇒
-    // every platform locale.
-    enabledLanguages: {
-        type: Array,
-        default: () => [],
-    },
+const props = withDefaults(defineProps<Props>(), {
+    isSidebarOpen: false,
+    removeSidebar: false,
+    enableThemeSwitcher: true,
+    defaultTheme: 'auto',
+    enableChatExpand: true,
+    enableLanguageSwitcher: false,
+    enabledLanguages: () => [],
 });
 
-const emit = defineEmits(['deleteConversation', 'toggleIncognito', 'toggleSidebar']);
+const emit = defineEmits<{
+    deleteConversation: [conversationId: string];
+    toggleIncognito: [enabled: boolean];
+    toggleSidebar: [];
+}>();
 
+const { t } = useI18n();
+const bus = useChatEventBus();
+
+const isChatExpanded = computed(() => bus.isChatExpanded.value);
 const isIncognitoMode = ref(false);
 const showDeleteDialog = ref(false);
 
+function applyDefaultTheme(enableSwitcher: boolean, defaultTheme: ChatDefaultTheme) {
+    if (enableSwitcher) return;
+    updateTheme(defaultTheme === 'auto' ? 'system' : defaultTheme);
+}
+
 onMounted(() => {
-    // Initialize incognito mode from localStorage (safeStorage: the hosted chat
-    // may run in an iframe where storage is blocked).
+    // safeStorage: the hosted chat may run in an iframe where storage is blocked.
     const savedIncognitoMode = safeStorage.get('isIncognitoMode');
     if (savedIncognitoMode !== null) {
         isIncognitoMode.value = savedIncognitoMode === 'true';
         emit('toggleIncognito', isIncognitoMode.value);
     }
 
-    // Apply default theme if theme switcher is disabled
-    if (!props.enableThemeSwitcher) {
-        const themeValue = props.defaultTheme === 'auto' ? 'system' : props.defaultTheme;
-        updateTheme(themeValue);
-    }
+    applyDefaultTheme(props.enableThemeSwitcher, props.defaultTheme);
 });
 
-// Watch for changes to theme props
 watch([() => props.enableThemeSwitcher, () => props.defaultTheme], ([enableSwitcher, defaultTheme]) => {
-    if (!enableSwitcher) {
-        const themeValue = defaultTheme === 'auto' ? 'system' : defaultTheme;
-        updateTheme(themeValue);
-    }
+    applyDefaultTheme(enableSwitcher, defaultTheme);
 });
 
-const handleConfirm = () => {
-    emit('deleteConversation', route().params.conversationId);
+function confirmDelete() {
+    emit('deleteConversation', String(route().params.conversationId));
     showDeleteDialog.value = false;
-};
-
-function _toggleIncognitoMode() {
-    isIncognitoMode.value = !isIncognitoMode.value;
-    safeStorage.set('isIncognitoMode', isIncognitoMode.value.toString());
-    emit('toggleIncognito', isIncognitoMode.value);
-}
-
-function toggleSidebar() {
-    emit('toggleSidebar');
-}
-function toggleChatExpand() {
-    chatEventBus.toggleChatExpand();
 }
 </script>
 
@@ -118,14 +92,13 @@ function toggleChatExpand() {
         <TooltipProvider>
             <div class="flex h-14 items-center justify-between px-4">
                 <div class="flex items-center gap-1">
-                    <!-- Reopen sidebar. The collapse control now lives inside the
-                         sidebar header (ChatGPT-style); this top-bar button only
-                         appears once the sidebar is collapsed, to bring it back. -->
+                    <!-- Only shown once the sidebar is collapsed; the collapse
+                         control itself lives in the sidebar header. -->
                     <Tooltip v-if="!removeSidebar && !isSidebarOpen">
                         <TooltipTrigger as-child>
                             <Button
                                 variant="ghost"
-                                @click="toggleSidebar"
+                                @click="emit('toggleSidebar')"
                                 size="icon"
                                 class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
                                 :aria-label="t('header.toggle_sidebar')"
@@ -136,12 +109,11 @@ function toggleChatExpand() {
                         <TooltipContent side="bottom">{{ t('header.toggle_sidebar') }}</TooltipContent>
                     </Tooltip>
 
-                    <!-- Expand/Collapse chat content -->
                     <Tooltip v-if="enableChatExpand">
                         <TooltipTrigger as-child>
                             <Button
                                 variant="ghost"
-                                @click="toggleChatExpand"
+                                @click="bus.toggleChatExpand()"
                                 size="icon"
                                 class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-9 w-9 rounded-lg transition-colors"
                                 :aria-label="t('header.toggle_expand')"
@@ -155,7 +127,6 @@ function toggleChatExpand() {
                 </div>
 
                 <div class="flex items-center gap-1">
-                    <!-- Incognito mode indicator -->
                     <Transition name="slide-fade">
                         <div v-if="isIncognitoMode" class="me-2 flex items-center gap-1.5 rounded-full bg-purple-500/10 px-2.5 py-1">
                             <div class="h-1.5 w-1.5 animate-pulse rounded-full bg-purple-500"></div>
@@ -163,7 +134,6 @@ function toggleChatExpand() {
                         </div>
                     </Transition>
 
-                    <!-- Delete conversation button -->
                     <AlertDialog v-model:open="showDeleteDialog">
                         <Tooltip>
                             <TooltipTrigger as-child>
@@ -190,15 +160,13 @@ function toggleChatExpand() {
                             </AlertDialogHeader>
                             <AlertDialogFooter class="mt-4 gap-2 sm:gap-2">
                                 <AlertDialogCancel class="rounded-lg">{{ t('common.cancel') }}</AlertDialogCancel>
-                                <Button variant="destructive" @click="handleConfirm" class="rounded-lg">{{ t('common.delete') }}</Button>
+                                <Button variant="destructive" @click="confirmDelete" class="rounded-lg">{{ t('common.delete') }}</Button>
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    <!-- Visitor language switcher -->
                     <LanguageSwitcher v-if="enableLanguageSwitcher" :codes="enabledLanguages" />
 
-                    <!-- Theme switcher -->
                     <ThemeSwitcher v-if="enableThemeSwitcher" />
                 </div>
             </div>

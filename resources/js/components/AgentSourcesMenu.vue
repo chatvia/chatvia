@@ -1,34 +1,36 @@
 <script lang="ts" setup>
+/**
+ * The knowledge-source links (Files, Text, Q&A, Web, Audio, Video) of the agent
+ * sidebar, filtered by the teammate's permissions and suffixed with counts.
+ * Renders through a slot so the sidebar can use it as a dropdown or a submenu.
+ */
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';
 import { File, FileAudio, FileText, Globe, HelpCircle, Video } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const props = defineProps({
-    agentId: {
-        type: String,
-        required: true,
+/** Source counts keyed by kind (files, texts, websites, …); missing kinds show no count. */
+type SourceCounts = Partial<Record<string, number>>;
+
+const props = withDefaults(
+    defineProps<{
+        agentId: string;
+        sourceStats?: SourceCounts | null;
+        variant?: 'submenu' | 'dropdown';
+        isActiveRoute: (routeName: string) => boolean;
+    }>(),
+    {
+        sourceStats: () => ({}),
+        variant: 'submenu',
     },
-    sourceStats: {
-        type: Object,
-        default: () => ({}),
-    },
-    variant: {
-        type: String,
-        default: 'submenu', // 'submenu' or 'dropdown'
-    },
-    isActiveRoute: {
-        type: Function,
-        required: true,
-    },
-});
+);
 
 const { hasPermission } = useTeamPermissions();
 const { t } = useI18n();
 
-// Helper function to get source count
-const getSourceCount = (statsKey: string, stats: any): string => {
+// " (3)" suffix for a menu label, or nothing when the kind has no sources.
+const getSourceCount = (statsKey: string, stats: SourceCounts | null | undefined): string => {
     if (!stats || !(statsKey in stats)) {
         return '';
     }

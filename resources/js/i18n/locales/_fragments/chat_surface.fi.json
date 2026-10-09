@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Lähetä viesti",
+        "stop_streaming": "Lopeta luominen"
+    },
+    "chat": {
+        "scroll_to_bottom": "Vieritä alas",
+        "copy_code": "Kopioi koodi leikepöydälle",
+        "loading_chart": "Ladataan kaaviota…",
+        "powered_by": "Palvelun tarjoaa {label}",
+        "stream_errors": {
+            "unreachable": "Palvelimeen ei saatu yhteyttä. Yritä uudelleen.",
+            "http_status": "Palvelin palautti tilan {status}.",
+            "interrupted": "Yhteys katkesi.",
+            "malformed": "Palvelimelta saatiin virheellisiä tietoja."
+        }
+    },
+    "messages": {
+        "edit_message": "Muokkaa viestiä"
+    },
+    "sources": {
+        "file_with_page": "{file} (Sivu {page})",
+        "fallback_title": "Lähde {number}",
+        "chunk_label": "Katkelma {index}"
+    },
+    "sidebar": {
+        "save_title": "Tallenna otsikko",
+        "show_password": "Näytä salasana",
+        "hide_password": "Piilota salasana",
+        "user_fallback": "Käyttäjä"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Juuri nyt"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Mikrofonin käyttö estettiin. Salli mikrofonin käyttö tallentaaksesi.",
+            "microphone_not_found": "Mikrofonia ei löytynyt. Liitä mikrofoni ja yritä uudelleen.",
+            "microphone_failed": "Mikrofonin käyttö epäonnistui",
+            "transcription_failed": "Litterointi epäonnistui"
+        },
+        "file_uploader": {
+            "analyze_failed": "Tiedoston analysointi epäonnistui",
+            "analyze_timed_out": "Analyysi aikakatkaistiin – tiedosto voi olla liian suuri"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Päivitä viestit",
+            "delete_conversation": "Poista keskustelu",
+            "sidebar": {
+                "refresh_conversations": "Päivitä keskustelut",
+                "remove_filter": "Poista suodatin"
+            },
+            "handoff": {
+                "send_message": "Lähetä viesti",
+                "errors": {
+                    "connect_failed": "Yhteyden muodostaminen chat-kanavaan epäonnistui",
+                    "takeover_failed": "Keskustelun ottaminen hoitoon epäonnistui",
+                    "return_failed": "Keskustelun palauttaminen tekoälylle epäonnistui",
+                    "send_failed": "Viestin lähettäminen epäonnistui"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Vakaa"
+            }
+        }
+    }
+}

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+// Teams list: search, open a team, leave a team you were invited to, delete an
+// owned team (never the primary one or your last owned team), create a team.
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
-import InputError from '@/components/InputError.vue';
+import CreateTeamDialog from '@/components/CreateTeamDialog.vue';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -15,17 +17,17 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, LogOut, MoreHorizontal, Plus, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatDate } = useDateFormat();
 
 type Team = Domain.Membership.Team.Data.Resources.Team.TeamListItemData;
 
@@ -46,10 +48,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 const searchQuery = ref('');
 const isCreateDialogOpen = ref(false);
 
-const createForm = useForm({
-    name: '',
-});
-
 const leaveForm = useForm({});
 const deleteForm = useForm<{ team?: string }>({});
 const teamToLeave = ref<Team | null>(null);
@@ -64,15 +62,6 @@ const filteredTeams = computed(() => {
 
 const ownedTeamsCount = computed(() => (props.teams || []).filter((t) => t.is_owner).length);
 const canDeleteTeam = (team: Team) => team.is_owner && !team.is_primary && ownedTeamsCount.value > 1;
-
-const createTeam = () => {
-    createForm.post(route('teams.store'), {
-        onSuccess: () => {
-            isCreateDialogOpen.value = false;
-            createForm.reset();
-        },
-    });
-};
 
 const leaveTeam = () => {
     if (!teamToLeave.value) return;
@@ -104,14 +93,6 @@ const formatRole = (role: string) =>
         .split('_')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-};
 </script>
 
 <template>
@@ -267,40 +248,6 @@ const formatDate = (dateString: string) => {
             </AlertDialogContent>
         </AlertDialog>
 
-        <!-- Create Team Dialog -->
-        <Dialog v-model:open="isCreateDialogOpen">
-            <DialogContent class="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>{{ t('teams.index.create_dialog.title') }}</DialogTitle>
-                    <DialogDescription>{{ t('teams.index.create_dialog.description') }}</DialogDescription>
-                </DialogHeader>
-                <form @submit.prevent="createTeam">
-                    <div class="grid gap-4 py-4">
-                        <div class="grid gap-2">
-                            <Label for="team-name">{{ t('teams.index.create_dialog.name_label') }}</Label>
-                            <div class="relative">
-                                <Users class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                <Input
-                                    id="team-name"
-                                    v-model="createForm.name"
-                                    :placeholder="t('teams.index.create_dialog.name_placeholder')"
-                                    class="ps-9"
-                                    required
-                                />
-                            </div>
-                            <InputError :message="createForm.errors.name" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" @click="isCreateDialogOpen = false">{{ t('teams.common.cancel') }}</Button>
-                        <Button type="submit" :disabled="createForm.processing">
-                            <Loader2 v-if="createForm.processing" class="me-2 size-4 animate-spin" />
-                            <Plus v-else class="me-2 size-4" />
-                            {{ t('teams.index.create_team') }}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
+        <CreateTeamDialog v-model:open="isCreateDialogOpen" />
     </AppLayout>
 </template>

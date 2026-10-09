@@ -1,0 +1,27 @@
+{
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "نسخ معرّف الخادم"
+        },
+        "json_editor": {
+            "aria_label": "محرر JSON"
+        }
+    },
+    "workspace": {
+        "functions": {
+            "sheet": {
+                "copy_id": "نسخ معرّف الوظيفة"
+            }
+        },
+        "prompts": {
+            "sheet": {
+                "copy_id": "نسخ معرّف الموجّه"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "نسخ مفتاح API"
+            }
+        }
+    }
+}

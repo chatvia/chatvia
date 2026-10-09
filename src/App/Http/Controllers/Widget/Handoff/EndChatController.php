@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Handoff;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Handoff\EndHandoffChatAction;
 use Domain\Widget\Data\Session\WidgetEndChatResultData;
@@ -18,6 +20,7 @@ readonly class EndChatController
 
     public function __invoke(
         Request $request,
+        #[WidgetAgent] Agent $agent,
         EndHandoffChatAction $endHandoff,
         FindWidgetConversationAction $findConversation,
     ): JsonResponse|WidgetEndChatResultData {
@@ -28,7 +31,7 @@ readonly class EndChatController
             return response()->json(['error' => 'Missing required parameters'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $conversation = $findConversation->execute($conversationId, $sessionId, $this->widgetAgent());
+        $conversation = $findConversation->execute($conversationId, $sessionId, $agent);
 
         if (! $conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);

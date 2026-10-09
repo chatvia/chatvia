@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -7,7 +8,6 @@ use Domain\Knowledge\Source\Text\Actions\ListAttachableTextsForAgentAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserType;
 
 /**
  * The "attach an existing text" list must show the workspace's texts (not just

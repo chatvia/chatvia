@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Memory\ChatMemory;
 
 /**
@@ -13,10 +15,10 @@ class ConversationController
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function __invoke(ChatMemory $memory, HostedChatSession $session): array
+    public function __invoke(#[HostedChatAgent] Agent $agent, ChatMemory $memory, HostedChatSession $session): array
     {
         return $memory
-            ->withScope($session->scope(current_agent()))
+            ->withScope($session->scope($agent))
             ->visibleConversationsNewestFirst();
     }
 }

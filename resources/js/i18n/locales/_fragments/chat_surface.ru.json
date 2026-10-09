@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Отправить сообщение",
+        "stop_streaming": "Остановить генерацию"
+    },
+    "chat": {
+        "scroll_to_bottom": "Прокрутить вниз",
+        "copy_code": "Скопировать код в буфер обмена",
+        "loading_chart": "Загрузка диаграммы…",
+        "powered_by": "Работает на {label}",
+        "stream_errors": {
+            "unreachable": "Не удалось связаться с сервером. Попробуйте ещё раз.",
+            "http_status": "Сервер вернул статус {status}.",
+            "interrupted": "Соединение прервано.",
+            "malformed": "Получены некорректные данные от сервера."
+        }
+    },
+    "messages": {
+        "edit_message": "Изменить сообщение"
+    },
+    "sources": {
+        "file_with_page": "{file} (стр. {page})",
+        "fallback_title": "Источник {number}",
+        "chunk_label": "Фрагмент {index}"
+    },
+    "sidebar": {
+        "save_title": "Сохранить название",
+        "show_password": "Показать пароль",
+        "hide_password": "Скрыть пароль",
+        "user_fallback": "Пользователь"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Только что"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Доступ к микрофону запрещён. Разрешите доступ к микрофону, чтобы записывать.",
+            "microphone_not_found": "Микрофон не найден. Подключите микрофон и попробуйте ещё раз.",
+            "microphone_failed": "Не удалось получить доступ к микрофону",
+            "transcription_failed": "Не удалось распознать речь"
+        },
+        "file_uploader": {
+            "analyze_failed": "Не удалось проанализировать файл",
+            "analyze_timed_out": "Время анализа истекло — возможно, файл слишком большой"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Обновить сообщения",
+            "delete_conversation": "Удалить разговор",
+            "sidebar": {
+                "refresh_conversations": "Обновить разговоры",
+                "remove_filter": "Убрать фильтр"
+            },
+            "handoff": {
+                "send_message": "Отправить сообщение",
+                "errors": {
+                    "connect_failed": "Не удалось подключиться к каналу чата",
+                    "takeover_failed": "Не удалось взять разговор на себя",
+                    "return_failed": "Не удалось вернуть разговор ИИ",
+                    "send_failed": "Не удалось отправить сообщение"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Стабильно"
+            }
+        }
+    }
+}

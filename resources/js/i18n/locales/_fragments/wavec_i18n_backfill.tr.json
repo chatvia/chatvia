@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Ayrıntılar",
+        "arguments": "Argümanlar"
+    },
+    "messages": {
+        "responding": "Asistan yanıt veriyor…",
+        "response_complete": "Yanıt tamamlandı",
+        "copy_message": "Mesajı kopyala",
+        "feedback_helpful": "İyi yanıt",
+        "feedback_not_helpful": "Kötü yanıt"
+    },
+    "agents": {
+        "evals": {
+            "run": {
+                "back": "Değerlendirmelere dön",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Çalışıyor",
+                "completed": "Tamamlandı",
+                "failed": "Başarısız"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Düzenle: {topic}",
+                "delete_topic_aria": "Sil: {topic}"
+            }
+        },
+        "sources": {
+            "connectors": {
+                "column_always": "Her zaman açık",
+                "always_hint": "Bu bağlayıcının araçları, mesaj bunlara açıkça ihtiyaç duymasa bile her turda sunulur. Asistan başına en fazla 10 araç her zaman açık olabilir.",
+                "always_failed": "Her zaman açık ayarı güncellenemedi"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Diller",
+                "bubbles": "Sohbet Balonları"
+            },
+            "toasts": {
+                "languages_saved": "Diller kaydedildi",
+                "languages_error": "Diller kaydedilemedi"
+            },
+            "behavior": {
+                "language_switcher": "Dil değiştirici"
+            },
+            "sections": {
+                "appearance_translations_default": "Varsayılan",
+                "appearance_translations_default_tip": "Yazdığınız metin tüm dillere otomatik olarak çevrilir.",
+                "appearance_translations_default_hint": "Bu, sizin yazdığınız metindir. Kaydettiğinizde tüm dillere otomatik olarak çevrilir ve ziyaretçinin dili listede yoksa bu metin gösterilir.",
+                "appearance_translations_lang_hint": "Bu dili burada düzenleyin. Otomatik çeviriyi kullanmak için alanı boş bırakın — düzenlemeleriniz her zaman korunur.",
+                "starters_generate": "AI ile oluştur",
+                "starters_generate_title": "AI ile başlatıcı oluştur",
+                "starters_generate_description": "Bilgi tabanınızdan kaç tane oluşturulacağını seçin, ardından hangilerinin ekleneceğini belirleyin.",
+                "starters_generate_count": "Kaç tane?",
+                "starters_generate_button": "Oluştur",
+                "starters_generating": "Oluşturuluyor…",
+                "starters_generate_hint": "Bir sayı seçin ve bilgi tabanınızdan öneriler oluşturun.",
+                "starters_translate_empty": "Önce Varsayılan sekmesinde başlatıcı ekleyin, ardından burada çevirin."
+            },
+            "languages": {
+                "title": "Arayüz dilleri",
+                "description": "Bu asistanın hangi dilleri desteklediğini seçin. Etkin diller, barındırılan sohbetin dil değiştiricisinde görünür ve Bilgi ile Başlatıcılar bölümlerinde her dil için ayrı alanlar alır.",
+                "select_all": "Tümünü seç",
+                "clear_all": "Tümünü temizle",
+                "count": "{count} / {total} seçildi",
+                "hint": "Ziyaretçi dil değiştiricisini tamamen gizlemek için Davranış bölümünden kapatın.",
+                "min_required": "En az bir dil gereklidir."
+            },
+            "bubbles_add": "Balon ekle",
+            "bubbles_remove": "Balonu kaldır",
+            "bubbles_empty": "Henüz sohbet balonu yok.",
+            "bubbles_translate_empty": "Çevirmek için önce bir balon ekleyin."
+        },
+        "topics_index": {
+            "examples": "ör. {titles}",
+            "previous_page": "Önceki sayfa",
+            "next_page": "Sonraki sayfa"
+        },
+        "forms": {
+            "subtitle": "Açıklama",
+            "subtitle_placeholder": "ör. Bize şirketinizden bahsedin, sizinle iletişime geçelim.",
+            "subtitle_hint": "Ziyaretçiye form başlığının altında gösterilir."
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Hesap oluştur"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "İzinleri göster veya gizle"
+            },
+            "rename_team": "Ekibi yeniden adlandır",
+            "save_team_name": "Ekip adını kaydet"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Bu Ayki Mesajlar"
+    },
+    "usage": {
+        "no_limit": "Sınırsız"
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "İstem ID'sini kopyala"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "İşlev ID'sini kopyala"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "API anahtarını kopyala"
+            }
+        }
+    },
+    "nav": {
+        "open_user_menu": "Kullanıcı menüsünü aç"
+    },
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "Kaydı duraklat",
+            "resume_recording": "Kayda devam et",
+            "cancel_recording": "Kaydı iptal et",
+            "play_recording": "Kaydı oynat",
+            "pause_playback": "Oynatmayı duraklat"
+        },
+        "connector_sheet": {
+            "copy_server_id": "Sunucu kimliğini kopyala"
+        },
+        "json_editor": {
+            "aria_label": "JSON düzenleyici"
+        },
+        "time_ago": {
+            "just_now": "Az önce"
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia'ya hoş geldiniz",
+            "intro": "İlk AI asistanınızı oluşturalım. Yalnızca bir dakika sürer.",
+            "what_title": "Asistan nedir?",
+            "what_body": "Asistan, kendi içeriğinizle eğittiğiniz bir AI yardımcısıdır. Web sitenizde, sohbet widget'ınızda ve mesajlaşma uygulamalarında müşterilerinizin sorularını yanıtlar.",
+            "how_title": "Nasıl çalışır?",
+            "how_body": "Önce bir asistan oluşturup ona bir ad verirsiniz. Ardından soruları yanıtlayabilmesi için onu dosyalarınız, web siteleriniz ve metinlerinizle eğitirsiniz.",
+            "start": "İlk asistanımı oluştur",
+            "video_caption": "Nasıl çalıştığını izleyin"
+        }
+    }
+}

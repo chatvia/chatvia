@@ -1,19 +1,33 @@
 <script lang="ts" setup>
+/**
+ * Manage Topics: list, search, add, rename and remove the topics the agent's
+ * conversations are sorted into. Changing topics needs the
+ * `agent.topics.manage` team permission; without it the buttons only explain
+ * why nothing happens.
+ */
+import { errorMessage } from '@/api/http';
+import { createTopic, detachTopic, fetchAgentTopics, type Topic, type TopicInput, updateTopic } from '@/api/topics';
 import LockedFeature from '@/components/LockedFeature.vue';
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import axios from 'axios';
 import { LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+import TopicFormDialog from './components/TopicFormDialog.vue';
 
 const { t } = useI18n();
 
@@ -32,43 +46,48 @@ const { hasCapability } = useCapabilityGuard();
 const hasAccess = computed(() => hasCapability('topics'));
 
 const loading = ref(true);
-const topics = ref<any[]>([]);
+const topics = ref<Topic[]>([]);
 const searchQuery = ref('');
 const isAddDialogOpen = ref(false);
 const isEditDialogOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isSubmitting = ref(false);
 
-const currentTopic = ref<any>(null);
-const form = ref({
+// The topic being edited or deleted; kept apart from the dialogs' open state.
+const currentTopic = ref<Topic | null>(null);
+const form = ref<TopicInput>({
     topic: '',
     description: '',
 });
 
 const filteredTopics = computed(() => {
     if (!searchQuery.value) return topics.value;
-    return topics.value.filter((topic: any) => topic.topic.toLowerCase().includes(searchQuery.value.toLowerCase()));
+    return topics.value.filter((topic) => topic.topic.toLowerCase().includes(searchQuery.value.toLowerCase()));
 });
 
 const fetchTopics = async () => {
     loading.value = true;
     try {
-        const response = await axios.get(route('agents.topics.index', props.agent.external_id));
-        topics.value = response.data;
-    } catch (error: any) {
-        toast.error(error.response?.data?.message || t('agents.topics.manage.load_error'));
+        topics.value = await fetchAgentTopics(props.agent.external_id);
+    } catch (error) {
+        toast.error(errorMessage(error, t('agents.topics.manage.load_error')));
     } finally {
         loading.value = false;
     }
 };
 
+/** Shows the "no permission" toast and returns false when the viewer may not change topics. */
+const ensureCanManage = (): boolean => {
+    if (canManageTopics.value) return true;
+
+    toast.error(t('agents.topics.manage.permission_denied'), {
+        description: t('agents.topics.manage.permission_denied_description'),
+    });
+    return false;
+};
+
 const openAddDialog = () => {
-    if (!canManageTopics.value) {
-        toast.error(t('agents.topics.manage.permission_denied'), {
-            description: t('agents.topics.manage.permission_denied_description'),
-        });
-        return;
-    }
+    if (!ensureCanManage()) return;
 
     form.value = {
         topic: '',
@@ -77,13 +96,8 @@ const openAddDialog = () => {
     isAddDialogOpen.value = true;
 };
 
-const openEditDialog = (topic: any) => {
-    if (!canManageTopics.value) {
-        toast.error(t('agents.topics.manage.permission_denied'), {
-            description: t('agents.topics.manage.permission_denied_description'),
-        });
-        return;
-    }
+const openEditDialog = (topic: Topic) => {
+    if (!ensureCanManage()) return;
 
     currentTopic.value = topic;
     form.value = {
@@ -93,13 +107,8 @@ const openEditDialog = (topic: any) => {
     isEditDialogOpen.value = true;
 };
 
-const openDeleteDialog = (topic: any) => {
-    if (!canManageTopics.value) {
-        toast.error(t('agents.topics.manage.permission_denied'), {
-            description: t('agents.topics.manage.permission_denied_description'),
-        });
-        return;
-    }
+const openDeleteDialog = (topic: Topic) => {
+    if (!ensureCanManage()) return;
 
     currentTopic.value = topic;
     isDeleteDialogOpen.value = true;
@@ -113,12 +122,12 @@ const handleAdd = async () => {
 
     isSubmitting.value = true;
     try {
-        await axios.post(route('agents.topics.store', props.agent.external_id), form.value);
+        await createTopic(props.agent.external_id, form.value);
         toast.success(t('agents.topics.manage.created'));
         isAddDialogOpen.value = false;
         fetchTopics();
-    } catch (error: any) {
-        toast.error(error.response?.data?.message || t('agents.topics.manage.create_error'));
+    } catch (error) {
+        toast.error(errorMessage(error, t('agents.topics.manage.create_error')));
     } finally {
         isSubmitting.value = false;
     }
@@ -129,29 +138,32 @@ const handleEdit = async () => {
         toast.error(t('agents.topics.manage.fill_all_fields'));
         return;
     }
+    if (!currentTopic.value) return;
 
     isSubmitting.value = true;
     try {
-        await axios.patch(route('agents.topics.update', [props.agent.external_id, currentTopic.value.id]), form.value);
+        await updateTopic(props.agent.external_id, currentTopic.value.id, form.value);
         toast.success(t('agents.topics.manage.updated'));
         isEditDialogOpen.value = false;
         fetchTopics();
-    } catch (error: any) {
-        toast.error(error.response?.data?.message || t('agents.topics.manage.update_error'));
+    } catch (error) {
+        toast.error(errorMessage(error, t('agents.topics.manage.update_error')));
     } finally {
         isSubmitting.value = false;
     }
 };
 
 const handleDelete = async () => {
+    if (!currentTopic.value) return;
+
     isSubmitting.value = true;
     try {
-        await axios.delete(route('agents.topics.destroy', [props.agent.external_id, currentTopic.value.id]));
+        await detachTopic(props.agent.external_id, currentTopic.value.id);
         toast.success(t('agents.topics.manage.deleted'));
         isDeleteDialogOpen.value = false;
         fetchTopics();
-    } catch (error: any) {
-        toast.error(error.response?.data?.message || t('agents.topics.manage.delete_error'));
+    } catch (error) {
+        toast.error(errorMessage(error, t('agents.topics.manage.delete_error')));
     } finally {
         isSubmitting.value = false;
     }
@@ -205,10 +217,20 @@ onMounted(() => {
                                 <p class="font-medium">{{ topic.topic }}</p>
                             </div>
                             <div class="ms-4 flex items-center gap-2">
-                                <Button variant="ghost" size="icon" @click="openEditDialog(topic)">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    :aria-label="t('agents.topics.manage.edit_topic_aria', { topic: topic.topic })"
+                                    @click="openEditDialog(topic)"
+                                >
                                     <Pencil class="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" @click="openDeleteDialog(topic)">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    :aria-label="t('agents.topics.manage.delete_topic_aria', { topic: topic.topic })"
+                                    @click="openDeleteDialog(topic)"
+                                >
                                     <Trash2 class="text-destructive h-4 w-4" />
                                 </Button>
                             </div>
@@ -224,103 +246,51 @@ onMounted(() => {
             </div>
         </div>
 
-        <!-- Add Topic Dialog -->
-        <Dialog v-model:open="isAddDialogOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.topics.manage.add_dialog_title') }}</DialogTitle>
-                    <DialogDescription>{{ t('agents.topics.manage.add_dialog_description') }}</DialogDescription>
-                </DialogHeader>
-                <div class="space-y-4">
-                    <div>
-                        <Label for="add-topic">{{ t('agents.topics.manage.topic_name') }}</Label>
-                        <Input
-                            id="add-topic"
-                            v-model="form.topic"
-                            :placeholder="t('agents.topics.manage.topic_name_placeholder')"
-                            @keydown.enter="handleAdd"
-                        />
-                    </div>
-                    <div>
-                        <Label for="add-description">{{ t('agents.topics.manage.description_label') }}</Label>
-                        <Textarea
-                            id="add-description"
-                            v-model="form.description"
-                            :placeholder="t('agents.topics.manage.description_placeholder')"
-                            rows="3"
-                        />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" @click="isAddDialogOpen = false" :disabled="isSubmitting">
-                        {{ t('agents.topics.manage.cancel') }}
-                    </Button>
-                    <Button @click="handleAdd" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
-                        {{ t('agents.topics.manage.add_topic_button') }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <TopicFormDialog
+            v-model:open="isAddDialogOpen"
+            v-model:topic="form.topic"
+            v-model:topic-description="form.description"
+            id-prefix="add"
+            :title="t('agents.topics.manage.add_dialog_title')"
+            :description="t('agents.topics.manage.add_dialog_description')"
+            :submit-label="t('agents.topics.manage.add_topic_button')"
+            :submitting="isSubmitting"
+            @submit="handleAdd"
+        />
 
-        <!-- Edit Topic Dialog -->
-        <Dialog v-model:open="isEditDialogOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.topics.manage.edit_dialog_title') }}</DialogTitle>
-                    <DialogDescription>{{ t('agents.topics.manage.edit_dialog_description') }}</DialogDescription>
-                </DialogHeader>
-                <div class="space-y-4">
-                    <div>
-                        <Label for="edit-topic">{{ t('agents.topics.manage.topic_name') }}</Label>
-                        <Input
-                            id="edit-topic"
-                            v-model="form.topic"
-                            :placeholder="t('agents.topics.manage.topic_name_placeholder')"
-                            @keydown.enter="handleEdit"
-                        />
-                    </div>
-                    <div>
-                        <Label for="edit-description">{{ t('agents.topics.manage.description_label') }}</Label>
-                        <Textarea
-                            id="edit-description"
-                            v-model="form.description"
-                            :placeholder="t('agents.topics.manage.description_placeholder')"
-                            rows="3"
-                        />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" @click="isEditDialogOpen = false" :disabled="isSubmitting">
-                        {{ t('agents.topics.manage.cancel') }}
-                    </Button>
-                    <Button @click="handleEdit" :disabled="isSubmitting">
-                        <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
-                        {{ t('agents.topics.manage.save') }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <TopicFormDialog
+            v-model:open="isEditDialogOpen"
+            v-model:topic="form.topic"
+            v-model:topic-description="form.description"
+            id-prefix="edit"
+            :title="t('agents.topics.manage.edit_dialog_title')"
+            :description="t('agents.topics.manage.edit_dialog_description')"
+            :submit-label="t('agents.topics.manage.save')"
+            :submitting="isSubmitting"
+            @submit="handleEdit"
+        />
 
-        <!-- Delete Topic Dialog -->
-        <Dialog v-model:open="isDeleteDialogOpen">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.topics.manage.delete_dialog_title') }}</DialogTitle>
-                    <DialogDescription>
+        <!-- Delete Topic confirmation. The confirm button is a plain Button (not
+             AlertDialogAction) so the dialog stays open with its spinner until
+             the request is done. -->
+        <AlertDialog v-model:open="isDeleteDialogOpen">
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{{ t('agents.topics.manage.delete_dialog_title') }}</AlertDialogTitle>
+                    <AlertDialogDescription>
                         {{ t('agents.topics.manage.delete_dialog_description', { topic: currentTopic?.topic }) }}
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="isDeleteDialogOpen = false" :disabled="isSubmitting">
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel :disabled="isSubmitting">
                         {{ t('agents.topics.manage.cancel') }}
-                    </Button>
+                    </AlertDialogCancel>
                     <Button variant="destructive" @click="handleDelete" :disabled="isSubmitting">
                         <LoaderCircle v-if="isSubmitting" class="me-2 h-4 w-4 animate-spin" />
                         {{ t('agents.topics.manage.delete') }}
                     </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </AgentLayout>
 </template>

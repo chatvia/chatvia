@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Widget\Stream;
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
 use App\Http\Responses\SseResponder;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Requests\StreamRequestDataFactory;
 use Domain\Widget\Services\WidgetVerification;
@@ -25,9 +27,12 @@ readonly class StreamController
         private StreamRequestDataFactory $factory,
     ) {}
 
-    public function __invoke(Request $request, WidgetVerification $verification, SseResponder $sse): StreamedResponse
-    {
-        $agent = $this->widgetAgent();
+    public function __invoke(
+        Request $request,
+        #[WidgetAgent] Agent $agent,
+        WidgetVerification $verification,
+        SseResponder $sse,
+    ): StreamedResponse {
         $sessionId = $this->widgetSessionId($request);
         $conversationId = $this->widgetConversationId($request);
 

@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "إرسال الرسالة",
+        "stop_streaming": "إيقاف التوليد"
+    },
+    "chat": {
+        "scroll_to_bottom": "الانتقال إلى الأسفل",
+        "copy_code": "نسخ الشيفرة إلى الحافظة",
+        "loading_chart": "جارٍ تحميل المخطط…",
+        "powered_by": "مدعوم من {label}",
+        "stream_errors": {
+            "unreachable": "تعذّر الوصول إلى الخادم. يُرجى المحاولة مرة أخرى.",
+            "http_status": "أعاد الخادم الحالة {status}.",
+            "interrupted": "انقطع الاتصال.",
+            "malformed": "تلقّينا بيانات غير صالحة من الخادم."
+        }
+    },
+    "messages": {
+        "edit_message": "تعديل الرسالة"
+    },
+    "sources": {
+        "file_with_page": "{file} (صفحة {page})",
+        "fallback_title": "المصدر {number}",
+        "chunk_label": "المقطع {index}"
+    },
+    "sidebar": {
+        "save_title": "حفظ العنوان",
+        "show_password": "إظهار كلمة المرور",
+        "hide_password": "إخفاء كلمة المرور",
+        "user_fallback": "مستخدم"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "الآن"
+        },
+        "voice_recorder": {
+            "microphone_denied": "تم رفض الوصول إلى الميكروفون. يُرجى السماح بالوصول إلى الميكروفون للتسجيل.",
+            "microphone_not_found": "لم يتم العثور على ميكروفون. يُرجى توصيل ميكروفون والمحاولة مرة أخرى.",
+            "microphone_failed": "تعذّر الوصول إلى الميكروفون",
+            "transcription_failed": "فشل تحويل الصوت إلى نص"
+        },
+        "file_uploader": {
+            "analyze_failed": "تعذّر تحليل الملف",
+            "analyze_timed_out": "انتهت مهلة التحليل - قد يكون الملف كبيرًا جدًا"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "تحديث الرسائل",
+            "delete_conversation": "حذف المحادثة",
+            "sidebar": {
+                "refresh_conversations": "تحديث المحادثات",
+                "remove_filter": "إزالة عامل التصفية"
+            },
+            "handoff": {
+                "send_message": "إرسال الرسالة",
+                "errors": {
+                    "connect_failed": "تعذّر الاتصال بقناة المحادثة",
+                    "takeover_failed": "تعذّر تولّي المحادثة",
+                    "return_failed": "تعذّرت إعادة المحادثة إلى الذكاء الاصطناعي",
+                    "send_failed": "تعذّر إرسال الرسالة"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "مستقر"
+            }
+        }
+    }
+}

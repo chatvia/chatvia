@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
@@ -14,7 +15,6 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserType;
 
 /*
  * HTTP-level coverage for the two invitation flows and their side effects:

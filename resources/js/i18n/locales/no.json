@@ -17,7 +17,9 @@
         "mcp_tool": "MCP-verktøy",
         "function": "Funksjon",
         "approve": "Godkjenn",
-        "deny": "Avvis"
+        "deny": "Avvis",
+        "details": "Detaljer",
+        "arguments": "Argumenter"
     },
     "composer": {
         "default_placeholder": "Melding...",
@@ -30,7 +32,9 @@
         "uploading": "Laster opp…",
         "upload_failed": "Opplasting mislyktes",
         "delete_failed": "Kunne ikke fjerne vedlegg",
-        "upload_limit_reached": "Du kan legge ved opptil {count} fil | Du kan legge ved opptil {count} filer"
+        "upload_limit_reached": "Du kan legge ved opptil {count} fil | Du kan legge ved opptil {count} filer",
+        "send_message": "Send melding",
+        "stop_streaming": "Stopp genereringen"
     },
     "header": {
         "toggle_sidebar": "Vis/skjul sidepanel",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "I går",
         "search_group_previous_7_days": "Siste 7 dager",
         "search_group_previous_30_days": "Siste 30 dager",
-        "search_group_older": "Eldre"
+        "search_group_older": "Eldre",
+        "save_title": "Lagre tittel",
+        "show_password": "Vis passord",
+        "hide_password": "Skjul passord",
+        "user_fallback": "Bruker"
     },
     "chat": {
         "message_limit_reached": "Du har nådd meldingsgrensen din",
@@ -99,7 +107,17 @@
             "expired": "Dette skjemaet er utløpt.",
             "unavailable": "Dette skjemaet kan ikke sendes her."
         },
-        "conversation_gone": "Denne samtalen finnes ikke lenger."
+        "conversation_gone": "Denne samtalen finnes ikke lenger.",
+        "scroll_to_bottom": "Rull til bunnen",
+        "copy_code": "Kopier koden til utklippstavlen",
+        "loading_chart": "Laster inn diagram…",
+        "powered_by": "Drevet av {label}",
+        "stream_errors": {
+            "unreachable": "Kunne ikke nå serveren. Prøv igjen.",
+            "http_status": "Serveren returnerte status {status}.",
+            "interrupted": "Tilkoblingen ble avbrutt.",
+            "malformed": "Mottok ugyldige data fra serveren."
+        }
     },
     "messages": {
         "send": "Send",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Fjern vedlegg",
         "delete_attachment_title": "Fjerne denne filen?",
         "delete_attachment_description": "Etter at du fjerner den, vil assistenten ikke lenger ha tilgang til denne filen i fremtidige svar.",
-        "delete_attachment_failed": "Kunne ikke fjerne filen. Prøv igjen."
+        "delete_attachment_failed": "Kunne ikke fjerne filen. Prøv igjen.",
+        "responding": "Assistenten svarer…",
+        "response_complete": "Svaret er ferdig",
+        "copy_message": "Kopier melding",
+        "feedback_helpful": "Godt svar",
+        "feedback_not_helpful": "Dårlig svar",
+        "edit_message": "Rediger melding"
     },
     "errors": {
         "subscription_expired": "Abonnementet har utløpt",
@@ -132,7 +156,10 @@
         "title": "Kunnskapskilder",
         "source_count": "{count} kilde | {count} kilder",
         "description": "{count} kilde brukt til å generere dette svaret | {count} kilder brukt til å generere dette svaret",
-        "page_label": "Side {page}"
+        "page_label": "Side {page}",
+        "file_with_page": "{file} (Side {page})",
+        "fallback_title": "Kilde {number}",
+        "chunk_label": "Utdrag {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Utløper om {count} dag | Utløper om {count} dager",
                 "expires_in_one_month": "Utløper om 1 måned",
                 "expires_in_months": "Utløper om {count} måned | Utløper om {count} måneder",
-                "conversations_count": "{count} samtale | {count} samtaler"
+                "conversations_count": "{count} samtale | {count} samtaler",
+                "refresh_conversations": "Oppdater samtaler",
+                "remove_filter": "Fjern filter"
             },
             "pagination": {
                 "prev": "Forrige",
@@ -496,7 +525,8 @@
                 "peak_negative": "Topp negativ",
                 "sentiment_timeline": "Sentiment-tidslinje",
                 "message_details": "Meldingsdetaljer",
-                "waiting": "Venter…"
+                "waiting": "Venter…",
+                "trend_stable_label": "Stabil"
             },
             "handoff": {
                 "locked_description": "Oppgrader planen din for å overta live-samtaler fra samtaleloggen.",
@@ -520,7 +550,14 @@
                 "read": "Lest",
                 "sent": "Sendt",
                 "visitor_typing": "Besøkende skriver",
-                "message_placeholder": "Skriv en melding…"
+                "message_placeholder": "Skriv en melding…",
+                "send_message": "Send melding",
+                "errors": {
+                    "connect_failed": "Kunne ikke koble til chattekanalen",
+                    "takeover_failed": "Kunne ikke overta samtalen",
+                    "return_failed": "Kunne ikke gi samtalen tilbake til AI",
+                    "send_failed": "Kunne ikke sende meldingen"
+                }
             },
             "revise": {
                 "title": "Revider svar",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Kunne ikke laste samtalepuls. Prøv igjen."
-            }
+            },
+            "refresh_messages": "Oppdater meldinger",
+            "delete_conversation": "Slett samtale"
         },
         "guardrails": {
             "title": "Sikkerhetssperrer",
@@ -696,7 +735,9 @@
                     "mean_score": "Gjennomsnittsscore for alle tilfeller",
                     "tokens": "Tokens",
                     "tokens_note": "Totale tokens brukt av denne kjøringen"
-                }
+                },
+                "back": "Tilbake til evalueringer",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Evalueringer",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON-skjema",
                 "llm_judge": "LLM-dommer",
                 "tool_call": "Verktøykall"
+            },
+            "statuses": {
+                "running": "Kjører",
+                "completed": "Fullført",
+                "failed": "Mislyktes"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Kunne ikke slette emne. Prøv igjen.",
                 "load_error": "Kunne ikke laste emner. Prøv igjen.",
                 "permission_denied": "Tilgang nektet",
-                "permission_denied_description": "Du har ikke tillatelse til å administrere emner."
+                "permission_denied_description": "Du har ikke tillatelse til å administrere emner.",
+                "edit_topic_aria": "Rediger {topic}",
+                "delete_topic_aria": "Slett {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Opprettet {date}",
                 "used_by_agents": "Brukt av {count} agenter",
                 "delete_title": "Slett spørsmål og svar-oppføring",
-                "delete_description": "Er du sikker på at du vil slette denne spørsmål og svar-oppføringen? Denne handlingen kan ikke angres."
+                "delete_description": "Er du sikker på at du vil slette denne spørsmål og svar-oppføringen? Denne handlingen kan ikke angres.",
+                "remove_question": "Fjern spørsmål",
+                "actions": "Handlinger"
             },
             "youtube": {
                 "load_failed": "Kunne ikke laste YouTube-videoer",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Aktivert",
                 "no_match": "Ingen koblinger samsvarer.",
                 "soon": "Snart",
-                "connect_first": "Koble til dette MCP-et i innstillingene først"
+                "connect_first": "Koble til dette MCP-et i innstillingene først",
+                "column_always": "Alltid på",
+                "always_hint": "Tilby verktøyene til denne koblingen i hver runde, selv når meldingen ikke åpenbart trenger dem. Maks 10 alltid aktive verktøy per agent.",
+                "always_failed": "Kunne ikke oppdatere Alltid på-innstillingen"
             },
             "functions": {
                 "load_failed": "Kunne ikke laste funksjoner",
@@ -1582,7 +1635,9 @@
                 "branding": "Profil",
                 "behavior": "Atferd",
                 "settings": "Innstillinger",
-                "domain": "Domene"
+                "domain": "Domene",
+                "languages": "Språk",
+                "bubbles": "Snakkebobler"
             },
             "view_only_title": "Kun visning",
             "view_only_description": "Du har ikke tillatelse til å redigere oppsett.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "Agent-ID kopiert til utklippstavlen",
                 "privacy_saved": "Lenke til personvernerklæring lagret",
                 "privacy_error": "Kunne ikke lagre lenke til personvernerklæring",
-                "branding_saved": "Merkevare oppdatert"
+                "branding_saved": "Merkevare oppdatert",
+                "languages_saved": "Språk lagret",
+                "languages_error": "Kunne ikke lagre språk"
             },
             "settings": {
                 "composer_title": "Skrivefeltinnstillinger",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Kun disse opprinnelsene er tillatt å laste widgeten.",
                 "keyboard_trigger": "Tastaturtrigger",
-                "placement": "Plassering"
+                "placement": "Plassering",
+                "language_switcher": "Språkvelger"
             },
             "embed": {
                 "surface_preview": "Flateforhåndsvisning"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Vises for besøkende som “Ved å chatte godtar du personvernerklæringen vår.” La feltet stå tomt for å skjule det.",
                 "branding_badge": "Vis «Powered by Chatvia»-merket",
-                "branding_badge_hint": "Vis Chatvia-merket på denne agentens chat og widget."
-            }
+                "branding_badge_hint": "Vis Chatvia-merket på denne agentens chat og widget.",
+                "appearance_translations_default": "Standard",
+                "appearance_translations_default_tip": "Teksten du skriver — oversettes automatisk til alle språk.",
+                "appearance_translations_default_hint": "Dette er teksten du skriver. Når du lagrer, oversettes den automatisk til alle språk, og den vises når den besøkendes språk ikke står på listen.",
+                "appearance_translations_lang_hint": "Rediger dette språket her. La et felt stå tomt for å bruke den automatiske oversettelsen — endringene dine beholdes alltid.",
+                "starters_generate": "Generer med AI",
+                "starters_generate_title": "Generer startemeldinger med AI",
+                "starters_generate_description": "Velg hvor mange som skal genereres fra kunnskapsbasen din, og velg deretter hvilke som skal legges til.",
+                "starters_generate_count": "Hvor mange?",
+                "starters_generate_button": "Generer",
+                "starters_generating": "Genererer…",
+                "starters_generate_hint": "Velg et antall og generer forslag fra kunnskapsbasen din.",
+                "starters_translate_empty": "Legg først til startemeldinger på Standard-fanen, og oversett dem deretter her."
+            },
+            "languages": {
+                "title": "Grensesnittspråk",
+                "description": "Velg hvilke språk denne agenten støtter. Aktiverte språk vises i språkvelgeren for Hosted Chat og får egne felt per språk under Info og Startemeldinger.",
+                "select_all": "Velg alle",
+                "clear_all": "Fjern alle",
+                "count": "{count} av {total} valgt",
+                "hint": "For å skjule språkvelgeren for besøkende helt, slå den av under Atferd.",
+                "min_required": "Minst ett språk er påkrevd."
+            },
+            "bubbles_add": "Legg til boble",
+            "bubbles_remove": "Fjern boble",
+            "bubbles_empty": "Ingen snakkebobler ennå.",
+            "bubbles_translate_empty": "Legg til en boble først for å oversette den."
         },
         "topics_index": {
             "title": "Emner",
@@ -1865,7 +1948,10 @@
             "remove_error": "Kunne ikke fjerne emnet",
             "fill_fields": "Vennligst fyll ut alle feltene",
             "created": "Emnet ble opprettet og lagt til",
-            "create_error": "Kunne ikke opprette emnet"
+            "create_error": "Kunne ikke opprette emnet",
+            "examples": "f.eks. {titles}",
+            "previous_page": "Forrige side",
+            "next_page": "Neste side"
         },
         "usage": {
             "title": "Bruksinnsikt",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "Hva betyr «Tilordnes til»?",
             "maps_to_help_title": "Tilordnes til et kontaktfelt",
             "maps_to_help_1": "Merker dette feltet som et standard kontaktattributt — Navn, E-post, Telefon og så videre. Verdien den besøkende skriver inn, gjenkjennes da som den aktuelle kontaktinformasjonen, ikke bare som et anonymt svar.",
-            "maps_to_help_2": "Tilordnede felter fyller ut lead-ens detaljer — og driver lead-listen, gjenkjenning av duplikater og CSV-eksport. La det stå som «—» for å fange opp svaret uten å merke det."
+            "maps_to_help_2": "Tilordnede felter fyller ut lead-ens detaljer — og driver lead-listen, gjenkjenning av duplikater og CSV-eksport. La det stå som «—» for å fange opp svaret uten å merke det.",
+            "subtitle": "Beskrivelse",
+            "subtitle_placeholder": "f.eks. Fortell oss om bedriften din, så tar vi kontakt.",
+            "subtitle_hint": "Vises for den besøkende under skjematittelen."
         },
         "submissions": {
             "page_title": "Innsendinger",
@@ -2103,7 +2192,8 @@
             "sending_link": "Sender lenke...",
             "or_continue_with": "Eller fortsett med",
             "no_account": "Har du ikke en konto?",
-            "start_free_trial": "Start gratis prøveperiode"
+            "start_free_trial": "Start gratis prøveperiode",
+            "create_account": "Opprett en konto"
         },
         "register": {
             "title": "Opprett en konto",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Alle agenter",
                 "no_agents_assigned": "Ingen agenter tildelt",
                 "agent_count": "{count} agent | {count} agenter",
-                "delete_description": "Er du sikker på at du vil slette rollen \"{name}\"? Denne handlingen kan ikke angres."
+                "delete_description": "Er du sikker på at du vil slette rollen \"{name}\"? Denne handlingen kan ikke angres.",
+                "toggle_permissions": "Vis eller skjul tillatelser"
             },
             "members": {
                 "title": "Teammedlemmer",
@@ -2877,7 +2968,9 @@
                 "description": "Medlemmer med denne rollen. Du kan fjerne tilgangen deres til dette teamet.",
                 "empty": "Ingen medlemmer med denne rollen ennå.",
                 "close": "Lukk"
-            }
+            },
+            "rename_team": "Gi nytt navn til team",
+            "save_team_name": "Lagre teamnavn"
         },
         "roles": {
             "details": "Rolledetaljer",
@@ -3161,7 +3254,8 @@
         "volume_month": "Meldingsvolum de siste 30 dagene",
         "last_week": "Siste uke",
         "last_month": "Siste måned",
-        "messages_tooltip": "{n} melding | {n} meldinger"
+        "messages_tooltip": "{n} melding | {n} meldinger",
+        "messages_this_month": "Meldinger denne måneden"
     },
     "support": {
         "title": "Støtte",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Forbrukt denne perioden – kun til innsikt; planen din faktureres per melding.",
         "of": "av {limit}",
         "remaining": "{count} gjenstår",
-        "load_error": "Kunne ikke laste forbruksdata."
+        "load_error": "Kunne ikke laste forbruksdata.",
+        "no_limit": "Ingen grense"
     },
     "analytics_chat": {
         "title": "Spør om dataene dine",
@@ -3293,7 +3388,8 @@
                 "create_title": "Legg til en instruksjon",
                 "description": "Skriv en gjenbrukbar systeminstruksjon én gang, og legg den til på hvilken som helst agent fra agentens Persona-side. Redigering her oppdaterer alle agenter som bruker den.",
                 "id_label": "ID",
-                "copy_id_title": "Kopier instruksjons-ID — send som prompt_id når du oppretter/oppdaterer en agent via API"
+                "copy_id_title": "Kopier instruksjons-ID — send som prompt_id når du oppretter/oppdaterer en agent via API",
+                "copy_id": "Kopier instruksjons-ID"
             },
             "form": {
                 "name": "Navn",
@@ -3330,7 +3426,8 @@
                 "description": "Funksjoner lar agentene dine kalle dine egne API-er som LLM-verktøy. {name} og {description} er det modellen ser når den avgjør om den skal kalle funksjonen — vær spesifikk. {learn_more}",
                 "learn_more": "Les mer",
                 "id_label": "ID",
-                "copy_id_title": "Kopier funksjons-ID — send som function_id ved tilknytning via API"
+                "copy_id_title": "Kopier funksjons-ID — send som function_id ved tilknytning via API",
+                "copy_id": "Kopier funksjons-ID"
             },
             "form": {
                 "name": "Navn",
@@ -3395,7 +3492,8 @@
                 "title": "Kopier din nye API-nøkkel",
                 "description": "Dette er eneste gang du ser {name}. Lagre den et trygt sted — hvis du mister den, må du generere en ny.",
                 "warning": "Behandle denne som et passord. Alle som har den kan opprette agenter på dine vegne.",
-                "confirm": "Jeg har lagret den trygt"
+                "confirm": "Jeg har lagret den trygt",
+                "copy": "Kopier API-nøkkel"
             },
             "revoke_dialog": {
                 "title": "Tilbakekall API-nøkkel",
@@ -3694,7 +3792,8 @@
         "account": "Konto",
         "workspace": "Arbeidsområde",
         "logout": "Logg ut",
-        "language": "Språk"
+        "language": "Språk",
+        "open_user_menu": "Åpne brukermenyen"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Maksimalt antall filer nådd",
             "toast_max_files_description": "Du kan bare laste opp maksimalt {max} filer.",
             "toast_file_size_title": "Filstørrelsesgrensen overskredet",
-            "toast_file_size_description": "Følgende fil(er) overskrider grensen på {maxSize} MB: {fileList}"
+            "toast_file_size_description": "Følgende fil(er) overskrider grensen på {maxSize} MB: {fileList}",
+            "analyze_failed": "Kunne ikke analysere filen",
+            "analyze_timed_out": "Analysen fikk tidsavbrudd – filen kan være for stor"
         },
         "voice_recorder": {
             "title_default": "Ta opp talenotat",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Tips:",
             "tip_speak_clearly": "Snakk tydelig og i jevnt tempo",
             "tip_quiet_environment": "Bruk et stille miljø for best resultat",
-            "tip_max_duration": "Maksimal opptakslengde: {minutes} minutt | Maksimal opptakslengde: {minutes} minutter"
+            "tip_max_duration": "Maksimal opptakslengde: {minutes} minutt | Maksimal opptakslengde: {minutes} minutter",
+            "pause_recording": "Sett opptaket på pause",
+            "resume_recording": "Fortsett opptaket",
+            "cancel_recording": "Avbryt opptaket",
+            "play_recording": "Spill av opptaket",
+            "pause_playback": "Sett avspillingen på pause",
+            "microphone_denied": "Tilgang til mikrofonen ble avslått. Tillat tilgang til mikrofonen for å ta opp.",
+            "microphone_not_found": "Fant ingen mikrofon. Koble til en mikrofon og prøv igjen.",
+            "microphone_failed": "Kunne ikke få tilgang til mikrofonen",
+            "transcription_failed": "Transkripsjonen mislyktes"
         },
         "date_range": {
             "pick_range": "Velg et datoområde",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "Koblet fra {name}",
             "toast_disconnect_failed": "Mislyktes",
             "set_all": "Angi alle",
-            "toast_bulk_permission": "Satte {count} verktøy til «{permission}» | Satte {count} verktøy til «{permission}»"
+            "toast_bulk_permission": "Satte {count} verktøy til «{permission}» | Satte {count} verktøy til «{permission}»",
+            "copy_server_id": "Kopier server-ID"
         },
         "member_sheet": {
             "sr_description": "Administrer denne chatterens grenser, agenttilgang og status.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Slå sidebar av/på",
             "sidebar": "Sidepanel",
             "sidebar_description": "Viser mobilsidefeltet."
+        },
+        "json_editor": {
+            "aria_label": "JSON-redigerer"
+        },
+        "time_ago": {
+            "just_now": "Akkurat nå"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Spør om produktanalyse — hendelser, diagrammer og kohorter — fra Amplitude-prosjektet ditt."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Velkommen til Chatvia",
+            "intro": "La oss lage din første AI-agent. Det tar bare et minutt.",
+            "what_title": "Hva er en agent?",
+            "what_body": "En agent er en AI-assistent som du trener på ditt eget innhold. Den svarer kundene dine på nettstedet ditt, i chat-widgeten og i meldingsapper.",
+            "how_title": "Hvordan fungerer det?",
+            "how_body": "Først oppretter du en agent og gir den et navn. Deretter trener du den med filene, nettstedene og tekstene dine, slik at den kan svare på spørsmål.",
+            "start": "Opprett min første agent",
+            "video_caption": "Se hvordan det fungerer"
         }
     }
 }

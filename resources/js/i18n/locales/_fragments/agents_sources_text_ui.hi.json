@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "प्रश्न हटाएँ",
+                "actions": "कार्रवाइयाँ"
+            }
+        }
+    }
+}

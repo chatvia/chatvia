@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "विवरण",
+        "arguments": "आर्ग्युमेंट"
+    },
+    "messages": {
+        "responding": "असिस्टेंट जवाब दे रहा है…",
+        "response_complete": "उत्तर पूरा हुआ",
+        "copy_message": "संदेश कॉपी करें",
+        "feedback_helpful": "अच्छा उत्तर",
+        "feedback_not_helpful": "खराब उत्तर"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "हमेशा चालू",
+                "always_hint": "हर टर्न में इस कनेक्टर के टूल उपलब्ध कराएं, भले ही संदेश को साफ़ तौर पर उनकी ज़रूरत न हो। प्रति एजेंट अधिकतम 10 हमेशा-चालू टूल।",
+                "always_failed": "हमेशा-चालू सेटिंग अपडेट करने में विफल"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "भाषाएं",
+                "bubbles": "चैट बबल"
+            },
+            "toasts": {
+                "languages_saved": "भाषाएं सहेजी गईं",
+                "languages_error": "भाषाएं सहेजी नहीं जा सकीं"
+            },
+            "behavior": {
+                "language_switcher": "भाषा स्विचर"
+            },
+            "sections": {
+                "appearance_translations_default": "डिफ़ॉल्ट",
+                "appearance_translations_default_tip": "आपके द्वारा लिखा गया टेक्स्ट — हर भाषा में अपने-आप अनुवादित होता है।",
+                "appearance_translations_default_hint": "यह वह टेक्स्ट है जो आप लिखते हैं। सहेजने पर इसका हर भाषा में अपने-आप अनुवाद हो जाता है, और जब भी किसी विज़िटर की भाषा सूची में नहीं होती, तब यही दिखाया जाता है।",
+                "appearance_translations_lang_hint": "इस भाषा को यहां संपादित करें। स्वचालित अनुवाद का उपयोग करने के लिए फ़ील्ड खाली छोड़ें — आपके संपादन हमेशा सुरक्षित रहते हैं।",
+                "starters_generate": "AI से बनाएं",
+                "starters_generate_title": "AI से स्टार्टर बनाएं",
+                "starters_generate_description": "चुनें कि आपके नॉलेज बेस से कितने स्टार्टर बनाने हैं, फिर तय करें कि कौन-से जोड़ने हैं।",
+                "starters_generate_count": "कितने?",
+                "starters_generate_button": "बनाएं",
+                "starters_generating": "बनाए जा रहे हैं…",
+                "starters_generate_hint": "एक संख्या चुनें और अपने नॉलेज बेस से सुझाव बनाएं।",
+                "starters_translate_empty": "पहले डिफ़ॉल्ट टैब पर स्टार्टर जोड़ें, फिर यहां उनका अनुवाद करें।"
+            },
+            "languages": {
+                "title": "UI भाषाएं",
+                "description": "चुनें कि यह एजेंट किन भाषाओं का समर्थन करता है। सक्षम भाषाएं Hosted Chat के भाषा स्विचर में दिखती हैं और जानकारी व स्टार्टर में उनके लिए अलग भाषा-वार फ़ील्ड मिलते हैं।",
+                "select_all": "सभी चुनें",
+                "clear_all": "सभी हटाएं",
+                "count": "{total} में से {count} चयनित",
+                "hint": "विज़िटर के लिए भाषा स्विचर को पूरी तरह छिपाने के लिए, इसे व्यवहार में बंद करें।",
+                "min_required": "कम से कम एक भाषा आवश्यक है।"
+            },
+            "bubbles_add": "बबल जोड़ें",
+            "bubbles_remove": "बबल हटाएं",
+            "bubbles_empty": "अभी तक कोई चैट बबल नहीं।",
+            "bubbles_translate_empty": "अनुवाद करने के लिए पहले एक बबल जोड़ें।"
+        },
+        "forms": {
+            "subtitle": "विवरण",
+            "subtitle_placeholder": "उदा. हमें अपनी कंपनी के बारे में बताएं और हम आपसे संपर्क करेंगे।",
+            "subtitle_hint": "विज़िटर को फ़ॉर्म शीर्षक के नीचे दिखाया जाता है।"
+        },
+        "evals": {
+            "run": {
+                "back": "मूल्यांकन पर वापस जाएं",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "चल रहा है",
+                "completed": "पूर्ण",
+                "failed": "विफल"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "{topic} संपादित करें",
+                "delete_topic_aria": "{topic} हटाएं"
+            }
+        },
+        "topics_index": {
+            "examples": "उदा. {titles}",
+            "previous_page": "पिछला पेज",
+            "next_page": "अगला पेज"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "एक खाता बनाएं"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "अनुमतियां दिखाएं या छिपाएं"
+            },
+            "rename_team": "टीम का नाम बदलें",
+            "save_team_name": "टीम का नाम सहेजें"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "इस महीने के संदेश"
+    },
+    "usage": {
+        "no_limit": "कोई सीमा नहीं"
+    },
+    "nav": {
+        "open_user_menu": "उपयोगकर्ता मेनू खोलें"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia में आपका स्वागत है",
+            "intro": "आइए आपका पहला AI एजेंट बनाएं। इसमें बस एक मिनट लगता है।",
+            "what_title": "एजेंट क्या है?",
+            "what_body": "एजेंट एक AI असिस्टेंट है जिसे आप अपनी सामग्री पर प्रशिक्षित करते हैं। यह आपकी वेबसाइट, चैट विजेट और मैसेजिंग ऐप्स पर आपके ग्राहकों को जवाब देता है।",
+            "how_title": "यह कैसे काम करता है?",
+            "how_body": "पहले आप एक एजेंट बनाते हैं और उसे एक नाम देते हैं। फिर आप उसे अपनी फ़ाइलों, वेबसाइटों और टेक्स्ट से प्रशिक्षित करते हैं ताकि वह सवालों के जवाब दे सके।",
+            "start": "मेरा पहला एजेंट बनाएं",
+            "video_caption": "देखें यह कैसे काम करता है"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "प्रॉम्प्ट ID कॉपी करें"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "फ़ंक्शन ID कॉपी करें"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "API कुंजी कॉपी करें"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "सर्वर ID कॉपी करें"
+        },
+        "json_editor": {
+            "aria_label": "JSON एडिटर"
+        },
+        "time_ago": {
+            "just_now": "अभी-अभी"
+        },
+        "voice_recorder": {
+            "pause_recording": "रिकॉर्डिंग रोकें",
+            "resume_recording": "रिकॉर्डिंग फिर से शुरू करें",
+            "cancel_recording": "रिकॉर्डिंग रद्द करें",
+            "play_recording": "रिकॉर्डिंग चलाएं",
+            "pause_playback": "प्लेबैक रोकें"
+        }
+    }
+}

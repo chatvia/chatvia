@@ -15,8 +15,9 @@ use Spatie\TypeScriptTransformer\Transformers\EnumTransformer;
  * AttributedDataClassTransformer. Tag an enum when a #[TypeScript] DTO exposes
  * it as a property, otherwise that property is emitted as `undefined`.
  */
-class AttributedEnumTransformer extends EnumTransformer
+final class AttributedEnumTransformer extends EnumTransformer
 {
+    #[\Override]
     public function transform(PhpClassNode $phpClassNode, TransformationContext $context): Transformed|Untransformable
     {
         if ($phpClassNode->getAttributes(TypeScript::class) === []) {

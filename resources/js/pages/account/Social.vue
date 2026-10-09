@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// Linked sign-in providers (Google, Microsoft, Slack, GitHub). Connecting is a
+// full-page OAuth redirect; disconnecting asks for confirmation first.
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
     AlertDialog,
@@ -12,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -21,6 +24,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatDate } = useDateFormat();
 
 interface SocialAccount {
     provider: 'google' | 'microsoft' | 'slack' | 'github';
@@ -81,7 +85,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
         <AccountLayout width="wide">
             <div class="space-y-8">
                 <div class="flex flex-col space-y-4">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center gap-3">
                         <div class="bg-primary/10 rounded-full p-2">
                             <Share2 class="text-primary size-6" />
                         </div>
@@ -109,7 +113,7 @@ const providerSvg = (provider: SocialAccount['provider']): string => {
                                 <p class="font-medium">{{ account.label }}</p>
                                 <p class="text-muted-foreground text-xs">
                                     <span v-if="account.connected && account.connected_at">
-                                        {{ t('account.social.connected_since', { date: new Date(account.connected_at).toLocaleDateString() }) }}
+                                        {{ t('account.social.connected_since', { date: formatDate(account.connected_at) }) }}
                                     </span>
                                     <span v-else-if="account.connected">{{ t('account.social.connected') }}</span>
                                     <span v-else>{{ t('account.social.not_connected') }}</span>

@@ -1,10 +1,10 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
 use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
-use Support\Enums\User\UserType;
 
 /**
  * Grant/Revoke share the agent_user pivot toggle across the agent-scoped

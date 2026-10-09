@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Contents of the avatar dropdown: who is signed in, links to the account and
+// workspace areas, the UI language picker, and sign-out.
+import { logout } from '@/api/account';
 import UserInfo from '@/components/UserInfo.vue';
 import {
     DropdownMenuGroup,
@@ -13,7 +16,6 @@ import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { LOCALES, normalizeLocale, persistLocale, setI18nLocale } from '@/i18n';
 import type { SharedData, User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
 import { Building2, Check, CircleUser, Languages, LogOut } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -68,7 +70,7 @@ const changeLocale = (code: string): void => {
 
 const handleLogout = () => {
     router.flushAll();
-    axios.post(route('logout')).then(() => {
+    logout().then(() => {
         window.location.href = route('home');
     });
 };

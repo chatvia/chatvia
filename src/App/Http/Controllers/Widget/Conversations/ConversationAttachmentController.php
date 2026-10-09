@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Widget\UploadAttachmentRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Attachments\AttachmentData;
@@ -19,6 +21,7 @@ class ConversationAttachmentController
 
     public function __invoke(
         UploadAttachmentRequest $request,
+        #[WidgetAgent] Agent $agent,
         FindWidgetConversationAction $findConversation,
         StoreAttachmentAction $action,
     ): JsonResponse {
@@ -28,8 +31,6 @@ class ConversationAttachmentController
         if ($sessionId === null || $conversationId === null) {
             return response()->json(['error' => 'Missing thread/session ID'], JsonResponse::HTTP_BAD_REQUEST);
         }
-
-        $agent = $this->widgetAgent();
 
         // Scoped to this agent and session, so a forged conversation id cannot
         // attach an upload to another visitor's conversation.

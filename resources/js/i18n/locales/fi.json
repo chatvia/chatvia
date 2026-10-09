@@ -17,7 +17,9 @@
         "mcp_tool": "MCP-työkalu",
         "function": "Funktio",
         "approve": "Hyväksy",
-        "deny": "Hylkää"
+        "deny": "Hylkää",
+        "details": "Tiedot",
+        "arguments": "Argumentit"
     },
     "composer": {
         "default_placeholder": "Viesti...",
@@ -30,7 +32,9 @@
         "uploading": "Ladataan…",
         "upload_failed": "Lataus epäonnistui",
         "delete_failed": "Liitteen poistaminen epäonnistui",
-        "upload_limit_reached": "Voit liittää enintään {count} tiedoston | Voit liittää enintään {count} tiedostoa"
+        "upload_limit_reached": "Voit liittää enintään {count} tiedoston | Voit liittää enintään {count} tiedostoa",
+        "send_message": "Lähetä viesti",
+        "stop_streaming": "Lopeta luominen"
     },
     "header": {
         "toggle_sidebar": "Näytä tai piilota sivupalkki",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Eilen",
         "search_group_previous_7_days": "Edelliset 7 päivää",
         "search_group_previous_30_days": "Edelliset 30 päivää",
-        "search_group_older": "Vanhemmat"
+        "search_group_older": "Vanhemmat",
+        "save_title": "Tallenna otsikko",
+        "show_password": "Näytä salasana",
+        "hide_password": "Piilota salasana",
+        "user_fallback": "Käyttäjä"
     },
     "chat": {
         "message_limit_reached": "Viestiraja on saavutettu",
@@ -99,7 +107,17 @@
             "expired": "Tämä lomake on vanhentunut.",
             "unavailable": "Tätä lomaketta ei voi lähettää täällä."
         },
-        "conversation_gone": "Tätä keskustelua ei ole enää olemassa."
+        "conversation_gone": "Tätä keskustelua ei ole enää olemassa.",
+        "scroll_to_bottom": "Vieritä alas",
+        "copy_code": "Kopioi koodi leikepöydälle",
+        "loading_chart": "Ladataan kaaviota…",
+        "powered_by": "Palvelun tarjoaa {label}",
+        "stream_errors": {
+            "unreachable": "Palvelimeen ei saatu yhteyttä. Yritä uudelleen.",
+            "http_status": "Palvelin palautti tilan {status}.",
+            "interrupted": "Yhteys katkesi.",
+            "malformed": "Palvelimelta saatiin virheellisiä tietoja."
+        }
     },
     "messages": {
         "send": "Lähetä",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Poista liite",
         "delete_attachment_title": "Poistetaanko tämä tiedosto?",
         "delete_attachment_description": "Poistamisen jälkeen avustajalla ei enää ole pääsyä tähän tiedostoon tulevissa vastauksissa.",
-        "delete_attachment_failed": "Tiedostoa ei voitu poistaa. Yritä uudelleen."
+        "delete_attachment_failed": "Tiedostoa ei voitu poistaa. Yritä uudelleen.",
+        "responding": "Avustaja vastaa…",
+        "response_complete": "Vastaus valmis",
+        "copy_message": "Kopioi viesti",
+        "feedback_helpful": "Hyvä vastaus",
+        "feedback_not_helpful": "Huono vastaus",
+        "edit_message": "Muokkaa viestiä"
     },
     "errors": {
         "subscription_expired": "Tilaus on vanhentunut",
@@ -132,7 +156,10 @@
         "title": "Tietolähteet",
         "source_count": "{count} lähde | {count} lähdettä",
         "description": "{count} lähde käytetty tämän vastauksen muodostamiseen | {count} lähdettä käytetty tämän vastauksen muodostamiseen",
-        "page_label": "Sivu {page}"
+        "page_label": "Sivu {page}",
+        "file_with_page": "{file} (Sivu {page})",
+        "fallback_title": "Lähde {number}",
+        "chunk_label": "Katkelma {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Vanhenee {count} päivän kuluttua | Vanhenee {count} päivän kuluttua",
                 "expires_in_one_month": "Vanhenee 1 kuukauden kuluttua",
                 "expires_in_months": "Vanhenee {count} kuukauden kuluttua | Vanhenee {count} kuukauden kuluttua",
-                "conversations_count": "{count} keskustelu | {count} keskustelua"
+                "conversations_count": "{count} keskustelu | {count} keskustelua",
+                "refresh_conversations": "Päivitä keskustelut",
+                "remove_filter": "Poista suodatin"
             },
             "pagination": {
                 "prev": "Edellinen",
@@ -496,7 +525,8 @@
                 "peak_negative": "Enimmäisnegatiivisuus",
                 "sentiment_timeline": "Tunnelman aikajana",
                 "message_details": "Viestin tiedot",
-                "waiting": "Odottaa…"
+                "waiting": "Odottaa…",
+                "trend_stable_label": "Vakaa"
             },
             "handoff": {
                 "locked_description": "Päivitä suunnitelmasi ottaaksesi live-keskustelut haltuun chatlogista.",
@@ -520,7 +550,14 @@
                 "read": "Luettu",
                 "sent": "Lähetetty",
                 "visitor_typing": "Kävijä kirjoittaa",
-                "message_placeholder": "Kirjoita viesti…"
+                "message_placeholder": "Kirjoita viesti…",
+                "send_message": "Lähetä viesti",
+                "errors": {
+                    "connect_failed": "Yhteyden muodostaminen chat-kanavaan epäonnistui",
+                    "takeover_failed": "Keskustelun ottaminen hoitoon epäonnistui",
+                    "return_failed": "Keskustelun palauttaminen tekoälylle epäonnistui",
+                    "send_failed": "Viestin lähettäminen epäonnistui"
+                }
             },
             "revise": {
                 "title": "Tarkista vastaus",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Keskustelupulssia ei voitu ladata. Yritä uudelleen."
-            }
+            },
+            "refresh_messages": "Päivitä viestit",
+            "delete_conversation": "Poista keskustelu"
         },
         "guardrails": {
             "title": "Turvarajat",
@@ -696,7 +735,9 @@
                     "mean_score": "Pisteiden keskiarvo kaikista tapauksista",
                     "tokens": "Tokenit",
                     "tokens_note": "Tämän ajon kuluttamat tokenit yhteensä"
-                }
+                },
+                "back": "Takaisin arviointeihin",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Arvioinnit",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON-skeema",
                 "llm_judge": "LLM-tuomari",
                 "tool_call": "Työkalukutsu"
+            },
+            "statuses": {
+                "running": "Käynnissä",
+                "completed": "Valmis",
+                "failed": "Epäonnistui"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Aiheen poistaminen epäonnistui. Yritä uudelleen.",
                 "load_error": "Aiheiden lataaminen epäonnistui. Yritä uudelleen.",
                 "permission_denied": "Pääsy estetty",
-                "permission_denied_description": "Sinulla ei ole oikeutta hallita aiheita."
+                "permission_denied_description": "Sinulla ei ole oikeutta hallita aiheita.",
+                "edit_topic_aria": "Muokkaa aihetta {topic}",
+                "delete_topic_aria": "Poista aihe {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Luotu {date}",
                 "used_by_agents": "{count} agentin käytössä",
                 "delete_title": "Poista K&V-merkintä",
-                "delete_description": "Haluatko varmasti poistaa tämän K&V-merkinnän? Tätä toimintoa ei voi peruuttaa."
+                "delete_description": "Haluatko varmasti poistaa tämän K&V-merkinnän? Tätä toimintoa ei voi peruuttaa.",
+                "remove_question": "Poista kysymys",
+                "actions": "Toiminnot"
             },
             "youtube": {
                 "load_failed": "YouTube-videoiden lataaminen epäonnistui",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Käytössä",
                 "no_match": "Connectoreita ei löydy.",
                 "soon": "Pian",
-                "connect_first": "Yhdistä tämä MCP ensin Asetuksissa"
+                "connect_first": "Yhdistä tämä MCP ensin Asetuksissa",
+                "column_always": "Aina päällä",
+                "always_hint": "Tarjoa tämän liittimen työkaluja joka vuorolla, vaikka viesti ei selvästi tarvitsisi niitä. Enintään 10 aina päällä olevaa työkalua agenttia kohden.",
+                "always_failed": "Aina päällä -asetuksen päivittäminen epäonnistui"
             },
             "functions": {
                 "load_failed": "Funktioiden lataaminen epäonnistui",
@@ -1582,7 +1635,9 @@
                 "branding": "Brändäys",
                 "behavior": "Käyttäytyminen",
                 "settings": "Asetukset",
-                "domain": "Verkkotunnus"
+                "domain": "Verkkotunnus",
+                "languages": "Kielet",
+                "bubbles": "Chat-kuplat"
             },
             "view_only_title": "Vain luku",
             "view_only_description": "Sinulla ei ole oikeutta muokata asetuksia.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "Agentin tunnus kopioitu leikepöydälle",
                 "privacy_saved": "Tietosuojakäytännön linkki tallennettu",
                 "privacy_error": "Tietosuojakäytännön linkkiä ei voitu tallentaa",
-                "branding_saved": "Brändäys päivitetty"
+                "branding_saved": "Brändäys päivitetty",
+                "languages_saved": "Kielet tallennettu",
+                "languages_error": "Kieliä ei voitu tallentaa"
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Vain nämä alkuperät saavat ladata widgetin.",
                 "keyboard_trigger": "Näppäimistön käynnistin",
-                "placement": "Asettelu"
+                "placement": "Asettelu",
+                "language_switcher": "Kielivalitsin"
             },
             "embed": {
                 "surface_preview": "Pinnan esikatselu"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Näytetään kävijöille muodossa “Keskustelemalla hyväksyt tietosuojakäytäntömme.” Jätä tyhjäksi piilottaaksesi.",
                 "branding_badge": "Näytä \"Powered by Chatvia\" -merkki",
-                "branding_badge_hint": "Näytä Chatvia-merkki tämän agentin keskustelussa ja widgetissä."
-            }
+                "branding_badge_hint": "Näytä Chatvia-merkki tämän agentin keskustelussa ja widgetissä.",
+                "appearance_translations_default": "Oletus",
+                "appearance_translations_default_tip": "Kirjoittamasi teksti — käännetään automaattisesti kaikille kielille.",
+                "appearance_translations_default_hint": "Tämä on kirjoittamasi teksti. Kun tallennat, se käännetään automaattisesti kaikille kielille, ja se näytetään aina, kun kävijän kieli ei ole luettelossa.",
+                "appearance_translations_lang_hint": "Muokkaa tätä kieltä tässä. Jätä kenttä tyhjäksi, jos haluat käyttää automaattista käännöstä — muokkauksesi säilytetään aina.",
+                "starters_generate": "Luo tekoälyllä",
+                "starters_generate_title": "Luo aloitusviestejä tekoälyllä",
+                "starters_generate_description": "Valitse, kuinka monta luodaan tietämyskannastasi, ja valitse sitten lisättävät.",
+                "starters_generate_count": "Kuinka monta?",
+                "starters_generate_button": "Luo",
+                "starters_generating": "Luodaan…",
+                "starters_generate_hint": "Valitse määrä ja luo ehdotuksia tietämyskannastasi.",
+                "starters_translate_empty": "Lisää ensin aloitusviestit Oletus-välilehdellä ja käännä ne sitten tässä."
+            },
+            "languages": {
+                "title": "Käyttöliittymän kielet",
+                "description": "Valitse, mitä kieliä tämä agentti tukee. Käytössä olevat kielet näkyvät isännöidyn chatin kielivalitsimessa, ja niille tulee omat kielikohtaiset kentät Tiedot- ja Aloitusviestit-osioissa.",
+                "select_all": "Valitse kaikki",
+                "clear_all": "Tyhjennä kaikki",
+                "count": "{count}/{total} valittu",
+                "hint": "Jos haluat piilottaa kävijän kielivalitsimen kokonaan, poista se käytöstä Käyttäytyminen-osiossa.",
+                "min_required": "Vähintään yksi kieli vaaditaan."
+            },
+            "bubbles_add": "Lisää kupla",
+            "bubbles_remove": "Poista kupla",
+            "bubbles_empty": "Ei vielä chat-kuplia.",
+            "bubbles_translate_empty": "Lisää ensin kupla, jotta voit kääntää sen."
         },
         "topics_index": {
             "title": "Aiheet",
@@ -1865,7 +1948,10 @@
             "remove_error": "Aiheen poistaminen epäonnistui",
             "fill_fields": "Täytä kaikki kentät",
             "created": "Aihe luotu ja lisätty onnistuneesti",
-            "create_error": "Aiheen luominen epäonnistui"
+            "create_error": "Aiheen luominen epäonnistui",
+            "examples": "esim. {titles}",
+            "previous_page": "Edellinen sivu",
+            "next_page": "Seuraava sivu"
         },
         "usage": {
             "title": "Käyttötiedot",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "Mitä “Yhdistyy kenttään” tarkoittaa?",
             "maps_to_help_title": "Yhdistyy yhteystietokenttään",
             "maps_to_help_1": "Merkitsee tämän kentän vakiomuotoiseksi yhteystietoattribuutiksi — nimi, sähköposti, puhelin ja niin edelleen. Kävijän syöttämä arvo tunnistetaan tällöin kyseiseksi yhteystiedoksi, ei vain nimettömäksi vastaukseksi.",
-            "maps_to_help_2": "Yhdistetyt kentät täyttävät liidin tiedot — ne tukevat liidilistaa, kaksoiskappaleiden tunnistusta ja CSV-vientiä. Jätä asetukseksi “—”, jos haluat kerätä vastauksen merkitsemättä sitä."
+            "maps_to_help_2": "Yhdistetyt kentät täyttävät liidin tiedot — ne tukevat liidilistaa, kaksoiskappaleiden tunnistusta ja CSV-vientiä. Jätä asetukseksi “—”, jos haluat kerätä vastauksen merkitsemättä sitä.",
+            "subtitle": "Kuvaus",
+            "subtitle_placeholder": "esim. Kerro meille yrityksestäsi, niin otamme yhteyttä.",
+            "subtitle_hint": "Näytetään kävijälle lomakkeen otsikon alla."
         },
         "submissions": {
             "page_title": "Lähetykset",
@@ -2103,7 +2192,8 @@
             "sending_link": "Lähetetään linkkiä...",
             "or_continue_with": "Tai jatka",
             "no_account": "Eikö sinulla ole tiliä?",
-            "start_free_trial": "Aloita ilmainen kokeilu"
+            "start_free_trial": "Aloita ilmainen kokeilu",
+            "create_account": "Luo tili"
         },
         "register": {
             "title": "Luo tili",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Kaikki agentit",
                 "no_agents_assigned": "Ei määritettyjä agentteja",
                 "agent_count": "{count} agentti | {count} agentit",
-                "delete_description": "Haluatko varmasti poistaa roolin \"{name}\"? Tätä toimintoa ei voi kumota."
+                "delete_description": "Haluatko varmasti poistaa roolin \"{name}\"? Tätä toimintoa ei voi kumota.",
+                "toggle_permissions": "Näytä tai piilota käyttöoikeudet"
             },
             "members": {
                 "title": "Tiimin jäsenet",
@@ -2877,7 +2968,9 @@
                 "description": "Jäsenet, joilla on tämä rooli. Voit poistaa heidän pääsynsä tähän tiimiin.",
                 "empty": "Ei vielä jäseniä tällä roolilla.",
                 "close": "Sulje"
-            }
+            },
+            "rename_team": "Nimeä tiimi uudelleen",
+            "save_team_name": "Tallenna tiimin nimi"
         },
         "roles": {
             "details": "Roolin tiedot",
@@ -3161,7 +3254,8 @@
         "volume_month": "Viestivolyymi viimeisen 30 päivän ajalta",
         "last_week": "Viime viikko",
         "last_month": "Viime kuukausi",
-        "messages_tooltip": "{n} viesti | {n} viestiä"
+        "messages_tooltip": "{n} viesti | {n} viestiä",
+        "messages_this_month": "Viestit tässä kuussa"
     },
     "support": {
         "title": "Tuki",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Kulutettu tällä jaksolla — vain seurantaa varten; pakettisi laskutetaan viestien mukaan.",
         "of": "{limit} kappaletta",
         "remaining": "{count} jäljellä",
-        "load_error": "Käyttötietoja ei voitu ladata."
+        "load_error": "Käyttötietoja ei voitu ladata.",
+        "no_limit": "Ei rajaa"
     },
     "analytics_chat": {
         "title": "Kysy tiedoistasi",
@@ -3293,7 +3388,8 @@
                 "create_title": "Lisää kehoite",
                 "description": "Kirjoita uudelleenkäytettävä järjestelmäkehoite kerran ja liitä se mihin tahansa agentin Persoona-sivulta. Muokkaaminen tässä päivittää kaikki sitä käyttävät agentit.",
                 "id_label": "Tunnus",
-                "copy_id_title": "Kopioi kehoitteen tunnus — anna prompt_id-parametrina luotaessa/päivitettäessä agenttia API:n kautta"
+                "copy_id_title": "Kopioi kehoitteen tunnus — anna prompt_id-parametrina luotaessa/päivitettäessä agenttia API:n kautta",
+                "copy_id": "Kopioi kehotteen tunnus"
             },
             "form": {
                 "name": "Nimi",
@@ -3330,7 +3426,8 @@
                 "description": "Funktioiden avulla agentit voivat kutsua omia API:tasi LLM-työkaluina. {name} ja {description} ovat ne tiedot, jotka malli näkee päättäessään, kutsuako funktiota — ole täsmällinen. {learn_more}",
                 "learn_more": "Lue lisää",
                 "id_label": "Tunnus",
-                "copy_id_title": "Kopioi funktion tunnus — anna function_id-parametrina liitettäessä API:n kautta"
+                "copy_id_title": "Kopioi funktion tunnus — anna function_id-parametrina liitettäessä API:n kautta",
+                "copy_id": "Kopioi funktion tunnus"
             },
             "form": {
                 "name": "Nimi",
@@ -3395,7 +3492,8 @@
                 "title": "Kopioi uusi API-avaimesi",
                 "description": "Tämä on ainoa kerta, kun näet {name}:n. Tallenna se turvalliseen paikkaan — jos kadotat sen, luo uusi.",
                 "warning": "Käsittele tätä kuin salasanaa. Kuka tahansa, jolla se on, voi luoda agentteja puolestasi.",
-                "confirm": "Olen tallentanut sen turvallisesti"
+                "confirm": "Olen tallentanut sen turvallisesti",
+                "copy": "Kopioi API-avain"
             },
             "revoke_dialog": {
                 "title": "Peruuta API-avain",
@@ -3694,7 +3792,8 @@
         "account": "Tili",
         "workspace": "Työtila",
         "logout": "Kirjaudu ulos",
-        "language": "Kieli"
+        "language": "Kieli",
+        "open_user_menu": "Avaa käyttäjävalikko"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Enimmäistiedostomäärä saavutettu",
             "toast_max_files_description": "Voit ladata enintään {max} tiedostoa.",
             "toast_file_size_title": "Tiedostokokoraja ylitetty",
-            "toast_file_size_description": "Seuraavat tiedostot ylittävät {maxSize} MB:n rajan: {fileList}"
+            "toast_file_size_description": "Seuraavat tiedostot ylittävät {maxSize} MB:n rajan: {fileList}",
+            "analyze_failed": "Tiedoston analysointi epäonnistui",
+            "analyze_timed_out": "Analyysi aikakatkaistiin – tiedosto voi olla liian suuri"
         },
         "voice_recorder": {
             "title_default": "Tallenna äänimuistiinpano",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Vinkit:",
             "tip_speak_clearly": "Puhu selkeästi ja tasaiseen tahtiin",
             "tip_quiet_environment": "Käytä hiljaista ympäristöä parhaan tuloksen saavuttamiseksi",
-            "tip_max_duration": "Enimmäistallennuspituus: {minutes} minuutti | Enimmäistallennuspituus: {minutes} minuuttia"
+            "tip_max_duration": "Enimmäistallennuspituus: {minutes} minuutti | Enimmäistallennuspituus: {minutes} minuuttia",
+            "pause_recording": "Keskeytä tallennus",
+            "resume_recording": "Jatka tallennusta",
+            "cancel_recording": "Peruuta tallennus",
+            "play_recording": "Toista tallenne",
+            "pause_playback": "Keskeytä toisto",
+            "microphone_denied": "Mikrofonin käyttö estettiin. Salli mikrofonin käyttö tallentaaksesi.",
+            "microphone_not_found": "Mikrofonia ei löytynyt. Liitä mikrofoni ja yritä uudelleen.",
+            "microphone_failed": "Mikrofonin käyttö epäonnistui",
+            "transcription_failed": "Litterointi epäonnistui"
         },
         "date_range": {
             "pick_range": "Valitse aikaväli",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "Yhteys katkaistu: {name}",
             "toast_disconnect_failed": "Epäonnistui",
             "set_all": "Aseta kaikki",
-            "toast_bulk_permission": "Asetettiin {count} työkalu tilaan ”{permission}” | Asetettiin {count} työkalua tilaan ”{permission}”"
+            "toast_bulk_permission": "Asetettiin {count} työkalu tilaan ”{permission}” | Asetettiin {count} työkalua tilaan ”{permission}”",
+            "copy_server_id": "Kopioi palvelimen tunnus"
         },
         "member_sheet": {
             "sr_description": "Hallinnoi tämän chatterin rajoituksia, agenttipääsyä ja tilaa.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Vaihda sivupalkki",
             "sidebar": "Sivupalkki",
             "sidebar_description": "Näyttää mobiilisivupalkin."
+        },
+        "json_editor": {
+            "aria_label": "JSON-editori"
+        },
+        "time_ago": {
+            "just_now": "Juuri nyt"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Tee kyselyitä tuoteanalytiikkaan — tapahtumat, kaaviot ja kohortit — Amplitude-projektistasi."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Tervetuloa Chatviaan",
+            "intro": "Luodaan ensimmäinen tekoälyagenttisi. Se vie vain minuutin.",
+            "what_title": "Mikä on agentti?",
+            "what_body": "Agentti on tekoälyavustaja, jonka koulutat omalla sisällölläsi. Se vastaa asiakkaillesi verkkosivustollasi, chat-widgetissä ja viestisovelluksissa.",
+            "how_title": "Miten se toimii?",
+            "how_body": "Ensin luot agentin ja annat sille nimen. Sitten koulutat sen tiedostoillasi, verkkosivustoillasi ja teksteilläsi, jotta se osaa vastata kysymyksiin.",
+            "start": "Luo ensimmäinen agenttini",
+            "video_caption": "Katso, miten se toimii"
         }
     }
 }

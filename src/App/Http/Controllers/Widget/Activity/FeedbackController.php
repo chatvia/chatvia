@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Widget\Activity;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Widget\WidgetFeedbackRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Activity\RecordMessageFeedbackAction;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -20,10 +22,10 @@ class FeedbackController
 
     public function __invoke(
         WidgetFeedbackRequest $request,
+        #[WidgetAgent] Agent $agent,
         FindWidgetConversationAction $findConversation,
         RecordMessageFeedbackAction $recordFeedback,
     ): JsonResponse|WidgetAckData {
-        $agent = $this->widgetAgent();
         $sessionId = (string) $this->widgetSessionId($request);
         $conversationId = (string) $this->widgetConversationId($request);
 

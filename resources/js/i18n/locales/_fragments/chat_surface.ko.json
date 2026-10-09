@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "메시지 보내기",
+        "stop_streaming": "생성 중지"
+    },
+    "chat": {
+        "scroll_to_bottom": "맨 아래로 스크롤",
+        "copy_code": "코드를 클립보드에 복사",
+        "loading_chart": "차트를 불러오는 중…",
+        "powered_by": "{label} 제공",
+        "stream_errors": {
+            "unreachable": "서버에 연결할 수 없습니다. 다시 시도해 주세요.",
+            "http_status": "서버가 상태 {status}을(를) 반환했습니다.",
+            "interrupted": "연결이 끊어졌습니다.",
+            "malformed": "서버에서 잘못된 데이터를 받았습니다."
+        }
+    },
+    "messages": {
+        "edit_message": "메시지 편집"
+    },
+    "sources": {
+        "file_with_page": "{file} ({page}페이지)",
+        "fallback_title": "출처 {number}",
+        "chunk_label": "청크 {index}"
+    },
+    "sidebar": {
+        "save_title": "제목 저장",
+        "show_password": "비밀번호 표시",
+        "hide_password": "비밀번호 숨기기",
+        "user_fallback": "사용자"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "방금"
+        },
+        "voice_recorder": {
+            "microphone_denied": "마이크 접근이 거부되었습니다. 녹음하려면 마이크 접근을 허용해 주세요.",
+            "microphone_not_found": "마이크를 찾을 수 없습니다. 마이크를 연결한 후 다시 시도해 주세요.",
+            "microphone_failed": "마이크에 접근하지 못했습니다",
+            "transcription_failed": "음성 변환에 실패했습니다"
+        },
+        "file_uploader": {
+            "analyze_failed": "파일을 분석하지 못했습니다",
+            "analyze_timed_out": "분석 시간이 초과되었습니다 - 파일이 너무 클 수 있습니다"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "메시지 새로고침",
+            "delete_conversation": "대화 삭제",
+            "sidebar": {
+                "refresh_conversations": "대화 새로고침",
+                "remove_filter": "필터 제거"
+            },
+            "handoff": {
+                "send_message": "메시지 보내기",
+                "errors": {
+                    "connect_failed": "채팅 채널에 연결하지 못했습니다",
+                    "takeover_failed": "대화를 인계받지 못했습니다",
+                    "return_failed": "대화를 AI에게 돌려주지 못했습니다",
+                    "send_failed": "메시지를 보내지 못했습니다"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "안정"
+            }
+        }
+    }
+}

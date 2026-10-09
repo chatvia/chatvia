@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * Pulse tab of the chat log: how the visitor's mood moved through the
+ * conversation — trend, resolution, start/end/peak mood, a sentiment line
+ * chart and a per-message table. Loaded on demand when the tab opens.
+ */
 import LockedFeature from '@/components/LockedFeature.vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -34,10 +39,8 @@ const {
     isLoadingPulse,
     pulseError,
     fetchPulseData,
-    getToneDisplayName: _getToneDisplayName,
-    getToneEmoji: _getToneEmoji,
-    getToneBadgeColor: _getToneBadgeColor,
-    getSentimentBadgeColor: _getSentimentBadgeColor,
+    getToneDisplayName,
+    getSentimentDisplayName,
     getPulsePointColor,
 } = useChatLog();
 
@@ -71,9 +74,24 @@ onMounted(() => {
     }
 });
 
-function _capitalize(str: string): string {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
+type MoodSnapshot = { tone: string | null; sentiment: string | null } | null | undefined;
+
+/** The tone if known, else the sentiment, as a translated label. */
+function moodLabel(snapshot: MoodSnapshot): string {
+    if (snapshot?.tone) return getToneDisplayName(snapshot.tone);
+    if (snapshot?.sentiment) return getSentimentDisplayName(snapshot.sentiment);
+
+    return '';
+}
+
+const TREND_LABELS: Record<string, string> = {
+    improving: 'agents.chatlog.pulse.trend_improving',
+    declining: 'agents.chatlog.pulse.trend_declining',
+    stable: 'agents.chatlog.pulse.trend_stable_label',
+};
+
+function trendLabel(trend: string): string {
+    return TREND_LABELS[trend] ? t(TREND_LABELS[trend]) : trend;
 }
 
 // Chart data
@@ -82,18 +100,18 @@ const pulseChartData = computed(() => {
     const messages = pulseData.value.messages;
 
     return {
-        labels: messages.map((_: any, i: number) => i + 1),
+        labels: messages.map((_, i) => i + 1),
         datasets: [
             {
                 label: t('agents.chatlog.pulse.mood'),
-                data: messages.map((m: any) => m.sentiment_score),
+                data: messages.map((m) => m.sentiment_score),
                 borderColor: 'rgb(99, 102, 241)',
                 backgroundColor: 'transparent',
                 fill: false,
                 tension: 0,
                 pointRadius: 6,
                 pointHoverRadius: 8,
-                pointBackgroundColor: messages.map((m: any) => getPulsePointColor(m.sentiment_score)),
+                pointBackgroundColor: messages.map((m) => getPulsePointColor(m.sentiment_score)),
                 pointBorderColor: '#fff',
                 pointBorderWidth: 2,
                 borderWidth: 2,
@@ -128,9 +146,9 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                     const index = item.dataIndex;
                     if (index !== undefined && pulseData.value?.messages[index]) {
                         const msg = pulseData.value.messages[index];
-                        const lines = [];
-                        if (msg.tone) lines.push(t('agents.chatlog.pulse.tone_label', { value: msg.tone }));
-                        if (msg.sentiment) lines.push(t('agents.chatlog.pulse.sentiment_label', { value: msg.sentiment }));
+                        const lines: string[] = [];
+                        if (msg.tone) lines.push(t('agents.chatlog.pulse.tone_label', { value: getToneDisplayName(msg.tone) }));
+                        if (msg.sentiment) lines.push(t('agents.chatlog.pulse.sentiment_label', { value: getSentimentDisplayName(msg.sentiment) }));
                         if (msg.content_preview) lines.push(`"${msg.content_preview}"`);
                         return lines;
                     }
@@ -252,7 +270,7 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                             >
                                 <template v-if="pulseData.summary.trend === 'improving'">↗ </template>
                                 <template v-else-if="pulseData.summary.trend === 'declining'">↘ </template>
-                                {{ pulseData.summary.trend }}
+                                {{ trendLabel(pulseData.summary.trend) }}
                             </span>
                         </td>
                     </tr>
@@ -293,19 +311,19 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                     <tr v-if="pulseData.summary.started_as?.tone || pulseData.summary.started_as?.sentiment">
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.pulse.started_as') }}</td>
                         <td class="px-4 py-3 capitalize">
-                            {{ pulseData.summary.started_as?.tone || pulseData.summary.started_as?.sentiment || '—' }}
+                            {{ moodLabel(pulseData.summary.started_as) || '—' }}
                         </td>
                     </tr>
                     <tr v-if="pulseData.summary.ended_as?.tone || pulseData.summary.ended_as?.sentiment">
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.pulse.ended_as') }}</td>
                         <td class="px-4 py-3 capitalize">
-                            {{ pulseData.summary.ended_as?.tone || pulseData.summary.ended_as?.sentiment || '—' }}
+                            {{ moodLabel(pulseData.summary.ended_as) || '—' }}
                         </td>
                     </tr>
                     <tr v-if="pulseData.summary.peak_negative">
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.pulse.peak_negative') }}</td>
                         <td class="px-4 py-3 capitalize">
-                            {{ pulseData.summary.peak_negative.tone || pulseData.summary.peak_negative.sentiment }}
+                            {{ moodLabel(pulseData.summary.peak_negative) }}
                             <span class="text-muted-foreground">
                                 · {{ t('agents.chatlog.pulse.message_number', { number: pulseData.summary.peak_negative.index }) }}</span
                             >
@@ -349,7 +367,7 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
                         <td class="text-muted-foreground w-12 px-4 py-3 text-center font-medium">{{ msg.index }}</td>
                         <td class="max-w-[200px] truncate px-4 py-3">{{ msg.content_preview }}</td>
                         <td class="px-4 py-3 text-end capitalize">
-                            <template v-if="msg.tone || msg.sentiment">{{ msg.tone || msg.sentiment }}</template>
+                            <template v-if="msg.tone || msg.sentiment">{{ moodLabel(msg) }}</template>
                             <span v-else class="text-muted-foreground italic">{{ t('agents.chatlog.pulse.waiting') }}</span>
                         </td>
                     </tr>

@@ -3,9 +3,9 @@
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Sessions\LoginUserToAgentAction;
 use App\Identity\Workspace\Data\Sessions\LoginData;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Support\Enums\User\UserType;
 use Support\Exceptions\DomainValidationException;
 
 beforeEach(function (): void {

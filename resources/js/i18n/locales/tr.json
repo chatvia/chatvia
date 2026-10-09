@@ -17,7 +17,9 @@
         "mcp_tool": "MCP aracı",
         "function": "İşlev",
         "approve": "Onayla",
-        "deny": "Reddet"
+        "deny": "Reddet",
+        "details": "Ayrıntılar",
+        "arguments": "Argümanlar"
     },
     "composer": {
         "default_placeholder": "Mesaj…",
@@ -30,7 +32,9 @@
         "uploading": "Yükleniyor…",
         "upload_failed": "Yükleme başarısız",
         "delete_failed": "Ek kaldırılamadı",
-        "upload_limit_reached": "En fazla {count} dosya ekleyebilirsiniz | En fazla {count} dosya ekleyebilirsiniz"
+        "upload_limit_reached": "En fazla {count} dosya ekleyebilirsiniz | En fazla {count} dosya ekleyebilirsiniz",
+        "send_message": "Mesaj gönder",
+        "stop_streaming": "Oluşturmayı durdur"
     },
     "header": {
         "toggle_sidebar": "Kenar çubuğunu aç/kapat",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Dün",
         "search_group_previous_7_days": "Önceki 7 gün",
         "search_group_previous_30_days": "Önceki 30 gün",
-        "search_group_older": "Daha eski"
+        "search_group_older": "Daha eski",
+        "save_title": "Başlığı kaydet",
+        "show_password": "Parolayı göster",
+        "hide_password": "Parolayı gizle",
+        "user_fallback": "Kullanıcı"
     },
     "chat": {
         "message_limit_reached": "Mesaj sınırına ulaştınız",
@@ -99,7 +107,17 @@
             "expired": "Bu formun süresi doldu.",
             "unavailable": "Bu form burada gönderilemez."
         },
-        "conversation_gone": "Bu konuşma artık mevcut değil."
+        "conversation_gone": "Bu konuşma artık mevcut değil.",
+        "scroll_to_bottom": "En alta kaydır",
+        "copy_code": "Kodu panoya kopyala",
+        "loading_chart": "Grafik yükleniyor…",
+        "powered_by": "{label} tarafından desteklenmektedir",
+        "stream_errors": {
+            "unreachable": "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.",
+            "http_status": "Sunucu {status} durumunu döndürdü.",
+            "interrupted": "Bağlantı kesildi.",
+            "malformed": "Sunucudan geçersiz veri alındı."
+        }
     },
     "messages": {
         "send": "Gönder",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Eki kaldır",
         "delete_attachment_title": "Bu dosya kaldırılsın mı?",
         "delete_attachment_description": "Kaldırdıktan sonra asistan, sonraki yanıtlarda bu dosyaya erişemez.",
-        "delete_attachment_failed": "Dosya kaldırılamadı. Lütfen tekrar deneyin."
+        "delete_attachment_failed": "Dosya kaldırılamadı. Lütfen tekrar deneyin.",
+        "responding": "Asistan yanıt veriyor…",
+        "response_complete": "Yanıt tamamlandı",
+        "copy_message": "Mesajı kopyala",
+        "feedback_helpful": "İyi yanıt",
+        "feedback_not_helpful": "Kötü yanıt",
+        "edit_message": "Mesajı düzenle"
     },
     "errors": {
         "subscription_expired": "Abonelik süresi doldu",
@@ -132,7 +156,10 @@
         "title": "Bilgi Kaynakları",
         "source_count": "{count} Kaynak | {count} Kaynak",
         "description": "Bu yanıtı oluşturmak için {count} kaynak kullanıldı | Bu yanıtı oluşturmak için {count} kaynak kullanıldı",
-        "page_label": "Sayfa {page}"
+        "page_label": "Sayfa {page}",
+        "file_with_page": "{file} (Sayfa {page})",
+        "fallback_title": "Kaynak {number}",
+        "chunk_label": "Parça {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "{count} gün içinde sona eriyor | {count} gün içinde sona eriyor",
                 "expires_in_one_month": "1 ay içinde sona eriyor",
                 "expires_in_months": "{count} ay içinde sona eriyor | {count} ay içinde sona eriyor",
-                "conversations_count": "{count} görüşme | {count} görüşme"
+                "conversations_count": "{count} görüşme | {count} görüşme",
+                "refresh_conversations": "Konuşmaları yenile",
+                "remove_filter": "Filtreyi kaldır"
             },
             "pagination": {
                 "prev": "Önceki",
@@ -496,7 +525,8 @@
                 "peak_negative": "En olumsuz an",
                 "sentiment_timeline": "Duygu zaman çizelgesi",
                 "message_details": "Mesaj ayrıntıları",
-                "waiting": "Bekliyor…"
+                "waiting": "Bekliyor…",
+                "trend_stable_label": "Sabit"
             },
             "handoff": {
                 "locked_description": "Görüşme günlüğünden canlı görüşmeleri devralmak için planınızı yükseltin.",
@@ -520,7 +550,14 @@
                 "read": "Okundu",
                 "sent": "Gönderildi",
                 "visitor_typing": "Ziyaretçi yazıyor",
-                "message_placeholder": "Bir mesaj yazın…"
+                "message_placeholder": "Bir mesaj yazın…",
+                "send_message": "Mesaj gönder",
+                "errors": {
+                    "connect_failed": "Sohbet kanalına bağlanılamadı",
+                    "takeover_failed": "Konuşma devralınamadı",
+                    "return_failed": "Konuşma yapay zekâya geri verilemedi",
+                    "send_failed": "Mesaj gönderilemedi"
+                }
             },
             "revise": {
                 "title": "Yanıtı düzelt",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Görüşme nabzı yüklenemedi. Lütfen tekrar deneyin."
-            }
+            },
+            "refresh_messages": "Mesajları yenile",
+            "delete_conversation": "Konuşmayı sil"
         },
         "guardrails": {
             "title": "Koruma kuralları",
@@ -696,7 +735,9 @@
                     "mean_score": "Tüm vakaların ortalama puanı",
                     "tokens": "Token",
                     "tokens_note": "Bu çalıştırmada tüketilen toplam token"
-                }
+                },
+                "back": "Değerlendirmelere dön",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Değerlendirmeler",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON şeması",
                 "llm_judge": "LLM hakem",
                 "tool_call": "Araç çağrısı"
+            },
+            "statuses": {
+                "running": "Çalışıyor",
+                "completed": "Tamamlandı",
+                "failed": "Başarısız"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Konu silinemedi. Lütfen tekrar deneyin.",
                 "load_error": "Konular yüklenemedi. Lütfen tekrar deneyin.",
                 "permission_denied": "İzin reddedildi",
-                "permission_denied_description": "Konuları yönetme izniniz yok."
+                "permission_denied_description": "Konuları yönetme izniniz yok.",
+                "edit_topic_aria": "Düzenle: {topic}",
+                "delete_topic_aria": "Sil: {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "{date} tarihinde oluşturuldu",
                 "used_by_agents": "{count} asistan tarafından kullanılıyor",
                 "delete_title": "Soru-Cevap Girişini Sil",
-                "delete_description": "Bu soru-cevap girişini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+                "delete_description": "Bu soru-cevap girişini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+                "remove_question": "Soruyu kaldır",
+                "actions": "İşlemler"
             },
             "youtube": {
                 "load_failed": "YouTube videoları yüklenemedi",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Etkin",
                 "no_match": "Eşleşen bağlayıcı yok.",
                 "soon": "Yakında",
-                "connect_first": "Önce bu MCP'yi Ayarlar'dan bağlayın"
+                "connect_first": "Önce bu MCP'yi Ayarlar'dan bağlayın",
+                "column_always": "Her zaman açık",
+                "always_hint": "Bu bağlayıcının araçları, mesaj bunlara açıkça ihtiyaç duymasa bile her turda sunulur. Asistan başına en fazla 10 araç her zaman açık olabilir.",
+                "always_failed": "Her zaman açık ayarı güncellenemedi"
             },
             "functions": {
                 "load_failed": "İşlevler yüklenemedi",
@@ -1582,7 +1635,9 @@
                 "branding": "Marka",
                 "behavior": "Davranış",
                 "settings": "Ayarlar",
-                "domain": "Alan adı"
+                "domain": "Alan adı",
+                "languages": "Diller",
+                "bubbles": "Sohbet Balonları"
             },
             "view_only_title": "Yalnızca Görüntüleme",
             "view_only_description": "Kurulumu düzenleme izniniz yok.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "Asistan kimliği panoya kopyalandı",
                 "privacy_saved": "Gizlilik politikası bağlantısı kaydedildi",
                 "privacy_error": "Gizlilik politikası bağlantısı kaydedilemedi",
-                "branding_saved": "Marka güncellendi"
+                "branding_saved": "Marka güncellendi",
+                "languages_saved": "Diller kaydedildi",
+                "languages_error": "Diller kaydedilemedi"
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Widget'ı yüklemesine yalnızca bu kaynaklara izin verilir.",
                 "keyboard_trigger": "Klavye tetikleyicisi",
-                "placement": "Yerleşim"
+                "placement": "Yerleşim",
+                "language_switcher": "Dil değiştirici"
             },
             "embed": {
                 "surface_preview": "Yüzey önizlemesi"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Ziyaretçilere “Sohbet ederek gizlilik politikamızı kabul etmiş olursunuz.” şeklinde gösterilir. Gizlemek için boş bırakın.",
                 "branding_badge": "\"Powered by Chatvia\" rozetini göster",
-                "branding_badge_hint": "Chatvia rozetini bu asistanın sohbetinde ve widget'ında göster."
-            }
+                "branding_badge_hint": "Chatvia rozetini bu asistanın sohbetinde ve widget'ında göster.",
+                "appearance_translations_default": "Varsayılan",
+                "appearance_translations_default_tip": "Yazdığınız metin tüm dillere otomatik olarak çevrilir.",
+                "appearance_translations_default_hint": "Bu, sizin yazdığınız metindir. Kaydettiğinizde tüm dillere otomatik olarak çevrilir ve ziyaretçinin dili listede yoksa bu metin gösterilir.",
+                "appearance_translations_lang_hint": "Bu dili burada düzenleyin. Otomatik çeviriyi kullanmak için alanı boş bırakın — düzenlemeleriniz her zaman korunur.",
+                "starters_generate": "AI ile oluştur",
+                "starters_generate_title": "AI ile başlatıcı oluştur",
+                "starters_generate_description": "Bilgi tabanınızdan kaç tane oluşturulacağını seçin, ardından hangilerinin ekleneceğini belirleyin.",
+                "starters_generate_count": "Kaç tane?",
+                "starters_generate_button": "Oluştur",
+                "starters_generating": "Oluşturuluyor…",
+                "starters_generate_hint": "Bir sayı seçin ve bilgi tabanınızdan öneriler oluşturun.",
+                "starters_translate_empty": "Önce Varsayılan sekmesinde başlatıcı ekleyin, ardından burada çevirin."
+            },
+            "languages": {
+                "title": "Arayüz dilleri",
+                "description": "Bu asistanın hangi dilleri desteklediğini seçin. Etkin diller, barındırılan sohbetin dil değiştiricisinde görünür ve Bilgi ile Başlatıcılar bölümlerinde her dil için ayrı alanlar alır.",
+                "select_all": "Tümünü seç",
+                "clear_all": "Tümünü temizle",
+                "count": "{count} / {total} seçildi",
+                "hint": "Ziyaretçi dil değiştiricisini tamamen gizlemek için Davranış bölümünden kapatın.",
+                "min_required": "En az bir dil gereklidir."
+            },
+            "bubbles_add": "Balon ekle",
+            "bubbles_remove": "Balonu kaldır",
+            "bubbles_empty": "Henüz sohbet balonu yok.",
+            "bubbles_translate_empty": "Çevirmek için önce bir balon ekleyin."
         },
         "topics_index": {
             "title": "Konular",
@@ -1865,7 +1948,10 @@
             "remove_error": "Konu kaldırılamadı",
             "fill_fields": "Lütfen tüm alanları doldurun",
             "created": "Konu başarıyla oluşturuldu ve eklendi",
-            "create_error": "Konu oluşturulamadı"
+            "create_error": "Konu oluşturulamadı",
+            "examples": "ör. {titles}",
+            "previous_page": "Önceki sayfa",
+            "next_page": "Sonraki sayfa"
         },
         "usage": {
             "title": "Kullanım İçgörüleri",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "“Eşlenir” ne anlama geliyor?",
             "maps_to_help_title": "Bir iletişim alanına eşlenir",
             "maps_to_help_1": "Bu alanı standart bir iletişim özniteliği olarak etiketler — Ad, E-posta, Telefon vb. Ziyaretçinin girdiği değer, böylece anonim bir yanıt olarak değil, o iletişim bilgisi parçası olarak tanınır.",
-            "maps_to_help_2": "Eşlenen alanlar, potansiyel müşterinin ayrıntılarını doldurur — potansiyel müşteri listesini, yinelenen kayıt tespitini ve CSV dışa aktarımını besler. Yanıtı etiketlemeden yakalamak için “—” olarak bırakın."
+            "maps_to_help_2": "Eşlenen alanlar, potansiyel müşterinin ayrıntılarını doldurur — potansiyel müşteri listesini, yinelenen kayıt tespitini ve CSV dışa aktarımını besler. Yanıtı etiketlemeden yakalamak için “—” olarak bırakın.",
+            "subtitle": "Açıklama",
+            "subtitle_placeholder": "ör. Bize şirketinizden bahsedin, sizinle iletişime geçelim.",
+            "subtitle_hint": "Ziyaretçiye form başlığının altında gösterilir."
         },
         "submissions": {
             "page_title": "Gönderimler",
@@ -2103,7 +2192,8 @@
             "sending_link": "Bağlantı gönderiliyor...",
             "or_continue_with": "Veya şununla devam edin",
             "no_account": "Hesabınız yok mu?",
-            "start_free_trial": "Ücretsiz denemeyi başlat"
+            "start_free_trial": "Ücretsiz denemeyi başlat",
+            "create_account": "Hesap oluştur"
         },
         "register": {
             "title": "Hesap oluştur",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Tüm asistanlar",
                 "no_agents_assigned": "Atanmış asistan yok",
                 "agent_count": "{count} asistan | {count} asistan",
-                "delete_description": "\"{name}\" rolünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+                "delete_description": "\"{name}\" rolünü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+                "toggle_permissions": "İzinleri göster veya gizle"
             },
             "members": {
                 "title": "Ekip Üyeleri",
@@ -2877,7 +2968,9 @@
                 "description": "Bu role sahip üyeler. Bu ekibe erişimlerini kaldırabilirsiniz.",
                 "empty": "Henüz bu role sahip üye yok.",
                 "close": "Kapat"
-            }
+            },
+            "rename_team": "Ekibi yeniden adlandır",
+            "save_team_name": "Ekip adını kaydet"
         },
         "roles": {
             "details": "Rol Ayrıntıları",
@@ -3161,7 +3254,8 @@
         "volume_month": "Son 30 gündeki mesaj hacmi",
         "last_week": "Geçen Hafta",
         "last_month": "Geçen Ay",
-        "messages_tooltip": "{n} mesaj | {n} mesaj"
+        "messages_tooltip": "{n} mesaj | {n} mesaj",
+        "messages_this_month": "Bu Ayki Mesajlar"
     },
     "support": {
         "title": "Destek",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Bu dönemde tüketildi — yalnızca bilgi amaçlıdır; planınız mesaj üzerinden faturalandırılır.",
         "of": "/ {limit}",
         "remaining": "{count} kaldı",
-        "load_error": "Kullanım verileri yüklenemiyor."
+        "load_error": "Kullanım verileri yüklenemiyor.",
+        "no_limit": "Sınırsız"
     },
     "analytics_chat": {
         "title": "Verilerinize sorun",
@@ -3293,7 +3388,8 @@
                 "create_title": "İstem ekle",
                 "description": "Yeniden kullanılabilir bir sistem istemini bir kez yazın, ardından Karakter sayfasından herhangi bir asistana ekleyin. Burada düzenlemek, onu kullanan her asistanı günceller.",
                 "id_label": "ID",
-                "copy_id_title": "İstem ID'sini kopyala — API ile bir asistan oluştururken/güncellerken prompt_id olarak geçirin"
+                "copy_id_title": "İstem ID'sini kopyala — API ile bir asistan oluştururken/güncellerken prompt_id olarak geçirin",
+                "copy_id": "İstem ID'sini kopyala"
             },
             "form": {
                 "name": "Ad",
@@ -3330,7 +3426,8 @@
                 "description": "İşlevler, asistanlarınızın kendi API'lerinizi LLM araçları olarak çağırmasına olanak tanır. {name} ve {description}, modelin onu çağırıp çağırmayacağına karar verirken gördükleridir — açık olun. {learn_more}",
                 "learn_more": "Daha fazla bilgi",
                 "id_label": "ID",
-                "copy_id_title": "İşlev ID'sini kopyala — API ile eklerken function_id olarak geçirin"
+                "copy_id_title": "İşlev ID'sini kopyala — API ile eklerken function_id olarak geçirin",
+                "copy_id": "İşlev ID'sini kopyala"
             },
             "form": {
                 "name": "Ad",
@@ -3395,7 +3492,8 @@
                 "title": "Yeni API anahtarınızı kopyalayın",
                 "description": "{name} anahtarını yalnızca bu sefer göreceksiniz. Güvenli bir yerde saklayın — kaybederseniz yenisini oluşturun.",
                 "warning": "Buna bir parola gibi davranın. Buna sahip olan herkes sizin adınıza asistan oluşturabilir.",
-                "confirm": "Güvenli bir şekilde sakladım"
+                "confirm": "Güvenli bir şekilde sakladım",
+                "copy": "API anahtarını kopyala"
             },
             "revoke_dialog": {
                 "title": "API anahtarını iptal et",
@@ -3694,7 +3792,8 @@
         "account": "Hesap",
         "workspace": "Çalışma alanı",
         "logout": "Çıkış yap",
-        "language": "Dil"
+        "language": "Dil",
+        "open_user_menu": "Kullanıcı menüsünü aç"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Maksimum dosya limitine ulaşıldı",
             "toast_max_files_description": "En fazla {max} dosya yükleyebilirsiniz.",
             "toast_file_size_title": "Dosya boyutu limiti aşıldı",
-            "toast_file_size_description": "Aşağıdaki dosya(lar) {maxSize} MB limitini aşıyor: {fileList}"
+            "toast_file_size_description": "Aşağıdaki dosya(lar) {maxSize} MB limitini aşıyor: {fileList}",
+            "analyze_failed": "Dosya analiz edilemedi",
+            "analyze_timed_out": "Analiz zaman aşımına uğradı - dosya çok büyük olabilir"
         },
         "voice_recorder": {
             "title_default": "Sesli Not Kaydet",
@@ -3983,7 +4084,16 @@
             "tips_heading": "İpuçları:",
             "tip_speak_clearly": "Net ve sabit bir tempoda konuşun",
             "tip_quiet_environment": "En iyi sonuç için sessiz bir ortam kullanın",
-            "tip_max_duration": "Maksimum kayıt süresi: {minutes} dakika | Maksimum kayıt süresi: {minutes} dakika"
+            "tip_max_duration": "Maksimum kayıt süresi: {minutes} dakika | Maksimum kayıt süresi: {minutes} dakika",
+            "pause_recording": "Kaydı duraklat",
+            "resume_recording": "Kayda devam et",
+            "cancel_recording": "Kaydı iptal et",
+            "play_recording": "Kaydı oynat",
+            "pause_playback": "Oynatmayı duraklat",
+            "microphone_denied": "Mikrofon erişimi reddedildi. Kayıt yapmak için lütfen mikrofon erişimine izin verin.",
+            "microphone_not_found": "Mikrofon bulunamadı. Lütfen bir mikrofon bağlayıp tekrar deneyin.",
+            "microphone_failed": "Mikrofona erişilemedi",
+            "transcription_failed": "Metne dönüştürme başarısız oldu"
         },
         "date_range": {
             "pick_range": "Bir tarih aralığı seçin",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "{name} bağlantısı kesildi",
             "toast_disconnect_failed": "Başarısız",
             "set_all": "Tümünü ayarla",
-            "toast_bulk_permission": "{count} araç “{permission}” olarak ayarlandı | {count} araç “{permission}” olarak ayarlandı"
+            "toast_bulk_permission": "{count} araç “{permission}” olarak ayarlandı | {count} araç “{permission}” olarak ayarlandı",
+            "copy_server_id": "Sunucu kimliğini kopyala"
         },
         "member_sheet": {
             "sr_description": "Bu kullanıcının sınırlarını, asistan erişimini ve durumunu yönetin.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Kenar Çubuğunu Aç/Kapat",
             "sidebar": "Kenar çubuğu",
             "sidebar_description": "Mobil kenar çubuğunu gösterir."
+        },
+        "json_editor": {
+            "aria_label": "JSON düzenleyici"
+        },
+        "time_ago": {
+            "just_now": "Az önce"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Amplitude projenizden ürün analitiğini — etkinlikler, grafikler ve kohortlar — sorgulayın."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia'ya hoş geldiniz",
+            "intro": "İlk AI asistanınızı oluşturalım. Yalnızca bir dakika sürer.",
+            "what_title": "Asistan nedir?",
+            "what_body": "Asistan, kendi içeriğinizle eğittiğiniz bir AI yardımcısıdır. Web sitenizde, sohbet widget'ınızda ve mesajlaşma uygulamalarında müşterilerinizin sorularını yanıtlar.",
+            "how_title": "Nasıl çalışır?",
+            "how_body": "Önce bir asistan oluşturup ona bir ad verirsiniz. Ardından soruları yanıtlayabilmesi için onu dosyalarınız, web siteleriniz ve metinlerinizle eğitirsiniz.",
+            "start": "İlk asistanımı oluştur",
+            "video_caption": "Nasıl çalıştığını izleyin"
         }
     }
 }

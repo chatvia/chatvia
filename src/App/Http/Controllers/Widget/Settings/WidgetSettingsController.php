@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Widget\Settings;
 
-use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 use Domain\Widget\Data\Settings\WidgetSettingsData;
 use Illuminate\Http\Request;
@@ -13,10 +14,11 @@ use Illuminate\Http\Request;
  */
 class WidgetSettingsController
 {
-    use InteractsWithWidgetRequest;
-
-    public function __invoke(Request $request, BuildWidgetSettingsAction $build): WidgetSettingsData
-    {
-        return $build->execute($this->widgetAgent(), $request->header('Accept-Language'));
+    public function __invoke(
+        Request $request,
+        #[WidgetAgent] Agent $agent,
+        BuildWidgetSettingsAction $build,
+    ): WidgetSettingsData {
+        return $build->execute($agent, $request->header('Accept-Language'));
     }
 }

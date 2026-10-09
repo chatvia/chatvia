@@ -1,0 +1,333 @@
+/*
+ * Global styles for the hosted chat page (resources/js/pages/chat/Chat.vue),
+ * imported once by that page. They are global on purpose: they style markdown
+ * rendered by child components (#chat-ai-responses, .prose) and the
+ * transcript scroller, which scoped styles cannot reach.
+ */
+
+html,
+body,
+#app {
+    height: 100%;
+}
+
+/* ---- Transcript scroller ------------------------------------------------ */
+
+/* Always show the scrollbar and reserve its gutter, so streaming text never
+   shifts the layout sideways. The GPU layer keeps scrolling smooth. */
+#messages-container {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+.dark #messages-container {
+    scrollbar-color: rgba(155, 155, 155, 0.3) transparent;
+}
+
+#messages-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+#messages-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#messages-container::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.5);
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+.dark #messages-container::-webkit-scrollbar-thumb {
+    background-color: rgba(155, 155, 155, 0.3);
+}
+
+#messages-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(155, 155, 155, 0.7);
+}
+
+.dark #messages-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(155, 155, 155, 0.5);
+}
+
+/* Prevent scroll jumps while a reply streams in. */
+#messages-container > div {
+    will-change: transform;
+}
+
+/* Isolate the streaming (last) message so its reflows don't touch the others. */
+#messages-container [id^='message-']:last-child {
+    contain: layout style;
+}
+
+/* No global :focus-visible outline here: an unscoped rule would ring every
+   focused input (the composer, the conversation search). Inputs and buttons
+   own their focus styling; add an app-wide indicator in app.css if needed. */
+
+/* ---- Tailwind typography resets --------------------------------------- */
+
+.prose ul,
+.prose ol {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose li {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+}
+
+.prose p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose pre {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+}
+
+@media (max-width: 640px) {
+    .prose {
+        font-size: 0.9rem;
+    }
+}
+
+/* ---- Assistant markdown (AssistantMessageBody) ------------------------- */
+
+#chat-ai-responses {
+    font-size: 1rem;
+    line-height: 1.8rem;
+    overflow-wrap: break-word;
+
+    & pre {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        overflow-x: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.875rem;
+    }
+
+    .dark & pre {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    & code:not(pre code) {
+        background-color: rgba(0, 0, 0, 0.05);
+        border-radius: 0.25rem;
+        padding: 0.125rem 0.25rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 0.875em;
+    }
+
+    .dark & code:not(pre code) {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    & h1,
+    & h2,
+    & h3,
+    & h4,
+    & h5,
+    & h6 {
+        font-weight: 600;
+        line-height: 1.25;
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+    }
+
+    & h1 {
+        font-size: 1.5em;
+    }
+
+    & h2 {
+        font-size: 1.25em;
+    }
+
+    & h3 {
+        font-size: 1.125em;
+    }
+
+    & ul,
+    & ol {
+        padding-inline-start: 1.5rem;
+        margin: 0.5rem 0;
+    }
+
+    & ul {
+        list-style-type: disc;
+    }
+
+    & ol {
+        list-style-type: decimal;
+    }
+
+    & li {
+        margin: 0.25rem 0;
+    }
+
+    & ul ul,
+    & ol ul {
+        list-style-type: circle;
+    }
+
+    & ul ul ul,
+    & ol ul ul {
+        list-style-type: square;
+    }
+
+    & blockquote {
+        border-inline-start: 4px solid #e5e7eb;
+        padding-inline-start: 1rem;
+        color: #6b7280;
+        margin: 1rem 0;
+    }
+
+    .dark & blockquote {
+        border-inline-start-color: #4b5563;
+        color: #9ca3af;
+    }
+
+    & table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+    }
+
+    & th,
+    & td {
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem;
+        text-align: start;
+    }
+
+    .dark & th,
+    .dark & td {
+        border-color: #4b5563;
+    }
+
+    & th {
+        background-color: rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+    }
+
+    .dark & th {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    & a {
+        color: #2563eb;
+        text-decoration: underline;
+    }
+
+    & a:hover {
+        text-decoration: none;
+    }
+
+    .dark & a {
+        color: #3b82f6;
+    }
+
+    & img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.375rem;
+    }
+
+    & hr {
+        border: 0;
+        border-top: 1px solid #e5e7eb;
+        margin: 1.5rem 0;
+    }
+
+    .dark & hr {
+        border-top-color: #4b5563;
+    }
+
+    /* Syntax highlighting accents */
+
+    & .hljs-keyword,
+    & .hljs-selector-tag,
+    & .hljs-subst {
+        color: #569cd6;
+    }
+
+    & .hljs-string,
+    & .hljs-doctag {
+        color: #ce9178;
+    }
+
+    & .hljs-number,
+    & .hljs-literal {
+        color: #b5cea8;
+    }
+
+    & .hljs-comment,
+    & .hljs-quote {
+        color: #6a9955;
+        font-style: italic;
+    }
+}
+
+/* ---- Transitions ------------------------------------------------------- */
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.scale-fade-enter-active,
+.scale-fade-leave-active {
+    transition: all 0.2s ease;
+}
+
+.scale-fade-enter-from,
+.scale-fade-leave-to {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+}
+
+/* ---- Arabic-script text ------------------------------------------------ */
+
+/* System fonts only: no web font is fetched from a third-party CDN, so visitor
+   IPs are not sent to a font provider. 'Noto Sans Arabic' is used when the
+   visitor has it installed. */
+[data-rtl='true'],
+[data-rtl='true'] .prose,
+[data-rtl='true'] .prose p,
+[data-rtl='true'] .prose h1,
+[data-rtl='true'] .prose h2,
+[data-rtl='true'] .prose h3,
+[data-rtl='true'] .prose h4,
+[data-rtl='true'] .prose h5,
+[data-rtl='true'] .prose h6,
+[data-rtl='true'] .prose li,
+[data-rtl='true'] .prose blockquote,
+[data-rtl='true'] .prose td,
+[data-rtl='true'] .prose th {
+    font-family:
+        'Noto Sans Arabic',
+        'Geeza Pro',
+        'Noto Naskh Arabic',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Tahoma,
+        Roboto,
+        sans-serif;
+}

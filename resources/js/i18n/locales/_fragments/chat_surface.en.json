@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Send message",
+        "stop_streaming": "Stop generating"
+    },
+    "chat": {
+        "scroll_to_bottom": "Scroll to bottom",
+        "copy_code": "Copy code to clipboard",
+        "loading_chart": "Loading chart…",
+        "powered_by": "Powered by {label}",
+        "stream_errors": {
+            "unreachable": "Could not reach the server. Please try again.",
+            "http_status": "Server returned status {status}.",
+            "interrupted": "The connection was interrupted.",
+            "malformed": "Received malformed data from the server."
+        }
+    },
+    "messages": {
+        "edit_message": "Edit message"
+    },
+    "sources": {
+        "file_with_page": "{file} (Page {page})",
+        "fallback_title": "Source {number}",
+        "chunk_label": "Chunk {index}"
+    },
+    "sidebar": {
+        "save_title": "Save title",
+        "show_password": "Show password",
+        "hide_password": "Hide password",
+        "user_fallback": "User"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Just now"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Microphone access denied. Please allow microphone access to record.",
+            "microphone_not_found": "No microphone found. Please connect a microphone and try again.",
+            "microphone_failed": "Failed to access microphone",
+            "transcription_failed": "Transcription failed"
+        },
+        "file_uploader": {
+            "analyze_failed": "Failed to analyze file",
+            "analyze_timed_out": "Analysis timed out - file may be too large"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Refresh messages",
+            "delete_conversation": "Delete conversation",
+            "sidebar": {
+                "refresh_conversations": "Refresh conversations",
+                "remove_filter": "Remove filter"
+            },
+            "handoff": {
+                "send_message": "Send message",
+                "errors": {
+                    "connect_failed": "Failed to connect to chat channel",
+                    "takeover_failed": "Failed to take over conversation",
+                    "return_failed": "Failed to return conversation to AI",
+                    "send_failed": "Failed to send message"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stable"
+            }
+        }
+    }
+}

@@ -2,6 +2,8 @@
 
 namespace Domain\Membership\Agent\Actions;
 
+use App\Identity\Workspace\Enums\UserSource;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Agent\Data\AgentChatterInvitationData;
 use Domain\Membership\Agent\Data\InviteAgentChatterData;
@@ -12,8 +14,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserSource;
-use Support\Enums\User\UserType;
 
 /**
  * Provision a chatter for an agent in one step:

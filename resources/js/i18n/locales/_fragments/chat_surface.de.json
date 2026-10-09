@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Nachricht senden",
+        "stop_streaming": "Generierung stoppen"
+    },
+    "chat": {
+        "scroll_to_bottom": "Nach unten scrollen",
+        "copy_code": "Code in die Zwischenablage kopieren",
+        "loading_chart": "Diagramm wird geladen…",
+        "powered_by": "Bereitgestellt von {label}",
+        "stream_errors": {
+            "unreachable": "Der Server ist nicht erreichbar. Bitte versuchen Sie es erneut.",
+            "http_status": "Der Server hat den Status {status} zurückgegeben.",
+            "interrupted": "Die Verbindung wurde unterbrochen.",
+            "malformed": "Ungültige Daten vom Server erhalten."
+        }
+    },
+    "messages": {
+        "edit_message": "Nachricht bearbeiten"
+    },
+    "sources": {
+        "file_with_page": "{file} (Seite {page})",
+        "fallback_title": "Quelle {number}",
+        "chunk_label": "Abschnitt {index}"
+    },
+    "sidebar": {
+        "save_title": "Titel speichern",
+        "show_password": "Passwort anzeigen",
+        "hide_password": "Passwort verbergen",
+        "user_fallback": "Benutzer"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Gerade eben"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Mikrofonzugriff verweigert. Bitte erlauben Sie den Zugriff auf das Mikrofon, um aufzunehmen.",
+            "microphone_not_found": "Kein Mikrofon gefunden. Bitte schließen Sie ein Mikrofon an und versuchen Sie es erneut.",
+            "microphone_failed": "Zugriff auf das Mikrofon fehlgeschlagen",
+            "transcription_failed": "Transkription fehlgeschlagen"
+        },
+        "file_uploader": {
+            "analyze_failed": "Datei konnte nicht analysiert werden",
+            "analyze_timed_out": "Zeitüberschreitung bei der Analyse – die Datei ist möglicherweise zu groß"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Nachrichten aktualisieren",
+            "delete_conversation": "Unterhaltung löschen",
+            "sidebar": {
+                "refresh_conversations": "Unterhaltungen aktualisieren",
+                "remove_filter": "Filter entfernen"
+            },
+            "handoff": {
+                "send_message": "Nachricht senden",
+                "errors": {
+                    "connect_failed": "Verbindung zum Chat-Kanal fehlgeschlagen",
+                    "takeover_failed": "Unterhaltung konnte nicht übernommen werden",
+                    "return_failed": "Unterhaltung konnte nicht an die KI zurückgegeben werden",
+                    "send_failed": "Nachricht konnte nicht gesendet werden"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stabil"
+            }
+        }
+    }
+}

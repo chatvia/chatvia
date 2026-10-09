@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\CreateConversationRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 
 /**
@@ -16,13 +18,10 @@ final class ConversationCreateController
      */
     public function __invoke(
         CreateConversationRequest $request,
+        #[HostedChatAgent] Agent $agent,
         CreateConversationAction $createConversation,
         HostedChatSession $session,
     ): array {
-        $agent = current_agent();
-
-        abort_if(! $agent, 404);
-
         return [
             'id' => $createConversation->execute($request->toData($session->scope($agent))),
         ];

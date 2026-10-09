@@ -1,11 +1,11 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamAgentAccess;
 use Domain\Membership\Team\Services\TeamService;
-use Support\Enums\User\UserType;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();

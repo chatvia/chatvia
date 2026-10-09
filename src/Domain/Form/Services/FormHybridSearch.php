@@ -5,6 +5,7 @@ namespace Domain\Form\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -36,6 +37,10 @@ class FormHybridSearch
 
     /** Most forms to ever name in one system prompt (the cap + the retrieval K). */
     public const PROMPT_LIMIT = 8;
+
+    public function __construct(
+        private readonly EmbeddingsProviderInterface $embeddings,
+    ) {}
 
     /**
      * The active forms to name in the system prompt for this turn. At most
@@ -77,7 +82,7 @@ class FormHybridSearch
     public function search(Agent $agent, string $message, int $limit = self::PROMPT_LIMIT): Collection
     {
         try {
-            $queryVector = embed_query($message);
+            $queryVector = $this->embeddings->embedQuery($message);
         } catch (Throwable $e) {
             Log::warning('Form hybrid search: query embedding failed', [
                 'agent_id' => $agent->id,
@@ -87,7 +92,7 @@ class FormHybridSearch
             return collect();
         }
 
-        // embed_query() is typed string|array; the dense channel needs the float
+        // embedQuery() is typed string|array; the dense channel needs the float
         // array. Bail to the caller's fallback rather than coerce a stray string.
         if (! is_array($queryVector)) {
             return collect();

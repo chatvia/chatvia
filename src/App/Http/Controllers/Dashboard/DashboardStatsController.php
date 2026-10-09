@@ -18,6 +18,6 @@ class DashboardStatsController
         /** @var User $user */
         $user = $request->user();
 
-        return $getStats->execute($user, current_team());
+        return $getStats->execute($user, $user->currentOrPrimaryTeam());
     }
 }

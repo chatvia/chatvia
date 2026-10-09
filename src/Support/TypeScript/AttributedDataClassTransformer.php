@@ -26,18 +26,21 @@ use Spatie\TypeScriptTransformer\TypeScriptNodes\TypeScriptProperty;
  * they are dropped from the generated type as well. (The package's own
  * processor only drops a property when it carries BOTH Hidden attributes.)
  */
-class AttributedDataClassTransformer extends DataClassTransformer
+final class AttributedDataClassTransformer extends DataClassTransformer
 {
+    #[\Override]
     protected function shouldTransform(PhpClassNode $phpClassNode): bool
     {
         return parent::shouldTransform($phpClassNode)
             && $phpClassNode->getAttributes(TypeScript::class) !== [];
     }
 
+    #[\Override]
     protected function classPropertyProcessors(): array
     {
         $dropDataHidden = new class implements ClassPropertyProcessor
         {
+            #[\Override]
             public function execute(PhpPropertyNode $phpPropertyNode, ?TypeNode $annotation, TypeScriptProperty $property): ?TypeScriptProperty
             {
                 return $phpPropertyNode->getAttributes(Hidden::class) === [] ? $property : null;

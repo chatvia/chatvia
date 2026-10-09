@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Chat;
 
+use App\Http\Chat\HostedChatAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,7 +24,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class DeleteAttachmentRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize(#[HostedChatAgent] ?Agent $agent): bool
     {
         $attachment = $this->route('attachment');
         if (! $attachment instanceof Attachment) {
@@ -35,7 +37,6 @@ class DeleteAttachmentRequest extends FormRequest
             return false;
         }
 
-        $agent = current_agent();
         if ($agent === null) {
             return false;
         }

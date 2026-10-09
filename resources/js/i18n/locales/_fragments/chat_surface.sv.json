@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Skicka meddelande",
+        "stop_streaming": "Stoppa genereringen"
+    },
+    "chat": {
+        "scroll_to_bottom": "Rulla längst ned",
+        "copy_code": "Kopiera koden till urklipp",
+        "loading_chart": "Läser in diagram…",
+        "powered_by": "Drivs av {label}",
+        "stream_errors": {
+            "unreachable": "Det gick inte att nå servern. Försök igen.",
+            "http_status": "Servern returnerade status {status}.",
+            "interrupted": "Anslutningen avbröts.",
+            "malformed": "Tog emot ogiltiga data från servern."
+        }
+    },
+    "messages": {
+        "edit_message": "Redigera meddelande"
+    },
+    "sources": {
+        "file_with_page": "{file} (Sida {page})",
+        "fallback_title": "Källa {number}",
+        "chunk_label": "Utdrag {index}"
+    },
+    "sidebar": {
+        "save_title": "Spara titel",
+        "show_password": "Visa lösenord",
+        "hide_password": "Dölj lösenord",
+        "user_fallback": "Användare"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Alldeles nyss"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Åtkomst till mikrofonen nekades. Tillåt åtkomst till mikrofonen för att spela in.",
+            "microphone_not_found": "Ingen mikrofon hittades. Anslut en mikrofon och försök igen.",
+            "microphone_failed": "Det gick inte att komma åt mikrofonen",
+            "transcription_failed": "Transkriberingen misslyckades"
+        },
+        "file_uploader": {
+            "analyze_failed": "Det gick inte att analysera filen",
+            "analyze_timed_out": "Analysen tog för lång tid – filen kan vara för stor"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Uppdatera meddelanden",
+            "delete_conversation": "Radera konversation",
+            "sidebar": {
+                "refresh_conversations": "Uppdatera konversationer",
+                "remove_filter": "Ta bort filter"
+            },
+            "handoff": {
+                "send_message": "Skicka meddelande",
+                "errors": {
+                    "connect_failed": "Det gick inte att ansluta till chattkanalen",
+                    "takeover_failed": "Det gick inte att ta över konversationen",
+                    "return_failed": "Det gick inte att lämna tillbaka konversationen till AI",
+                    "send_failed": "Det gick inte att skicka meddelandet"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stabil"
+            }
+        }
+    }
+}

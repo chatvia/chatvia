@@ -2,10 +2,10 @@
 
 namespace App\Identity\Workspace\Models;
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Support\Enums\User\SocialProvider;
 
 /**
  * Links a `User` to an external OAuth identity. One row per (user, provider).

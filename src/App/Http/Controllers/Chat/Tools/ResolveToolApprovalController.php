@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Chat\Tools;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\Tools\ResolveToolApprovalRequest;
 use App\Http\Responses\SseResponder;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatStreamService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -22,10 +24,11 @@ readonly class ResolveToolApprovalController
         private SseResponder $sse,
     ) {}
 
-    public function __invoke(ResolveToolApprovalRequest $request, ToolApprovalCheckpoint $approval): StreamedResponse
-    {
-        $agent = current_agent();
-
+    public function __invoke(
+        ResolveToolApprovalRequest $request,
+        ToolApprovalCheckpoint $approval,
+        #[HostedChatAgent] ?Agent $agent,
+    ): StreamedResponse {
         // The checkpoint must belong to this agent and to the same chat session
         // that created it — a different visitor cannot resolve it.
         abort_unless(

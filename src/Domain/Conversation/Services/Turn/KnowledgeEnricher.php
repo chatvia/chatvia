@@ -8,6 +8,7 @@ use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
@@ -15,7 +16,6 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
-use Support\Http\ChunkImageLink;
 
 /**
  * Adds the agent's knowledge to a turn. A curated Q&A entry whose question

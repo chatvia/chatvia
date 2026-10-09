@@ -1,8 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
-use Support\Enums\User\UserType;
 
 it('grants, revokes and resets the security suite for a workspace', function (): void {
     $workspace = User::factory()->create(['type' => UserType::Workspace, 'email' => 'owner@example.com']);

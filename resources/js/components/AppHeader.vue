@@ -157,7 +157,7 @@ const rightNavItems = computed<NavItem[]>(() => {
                 <div class="lg:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
-                            <Button variant="ghost" size="icon" class="me-2 h-9 w-9">
+                            <Button variant="ghost" size="icon" class="me-2 h-9 w-9" :aria-label="t('app.header.nav_menu_sr')">
                                 <Menu class="h-5 w-5" />
                             </Button>
                         </SheetTrigger>

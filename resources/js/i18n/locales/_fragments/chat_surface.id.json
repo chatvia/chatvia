@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Kirim pesan",
+        "stop_streaming": "Hentikan pembuatan"
+    },
+    "chat": {
+        "scroll_to_bottom": "Gulir ke bawah",
+        "copy_code": "Salin kode ke papan klip",
+        "loading_chart": "Memuat grafik…",
+        "powered_by": "Didukung oleh {label}",
+        "stream_errors": {
+            "unreachable": "Tidak dapat menjangkau server. Silakan coba lagi.",
+            "http_status": "Server mengembalikan status {status}.",
+            "interrupted": "Koneksi terputus.",
+            "malformed": "Menerima data tidak valid dari server."
+        }
+    },
+    "messages": {
+        "edit_message": "Edit pesan"
+    },
+    "sources": {
+        "file_with_page": "{file} (Halaman {page})",
+        "fallback_title": "Sumber {number}",
+        "chunk_label": "Potongan {index}"
+    },
+    "sidebar": {
+        "save_title": "Simpan judul",
+        "show_password": "Tampilkan kata sandi",
+        "hide_password": "Sembunyikan kata sandi",
+        "user_fallback": "Pengguna"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Baru saja"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Akses mikrofon ditolak. Izinkan akses mikrofon untuk merekam.",
+            "microphone_not_found": "Mikrofon tidak ditemukan. Hubungkan mikrofon lalu coba lagi.",
+            "microphone_failed": "Gagal mengakses mikrofon",
+            "transcription_failed": "Transkripsi gagal"
+        },
+        "file_uploader": {
+            "analyze_failed": "Gagal menganalisis file",
+            "analyze_timed_out": "Waktu analisis habis - file mungkin terlalu besar"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Muat ulang pesan",
+            "delete_conversation": "Hapus percakapan",
+            "sidebar": {
+                "refresh_conversations": "Muat ulang percakapan",
+                "remove_filter": "Hapus filter"
+            },
+            "handoff": {
+                "send_message": "Kirim pesan",
+                "errors": {
+                    "connect_failed": "Gagal terhubung ke saluran chat",
+                    "takeover_failed": "Gagal mengambil alih percakapan",
+                    "return_failed": "Gagal mengembalikan percakapan ke AI",
+                    "send_failed": "Gagal mengirim pesan"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stabil"
+            }
+        }
+    }
+}

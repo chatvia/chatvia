@@ -3,6 +3,7 @@
 namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -19,6 +20,10 @@ use Throwable;
  */
 class EmbedAgentFunctionAction
 {
+    public function __construct(
+        private readonly EmbeddingsProviderInterface $embeddings,
+    ) {}
+
     public function execute(int $functionId): void
     {
         $function = AgentFunction::query()->find($functionId);
@@ -32,7 +37,7 @@ class EmbedAgentFunctionAction
             $name = trim((string) ($function->display_name ?? '')."\n".$function->internal_name);
             $text = trim($name."\n\n".$function->description);
             $function->forceFill([
-                'embedding' => embed($text),
+                'embedding' => $this->embeddings->embed($text),
                 'embedding_bm25' => Bm25Tokenizer::expression($text),
             ])->save();
         } catch (Throwable $e) {

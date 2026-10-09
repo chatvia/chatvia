@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Models;
 
+use Domain\Knowledge\Document\Concerns\HasStorageFile;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -12,7 +13,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Support\Concerns\HasExternalId;
-use Support\Traits\HasStorageFile;
 use Throwable;
 
 /**

@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Sources\KnowledgeAnalyzeResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Services\FileAnalyzer;
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Illuminate\Http\UploadedFile;
 use Support\Exceptions\DomainValidationException;
 
@@ -40,7 +41,7 @@ class AgentSourceAnalyzeFileAction
         return KnowledgeAnalyzeResourceData::from([
             'length' => $info->length,
             'mime_type' => $uploadedFile->getMimeType(),
-            'filetype' => file_category($uploadedFile),
+            'filetype' => SourceFileTypes::category($uploadedFile),
             'is_audio_file' => is_audio_file($uploadedFile),
             'is_video_file' => is_video_file($uploadedFile),
         ]);

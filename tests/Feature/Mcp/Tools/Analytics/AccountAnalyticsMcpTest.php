@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
@@ -10,7 +11,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
-use Support\Enums\User\UserType;
 
 /**
  * Seed `message_sent` rows in the granular event log (what the analytics tools

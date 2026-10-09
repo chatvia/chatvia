@@ -51,9 +51,8 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     // the user level (featured catalog + custom MCP servers, OAuth/token flows).
     Route::prefix('my/workspace/integrations')->name('integrations.')->group(function (): void {
         // Each section is gated by its `account.*` team permission as route
-        // middleware (was an inline `abort_unless(has_team_permission(...), 404)`
-        // in every controller method). The `,404` keeps the "hide the section's
-        // existence" behaviour: an unauthorized teammate gets 404, not 403.
+        // middleware. The `,404` keeps the "hide the section's existence"
+        // behaviour: an unauthorized teammate gets 404, not 403.
         Route::middleware('team.permission:account.connectors,404')->group(function (): void {
             Route::get('connectors', [ConnectorController::class, 'edit'])->name('connectors.edit');
             Route::get('connectors/data', [ConnectorController::class, 'index'])->name('connectors.data');

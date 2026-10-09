@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers\Chat\Home;
 
-use Domain\Agent\Services\AgentLocator;
-use Illuminate\Http\Request;
+use App\Http\Chat\HostedChatAgent;
+use Domain\Agent\Models\Agent;
 
 /**
  * The conversation starters the hosted chat suggests.
  */
 final class ChatStarterController
 {
-    public function __invoke(Request $request)
+    /**
+     * @return array<int, array{text: string, icon: string|null}>
+     */
+    public function __invoke(#[HostedChatAgent] Agent $agent): array
     {
-        $agent = AgentLocator::resolveAgentFromSubdomain($request->agentSlug());
-
         return $agent->resolvedStarters();
     }
 }

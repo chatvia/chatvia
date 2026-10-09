@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+// The usage page: one card per plan limit (messages, pages, minutes, …) with
+// how much is used and left. When billing is off there are no limits, so the
+// cards show plain usage instead.
+import { fetchUsage, type Usage } from '@/api/usage';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -9,21 +13,14 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-type UsageData = Domain.Billing.Data.Resources.Usage.UsageResourceData;
-
-const usageData = ref<UsageData | null>(null);
+const usageData = ref<Usage | null>(null);
 const isLoadingUsage = ref(true);
 
-const fetchUsageData = async () => {
+// A failed load leaves usageData empty, which shows the "could not load" state.
+const fetchUsageData = async (): Promise<void> => {
     try {
         isLoadingUsage.value = true;
-        const response = await fetch(route('usage'), {
-            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-        });
-
-        if (response.ok) {
-            usageData.value = await response.json();
-        }
+        usageData.value = await fetchUsage();
     } catch (error) {
         console.error('Failed to fetch usage data:', error);
     } finally {

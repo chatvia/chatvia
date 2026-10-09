@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "Ta bort fråga",
+                "actions": "Åtgärder"
+            }
+        }
+    }
+}

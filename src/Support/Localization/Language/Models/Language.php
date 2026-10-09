@@ -2,22 +2,23 @@
 
 namespace Support\Localization\Language\Models;
 
-use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
+ * Reference data: a language a conversation can be detected in (`languages`
+ * table, keyed by ISO code). Other models point at it by `language_id`; it
+ * knows nothing about them, so it can stay a plain lookup table here.
+ *
+ * The class name is imported by a shipped migration, so it must not move.
+ *
  * @property int $id
  * @property string $name
  * @property string $native
  * @property string $code
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Collection<int, Conversation> $conversations
- * @property-read int|null $conversations_count
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Language newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Language newQuery()
@@ -36,10 +37,4 @@ use Illuminate\Support\Carbon;
     'native',
     'code',
 ])]
-class Language extends Model
-{
-    public function conversations(): HasMany
-    {
-        return $this->hasMany(Conversation::class);
-    }
-}
+class Language extends Model {}

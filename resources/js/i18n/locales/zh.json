@@ -17,7 +17,9 @@
         "mcp_tool": "MCP 工具",
         "function": "函数",
         "approve": "批准",
-        "deny": "拒绝"
+        "deny": "拒绝",
+        "details": "详情",
+        "arguments": "参数"
     },
     "composer": {
         "default_placeholder": "消息…",
@@ -30,7 +32,9 @@
         "uploading": "正在上传…",
         "upload_failed": "上传失败",
         "delete_failed": "无法移除附件",
-        "upload_limit_reached": "最多可附加 {count} 个文件 | 最多可附加 {count} 个文件"
+        "upload_limit_reached": "最多可附加 {count} 个文件 | 最多可附加 {count} 个文件",
+        "send_message": "发送消息",
+        "stop_streaming": "停止生成"
     },
     "header": {
         "toggle_sidebar": "切换侧边栏",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "昨天",
         "search_group_previous_7_days": "过去 7 天",
         "search_group_previous_30_days": "过去 30 天",
-        "search_group_older": "更早"
+        "search_group_older": "更早",
+        "save_title": "保存标题",
+        "show_password": "显示密码",
+        "hide_password": "隐藏密码",
+        "user_fallback": "用户"
     },
     "chat": {
         "message_limit_reached": "你已达到消息上限",
@@ -99,7 +107,17 @@
             "expired": "此表单已过期。",
             "unavailable": "此表单无法在此提交。"
         },
-        "conversation_gone": "该会话已不存在。"
+        "conversation_gone": "该会话已不存在。",
+        "scroll_to_bottom": "滚动到底部",
+        "copy_code": "将代码复制到剪贴板",
+        "loading_chart": "正在加载图表…",
+        "powered_by": "由 {label} 提供支持",
+        "stream_errors": {
+            "unreachable": "无法连接到服务器，请重试。",
+            "http_status": "服务器返回状态 {status}。",
+            "interrupted": "连接已中断。",
+            "malformed": "从服务器收到无效数据。"
+        }
     },
     "messages": {
         "send": "发送",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "移除附件",
         "delete_attachment_title": "移除此文件？",
         "delete_attachment_description": "移除后，助手在后续回复中将无法再访问此文件。",
-        "delete_attachment_failed": "无法移除该文件。请重试。"
+        "delete_attachment_failed": "无法移除该文件。请重试。",
+        "responding": "助手正在回复…",
+        "response_complete": "回复完成",
+        "copy_message": "复制消息",
+        "feedback_helpful": "回复很好",
+        "feedback_not_helpful": "回复不佳",
+        "edit_message": "编辑消息"
     },
     "errors": {
         "subscription_expired": "订阅已过期",
@@ -132,7 +156,10 @@
         "title": "知识来源",
         "source_count": "{count} 个来源 | {count} 个来源",
         "description": "已使用 {count} 个来源生成此回复 | 已使用 {count} 个来源生成此回复",
-        "page_label": "第 {page} 页"
+        "page_label": "第 {page} 页",
+        "file_with_page": "{file}（第 {page} 页）",
+        "fallback_title": "来源 {number}",
+        "chunk_label": "片段 {index}"
     },
     "home": {
         "logo_alt": "标志",
@@ -387,7 +414,9 @@
                 "expires_in_days": "{count} 天后过期 | {count} 天后过期",
                 "expires_in_one_month": "1 个月后过期",
                 "expires_in_months": "{count} 个月后过期 | {count} 个月后过期",
-                "conversations_count": "{count} 个会话 | {count} 个会话"
+                "conversations_count": "{count} 个会话 | {count} 个会话",
+                "refresh_conversations": "刷新对话",
+                "remove_filter": "移除筛选"
             },
             "pagination": {
                 "prev": "上一页",
@@ -496,7 +525,8 @@
                 "peak_negative": "负面峰值",
                 "sentiment_timeline": "情绪时间线",
                 "message_details": "消息详情",
-                "waiting": "处理中…"
+                "waiting": "处理中…",
+                "trend_stable_label": "稳定"
             },
             "handoff": {
                 "locked_description": "升级套餐即可从聊天记录接管实时会话。",
@@ -520,7 +550,14 @@
                 "read": "已读",
                 "sent": "已发送",
                 "visitor_typing": "访客正在输入",
-                "message_placeholder": "输入消息…"
+                "message_placeholder": "输入消息…",
+                "send_message": "发送消息",
+                "errors": {
+                    "connect_failed": "无法连接到聊天频道",
+                    "takeover_failed": "无法接管对话",
+                    "return_failed": "无法将对话交还给 AI",
+                    "send_failed": "无法发送消息"
+                }
             },
             "revise": {
                 "title": "修订回答",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "无法加载会话情绪分析。请重试。"
-            }
+            },
+            "refresh_messages": "刷新消息",
+            "delete_conversation": "删除对话"
         },
         "guardrails": {
             "title": "防护规则",
@@ -696,7 +735,9 @@
                     "mean_score": "所有用例的平均得分",
                     "tokens": "Token",
                     "tokens_note": "本次运行消耗的 token 总数"
-                }
+                },
+                "back": "返回评估",
+                "latency_value": "{ms} 毫秒"
             },
             "index": {
                 "title": "评估",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON 架构",
                 "llm_judge": "LLM 评判员",
                 "tool_call": "工具调用"
+            },
+            "statuses": {
+                "running": "运行中",
+                "completed": "已完成",
+                "failed": "失败"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "无法删除主题，请重试。",
                 "load_error": "无法加载主题，请重试。",
                 "permission_denied": "权限被拒绝",
-                "permission_denied_description": "你没有管理主题的权限。"
+                "permission_denied_description": "你没有管理主题的权限。",
+                "edit_topic_aria": "编辑 {topic}",
+                "delete_topic_aria": "删除 {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "创建于 {date}",
                 "used_by_agents": "被 {count} 个智能体使用",
                 "delete_title": "删除问答条目",
-                "delete_description": "确定要删除此问答条目吗？此操作无法撤销。"
+                "delete_description": "确定要删除此问答条目吗？此操作无法撤销。",
+                "remove_question": "删除问题",
+                "actions": "操作"
             },
             "youtube": {
                 "load_failed": "加载 YouTube 视频失败",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "已启用",
                 "no_match": "没有匹配的连接器。",
                 "soon": "敬请期待",
-                "connect_first": "请先在设置中连接此 MCP"
+                "connect_first": "请先在设置中连接此 MCP",
+                "column_always": "始终启用",
+                "always_hint": "即使消息并不明显需要，也在每轮对话中提供此连接器的工具。每个智能体最多可有 10 个始终启用的工具。",
+                "always_failed": "更新“始终启用”设置失败"
             },
             "functions": {
                 "load_failed": "加载函数失败",
@@ -1582,7 +1635,9 @@
                 "branding": "品牌",
                 "behavior": "行为",
                 "settings": "设置",
-                "domain": "域名"
+                "domain": "域名",
+                "languages": "语言",
+                "bubbles": "聊天气泡"
             },
             "view_only_title": "仅查看",
             "view_only_description": "你没有编辑设置的权限。",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "智能体 ID 已复制到剪贴板",
                 "privacy_saved": "隐私政策链接已保存",
                 "privacy_error": "无法保存隐私政策链接",
-                "branding_saved": "品牌已更新"
+                "branding_saved": "品牌已更新",
+                "languages_saved": "语言已保存",
+                "languages_error": "无法保存语言"
             },
             "settings": {
                 "composer_title": "输入框选项",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "只有这些来源才被允许加载该挂件。",
                 "keyboard_trigger": "键盘触发",
-                "placement": "放置位置"
+                "placement": "放置位置",
+                "language_switcher": "语言切换器"
             },
             "embed": {
                 "surface_preview": "界面预览"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "向访客显示为“继续聊天即表示您同意我们的隐私政策。”留空则不显示。",
                 "branding_badge": "显示 \"Powered by Chatvia\" 徽标",
-                "branding_badge_hint": "在该智能体的聊天和挂件上显示 Chatvia 徽标。"
-            }
+                "branding_badge_hint": "在该智能体的聊天和挂件上显示 Chatvia 徽标。",
+                "appearance_translations_default": "默认",
+                "appearance_translations_default_tip": "您编写的文本，会自动翻译成每种语言。",
+                "appearance_translations_default_hint": "这是您编写的文本。保存后，它会自动翻译成每种语言；当访客的语言不在列表中时，将显示此文本。",
+                "appearance_translations_lang_hint": "在此编辑该语言。将字段留空即可使用自动翻译——您的编辑内容始终会被保留。",
+                "starters_generate": "使用 AI 生成",
+                "starters_generate_title": "使用 AI 生成开场白",
+                "starters_generate_description": "选择要根据知识库生成的数量，然后挑选要添加的内容。",
+                "starters_generate_count": "生成多少个？",
+                "starters_generate_button": "生成",
+                "starters_generating": "正在生成…",
+                "starters_generate_hint": "选择数量，然后根据知识库生成建议。",
+                "starters_translate_empty": "请先在“默认”选项卡中添加开场白，然后在此处翻译。"
+            },
+            "languages": {
+                "title": "界面语言",
+                "description": "选择此智能体支持的语言。已启用的语言会出现在托管聊天的语言切换器中，并在“信息”和“开场白”中拥有各自的语言字段。",
+                "select_all": "全选",
+                "clear_all": "全部清除",
+                "count": "已选择 {count} / {total}",
+                "hint": "如需完全隐藏访客语言切换器，请在“行为”中将其关闭。",
+                "min_required": "至少需要一种语言。"
+            },
+            "bubbles_add": "添加气泡",
+            "bubbles_remove": "移除气泡",
+            "bubbles_empty": "暂无聊天气泡。",
+            "bubbles_translate_empty": "请先添加气泡，然后再进行翻译。"
         },
         "topics_index": {
             "title": "主题",
@@ -1865,7 +1948,10 @@
             "remove_error": "移除主题失败",
             "fill_fields": "请填写所有字段",
             "created": "主题已创建并成功添加",
-            "create_error": "创建主题失败"
+            "create_error": "创建主题失败",
+            "examples": "例如：{titles}",
+            "previous_page": "上一页",
+            "next_page": "下一页"
         },
         "usage": {
             "title": "使用洞察",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "“映射至”是什么意思？",
             "maps_to_help_title": "映射到联系人字段",
             "maps_to_help_1": "将此字段标记为标准的联系人属性——姓名、邮箱、电话等。访客输入的值便会被识别为相应的联系信息，而不仅仅是一条匿名答案。",
-            "maps_to_help_2": "已映射的字段会填充线索的详细信息——为线索列表、重复检测和 CSV 导出提供支持。保留为“—”即可记录答案而不进行标记。"
+            "maps_to_help_2": "已映射的字段会填充线索的详细信息——为线索列表、重复检测和 CSV 导出提供支持。保留为“—”即可记录答案而不进行标记。",
+            "subtitle": "描述",
+            "subtitle_placeholder": "例如：请介绍一下您的公司，我们会与您联系。",
+            "subtitle_hint": "显示在表单标题下方，供访客查看。"
         },
         "submissions": {
             "page_title": "提交记录",
@@ -2103,7 +2192,8 @@
             "sending_link": "正在发送链接...",
             "or_continue_with": "或使用以下方式继续",
             "no_account": "还没有账户？",
-            "start_free_trial": "开始免费试用"
+            "start_free_trial": "开始免费试用",
+            "create_account": "创建账户"
         },
         "register": {
             "title": "创建账户",
@@ -2824,7 +2914,8 @@
                 "all_agents": "所有智能体",
                 "no_agents_assigned": "未分配智能体",
                 "agent_count": "{count} 个智能体 | {count} 个智能体",
-                "delete_description": "确定要删除“{name}”角色吗？此操作无法撤销。"
+                "delete_description": "确定要删除“{name}”角色吗？此操作无法撤销。",
+                "toggle_permissions": "显示或隐藏权限"
             },
             "members": {
                 "title": "团队成员",
@@ -2877,7 +2968,9 @@
                 "description": "拥有此角色的成员。你可以移除他们对此团队的访问权限。",
                 "empty": "暂无拥有此角色的成员。",
                 "close": "关闭"
-            }
+            },
+            "rename_team": "重命名团队",
+            "save_team_name": "保存团队名称"
         },
         "roles": {
             "details": "角色详情",
@@ -3161,7 +3254,8 @@
         "volume_month": "过去 30 天的消息量",
         "last_week": "上周",
         "last_month": "上个月",
-        "messages_tooltip": "{n} 条消息 | {n} 条消息"
+        "messages_tooltip": "{n} 条消息 | {n} 条消息",
+        "messages_this_month": "本月消息数"
     },
     "support": {
         "title": "支持",
@@ -3250,7 +3344,8 @@
         "tokens_note": "本周期已消耗——仅供参考；你的套餐按消息计费。",
         "of": "共 {limit}",
         "remaining": "剩余 {count}",
-        "load_error": "无法加载用量数据。"
+        "load_error": "无法加载用量数据。",
+        "no_limit": "无限制"
     },
     "analytics_chat": {
         "title": "查询你的数据",
@@ -3293,7 +3388,8 @@
                 "create_title": "添加提示词",
                 "description": "编写一次可复用的系统提示词，然后从任意智能体的角色设定页面将其附加。在此处编辑会更新所有使用它的智能体。",
                 "id_label": "ID",
-                "copy_id_title": "复制提示词 ID——通过 API 创建/更新智能体时作为 prompt_id 传入"
+                "copy_id_title": "复制提示词 ID——通过 API 创建/更新智能体时作为 prompt_id 传入",
+                "copy_id": "复制提示词 ID"
             },
             "form": {
                 "name": "名称",
@@ -3330,7 +3426,8 @@
                 "description": "函数让你的智能体能够将你自己的 API 作为 LLM 工具调用。模型在决定是否调用时看到的是 {name} 和 {description}——请尽量具体。{learn_more}",
                 "learn_more": "了解更多",
                 "id_label": "ID",
-                "copy_id_title": "复制函数 ID——通过 API 附加时作为 function_id 传入"
+                "copy_id_title": "复制函数 ID——通过 API 附加时作为 function_id 传入",
+                "copy_id": "复制函数 ID"
             },
             "form": {
                 "name": "名称",
@@ -3395,7 +3492,8 @@
                 "title": "复制你的新 API 密钥",
                 "description": "这是你唯一一次看到 {name} 的机会。请将其妥善保存——如果丢失，请重新生成一个。",
                 "warning": "请像对待密码一样对待它。任何持有它的人都可以代表你预置智能体。",
-                "confirm": "我已妥善保存"
+                "confirm": "我已妥善保存",
+                "copy": "复制 API 密钥"
             },
             "revoke_dialog": {
                 "title": "吊销 API 密钥",
@@ -3694,7 +3792,8 @@
         "account": "账户",
         "workspace": "工作区",
         "logout": "退出登录",
-        "language": "语言"
+        "language": "语言",
+        "open_user_menu": "打开用户菜单"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "已达到文件数量上限",
             "toast_max_files_description": "您最多只能上传 {max} 个文件。",
             "toast_file_size_title": "超出文件大小限制",
-            "toast_file_size_description": "以下文件超出 {maxSize} MB 限制：{fileList}"
+            "toast_file_size_description": "以下文件超出 {maxSize} MB 限制：{fileList}",
+            "analyze_failed": "无法分析文件",
+            "analyze_timed_out": "分析超时 - 文件可能过大"
         },
         "voice_recorder": {
             "title_default": "录制语音留言",
@@ -3983,7 +4084,16 @@
             "tips_heading": "提示：",
             "tip_speak_clearly": "吐字清晰，语速平稳",
             "tip_quiet_environment": "在安静的环境中录制效果最佳",
-            "tip_max_duration": "最长录制时长：{minutes} 分钟 | 最长录制时长：{minutes} 分钟"
+            "tip_max_duration": "最长录制时长：{minutes} 分钟 | 最长录制时长：{minutes} 分钟",
+            "pause_recording": "暂停录制",
+            "resume_recording": "继续录制",
+            "cancel_recording": "取消录制",
+            "play_recording": "播放录音",
+            "pause_playback": "暂停播放",
+            "microphone_denied": "麦克风访问被拒绝。请允许访问麦克风以进行录音。",
+            "microphone_not_found": "未找到麦克风。请连接麦克风后重试。",
+            "microphone_failed": "无法访问麦克风",
+            "transcription_failed": "转写失败"
         },
         "date_range": {
             "pick_range": "选择日期范围",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "已断开 {name}",
             "toast_disconnect_failed": "失败",
             "set_all": "全部设置",
-            "toast_bulk_permission": "已将 {count} 个工具设置为“{permission}” | 已将 {count} 个工具设置为“{permission}”"
+            "toast_bulk_permission": "已将 {count} 个工具设置为“{permission}” | 已将 {count} 个工具设置为“{permission}”",
+            "copy_server_id": "复制服务器 ID"
         },
         "member_sheet": {
             "sr_description": "管理此访客的限额、智能体访问权限和状态。",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "切换侧边栏",
             "sidebar": "侧边栏",
             "sidebar_description": "显示移动端侧边栏。"
+        },
+        "json_editor": {
+            "aria_label": "JSON 编辑器"
+        },
+        "time_ago": {
+            "just_now": "刚刚"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "从你的 Amplitude 项目查询产品分析数据——事件、图表和群组。"
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "欢迎使用 Chatvia",
+            "intro": "让我们创建您的第一个 AI 智能体。只需一分钟。",
+            "what_title": "什么是智能体？",
+            "what_body": "智能体是用您自己的内容训练的 AI 助手。它会在您的网站、聊天挂件和消息应用中回答客户的问题。",
+            "how_title": "它是如何运作的？",
+            "how_body": "首先创建一个智能体并为其命名。然后用您的文件、网站和文本训练它，让它能够回答问题。",
+            "start": "创建我的第一个智能体",
+            "video_caption": "观看运作方式"
         }
     }
 }

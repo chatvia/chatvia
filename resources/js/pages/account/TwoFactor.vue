@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// Authenticator-app two-factor settings. Three states: off (offer to enable),
+// enabled but unconfirmed (show the QR code and ask for a code), and confirmed
+// (show recovery codes). Every change asks for the password first.
+import { getTwoFactorQrCode, getTwoFactorRecoveryCodes, getTwoFactorSecretKey } from '@/api/account';
 import ConfirmPasswordDialog from '@/components/ConfirmPasswordDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -57,12 +61,9 @@ const enable2fa = async () => {
 const fetchQr = async () => {
     loadingQr.value = true;
     try {
-        const [qrRes, secretRes] = await Promise.all([
-            fetch(route('two-factor.qr-code'), { headers: { Accept: 'application/json' } }),
-            fetch(route('two-factor.secret-key'), { headers: { Accept: 'application/json' } }),
-        ]);
-        qrSvg.value = (await qrRes.json()).svg;
-        secretKey.value = (await secretRes.json()).secretKey;
+        const [qrCode, secret] = await Promise.all([getTwoFactorQrCode(), getTwoFactorSecretKey()]);
+        qrSvg.value = qrCode.svg ?? null;
+        secretKey.value = secret.secretKey ?? null;
     } finally {
         loadingQr.value = false;
     }
@@ -84,8 +85,7 @@ const confirm2fa = async () => {
 const fetchRecoveryCodes = async () => {
     loadingRecovery.value = true;
     try {
-        const res = await fetch(route('two-factor.recovery-codes'), { headers: { Accept: 'application/json' } });
-        recoveryCodes.value = await res.json();
+        recoveryCodes.value = await getTwoFactorRecoveryCodes();
     } finally {
         loadingRecovery.value = false;
     }
@@ -153,7 +153,7 @@ if (props.enabled && !props.confirmed) {
         <AccountLayout width="wide">
             <div class="space-y-8">
                 <div class="flex flex-col space-y-4">
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center gap-3">
                         <div class="bg-primary/10 rounded-full p-2">
                             <Smartphone class="text-primary size-6" />
                         </div>

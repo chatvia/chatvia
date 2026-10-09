@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Detalhes",
+        "arguments": "Argumentos"
+    },
+    "messages": {
+        "responding": "O assistente está a responder…",
+        "response_complete": "Resposta concluída",
+        "copy_message": "Copiar mensagem",
+        "feedback_helpful": "Boa resposta",
+        "feedback_not_helpful": "Má resposta"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "Sempre ativo",
+                "always_hint": "Disponibiliza as ferramentas deste conector em cada interação, mesmo quando a mensagem não parece precisar delas. No máximo 10 ferramentas sempre ativas por agente.",
+                "always_failed": "Falha ao atualizar a definição “Sempre ativo”"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Idiomas",
+                "bubbles": "Balões de Chat"
+            },
+            "toasts": {
+                "languages_saved": "Idiomas guardados",
+                "languages_error": "Não foi possível guardar os idiomas"
+            },
+            "behavior": {
+                "language_switcher": "Seletor de idioma"
+            },
+            "sections": {
+                "appearance_translations_default": "Predefinido",
+                "appearance_translations_default_tip": "O texto que escreve — traduzido automaticamente para todos os idiomas.",
+                "appearance_translations_default_hint": "Este é o texto que escreve. Ao guardar, é traduzido automaticamente para todos os idiomas e é apresentado sempre que o idioma do visitante não está na lista.",
+                "appearance_translations_lang_hint": "Edite este idioma aqui. Deixe um campo vazio para usar a tradução automática — as suas alterações são sempre mantidas.",
+                "starters_generate": "Gerar com IA",
+                "starters_generate_title": "Gerar iniciadores com IA",
+                "starters_generate_description": "Escolha quantos gerar a partir da sua base de conhecimento e, depois, selecione quais adicionar.",
+                "starters_generate_count": "Quantos?",
+                "starters_generate_button": "Gerar",
+                "starters_generating": "A gerar…",
+                "starters_generate_hint": "Escolha um número e gere sugestões a partir da sua base de conhecimento.",
+                "starters_translate_empty": "Adicione primeiro iniciadores no separador Predefinido e depois traduza-os aqui."
+            },
+            "languages": {
+                "title": "Idiomas da interface",
+                "description": "Escolha os idiomas que este agente suporta. Os idiomas ativados aparecem no seletor de idioma do chat alojado e têm os seus próprios campos por idioma em Informação e Iniciadores.",
+                "select_all": "Selecionar tudo",
+                "clear_all": "Limpar tudo",
+                "count": "{count} de {total} selecionados",
+                "hint": "Para ocultar totalmente o seletor de idioma dos visitantes, desative-o em Comportamento.",
+                "min_required": "É necessário pelo menos um idioma."
+            },
+            "bubbles_add": "Adicionar balão",
+            "bubbles_remove": "Remover balão",
+            "bubbles_empty": "Ainda não existem balões de chat.",
+            "bubbles_translate_empty": "Adicione primeiro um balão para o poder traduzir."
+        },
+        "forms": {
+            "subtitle": "Descrição",
+            "subtitle_placeholder": "ex.: Fale-nos da sua empresa e entraremos em contacto.",
+            "subtitle_hint": "Apresentada ao visitante por baixo do título do formulário."
+        },
+        "evals": {
+            "run": {
+                "back": "Voltar às avaliações",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Em execução",
+                "completed": "Concluída",
+                "failed": "Falhada"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Editar {topic}",
+                "delete_topic_aria": "Eliminar {topic}"
+            }
+        },
+        "topics_index": {
+            "examples": "ex.: {titles}",
+            "previous_page": "Página anterior",
+            "next_page": "Página seguinte"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Criar uma conta"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Mostrar ou ocultar permissões"
+            },
+            "rename_team": "Renomear equipa",
+            "save_team_name": "Guardar nome da equipa"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Mensagens Este Mês"
+    },
+    "usage": {
+        "no_limit": "Sem limite"
+    },
+    "nav": {
+        "open_user_menu": "Abrir menu do utilizador"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Bem-vindo ao Chatvia",
+            "intro": "Vamos criar o seu primeiro agente de IA. Demora apenas um minuto.",
+            "what_title": "O que é um agente?",
+            "what_body": "Um agente é um assistente de IA que treina com o seu próprio conteúdo. Responde aos seus clientes no seu website, no widget de chat e em aplicações de mensagens.",
+            "how_title": "Como funciona?",
+            "how_body": "Primeiro, cria um agente e dá-lhe um nome. Depois, treina-o com os seus ficheiros, websites e textos para que possa responder a perguntas.",
+            "start": "Criar o meu primeiro agente",
+            "video_caption": "Veja como funciona"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Copiar ID do prompt"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Copiar ID da função"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Copiar chave API"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Copiar ID do servidor"
+        },
+        "json_editor": {
+            "aria_label": "Editor JSON"
+        },
+        "time_ago": {
+            "just_now": "Agora mesmo"
+        },
+        "voice_recorder": {
+            "pause_recording": "Pausar gravação",
+            "resume_recording": "Retomar gravação",
+            "cancel_recording": "Cancelar gravação",
+            "play_recording": "Reproduzir gravação",
+            "pause_playback": "Pausar reprodução"
+        }
+    }
+}

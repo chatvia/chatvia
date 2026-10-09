@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "세부 정보",
+        "arguments": "인수"
+    },
+    "messages": {
+        "responding": "어시스턴트가 응답하는 중…",
+        "response_complete": "응답 완료",
+        "copy_message": "메시지 복사",
+        "feedback_helpful": "좋은 응답",
+        "feedback_not_helpful": "나쁜 응답"
+    },
+    "agents": {
+        "evals": {
+            "run": {
+                "back": "평가로 돌아가기",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "실행 중",
+                "completed": "완료됨",
+                "failed": "실패"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "{topic} 편집",
+                "delete_topic_aria": "{topic} 삭제"
+            }
+        },
+        "sources": {
+            "connectors": {
+                "column_always": "항상 사용",
+                "always_hint": "메시지에 명확히 필요하지 않더라도 매 턴마다 이 커넥터의 도구를 제공합니다. 항상 사용하는 도구는 에이전트당 최대 10개입니다.",
+                "always_failed": "항상 사용 설정을 업데이트하지 못했습니다"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "언어",
+                "bubbles": "채팅 말풍선"
+            },
+            "toasts": {
+                "languages_saved": "언어가 저장되었습니다",
+                "languages_error": "언어를 저장할 수 없습니다"
+            },
+            "behavior": {
+                "language_switcher": "언어 전환기"
+            },
+            "sections": {
+                "appearance_translations_default": "기본",
+                "appearance_translations_default_tip": "직접 작성한 텍스트로, 모든 언어로 자동 번역됩니다.",
+                "appearance_translations_default_hint": "직접 작성하는 텍스트입니다. 저장하면 모든 언어로 자동 번역되며, 방문자의 언어가 목록에 없을 때 이 텍스트가 표시됩니다.",
+                "appearance_translations_lang_hint": "여기에서 이 언어를 편집하세요. 자동 번역을 사용하려면 필드를 비워 두세요. 직접 편집한 내용은 항상 유지됩니다.",
+                "starters_generate": "AI로 생성",
+                "starters_generate_title": "AI로 시작 문구 생성",
+                "starters_generate_description": "지식 베이스에서 생성할 개수를 선택한 다음 추가할 항목을 고르세요.",
+                "starters_generate_count": "몇 개를 생성할까요?",
+                "starters_generate_button": "생성",
+                "starters_generating": "생성하는 중…",
+                "starters_generate_hint": "개수를 선택하고 지식 베이스에서 제안을 생성하세요.",
+                "starters_translate_empty": "먼저 기본 탭에서 시작 문구를 추가한 다음 여기에서 번역하세요."
+            },
+            "languages": {
+                "title": "UI 언어",
+                "description": "이 에이전트가 지원할 언어를 선택하세요. 사용 설정된 언어는 호스티드 챗 언어 전환기에 표시되며, 정보 및 스타터에서 언어별 필드가 제공됩니다.",
+                "select_all": "모두 선택",
+                "clear_all": "모두 지우기",
+                "count": "{total}개 중 {count}개 선택됨",
+                "hint": "방문자 언어 전환기를 완전히 숨기려면 동작에서 끄세요.",
+                "min_required": "언어를 하나 이상 선택해야 합니다."
+            },
+            "bubbles_add": "말풍선 추가",
+            "bubbles_remove": "말풍선 제거",
+            "bubbles_empty": "아직 채팅 말풍선이 없습니다.",
+            "bubbles_translate_empty": "번역하려면 먼저 말풍선을 추가하세요."
+        },
+        "topics_index": {
+            "examples": "예: {titles}",
+            "previous_page": "이전 페이지",
+            "next_page": "다음 페이지"
+        },
+        "forms": {
+            "subtitle": "설명",
+            "subtitle_placeholder": "예: 회사에 대해 알려 주시면 연락드리겠습니다.",
+            "subtitle_hint": "양식 제목 아래에 방문자에게 표시됩니다."
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "계정 만들기"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "권한 표시 또는 숨기기"
+            },
+            "rename_team": "팀 이름 변경",
+            "save_team_name": "팀 이름 저장"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "이번 달 메시지"
+    },
+    "usage": {
+        "no_limit": "제한 없음"
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "프롬프트 ID 복사"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "함수 ID 복사"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "API 키 복사"
+            }
+        }
+    },
+    "nav": {
+        "open_user_menu": "사용자 메뉴 열기"
+    },
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "녹음 일시 중지",
+            "resume_recording": "녹음 재개",
+            "cancel_recording": "녹음 취소",
+            "play_recording": "녹음 재생",
+            "pause_playback": "재생 일시 중지"
+        },
+        "connector_sheet": {
+            "copy_server_id": "서버 ID 복사"
+        },
+        "json_editor": {
+            "aria_label": "JSON 편집기"
+        },
+        "time_ago": {
+            "just_now": "방금 전"
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia에 오신 것을 환영합니다",
+            "intro": "첫 번째 AI 에이전트를 만들어 보세요. 1분이면 충분합니다.",
+            "what_title": "에이전트란 무엇인가요?",
+            "what_body": "에이전트는 직접 준비한 콘텐츠로 학습시키는 AI 어시스턴트입니다. 웹사이트, 채팅 위젯, 메시징 앱에서 고객의 질문에 답변합니다.",
+            "how_title": "어떻게 작동하나요?",
+            "how_body": "먼저 에이전트를 만들고 이름을 지정합니다. 그런 다음 파일, 웹사이트, 텍스트로 학습시켜 질문에 답변할 수 있게 합니다.",
+            "start": "첫 번째 에이전트 만들기",
+            "video_caption": "작동 방식 보기"
+        }
+    }
+}

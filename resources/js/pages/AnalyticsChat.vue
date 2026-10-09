@@ -166,7 +166,7 @@ function onComposerKeydown(e: KeyboardEvent): void {
                         class="max-h-40 flex-1 resize-none bg-transparent py-1 text-sm outline-none"
                         @keydown="onComposerKeydown"
                     />
-                    <Button size="icon" class="size-8 shrink-0 rounded-full" :disabled="!canSend" @click="send()">
+                    <Button size="icon" class="size-8 shrink-0 rounded-full" :aria-label="t('messages.send')" :disabled="!canSend" @click="send()">
                         <Send class="size-4" />
                     </Button>
                 </div>

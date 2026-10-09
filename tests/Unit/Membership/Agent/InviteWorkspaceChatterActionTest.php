@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
@@ -10,7 +11,6 @@ use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Domain\Membership\Agent\Notifications\AgentChatterInvitationNotification;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
-use Support\Enums\User\UserType;
 
 /**
  * InviteWorkspaceChatterAction is the workspace-page entry point: it provisions

@@ -1,10 +1,10 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Actions\CreateTicketAction;
 use Domain\Helpdesk\Data\CreateTicketData;
 use Domain\Helpdesk\Models\Ticket;
-use Support\Enums\User\UserType;
 
 /*
  * Coverage for the Helpdesk Actions (CreateTicketAction). The Helpdesk domain

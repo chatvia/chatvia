@@ -75,8 +75,8 @@
     },
     "sources": {
         "title": "Źródła wiedzy",
-        "source_count": "{count} źródło | {count} źródła | {count} źródeł",
-        "description": "{count} źródło użyte do wygenerowania tej odpowiedzi | {count} źródła użyte do wygenerowania tej odpowiedzi | {count} źródeł użytych do wygenerowania tej odpowiedzi",
+        "source_count": "{count} źródło | {count} źródeł",
+        "description": "{count} źródło użyte do wygenerowania tej odpowiedzi | {count} źródeł użytych do wygenerowania tej odpowiedzi",
         "page_label": "Strona {page}"
     },
     "home": {

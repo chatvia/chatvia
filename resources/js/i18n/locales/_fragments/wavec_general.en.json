@@ -1,0 +1,11 @@
+{
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "Pause recording",
+            "resume_recording": "Resume recording",
+            "cancel_recording": "Cancel recording",
+            "play_recording": "Play recording",
+            "pause_playback": "Pause playback"
+        }
+    }
+}

@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Details",
+        "arguments": "Argumente"
+    },
+    "messages": {
+        "responding": "Der Assistent antwortet…",
+        "response_complete": "Antwort abgeschlossen",
+        "copy_message": "Nachricht kopieren",
+        "feedback_helpful": "Gute Antwort",
+        "feedback_not_helpful": "Schlechte Antwort"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "Immer aktiv",
+                "always_hint": "Stellt die Tools dieses Connectors bei jeder Nachricht bereit, auch wenn sie dafür nicht offensichtlich gebraucht werden. Höchstens 10 immer aktive Tools pro Agent.",
+                "always_failed": "Die Einstellung „Immer aktiv“ konnte nicht aktualisiert werden"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Sprachen",
+                "bubbles": "Chat-Blasen"
+            },
+            "toasts": {
+                "languages_saved": "Sprachen gespeichert",
+                "languages_error": "Sprachen konnten nicht gespeichert werden"
+            },
+            "behavior": {
+                "language_switcher": "Sprachumschalter"
+            },
+            "sections": {
+                "appearance_translations_default": "Standard",
+                "appearance_translations_default_tip": "Der Text, den Sie schreiben – automatisch in jede Sprache übersetzt.",
+                "appearance_translations_default_hint": "Dies ist der Text, den Sie schreiben. Beim Speichern wird er automatisch in jede Sprache übersetzt. Er wird immer dann angezeigt, wenn die Sprache eines Besuchers nicht in der Liste steht.",
+                "appearance_translations_lang_hint": "Bearbeiten Sie diese Sprache hier. Lassen Sie ein Feld leer, um die automatische Übersetzung zu verwenden – Ihre Änderungen bleiben immer erhalten.",
+                "starters_generate": "Mit KI generieren",
+                "starters_generate_title": "Gesprächseinstiege mit KI generieren",
+                "starters_generate_description": "Wählen Sie, wie viele aus Ihrer Wissensdatenbank generiert werden sollen, und dann, welche Sie hinzufügen möchten.",
+                "starters_generate_count": "Wie viele?",
+                "starters_generate_button": "Generieren",
+                "starters_generating": "Wird generiert…",
+                "starters_generate_hint": "Wählen Sie eine Anzahl und generieren Sie Vorschläge aus Ihrer Wissensdatenbank.",
+                "starters_translate_empty": "Fügen Sie zuerst im Tab „Standard“ Gesprächseinstiege hinzu und übersetzen Sie sie dann hier."
+            },
+            "languages": {
+                "title": "Oberflächensprachen",
+                "description": "Wählen Sie, welche Sprachen dieser Agent unterstützt. Aktivierte Sprachen erscheinen im Sprachumschalter des gehosteten Chats und erhalten eigene sprachspezifische Felder unter Info und Gesprächseinstiege.",
+                "select_all": "Alle auswählen",
+                "clear_all": "Alle abwählen",
+                "count": "{count} von {total} ausgewählt",
+                "hint": "Um den Sprachumschalter für Besucher ganz auszublenden, deaktivieren Sie ihn unter Verhalten.",
+                "min_required": "Mindestens eine Sprache ist erforderlich."
+            },
+            "bubbles_add": "Chat-Blase hinzufügen",
+            "bubbles_remove": "Chat-Blase entfernen",
+            "bubbles_empty": "Noch keine Chat-Blasen vorhanden.",
+            "bubbles_translate_empty": "Fügen Sie zuerst eine Chat-Blase hinzu, um sie zu übersetzen."
+        },
+        "forms": {
+            "subtitle": "Beschreibung",
+            "subtitle_placeholder": "z. B. Erzählen Sie uns von Ihrem Unternehmen, und wir melden uns bei Ihnen.",
+            "subtitle_hint": "Wird dem Besucher unter dem Formulartitel angezeigt."
+        },
+        "evals": {
+            "run": {
+                "back": "Zurück zu den Evals",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Läuft",
+                "completed": "Abgeschlossen",
+                "failed": "Fehlgeschlagen"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "{topic} bearbeiten",
+                "delete_topic_aria": "{topic} löschen"
+            }
+        },
+        "topics_index": {
+            "examples": "z. B. {titles}",
+            "previous_page": "Vorherige Seite",
+            "next_page": "Nächste Seite"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Konto erstellen"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Berechtigungen ein- oder ausblenden"
+            },
+            "rename_team": "Team umbenennen",
+            "save_team_name": "Teamnamen speichern"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Nachrichten in diesem Monat"
+    },
+    "usage": {
+        "no_limit": "Kein Limit"
+    },
+    "nav": {
+        "open_user_menu": "Benutzermenü öffnen"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Willkommen bei Chatvia",
+            "intro": "Erstellen wir Ihren ersten KI-Agenten. Das dauert nur eine Minute.",
+            "what_title": "Was ist ein Agent?",
+            "what_body": "Ein Agent ist ein KI-Assistent, den Sie mit Ihren eigenen Inhalten trainieren. Er beantwortet die Fragen Ihrer Kunden auf Ihrer Website, im Chat-Widget und in Messaging-Apps.",
+            "how_title": "Wie funktioniert das?",
+            "how_body": "Zuerst erstellen Sie einen Agenten und geben ihm einen Namen. Dann trainieren Sie ihn mit Ihren Dateien, Websites und Texten, damit er Fragen beantworten kann.",
+            "start": "Meinen ersten Agenten erstellen",
+            "video_caption": "Sehen Sie, wie es funktioniert"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Prompt-ID kopieren"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Funktions-ID kopieren"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "API-Schlüssel kopieren"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Server-ID kopieren"
+        },
+        "json_editor": {
+            "aria_label": "JSON-Editor"
+        },
+        "time_ago": {
+            "just_now": "Gerade eben"
+        },
+        "voice_recorder": {
+            "pause_recording": "Aufnahme pausieren",
+            "resume_recording": "Aufnahme fortsetzen",
+            "cancel_recording": "Aufnahme abbrechen",
+            "play_recording": "Aufnahme abspielen",
+            "pause_playback": "Wiedergabe pausieren"
+        }
+    }
+}

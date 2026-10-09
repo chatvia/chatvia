@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import axios from 'axios';
+/**
+ * World map of chats per country (jsvectormap), shaded by chat count, with a
+ * custom hover tooltip (flag, name, chats, share). Countries without chats
+ * still get their translated name from the countries list.
+ */
+import { fetchCountryNames } from '@/api/analytics';
 import jsVectorMap from 'jsvectormap';
 import 'jsvectormap/dist/maps/world.js';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-interface CountryData {
-    country_code: string;
-    country_name: string;
-    count: number;
-    percentage: number;
-}
+type CountryData = Domain.Agent.Data.Resources.Stats.CountryUsageData;
 
 interface Props {
     countryData: CountryData[];
@@ -19,7 +19,7 @@ interface Props {
 const props = defineProps<Props>();
 const mapContainer = ref<HTMLElement | null>(null);
 const { t } = useI18n();
-let mapInstance: any = null;
+let mapInstance: jsVectorMap | null = null;
 let tooltipElement: HTMLElement | null = null;
 let isMapInitialized = false;
 const allCountries = ref<Record<string, string>>({});
@@ -29,9 +29,9 @@ const maxCount = computed(() => Math.max(...props.countryData.map((c) => c.count
 // Fetch all country names
 const fetchCountryMappings = async () => {
     try {
-        const response = await axios.get(route('countries.list'));
+        const countryNames = await fetchCountryNames();
         const countries: Record<string, string> = {};
-        response.data.forEach((country: { code: string; name: string }) => {
+        countryNames.forEach((country) => {
             countries[country.code.toUpperCase()] = country.name;
         });
         allCountries.value = countries;
@@ -47,9 +47,8 @@ const initMap = () => {
     if (mapInstance && isMapInitialized) {
         try {
             mapInstance.destroy();
-        } catch (error) {
-            // Silently ignore destruction errors
-            console.debug('Map destruction skipped:', error);
+        } catch {
+            // A half-torn-down map can throw here; it is replaced right below anyway.
         }
         mapInstance = null;
         isMapInitialized = false;
@@ -109,7 +108,7 @@ const initMap = () => {
             ],
         },
         bindTouchEvents: false,
-        onLoaded(_map: any) {
+        onLoaded() {
             // Add custom tooltip functionality after map loads
             const container = mapContainer.value;
             if (!container) return;
@@ -139,9 +138,9 @@ const initMap = () => {
                                 <img src="${flagPath}" alt="${countryName}" style="width: 20px; height: 20px; border-radius: 2px; object-fit: cover;" />
                                 <div style="font-weight: 600;">${countryName}</div>
                             </div>
-                            <div style="font-size: 12px; color: #9ca3af; margin-left: 28px;">
+                            <div style="font-size: 12px; color: #9ca3af; margin-inline-start: 28px;">
                                 <span style="color: #3b82f6; font-weight: 600;">${chatCount}</span> ${t('shared.chats')}
-                                <span style="margin-left: 8px;">(${percentage}%)</span>
+                                <span style="margin-inline-start: 8px;">(${percentage}%)</span>
                             </div>
                         `;
                         tooltipElement.style.display = 'block';
@@ -179,9 +178,8 @@ onBeforeUnmount(() => {
     if (mapInstance && isMapInitialized) {
         try {
             mapInstance.destroy();
-        } catch (error) {
-            // Silently ignore destruction errors
-            console.debug('Map destruction skipped on unmount:', error);
+        } catch {
+            // Nothing to clean up if the library fails here; the element is going away.
         }
     }
     if (tooltipElement && tooltipElement.parentNode) {

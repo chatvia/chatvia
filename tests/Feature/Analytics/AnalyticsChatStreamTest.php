@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Analytics\Services\Chat\AnalyticsChatRunner;
@@ -7,7 +8,6 @@ use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Support\Facades\DB;
-use Support\Enums\User\UserType;
 
 /**
  * Bind a fake chat provider that returns a canned OpenAI-style SSE stream so the

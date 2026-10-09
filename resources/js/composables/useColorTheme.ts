@@ -1,3 +1,8 @@
+/**
+ * Applies an agent's colour theme (palette + shade) to the page by pointing the
+ * `--primary` and chat-bubble CSS variables at that palette. Used by the hosted
+ * chat and the chatter login page.
+ */
 import { nearestShade } from '@/lib/colorShades';
 
 export const useColorTheme = () => {

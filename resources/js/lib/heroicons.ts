@@ -1,3 +1,4 @@
+/** Heroicons (outline) lookup by export name, used for conversation-starter icons. */
 import * as outlineIcons from '@heroicons/vue/24/outline';
 import type { FunctionalComponent } from 'vue';
 
@@ -6,9 +7,9 @@ import type { FunctionalComponent } from 'vue';
 // icon value, so rendering is a direct, transform-free lookup in this map.
 //
 // NOTE: `import *` pulls the full outline set into any bundle that imports this
-// module (including the hosted-chat bundle, which renders saved icons). That's
-// an intentional pre-release trade-off — a curated subset is the later
-// optimization if bundle size becomes a concern.
+// module (including the hosted-chat bundle, which renders saved icons). That
+// keeps every icon available; switch to a curated subset if bundle size
+// becomes a concern.
 const icons = outlineIcons as unknown as Record<string, FunctionalComponent>;
 
 /** Sorted list of every outline icon export name — drives the picker grid. */

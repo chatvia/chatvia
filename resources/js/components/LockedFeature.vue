@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// Placeholder for a feature the current plan does not include: a lock, the
+// given explanation and, when billing is on, an "Upgrade now" link.
 import { Button } from '@/components/ui/button';
 import { useBilling } from '@/composables/useBilling';
 import { Link } from '@inertiajs/vue3';

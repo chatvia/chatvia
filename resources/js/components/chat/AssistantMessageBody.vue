@@ -12,6 +12,7 @@
  * styling. Those stay in the wrappers.
  */
 import type { ToolArtifact } from '@/types/stream';
+import { useClipboard } from '@vueuse/core';
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 import { Marked } from 'marked';
@@ -20,6 +21,7 @@ import markedCodePreview from 'marked-code-preview';
 import { markedHighlight } from 'marked-highlight';
 import markedKatex from 'marked-katex-extension';
 import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import EChartBlock from './EChartBlock.vue';
 import InlineFormBlock from './InlineFormBlock.vue';
 
@@ -228,7 +230,14 @@ onUnmounted(() => {
 });
 
 const bodyRef = ref<HTMLElement>();
+const { t } = useI18n();
+const { copy } = useClipboard({ legacy: true });
 
+const COPY_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
+const COPIED_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+const COPIED_FEEDBACK_MS = 2000;
+
+/** Adds a hover "copy" button to every rendered code block (once per block). */
 function setupCodeBlockCopyButtons() {
     if (!bodyRef.value) return;
 
@@ -238,10 +247,10 @@ function setupCodeBlockCopyButtons() {
 
         const copyButton = document.createElement('button');
         copyButton.className = 'code-copy-button';
-        copyButton.setAttribute('aria-label', 'Copy code to clipboard');
+        copyButton.setAttribute('aria-label', t('chat.copy_code'));
 
         const copyIcon = document.createElement('span');
-        copyIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
+        copyIcon.innerHTML = COPY_ICON;
         copyButton.appendChild(copyIcon);
 
         copyButton.addEventListener('click', async (e) => {
@@ -249,20 +258,16 @@ function setupCodeBlockCopyButtons() {
             e.stopPropagation();
 
             const code = pre.querySelector('code');
-            if (code) {
-                try {
-                    await navigator.clipboard.writeText(code.textContent || '');
-                    copyButton.classList.add('copied');
-                    copyIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+            if (!code) return;
 
-                    setTimeout(() => {
-                        copyButton.classList.remove('copied');
-                        copyIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>`;
-                    }, 2000);
-                } catch (err) {
-                    console.error('Failed to copy code:', err);
-                }
-            }
+            await copy(code.textContent || '');
+            copyButton.classList.add('copied');
+            copyIcon.innerHTML = COPIED_ICON;
+
+            setTimeout(() => {
+                copyButton.classList.remove('copied');
+                copyIcon.innerHTML = COPY_ICON;
+            }, COPIED_FEEDBACK_MS);
         });
 
         pre.style.position = 'relative';
@@ -367,7 +372,7 @@ onMounted(() => {
 .streaming-content.is-streaming::after {
     content: '▋';
     display: inline-block;
-    margin-left: 2px;
+    margin-inline-start: 2px;
     color: currentColor;
     transform-origin: bottom;
     filter: blur(0);

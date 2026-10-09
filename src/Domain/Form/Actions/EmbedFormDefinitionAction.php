@@ -4,6 +4,7 @@ namespace Domain\Form\Actions;
 
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -17,6 +18,10 @@ use Throwable;
  */
 class EmbedFormDefinitionAction
 {
+    public function __construct(
+        private readonly EmbeddingsProviderInterface $embeddings,
+    ) {}
+
     public function execute(int $formId): void
     {
         $form = FormDefinition::query()->find($formId);
@@ -29,7 +34,7 @@ class EmbedFormDefinitionAction
             // is matched against, so they are the embedded text.
             $text = trim($form->name."\n\n".(string) $form->agent_instructions);
             $form->forceFill([
-                'embedding' => embed($text),
+                'embedding' => $this->embeddings->embed($text),
                 'embedding_bm25' => Bm25Tokenizer::expression($text),
             ])->save();
         } catch (Throwable $e) {

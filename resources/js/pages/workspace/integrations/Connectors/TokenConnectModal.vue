@@ -1,12 +1,18 @@
 <script lang="ts" setup>
-import { connectorLogoUrl } from '@/lib/connectorLogo';
+/**
+ * Connect a catalog connector that authenticates with an API token. Connectors
+ * without a hosted MCP server (`requiresUrl`) also ask for the workspace's own
+ * server URL. The token format hint is advisory only; the server validates.
+ */
+import { connectConnector, type ConnectTokenPayload } from '@/api/connectors';
+import { errorMessage, validationErrors } from '@/api/http';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useConnectorText } from '@/composables/useConnectorText';
+import { connectorLogoUrl } from '@/lib/connectorLogo';
 import type { AgentMcpServer, Connector } from '@/types/connector';
-import axios from 'axios';
 import { ExternalLink, LoaderCircle } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -61,16 +67,15 @@ async function submit(): Promise<void> {
     saving.value = true;
 
     try {
-        const payload: Record<string, string> = { token: token.value };
+        const payload: ConnectTokenPayload = { token: token.value };
         if (requiresUrl.value) payload.url = serverUrl.value;
-        const response = await axios.post(route('integrations.connectors.connect', { slug: props.connector.slug }), payload);
-        emit('connected', response.data.data, response.data.tools_count);
+        const response = await connectConnector(props.connector.slug, payload);
+        emit('connected', response.data, response.tools_count);
         emit('update:open', false);
         toast.success(t('workspace.connectors.toast.connected', { name: connectorName(props.connector) }));
-    } catch (e: unknown) {
-        const axiosErr = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
-        const errors = axiosErr.response?.data?.errors;
-        error.value = axiosErr.response?.data?.message ?? errors?.url?.[0] ?? errors?.token?.[0] ?? t('workspace.connectors.token_modal.error');
+    } catch (err) {
+        const fieldErrors = validationErrors(err);
+        error.value = errorMessage(err, fieldErrors.url ?? fieldErrors.token ?? t('workspace.connectors.token_modal.error'));
     } finally {
         saving.value = false;
     }

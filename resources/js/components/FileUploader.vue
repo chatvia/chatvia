@@ -1,12 +1,16 @@
 <script setup lang="ts">
+/**
+ * Knowledge-base file picker: drop zone, file and quota counters, and the list
+ * of picked files with their analysis state. The state lives in
+ * `useFileUploader`; the parent reads the files through the exposed API.
+ */
+import UploadingFileRow from '@/components/file-uploader/UploadingFileRow.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useFileUploader, type FileAnalyzedData, type FileUploaderConfig, type UploadingFileData } from '@/composables/useFileUploader';
-import { AlertCircle, CheckCircle, File, LoaderCircle, Trash2, Upload } from 'lucide-vue-next';
+import { AlertCircle, Trash2, Upload } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -85,17 +89,6 @@ const quotaLabelForCount = (count: number): string => {
     }
 
     return label;
-};
-
-// Helper function to format file length (pages or duration)
-const formatFileLength = (file: UploadingFileData): string => {
-    if (!file.stats?.length) return '';
-
-    if (file.stats.is_audio_file) {
-        return t('shared.file_uploader.minute_length', { count: file.stats.length }, { plural: file.stats.length });
-    }
-
-    return t('shared.file_uploader.page_length', { count: file.stats.length }, { plural: file.stats.length });
 };
 
 // Quota computations
@@ -313,139 +306,27 @@ defineExpose({
 
                     <ScrollArea v-if="uploadingFiles.length > 5" class="h-[400px] pe-4">
                         <div class="space-y-2">
-                            <template v-for="file in uploadingFiles" :key="file.id">
-                                <div class="flex items-center justify-between rounded-lg border p-3">
-                                    <div class="flex min-w-0 flex-1 items-center gap-3">
-                                        <File class="text-muted-foreground h-5 w-5 flex-shrink-0" />
-                                        <div class="min-w-0 flex-1">
-                                            <div class="mb-1 flex items-center gap-2">
-                                                <span class="truncate font-medium">{{ file.file.name }}</span>
-                                                <Badge v-if="file.isAnalyzed" variant="secondary" class="text-xs">
-                                                    {{ formatFileType(file.stats?.mime_type || file.file.type) }}
-                                                </Badge>
-                                                <Badge v-if="file.isAnalyzed" variant="outline" class="text-xs">
-                                                    <CheckCircle class="me-1 h-3 w-3" />
-                                                    {{ t('shared.file_uploader.badge_analyzed') }}
-                                                </Badge>
-                                                <Badge v-if="file.uploading" variant="outline" class="text-xs">
-                                                    <LoaderCircle class="me-1 h-3 w-3 animate-spin" />
-                                                    {{ t('shared.file_uploader.badge_analyzing') }}
-                                                </Badge>
-                                                <Badge v-if="file.error" variant="destructive" class="text-xs">
-                                                    <AlertCircle class="me-1 h-3 w-3" />
-                                                    {{ t('shared.file_uploader.badge_failed') }}
-                                                </Badge>
-                                            </div>
-                                            <div class="text-muted-foreground text-xs">
-                                                {{ formatFileSize(file.file.size) }}
-                                                <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
-                                                <span v-if="file.uploading && file.progress > 0" class="ms-2">
-                                                    • {{ t('shared.file_uploader.progress_analyzed', { progress: file.progress }) }}
-                                                </span>
-                                                <span v-if="file.uploading && file.uploadSpeed > 0" class="ms-2">
-                                                    • {{ formatSpeed(file.uploadSpeed) }}
-                                                </span>
-                                                <span v-if="file.error" class="text-destructive ms-2"> • {{ file.error }} </span>
-                                            </div>
-                                            <!-- Progress bar -->
-                                            <div v-if="file.uploading && file.progress > 0" class="mt-2">
-                                                <div class="bg-muted h-1.5 w-full rounded-full">
-                                                    <div
-                                                        class="bg-primary h-1.5 rounded-full transition-all duration-300"
-                                                        :style="{ width: `${file.progress}%` }"
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <TooltipProvider>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    @click="onRemoveFile(file.id)"
-                                                >
-                                                    <span class="sr-only">{{ t('shared.file_uploader.remove_file') }}</span>
-                                                    <Trash2 class="h-4 w-4" />
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{{ t('shared.file_uploader.remove_file') }}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                </div>
-                            </template>
+                            <UploadingFileRow
+                                v-for="file in uploadingFiles"
+                                :key="file.id"
+                                :file="file"
+                                :type-label="formatFileType(file.stats?.mime_type || file.file.type)"
+                                :size-label="formatFileSize(file.file.size)"
+                                :speed-label="formatSpeed(file.uploadSpeed)"
+                                @remove="onRemoveFile"
+                            />
                         </div>
                     </ScrollArea>
                     <div v-else class="space-y-2">
-                        <template v-for="file in uploadingFiles" :key="file.id">
-                            <div class="flex items-center justify-between rounded-lg border p-3">
-                                <div class="flex min-w-0 flex-1 items-center gap-3">
-                                    <File class="text-muted-foreground h-5 w-5 flex-shrink-0" />
-                                    <div class="min-w-0 flex-1">
-                                        <div class="mb-1 flex items-center gap-2">
-                                            <span class="truncate font-medium">{{ file.file.name }}</span>
-                                            <Badge v-if="file.isAnalyzed" variant="secondary" class="text-xs">
-                                                {{ formatFileType(file.stats?.mime_type || file.file.type) }}
-                                            </Badge>
-                                            <Badge v-if="file.isAnalyzed" variant="outline" class="text-xs">
-                                                <CheckCircle class="me-1 h-3 w-3" />
-                                                {{ t('shared.file_uploader.badge_analyzed') }}
-                                            </Badge>
-                                            <Badge v-if="file.uploading" variant="outline" class="text-xs">
-                                                <LoaderCircle class="me-1 h-3 w-3 animate-spin" />
-                                                {{ t('shared.file_uploader.badge_analyzing') }}
-                                            </Badge>
-                                            <Badge v-if="file.error" variant="destructive" class="text-xs">
-                                                <AlertCircle class="me-1 h-3 w-3" />
-                                                {{ t('shared.file_uploader.badge_failed') }}
-                                            </Badge>
-                                        </div>
-                                        <div class="text-muted-foreground text-xs">
-                                            {{ formatFileSize(file.file.size) }}
-                                            <span v-if="formatFileLength(file)" class="ms-2"> • {{ formatFileLength(file) }} </span>
-                                            <span v-if="file.uploading && file.progress > 0" class="ms-2">
-                                                • {{ t('shared.file_uploader.progress_analyzed', { progress: file.progress }) }}
-                                            </span>
-                                            <span v-if="file.uploading && file.uploadSpeed > 0" class="ms-2">
-                                                • {{ formatSpeed(file.uploadSpeed) }}
-                                            </span>
-                                            <span v-if="file.error" class="text-destructive ms-2"> • {{ file.error }} </span>
-                                        </div>
-                                        <!-- Progress bar -->
-                                        <div v-if="file.uploading && file.progress > 0" class="mt-2">
-                                            <div class="bg-muted h-1.5 w-full rounded-full">
-                                                <div
-                                                    class="bg-primary h-1.5 rounded-full transition-all duration-300"
-                                                    :style="{ width: `${file.progress}%` }"
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Button
-                                                class="text-destructive hover:text-destructive/80 h-8 w-8 flex-shrink-0 p-0"
-                                                size="sm"
-                                                variant="ghost"
-                                                @click="onRemoveFile(file.id)"
-                                            >
-                                                <span class="sr-only">{{ t('shared.file_uploader.remove_file') }}</span>
-                                                <Trash2 class="h-4 w-4" />
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            <p>{{ t('shared.file_uploader.remove_file') }}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-                            </div>
-                        </template>
+                        <UploadingFileRow
+                            v-for="file in uploadingFiles"
+                            :key="file.id"
+                            :file="file"
+                            :type-label="formatFileType(file.stats?.mime_type || file.file.type)"
+                            :size-label="formatFileSize(file.file.size)"
+                            :speed-label="formatSpeed(file.uploadSpeed)"
+                            @remove="onRemoveFile"
+                        />
                     </div>
                 </template>
             </div>

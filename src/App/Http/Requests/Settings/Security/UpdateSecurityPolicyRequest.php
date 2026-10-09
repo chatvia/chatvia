@@ -16,16 +16,16 @@ use Support\Localization\Country\Models\Country;
 /**
  * Write path for the workspace security policy: the network-access gate (IP
  * allowlist + geo), conversation/audit retention and the SIEM webhook. The
- * `security` entitlement is enforced on the route ({@see routes/workspace.php});
- * here we authorize the team permission, validate the input and guard against
- * self-lockout. Which stored settings the form may change is decided by
- * UpdateSecurityPolicyAction.
+ * `account.security` team permission and the `security` entitlement are
+ * enforced on the route ({@see routes/workspace.php}); here we validate the
+ * input and guard against self-lockout. Which stored settings the form may
+ * change is decided by UpdateSecurityPolicyAction.
  */
 class UpdateSecurityPolicyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return has_team_permission('account.security');
+        return true;
     }
 
     /**

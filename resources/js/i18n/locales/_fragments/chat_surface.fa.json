@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "ارسال پیام",
+        "stop_streaming": "توقف تولید"
+    },
+    "chat": {
+        "scroll_to_bottom": "پیمایش به پایین",
+        "copy_code": "کپی کد در کلیپ‌بورد",
+        "loading_chart": "در حال بارگذاری نمودار…",
+        "powered_by": "قدرت‌گرفته از {label}",
+        "stream_errors": {
+            "unreachable": "دسترسی به سرور ممکن نشد. لطفاً دوباره تلاش کنید.",
+            "http_status": "سرور وضعیت {status} را برگرداند.",
+            "interrupted": "اتصال قطع شد.",
+            "malformed": "داده‌های نامعتبر از سرور دریافت شد."
+        }
+    },
+    "messages": {
+        "edit_message": "ویرایش پیام"
+    },
+    "sources": {
+        "file_with_page": "{file} (صفحه {page})",
+        "fallback_title": "منبع {number}",
+        "chunk_label": "بخش {index}"
+    },
+    "sidebar": {
+        "save_title": "ذخیره عنوان",
+        "show_password": "نمایش رمز عبور",
+        "hide_password": "پنهان کردن رمز عبور",
+        "user_fallback": "کاربر"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "همین الان"
+        },
+        "voice_recorder": {
+            "microphone_denied": "دسترسی به میکروفون رد شد. لطفاً برای ضبط، اجازه دسترسی به میکروفون را بدهید.",
+            "microphone_not_found": "میکروفونی پیدا نشد. لطفاً یک میکروفون وصل کنید و دوباره تلاش کنید.",
+            "microphone_failed": "دسترسی به میکروفون ممکن نشد",
+            "transcription_failed": "تبدیل گفتار به متن ناموفق بود"
+        },
+        "file_uploader": {
+            "analyze_failed": "تحلیل فایل ناموفق بود",
+            "analyze_timed_out": "زمان تحلیل به پایان رسید - ممکن است فایل خیلی بزرگ باشد"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "تازه‌سازی پیام‌ها",
+            "delete_conversation": "حذف گفتگو",
+            "sidebar": {
+                "refresh_conversations": "تازه‌سازی گفتگوها",
+                "remove_filter": "حذف فیلتر"
+            },
+            "handoff": {
+                "send_message": "ارسال پیام",
+                "errors": {
+                    "connect_failed": "اتصال به کانال گفتگو ناموفق بود",
+                    "takeover_failed": "در دست گرفتن گفتگو ناموفق بود",
+                    "return_failed": "بازگرداندن گفتگو به هوش مصنوعی ناموفق بود",
+                    "send_failed": "ارسال پیام ناموفق بود"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "پایدار"
+            }
+        }
+    }
+}

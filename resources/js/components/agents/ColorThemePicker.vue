@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * The Branding section's color swatch. Clicking it opens a dialog with the
+ * full ColorPicker; "Apply" emits `apply` so the parent can save.
+ */
 import ColorPicker from '@/components/agents/ColorPicker.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';

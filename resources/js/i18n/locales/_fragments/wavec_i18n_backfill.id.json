@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Detail",
+        "arguments": "Argumen"
+    },
+    "messages": {
+        "responding": "Asisten sedang merespons…",
+        "response_complete": "Respons selesai",
+        "copy_message": "Salin pesan",
+        "feedback_helpful": "Respons bagus",
+        "feedback_not_helpful": "Respons buruk"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "Selalu aktif",
+                "always_hint": "Tawarkan alat konektor ini di setiap giliran, bahkan saat pesan tidak jelas membutuhkannya. Maksimal 10 alat selalu aktif per agen.",
+                "always_failed": "Gagal memperbarui pengaturan selalu aktif"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Bahasa",
+                "bubbles": "Gelembung Obrolan"
+            },
+            "toasts": {
+                "languages_saved": "Bahasa disimpan",
+                "languages_error": "Tidak dapat menyimpan bahasa"
+            },
+            "behavior": {
+                "language_switcher": "Pengalih bahasa"
+            },
+            "sections": {
+                "appearance_translations_default": "Bawaan",
+                "appearance_translations_default_tip": "Teks yang Anda tulis — otomatis diterjemahkan ke setiap bahasa.",
+                "appearance_translations_default_hint": "Ini adalah teks yang Anda tulis. Saat Anda menyimpan, teks ini otomatis diterjemahkan ke setiap bahasa, dan ditampilkan setiap kali bahasa pengunjung tidak ada dalam daftar.",
+                "appearance_translations_lang_hint": "Edit bahasa ini di sini. Biarkan kolom kosong untuk menggunakan terjemahan otomatis — suntingan Anda selalu dipertahankan.",
+                "starters_generate": "Buat dengan AI",
+                "starters_generate_title": "Buat pembuka dengan AI",
+                "starters_generate_description": "Pilih berapa banyak yang akan dibuat dari basis pengetahuan Anda, lalu pilih mana yang akan ditambahkan.",
+                "starters_generate_count": "Berapa banyak?",
+                "starters_generate_button": "Buat",
+                "starters_generating": "Membuat…",
+                "starters_generate_hint": "Pilih jumlah dan buat saran dari basis pengetahuan Anda.",
+                "starters_translate_empty": "Tambahkan pembuka di tab Bawaan terlebih dahulu, lalu terjemahkan di sini."
+            },
+            "languages": {
+                "title": "Bahasa UI",
+                "description": "Pilih bahasa yang didukung agen ini. Bahasa yang diaktifkan muncul di pengalih bahasa Hosted Chat dan mendapatkan kolom tersendiri per bahasa di Info dan Pembuka.",
+                "select_all": "Pilih semua",
+                "clear_all": "Hapus semua",
+                "count": "{count} dari {total} dipilih",
+                "hint": "Untuk menyembunyikan pengalih bahasa pengunjung sepenuhnya, nonaktifkan di bagian Perilaku.",
+                "min_required": "Setidaknya satu bahasa diperlukan."
+            },
+            "bubbles_add": "Tambahkan gelembung",
+            "bubbles_remove": "Hapus gelembung",
+            "bubbles_empty": "Belum ada gelembung obrolan.",
+            "bubbles_translate_empty": "Tambahkan gelembung terlebih dahulu untuk menerjemahkannya."
+        },
+        "forms": {
+            "subtitle": "Deskripsi",
+            "subtitle_placeholder": "mis. Ceritakan tentang perusahaan Anda dan kami akan menghubungi Anda.",
+            "subtitle_hint": "Ditampilkan kepada pengunjung di bawah judul formulir."
+        },
+        "evals": {
+            "run": {
+                "back": "Kembali ke evaluasi",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Berjalan",
+                "completed": "Selesai",
+                "failed": "Gagal"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Edit {topic}",
+                "delete_topic_aria": "Hapus {topic}"
+            }
+        },
+        "topics_index": {
+            "examples": "mis. {titles}",
+            "previous_page": "Halaman sebelumnya",
+            "next_page": "Halaman berikutnya"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Buat akun"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Tampilkan atau sembunyikan izin"
+            },
+            "rename_team": "Ganti nama tim",
+            "save_team_name": "Simpan nama tim"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Pesan Bulan Ini"
+    },
+    "usage": {
+        "no_limit": "Tanpa batas"
+    },
+    "nav": {
+        "open_user_menu": "Buka menu pengguna"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Selamat datang di Chatvia",
+            "intro": "Mari buat agen AI pertama Anda. Hanya butuh satu menit.",
+            "what_title": "Apa itu agen?",
+            "what_body": "Agen adalah asisten AI yang Anda latih dengan konten Anda sendiri. Agen menjawab pelanggan Anda di situs web, widget obrolan, dan aplikasi perpesanan.",
+            "how_title": "Bagaimana cara kerjanya?",
+            "how_body": "Pertama, Anda membuat agen dan memberinya nama. Lalu Anda melatihnya dengan file, situs web, dan teks Anda agar dapat menjawab pertanyaan.",
+            "start": "Buat agen pertama saya",
+            "video_caption": "Tonton cara kerjanya"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Salin ID prompt"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Salin ID fungsi"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Salin kunci API"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Salin ID server"
+        },
+        "json_editor": {
+            "aria_label": "Editor JSON"
+        },
+        "time_ago": {
+            "just_now": "Baru saja"
+        },
+        "voice_recorder": {
+            "pause_recording": "Jeda rekaman",
+            "resume_recording": "Lanjutkan rekaman",
+            "cancel_recording": "Batalkan rekaman",
+            "play_recording": "Putar rekaman",
+            "pause_playback": "Jeda pemutaran"
+        }
+    }
+}

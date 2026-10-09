@@ -1,5 +1,8 @@
 <script setup lang="ts">
+// Workspace tool-call audit log across all agents (the "Tool calls" tab of
+// the Audit page), rendered by the shared AuditTable with an agent filter.
 import AuditTable from '@/components/governance/AuditTable.vue';
+import type { AuditPaginator } from '@/components/governance/types';
 import AuditTabs from '@/components/governance/AuditTabs.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
@@ -8,8 +11,8 @@ import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 interface Props {
-    // Laravel paginator of audit rows — shape validated by AuditTable.
-    rows: any;
+    // Cursor paginator of audit rows.
+    rows: AuditPaginator;
     agents: { id: number; name: string }[];
     connectors: { slug: string; name: string }[];
     outcomes: string[];

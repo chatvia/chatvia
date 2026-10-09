@@ -7,7 +7,7 @@ interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }
 
-const _props = defineProps<Props>();
+defineProps<Props>();
 
 const { t } = useI18n();
 </script>

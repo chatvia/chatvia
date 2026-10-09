@@ -2,6 +2,7 @@
 
 namespace Domain\Membership\Agent\Actions;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
 use Domain\Agent\Models\Agent;
@@ -11,7 +12,6 @@ use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Support\Enums\User\UserType;
 
 /**
  * Finalize an agent-chatter invitation. The chatter row is already in the DB

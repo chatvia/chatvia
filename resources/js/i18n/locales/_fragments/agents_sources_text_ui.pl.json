@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "Usuń pytanie",
+                "actions": "Akcje"
+            }
+        }
+    }
+}

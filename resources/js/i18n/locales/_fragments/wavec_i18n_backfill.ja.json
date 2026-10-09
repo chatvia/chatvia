@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "詳細",
+        "arguments": "引数"
+    },
+    "messages": {
+        "responding": "アシスタントが応答しています…",
+        "response_complete": "応答が完了しました",
+        "copy_message": "メッセージをコピー",
+        "feedback_helpful": "良い応答",
+        "feedback_not_helpful": "悪い応答"
+    },
+    "agents": {
+        "evals": {
+            "run": {
+                "back": "評価一覧に戻る",
+                "latency_value": "{ms} ミリ秒"
+            },
+            "statuses": {
+                "running": "実行中",
+                "completed": "完了",
+                "failed": "失敗"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "{topic} を編集",
+                "delete_topic_aria": "{topic} を削除"
+            }
+        },
+        "sources": {
+            "connectors": {
+                "column_always": "常に有効",
+                "always_hint": "メッセージで明らかに必要とされていない場合でも、このコネクタのツールを毎ターン提供します。常に有効にできるツールは、エージェントごとに最大 10 個です。",
+                "always_failed": "「常に有効」の設定を更新できませんでした"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "言語",
+                "bubbles": "チャットバブル"
+            },
+            "toasts": {
+                "languages_saved": "言語を保存しました",
+                "languages_error": "言語を保存できませんでした"
+            },
+            "behavior": {
+                "language_switcher": "言語切り替え"
+            },
+            "sections": {
+                "appearance_translations_default": "デフォルト",
+                "appearance_translations_default_tip": "入力したテキストは、すべての言語に自動で翻訳されます。",
+                "appearance_translations_default_hint": "ここに入力するのが元のテキストです。保存すると自動ですべての言語に翻訳され、訪問者の言語が一覧にない場合はこのテキストが表示されます。",
+                "appearance_translations_lang_hint": "この言語のテキストをここで編集します。自動翻訳を使う場合は空欄のままにしてください。編集した内容は常に保持されます。",
+                "starters_generate": "AI で生成",
+                "starters_generate_title": "AI で会話のきっかけを生成",
+                "starters_generate_description": "ナレッジベースから生成する数を選び、追加するものを選択してください。",
+                "starters_generate_count": "いくつ生成しますか？",
+                "starters_generate_button": "生成",
+                "starters_generating": "生成中…",
+                "starters_generate_hint": "数を選んで、ナレッジベースから候補を生成します。",
+                "starters_translate_empty": "まず「デフォルト」タブできっかけを追加してから、ここで翻訳してください。"
+            },
+            "languages": {
+                "title": "UI 言語",
+                "description": "このエージェントが対応する言語を選択します。有効にした言語はホスト型チャットの言語切り替えに表示され、「情報」と「スターター」に言語ごとの入力欄が追加されます。",
+                "select_all": "すべて選択",
+                "clear_all": "すべてクリア",
+                "count": "{total} 件中 {count} 件を選択済み",
+                "hint": "訪問者向けの言語切り替えを完全に非表示にするには、「動作」でオフにしてください。",
+                "min_required": "少なくとも 1 つの言語が必要です。"
+            },
+            "bubbles_add": "バブルを追加",
+            "bubbles_remove": "バブルを削除",
+            "bubbles_empty": "チャットバブルはまだありません。",
+            "bubbles_translate_empty": "翻訳するには、まずバブルを追加してください。"
+        },
+        "topics_index": {
+            "examples": "例：{titles}",
+            "previous_page": "前のページ",
+            "next_page": "次のページ"
+        },
+        "forms": {
+            "subtitle": "説明",
+            "subtitle_placeholder": "例：貴社について教えてください。折り返しご連絡いたします。",
+            "subtitle_hint": "フォームのタイトルの下に、訪問者向けに表示されます。"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "アカウントを作成"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "権限の表示を切り替え"
+            },
+            "rename_team": "チーム名を変更",
+            "save_team_name": "チーム名を保存"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "今月のメッセージ"
+    },
+    "usage": {
+        "no_limit": "無制限"
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "プロンプトIDをコピー"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "関数IDをコピー"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "API キーをコピー"
+            }
+        }
+    },
+    "nav": {
+        "open_user_menu": "ユーザーメニューを開く"
+    },
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "録音を一時停止",
+            "resume_recording": "録音を再開",
+            "cancel_recording": "録音をキャンセル",
+            "play_recording": "録音を再生",
+            "pause_playback": "再生を一時停止"
+        },
+        "connector_sheet": {
+            "copy_server_id": "サーバー ID をコピー"
+        },
+        "json_editor": {
+            "aria_label": "JSON エディター"
+        },
+        "time_ago": {
+            "just_now": "たった今"
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chatvia へようこそ",
+            "intro": "最初の AI エージェントを作成しましょう。1 分ほどで完了します。",
+            "what_title": "エージェントとは？",
+            "what_body": "エージェントは、独自のコンテンツで学習させる AI アシスタントです。ウェブサイト、チャットウィジェット、メッセージングアプリでお客様の質問に回答します。",
+            "how_title": "どのような仕組みですか？",
+            "how_body": "まずエージェントを作成して名前を付けます。次に、ファイル、ウェブサイト、テキストで学習させると、質問に回答できるようになります。",
+            "start": "最初のエージェントを作成",
+            "video_caption": "動画で仕組みを見る"
+        }
+    }
+}

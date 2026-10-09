@@ -98,8 +98,8 @@
             "badge_failed": "Błąd",
             "progress_analyzed": "{progress}% przeanalizowano",
             "remove_file": "Usuń plik",
-            "minute_length": "{count} minuta | {count} minuty | {count} minut",
-            "page_length": "{count} strona | {count} strony | {count} stron"
+            "minute_length": "{count} minuta | {count} minut",
+            "page_length": "{count} strona | {count} stron"
         },
         "voice_recorder": {
             "title_default": "Nagraj notatkę głosową",
@@ -117,7 +117,7 @@
             "tips_heading": "Wskazówki:",
             "tip_speak_clearly": "Mów wyraźnie i w równym tempie",
             "tip_quiet_environment": "Używaj cichego otoczenia, aby uzyskać najlepsze wyniki",
-            "tip_max_duration": "Maksymalna długość nagrania: {minutes} minuta | Maksymalna długość nagrania: {minutes} minuty | Maksymalna długość nagrania: {minutes} minut"
+            "tip_max_duration": "Maksymalna długość nagrania: {minutes} minuta | Maksymalna długość nagrania: {minutes} minut"
         },
         "date_range": {
             "pick_range": "Wybierz zakres dat",

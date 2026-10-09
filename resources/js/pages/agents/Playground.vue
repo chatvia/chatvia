@@ -1,12 +1,18 @@
 <script setup lang="ts">
+/**
+ * Agent playground: previews the agent's Hosted Chat, Chat Widget or Command
+ * Bar in an iframe at desktop, tablet or mobile width.
+ */
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { useClipboard } from '@vueuse/core';
 import { Check, Copy, ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
+const { copy } = useClipboard({ legacy: true });
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
@@ -77,7 +83,7 @@ const openFullPreview = () => {
 const isExternalIdCopied = ref(false);
 const copyExternalId = async () => {
     try {
-        await navigator.clipboard.writeText(props.agent.external_id);
+        await copy(props.agent.external_id);
         isExternalIdCopied.value = true;
         toast.success(t('agents.playground.id_copied'));
         setTimeout(() => (isExternalIdCopied.value = false), 2000);
@@ -116,6 +122,7 @@ const copyExternalId = async () => {
                                     @click="device = d"
                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
                                     :class="{ 'text-foreground bg-background shadow-sm': device === d }"
+                                    :aria-label="t(deviceLabels[d])"
                                 >
                                     <component :is="d === 'desktop' ? Monitor : d === 'tablet' ? Tablet : Smartphone" class="h-4 w-4" />
                                 </button>
@@ -130,6 +137,7 @@ const copyExternalId = async () => {
                                     type="button"
                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
                                     :class="{ 'text-foreground': isExternalIdCopied }"
+                                    :aria-label="t('agents.playground.copy_agent_id')"
                                     @click="copyExternalId"
                                 >
                                     <component :is="isExternalIdCopied ? Check : Copy" class="h-4 w-4" />
@@ -144,6 +152,7 @@ const copyExternalId = async () => {
                                 <button
                                     type="button"
                                     class="text-muted-foreground hover:text-foreground cursor-pointer rounded-md p-1.5 transition-colors"
+                                    :aria-label="t('agents.playground.open_new_tab')"
                                     @click="openFullPreview"
                                 >
                                     <ExternalLink class="h-4 w-4" />

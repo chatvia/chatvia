@@ -3,37 +3,23 @@
 namespace App\Http\Controllers\Widget\Concerns;
 
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
-use App\Http\Middleware\Widget\VerifyWidgetOrigin;
+use App\Http\Widget\WidgetAgent;
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Typed access to what every widget API call carries: the agent, the
- * visitor's session and conversation ids (headers, see {@see WidgetHeaders})
- * and the signed-in chatter that {@see EnsureWidgetIsAccessible} attached.
+ * Typed access to what every widget API call carries: the visitor's session
+ * and conversation ids (headers, see {@see WidgetHeaders}) and the signed-in
+ * chatter that {@see EnsureWidgetIsAccessible} attached. The agent itself is
+ * injected with {@see WidgetAgent}.
  *
  * Error texts in widget responses are read by the widget script, not shown to
  * people, so they stay plain English.
  */
 trait InteractsWithWidgetRequest
 {
-    /**
-     * The agent named by the X-AGENT-ID header. Routes behind
-     * {@see VerifyWidgetOrigin} always have one; anything else is a 404.
-     */
-    protected function widgetAgent(): Agent
-    {
-        $agent = current_agent_from_widget();
-
-        abort_if($agent === null, Response::HTTP_NOT_FOUND);
-
-        return $agent;
-    }
-
     /**
      * The visitor's session id. Session ids are UUIDs, so any other value is
      * treated as no session at all (it could never match a stored session).

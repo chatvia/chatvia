@@ -1,53 +1,43 @@
 <script setup lang="ts">
+/**
+ * "N Sources" button under an assistant reply, opening a dialog with the
+ * knowledge-base chunks the answer was grounded in.
+ */
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { MessageSource } from '@/types/chat';
 import { FileText } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-
-interface Source {
-    content: string;
-    metadata?: {
-        title?: string;
-        file_name?: string;
-        page?: number;
-        chunk_index?: number;
-        [key: string]: any;
-    };
-}
-
 const props = defineProps<{
-    sources: Source[];
+    sources: MessageSource[];
 }>();
+
+const { t } = useI18n();
 
 const sourcesCount = computed(() => props.sources?.length || 0);
 
-const formatSourceTitle = (source: Source, index: number) => {
-    if (source.metadata?.title) {
-        return source.metadata.title;
-    }
-    if (source.metadata?.file_name) {
-        const fileName = source.metadata.file_name;
-        const page = source.metadata.page;
-        return page ? `${fileName} (Page ${page})` : fileName;
-    }
-    return `Source ${index + 1}`;
-};
+function formatSourceTitle(source: MessageSource, index: number): string {
+    const metadata = source.metadata;
+    if (metadata?.title) return metadata.title;
 
-const formatSourceSubtitle = (source: Source) => {
-    const parts = [];
-    if (source.metadata?.chunk_index !== undefined) {
-        parts.push(`Chunk ${source.metadata.chunk_index}`);
+    if (metadata?.file_name) {
+        return metadata.page ? t('sources.file_with_page', { file: metadata.file_name, page: metadata.page }) : metadata.file_name;
     }
-    if (source.metadata?.page !== undefined) {
-        parts.push(`Page ${source.metadata.page}`);
-    }
+
+    return t('sources.fallback_title', { number: index + 1 });
+}
+
+function formatSourceSubtitle(source: MessageSource): string | null {
+    const parts: string[] = [];
+    if (source.metadata?.chunk_index !== undefined) parts.push(t('sources.chunk_label', { index: source.metadata.chunk_index }));
+    if (source.metadata?.page !== undefined) parts.push(t('sources.page_label', { page: source.metadata.page }));
+
     return parts.length > 0 ? parts.join(' • ') : null;
-};
+}
 </script>
 
 <template>

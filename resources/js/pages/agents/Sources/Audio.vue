@@ -1,88 +1,65 @@
 <script setup lang="ts">
+/**
+ * Audio sources of an agent: upload audio files (the shared files page,
+ * limited to audio) or record a voice note in the browser. A recording may be
+ * as long as the plan's remaining minutes allow, at most one hour.
+ */
+import { uploadSourceFile } from '@/api/fileSources';
+import { fetchUsage } from '@/api/usage';
 import VoiceRecorder from '@/components/VoiceRecorder.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import axios from 'axios';
+import { failureReason } from '@/lib/failureReason';
 import { Mic, Upload } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import Files from './Files.vue';
 
-interface Props {
+const props = defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
-}
+}>();
 
-interface UsageData {
-    minutes?: {
-        limit: number;
-        used: number;
-        remaining: number;
-    };
-}
+/** Without usage data a recording may last ten minutes. */
+const DEFAULT_REMAINING_MINUTES = 10;
+const MAX_RECORDING_SECONDS = 3600;
 
-const props = defineProps<Props>();
 const { t } = useI18n();
 const filesRef = ref<InstanceType<typeof Files> | null>(null);
 const activeTab = ref('upload');
 const isUploading = ref(false);
-const usageData = ref<UsageData>({});
+const remainingMinutes = ref<number | null>(null);
 
-// Fetch usage data to get available minutes
-const fetchUsageData = async () => {
+const refreshRemainingMinutes = async () => {
     try {
-        const response = await axios.get(route('usage'));
-        usageData.value = response.data;
-    } catch (error) {
-        console.error('Error fetching usage data:', error);
+        remainingMinutes.value = (await fetchUsage()).minutes?.remaining ?? null;
+    } catch {
+        // Keep the default recording limit.
     }
 };
 
-// Max recording duration in seconds based on available minutes
-const maxRecordingDuration = computed(() => {
-    const remainingMinutes = usageData.value.minutes?.remaining ?? 10;
-    // Convert to seconds, cap at 60 minutes max
-    return Math.min(remainingMinutes * 60, 3600);
-});
+const maxRecordingDuration = computed(() => Math.min((remainingMinutes.value ?? DEFAULT_REMAINING_MINUTES) * 60, MAX_RECORDING_SECONDS));
 
-onMounted(() => {
-    fetchUsageData();
-});
+onMounted(refreshRemainingMinutes);
 
-const handleRecorded = async (data: { blob: Blob; name: string; duration: number }) => {
+const handleRecorded = async (recording: { blob: Blob; name: string; duration: number }) => {
     isUploading.value = true;
 
     try {
-        // Create a File object from the Blob
-        const file = new File([data.blob], data.name, { type: data.blob.type });
-
-        // Upload the file using FormData
-        const formData = new FormData();
-        formData.append('file', file);
-
-        await axios.post(route('agents.sources.files.upload', { agent: props.agent.external_id }), formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        await uploadSourceFile(props.agent.external_id, new File([recording.blob], recording.name, { type: recording.blob.type }));
 
         toast.success(t('agents.sources.audio.recording_uploaded'), {
-            description: t('agents.sources.audio.recording_uploaded_description', { name: data.name }),
+            description: t('agents.sources.audio.recording_uploaded_description', { name: recording.name }),
         });
 
-        // Refresh the files list and usage data
-        if (filesRef.value) {
-            filesRef.value.refreshFiles?.();
-        }
-        await fetchUsageData();
+        filesRef.value?.refreshFiles?.();
+        await refreshRemainingMinutes();
 
-        // Switch to upload tab to see the file
+        // Show the uploads tab, where the new file waits for training.
         activeTab.value = 'upload';
-    } catch (error: any) {
-        console.error('Error uploading recording:', error);
-        const errorMessage = error.response?.data?.message || error.message || t('agents.sources.audio.upload_failed_fallback');
+    } catch (error) {
         toast.error(t('agents.sources.audio.upload_failed'), {
-            description: errorMessage,
+            description: failureReason(error) || t('agents.sources.audio.upload_failed_fallback'),
         });
     } finally {
         isUploading.value = false;

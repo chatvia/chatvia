@@ -1,7 +1,7 @@
 <?php
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
-use Support\Enums\User\SocialProvider;
 
 /*
  * Covers SocialController::disconnect — the inline `$user->socials()

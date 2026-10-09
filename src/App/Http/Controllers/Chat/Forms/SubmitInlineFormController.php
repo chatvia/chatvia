@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Forms;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Requests\Chat\Forms\SubmitInlineFormRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\SubmitFormAction;
 use Domain\Form\Data\SubmitFormData;
 use Domain\Form\Enums\FormClaimFailure;
@@ -12,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 
 /**
  * Dashboard / Hosted Chat / Command Bar inline-form submit. Authenticates via
- * the `chat` middleware group's current_agent(); the unguessable form instance
+ * the `chat` middleware group's agent ({@see HostedChatAgent}); the unguessable form instance
  * is bound to its agent + conversation here before persisting.
  */
 class SubmitInlineFormController
@@ -20,9 +22,9 @@ class SubmitInlineFormController
     public function __invoke(
         SubmitInlineFormRequest $request,
         FormSubmission $formInstance,
+        #[HostedChatAgent] ?Agent $agent,
         SubmitFormAction $action,
     ): JsonResponse {
-        $agent = current_agent();
         abort_unless($agent !== null && $formInstance->agent_id === $agent->id, 404);
 
         $conversation = $formInstance->conversation;

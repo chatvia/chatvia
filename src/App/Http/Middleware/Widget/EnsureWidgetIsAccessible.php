@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Widget;
 
+use App\Http\Widget\WidgetAgent;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
 use Closure;
@@ -41,9 +42,9 @@ class EnsureWidgetIsAccessible
 
     public function handle(Request $request, Closure $next): Response
     {
-        $agent = current_agent_from_widget();
+        $agent = WidgetAgent::from($request);
 
-        if (! $agent) {
+        if ($agent === null) {
             return response()->json(['error' => 'Could not verify the agent'], Response::HTTP_FORBIDDEN);
         }
 

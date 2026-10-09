@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
@@ -16,9 +18,13 @@ class ConversationMessageController
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function __invoke(string $conversationId, ChatMemory $memory, HostedChatSession $session, MessageAttachmentHydrator $hydrator): array
-    {
-        $agent = current_agent();
+    public function __invoke(
+        string $conversationId,
+        #[HostedChatAgent] Agent $agent,
+        ChatMemory $memory,
+        HostedChatSession $session,
+        MessageAttachmentHydrator $hydrator,
+    ): array {
         $scope = $session->scope($agent, $conversationId);
         $memory->withScope($scope);
 

@@ -17,7 +17,9 @@
         "mcp_tool": "Alat MCP",
         "function": "Fungsi",
         "approve": "Setujui",
-        "deny": "Tolak"
+        "deny": "Tolak",
+        "details": "Detail",
+        "arguments": "Argumen"
     },
     "composer": {
         "default_placeholder": "Pesan…",
@@ -30,7 +32,9 @@
         "uploading": "Mengunggah…",
         "upload_failed": "Pengunggahan gagal",
         "delete_failed": "Tidak dapat menghapus lampiran",
-        "upload_limit_reached": "Anda dapat melampirkan hingga {count} berkas | Anda dapat melampirkan hingga {count} berkas"
+        "upload_limit_reached": "Anda dapat melampirkan hingga {count} berkas | Anda dapat melampirkan hingga {count} berkas",
+        "send_message": "Kirim pesan",
+        "stop_streaming": "Hentikan pembuatan"
     },
     "header": {
         "toggle_sidebar": "Alihkan sidebar",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Kemarin",
         "search_group_previous_7_days": "7 hari sebelumnya",
         "search_group_previous_30_days": "30 hari sebelumnya",
-        "search_group_older": "Lebih lama"
+        "search_group_older": "Lebih lama",
+        "save_title": "Simpan judul",
+        "show_password": "Tampilkan kata sandi",
+        "hide_password": "Sembunyikan kata sandi",
+        "user_fallback": "Pengguna"
     },
     "chat": {
         "message_limit_reached": "Anda telah mencapai batas pesan",
@@ -99,7 +107,17 @@
             "expired": "Formulir ini sudah kedaluwarsa.",
             "unavailable": "Formulir ini tidak dapat dikirim di sini."
         },
-        "conversation_gone": "Percakapan ini sudah tidak ada lagi."
+        "conversation_gone": "Percakapan ini sudah tidak ada lagi.",
+        "scroll_to_bottom": "Gulir ke bawah",
+        "copy_code": "Salin kode ke papan klip",
+        "loading_chart": "Memuat grafik…",
+        "powered_by": "Didukung oleh {label}",
+        "stream_errors": {
+            "unreachable": "Tidak dapat menjangkau server. Silakan coba lagi.",
+            "http_status": "Server mengembalikan status {status}.",
+            "interrupted": "Koneksi terputus.",
+            "malformed": "Menerima data tidak valid dari server."
+        }
     },
     "messages": {
         "send": "Kirim",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Hapus lampiran",
         "delete_attachment_title": "Hapus berkas ini?",
         "delete_attachment_description": "Setelah Anda menghapusnya, asisten tidak akan lagi memiliki akses ke berkas ini pada balasan berikutnya.",
-        "delete_attachment_failed": "Tidak dapat menghapus berkas. Silakan coba lagi."
+        "delete_attachment_failed": "Tidak dapat menghapus berkas. Silakan coba lagi.",
+        "responding": "Asisten sedang merespons…",
+        "response_complete": "Respons selesai",
+        "copy_message": "Salin pesan",
+        "feedback_helpful": "Respons bagus",
+        "feedback_not_helpful": "Respons buruk",
+        "edit_message": "Edit pesan"
     },
     "errors": {
         "subscription_expired": "Langganan kedaluwarsa",
@@ -132,7 +156,10 @@
         "title": "Sumber Pengetahuan",
         "source_count": "{count} Sumber | {count} Sumber",
         "description": "{count} sumber digunakan untuk menghasilkan respons ini | {count} sumber digunakan untuk menghasilkan respons ini",
-        "page_label": "Halaman {page}"
+        "page_label": "Halaman {page}",
+        "file_with_page": "{file} (Halaman {page})",
+        "fallback_title": "Sumber {number}",
+        "chunk_label": "Potongan {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Kedaluwarsa dalam {count} hari | Kedaluwarsa dalam {count} hari",
                 "expires_in_one_month": "Kedaluwarsa dalam 1 bulan",
                 "expires_in_months": "Kedaluwarsa dalam {count} bulan | Kedaluwarsa dalam {count} bulan",
-                "conversations_count": "{count} percakapan | {count} percakapan"
+                "conversations_count": "{count} percakapan | {count} percakapan",
+                "refresh_conversations": "Muat ulang percakapan",
+                "remove_filter": "Hapus filter"
             },
             "pagination": {
                 "prev": "Sebelumnya",
@@ -496,7 +525,8 @@
                 "peak_negative": "Puncak negatif",
                 "sentiment_timeline": "Lini masa sentimen",
                 "message_details": "Detail pesan",
-                "waiting": "Menunggu…"
+                "waiting": "Menunggu…",
+                "trend_stable_label": "Stabil"
             },
             "handoff": {
                 "locked_description": "Tingkatkan paket Anda untuk mengambil alih percakapan langsung dari log obrolan.",
@@ -520,7 +550,14 @@
                 "read": "Dibaca",
                 "sent": "Terkirim",
                 "visitor_typing": "Pengunjung sedang mengetik",
-                "message_placeholder": "Ketik pesan…"
+                "message_placeholder": "Ketik pesan…",
+                "send_message": "Kirim pesan",
+                "errors": {
+                    "connect_failed": "Gagal terhubung ke saluran chat",
+                    "takeover_failed": "Gagal mengambil alih percakapan",
+                    "return_failed": "Gagal mengembalikan percakapan ke AI",
+                    "send_failed": "Gagal mengirim pesan"
+                }
             },
             "revise": {
                 "title": "Revisi jawaban",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Tidak dapat memuat pulse percakapan. Silakan coba lagi."
-            }
+            },
+            "refresh_messages": "Muat ulang pesan",
+            "delete_conversation": "Hapus percakapan"
         },
         "guardrails": {
             "title": "Pagar Pengaman",
@@ -696,7 +735,9 @@
                     "mean_score": "Skor rata-rata di seluruh kasus",
                     "tokens": "Token",
                     "tokens_note": "Total token yang dikonsumsi oleh eksekusi ini"
-                }
+                },
+                "back": "Kembali ke evaluasi",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Evaluasi",
@@ -818,6 +859,11 @@
                 "json_schema": "Skema JSON",
                 "llm_judge": "Juri LLM",
                 "tool_call": "Pemanggilan alat"
+            },
+            "statuses": {
+                "running": "Berjalan",
+                "completed": "Selesai",
+                "failed": "Gagal"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Tidak dapat menghapus topik. Silakan coba lagi.",
                 "load_error": "Tidak dapat memuat topik. Silakan coba lagi.",
                 "permission_denied": "Izin ditolak",
-                "permission_denied_description": "Anda tidak memiliki izin untuk mengelola topik."
+                "permission_denied_description": "Anda tidak memiliki izin untuk mengelola topik.",
+                "edit_topic_aria": "Edit {topic}",
+                "delete_topic_aria": "Hapus {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Dibuat {date}",
                 "used_by_agents": "Digunakan oleh {count} agen",
                 "delete_title": "Hapus Entri Q&A",
-                "delete_description": "Apakah Anda yakin ingin menghapus entri Q&A ini? Tindakan ini tidak dapat dibatalkan."
+                "delete_description": "Apakah Anda yakin ingin menghapus entri Q&A ini? Tindakan ini tidak dapat dibatalkan.",
+                "remove_question": "Hapus pertanyaan",
+                "actions": "Tindakan"
             },
             "youtube": {
                 "load_failed": "Gagal memuat video YouTube",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Diaktifkan",
                 "no_match": "Tidak ada konektor yang cocok.",
                 "soon": "Segera",
-                "connect_first": "Hubungkan MCP ini di Pengaturan terlebih dahulu"
+                "connect_first": "Hubungkan MCP ini di Pengaturan terlebih dahulu",
+                "column_always": "Selalu aktif",
+                "always_hint": "Tawarkan alat konektor ini di setiap giliran, bahkan saat pesan tidak jelas membutuhkannya. Maksimal 10 alat selalu aktif per agen.",
+                "always_failed": "Gagal memperbarui pengaturan selalu aktif"
             },
             "functions": {
                 "load_failed": "Gagal memuat fungsi",
@@ -1582,7 +1635,9 @@
                 "branding": "Pencitraan Merek",
                 "behavior": "Perilaku",
                 "settings": "Pengaturan",
-                "domain": "Domain"
+                "domain": "Domain",
+                "languages": "Bahasa",
+                "bubbles": "Gelembung Obrolan"
             },
             "view_only_title": "Hanya Lihat",
             "view_only_description": "Anda tidak memiliki izin untuk mengedit Penyiapan.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "ID Agen disalin ke papan klip",
                 "privacy_saved": "Tautan kebijakan privasi disimpan",
                 "privacy_error": "Tidak dapat menyimpan tautan kebijakan privasi",
-                "branding_saved": "Branding diperbarui"
+                "branding_saved": "Branding diperbarui",
+                "languages_saved": "Bahasa disimpan",
+                "languages_error": "Tidak dapat menyimpan bahasa"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Hanya origin ini yang diizinkan memuat widget.",
                 "keyboard_trigger": "Pemicu keyboard",
-                "placement": "Penempatan"
+                "placement": "Penempatan",
+                "language_switcher": "Pengalih bahasa"
             },
             "embed": {
                 "surface_preview": "Pratinjau permukaan"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Ditampilkan kepada pengunjung sebagai “Dengan mengobrol, Anda menyetujui kebijakan privasi kami.” Biarkan kosong untuk menyembunyikan.",
                 "branding_badge": "Tampilkan lencana \"Powered by Chatvia\"",
-                "branding_badge_hint": "Tampilkan lencana Chatvia pada obrolan dan widget agen ini."
-            }
+                "branding_badge_hint": "Tampilkan lencana Chatvia pada obrolan dan widget agen ini.",
+                "appearance_translations_default": "Bawaan",
+                "appearance_translations_default_tip": "Teks yang Anda tulis — otomatis diterjemahkan ke setiap bahasa.",
+                "appearance_translations_default_hint": "Ini adalah teks yang Anda tulis. Saat Anda menyimpan, teks ini otomatis diterjemahkan ke setiap bahasa, dan ditampilkan setiap kali bahasa pengunjung tidak ada dalam daftar.",
+                "appearance_translations_lang_hint": "Edit bahasa ini di sini. Biarkan kolom kosong untuk menggunakan terjemahan otomatis — suntingan Anda selalu dipertahankan.",
+                "starters_generate": "Buat dengan AI",
+                "starters_generate_title": "Buat pembuka dengan AI",
+                "starters_generate_description": "Pilih berapa banyak yang akan dibuat dari basis pengetahuan Anda, lalu pilih mana yang akan ditambahkan.",
+                "starters_generate_count": "Berapa banyak?",
+                "starters_generate_button": "Buat",
+                "starters_generating": "Membuat…",
+                "starters_generate_hint": "Pilih jumlah dan buat saran dari basis pengetahuan Anda.",
+                "starters_translate_empty": "Tambahkan pembuka di tab Bawaan terlebih dahulu, lalu terjemahkan di sini."
+            },
+            "languages": {
+                "title": "Bahasa UI",
+                "description": "Pilih bahasa yang didukung agen ini. Bahasa yang diaktifkan muncul di pengalih bahasa Hosted Chat dan mendapatkan kolom tersendiri per bahasa di Info dan Pembuka.",
+                "select_all": "Pilih semua",
+                "clear_all": "Hapus semua",
+                "count": "{count} dari {total} dipilih",
+                "hint": "Untuk menyembunyikan pengalih bahasa pengunjung sepenuhnya, nonaktifkan di bagian Perilaku.",
+                "min_required": "Setidaknya satu bahasa diperlukan."
+            },
+            "bubbles_add": "Tambahkan gelembung",
+            "bubbles_remove": "Hapus gelembung",
+            "bubbles_empty": "Belum ada gelembung obrolan.",
+            "bubbles_translate_empty": "Tambahkan gelembung terlebih dahulu untuk menerjemahkannya."
         },
         "topics_index": {
             "title": "Topik",
@@ -1865,7 +1948,10 @@
             "remove_error": "Gagal menghapus topik",
             "fill_fields": "Harap isi semua kolom",
             "created": "Topik berhasil dibuat dan ditambahkan",
-            "create_error": "Gagal membuat topik"
+            "create_error": "Gagal membuat topik",
+            "examples": "mis. {titles}",
+            "previous_page": "Halaman sebelumnya",
+            "next_page": "Halaman berikutnya"
         },
         "usage": {
             "title": "Wawasan Penggunaan",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "Apa arti “Dipetakan ke”?",
             "maps_to_help_title": "Dipetakan ke kolom kontak",
             "maps_to_help_1": "Menandai kolom ini sebagai atribut kontak standar — Nama, Email, Telepon, dan seterusnya. Nilai yang dimasukkan pengunjung kemudian dikenali sebagai informasi kontak tersebut, bukan sekadar jawaban anonim.",
-            "maps_to_help_2": "Kolom yang dipetakan mengisi detail prospek — menggerakkan daftar prospek, deteksi duplikat, dan ekspor CSV. Biarkan sebagai “—” untuk menangkap jawaban tanpa menandainya."
+            "maps_to_help_2": "Kolom yang dipetakan mengisi detail prospek — menggerakkan daftar prospek, deteksi duplikat, dan ekspor CSV. Biarkan sebagai “—” untuk menangkap jawaban tanpa menandainya.",
+            "subtitle": "Deskripsi",
+            "subtitle_placeholder": "mis. Ceritakan tentang perusahaan Anda dan kami akan menghubungi Anda.",
+            "subtitle_hint": "Ditampilkan kepada pengunjung di bawah judul formulir."
         },
         "submissions": {
             "page_title": "Pengiriman",
@@ -2103,7 +2192,8 @@
             "sending_link": "Mengirim tautan...",
             "or_continue_with": "Atau lanjutkan dengan",
             "no_account": "Belum punya akun?",
-            "start_free_trial": "Mulai uji coba gratis"
+            "start_free_trial": "Mulai uji coba gratis",
+            "create_account": "Buat akun"
         },
         "register": {
             "title": "Buat akun",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Semua agen",
                 "no_agents_assigned": "Tidak ada agen yang ditetapkan",
                 "agent_count": "{count} agen | {count} agen",
-                "delete_description": "Apakah Anda yakin ingin menghapus peran \"{name}\"? Tindakan ini tidak dapat dibatalkan."
+                "delete_description": "Apakah Anda yakin ingin menghapus peran \"{name}\"? Tindakan ini tidak dapat dibatalkan.",
+                "toggle_permissions": "Tampilkan atau sembunyikan izin"
             },
             "members": {
                 "title": "Anggota Tim",
@@ -2877,7 +2968,9 @@
                 "description": "Anggota dengan peran ini. Anda dapat mencabut akses mereka ke tim ini.",
                 "empty": "Belum ada anggota dengan peran ini.",
                 "close": "Tutup"
-            }
+            },
+            "rename_team": "Ganti nama tim",
+            "save_team_name": "Simpan nama tim"
         },
         "roles": {
             "details": "Detail Peran",
@@ -3161,7 +3254,8 @@
         "volume_month": "Volume pesan selama 30 hari terakhir",
         "last_week": "Minggu Lalu",
         "last_month": "Bulan Lalu",
-        "messages_tooltip": "{n} pesan | {n} pesan"
+        "messages_tooltip": "{n} pesan | {n} pesan",
+        "messages_this_month": "Pesan Bulan Ini"
     },
     "support": {
         "title": "Dukungan",
@@ -3250,7 +3344,8 @@
         "tokens_note": "Digunakan pada siklus ini — hanya untuk wawasan; paket Anda ditagih per pesan.",
         "of": "dari {limit}",
         "remaining": "{count} tersisa",
-        "load_error": "Tidak dapat memuat data penggunaan."
+        "load_error": "Tidak dapat memuat data penggunaan.",
+        "no_limit": "Tanpa batas"
     },
     "analytics_chat": {
         "title": "Tanyakan data Anda",
@@ -3293,7 +3388,8 @@
                 "create_title": "Tambah prompt",
                 "description": "Tulis prompt sistem yang dapat digunakan kembali sekali, lalu lampirkan ke agen mana pun dari halaman Persona-nya. Mengeditnya di sini akan memperbarui setiap agen yang menggunakannya.",
                 "id_label": "ID",
-                "copy_id_title": "Salin ID prompt — kirim sebagai prompt_id saat membuat/memperbarui agen melalui API"
+                "copy_id_title": "Salin ID prompt — kirim sebagai prompt_id saat membuat/memperbarui agen melalui API",
+                "copy_id": "Salin ID prompt"
             },
             "form": {
                 "name": "Nama",
@@ -3330,7 +3426,8 @@
                 "description": "Fungsi memungkinkan agen Anda memanggil API milik Anda sendiri sebagai alat LLM. {name} dan {description} adalah apa yang dilihat model saat memutuskan apakah akan memanggilnya — buatlah spesifik. {learn_more}",
                 "learn_more": "Pelajari selengkapnya",
                 "id_label": "ID",
-                "copy_id_title": "Salin ID fungsi — kirim sebagai function_id saat melampirkan melalui API"
+                "copy_id_title": "Salin ID fungsi — kirim sebagai function_id saat melampirkan melalui API",
+                "copy_id": "Salin ID fungsi"
             },
             "form": {
                 "name": "Nama",
@@ -3395,7 +3492,8 @@
                 "title": "Salin kunci API baru Anda",
                 "description": "Ini satu-satunya kesempatan Anda melihat {name}. Simpan di tempat yang aman — jika hilang, buat yang baru.",
                 "warning": "Perlakukan ini seperti kata sandi. Siapa pun yang memilikinya dapat menyediakan agen atas nama Anda.",
-                "confirm": "Saya telah menyimpannya dengan aman"
+                "confirm": "Saya telah menyimpannya dengan aman",
+                "copy": "Salin kunci API"
             },
             "revoke_dialog": {
                 "title": "Cabut kunci API",
@@ -3694,7 +3792,8 @@
         "account": "Akun",
         "workspace": "Ruang Kerja",
         "logout": "Keluar",
-        "language": "Bahasa"
+        "language": "Bahasa",
+        "open_user_menu": "Buka menu pengguna"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Batas maksimum file tercapai",
             "toast_max_files_description": "Anda hanya dapat mengunggah maksimum {max} file.",
             "toast_file_size_title": "Batas ukuran file terlampaui",
-            "toast_file_size_description": "File berikut melebihi batas {maxSize} MB: {fileList}"
+            "toast_file_size_description": "File berikut melebihi batas {maxSize} MB: {fileList}",
+            "analyze_failed": "Gagal menganalisis file",
+            "analyze_timed_out": "Waktu analisis habis - file mungkin terlalu besar"
         },
         "voice_recorder": {
             "title_default": "Rekam Catatan Suara",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Tips:",
             "tip_speak_clearly": "Bicaralah dengan jelas dan dengan tempo yang stabil",
             "tip_quiet_environment": "Gunakan lingkungan yang tenang untuk hasil terbaik",
-            "tip_max_duration": "Durasi rekaman maksimum: {minutes} menit | Durasi rekaman maksimum: {minutes} menit"
+            "tip_max_duration": "Durasi rekaman maksimum: {minutes} menit | Durasi rekaman maksimum: {minutes} menit",
+            "pause_recording": "Jeda rekaman",
+            "resume_recording": "Lanjutkan rekaman",
+            "cancel_recording": "Batalkan rekaman",
+            "play_recording": "Putar rekaman",
+            "pause_playback": "Jeda pemutaran",
+            "microphone_denied": "Akses mikrofon ditolak. Izinkan akses mikrofon untuk merekam.",
+            "microphone_not_found": "Mikrofon tidak ditemukan. Hubungkan mikrofon lalu coba lagi.",
+            "microphone_failed": "Gagal mengakses mikrofon",
+            "transcription_failed": "Transkripsi gagal"
         },
         "date_range": {
             "pick_range": "Pilih rentang tanggal",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "{name} terputus",
             "toast_disconnect_failed": "Gagal",
             "set_all": "Atur semua",
-            "toast_bulk_permission": "Mengatur {count} alat ke “{permission}” | Mengatur {count} alat ke “{permission}”"
+            "toast_bulk_permission": "Mengatur {count} alat ke “{permission}” | Mengatur {count} alat ke “{permission}”",
+            "copy_server_id": "Salin ID server"
         },
         "member_sheet": {
             "sr_description": "Kelola batasan, akses agen, dan status chatter ini.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Alihkan Bilah Samping",
             "sidebar": "Bilah Samping",
             "sidebar_description": "Menampilkan bilah samping seluler."
+        },
+        "json_editor": {
+            "aria_label": "Editor JSON"
+        },
+        "time_ago": {
+            "just_now": "Baru saja"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Kueri analitik produk — peristiwa, grafik, dan kohort — dari proyek Amplitude Anda."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Selamat datang di Chatvia",
+            "intro": "Mari buat agen AI pertama Anda. Hanya butuh satu menit.",
+            "what_title": "Apa itu agen?",
+            "what_body": "Agen adalah asisten AI yang Anda latih dengan konten Anda sendiri. Agen menjawab pelanggan Anda di situs web, widget obrolan, dan aplikasi perpesanan.",
+            "how_title": "Bagaimana cara kerjanya?",
+            "how_body": "Pertama, Anda membuat agen dan memberinya nama. Lalu Anda melatihnya dengan file, situs web, dan teks Anda agar dapat menjawab pertanyaan.",
+            "start": "Buat agen pertama saya",
+            "video_caption": "Tonton cara kerjanya"
         }
     }
 }

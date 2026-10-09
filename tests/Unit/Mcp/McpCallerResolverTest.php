@@ -1,11 +1,11 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerResolver;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\Request;
-use Support\Enums\User\UserType;
 
 /**
  * The caller of a built-in MCP tool is read once from the signed identity

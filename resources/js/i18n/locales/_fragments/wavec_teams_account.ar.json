@@ -1,0 +1,14 @@
+{
+    "nav": {
+        "open_user_menu": "فتح قائمة المستخدم"
+    },
+    "teams": {
+        "show": {
+            "rename_team": "إعادة تسمية الفريق",
+            "save_team_name": "حفظ اسم الفريق",
+            "roles": {
+                "toggle_permissions": "إظهار الأذونات أو إخفاؤها"
+            }
+        }
+    }
+}

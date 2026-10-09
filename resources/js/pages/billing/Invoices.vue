@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+// The workspace's Stripe invoices with PDF / online links and a small summary.
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -39,32 +41,16 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
-};
+const { formatDate: formatPreferredDate } = useDateFormat();
 
-const formatAmount = (amount: number, currency: string) => {
+// Stripe invoice timestamps are in seconds.
+const formatDate = (timestamp: number): string => formatPreferredDate(timestamp * 1000);
+
+const formatAmount = (amount: number, currency: string): string => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currency.toUpperCase(),
     }).format(amount / 100); // Convert from cents to dollars
-};
-
-const _getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-        case 'paid':
-            return { variant: 'default', text: t('billing.invoices.status.paid') };
-        case 'pending':
-            return { variant: 'secondary', text: t('billing.invoices.status.pending') };
-        case 'failed':
-            return { variant: 'destructive', text: t('billing.invoices.status.failed') };
-        default:
-            return { variant: 'outline', text: status };
-    }
 };
 </script>
 

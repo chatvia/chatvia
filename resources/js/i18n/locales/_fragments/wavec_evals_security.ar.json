@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "evals": {
+            "statuses": {
+                "running": "قيد التشغيل",
+                "completed": "مكتمل",
+                "failed": "فشل"
+            },
+            "run": {
+                "back": "العودة إلى التقييمات",
+                "latency_value": "{ms} مللي ثانية"
+            }
+        }
+    }
+}

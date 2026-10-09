@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import type { StreamCallbacks, StreamDoneData, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
 import { ref } from 'vue';
 
@@ -239,7 +240,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 state.value = 'idle';
                 return;
             }
-            reportError(synthesizeError('network', 'Could not reach the server. Please try again.', true), null, callbacks);
+            reportError(synthesizeError('network', i18n.global.t('chat.stream_errors.unreachable'), true), null, callbacks);
             return;
         }
 
@@ -249,7 +250,11 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
         }
 
         if (!response.ok) {
-            reportError(synthesizeError('network', `Server returned status ${response.status}.`, response.status >= 500), null, callbacks);
+            reportError(
+                synthesizeError('network', i18n.global.t('chat.stream_errors.http_status', { status: response.status }), response.status >= 500),
+                null,
+                callbacks,
+            );
             return;
         }
 
@@ -283,7 +288,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                     state.value = 'idle';
                     return;
                 }
-                reportError(synthesizeError('network', 'The connection was interrupted.', true), null, callbacks);
+                reportError(synthesizeError('network', i18n.global.t('chat.stream_errors.interrupted'), true), null, callbacks);
                 return;
             }
 
@@ -314,7 +319,7 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
                 try {
                     env = JSON.parse(match[1]);
                 } catch {
-                    reportError(synthesizeError('parse', 'Received malformed data from the server.', false), null, callbacks);
+                    reportError(synthesizeError('parse', i18n.global.t('chat.stream_errors.malformed'), false), null, callbacks);
                     continue;
                 }
 

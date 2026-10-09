@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Controllers\Chat\Messages\AttachmentDeleteController;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Illuminate\Http\Response;
 
@@ -27,13 +29,8 @@ use Illuminate\Http\Response;
  */
 class MessageAttachmentDeleteController
 {
-    public function __invoke(string $conversationId, Attachment $attachment): Response
+    public function __invoke(string $conversationId, Attachment $attachment, #[HostedChatAgent] Agent $agent): Response
     {
-        $agent = current_agent();
-        if ($agent === null) {
-            abort(404);
-        }
-
         $conversation = $attachment->conversation;
         if ($conversation === null
             || $conversation->external_id !== $conversationId

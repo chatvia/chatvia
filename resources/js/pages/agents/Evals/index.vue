@@ -1,10 +1,8 @@
 <script setup lang="ts">
+// Eval suite page for one agent: the list of test cases, the run history with
+// live progress, and the dialogs to add, edit and delete them. Viewing needs
+// `agent.evals.view`; changing anything needs `agent.evals.manage`.
 import LockedFeature from '@/components/LockedFeature.vue';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -14,91 +12,25 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
-import { useDateFormat } from '@/composables/useDateFormat';
-import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
-import { useEcho } from '@laravel/echo-vue';
-import {
-    Braces,
-    Check,
-    CircleCheck,
-    CircleX,
-    Equal,
-    FileText,
-    Info,
-    LoaderCircle,
-    MessageSquare,
-    Pencil,
-    Play,
-    Plus,
-    Regex,
-    Scale,
-    Search,
-    Sparkles,
-    Tag,
-    Trash2,
-    Wrench,
-    X,
-} from 'lucide-vue-next';
-import { computed, ref, watch, type Component } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { LoaderCircle, Play } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-
-const { t } = useI18n();
-
-interface EvalCase {
-    id: number;
-    external_id: string;
-    name: string;
-    input: string;
-    scorer_type: string;
-    scorer_config: Record<string, any> | null;
-    expected_output: string | null;
-    active: boolean;
-    created_at: string;
-}
-
-interface EvalRun {
-    id: number;
-    external_id: string;
-    status: string;
-    total_cases: number;
-    passed_count: number;
-    failed_count: number;
-    avg_score: number | null;
-    pass_rate: number | null;
-    total_tokens: number | null;
-    model_snapshot: string | null;
-    triggered_by_name: string | null;
-    triggered_by_avatar: string | null;
-    started_at: string | null;
-    finished_at: string | null;
-    created_at: string;
-}
-
-interface KnowledgeQuestion {
-    key: string;
-    type: 'chunk' | 'qa';
-    id: number;
-    question: string;
-    source: string;
-    already_added: boolean;
-}
+import EvalCaseDialog from './EvalCaseDialog.vue';
+import EvalCasesSection from './EvalCasesSection.vue';
+import EvalKnowledgeDialog from './EvalKnowledgeDialog.vue';
+import EvalRunsSection from './EvalRunsSection.vue';
+import type { EvalAgent, EvalCase, EvalRun, KnowledgeQuestion } from './types';
+import { useLiveEvalRuns } from './useLiveEvalRuns';
 
 interface Props {
-    agent: { external_id: string; name: string };
+    agent: EvalAgent;
     cases: EvalCase[];
     runs: EvalRun[];
     scorerTypes: string[];
@@ -108,221 +40,32 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
 const { hasCapability } = useCapabilityGuard();
-const hasAccess = computed(() => hasCapability('evals'));
 
+const hasAccess = computed(() => hasCapability('evals'));
 const canManage = computed(() => hasPermission('agent.evals.manage'));
 
-const { formatDateTime } = useDateFormat();
-
-const SCORER_ICONS: Record<string, Component> = {
-    contains: Search,
-    regex: Regex,
-    exact: Equal,
-    json_schema: Braces,
-    llm_judge: Scale,
-    tool_call: Wrench,
-};
-
-const scorerLabel = (type: string) => {
-    const key = `agents.evals.index.scorers.${type}.label`;
-    return t(key) !== key ? t(key) : type;
-};
-
-const scorerHelp = (type: string) => {
-    const key = `agents.evals.index.scorers.${type}.help`;
-    return t(key) !== key ? t(key) : '';
-};
-
-const scorerIcon = (type: string) => SCORER_ICONS[type];
-
-// A JSON syntax example, not prose — kept out of i18n because vue-i18n reserves
-// `{`, `}` and `@`, which a JSON object literal is full of.
-const TOOL_ARGS_PLACEHOLDER = '{\n  "to": "support@acme.com"\n}';
-
-// Server validation keys for scorer config are dotted (e.g. "scorer_config.value")
-// and not part of useForm's flat error type — read them through a cast.
-const configError = (key: string): string | undefined => (form.errors as Record<string, string | undefined>)[`scorer_config.${key}`];
-
-// Live-updated copy of the server's runs. Reverb events (below) mutate this in
-// place so a run's status + scores update without a reload; Inertia reloads
-// (run start / delete / clear) reset it back to the server's truth.
-const runs = ref<EvalRun[]>([...props.runs]);
-watch(
-    () => props.runs,
-    (next) => {
-        runs.value = [...next];
-    },
-);
+const { runs, hasRunning } = useLiveEvalRuns(props.agent.external_id, () => props.runs);
 
 const activeCases = computed(() => props.cases.filter((c) => c.active).length);
-const hasRunning = computed(() => runs.value.some((r) => r.status === 'running'));
 const canRun = computed(() => canManage.value && activeCases.value > 0 && !hasRunning.value);
 
-const runStatusVariant = (status: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    if (status === 'completed') return 'default';
-    if (status === 'failed') return 'destructive';
-    return 'secondary';
-};
-
-// ---- Case create / edit ----------------------------------------------------
+// ---- Case dialogs ----------------------------------------------------------
 
 const isCaseDialogOpen = ref(false);
-// Holds the case being edited by its external_id (the route key); null = create.
-const editingId = ref<string | null>(null);
-
-const form = useForm({
-    name: '',
-    input: '',
-    scorer_type: 'contains',
-    value: '',
-    case_sensitive: false,
-    pattern: '',
-    criteria: '',
-    required: '',
-    tool: '',
-    tool_arguments: '',
-    expected_output: '',
-    active: true,
-});
-
-form.transform((data) => {
-    const config: Record<string, any> = {};
-    if (data.scorer_type === 'contains') {
-        config.value = data.value;
-        config.case_sensitive = data.case_sensitive;
-    } else if (data.scorer_type === 'regex') {
-        config.pattern = data.pattern;
-    } else if (data.scorer_type === 'llm_judge') {
-        config.criteria = data.criteria;
-    } else if (data.scorer_type === 'json_schema') {
-        config.required = data.required
-            .split(',')
-            .map((k) => k.trim())
-            .filter(Boolean);
-    } else if (data.scorer_type === 'tool_call') {
-        config.tool = data.tool;
-        // Optional: only check arguments when the user supplied them. Sent as the
-        // raw JSON string — the server validates it and the scorer decodes it.
-        if (data.tool_arguments.trim()) config.arguments = data.tool_arguments;
-    }
-
-    return {
-        name: data.name,
-        input: data.input,
-        scorer_type: data.scorer_type,
-        scorer_config: config,
-        expected_output: data.expected_output,
-        active: data.active,
-    };
-});
+const editingCase = ref<EvalCase | null>(null);
+const isKnowledgeOpen = ref(false);
 
 const openCreate = () => {
-    editingId.value = null;
-    form.reset();
-    form.clearErrors();
+    editingCase.value = null;
     isCaseDialogOpen.value = true;
 };
 
 const openEdit = (item: EvalCase) => {
-    editingId.value = item.external_id;
-    form.clearErrors();
-    form.name = item.name;
-    form.input = item.input;
-    form.scorer_type = item.scorer_type;
-    form.value = item.scorer_config?.value ?? '';
-    form.case_sensitive = Boolean(item.scorer_config?.case_sensitive);
-    form.pattern = item.scorer_config?.pattern ?? '';
-    form.criteria = item.scorer_config?.criteria ?? '';
-    form.required = Array.isArray(item.scorer_config?.required) ? item.scorer_config!.required.join(', ') : '';
-    form.tool = item.scorer_config?.tool ?? '';
-    form.tool_arguments =
-        typeof item.scorer_config?.arguments === 'string'
-            ? item.scorer_config.arguments
-            : item.scorer_config?.arguments
-              ? JSON.stringify(item.scorer_config.arguments, null, 2)
-              : '';
-    form.expected_output = item.expected_output ?? '';
-    form.active = item.active;
+    editingCase.value = item;
     isCaseDialogOpen.value = true;
-};
-
-const submitCase = () => {
-    const opts = {
-        preserveScroll: true,
-        onSuccess: () => {
-            isCaseDialogOpen.value = false;
-            toast.success(editingId.value ? t('agents.evals.index.toasts.case_updated') : t('agents.evals.index.toasts.case_added'));
-        },
-        onError: (errors: Record<string, string>) => {
-            const first = Object.values(errors)[0];
-            if (first) toast.error(first);
-        },
-    };
-
-    if (editingId.value) {
-        form.patch(route('agents.evals.cases.update', [props.agent.external_id, editingId.value]), opts);
-    } else {
-        form.post(route('agents.evals.cases.store', props.agent.external_id), opts);
-    }
-};
-
-// ---- Bulk add from knowledge ------------------------------------------------
-
-const isKnowledgeOpen = ref(false);
-const knowledgeLoading = ref(false);
-const knowledgeSearch = ref('');
-const selectedKeys = ref<string[]>([]);
-const knowledgeSubmitting = ref(false);
-
-const openFromKnowledge = () => {
-    selectedKeys.value = [];
-    knowledgeSearch.value = '';
-    isKnowledgeOpen.value = true;
-    knowledgeLoading.value = true;
-    router.reload({ only: ['knowledgeQuestions'], onFinish: () => (knowledgeLoading.value = false) });
-};
-
-const filteredQuestions = computed(() => {
-    const all = props.knowledgeQuestions ?? [];
-    const term = knowledgeSearch.value.trim().toLowerCase();
-    if (!term) return all;
-    return all.filter((q) => q.question.toLowerCase().includes(term) || q.source.toLowerCase().includes(term));
-});
-
-const isQuestionSelected = (q: KnowledgeQuestion) => selectedKeys.value.includes(q.key);
-
-const toggleQuestion = (q: KnowledgeQuestion) => {
-    if (q.already_added) return;
-    selectedKeys.value = isQuestionSelected(q) ? selectedKeys.value.filter((k) => k !== q.key) : [...selectedKeys.value, q.key];
-};
-
-const submitKnowledge = () => {
-    const items = (props.knowledgeQuestions ?? [])
-        .filter((q) => selectedKeys.value.includes(q.key))
-        .map((q) => ({ type: q.type, id: q.id, question: q.question }));
-    if (!items.length) return;
-
-    knowledgeSubmitting.value = true;
-    router.post(
-        route('agents.evals.cases.from-knowledge', props.agent.external_id),
-        { items },
-        {
-            preserveScroll: true,
-            onSuccess: () => {
-                isKnowledgeOpen.value = false;
-                toast.success(t('agents.evals.index.toasts.cases_added', { count: items.length }, items.length));
-            },
-            onError: (errors: Record<string, string>) => {
-                const first = Object.values(errors)[0];
-                if (first) toast.error(first);
-            },
-            onFinish: () => {
-                knowledgeSubmitting.value = false;
-            },
-        },
-    );
 };
 
 // ---- Case delete -----------------------------------------------------------
@@ -405,40 +148,6 @@ const clearRuns = () => {
         },
     });
 };
-
-// Live run updates over Reverb (replaces the old 4s polling). A run row upserts
-// when it's started or finalized; each scored case bumps its running pass/fail
-// tally so progress shows before the run is finalized. useEcho cleans up on
-// unmount, and both listeners share the one ref-counted channel subscription.
-useEcho(`agents.${props.agent.external_id}.evals`, '.EvalRunProgressed', (e: { run: EvalRun }) => {
-    const idx = runs.value.findIndex((r) => r.external_id === e.run.external_id);
-    if (idx === -1) {
-        runs.value = [e.run, ...runs.value];
-    } else {
-        runs.value[idx] = e.run;
-    }
-});
-
-useEcho(
-    `agents.${props.agent.external_id}.evals`,
-    '.EvalCaseScored',
-    (e: { run_external_id: string; passed_count: number; failed_count: number }) => {
-        const run = runs.value.find((r) => r.external_id === e.run_external_id);
-        if (!run) return;
-        run.passed_count = e.passed_count;
-        run.failed_count = e.failed_count;
-        const scored = e.passed_count + e.failed_count;
-        run.pass_rate = scored > 0 ? Math.round((e.passed_count / scored) * 100) : null;
-    },
-);
-
-const knowledgeAddLabel = computed(() => {
-    if (!selectedKeys.value.length) {
-        return t('agents.evals.index.knowledge_dialog.add_cases');
-    }
-
-    return t('agents.evals.index.knowledge_dialog.add_count', { count: selectedKeys.value.length }, selectedKeys.value.length);
-});
 </script>
 
 <template>
@@ -458,458 +167,29 @@ const knowledgeAddLabel = computed(() => {
         <TooltipProvider v-else :delay-duration="200">
             <div class="flex justify-center">
                 <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl space-y-8">
-                    <!-- Cases -->
-                    <section class="space-y-3">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <h2 class="text-base font-semibold">{{ t('agents.evals.index.cases_heading') }}</h2>
-                                <p class="text-muted-foreground text-sm">
-                                    {{ t('agents.evals.index.cases_summary', { total: props.cases.length, active: activeCases }) }}
-                                </p>
-                                <p v-if="activeCases > 0" class="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
-                                    <Info class="h-3.5 w-3.5 shrink-0" />
-                                    {{ t('agents.evals.index.cost_note', { count: activeCases }, activeCases) }}
-                                </p>
-                            </div>
-                            <div v-if="canManage" class="flex items-center gap-2">
-                                <Button size="sm" variant="outline" @click="openFromKnowledge">
-                                    <Sparkles class="me-2 h-4 w-4" />
-                                    {{ t('agents.evals.index.from_knowledge') }}
-                                </Button>
-                                <Button size="sm" variant="outline" @click="openCreate">
-                                    <Plus class="me-2 h-4 w-4" />
-                                    {{ t('agents.evals.index.add_case') }}
-                                </Button>
-                            </div>
-                        </div>
+                    <EvalCasesSection
+                        :cases="props.cases"
+                        :active-count="activeCases"
+                        :can-manage="canManage"
+                        @add="openCreate"
+                        @from-knowledge="isKnowledgeOpen = true"
+                        @edit="openEdit"
+                        @delete="confirmDelete"
+                    />
 
-                        <div class="bg-card rounded-lg border">
-                            <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>{{ t('agents.evals.index.table.case') }}</TableHead>
-                                        <TableHead>{{ t('agents.evals.index.table.scorer') }}</TableHead>
-                                        <TableHead>{{ t('agents.evals.index.table.status') }}</TableHead>
-                                        <TableHead class="w-0 text-end">{{ t('agents.evals.index.table.actions') }}</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow v-for="item in props.cases" :key="item.id" class="hover:bg-muted/50">
-                                        <TableCell class="max-w-md">
-                                            <Tooltip>
-                                                <TooltipTrigger as-child>
-                                                    <div class="truncate font-medium">{{ item.name }}</div>
-                                                </TooltipTrigger>
-                                                <TooltipContent class="max-w-sm">
-                                                    <p class="whitespace-normal">{{ item.name }}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                            <!-- Knowledge-created cases reuse the question as the name — don't print it twice. -->
-                                            <Tooltip v-if="item.input !== item.name">
-                                                <TooltipTrigger as-child>
-                                                    <div class="text-muted-foreground truncate text-sm">{{ item.input }}</div>
-                                                </TooltipTrigger>
-                                                <TooltipContent class="max-w-sm">
-                                                    <p class="whitespace-normal">{{ item.input }}</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge variant="outline" class="gap-1.5">
-                                                <component :is="scorerIcon(item.scorer_type)" class="h-3 w-3" />
-                                                {{ scorerLabel(item.scorer_type) }}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                :variant="item.active ? 'secondary' : 'outline'"
-                                                class="gap-1.5"
-                                                :class="item.active ? '' : 'text-muted-foreground'"
-                                            >
-                                                <span
-                                                    class="h-1.5 w-1.5 rounded-full"
-                                                    :class="item.active ? 'bg-emerald-500' : 'bg-muted-foreground/40'"
-                                                />
-                                                {{ item.active ? t('agents.evals.index.status_active') : t('agents.evals.index.status_inactive') }}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell class="text-end">
-                                            <div v-if="canManage" class="flex items-center justify-end gap-1">
-                                                <Button variant="ghost" size="icon" @click="openEdit(item)">
-                                                    <Pencil class="h-4 w-4" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" @click="confirmDelete(item)">
-                                                    <Trash2 class="text-destructive h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-if="props.cases.length === 0">
-                                        <TableCell colspan="4" class="text-muted-foreground py-10 text-center text-sm">
-                                            {{ t('agents.evals.index.empty_cases') }}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </section>
-
-                    <!-- Recent runs -->
-                    <section class="space-y-3">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <h2 class="text-base font-semibold">{{ t('agents.evals.index.recent_runs') }}</h2>
-                                <p class="text-muted-foreground text-sm">{{ t('agents.evals.index.recent_runs_description') }}</p>
-                            </div>
-                            <Button v-if="canManage && runs.length > 0" size="sm" variant="outline" @click="isClearOpen = true">
-                                <Trash2 class="me-2 h-4 w-4" />
-                                {{ t('agents.evals.index.clear') }}
-                            </Button>
-                        </div>
-
-                        <div class="bg-card rounded-lg border">
-                            <Table class="[&_td]:px-4 [&_td]:py-3 [&_th]:px-4">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>{{ t('agents.evals.index.table.actor') }}</TableHead>
-                                        <TableHead>{{ t('agents.evals.index.table.pass_rate') }}</TableHead>
-                                        <TableHead>{{ t('agents.evals.index.table.passed_failed') }}</TableHead>
-                                        <TableHead>{{ t('agents.evals.index.table.avg_score') }}</TableHead>
-                                        <TableHead>{{ t('agents.evals.index.table.status') }}</TableHead>
-                                        <TableHead class="text-end">{{ t('agents.evals.index.table.when') }}</TableHead>
-                                        <TableHead v-if="canManage" class="w-0"></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow
-                                        v-for="run in runs"
-                                        :key="run.id"
-                                        class="hover:bg-muted/50 cursor-pointer"
-                                        @click="openRun(run.external_id)"
-                                    >
-                                        <TableCell>
-                                            <div v-if="run.triggered_by_name" class="flex items-center gap-2">
-                                                <Avatar class="h-7 w-7">
-                                                    <AvatarImage
-                                                        v-if="run.triggered_by_avatar"
-                                                        :src="run.triggered_by_avatar"
-                                                        :alt="run.triggered_by_name"
-                                                    />
-                                                    <AvatarFallback class="text-xs">{{ getInitials(run.triggered_by_name) }}</AvatarFallback>
-                                                </Avatar>
-                                                <span>{{ run.triggered_by_name }}</span>
-                                            </div>
-                                            <span v-else class="text-muted-foreground">—</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div v-if="run.pass_rate !== null" class="flex items-center gap-2">
-                                                <Progress :model-value="run.pass_rate" class="h-1.5 w-16" />
-                                                <span class="font-medium tabular-nums">{{ run.pass_rate }}%</span>
-                                            </div>
-                                            <span v-else class="text-muted-foreground">—</span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div class="flex items-center gap-3 tabular-nums">
-                                                <span class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                                                    <CircleCheck class="h-3.5 w-3.5" />
-                                                    {{ run.passed_count }}
-                                                </span>
-                                                <span
-                                                    class="flex items-center gap-1"
-                                                    :class="run.failed_count > 0 ? 'text-destructive' : 'text-muted-foreground'"
-                                                >
-                                                    <CircleX class="h-3.5 w-3.5" />
-                                                    {{ run.failed_count }}
-                                                </span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell class="tabular-nums">
-                                            {{ run.avg_score !== null ? Math.round(run.avg_score * 100) + '%' : '—' }}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Badge :variant="runStatusVariant(run.status)" class="gap-1.5 capitalize">
-                                                <LoaderCircle v-if="run.status === 'running'" class="h-3 w-3 animate-spin" />
-                                                <CircleCheck v-else-if="run.status === 'completed'" class="h-3 w-3" />
-                                                <CircleX v-else class="h-3 w-3" />
-                                                {{ run.status }}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell class="text-muted-foreground text-end whitespace-nowrap">{{
-                                            formatDateTime(run.created_at)
-                                        }}</TableCell>
-                                        <TableCell v-if="canManage" class="text-end">
-                                            <Button variant="ghost" size="icon" @click.stop="confirmDeleteRun(run)">
-                                                <Trash2 class="text-destructive h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow v-if="runs.length === 0">
-                                        <TableCell :colspan="canManage ? 7 : 6" class="text-muted-foreground py-10 text-center text-sm">
-                                            {{ t('agents.evals.index.empty_runs') }}
-                                        </TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </section>
+                    <EvalRunsSection :runs="runs" :can-manage="canManage" @open="openRun" @delete="confirmDeleteRun" @clear="isClearOpen = true" />
                 </div>
             </div>
         </TooltipProvider>
 
-        <!-- Create / edit case dialog -->
-        <Dialog v-model:open="isCaseDialogOpen">
-            <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{{
-                        editingId ? t('agents.evals.index.case_dialog.edit_title') : t('agents.evals.index.case_dialog.add_title')
-                    }}</DialogTitle>
-                    <DialogDescription>{{ t('agents.evals.index.case_dialog.description') }}</DialogDescription>
-                </DialogHeader>
+        <EvalCaseDialog
+            v-model:open="isCaseDialogOpen"
+            :agent-external-id="props.agent.external_id"
+            :scorer-types="props.scorerTypes"
+            :editing="editingCase"
+        />
 
-                <div class="space-y-4">
-                    <div class="space-y-1.5">
-                        <Label for="case-name">{{ t('agents.evals.index.case_dialog.name_label') }}</Label>
-                        <div class="relative">
-                            <Tag class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                id="case-name"
-                                v-model="form.name"
-                                :placeholder="t('agents.evals.index.case_dialog.name_placeholder')"
-                                class="ps-9"
-                            />
-                        </div>
-                        <p v-if="form.errors.name" class="text-destructive text-xs">{{ form.errors.name }}</p>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <Label for="case-input">{{ t('agents.evals.index.case_dialog.input_label') }}</Label>
-                        <div class="relative">
-                            <MessageSquare class="text-muted-foreground pointer-events-none absolute start-3 top-3 h-4 w-4" />
-                            <Textarea
-                                id="case-input"
-                                v-model="form.input"
-                                rows="3"
-                                :placeholder="t('agents.evals.index.case_dialog.input_placeholder')"
-                                class="ps-9"
-                            />
-                        </div>
-                        <p v-if="form.errors.input" class="text-destructive text-xs">{{ form.errors.input }}</p>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <Label>{{ t('agents.evals.index.case_dialog.scorer_label') }}</Label>
-                        <Select v-model="form.scorer_type">
-                            <SelectTrigger>
-                                <SelectValue :placeholder="t('agents.evals.index.case_dialog.scorer_placeholder')" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="type in props.scorerTypes" :key="type" :value="type">
-                                    <span class="flex items-center gap-2">
-                                        <component :is="scorerIcon(type)" class="text-muted-foreground h-3.5 w-3.5" />
-                                        {{ scorerLabel(type) }}
-                                    </span>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p class="text-muted-foreground text-xs">{{ scorerHelp(form.scorer_type) }}</p>
-                    </div>
-
-                    <!-- Scorer-specific config -->
-                    <template v-if="form.scorer_type === 'contains'">
-                        <div class="space-y-1.5">
-                            <Label for="cfg-value">{{ t('agents.evals.index.case_dialog.expected_substring') }}</Label>
-                            <div class="relative">
-                                <Search class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                                <Input
-                                    id="cfg-value"
-                                    v-model="form.value"
-                                    :placeholder="t('agents.evals.index.case_dialog.expected_substring_placeholder')"
-                                    class="ps-9"
-                                />
-                            </div>
-                            <p v-if="configError('value')" class="text-destructive text-xs">{{ configError('value') }}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <Switch id="cfg-cs" v-model="form.case_sensitive" />
-                            <Label for="cfg-cs" class="cursor-pointer font-normal">{{ t('agents.evals.index.case_dialog.case_sensitive') }}</Label>
-                        </div>
-                    </template>
-
-                    <div v-else-if="form.scorer_type === 'regex'" class="space-y-1.5">
-                        <Label for="cfg-pattern">{{ t('agents.evals.index.case_dialog.pattern_label') }}</Label>
-                        <div class="relative">
-                            <Regex class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                id="cfg-pattern"
-                                v-model="form.pattern"
-                                :placeholder="t('agents.evals.index.case_dialog.pattern_placeholder')"
-                                class="ps-9 font-mono"
-                            />
-                        </div>
-                        <p v-if="configError('pattern')" class="text-destructive text-xs">{{ configError('pattern') }}</p>
-                    </div>
-
-                    <div v-else-if="form.scorer_type === 'json_schema'" class="space-y-1.5">
-                        <Label for="cfg-required">{{ t('agents.evals.index.case_dialog.required_keys') }}</Label>
-                        <div class="relative">
-                            <Braces class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                            <Input
-                                id="cfg-required"
-                                v-model="form.required"
-                                :placeholder="t('agents.evals.index.case_dialog.required_keys_placeholder')"
-                                class="ps-9"
-                            />
-                        </div>
-                        <p class="text-muted-foreground text-xs">{{ t('agents.evals.index.case_dialog.required_keys_hint') }}</p>
-                    </div>
-
-                    <div v-else-if="form.scorer_type === 'llm_judge'" class="space-y-1.5">
-                        <Label for="cfg-criteria">{{ t('agents.evals.index.case_dialog.grading_criteria') }}</Label>
-                        <div class="relative">
-                            <Scale class="text-muted-foreground pointer-events-none absolute start-3 top-3 h-4 w-4" />
-                            <Textarea
-                                id="cfg-criteria"
-                                v-model="form.criteria"
-                                rows="3"
-                                :placeholder="t('agents.evals.index.case_dialog.grading_criteria_placeholder')"
-                                class="ps-9"
-                            />
-                        </div>
-                        <p v-if="configError('criteria')" class="text-destructive text-xs">
-                            {{ configError('criteria') }}
-                        </p>
-                    </div>
-
-                    <template v-else-if="form.scorer_type === 'tool_call'">
-                        <div class="space-y-1.5">
-                            <Label for="cfg-tool">{{ t('agents.evals.index.case_dialog.expected_tool') }}</Label>
-                            <div class="relative">
-                                <Wrench class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                                <Input
-                                    id="cfg-tool"
-                                    v-model="form.tool"
-                                    :placeholder="t('agents.evals.index.case_dialog.expected_tool_placeholder')"
-                                    class="ps-9 font-mono"
-                                />
-                            </div>
-                            <p class="text-muted-foreground text-xs">{{ t('agents.evals.index.case_dialog.expected_tool_hint') }}</p>
-                            <p v-if="configError('tool')" class="text-destructive text-xs">{{ configError('tool') }}</p>
-                        </div>
-                        <div class="space-y-1.5">
-                            <Label for="cfg-tool-args">{{ t('agents.evals.index.case_dialog.expected_arguments') }}</Label>
-                            <Textarea
-                                id="cfg-tool-args"
-                                v-model="form.tool_arguments"
-                                rows="3"
-                                :placeholder="TOOL_ARGS_PLACEHOLDER"
-                                class="font-mono"
-                            />
-                            <p class="text-muted-foreground text-xs">{{ t('agents.evals.index.case_dialog.expected_arguments_hint') }}</p>
-                            <p v-if="configError('arguments')" class="text-destructive text-xs">{{ configError('arguments') }}</p>
-                        </div>
-                    </template>
-
-                    <div v-if="['exact', 'llm_judge'].includes(form.scorer_type)" class="space-y-1.5">
-                        <Label for="cfg-expected">
-                            {{
-                                form.scorer_type === 'exact'
-                                    ? t('agents.evals.index.case_dialog.expected_answer')
-                                    : t('agents.evals.index.case_dialog.reference_answer')
-                            }}
-                        </Label>
-                        <div class="relative">
-                            <FileText class="text-muted-foreground pointer-events-none absolute start-3 top-3 h-4 w-4" />
-                            <Textarea id="cfg-expected" v-model="form.expected_output" rows="2" class="ps-9" />
-                        </div>
-                        <p v-if="form.errors.expected_output" class="text-destructive text-xs">{{ form.errors.expected_output }}</p>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <Switch id="cfg-active" v-model="form.active" />
-                        <Label for="cfg-active" class="cursor-pointer font-normal">{{ t('agents.evals.index.case_dialog.active_label') }}</Label>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" :disabled="form.processing" @click="isCaseDialogOpen = false">
-                        <X class="me-2 h-4 w-4" />
-                        {{ t('common.cancel') }}
-                    </Button>
-                    <Button :disabled="form.processing" @click="submitCase">
-                        <LoaderCircle v-if="form.processing" class="me-2 h-4 w-4 animate-spin" />
-                        <Check v-else-if="editingId" class="me-2 h-4 w-4" />
-                        <Plus v-else class="me-2 h-4 w-4" />
-                        {{ editingId ? t('agents.evals.index.case_dialog.save') : t('agents.evals.index.add_case') }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Bulk add from knowledge -->
-        <Dialog v-model:open="isKnowledgeOpen">
-            <DialogContent class="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.evals.index.knowledge_dialog.title') }}</DialogTitle>
-                    <DialogDescription>{{ t('agents.evals.index.knowledge_dialog.description') }}</DialogDescription>
-                </DialogHeader>
-
-                <div class="relative">
-                    <Search class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2" />
-                    <Input v-model="knowledgeSearch" :placeholder="t('agents.evals.index.knowledge_dialog.search_placeholder')" class="ps-9" />
-                </div>
-
-                <ScrollArea class="-mx-1 h-72 px-1">
-                    <div v-if="knowledgeLoading" class="flex h-full items-center justify-center py-8">
-                        <LoaderCircle class="text-muted-foreground h-5 w-5 animate-spin" />
-                    </div>
-                    <div v-else class="space-y-1">
-                        <div
-                            v-for="q in filteredQuestions"
-                            :key="q.key"
-                            role="button"
-                            :aria-disabled="q.already_added"
-                            class="hover:bg-muted/50 flex w-full cursor-pointer items-start gap-3 rounded-md border p-3 text-start text-sm transition-colors"
-                            :class="[
-                                isQuestionSelected(q) ? 'border-primary bg-primary/5' : 'border-transparent',
-                                q.already_added ? 'cursor-not-allowed opacity-60 hover:bg-transparent' : '',
-                            ]"
-                            @click="toggleQuestion(q)"
-                        >
-                            <Checkbox
-                                :model-value="q.already_added || isQuestionSelected(q)"
-                                :disabled="q.already_added"
-                                class="pointer-events-none mt-0.5"
-                            />
-                            <span class="flex-1">{{ q.question }}</span>
-                            <Badge variant="outline" class="shrink-0">{{ q.source }}</Badge>
-                            <Badge v-if="q.already_added" variant="secondary" class="shrink-0">{{
-                                t('agents.evals.index.knowledge_dialog.added_badge')
-                            }}</Badge>
-                        </div>
-
-                        <p v-if="!filteredQuestions.length" class="text-muted-foreground py-8 text-center text-sm">
-                            {{
-                                (props.knowledgeQuestions ?? []).length
-                                    ? t('agents.evals.index.knowledge_dialog.no_search_results')
-                                    : t('agents.evals.index.knowledge_dialog.no_questions')
-                            }}
-                        </p>
-                    </div>
-                </ScrollArea>
-
-                <DialogFooter>
-                    <Button type="button" variant="outline" :disabled="knowledgeSubmitting" @click="isKnowledgeOpen = false">
-                        <X class="me-2 h-4 w-4" />
-                        {{ t('common.cancel') }}
-                    </Button>
-                    <Button type="button" :disabled="!selectedKeys.length || knowledgeSubmitting" @click="submitKnowledge">
-                        <LoaderCircle v-if="knowledgeSubmitting" class="me-2 h-4 w-4 animate-spin" />
-                        <Plus v-else class="me-2 h-4 w-4" />
-                        {{ knowledgeAddLabel }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <EvalKnowledgeDialog v-model:open="isKnowledgeOpen" :agent-external-id="props.agent.external_id" :questions="props.knowledgeQuestions" />
 
         <!-- Delete confirmation -->
         <AlertDialog v-model:open="isDeleteOpen">

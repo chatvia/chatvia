@@ -2,11 +2,11 @@
 
 namespace App\Http\Middleware\Chat;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
 use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Services\AgentLocator;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Http\Request;
@@ -47,7 +47,7 @@ class EnsureChatIsAccessible
             return to_route('chat.home');
         }
 
-        $agent = AgentLocator::resolveAgentFromSubdomain($request->agentSlug());
+        $agent = HostedChatAgent::from($request);
 
         // A disabled Hosted Chat surface looks as if the agent did not exist.
         // The widget and bar surfaces are gated separately (widget settings).

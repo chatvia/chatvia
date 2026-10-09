@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectToAgent;
+use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -43,10 +47,55 @@ it('memoizes the widget agent lookup per request', function (): void {
     $agent = Agent::factory()->create();
     request()->headers->set('X-AGENT-ID', $agent->external_id);
 
-    $first = current_agent_from_widget();
+    $first = WidgetAgent::from(request());
 
-    expect(current_agent_from_widget())->toBe($first)
-        ->and($first?->is($agent))->toBeTrue();
+    DB::enableQueryLog();
+
+    expect(WidgetAgent::from(request()))->toBe($first)
+        ->and($first?->is($agent))->toBeTrue()
+        ->and(DB::getQueryLog())->toBe([]);
+});
+
+it('looks the widget agent up again when the header names another agent', function (): void {
+    [$first, $second] = Agent::factory()->count(2)->create();
+    $request = Request::create('/widget/agents/settings');
+
+    $request->headers->set('X-AGENT-ID', $first->external_id);
+    $resolvedFirst = WidgetAgent::from($request);
+
+    $request->headers->set('X-AGENT-ID', $second->external_id);
+
+    expect($resolvedFirst?->is($first))->toBeTrue()
+        ->and(WidgetAgent::from($request)?->is($second))->toBeTrue();
+});
+
+it('memoizes the hosted-chat agent lookup per request', function (): void {
+    $agent = Agent::factory()->create();
+    $request = Request::create("https://chatvia.test/chat?agent={$agent->external_id}");
+
+    $first = HostedChatAgent::from($request);
+
+    DB::enableQueryLog();
+
+    expect(HostedChatAgent::from($request))->toBe($first)
+        ->and($first?->is($agent))->toBeTrue()
+        ->and(DB::getQueryLog())->toBe([]);
+});
+
+it('resolves no hosted-chat agent when the request names none, even if an agent has no subdomain', function (): void {
+    // Regression: a request without an agent slug looked agents up by a NULL
+    // slug, which matched any agent whose sub_domain is NULL.
+    Agent::factory()->create(['sub_domain' => null]);
+
+    $request = Request::create('http://localhost/chat');
+    $request->setLaravelSession(app('session.store'));
+
+    expect(HostedChatAgent::from($request))->toBeNull();
+
+    // The middleware shows the not-found page instead of serving that agent.
+    $response = app(EnsureChatIsAccessible::class)->handle($request, fn (): Response => new Response('next'));
+
+    expect($response)->toBeInstanceOf(InertiaResponse::class);
 });
 
 it('no longer registers routes that render missing pages', function (string $name): void {

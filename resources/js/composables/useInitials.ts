@@ -1,3 +1,7 @@
+/**
+ * Avatar initials from a display name: the first letter of the first and last
+ * word ("Ada Lovelace" → "AL"), or one letter for a single-word name.
+ */
 export function getInitials(fullName?: string): string {
     if (!fullName) return '';
 

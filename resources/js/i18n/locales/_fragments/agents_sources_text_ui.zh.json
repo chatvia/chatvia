@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "删除问题",
+                "actions": "操作"
+            }
+        }
+    }
+}

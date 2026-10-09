@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * One assistant reply in the hosted chat: the rendered answer, a "still
+ * working" indicator (dots or the tool-call stack), any tool calls awaiting
+ * approval, and the action row (copy, feedback, delete, regenerate, sources).
+ */
+import { deleteMessage as deleteMessageRequest, sendMessageFeedback, type MessageFeedbackValue } from '@/api/chat';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -11,43 +17,34 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import type { Message } from '@/types/chat';
+import type { ActiveToolCall, Message, MessageSource } from '@/types/chat';
 import type { ToolApprovalCall, ToolArtifact } from '@/types/stream';
-import { usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import { Check, Copy, Plug, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Webhook } from 'lucide-vue-next';
+import { useClipboard } from '@vueuse/core';
+import { Check, Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import AssistantMessageBody from './AssistantMessageBody.vue';
 import SourcesDialog from './SourcesDialog.vue';
 import ToolApprovalCard from './ToolApprovalCard.vue';
+import ToolCallIndicator from './ToolCallIndicator.vue';
 import WaitingIndicator from './WaitingIndicator.vue';
 
-interface ActiveCall {
-    tool_call_id: string;
-    name: string;
-    kind: 'mcp' | 'function';
-    label: string;
-    activity_label: string | null;
-    icon_url: string | null;
-    brand_color: string | null;
-    started_at: number;
-}
+type MessageId = string | number;
+type Feedback = 'thumbs-up' | 'thumbs-down';
 
 const props = defineProps<{
     message: Message;
-    userMessageId?: string | number;
+    userMessageId?: MessageId;
     isThinking?: boolean;
     isStreaming?: boolean;
     isCallingExternal?: boolean;
-    activeCalls?: ActiveCall[];
+    activeCalls?: ActiveToolCall[];
     hideFeedback?: boolean;
-    sources?: any[];
+    sources?: MessageSource[];
     /**
-     * Structured tool-call artifacts attached to this assistant turn —
-     * currently just ECharts options. Set by Chat.vue from the SSE `tool`
-     * end-phase artifact payload. The component renders each one inline
-     * above the markdown answer (the LLM's summary text references them).
+     * Structured tool-call artifacts of this turn (ECharts options, forms),
+     * from the SSE `tool` end-phase payload. Rendered above the markdown,
+     * which usually describes them.
      */
     artifacts?: ToolArtifact[];
     conversationId?: string;
@@ -60,112 +57,69 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    messageDeleted: [id: string | number];
-    feedbackProvided: [id: string | number, type: 'thumbs-up' | 'thumbs-down'];
-    regenerate: [userMessageId: string | number, assistantMessageId: string | number, onDone: () => void];
+    messageDeleted: [id: MessageId];
+    feedbackProvided: [id: MessageId, type: Feedback];
+    regenerate: [userMessageId: MessageId, assistantMessageId: MessageId, onDone: () => void];
     approveTool: [call: ToolApprovalCall];
     denyTool: [call: ToolApprovalCall];
 }>();
 
 const { t } = useI18n();
+const { copy, copied: isCopied } = useClipboard({ legacy: true, copiedDuring: 2000 });
 
-// The most-recently-started call drives the visible label. `activeCalls`
-// arrives sorted oldest-first from Chat.vue, so the last entry is the
-// newest. Cap the stacked icons at 4 to keep the row tidy on narrow
-// viewports — if more are in flight the count badge picks up the rest.
-const STACK_LIMIT = 4;
-const stackedCalls = computed(() => (props.activeCalls ?? []).slice(-STACK_LIMIT));
-const overflowCount = computed(() => Math.max(0, (props.activeCalls?.length ?? 0) - STACK_LIMIT));
-const currentCall = computed<ActiveCall | null>(() => {
-    const calls = props.activeCalls;
-    return calls && calls.length > 0 ? calls[calls.length - 1] : null;
-});
-const currentCallLabel = computed(() => {
-    const call = currentCall.value;
-    if (!call) return t('messages.calling_external');
-    // Prefer the connector's own activity phrase ("Preparing your form…"),
-    // shown verbatim like the embedded widget; fall back to "Calling {label}…".
-    return call.activity_label || t('messages.calling', { label: call.label });
-});
+const WIRE_FEEDBACK: Record<Feedback, MessageFeedbackValue> = { 'thumbs-up': 'positive', 'thumbs-down': 'negative' };
 
+const feedback = ref<Feedback | null>(null);
 const isRegenerating = ref(false);
 
-function regenerate() {
-    if (props.message.id === undefined || props.userMessageId === undefined || !props.conversationId) return;
+const hasPendingApprovals = computed(() => (props.pendingApprovals?.length ?? 0) > 0);
+const activeCallList = computed(() => props.activeCalls ?? []);
 
-    isRegenerating.value = true;
-    emit('regenerate', props.userMessageId, props.message.id, () => {
-        isRegenerating.value = false;
-    });
-}
-
-const _page = usePage();
-
-const isCopied = ref(false);
-const feedback = ref<'thumbs-up' | 'thumbs-down' | null>(null);
-
-async function copyToClipboard() {
-    try {
-        await navigator.clipboard.writeText(props.message.content);
-        isCopied.value = true;
-        setTimeout(() => {
-            isCopied.value = false;
-        }, 2000);
-    } catch (err) {
-        console.error('Failed to copy text:', err);
-    }
-}
-
-async function provideFeedback(type: 'thumbs-up' | 'thumbs-down') {
-    const next = feedback.value === type ? null : type;
-    feedback.value = next;
-
-    if (props.message.id !== undefined && props.conversationId) {
-        try {
-            const wireValue = next === 'thumbs-up' ? 'positive' : next === 'thumbs-down' ? 'negative' : null;
-
-            await axios.patch(route('chat.messages.feedback'), {
-                conversation_id: props.conversationId,
-                message_id: props.message.id,
-                feedback: wireValue,
-            });
-
-            if (next !== null) {
-                emit('feedbackProvided', props.message.id, next);
-            }
-        } catch (error) {
-            console.error('Failed to send feedback:', error);
-            feedback.value = null;
-        }
-    }
-}
-
-async function deleteMessage() {
-    if (props.message.id !== undefined && props.conversationId) {
-        try {
-            await axios.delete(route('chat.messages.delete'), {
-                data: {
-                    conversation_id: props.conversationId,
-                    message_id: props.message.id,
-                },
-            });
-
-            emit('messageDeleted', props.message.id);
-        } catch (error) {
-            console.error('Failed to delete message:', error);
-        }
-    }
-}
+/** Server ids only: the stub id 0 (and a missing id) cannot be acted on yet. */
+const persistedId = computed<MessageId | null>(() => (props.message.id === undefined || props.message.id === null ? null : props.message.id));
 
 watch(
     () => props.message.feedback,
     (value) => {
-        if (value === 'positive') feedback.value = 'thumbs-up';
-        else if (value === 'negative') feedback.value = 'thumbs-down';
-        else feedback.value = null;
+        feedback.value = value === 'positive' ? 'thumbs-up' : value === 'negative' ? 'thumbs-down' : null;
     },
     { immediate: true },
 );
+
+function regenerate() {
+    if (persistedId.value === null || props.userMessageId === undefined || !props.conversationId) return;
+
+    isRegenerating.value = true;
+    emit('regenerate', props.userMessageId, persistedId.value, () => {
+        isRegenerating.value = false;
+    });
+}
+
+/** Clicking the active thumb again clears it. A failed save resets the thumbs. */
+async function provideFeedback(type: Feedback) {
+    const next = feedback.value === type ? null : type;
+    feedback.value = next;
+
+    if (persistedId.value === null || !props.conversationId) return;
+
+    try {
+        await sendMessageFeedback(props.conversationId, persistedId.value, next ? WIRE_FEEDBACK[next] : null);
+        if (next !== null) emit('feedbackProvided', persistedId.value, next);
+    } catch {
+        feedback.value = null;
+    }
+}
+
+async function deleteMessage() {
+    if (persistedId.value === null || !props.conversationId) return;
+
+    try {
+        await deleteMessageRequest(props.conversationId, persistedId.value);
+        emit('messageDeleted', persistedId.value);
+    } catch {
+        // The message stays in place, which tells the visitor the delete did not happen.
+    }
+}
 </script>
 
 <template>
@@ -178,53 +132,21 @@ watch(
                 :is-rtl="isRTL ?? false"
                 :message-id="message.id ? String(message.id) : undefined"
             />
-            <!-- Empty body: show the "still working" indicator. WaitingIndicator
-                 if the model is just thinking; branded tool-call icon stack if
-                 it's calling an MCP server or webhook function. Suppressed while
-                 an approval card is pending — the card is the content then. -->
-            <div v-if="!message.content && !(pendingApprovals && pendingApprovals.length)" class="flex items-center gap-2 py-1">
-                <template v-if="isCallingExternal">
-                    <div class="external-call-stack flex items-center">
-                        <div
-                            v-for="(call, i) in stackedCalls"
-                            :key="call.tool_call_id"
-                            class="external-call-icon"
-                            :style="{ marginLeft: i === 0 ? '0' : '-6px', zIndex: stackedCalls.length - i }"
-                            :title="call.label"
-                        >
-                            <img v-if="call.icon_url" :src="call.icon_url" :alt="call.label" class="h-full w-full object-contain p-0.5" />
-                            <Webhook v-else-if="call.kind === 'function'" class="text-muted-foreground h-full w-full p-1" />
-                            <Plug v-else class="text-muted-foreground h-full w-full p-1" />
-                        </div>
-                        <span v-if="overflowCount > 0" class="text-muted-foreground ms-1 text-xs">+{{ overflowCount }}</span>
-                    </div>
-                    <span class="external-call-shimmer text-sm italic">{{ currentCallLabel }}</span>
-                </template>
+            <!-- Empty body: dots while the model thinks, or the branded tool-call
+                 stack while it calls an MCP server or webhook. Hidden while an
+                 approval card is pending, since the card is the content then. -->
+            <div v-if="!message.content && !hasPendingApprovals" class="flex items-center gap-2 py-1">
+                <ToolCallIndicator v-if="isCallingExternal" :calls="activeCallList" label-class="text-sm" />
                 <WaitingIndicator v-else />
             </div>
-            <!-- Edge case: the LLM streamed some text before deciding to
-                 call a tool. Show the indicator below the content rather
-                 than next to the three dots. -->
+            <!-- The model streamed some text before calling a tool: show the
+                 indicator under the text instead of next to the dots. -->
             <div v-if="message.content && isCallingExternal" class="mt-2 flex items-center gap-2 py-1 text-sm">
-                <div class="external-call-stack flex items-center">
-                    <div
-                        v-for="(call, i) in stackedCalls"
-                        :key="call.tool_call_id"
-                        class="external-call-icon"
-                        :style="{ marginLeft: i === 0 ? '0' : '-6px', zIndex: stackedCalls.length - i }"
-                        :title="call.label"
-                    >
-                        <img v-if="call.icon_url" :src="call.icon_url" :alt="call.label" class="h-full w-full object-contain p-0.5" />
-                        <Webhook v-else-if="call.kind === 'function'" class="text-muted-foreground h-full w-full p-1" />
-                        <Plug v-else class="text-muted-foreground h-full w-full p-1" />
-                    </div>
-                    <span v-if="overflowCount > 0" class="text-muted-foreground ms-1 text-xs">+{{ overflowCount }}</span>
-                </div>
-                <span class="external-call-shimmer italic">{{ currentCallLabel }}</span>
+                <ToolCallIndicator :calls="activeCallList" />
             </div>
 
             <!-- Human-in-the-loop: gated tool calls awaiting the user's go-ahead. -->
-            <div v-if="pendingApprovals && pendingApprovals.length" class="mt-2 space-y-2">
+            <div v-if="hasPendingApprovals" class="mt-2 space-y-2">
                 <ToolApprovalCard
                     v-for="call in pendingApprovals"
                     :key="call.tool_call_id"
@@ -236,19 +158,16 @@ watch(
                 />
             </div>
 
-            <!-- Suppressed while an approval card is pending — feedback on a turn
-                 whose tool call hasn't run yet is misleading. -->
-            <div
-                v-if="message.content && !hideFeedback && !(pendingApprovals && pendingApprovals.length)"
-                class="mt-2 flex flex-wrap items-center justify-between gap-2"
-            >
+            <!-- Hidden while an approval is pending: feedback on a turn whose
+                 tool call has not run yet would be misleading. -->
+            <div v-if="message.content && !hideFeedback && !hasPendingApprovals" class="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-0.5">
                     <Button
                         size="icon"
                         variant="ghost"
                         class="text-muted-foreground hover:text-foreground hover:bg-muted/80 h-7 w-7"
                         :aria-label="t('messages.copy_message')"
-                        @click="copyToClipboard"
+                        @click="copy(message.content)"
                     >
                         <Check v-if="isCopied" class="h-3.5 w-3.5 text-green-500" />
                         <Copy v-else class="h-3.5 w-3.5" />
@@ -303,7 +222,6 @@ watch(
                         </AlertDialogContent>
                     </AlertDialog>
 
-                    <!-- Regenerate button -->
                     <Button
                         v-if="userMessageId !== undefined"
                         size="icon"
@@ -370,7 +288,7 @@ watch(
 :deep(.code-copy-button) {
     position: absolute;
     top: 0.5rem;
-    right: 0.5rem;
+    inset-inline-end: 0.5rem;
     padding: 0.25rem;
     background-color: var(--background);
     border: 1px solid var(--border);
@@ -403,42 +321,33 @@ watch(
 :deep(.markdown-alert) {
     padding: 0.75rem 1rem;
     margin: 0.75rem 0;
-    border-left-width: 4px;
-    border-left-style: solid;
+    border-inline-start-width: 4px;
+    border-inline-start-style: solid;
     border-radius: 0.375rem;
 }
 
-/* RTL alert styling */
-:deep([dir='rtl'] .markdown-alert) {
-    border-left-width: 0;
-    border-right-width: 4px;
-    border-right-style: solid;
-    padding-right: 1rem;
-    padding-left: 1rem;
-}
-
 :deep(.markdown-alert-note) {
-    border-left-color: var(--primary);
+    border-inline-start-color: var(--primary);
     background-color: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 :deep(.markdown-alert-tip) {
-    border-left-color: var(--success);
+    border-inline-start-color: var(--success);
     background-color: color-mix(in srgb, var(--success) 10%, transparent);
 }
 
 :deep(.markdown-alert-important) {
-    border-left-color: var(--warning);
+    border-inline-start-color: var(--warning);
     background-color: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 :deep(.markdown-alert-warning) {
-    border-left-color: var(--warning);
+    border-inline-start-color: var(--warning);
     background-color: color-mix(in srgb, var(--warning) 10%, transparent);
 }
 
 :deep(.markdown-alert-caution) {
-    border-left-color: var(--destructive);
+    border-inline-start-color: var(--destructive);
     background-color: color-mix(in srgb, var(--destructive) 10%, transparent);
 }
 
@@ -464,7 +373,7 @@ watch(
 :deep(.prose th) {
     font-weight: 600;
     padding: 0.75rem;
-    text-align: left;
+    text-align: start;
 }
 
 :deep(.prose td) {
@@ -479,12 +388,12 @@ watch(
 /* Lists */
 :deep(.prose ul) {
     list-style-type: disc;
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
 }
 
 :deep(.prose ol) {
     list-style-type: decimal;
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
 }
 
 :deep(.prose li) {
@@ -493,8 +402,8 @@ watch(
 
 /* Blockquotes */
 :deep(.prose blockquote) {
-    border-left: 3px solid color-mix(in srgb, var(--muted-foreground) 30%, transparent);
-    padding-left: 1rem;
+    border-inline-start: 3px solid color-mix(in srgb, var(--muted-foreground) 30%, transparent);
+    padding-inline-start: 1rem;
     margin: 1rem 0;
     font-style: italic;
     color: var(--muted-foreground);
@@ -551,99 +460,36 @@ watch(
     margin: 1.5rem 0;
 }
 
-/* RTL Support for specific content elements only */
+/* Right-to-left replies (Arabic, Persian, …). The rules above use logical
+   properties, so flipping `direction` also moves list indents, blockquote
+   borders and table alignment to the right side. */
 :deep(.prose[data-rtl='true'] p),
 :deep(.prose[data-rtl='true'] h1),
 :deep(.prose[data-rtl='true'] h2),
 :deep(.prose[data-rtl='true'] h3),
 :deep(.prose[data-rtl='true'] h4),
 :deep(.prose[data-rtl='true'] h5),
-:deep(.prose[data-rtl='true'] h6) {
-    text-align: right;
+:deep(.prose[data-rtl='true'] h6),
+:deep(.prose[data-rtl='true'] ul),
+:deep(.prose[data-rtl='true'] ol),
+:deep(.prose[data-rtl='true'] blockquote),
+:deep(.prose[data-rtl='true'] th),
+:deep(.prose[data-rtl='true'] td),
+:deep(.prose[data-rtl='true'] img) {
     direction: rtl;
+    text-align: start;
 }
 
-/* Exclude math content from RTL styling */
+/* Maths and code stay left-to-right whatever the language. */
 :deep(.prose[data-rtl='true'] .katex-display),
 :deep(.prose[data-rtl='true'] .katex) {
     direction: ltr !important;
-    text-align: left !important;
+    text-align: start !important;
 }
 
-/* Also target any paragraph that contains math */
-:deep(.prose[data-rtl='true'] p .katex-display),
-:deep(.prose[data-rtl='true'] p .katex) {
-    direction: ltr !important;
-    text-align: left !important;
-}
-
-:deep(.prose[data-rtl='true'] ul),
-:deep(.prose[data-rtl='true'] ol) {
-    padding-right: 1.5rem;
-    padding-left: 0;
-    direction: rtl;
-}
-
-:deep(.prose[data-rtl='true'] blockquote) {
-    border-right: 3px solid color-mix(in srgb, var(--muted-foreground) 30%, transparent);
-    border-left: none;
-    padding-right: 1rem;
-    padding-left: 0;
-    direction: rtl;
-}
-
-:deep(.prose[data-rtl='true'] th),
-:deep(.prose[data-rtl='true'] td) {
-    text-align: right;
-    direction: rtl;
-}
-
-:deep(.prose[data-rtl='true'] img) {
-    direction: rtl;
-}
-
-/* Keep code blocks in LTR regardless of language */
 :deep(.prose[data-rtl='true'] pre),
 :deep(.prose[data-rtl='true'] code) {
     direction: ltr;
-    text-align: left;
-}
-
-/* External-call indicator: a stack of branded tool icons + shimmering
-   label, shown while the LLM tool loop is dispatching MCP / webhook
-   calls. Icons overlap like Claude's parallel-tool indicator. The theme
-   exposes CSS variables as full color functions (e.g. `--primary: #404040`),
-   so use them directly — wrapping them with `hsl()` produces invalid
-   syntax and the rule is silently dropped. */
-.external-call-shimmer {
-    background-image: linear-gradient(90deg, var(--muted-foreground) 0%, var(--primary) 50%, var(--muted-foreground) 100%);
-    background-size: 200% 100%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    -webkit-text-fill-color: transparent;
-    animation: external-call-shimmer 2.4s linear infinite;
-}
-
-.external-call-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 9999px;
-    background-color: var(--background);
-    box-shadow: 0 0 0 1px var(--border);
-    overflow: hidden;
-}
-
-@keyframes external-call-shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
+    text-align: start;
 }
 </style>

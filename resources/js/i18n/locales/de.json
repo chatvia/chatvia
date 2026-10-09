@@ -17,7 +17,9 @@
         "mcp_tool": "MCP-Tool",
         "function": "Funktion",
         "approve": "Genehmigen",
-        "deny": "Ablehnen"
+        "deny": "Ablehnen",
+        "details": "Details",
+        "arguments": "Argumente"
     },
     "composer": {
         "default_placeholder": "Nachricht...",
@@ -30,7 +32,9 @@
         "uploading": "Wird hochgeladen…",
         "upload_failed": "Upload fehlgeschlagen",
         "delete_failed": "Anhang konnte nicht entfernt werden",
-        "upload_limit_reached": "Sie können bis zu {count} Datei anhängen | Sie können bis zu {count} Dateien anhängen"
+        "upload_limit_reached": "Sie können bis zu {count} Datei anhängen | Sie können bis zu {count} Dateien anhängen",
+        "send_message": "Nachricht senden",
+        "stop_streaming": "Generierung stoppen"
     },
     "header": {
         "toggle_sidebar": "Seitenleiste umschalten",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "Gestern",
         "search_group_previous_7_days": "Letzte 7 Tage",
         "search_group_previous_30_days": "Letzte 30 Tage",
-        "search_group_older": "Älter"
+        "search_group_older": "Älter",
+        "save_title": "Titel speichern",
+        "show_password": "Passwort anzeigen",
+        "hide_password": "Passwort verbergen",
+        "user_fallback": "Benutzer"
     },
     "chat": {
         "message_limit_reached": "Du hast dein Nachrichtenlimit erreicht",
@@ -99,7 +107,17 @@
             "expired": "Dieses Formular ist abgelaufen.",
             "unavailable": "Dieses Formular kann hier nicht gesendet werden."
         },
-        "conversation_gone": "Diese Unterhaltung existiert nicht mehr."
+        "conversation_gone": "Diese Unterhaltung existiert nicht mehr.",
+        "scroll_to_bottom": "Nach unten scrollen",
+        "copy_code": "Code in die Zwischenablage kopieren",
+        "loading_chart": "Diagramm wird geladen…",
+        "powered_by": "Bereitgestellt von {label}",
+        "stream_errors": {
+            "unreachable": "Der Server ist nicht erreichbar. Bitte versuchen Sie es erneut.",
+            "http_status": "Der Server hat den Status {status} zurückgegeben.",
+            "interrupted": "Die Verbindung wurde unterbrochen.",
+            "malformed": "Ungültige Daten vom Server erhalten."
+        }
     },
     "messages": {
         "send": "Senden",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "Anhang entfernen",
         "delete_attachment_title": "Diese Datei entfernen?",
         "delete_attachment_description": "Nach dem Entfernen hat der Assistent in zukünftigen Antworten keinen Zugriff mehr auf diese Datei.",
-        "delete_attachment_failed": "Die Datei konnte nicht entfernt werden. Bitte versuchen Sie es erneut."
+        "delete_attachment_failed": "Die Datei konnte nicht entfernt werden. Bitte versuchen Sie es erneut.",
+        "responding": "Der Assistent antwortet…",
+        "response_complete": "Antwort abgeschlossen",
+        "copy_message": "Nachricht kopieren",
+        "feedback_helpful": "Gute Antwort",
+        "feedback_not_helpful": "Schlechte Antwort",
+        "edit_message": "Nachricht bearbeiten"
     },
     "errors": {
         "subscription_expired": "Abonnement abgelaufen",
@@ -132,7 +156,10 @@
         "title": "Wissensquellen",
         "source_count": "{count} Quelle | {count} Quellen",
         "description": "{count} Quelle zur Erstellung dieser Antwort verwendet | {count} Quellen zur Erstellung dieser Antwort verwendet",
-        "page_label": "Seite {page}"
+        "page_label": "Seite {page}",
+        "file_with_page": "{file} (Seite {page})",
+        "fallback_title": "Quelle {number}",
+        "chunk_label": "Abschnitt {index}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -387,7 +414,9 @@
                 "expires_in_days": "Läuft in {count} Tag ab | Läuft in {count} Tagen ab",
                 "expires_in_one_month": "Läuft in 1 Monat ab",
                 "expires_in_months": "Läuft in {count} Monat ab | Läuft in {count} Monaten ab",
-                "conversations_count": "{count} Gespräch | {count} Gespräche"
+                "conversations_count": "{count} Gespräch | {count} Gespräche",
+                "refresh_conversations": "Unterhaltungen aktualisieren",
+                "remove_filter": "Filter entfernen"
             },
             "pagination": {
                 "prev": "Zurück",
@@ -496,7 +525,8 @@
                 "peak_negative": "Höchster Negativwert",
                 "sentiment_timeline": "Stimmungsverlauf",
                 "message_details": "Nachrichtendetails",
-                "waiting": "Ausstehend…"
+                "waiting": "Ausstehend…",
+                "trend_stable_label": "Stabil"
             },
             "handoff": {
                 "locked_description": "Führen Sie ein Upgrade durch, um Live-Gespräche aus dem Chat-Protokoll zu übernehmen.",
@@ -520,7 +550,14 @@
                 "read": "Gelesen",
                 "sent": "Gesendet",
                 "visitor_typing": "Besucher schreibt",
-                "message_placeholder": "Nachricht eingeben…"
+                "message_placeholder": "Nachricht eingeben…",
+                "send_message": "Nachricht senden",
+                "errors": {
+                    "connect_failed": "Verbindung zum Chat-Kanal fehlgeschlagen",
+                    "takeover_failed": "Unterhaltung konnte nicht übernommen werden",
+                    "return_failed": "Unterhaltung konnte nicht an die KI zurückgegeben werden",
+                    "send_failed": "Nachricht konnte nicht gesendet werden"
+                }
             },
             "revise": {
                 "title": "Antwort überarbeiten",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "Gesprächspuls konnte nicht geladen werden. Bitte versuchen Sie es erneut."
-            }
+            },
+            "refresh_messages": "Nachrichten aktualisieren",
+            "delete_conversation": "Unterhaltung löschen"
         },
         "guardrails": {
             "title": "Leitplanken",
@@ -696,7 +735,9 @@
                     "mean_score": "Durchschnittliche Bewertung über alle Fälle",
                     "tokens": "Tokens",
                     "tokens_note": "Gesamtanzahl der Tokens in diesem Durchlauf"
-                }
+                },
+                "back": "Zurück zu den Evals",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "Evals",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON-Schema",
                 "llm_judge": "LLM-Richter",
                 "tool_call": "Tool-Aufruf"
+            },
+            "statuses": {
+                "running": "Läuft",
+                "completed": "Abgeschlossen",
+                "failed": "Fehlgeschlagen"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "Thema konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
                 "load_error": "Themen konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
                 "permission_denied": "Zugriff verweigert",
-                "permission_denied_description": "Sie haben keine Berechtigung, Themen zu verwalten."
+                "permission_denied_description": "Sie haben keine Berechtigung, Themen zu verwalten.",
+                "edit_topic_aria": "{topic} bearbeiten",
+                "delete_topic_aria": "{topic} löschen"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "Erstellt am {date}",
                 "used_by_agents": "Wird von {count} Agenten verwendet",
                 "delete_title": "Q&A-Eintrag löschen",
-                "delete_description": "Möchten Sie diesen Q&A-Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+                "delete_description": "Möchten Sie diesen Q&A-Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+                "remove_question": "Frage entfernen",
+                "actions": "Aktionen"
             },
             "youtube": {
                 "load_failed": "YouTube-Videos konnten nicht geladen werden",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "Aktiviert",
                 "no_match": "Keine passenden Connectors gefunden.",
                 "soon": "Demnächst",
-                "connect_first": "Verbinden Sie diesen MCP zuerst in den Einstellungen"
+                "connect_first": "Verbinden Sie diesen MCP zuerst in den Einstellungen",
+                "column_always": "Immer aktiv",
+                "always_hint": "Stellt die Tools dieses Connectors bei jeder Nachricht bereit, auch wenn sie dafür nicht offensichtlich gebraucht werden. Höchstens 10 immer aktive Tools pro Agent.",
+                "always_failed": "Die Einstellung „Immer aktiv“ konnte nicht aktualisiert werden"
             },
             "functions": {
                 "load_failed": "Funktionen konnten nicht geladen werden",
@@ -1582,7 +1635,9 @@
                 "branding": "Branding",
                 "behavior": "Verhalten",
                 "settings": "Einstellungen",
-                "domain": "Domain"
+                "domain": "Domain",
+                "languages": "Sprachen",
+                "bubbles": "Chat-Blasen"
             },
             "view_only_title": "Nur Ansicht",
             "view_only_description": "Sie haben keine Berechtigung, die Einrichtung zu bearbeiten.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "Agenten-ID in die Zwischenablage kopiert",
                 "privacy_saved": "Datenschutz-Link gespeichert",
                 "privacy_error": "Datenschutz-Link konnte nicht gespeichert werden",
-                "branding_saved": "Branding aktualisiert"
+                "branding_saved": "Branding aktualisiert",
+                "languages_saved": "Sprachen gespeichert",
+                "languages_error": "Sprachen konnten nicht gespeichert werden"
             },
             "settings": {
                 "composer_title": "Composer-Optionen",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "Nur diese Ursprünge dürfen das Widget laden.",
                 "keyboard_trigger": "Tastaturkürzel",
-                "placement": "Platzierung"
+                "placement": "Platzierung",
+                "language_switcher": "Sprachumschalter"
             },
             "embed": {
                 "surface_preview": "Oberflächen-Vorschau"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "Wird Besuchern angezeigt als „Indem du chattest, stimmst du unserer Datenschutzerklärung zu.“ Leer lassen, um es auszublenden.",
                 "branding_badge": "Badge „Powered by Chatvia“ anzeigen",
-                "branding_badge_hint": "Zeigt das Chatvia-Badge im Chat und Widget dieses Agenten an."
-            }
+                "branding_badge_hint": "Zeigt das Chatvia-Badge im Chat und Widget dieses Agenten an.",
+                "appearance_translations_default": "Standard",
+                "appearance_translations_default_tip": "Der Text, den Sie schreiben – automatisch in jede Sprache übersetzt.",
+                "appearance_translations_default_hint": "Dies ist der Text, den Sie schreiben. Beim Speichern wird er automatisch in jede Sprache übersetzt. Er wird immer dann angezeigt, wenn die Sprache eines Besuchers nicht in der Liste steht.",
+                "appearance_translations_lang_hint": "Bearbeiten Sie diese Sprache hier. Lassen Sie ein Feld leer, um die automatische Übersetzung zu verwenden – Ihre Änderungen bleiben immer erhalten.",
+                "starters_generate": "Mit KI generieren",
+                "starters_generate_title": "Gesprächseinstiege mit KI generieren",
+                "starters_generate_description": "Wählen Sie, wie viele aus Ihrer Wissensdatenbank generiert werden sollen, und dann, welche Sie hinzufügen möchten.",
+                "starters_generate_count": "Wie viele?",
+                "starters_generate_button": "Generieren",
+                "starters_generating": "Wird generiert…",
+                "starters_generate_hint": "Wählen Sie eine Anzahl und generieren Sie Vorschläge aus Ihrer Wissensdatenbank.",
+                "starters_translate_empty": "Fügen Sie zuerst im Tab „Standard“ Gesprächseinstiege hinzu und übersetzen Sie sie dann hier."
+            },
+            "languages": {
+                "title": "Oberflächensprachen",
+                "description": "Wählen Sie, welche Sprachen dieser Agent unterstützt. Aktivierte Sprachen erscheinen im Sprachumschalter des gehosteten Chats und erhalten eigene sprachspezifische Felder unter Info und Gesprächseinstiege.",
+                "select_all": "Alle auswählen",
+                "clear_all": "Alle abwählen",
+                "count": "{count} von {total} ausgewählt",
+                "hint": "Um den Sprachumschalter für Besucher ganz auszublenden, deaktivieren Sie ihn unter Verhalten.",
+                "min_required": "Mindestens eine Sprache ist erforderlich."
+            },
+            "bubbles_add": "Chat-Blase hinzufügen",
+            "bubbles_remove": "Chat-Blase entfernen",
+            "bubbles_empty": "Noch keine Chat-Blasen vorhanden.",
+            "bubbles_translate_empty": "Fügen Sie zuerst eine Chat-Blase hinzu, um sie zu übersetzen."
         },
         "topics_index": {
             "title": "Themen",
@@ -1865,7 +1948,10 @@
             "remove_error": "Thema konnte nicht entfernt werden",
             "fill_fields": "Bitte füllen Sie alle Felder aus",
             "created": "Thema erfolgreich erstellt und hinzugefügt",
-            "create_error": "Thema konnte nicht erstellt werden"
+            "create_error": "Thema konnte nicht erstellt werden",
+            "examples": "z. B. {titles}",
+            "previous_page": "Vorherige Seite",
+            "next_page": "Nächste Seite"
         },
         "usage": {
             "title": "Nutzungsübersicht",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "Was bedeutet „Zugeordnet zu“?",
             "maps_to_help_title": "Einem Kontaktfeld zugeordnet",
             "maps_to_help_1": "Markiert dieses Feld als standardmäßiges Kontaktattribut – Name, E-Mail, Telefon und so weiter. Der vom Besucher eingegebene Wert wird dann als diese Kontaktinformation erkannt, nicht nur als anonyme Antwort.",
-            "maps_to_help_2": "Zugeordnete Felder füllen die Details des Leads – sie speisen die Lead-Liste, die Dublettenerkennung und den CSV-Export. Lassen Sie es auf „—“, um die Antwort ohne Zuordnung zu erfassen."
+            "maps_to_help_2": "Zugeordnete Felder füllen die Details des Leads – sie speisen die Lead-Liste, die Dublettenerkennung und den CSV-Export. Lassen Sie es auf „—“, um die Antwort ohne Zuordnung zu erfassen.",
+            "subtitle": "Beschreibung",
+            "subtitle_placeholder": "z. B. Erzählen Sie uns von Ihrem Unternehmen, und wir melden uns bei Ihnen.",
+            "subtitle_hint": "Wird dem Besucher unter dem Formulartitel angezeigt."
         },
         "submissions": {
             "page_title": "Einsendungen",
@@ -2103,7 +2192,8 @@
             "sending_link": "Link wird gesendet...",
             "or_continue_with": "Oder weiter mit",
             "no_account": "Noch kein Konto?",
-            "start_free_trial": "Kostenlos testen"
+            "start_free_trial": "Kostenlos testen",
+            "create_account": "Konto erstellen"
         },
         "register": {
             "title": "Konto erstellen",
@@ -2824,7 +2914,8 @@
                 "all_agents": "Alle Agenten",
                 "no_agents_assigned": "Keine Agenten zugewiesen",
                 "agent_count": "{count} Agent | {count} Agenten",
-                "delete_description": "Möchten Sie die Rolle \"{name}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+                "delete_description": "Möchten Sie die Rolle \"{name}\" wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+                "toggle_permissions": "Berechtigungen ein- oder ausblenden"
             },
             "members": {
                 "title": "Teammitglieder",
@@ -2877,7 +2968,9 @@
                 "description": "Mitglieder mit dieser Rolle. Sie können deren Zugriff auf dieses Team entziehen.",
                 "empty": "Noch keine Mitglieder mit dieser Rolle.",
                 "close": "Schließen"
-            }
+            },
+            "rename_team": "Team umbenennen",
+            "save_team_name": "Teamnamen speichern"
         },
         "roles": {
             "details": "Rollendetails",
@@ -3161,7 +3254,8 @@
         "volume_month": "Nachrichtenvolumen der letzten 30 Tage",
         "last_week": "Letzte Woche",
         "last_month": "Letzter Monat",
-        "messages_tooltip": "{n} Nachricht | {n} Nachrichten"
+        "messages_tooltip": "{n} Nachricht | {n} Nachrichten",
+        "messages_this_month": "Nachrichten in diesem Monat"
     },
     "support": {
         "title": "Support",
@@ -3250,7 +3344,8 @@
         "tokens_note": "In diesem Zyklus verbraucht – nur zur Übersicht; Ihr Plan wird nach Nachrichten abgerechnet.",
         "of": "von {limit}",
         "remaining": "Noch {count} verfügbar",
-        "load_error": "Nutzungsdaten konnten nicht geladen werden."
+        "load_error": "Nutzungsdaten konnten nicht geladen werden.",
+        "no_limit": "Kein Limit"
     },
     "analytics_chat": {
         "title": "Fragen Sie Ihre Daten",
@@ -3293,7 +3388,8 @@
                 "create_title": "Prompt hinzufügen",
                 "description": "Erstellen Sie einmalig einen wiederverwendbaren System-Prompt und fügen Sie ihn dann einem beliebigen Agenten über dessen Persona-Seite hinzu. Eine Bearbeitung hier aktualisiert jeden Agenten, der ihn verwendet.",
                 "id_label": "ID",
-                "copy_id_title": "Prompt-ID kopieren — als prompt_id übergeben, wenn ein Agent über die API erstellt oder aktualisiert wird"
+                "copy_id_title": "Prompt-ID kopieren — als prompt_id übergeben, wenn ein Agent über die API erstellt oder aktualisiert wird",
+                "copy_id": "Prompt-ID kopieren"
             },
             "form": {
                 "name": "Name",
@@ -3330,7 +3426,8 @@
                 "description": "Funktionen ermöglichen es Ihren Agenten, Ihre eigenen APIs als LLM-Tools aufzurufen. {name} und {description} sind das, was das Modell sieht, wenn es entscheidet, ob es die Funktion aufruft — seien Sie konkret. {learn_more}",
                 "learn_more": "Mehr erfahren",
                 "id_label": "ID",
-                "copy_id_title": "Funktions-ID kopieren — als function_id übergeben, wenn die Funktion über die API zugewiesen wird"
+                "copy_id_title": "Funktions-ID kopieren — als function_id übergeben, wenn die Funktion über die API zugewiesen wird",
+                "copy_id": "Funktions-ID kopieren"
             },
             "form": {
                 "name": "Name",
@@ -3395,7 +3492,8 @@
                 "title": "Neuen API-Schlüssel kopieren",
                 "description": "Dies ist das einzige Mal, dass Sie {name} sehen. Bewahren Sie ihn sicher auf — falls Sie ihn verlieren, generieren Sie einen neuen.",
                 "warning": "Behandeln Sie diesen Schlüssel wie ein Passwort. Jeder, der ihn besitzt, kann in Ihrem Namen Agenten bereitstellen.",
-                "confirm": "Ich habe ihn sicher gespeichert"
+                "confirm": "Ich habe ihn sicher gespeichert",
+                "copy": "API-Schlüssel kopieren"
             },
             "revoke_dialog": {
                 "title": "API-Schlüssel widerrufen",
@@ -3694,7 +3792,8 @@
         "account": "Konto",
         "workspace": "Workspace",
         "logout": "Abmelden",
-        "language": "Sprache"
+        "language": "Sprache",
+        "open_user_menu": "Benutzermenü öffnen"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "Maximale Dateianzahl erreicht",
             "toast_max_files_description": "Sie können maximal {max} Dateien hochladen.",
             "toast_file_size_title": "Dateigrößenlimit überschritten",
-            "toast_file_size_description": "Die folgenden Datei(en) überschreiten das Limit von {maxSize} MB: {fileList}"
+            "toast_file_size_description": "Die folgenden Datei(en) überschreiten das Limit von {maxSize} MB: {fileList}",
+            "analyze_failed": "Datei konnte nicht analysiert werden",
+            "analyze_timed_out": "Zeitüberschreitung bei der Analyse – die Datei ist möglicherweise zu groß"
         },
         "voice_recorder": {
             "title_default": "Sprachnotiz aufnehmen",
@@ -3983,7 +4084,16 @@
             "tips_heading": "Tipps:",
             "tip_speak_clearly": "Sprechen Sie deutlich und in gleichmäßigem Tempo",
             "tip_quiet_environment": "Nutzen Sie eine ruhige Umgebung für beste Ergebnisse",
-            "tip_max_duration": "Maximale Aufnahmedauer: {minutes} Minute | Maximale Aufnahmedauer: {minutes} Minuten"
+            "tip_max_duration": "Maximale Aufnahmedauer: {minutes} Minute | Maximale Aufnahmedauer: {minutes} Minuten",
+            "pause_recording": "Aufnahme pausieren",
+            "resume_recording": "Aufnahme fortsetzen",
+            "cancel_recording": "Aufnahme abbrechen",
+            "play_recording": "Aufnahme abspielen",
+            "pause_playback": "Wiedergabe pausieren",
+            "microphone_denied": "Mikrofonzugriff verweigert. Bitte erlauben Sie den Zugriff auf das Mikrofon, um aufzunehmen.",
+            "microphone_not_found": "Kein Mikrofon gefunden. Bitte schließen Sie ein Mikrofon an und versuchen Sie es erneut.",
+            "microphone_failed": "Zugriff auf das Mikrofon fehlgeschlagen",
+            "transcription_failed": "Transkription fehlgeschlagen"
         },
         "date_range": {
             "pick_range": "Datumsbereich auswählen",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "{name} getrennt",
             "toast_disconnect_failed": "Fehlgeschlagen",
             "set_all": "Alle festlegen",
-            "toast_bulk_permission": "{count} Tool auf „{permission}“ gesetzt | {count} Tools auf „{permission}“ gesetzt"
+            "toast_bulk_permission": "{count} Tool auf „{permission}“ gesetzt | {count} Tools auf „{permission}“ gesetzt",
+            "copy_server_id": "Server-ID kopieren"
         },
         "member_sheet": {
             "sr_description": "Limits, Agentenzugriff und Status dieses Chatters verwalten.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "Seitenleiste ein-/ausblenden",
             "sidebar": "Seitenleiste",
             "sidebar_description": "Zeigt die mobile Seitenleiste an."
+        },
+        "json_editor": {
+            "aria_label": "JSON-Editor"
+        },
+        "time_ago": {
+            "just_now": "Gerade eben"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "Produktanalysen abfragen – Ereignisse, Diagramme und Kohorten – aus Ihrem Amplitude-Projekt."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Willkommen bei Chatvia",
+            "intro": "Erstellen wir Ihren ersten KI-Agenten. Das dauert nur eine Minute.",
+            "what_title": "Was ist ein Agent?",
+            "what_body": "Ein Agent ist ein KI-Assistent, den Sie mit Ihren eigenen Inhalten trainieren. Er beantwortet die Fragen Ihrer Kunden auf Ihrer Website, im Chat-Widget und in Messaging-Apps.",
+            "how_title": "Wie funktioniert das?",
+            "how_body": "Zuerst erstellen Sie einen Agenten und geben ihm einen Namen. Dann trainieren Sie ihn mit Ihren Dateien, Websites und Texten, damit er Fragen beantworten kann.",
+            "start": "Meinen ersten Agenten erstellen",
+            "video_caption": "Sehen Sie, wie es funktioniert"
         }
     }
 }

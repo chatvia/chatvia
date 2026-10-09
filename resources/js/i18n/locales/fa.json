@@ -17,7 +17,9 @@
         "mcp_tool": "ابزار MCP",
         "function": "تابع",
         "approve": "تأیید",
-        "deny": "رد"
+        "deny": "رد",
+        "details": "جزئیات",
+        "arguments": "آرگومان‌ها"
     },
     "composer": {
         "default_placeholder": "پیام…",
@@ -30,7 +32,9 @@
         "uploading": "در حال بارگذاری…",
         "upload_failed": "بارگذاری ناموفق بود",
         "delete_failed": "حذف پیوست امکان‌پذیر نبود",
-        "upload_limit_reached": "می‌توانید تا {count} فایل پیوست کنید | می‌توانید تا {count} فایل پیوست کنید"
+        "upload_limit_reached": "می‌توانید تا {count} فایل پیوست کنید | می‌توانید تا {count} فایل پیوست کنید",
+        "send_message": "ارسال پیام",
+        "stop_streaming": "توقف تولید"
     },
     "header": {
         "toggle_sidebar": "تغییر وضعیت نوار کناری",
@@ -85,7 +89,11 @@
         "search_group_yesterday": "دیروز",
         "search_group_previous_7_days": "۷ روز گذشته",
         "search_group_previous_30_days": "۳۰ روز گذشته",
-        "search_group_older": "قدیمی‌تر"
+        "search_group_older": "قدیمی‌تر",
+        "save_title": "ذخیره عنوان",
+        "show_password": "نمایش رمز عبور",
+        "hide_password": "پنهان کردن رمز عبور",
+        "user_fallback": "کاربر"
     },
     "chat": {
         "message_limit_reached": "به سقف پیام‌های خود رسیده‌اید",
@@ -99,7 +107,17 @@
             "expired": "این فرم منقضی شده است.",
             "unavailable": "این فرم را نمی‌توان اینجا ارسال کرد."
         },
-        "conversation_gone": "این گفتگو دیگر وجود ندارد."
+        "conversation_gone": "این گفتگو دیگر وجود ندارد.",
+        "scroll_to_bottom": "پیمایش به پایین",
+        "copy_code": "کپی کد در کلیپ‌بورد",
+        "loading_chart": "در حال بارگذاری نمودار…",
+        "powered_by": "قدرت‌گرفته از {label}",
+        "stream_errors": {
+            "unreachable": "دسترسی به سرور ممکن نشد. لطفاً دوباره تلاش کنید.",
+            "http_status": "سرور وضعیت {status} را برگرداند.",
+            "interrupted": "اتصال قطع شد.",
+            "malformed": "داده‌های نامعتبر از سرور دریافت شد."
+        }
     },
     "messages": {
         "send": "ارسال",
@@ -113,7 +131,13 @@
         "delete_attachment_aria": "حذف پیوست",
         "delete_attachment_title": "این فایل حذف شود؟",
         "delete_attachment_description": "پس از حذف، دستیار دیگر در پاسخ‌های بعدی به این فایل دسترسی نخواهد داشت.",
-        "delete_attachment_failed": "حذف فایل امکان‌پذیر نبود. لطفاً دوباره تلاش کنید."
+        "delete_attachment_failed": "حذف فایل امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
+        "responding": "دستیار در حال پاسخ دادن است…",
+        "response_complete": "پاسخ کامل شد",
+        "copy_message": "کپی پیام",
+        "feedback_helpful": "پاسخ خوب",
+        "feedback_not_helpful": "پاسخ بد",
+        "edit_message": "ویرایش پیام"
     },
     "errors": {
         "subscription_expired": "اشتراک منقضی شده است",
@@ -132,7 +156,10 @@
         "title": "منابع دانش",
         "source_count": "{count} منبع | {count} منبع",
         "description": "برای تولید این پاسخ از {count} منبع استفاده شد | برای تولید این پاسخ از {count} منبع استفاده شد",
-        "page_label": "صفحه {page}"
+        "page_label": "صفحه {page}",
+        "file_with_page": "{file} (صفحه {page})",
+        "fallback_title": "منبع {number}",
+        "chunk_label": "بخش {index}"
     },
     "home": {
         "logo_alt": "لوگو",
@@ -387,7 +414,9 @@
                 "expires_in_days": "در {count} روز منقضی می‌شود | در {count} روز منقضی می‌شود",
                 "expires_in_one_month": "در ۱ ماه منقضی می‌شود",
                 "expires_in_months": "در {count} ماه منقضی می‌شود | در {count} ماه منقضی می‌شود",
-                "conversations_count": "{count} مکالمه | {count} مکالمه"
+                "conversations_count": "{count} مکالمه | {count} مکالمه",
+                "refresh_conversations": "تازه‌سازی گفتگوها",
+                "remove_filter": "حذف فیلتر"
             },
             "pagination": {
                 "prev": "قبلی",
@@ -496,7 +525,8 @@
                 "peak_negative": "اوج منفی",
                 "sentiment_timeline": "جدول زمانی احساسات",
                 "message_details": "جزئیات پیام",
-                "waiting": "در انتظار…"
+                "waiting": "در انتظار…",
+                "trend_stable_label": "پایدار"
             },
             "handoff": {
                 "locked_description": "برنامه خود را ارتقا دهید تا مکالمات زنده را از گزارش گفتگو در دست بگیرید.",
@@ -520,7 +550,14 @@
                 "read": "خوانده شد",
                 "sent": "ارسال شد",
                 "visitor_typing": "بازدیدکننده در حال تایپ است",
-                "message_placeholder": "یک پیام بنویسید…"
+                "message_placeholder": "یک پیام بنویسید…",
+                "send_message": "ارسال پیام",
+                "errors": {
+                    "connect_failed": "اتصال به کانال گفتگو ناموفق بود",
+                    "takeover_failed": "در دست گرفتن گفتگو ناموفق بود",
+                    "return_failed": "بازگرداندن گفتگو به هوش مصنوعی ناموفق بود",
+                    "send_failed": "ارسال پیام ناموفق بود"
+                }
             },
             "revise": {
                 "title": "اصلاح پاسخ",
@@ -549,7 +586,9 @@
             },
             "errors": {
                 "pulse_load_failed": "بارگذاری نبض مکالمه امکان‌پذیر نبود. لطفاً دوباره تلاش کنید."
-            }
+            },
+            "refresh_messages": "تازه‌سازی پیام‌ها",
+            "delete_conversation": "حذف گفتگو"
         },
         "guardrails": {
             "title": "حفاظ‌ها",
@@ -696,7 +735,9 @@
                     "mean_score": "میانگین امتیاز در تمام موارد",
                     "tokens": "توکن‌ها",
                     "tokens_note": "مجموع توکن‌های مصرف‌شده در این اجرا"
-                }
+                },
+                "back": "بازگشت به ارزیابی‌ها",
+                "latency_value": "{ms} ms"
             },
             "index": {
                 "title": "ارزیابی‌ها",
@@ -818,6 +859,11 @@
                 "json_schema": "JSON schema",
                 "llm_judge": "قاضی هوش مصنوعی",
                 "tool_call": "فراخوانی ابزار"
+            },
+            "statuses": {
+                "running": "در حال اجرا",
+                "completed": "تکمیل شده",
+                "failed": "ناموفق"
             }
         },
         "identity_verification": {
@@ -965,7 +1011,9 @@
                 "delete_error": "حذف موضوع امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
                 "load_error": "بارگذاری موضوعات امکان‌پذیر نبود. لطفاً دوباره تلاش کنید.",
                 "permission_denied": "دسترسی رد شد",
-                "permission_denied_description": "شما مجاز به مدیریت موضوعات نیستید."
+                "permission_denied_description": "شما مجاز به مدیریت موضوعات نیستید.",
+                "edit_topic_aria": "ویرایش {topic}",
+                "delete_topic_aria": "حذف {topic}"
             }
         },
         "sources": {
@@ -1193,7 +1241,9 @@
                 "created_at": "ایجاد شده در {date}",
                 "used_by_agents": "استفاده شده توسط {count} دستیار",
                 "delete_title": "حذف پرسش و پاسخ",
-                "delete_description": "آیا مطمئن هستید که می‌خواهید این پرسش و پاسخ را حذف کنید؟ این عمل قابل بازگشت نیست."
+                "delete_description": "آیا مطمئن هستید که می‌خواهید این پرسش و پاسخ را حذف کنید؟ این عمل قابل بازگشت نیست.",
+                "remove_question": "حذف پرسش",
+                "actions": "اقدامات"
             },
             "youtube": {
                 "load_failed": "بارگذاری ویدیوهای YouTube ناموفق بود",
@@ -1239,7 +1289,10 @@
                 "column_enabled": "فعال",
                 "no_match": "هیچ اتصال‌دهنده‌ای مطابقت ندارد.",
                 "soon": "به زودی",
-                "connect_first": "ابتدا این MCP را در تنظیمات متصل کنید"
+                "connect_first": "ابتدا این MCP را در تنظیمات متصل کنید",
+                "column_always": "همیشه فعال",
+                "always_hint": "ابزارهای این اتصال‌دهنده را در هر نوبت ارائه دهید، حتی وقتی پیام به‌وضوح به آن‌ها نیاز ندارد. حداکثر ۱۰ ابزار همیشه فعال برای هر عامل.",
+                "always_failed": "به‌روزرسانی تنظیم «همیشه فعال» ناموفق بود"
             },
             "functions": {
                 "load_failed": "بارگذاری توابع ناموفق بود",
@@ -1582,7 +1635,9 @@
                 "branding": "برندینگ",
                 "behavior": "رفتار",
                 "settings": "تنظیمات",
-                "domain": "دامنه"
+                "domain": "دامنه",
+                "languages": "زبان‌ها",
+                "bubbles": "حباب‌های چت"
             },
             "view_only_title": "فقط مشاهده",
             "view_only_description": "شما مجاز به ویرایش تنظیمات نیستید.",
@@ -1622,7 +1677,9 @@
                 "agent_id_copied": "شناسه عامل در کلیپ‌بورد کپی شد",
                 "privacy_saved": "پیوند سیاست حفظ حریم خصوصی ذخیره شد",
                 "privacy_error": "ذخیره پیوند سیاست حفظ حریم خصوصی ناموفق بود",
-                "branding_saved": "برندینگ به‌روزرسانی شد"
+                "branding_saved": "برندینگ به‌روزرسانی شد",
+                "languages_saved": "زبان‌ها ذخیره شدند",
+                "languages_error": "ذخیره زبان‌ها ممکن نبود"
             },
             "settings": {
                 "composer_title": "گزینه‌های نویسنده",
@@ -1698,7 +1755,8 @@
                 "allowed_sites_placeholder": "example.com\napp.example.com",
                 "allowed_sites_help": "فقط این منابع مجاز به بارگذاری ویجت هستند.",
                 "keyboard_trigger": "میانبر صفحه‌کلید",
-                "placement": "جایگاه"
+                "placement": "جایگاه",
+                "language_switcher": "انتخابگر زبان"
             },
             "embed": {
                 "surface_preview": "پیش‌نمایش سطح"
@@ -1795,8 +1853,33 @@
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
                 "appearance_privacy_url_hint": "به بازدیدکنندگان به این صورت نشان داده می‌شود: «با گفتگو، شما با سیاست حفظ حریم خصوصی ما موافقت می‌کنید». برای پنهان کردن، خالی بگذارید.",
                 "branding_badge": "نمایش نشان «Powered by Chatvia»",
-                "branding_badge_hint": "نشان Chatvia را در گفتگو و ویجت این عامل نمایش دهید."
-            }
+                "branding_badge_hint": "نشان Chatvia را در گفتگو و ویجت این عامل نمایش دهید.",
+                "appearance_translations_default": "پیش‌فرض",
+                "appearance_translations_default_tip": "متنی که می‌نویسید — به‌طور خودکار به همه زبان‌ها ترجمه می‌شود.",
+                "appearance_translations_default_hint": "این متنی است که شما می‌نویسید. هنگام ذخیره، به‌طور خودکار به همه زبان‌ها ترجمه می‌شود و هر زمان که زبان بازدیدکننده در فهرست نباشد، همین متن نمایش داده می‌شود.",
+                "appearance_translations_lang_hint": "این زبان را اینجا ویرایش کنید. برای استفاده از ترجمه خودکار، فیلد را خالی بگذارید — ویرایش‌های شما همیشه حفظ می‌شوند.",
+                "starters_generate": "تولید با هوش مصنوعی",
+                "starters_generate_title": "تولید شروع‌کننده‌ها با هوش مصنوعی",
+                "starters_generate_description": "انتخاب کنید چند مورد از پایگاه دانش شما تولید شود، سپس مواردی را که می‌خواهید اضافه شوند برگزینید.",
+                "starters_generate_count": "چند مورد؟",
+                "starters_generate_button": "تولید",
+                "starters_generating": "در حال تولید…",
+                "starters_generate_hint": "یک عدد انتخاب کنید و از پایگاه دانش خود پیشنهاد تولید کنید.",
+                "starters_translate_empty": "ابتدا شروع‌کننده‌ها را در زبانه پیش‌فرض اضافه کنید، سپس آن‌ها را اینجا ترجمه کنید."
+            },
+            "languages": {
+                "title": "زبان‌های رابط کاربری",
+                "description": "انتخاب کنید این عامل از کدام زبان‌ها پشتیبانی کند. زبان‌های فعال در انتخابگر زبان چت میزبانی‌شده نمایش داده می‌شوند و در بخش‌های اطلاعات و شروع‌کننده‌ها فیلدهای مخصوص به خود را دارند.",
+                "select_all": "انتخاب همه",
+                "clear_all": "پاک کردن همه",
+                "count": "{count} از {total} انتخاب شده",
+                "hint": "برای پنهان کردن کامل انتخابگر زبان بازدیدکننده، آن را در بخش رفتار خاموش کنید.",
+                "min_required": "حداقل یک زبان لازم است."
+            },
+            "bubbles_add": "افزودن حباب",
+            "bubbles_remove": "حذف حباب",
+            "bubbles_empty": "هنوز حباب چتی وجود ندارد.",
+            "bubbles_translate_empty": "ابتدا یک حباب اضافه کنید تا بتوانید آن را ترجمه کنید."
         },
         "topics_index": {
             "title": "موضوعات",
@@ -1865,7 +1948,10 @@
             "remove_error": "حذف موضوع با خطا مواجه شد",
             "fill_fields": "لطفاً تمام فیلدها را پر کنید",
             "created": "موضوع با موفقیت ایجاد و اضافه شد",
-            "create_error": "ایجاد موضوع با خطا مواجه شد"
+            "create_error": "ایجاد موضوع با خطا مواجه شد",
+            "examples": "مثلاً {titles}",
+            "previous_page": "صفحه قبلی",
+            "next_page": "صفحه بعدی"
         },
         "usage": {
             "title": "آمار استفاده",
@@ -2068,7 +2154,10 @@
             "maps_to_aria": "«نگاشت به» یعنی چه؟",
             "maps_to_help_title": "نگاشت به یک فیلد مخاطب",
             "maps_to_help_1": "این فیلد را به عنوان یک ویژگی استاندارد مخاطب برچسب‌گذاری می‌کند — نام، ایمیل، تلفن و مانند آن. مقداری که بازدیدکننده وارد می‌کند آنگاه به‌عنوان همان بخش از اطلاعات مخاطب شناخته می‌شود، نه فقط یک پاسخ بی‌نام.",
-            "maps_to_help_2": "فیلدهای نگاشت‌شده اطلاعات سرنخ را پر می‌کنند — و فهرست سرنخ‌ها، تشخیص موارد تکراری و خروجی CSV را تأمین می‌کنند. برای ثبت پاسخ بدون برچسب‌گذاری، آن را روی «—» بگذارید."
+            "maps_to_help_2": "فیلدهای نگاشت‌شده اطلاعات سرنخ را پر می‌کنند — و فهرست سرنخ‌ها، تشخیص موارد تکراری و خروجی CSV را تأمین می‌کنند. برای ثبت پاسخ بدون برچسب‌گذاری، آن را روی «—» بگذارید.",
+            "subtitle": "توضیحات",
+            "subtitle_placeholder": "مثلاً درباره شرکت خود به ما بگویید تا با شما تماس بگیریم.",
+            "subtitle_hint": "زیر عنوان فرم به بازدیدکننده نمایش داده می‌شود."
         },
         "submissions": {
             "page_title": "ارسال‌ها",
@@ -2103,7 +2192,8 @@
             "sending_link": "در حال ارسال لینک...",
             "or_continue_with": "یا ادامه دهید با",
             "no_account": "حساب کاربری ندارید؟",
-            "start_free_trial": "شروع آزمایش رایگان"
+            "start_free_trial": "شروع آزمایش رایگان",
+            "create_account": "ایجاد حساب کاربری"
         },
         "register": {
             "title": "ایجاد حساب کاربری",
@@ -2824,7 +2914,8 @@
                 "all_agents": "همه عاملان",
                 "no_agents_assigned": "هیچ عاملی اختصاص نیافته",
                 "agent_count": "{count} عامل | {count} عامل",
-                "delete_description": "آیا مطمئن هستید که می‌خواهید نقش \"{name}\" را حذف کنید؟ این عمل قابل بازگشت نیست."
+                "delete_description": "آیا مطمئن هستید که می‌خواهید نقش \"{name}\" را حذف کنید؟ این عمل قابل بازگشت نیست.",
+                "toggle_permissions": "نمایش یا پنهان کردن دسترسی‌ها"
             },
             "members": {
                 "title": "اعضای تیم",
@@ -2877,7 +2968,9 @@
                 "description": "اعضایی که این نقش را دارند. می‌توانید دسترسی آن‌ها به این تیم را حذف کنید.",
                 "empty": "هنوز هیچ عضوی با این نقش وجود ندارد.",
                 "close": "بستن"
-            }
+            },
+            "rename_team": "تغییر نام تیم",
+            "save_team_name": "ذخیره نام تیم"
         },
         "roles": {
             "details": "جزئیات نقش",
@@ -3161,7 +3254,8 @@
         "volume_month": "حجم پیام در ۳۰ روز گذشته",
         "last_week": "هفته گذشته",
         "last_month": "ماه گذشته",
-        "messages_tooltip": "{n} پیام | {n} پیام"
+        "messages_tooltip": "{n} پیام | {n} پیام",
+        "messages_this_month": "پیام‌های این ماه"
     },
     "support": {
         "title": "پشتیبانی",
@@ -3250,7 +3344,8 @@
         "tokens_note": "مصرف‌شده در این دوره — صرفاً جهت اطلاع؛ پلن شما بر اساس پیام‌ها محاسبه می‌شود.",
         "of": "از {limit}",
         "remaining": "{count} باقی‌مانده",
-        "load_error": "بارگذاری داده‌های مصرف امکان‌پذیر نیست."
+        "load_error": "بارگذاری داده‌های مصرف امکان‌پذیر نیست.",
+        "no_limit": "بدون محدودیت"
     },
     "analytics_chat": {
         "title": "از داده‌های خود بپرسید",
@@ -3293,7 +3388,8 @@
                 "create_title": "افزودن پرامپت",
                 "description": "یک پرامپت سیستمی قابل استفاده مجدد بنویسید و سپس از صفحه پرسونای هر عامل به آن متصل کنید. ویرایش آن در اینجا همه عامل‌هایی که از آن استفاده می‌کنند را به‌روز می‌کند.",
                 "id_label": "شناسه",
-                "copy_id_title": "کپی شناسه پرامپت — هنگام ایجاد یا به‌روزرسانی عامل از طریق API به عنوان prompt_id ارسال کنید"
+                "copy_id_title": "کپی شناسه پرامپت — هنگام ایجاد یا به‌روزرسانی عامل از طریق API به عنوان prompt_id ارسال کنید",
+                "copy_id": "کپی شناسه پرامپت"
             },
             "form": {
                 "name": "نام",
@@ -3330,7 +3426,8 @@
                 "description": "توابع به عامل‌های شما اجازه می‌دهند API های خودتان را به عنوان ابزار LLM فراخوانی کنند. {name} و {description} چیزی است که مدل هنگام تصمیم‌گیری برای فراخوانی می‌بیند — دقیق باشید. {learn_more}",
                 "learn_more": "بیشتر بدانید",
                 "id_label": "شناسه",
-                "copy_id_title": "کپی شناسه تابع — هنگام اتصال از طریق API به عنوان function_id ارسال کنید"
+                "copy_id_title": "کپی شناسه تابع — هنگام اتصال از طریق API به عنوان function_id ارسال کنید",
+                "copy_id": "کپی شناسه تابع"
             },
             "form": {
                 "name": "نام",
@@ -3395,7 +3492,8 @@
                 "title": "کلید API جدید خود را کپی کنید",
                 "description": "این تنها باری است که {name} را می‌بینید. آن را در جای امنی ذخیره کنید — اگر گم شد، یک کلید جدید ایجاد کنید.",
                 "warning": "با این کلید مانند رمز عبور رفتار کنید. هر کسی که آن را داشته باشد می‌تواند از طرف شما عامل‌ها تأمین کند.",
-                "confirm": "آن را به طور ایمن ذخیره کردم"
+                "confirm": "آن را به طور ایمن ذخیره کردم",
+                "copy": "کپی کلید API"
             },
             "revoke_dialog": {
                 "title": "لغو کلید API",
@@ -3694,7 +3792,8 @@
         "account": "حساب کاربری",
         "workspace": "فضای کاری",
         "logout": "خروج",
-        "language": "زبان"
+        "language": "زبان",
+        "open_user_menu": "باز کردن منوی کاربر"
     },
     "account": {
         "layout": {
@@ -3965,7 +4064,9 @@
             "toast_max_files_title": "حداکثر محدودیت فایل رسیده شد",
             "toast_max_files_description": "شما فقط می‌توانید حداکثر {max} فایل بارگذاری کنید.",
             "toast_file_size_title": "محدودیت حجم فایل از حد مجاز گذشت",
-            "toast_file_size_description": "فایل(های) زیر از محدودیت {maxSize} مگابایت فراتر رفته‌اند: {fileList}"
+            "toast_file_size_description": "فایل(های) زیر از محدودیت {maxSize} مگابایت فراتر رفته‌اند: {fileList}",
+            "analyze_failed": "تحلیل فایل ناموفق بود",
+            "analyze_timed_out": "زمان تحلیل به پایان رسید - ممکن است فایل خیلی بزرگ باشد"
         },
         "voice_recorder": {
             "title_default": "ضبط یادداشت صوتی",
@@ -3983,7 +4084,16 @@
             "tips_heading": "نکات:",
             "tip_speak_clearly": "واضح و با سرعت یکنواخت صحبت کنید",
             "tip_quiet_environment": "برای بهترین نتیجه از محیطی آرام استفاده کنید",
-            "tip_max_duration": "حداکثر طول ضبط: {minutes} دقیقه | حداکثر طول ضبط: {minutes} دقیقه"
+            "tip_max_duration": "حداکثر طول ضبط: {minutes} دقیقه | حداکثر طول ضبط: {minutes} دقیقه",
+            "pause_recording": "توقف موقت ضبط",
+            "resume_recording": "ادامه ضبط",
+            "cancel_recording": "لغو ضبط",
+            "play_recording": "پخش ضبط",
+            "pause_playback": "توقف موقت پخش",
+            "microphone_denied": "دسترسی به میکروفون رد شد. لطفاً برای ضبط، اجازه دسترسی به میکروفون را بدهید.",
+            "microphone_not_found": "میکروفونی پیدا نشد. لطفاً یک میکروفون وصل کنید و دوباره تلاش کنید.",
+            "microphone_failed": "دسترسی به میکروفون ممکن نشد",
+            "transcription_failed": "تبدیل گفتار به متن ناموفق بود"
         },
         "date_range": {
             "pick_range": "یک بازه تاریخ انتخاب کنید",
@@ -4069,7 +4179,8 @@
             "toast_disconnected": "اتصال {name} قطع شد",
             "toast_disconnect_failed": "ناموفق",
             "set_all": "تنظیم همه",
-            "toast_bulk_permission": "{count} ابزار روی «{permission}» تنظیم شد | {count} ابزار روی «{permission}» تنظیم شد"
+            "toast_bulk_permission": "{count} ابزار روی «{permission}» تنظیم شد | {count} ابزار روی «{permission}» تنظیم شد",
+            "copy_server_id": "کپی شناسه سرور"
         },
         "member_sheet": {
             "sr_description": "مدیریت محدودیت‌ها، دسترسی به عامل‌ها و وضعیت این چت‌کننده.",
@@ -4198,6 +4309,12 @@
             "toggle_sidebar": "نمایش/پنهان نوار کناری",
             "sidebar": "نوار کناری",
             "sidebar_description": "نوار کناری موبایل را نمایش می‌دهد."
+        },
+        "json_editor": {
+            "aria_label": "ویرایشگر JSON"
+        },
+        "time_ago": {
+            "just_now": "همین الان"
         }
     },
     "connectors": {
@@ -4320,6 +4437,18 @@
                 "name": "Amplitude",
                 "description": "پرس‌وجوی تحلیل‌های محصول — رویدادها، نمودارها و کوهورت‌ها — از پروژه Amplitude شما."
             }
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "به Chatvia خوش آمدید",
+            "intro": "بیایید اولین عامل هوش مصنوعی خود را بسازیم. فقط یک دقیقه طول می‌کشد.",
+            "what_title": "عامل چیست؟",
+            "what_body": "عامل یک دستیار هوش مصنوعی است که آن را با محتوای خودتان آموزش می‌دهید. عامل در وب‌سایت، ویجت گفتگو و اپ‌های پیام‌رسان به مشتریان شما پاسخ می‌دهد.",
+            "how_title": "چگونه کار می‌کند؟",
+            "how_body": "ابتدا یک عامل می‌سازید و برای آن نامی انتخاب می‌کنید. سپس آن را با فایل‌ها، وب‌سایت‌ها و متن‌های خود آموزش می‌دهید تا بتواند به سؤالات پاسخ دهد.",
+            "start": "ساخت اولین عامل من",
+            "video_caption": "ببینید چگونه کار می‌کند"
         }
     }
 }

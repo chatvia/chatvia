@@ -1,128 +1,64 @@
-import axios from 'axios';
-import { computed, ref } from 'vue';
+/**
+ * Voice input for the chat composer: records the microphone (via
+ * `useAudioCapture`) and turns the recording into text with the hosted chat's
+ * transcription endpoint. `stopRecording()` resolves with the transcript.
+ */
+import { transcribeAudio } from '@/api/chat';
+import { useAudioCapture } from '@/composables/useAudioCapture';
+import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export function useVoiceRecorder() {
+    const { t } = useI18n();
+    const capture = useAudioCapture({ sampleRate: 16000, mimeTypes: ['audio/webm', 'audio/mp4'] });
+
     const isRecording = ref(false);
     const isTranscribing = ref(false);
     const error = ref<string | null>(null);
     const transcript = ref('');
 
-    let mediaRecorder: MediaRecorder | null = null;
-    let audioChunks: Blob[] = [];
-    let stream: MediaStream | null = null;
-
-    const isSupported = computed(() => {
-        return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-    });
-
     const startRecording = async () => {
         error.value = null;
-        audioChunks = [];
 
         try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    sampleRate: 16000,
-                },
-            });
-
-            mediaRecorder = new MediaRecorder(stream, {
-                mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4',
-            });
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-
-            mediaRecorder.start(100); // Collect data every 100ms
+            await capture.start();
             isRecording.value = true;
-        } catch (err: any) {
-            error.value = err.message || 'Failed to access microphone';
-            console.error('Error starting recording:', err);
+        } catch (err) {
+            error.value = (err as Error).message || t('shared.voice_recorder.microphone_failed');
         }
     };
 
     const stopRecording = async (): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                resolve('');
-                return;
-            }
+        if (!capture.isActive()) return '';
 
-            mediaRecorder.onstop = async () => {
-                isRecording.value = false;
+        const audio = await capture.stop();
+        isRecording.value = false;
+        if (!audio) return '';
 
-                // Stop all tracks
-                if (stream) {
-                    stream.getTracks().forEach((track) => track.stop());
-                    stream = null;
-                }
+        isTranscribing.value = true;
+        try {
+            const extension = audio.type.includes('webm') ? 'webm' : 'mp4';
+            const text = await transcribeAudio(audio, `recording.${extension}`);
+            transcript.value = text;
 
-                if (audioChunks.length === 0) {
-                    resolve('');
-                    return;
-                }
-
-                const audioBlob = new Blob(audioChunks, {
-                    type: mediaRecorder?.mimeType || 'audio/webm',
-                });
-
-                // Transcribe the audio
-                try {
-                    isTranscribing.value = true;
-                    const text = await transcribeAudio(audioBlob);
-                    transcript.value = text;
-                    resolve(text);
-                } catch (err: any) {
-                    error.value = err.message || 'Transcription failed';
-                    reject(err);
-                } finally {
-                    isTranscribing.value = false;
-                }
-            };
-
-            mediaRecorder.stop();
-        });
+            return text;
+        } catch (err) {
+            error.value = (err as Error).message || t('shared.voice_recorder.transcription_failed');
+            throw err;
+        } finally {
+            isTranscribing.value = false;
+        }
     };
 
     const cancelRecording = () => {
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
-        }
-
-        if (stream) {
-            stream.getTracks().forEach((track) => track.stop());
-            stream = null;
-        }
-
+        capture.cancel();
         isRecording.value = false;
-        audioChunks = [];
-    };
-
-    const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
-        const formData = new FormData();
-
-        // Determine file extension based on mime type
-        const extension = audioBlob.type.includes('webm') ? 'webm' : 'mp4';
-        formData.append('audio', audioBlob, `recording.${extension}`);
-
-        const response = await axios.post(route('chat.transcribe'), formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-
-        return response.data.text || '';
     };
 
     return {
         isRecording,
         isTranscribing,
-        isSupported,
+        isSupported: capture.isSupported,
         error,
         transcript,
         startRecording,

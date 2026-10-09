@@ -2,13 +2,13 @@
 
 namespace Domain\Membership\Agent\Actions;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Agent\Data\AgentChatterInvitationData;
 use Domain\Membership\Agent\Data\InviteAgentChatterData;
 use Domain\Membership\Agent\Data\InviteWorkspaceChatterData;
 use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Illuminate\Support\Facades\DB;
-use Support\Enums\User\UserType;
 
 /**
  * Invite a chatter from the workspace Members page and grant them access to a

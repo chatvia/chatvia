@@ -1,136 +1,121 @@
 <script setup lang="ts">
+/**
+ * Frame shared by the hosted chat pages: page title, toast outlet, the
+ * collapsible conversation sidebar (persisted per device, a drawer on mobile)
+ * and the header above the page's `content` slot.
+ */
+import { deleteConversation as deleteConversationRequest } from '@/api/chat';
 import Sidebar from '@/components/chat/ChatSidebar.vue';
 import Header from '@/components/chat/Header.vue';
 import { Toaster } from '@/components/ui/sonner';
-import { Head, router, usePage } from '@inertiajs/vue3';
-import { vOnClickOutside } from '@vueuse/components';
-import { onKeyStroke } from '@vueuse/core';
-import axios from 'axios';
 import { useIsMobile } from '@/composables/useIsMobile';
 import { safeStorage } from '@/lib/safeStorage';
-import { computed, onMounted, ref, watch } from 'vue';
+import type { ChatAppearance, ChatDefaultTheme } from '@/types/chat';
+import { Head, router } from '@inertiajs/vue3';
+import { vOnClickOutside } from '@vueuse/components';
+import { onKeyStroke } from '@vueuse/core';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const props = defineProps({
-    appearance: {
-        type: Object,
-    },
-    removeSidebar: {
-        type: Boolean,
-        default: false,
-    },
-    hideSidebarOnPageLoad: {
-        type: Boolean,
-        default: false,
-    },
-    enableThemeSwitcher: {
-        type: Boolean,
-        default: true,
-    },
-    defaultTheme: {
-        type: String,
-        default: 'auto',
-        validator: (value: string) => ['auto', 'light', 'dark'].includes(value),
-    },
-    enableChatExpand: {
-        type: Boolean,
-        default: true,
-    },
-    enableLanguageSwitcher: {
-        type: Boolean,
-        default: false,
-    },
-    enabledLanguages: {
-        type: Array,
-        default: () => [],
-    },
-    newChatRoute: {
-        type: String,
-        default: 'chat.home',
-    },
+interface Props {
+    appearance?: ChatAppearance;
+    removeSidebar?: boolean;
+    hideSidebarOnPageLoad?: boolean;
+    enableThemeSwitcher?: boolean;
+    defaultTheme?: ChatDefaultTheme;
+    enableChatExpand?: boolean;
+    enableLanguageSwitcher?: boolean;
+    enabledLanguages?: string[];
+    newChatRoute?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    appearance: undefined,
+    removeSidebar: false,
+    hideSidebarOnPageLoad: false,
+    enableThemeSwitcher: true,
+    defaultTheme: 'auto',
+    enableChatExpand: true,
+    enableLanguageSwitcher: false,
+    enabledLanguages: () => [],
+    newChatRoute: 'chat.home',
 });
 
-const { t } = useI18n();
+const SIDEBAR_STORAGE_KEY = 'sidebarOpen';
 
+const { t } = useI18n();
 const isMobileDevice = useIsMobile();
 
 const pageTitle = computed(() => props.appearance?.chat_window_title || t('shared.chat_title_fallback'));
 
 const isSidebarOpen = ref(false);
 
-const _page = usePage();
-const isIncognitoMode = ref(false);
-
-// Save sidebar state to localStorage when it changes
-watch(isSidebarOpen, (newValue) => {
+// Desktop remembers the sidebar state; mobile always starts closed.
+watch(isSidebarOpen, (open) => {
     if (!isMobileDevice.value) {
-        safeStorage.set('sidebarOpen', String(newValue));
+        safeStorage.set(SIDEBAR_STORAGE_KEY, String(open));
     }
 });
 
-function checkScreenSize() {
-    if (!isMobileDevice.value) {
-        // Only auto-open on desktop
-        isSidebarOpen.value = true;
-    } else {
-        // Always close on mobile
+function syncSidebarToViewport() {
+    isSidebarOpen.value = !isMobileDevice.value;
+}
+
+function restoreSidebarState() {
+    if (props.hideSidebarOnPageLoad) {
+        isSidebarOpen.value = false;
+        safeStorage.set(SIDEBAR_STORAGE_KEY, 'false');
+        return;
+    }
+
+    const saved = safeStorage.get(SIDEBAR_STORAGE_KEY);
+    if (saved !== null) {
+        isSidebarOpen.value = saved === 'true';
+        return;
+    }
+
+    isSidebarOpen.value = !isMobileDevice.value;
+    safeStorage.set(SIDEBAR_STORAGE_KEY, String(isSidebarOpen.value));
+}
+
+onMounted(() => {
+    if (!isMobileDevice.value && !props.removeSidebar) {
+        restoreSidebarState();
+    }
+
+    window.addEventListener('resize', syncSidebarToViewport);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('resize', syncSidebarToViewport);
+});
+
+async function deleteConversation(conversationId: string) {
+    await deleteConversationRequest(conversationId);
+    router.visit(route(props.newChatRoute), {
+        preserveState: false,
+        preserveScroll: false,
+        replace: true,
+    });
+}
+
+function closeSidebarOnMobile() {
+    if (isMobileDevice.value) {
         isSidebarOpen.value = false;
     }
 }
 
-onMounted(() => {
-    // Initialize sidebar state from localStorage or hideSidebarOnPageLoad prop
-    if (!isMobileDevice.value && !props.removeSidebar) {
-        if (props.hideSidebarOnPageLoad) {
-            // If hideSidebarOnPageLoad prop is true, start with sidebar closed
-            isSidebarOpen.value = false;
-            safeStorage.set('sidebarOpen', 'false');
-        } else {
-            // Use saved state or default behavior
-            const savedSidebarState = safeStorage.get('sidebarOpen');
-            if (savedSidebarState !== null) {
-                isSidebarOpen.value = savedSidebarState === 'true';
-            } else {
-                isSidebarOpen.value = !isMobileDevice.value;
-                safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
-            }
-        }
-    }
-
-    window.addEventListener('resize', checkScreenSize);
-});
-
-const deleteConversation = (conversationId: string) => {
-    axios.delete(route('conversations.delete', { conversationId })).then(() => {
-        router.visit(route(props.newChatRoute), {
-            preserveState: false,
-            preserveScroll: false,
-            replace: true,
-        });
-    });
-};
-
-const closeSidebarOnMobile = () => {
-    if (isMobileDevice.value) {
-        isSidebarOpen.value = false;
-    }
-};
-
-const toggleSidebar = () => {
+function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
-};
+}
 
-// Cmd/Ctrl+B toggles the conversation sidebar (the convention the shadcn
-// Sidebar primitive uses). Cmd/Ctrl+K (search) is owned by ChatSidebar.
+// Cmd/Ctrl+B toggles the conversation sidebar (the shadcn Sidebar convention).
+// Cmd/Ctrl+K (search) is owned by ChatSidebar.
 onKeyStroke('b', (e) => {
     if (props.removeSidebar || !(e.metaKey || e.ctrlKey)) return;
     e.preventDefault();
     toggleSidebar();
 });
-
-const handleToggleIncognito = (value: boolean) => {
-    isIncognitoMode.value = value;
-};
 </script>
 
 <template>
@@ -157,7 +142,7 @@ const handleToggleIncognito = (value: boolean) => {
             :class="{ '-translate-x-full rtl:translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
         >
-            <Sidebar :appearance="appearance" v-model:open="isSidebarOpen" :newChatRoute="newChatRoute" class="bg-sidebar h-full w-full" />
+            <Sidebar :appearance="appearance" v-model:open="isSidebarOpen" :newChatRoute="newChatRoute" />
         </div>
 
         <div
@@ -165,10 +150,8 @@ const handleToggleIncognito = (value: boolean) => {
             :class="{ 'md:ms-64': !removeSidebar && isSidebarOpen }"
         >
             <Header
-                :token-count="0"
                 class="w-full flex-shrink-0"
                 @deleteConversation="deleteConversation"
-                @toggleIncognito="handleToggleIncognito"
                 @toggleSidebar="toggleSidebar"
                 :isSidebarOpen="isSidebarOpen"
                 :removeSidebar="removeSidebar"

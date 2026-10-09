@@ -1,6 +1,12 @@
 <script setup lang="ts">
+/**
+ * Workspace → Integrations → API keys: generate and revoke bearer tokens for
+ * the public API. A new key's plaintext is shown once, in a reveal dialog,
+ * straight after the server creates it.
+ */
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { useClipboard } from '@vueuse/core';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import InputError from '@/components/InputError.vue';
@@ -26,7 +32,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { AlertCircle, Check, Copy, KeyRound, Plus, Tag, Trash2 } from 'lucide-vue-next';
-import { computed } from 'vue';
 
 const { t } = useI18n();
 
@@ -95,7 +100,7 @@ const confirmRevoke = () => {
 // One-time reveal dialog: shows when a fresh token comes back from the server,
 // then closing it clears the flash so a page reload won't show it again.
 const showCreatedDialog = ref(false);
-const copied = ref(false);
+const { copy, copied } = useClipboard({ legacy: true, copiedDuring: 2000 });
 
 watch(
     () => props.created_token,
@@ -107,9 +112,7 @@ watch(
 
 const copyPlaintext = async () => {
     if (!props.created_token) return;
-    await navigator.clipboard.writeText(props.created_token.plaintext);
-    copied.value = true;
-    setTimeout(() => (copied.value = false), 2000);
+    await copy(props.created_token.plaintext);
 };
 
 const dismissDialog = () => {
@@ -251,7 +254,13 @@ const dismissDialog = () => {
 
                     <div class="bg-muted text-foreground flex items-center gap-2 rounded-md border px-3 py-2 font-mono text-xs">
                         <span class="flex-1 break-all">{{ created_token?.plaintext }}</span>
-                        <Button type="button" variant="outline" size="sm" @click="copyPlaintext">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            :aria-label="t('workspace.api_keys.reveal_dialog.copy')"
+                            @click="copyPlaintext"
+                        >
                             <Check v-if="copied" class="size-4 text-green-600" />
                             <Copy v-else class="size-4" />
                         </Button>

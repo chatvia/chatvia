@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Home;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatPageProps;
+use Domain\Agent\Models\Agent;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -12,9 +14,8 @@ use Inertia\Response;
  */
 final class ChatController
 {
-    public function __invoke(string $conversationId): Response
+    public function __invoke(string $conversationId, #[HostedChatAgent] ?Agent $agent): Response
     {
-        $agent = current_agent();
         $agent?->loadSettingsGroups(['appearance', 'embed']);
         $agent?->loadMissing('team.owner');
 

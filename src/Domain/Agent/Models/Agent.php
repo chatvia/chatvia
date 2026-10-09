@@ -3,6 +3,7 @@
 namespace Domain\Agent\Models;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Events\AgentToolsChanged;
 use Domain\Agent\Observers\AgentObserver;
 use Domain\Agent\Prompt\Models\AgentPrompt;
@@ -44,7 +45,6 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Support\Enums\CreatedVia;
 use Support\MimeType;
-use Support\Traits\HasSettings;
 
 /**
  * An AI agent a workspace builds and deploys: its persona and model, its

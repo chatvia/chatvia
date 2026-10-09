@@ -1,11 +1,27 @@
+/**
+ * Live-chat handoff for the chat log: joins the conversation's presence
+ * channel (who is online, typing, new messages, handoff status) and wraps the
+ * operator actions (take over, reply, return to AI). Server calls go through
+ * `@/api/handoff`; presence uses the app-wide Echo connection from app.ts.
+ */
+import {
+    markHandoffMessagesRead,
+    returnConversationToAi,
+    sendHandoffMessage,
+    sendHandoffTyping,
+    takeOverConversation,
+    type HandoffMessageResult,
+    type HandoffReturnResult,
+    type HandoffTakeoverResult,
+} from '@/api/handoff';
+import { errorMessage } from '@/api/http';
+import { i18n } from '@/i18n';
 import { echo } from '@laravel/echo-vue';
-import axios from 'axios';
 import { computed, onUnmounted, ref, watch } from 'vue';
 
-// Types
-interface HandoffState {
+export interface HandoffState {
     status: 'ai' | 'pending' | 'human' | 'returned';
-    adminId: string | null;
+    adminId: string | number | null;
     adminName: string | null;
     handoffAt: string | null;
 }
@@ -22,18 +38,43 @@ interface TypingState {
     typerName: string | null;
 }
 
-// Presence channels use the app-wide Echo connection that app.ts sets up with
-// configureEcho(), so the dashboard keeps one Reverb socket and one config.
+/** `.message` broadcast (Domain\Conversation\Events\MessagePosted). */
+export interface HandoffMessageEvent {
+    id: string;
+    conversation_id?: string;
+    chat_conversation_id?: string;
+    content: string;
+    role: string;
+    sender_name?: string | null;
+    sender_id?: string | number | null;
+    timestamp?: string;
+    artifacts?: { kind: string; data: unknown }[] | null;
+}
 
-export function useHandoff(agentId: () => number | null, conversationId: () => string | null) {
-    // State
-    const handoffState = ref<HandoffState>({
-        status: 'ai',
-        adminId: null,
-        adminName: null,
-        handoffAt: null,
-    });
+/** `.typing` broadcast or client whisper (Domain\Conversation\Events\TypingStarted). */
+interface TypingEvent {
+    is_typing: boolean;
+    typer_type: 'user' | 'agent';
+    typer_name: string | null;
+}
 
+/** `.handoff` broadcast (Domain\Conversation\Events\HandedOff). */
+interface HandoffEvent {
+    status: HandoffState['status'];
+    admin_id: string | number | null;
+    admin_name: string | null;
+    timestamp: string | null;
+}
+
+/** How long a "visitor is typing" signal lasts without a follow-up. */
+const TYPING_TIMEOUT_MS = 3000;
+
+const AI_STATE: HandoffState = { status: 'ai', adminId: null, adminName: null, handoffAt: null };
+
+export function useHandoff(agentId: () => string | null, conversationId: () => string | null) {
+    const t = i18n.global.t;
+
+    const handoffState = ref<HandoffState>({ ...AI_STATE });
     const presenceMembers = ref<PresenceMember[]>([]);
     const typingState = ref<TypingState | null>(null);
     const isConnected = ref(false);
@@ -41,94 +82,74 @@ export function useHandoff(agentId: () => number | null, conversationId: () => s
     const error = ref<string | null>(null);
     const adminMessage = ref('');
     const isSendingMessage = ref(false);
-    const newMessageReceived = ref<any>(null); // Reactive trigger for new messages
+    // Changes on every `.message` broadcast so watchers can react to new messages.
+    const newMessageReceived = ref<(HandoffMessageEvent & { receivedAt: number }) | null>(null);
 
-    // Current channel reference
-    let currentChannel: any = null;
     let currentChannelName: string | null = null;
     let typingTimeout: ReturnType<typeof setTimeout> | null = null;
-    let onMessageCallback: ((data: any) => void) | null = null;
+    let onMessageCallback: ((data: HandoffMessageEvent) => void) | null = null;
 
-    // Computed
     const isHandedOff = computed(() => handoffState.value.status === 'human');
     const canTakeOver = computed(() => handoffState.value.status !== 'human');
     const canReturn = computed(() => handoffState.value.status === 'human');
+    const userIsOnline = computed(() => presenceMembers.value.some((member) => member.type === 'user'));
+    const onlineUser = computed(() => presenceMembers.value.find((member) => member.type === 'user'));
+    const userIsTyping = computed(() => typingState.value?.isTyping && typingState.value.typerType === 'user');
 
-    const userIsOnline = computed(() => {
-        return presenceMembers.value.some((m) => m.type === 'user');
-    });
+    /** The agent + conversation the operator acts on, or null when nothing is selected. */
+    function currentTarget(): { agentId: string; conversationId: string } | null {
+        const agent = agentId();
+        const conversation = conversationId();
 
-    const onlineUser = computed(() => {
-        return presenceMembers.value.find((m) => m.type === 'user');
-    });
+        return agent && conversation ? { agentId: agent, conversationId: conversation } : null;
+    }
 
-    const userIsTyping = computed(() => {
-        return typingState.value?.isTyping && typingState.value.typerType === 'user';
-    });
+    // Only the visitor's typing is shown; the operator's own whispers are ignored.
+    function handleTypingEvent(data: TypingEvent) {
+        if (data.typer_type !== 'user') return;
 
-    // Handle typing events (from server broadcast or client whisper)
-    function handleTypingEvent(data: any) {
-        if (data.typer_type === 'user') {
-            typingState.value = {
-                isTyping: data.is_typing,
-                typerType: data.typer_type,
-                typerName: data.typer_name,
-            };
+        typingState.value = { isTyping: data.is_typing, typerType: data.typer_type, typerName: data.typer_name };
 
-            // Clear typing after 3 seconds if no update
-            if (typingTimeout) clearTimeout(typingTimeout);
-            if (data.is_typing) {
-                typingTimeout = setTimeout(() => {
-                    if (typingState.value?.typerType === 'user') {
-                        typingState.value = null;
-                    }
-                }, 3000);
-            }
+        if (typingTimeout) clearTimeout(typingTimeout);
+        if (data.is_typing) {
+            typingTimeout = setTimeout(() => {
+                if (typingState.value?.typerType === 'user') {
+                    typingState.value = null;
+                }
+            }, TYPING_TIMEOUT_MS);
         }
     }
 
-    // Join presence channel for a conversation
     function joinChannel(convId: string) {
         if (!convId) return;
 
         const channelName = `chat.${convId}`;
-
-        // Don't rejoin if we're already on this channel
-        if (currentChannelName === channelName && currentChannel && isConnected.value) {
-            return;
-        }
+        if (currentChannelName === channelName && isConnected.value) return;
 
         leaveChannel();
-
         currentChannelName = channelName;
 
-        currentChannel = echo()
+        echo()
             .join(channelName)
             .here((members: PresenceMember[]) => {
                 presenceMembers.value = members;
                 isConnected.value = true;
             })
             .joining((member: PresenceMember) => {
-                if (!presenceMembers.value.find((m) => m.id === member.id)) {
+                if (!presenceMembers.value.find((existing) => existing.id === member.id)) {
                     presenceMembers.value.push(member);
                 }
             })
             .leaving((member: PresenceMember) => {
-                presenceMembers.value = presenceMembers.value.filter((m) => m.id !== member.id);
+                presenceMembers.value = presenceMembers.value.filter((existing) => existing.id !== member.id);
             })
-            .listen('.message', (data: any) => {
+            .listen('.message', (data: HandoffMessageEvent) => {
                 newMessageReceived.value = { ...data, receivedAt: Date.now() };
-                if (onMessageCallback) {
-                    onMessageCallback(data);
-                }
+                onMessageCallback?.(data);
             })
-            .listen('.typing', (data: any) => {
-                handleTypingEvent(data);
-            })
-            .listenForWhisper('typing', (data: any) => {
-                handleTypingEvent(data);
-            })
-            .listen('.handoff', (data: any) => {
+            .listen('.typing', handleTypingEvent)
+            .listenForWhisper('typing', handleTypingEvent)
+            .listen('.handoff', (data: HandoffEvent) => {
                 handoffState.value = {
                     status: data.status,
                     adminId: data.admin_id,
@@ -136,187 +157,130 @@ export function useHandoff(agentId: () => number | null, conversationId: () => s
                     handoffAt: data.timestamp,
                 };
             })
-            .error((_err: any) => {
-                error.value = 'Failed to connect to chat channel';
+            .error(() => {
+                error.value = t('agents.chatlog.handoff.errors.connect_failed');
                 isConnected.value = false;
             });
     }
 
     function leaveChannel() {
-        if (currentChannel && currentChannelName) {
-            echo().leave(currentChannelName);
-            currentChannel = null;
-            currentChannelName = null;
-            isConnected.value = false;
-            presenceMembers.value = [];
-            typingState.value = null;
-        }
+        if (!currentChannelName) return;
+
+        echo().leave(currentChannelName);
+        currentChannelName = null;
+        isConnected.value = false;
+        presenceMembers.value = [];
+        typingState.value = null;
     }
 
-    // API calls
-    async function takeOver() {
-        const agId = agentId();
-        const convId = conversationId();
-        if (!agId || !convId) return;
+    async function takeOver(): Promise<HandoffTakeoverResult | undefined> {
+        const target = currentTarget();
+        if (!target) return;
 
         isLoading.value = true;
         error.value = null;
 
         try {
-            const response = await axios.post(
-                route('agents.handoff.takeover', {
-                    agent: agId,
-                    conversation: convId,
-                }),
-            );
-
+            const result = await takeOverConversation(target);
             handoffState.value = {
                 status: 'human',
-                adminId: response.data.admin_id,
-                adminName: response.data.admin_name,
+                adminId: result.admin_id ?? null,
+                adminName: result.admin_name ?? null,
                 handoffAt: new Date().toISOString(),
             };
+            joinChannel(target.conversationId);
 
-            // Join channel after takeover
-            joinChannel(convId);
-
-            return response.data;
-        } catch (err: any) {
-            error.value = err.response?.data?.message || 'Failed to take over conversation';
+            return result;
+        } catch (err) {
+            error.value = errorMessage(err, t('agents.chatlog.handoff.errors.takeover_failed'));
             throw err;
         } finally {
             isLoading.value = false;
         }
     }
 
-    async function returnToAi() {
-        const agId = agentId();
-        const convId = conversationId();
-        if (!agId || !convId) return;
+    async function returnToAi(): Promise<HandoffReturnResult | undefined> {
+        const target = currentTarget();
+        if (!target) return;
 
         isLoading.value = true;
         error.value = null;
 
         try {
-            const response = await axios.post(
-                route('agents.handoff.return', {
-                    agent: agId,
-                    conversation: convId,
-                }),
-            );
-
-            handoffState.value = {
-                status: 'ai',
-                adminId: null,
-                adminName: null,
-                handoffAt: null,
-            };
-
+            const result = await returnConversationToAi(target);
+            handoffState.value = { ...AI_STATE };
             leaveChannel();
 
-            return response.data;
-        } catch (err: any) {
-            error.value = err.response?.data?.message || 'Failed to return conversation to AI';
+            return result;
+        } catch (err) {
+            error.value = errorMessage(err, t('agents.chatlog.handoff.errors.return_failed'));
             throw err;
         } finally {
             isLoading.value = false;
         }
     }
 
-    async function sendMessage(content: string) {
-        const agId = agentId();
-        const convId = conversationId();
-        if (!agId || !convId || !content.trim()) return;
+    async function sendMessage(content: string): Promise<HandoffMessageResult['message'] | undefined> {
+        const target = currentTarget();
+        if (!target || !content.trim()) return;
 
         isSendingMessage.value = true;
         error.value = null;
 
         try {
-            const response = await axios.post(
-                route('agents.handoff.message', {
-                    agent: agId,
-                    conversation: convId,
-                }),
-                { content },
-            );
-
+            const result = await sendHandoffMessage(target, content);
             adminMessage.value = '';
-            return response.data.message;
-        } catch (err: any) {
-            error.value = err.response?.data?.message || 'Failed to send message';
+
+            return result.message;
+        } catch (err) {
+            error.value = errorMessage(err, t('agents.chatlog.handoff.errors.send_failed'));
             throw err;
         } finally {
             isSendingMessage.value = false;
         }
     }
 
+    // Typing and read receipts are best-effort: a failure must not interrupt the operator.
     async function sendTyping(isTyping: boolean) {
-        const agId = agentId();
-        const convId = conversationId();
-        if (!agId || !convId) return;
+        const target = currentTarget();
+        if (!target) return;
 
         try {
-            await axios.post(
-                route('agents.handoff.typing', {
-                    agent: agId,
-                    conversation: convId,
-                }),
-                { is_typing: isTyping },
-            );
-        } catch (err) {
-            // Silently fail for typing indicators
-            console.warn('Failed to send typing indicator:', err);
+            await sendHandoffTyping(target, isTyping);
+        } catch {
+            // Ignored on purpose (see above).
         }
     }
 
     async function markMessagesAsRead() {
-        const agId = agentId();
-        const convId = conversationId();
-        if (!agId || !convId) return;
+        const target = currentTarget();
+        if (!target) return;
 
         try {
-            await axios.post(
-                route('agents.handoff.mark-read', {
-                    agent: agId,
-                    conversation: convId,
-                }),
-            );
-        } catch (err) {
-            // Silently fail
-            console.warn('Failed to mark messages as read:', err);
+            await markHandoffMessagesRead(target);
+        } catch {
+            // Ignored on purpose (see sendTyping).
         }
     }
 
-    // Watch for conversation changes
+    // A different conversation starts from a clean slate. The channel is joined
+    // again once its messages load (see useChatLog.fetchMessages).
     watch(
         () => conversationId(),
-        (newId, oldId) => {
-            if (oldId) {
-                leaveChannel();
-            }
+        (_newId, oldId) => {
+            if (oldId) leaveChannel();
 
-            // Reset state
-            handoffState.value = {
-                status: 'ai',
-                adminId: null,
-                adminName: null,
-                handoffAt: null,
-            };
+            handoffState.value = { ...AI_STATE };
             presenceMembers.value = [];
             typingState.value = null;
             error.value = null;
-
-            // If handed off, join the channel
-            // This will be triggered after takeOver or when viewing a handed-off conversation
         },
     );
 
-    // Set callback for new messages
-    function onMessage(callback: (data: any) => void) {
+    function onMessage(callback: (data: HandoffMessageEvent) => void) {
         onMessageCallback = callback;
     }
 
-    // Cleanup on unmount
     onUnmounted(() => {
         leaveChannel();
         if (typingTimeout) clearTimeout(typingTimeout);

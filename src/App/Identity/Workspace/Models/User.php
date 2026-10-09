@@ -3,8 +3,12 @@
 namespace App\Identity\Workspace\Models;
 
 use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
+use App\Identity\Workspace\Enums\DateFormat;
+use App\Identity\Workspace\Enums\UserSource;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Database\Factories\UserFactory;
+use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Prompt\Models\AgentPrompt;
@@ -60,10 +64,6 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
-use Support\Enums\User\DateFormat;
-use Support\Enums\User\UserSource;
-use Support\Enums\User\UserType;
-use Support\Traits\HasSettings;
 
 /**
  * An account: who someone is and what they belong to. One table holds four

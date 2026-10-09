@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\UploadAttachmentRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;
 use Domain\Conversation\Data\Attachments\AttachmentData;
 use Domain\Conversation\Models\Conversation;
@@ -19,10 +21,11 @@ class AttachmentController
 
     public function __invoke(
         UploadAttachmentRequest $request,
+        #[HostedChatAgent] ?Agent $agent,
         StoreAttachmentAction $action,
         HostedChatSession $session,
     ): JsonResponse {
-        $attachment = $action->execute($request->toData($this->conversationId($request, $session)));
+        $attachment = $action->execute($request->toData($agent, $this->conversationId($request, $agent, $session)));
 
         return response()->json(['data' => AttachmentData::fromModel($attachment)]);
     }
@@ -33,10 +36,9 @@ class AttachmentController
      * stored without one, and the conversation claims it when it is created.
      * Only a conversation in the caller's own session is used.
      */
-    private function conversationId(UploadAttachmentRequest $request, HostedChatSession $session): ?int
+    private function conversationId(UploadAttachmentRequest $request, ?Agent $agent, HostedChatSession $session): ?int
     {
         $externalId = (string) ($request->header('X-CONVERSATION-ID') ?: self::PENDING_CONVERSATION);
-        $agent = current_agent();
 
         if ($externalId === self::PENDING_CONVERSATION || $agent === null) {
             return null;

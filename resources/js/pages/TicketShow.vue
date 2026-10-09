@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * One support ticket: the original message, the reply thread, a reply form and
+ * a dialog to change the priority.
+ */
+import type { Ticket } from '@/api/tickets';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
@@ -16,30 +22,7 @@ import { ArrowLeft, Loader2, MessageSquare } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-
-type SupportType = 'feature' | 'bug' | 'file_type' | 'other' | string;
-
-type TicketReply = {
-    id: number;
-    user_id: number | null;
-    message: string;
-    created_at: string;
-    type: 'user' | 'staff';
-};
-
-type Ticket = {
-    id: number;
-    user_id: number;
-    assigned_to: number | null;
-    title: SupportType;
-    message: string;
-    status: string;
-    priority: 'low' | 'medium' | 'high' | string;
-    resolved_at: string | null;
-    created_at: string;
-    updated_at: string;
-    replies: TicketReply[];
-};
+const { formatDateTime } = useDateFormat();
 
 const props = defineProps<{ ticket: Ticket }>();
 
@@ -47,16 +30,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: t('ticket.support'), href: route('tickets.index') },
     { title: t('ticket.title', { id: props.ticket.id }), href: route('tickets.show', { ticket: props.ticket.id }) },
 ];
-
-const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-};
 
 const statusBadge = (status: string) => {
     const s = (status || '').toLowerCase();
@@ -92,8 +65,10 @@ const submitReply = () => {
 
 // Change Priority dialog
 const showPriorityDialog = ref(false);
-const priorityForm = useForm<{ priority: 'low' | 'medium' | 'high' | 'urgent' }>({
-    priority: (props.ticket.priority as any) || 'medium',
+type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+const priorityForm = useForm<{ priority: TicketPriority }>({
+    priority: (props.ticket.priority as TicketPriority) || 'medium',
 });
 
 const submitPriority = () => {

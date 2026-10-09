@@ -3,6 +3,7 @@
 namespace Domain\Integration\Tool\Actions\Embedding;
 
 use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -19,6 +20,10 @@ use Throwable;
  */
 class EmbedMcpToolsAction
 {
+    public function __construct(
+        private readonly EmbeddingsProviderInterface $embeddings,
+    ) {}
+
     public function execute(int $mcpServerId): void
     {
         $tools = McpTool::query()
@@ -39,7 +44,7 @@ class EmbedMcpToolsAction
                 $serverContext = $server ? trim($server->name."\n".(string) $server->description) : '';
                 $text = trim($serverContext."\n\n".$tool->name."\n\n".$tool->description);
                 $tool->forceFill([
-                    'embedding' => embed($text),
+                    'embedding' => $this->embeddings->embed($text),
                     'embedding_bm25' => Bm25Tokenizer::expression($text),
                 ])->save();
             } catch (Throwable $e) {

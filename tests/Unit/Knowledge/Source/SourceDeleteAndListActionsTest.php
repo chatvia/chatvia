@@ -2,6 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -25,7 +26,7 @@ function sdlChunk(SourceText|SourceWebsite $source, int $index): Chunk
         'chunk_index' => $index,
         'chunk' => "chunk {$index}",
         'tokens' => 2,
-        'embedding' => embed("chunk {$index}", true),
+        'embedding' => app(EmbeddingsProviderInterface::class)->embed("chunk {$index}", true),
         'embedding_bm25' => Bm25Tokenizer::expression("chunk {$index}"),
         'checksum' => md5(uniqid()),
         'cost_in_micro_cents' => 0,

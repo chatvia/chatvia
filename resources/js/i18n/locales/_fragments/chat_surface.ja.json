@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "メッセージを送信",
+        "stop_streaming": "生成を停止"
+    },
+    "chat": {
+        "scroll_to_bottom": "一番下へスクロール",
+        "copy_code": "コードをクリップボードにコピー",
+        "loading_chart": "グラフを読み込み中…",
+        "powered_by": "Powered by {label}",
+        "stream_errors": {
+            "unreachable": "サーバーに接続できませんでした。もう一度お試しください。",
+            "http_status": "サーバーがステータス {status} を返しました。",
+            "interrupted": "接続が中断されました。",
+            "malformed": "サーバーから不正なデータを受信しました。"
+        }
+    },
+    "messages": {
+        "edit_message": "メッセージを編集"
+    },
+    "sources": {
+        "file_with_page": "{file}（{page} ページ）",
+        "fallback_title": "ソース {number}",
+        "chunk_label": "チャンク {index}"
+    },
+    "sidebar": {
+        "save_title": "タイトルを保存",
+        "show_password": "パスワードを表示",
+        "hide_password": "パスワードを隠す",
+        "user_fallback": "ユーザー"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "たった今"
+        },
+        "voice_recorder": {
+            "microphone_denied": "マイクへのアクセスが拒否されました。録音するにはマイクへのアクセスを許可してください。",
+            "microphone_not_found": "マイクが見つかりません。マイクを接続してもう一度お試しください。",
+            "microphone_failed": "マイクにアクセスできませんでした",
+            "transcription_failed": "文字起こしに失敗しました"
+        },
+        "file_uploader": {
+            "analyze_failed": "ファイルを分析できませんでした",
+            "analyze_timed_out": "分析がタイムアウトしました - ファイルが大きすぎる可能性があります"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "メッセージを更新",
+            "delete_conversation": "会話を削除",
+            "sidebar": {
+                "refresh_conversations": "会話を更新",
+                "remove_filter": "フィルターを削除"
+            },
+            "handoff": {
+                "send_message": "メッセージを送信",
+                "errors": {
+                    "connect_failed": "チャットチャンネルに接続できませんでした",
+                    "takeover_failed": "会話を引き継げませんでした",
+                    "return_failed": "会話を AI に戻せませんでした",
+                    "send_failed": "メッセージを送信できませんでした"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "安定"
+            }
+        }
+    }
+}

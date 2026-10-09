@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Widget;
 
 use App\Http\Requests\Concerns\ValidatesPdfAttachment;
+use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Widget\WidgetHeaders;
@@ -20,7 +21,7 @@ class UploadAttachmentRequest extends FormRequest
 
     protected function workspaceUserId(): ?int
     {
-        return current_agent_from_widget()?->user_id;
+        return WidgetAgent::from($this)?->user_id;
     }
 
     public function toData(Agent $agent, ?int $conversationId): UploadAttachmentData

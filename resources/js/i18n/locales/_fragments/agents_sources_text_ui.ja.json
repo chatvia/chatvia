@@ -1,0 +1,10 @@
+{
+    "agents": {
+        "sources": {
+            "qa": {
+                "remove_question": "質問を削除",
+                "actions": "操作"
+            }
+        }
+    }
+}

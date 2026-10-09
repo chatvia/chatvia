@@ -1,6 +1,9 @@
 <script setup lang="ts">
+// Per-agent tool-call audit log: the shared AuditTable scoped to this agent.
+// Plans without the audit capability see the LockedFeature upgrade card.
 import LockedFeature from '@/components/LockedFeature.vue';
 import AuditTable from '@/components/governance/AuditTable.vue';
+import type { AuditPaginator } from '@/components/governance/types';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head } from '@inertiajs/vue3';
@@ -14,8 +17,8 @@ const hasAccess = computed(() => hasCapability('audit'));
 
 interface Props {
     agent: { external_id: string; name: string };
-    // Laravel paginator of audit rows — shape validated by AuditTable.
-    rows: any;
+    // Cursor paginator of audit rows.
+    rows: AuditPaginator;
     connectors: { slug: string; name: string }[];
     outcomes: string[];
     filters: { outcome: string | null; connector: string | null };

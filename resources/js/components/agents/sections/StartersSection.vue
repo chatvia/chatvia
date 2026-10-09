@@ -1,31 +1,28 @@
 <script setup lang="ts">
+/**
+ * Editor for the agent's conversation starters. The "Default" tab edits the
+ * starters (text + icon); each flag tab edits one language's translation
+ * (placeholder = the AI translation, which a manual edit wins over). Agents
+ * with knowledge-base content can also get AI suggestions. The parent saves
+ * via agents.starters.update.
+ */
+import type { StarterItem } from '@/api/agentSetup';
+import HeroIcon from '@/components/common/HeroIcon.vue';
+import IconPicker from '@/components/common/IconPicker.vue';
+import ItemTranslationsEditor from '@/components/agents/setup/ItemTranslationsEditor.vue';
+import StarterSuggestionsDialog from '@/components/agents/setup/StarterSuggestionsDialog.vue';
+import TranslationLanguageTabs from '@/components/agents/setup/TranslationLanguageTabs.vue';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import HeroIcon from '@/components/ui/HeroIcon.vue';
-import IconPicker from '@/components/ui/IconPicker.vue';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LOCALES } from '@/i18n';
-import axios from 'axios';
-import { Globe, Info, Plus, Sparkles, Trash2 } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { hasAnyOverride } from '@/composables/agents/setup/translatableItems';
+import { Info, Plus, Sparkles, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { toast } from 'vue-sonner';
-
-interface Starter {
-    id?: string;
-    text: string;
-    icon: string | null;
-    translations?: Record<string, string>;
-    overrides?: Record<string, string>;
-}
 
 const props = withDefaults(
     defineProps<{
-        starters: Starter[];
+        starters: StarterItem[];
         // Allowed language codes (config('chatvia.languages')) for the flag tabs.
         languages?: Record<string, string>;
         // Whether the agent has knowledge-base content (gates the AI button).
@@ -37,7 +34,7 @@ const props = withDefaults(
     { languages: () => ({}), hasKnowledgeBase: false, errors: () => ({}), disabled: false },
 );
 
-const emit = defineEmits<{ 'update:starters': [value: Starter[]] }>();
+const emit = defineEmits<{ 'update:starters': [value: StarterItem[]] }>();
 
 const { t } = useI18n();
 
@@ -45,108 +42,39 @@ const { t } = useI18n();
 const selected = ref<string>('default');
 const isDefault = computed(() => selected.value === 'default');
 
-const tabs = computed(() => {
-    const allowed = Object.keys(props.languages).filter((code) => code !== 'auto');
-    return allowed.length ? LOCALES.filter((l) => allowed.includes(l.code)) : LOCALES;
-});
-
 // Default tab shows one empty row to type into when there are no starters yet.
-const rows = computed<Starter[]>(() => {
+const rows = computed<StarterItem[]>(() => {
     if (props.disabled) return props.starters;
     return props.starters.length ? props.starters : [{ text: '', icon: null }];
 });
 
-const updateText = (index: number, value: string) => {
+const updateAt = (index: number, change: Partial<StarterItem>): void => {
     const next = [...props.starters];
-    next[index] = { ...(next[index] ?? { text: '', icon: null }), text: value };
+    next[index] = { ...(next[index] ?? { text: '', icon: null }), ...change };
     emit('update:starters', next);
 };
 
-const updateIcon = (index: number, icon: string | null) => {
-    const next = [...props.starters];
-    next[index] = { ...(next[index] ?? { text: '', icon: null }), icon };
-    emit('update:starters', next);
-};
-
-const removeAt = (index: number) =>
+const removeAt = (index: number): void =>
     emit(
         'update:starters',
         props.starters.filter((_, i) => i !== index),
     );
 
-const addRow = () => emit('update:starters', [...props.starters, { text: '', icon: null }]);
+const addRow = (): void => emit('update:starters', [...props.starters, { text: '', icon: null }]);
 
-// ── Flag-tab translation editing ──────────────────────────────────────────
-const overrideValue = (index: number, locale: string): string => props.starters[index]?.overrides?.[locale] ?? '';
+const hasOverride = (code: string): boolean => hasAnyOverride(props.starters, code);
 
-// Placeholder = the automatic translation, falling back to the base text.
-const overridePlaceholder = (index: number, locale: string): string =>
-    props.starters[index]?.translations?.[locale] || props.starters[index]?.text || '';
+// ── AI suggestions ────────────────────────────────────────────────────────
+const isSuggesting = ref(false);
+const existingTexts = computed(() => props.starters.map((starter) => starter.text));
 
-const updateOverride = (index: number, locale: string, value: string) => {
-    const next = props.starters.map((s) => ({ ...s, overrides: { ...(s.overrides ?? {}) } }));
-    const overrides = next[index].overrides as Record<string, string>;
-    if (value.trim() === '') delete overrides[locale];
-    else overrides[locale] = value;
-    emit('update:starters', next);
-};
-
-const hasOverride = (code: string): boolean => props.starters.some((s) => (s.overrides?.[code] ?? '').trim() !== '');
-
-// ── AI generate ───────────────────────────────────────────────────────────
-const genOpen = ref(false);
-const genCount = ref('5');
-const genLoading = ref(false);
-const genSuggestions = ref<string[]>([]);
-const genSelected = ref<string[]>([]);
-
-const counts = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
-
-const isAdded = (q: string) => props.starters.some((s) => s.text.trim() === q.trim());
-const isSelected = (q: string) => genSelected.value.includes(q);
-
-const generate = async () => {
-    genLoading.value = true;
-    try {
-        const { data } = await axios.post(route('agents.starters.generate', { agent: props.agentExternalId }), {
-            count: Number(genCount.value),
-        });
-        genSuggestions.value = Array.isArray(data?.suggestions) ? data.suggestions : [];
-        genSelected.value = genSuggestions.value.filter((q) => !isAdded(q));
-    } catch {
-        toast.error(t('agents.setup.toasts.starters_error'));
-    } finally {
-        genLoading.value = false;
-    }
-};
-
-const toggleSuggestion = (q: string) => {
-    if (isAdded(q)) return;
-    genSelected.value = isSelected(q) ? genSelected.value.filter((x) => x !== q) : [...genSelected.value, q];
-};
-
-const addSelected = () => {
+const addSuggestions = (texts: string[]): void => {
     const merged = [...props.starters];
-    for (const q of genSelected.value) {
-        if (!merged.some((s) => s.text.trim() === q.trim())) merged.push({ text: q, icon: null });
+    for (const text of texts) {
+        if (!merged.some((starter) => starter.text.trim() === text.trim())) merged.push({ text, icon: null });
     }
     emit('update:starters', merged);
-    genOpen.value = false;
 };
-
-watch(genOpen, (open) => {
-    if (open) {
-        genSuggestions.value = [];
-        genSelected.value = [];
-        genCount.value = '5';
-    }
-});
-
-const addLabel = computed(() =>
-    genSelected.value.length
-        ? t('agents.setup.sections.starters_add_count', { count: genSelected.value.length }, { plural: genSelected.value.length })
-        : t('agents.setup.sections.starters_add_label'),
-);
 </script>
 
 <template>
@@ -163,50 +91,20 @@ const addLabel = computed(() =>
                 variant="outline"
                 size="sm"
                 class="shrink-0"
-                @click="genOpen = true"
+                @click="isSuggesting = true"
             >
                 <Sparkles class="me-2 h-4 w-4" />
                 {{ t('agents.setup.sections.starters_generate') }}
             </Button>
         </div>
 
-        <!-- Language tabs (flags). Default edits the starters; each flag edits
-             that language's translation. -->
-        <div class="border-b">
-            <div class="-mb-px flex items-center gap-1 overflow-x-auto pb-px">
-                <button
-                    type="button"
-                    class="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
-                    :class="isDefault ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent'"
-                    :title="t('agents.setup.sections.appearance_translations_default_tip')"
-                    @click="selected = 'default'"
-                >
-                    <Globe class="h-4 w-4" />
-                    {{ t('agents.setup.sections.appearance_translations_default') }}
-                </button>
-                <button
-                    v-for="tab in tabs"
-                    :key="tab.code"
-                    type="button"
-                    class="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
-                    :class="
-                        selected === tab.code ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent'
-                    "
-                    :title="tab.nativeName"
-                    @click="selected = tab.code"
-                >
-                    <img :src="`/images/flags/${tab.flag}.svg`" :alt="tab.nativeName" class="h-4 w-5 rounded-[2px] object-cover" />
-                    <span class="uppercase">{{ tab.code }}</span>
-                    <span v-if="hasOverride(tab.code)" class="bg-primary h-1.5 w-1.5 rounded-full"></span>
-                </button>
-            </div>
-        </div>
+        <TranslationLanguageTabs v-model="selected" :languages="languages" :has-override="hasOverride" />
 
         <!-- Default tab: edit the starters (text + icon). -->
         <template v-if="isDefault">
             <div class="space-y-2">
                 <div v-for="(starter, index) in rows" :key="index" class="flex items-center gap-2">
-                    <IconPicker v-if="!disabled" :model-value="starter.icon" @update:model-value="updateIcon(index, $event)" />
+                    <IconPicker v-if="!disabled" :model-value="starter.icon" @update:model-value="updateAt(index, { icon: $event })" />
                     <span v-else-if="starter.icon" class="text-muted-foreground flex h-9 w-9 shrink-0 items-center justify-center">
                         <HeroIcon :name="starter.icon" class="h-4 w-4" />
                     </span>
@@ -218,7 +116,7 @@ const addLabel = computed(() =>
                             index === 0 ? t('agents.setup.sections.starters_placeholder_first') : t('agents.setup.sections.starters_placeholder_more')
                         "
                         class="flex-1"
-                        @update:model-value="updateText(index, String($event ?? ''))"
+                        @update:model-value="updateAt(index, { text: String($event ?? '') })"
                         @keydown.enter.prevent="addRow"
                     />
                     <Button
@@ -251,75 +149,16 @@ const addLabel = computed(() =>
         </template>
 
         <!-- Flag tab: translate each starter for the selected language. -->
-        <template v-else>
-            <div v-if="starters.length" class="space-y-3">
-                <div v-for="(starter, index) in starters" :key="index" class="space-y-1">
-                    <p class="text-muted-foreground truncate text-xs">{{ starter.text || t('agents.setup.sections.starters_empty') }}</p>
-                    <Input
-                        :model-value="overrideValue(index, selected)"
-                        :placeholder="overridePlaceholder(index, selected)"
-                        :disabled="disabled"
-                        @update:model-value="updateOverride(index, selected, String($event ?? ''))"
-                    />
-                </div>
-                <p class="text-muted-foreground text-xs">{{ t('agents.setup.sections.appearance_translations_lang_hint') }}</p>
-            </div>
-            <p v-else class="text-muted-foreground py-6 text-center text-sm">{{ t('agents.setup.sections.starters_translate_empty') }}</p>
-        </template>
+        <ItemTranslationsEditor
+            v-else
+            :items="starters"
+            :locale="selected"
+            :disabled="disabled"
+            :empty-item-label="t('agents.setup.sections.starters_empty')"
+            :empty-list-label="t('agents.setup.sections.starters_translate_empty')"
+            @update:items="emit('update:starters', $event)"
+        />
 
-        <!-- AI generate dialog -->
-        <Dialog v-model:open="genOpen">
-            <DialogContent class="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{{ t('agents.setup.sections.starters_generate_title') }}</DialogTitle>
-                    <DialogDescription>{{ t('agents.setup.sections.starters_generate_description') }}</DialogDescription>
-                </DialogHeader>
-
-                <div class="flex items-end gap-2">
-                    <div class="space-y-1.5">
-                        <label class="text-sm font-medium">{{ t('agents.setup.sections.starters_generate_count') }}</label>
-                        <Select v-model="genCount" :disabled="genLoading">
-                            <SelectTrigger class="w-24"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem v-for="c in counts" :key="c" :value="c">{{ c }}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Button type="button" :disabled="genLoading" @click="generate">
-                        <Sparkles class="me-2 h-4 w-4" />
-                        {{ genLoading ? t('agents.setup.sections.starters_generating') : t('agents.setup.sections.starters_generate_button') }}
-                    </Button>
-                </div>
-
-                <ScrollArea v-if="genSuggestions.length" class="-mx-1 h-72 px-1">
-                    <div class="space-y-1">
-                        <div
-                            v-for="(q, index) in genSuggestions"
-                            :key="index"
-                            role="button"
-                            :aria-disabled="isAdded(q)"
-                            class="hover:bg-muted/50 flex w-full cursor-pointer items-start gap-3 rounded-md border p-3 text-start text-sm transition-colors"
-                            :class="[
-                                isSelected(q) ? 'border-primary bg-primary/5' : 'border-transparent',
-                                isAdded(q) ? 'cursor-not-allowed opacity-60 hover:bg-transparent' : '',
-                            ]"
-                            @click="toggleSuggestion(q)"
-                        >
-                            <Checkbox :model-value="isAdded(q) || isSelected(q)" :disabled="isAdded(q)" class="pointer-events-none mt-0.5" />
-                            <span class="flex-1">{{ q }}</span>
-                        </div>
-                    </div>
-                </ScrollArea>
-
-                <p v-else-if="!genLoading" class="text-muted-foreground py-8 text-center text-sm">
-                    {{ t('agents.setup.sections.starters_generate_hint') }}
-                </p>
-
-                <DialogFooter>
-                    <Button type="button" variant="outline" @click="genOpen = false">{{ t('common.cancel') }}</Button>
-                    <Button type="button" :disabled="!genSelected.length" @click="addSelected">{{ addLabel }}</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <StarterSuggestionsDialog v-model:open="isSuggesting" :agent-id="agentExternalId" :existing="existingTexts" @add="addSuggestions" />
     </div>
 </template>

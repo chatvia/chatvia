@@ -1,11 +1,11 @@
 <?php
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\User as SocialiteUser;
-use Support\Enums\User\SocialProvider;
 
 /**
  * Stub Socialite's Google driver so the callback resolves the given external

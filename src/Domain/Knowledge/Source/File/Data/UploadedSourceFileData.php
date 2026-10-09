@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\File\Data;
 
+use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Spatie\LaravelData\Data;
 use Support\MimeType;
 
@@ -35,7 +36,7 @@ final class UploadedSourceFileData extends Data
      */
     public function isSupported(): bool
     {
-        return is_ocr_supported($this->originalName) || $this->isMedia();
+        return SourceFileTypes::isSupported($this->originalName) || $this->isMedia();
     }
 
     /**
@@ -44,9 +45,9 @@ final class UploadedSourceFileData extends Data
      */
     public function category(): string
     {
-        return is_ocr_supported($this->originalName)
-            ? file_category($this->originalName)
-            : get_file_type($this->mimeType);
+        return SourceFileTypes::isSupported($this->originalName)
+            ? SourceFileTypes::category($this->originalName)
+            : SourceFileTypes::categoryOfMimeType($this->mimeType);
     }
 
     private function isMedia(): bool

@@ -5,11 +5,12 @@ namespace Support\Browsershot;
 use Spatie\Browsershot\Browsershot;
 
 /**
- * Centralises Browsershot binary-path setup so PDF export and the website
- * crawler don't drift on the include-path/node/npm/chrome combo. Reads paths
- * from config('services.bin.*').
+ * Points Browsershot at the server's node, npm and Chrome binaries
+ * (`config('services.bin.*')`), so every PDF render — the chat export and the
+ * DPA download — uses the same setup. A path that is not configured keeps
+ * Browsershot's own default.
  */
-class BrowsershotConfigurator
+final readonly class BrowsershotConfigurator
 {
     public function configure(Browsershot $browsershot): Browsershot
     {

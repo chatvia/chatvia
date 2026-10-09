@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Settings\Account;
 
+use App\Identity\Workspace\Enums\DateFormat;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Support\Enums\User\DateFormat;
 
 /**
  * The preferences form: date format and, optionally, language.

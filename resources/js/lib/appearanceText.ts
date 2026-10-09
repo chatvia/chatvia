@@ -1,3 +1,7 @@
+/**
+ * Picks the agent's title, welcome message and composer placeholder in the
+ * visitor's language for the hosted chat surfaces.
+ */
 type LocaleMap = Record<string, Record<string, string>>;
 
 export interface AppearanceTextStrings {

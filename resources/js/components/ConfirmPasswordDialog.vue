@@ -1,9 +1,12 @@
 <script setup lang="ts">
+// Asks for the current password before a security-sensitive change (2FA,
+// passkeys). Callers hold a template ref and `await open()`, which resolves
+// true once the server has accepted the password and false if dismissed.
+import { confirmPassword, passwordConfirmationError } from '@/api/account';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import axios, { AxiosError } from 'axios';
 import { Loader2, Lock, ShieldCheck, X } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -44,17 +47,12 @@ const submit = async () => {
     submitting.value = true;
     error.value = null;
     try {
-        await axios.post(route('password.confirm.store'), { password: password.value });
+        await confirmPassword(password.value);
         isOpen.value = false;
         resolver?.(true);
         resolver = null;
-    } catch (e: unknown) {
-        const err = e as AxiosError<{ message?: string; errors?: { password?: string[] } }>;
-        if (err.response?.status === 422) {
-            error.value = err.response.data.errors?.password?.[0] ?? err.response.data.message ?? t('confirm_password.incorrect');
-        } else {
-            error.value = t('confirm_password.error');
-        }
+    } catch (err) {
+        error.value = passwordConfirmationError(err, t('confirm_password.incorrect')) ?? t('confirm_password.error');
     } finally {
         submitting.value = false;
     }

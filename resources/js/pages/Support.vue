@@ -1,9 +1,13 @@
 <script setup lang="ts">
+/**
+ * Support page: the user's tickets in a table and a dialog to open a new one.
+ */
 import { Head, router, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
 import { onMounted, ref } from 'vue';
 
 import AppLayout from '@/layouts/AppLayout.vue';
+import { fetchTickets as fetchTicketList, type Ticket } from '@/api/tickets';
+import { useDateFormat } from '@/composables/useDateFormat';
 import { type BreadcrumbItem } from '@/types';
 
 import InputError from '@/components/InputError.vue';
@@ -24,22 +28,9 @@ import { Loader2, Plus } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatDate } = useDateFormat();
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: t('support.title'), href: '/support' }];
-
-type Ticket = {
-    id: number;
-    user_id: number;
-    assigned_to: number | null;
-    title: string;
-    message: string;
-    status: string;
-    priority: 'low' | 'medium' | 'high' | string;
-    resolved_at: string | null;
-    created_at: string;
-    updated_at: string;
-    replies: Array<any>;
-};
 
 const tickets = ref<Ticket[]>([]);
 const isLoading = ref<boolean>(true);
@@ -53,8 +44,7 @@ const form = useForm<{ title: string; message: string; priority: 'low' | 'medium
 
 const fetchTickets = async () => {
     try {
-        const response = await axios.get(route('tickets.index'));
-        tickets.value = response.data as Ticket[];
+        tickets.value = await fetchTicketList();
     } catch (error) {
         console.error('Failed to fetch tickets', error);
     } finally {
@@ -65,14 +55,6 @@ const fetchTickets = async () => {
 onMounted(() => {
     fetchTickets();
 });
-
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-};
 
 const statusBadge = (status: string) => {
     const s = status.toLowerCase();

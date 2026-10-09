@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * Details tab of the chat log: the selected conversation's channel, activity,
+ * retention date, topic/sentiment/tone (or an upgrade prompt) and the
+ * visitor's location, device and page.
+ */
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useCapabilityGuard } from '@/composables/useCapabilityGuard';

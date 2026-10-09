@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Download, Search, Trash2 } from 'lucide-vue-next';
@@ -27,12 +29,13 @@ interface Submission {
 }
 
 const props = defineProps<{
-    agent: { external_id: string; name: string };
+    agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     form: FormDef;
     submissions: Submission[];
 }>();
 
 const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
 
 const search = ref('');
 // Cap the visible columns so wide forms stay readable; the CSV has them all.
@@ -50,11 +53,19 @@ function cell(s: Submission, key: string): string {
 }
 
 function when(s: Submission): string {
-    return new Date(s.submitted_at ?? s.created_at).toLocaleString();
+    return formatDateTime(s.submitted_at ?? s.created_at);
 }
 
 function exportCsv(): void {
     window.location.href = route('agents.forms.submissions.export', { agent: props.agent.external_id, form: props.form.external_id });
+}
+
+// The row waiting for the delete confirmation, if any.
+const pendingDelete = ref<Submission | null>(null);
+
+function confirmDelete(): void {
+    if (pendingDelete.value) remove(pendingDelete.value);
+    pendingDelete.value = null;
 }
 
 function remove(s: Submission): void {
@@ -84,7 +95,7 @@ function remove(s: Submission): void {
                             <CardDescription>{{ t('agents.submissions.count', { n: submissions.length }) }}</CardDescription>
                         </div>
                         <Button variant="outline" :disabled="submissions.length === 0" @click="exportCsv">
-                            <Download class="mr-1 h-4 w-4" /> {{ t('agents.submissions.export') }}
+                            <Download class="me-1 h-4 w-4" /> {{ t('agents.submissions.export') }}
                         </Button>
                     </div>
                 </CardHeader>
@@ -111,7 +122,9 @@ function remove(s: Submission): void {
                                     <TableCell v-for="col in columns" :key="col.key" class="ps-5">{{ cell(s, col.key) }}</TableCell>
                                     <TableCell class="text-muted-foreground text-xs">{{ when(s) }}</TableCell>
                                     <TableCell class="pe-5">
-                                        <Button variant="ghost" size="icon" @click="remove(s)"><Trash2 class="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" :aria-label="t('common.delete')" @click="pendingDelete = s"
+                                            ><Trash2 class="h-4 w-4"
+                                        /></Button>
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
@@ -120,5 +133,7 @@ function remove(s: Submission): void {
                 </CardContent>
             </Card>
         </div>
+
+        <DeleteConfirmationDialog :open="pendingDelete !== null" @confirm="confirmDelete" @cancel="pendingDelete = null" />
     </AgentLayout>
 </template>

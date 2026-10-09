@@ -4,12 +4,12 @@ namespace App\Identity\Chatter\Actions;
 
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
+use App\Identity\Workspace\Enums\UserSource;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserSource;
-use Support\Enums\User\UserType;
 
 /**
  * Creates a chatter (`type=chatter`, `source=api`) under a workspace and grants

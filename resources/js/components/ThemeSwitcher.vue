@@ -3,23 +3,11 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAppearance } from '@/composables/useAppearance';
 import { Laptop, Moon, Sun } from 'lucide-vue-next';
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
 const { appearance, updateAppearance } = useAppearance();
-
-const _currentIcon = computed(() => {
-    switch (appearance.value) {
-        case 'dark':
-            return Moon;
-        case 'light':
-            return Sun;
-        default:
-            return Laptop;
-    }
-});
 </script>
 
 <template>

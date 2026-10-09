@@ -1,9 +1,9 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserAddon;
 use Domain\Billing\Models\UserCredit;
-use Support\Enums\User\UserType;
 
 /**
  * MessageCredits is the extracted single source of truth for cycle-usage +

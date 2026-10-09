@@ -1,0 +1,14 @@
+{
+    "nav": {
+        "open_user_menu": "Open user menu"
+    },
+    "teams": {
+        "show": {
+            "rename_team": "Rename team",
+            "save_team_name": "Save team name",
+            "roles": {
+                "toggle_permissions": "Show or hide permissions"
+            }
+        }
+    }
+}

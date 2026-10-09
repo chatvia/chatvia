@@ -1,4 +1,10 @@
 <script setup lang="ts">
+/**
+ * Workspace home: headline numbers (agents, messages, conversations, active
+ * sessions) and the daily reply volume of the last week or month. The numbers
+ * load once on mount and again after an agent is created.
+ */
+import { type DashboardStats, fetchDashboardStats } from '@/api/dashboard';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
 import OnboardingWelcome from '@/components/onboarding/OnboardingWelcome.vue';
 import { Button } from '@/components/ui/button';
@@ -19,41 +25,8 @@ const { t } = useI18n();
 const { formatWeekdayShort, formatDayOfMonth, intlLocale } = useLocaleDate();
 const { billingEnabled } = useBilling();
 
-// Types for the dashboard data
-interface ActivityData {
-    date?: string;
-    label: string;
-    value: number;
-}
-
-interface DashboardData {
-    agents: {
-        total: number;
-    };
-    messages: {
-        total: number;
-        available: number;
-        limit: number;
-        trend: {
-            this_month: number;
-            last_month: number;
-            percent_change: number;
-        };
-    };
-    conversations: number;
-    active_sessions: number;
-    knowledge_sources: {
-        files: number;
-        websites: number;
-        crawled_pages: number;
-        total: number;
-    };
-    team: {
-        members: number;
-    };
-    weekly_usage: ActivityData[];
-    monthly_usage: ActivityData[];
-}
+// The parts of the dashboard stats this page shows.
+type DashboardView = Pick<DashboardStats, 'agents' | 'messages' | 'conversations' | 'active_sessions' | 'weekly_usage' | 'monthly_usage'>;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -62,8 +35,8 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Real data from API
-const dashboardData = ref<DashboardData>({
+// Zeros until the stats arrive, so the cards can render their skeletons.
+const dashboardData = ref<DashboardView>({
     agents: {
         total: 0,
     },
@@ -71,6 +44,7 @@ const dashboardData = ref<DashboardData>({
         total: 0,
         available: 0,
         limit: 0,
+        cycle: null,
         trend: {
             this_month: 0,
             last_month: 0,
@@ -79,15 +53,6 @@ const dashboardData = ref<DashboardData>({
     },
     conversations: 0,
     active_sessions: 0,
-    knowledge_sources: {
-        files: 0,
-        websites: 0,
-        crawled_pages: 0,
-        total: 0,
-    },
-    team: {
-        members: 0,
-    },
     weekly_usage: [],
     monthly_usage: [],
 });
@@ -109,12 +74,10 @@ const canCreateAgent = computed(() => {
     return currentTeam.is_owner;
 });
 
-// Fetch dashboard data from API
+// A failed load keeps the numbers already shown; the error is only logged.
 const fetchDashboardData = async () => {
     try {
-        const response = await fetch(route('dashboard.stats'));
-        const data: DashboardData = await response.json();
-        dashboardData.value = data;
+        dashboardData.value = await fetchDashboardStats();
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
     } finally {

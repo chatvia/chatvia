@@ -1,10 +1,10 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\SetAgentDomainAction;
 use Domain\Agent\Models\Agent;
 use Domain\Billing\Models\UserQuota;
-use Support\Enums\User\UserType;
 use Support\Exceptions\DomainValidationException;
 
 /**

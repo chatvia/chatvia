@@ -1,30 +1,15 @@
 <script lang="ts" setup>
-import { Link, router, useForm, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
-import { useBrand } from '@/composables/useBrand';
-import { useIsMobile } from '@/composables/useIsMobile';
-import { safeStorage } from '@/lib/safeStorage';
-import {
-    Bot,
-    Check,
-    Edit,
-    Eye,
-    EyeOff,
-    Loader2,
-    Lock,
-    LogOut,
-    Mail,
-    MoreVertical,
-    PanelLeft,
-    Search,
-    Trash2,
-    Upload,
-    User,
-    X,
-} from 'lucide-vue-next';
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
-
+/**
+ * Hosted chat sidebar: brand header with the collapse control, "New chat" and
+ * ⌘K search, the conversation list, and a footer with "Clear all" and the
+ * chatter's account menu (profile, agents, log out). The open state is a
+ * v-model shared with ChatLayout and remembered per device on desktop.
+ */
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import ChatAgentsDialog from '@/components/chat/ChatAgentsDialog.vue';
+import ChatConversationList from '@/components/chat/ChatConversationList.vue';
+import ChatProfileDialog from '@/components/chat/ChatProfileDialog.vue';
+import ChatSearchDialog from '@/components/chat/ChatSearchDialog.vue';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -37,471 +22,121 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import ChatSearchDialog from '@/components/chat/ChatSearchDialog.vue';
-import InputError from '@/components/InputError.vue';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { getInitials } from '@/composables/useInitials';
+import { useChatConversations } from '@/composables/chat/useChatConversations';
+import { useBrand } from '@/composables/useBrand';
+import { useIsMobile } from '@/composables/useIsMobile';
+import { safeStorage } from '@/lib/safeStorage';
+import type { SharedData } from '@/types';
+import type { ChatAppearance } from '@/types/chat';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { onKeyStroke } from '@vueuse/core';
+import { Bot, Edit, LogOut, MoreVertical, PanelLeft, Search, Trash2, User } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-interface Conversation {
-    id: string | number;
-    title: string;
-    // Unix seconds — sent by conversations.index; used by the search dialog's date buckets.
-    timestamp?: number;
-}
+const props = withDefaults(
+    defineProps<{
+        appearance?: ChatAppearance;
+        newChatRoute?: string;
+    }>(),
+    {
+        appearance: undefined,
+        newChatRoute: 'chat.home',
+    },
+);
 
-interface Agent {
-    id: number;
-    external_id: string;
-    name: string;
-    sub_domain: string;
-    url: string;
-    chat_url: string;
-}
+const isSidebarOpen = defineModel<boolean>('open', { default: false });
 
-const props = defineProps({
-    open: {
-        type: Boolean,
-        default: false,
-    },
-    class: {
-        type: String,
-        default: '',
-    },
-    appearance: {
-        type: Object,
-    },
-    newChatRoute: {
-        type: String,
-        default: 'chat.home',
-    },
-});
+const SIDEBAR_STORAGE_KEY = 'sidebarOpen';
 
-const isMobileDevice = useIsMobile();
-const page = usePage();
-const conversations = ref<Conversation[]>([]);
-const chatEventBus = inject('chatEventBus') as any;
 const { t } = useI18n();
 const { brand } = useBrand();
-const emit = defineEmits(['update:open']);
-const isSidebarOpen = ref(props.open);
+const page = usePage<SharedData>();
+const isMobileDevice = useIsMobile();
+const { conversations, isLoading: isLoadingConversations, search, rename, remove, removeAll } = useChatConversations();
+
+const currentUser = computed(() => page.props.auth?.user ?? null);
 const searchDialogOpen = ref(false);
+const profileDialogOpen = ref(false);
+const agentsDialogOpen = ref(false);
 
 // Platform-aware label for the Cmd/Ctrl+K search shortcut hint.
 const searchShortcutHint = computed(() =>
     typeof navigator !== 'undefined' && /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent) ? '⌘K' : 'Ctrl K',
 );
-const editingId = ref<string | number | null>(null);
-const editingTitle = ref('');
-const deleteDialogOpen = ref(false);
-const conversationToDelete = ref<string | number | null>(null);
 
-// Profile dialog state
-const profileDialogOpen = ref(false);
-const profileForm = useForm({
-    name: '',
-    email: '',
-    current_password: '',
-    password: '',
-    password_confirmation: '',
+const visitFresh = { preserveState: false, preserveScroll: false };
+
+onMounted(() => {
+    if (isMobileDevice.value) {
+        isSidebarOpen.value = false;
+        return;
+    }
+
+    const saved = safeStorage.get(SIDEBAR_STORAGE_KEY);
+    if (saved !== null) {
+        isSidebarOpen.value = saved === 'true';
+    } else {
+        isSidebarOpen.value = true;
+        safeStorage.set(SIDEBAR_STORAGE_KEY, 'true');
+    }
 });
-const showCurrentPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
 
-// Profile photo state
-const currentUser = computed(() => (page.props.auth as any)?.user);
-const avatarInput = ref<HTMLInputElement | null>(null);
-const photoForm = useForm({
-    photo: null as File | null,
+// Cmd/Ctrl+K opens the chat search anywhere in the surface.
+onKeyStroke(['k', 'K'], (event) => {
+    if (!(event.metaKey || event.ctrlKey)) return;
+    event.preventDefault();
+    searchDialogOpen.value = true;
 });
-const removingPhoto = ref(false);
-const removePhotoDialogOpen = ref(false);
-
-// Agents dialog state
-const agentsDialogOpen = ref(false);
-const selectedAgent = ref<Agent | null>(null);
-const agents = ref<Agent[]>([]);
-const isLoadingAgents = ref(false);
-
-// Agent switching form
-const agentSwitchForm = useForm({});
-
-const loadConversations = () => {
-    isLoadingConversations.value = true;
-
-    axios.get(route('conversations.index')).then((response) => {
-        conversations.value = response.data;
-        isLoadingConversations.value = false;
-    });
-};
-
-// Server search for the command palette: matches conversation titles and
-// message content (BM25). Returns the same shape as conversations.index.
-const searchConversations = async (q: string): Promise<Conversation[]> => {
-    const response = await axios.get(route('conversations.search'), { params: { q } });
-    return response.data;
-};
-
-watch(
-    () => props.open,
-    (newValue) => {
-        if (newValue !== isSidebarOpen.value) {
-            isSidebarOpen.value = newValue;
-        }
-    },
-);
 
 function toggleSidebar() {
     isSidebarOpen.value = !isSidebarOpen.value;
-    safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
-    emit('update:open', isSidebarOpen.value);
+    safeStorage.set(SIDEBAR_STORAGE_KEY, String(isSidebarOpen.value));
 }
 
-watch(isSidebarOpen, (newValue) => {
-    emit('update:open', newValue);
-});
+/** On mobile the sidebar is a drawer: close it before navigating away. */
+function closeDrawerOnMobile() {
+    if (!isMobileDevice.value) return;
+    safeStorage.set(SIDEBAR_STORAGE_KEY, 'false');
+    isSidebarOpen.value = false;
+}
 
-const handleLogout = () => {
-    router.post(route('chat.logout'));
-};
-const isLoadingConversations = ref(true);
+function newConversation() {
+    closeDrawerOnMobile();
+    router.visit(route(props.newChatRoute), visitFresh);
+}
 
-// Add window width tracking
-const windowWidth = ref(window.innerWidth);
-
-onMounted(() => {
-    loadConversations();
-
-    if (isMobileDevice.value) {
-        isSidebarOpen.value = false;
-    } else {
-        const savedSidebarState = safeStorage.get('sidebarOpen');
-        if (savedSidebarState !== null) {
-            isSidebarOpen.value = savedSidebarState === 'true';
-        } else {
-            isSidebarOpen.value = !isMobileDevice.value;
-            safeStorage.set('sidebarOpen', String(isSidebarOpen.value));
-        }
-        emit('update:open', isSidebarOpen.value);
-    }
-
-    chatEventBus.onConversationCreated(loadConversations);
-
-    // Update window width on resize
-    const handleResize = () => {
-        windowWidth.value = window.innerWidth;
-    };
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('keydown', handleSearchShortcut);
-
-    // Clean up on unmount
-    return () => {
-        window.removeEventListener('resize', handleResize);
-    };
-});
-
-onUnmounted(() => {
-    window.removeEventListener('keydown', handleSearchShortcut);
-});
-
-const newConversation = () => {
-    if (isMobileDevice.value) {
-        safeStorage.set('sidebarOpen', String(false));
-        isSidebarOpen.value = false;
-    }
-
-    router.visit(route(props.newChatRoute), {
-        preserveState: false,
-        preserveScroll: false,
-    });
-};
-
-// Open a conversation picked from the search dialog.
-const goToConversation = (id: string | number) => {
-    if (isMobileDevice.value) {
-        safeStorage.set('sidebarOpen', String(false));
-        isSidebarOpen.value = false;
-    }
-
+function goToConversation(id: string | number) {
+    closeDrawerOnMobile();
     router.visit(route('chat.show', { conversationId: id }));
-};
+}
 
-// Cmd/Ctrl+K opens the chat search anywhere in the surface (ChatGPT-style).
-const handleSearchShortcut = (event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && (event.key === 'k' || event.key === 'K')) {
-        event.preventDefault();
-        searchDialogOpen.value = true;
+async function deleteConversation(id: string | number) {
+    if (!(await remove(id))) return;
+
+    // Deleting the open conversation sends the visitor to the new-chat screen.
+    // Only the `conversationId` param matters: the route name differs per surface.
+    const openConversationId = route().params?.conversationId;
+    if (openConversationId !== undefined && String(openConversationId) === String(id)) {
+        router.visit(route(props.newChatRoute), { ...visitFresh, replace: true });
     }
-};
+}
 
-const deleteAllConversations = async () => {
-    try {
-        await axios.delete(route('conversations.delete.all'));
-
-        // After clearing all conversations, redirect to chat home
-        router.visit(route(props.newChatRoute), {
-            preserveState: false,
-            preserveScroll: false,
-            replace: true,
-        });
-    } catch (error) {
-        console.error('Failed to delete all conversations:', error);
+async function deleteAllConversations() {
+    if (await removeAll()) {
+        router.visit(route(props.newChatRoute), { ...visitFresh, replace: true });
     }
-};
+}
 
-const editConversation = (id: string | number) => {
-    const conversation = conversations.value.find((chat) => chat.id === id);
-    if (conversation) {
-        editingId.value = id;
-        editingTitle.value = conversation.title;
-
-        // Focus the input field after the DOM updates
-        nextTick(() => {
-            const inputElement = document.getElementById(`edit-conversation-${id}`) as HTMLInputElement;
-            if (inputElement) {
-                inputElement.focus();
-                inputElement.select();
-            }
-        });
-    }
-};
-
-const saveEditedConversation = async () => {
-    if (!editingId.value || !editingTitle.value.trim()) return;
-
-    try {
-        await axios
-            .patch(route('conversations.update', { conversationId: editingId.value }), {
-                title: editingTitle.value.trim(),
-            })
-            .then(() => {
-                // Update the conversation in the conversations array
-                const conversationIndex = conversations.value.findIndex((chat) => chat.id === editingId.value);
-                if (conversationIndex > -1) {
-                    conversations.value[conversationIndex].title = editingTitle.value.trim();
-                }
-            });
-    } catch (error) {
-        console.error('Failed to update conversation title:', error);
-    } finally {
-        cancelEditing();
-    }
-};
-
-const cancelEditing = () => {
-    editingId.value = null;
-    editingTitle.value = '';
-};
-
-const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
-        saveEditedConversation();
-    } else if (event.key === 'Escape') {
-        cancelEditing();
-    }
-};
-
-const openDeleteDialog = (id: string | number) => {
-    conversationToDelete.value = id;
-    deleteDialogOpen.value = true;
-};
-
-const deleteConversation = async () => {
-    if (!conversationToDelete.value) return;
-
-    try {
-        const deletedConversationId = conversationToDelete.value;
-        await axios.delete(route('conversations.delete', { conversationId: deletedConversationId }));
-
-        // Refresh the conversations list after successful deletion
-        loadConversations();
-
-        // If we just deleted the conversation we're currently viewing, send
-        // the user back to the agent's home (new-chat) screen. We only care
-        // about the `conversationId` param — its presence already means
-        // we're on a chat.show-style route; the route name varies between
-        // surfaces (regular chat, embed, …).
-        const currentConversationId = route().params?.conversationId;
-
-        if (currentConversationId !== undefined && String(currentConversationId) === String(deletedConversationId)) {
-            router.visit(route(props.newChatRoute), {
-                preserveState: false,
-                preserveScroll: false,
-                replace: true,
-            });
-        }
-    } catch (error) {
-        console.error('Failed to delete conversation:', error);
-    } finally {
-        deleteDialogOpen.value = false;
-        conversationToDelete.value = null;
-    }
-};
-
-const cancelDelete = () => {
-    deleteDialogOpen.value = false;
-    conversationToDelete.value = null;
-};
-
-// Profile dialog functions
-const openProfileDialog = () => {
-    const auth = page.props.auth as any;
-    profileForm.name = auth?.user?.name || '';
-    profileForm.email = auth?.user?.email || '';
-    profileForm.current_password = '';
-    profileForm.password = '';
-    profileForm.password_confirmation = '';
-    profileDialogOpen.value = true;
-};
-
-const closeProfileDialog = () => {
-    profileDialogOpen.value = false;
-    showCurrentPassword.value = false;
-    showNewPassword.value = false;
-    showConfirmPassword.value = false;
-};
-
-const openAvatarPicker = () => {
-    if (photoForm.processing) return;
-    avatarInput.value?.click();
-};
-
-const onAvatarSelected = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-
-    if (!file) return;
-
-    photoForm.photo = file;
-
-    photoForm.patch(route('chat.profile.update'), {
-        forceFormData: true,
-        preserveState: true,
-        preserveScroll: true,
-        onFinish: () => {
-            photoForm.reset('photo');
-            if (avatarInput.value) {
-                avatarInput.value.value = '';
-            }
-        },
-    });
-};
-
-const confirmRemoveAvatar = () => {
-    router.delete(route('chat.profile.photo.destroy'), {
-        preserveState: true,
-        preserveScroll: true,
-        onStart: () => {
-            removingPhoto.value = true;
-        },
-        onFinish: () => {
-            removingPhoto.value = false;
-            removePhotoDialogOpen.value = false;
-        },
-    });
-};
-
-const saveProfile = () => {
-    profileForm.patch(route('chat.profile.update'), {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            closeProfileDialog();
-            // Clear password fields
-            profileForm.current_password = '';
-            profileForm.password = '';
-            profileForm.password_confirmation = '';
-        },
-        onError: () => {
-            // Inertia will handle validation errors automatically
-        },
-    });
-};
-
-const getCurrentSubdomain = () => {
-    if (typeof window === 'undefined') return null;
-
-    const hostname = window.location.hostname;
-    const parts = hostname.split('.');
-
-    // Return the subdomain if it exists (e.g., "translation" from "translation.example.com")
-    return parts.length > 2 ? parts[0] : null;
-};
-
-const loadAgents = async () => {
-    if (isLoadingAgents.value) return;
-
-    isLoadingAgents.value = true;
-    try {
-        const response = await axios.get(route('chat.agents.index'));
-        agents.value = response.data;
-
-        // Set the current agent as selected based on subdomain
-        if (!selectedAgent.value && agents.value.length > 0) {
-            const currentSubdomain = getCurrentSubdomain();
-
-            if (currentSubdomain) {
-                // Find agent matching current subdomain
-                const currentAgent = agents.value.find((agent) => agent.sub_domain === currentSubdomain);
-                selectedAgent.value = currentAgent || agents.value[0];
-            } else {
-                // Fallback to first agent if no subdomain
-                selectedAgent.value = agents.value[0];
-            }
-        }
-    } catch (error) {
-        console.error('Failed to load agents:', error);
-    } finally {
-        isLoadingAgents.value = false;
-    }
-};
-
-// Agents dialog functions
-const openAgentsDialog = () => {
-    loadAgents();
-    agentsDialogOpen.value = true;
-};
-
-const closeAgentsDialog = () => {
-    agentsDialogOpen.value = false;
-};
-
-const selectAgent = (agent: Agent) => {
-    selectedAgent.value = agent;
-};
-
-const switchToSelectedAgent = () => {
-    if (!selectedAgent.value || agentSwitchForm.processing) return;
-
-    agentSwitchForm.post(
-        route('chat.agents.switch', {
-            agent: selectedAgent.value.external_id,
-        }),
-        {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                closeAgentsDialog();
-            },
-            onError: (errors) => {
-                console.error('Failed to switch agent:', errors);
-            },
-        },
-    );
-};
+function logout() {
+    router.post(route('chat.logout'));
+}
 </script>
 
 <template>
-    <!-- Sidebar overlay (mobile only) -->
+    <!-- Mobile backdrop -->
     <Transition
         name="backdrop"
         enter-active-class="transition-opacity duration-300 ease-out"
@@ -519,25 +154,22 @@ const switchToSelectedAgent = () => {
         class="bg-sidebar border-sidebar-border fixed start-0 top-0 z-40 h-screen w-64 border-e transition-transform duration-300 ease-out"
     >
         <div class="flex h-full flex-col px-3 py-3">
-            <!-- Header -->
             <div class="mb-2 flex items-center justify-between">
                 <Link :href="route('chat.home')" class="hover:bg-accent flex items-center gap-2 rounded-lg p-2 transition-colors">
                     <img
-                        v-if="props.appearance?.logo"
-                        :src="props.appearance.logo"
-                        :alt="props.appearance?.chat_window_title || brand.name"
+                        v-if="appearance?.logo"
+                        :src="appearance.logo"
+                        :alt="appearance?.chat_window_title || brand.name"
                         class="h-8 object-contain"
                     />
                     <template v-else>
                         <AppLogoIcon class="h-7 w-7" />
                         <span class="text-foreground text-sm font-semibold tracking-tight">
-                            {{ props.appearance?.chat_window_title || brand.name }}
+                            {{ appearance?.chat_window_title || brand.name }}
                         </span>
                     </template>
                 </Link>
-                <!-- Collapse the sidebar (ChatGPT-style). On desktop this slides
-                     it away and the reopen control appears in the top bar; on
-                     mobile it closes the drawer. -->
+                <!-- Collapse: on desktop the reopen control then appears in the top bar; on mobile it closes the drawer. -->
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger as-child>
@@ -554,7 +186,6 @@ const switchToSelectedAgent = () => {
                 </TooltipProvider>
             </div>
 
-            <!-- Menu Items -->
             <nav class="mb-4 space-y-1">
                 <button
                     @click="newConversation"
@@ -576,114 +207,19 @@ const switchToSelectedAgent = () => {
                 </button>
             </nav>
 
-            <!-- Chats Section -->
             <div class="flex min-h-0 flex-1 flex-col">
                 <div class="flex-shrink-0 px-3 py-2">
                     <span class="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">{{ t('sidebar.your_chats') }}</span>
                 </div>
 
-                <ScrollArea class="h-full flex-1">
-                    <!-- Loading indicator -->
-                    <div v-if="isLoadingConversations" class="flex justify-center py-8">
-                        <div class="border-muted-foreground/20 border-t-muted-foreground h-5 w-5 animate-spin rounded-full border-2"></div>
-                    </div>
-
-                    <!-- No conversations message -->
-                    <div v-else-if="conversations.length === 0" class="px-3 py-8 text-center">
-                        <p class="text-muted-foreground/60 text-sm">{{ t('sidebar.no_conversations') }}</p>
-                    </div>
-
-                    <!-- Conversations list -->
-                    <div v-else class="space-y-0.5 px-1">
-                        <div v-for="chat in conversations" :key="chat.id" class="group relative">
-                            <div v-if="editingId !== chat.id">
-                                <TooltipProvider>
-                                    <Tooltip :disabled="chat.title.length < 30">
-                                        <TooltipTrigger asChild>
-                                            <Link
-                                                :class="[
-                                                    'flex w-full cursor-pointer items-center rounded-lg px-3 py-2.5 text-sm transition-colors',
-                                                    route().current('chat.show', { conversationId: chat.id })
-                                                        ? 'text-foreground bg-sidebar-accent'
-                                                        : 'text-foreground/80 hover:bg-sidebar-accent/60',
-                                                ]"
-                                                :href="route('chat.show', { conversationId: chat.id })"
-                                            >
-                                                <span class="flex-1 truncate">{{ chat.title }}</span>
-                                            </Link>
-                                        </TooltipTrigger>
-                                        <TooltipContent v-if="chat.title.length >= 30" side="right" :sideOffset="10">
-                                            {{ chat.title }}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                                <!-- Hover actions -->
-                                <div
-                                    class="bg-accent/80 absolute end-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5 rounded-md px-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                                >
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button
-                                                :aria-label="t('shared.more_options')"
-                                                class="h-7 w-7"
-                                                size="icon"
-                                                variant="ghost"
-                                                @click.prevent.stop
-                                            >
-                                                <MoreVertical class="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" class="w-40">
-                                            <DropdownMenuItem class="cursor-pointer" @click="editConversation(chat.id)">
-                                                <Edit class="me-2 h-4 w-4" />
-                                                <span>{{ t('sidebar.rename_conversation') }}</span>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem
-                                                class="text-destructive focus:text-destructive cursor-pointer"
-                                                @click="openDeleteDialog(chat.id)"
-                                            >
-                                                <Trash2 class="me-2 h-4 w-4" />
-                                                <span>{{ t('common.delete') }}</span>
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </div>
-                            </div>
-
-                            <!-- Editing mode -->
-                            <div v-else class="bg-accent flex w-full items-center gap-2 rounded-lg px-2 py-1.5">
-                                <Input
-                                    :id="`edit-conversation-${chat.id}`"
-                                    v-model="editingTitle"
-                                    class="h-8 flex-1 text-sm"
-                                    @blur="saveEditedConversation"
-                                    @keydown="handleKeyDown"
-                                />
-                                <Button
-                                    class="h-7 w-7 text-green-600 hover:bg-green-500/10"
-                                    size="icon"
-                                    variant="ghost"
-                                    @click="saveEditedConversation"
-                                >
-                                    <Check class="h-4 w-4" />
-                                </Button>
-                                <Button
-                                    class="text-muted-foreground hover:text-foreground h-7 w-7"
-                                    size="icon"
-                                    variant="ghost"
-                                    @click="cancelEditing"
-                                >
-                                    <X class="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </ScrollArea>
+                <ChatConversationList
+                    :conversations="conversations"
+                    :loading="isLoadingConversations"
+                    :rename="rename"
+                    @delete="deleteConversation"
+                />
             </div>
 
-            <!-- Sidebar footer -->
             <div class="border-sidebar-border bg-sidebar/50 -mx-3 -mb-3 flex-shrink-0 space-y-2 border-t px-3 py-3 backdrop-blur-sm">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -711,30 +247,30 @@ const switchToSelectedAgent = () => {
                     </AlertDialogContent>
                 </AlertDialog>
 
-                <DropdownMenu v-if="(page.props.auth as any)?.user">
+                <DropdownMenu v-if="currentUser">
                     <DropdownMenuTrigger asChild>
                         <button
                             class="text-foreground hover:bg-accent flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
                         >
                             <Avatar class="h-7 w-7">
-                                <AvatarImage :src="(page.props.auth as any)?.user?.avatar || ''" />
-                                <AvatarFallback class="text-xs">{{ (page.props.auth as any)?.user?.name?.charAt(0) || 'U' }}</AvatarFallback>
+                                <AvatarImage :src="currentUser.avatar || ''" />
+                                <AvatarFallback class="text-xs">{{ currentUser.name?.charAt(0) || 'U' }}</AvatarFallback>
                             </Avatar>
-                            <span class="flex-1 truncate text-start">{{ (page.props.auth as any)?.user?.name || 'User' }}</span>
+                            <span class="flex-1 truncate text-start">{{ currentUser.name || t('sidebar.user_fallback') }}</span>
                             <MoreVertical class="text-muted-foreground h-4 w-4" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="top" class="w-56">
-                        <DropdownMenuItem class="cursor-pointer" @click="openProfileDialog">
+                        <DropdownMenuItem class="cursor-pointer" @click="profileDialogOpen = true">
                             <User class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.profile') }}</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem class="cursor-pointer" @click="openAgentsDialog">
+                        <DropdownMenuItem class="cursor-pointer" @click="agentsDialogOpen = true">
                             <Bot class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.my_agents') }}</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem class="cursor-pointer" @click="handleLogout">
+                        <DropdownMenuItem class="cursor-pointer" @click="logout">
                             <LogOut class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.logout') }}</span>
                         </DropdownMenuItem>
@@ -744,318 +280,15 @@ const switchToSelectedAgent = () => {
         </div>
     </div>
 
-    <!-- Search chats (ChatGPT-style command palette) -->
     <ChatSearchDialog
         v-model:open="searchDialogOpen"
         :conversations="conversations"
-        :search="searchConversations"
+        :search="search"
         @select="goToConversation"
         @new-chat="newConversation"
     />
 
-    <!-- Delete Conversation Confirmation Dialog -->
-    <AlertDialog v-model:open="deleteDialogOpen">
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>{{ t('sidebar.delete_conversation_title') }}</AlertDialogTitle>
-                <AlertDialogDescription>{{ t('sidebar.delete_conversation_description') }}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel @click="cancelDelete">{{ t('common.cancel') }}</AlertDialogCancel>
-                <AlertDialogAction class="bg-destructive text-destructive-foreground hover:bg-destructive/90" @click="deleteConversation">
-                    {{ t('common.delete') }}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
+    <ChatProfileDialog v-model:open="profileDialogOpen" />
 
-    <!-- Remove Profile Photo Confirmation Dialog -->
-    <AlertDialog v-model:open="removePhotoDialogOpen">
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>{{ t('sidebar.remove_photo_title') }}</AlertDialogTitle>
-                <AlertDialogDescription>{{ t('sidebar.remove_photo_description') }}</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel :disabled="removingPhoto">{{ t('common.cancel') }}</AlertDialogCancel>
-                <AlertDialogAction
-                    class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    :disabled="removingPhoto"
-                    @click.prevent="confirmRemoveAvatar"
-                >
-                    <Loader2 v-if="removingPhoto" class="me-2 size-4 animate-spin" />
-                    {{ t('sidebar.remove_photo') }}
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
-
-    <!-- Profile Dialog -->
-    <Dialog v-model:open="profileDialogOpen">
-        <DialogContent class="sm:max-w-[600px]">
-            <DialogHeader>
-                <DialogTitle>{{ t('sidebar.profile_settings_title') }}</DialogTitle>
-                <DialogDescription>{{ t('sidebar.profile_settings_description') }}</DialogDescription>
-            </DialogHeader>
-            <div class="grid gap-6 py-4">
-                <div class="flex flex-col items-center gap-2">
-                    <button
-                        type="button"
-                        :disabled="photoForm.processing"
-                        :aria-label="currentUser?.avatar ? t('sidebar.change_photo') : t('sidebar.upload_photo')"
-                        class="group focus-visible:ring-primary/50 relative cursor-pointer rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-wait"
-                        @click="openAvatarPicker"
-                    >
-                        <Avatar :key="currentUser?.avatar ?? 'no-avatar'" class="border-background size-20 border-2 shadow-sm">
-                            <AvatarImage v-if="currentUser?.avatar" :src="currentUser.avatar" :alt="currentUser?.name" />
-                            <AvatarFallback class="bg-primary/10 text-primary text-lg font-semibold">
-                                {{ getInitials(currentUser?.name || '') }}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div
-                            class="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
-                            :class="{ '!opacity-100': photoForm.processing }"
-                        >
-                            <Loader2 v-if="photoForm.processing" class="size-5 animate-spin" />
-                            <Upload v-else class="size-5" />
-                        </div>
-                    </button>
-                    <input
-                        ref="avatarInput"
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp,image/gif"
-                        class="hidden"
-                        @change="onAvatarSelected"
-                    />
-                    <button
-                        v-if="currentUser?.avatar"
-                        type="button"
-                        :disabled="removingPhoto || photoForm.processing"
-                        class="text-muted-foreground hover:text-destructive inline-flex cursor-pointer items-center gap-1 text-xs transition-colors disabled:cursor-wait disabled:opacity-60"
-                        @click="removePhotoDialogOpen = true"
-                    >
-                        <Trash2 class="size-3" />
-                        {{ t('sidebar.remove_photo') }}
-                    </button>
-                    <InputError :message="photoForm.errors.photo" class="text-xs" />
-                </div>
-                <Separator />
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="name" class="text-end">{{ t('sidebar.profile_name') }}</Label>
-                    <div class="col-span-3 space-y-1">
-                        <div class="relative">
-                            <User class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input id="name" v-model="profileForm.name" class="ps-10" :placeholder="t('sidebar.name_input_placeholder')" />
-                        </div>
-                        <InputError :message="profileForm.errors.name" class="text-xs" />
-                    </div>
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="email" class="text-end">{{ t('sidebar.profile_email') }}</Label>
-                    <div class="relative col-span-3">
-                        <Mail class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-                        <Input
-                            id="email"
-                            v-model="profileForm.email"
-                            type="email"
-                            class="bg-muted cursor-not-allowed ps-10"
-                            :placeholder="t('sidebar.email_input_placeholder')"
-                            readonly
-                            disabled
-                        />
-                    </div>
-                </div>
-                <Separator />
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="current-password" class="text-end">{{ t('sidebar.current_password') }}</Label>
-                    <div class="col-span-3 space-y-1">
-                        <div class="relative">
-                            <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input
-                                id="current-password"
-                                v-model="profileForm.current_password"
-                                :type="showCurrentPassword ? 'text' : 'password'"
-                                class="ps-10 pe-10"
-                                :placeholder="t('sidebar.current_password_placeholder')"
-                            />
-                            <button
-                                type="button"
-                                class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transform"
-                                @click="showCurrentPassword = !showCurrentPassword"
-                            >
-                                <Eye v-if="!showCurrentPassword" class="h-4 w-4" />
-                                <EyeOff v-else class="h-4 w-4" />
-                            </button>
-                        </div>
-                        <InputError :message="profileForm.errors.current_password" class="text-xs" />
-                    </div>
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="new-password" class="text-end">{{ t('sidebar.new_password') }}</Label>
-                    <div class="col-span-3 space-y-1">
-                        <div class="relative">
-                            <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input
-                                id="new-password"
-                                v-model="profileForm.password"
-                                :type="showNewPassword ? 'text' : 'password'"
-                                class="ps-10 pe-10"
-                                :placeholder="t('sidebar.new_password_placeholder')"
-                            />
-                            <button
-                                type="button"
-                                class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transform"
-                                @click="showNewPassword = !showNewPassword"
-                            >
-                                <Eye v-if="!showNewPassword" class="h-4 w-4" />
-                                <EyeOff v-else class="h-4 w-4" />
-                            </button>
-                        </div>
-                        <InputError :message="profileForm.errors.password" class="text-xs" />
-                    </div>
-                </div>
-                <div class="grid grid-cols-4 items-center gap-4">
-                    <Label for="confirm-password" class="text-end">{{ t('sidebar.confirm_password') }}</Label>
-                    <div class="col-span-3 space-y-1">
-                        <div class="relative">
-                            <Lock class="text-muted-foreground absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
-                            <Input
-                                id="confirm-password"
-                                v-model="profileForm.password_confirmation"
-                                :type="showConfirmPassword ? 'text' : 'password'"
-                                class="ps-10 pe-10"
-                                :placeholder="t('sidebar.confirm_password_placeholder')"
-                            />
-                            <button
-                                type="button"
-                                class="text-muted-foreground hover:text-foreground absolute end-3 top-1/2 -translate-y-1/2 transform"
-                                @click="showConfirmPassword = !showConfirmPassword"
-                            >
-                                <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
-                                <EyeOff v-else class="h-4 w-4" />
-                            </button>
-                        </div>
-                        <InputError :message="profileForm.errors.password_confirmation" class="text-xs" />
-                    </div>
-                </div>
-            </div>
-            <DialogFooter>
-                <Button variant="outline" @click="closeProfileDialog">{{ t('common.cancel') }}</Button>
-                <Button @click="saveProfile" :disabled="profileForm.processing">
-                    {{ profileForm.processing ? t('common.saving') : t('sidebar.save_changes') }}
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-
-    <!-- Agents Dialog -->
-    <Dialog v-model:open="agentsDialogOpen">
-        <DialogContent class="sm:max-w-[600px]">
-            <DialogHeader>
-                <DialogTitle>{{ t('sidebar.agents_dialog_title') }}</DialogTitle>
-                <DialogDescription>{{ t('sidebar.agents_dialog_description') }}</DialogDescription>
-            </DialogHeader>
-            <ScrollArea class="max-h-[400px] py-4">
-                <div class="space-y-4">
-                    <div v-if="isLoadingAgents" class="py-8 text-center">
-                        <svg
-                            class="text-muted-foreground mx-auto mb-4 h-6 w-6 animate-spin"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path
-                                class="opacity-75"
-                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                fill="currentColor"
-                            ></path>
-                        </svg>
-                        <p class="text-muted-foreground text-sm">{{ t('sidebar.loading_agents') }}</p>
-                    </div>
-                    <div v-else-if="agents.length === 0" class="py-8 text-center">
-                        <Bot class="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-                        <p class="text-muted-foreground">{{ t('sidebar.no_agents') }}</p>
-                    </div>
-                    <div v-else class="space-y-3">
-                        <div
-                            v-for="agent in agents"
-                            :key="agent.id"
-                            :class="[
-                                'flex cursor-pointer items-center justify-between rounded-lg border p-4 transition-colors',
-                                selectedAgent?.id === agent.id ? 'border-primary bg-primary/5' : 'hover:bg-accent',
-                            ]"
-                            role="button"
-                            tabindex="0"
-                            @click="selectAgent(agent)"
-                            @keydown.enter="selectAgent(agent)"
-                            @keydown.space.prevent="selectAgent(agent)"
-                        >
-                            <div class="flex flex-1 items-center gap-3">
-                                <div
-                                    :class="[
-                                        'h-4 w-4 rounded-full border-2',
-                                        selectedAgent?.id === agent.id ? 'border-primary bg-primary' : 'border-muted-foreground',
-                                    ]"
-                                >
-                                    <div v-if="selectedAgent?.id === agent.id" class="m-0.5 h-2 w-2 rounded-full bg-white"></div>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="font-semibold">{{ agent.name }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </ScrollArea>
-            <DialogFooter class="flex-col gap-2 sm:flex-row">
-                <Button @click="switchToSelectedAgent" :disabled="!selectedAgent || agentSwitchForm.processing" class="w-full sm:w-auto">
-                    <svg
-                        v-if="agentSwitchForm.processing"
-                        class="me-2 h-4 w-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path
-                            class="opacity-75"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            fill="currentColor"
-                        ></path>
-                    </svg>
-                    <Bot v-else class="me-2 h-4 w-4" />
-                    {{
-                        agentSwitchForm.processing ? t('sidebar.switching_agent') : t('sidebar.switch_to_agent', { name: selectedAgent?.name || '' })
-                    }}
-                </Button>
-                <Button variant="outline" @click="closeAgentsDialog" class="w-full sm:w-auto">{{ t('common.close') }}</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
+    <ChatAgentsDialog v-model:open="agentsDialogOpen" />
 </template>
-
-<style scoped>
-/* Smooth scrollbar */
-:deep(.scroll-area-viewport) {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--muted-foreground) 20%, transparent) transparent;
-}
-
-:deep(.scroll-area-viewport::-webkit-scrollbar) {
-    width: 4px;
-}
-
-:deep(.scroll-area-viewport::-webkit-scrollbar-track) {
-    background: transparent;
-}
-
-:deep(.scroll-area-viewport::-webkit-scrollbar-thumb) {
-    background: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
-    border-radius: 4px;
-}
-
-:deep(.scroll-area-viewport::-webkit-scrollbar-thumb:hover) {
-    background: color-mix(in srgb, var(--muted-foreground) 30%, transparent);
-}
-</style>

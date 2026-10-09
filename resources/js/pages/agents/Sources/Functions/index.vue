@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { type AgentFunctionRow, attachFunction, detachFunction, fetchAgentFunctions } from '@/api/agentFunctions';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,24 +7,19 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import axios from 'axios';
 import { AlertCircle, Code, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
-interface Props {
+const props = defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
-}
-
-const props = defineProps<Props>();
+}>();
 
 const { t } = useI18n();
 
-type FunctionRow = Domain.Integration.Function.Data.Resources.AgentFunctionRowData;
-
 const loading = ref(true);
-const functions = ref<FunctionRow[]>([]);
+const functions = ref<AgentFunctionRow[]>([]);
 const search = ref('');
 
 const filtered = computed(() => {
@@ -38,50 +34,42 @@ const filtered = computed(() => {
     );
 });
 
-async function fetchFunctions(): Promise<void> {
+async function loadFunctions(): Promise<void> {
     loading.value = true;
     try {
-        const response = await axios.get(route('agents.sources.functions.data', props.agent.external_id));
-        functions.value = response.data.data;
-    } catch (err) {
-        console.error(err);
+        functions.value = await fetchAgentFunctions(props.agent.external_id);
+    } catch {
         toast.error(t('agents.sources.functions.load_failed'));
     } finally {
         loading.value = false;
     }
 }
 
-async function toggle(fn: FunctionRow): Promise<void> {
-    if (fn.is_attached) {
-        await detach(fn);
-    } else {
-        await attach(fn);
-    }
+function setAttached(fn: AgentFunctionRow, isAttached: boolean): void {
+    const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
+    if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: isAttached };
 }
 
-async function attach(fn: FunctionRow): Promise<void> {
+async function toggle(fn: AgentFunctionRow): Promise<void> {
+    if (fn.is_attached) {
+        try {
+            await detachFunction(props.agent.external_id, fn.external_id);
+            setAttached(fn, false);
+        } catch {
+            toast.error(t('agents.sources.functions.detach_failed'));
+        }
+        return;
+    }
+
     try {
-        await axios.post(route('agents.sources.functions.attach', { agent: props.agent.external_id, function: fn.external_id }));
-        const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
-        if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: true };
-    } catch (err) {
-        console.error(err);
+        await attachFunction(props.agent.external_id, fn.external_id);
+        setAttached(fn, true);
+    } catch {
         toast.error(t('agents.sources.functions.attach_failed'));
     }
 }
 
-async function detach(fn: FunctionRow): Promise<void> {
-    try {
-        await axios.delete(route('agents.sources.functions.detach', { agent: props.agent.external_id, function: fn.external_id }));
-        const i = functions.value.findIndex((f) => f.external_id === fn.external_id);
-        if (i !== -1) functions.value[i] = { ...functions.value[i], is_attached: false };
-    } catch (err) {
-        console.error(err);
-        toast.error(t('agents.sources.functions.detach_failed'));
-    }
-}
-
-onMounted(fetchFunctions);
+onMounted(loadFunctions);
 </script>
 
 <template>
@@ -163,6 +151,7 @@ onMounted(fetchFunctions);
                                             <Switch
                                                 :model-value="fn.is_attached"
                                                 :disabled="!fn.is_enabled"
+                                                :aria-label="fn.display_name || fn.internal_name"
                                                 :title="!fn.is_enabled ? t('agents.sources.functions.enable_first') : undefined"
                                                 @update:model-value="toggle(fn)"
                                             />

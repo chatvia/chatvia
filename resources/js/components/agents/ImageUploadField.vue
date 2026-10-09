@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * A round image preview with Upload / Remove buttons, used for the agent's
+ * avatar and logo. Emits the picked file; the parent uploads it.
+ */
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Image as ImageIcon, Trash2, Upload, User } from 'lucide-vue-next';

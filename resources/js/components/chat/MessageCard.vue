@@ -1,170 +1,28 @@
 <script setup lang="ts">
+/**
+ * Read-only message body for the chat log and the live-chat (handoff) panel:
+ * the rendered markdown with its chart/form artifacts, or a waiting indicator
+ * while the message is still empty. Prompts are rendered by the callers.
+ */
 import AssistantMessageBody from '@/components/chat/AssistantMessageBody.vue';
-import ConfirmationDialog from '@/components/chat/ConfirmationDialog.vue';
 import WaitingIndicator from '@/components/chat/WaitingIndicator.vue';
 import type { ToolArtifact } from '@/types/stream';
-import { usePage } from '@inertiajs/vue3';
-import { vOnClickOutside } from '@vueuse/components';
-import { nextTick, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
-
-// MessageCard is used by the chat log and handoff panel; both pass a
-// ChatLogMessageData row. Define the minimum shape we read so the prop
-// stays compatible with anything that exposes role/content/etc.
+// Callers pass a ChatLogMessageData row; only these fields are read.
 interface MessageLike {
     id: string | number;
-    role: 'user' | 'assistant' | string;
+    role: string;
     content: string;
-    model?: string;
     artifacts?: ToolArtifact[] | null;
 }
 
-const messageFeedback = ref<Record<string | number, string>>({});
-const isExportDropdownOpen = ref<Record<string | number, boolean>>({});
-const copiedMessageId = ref<string | number | null>(null);
-const isEditing = ref(false);
-const editedContent = ref('');
-const page = usePage<{ models?: any[]; defaultModel?: any }>();
-
-const emit = defineEmits<{ messageUpdated: [id: string | number, content: string] }>();
-
-const props = defineProps<{
+defineProps<{
     message: MessageLike;
-    isThinking?: boolean;
-    hideFeedback?: boolean;
 }>();
-// `isChatExpanded` is two-way via v-model so parents can collapse the chat
-// from outside. defineModel() registers the implicit `modelValue` prop and
-// emit — keep it out of the explicit defineProps to avoid a name collision.
-const isChatExpanded = defineModel<boolean>('isChatExpanded', { default: false });
-
-const availableModels = ref<any[]>(page.props.models ?? []);
-const findModelIdx = (modelId: string | undefined) => {
-    return availableModels.value.find((m) => m.id === modelId) || page.props.defaultModel;
-};
-
-function provideFeedback(messageId: string | number, type: string) {
-    if (messageFeedback.value[messageId] === type) {
-        delete messageFeedback.value[messageId];
-    } else {
-        messageFeedback.value[messageId] = type;
-    }
-}
-
-function copyMessageToClipboard(content: string, id: string | number) {
-    if (navigator.clipboard) {
-        navigator.clipboard
-            .writeText(content)
-            .then(() => {
-                copiedMessageId.value = id;
-                setTimeout(() => {
-                    if (copiedMessageId.value === id) {
-                        copiedMessageId.value = null;
-                    }
-                }, 2000);
-            })
-            .catch((err) => {
-                console.error('Failed to copy text: ', err);
-                fallbackCopyToClipboard(content, id);
-            });
-    } else {
-        fallbackCopyToClipboard(content, id);
-    }
-}
-
-function fallbackCopyToClipboard(content: string, id: string | number) {
-    try {
-        const tempTextarea = document.createElement('textarea');
-        tempTextarea.value = content;
-        document.body.appendChild(tempTextarea);
-        tempTextarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempTextarea);
-
-        copiedMessageId.value = id;
-        setTimeout(() => {
-            if (copiedMessageId.value === id) {
-                copiedMessageId.value = null;
-            }
-        }, 2000);
-    } catch (err) {
-        console.error('Failed to copy text with fallback: ', err);
-    }
-}
-
-function toggleExportDropdown(messageId: string | number, event?: Event) {
-    if (event) event.stopPropagation();
-
-    const newState: Record<string | number, boolean> = {};
-    if (!isExportDropdownOpen.value[messageId]) {
-        newState[messageId] = true;
-    }
-    isExportDropdownOpen.value = newState;
-}
-
-function _startEditing() {
-    if (props.message.role === 'user') {
-        editedContent.value = props.message.content;
-        isEditing.value = true;
-
-        nextTick(() => {
-            const textareaElement = document.getElementById(`edit-message-${props.message.id}`);
-            if (textareaElement) {
-                textareaElement.focus();
-                (textareaElement as HTMLTextAreaElement).select();
-            }
-        });
-    }
-}
-
-function cancelEditing() {
-    isEditing.value = false;
-    editedContent.value = '';
-}
-
-function saveEditedMessage() {
-    if (!editedContent.value.trim()) return;
-
-    try {
-        const newMessage = editedContent.value.trim();
-        emit('messageUpdated', props.message.id, newMessage);
-        isEditing.value = false;
-    } catch (error) {
-        console.error('Failed to update message:', error);
-    }
-}
-
-function handleEditKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        saveEditedMessage();
-    } else if (event.key === 'Escape') {
-        cancelEditing();
-    }
-}
-
-const closeExportAsMenu = () => {
-    isExportDropdownOpen.value = {};
-};
-
-const deleteMessage = (_id: string | number) => {};
-
-// Export handlers referenced by the template but never implemented in
-// this component since the first commit — kept as no-ops so the template
-// type-checks under TS and behavior matches what it always was. Wire up
-// real export when the chat log gains that feature.
-const exportAsPdf = (_id: string | number) => {};
-const exportAsMarkdown = (_id: string | number) => {};
-const exportAsText = (_id: string | number) => {};
 </script>
 
 <template>
-    <div
-        :class="[message.role === 'user' ? 'flex-row-reverse justify-end' : '', !isChatExpanded ? 'max-w-3xl' : '']"
-        class="mx-auto flex items-start gap-4 sm:gap-6"
-    >
+    <div :class="message.role === 'user' ? 'flex-row-reverse justify-end' : ''" class="mx-auto flex max-w-3xl items-start gap-4 sm:gap-6">
         <div :class="message.role === 'user' ? 'flex justify-end' : ''" class="prose dark:prose-invert max-w-none flex-1">
             <div
                 :class="[
@@ -173,30 +31,7 @@ const exportAsText = (_id: string | number) => {};
                         : 'mx-auto my-4 block px-2 text-lg leading-relaxed text-gray-800 dark:text-white',
                 ]"
             >
-                <div v-if="isEditing && message.role === 'user'" class="w-full">
-                    <textarea
-                        :id="`edit-message-${message.id}`"
-                        v-model="editedContent"
-                        class="min-h-[100px] w-full resize-none rounded-lg border-0 bg-transparent p-2 text-white focus:border-0 focus:ring-0 focus:outline-none"
-                        @keydown="handleEditKeyDown"
-                    ></textarea>
-
-                    <div class="mt-2 flex justify-end space-x-2">
-                        <button
-                            class="cursor-pointer rounded-md bg-gray-700 px-3 py-1 text-xs text-white transition-colors hover:bg-gray-600"
-                            @click="cancelEditing"
-                        >
-                            {{ t('shared.message_card.cancel') }}
-                        </button>
-                        <button
-                            class="cursor-pointer rounded-md bg-indigo-600 px-3 py-1 text-xs text-white transition-colors hover:bg-indigo-500"
-                            @click="saveEditedMessage"
-                        >
-                            {{ t('shared.message_card.send') }}
-                        </button>
-                    </div>
-                </div>
-                <div v-else>
+                <div>
                     <AssistantMessageBody
                         v-if="message.content"
                         :content="message.content"
@@ -205,315 +40,6 @@ const exportAsText = (_id: string | number) => {};
                     />
                     <WaitingIndicator v-else />
                 </div>
-
-                <div
-                    v-if="message.role === 'assistant' && message.content && !hideFeedback"
-                    class="mt-3 flex items-center justify-between border-t border-gray-200/10 pt-2 dark:border-gray-700/20"
-                >
-                    <div class="flex items-center space-x-1.5">
-                        <button
-                            :aria-label="t('shared.message_card.copy_aria')"
-                            class="group relative cursor-pointer rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                            @click="copyMessageToClipboard(message.content, message.id)"
-                        >
-                            <svg
-                                :class="{ 'scale-75 opacity-0': copiedMessageId === message.id }"
-                                class="h-5 w-5 transition-all duration-200"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                            <!-- Checkmark that appears when copied -->
-                            <svg
-                                v-if="copiedMessageId === message.id"
-                                class="animate-scale-in absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-green-400"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg>
-                            <div
-                                class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                            >
-                                {{ t('shared.message_card.copy_tooltip') }}
-                            </div>
-                        </button>
-
-                        <button
-                            :class="[
-                                messageFeedback[message.id] === 'thumbs-up'
-                                    ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                                    : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
-                            ]"
-                            :aria-label="t('shared.message_card.thumbs_up_aria')"
-                            class="group relative cursor-pointer rounded-full p-1.5 transition-colors"
-                            @click="provideFeedback(message.id, 'thumbs-up')"
-                        >
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                            <!-- Tooltip -->
-                            <div
-                                class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                            >
-                                {{ t('shared.message_card.helpful_tooltip') }}
-                            </div>
-                        </button>
-
-                        <button
-                            :class="[
-                                messageFeedback[message.id] === 'thumbs-down'
-                                    ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                                    : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800',
-                            ]"
-                            :aria-label="t('shared.message_card.thumbs_down_aria')"
-                            class="group relative cursor-pointer rounded-full p-1.5 transition-colors"
-                            @click="provideFeedback(message.id, 'thumbs-down')"
-                        >
-                            <svg
-                                class="h-5 w-5"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                />
-                            </svg>
-                            <!-- Tooltip -->
-                            <div
-                                class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                            >
-                                {{ t('shared.message_card.not_helpful_tooltip') }}
-                            </div>
-                        </button>
-
-                        <!-- Delete message button -->
-                        <ConfirmationDialog
-                            :cancel-text="t('shared.message_card.delete_cancel')"
-                            :confirm-text="t('shared.message_card.delete_confirm')"
-                            :description="t('shared.message_card.delete_description')"
-                            :title="t('shared.message_card.delete_title')"
-                            @cancel="() => {}"
-                            @confirm="deleteMessage(message.id)"
-                        >
-                            <template #trigger>
-                                <button
-                                    :aria-label="t('shared.message_card.delete_aria')"
-                                    class="group relative cursor-pointer rounded-full p-1.5 text-gray-500 transition-colors hover:bg-red-100 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-                                >
-                                    <svg
-                                        class="h-5 w-5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                        />
-                                    </svg>
-                                    <!-- Tooltip -->
-                                    <div
-                                        class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                    >
-                                        {{ t('shared.message_card.delete_tooltip') }}
-                                    </div>
-                                </button>
-                            </template>
-                        </ConfirmationDialog>
-
-                        <div v-on-click-outside="closeExportAsMenu" class="dropdown-export-container relative">
-                            <button
-                                :aria-label="t('shared.message_card.export_aria')"
-                                class="group relative rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                                @click="toggleExportDropdown(message.id, $event)"
-                            >
-                                <svg
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                    />
-                                </svg>
-                                <!-- Tooltip -->
-                                <div
-                                    class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                                >
-                                    {{ t('shared.message_card.export_tooltip') }}
-                                </div>
-                            </button>
-
-                            <!-- Export Dropdown Menu -->
-                            <div
-                                v-if="isExportDropdownOpen[message.id]"
-                                class="absolute start-0 bottom-full z-50 mb-2 w-40 cursor-pointer rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                                style="transform-origin: bottom left"
-                            >
-                                <!-- Dropdown arrow -->
-                                <div
-                                    class="absolute start-4 -bottom-2 h-4 w-4 rotate-45 transform border-e border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
-                                ></div>
-
-                                <div
-                                    class="cursor-pointer border-b border-gray-100 px-3 py-2 text-xs font-medium text-gray-400 dark:border-gray-800 dark:text-gray-500"
-                                >
-                                    {{ t('shared.message_card.export_as') }}
-                                </div>
-
-                                <button
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
-                                    @click="exportAsPdf(message.id)"
-                                >
-                                    <svg
-                                        class="h-4 w-4 text-red-500"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                        <line x1="16" x2="8" y1="13" y2="13"></line>
-                                        <line x1="16" x2="8" y1="17" y2="17"></line>
-                                        <polyline points="10 9 9 9 8 9"></polyline>
-                                    </svg>
-                                    <span>{{ t('shared.message_card.export_pdf') }}</span>
-                                </button>
-
-                                <button
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
-                                    @click="exportAsMarkdown(message.id)"
-                                >
-                                    <svg
-                                        class="h-4 w-4 text-blue-500"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                        <line x1="9" x2="9" y1="10" y2="16"></line>
-                                        <line x1="15" x2="15" y1="10" y2="16"></line>
-                                        <line x1="9" x2="15" y1="13" y2="13"></line>
-                                    </svg>
-                                    <span>{{ t('shared.message_card.export_markdown') }}</span>
-                                </button>
-
-                                <button
-                                    class="flex w-full items-center gap-3 px-3 py-2 text-start text-sm text-gray-700 transition-all duration-200 hover:translate-x-0.5 hover:scale-[1.02] hover:bg-indigo-50 dark:text-gray-300 dark:hover:bg-indigo-900/30"
-                                    @click="exportAsText(message.id)"
-                                >
-                                    <svg
-                                        class="h-4 w-4 text-gray-500"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="2"
-                                        viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                    </svg>
-                                    <span>{{ t('shared.message_card.export_text') }}</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center">
-                        <div class="group relative">
-                            <img :alt="findModelIdx(message.model).name" :src="'/images/llms/' + findModelIdx(message.model).icon" class="h-5 w-5" />
-                            <div
-                                class="pointer-events-none absolute end-0 bottom-full mb-1 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                            >
-                                {{ t('shared.message_card.generated_by', { model: findModelIdx(message.model).name }) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div v-if="message.role === 'user' && message.content && !isEditing">
-        <div class="mx-auto mt-2 flex max-w-3xl items-start justify-end gap-4 sm:gap-6">
-            <div class="flex items-center space-x-1.5">
-                <button
-                    :aria-label="t('shared.message_card.copy_aria')"
-                    class="group relative cursor-pointer rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                    @click="copyMessageToClipboard(message.content, message.id)"
-                >
-                    <svg
-                        :class="{ 'scale-75 opacity-0': copiedMessageId === message.id }"
-                        class="h w-4 transition-all duration-200"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        />
-                    </svg>
-                    <!-- Checkmark that appears when copied -->
-                    <svg
-                        v-if="copiedMessageId === message.id"
-                        class="animate-scale-in absolute top-1/2 left-1/2 h-5 w-5 -translate-x-1/2 -translate-y-1/2 text-green-400"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <div
-                        class="pointer-events-none absolute bottom-full left-1/2 mb-1 -translate-x-1/2 transform rounded bg-gray-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
-                    >
-                        {{ t('shared.message_card.copy_tooltip') }}
-                    </div>
-                </button>
             </div>
         </div>
     </div>
@@ -583,15 +109,15 @@ const exportAsText = (_id: string | number) => {};
 
 /* Blockquotes */
 :deep(blockquote) {
-    border-left: 3px solid #e5e7eb;
-    padding-left: 1rem;
+    border-inline-start: 3px solid #e5e7eb;
+    padding-inline-start: 1rem;
     font-style: italic;
     color: rgba(75, 85, 99);
     margin: 1rem 0;
 }
 
 .dark :deep(blockquote) {
-    border-left-color: #4b5563;
+    border-inline-start-color: #4b5563;
     color: rgba(156, 163, 175);
 }
 
@@ -610,7 +136,7 @@ const exportAsText = (_id: string | number) => {};
 :deep(th) {
     background-color: rgba(0, 0, 0, 0.03);
     font-weight: 600;
-    text-align: left;
+    text-align: start;
     padding: 0.75rem 1rem;
 }
 
@@ -641,29 +167,13 @@ const exportAsText = (_id: string | number) => {};
 /* Lists */
 :deep(ul),
 :deep(ol) {
-    padding-left: 1.5rem;
+    padding-inline-start: 1.5rem;
     margin: 0.75rem 0;
 }
 
 :deep(li) {
     margin: 0.375rem 0;
-    padding-left: 0.25rem;
-}
-
-/* Animation */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.message-enter-active {
-    animation: fadeIn 0.3s ease-out;
+    padding-inline-start: 0.25rem;
 }
 
 /* Headings */
@@ -732,7 +242,7 @@ const exportAsText = (_id: string | number) => {};
 :deep(.code-copy-button) {
     position: absolute;
     top: 0.5rem;
-    right: 0.5rem;
+    inset-inline-end: 0.5rem;
     padding: 0.25rem;
     background-color: rgba(255, 255, 255, 0.1);
     border: none;
@@ -777,51 +287,18 @@ const exportAsText = (_id: string | number) => {};
     color: #10b981;
 }
 
-.group:hover .edit-button {
-    opacity: 1;
-}
-
-@media (max-width: 768px) {
-    .edit-button {
-        opacity: 1;
-    }
-}
-
-@keyframes scaleIn {
-    0% {
-        transform: scale(0);
-        opacity: 0;
-    }
-    50% {
-        transform: scale(1.2);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-}
-
-.animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-}
-
 /* GFM Alert Styling */
 :deep(.markdown-alert) {
     padding: 0.75rem 1rem;
     margin: 1rem 0;
-    border-left-width: 4px;
-    border-left-style: solid;
+    border-inline-start-width: 4px;
+    border-inline-start-style: solid;
     border-radius: 0.375rem;
 }
 
 /* Note alert styling */
 :deep(.markdown-alert-note) {
-    border-left-color: #3b82f6; /* blue-500 */
+    border-inline-start-color: #3b82f6; /* blue-500 */
     background-color: rgba(59, 130, 246, 0.05);
 }
 
@@ -831,7 +308,7 @@ const exportAsText = (_id: string | number) => {};
 
 /* Tip alert styling */
 :deep(.markdown-alert-tip) {
-    border-left-color: #10b981; /* emerald-500 */
+    border-inline-start-color: #10b981; /* emerald-500 */
     background-color: rgba(16, 185, 129, 0.05);
 }
 
@@ -841,7 +318,7 @@ const exportAsText = (_id: string | number) => {};
 
 /* Important alert styling */
 :deep(.markdown-alert-important) {
-    border-left-color: #8b5cf6; /* violet-500 */
+    border-inline-start-color: #8b5cf6; /* violet-500 */
     background-color: rgba(139, 92, 246, 0.05);
 }
 
@@ -851,7 +328,7 @@ const exportAsText = (_id: string | number) => {};
 
 /* Warning alert styling */
 :deep(.markdown-alert-warning) {
-    border-left-color: #f59e0b; /* amber-500 */
+    border-inline-start-color: #f59e0b; /* amber-500 */
     background-color: rgba(245, 158, 11, 0.05);
 }
 
@@ -861,7 +338,7 @@ const exportAsText = (_id: string | number) => {};
 
 /* Caution alert styling */
 :deep(.markdown-alert-caution) {
-    border-left-color: #ef4444; /* red-500 */
+    border-inline-start-color: #ef4444; /* red-500 */
     background-color: rgba(239, 68, 68, 0.05);
 }
 

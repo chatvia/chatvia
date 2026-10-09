@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// Shell of the Account area: the side navigation (owner-only entries are
+// hidden from teammates) and a narrow or wide content column.
 import Heading from '@/components/Heading.vue';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { Link } from '@inertiajs/vue3';

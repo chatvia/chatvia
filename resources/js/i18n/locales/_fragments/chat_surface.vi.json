@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Gửi tin nhắn",
+        "stop_streaming": "Dừng tạo"
+    },
+    "chat": {
+        "scroll_to_bottom": "Cuộn xuống cuối",
+        "copy_code": "Sao chép mã vào bộ nhớ tạm",
+        "loading_chart": "Đang tải biểu đồ…",
+        "powered_by": "Được hỗ trợ bởi {label}",
+        "stream_errors": {
+            "unreachable": "Không thể kết nối tới máy chủ. Vui lòng thử lại.",
+            "http_status": "Máy chủ trả về trạng thái {status}.",
+            "interrupted": "Kết nối đã bị gián đoạn.",
+            "malformed": "Nhận được dữ liệu không hợp lệ từ máy chủ."
+        }
+    },
+    "messages": {
+        "edit_message": "Sửa tin nhắn"
+    },
+    "sources": {
+        "file_with_page": "{file} (Trang {page})",
+        "fallback_title": "Nguồn {number}",
+        "chunk_label": "Đoạn {index}"
+    },
+    "sidebar": {
+        "save_title": "Lưu tiêu đề",
+        "show_password": "Hiện mật khẩu",
+        "hide_password": "Ẩn mật khẩu",
+        "user_fallback": "Người dùng"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Vừa xong"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Quyền truy cập micrô bị từ chối. Vui lòng cho phép truy cập micrô để ghi âm.",
+            "microphone_not_found": "Không tìm thấy micrô. Vui lòng kết nối micrô và thử lại.",
+            "microphone_failed": "Không thể truy cập micrô",
+            "transcription_failed": "Chuyển giọng nói thành văn bản thất bại"
+        },
+        "file_uploader": {
+            "analyze_failed": "Không thể phân tích tệp",
+            "analyze_timed_out": "Phân tích quá thời gian - tệp có thể quá lớn"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Làm mới tin nhắn",
+            "delete_conversation": "Xóa cuộc trò chuyện",
+            "sidebar": {
+                "refresh_conversations": "Làm mới cuộc trò chuyện",
+                "remove_filter": "Bỏ bộ lọc"
+            },
+            "handoff": {
+                "send_message": "Gửi tin nhắn",
+                "errors": {
+                    "connect_failed": "Không thể kết nối tới kênh trò chuyện",
+                    "takeover_failed": "Không thể tiếp quản cuộc trò chuyện",
+                    "return_failed": "Không thể trả cuộc trò chuyện lại cho AI",
+                    "send_failed": "Không thể gửi tin nhắn"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Ổn định"
+            }
+        }
+    }
+}

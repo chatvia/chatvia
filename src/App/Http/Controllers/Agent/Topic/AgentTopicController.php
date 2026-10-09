@@ -10,12 +10,12 @@ use Domain\Conversation\Topic\Actions\AttachExistingTopicToAgentAction;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Actions\DetachTopicFromAgentAction;
 use Domain\Conversation\Topic\Actions\UpdateTopicAction;
+use Domain\Conversation\Topic\Exceptions\SystemTopicProtectedException;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Support\Exceptions\SystemTopicProtectedException;
 
 /**
  * The agent's topics page: lists the agent's topics (or every topic the

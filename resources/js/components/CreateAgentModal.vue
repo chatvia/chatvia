@@ -1,10 +1,14 @@
 <script lang="ts" setup>
+/**
+ * "Create agent" dialog. Loads the plan's agent quota first so it can block the
+ * form (and explain why) when the workspace has no agents left.
+ */
+import { fetchUsage, type Usage } from '@/api/usage';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { router, useForm } from '@inertiajs/vue3';
-import axios from 'axios';
 import { AlertTriangle, Bot, LoaderCircle, Plus } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -21,7 +25,7 @@ const emit = defineEmits<{
     'agent-created': [];
 }>();
 
-type UsageData = Domain.Billing.Data.Resources.Usage.UsageResourceData;
+type UsageData = Usage;
 
 const form = useForm({
     name: '',
@@ -52,8 +56,7 @@ const focusNameInput = () => {
 const fetchUsageData = async () => {
     try {
         isLoadingUsage.value = true;
-        const response = await axios.get(route('usage'));
-        usageData.value = response.data;
+        usageData.value = await fetchUsage();
         // Input is disabled until usage loads; focus once it's enabled.
         focusNameInput();
     } catch (error) {

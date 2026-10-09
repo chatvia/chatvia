@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Website\CompleteWebsiteIngestionAction;
 use Domain\Knowledge\Ingestion\Actions\Website\StartWebsiteIngestionAction;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
@@ -58,7 +59,7 @@ function wsaChunk(SourceWebsite $website, string $text, array $urls): Chunk
         'chunk_index' => 1,
         'chunk' => $text,
         'tokens' => 3,
-        'embedding' => embed($text, true),
+        'embedding' => app(EmbeddingsProviderInterface::class)->embed($text, true),
         'embedding_bm25' => Bm25Tokenizer::expression($text),
         'checksum' => hash('sha256', $text),
         'cost_in_micro_cents' => 0,

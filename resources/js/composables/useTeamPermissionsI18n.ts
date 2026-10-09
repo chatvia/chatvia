@@ -1,5 +1,13 @@
+/**
+ * Translated labels and descriptions for team permission scopes, groups and
+ * codes. The server sends English text with the catalog; these helpers return
+ * the vue-i18n translation under `teams.permissions_meta.*` when one exists and
+ * fall back to that server text otherwise.
+ */
 import { useI18n } from 'vue-i18n';
 
+// Permission codes are dotted (`agent.sources.train.files`), which vue-i18n
+// would read as nested paths; the locale keys flatten dots and dashes to `_`.
 function toPermissionKey(code: string): string {
     return code.replace(/\./g, '_').replace(/-/g, '_');
 }

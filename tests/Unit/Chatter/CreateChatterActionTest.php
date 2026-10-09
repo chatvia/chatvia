@@ -3,12 +3,12 @@
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
+use App\Identity\Workspace\Enums\UserSource;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Models\UserQuota;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
-use Support\Enums\User\UserSource;
-use Support\Enums\User\UserType;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->workspace()->create();

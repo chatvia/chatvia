@@ -2,10 +2,10 @@
 
 namespace App\Identity\Workspace\Actions\Social;
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Exceptions\SocialAccountAlreadyLinkedException;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
-use Support\Enums\User\SocialProvider;
 
 /**
  * Idempotently links an external OAuth identity to a user. Re-running the

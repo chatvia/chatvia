@@ -1,7 +1,10 @@
 <script setup lang="ts">
+// "Download your data" panel: request an export, wait while it is built (the
+// page reloads itself when the ready notification arrives), then download it.
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import type { SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { AlertTriangle, CheckCircle2, Download, Loader2, RefreshCw, ShieldCheck } from 'lucide-vue-next';
@@ -34,8 +37,8 @@ const submit = () => {
     });
 };
 
-const page = usePage();
-const userId = computed<number | null>(() => (page.props as any)?.auth?.user?.id ?? null);
+const page = usePage<SharedData>();
+const userId = computed<number | null>(() => page.props.auth?.user?.id ?? null);
 
 const now = ref<number>(Math.floor(performance.timeOrigin / 1000) + Math.floor(performance.now() / 1000));
 let tick: ReturnType<typeof setInterval> | null = null;

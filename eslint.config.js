@@ -29,7 +29,14 @@ export default defineConfigWithVueTs(
     {
         rules: {
             'vue/multi-word-component-names': 'off',
-            '@typescript-eslint/no-explicit-any': 'off',
+            // Type responses with the generated PHP types or small interfaces
+            // (see resources/js/api/); `unknown` + narrowing where the shape
+            // is really open. A warning, so it flags new `any` without
+            // blocking a build.
+            '@typescript-eslint/no-explicit-any': 'warn',
+            // No debug logging in shipped code; console.warn / console.error
+            // stay allowed for real problems.
+            'no-console': ['warn', { allow: ['warn', 'error'] }],
             // Allow leading-underscore identifiers to opt out of unused-var
             // warnings — the convention for callback args you must accept
             // but don't reference, and for refs kept for template binding.
@@ -42,18 +49,23 @@ export default defineConfigWithVueTs(
                     destructuredArrayIgnorePattern: '^_',
                 },
             ],
-            // Permit plain `<script setup>` (no lang attribute) in addition
-            // to TypeScript. A handful of legacy chat-UI components are still
-            // plain JS — keep them out of strict TS until they're rewritten.
+            // Every SFC script is TypeScript (`<script setup lang="ts">`).
             'vue/block-lang': [
                 'error',
                 {
                     script: {
                         lang: ['ts', 'tsx'],
-                        allowNoLang: true,
+                        allowNoLang: false,
                     },
                 },
             ],
+        },
+    },
+    {
+        // Node CLI scripts and the Vite config report progress on the terminal.
+        files: ['scripts/**', 'vite.config.ts'],
+        rules: {
+            'no-console': 'off',
         },
     },
     prettier,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent\Setup;
 
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\TeamPermissionPolicy;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
@@ -25,8 +26,12 @@ use Inertia\Response;
  */
 class SetupController
 {
-    public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService): Response
-    {
+    public function __invoke(
+        Request $request,
+        Agent $agent,
+        ChatterAuthTokenService $authTokenService,
+        TeamPermissionPolicy $permissions,
+    ): Response {
         $agent->loadMissing(['llm', 'agentPrompt']);
 
         $prompts = $request->user()->workspace()->prompts()
@@ -63,7 +68,7 @@ class SetupController
             // Setup → Starters "Generate with AI" button (which scans the chunks).
             'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent->id),
             'prompts' => $prompts,
-            'hasPermission' => has_permission_to_agent($agent, 'agent.setup'),
+            'hasPermission' => $permissions->allowsOnAgent($request->user(), $agent, 'agent.setup'),
             'canUseHandoff' => $agent->team?->hasCapability(Capability::Handoff) ?? false,
             // Whether the workspace may hide the "Powered by Chatvia" badge. Only
             // then does the Branding section expose the show/hide toggle; otherwise

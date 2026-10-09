@@ -1,9 +1,9 @@
 <?php
 
 use App\Identity\Workspace\Actions\Social\SocialLoginAction;
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
-use Support\Enums\User\SocialProvider;
 
 it('signs in the account already linked to the provider identity', function (): void {
     $user = User::factory()->create();

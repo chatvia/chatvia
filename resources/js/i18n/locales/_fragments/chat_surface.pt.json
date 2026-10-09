@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Enviar mensagem",
+        "stop_streaming": "Parar a geração"
+    },
+    "chat": {
+        "scroll_to_bottom": "Rolar até o fim",
+        "copy_code": "Copiar o código para a área de transferência",
+        "loading_chart": "A carregar o gráfico…",
+        "powered_by": "Com tecnologia {label}",
+        "stream_errors": {
+            "unreachable": "Não foi possível contactar o servidor. Tente novamente.",
+            "http_status": "O servidor devolveu o estado {status}.",
+            "interrupted": "A ligação foi interrompida.",
+            "malformed": "Foram recebidos dados inválidos do servidor."
+        }
+    },
+    "messages": {
+        "edit_message": "Editar mensagem"
+    },
+    "sources": {
+        "file_with_page": "{file} (Página {page})",
+        "fallback_title": "Fonte {number}",
+        "chunk_label": "Excerto {index}"
+    },
+    "sidebar": {
+        "save_title": "Guardar título",
+        "show_password": "Mostrar palavra-passe",
+        "hide_password": "Ocultar palavra-passe",
+        "user_fallback": "Utilizador"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Agora mesmo"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Acesso ao microfone negado. Permita o acesso ao microfone para gravar.",
+            "microphone_not_found": "Nenhum microfone encontrado. Ligue um microfone e tente novamente.",
+            "microphone_failed": "Não foi possível aceder ao microfone",
+            "transcription_failed": "A transcrição falhou"
+        },
+        "file_uploader": {
+            "analyze_failed": "Não foi possível analisar o ficheiro",
+            "analyze_timed_out": "A análise excedeu o tempo limite – o ficheiro pode ser demasiado grande"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Atualizar mensagens",
+            "delete_conversation": "Eliminar conversa",
+            "sidebar": {
+                "refresh_conversations": "Atualizar conversas",
+                "remove_filter": "Remover filtro"
+            },
+            "handoff": {
+                "send_message": "Enviar mensagem",
+                "errors": {
+                    "connect_failed": "Não foi possível ligar ao canal de chat",
+                    "takeover_failed": "Não foi possível assumir a conversa",
+                    "return_failed": "Não foi possível devolver a conversa à IA",
+                    "send_failed": "Não foi possível enviar a mensagem"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Estável"
+            }
+        }
+    }
+}

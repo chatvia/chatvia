@@ -14,7 +14,7 @@ import { useI18n } from 'vue-i18n';
  *   const { catalogText } = useCatalogText();
  *   catalogText(`connectors.catalog.${slug}.name`, connector.name);
  */
-export function useCatalogText() {
+export function useCatalogText(): { catalogText: (key: string, fallback: string) => string } {
     const { t, te } = useI18n();
 
     const catalogText = (key: string, fallback: string): string => (te(key) ? t(key) : fallback);

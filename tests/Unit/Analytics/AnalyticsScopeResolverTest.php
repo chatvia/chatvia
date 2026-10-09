@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
@@ -7,7 +8,6 @@ use Domain\Analytics\Data\Account\AnalyticsFilterData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Enums\AnalyticsPeriod;
 use Domain\Analytics\Services\AnalyticsScopeResolver;
-use Support\Enums\User\UserType;
 
 /**
  * The scope of an account-analytics question: the window and the agents whose

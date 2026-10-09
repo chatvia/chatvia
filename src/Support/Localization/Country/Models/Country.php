@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
+ * Reference data: a country (`countries` table, keyed by ISO code). Visitor
+ * sessions point at it by `country_id`; country pickers list it.
+ *
+ * The class name is imported by a shipped migration, so it must not move.
+ *
  * @property int $id
  * @property string $name
  * @property string $code
@@ -23,7 +28,4 @@ use Illuminate\Support\Carbon;
  *
  * @mixin \Eloquent
  */
-class Country extends Model
-{
-    //
-}
+class Country extends Model {}

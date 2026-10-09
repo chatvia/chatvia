@@ -9,11 +9,16 @@ namespace Support\Http;
  */
 final class WebhookSignature
 {
+    /** The hex HMAC-SHA256 digest of $payload. */
     public static function sign(string $payload, string $secret): string
     {
         return hash_hmac('sha256', $payload, $secret);
     }
 
+    /**
+     * Constant-time check of $signature against $payload. A missing signature
+     * or an empty secret never verifies.
+     */
     public static function verify(string $payload, ?string $signature, string $secret): bool
     {
         if (! is_string($signature) || $signature === '' || $secret === '') {

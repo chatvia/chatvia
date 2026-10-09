@@ -7,8 +7,8 @@ use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
-    // The settings controllers gate every action on has_team_permission(),
-    // which requires the user to have a current/primary team.
+    // The settings routes are gated by a team permission, which requires the
+    // user to have a current/primary team.
     app(TeamService::class)->createDefaultTeam($this->user);
 });
 

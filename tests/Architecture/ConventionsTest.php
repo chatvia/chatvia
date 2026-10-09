@@ -113,6 +113,53 @@ it('the Integration domain never depends on the Conversation domain', function (
         ->and(conventionOffenders($files, '/\bDomain\\\\Conversation\\\\/'))->toBe([]);
 });
 
+/**
+ * Class names in $path's code (imports and qualified references, not comments
+ * or strings) that point into the Domain or App namespace.
+ *
+ * @return list<string>
+ */
+function conventionDomainOrAppReferences(string $path): array
+{
+    $tokens = PhpToken::tokenize((string) file_get_contents($path));
+    $references = [];
+
+    foreach ($tokens as $index => $token) {
+        $qualified = $token->is([T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])
+            && preg_match('/^\\\\?(Domain|App)\\\\/', $token->text) === 1;
+
+        // A group import (`use Domain\{A, B};`) starts with a bare name and a separator.
+        $groupPrefix = $token->is(T_STRING)
+            && in_array($token->text, ['Domain', 'App'], true)
+            && ($tokens[$index + 1] ?? null)?->is(T_NS_SEPARATOR) === true;
+
+        if ($qualified || $groupPrefix) {
+            $references[] = $token->text;
+        }
+    }
+
+    return $references;
+}
+
+it('the Support layer never depends on Domain or App', function (): void {
+    // Support holds small framework-level helpers that every layer may use.
+    // A reference to Domain\ or App\ would put business rules in a helper and
+    // make the layers depend on each other in a circle. Comments may still
+    // name such classes; only code references count. No exceptions.
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $files = conventionPhpFiles('src/Support');
+    $offenders = [];
+
+    foreach ($files as $path) {
+        foreach (conventionDomainOrAppReferences($path) as $reference) {
+            $offenders[] = str_replace($root, '', $path).' → '.$reference;
+        }
+    }
+
+    expect($files)->not->toBe([])
+        ->and($offenders)->toBe([]);
+});
+
 // --- Action conventions --------------------------------------------------
 
 it('Actions expose execute(), never handle()', function (): void {

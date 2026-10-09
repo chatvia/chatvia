@@ -14,6 +14,7 @@
  */
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
+import { useI18n } from 'vue-i18n';
 
 import { prepareEcharts } from '@/lib/echartsLazy';
 
@@ -28,6 +29,7 @@ const props = defineProps<{
     height?: number;
 }>();
 
+const { t } = useI18n();
 const ready = ref(false);
 
 // Match the chart theme to the *actual* applied site theme. useAppearance
@@ -79,7 +81,7 @@ const heightPx = computed(() => `${props.height ?? 320}px`);
     <div class="echarts-block not-prose bg-card my-3 overflow-hidden rounded-md border" :style="{ height: heightPx }">
         <VChart v-if="ready" :option="option" :autoresize="true" class="h-full w-full" />
         <div v-else class="text-muted-foreground flex h-full w-full items-center justify-center text-sm">
-            <span class="animate-pulse">Loading chart…</span>
+            <span class="animate-pulse">{{ t('chat.loading_chart') }}</span>
         </div>
     </div>
 </template>

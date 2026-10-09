@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "جزئیات",
+        "arguments": "آرگومان‌ها"
+    },
+    "messages": {
+        "responding": "دستیار در حال پاسخ دادن است…",
+        "response_complete": "پاسخ کامل شد",
+        "copy_message": "کپی پیام",
+        "feedback_helpful": "پاسخ خوب",
+        "feedback_not_helpful": "پاسخ بد"
+    },
+    "agents": {
+        "sources": {
+            "connectors": {
+                "column_always": "همیشه فعال",
+                "always_hint": "ابزارهای این اتصال‌دهنده را در هر نوبت ارائه دهید، حتی وقتی پیام به‌وضوح به آن‌ها نیاز ندارد. حداکثر ۱۰ ابزار همیشه فعال برای هر عامل.",
+                "always_failed": "به‌روزرسانی تنظیم «همیشه فعال» ناموفق بود"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "زبان‌ها",
+                "bubbles": "حباب‌های چت"
+            },
+            "toasts": {
+                "languages_saved": "زبان‌ها ذخیره شدند",
+                "languages_error": "ذخیره زبان‌ها ممکن نبود"
+            },
+            "behavior": {
+                "language_switcher": "انتخابگر زبان"
+            },
+            "sections": {
+                "appearance_translations_default": "پیش‌فرض",
+                "appearance_translations_default_tip": "متنی که می‌نویسید — به‌طور خودکار به همه زبان‌ها ترجمه می‌شود.",
+                "appearance_translations_default_hint": "این متنی است که شما می‌نویسید. هنگام ذخیره، به‌طور خودکار به همه زبان‌ها ترجمه می‌شود و هر زمان که زبان بازدیدکننده در فهرست نباشد، همین متن نمایش داده می‌شود.",
+                "appearance_translations_lang_hint": "این زبان را اینجا ویرایش کنید. برای استفاده از ترجمه خودکار، فیلد را خالی بگذارید — ویرایش‌های شما همیشه حفظ می‌شوند.",
+                "starters_generate": "تولید با هوش مصنوعی",
+                "starters_generate_title": "تولید شروع‌کننده‌ها با هوش مصنوعی",
+                "starters_generate_description": "انتخاب کنید چند مورد از پایگاه دانش شما تولید شود، سپس مواردی را که می‌خواهید اضافه شوند برگزینید.",
+                "starters_generate_count": "چند مورد؟",
+                "starters_generate_button": "تولید",
+                "starters_generating": "در حال تولید…",
+                "starters_generate_hint": "یک عدد انتخاب کنید و از پایگاه دانش خود پیشنهاد تولید کنید.",
+                "starters_translate_empty": "ابتدا شروع‌کننده‌ها را در زبانه پیش‌فرض اضافه کنید، سپس آن‌ها را اینجا ترجمه کنید."
+            },
+            "languages": {
+                "title": "زبان‌های رابط کاربری",
+                "description": "انتخاب کنید این عامل از کدام زبان‌ها پشتیبانی کند. زبان‌های فعال در انتخابگر زبان چت میزبانی‌شده نمایش داده می‌شوند و در بخش‌های اطلاعات و شروع‌کننده‌ها فیلدهای مخصوص به خود را دارند.",
+                "select_all": "انتخاب همه",
+                "clear_all": "پاک کردن همه",
+                "count": "{count} از {total} انتخاب شده",
+                "hint": "برای پنهان کردن کامل انتخابگر زبان بازدیدکننده، آن را در بخش رفتار خاموش کنید.",
+                "min_required": "حداقل یک زبان لازم است."
+            },
+            "bubbles_add": "افزودن حباب",
+            "bubbles_remove": "حذف حباب",
+            "bubbles_empty": "هنوز حباب چتی وجود ندارد.",
+            "bubbles_translate_empty": "ابتدا یک حباب اضافه کنید تا بتوانید آن را ترجمه کنید."
+        },
+        "forms": {
+            "subtitle": "توضیحات",
+            "subtitle_placeholder": "مثلاً درباره شرکت خود به ما بگویید تا با شما تماس بگیریم.",
+            "subtitle_hint": "زیر عنوان فرم به بازدیدکننده نمایش داده می‌شود."
+        },
+        "evals": {
+            "run": {
+                "back": "بازگشت به ارزیابی‌ها",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "در حال اجرا",
+                "completed": "تکمیل شده",
+                "failed": "ناموفق"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "ویرایش {topic}",
+                "delete_topic_aria": "حذف {topic}"
+            }
+        },
+        "topics_index": {
+            "examples": "مثلاً {titles}",
+            "previous_page": "صفحه قبلی",
+            "next_page": "صفحه بعدی"
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "ایجاد حساب کاربری"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "نمایش یا پنهان کردن دسترسی‌ها"
+            },
+            "rename_team": "تغییر نام تیم",
+            "save_team_name": "ذخیره نام تیم"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "پیام‌های این ماه"
+    },
+    "usage": {
+        "no_limit": "بدون محدودیت"
+    },
+    "nav": {
+        "open_user_menu": "باز کردن منوی کاربر"
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "به Chatvia خوش آمدید",
+            "intro": "بیایید اولین عامل هوش مصنوعی خود را بسازیم. فقط یک دقیقه طول می‌کشد.",
+            "what_title": "عامل چیست؟",
+            "what_body": "عامل یک دستیار هوش مصنوعی است که آن را با محتوای خودتان آموزش می‌دهید. عامل در وب‌سایت، ویجت گفتگو و اپ‌های پیام‌رسان به مشتریان شما پاسخ می‌دهد.",
+            "how_title": "چگونه کار می‌کند؟",
+            "how_body": "ابتدا یک عامل می‌سازید و برای آن نامی انتخاب می‌کنید. سپس آن را با فایل‌ها، وب‌سایت‌ها و متن‌های خود آموزش می‌دهید تا بتواند به سؤالات پاسخ دهد.",
+            "start": "ساخت اولین عامل من",
+            "video_caption": "ببینید چگونه کار می‌کند"
+        }
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "کپی شناسه پرامپت"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "کپی شناسه تابع"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "کپی کلید API"
+            }
+        }
+    },
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "کپی شناسه سرور"
+        },
+        "json_editor": {
+            "aria_label": "ویرایشگر JSON"
+        },
+        "time_ago": {
+            "just_now": "همین الان"
+        },
+        "voice_recorder": {
+            "pause_recording": "توقف موقت ضبط",
+            "resume_recording": "ادامه ضبط",
+            "cancel_recording": "لغو ضبط",
+            "play_recording": "پخش ضبط",
+            "pause_playback": "توقف موقت پخش"
+        }
+    }
+}

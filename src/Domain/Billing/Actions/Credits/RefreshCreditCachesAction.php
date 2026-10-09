@@ -2,11 +2,11 @@
 
 namespace Domain\Billing\Actions\Credits;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Services\UserCreditSystem;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use Support\Enums\User\UserType;
 
 /**
  * Recomputes the cached send flag and sent-messages counter of every workspace

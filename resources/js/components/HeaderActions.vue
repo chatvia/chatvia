@@ -35,13 +35,18 @@
 <script setup lang="ts">
 import FormSuccessMessage from '@/components/FormSuccessMessage.vue';
 import { Button } from '@/components/ui/button';
-import { computed } from 'vue';
+import { computed, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+/*
+ * Page-header action bar for settings forms: secondary buttons, a submit button
+ * bound to a form by id, an "unsaved changes" dot and inline save feedback.
+ */
 
 interface SecondaryAction {
     id: string;
     label: string;
-    icon?: any;
+    icon?: Component;
     onClick: () => void;
     disabled?: boolean;
 }
@@ -51,7 +56,7 @@ interface Props {
     isSubmitting?: boolean;
     hasUnsavedChanges?: boolean;
     saveLabel?: string;
-    saveIcon?: any;
+    saveIcon?: Component;
     formId?: string;
 
     // ChatMessage props

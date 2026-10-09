@@ -97,11 +97,11 @@ export interface User {
     created_at: string;
     updated_at: string;
     is_paid: boolean;
-    // Mirrors Support\Enums\User\UserType. `workspace` = account owner,
+    // Mirrors App\Identity\Workspace\Enums\UserType. `workspace` = account owner,
     // `employee` = invited teammate/collaborator, `chatter` = widget end-user,
     // `admin` = internal Chatvia staff.
     type: 'admin' | 'workspace' | 'employee' | 'chatter';
-    // Preferred date display format key — see Support\Enums\User\DateFormat and
+    // Preferred date display format key — see App\Identity\Workspace\Enums\DateFormat and
     // the useDateFormat composable. Null/undefined falls back to ISO.
     date_format?: string | null;
     // Preferred UI language key (e.g. `en`, `ar`). Null/undefined follows the
@@ -111,7 +111,7 @@ export interface User {
     // not yet onboarded — the dashboard shows the welcome popup. See
     // resources/js/components/onboarding and CompleteOnboardingController.
     onboarded_at?: string | null;
-    capabilities?: App.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
+    capabilities?: Domain.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

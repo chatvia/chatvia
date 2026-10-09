@@ -7,11 +7,11 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Turn\KnowledgeEnricher;
+use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Str;
-use Support\Http\ChunkImageLink;
 
 /**
  * Knowledge is attached to the LLM-facing message as numbered reference

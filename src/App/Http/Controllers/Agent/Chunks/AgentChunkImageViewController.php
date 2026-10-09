@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Agent\Chunks;
 
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Support\Http\ChunkImageLink;
 
 /**
  * Serves an image saved from a document page, by chunk and image position.

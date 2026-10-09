@@ -1,4 +1,9 @@
 <script lang="ts" setup>
+/**
+ * Conversation list of the chat log: online-only toggle, filter and refresh
+ * buttons, removable chips for the active filters, the conversations (channel,
+ * country, topics, age, retention) and paging.
+ */
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -15,10 +20,8 @@ const { hasCapability } = useCapabilityGuard();
 const hasTopicsAccess = computed(() => hasCapability('topics'));
 
 const {
-    agent: _agent,
     conversations,
     currentConversationId,
-    leadConversationIds: _leadConversationIds,
     isLoadingConversations,
     totalConversations,
     currentConversationsPage,
@@ -56,6 +59,8 @@ function toggleOnlineOnly() {
     fetchConversations(1);
 }
 
+const MS_PER_DAY = 86_400_000;
+
 // Relative-time string for the conversation's per-plan retention horizon.
 // Returns null when the date is missing or already past so we can hide the
 // row entirely; the prune command will sweep the row on its next run anyway.
@@ -63,7 +68,7 @@ function formatExpiresIn(iso: string | null | undefined): string | null {
     if (!iso) return null;
     const ms = new Date(iso).getTime() - Date.now();
     if (ms <= 0) return null;
-    const days = Math.ceil(ms / 86_400_000);
+    const days = Math.ceil(ms / MS_PER_DAY);
     if (days <= 1) return t('agents.chatlog.sidebar.expires_today');
     if (days < 30) return t('agents.chatlog.sidebar.expires_in_days', { count: days });
     const months = Math.round(days / 30);
@@ -81,34 +86,25 @@ async function refreshConversations() {
     }
 }
 
-function clearFilter(filter: string) {
-    switch (filter) {
-        case 'topic':
-            selectedTopic.value = 'all';
-            break;
-        case 'sentiment':
-            selectedSentiment.value = 'all';
-            break;
-        case 'tone':
-            selectedTone.value = 'all';
-            break;
-        case 'country':
-            selectedCountry.value = 'all';
-            break;
-        case 'confidence':
-            selectedConfidenceScore.value = 'all';
-            break;
-        case 'feedback':
-            selectedFeedback.value = 'all';
-            break;
-        case 'source':
-            selectedSource.value = 'all';
-            break;
-        case 'dateRange':
-            dateRange.value = undefined;
-            break;
+type FilterChip = 'topic' | 'sentiment' | 'tone' | 'country' | 'confidence' | 'feedback' | 'source' | 'dateRange';
+
+const filterRefs = {
+    topic: selectedTopic,
+    sentiment: selectedSentiment,
+    tone: selectedTone,
+    country: selectedCountry,
+    confidence: selectedConfidenceScore,
+    feedback: selectedFeedback,
+    source: selectedSource,
+} as const;
+
+function clearFilter(filter: FilterChip) {
+    if (filter === 'dateRange') {
+        dateRange.value = undefined;
+    } else {
+        filterRefs[filter].value = 'all';
     }
-    fetchConversations(1);
+    void fetchConversations(1);
 }
 </script>
 
@@ -150,6 +146,7 @@ function clearFilter(filter: string) {
                         size="icon"
                         class="relative h-8 w-8 cursor-pointer"
                         :class="{ 'text-primary': hasActiveFilters }"
+                        :aria-label="t('agents.chatlog.filters.title')"
                         @click="showFiltersDialog = true"
                     >
                         <Filter class="h-4 w-4" />
@@ -162,7 +159,14 @@ function clearFilter(filter: string) {
                     </Button>
 
                     <!-- Refresh Conversations Button -->
-                    <Button variant="ghost" size="icon" class="h-8 w-8" @click="refreshConversations" :disabled="isRefreshingConversations">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        class="h-8 w-8"
+                        @click="refreshConversations"
+                        :disabled="isRefreshingConversations"
+                        :aria-label="t('agents.chatlog.sidebar.refresh_conversations')"
+                    >
                         <RefreshCcw class="h-4 w-4" :class="{ 'animate-spin': isRefreshingConversations }" />
                     </Button>
                 </div>
@@ -173,13 +177,25 @@ function clearFilter(filter: string) {
                 <Badge v-if="dateRange" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     <Calendar class="h-3 w-3" />
                     {{ formatDateRangeDisplay() }}
-                    <button @click="clearFilter('dateRange')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('dateRange')"
+                        class="hover:text-foreground ms-1 cursor-pointer"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge v-if="selectedCountry !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     <Globe class="h-3 w-3" />
                     {{ getCountryName(selectedCountry) }}
-                    <button @click="clearFilter('country')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('country')"
+                        class="hover:text-foreground ms-1 cursor-pointer"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge
@@ -193,7 +209,13 @@ function clearFilter(filter: string) {
                     }"
                 >
                     {{ getConfidenceScoreDisplayName(selectedConfidenceScore) }}
-                    <button @click="clearFilter('confidence')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('confidence')"
+                        class="ms-1 cursor-pointer hover:opacity-70"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge
@@ -208,17 +230,35 @@ function clearFilter(filter: string) {
                     <ThumbsUp v-if="selectedFeedback === 'positive'" class="h-3 w-3" />
                     <ThumbsDown v-else class="h-3 w-3" />
                     {{ getFeedbackDisplayName(selectedFeedback) }}
-                    <button @click="clearFilter('feedback')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('feedback')"
+                        class="ms-1 cursor-pointer hover:opacity-70"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge v-if="selectedSource !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     {{ getSourceDisplayName(selectedSource) }}
-                    <button @click="clearFilter('source')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('source')"
+                        class="hover:text-foreground ms-1 cursor-pointer"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge v-if="selectedTopic !== 'all'" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     {{ getTopicName(Number(selectedTopic)) }}
-                    <button @click="clearFilter('topic')" class="hover:text-foreground ms-1 cursor-pointer"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('topic')"
+                        class="hover:text-foreground ms-1 cursor-pointer"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge
@@ -227,12 +267,24 @@ function clearFilter(filter: string) {
                     class="flex items-center gap-1 px-2 py-1 text-xs"
                 >
                     {{ getSentimentDisplayName(selectedSentiment) }}
-                    <button @click="clearFilter('sentiment')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('sentiment')"
+                        class="ms-1 cursor-pointer hover:opacity-70"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
 
                 <Badge v-if="selectedTone !== 'all'" :class="getToneBadgeColor(selectedTone)" class="flex items-center gap-1 px-2 py-1 text-xs">
                     {{ getToneEmoji(selectedTone) }} {{ getToneDisplayName(selectedTone) }}
-                    <button @click="clearFilter('tone')" class="ms-1 cursor-pointer hover:opacity-70"><X class="h-3 w-3" /></button>
+                    <button
+                        @click="clearFilter('tone')"
+                        class="ms-1 cursor-pointer hover:opacity-70"
+                        :aria-label="t('agents.chatlog.sidebar.remove_filter')"
+                    >
+                        <X class="h-3 w-3" />
+                    </button>
                 </Badge>
             </div>
 

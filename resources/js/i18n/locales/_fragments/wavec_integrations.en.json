@@ -1,0 +1,27 @@
+{
+    "shared": {
+        "connector_sheet": {
+            "copy_server_id": "Copy server ID"
+        },
+        "json_editor": {
+            "aria_label": "JSON editor"
+        }
+    },
+    "workspace": {
+        "functions": {
+            "sheet": {
+                "copy_id": "Copy function ID"
+            }
+        },
+        "prompts": {
+            "sheet": {
+                "copy_id": "Copy prompt ID"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Copy API key"
+            }
+        }
+    }
+}

@@ -2,7 +2,6 @@
 
 namespace Support\Casts;
 
-use Domain\Conversation\Services\Memory\CacheCipher;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
@@ -18,21 +17,23 @@ use Illuminate\Support\Facades\Crypt;
  * This cast catches that and returns the raw value instead, so pre-encryption
  * rows keep reading until they're next written (which encrypts them). New writes
  * are always encrypted, so the data converges to ciphertext over time without a
- * backfill migration. Mirrors the same tolerance in
- * {@see CacheCipher} for the Redis layer.
+ * backfill migration. The chat memory's Redis cipher (CacheCipher) has the
+ * same tolerance.
  *
  * Uses encryptString/decryptString (no serialization) — for string columns,
  * format-compatible with the stock `encrypted` cast.
  *
  * @implements CastsAttributes<string|null, string|null>
  */
-class EncryptedTolerant implements CastsAttributes
+final class EncryptedTolerant implements CastsAttributes
 {
+    #[\Override]
     public function get(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         return self::decrypt($value);
     }
 
+    #[\Override]
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
     {
         return $value === null ? null : Crypt::encryptString((string) $value);

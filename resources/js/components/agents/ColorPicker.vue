@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * The theme-color grid and shade slider of the Branding section. Emits the
+ * picked palette name and shade; the shade snaps to the nearest valid stop.
+ */
 import { Label } from '@/components/ui/label';
 import { nearestShade, SHADES } from '@/lib/colorShades';
 import { computed } from 'vue';

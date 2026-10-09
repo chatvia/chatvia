@@ -1,9 +1,15 @@
 <script setup lang="ts">
+/**
+ * The persona editor of the Setup page: the agent's system instructions,
+ * either written inline (starting from the base preset) or taken read-only
+ * from a saved library prompt. Saves itself via agents.update and emits
+ * `saved` so the page can reload its preview.
+ */
+import { fetchLibraryPrompts, updateAgentInstructions, type LibraryPrompt } from '@/api/agentPersona';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import axios from 'axios';
 import { Loader2, RotateCcw, Save } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -11,14 +17,8 @@ import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
 
-interface SavedPrompt {
-    id: string;
-    name: string;
-    prompt: string;
-}
-
 interface Props {
-    agentId: number | string;
+    agentId: string;
     initialInstructions?: string | null;
     initialPromptId?: string | null;
     locked?: boolean;
@@ -62,7 +62,7 @@ const isLibrary = (option: string): boolean => option.startsWith('prompt:');
 const promptIdOf = (option: string): string | null => (isLibrary(option) ? option.slice('prompt:'.length) : null);
 
 // State
-const savedPrompts = ref<SavedPrompt[]>([]);
+const savedPrompts = ref<LibraryPrompt[]>([]);
 
 const initialOption = props.initialPromptId ? `prompt:${props.initialPromptId}` : 'base';
 
@@ -74,7 +74,7 @@ const isSaving = ref(false);
 
 const usingLibraryPrompt = computed(() => isLibrary(selectedPreset.value));
 
-const findPrompt = (id: string | null): SavedPrompt | null => savedPrompts.value.find((p) => p.id === id) ?? null;
+const findPrompt = (id: string | null): LibraryPrompt | null => savedPrompts.value.find((p) => p.id === id) ?? null;
 
 const selectedPromptName = computed(() => findPrompt(promptIdOf(selectedPreset.value))?.name ?? '');
 
@@ -108,11 +108,10 @@ watch(selectedPreset, (option) => {
 // Initialize
 onMounted(async () => {
     try {
-        const { data } = await axios.get(route('library.prompts.list'));
-        savedPrompts.value = data.data ?? [];
-    } catch (error) {
-        // Non-fatal: the editor still works with the base instructions.
-        console.error('Failed to load saved prompts:', error);
+        savedPrompts.value = await fetchLibraryPrompts();
+    } catch {
+        // Non-fatal (e.g. no access to the prompt library): the editor still
+        // works with the base instructions.
     }
 
     if (isLibrary(selectedPreset.value)) {
@@ -139,16 +138,16 @@ const saveInstructions = async () => {
     isSaving.value = true;
 
     try {
-        const payload = usingLibraryPrompt.value ? { prompt_id: promptIdOf(selectedPreset.value) } : { system_instructions: instructions.value };
-
-        await axios.patch(route('agents.update', { agent: props.agentId }), payload);
+        await updateAgentInstructions(
+            props.agentId,
+            usingLibraryPrompt.value ? { prompt_id: promptIdOf(selectedPreset.value) } : { system_instructions: instructions.value },
+        );
 
         originalPreset.value = selectedPreset.value;
         originalInstructions.value = instructions.value;
         toast.success(t('shared.persona_editor.save_success'));
         emit('saved');
-    } catch (error) {
-        console.error('Failed to save instructions:', error);
+    } catch {
         toast.error(t('shared.persona_editor.save_error'));
     } finally {
         isSaving.value = false;
@@ -187,6 +186,7 @@ const saveInstructions = async () => {
                 @click="resetInstructions"
                 :disabled="!hasChanges || locked"
                 :title="t('shared.persona_editor.reset_title')"
+                :aria-label="t('shared.persona_editor.reset_title')"
             >
                 <RotateCcw class="h-4 w-4" />
             </Button>

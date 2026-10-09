@@ -1,4 +1,7 @@
 <script setup lang="ts">
+// Header call-to-action for the workspace owner: an "Upgrade" link on the free
+// plan, a trophy with a "subscribed" tooltip on a paid plan. Hidden for
+// teammates and on installs without billing.
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useBilling } from '@/composables/useBilling';
 import type { Auth } from '@/types';
@@ -28,7 +31,7 @@ const { billingEnabled } = useBilling();
     </Link>
     <TooltipProvider v-else-if="billingEnabled && auth.user.is_paid && !isEmployee" :delay-duration="0">
         <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger :aria-label="t('app.header.subscribed')">
                 <span class="hidden h-9 w-9 items-center justify-center rounded-md lg:flex">
                     <Trophy class="h-4.5 w-4.5 text-amber-500" />
                 </span>
@@ -39,7 +42,3 @@ const { billingEnabled } = useBilling();
         </Tooltip>
     </TooltipProvider>
 </template>
-
-<style scoped>
-/* no styles */
-</style>

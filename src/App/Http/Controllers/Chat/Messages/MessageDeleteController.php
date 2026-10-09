@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Chat\Messages;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\DeleteMessageRequest;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\DeleteMessagePairAction;
 
 /**
@@ -12,10 +14,14 @@ use Domain\Conversation\Actions\Messages\DeleteMessagePairAction;
  */
 class MessageDeleteController
 {
-    public function __invoke(DeleteMessageRequest $request, DeleteMessagePairAction $deletePair, HostedChatSession $session): void
-    {
+    public function __invoke(
+        DeleteMessageRequest $request,
+        #[HostedChatAgent] Agent $agent,
+        DeleteMessagePairAction $deletePair,
+        HostedChatSession $session,
+    ): void {
         $deletePair->execute(
-            $session->scope(current_agent(), $request->conversationId()),
+            $session->scope($agent, $request->conversationId()),
             $request->messageId(),
         );
     }

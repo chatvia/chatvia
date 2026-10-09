@@ -1,8 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Route;
-use Support\Enums\User\UserType;
 
 /**
  * The marketing routes are registered at boot from

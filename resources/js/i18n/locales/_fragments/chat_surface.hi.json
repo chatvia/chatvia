@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "संदेश भेजें",
+        "stop_streaming": "जनरेट करना रोकें"
+    },
+    "chat": {
+        "scroll_to_bottom": "नीचे स्क्रॉल करें",
+        "copy_code": "कोड क्लिपबोर्ड पर कॉपी करें",
+        "loading_chart": "चार्ट लोड हो रहा है…",
+        "powered_by": "{label} द्वारा संचालित",
+        "stream_errors": {
+            "unreachable": "सर्वर तक नहीं पहुँच सके। कृपया फिर से प्रयास करें।",
+            "http_status": "सर्वर ने स्थिति {status} लौटाई।",
+            "interrupted": "कनेक्शन बाधित हो गया।",
+            "malformed": "सर्वर से अमान्य डेटा मिला।"
+        }
+    },
+    "messages": {
+        "edit_message": "संदेश संपादित करें"
+    },
+    "sources": {
+        "file_with_page": "{file} (पृष्ठ {page})",
+        "fallback_title": "स्रोत {number}",
+        "chunk_label": "खंड {index}"
+    },
+    "sidebar": {
+        "save_title": "शीर्षक सहेजें",
+        "show_password": "पासवर्ड दिखाएँ",
+        "hide_password": "पासवर्ड छिपाएँ",
+        "user_fallback": "उपयोगकर्ता"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "अभी-अभी"
+        },
+        "voice_recorder": {
+            "microphone_denied": "माइक्रोफ़ोन की अनुमति नहीं मिली। रिकॉर्ड करने के लिए कृपया माइक्रोफ़ोन की अनुमति दें।",
+            "microphone_not_found": "कोई माइक्रोफ़ोन नहीं मिला। कृपया माइक्रोफ़ोन जोड़ें और फिर से प्रयास करें।",
+            "microphone_failed": "माइक्रोफ़ोन तक पहुँच नहीं हो सकी",
+            "transcription_failed": "ट्रांसक्रिप्शन विफल रहा"
+        },
+        "file_uploader": {
+            "analyze_failed": "फ़ाइल का विश्लेषण नहीं हो सका",
+            "analyze_timed_out": "विश्लेषण का समय समाप्त हो गया - फ़ाइल बहुत बड़ी हो सकती है"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "संदेश रीफ़्रेश करें",
+            "delete_conversation": "बातचीत हटाएँ",
+            "sidebar": {
+                "refresh_conversations": "बातचीत रीफ़्रेश करें",
+                "remove_filter": "फ़िल्टर हटाएँ"
+            },
+            "handoff": {
+                "send_message": "संदेश भेजें",
+                "errors": {
+                    "connect_failed": "चैट चैनल से कनेक्ट नहीं हो सका",
+                    "takeover_failed": "बातचीत अपने हाथ में नहीं ली जा सकी",
+                    "return_failed": "बातचीत AI को वापस नहीं दी जा सकी",
+                    "send_failed": "संदेश नहीं भेजा जा सका"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "स्थिर"
+            }
+        }
+    }
+}

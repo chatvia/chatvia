@@ -1,4 +1,11 @@
-import axios from 'axios';
+/**
+ * State and handlers behind the knowledge-base file picker (FileUploader.vue):
+ * drag and drop, per-file limits, upload progress and the server's analysis of
+ * each file (pages, length, encryption). Uploads go through `@/api/uploads`.
+ */
+import { errorMessage } from '@/api/http';
+import { analyzeUploadedFile } from '@/api/uploads';
+import { isAxiosError } from 'axios';
 import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -87,7 +94,7 @@ export function useFileUploader(config: FileUploaderConfig) {
     };
 
     const generateFileId = (): string => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        return Date.now().toString(36) + Math.random().toString(36).slice(2);
     };
 
     // Computed properties
@@ -195,6 +202,25 @@ export function useFileUploader(config: FileUploaderConfig) {
         }
     };
 
+    // A timeout, then the server's message, then its first validation error.
+    const describeAnalyzeError = (error: unknown): string => {
+        if (isAxiosError(error) && error.code === 'ECONNABORTED') {
+            return t('shared.file_uploader.analyze_timed_out');
+        }
+
+        const fallback = t('shared.file_uploader.analyze_failed');
+        const message = errorMessage(error, '');
+        if (message) return message;
+
+        if (isAxiosError<{ errors?: Record<string, string[]> }>(error) && error.response?.data?.errors) {
+            const [firstError] = Object.values(error.response.data.errors).flat();
+
+            return firstError ?? fallback;
+        }
+
+        return fallback;
+    };
+
     const analyzeFile = async (file: UploadingFileData) => {
         try {
             file.startTime = Date.now();
@@ -203,34 +229,23 @@ export function useFileUploader(config: FileUploaderConfig) {
             file.uploadSpeed = 0;
             file.phase = 'uploading';
 
-            const formData = new FormData();
-            formData.append('file', file.file);
+            const analyzed = await analyzeUploadedFile<FileAnalyzedData>(config.analyzeEndpoint(file.file), file.file, (progressEvent) => {
+                if (progressEvent.total && file.startTime) {
+                    const uploadPercent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    const bytesLoaded = progressEvent.loaded;
+                    const elapsed = (Date.now() - file.startTime) / 1000;
+                    const uploadSpeed = elapsed > 0 ? progressEvent.loaded / elapsed : 0;
 
-            const endpoint = config.analyzeEndpoint(file.file);
-
-            const response = await axios.post(endpoint, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                timeout: 30000,
-                onUploadProgress: (progressEvent) => {
-                    if (progressEvent.total && file.startTime) {
-                        const uploadPercent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        const bytesLoaded = progressEvent.loaded;
-                        const elapsed = (Date.now() - file.startTime) / 1000;
-                        const uploadSpeed = elapsed > 0 ? progressEvent.loaded / elapsed : 0;
-
-                        const fileIndex = uploadingFiles.value.findIndex((f) => f.id === file.id);
-                        if (fileIndex !== -1) {
-                            uploadingFiles.value[fileIndex] = {
-                                ...uploadingFiles.value[fileIndex],
-                                progress: uploadPercent,
-                                bytesLoaded: bytesLoaded,
-                                uploadSpeed: uploadSpeed,
-                            };
-                        }
+                    const fileIndex = uploadingFiles.value.findIndex((f) => f.id === file.id);
+                    if (fileIndex !== -1) {
+                        uploadingFiles.value[fileIndex] = {
+                            ...uploadingFiles.value[fileIndex],
+                            progress: uploadPercent,
+                            bytesLoaded: bytesLoaded,
+                            uploadSpeed: uploadSpeed,
+                        };
                     }
-                },
+                }
             });
 
             // Update file with analysis results
@@ -242,33 +257,21 @@ export function useFileUploader(config: FileUploaderConfig) {
                     progress: 100,
                     phase: 'complete',
                     isAnalyzed: true,
-                    analyzedData: response.data,
+                    analyzedData: analyzed,
+                    // The analysis reports no page count or encryption flag, so those keep their defaults.
                     stats: {
-                        pages: response.data.pages || 0,
-                        length: response.data.length || 0,
-                        is_audio_file: response.data.is_audio_file || false,
-                        mime_type: response.data.mime_type || file.file.type,
-                        encrypted: response.data.encrypted || false,
+                        pages: 0,
+                        length: analyzed.length || 0,
+                        is_audio_file: analyzed.is_audio_file || false,
+                        mime_type: analyzed.mime_type || file.file.type,
+                        encrypted: false,
                     },
                 };
 
-                config.onFileAnalyzed?.(uploadingFiles.value[fileIndex], response.data);
+                config.onFileAnalyzed?.(uploadingFiles.value[fileIndex], analyzed);
             }
-        } catch (error: any) {
-            console.error(`Failed to analyze file: ${file.file.name}`, error);
-
-            let errorMessage = 'Failed to analyze file';
-
-            if (error.code === 'ECONNABORTED') {
-                errorMessage = 'Analysis timed out - file may be too large';
-            } else if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
-            } else if (error.response?.data?.errors) {
-                const errors = Object.values(error.response.data.errors).flat();
-                if (errors.length > 0) {
-                    errorMessage = errors[0] as string;
-                }
-            }
+        } catch (error) {
+            const message = describeAnalyzeError(error);
 
             const fileIndex = uploadingFiles.value.findIndex((f) => f.id === file.id);
             if (fileIndex !== -1) {
@@ -277,10 +280,10 @@ export function useFileUploader(config: FileUploaderConfig) {
                     uploading: false,
                     progress: 0,
                     phase: undefined,
-                    error: errorMessage,
+                    error: message,
                 };
 
-                config.onFileError?.(uploadingFiles.value[fileIndex], errorMessage);
+                config.onFileError?.(uploadingFiles.value[fileIndex], message);
             }
         }
     };

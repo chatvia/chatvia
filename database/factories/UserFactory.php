@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Identity\Workspace\Enums\UserSource;
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserSource;
-use Support\Enums\User\UserType;
 
 /**
  * @extends Factory<User>

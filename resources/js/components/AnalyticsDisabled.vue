@@ -1,4 +1,9 @@
 <script setup lang="ts">
+/**
+ * The "turned off" screen of an analytics page (sentiment, tone, topics): a
+ * big switch and an enable button that emit `enable`, or — when the chat log
+ * is off and nothing could be analysed — the reason it can't be enabled.
+ */
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Zap } from 'lucide-vue-next';

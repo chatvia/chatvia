@@ -2,13 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\SetSecurityFeatureOverrideAction;
 use Domain\Security\Data\SecurityActorData;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
-use Support\Enums\User\UserType;
 
 /**
  * Lets an operator switch the Enterprise Security suite on or off for one

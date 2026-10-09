@@ -2,12 +2,12 @@
 
 namespace Domain\Membership\Team\Actions\Invitations;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Data\AcceptInvitationData;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Support\Enums\User\UserType;
 use Support\Exceptions\DomainValidationException;
 
 /**

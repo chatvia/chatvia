@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Activity;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
@@ -17,8 +19,11 @@ readonly class HeartbeatController
 {
     use InteractsWithWidgetRequest;
 
-    public function __invoke(Request $request, FindWidgetConversationAction $findConversation): JsonResponse|WidgetAckData
-    {
+    public function __invoke(
+        Request $request,
+        #[WidgetAgent] Agent $agent,
+        FindWidgetConversationAction $findConversation,
+    ): JsonResponse|WidgetAckData {
         $sessionId = $this->widgetSessionId($request);
         $conversationId = $request->input('conversation_id') ?? $this->widgetConversationId($request);
 
@@ -32,7 +37,7 @@ readonly class HeartbeatController
 
         // The conversation must belong to this session and agent, or anyone
         // with a guessed id could move another visitor's activity time.
-        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $this->widgetAgent());
+        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $agent);
 
         if (! $conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);

@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Wyślij wiadomość",
+        "stop_streaming": "Zatrzymaj generowanie"
+    },
+    "chat": {
+        "scroll_to_bottom": "Przewiń na dół",
+        "copy_code": "Skopiuj kod do schowka",
+        "loading_chart": "Ładowanie wykresu…",
+        "powered_by": "Obsługiwane przez {label}",
+        "stream_errors": {
+            "unreachable": "Nie można połączyć się z serwerem. Spróbuj ponownie.",
+            "http_status": "Serwer zwrócił status {status}.",
+            "interrupted": "Połączenie zostało przerwane.",
+            "malformed": "Otrzymano nieprawidłowe dane z serwera."
+        }
+    },
+    "messages": {
+        "edit_message": "Edytuj wiadomość"
+    },
+    "sources": {
+        "file_with_page": "{file} (Strona {page})",
+        "fallback_title": "Źródło {number}",
+        "chunk_label": "Fragment {index}"
+    },
+    "sidebar": {
+        "save_title": "Zapisz tytuł",
+        "show_password": "Pokaż hasło",
+        "hide_password": "Ukryj hasło",
+        "user_fallback": "Użytkownik"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Przed chwilą"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Odmówiono dostępu do mikrofonu. Zezwól na dostęp do mikrofonu, aby nagrywać.",
+            "microphone_not_found": "Nie znaleziono mikrofonu. Podłącz mikrofon i spróbuj ponownie.",
+            "microphone_failed": "Nie udało się uzyskać dostępu do mikrofonu",
+            "transcription_failed": "Transkrypcja nie powiodła się"
+        },
+        "file_uploader": {
+            "analyze_failed": "Nie udało się przeanalizować pliku",
+            "analyze_timed_out": "Przekroczono czas analizy – plik może być za duży"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Odśwież wiadomości",
+            "delete_conversation": "Usuń rozmowę",
+            "sidebar": {
+                "refresh_conversations": "Odśwież rozmowy",
+                "remove_filter": "Usuń filtr"
+            },
+            "handoff": {
+                "send_message": "Wyślij wiadomość",
+                "errors": {
+                    "connect_failed": "Nie udało się połączyć z kanałem czatu",
+                    "takeover_failed": "Nie udało się przejąć rozmowy",
+                    "return_failed": "Nie udało się przekazać rozmowy z powrotem do AI",
+                    "send_failed": "Nie udało się wysłać wiadomości"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Stabilny"
+            }
+        }
+    }
+}

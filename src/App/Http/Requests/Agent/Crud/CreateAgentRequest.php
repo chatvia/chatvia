@@ -10,6 +10,10 @@ use Illuminate\Auth\Access\Response;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * Validates a new agent's name and builds {@see CreateAgentData} for the team
+ * the signed-in user is working in.
+ */
 class CreateAgentRequest extends FormRequest
 {
     /**
@@ -18,7 +22,7 @@ class CreateAgentRequest extends FormRequest
      */
     public function authorize(): Response
     {
-        return Gate::inspect('create', [Agent::class, current_team()]);
+        return Gate::inspect('create', [Agent::class, $this->selectedTeam()]);
     }
 
     public function rules(): array
@@ -33,12 +37,18 @@ class CreateAgentRequest extends FormRequest
         /** @var User $user */
         $user = $this->user();
         /** @var Team $team */
-        $team = current_team();
+        $team = $this->selectedTeam();
 
         return new CreateAgentData(
             user: $user,
             team: $team,
             name: $this->string('name')->toString(),
         );
+    }
+
+    /** The team the user is working in, which the new agent joins. */
+    private function selectedTeam(): ?Team
+    {
+        return $this->user()?->currentOrPrimaryTeam();
     }
 }

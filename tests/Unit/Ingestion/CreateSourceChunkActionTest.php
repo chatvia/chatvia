@@ -21,10 +21,9 @@ use Illuminate\Support\Facades\DB;
  * expression is computed locally by the action.
  */
 beforeEach(function (): void {
-    // embed() resolves EmbeddingsProviderInterface from the container, so a
-    // single container binding covers both the action's injected dependency and
-    // the embed() helper it calls. Return a 1024-dim zero vector to match the
-    // chunks.embedding column dimension.
+    // The action receives EmbeddingsProviderInterface from the container, so
+    // this binding replaces the real provider. Return a 1024-dim zero vector to
+    // match the chunks.embedding column dimension.
     $this->app->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
     {
         public function embed(string $text, bool $returnAsText = false): string|array

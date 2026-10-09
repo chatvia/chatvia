@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Auth;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\Enums\BroadcastDenialReason;
 use Domain\Widget\Services\BroadcastAuthorizer;
 use Illuminate\Http\JsonResponse;
@@ -21,7 +23,7 @@ readonly class BroadcastAuthController
         private BroadcastAuthorizer $authorizer,
     ) {}
 
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request, #[WidgetAgent] ?Agent $agent): JsonResponse
     {
         $sessionId = $this->widgetSessionId($request);
         $channelName = $request->input('channel_name');
@@ -31,7 +33,7 @@ readonly class BroadcastAuthController
             return response()->json(['error' => 'Missing required parameters'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $result = $this->authorizer->authorize($channelName, $sessionId, $socketId, current_agent_from_widget());
+        $result = $this->authorizer->authorize($channelName, $sessionId, $socketId, $agent);
 
         if ($result instanceof BroadcastDenialReason) {
             return response()->json(['error' => $result->value], JsonResponse::HTTP_FORBIDDEN);

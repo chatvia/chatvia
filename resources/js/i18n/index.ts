@@ -115,7 +115,9 @@ export function resolveLocale(preference?: string | null): SupportedLocale {
     const stored = getStoredLocale();
     if (stored) return stored;
     if (typeof navigator !== 'undefined') {
-        return normalizeLocale(navigator.language || (navigator as any).userLanguage);
+        // `userLanguage` is the legacy IE/old-Edge name for `language`.
+        const legacy = (navigator as Navigator & { userLanguage?: string }).userLanguage;
+        return normalizeLocale(navigator.language || legacy);
     }
     return 'en';
 }

@@ -1,3 +1,9 @@
+/**
+ * Permission checks for the signed-in user in the current team, read from the
+ * shared Inertia props. The team owner (or a user with no current team, i.e.
+ * a standalone workspace) passes every check; everyone else needs the code in
+ * their team's permission list.
+ */
 import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';

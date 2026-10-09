@@ -1,0 +1,15 @@
+{
+    "agents": {
+        "evals": {
+            "statuses": {
+                "running": "Running",
+                "completed": "Completed",
+                "failed": "Failed"
+            },
+            "run": {
+                "back": "Back to evals",
+                "latency_value": "{ms} ms"
+            }
+        }
+    }
+}

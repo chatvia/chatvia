@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Agent\Invitations;
 
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
+use App\Identity\Workspace\Enums\SocialProvider;
 use Domain\Membership\Agent\Actions\AcceptAgentInvitationAction;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
@@ -12,7 +13,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
-use Support\Enums\User\SocialProvider;
 use Throwable;
 
 /**

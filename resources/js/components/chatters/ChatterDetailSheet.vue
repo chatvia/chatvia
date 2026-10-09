@@ -1,15 +1,20 @@
-<script lang="ts" setup>
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+<script setup lang="ts">
+// Detail sheet for one chatter on the workspace People page, in four tabs:
+// monthly message limit, which agents they can use, deactivation, and account
+// actions (password reset, delete). Saves go straight to the server; the parent
+// merges the returned row so the table stays in sync.
+import { updateChatterAccess, type WorkspaceChatterRow } from '@/api/chatters';
+import ChatterSheetHeader from '@/components/chatters/ChatterSheetHeader.vue';
+import type { ChatterSheetHeaderLabels } from '@/components/chatters/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
 import { useDateFormat } from '@/composables/useDateFormat';
-import axios from 'axios';
-import { Bot, Check, Copy, Gauge, KeyRound, LoaderCircle, Power, Trash2, Users, Wrench, X } from 'lucide-vue-next';
+import { Bot, Check, Gauge, KeyRound, LoaderCircle, Power, Trash2, Users, Wrench, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -17,24 +22,21 @@ import { toast } from 'vue-sonner';
 const { t } = useI18n();
 const { formatDate } = useDateFormat();
 
-type ChatterRow = App.Identity.Chatter.Data.WorkspaceChatterRowData;
-
 interface Props {
     open: boolean;
-    member: ChatterRow | null;
+    member: WorkspaceChatterRow | null;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
     'update:open': [value: boolean];
-    reset: [member: ChatterRow];
-    delete: [member: ChatterRow];
-    'access-changed': [member: ChatterRow, attachedCount: number];
-    updated: [member: ChatterRow];
+    reset: [member: WorkspaceChatterRow];
+    delete: [member: WorkspaceChatterRow];
+    'access-changed': [member: WorkspaceChatterRow, attachedCount: number];
+    updated: [member: WorkspaceChatterRow];
 }>();
 
 const agents = useAgentAttachments('chatter');
-const idCopied = ref(false);
 
 // Access controls (monthly message limit + deactivation). Edited locally and
 // persisted on "Save changes"; the server returns the refreshed row to merge.
@@ -59,13 +61,12 @@ const save = async () => {
     try {
         const raw = messagesLimit.value;
         const limit = raw === null || raw === '' ? null : Number(raw);
-        const { data } = await axios.patch(route('people.chatters.update', { chatter: props.member.external_id }), {
+        const updated = await updateChatterAccess(props.member.external_id, {
             messages_limit: limit,
             deactivated: deactivated.value,
             deactivation_reason: deactivationReason.value || null,
         });
-        // Tolerate either a bare row or a { data: row } envelope.
-        emit('updated', (data?.data ?? data) as ChatterRow);
+        emit('updated', updated);
         toast.success(t('shared.member_sheet.toast_updated', { name: props.member.name }));
     } catch {
         toast.error(t('shared.member_sheet.toast_update_failed'));
@@ -80,13 +81,13 @@ const removeLimit = async () => {
     if (!props.member) return;
     isSaving.value = true;
     try {
-        const { data } = await axios.patch(route('people.chatters.update', { chatter: props.member.external_id }), {
+        const updated = await updateChatterAccess(props.member.external_id, {
             messages_limit: null,
             deactivated: props.member.is_deactivated,
             deactivation_reason: props.member.deactivation_reason,
         });
         messagesLimit.value = null;
-        emit('updated', (data?.data ?? data) as ChatterRow);
+        emit('updated', updated);
         toast.success(t('shared.member_sheet.toast_limit_removed', { name: props.member.name }));
     } catch {
         toast.error(t('shared.member_sheet.toast_limit_remove_failed'));
@@ -95,15 +96,15 @@ const removeLimit = async () => {
     }
 };
 
-const initials = computed(() => {
-    if (!props.member?.name) return '?';
-    return props.member.name
-        .trim()
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((p) => p[0]?.toUpperCase() ?? '')
-        .join('');
-});
+const headerLabels = computed<ChatterSheetHeaderLabels>(() => ({
+    pending: t('shared.member_sheet.status_pending'),
+    active: t('shared.member_sheet.status_active'),
+    noEmail: t('shared.member_sheet.no_email'),
+    description: t('shared.member_sheet.sr_description'),
+    id: t('shared.member_sheet.id_label'),
+    copyId: t('shared.member_sheet.copy_id_title'),
+    joined: t('shared.member_sheet.joined', { date: formatDate(props.member?.created_at) }),
+}));
 
 // (Re)load the toggle list when the sheet opens or the focused member
 // changes. Closing the sheet doesn't reset — keeping the cache means
@@ -123,56 +124,12 @@ const onToggle = async (agentId: string) => {
     await agents.toggleAttachment(props.member.external_id, agentId);
     emit('access-changed', props.member, agents.attached.value.length);
 };
-
-const copyId = async () => {
-    if (!props.member) return;
-    await navigator.clipboard.writeText(props.member.external_id);
-    idCopied.value = true;
-    setTimeout(() => (idCopied.value = false), 2000);
-};
 </script>
 
 <template>
     <Sheet :open="open" @update:open="(v) => emit('update:open', v)">
         <SheetContent v-if="member" class="w-full overflow-y-auto p-0 sm:max-w-md">
-            <SheetHeader class="space-y-4 border-b px-6 pt-7 pb-6">
-                <div class="flex items-start gap-4">
-                    <Avatar class="size-14 shrink-0">
-                        <AvatarImage v-if="member.avatar" :src="member.avatar" :alt="member.name" />
-                        <AvatarFallback class="text-base font-semibold">{{ initials }}</AvatarFallback>
-                    </Avatar>
-                    <div class="min-w-0 flex-1 pt-1">
-                        <SheetTitle class="truncate text-lg">{{ member.name }}</SheetTitle>
-                        <div class="mt-1.5 flex items-center gap-2 text-sm">
-                            <span
-                                v-if="member.status === 'pending'"
-                                class="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
-                            >
-                                {{ t('shared.member_sheet.status_pending') }}
-                            </span>
-                            <span
-                                v-else
-                                class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-900 dark:border-green-900/50 dark:bg-green-950/30 dark:text-green-100"
-                            >
-                                {{ t('shared.member_sheet.status_active') }}
-                            </span>
-                            <span class="text-muted-foreground truncate">{{ member.email || t('shared.member_sheet.no_email') }}</span>
-                        </div>
-                    </div>
-                </div>
-                <SheetDescription class="sr-only">{{ t('shared.member_sheet.sr_description') }}</SheetDescription>
-                <div class="space-y-1.5">
-                    <div class="flex items-center gap-1.5 text-xs">
-                        <span class="text-muted-foreground">{{ t('shared.member_sheet.id_label') }}</span>
-                        <code class="min-w-0 flex-1 truncate font-mono" :title="member.external_id">{{ member.external_id }}</code>
-                        <Button variant="ghost" size="sm" class="h-6 shrink-0 px-1.5" :title="t('shared.member_sheet.copy_id_title')" @click="copyId">
-                            <Check v-if="idCopied" class="size-3.5 text-green-600" />
-                            <Copy v-else class="size-3.5" />
-                        </Button>
-                    </div>
-                    <p class="text-muted-foreground text-xs">{{ t('shared.member_sheet.joined', { date: formatDate(member.created_at) }) }}</p>
-                </div>
-            </SheetHeader>
+            <ChatterSheetHeader :chatter="member" :labels="headerLabels" />
 
             <Tabs default-value="limits" class="px-6 py-6">
                 <TabsList class="grid w-full grid-cols-4">

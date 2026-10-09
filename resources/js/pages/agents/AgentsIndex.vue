@@ -1,22 +1,24 @@
 <script setup lang="ts">
+import { fetchAgents, type AgentListItem } from '@/api/agents';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
-import axios from 'axios';
 import { Bot, Loader2, Plus, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatDate } = useDateFormat();
 
 const page = usePage<SharedData>();
 
-type Agent = Domain.Agent.Data.Resources.Account.AgentResourceData;
+type Agent = AgentListItem;
 
 const agents = ref<Agent[]>([]);
 const isLoading = ref(true);
@@ -33,8 +35,7 @@ const canCreateAgent = computed(() => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get(route('agents.index'));
-        agents.value = response.data;
+        agents.value = await fetchAgents();
     } catch (error) {
         console.error('Failed to fetch agents:', error);
     } finally {
@@ -44,8 +45,7 @@ onMounted(async () => {
 
 const refreshAgents = async () => {
     try {
-        const response = await axios.get(route('agents.index'));
-        agents.value = response.data;
+        agents.value = await fetchAgents();
     } catch (error) {
         console.error('Failed to fetch agents:', error);
     }
@@ -59,14 +59,6 @@ const filteredAgents = computed(() => {
         (agent) => agent.name.toLowerCase().includes(query) || (agent.sub_domain && agent.sub_domain.toLowerCase().includes(query)),
     );
 });
-
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
-};
 
 const openAgent = (agent: Agent) => {
     router.visit(route('agents.manager', { agent: agent.external_id }));

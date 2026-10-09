@@ -4,6 +4,7 @@ namespace Domain\Knowledge\Source\Web\Models;
 
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
+use Domain\Knowledge\Document\Concerns\HasStorageFile;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Concerns\Chunkable;
@@ -15,7 +16,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
-use Support\Traits\HasStorageFile;
 
 /**
  * A website added as knowledge. Discovery (FireCrawl `/map`) stores one

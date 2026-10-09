@@ -1,13 +1,19 @@
 <script setup lang="ts">
+/**
+ * Create / edit sheet for a reusable library prompt that agents can pick up.
+ * Editing shows the prompt's id (for the public API) and a Delete action
+ * behind a confirmation.
+ */
+import CopyIdField from '@/components/common/CopyIdField.vue';
+import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
 import { router, useForm } from '@inertiajs/vue3';
-import { Check, Copy, Hash, LoaderCircle, Save, Trash2 } from 'lucide-vue-next';
+import { Hash, LoaderCircle, Save, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -86,15 +92,6 @@ function confirmDelete(): void {
     });
     deleteOpen.value = false;
 }
-
-const idCopied = ref(false);
-
-async function copyId(): Promise<void> {
-    if (!props.prompt) return;
-    await navigator.clipboard.writeText(props.prompt.id);
-    idCopied.value = true;
-    setTimeout(() => (idCopied.value = false), 2000);
-}
 </script>
 
 <template>
@@ -108,21 +105,13 @@ async function copyId(): Promise<void> {
             </SheetHeader>
 
             <form @submit.prevent="submit" class="space-y-5 px-6 pt-6">
-                <div v-if="isEdit" class="bg-muted/40 flex items-center gap-2 rounded-md border px-3 py-2">
-                    <span class="text-muted-foreground text-xs">{{ t('workspace.prompts.sheet.id_label') }}</span>
-                    <code class="min-w-0 flex-1 truncate font-mono text-xs" :title="prompt?.id">{{ prompt?.id }}</code>
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        class="h-6 shrink-0 px-1.5"
-                        :title="t('workspace.prompts.sheet.copy_id_title')"
-                        @click="copyId"
-                    >
-                        <Check v-if="idCopied" class="size-3.5 text-green-600" />
-                        <Copy v-else class="size-3.5" />
-                    </Button>
-                </div>
+                <CopyIdField
+                    v-if="isEdit && prompt"
+                    :label="t('workspace.prompts.sheet.id_label')"
+                    :value="prompt.id"
+                    :copy-title="t('workspace.prompts.sheet.copy_id_title')"
+                    :copy-label="t('workspace.prompts.sheet.copy_id')"
+                />
 
                 <div class="grid gap-2">
                     <Label for="name">{{ t('workspace.prompts.form.name') }}</Label>

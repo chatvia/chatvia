@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Chat\Conversations;
 
+use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Widget\Services\WidgetVerification;
@@ -27,14 +29,16 @@ class ConversationSearchController
     /**
      * @return array<int, array{id: string, title: string, timestamp: int}>
      */
-    public function __invoke(Request $request, HostedChatSession $chatSession, WidgetVerification $verification): array
-    {
+    public function __invoke(
+        Request $request,
+        #[HostedChatAgent] ?Agent $agent,
+        HostedChatSession $chatSession,
+        WidgetVerification $verification,
+    ): array {
         $term = trim((string) $request->query('q', ''));
         if ($term === '') {
             return [];
         }
-
-        $agent = current_agent();
 
         // A search is a read: look up the visitor's session, never create one.
         $sessionId = $agent !== null ? $chatSession->find($agent) : null;

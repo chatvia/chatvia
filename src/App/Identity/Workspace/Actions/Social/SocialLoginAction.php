@@ -2,9 +2,9 @@
 
 namespace App\Identity\Workspace\Actions\Social;
 
+use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
-use Support\Enums\User\SocialProvider;
 
 /**
  * Sign-in via an external OAuth identity. First tries an exact (provider,

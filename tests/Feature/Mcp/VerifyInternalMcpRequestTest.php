@@ -1,9 +1,9 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
-use Support\Enums\User\UserType;
 
 /**
  * The internal /mcp/* routes trust the X-Chatvia-* identity headers, so the

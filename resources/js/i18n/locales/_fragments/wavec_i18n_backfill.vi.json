@@ -1,0 +1,159 @@
+{
+    "approval": {
+        "details": "Chi tiết",
+        "arguments": "Đối số"
+    },
+    "messages": {
+        "responding": "Trợ lý đang phản hồi…",
+        "response_complete": "Đã phản hồi xong",
+        "copy_message": "Sao chép tin nhắn",
+        "feedback_helpful": "Phản hồi tốt",
+        "feedback_not_helpful": "Phản hồi chưa tốt"
+    },
+    "agents": {
+        "evals": {
+            "run": {
+                "back": "Quay lại đánh giá",
+                "latency_value": "{ms} ms"
+            },
+            "statuses": {
+                "running": "Đang chạy",
+                "completed": "Hoàn tất",
+                "failed": "Thất bại"
+            }
+        },
+        "topics": {
+            "manage": {
+                "edit_topic_aria": "Chỉnh sửa {topic}",
+                "delete_topic_aria": "Xóa {topic}"
+            }
+        },
+        "sources": {
+            "connectors": {
+                "column_always": "Luôn bật",
+                "always_hint": "Cung cấp các công cụ của trình kết nối này ở mọi lượt, kể cả khi tin nhắn không rõ ràng cần đến chúng. Mỗi trợ lý AI có tối đa 10 công cụ luôn bật.",
+                "always_failed": "Không cập nhật được cài đặt luôn bật"
+            }
+        },
+        "setup": {
+            "menu": {
+                "languages": "Ngôn ngữ",
+                "bubbles": "Bong bóng chat"
+            },
+            "toasts": {
+                "languages_saved": "Đã lưu ngôn ngữ",
+                "languages_error": "Không thể lưu ngôn ngữ"
+            },
+            "behavior": {
+                "language_switcher": "Trình chuyển ngôn ngữ"
+            },
+            "sections": {
+                "appearance_translations_default": "Mặc định",
+                "appearance_translations_default_tip": "Văn bản bạn viết — được tự động dịch sang mọi ngôn ngữ.",
+                "appearance_translations_default_hint": "Đây là văn bản bạn viết. Khi bạn lưu, văn bản sẽ được tự động dịch sang mọi ngôn ngữ và được hiển thị khi ngôn ngữ của khách truy cập không có trong danh sách.",
+                "appearance_translations_lang_hint": "Chỉnh sửa ngôn ngữ này tại đây. Để trống một trường để dùng bản dịch tự động — các chỉnh sửa của bạn luôn được giữ lại.",
+                "starters_generate": "Tạo bằng AI",
+                "starters_generate_title": "Tạo câu mở đầu bằng AI",
+                "starters_generate_description": "Chọn số lượng cần tạo từ cơ sở kiến thức của bạn, sau đó chọn những câu muốn thêm.",
+                "starters_generate_count": "Bao nhiêu?",
+                "starters_generate_button": "Tạo",
+                "starters_generating": "Đang tạo…",
+                "starters_generate_hint": "Chọn số lượng và tạo gợi ý từ cơ sở kiến thức của bạn.",
+                "starters_translate_empty": "Hãy thêm câu mở đầu ở tab Mặc định trước, sau đó dịch chúng tại đây."
+            },
+            "languages": {
+                "title": "Ngôn ngữ giao diện",
+                "description": "Chọn những ngôn ngữ mà trợ lý AI này hỗ trợ. Các ngôn ngữ được bật sẽ xuất hiện trong trình chuyển ngôn ngữ của trò chuyện được lưu trữ và có các trường riêng cho từng ngôn ngữ trong Thông tin và Câu mở đầu.",
+                "select_all": "Chọn tất cả",
+                "clear_all": "Xóa tất cả",
+                "count": "Đã chọn {count} trên {total}",
+                "hint": "Để ẩn hoàn toàn trình chuyển ngôn ngữ dành cho khách truy cập, hãy tắt nó trong Hành vi.",
+                "min_required": "Cần có ít nhất một ngôn ngữ."
+            },
+            "bubbles_add": "Thêm bong bóng",
+            "bubbles_remove": "Xóa bong bóng",
+            "bubbles_empty": "Chưa có bong bóng chat nào.",
+            "bubbles_translate_empty": "Hãy thêm một bong bóng trước để dịch."
+        },
+        "topics_index": {
+            "examples": "ví dụ: {titles}",
+            "previous_page": "Trang trước",
+            "next_page": "Trang sau"
+        },
+        "forms": {
+            "subtitle": "Mô tả",
+            "subtitle_placeholder": "ví dụ: Hãy cho chúng tôi biết về công ty của bạn, chúng tôi sẽ liên hệ lại.",
+            "subtitle_hint": "Hiển thị cho khách truy cập bên dưới tiêu đề biểu mẫu."
+        }
+    },
+    "auth": {
+        "login": {
+            "create_account": "Tạo tài khoản"
+        }
+    },
+    "teams": {
+        "show": {
+            "roles": {
+                "toggle_permissions": "Hiện hoặc ẩn quyền"
+            },
+            "rename_team": "Đổi tên nhóm",
+            "save_team_name": "Lưu tên nhóm"
+        }
+    },
+    "dashboard": {
+        "messages_this_month": "Tin nhắn trong tháng này"
+    },
+    "usage": {
+        "no_limit": "Không giới hạn"
+    },
+    "workspace": {
+        "prompts": {
+            "sheet": {
+                "copy_id": "Sao chép ID câu lệnh"
+            }
+        },
+        "functions": {
+            "sheet": {
+                "copy_id": "Sao chép ID hàm"
+            }
+        },
+        "api_keys": {
+            "reveal_dialog": {
+                "copy": "Sao chép khóa API"
+            }
+        }
+    },
+    "nav": {
+        "open_user_menu": "Mở menu người dùng"
+    },
+    "shared": {
+        "voice_recorder": {
+            "pause_recording": "Tạm dừng ghi âm",
+            "resume_recording": "Tiếp tục ghi âm",
+            "cancel_recording": "Hủy ghi âm",
+            "play_recording": "Phát bản ghi",
+            "pause_playback": "Tạm dừng phát"
+        },
+        "connector_sheet": {
+            "copy_server_id": "Sao chép ID máy chủ"
+        },
+        "json_editor": {
+            "aria_label": "Trình soạn thảo JSON"
+        },
+        "time_ago": {
+            "just_now": "Vừa xong"
+        }
+    },
+    "onboarding": {
+        "welcome": {
+            "title": "Chào mừng bạn đến với Chatvia",
+            "intro": "Hãy tạo trợ lý AI đầu tiên của bạn. Chỉ mất một phút.",
+            "what_title": "Trợ lý AI là gì?",
+            "what_body": "Trợ lý AI là trợ lý mà bạn huấn luyện bằng chính nội dung của mình. Trợ lý trả lời khách hàng của bạn trên trang web, tiện ích trò chuyện và các ứng dụng nhắn tin.",
+            "how_title": "Hoạt động như thế nào?",
+            "how_body": "Trước tiên, bạn tạo một trợ lý AI và đặt tên cho nó. Sau đó, bạn huấn luyện nó bằng tệp, trang web và văn bản của mình để nó có thể trả lời câu hỏi.",
+            "start": "Tạo trợ lý AI đầu tiên",
+            "video_caption": "Xem cách hoạt động"
+        }
+    }
+}

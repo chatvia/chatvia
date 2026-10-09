@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Widget;
 
+use App\Http\Widget\WidgetAgent;
 use Closure;
 use Domain\Widget\Services\WidgetVerification;
 use Domain\Widget\WidgetHeaders;
@@ -25,7 +26,7 @@ class VerifyWidgetOrigin
 
     public function handle(Request $request, Closure $next): Response
     {
-        $agent = current_agent_from_widget();
+        $agent = WidgetAgent::from($request);
 
         if ($agent === null || ! $this->verification->isRequestFromAllowedSite($agent, $request)) {
             return response()->json(['error' => 'Domain not allowed'], Response::HTTP_FORBIDDEN);

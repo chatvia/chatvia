@@ -3,9 +3,9 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Actions\UpdateTopicAction;
+use Domain\Conversation\Topic\Exceptions\SystemTopicProtectedException;
 use Domain\Conversation\Topic\Models\Topic;
 use Support\Exceptions\DomainValidationException;
-use Support\Exceptions\SystemTopicProtectedException;
 
 /**
  * Topics are a workspace resource: they are created under the workspace owner

@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
@@ -36,7 +37,6 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Mcp\Server\Testing\TestResponse;
-use Support\Enums\User\UserType;
 
 /**
  * Every Account-Analytics tool answers from SQL over the analytics rollups and

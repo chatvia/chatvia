@@ -16,7 +16,7 @@ const { t } = useI18n();
 
         <div class="mx-auto w-full max-w-lg space-y-8">
             <div class="rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/50">
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center gap-4">
                     <div class="shrink-0">
                         <Search class="h-8 w-8 text-blue-600 dark:text-blue-400" />
                     </div>

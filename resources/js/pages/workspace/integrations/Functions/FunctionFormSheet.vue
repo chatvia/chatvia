@@ -1,18 +1,29 @@
 <script setup lang="ts">
+/**
+ * Create / edit sheet for a workspace function (a webhook the agents can call
+ * as a tool). Editing adds an Agents tab to choose which agents may use it,
+ * and a Delete action behind a confirmation.
+ */
+import AgentAttachmentList from '@/components/common/AgentAttachmentList.vue';
+import CopyIdField from '@/components/common/CopyIdField.vue';
+import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDialog.vue';
+import JsonCodeEditor from '@/components/common/JsonCodeEditor.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
-import DeleteConfirmationDialog from '@/components/ui/DeleteConfirmationDialog.vue';
 import { Input } from '@/components/ui/input';
-import JsonCodeEditor from '@/components/ui/JsonCodeEditor.vue';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
 import { router, useForm } from '@inertiajs/vue3';
-import { AlignLeft, Check, Copy, ExternalLink, Hash, Key, KeyRound, LoaderCircle, Lock, Save, Send, Shield, Trash2, Webhook } from 'lucide-vue-next';
+import { AlignLeft, ExternalLink, Hash, LoaderCircle, Save, Send, Trash2, Webhook } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import FunctionAuthFields from './FunctionAuthFields.vue';
+
+export type FunctionWebhookMethod = 'POST' | 'GET' | 'PATCH' | 'DELETE';
+export type FunctionAuthType = 'none' | 'bearer' | 'header' | 'hmac';
 
 export interface FunctionRow {
     id: string;
@@ -21,8 +32,8 @@ export interface FunctionRow {
     description: string;
     parameters_schema: string;
     webhook_url: string;
-    webhook_method: 'POST' | 'GET' | 'PATCH' | 'DELETE';
-    auth_type: 'none' | 'bearer' | 'header' | 'hmac';
+    webhook_method: FunctionWebhookMethod;
+    auth_type: FunctionAuthType;
     auth_header_name: string;
     has_auth_value: boolean;
     is_enabled: boolean;
@@ -61,8 +72,8 @@ const form = useForm({
     description: '',
     parameters_schema: exampleSchema,
     webhook_url: '',
-    webhook_method: 'POST' as 'POST' | 'GET' | 'PATCH' | 'DELETE',
-    auth_type: 'none' as 'none' | 'bearer' | 'header' | 'hmac',
+    webhook_method: 'POST' as FunctionWebhookMethod,
+    auth_type: 'none' as FunctionAuthType,
     auth_header_name: '',
     auth_value: '',
     requires_approval: true,
@@ -147,15 +158,6 @@ function confirmDelete(): void {
 }
 
 const keepSecretHint = computed(() => isEdit.value && props.func?.has_auth_value === true);
-
-const idCopied = ref(false);
-
-async function copyId(): Promise<void> {
-    if (!props.func) return;
-    await navigator.clipboard.writeText(props.func.id);
-    idCopied.value = true;
-    setTimeout(() => (idCopied.value = false), 2000);
-}
 </script>
 
 <template>
@@ -190,21 +192,13 @@ async function copyId(): Promise<void> {
 
                 <TabsContent value="edit" class="pt-6">
                     <form @submit.prevent="submit" class="space-y-5">
-                        <div v-if="isEdit" class="bg-muted/40 flex items-center gap-2 rounded-md border px-3 py-2">
-                            <span class="text-muted-foreground text-xs">{{ t('workspace.functions.sheet.id_label') }}</span>
-                            <code class="min-w-0 flex-1 truncate font-mono text-xs" :title="func?.id">{{ func?.id }}</code>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                class="h-6 shrink-0 px-1.5"
-                                :title="t('workspace.functions.sheet.copy_id_title')"
-                                @click="copyId"
-                            >
-                                <Check v-if="idCopied" class="size-3.5 text-green-600" />
-                                <Copy v-else class="size-3.5" />
-                            </Button>
-                        </div>
+                        <CopyIdField
+                            v-if="isEdit && func"
+                            :label="t('workspace.functions.sheet.id_label')"
+                            :value="func.id"
+                            :copy-title="t('workspace.functions.sheet.copy_id_title')"
+                            :copy-label="t('workspace.functions.sheet.copy_id')"
+                        />
 
                         <div class="grid gap-2">
                             <Label for="internal_name">{{ t('workspace.functions.form.name') }}</Label>
@@ -301,86 +295,14 @@ async function copyId(): Promise<void> {
                             <Switch :model-value="form.requires_approval" @update:model-value="(v) => (form.requires_approval = v)" />
                         </div>
 
-                        <div class="grid gap-2">
-                            <Label for="auth_type">{{ t('workspace.functions.form.auth') }}</Label>
-                            <div class="relative">
-                                <Shield class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                <select
-                                    id="auth_type"
-                                    v-model="form.auth_type"
-                                    class="border-input bg-background h-9 w-full rounded-md border ps-9 pe-3 text-sm"
-                                >
-                                    <option value="none">{{ t('workspace.functions.form.auth_none') }}</option>
-                                    <option value="bearer">{{ t('workspace.functions.form.auth_bearer') }}</option>
-                                    <option value="header">{{ t('workspace.functions.form.auth_header') }}</option>
-                                    <option value="hmac">{{ t('workspace.functions.form.auth_hmac') }}</option>
-                                </select>
-                            </div>
-
-                            <div v-if="form.auth_type === 'bearer'" class="mt-2 grid gap-2">
-                                <Label for="auth_value">{{ t('workspace.functions.form.bearer_token') }}</Label>
-                                <div class="relative">
-                                    <KeyRound class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                    <Input
-                                        id="auth_value"
-                                        v-model="form.auth_value"
-                                        type="password"
-                                        autocomplete="off"
-                                        :placeholder="keepSecretHint ? t('workspace.functions.form.keep_token') : 'sk-...'"
-                                        class="ps-9"
-                                    />
-                                </div>
-                                <p class="text-muted-foreground text-xs">
-                                    <i18n-t keypath="workspace.functions.form.bearer_hint" tag="span">
-                                        <template #header><code class="text-xs">Authorization: Bearer &lt;token&gt;</code></template>
-                                    </i18n-t>
-                                </p>
-                                <InputError :message="form.errors.auth_value" />
-                            </div>
-
-                            <div v-else-if="form.auth_type === 'header'" class="mt-2 grid grid-cols-2 gap-3">
-                                <div class="grid gap-2">
-                                    <Label for="auth_header_name">{{ t('workspace.functions.form.header_name') }}</Label>
-                                    <div class="relative">
-                                        <Key class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                        <Input id="auth_header_name" v-model="form.auth_header_name" placeholder="X-Api-Key" class="ps-9" />
-                                    </div>
-                                    <InputError :message="form.errors.auth_header_name" />
-                                </div>
-                                <div class="grid gap-2">
-                                    <Label for="auth_value">{{ t('workspace.functions.form.header_value') }}</Label>
-                                    <div class="relative">
-                                        <Lock class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                        <Input
-                                            id="auth_value"
-                                            v-model="form.auth_value"
-                                            type="password"
-                                            autocomplete="off"
-                                            :placeholder="keepSecretHint ? t('workspace.functions.form.keep_value') : ''"
-                                            class="ps-9"
-                                        />
-                                    </div>
-                                    <InputError :message="form.errors.auth_value" />
-                                </div>
-                            </div>
-
-                            <div v-else-if="form.auth_type === 'hmac'" class="mt-2 grid gap-2">
-                                <Label for="auth_value">{{ t('workspace.functions.form.signing_secret') }}</Label>
-                                <div class="relative">
-                                    <Lock class="text-muted-foreground pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2" />
-                                    <Input
-                                        id="auth_value"
-                                        v-model="form.auth_value"
-                                        type="password"
-                                        autocomplete="off"
-                                        :placeholder="keepSecretHint ? t('workspace.functions.form.keep_secret') : ''"
-                                        class="ps-9"
-                                    />
-                                </div>
-                                <p class="text-muted-foreground text-xs">{{ t('workspace.functions.form.hmac_hint') }}</p>
-                                <InputError :message="form.errors.auth_value" />
-                            </div>
-                        </div>
+                        <FunctionAuthFields
+                            v-model:auth-type="form.auth_type"
+                            v-model:header-name="form.auth_header_name"
+                            v-model:auth-value="form.auth_value"
+                            :keep-secret-hint="keepSecretHint"
+                            :header-name-error="form.errors.auth_header_name"
+                            :value-error="form.errors.auth_value"
+                        />
 
                         <div class="flex items-center justify-end gap-2 border-t pt-5">
                             <Button
@@ -404,31 +326,15 @@ async function copyId(): Promise<void> {
                 </TabsContent>
 
                 <TabsContent v-if="isEdit" value="agents" class="pt-6">
-                    <p class="text-muted-foreground mb-3 text-sm">{{ t('workspace.functions.agents.intro') }}</p>
-
-                    <div v-if="agents.loading.value" class="text-muted-foreground flex items-center gap-2 py-6 text-sm">
-                        <LoaderCircle class="size-4 animate-spin" />
-                        {{ t('workspace.functions.agents.loading') }}
-                    </div>
-
-                    <div v-else-if="agents.all.value.length === 0" class="text-muted-foreground py-6 text-center text-sm">
-                        {{ t('workspace.functions.agents.empty') }}
-                    </div>
-
-                    <ul v-else class="divide-border divide-y">
-                        <li
-                            v-for="agent in agents.all.value"
-                            :key="agent.id"
-                            class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-                        >
-                            <span class="truncate text-sm font-medium">{{ agent.name }}</span>
-                            <Switch
-                                :model-value="agent.attached"
-                                :disabled="agents.busyId.value === agent.id"
-                                @update:model-value="() => onToggleAttachment(agent.id)"
-                            />
-                        </li>
-                    </ul>
+                    <AgentAttachmentList
+                        :intro="t('workspace.functions.agents.intro')"
+                        :loading-text="t('workspace.functions.agents.loading')"
+                        :empty-text="t('workspace.functions.agents.empty')"
+                        :agents="agents.all.value"
+                        :loading="agents.loading.value"
+                        :busy-id="agents.busyId.value"
+                        @toggle="onToggleAttachment"
+                    />
                 </TabsContent>
             </Tabs>
 

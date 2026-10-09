@@ -1,19 +1,32 @@
+/**
+ * Short relative times ("5 minutes ago") in the active UI language, built on
+ * `Intl.RelativeTimeFormat`. Counts whole minutes, then hours, then days, and
+ * shows "Just now" for anything under a minute (or a missing timestamp).
+ */
+import { useLocaleDate } from '@/composables/useLocaleDate';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const MS_PER_MINUTE = 60_000;
+
 export function useTimeAgo() {
-    const formatTimeAgo = (timestamp: string) => {
-        if (!timestamp) return 'Just now';
+    const { t } = useI18n();
+    const { intlLocale } = useLocaleDate();
 
-        const now = new Date();
-        const date = new Date(timestamp);
-        const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    // `numeric: 'always'` keeps "1 day ago" instead of "yesterday", matching the counts above.
+    const formatter = computed(() => new Intl.RelativeTimeFormat(intlLocale.value, { numeric: 'always' }));
 
-        if (diffInMinutes < 1) return 'Just now';
-        if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
+    const formatTimeAgo = (timestamp: string | null | undefined): string => {
+        if (!timestamp) return t('shared.time_ago.just_now');
+
+        const diffInMinutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / MS_PER_MINUTE);
+        if (!Number.isFinite(diffInMinutes) || diffInMinutes < 1) return t('shared.time_ago.just_now');
+        if (diffInMinutes < 60) return formatter.value.format(-diffInMinutes, 'minute');
 
         const diffInHours = Math.floor(diffInMinutes / 60);
-        if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+        if (diffInHours < 24) return formatter.value.format(-diffInHours, 'hour');
 
-        const diffInDays = Math.floor(diffInHours / 24);
-        return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+        return formatter.value.format(-Math.floor(diffInHours / 24), 'day');
     };
 
     return {

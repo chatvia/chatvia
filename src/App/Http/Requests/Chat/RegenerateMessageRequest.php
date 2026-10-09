@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Chat;
 
+use App\Http\Chat\HostedChatAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Foundation\Http\FormRequest;
@@ -23,9 +25,8 @@ use Illuminate\Support\Facades\Auth;
  */
 class RegenerateMessageRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize(#[HostedChatAgent] ?Agent $agent): bool
     {
-        $agent = current_agent();
         if ($agent === null) {
             return false;
         }

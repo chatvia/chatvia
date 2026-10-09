@@ -5,6 +5,7 @@ namespace Domain\Knowledge\Source\File\Models;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
+use Domain\Knowledge\Document\Concerns\HasStorageFile;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Concerns\Chunkable;
@@ -21,7 +22,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Support\Concerns\HasExternalId;
 use Support\MimeType;
-use Support\Traits\HasStorageFile;
 
 /**
  * A file uploaded as knowledge: a document (PDF, office file, image, text,

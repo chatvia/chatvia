@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Widget\Actions\EnsureWidgetConversationAction;
 use Domain\Widget\Data\Conversation\WidgetConversationsResultData;
 use Domain\Widget\Queries\ListWidgetConversationsQuery;
@@ -20,6 +22,7 @@ class ConversationController
 
     public function __invoke(
         Request $request,
+        #[WidgetAgent] Agent $agent,
         WidgetVerification $widgetVerification,
         EnsureWidgetConversationAction $ensureConversation,
         ListWidgetConversationsQuery $conversations,
@@ -30,7 +33,6 @@ class ConversationController
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $agent = $this->widgetAgent();
         $widgetUser = $this->widgetUser($request);
 
         // On a protected agent, only list a session that belongs to the

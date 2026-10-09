@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
-use Domain\Agent\Services\AgentLocator;
+use App\Http\Chat\HostedChatAgent;
+use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -15,10 +16,8 @@ class ChatShowLoginController
     /**
      * Show the member login page.
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request, #[HostedChatAgent] ?Agent $agent)
     {
-        $agent = AgentLocator::resolveAgentFromSubdomain($request->agentSlug());
-
         if (is_null($agent) || $agent->is_public) {
             return to_route('chat.home');
         }

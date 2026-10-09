@@ -25,9 +25,9 @@ use Support\Exceptions\UnsafeUrlException;
  * The `X-Chatvia-*` header names are a public contract that receivers verify,
  * so they keep this name even when the product is rebranded.
  */
-final class SignedWebhookSender
+final readonly class SignedWebhookSender
 {
-    private const TIMEOUT_SECONDS = 10;
+    private const int TIMEOUT_SECONDS = 10;
 
     /**
      * @param  array<string, mixed>  $payload

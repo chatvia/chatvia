@@ -2,6 +2,7 @@
 
 namespace Domain\Billing\Actions\Webhooks;
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordSetup;
 use Domain\Billing\Actions\Subscriptions\GrantSubscriptionAction;
@@ -16,7 +17,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Cashier;
 use Stripe\Customer;
-use Support\Enums\User\UserType;
 
 /**
  * Turns a completed trial checkout into a working workspace: finds or creates

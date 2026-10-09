@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Widget\Activity;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Widget\WidgetTypingRequest;
+use App\Http\Widget\WidgetAgent;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Actions\Messages\BroadcastChatTypingAction;
 use Domain\Widget\Data\Auth\WidgetAckData;
@@ -19,13 +21,14 @@ class TypingController
 
     public function __invoke(
         WidgetTypingRequest $request,
+        #[WidgetAgent] Agent $agent,
         BroadcastChatTypingAction $broadcastTyping,
         FindWidgetConversationAction $findConversation,
     ): JsonResponse|WidgetAckData {
         $conversation = $findConversation->execute(
             $request->string('conversation_id')->toString(),
             (string) $this->widgetSessionId($request),
-            $this->widgetAgent(),
+            $agent,
         );
 
         if (! $conversation) {

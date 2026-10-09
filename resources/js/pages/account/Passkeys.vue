@@ -1,4 +1,6 @@
 <script setup lang="ts">
+// The user's passkeys: list, register (browser WebAuthn prompt) and delete.
+// Registering and deleting both ask for the password first.
 import ConfirmPasswordDialog from '@/components/ConfirmPasswordDialog.vue';
 import {
     AlertDialog,
@@ -16,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
@@ -25,6 +28,7 @@ import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const { formatDate, formatDateTime } = useDateFormat();
 
 interface Passkey {
     id: number;
@@ -180,10 +184,10 @@ const confirmDelete = async () => {
                                     </div>
                                 </TableCell>
                                 <TableCell class="text-muted-foreground py-4 text-sm">
-                                    {{ passkey.last_used_at ? new Date(passkey.last_used_at).toLocaleString() : t('account.passkeys.never') }}
+                                    {{ passkey.last_used_at ? formatDateTime(passkey.last_used_at) : t('account.passkeys.never') }}
                                 </TableCell>
                                 <TableCell class="text-muted-foreground py-4 text-sm">
-                                    {{ new Date(passkey.created_at).toLocaleDateString() }}
+                                    {{ formatDate(passkey.created_at) }}
                                 </TableCell>
                                 <TableCell class="py-4 pe-5 text-end">
                                     <Button

@@ -1,4 +1,12 @@
+/**
+ * Voice-note recorder for knowledge-base sources (VoiceRecorder.vue). Adds a
+ * running duration, pause/resume and a live input level on top of the shared
+ * microphone capture (`useAudioCapture`); the finished note is returned as a
+ * Blob for upload.
+ */
+import { useAudioCapture } from '@/composables/useAudioCapture';
 import { computed, onUnmounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export interface RecordingData {
     blob: Blob;
@@ -6,184 +14,59 @@ export interface RecordingData {
     mimeType: string;
 }
 
+/** How often the visible duration is refreshed while recording. */
+const DURATION_TICK_MS = 100;
+
 export function useSourceVoiceRecorder() {
+    const { t } = useI18n();
+    const capture = useAudioCapture({
+        sampleRate: 44100,
+        mimeTypes: ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'],
+    });
+
     const isRecording = ref(false);
     const isPaused = ref(false);
     const error = ref<string | null>(null);
     const recordingDuration = ref(0);
     const audioLevel = ref(0);
 
-    let mediaRecorder: MediaRecorder | null = null;
-    let audioChunks: Blob[] = [];
-    let stream: MediaStream | null = null;
     let audioContext: AudioContext | null = null;
     let analyser: AnalyserNode | null = null;
     let animationFrameId: number | null = null;
     let durationInterval: number | null = null;
-    let startTime: number = 0;
-    let pausedDuration: number = 0;
-
-    const isSupported = computed(() => {
-        return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-    });
+    let startTime = 0;
+    let pausedDuration = 0;
 
     const formattedDuration = computed(() => {
         const totalSeconds = Math.floor(recordingDuration.value / 1000);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
+
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     });
 
+    // Average loudness across the analyser's frequency bins, normalised to 0–1.
     const updateAudioLevel = () => {
         if (!analyser) return;
 
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(dataArray);
-
-        // Calculate average level
         const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-        audioLevel.value = average / 255; // Normalize to 0-1
+        audioLevel.value = average / 255;
 
         if (isRecording.value && !isPaused.value) {
             animationFrameId = requestAnimationFrame(updateAudioLevel);
         }
     };
 
-    const startRecording = async () => {
-        error.value = null;
-        audioChunks = [];
-        recordingDuration.value = 0;
-        pausedDuration = 0;
-
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    sampleRate: 44100,
-                },
-            });
-
-            // Set up audio analyzer for visualization
-            audioContext = new AudioContext();
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            const source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-
-            // Determine best available mime type
-            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-                ? 'audio/webm;codecs=opus'
-                : MediaRecorder.isTypeSupported('audio/webm')
-                  ? 'audio/webm'
-                  : 'audio/mp4';
-
-            mediaRecorder = new MediaRecorder(stream, { mimeType });
-
-            mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0) {
-                    audioChunks.push(event.data);
-                }
-            };
-
-            mediaRecorder.start(100);
-            isRecording.value = true;
-            isPaused.value = false;
-            startTime = Date.now();
-
-            // Start duration timer
-            durationInterval = window.setInterval(() => {
-                if (!isPaused.value) {
-                    recordingDuration.value = Date.now() - startTime + pausedDuration;
-                }
-            }, 100);
-
-            // Start audio level monitoring
-            updateAudioLevel();
-        } catch (err: any) {
-            if (err.name === 'NotAllowedError') {
-                error.value = 'Microphone access denied. Please allow microphone access to record.';
-            } else if (err.name === 'NotFoundError') {
-                error.value = 'No microphone found. Please connect a microphone and try again.';
-            } else {
-                error.value = err.message || 'Failed to access microphone';
-            }
-            console.error('Error starting recording:', err);
-        }
+    const attachAnalyser = (stream: MediaStream) => {
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        audioContext.createMediaStreamSource(stream).connect(analyser);
     };
 
-    const pauseRecording = () => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.pause();
-            isPaused.value = true;
-            pausedDuration = recordingDuration.value;
-            if (animationFrameId) {
-                cancelAnimationFrame(animationFrameId);
-            }
-        }
-    };
-
-    const resumeRecording = () => {
-        if (mediaRecorder && mediaRecorder.state === 'paused') {
-            mediaRecorder.resume();
-            isPaused.value = false;
-            startTime = Date.now();
-            updateAudioLevel();
-        }
-    };
-
-    const stopRecording = async (): Promise<RecordingData | null> => {
-        return new Promise((resolve) => {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                resolve(null);
-                return;
-            }
-
-            mediaRecorder.onstop = () => {
-                const duration = recordingDuration.value;
-
-                // Clean up
-                if (durationInterval) {
-                    clearInterval(durationInterval);
-                    durationInterval = null;
-                }
-                if (animationFrameId) {
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = null;
-                }
-                if (audioContext) {
-                    audioContext.close();
-                    audioContext = null;
-                }
-                if (stream) {
-                    stream.getTracks().forEach((track) => track.stop());
-                    stream = null;
-                }
-
-                isRecording.value = false;
-                isPaused.value = false;
-                audioLevel.value = 0;
-
-                if (audioChunks.length === 0) {
-                    resolve(null);
-                    return;
-                }
-
-                const mimeType = mediaRecorder?.mimeType || 'audio/webm';
-                const audioBlob = new Blob(audioChunks, { type: mimeType });
-
-                resolve({
-                    blob: audioBlob,
-                    duration,
-                    mimeType,
-                });
-            };
-
-            mediaRecorder.stop();
-        });
-    };
-
-    const cancelRecording = () => {
+    const stopMeters = () => {
         if (durationInterval) {
             clearInterval(durationInterval);
             durationInterval = null;
@@ -196,22 +79,83 @@ export function useSourceVoiceRecorder() {
             audioContext.close();
             audioContext = null;
         }
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            mediaRecorder.stop();
+    };
+
+    const describeMicrophoneError = (err: unknown): string => {
+        const name = (err as { name?: string }).name;
+        if (name === 'NotAllowedError') return t('shared.voice_recorder.microphone_denied');
+        if (name === 'NotFoundError') return t('shared.voice_recorder.microphone_not_found');
+
+        return (err as Error).message || t('shared.voice_recorder.microphone_failed');
+    };
+
+    const startRecording = async () => {
+        error.value = null;
+        recordingDuration.value = 0;
+        pausedDuration = 0;
+
+        try {
+            await capture.start(attachAnalyser);
+        } catch (err) {
+            error.value = describeMicrophoneError(err);
+            return;
         }
-        if (stream) {
-            stream.getTracks().forEach((track) => track.stop());
-            stream = null;
+
+        isRecording.value = true;
+        isPaused.value = false;
+        startTime = Date.now();
+
+        durationInterval = window.setInterval(() => {
+            if (!isPaused.value) {
+                recordingDuration.value = Date.now() - startTime + pausedDuration;
+            }
+        }, DURATION_TICK_MS);
+
+        updateAudioLevel();
+    };
+
+    const pauseRecording = () => {
+        if (!capture.pause()) return;
+
+        isPaused.value = true;
+        pausedDuration = recordingDuration.value;
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
         }
+    };
+
+    const resumeRecording = () => {
+        if (!capture.resume()) return;
+
+        isPaused.value = false;
+        startTime = Date.now();
+        updateAudioLevel();
+    };
+
+    const stopRecording = async (): Promise<RecordingData | null> => {
+        if (!capture.isActive()) return null;
+
+        const blob = await capture.stop();
+        const duration = recordingDuration.value;
+
+        stopMeters();
+        isRecording.value = false;
+        isPaused.value = false;
+        audioLevel.value = 0;
+
+        return blob ? { blob, duration, mimeType: blob.type } : null;
+    };
+
+    const cancelRecording = () => {
+        stopMeters();
+        capture.cancel();
 
         isRecording.value = false;
         isPaused.value = false;
         recordingDuration.value = 0;
         audioLevel.value = 0;
-        audioChunks = [];
     };
 
-    // Cleanup on unmount
     onUnmounted(() => {
         cancelRecording();
     });
@@ -219,7 +163,7 @@ export function useSourceVoiceRecorder() {
     return {
         isRecording,
         isPaused,
-        isSupported,
+        isSupported: capture.isSupported,
         error,
         recordingDuration,
         formattedDuration,

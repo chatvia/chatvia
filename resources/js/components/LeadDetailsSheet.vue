@@ -1,12 +1,20 @@
 <script lang="ts" setup>
+// Side sheet with everything captured for one lead: contact details, custom
+// form fields and technical context (IP, locale, URLs, browser / OS / device
+// parsed from the user agent).
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useDateFormat } from '@/composables/useDateFormat';
+import { useClipboard } from '@vueuse/core';
 import { Briefcase, Building2, Check, Copy, ExternalLink, Mail, MapPin, MessageSquare, Phone } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 
 const { t } = useI18n();
+const { formatDateTime } = useDateFormat();
+
+type CustomFieldValue = string | number | boolean | null;
 
 interface Lead {
     id: number;
@@ -20,7 +28,7 @@ interface Lead {
     status?: string;
     status_label?: string;
     session_id?: string;
-    custom_fields?: Record<string, any>;
+    custom_fields?: Record<string, CustomFieldValue>;
     created_at: string;
     contacted_at?: string | null;
     qualified_at?: string | null;
@@ -45,13 +53,14 @@ const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
 // Copy functionality
+const { copy } = useClipboard({ legacy: true });
 const copiedEmail = ref(false);
 
 const copyEmail = async () => {
     if (!props.lead?.email) return;
 
     try {
-        await navigator.clipboard.writeText(props.lead.email);
+        await copy(props.lead.email);
         copiedEmail.value = true;
         toast.success(t('agents.leads.details_sheet.email_copied'));
 
@@ -59,7 +68,7 @@ const copyEmail = async () => {
         setTimeout(() => {
             copiedEmail.value = false;
         }, 2000);
-    } catch (_error) {
+    } catch {
         toast.error(t('agents.leads.details_sheet.copy_email_error'));
     }
 };
@@ -78,31 +87,22 @@ const leadInitials = computed(() => {
     return '?';
 });
 
-const statusStyles: Record<string, string> = {
-    new: 'bg-blue-500/10 text-blue-600 border-blue-200',
-    contacted: 'bg-yellow-500/10 text-yellow-600 border-yellow-200',
-    qualified: 'bg-green-500/10 text-green-600 border-green-200',
-    converted: 'bg-purple-500/10 text-purple-600 border-purple-200',
-};
-
-const _leadStatusClass = computed(() => {
-    if (!props.lead || !props.lead.status) return statusStyles.new;
-    return statusStyles[props.lead.status] || statusStyles.new;
-});
-
 // --- User Agent Parsing (lightweight) ---
+// Browser and OS are null when not recognised; the template shows "Unknown".
+type DeviceType = 'desktop' | 'mobile' | 'tablet';
+
 interface ParsedUA {
-    browser: string;
-    os: string;
-    device: string;
+    browser: string | null;
+    os: string | null;
+    device: DeviceType;
     raw: string;
 }
 function parseUserAgent(ua?: string | null): ParsedUA | null {
     if (!ua) return null;
     const raw = ua;
-    let browser = 'Unknown';
-    let os = 'Unknown';
-    let device = 'Desktop';
+    let browser: string | null = null;
+    let os: string | null = null;
+    let device: DeviceType = 'desktop';
 
     // Browser detection order matters
     const browserRegexes: { name: string; regex: RegExp }[] = [
@@ -136,22 +136,34 @@ function parseUserAgent(ua?: string | null): ParsedUA | null {
     } else if (/Linux/.test(ua)) os = 'Linux';
 
     // Device type
-    if (/Mobile|iPhone|Android.*Mobile/.test(ua)) device = 'Mobile';
-    else if (/Tablet|iPad|Android(?!.*Mobile)/.test(ua)) device = 'Tablet';
+    if (/Mobile|iPhone|Android.*Mobile/.test(ua)) device = 'mobile';
+    else if (/Tablet|iPad|Android(?!.*Mobile)/.test(ua)) device = 'tablet';
 
     return { browser, os, device, raw };
 }
 
 const parsedLeadUA = computed(() => parseUserAgent(props.lead?.user_agent));
 
-function formatDate(dt: string | null | undefined) {
-    if (!dt) return '—';
-    try {
-        return new Intl.DateTimeFormat('en-US', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(dt));
-    } catch {
-        return dt;
-    }
-}
+const deviceLabels = computed<Record<DeviceType, string>>(() => ({
+    desktop: t('agents.playground.devices.desktop'),
+    mobile: t('agents.playground.devices.mobile'),
+    tablet: t('agents.playground.devices.tablet'),
+}));
+
+// Display texts for the technical section; null when there is no user agent.
+const leadClient = computed(() => {
+    const parsed = parsedLeadUA.value;
+    if (!parsed) return null;
+    return {
+        browser: parsed.browser ?? t('shared.unknown'),
+        os: parsed.os ?? t('shared.unknown'),
+        device: deviceLabels.value[parsed.device],
+        raw: parsed.raw,
+    };
+});
+
+// Custom form values are mostly strings; numbers and booleans show as text.
+const fieldText = (value: CustomFieldValue): string | undefined => (value === null ? undefined : String(value));
 </script>
 
 <template>
@@ -165,7 +177,7 @@ function formatDate(dt: string | null | undefined) {
                         <span>{{ t('agents.leads.details_sheet.title') }}</span>
                     </SheetTitle>
                     <SheetDescription v-if="lead" class="mt-1 text-xs">
-                        {{ t('agents.leads.details_sheet.created', { date: formatDate(lead.created_at) }) }}
+                        {{ t('agents.leads.details_sheet.created', { date: formatDateTime(lead.created_at) || '—' }) }}
                     </SheetDescription>
                     <SheetDescription v-else class="text-xs">{{ t('agents.leads.details_sheet.no_data') }}</SheetDescription>
                 </SheetHeader>
@@ -190,6 +202,7 @@ function formatDate(dt: string | null | undefined) {
                                     @click="copyEmail"
                                     class="hover:bg-muted ms-1 h-6 w-6 p-0"
                                     :title="copiedEmail ? t('agents.leads.details_sheet.copied') : t('agents.leads.details_sheet.copy_email')"
+                                    :aria-label="t('agents.leads.details_sheet.copy_email')"
                                 >
                                     <Check v-if="copiedEmail" class="h-3 w-3 text-green-600" />
                                     <Copy v-else class="h-3 w-3" />
@@ -229,7 +242,7 @@ function formatDate(dt: string | null | undefined) {
                             class="group bg-card/50 hover:bg-card rounded-md border p-2 transition-colors"
                         >
                             <div class="text-muted-foreground mb-1 text-[10px] font-medium tracking-wide uppercase">{{ key }}</div>
-                            <div class="truncate text-xs font-medium" :title="val">{{ val }}</div>
+                            <div class="truncate text-xs font-medium" :title="fieldText(val)">{{ val }}</div>
                         </div>
                     </div>
                 </div>
@@ -266,20 +279,20 @@ function formatDate(dt: string | null | undefined) {
                         </div>
                         <div class="flex flex-col gap-0.5">
                             <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.browser') }}</span>
-                            <span class="font-mono text-xs">{{ parsedLeadUA?.browser || '—' }}</span>
+                            <span class="font-mono text-xs">{{ leadClient?.browser || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
                             <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.os') }}</span>
-                            <span class="font-mono text-xs">{{ parsedLeadUA?.os || '—' }}</span>
+                            <span class="font-mono text-xs">{{ leadClient?.os || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5">
                             <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.device') }}</span>
-                            <span class="font-mono text-xs">{{ parsedLeadUA?.device || '—' }}</span>
+                            <span class="font-mono text-xs">{{ leadClient?.device || '—' }}</span>
                         </div>
                         <div class="flex flex-col gap-0.5 sm:col-span-2">
                             <span class="text-muted-foreground font-medium">{{ t('agents.leads.details_sheet.user_agent') }}</span>
                             <span class="max-h-20 overflow-y-auto pe-1 font-mono text-[10px] leading-relaxed break-all">{{
-                                parsedLeadUA?.raw || '—'
+                                leadClient?.raw || '—'
                             }}</span>
                         </div>
                     </div>

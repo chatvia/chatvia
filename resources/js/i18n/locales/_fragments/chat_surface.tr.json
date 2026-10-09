@@ -1,0 +1,69 @@
+{
+    "composer": {
+        "send_message": "Mesaj gönder",
+        "stop_streaming": "Oluşturmayı durdur"
+    },
+    "chat": {
+        "scroll_to_bottom": "En alta kaydır",
+        "copy_code": "Kodu panoya kopyala",
+        "loading_chart": "Grafik yükleniyor…",
+        "powered_by": "{label} tarafından desteklenmektedir",
+        "stream_errors": {
+            "unreachable": "Sunucuya ulaşılamadı. Lütfen tekrar deneyin.",
+            "http_status": "Sunucu {status} durumunu döndürdü.",
+            "interrupted": "Bağlantı kesildi.",
+            "malformed": "Sunucudan geçersiz veri alındı."
+        }
+    },
+    "messages": {
+        "edit_message": "Mesajı düzenle"
+    },
+    "sources": {
+        "file_with_page": "{file} (Sayfa {page})",
+        "fallback_title": "Kaynak {number}",
+        "chunk_label": "Parça {index}"
+    },
+    "sidebar": {
+        "save_title": "Başlığı kaydet",
+        "show_password": "Parolayı göster",
+        "hide_password": "Parolayı gizle",
+        "user_fallback": "Kullanıcı"
+    },
+    "shared": {
+        "time_ago": {
+            "just_now": "Az önce"
+        },
+        "voice_recorder": {
+            "microphone_denied": "Mikrofon erişimi reddedildi. Kayıt yapmak için lütfen mikrofon erişimine izin verin.",
+            "microphone_not_found": "Mikrofon bulunamadı. Lütfen bir mikrofon bağlayıp tekrar deneyin.",
+            "microphone_failed": "Mikrofona erişilemedi",
+            "transcription_failed": "Metne dönüştürme başarısız oldu"
+        },
+        "file_uploader": {
+            "analyze_failed": "Dosya analiz edilemedi",
+            "analyze_timed_out": "Analiz zaman aşımına uğradı - dosya çok büyük olabilir"
+        }
+    },
+    "agents": {
+        "chatlog": {
+            "refresh_messages": "Mesajları yenile",
+            "delete_conversation": "Konuşmayı sil",
+            "sidebar": {
+                "refresh_conversations": "Konuşmaları yenile",
+                "remove_filter": "Filtreyi kaldır"
+            },
+            "handoff": {
+                "send_message": "Mesaj gönder",
+                "errors": {
+                    "connect_failed": "Sohbet kanalına bağlanılamadı",
+                    "takeover_failed": "Konuşma devralınamadı",
+                    "return_failed": "Konuşma yapay zekâya geri verilemedi",
+                    "send_failed": "Mesaj gönderilemedi"
+                }
+            },
+            "pulse": {
+                "trend_stable_label": "Sabit"
+            }
+        }
+    }
+}

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Widget\WidgetAgent;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class RateLimitServiceProvider extends ServiceProvider
                 Limit::perMinute(20)->by('widget-stream|sess|'.$sessionKey),
             ];
 
-            $agent = current_agent_from_widget();
+            $agent = WidgetAgent::from($request);
 
             if ($agent) {
                 $limits[] = Limit::perMinute((int) config('chatvia.widget.stream_per_agent_per_minute', 120))

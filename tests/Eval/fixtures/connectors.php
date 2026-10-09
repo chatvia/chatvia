@@ -18,7 +18,7 @@ declare(strict_types=1);
  *
  * `scope` is `read` | `write` and MUST match how the tool behaves — it's what the
  * wrong-mutation metric keys on. `name` + `description` are embedded together with
- * the connector's `name`/`description` (mirroring EmbedMcpToolsAction), so they
+ * the connector's `name`/`description` (mirroring EmbedConnectorToolsAction), so they
  * should read like the real tool's `tools/list` entry.
  *
  * To make the eval reflect YOUR deployment, replace this synthetic set with your

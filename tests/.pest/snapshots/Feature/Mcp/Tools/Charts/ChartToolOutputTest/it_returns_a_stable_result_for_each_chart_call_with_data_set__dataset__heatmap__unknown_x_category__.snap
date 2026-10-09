@@ -1,0 +1,9 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "data[0].x = \"zz\" is not in xCategories."
+        }
+    ],
+    "isError": true
+}

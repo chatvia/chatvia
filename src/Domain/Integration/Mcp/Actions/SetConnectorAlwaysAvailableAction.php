@@ -3,12 +3,12 @@
 namespace Domain\Integration\Mcp\Actions;
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Data\Agent\SetConnectorAlwaysAvailableData;
 use Domain\Integration\Mcp\Exceptions\AlwaysAvailableToolLimitException;
 use Domain\Integration\Mcp\Exceptions\ConnectorNotAttachedException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 
 /**
  * Marks a connector attached to an agent as "always on": its tools ship on
@@ -40,7 +40,7 @@ class SetConnectorAlwaysAvailableAction
 
             $wouldBe = count(array_filter(
                 $this->registry->for($agent),
-                fn (ToolEntry $entry): bool => $entry->kind === 'mcp' && self::belongsTo($entry, $slugs),
+                static fn (ToolEntry $entry): bool => $entry->isFromAnyServer($slugs),
             ));
 
             if ($wouldBe > self::MAX_TOOLS) {
@@ -49,19 +49,5 @@ class SetConnectorAlwaysAvailableAction
         }
 
         $agent->mcpServers()->updateExistingPivot($server->id, ['always_available' => $data->always_available]);
-    }
-
-    /**
-     * @param  array<int, string>  $slugs
-     */
-    public static function belongsTo(ToolEntry $entry, array $slugs): bool
-    {
-        foreach ($slugs as $slug) {
-            if (str_starts_with($entry->name, "mcp__{$slug}__")) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

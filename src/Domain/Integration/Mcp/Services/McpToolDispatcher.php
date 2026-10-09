@@ -3,21 +3,21 @@
 namespace Domain\Integration\Mcp\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Events\McpToolInvoked;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
-use Domain\Conversation\Services\Tooling\Registry\McpServerLookup;
-use Domain\Conversation\Services\Tooling\Registry\ToolCallerIdentity;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
+use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Data\ToolCallData;
+use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Dispatch\ToolCallerIdentity;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Dispatches LLM-emitted tool calls that target an MCP server.
  *
- * The tool name is the prefixed form `mcp__{server_slug}__{tool}`. We split
- * the slug to find the right server row, then call `tools/call` via
+ * The tool name is the prefixed form `mcp__{server_slug}__{tool}` (see
+ * ToolName). The slug finds the right server row, then `tools/call` runs via
  * McpClient. Failures are returned as user-facing error strings (never
  * thrown) so the LLM can recover gracefully.
  */
@@ -29,13 +29,16 @@ class McpToolDispatcher implements ToolDispatcherInterface
         private readonly McpServerLookup $servers,
     ) {}
 
-    public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null, ?string $chatterExternalId = null): ToolDispatchResult
+    public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
     {
-        [$slug, $toolName] = $this->parsePrefixedName($name);
+        $name = $call->name->value;
 
-        if ($slug === null || $toolName === null) {
+        if (! $call->name->hasServerAndTool()) {
             return $this->error("Tool \"{$name}\" is not a recognized MCP tool.");
         }
+
+        $slug = (string) $call->name->serverSlug;
+        $toolName = $call->name->tool;
 
         // Attached to this agent (workspace-owned, enabled, on the pivot).
         // Shared per-request lookup: the display + approval steps already
@@ -55,7 +58,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
             return $this->error("Tool \"{$name}\" is blocked.");
         }
 
-        $args = $this->decodeArgs($arguments);
+        $args = $this->decodeArgs($call->arguments);
         if ($args === null) {
             return $this->error('Invalid arguments JSON from the model.');
         }
@@ -63,7 +66,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $start = microtime(true);
 
         try {
-            $result = $this->client->callTool($server, $toolName, $args, ToolCallerIdentity::headers($agent, $conversationExternalId, $chatterExternalId));
+            $result = $this->client->callTool($server, $toolName, $args, ToolCallerIdentity::headers($agent, $call->conversationExternalId, $call->chatterExternalId));
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 
             $dispatchResult = $this->extractResult($result);
@@ -119,27 +122,6 @@ class McpToolDispatcher implements ToolDispatcherInterface
         }
 
         return 'The tool failed unexpectedly. Try again later.';
-    }
-
-    /**
-     * @return array{0: ?string, 1: ?string}
-     */
-    private function parsePrefixedName(string $name): array
-    {
-        if (! str_starts_with($name, 'mcp__')) {
-            return [null, null];
-        }
-
-        $rest = substr($name, 5);
-        $pos = strpos($rest, '__');
-        if ($pos === false) {
-            return [null, null];
-        }
-
-        $slug = substr($rest, 0, $pos);
-        $tool = substr($rest, $pos + 2);
-
-        return [$slug !== '' ? $slug : null, $tool !== '' ? $tool : null];
     }
 
     /**

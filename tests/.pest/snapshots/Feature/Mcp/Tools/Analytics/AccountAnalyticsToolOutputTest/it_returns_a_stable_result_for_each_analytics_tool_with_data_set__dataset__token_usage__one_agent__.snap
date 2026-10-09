@@ -1,0 +1,72 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This billing cycle: 470 tokens consumed (300 prompt, 170 completion), ~157 per AI reply."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "total_tokens": 470,
+        "prompt_tokens": 300,
+        "completion_tokens": 170,
+        "avg_tokens_per_reply": 157,
+        "daily": [
+            {
+                "date": "2026-06-10",
+                "tokens": 270
+            },
+            {
+                "date": "2026-06-12",
+                "tokens": 200
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis"
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "2026-06-10",
+                    "2026-06-12"
+                ],
+                "boundaryGap": false
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "line",
+                    "name": "Tokens",
+                    "data": [
+                        270,
+                        200
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Tokens per day — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

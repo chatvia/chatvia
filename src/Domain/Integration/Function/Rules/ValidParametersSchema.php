@@ -3,7 +3,7 @@
 namespace Domain\Integration\Function\Rules;
 
 use Closure;
-use Domain\Conversation\Services\Tooling\Registry\FunctionSchemaValidator;
+use Domain\Integration\Function\Services\FunctionSchemaValidator;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**

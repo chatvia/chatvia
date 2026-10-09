@@ -1,0 +1,42 @@
+[
+    {
+        "name": "find-forms",
+        "title": "Find Forms Tool",
+        "description": "Discover whether the agent has a fillable form that matches what the visitor wants to do — e.g. book a demo, request a quote or callback, sign up, or be contacted. Pass the visitor's intent in plain words; returns the matching forms, each with a `slug`, name and purpose. Call this the moment a visitor expresses such an intent, then call render-form with the chosen slug. If it returns no forms, or none of them fit the visitor's need, keep helping conversationally and do NOT render a form. Do not call this for general or informational questions.",
+        "inputSchema": {
+            "properties": {
+                "intent": {
+                    "description": "What the visitor wants to do, in plain words (e.g. \"book a demo\", \"get a price quote\", \"talk to sales\").",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "intent"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true
+        }
+    },
+    {
+        "name": "render-form-tool",
+        "title": "Render Form Tool",
+        "description": "Render a fillable form inline in the chat (lead capture, booking, qualification, or a custom form the agent admin built). The visitor fills and submits it; the form stores the answers itself. Call find-forms first to discover which forms exist and which fits the visitor's intent, then pass the exact `slug` it returned. Only render a slug find-forms returned — never invent a slug or fall back to a default form.",
+        "inputSchema": {
+            "properties": {
+                "slug": {
+                    "description": "Exact slug of the form to render, as returned by find-forms. Do not invent one or guess a default.",
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "slug"
+            ]
+        },
+        "annotations": {
+            "openWorldHint": true
+        }
+    }
+]

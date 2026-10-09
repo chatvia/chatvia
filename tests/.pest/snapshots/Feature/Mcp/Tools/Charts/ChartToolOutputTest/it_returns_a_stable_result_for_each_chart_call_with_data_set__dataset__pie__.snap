@@ -1,0 +1,42 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Browser share."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item",
+                "formatter": "{b}: {c} ({d}%)"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "series": [
+                {
+                    "type": "pie",
+                    "radius": "70%",
+                    "avoidLabelOverlap": true,
+                    "label": {
+                        "show": true,
+                        "formatter": "{b}: {d}%"
+                    },
+                    "data": [
+                        {
+                            "name": "Chrome",
+                            "value": 60
+                        },
+                        {
+                            "name": "Firefox",
+                            "value": 40
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

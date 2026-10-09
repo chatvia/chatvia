@@ -1,0 +1,80 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This billing cycle: 8 messages total — 4 incoming, 4 AI replies. up 300% vs the prior period."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "incoming_messages": 4,
+        "ai_messages": 4,
+        "total_messages": 8,
+        "previous_total": 2,
+        "change_pct": 300,
+        "avg_messages_per_conversation": 2.7,
+        "daily": [
+            {
+                "date": "2026-06-10",
+                "messages": 4
+            },
+            {
+                "date": "2026-06-12",
+                "messages": 2
+            },
+            {
+                "date": "2026-06-14",
+                "messages": 2
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis"
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "2026-06-10",
+                    "2026-06-12",
+                    "2026-06-14"
+                ],
+                "boundaryGap": false
+            },
+            "yAxis": {
+                "type": "value"
+            },
+            "series": [
+                {
+                    "type": "line",
+                    "name": "Messages",
+                    "data": [
+                        4,
+                        2,
+                        2
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Messages per day — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

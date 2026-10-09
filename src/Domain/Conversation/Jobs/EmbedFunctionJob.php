@@ -2,31 +2,7 @@
 
 namespace Domain\Conversation\Jobs;
 
-use Domain\Conversation\Actions\Embeddings\EmbedAgentFunctionAction;
-use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-
-class EmbedFunctionJob implements AttributesTokenUsage, ShouldQueue
-{
-    use Queueable;
-    use TracksTokenUsage;
-
-    public int $tries = 2;
-
-    public function __construct(public int $functionId) {}
-
-    public function handle(EmbedAgentFunctionAction $action): void
-    {
-        $action->execute($this->functionId);
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        $userId = AgentFunction::query()->whereKey($this->functionId)->value('user_id');
-
-        return $userId !== null ? (int) $userId : null;
-    }
-}
+/**
+ * @deprecated Moved to \Domain\Integration\Tool\Jobs\EmbedFunctionJob; kept so jobs queued before the deploy still unserialize. Remove after the next release.
+ */
+final class EmbedFunctionJob extends \Domain\Integration\Tool\Jobs\EmbedFunctionJob {}

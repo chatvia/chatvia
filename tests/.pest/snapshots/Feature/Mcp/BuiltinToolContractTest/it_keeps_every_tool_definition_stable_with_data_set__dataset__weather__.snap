@@ -1,0 +1,33 @@
+[
+    {
+        "name": "current-weather-tool",
+        "title": "Current Weather Tool",
+        "description": "Get the current weather for a city using OpenWeatherMap. Returns temperature, conditions, humidity, and wind.",
+        "inputSchema": {
+            "properties": {
+                "location": {
+                    "description": "The city to look up, e.g. \"Oslo\", \"Tokyo\", or \"New York,US\".",
+                    "type": "string"
+                },
+                "units": {
+                    "description": "Temperature units — \"metric\" for Celsius (default), \"imperial\" for Fahrenheit.",
+                    "default": "metric",
+                    "enum": [
+                        "metric",
+                        "imperial"
+                    ],
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "location"
+            ]
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true,
+            "openWorldHint": true
+        }
+    }
+]

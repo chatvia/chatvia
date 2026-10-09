@@ -1,0 +1,93 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Two days of prices."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "cross"
+                }
+            },
+            "grid": {
+                "left": 60,
+                "right": 30,
+                "top": 50,
+                "bottom": 70,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "2024-01-01",
+                    "2024-01-02"
+                ],
+                "scale": true,
+                "boundaryGap": false,
+                "axisLine": {
+                    "onZero": false
+                },
+                "splitLine": {
+                    "show": false
+                }
+            },
+            "yAxis": {
+                "type": "value",
+                "scale": true,
+                "splitArea": {
+                    "show": true
+                },
+                "name": "USD"
+            },
+            "dataZoom": [
+                {
+                    "type": "inside",
+                    "start": 0,
+                    "end": 100
+                },
+                {
+                    "type": "slider",
+                    "start": 0,
+                    "end": 100,
+                    "bottom": 10,
+                    "height": 28
+                }
+            ],
+            "series": [
+                {
+                    "type": "candlestick",
+                    "name": "OHLC",
+                    "data": [
+                        [
+                            10,
+                            11,
+                            9,
+                            12
+                        ],
+                        [
+                            11,
+                            9,
+                            8,
+                            11.5
+                        ]
+                    ],
+                    "itemStyle": {
+                        "color": "#26a69a",
+                        "color0": "#ef5350",
+                        "borderColor": "#26a69a",
+                        "borderColor0": "#ef5350"
+                    }
+                }
+            ],
+            "title": {
+                "text": "BTC/USD",
+                "left": "center"
+            }
+        }
+    }
+}

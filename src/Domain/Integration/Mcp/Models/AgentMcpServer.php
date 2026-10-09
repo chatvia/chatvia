@@ -6,6 +6,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
+use Domain\Integration\Tool\Data\ToolName;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -286,11 +287,11 @@ class AgentMcpServer extends Model
     }
 
     /**
-     * The prefix the LLM sees for tools coming from this server. Used as the
-     * routing key by ToolRouter: `mcp__{slug}__{tool}` → this server.
+     * The prefix the LLM sees for tools coming from this server:
+     * `mcp__{slug}__{tool}` routes to this server (see {@see ToolName}).
      */
     public function toolPrefix(): string
     {
-        return 'mcp__'.$this->slug.'__';
+        return ToolName::mcpPrefix((string) $this->slug);
     }
 }

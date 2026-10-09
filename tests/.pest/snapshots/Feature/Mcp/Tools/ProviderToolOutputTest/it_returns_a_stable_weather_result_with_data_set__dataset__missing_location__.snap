@@ -1,0 +1,12 @@
+{
+    "requests": [],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "You must specify a city to get the weather for. For example, \"Oslo\" or \"Tokyo\"."
+            }
+        ],
+        "isError": true
+    }
+}

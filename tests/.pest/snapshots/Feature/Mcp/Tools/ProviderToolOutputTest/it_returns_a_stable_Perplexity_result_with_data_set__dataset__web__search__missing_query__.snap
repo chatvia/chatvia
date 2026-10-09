@@ -1,0 +1,12 @@
+{
+    "requests": [],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "You must provide a query (what to look up)."
+            }
+        ],
+        "isError": true
+    }
+}

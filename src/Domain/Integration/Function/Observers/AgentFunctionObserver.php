@@ -2,9 +2,9 @@
 
 namespace Domain\Integration\Function\Observers;
 
-use Domain\Conversation\Jobs\EmbedFunctionJob;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Tool\Jobs\EmbedFunctionJob;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Facades\DB;
 
 /**

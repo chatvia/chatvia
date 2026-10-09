@@ -1,0 +1,19 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://rates.example.test/v6/bad-key/latest/USD",
+            "authorization": null,
+            "body": []
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Could not fetch exchange rates — please try again."
+            }
+        ],
+        "isError": true
+    }
+}

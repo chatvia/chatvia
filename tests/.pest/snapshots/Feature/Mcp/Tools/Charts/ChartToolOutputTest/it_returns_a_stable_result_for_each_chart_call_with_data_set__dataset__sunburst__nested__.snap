@@ -1,0 +1,52 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Population."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item"
+            },
+            "series": [
+                {
+                    "type": "sunburst",
+                    "data": [
+                        {
+                            "name": "Europe",
+                            "children": [
+                                {
+                                    "name": "Germany",
+                                    "value": 83,
+                                    "children": [
+                                        {
+                                            "name": "Berlin",
+                                            "value": 3.7
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "name": "7"
+                        }
+                    ],
+                    "radius": [
+                        0,
+                        "90%"
+                    ],
+                    "label": {
+                        "rotate": "tangential",
+                        "minAngle": 5
+                    },
+                    "emphasis": {
+                        "focus": "ancestor"
+                    }
+                }
+            ]
+        }
+    }
+}

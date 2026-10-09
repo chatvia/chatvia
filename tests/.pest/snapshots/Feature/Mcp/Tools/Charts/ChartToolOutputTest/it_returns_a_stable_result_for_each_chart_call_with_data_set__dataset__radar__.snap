@@ -1,0 +1,63 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Phone comparison."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "radar": {
+                "indicator": [
+                    {
+                        "name": "Battery",
+                        "max": 24
+                    },
+                    {
+                        "name": "Camera",
+                        "max": 100
+                    },
+                    {
+                        "name": "Speed",
+                        "max": 10
+                    }
+                ]
+            },
+            "series": [
+                {
+                    "type": "radar",
+                    "data": [
+                        {
+                            "name": "Phone A",
+                            "value": [
+                                20,
+                                90,
+                                8
+                            ]
+                        },
+                        {
+                            "name": "Phone B",
+                            "value": [
+                                18,
+                                95,
+                                9
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Phones",
+                "left": "center"
+            }
+        }
+    }
+}

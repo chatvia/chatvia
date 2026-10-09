@@ -1,0 +1,7 @@
+{
+    "serverInfo": {
+        "name": "Weather",
+        "version": "1.0.0"
+    },
+    "instructions": "Live weather lookup powered by OpenWeatherMap. Exposes a single tool:\n- current-weather: temperature, conditions, humidity, and wind for a city.\nUse this when the user asks about the weather anywhere in the world."
+}

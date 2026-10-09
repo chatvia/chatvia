@@ -1,0 +1,9 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Series \"Short\" has 4 values but there are 3 indicators. Each series.values array must have one entry per indicator, in the same order."
+        }
+    ],
+    "isError": true
+}

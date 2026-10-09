@@ -1,0 +1,50 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "One bar."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 20,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "A"
+                ],
+                "name": "Letter"
+            },
+            "yAxis": {
+                "type": "value",
+                "name": "Count"
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "S",
+                    "data": [
+                        5
+                    ]
+                }
+            ]
+        }
+    }
+}

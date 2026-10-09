@@ -1,12 +1,12 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;

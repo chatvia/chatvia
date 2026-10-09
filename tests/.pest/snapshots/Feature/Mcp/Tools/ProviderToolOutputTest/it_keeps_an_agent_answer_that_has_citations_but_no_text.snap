@@ -1,0 +1,36 @@
+{
+    "requests": [
+        {
+            "method": "POST",
+            "url": "https://perplexity.example.test/v1/agent",
+            "authorization": "Bearer pplx-key",
+            "body": {
+                "model": "perplexity/sonar",
+                "input": "Jane Doe",
+                "tools": [
+                    {
+                        "type": "people_search"
+                    }
+                ]
+            }
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "\n\nSources:\n[1] Profile — https://profile.example\n"
+            }
+        ],
+        "isError": false,
+        "structuredContent": {
+            "answer": "",
+            "citations": [
+                {
+                    "title": "Profile",
+                    "url": "https://profile.example"
+                }
+            ]
+        }
+    }
+}

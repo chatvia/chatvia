@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Mcp\Listeners;
 
-use Domain\Analytics\Events\McpToolInvoked;
+use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 

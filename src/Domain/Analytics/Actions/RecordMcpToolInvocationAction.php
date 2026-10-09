@@ -2,7 +2,7 @@
 
 namespace Domain\Analytics\Actions;
 
-use Domain\Analytics\Events\McpToolInvoked;
+use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Illuminate\Support\Facades\DB;
 
 /**

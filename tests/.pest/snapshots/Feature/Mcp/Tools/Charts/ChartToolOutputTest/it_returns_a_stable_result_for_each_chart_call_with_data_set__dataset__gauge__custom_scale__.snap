@@ -1,0 +1,51 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "SLA score."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "series": [
+                {
+                    "type": "gauge",
+                    "min": 1,
+                    "max": 5,
+                    "progress": {
+                        "show": true,
+                        "width": 18
+                    },
+                    "axisLine": {
+                        "lineStyle": {
+                            "width": 18
+                        }
+                    },
+                    "pointer": {
+                        "show": true
+                    },
+                    "detail": {
+                        "valueAnimation": true,
+                        "formatter": "{value} / 5",
+                        "offsetCenter": [
+                            0,
+                            "70%"
+                        ],
+                        "fontSize": 24
+                    },
+                    "data": [
+                        {
+                            "value": 4.2,
+                            "name": "SLA"
+                        }
+                    ]
+                }
+            ],
+            "title": {
+                "text": "SLA",
+                "left": "center"
+            }
+        }
+    }
+}

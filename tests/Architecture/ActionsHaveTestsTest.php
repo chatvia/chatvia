@@ -36,7 +36,6 @@ const UNTESTED_ACTIONS_ALLOWLIST = [
     'DeleteSourceWebsiteAction',
     'DeleteTeamRoleAction',
     'DetachTopicFromAgentAction',
-    'EmbedAgentFunctionAction',
     'EnhanceDocumentChunkAction',
     'FindWidgetConversationAction',
     'ListAccountConnectorsAction',

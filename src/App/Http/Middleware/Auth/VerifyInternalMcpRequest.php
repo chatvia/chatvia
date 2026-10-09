@@ -2,14 +2,15 @@
 
 namespace App\Http\Middleware\Auth;
 
-use App\Identity\Workspace\Models\User;
+use App\Mcp\McpCallerContext;
+use App\Mcp\McpCallerResolver;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Support\Enums\User\UserType;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -31,63 +32,51 @@ use Symfony\Component\HttpFoundation\Response;
  *         workspace, on one of the servers the owner-facing "Ask your data"
  *         analytics chat uses (config('mcp.builtin')). That chat has no agent
  *         and a fixed internal toolset.
+ *
+ * An authorised `tools/call` also binds the resolved {@see McpCallerContext}
+ * for the rest of the request, so the tool reads its caller from there.
  */
 class VerifyInternalMcpRequest
 {
+    public function __construct(
+        private readonly McpCallerResolver $callers,
+        private readonly Container $container,
+    ) {}
+
     public function handle(Request $request, Closure $next): Response
     {
-        if (! InternalMcpSignature::verify(
+        if (! $this->hasValidSignature($request)) {
+            return response()->json(['error' => 'Unauthorized.'], 401);
+        }
+
+        // Only a tools/call runs a tool; the handshake and tool listing need no caller.
+        if ($this->rpcMethod($request) !== 'tools/call') {
+            return $next($request);
+        }
+
+        $caller = $this->callers->resolve($request);
+
+        if ($caller->workspace === null && ! $this->agentHasConnectorEnabled($request, $caller->agent)) {
+            return response()->json([
+                'error' => 'This tool is not enabled for this caller.',
+            ], 403);
+        }
+
+        $this->container->instance(McpCallerContext::class, $caller);
+
+        return $next($request);
+    }
+
+    private function hasValidSignature(Request $request): bool
+    {
+        return InternalMcpSignature::verify(
             $request->header(InternalMcpSignature::TIMESTAMP_HEADER),
             $request->header(InternalMcpSignature::SIGNATURE_HEADER),
             $request->getRealMethod(),
             $request->getBaseUrl().$request->getPathInfo(),
             $request->getContent(),
             InternalMcpSignature::identityHeadersFrom($request->headers->all()),
-        )) {
-            return response()->json(['error' => 'Unauthorized.'], 401);
-        }
-
-        if ($this->rpcMethod($request) === 'tools/call'
-            && ! $this->workspaceIdentified($request)
-            && ! $this->agentHasConnectorEnabled($request)) {
-            return response()->json([
-                'error' => 'This tool is not enabled for this caller.',
-            ], 403);
-        }
-
-        return $next($request);
-    }
-
-    /**
-     * Workspace mode: the request carries a workspace external_id that
-     * resolves to a real workspace owner. The HMAC (already verified above)
-     * covers that header and proves the call came from Chatvia's own server,
-     * so naming a valid workspace is sufficient — there is no per-agent
-     * connector to check. Only the analytics chat's servers accept it.
-     */
-    private function workspaceIdentified(Request $request): bool
-    {
-        $externalId = (string) $request->header('X-Chatvia-Workspace-Id', '');
-
-        if ($externalId === '' || ! $this->isAnalyticsChatServer($request)) {
-            return false;
-        }
-
-        return User::query()
-            ->where('external_id', $externalId)
-            ->whereIn('type', UserType::workspaceTypes())
-            ->exists();
-    }
-
-    /**
-     * The analytics chat only calls the global built-in servers listed in
-     * config('mcp.builtin') (account analytics and charts).
-     */
-    private function isAnalyticsChatServer(Request $request): bool
-    {
-        $slugs = array_column((array) config('mcp.builtin', []), 'slug');
-
-        return in_array($request->path(), array_map(static fn (string $slug): string => 'mcp/'.$slug, $slugs), true);
+        );
     }
 
     private function rpcMethod(Request $request): ?string
@@ -97,15 +86,9 @@ class VerifyInternalMcpRequest
         return is_string($method) ? $method : null;
     }
 
-    private function agentHasConnectorEnabled(Request $request): bool
+    private function agentHasConnectorEnabled(Request $request, ?Agent $agent): bool
     {
-        $agentExternalId = (string) $request->header('X-Chatvia-Agent-Id', '');
-        if ($agentExternalId === '') {
-            return false;
-        }
-
-        $agent = Agent::query()->where('external_id', $agentExternalId)->first();
-        if (! $agent instanceof Agent) {
+        if ($agent === null) {
             return false;
         }
 

@@ -1,0 +1,26 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Most active this billing cycle: Ada Lovelace with 2 messages. 2 identified users in total, 3 new visitors."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "top_users": [
+            {
+                "name": "Ada Lovelace",
+                "email": "ada@example.test",
+                "messages": 2
+            }
+        ],
+        "unique_identified_users": 2,
+        "new_visitors": 3
+    }
+}

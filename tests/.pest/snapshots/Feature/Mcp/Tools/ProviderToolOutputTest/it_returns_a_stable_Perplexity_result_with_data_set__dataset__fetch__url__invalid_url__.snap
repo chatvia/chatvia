@@ -1,0 +1,12 @@
+{
+    "requests": [],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "The url must be a valid absolute URL (including https://)."
+            }
+        ],
+        "isError": true
+    }
+}

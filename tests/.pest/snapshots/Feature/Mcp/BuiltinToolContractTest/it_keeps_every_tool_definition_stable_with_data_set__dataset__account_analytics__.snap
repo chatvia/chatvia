@@ -1,0 +1,646 @@
+[
+    {
+        "name": "get-account-overview-tool",
+        "title": "Get Account Overview Tool",
+        "description": "A one-shot snapshot of the whole account for a period: total messages (incoming\n+ AI replies), conversations, unique visitors, leads captured, average response\ntime, thumbs up/down, tokens, and — for the current cycle — messages used vs the\nplan limit. Use this first when the user asks \"how's my account doing?\" or wants\nan overview, then drill in with the more specific tools.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-message-stats-tool",
+        "title": "Get Message Stats Tool",
+        "description": "Message volume for a period: how many messages came in (from visitors) vs went\nout (AI replies), the combined total, the change vs the previous period, the\naverage messages per conversation, and a per-day series. Answers \"how many\nmessages this cycle?\", \"incoming vs outgoing?\", \"are we up or down vs last\ncycle?\". The per-day series is ideal to hand to a chart tool.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-billing-cycle-usage-tool",
+        "title": "Get Billing Cycle Usage Tool",
+        "description": "The current billing cycle's message allowance: when the cycle started and ends,\nhow many days are left, the plan's message limit, how many have been used and\nhow many remain, any overage, bonus/add-on messages, tokens consumed, and a\nsimple run-rate projection of where usage will land by the cycle end. Answers\n\"how many messages have I used / how many left?\", \"when does my cycle reset?\",\n\"am I going to run out?\". Billing is message-based; tokens are analytics only.",
+        "inputSchema": {
+            "type": "object",
+            "properties": []
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-conversation-stats-tool",
+        "title": "Get Conversation Stats Tool",
+        "description": "Conversation-level stats for a period: how many conversations started, the\naverage length (messages per conversation), the average duration in seconds, and\nthe single busiest day. Answers \"how many conversations this cycle?\", \"how long\nis the average chat?\", \"which day was busiest?\".",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-top-users-tool",
+        "title": "Get Top Users Tool",
+        "description": "The most active end-users (identified chatters) for a period, ranked by how many\nmessages they sent, plus the count of unique identified users and how many new\nvisitors arrived. Answers \"who is my most active user?\", \"top 10 users by\nmessages\", \"how many unique / new visitors?\". Anonymous widget visitors with no\naccount are not individually named but are reflected in the new-visitor count.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                },
+                "limit": {
+                    "description": "How many top users to return (1–50). Defaults to 5.",
+                    "default": 5,
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-channel-breakdown-tool",
+        "title": "Get Channel Breakdown Tool",
+        "description": "Conversation volume per channel for a period — Hosted Chat, Chat Widget, Command\nBar, Telegram, Slack, WhatsApp, Messenger, MS Teams, Instagram — with each\nchannel's share of the total. Answers \"which channel is busiest?\", \"how much\ncomes from WhatsApp vs the website?\". The per-channel counts are ideal for a pie\nor bar chart. (Reflects retained conversations within the period.)",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-agent-breakdown-tool",
+        "title": "Get Agent Breakdown Tool",
+        "description": "Per-agent activity for a period: each agent ranked by total messages and\nconversations. Answers \"which agent gets the most traffic?\", \"how is volume\nsplit across my agents?\". Only meaningful for accounts with more than one agent.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-geography-stats-tool",
+        "title": "Get Geography Stats Tool",
+        "description": "Where visitors come from and what they use, for a period: the top countries by\nconversations, plus a breakdown of device types, browsers, and operating\nsystems. Answers \"top countries?\", \"what devices do people chat from?\", \"mostly\nmobile or desktop?\". Country counts work well as a map or bar chart.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                },
+                "limit": {
+                    "description": "How many top countries to return (1–50). Defaults to 10.",
+                    "default": 10,
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-activity-patterns-tool",
+        "title": "Get Activity Patterns Tool",
+        "description": "When visitors are active, for a period: conversations by hour of day (0–23, UTC)\nand by day of week, with the peak hour and busiest weekday called out. Answers\n\"when are people most active?\", \"what's my peak hour?\", \"which weekday is\nbusiest?\". The hourly and weekday series make a good bar or heatmap chart.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-satisfaction-stats-tool",
+        "title": "Get Satisfaction Stats Tool",
+        "description": "Quality and satisfaction signals for a period: thumbs up vs down (and the\npositive rate), the sentiment split of messages (positive / neutral / negative),\nhow often the AI could not find an answer, and the average answer confidence.\nAnswers \"are people happy?\", \"how's sentiment?\", \"how often does the AI fail to\nanswer?\". Use this to spot knowledge gaps.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-response-time-stats-tool",
+        "title": "Get Response Time Stats Tool",
+        "description": "How fast the AI responds, for a period: the average reply time, the median (p50)\nand 95th-percentile (p95), the slowest reply, and the average time to the first\nreply in a conversation. All in milliseconds (first-response in seconds).\nAnswers \"how fast are replies?\", \"what's my p95 latency?\", \"how long until the\nfirst answer?\".",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-top-topics-tool",
+        "title": "Get Top Topics Tool",
+        "description": "The topics visitors talk about most, for a period — each topic ranked by the\nnumber of conversations it appears in. Answers \"what are people asking about?\",\n\"top topics this cycle?\", \"what's trending?\". Great input for a bar chart of\ndemand by topic.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                },
+                "limit": {
+                    "description": "How many top topics to return (1–50). Defaults to 10.",
+                    "default": 10,
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-lead-stats-tool",
+        "title": "Get Lead Stats Tool",
+        "description": "Leads captured for a period: the total, the breakdown by status (new, contacted,\nqualified, converted, lost), how many have been contacted, and the conversion\nrate (leads per 100 conversations). Answers \"how many leads this cycle?\", \"what's\nmy lead conversion rate?\", \"how many leads still need contacting?\".",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-handoff-stats-tool",
+        "title": "Get Handoff Stats Tool",
+        "description": "Human-handoff stats for a period: how many conversations were escalated from the\nAI to a human, the handoff rate (share of conversations), and how many handoffs\nare pending right now (awaiting a human, not period-bound). Answers \"how many\nchats went to a human?\", \"what's my escalation rate?\", \"any handoffs waiting?\".",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-token-usage-tool",
+        "title": "Get Token Usage Tool",
+        "description": "Token consumption for a period: total tokens used, the prompt vs completion\nsplit, the average tokens per AI reply, and a per-day series. Answers \"how many\ntokens did I consume this cycle?\", \"what's my prompt vs completion split?\".\nTokens are reported for analytics only — billing is per message received, not\nper token.",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    },
+    {
+        "name": "get-ai-usage-tool",
+        "title": "Get Ai Usage Tool",
+        "description": "What the AI relied on for a period: the most-called custom functions (webhook\ntools), the most-used MCP connector tools, and the most-retrieved knowledge\nsources. Answers \"which tools does my agent use most?\", \"what knowledge gets\npulled the most?\".",
+        "inputSchema": {
+            "properties": {
+                "period": {
+                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "current_cycle",
+                    "enum": [
+                        "current_cycle",
+                        "previous_cycle",
+                        "today",
+                        "last_7_days",
+                        "last_30_days",
+                        "this_month",
+                        "last_month",
+                        "all_time"
+                    ],
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.",
+                    "type": "string"
+                },
+                "end_date": {
+                    "description": "Optional explicit end date (YYYY-MM-DD).",
+                    "type": "string"
+                },
+                "agent": {
+                    "description": "Optional agent id to narrow the numbers to a single agent. Omit for the whole account (all agents).",
+                    "type": "string"
+                },
+                "limit": {
+                    "description": "How many to return per category (1–20). Defaults to 5.",
+                    "default": 5,
+                    "type": "integer"
+                }
+            },
+            "type": "object"
+        },
+        "annotations": {
+            "readOnlyHint": true,
+            "idempotentHint": true
+        }
+    }
+]

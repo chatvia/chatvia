@@ -9,15 +9,19 @@ use Domain\Conversation\Services\Data\StreamRequestData;
 use Domain\Conversation\Services\Data\StreamRequestMessageData;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
-use Domain\Conversation\Services\Tooling\Access\ToolAccessPolicy;
-use Domain\Conversation\Services\Tooling\Access\ToolRateLimiter;
-use Domain\Conversation\Services\Tooling\Approval\ToolApprovalPolicy;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatcherInterface;
-use Domain\Conversation\Services\Tooling\Dispatcher\ToolDispatchResult;
-use Domain\Conversation\Services\Tooling\Registry\ToolDisplayResolver;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
+use Domain\Integration\Tool\Access\ToolAccessPolicy;
+use Domain\Integration\Tool\Access\ToolApprovalPolicy;
+use Domain\Integration\Tool\Access\ToolRateLimiter;
+use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Data\ToolCallData;
+use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolDisplayData;
+use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
 use GuzzleHttp\Psr7\Response;
@@ -102,11 +106,11 @@ function tlrDispatcher(): ToolDispatcherInterface
         /** @var array<int, array<string, mixed>> */
         public array $calls = [];
 
-        public function dispatch(Agent $agent, string $name, string $arguments, ?string $conversationExternalId = null, ?string $chatterExternalId = null): ToolDispatchResult
+        public function dispatch(Agent $agent, ToolCallData $call): ToolDispatchResult
         {
-            $this->calls[] = ['name' => $name, 'arguments' => $arguments, 'conversation' => $conversationExternalId, 'chatter' => $chatterExternalId];
+            $this->calls[] = ['name' => $call->name->value, 'arguments' => $call->arguments, 'conversation' => $call->conversationExternalId, 'chatter' => $call->chatterExternalId];
 
-            return ToolDispatchResult::text("result of {$name}");
+            return ToolDispatchResult::text("result of {$call->name}");
         }
     };
 }
@@ -117,9 +121,9 @@ function tlrDisplayResolver(): ToolDisplayResolver
     {
         public function __construct() {}
 
-        public function resolve(Agent $agent, string $toolName): array
+        public function resolve(Agent $agent, ToolName $tool): ToolDisplayData
         {
-            return ['kind' => 'function', 'label' => $toolName, 'activity_label' => null, 'is_builtin' => false, 'icon_url' => null, 'brand_color' => null];
+            return new ToolDisplayData(kind: ToolKind::Function, label: $tool->value);
         }
     };
 }
@@ -130,7 +134,7 @@ function tlrApprovalPolicy(bool $requires): ToolApprovalPolicy
     {
         public function __construct(private bool $requires) {}
 
-        public function requiresApproval(Agent $agent, string $toolName): bool
+        public function requiresApproval(Agent $agent, ToolName $tool): bool
         {
             return $this->requires;
         }

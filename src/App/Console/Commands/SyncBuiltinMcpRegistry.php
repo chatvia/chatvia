@@ -2,18 +2,19 @@
 
 namespace App\Console\Commands;
 
+use App\Mcp\Servers\FormsServer;
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Actions\Embeddings\EmbedMcpToolsAction;
-use Domain\Conversation\Jobs\EmbedConnectorToolsJob;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
-use Domain\Conversation\Services\Tooling\Routing\ToolHybridSearch;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
-use Domain\Integration\Mcp\Services\Servers\FormsServer;
+use Domain\Integration\Tool\Actions\Embedding\EmbedConnectorToolsAction;
+use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
+use Domain\Integration\Tool\Registry\ToolRegistry;
+use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -67,7 +68,7 @@ class SyncBuiltinMcpRegistry extends Command
         'forms' => FormsServer::class,
     ];
 
-    public function handle(EmbedMcpToolsAction $embed, ToolRegistry $registry): int
+    public function handle(EmbedConnectorToolsAction $embed, ToolRegistry $registry): int
     {
         $now = now();
         $base = rtrim((string) config('app.url'), '/');
@@ -132,7 +133,7 @@ class SyncBuiltinMcpRegistry extends Command
      * table, embed them, then reconcile the memberships of EVERY server using this
      * connector_slug. Returns the tool count.
      */
-    private function syncConnector(string $slug, string $serverClass, EmbedMcpToolsAction $embed, Carbon $now): int
+    private function syncConnector(string $slug, string $serverClass, EmbedConnectorToolsAction $embed, Carbon $now): int
     {
         $toolPermissions = $this->upsertCatalog($slug, $serverClass, $now);
 
@@ -144,7 +145,7 @@ class SyncBuiltinMcpRegistry extends Command
         if ($this->option('queue')) {
             EmbedConnectorToolsJob::dispatch($slug);
         } else {
-            $embed->executeForConnector($slug);
+            $embed->execute($slug);
         }
 
         $this->reconcileMemberships($slug, $toolPermissions, $now);
@@ -185,7 +186,7 @@ class SyncBuiltinMcpRegistry extends Command
 
                 // The compiled name (`mcp__{slug}__{name}`) must satisfy OpenAI's
                 // tool-name regex when ToolRegistry reapplies the prefix.
-                if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/', 'mcp__'.$slug.'__'.$name)) {
+                if (! ToolName::forMcp($slug, $name)->isValidForLlm()) {
                     continue;
                 }
 

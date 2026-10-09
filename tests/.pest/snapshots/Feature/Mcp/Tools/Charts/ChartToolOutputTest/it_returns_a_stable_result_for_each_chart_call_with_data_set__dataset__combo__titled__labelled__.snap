@@ -1,0 +1,71 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Revenue and margin by quarter."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis"
+            },
+            "legend": {
+                "show": true,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 60,
+                "right": 60,
+                "top": 50,
+                "bottom": 40,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [
+                    "Q1",
+                    "Q2"
+                ]
+            },
+            "yAxis": [
+                {
+                    "type": "value",
+                    "position": "left",
+                    "name": "EUR"
+                },
+                {
+                    "type": "value",
+                    "position": "right",
+                    "name": "%"
+                }
+            ],
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Revenue",
+                    "data": [
+                        100,
+                        120
+                    ],
+                    "yAxisIndex": 0
+                },
+                {
+                    "type": "line",
+                    "name": "Margin",
+                    "data": [
+                        0.2,
+                        0.25
+                    ],
+                    "yAxisIndex": 1,
+                    "smooth": true
+                }
+            ],
+            "title": {
+                "text": "Revenue vs margin",
+                "left": "center"
+            }
+        }
+    }
+}

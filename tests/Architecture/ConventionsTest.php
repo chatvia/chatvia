@@ -79,8 +79,9 @@ it('the Domain layer does not import the HTTP request object', function (): void
         'src/Domain/Conversation/Services/Streaming/Requests/StreamRequestDataFactory.php',
     ];
 
+    // Aliased imports (`use Illuminate\Http\Request as HttpRequest;`) count too.
     $offenders = array_values(array_diff(
-        conventionOffenders(conventionPhpFiles('src/Domain'), '/use Illuminate\\\\Http\\\\Request;/'),
+        conventionOffenders(conventionPhpFiles('src/Domain'), '/use Illuminate\\\\Http\\\\Request( as \w+)?;/'),
         $allowed,
     ));
 
@@ -100,6 +101,16 @@ it('the Domain layer never imports from App except the Identity carve-out', func
     sort($offenders);
 
     expect($offenders)->toBe([]);
+});
+
+it('the Integration domain never depends on the Conversation domain', function (): void {
+    // Conversation runs chat turns and calls tools through Integration\Tool;
+    // the reverse edge would make the two domains a cycle again. A tool that
+    // needs conversation data receives it as a value (see ToolCallData).
+    $files = conventionPhpFiles('src/Domain/Integration');
+
+    expect($files)->not->toBe([])
+        ->and(conventionOffenders($files, '/\bDomain\\\\Conversation\\\\/'))->toBe([]);
 });
 
 // --- Action conventions --------------------------------------------------

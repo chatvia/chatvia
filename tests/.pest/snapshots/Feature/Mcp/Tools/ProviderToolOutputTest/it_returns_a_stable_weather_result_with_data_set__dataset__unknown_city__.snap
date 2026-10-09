@@ -1,0 +1,23 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://weather.example.test/data/2.5/weather?q=Nowhere&appid=weather-key&units=metric",
+            "authorization": null,
+            "body": {
+                "q": "Nowhere",
+                "appid": "weather-key",
+                "units": "metric"
+            }
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Couldn't find a city called \"Nowhere\"."
+            }
+        ],
+        "isError": true
+    }
+}

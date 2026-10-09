@@ -1,0 +1,19 @@
+{
+    "requests": [
+        {
+            "method": "GET",
+            "url": "https://rates.example.test/v6/rates-key/latest/USD",
+            "authorization": null,
+            "body": []
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Unknown currency code: ABC."
+            }
+        ],
+        "isError": true
+    }
+}

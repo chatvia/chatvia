@@ -1,11 +1,12 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Events\McpToolInvoked;
+use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Mcp\Services\McpException;
 use Domain\Integration\Mcp\Services\McpToolDispatcher;
+use Domain\Integration\Tool\Data\ToolCallData;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 
@@ -39,7 +40,7 @@ it('logs argument keys but never their values', function (): void {
     $this->client->shouldReceive('callTool')->andReturn(['content' => [['type' => 'text', 'text' => 'ok']]]);
     Log::spy();
 
-    app(McpToolDispatcher::class)->dispatch($this->agent, 'mcp__crm__lookup', $this->args);
+    app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
     Log::shouldHaveReceived('info')->withArgs(function (string $message, array $context): bool {
         return $message === 'MCP tool dispatched'
@@ -54,7 +55,7 @@ it('hides transport details from the model and the logs', function (): void {
     );
     Log::spy();
 
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, 'mcp__crm__lookup', $this->args);
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
     expect($result->isError)->toBeTrue()
         ->and($result->text)->not->toContain('SECRET-TOKEN')
@@ -76,7 +77,7 @@ it('passes an error the MCP server itself reported through to the model', functi
         McpException::reportedByServer('MCP error from tools/call: Unknown customer email', 'Unknown customer email'),
     );
 
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, 'mcp__crm__lookup', $this->args);
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
     expect($result->text)->toContain('Unknown customer email');
 });
@@ -86,7 +87,7 @@ it('reports an HTTP failure by status only', function (): void {
         new McpException('MCP server returned HTTP 502: <html>internal stack trace</html>', 502),
     );
 
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, 'mcp__crm__lookup', $this->args);
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
     expect($result->text)->toContain('HTTP 502')
         ->and($result->text)->not->toContain('stack trace');
@@ -95,8 +96,17 @@ it('reports an HTTP failure by status only', function (): void {
 it('gives a generic message for unexpected failures', function (): void {
     $this->client->shouldReceive('callTool')->andThrow(new RuntimeException('SQLSTATE[42P01] relation "secret_table" does not exist'));
 
-    $result = app(McpToolDispatcher::class)->dispatch($this->agent, 'mcp__crm__lookup', $this->args);
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named('mcp__crm__lookup', $this->args));
 
     expect($result->text)->not->toContain('secret_table')
         ->and($result->text)->toContain('failed unexpectedly');
 });
+
+it('refuses a name without both a server slug and a tool, without calling the server', function (string $name): void {
+    $this->client->shouldNotReceive('callTool');
+
+    $result = app(McpToolDispatcher::class)->dispatch($this->agent, ToolCallData::named($name, $this->args));
+
+    expect($result->isError)->toBeTrue()
+        ->and($result->text)->toBe("Tool error: Tool \"{$name}\" is not a recognized MCP tool.");
+})->with(['mcp__crm', 'mcp____lookup', 'mcp__crm__']);

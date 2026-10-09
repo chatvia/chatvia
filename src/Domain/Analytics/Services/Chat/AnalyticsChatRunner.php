@@ -7,6 +7,7 @@ use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\SseStreamer;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
+use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -241,7 +242,7 @@ class AnalyticsChatRunner
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
-            phase: 'start',
+            phase: ToolCallPhase::Start,
             toolCallId: $tc['id'],
             name: $name,
             args: $tc['arguments'],
@@ -251,7 +252,7 @@ class AnalyticsChatRunner
 
         if ($url === null) {
             $messages[] = ['role' => 'tool', 'tool_call_id' => $tc['id'], 'content' => 'Tool error: unknown tool.'];
-            yield StreamEvent::tool($assistantId, 'end', $tc['id'], name: $name, result: 'Tool error: unknown tool.');
+            yield StreamEvent::tool($assistantId, ToolCallPhase::End, $tc['id'], name: $name, result: 'Tool error: unknown tool.');
 
             return;
         }
@@ -263,7 +264,7 @@ class AnalyticsChatRunner
 
         yield StreamEvent::tool(
             assistantMessageId: $assistantId,
-            phase: 'end',
+            phase: ToolCallPhase::End,
             toolCallId: $tc['id'],
             name: $name,
             result: $result->text,

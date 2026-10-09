@@ -1,0 +1,41 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "A form titled \"Book a demo\" is now displayed to the visitor. Briefly invite them to fill it in — do NOT say where on screen it appears (it is not necessarily \"below\"), and do not ask for these fields in text. The form stores the answers itself when submitted."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "form": {
+            "form_instance_id": "<uuid>",
+            "definition_slug": "book-a-demo",
+            "form_type": "lead",
+            "title": "Book a demo",
+            "subtitle": "Pick a time that suits you.",
+            "schema": [
+                {
+                    "$formkit": "text",
+                    "name": "name",
+                    "label": "Name",
+                    "validation": "required"
+                },
+                {
+                    "$formkit": "email",
+                    "name": "email",
+                    "label": "Email",
+                    "validation": "required|email"
+                },
+                {
+                    "$formkit": "textarea",
+                    "name": "message",
+                    "label": "Message"
+                }
+            ],
+            "submit_label": "Submit",
+            "success_message": "Thanks — we will be in touch shortly.",
+            "status": "pending",
+            "expires_at": "2026-06-15T18:30:00+00:00"
+        }
+    }
+}

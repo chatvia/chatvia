@@ -1,0 +1,74 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Most active this billing cycle: Ada Lovelace with 2 messages. 2 identified users in total, 3 new visitors."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "top_users": [
+            {
+                "name": "Ada Lovelace",
+                "email": "ada@example.test",
+                "messages": 2
+            },
+            {
+                "name": "Grace Hopper",
+                "email": "grace@example.test",
+                "messages": 1
+            }
+        ],
+        "unique_identified_users": 2,
+        "new_visitors": 3,
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "value"
+            },
+            "yAxis": {
+                "type": "category",
+                "data": [
+                    "Ada Lovelace",
+                    "Grace Hopper"
+                ]
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Messages",
+                    "data": [
+                        2,
+                        1
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Most active users — this billing cycle",
+                "left": "center"
+            }
+        }
+    }
+}

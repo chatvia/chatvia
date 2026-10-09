@@ -1,9 +1,9 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Conversation\Services\Tooling\Registry\ToolRegistry;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 

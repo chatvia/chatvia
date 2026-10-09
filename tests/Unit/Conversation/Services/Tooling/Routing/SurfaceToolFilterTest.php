@@ -2,19 +2,19 @@
 
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Services\Tooling\Registry\ToolEntry;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Data\ToolName;
 
 /** A tool entry named the way the registry compiles MCP tools: mcp__{slug}__{tool}. */
 function surfaceToolEntry(string $name): ToolEntry
 {
     return new ToolEntry(
-        kind: str_starts_with($name, 'mcp__') ? 'mcp' : 'function',
+        kind: ToolName::parse($name)->kind,
         sourceId: 'x:'.$name,
         name: $name,
         description: '',
         parameters: [],
-        embedding: null,
     );
 }
 

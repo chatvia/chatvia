@@ -2,14 +2,15 @@
 
 namespace Domain\Integration\Mcp\Services;
 
-use Domain\Conversation\Jobs\EmbedConnectorToolsJob;
-use Domain\Conversation\Jobs\EmbedMcpToolsJob;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpTool;
+use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
+use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -104,7 +105,7 @@ class McpCatalog
 
                 // The compiled name (`mcp__{slug}__{name}`) must satisfy OpenAI's
                 // tool-name regex when ToolRegistry reapplies the prefix.
-                if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/', $server->toolPrefix().$tool['name'])) {
+                if (! ToolName::forMcp((string) $server->slug, $tool['name'])->isValidForLlm()) {
                     continue;
                 }
 
@@ -221,7 +222,7 @@ class McpCatalog
                     continue;
                 }
 
-                if (! preg_match('/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/', $server->toolPrefix().$tool['name'])) {
+                if (! ToolName::forMcp((string) $server->slug, $tool['name'])->isValidForLlm()) {
                     continue;
                 }
 

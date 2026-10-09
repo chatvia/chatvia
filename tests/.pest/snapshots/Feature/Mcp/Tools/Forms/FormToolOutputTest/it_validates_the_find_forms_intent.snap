@@ -1,0 +1,9 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "The intent field is required."
+        }
+    ],
+    "isError": true
+}

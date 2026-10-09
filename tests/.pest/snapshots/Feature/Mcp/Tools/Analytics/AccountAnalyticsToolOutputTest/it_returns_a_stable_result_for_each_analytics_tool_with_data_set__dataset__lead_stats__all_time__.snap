@@ -1,0 +1,20 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "All time: 3 leads captured. Conversion rate 27.3% of 11 conversations."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "all_time",
+            "label": "all time",
+            "start": "2020-01-01",
+            "end": "2026-06-15"
+        },
+        "total_leads": 3,
+        "conversations": 11,
+        "conversion_rate_pct": 27.3
+    }
+}

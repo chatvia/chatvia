@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Analytics\Actions\RecordMcpToolInvocationAction;
-use Domain\Analytics\Events\McpToolInvoked;
+use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 

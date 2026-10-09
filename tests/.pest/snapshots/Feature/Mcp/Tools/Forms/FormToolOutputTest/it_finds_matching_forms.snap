@@ -1,0 +1,19 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Matching forms found. If one fits what the visitor wants, call render-form with its slug; otherwise keep helping without a form."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "forms": [
+            {
+                "slug": "book-a-demo",
+                "name": "Book a demo",
+                "purpose": "Show this when the visitor wants to book a demo.",
+                "already_submitted": false
+            }
+        ]
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Top topic this billing cycle is \"Pricing\" (3 conversations)."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "topics": [
+            {
+                "topic": "Pricing",
+                "conversations": 3
+            }
+        ]
+    }
+}

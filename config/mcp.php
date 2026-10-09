@@ -1,7 +1,7 @@
 <?php
 
-use Domain\Integration\Mcp\Services\Servers\AccountAnalyticsServer;
-use Domain\Integration\Mcp\Services\Servers\ChartsServer;
+use App\Mcp\Servers\AccountAnalyticsServer;
+use App\Mcp\Servers\ChartsServer;
 
 return [
 
@@ -16,7 +16,10 @@ return [
     | (BuiltinToolRouter) instead of shipping every tool to the model each turn.
     |
     | The endpoint is derived as `{app.url}/mcp/{slug}`. `category` is the
-    | McpServerCategory value the global row carries.
+    | McpServerCategory value the global row carries. `class` is the server
+    | that defines the tools; the analytics chat also builds its fallback
+    | toolset from it (AnalyticsToolset), and only these routes accept a
+    | workspace caller (VerifyInternalMcpRequest).
     |
     */
 

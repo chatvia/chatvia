@@ -3,13 +3,14 @@
 declare(strict_types=1);
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Services\Tooling\Routing\SemanticToolRouter;
-use Domain\Conversation\Services\Tooling\Routing\ToolHybridSearch;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
+use Domain\Integration\Tool\Data\ToolSearchHitData;
+use Domain\Integration\Tool\Routing\SemanticToolRouter;
+use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Ingestion\Services\Search\Bm25Tokenizer;
@@ -137,7 +138,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
         DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
 
         foreach ($connector['tools'] as $tool) {
-            // Mirror EmbedMcpToolsAction::executeForConnector — connector context
+            // Mirror EmbedConnectorToolsAction — connector context
             // is embedded alongside the tool so an ambiguous name still carries
             // its brand signal.
             $text = trim($connector['name']."\n".$connector['description']."\n\n".$tool['name']."\n\n".$tool['description']);
@@ -190,7 +191,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
 
         // Pre-gate ranking for the recall/MRR metrics.
         $ranked = $search->search($agent, $case['query'], $queryVector, SemanticToolRouter::MAX_TOOLS);
-        $rankedNames = array_map(static fn (array $r): string => $r['entry']->name, $ranked);
+        $rankedNames = array_map(static fn (ToolSearchHitData $hit): string => $hit->entry->name, $ranked);
 
         // Shipped set via the REAL router (hybrid search → per-scope relevance
         // gate), so the eval always reflects the full live pipeline.

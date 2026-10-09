@@ -1,0 +1,23 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "No response-time data this billing cycle yet."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "current_cycle",
+            "label": "this billing cycle",
+            "start": "2026-06-01",
+            "end": "2026-07-01"
+        },
+        "replies_measured": 0,
+        "avg_response_ms": null,
+        "p50_response_ms": null,
+        "p95_response_ms": null,
+        "max_response_ms": null,
+        "avg_first_response_seconds": null
+    }
+}

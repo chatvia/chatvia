@@ -1,0 +1,49 @@
+{
+    "requests": [
+        {
+            "method": "POST",
+            "url": "https://perplexity.example.test/v1/agent",
+            "authorization": "Bearer pplx-key",
+            "body": {
+                "model": "perplexity/sonar",
+                "input": "Fetch this page: https://example.com/pricing",
+                "tools": [
+                    {
+                        "type": "fetch_url"
+                    }
+                ],
+                "instructions": "Fetch the page at the URL the user provides. If they ask a question about it, answer from the page contents; otherwise return a faithful summary of what the page says."
+            }
+        }
+    ],
+    "result": {
+        "content": [
+            {
+                "type": "text",
+                "text": "Agent says hello.\n\nSources:\n[1] Result A — https://a.example\n[2] Result B — https://b.example\n[3] https://c.example — https://c.example\n[4] Page — https://page.example\n"
+            }
+        ],
+        "isError": false,
+        "structuredContent": {
+            "answer": "Agent says hello.",
+            "citations": [
+                {
+                    "title": "Result A",
+                    "url": "https://a.example"
+                },
+                {
+                    "title": "Result B",
+                    "url": "https://b.example"
+                },
+                {
+                    "title": "",
+                    "url": "https://c.example"
+                },
+                {
+                    "title": "Page",
+                    "url": "https://page.example"
+                }
+            ]
+        }
+    }
+}

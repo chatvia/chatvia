@@ -1,0 +1,9 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "No active form matches \"newsletter\". Call render-form again with one of this agent's exact active slugs: book-a-demo, get-a-quote."
+        }
+    ],
+    "isError": true
+}

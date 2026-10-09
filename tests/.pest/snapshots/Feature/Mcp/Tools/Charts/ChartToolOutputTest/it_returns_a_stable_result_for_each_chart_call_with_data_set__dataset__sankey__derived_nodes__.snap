@@ -1,0 +1,59 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Budget flow."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "item",
+                "triggerOn": "mousemove"
+            },
+            "series": [
+                {
+                    "type": "sankey",
+                    "data": [
+                        {
+                            "name": "Revenue"
+                        },
+                        {
+                            "name": "Costs"
+                        },
+                        {
+                            "name": "Profit"
+                        }
+                    ],
+                    "links": [
+                        {
+                            "source": "Revenue",
+                            "target": "Costs",
+                            "value": 60
+                        },
+                        {
+                            "source": "Revenue",
+                            "target": "Profit",
+                            "value": 40
+                        }
+                    ],
+                    "emphasis": {
+                        "focus": "adjacency"
+                    },
+                    "lineStyle": {
+                        "color": "gradient",
+                        "curveness": 0.5
+                    },
+                    "label": {
+                        "fontSize": 11
+                    }
+                }
+            ],
+            "title": {
+                "text": "Budget",
+                "left": "center"
+            }
+        }
+    }
+}

@@ -122,6 +122,16 @@ theme.
 - Internal tool calls carry a one-time value, so a captured call cannot be
   sent again. Outgoing webhook and tool calls connect to the address that was
   checked, closing a DNS-rebinding gap.
+- The exchange-rate tool sends its API key in a header instead of the URL.
+- Deleting a file source also deletes its stored parse result (OCR pages or
+  transcript). Stored files of attachments and file sources are deleted only
+  after the database delete commits, so a failed delete keeps them.
+- German texts use the formal "Sie" everywhere (some messages used "du").
+- The documentation site builds even when some screenshots are not added yet;
+  a missing screenshot is left out of the page.
+- Text sources always got the extra AI step during ingestion, even with
+  `CHUNKER_ENHANCE=false`. They now follow their own setting,
+  `CHUNKER_ENHANCE_TEXT` (on by default, as before).
 
 ### Tooling
 
@@ -165,3 +175,6 @@ theme.
   `BUILTIN_MCP_ALLOW_MISSING_NONCE=true` for that one deploy, then remove it.
 - The Postmark mailer and the Slack notification channel were removed; they
   were not used. Use SMTP or Resend for mail.
+- ESLint is configured with `typescript-eslint` and `eslint-plugin-vue`
+  directly; `@vue/eslint-config-typescript` was removed (its file scanner
+  pulled in a vulnerable `braces`). The lint rules are unchanged.

@@ -2,8 +2,8 @@
     "requests": [
         {
             "method": "GET",
-            "url": "https://rates.example.test/v6/bad-key/latest/USD",
-            "authorization": null,
+            "url": "https://rates.example.test/v6/latest/USD",
+            "authorization": "Bearer bad-key",
             "body": []
         }
     ],

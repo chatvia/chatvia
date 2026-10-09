@@ -118,13 +118,13 @@ it('hides weather connection errors that carry the key-bearing URL', function ()
 
 function fakeRates(): void
 {
-    Http::fake([
-        'rates.example.test/v6/rates-key/latest/USD' => Http::response([
+    Http::fake(fn (ClientRequest $request) => match ($request->header('Authorization')[0] ?? null) {
+        'Bearer rates-key' => Http::response([
             'result' => 'success',
             'conversion_rates' => ['USD' => 1, 'EUR' => 0.92, 'JPY' => 151.37],
         ]),
-        'rates.example.test/v6/bad-key/latest/USD' => Http::response(['result' => 'error'], 403),
-    ]);
+        default => Http::response(['result' => 'error'], 403),
+    });
 }
 
 dataset('currency calls', [

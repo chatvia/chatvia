@@ -65,13 +65,15 @@ class CurrencyConverter
             return $cached;
         }
 
-        // The provider takes the key in the URL path. Connection errors carry
-        // that URL in their message, so they are swallowed here rather than
-        // surfaced to the model or the logs.
+        // The key goes in a bearer header, never in the URL, so it cannot leak
+        // through request logs or error messages. Connection errors are still
+        // swallowed: the model only needs to know the rates are unavailable.
         $baseUrl = rtrim((string) config('services.exchange_rate.base_url'), '/');
 
         try {
-            $response = Http::timeout(10)->get($baseUrl.'/'.rawurlencode($apiKey).'/latest/'.self::BASE_CURRENCY);
+            $response = Http::timeout(10)
+                ->withToken($apiKey)
+                ->get($baseUrl.'/latest/'.self::BASE_CURRENCY);
         } catch (Throwable) {
             return null;
         }

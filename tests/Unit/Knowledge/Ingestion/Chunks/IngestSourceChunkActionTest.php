@@ -65,7 +65,7 @@ it('does not enhance file chunks when enhancement is off', function (): void {
     Bus::assertNothingDispatched();
 });
 
-it('always enhances text sources and reports their progress', function (): void {
+it('enhances text sources by default, even with file enhancement off, and reports their progress', function (): void {
     config(['chatvia.ai.chunker.enhance' => false]);
 
     $agent = Agent::factory()->create();
@@ -82,6 +82,25 @@ it('always enhances text sources and reports their progress', function (): void 
 
     Event::assertDispatched(TextIngestionProgressed::class);
     Bus::assertDispatched(TextEnhanceChunkJob::class);
+});
+
+it('does not enhance text sources when text enhancement is off', function (): void {
+    config(['chatvia.ai.chunker.enhance' => true, 'chatvia.ai.chunker.enhance_text' => false]);
+
+    $agent = Agent::factory()->create();
+    $text = SourceText::query()->create([
+        'user_id' => $agent->user_id,
+        'filepath' => 'users/x/agents/y/train/text/b.txt',
+        'excerpt' => 'excerpt',
+        'length' => 1,
+        'checksum' => md5(uniqid()),
+        'status' => SourceStatus::Processing,
+    ]);
+
+    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $text, iscPage('Other text')));
+
+    Event::assertDispatched(TextIngestionProgressed::class);
+    Bus::assertNotDispatched(TextEnhanceChunkJob::class);
 });
 
 it('skips a duplicate page: no progress event, no enhancement', function (): void {

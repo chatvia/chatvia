@@ -4,6 +4,10 @@ Drop PNG/JPG files here using the filenames referenced from the docs (see the
 `![SCREENSHOT — ...](/screenshots/<file>.png)` placeholders throughout
 `docs/guide/**`, `docs/embed/**`, and `docs/api/**`).
 
+A placeholder whose file is not here yet is left out of the built page (see
+`markdown.config` in `docs/.vitepress/config.ts`), so the build never fails on
+a missing screenshot. Add the file and it appears on the next build.
+
 Recommended capture settings:
 
 - Width: **1440px** (matches most VitePress content widths)

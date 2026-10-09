@@ -223,7 +223,7 @@
                 "appearance_composer_placeholder": "Stellen Sie eine Frage...",
                 "appearance_privacy_url": "URL der Datenschutzerklärung",
                 "appearance_privacy_url_placeholder": "https://example.com/privacy",
-                "appearance_privacy_url_hint": "Wird Besuchern angezeigt als „Indem du chattest, stimmst du unserer Datenschutzerklärung zu.“ Leer lassen, um es auszublenden."
+                "appearance_privacy_url_hint": "Wird Besuchern angezeigt als „Indem Sie chatten, stimmen Sie unserer Datenschutzerklärung zu.“ Leer lassen, um es auszublenden."
             }
         }
     }

@@ -89,7 +89,7 @@
                 "description": "Diese Einladungen warten noch auf eine Annahme.",
                 "resend": "Erneut senden",
                 "toast_resent": "Einladung erneut gesendet.",
-                "toast_resend_failed": "Die Einladung konnte nicht erneut gesendet werden. Bitte versuche es erneut.",
+                "toast_resend_failed": "Die Einladung konnte nicht erneut gesendet werden. Bitte versuchen Sie es erneut.",
                 "table": {
                     "email": "E-Mail",
                     "sent": "Gesendet"
@@ -107,7 +107,7 @@
                 "send_invitation": "Einladung senden",
                 "toast_invite_sent": "Einladung an {email} gesendet.",
                 "toast_member_added": "Teammitglied hinzugefügt.",
-                "toast_failed": "Das Teammitglied konnte nicht hinzugefügt werden. Bitte versuche es erneut."
+                "toast_failed": "Das Teammitglied konnte nicht hinzugefügt werden. Bitte versuchen Sie es erneut."
             },
             "role_members": {
                 "title": "{name}-Mitglieder",

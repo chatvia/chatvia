@@ -373,7 +373,14 @@ return [
         ],
 
         'chunker' => [
+            // An extra AI step per chunk (a summary and likely questions,
+            // then a new embedding) for uploaded files and crawled pages.
+            // One model call per chunk, so it is off by default.
             'enhance' => env('CHUNKER_ENHANCE', false),
+            // The same step for text sources. Pasted texts are short, so it
+            // costs little and is on by default. Turn both off to ingest
+            // without any model calls.
+            'enhance_text' => env('CHUNKER_ENHANCE_TEXT', true),
         ],
     ],
 

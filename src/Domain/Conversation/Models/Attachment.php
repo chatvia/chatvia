@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Support\Concerns\HasExternalId;
@@ -23,7 +24,7 @@ use Throwable;
  * Stored on the public object-storage disk so Mistral and other URL-consuming
  * MCP tools can fetch the file directly. Deleting a row (including via the
  * conversation cascade in {@see Conversation::booted}) wipes the
- * underlying S3 object through the `deleting` event.
+ * underlying S3 object once the delete commits.
  *
  * @property int $id
  * @property string $external_id
@@ -98,23 +99,30 @@ class Attachment extends Model
 
     /**
      * Wipe the S3 object whenever a row is deleted — including via the
-     * conversation cascade triggered in {@see Conversation::booted}.
+     * conversation cascade triggered in {@see Conversation::booted}. The
+     * object goes only once the delete commits (at once when there is no
+     * transaction), so a rolled-back delete keeps the file its row points to.
      */
     protected static function booted(): void
     {
-        static::deleting(static function (Attachment $attachment): void {
-            try {
-                Storage::disk(self::DISK)->delete($attachment->filepath);
-            } catch (Throwable $e) {
-                // Don't block the DB delete on a remote-storage failure —
-                // the daily prune cron will sweep orphaned objects.
-                Log::warning('Failed to delete chat attachment object', [
-                    'attachment_id' => $attachment->id,
-                    'filepath' => $attachment->filepath,
-                    'exception' => $e::class,
-                    'message' => $e->getMessage(),
-                ]);
-            }
+        static::deleted(static function (Attachment $attachment): void {
+            $id = $attachment->id;
+            $filepath = $attachment->filepath;
+
+            DB::afterCommit(static function () use ($id, $filepath): void {
+                try {
+                    Storage::disk(self::DISK)->delete($filepath);
+                } catch (Throwable $e) {
+                    // A remote-storage failure must not surface after the
+                    // rows are gone; the daily prune sweeps orphaned objects.
+                    Log::warning('Failed to delete chat attachment object', [
+                        'attachment_id' => $id,
+                        'filepath' => $filepath,
+                        'exception' => $e::class,
+                        'message' => $e->getMessage(),
+                    ]);
+                }
+            });
         });
     }
 }

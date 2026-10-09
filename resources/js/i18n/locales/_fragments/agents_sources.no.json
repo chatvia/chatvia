@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Koblinger"
             },
-            "overview": {
-                "coming_soon": "{type} kommer snart",
-                "under_development": "Denne funksjonen er under utvikling.",
-                "files": {
-                    "label": "Filer",
-                    "description": "Last opp og administrer dokumenter (PDF, Word osv.)"
-                },
-                "text": {
-                    "label": "Tekst",
-                    "description": "Legg til egendefinert tekstinnhold og notater direkte"
-                },
-                "web": {
-                    "label": "Nettside",
-                    "description": "Hent innhold fra nettsider for kunnskapsbasen"
-                },
-                "audio": {
-                    "label": "Lyd",
-                    "description": "Last opp lydfiler og podkaster for transkripsjon"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Last opp videofiler for transkripsjon og analyse"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importer YouTube-videoer og hent ut transkripsjoner"
-                },
-                "qa": {
-                    "label": "Spørsmål og svar",
-                    "description": "Lag svar på viktige spørsmål"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Opptak lastet opp!",
                 "recording_uploaded_description": "«{name}» er lagt til i lydkildene dine.",
@@ -195,8 +163,6 @@
                 "update_failed": "Kunne ikke oppdatere spørsmål og svar-oppføring",
                 "deleted": "Spørsmål og svar-oppføring slettet",
                 "delete_failed": "Kunne ikke slette spørsmål og svar-oppføring",
-                "unlinked": "Spørsmål og svar-oppføring koblet fra",
-                "unlink_failed": "Kunne ikke koble fra spørsmål og svar-oppføring",
                 "load_entries_failed": "Kunne ikke laste spørsmål og svar-oppføringer",
                 "status": {
                     "ingested": "Innhentet",
@@ -223,7 +189,6 @@
                 "question_prefix": "S{number}:",
                 "edit_action": "Rediger",
                 "created_at": "Opprettet {date}",
-                "used_by_agents": "Brukt av {count} agenter",
                 "delete_title": "Slett spørsmål og svar-oppføring",
                 "delete_description": "Er du sikker på at du vil slette denne spørsmål og svar-oppføringen? Denne handlingen kan ikke angres."
             },

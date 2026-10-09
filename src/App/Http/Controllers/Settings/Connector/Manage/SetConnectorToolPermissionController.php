@@ -17,13 +17,12 @@ class SetConnectorToolPermissionController
     public function __invoke(
         SetConnectorToolPermissionRequest $request,
         string $slug,
-        int $tool,
         SetMcpToolPermissionAction $set,
     ): McpToolPermissionData {
         $server = AgentMcpServer::forSlugScoped($slug, $request->user());
 
         try {
-            return $set->execute($server, $tool, $request->permission());
+            return $set->execute($server, $request->toData());
         } catch (McpToolNotFoundException) {
             abort(404);
         }

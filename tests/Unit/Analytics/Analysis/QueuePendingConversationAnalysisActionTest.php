@@ -39,3 +39,17 @@ it('queues only old conversations that are not analysed yet', function (): void 
     Queue::assertPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($pending));
     Queue::assertNotPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($tooYoung) || $job->conversation->is($analysed));
 });
+
+it('stops queueing a conversation once its analysis attempts are used up', function (): void {
+    Queue::fake();
+    config(['chatvia.analytics.analysis.scan_age_hours' => 6, 'chatvia.analytics.analysis.max_attempts' => 3]);
+    $agent = Agent::factory()->create();
+
+    $retry = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(9), 'analysis_attempts' => 2]);
+    $exhausted = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(9), 'analysis_attempts' => 3]);
+
+    app(QueuePendingConversationAnalysisAction::class)->execute();
+
+    Queue::assertPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($retry));
+    Queue::assertNotPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($exhausted));
+});

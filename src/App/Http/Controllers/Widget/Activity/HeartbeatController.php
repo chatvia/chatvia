@@ -37,7 +37,7 @@ readonly class HeartbeatController
 
         // The conversation must belong to this session and agent, or anyone
         // with a guessed id could move another visitor's activity time.
-        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $agent);
+        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $agent, $this->widgetUser($request));
 
         if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);

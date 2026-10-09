@@ -11,6 +11,7 @@ use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 
 /**
  * AnalyzeConversationAction is the end-of-life pass: one LLM call over the full
@@ -229,8 +230,36 @@ it('leaves the conversation pending when the model output cannot be parsed', fun
 
     $conversation->refresh();
     expect($conversation->analyzed_at)->toBeNull()
+        ->and($conversation->analysis_attempts)->toBe(1)
         ->and($conversation->sentiment)->toBeNull()
         ->and($conversation->tone)->toBeNull()
         ->and(ConversationTopic::query()->where('chat_conversation_id', $conversation->id)->exists())->toBeFalse();
     Event::assertNotDispatched(ConversationTopicAssigned::class);
+});
+
+it('counts every run that calls the model, also one that throws', function (): void {
+    $agent = proPlanAgent();
+    $conversation = conversationFor($agent);
+
+    Http::fake(['*' => Http::failedConnection()]);
+    config(['services.scalewayai.api_key' => 'test-key']);
+
+    try {
+        app(AnalyzeConversationAction::class)->execute($conversation);
+    } catch (Throwable) {
+        // A provider outage may surface as an exception or as a null analysis.
+    }
+
+    expect($conversation->refresh()->analysis_attempts)->toBe(1)
+        ->and($conversation->analyzed_at)->toBeNull();
+});
+
+it('does not count a conversation with nothing to analyse', function (): void {
+    $agent = proPlanAgent();
+    $conversation = conversationFor($agent, userMessages: 0);
+
+    app(AnalyzeConversationAction::class)->execute($conversation);
+
+    expect($conversation->refresh()->analysis_attempts)->toBe(0)
+        ->and($conversation->analyzed_at)->not->toBeNull();
 });

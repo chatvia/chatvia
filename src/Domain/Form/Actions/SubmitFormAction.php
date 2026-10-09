@@ -3,6 +3,7 @@
 namespace Domain\Form\Actions;
 
 use Domain\Conversation\Models\Message;
+use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Data\FormSubmitResultData;
 use Domain\Form\Data\SubmitFormData;
 use Domain\Form\Enums\FormSubmissionStatus;
@@ -26,6 +27,9 @@ use Illuminate\Support\Facades\DB;
 class SubmitFormAction
 {
     private const string DEFAULT_SUCCESS_MESSAGE = 'Thanks — your details have been received.';
+
+    /** The capture path, as the CRM payload names it. */
+    private const string SOURCE = 'form';
 
     public function execute(SubmitFormData $data): FormSubmitResultData
     {
@@ -118,17 +122,17 @@ class SubmitFormAction
     {
         $agent = $claimed->agent;
 
-        FormSubmitted::dispatch(
-            $agent->id,
-            $agent->user_id,
-            $claimed->id,
-            $definition->slug,
-            $definition->form_type->value,
-            $data->conversation->external_id,
-            true,
-            'form',
-            $values,
-        );
+        FormSubmitted::dispatch(new CapturedSubmissionData(
+            agentId: $agent->id,
+            workspaceId: $agent->user_id,
+            submissionId: $claimed->id,
+            formSlug: $definition->slug,
+            formType: $definition->form_type,
+            conversationExternalId: $data->conversation->external_id,
+            created: true,
+            source: self::SOURCE,
+            values: $values,
+        ));
     }
 
     /**

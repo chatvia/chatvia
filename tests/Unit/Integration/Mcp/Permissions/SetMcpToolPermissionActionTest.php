@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Actions\Permissions\SetMcpToolPermissionAction;
+use Domain\Integration\Mcp\Data\McpToolPermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Exceptions\McpToolNotFoundException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -46,7 +47,7 @@ function smtServerWithTool(McpToolPermission $startPermission = McpToolPermissio
 it('transitions Allow → Approval', function (): void {
     [$server, $tool] = smtServerWithTool(McpToolPermission::Allow);
 
-    $result = app(SetMcpToolPermissionAction::class)->execute($server, $tool->id, McpToolPermission::Approval);
+    $result = app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($tool->id, McpToolPermission::Approval));
 
     expect($result->permission)->toBe(McpToolPermission::Approval)
         ->and($tool->refresh()->permission)->toBe(McpToolPermission::Approval);
@@ -55,7 +56,7 @@ it('transitions Allow → Approval', function (): void {
 it('transitions Approval → Blocked', function (): void {
     [$server, $tool] = smtServerWithTool(McpToolPermission::Approval);
 
-    $result = app(SetMcpToolPermissionAction::class)->execute($server, $tool->id, McpToolPermission::Blocked);
+    $result = app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($tool->id, McpToolPermission::Blocked));
 
     expect($result->permission)->toBe(McpToolPermission::Blocked)
         ->and($tool->refresh()->permission)->toBe(McpToolPermission::Blocked);
@@ -64,7 +65,7 @@ it('transitions Approval → Blocked', function (): void {
 it('transitions Blocked → Allow', function (): void {
     [$server, $tool] = smtServerWithTool(McpToolPermission::Blocked);
 
-    $result = app(SetMcpToolPermissionAction::class)->execute($server, $tool->id, McpToolPermission::Allow);
+    $result = app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($tool->id, McpToolPermission::Allow));
 
     expect($result->permission)->toBe(McpToolPermission::Allow);
 });
@@ -73,7 +74,7 @@ it('throws McpToolNotFoundException for a tool id that belongs to a DIFFERENT se
     [$server] = smtServerWithTool();
     [, $otherTool] = smtServerWithTool();
 
-    expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, $otherTool->id, McpToolPermission::Blocked))
+    expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($otherTool->id, McpToolPermission::Blocked)))
         ->toThrow(McpToolNotFoundException::class);
 
     expect($otherTool->refresh()->permission)->not->toBe(McpToolPermission::Blocked);
@@ -112,7 +113,7 @@ function smtPresetServerWithTool(McpToolPermission $startPermission = McpToolPer
 it('flips the membership permission for a preset connector tool', function (): void {
     [$server, $catalogTool] = smtPresetServerWithTool(McpToolPermission::Approval);
 
-    $result = app(SetMcpToolPermissionAction::class)->execute($server, $catalogTool->id, McpToolPermission::Blocked);
+    $result = app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($catalogTool->id, McpToolPermission::Blocked));
 
     expect($result->id)->toBe($catalogTool->id)
         ->and($result->permission)->toBe(McpToolPermission::Blocked)
@@ -124,6 +125,6 @@ it('throws for a connector tool the preset server does not advertise (no members
     [$server] = smtPresetServerWithTool();
     $foreignCatalogTool = ConnectorTool::factory()->create(['connector_slug' => 'leads', 'name' => 'other_tool']);
 
-    expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, $foreignCatalogTool->id, McpToolPermission::Blocked))
+    expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($foreignCatalogTool->id, McpToolPermission::Blocked)))
         ->toThrow(McpToolNotFoundException::class);
 })->skip(fn (): bool => ! Schema::hasTable('mcp_server_tool') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog'), 'schema out of date — run migrate:fresh.');

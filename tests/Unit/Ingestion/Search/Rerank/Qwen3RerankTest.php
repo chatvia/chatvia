@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
@@ -36,7 +37,7 @@ test('posts the expected envelope to the Scaleway rerank endpoint', function ():
         && $request['documents'] === ['a', 'b']);
 });
 
-test('maps Scaleway results to {index, relevance_score} pairs preserving order', function (): void {
+test('maps Scaleway results to typed index and score pairs preserving order', function (): void {
     Http::fake([
         '*rerank' => Http::response([
             'results' => [
@@ -49,10 +50,10 @@ test('maps Scaleway results to {index, relevance_score} pairs preserving order',
 
     $reranked = (new Qwen3Reranker)->rerank('q', ['a', 'b', 'c']);
 
-    expect($reranked)->toBe([
-        ['index' => 2, 'relevance_score' => 0.95],
-        ['index' => 0, 'relevance_score' => 0.71],
-        ['index' => 1, 'relevance_score' => 0.55],
+    expect($reranked)->toEqual([
+        new RerankedDocumentData(2, 0.95),
+        new RerankedDocumentData(0, 0.71),
+        new RerankedDocumentData(1, 0.55),
     ]);
 });
 

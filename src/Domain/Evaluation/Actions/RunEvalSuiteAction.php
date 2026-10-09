@@ -4,7 +4,8 @@ namespace Domain\Evaluation\Actions;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Contracts\Entitlements;
+use Domain\Billing\Enums\MessageAdmission;
+use Domain\Billing\Services\MessageSendGate;
 use Domain\Evaluation\Enums\EvalRunStatus;
 use Domain\Evaluation\Events\EvalRunProgressed;
 use Domain\Evaluation\Jobs\ScoreEvalCaseJob;
@@ -23,20 +24,16 @@ use Support\Exceptions\DomainValidationException;
 class RunEvalSuiteAction
 {
     public function __construct(
-        private readonly Entitlements $entitlements,
+        private readonly MessageSendGate $sendGate,
         private readonly FinalizeEvalRunAction $finalize,
     ) {}
 
     /**
-     * @throws DomainValidationException when the workspace has no message credits left
+     * @throws DomainValidationException when the workspace may not send messages (no active billing, or no credits left)
      */
     public function execute(Agent $agent, ?User $triggeredBy = null): EvalRun
     {
-        // Evals bill like live chat — one message per scored case — so a
-        // workspace that can't send messages can't start a suite either.
-        if (! $this->entitlements->hasMessageCapacity($agent->user_id)) {
-            throw new DomainValidationException('run', __('No message credits left — every eval case costs one message. Top up or upgrade to run the suite.'));
-        }
+        $this->ensureWorkspaceMaySendMessages($agent);
 
         $cases = EvalCase::query()
             ->forAgent($agent->id)
@@ -89,5 +86,21 @@ class RunEvalSuiteAction
         $run->update(['batch_id' => $batch->id]);
 
         return $run->refresh();
+    }
+
+    /**
+     * Evals bill like live chat — one message per scored case — so they ask
+     * the same send gate as the chat paths: a workspace that could not get a
+     * chat reply cannot start a suite either.
+     *
+     * @throws DomainValidationException
+     */
+    private function ensureWorkspaceMaySendMessages(Agent $agent): void
+    {
+        match ($this->sendGate->admit($agent->user)) {
+            MessageAdmission::Allowed => null,
+            MessageAdmission::SubscriptionInactive => throw new DomainValidationException('run', __('Your subscription has expired. Renew it to run the suite.')),
+            MessageAdmission::CreditsExhausted => throw new DomainValidationException('run', __('No message credits left — every eval case costs one message. Top up or upgrade to run the suite.')),
+        };
     }
 }

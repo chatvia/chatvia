@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "कनेक्टर"
             },
-            "overview": {
-                "coming_soon": "{type} जल्द ही आ रहा है",
-                "under_development": "यह सुविधा वर्तमान में विकास के अधीन है।",
-                "files": {
-                    "label": "फ़ाइलें",
-                    "description": "दस्तावेज़ अपलोड और प्रबंधित करें (PDF, Word, आदि)"
-                },
-                "text": {
-                    "label": "टेक्स्ट",
-                    "description": "कस्टम टेक्स्ट सामग्री और नोट्स सीधे जोड़ें"
-                },
-                "web": {
-                    "label": "वेबसाइट",
-                    "description": "नॉलेज के लिए वेबसाइट और वेब पेज क्रॉल करें"
-                },
-                "audio": {
-                    "label": "ऑडियो",
-                    "description": "ट्रांसक्रिप्शन के लिए ऑडियो फ़ाइलें और पॉडकास्ट अपलोड करें"
-                },
-                "video": {
-                    "label": "वीडियो",
-                    "description": "ट्रांसक्रिप्शन और विश्लेषण के लिए वीडियो फ़ाइलें अपलोड करें"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "YouTube वीडियो इम्पोर्ट करें और ट्रांसक्रिप्ट निकालें"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "मुख्य प्रश्नों के लिए जवाब तैयार करें"
-                }
-            },
             "audio": {
                 "recording_uploaded": "रिकॉर्डिंग सफलतापूर्वक अपलोड हुई!",
                 "recording_uploaded_description": "\"{name}\" को आपके ऑडियो स्रोतों में जोड़ दिया गया है।",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Q&A प्रविष्टि अपडेट करने में विफल",
                 "deleted": "Q&A प्रविष्टि सफलतापूर्वक हटाई गई",
                 "delete_failed": "Q&A प्रविष्टि हटाने में विफल",
-                "unlinked": "Q&A प्रविष्टि सफलतापूर्वक अनलिंक की गई",
-                "unlink_failed": "Q&A प्रविष्टि अनलिंक करने में विफल",
                 "load_entries_failed": "Q&A प्रविष्टियाँ लोड करने में विफल",
                 "status": {
                     "ingested": "इंजेस्ट किया गया",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "Q{number}:",
                 "edit_action": "संपादित करें",
                 "created_at": "{date} को बनाया गया",
-                "used_by_agents": "{count} एजेंट द्वारा उपयोग किया गया",
                 "delete_title": "Q&A प्रविष्टि हटाएं",
                 "delete_description": "क्या आप वाकई इस Q&A प्रविष्टि को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
                 "remove_question": "प्रश्न हटाएँ",
@@ -1664,10 +1629,8 @@
                 "colors_error": "रंग सहेजे नहीं जा सके",
                 "avatar_updated": "अवतार अपडेट किया गया",
                 "logo_updated": "लोगो अपडेट किया गया",
-                "upload_error": "{key} अपलोड नहीं किया जा सका",
                 "avatar_removed": "अवतार हटाया गया",
                 "logo_removed": "लोगो हटा दिया गया",
-                "remove_error": "{key} को हटाया नहीं जा सका",
                 "hosted_saved": "Hosted Chat व्यवहार सहेजा गया",
                 "widget_saved": "Chat Widget व्यवहार सहेजा गया",
                 "bar_saved": "Command Bar व्यवहार सहेजा गया",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "गोपनीयता नीति लिंक सहेजा नहीं जा सका",
                 "branding_saved": "ब्रांडिंग अपडेट की गई",
                 "languages_saved": "भाषाएं सहेजी गईं",
-                "languages_error": "भाषाएं सहेजी नहीं जा सकीं"
+                "languages_error": "भाषाएं सहेजी नहीं जा सकीं",
+                "avatar_upload_error": "अवतार अपलोड नहीं किया जा सका",
+                "logo_upload_error": "लोगो अपलोड नहीं किया जा सका",
+                "avatar_remove_error": "अवतार को हटाया नहीं जा सका",
+                "logo_remove_error": "लोगो को हटाया नहीं जा सका"
             },
             "settings": {
                 "composer_title": "कंपोज़र विकल्प",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "रंग की तीव्रता",
             "light": "हल्का",
-            "dark": "गहरा"
+            "dark": "गहरा",
+            "colors": {
+                "black": "काला",
+                "red": "लाल",
+                "orange": "नारंगी",
+                "amber": "अंबर",
+                "yellow": "पीला",
+                "lime": "नींबू हरा",
+                "green": "हरा",
+                "emerald": "पन्ना",
+                "teal": "हरा-नीला",
+                "cyan": "सियान",
+                "sky": "आसमानी",
+                "blue": "नीला",
+                "indigo": "नील",
+                "violet": "बैंगनी",
+                "purple": "जामुनी",
+                "fuchsia": "फ़ुशिया",
+                "pink": "गुलाबी",
+                "rose": "गुलाब",
+                "slate": "स्लेटी",
+                "gray": "धूसर",
+                "zinc": "ज़िंक",
+                "neutral": "तटस्थ",
+                "stone": "पत्थर"
+            }
         },
         "color_theme_picker": {
             "title": "रंग थीम चुनें",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "स्वचालित",
             "outcome_approved": "स्वीकृत",
             "outcome_denied": "अस्वीकृत",
-            "outcome_rate_limited": "दर सीमित"
+            "outcome_rate_limited": "दर सीमित",
+            "outcome_not_offered": "पेश नहीं किया गया"
         },
         "attach_file": {
             "title": "पहले से प्रशिक्षित फ़ाइलों में से चुनें",

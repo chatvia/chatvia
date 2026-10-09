@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Nie można przesłać awatara",
+                "logo_upload_error": "Nie można przesłać logo",
+                "avatar_remove_error": "Nie można usunąć awatara",
+                "logo_remove_error": "Nie można usunąć logo"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Czarny",
+                "red": "Czerwony",
+                "orange": "Pomarańczowy",
+                "amber": "Bursztynowy",
+                "yellow": "Żółty",
+                "lime": "Limonkowy",
+                "green": "Zielony",
+                "emerald": "Szmaragdowy",
+                "teal": "Morski",
+                "cyan": "Cyjan",
+                "sky": "Błękitny",
+                "blue": "Niebieski",
+                "indigo": "Indygo",
+                "violet": "Fioletowy",
+                "purple": "Purpurowy",
+                "fuchsia": "Fuksja",
+                "pink": "Różowy",
+                "rose": "Różany",
+                "slate": "Łupkowy",
+                "gray": "Szary",
+                "zinc": "Cynkowy",
+                "neutral": "Neutralny",
+                "stone": "Kamienny"
+            }
+        }
+    }
+}

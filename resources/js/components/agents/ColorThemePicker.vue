@@ -39,22 +39,26 @@ function applyAndClose(): void {
 </script>
 
 <template>
-    <div
-        class="relative inline-block"
+    <button
+        type="button"
+        class="focus-visible:ring-ring/50 relative inline-block rounded-lg outline-none focus-visible:ring-[3px]"
         :class="props.disabled ? 'pointer-events-none opacity-60' : 'cursor-pointer'"
-        @click="props.disabled || (open = true)"
+        :disabled="props.disabled"
+        :aria-label="t('shared.color_theme_picker.title')"
+        aria-haspopup="dialog"
+        @click="open = true"
     >
-        <div
-            class="border-border h-20 w-20 rounded-lg border-2 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md"
+        <span
+            class="border-border block h-20 w-20 rounded-lg border-2 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md"
             :style="{ backgroundColor: `var(--${props.theme}-${activeShade})` }"
         >
-            <div class="flex h-full items-center justify-center">
-                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg">
-                    <div class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${props.theme}-${activeShade})` }"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <span class="flex h-full items-center justify-center">
+                <span class="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-lg">
+                    <span class="h-6 w-6 rounded-full" :style="{ backgroundColor: `var(--${props.theme}-${activeShade})` }"></span>
+                </span>
+            </span>
+        </span>
+    </button>
 
     <Dialog v-model:open="open">
         <DialogContent class="max-w-2xl">

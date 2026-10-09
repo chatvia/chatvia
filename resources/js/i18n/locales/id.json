@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Konektor"
             },
-            "overview": {
-                "coming_soon": "{type} Segera Hadir",
-                "under_development": "Fitur ini sedang dalam pengembangan.",
-                "files": {
-                    "label": "Berkas",
-                    "description": "Unggah dan kelola dokumen (PDF, Word, dll.)"
-                },
-                "text": {
-                    "label": "Teks",
-                    "description": "Tambahkan konten teks kustom dan catatan secara langsung"
-                },
-                "web": {
-                    "label": "Situs Web",
-                    "description": "Jelajahi situs web dan halaman web untuk pengetahuan"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Unggah file audio dan podcast untuk transkripsi"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Unggah file video untuk transkripsi dan analisis"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Impor video YouTube dan ekstrak transkrip"
-                },
-                "qa": {
-                    "label": "Tanya Jawab",
-                    "description": "Susun jawaban untuk pertanyaan-pertanyaan penting"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Rekaman berhasil diunggah!",
                 "recording_uploaded_description": "\"{name}\" telah ditambahkan ke sumber audio Anda.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Gagal memperbarui entri Tanya Jawab",
                 "deleted": "Entri Tanya Jawab berhasil dihapus",
                 "delete_failed": "Gagal menghapus entri Tanya Jawab",
-                "unlinked": "Entri Tanya Jawab berhasil diputus tautannya",
-                "unlink_failed": "Gagal memutus tautan entri Tanya Jawab",
                 "load_entries_failed": "Gagal memuat entri Tanya Jawab",
                 "status": {
                     "ingested": "Telah Dicerna",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "P{number}:",
                 "edit_action": "Edit",
                 "created_at": "Dibuat {date}",
-                "used_by_agents": "Digunakan oleh {count} agen",
                 "delete_title": "Hapus Entri Q&A",
                 "delete_description": "Apakah Anda yakin ingin menghapus entri Q&A ini? Tindakan ini tidak dapat dibatalkan.",
                 "remove_question": "Hapus pertanyaan",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Tidak dapat menyimpan warna",
                 "avatar_updated": "Avatar diperbarui",
                 "logo_updated": "Logo diperbarui",
-                "upload_error": "Tidak dapat mengunggah {key}",
                 "avatar_removed": "Avatar dihapus",
                 "logo_removed": "Logo dihapus",
-                "remove_error": "Tidak dapat menghapus {key}",
                 "hosted_saved": "Perilaku Hosted Chat disimpan",
                 "widget_saved": "Perilaku Chat Widget disimpan",
                 "bar_saved": "Perilaku Command Bar disimpan",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Tidak dapat menyimpan tautan kebijakan privasi",
                 "branding_saved": "Branding diperbarui",
                 "languages_saved": "Bahasa disimpan",
-                "languages_error": "Tidak dapat menyimpan bahasa"
+                "languages_error": "Tidak dapat menyimpan bahasa",
+                "avatar_upload_error": "Tidak dapat mengunggah avatar",
+                "logo_upload_error": "Tidak dapat mengunggah logo",
+                "avatar_remove_error": "Tidak dapat menghapus avatar",
+                "logo_remove_error": "Tidak dapat menghapus logo"
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Intensitas Warna",
             "light": "Terang",
-            "dark": "Gelap"
+            "dark": "Gelap",
+            "colors": {
+                "black": "Hitam",
+                "red": "Merah",
+                "orange": "Oranye",
+                "amber": "Amber",
+                "yellow": "Kuning",
+                "lime": "Limau",
+                "green": "Hijau",
+                "emerald": "Zamrud",
+                "teal": "Hijau toska",
+                "cyan": "Sian",
+                "sky": "Biru langit",
+                "blue": "Biru",
+                "indigo": "Nila",
+                "violet": "Violet",
+                "purple": "Ungu",
+                "fuchsia": "Fuchsia",
+                "pink": "Merah muda",
+                "rose": "Mawar",
+                "slate": "Batu tulis",
+                "gray": "Abu-abu",
+                "zinc": "Seng",
+                "neutral": "Netral",
+                "stone": "Batu"
+            }
         },
         "color_theme_picker": {
             "title": "Pilih Tema Warna",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "otomatis",
             "outcome_approved": "disetujui",
             "outcome_denied": "ditolak",
-            "outcome_rate_limited": "dibatasi laju"
+            "outcome_rate_limited": "dibatasi laju",
+            "outcome_not_offered": "tidak ditawarkan"
         },
         "attach_file": {
             "title": "Pilih dari File yang Sudah Dilatih",

@@ -2,9 +2,12 @@
 
 namespace Domain\Integration\Mcp\Data;
 
+use Domain\Integration\Tool\Data\ToolDispatchResult;
+
 /**
  * A `tools/call` result envelope (`{content, isError?, structuredContent?}`)
- * split into what the model reads and what the chat UI renders:
+ * split into what the model reads and what the chat UI renders. McpClient
+ * builds it from the server's reply, so the envelope is parsed in one place:
  *
  *   - `text`      → the `type: 'text'` parts of `content`, joined; a JSON dump
  *                   of the whole envelope when there are none.
@@ -40,6 +43,17 @@ final readonly class McpToolResultData
             isError: (bool) ($envelope['isError'] ?? false),
             structuredContent: is_array($envelope['structuredContent'] ?? null) ? $envelope['structuredContent'] : null,
         );
+    }
+
+    /**
+     * As the tool layer's result: the text plus the renderable blocks, or a
+     * recoverable error carrying the tool's own error text.
+     */
+    public function toDispatchResult(): ToolDispatchResult
+    {
+        return $this->isError
+            ? ToolDispatchResult::error($this->text)
+            : new ToolDispatchResult($this->text, $this->artifacts());
     }
 
     /**

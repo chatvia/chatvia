@@ -5,6 +5,7 @@ namespace Domain\Integration\Tool\Routing;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -94,7 +95,7 @@ class ToolRelevanceGate
      * Keep the candidates whose reranker score clears their scope's bar.
      *
      * @param  array<int, ToolEntry>  $pool
-     * @param  list<array{index: int, relevance_score: float}>  $ranked
+     * @param  list<RerankedDocumentData>  $ranked
      * @return array<int, ToolEntry>
      */
     private function keepRelevant(array $pool, array $ranked): array
@@ -111,13 +112,13 @@ class ToolRelevanceGate
         $dropped = [];
 
         foreach ($ranked as $item) {
-            $entry = $pool[$item['index']] ?? null;
+            $entry = $pool[$item->index] ?? null;
             if ($entry === null) {
                 continue;
             }
 
             $bar = $entry->mutates ? $writeThreshold : $readThreshold;
-            $score = (float) $item['relevance_score'];
+            $score = $item->relevanceScore;
 
             if ($score >= $bar) {
                 $kept[] = $entry;

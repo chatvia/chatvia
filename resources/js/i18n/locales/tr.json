@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Bağlayıcılar"
             },
-            "overview": {
-                "coming_soon": "{type} Yakında",
-                "under_development": "Bu özellik şu anda geliştirilme aşamasında.",
-                "files": {
-                    "label": "Dosyalar",
-                    "description": "Belgeleri yükleyin ve yönetin (PDF, Word vb.)"
-                },
-                "text": {
-                    "label": "Metin",
-                    "description": "Özel metin içeriği ve notları doğrudan ekleyin"
-                },
-                "web": {
-                    "label": "Web sitesi",
-                    "description": "Bilgi için web sitelerini ve web sayfalarını tarayın"
-                },
-                "audio": {
-                    "label": "Ses",
-                    "description": "Transkripsiyon için ses dosyaları ve podcast'ler yükleyin"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Transkripsiyon ve analiz için video dosyaları yükleyin"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "YouTube videolarını içe aktarın ve transkriptleri çıkarın"
-                },
-                "qa": {
-                    "label": "Soru-Cevap",
-                    "description": "Önemli sorular için yanıtlar hazırlayın"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Kayıt başarıyla yüklendi!",
                 "recording_uploaded_description": "\"{name}\" ses kaynaklarınıza eklendi.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Soru-Cevap girişi güncellenemedi",
                 "deleted": "Soru-Cevap girişi başarıyla silindi",
                 "delete_failed": "Soru-Cevap girişi silinemedi",
-                "unlinked": "Soru-Cevap girişinin bağlantısı başarıyla kaldırıldı",
-                "unlink_failed": "Soru-Cevap girişinin bağlantısı kaldırılamadı",
                 "load_entries_failed": "Soru-Cevap girişleri yüklenemedi",
                 "status": {
                     "ingested": "İçe alındı",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "S{number}:",
                 "edit_action": "Düzenle",
                 "created_at": "{date} tarihinde oluşturuldu",
-                "used_by_agents": "{count} asistan tarafından kullanılıyor",
                 "delete_title": "Soru-Cevap Girişini Sil",
                 "delete_description": "Bu soru-cevap girişini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
                 "remove_question": "Soruyu kaldır",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Renkler kaydedilemedi",
                 "avatar_updated": "Avatar güncellendi",
                 "logo_updated": "Logo güncellendi",
-                "upload_error": "{key} yüklenemedi",
                 "avatar_removed": "Avatar kaldırıldı",
                 "logo_removed": "Logo kaldırıldı",
-                "remove_error": "{key} kaldırılamadı",
                 "hosted_saved": "Hosted Chat davranışı kaydedildi",
                 "widget_saved": "Chat Widget davranışı kaydedildi",
                 "bar_saved": "Command Bar davranışı kaydedildi",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Gizlilik politikası bağlantısı kaydedilemedi",
                 "branding_saved": "Marka güncellendi",
                 "languages_saved": "Diller kaydedildi",
-                "languages_error": "Diller kaydedilemedi"
+                "languages_error": "Diller kaydedilemedi",
+                "avatar_upload_error": "Avatar yüklenemedi",
+                "logo_upload_error": "Logo yüklenemedi",
+                "avatar_remove_error": "Avatar kaldırılamadı",
+                "logo_remove_error": "Logo kaldırılamadı"
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Renk Yoğunluğu",
             "light": "Açık",
-            "dark": "Koyu"
+            "dark": "Koyu",
+            "colors": {
+                "black": "Siyah",
+                "red": "Kırmızı",
+                "orange": "Turuncu",
+                "amber": "Kehribar",
+                "yellow": "Sarı",
+                "lime": "Limon yeşili",
+                "green": "Yeşil",
+                "emerald": "Zümrüt",
+                "teal": "Deniz yeşili",
+                "cyan": "Camgöbeği",
+                "sky": "Gök mavisi",
+                "blue": "Mavi",
+                "indigo": "Çivit",
+                "violet": "Menekşe",
+                "purple": "Mor",
+                "fuchsia": "Fuşya",
+                "pink": "Pembe",
+                "rose": "Gül",
+                "slate": "Arduvaz",
+                "gray": "Gri",
+                "zinc": "Çinko",
+                "neutral": "Nötr",
+                "stone": "Taş"
+            }
         },
         "color_theme_picker": {
             "title": "Renk Teması Seç",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "otomatik",
             "outcome_approved": "onaylandı",
             "outcome_denied": "reddedildi",
-            "outcome_rate_limited": "hız sınırlandı"
+            "outcome_rate_limited": "hız sınırlandı",
+            "outcome_not_offered": "sunulmadı"
         },
         "attach_file": {
             "title": "Zaten Eğitilmiş Dosyalardan Seç",

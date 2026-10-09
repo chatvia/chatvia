@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Kopplingar"
             },
-            "overview": {
-                "coming_soon": "{type} kommer snart",
-                "under_development": "Den här funktionen är under utveckling.",
-                "files": {
-                    "label": "Filer",
-                    "description": "Ladda upp och hantera dokument (PDF, Word, m.m.)"
-                },
-                "text": {
-                    "label": "Text",
-                    "description": "Lägg till eget textinnehåll och anteckningar direkt"
-                },
-                "web": {
-                    "label": "Webbplats",
-                    "description": "Crawla webbplatser och webbsidor för kunskap"
-                },
-                "audio": {
-                    "label": "Ljud",
-                    "description": "Ladda upp ljudfiler och poddar för transkribering"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Ladda upp videofiler för transkribering och analys"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importera YouTube-videor och extrahera transkript"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Skapa svar på viktiga frågor"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Inspelningen laddades upp!",
                 "recording_uploaded_description": "\"{name}\" har lagts till i dina ljudkällor.",
@@ -195,8 +163,6 @@
                 "update_failed": "Det gick inte att uppdatera Q&A-posten",
                 "deleted": "Q&A-posten togs bort",
                 "delete_failed": "Det gick inte att ta bort Q&A-posten",
-                "unlinked": "Q&A-posten kopplades bort",
-                "unlink_failed": "Det gick inte att koppla bort Q&A-posten",
                 "load_entries_failed": "Det gick inte att läsa in Q&A-posterna",
                 "status": {
                     "ingested": "Inläst",
@@ -223,7 +189,6 @@
                 "question_prefix": "F{number}:",
                 "edit_action": "Redigera",
                 "created_at": "Skapad {date}",
-                "used_by_agents": "Används av {count} agenter",
                 "delete_title": "Ta bort Q&A-post",
                 "delete_description": "Är du säker på att du vill ta bort den här Q&A-posten? Åtgärden kan inte ångras."
             },

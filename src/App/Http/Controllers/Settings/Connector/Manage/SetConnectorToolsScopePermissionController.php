@@ -21,10 +21,6 @@ class SetConnectorToolsScopePermissionController
     ): McpToolsScopePermissionData {
         // An unknown slug 404s via forSlugScoped; the action itself only
         // reports how many tools changed.
-        return $set->execute(
-            AgentMcpServer::forSlugScoped($slug, $request->user()),
-            $request->scope(),
-            $request->permission(),
-        );
+        return $set->execute(AgentMcpServer::forSlugScoped($slug, $request->user()), $request->toData());
     }
 }

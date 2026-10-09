@@ -94,7 +94,6 @@ use App\Http\Controllers\Agent\Source\Function\AgentFunctionController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionDeleteController;
 use App\Http\Controllers\Agent\Source\Function\AgentFunctionsListController;
 use App\Http\Controllers\Agent\Source\Qa\AgentQaController;
-use App\Http\Controllers\Agent\Source\Qa\DetachAgentQaController;
 use App\Http\Controllers\Agent\Source\Text\AgentSourcesLinkTextController;
 use App\Http\Controllers\Agent\Source\Text\AgentSourcesTrainedTextsListController;
 use App\Http\Controllers\Agent\Source\Text\AgentTextController;
@@ -221,7 +220,6 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->name('sources.qa.show');
         Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->name('sources.qa.update');
         Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.qa.destroy');
-        Route::post('sources/qa/{id}/unlink', DetachAgentQaController::class)->name('sources.qa.unlink');
 
         // Functions (LLM tool calls — webhook-backed). Functions are owned at
         // the account level (Settings → Functions); on the agent screen the

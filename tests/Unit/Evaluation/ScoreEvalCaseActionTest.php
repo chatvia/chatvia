@@ -20,16 +20,20 @@ use Illuminate\Support\Facades\Event;
  * drives pass/score, and a failed agent run becomes a failing result — never an
  * exception that would abort the batch. It also bills the workspace one message
  * credit per case that produced an answer, so fake the bus in every test, and
- * gates on the same can-send-messages flag as live chat — stubbed open here.
+ * asks the same send gate as live chat (active billing + credits; the credit
+ * check is stubbed open here).
  */
 beforeEach(function (): void {
     Bus::fake();
     fakeMessageCreditGate();
 });
 
-function scoringFixtures(string $value = 'paris'): array
+function scoringFixtures(string $value = 'paris', bool $activeBilling = true): array
 {
-    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+    // An active subscription passes the send gate's billing check, so only the
+    // (stubbed) credit check decides.
+    $agent = $activeBilling ? proPlanAgent() : Agent::factory()->create();
+    $agent->update(['llm_id' => Llm::factory()->create()->id]);
 
     $run = EvalRun::create([
         'agent_id' => $agent->id,
@@ -87,7 +91,8 @@ it('records a passing result with the captured run state', function (): void {
 });
 
 it('scores a tool_call case from the captured (never executed) tool call', function (): void {
-    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+    $agent = proPlanAgent();
+    $agent->update(['llm_id' => Llm::factory()->create()->id]);
 
     $run = EvalRun::create([
         'agent_id' => $agent->id,
@@ -218,6 +223,21 @@ it('skips the LLM call and charges nothing when the workspace is out of messages
 
     expect($result->pass)->toBeFalse()
         ->and($result->judge_rationale)->toContain('Message limit reached');
+
+    Bus::assertNotDispatched(UpdateUserCreditsJob::class);
+});
+
+it('skips the LLM call when the workspace subscription has ended mid-suite', function (): void {
+    [$run, $case] = scoringFixtures(activeBilling: false);
+
+    $runner = Mockery::mock(EvalAgentRunner::class);
+    $runner->shouldNotReceive('run');
+    app()->instance(EvalAgentRunner::class, $runner);
+
+    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
+
+    expect($result->pass)->toBeFalse()
+        ->and($result->judge_rationale)->toContain('Subscription inactive');
 
     Bus::assertNotDispatched(UpdateUserCreditsJob::class);
 });

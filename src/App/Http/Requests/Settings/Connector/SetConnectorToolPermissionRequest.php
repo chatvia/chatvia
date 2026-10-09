@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings\Connector;
 
+use Domain\Integration\Mcp\Data\McpToolPermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,8 +27,14 @@ class SetConnectorToolPermissionRequest extends FormRequest
         ];
     }
 
-    public function permission(): McpToolPermission
+    /**
+     * The tool (the `{tool}` route id) and the permission to give it.
+     */
+    public function toData(): McpToolPermissionData
     {
-        return McpToolPermission::from($this->string('permission')->toString());
+        return new McpToolPermissionData(
+            id: (int) $this->route('tool'),
+            permission: McpToolPermission::from($this->string('permission')->toString()),
+        );
     }
 }

@@ -6,11 +6,12 @@ use Throwable;
 
 /**
  * Log context for an exception thrown by a messaging-channel API call, with
- * credentials removed. HTTP client exceptions put the request URL in their
- * message: the Meta OAuth calls carry `client_secret` / `access_token` in the
- * query string, and every Telegram Bot API URL carries the bot token in its
- * path (`/bot<token>/sendMessage`). Logging `$e->getMessage()` as-is would
- * write those secrets to the log, so the channel clients log this instead.
+ * credentials removed. HTTP client exceptions put the request URL (and
+ * sometimes the request or response body) in their message: every Telegram
+ * Bot API URL carries the bot token in its path (`/bot<token>/sendMessage`),
+ * and a Meta token exchange body carries `client_secret` / `access_token`.
+ * Logging `$e->getMessage()` as-is could write those secrets to the log, so
+ * the channel clients log this instead.
  */
 final class RedactedException
 {

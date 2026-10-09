@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Conectores"
             },
-            "overview": {
-                "coming_soon": "{type} Em breve",
-                "under_development": "Esta funcionalidade está atualmente em desenvolvimento.",
-                "files": {
-                    "label": "Ficheiros",
-                    "description": "Carregue e gira documentos (PDF, Word, etc.)"
-                },
-                "text": {
-                    "label": "Texto",
-                    "description": "Adicione conteúdo de texto personalizado e notas diretamente"
-                },
-                "web": {
-                    "label": "Website",
-                    "description": "Rastreie websites e páginas web para obter conhecimento"
-                },
-                "audio": {
-                    "label": "Áudio",
-                    "description": "Carregue ficheiros de áudio e podcasts para transcrição"
-                },
-                "video": {
-                    "label": "Vídeo",
-                    "description": "Carregue ficheiros de vídeo para transcrição e análise"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importe vídeos do YouTube e extraia transcrições"
-                },
-                "qa": {
-                    "label": "P&R",
-                    "description": "Crie respostas para perguntas-chave"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Gravação carregada com sucesso!",
                 "recording_uploaded_description": "\"{name}\" foi adicionado às suas fontes de áudio.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Falha ao atualizar a entrada P&R",
                 "deleted": "Entrada P&R eliminada com sucesso",
                 "delete_failed": "Falha ao eliminar a entrada P&R",
-                "unlinked": "Entrada P&R desassociada com sucesso",
-                "unlink_failed": "Falha ao desassociar a entrada P&R",
                 "load_entries_failed": "Falha ao carregar as entradas P&R",
                 "status": {
                     "ingested": "Integrado",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "P{number}:",
                 "edit_action": "Editar",
                 "created_at": "Criado {date}",
-                "used_by_agents": "Utilizado por {count} agentes",
                 "delete_title": "Eliminar Entrada P&R",
                 "delete_description": "Tem a certeza de que pretende eliminar esta entrada P&R? Esta ação não pode ser anulada.",
                 "remove_question": "Remover pergunta",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Não foi possível guardar as cores",
                 "avatar_updated": "Avatar atualizado",
                 "logo_updated": "Logótipo atualizado",
-                "upload_error": "Não foi possível carregar {key}",
                 "avatar_removed": "Avatar removido",
                 "logo_removed": "Logótipo removido",
-                "remove_error": "Não foi possível remover {key}",
                 "hosted_saved": "Comportamento do Chat Alojado guardado",
                 "widget_saved": "Comportamento do Widget de chat guardado",
                 "bar_saved": "Comportamento da Barra de comandos guardado",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Não foi possível salvar o link da política de privacidade",
                 "branding_saved": "Marca atualizada",
                 "languages_saved": "Idiomas guardados",
-                "languages_error": "Não foi possível guardar os idiomas"
+                "languages_error": "Não foi possível guardar os idiomas",
+                "avatar_upload_error": "Não foi possível carregar o avatar",
+                "logo_upload_error": "Não foi possível carregar o logótipo",
+                "avatar_remove_error": "Não foi possível remover o avatar",
+                "logo_remove_error": "Não foi possível remover o logótipo"
             },
             "settings": {
                 "composer_title": "Opções do compositor",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Intensidade da cor",
             "light": "Claro",
-            "dark": "Escuro"
+            "dark": "Escuro",
+            "colors": {
+                "black": "Preto",
+                "red": "Vermelho",
+                "orange": "Laranja",
+                "amber": "Âmbar",
+                "yellow": "Amarelo",
+                "lime": "Lima",
+                "green": "Verde",
+                "emerald": "Esmeralda",
+                "teal": "Azul-petróleo",
+                "cyan": "Ciano",
+                "sky": "Azul-celeste",
+                "blue": "Azul",
+                "indigo": "Índigo",
+                "violet": "Violeta",
+                "purple": "Roxo",
+                "fuchsia": "Fúcsia",
+                "pink": "Rosa",
+                "rose": "Rosado",
+                "slate": "Ardósia",
+                "gray": "Cinzento",
+                "zinc": "Zinco",
+                "neutral": "Neutro",
+                "stone": "Pedra"
+            }
         },
         "color_theme_picker": {
             "title": "Escolher tema de cores",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "automático",
             "outcome_approved": "aprovado",
             "outcome_denied": "recusado",
-            "outcome_rate_limited": "limite de taxa atingido"
+            "outcome_rate_limited": "limite de taxa atingido",
+            "outcome_not_offered": "não oferecida"
         },
         "attach_file": {
             "title": "Escolher de Ficheiros Já Treinados",

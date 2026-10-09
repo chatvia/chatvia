@@ -6,6 +6,7 @@ use Closure;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Contracts\AccessTokenRefresher;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
+use Domain\Integration\Mcp\Data\McpToolResultData;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -60,17 +61,18 @@ class McpClient
     }
 
     /**
-     * Call a tool. Returns the result envelope (`content`, `isError`,
-     * `structuredContent`) exactly as the server emits it; the caller turns it
-     * into what the model reads.
+     * Call a tool. The server's result envelope (`content`, `isError`,
+     * `structuredContent`) is read once, here, into what the model reads and
+     * what the chat UI renders ({@see McpToolResultData}). A tool that
+     * reports a failure in the envelope (`isError`) is a result, not an
+     * exception; a JSON-RPC error or a broken reply throws McpException.
      *
      * @param  array<string, mixed>  $arguments
      * @param  array<string, string>  $identityHeaders  Caller-identity headers (agent + user) stamped on every request in the session.
-     * @return array<string, mixed>
      */
-    public function callTool(AgentMcpServer $server, string $name, array $arguments, array $identityHeaders = []): array
+    public function callTool(AgentMcpServer $server, string $name, array $arguments, array $identityHeaders = []): McpToolResultData
     {
-        return $this->inSession($server, $identityHeaders, function (?string $sessionId) use ($server, $name, $arguments, $identityHeaders): array {
+        return $this->inSession($server, $identityHeaders, function (?string $sessionId) use ($server, $name, $arguments, $identityHeaders): McpToolResultData {
             $body = $this->rpc($server, $sessionId, 'tools/call', [
                 'name' => $name,
                 'arguments' => $arguments,
@@ -78,7 +80,7 @@ class McpClient
 
             $result = $body['result'] ?? null;
             if (is_array($result)) {
-                return $result;
+                return McpToolResultData::fromEnvelope($result);
             }
 
             $error = $body['error'] ?? null;
@@ -190,9 +192,10 @@ class McpClient
         }
 
         // SSRF guard: a custom MCP server URL is user-supplied. Re-validate at
-        // dispatch time (DNS can change since save) and disable redirects so a
-        // public host can't 30x into internal infrastructure. Skipped in local.
-        SafeUrl::assert($server->url);
+        // dispatch time (DNS can change since save), connect to the address
+        // that was checked, and disable redirects so a public host can't 30x
+        // into internal infrastructure. Skipped in local.
+        $clientOptions = SafeUrl::pinnedClientOptions($server->url);
 
         // Identity headers are stamped last so a server's custom headers
         // can't shadow them.
@@ -211,7 +214,7 @@ class McpClient
         }
 
         return Http::timeout(max(1, (int) ceil($server->timeout_ms / 1000)))
-            ->withOptions(SafeUrl::clientOptions())
+            ->withOptions($clientOptions)
             ->withHeaders($headers);
     }
 

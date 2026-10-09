@@ -45,13 +45,12 @@ class McpOAuthDiscoverer
      * SSRF-guarded GET. Every URL in the discovery cascade is upstream- or
      * user-controlled (the entry URL, the WWW-Authenticate resource_metadata
      * URL, each authorization_servers[] entry), so each hop is re-validated
-     * against private/reserved ranges and redirects are disabled.
+     * against private/reserved ranges, connects to the address that was
+     * checked, and redirects are disabled.
      */
     private function safeGet(string $url): Response
     {
-        SafeUrl::assert($url);
-
-        return Http::withOptions(SafeUrl::clientOptions())
+        return Http::withOptions(SafeUrl::pinnedClientOptions($url))
             ->withHeaders(['Accept' => 'application/json'])
             ->get($url);
     }

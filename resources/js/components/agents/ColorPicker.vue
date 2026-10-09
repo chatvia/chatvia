@@ -36,6 +36,35 @@ const THEMES = [
     'stone',
 ] as const;
 
+type Theme = (typeof THEMES)[number];
+
+// Literal keys (not built from the theme name) so the i18n key check sees each one.
+const themeLabels = computed<Record<Theme, string>>(() => ({
+    black: t('shared.color_picker.colors.black'),
+    red: t('shared.color_picker.colors.red'),
+    orange: t('shared.color_picker.colors.orange'),
+    amber: t('shared.color_picker.colors.amber'),
+    yellow: t('shared.color_picker.colors.yellow'),
+    lime: t('shared.color_picker.colors.lime'),
+    green: t('shared.color_picker.colors.green'),
+    emerald: t('shared.color_picker.colors.emerald'),
+    teal: t('shared.color_picker.colors.teal'),
+    cyan: t('shared.color_picker.colors.cyan'),
+    sky: t('shared.color_picker.colors.sky'),
+    blue: t('shared.color_picker.colors.blue'),
+    indigo: t('shared.color_picker.colors.indigo'),
+    violet: t('shared.color_picker.colors.violet'),
+    purple: t('shared.color_picker.colors.purple'),
+    fuchsia: t('shared.color_picker.colors.fuchsia'),
+    pink: t('shared.color_picker.colors.pink'),
+    rose: t('shared.color_picker.colors.rose'),
+    slate: t('shared.color_picker.colors.slate'),
+    gray: t('shared.color_picker.colors.gray'),
+    zinc: t('shared.color_picker.colors.zinc'),
+    neutral: t('shared.color_picker.colors.neutral'),
+    stone: t('shared.color_picker.colors.stone'),
+}));
+
 const props = withDefaults(
     defineProps<{
         theme: string;
@@ -55,7 +84,7 @@ const emit = defineEmits<{
 const activeShade = computed(() => nearestShade(props.shade));
 const shadeIndex = computed(() => SHADES.indexOf(activeShade.value));
 
-function selectTheme(theme: string): void {
+function selectTheme(theme: Theme): void {
     if (props.disabled) return;
     emit('update:theme', theme);
 }
@@ -67,32 +96,40 @@ function onShadeInput(event: Event): void {
 
 <template>
     <div class="space-y-6" :class="{ 'pointer-events-none opacity-60': disabled }">
-        <div class="grid grid-cols-8 gap-2">
-            <div v-for="theme in THEMES" :key="theme" class="group relative cursor-pointer" @click="selectTheme(theme)">
-                <div
-                    class="h-12 w-full rounded-lg border-2 shadow-sm transition-all duration-200"
+        <div class="grid grid-cols-8 gap-2" role="group" :aria-label="t('shared.color_theme_picker.title')">
+            <button
+                v-for="theme in THEMES"
+                :key="theme"
+                type="button"
+                class="group focus-visible:ring-ring/50 relative cursor-pointer rounded-lg outline-none focus-visible:ring-[3px]"
+                :aria-pressed="props.theme === theme"
+                :disabled="disabled"
+                @click="selectTheme(theme)"
+            >
+                <span
+                    class="block h-12 w-full rounded-lg border-2 shadow-sm transition-all duration-200"
                     :class="{
                         'border-primary ring-primary/20 ring-2': props.theme === theme,
                         'border-border hover:border-primary/50 hover:shadow-md': props.theme !== theme,
                     }"
                     :style="{ backgroundColor: `var(--${theme}-${activeShade})` }"
                 >
-                    <div class="flex h-full items-center justify-center">
-                        <div v-if="props.theme === theme" class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-lg">
-                            <div class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${activeShade})` }"></div>
-                        </div>
-                    </div>
-                </div>
-                <p
-                    class="mt-1 text-center text-xs font-medium capitalize"
+                    <span class="flex h-full items-center justify-center">
+                        <span v-if="props.theme === theme" class="flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-lg">
+                            <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: `var(--${theme}-${activeShade})` }"></span>
+                        </span>
+                    </span>
+                </span>
+                <span
+                    class="mt-1 block text-center text-xs font-medium"
                     :class="{
                         'text-primary': props.theme === theme,
                         'text-muted-foreground': props.theme !== theme,
                     }"
                 >
-                    {{ theme }}
-                </p>
-            </div>
+                    {{ themeLabels[theme] }}
+                </span>
+            </button>
         </div>
 
         <div class="space-y-2">
@@ -105,6 +142,7 @@ function onShadeInput(event: Event): void {
                     step="1"
                     :value="shadeIndex"
                     :disabled="disabled"
+                    :aria-label="t('shared.color_picker.color_intensity')"
                     class="slider h-3 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
                     :style="{ background: `linear-gradient(to right, var(--${props.theme}-50), var(--${props.theme}-950))` }"
                     @input="onShadeInput"

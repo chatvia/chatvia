@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Không thể tải lên ảnh đại diện",
+                "logo_upload_error": "Không thể tải lên logo",
+                "avatar_remove_error": "Không thể xóa ảnh đại diện",
+                "logo_remove_error": "Không thể xóa logo"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Đen",
+                "red": "Đỏ",
+                "orange": "Cam",
+                "amber": "Hổ phách",
+                "yellow": "Vàng",
+                "lime": "Xanh chanh",
+                "green": "Xanh lá",
+                "emerald": "Ngọc lục bảo",
+                "teal": "Xanh mòng két",
+                "cyan": "Xanh lơ",
+                "sky": "Xanh da trời",
+                "blue": "Xanh dương",
+                "indigo": "Chàm",
+                "violet": "Tím violet",
+                "purple": "Tím",
+                "fuchsia": "Hồng tím",
+                "pink": "Hồng",
+                "rose": "Hồng đỏ",
+                "slate": "Xám đá phiến",
+                "gray": "Xám",
+                "zinc": "Kẽm",
+                "neutral": "Trung tính",
+                "stone": "Đá"
+            }
+        }
+    }
+}

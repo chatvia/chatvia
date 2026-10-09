@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Countries;
 
-use Illuminate\Support\Collection;
+use Support\Localization\Country\Data\CountryOptionData;
 use Support\Localization\Country\Models\Country;
 
 /**
@@ -11,18 +13,9 @@ use Support\Localization\Country\Models\Country;
  */
 class CountriesListController
 {
-    /**
-     * @return Collection<int, array{code: string, name: array<array-key, mixed>|string}>
-     */
-    public function __invoke(): Collection
+    /** @return list<CountryOptionData> */
+    public function __invoke(): array
     {
-        return Country::query()
-            ->select('code', 'name')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Country $country): array => [
-                'code' => $country->code,
-                'name' => __($country->name),
-            ]);
+        return Country::options();
     }
 }

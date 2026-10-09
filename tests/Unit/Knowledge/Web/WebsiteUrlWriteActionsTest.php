@@ -111,7 +111,6 @@ it('rolls back the YouTube video row when attaching it fails', function (): void
 
     expect(fn () => app(AddAgentYoutubeVideoAction::class)->execute(
         $agent,
-        $agent->user,
         'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     ))->toThrow(RuntimeException::class);
 
@@ -121,7 +120,7 @@ it('rolls back the YouTube video row when attaching it fails', function (): void
 it('adds and attaches a YouTube video', function (): void {
     $agent = Agent::factory()->create();
 
-    $video = app(AddAgentYoutubeVideoAction::class)->execute($agent, $agent->user, 'https://youtu.be/dQw4w9WgXcQ');
+    $video = app(AddAgentYoutubeVideoAction::class)->execute($agent, 'https://youtu.be/dQw4w9WgXcQ');
 
     expect($agent->youtubeVideos()->whereKey($video->id)->exists())->toBeTrue()
         ->and($video->user_id)->toBe($agent->user_id);

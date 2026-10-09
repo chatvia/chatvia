@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "Trình kết nối"
             },
-            "overview": {
-                "coming_soon": "{type} sắp ra mắt",
-                "under_development": "Tính năng này hiện đang được phát triển.",
-                "files": {
-                    "label": "Tệp",
-                    "description": "Tải lên và quản lý tài liệu (PDF, Word, v.v.)"
-                },
-                "text": {
-                    "label": "Văn bản",
-                    "description": "Thêm trực tiếp nội dung văn bản và ghi chú tùy chỉnh"
-                },
-                "web": {
-                    "label": "Trang web",
-                    "description": "Thu thập dữ liệu từ trang web và các trang để bổ sung kiến thức"
-                },
-                "audio": {
-                    "label": "Âm thanh",
-                    "description": "Tải lên tệp âm thanh và podcast để chuyển thành văn bản"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Tải lên tệp video để chuyển thành văn bản và phân tích"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Nhập video YouTube và trích xuất bản chép lời"
-                },
-                "qa": {
-                    "label": "Hỏi & Đáp",
-                    "description": "Soạn câu trả lời cho các câu hỏi quan trọng"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Tải bản ghi lên thành công!",
                 "recording_uploaded_description": "\"{name}\" đã được thêm vào nguồn âm thanh của bạn.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Không thể cập nhật mục Hỏi & Đáp",
                 "deleted": "Xóa mục Hỏi & Đáp thành công",
                 "delete_failed": "Không thể xóa mục Hỏi & Đáp",
-                "unlinked": "Gỡ liên kết mục Hỏi & Đáp thành công",
-                "unlink_failed": "Không thể gỡ liên kết mục Hỏi & Đáp",
                 "load_entries_failed": "Không thể tải các mục Hỏi & Đáp",
                 "status": {
                     "ingested": "Đã nạp",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "H{number}:",
                 "edit_action": "Chỉnh sửa",
                 "created_at": "Đã tạo {date}",
-                "used_by_agents": "Được {count} trợ lý AI sử dụng",
                 "delete_title": "Xóa mục Hỏi & Đáp",
                 "delete_description": "Bạn có chắc muốn xóa mục Hỏi & Đáp này không? Hành động này không thể hoàn tác.",
                 "remove_question": "Xóa câu hỏi",
@@ -1664,10 +1629,8 @@
                 "colors_error": "Không thể lưu màu sắc",
                 "avatar_updated": "Đã cập nhật ảnh đại diện",
                 "logo_updated": "Đã cập nhật logo",
-                "upload_error": "Không thể tải lên {key}",
                 "avatar_removed": "Đã xóa ảnh đại diện",
                 "logo_removed": "Đã xóa logo",
-                "remove_error": "Không thể xóa {key}",
                 "hosted_saved": "Đã lưu hành vi Hosted Chat",
                 "widget_saved": "Đã lưu hành vi Chat Widget",
                 "bar_saved": "Đã lưu hành vi Command Bar",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "Không thể lưu liên kết chính sách quyền riêng tư",
                 "branding_saved": "Đã cập nhật thương hiệu",
                 "languages_saved": "Đã lưu ngôn ngữ",
-                "languages_error": "Không thể lưu ngôn ngữ"
+                "languages_error": "Không thể lưu ngôn ngữ",
+                "avatar_upload_error": "Không thể tải lên ảnh đại diện",
+                "logo_upload_error": "Không thể tải lên logo",
+                "avatar_remove_error": "Không thể xóa ảnh đại diện",
+                "logo_remove_error": "Không thể xóa logo"
             },
             "settings": {
                 "composer_title": "Tùy chọn ô soạn tin",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "Cường độ màu",
             "light": "Sáng",
-            "dark": "Tối"
+            "dark": "Tối",
+            "colors": {
+                "black": "Đen",
+                "red": "Đỏ",
+                "orange": "Cam",
+                "amber": "Hổ phách",
+                "yellow": "Vàng",
+                "lime": "Xanh chanh",
+                "green": "Xanh lá",
+                "emerald": "Ngọc lục bảo",
+                "teal": "Xanh mòng két",
+                "cyan": "Xanh lơ",
+                "sky": "Xanh da trời",
+                "blue": "Xanh dương",
+                "indigo": "Chàm",
+                "violet": "Tím violet",
+                "purple": "Tím",
+                "fuchsia": "Hồng tím",
+                "pink": "Hồng",
+                "rose": "Hồng đỏ",
+                "slate": "Xám đá phiến",
+                "gray": "Xám",
+                "zinc": "Kẽm",
+                "neutral": "Trung tính",
+                "stone": "Đá"
+            }
         },
         "color_theme_picker": {
             "title": "Chọn bảng màu",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "tự động",
             "outcome_approved": "đã duyệt",
             "outcome_denied": "bị từ chối",
-            "outcome_rate_limited": "bị giới hạn tần suất"
+            "outcome_rate_limited": "bị giới hạn tần suất",
+            "outcome_not_offered": "không được cung cấp"
         },
         "attach_file": {
             "title": "Chọn từ các tệp đã được huấn luyện",

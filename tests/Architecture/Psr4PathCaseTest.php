@@ -37,7 +37,13 @@ it('tracks every class file under the exact case of its namespace and class name
             continue;
         }
 
-        $source = @file_get_contents($root.'/'.$path);
+        // A tracked file deleted in the working tree (not yet committed) has
+        // nothing to check.
+        if (! is_file($root.'/'.$path)) {
+            continue;
+        }
+
+        $source = file_get_contents($root.'/'.$path);
 
         if ($source === false
             || preg_match('/^namespace\s+([^;]+);/m', $source, $namespace) !== 1

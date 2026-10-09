@@ -40,5 +40,6 @@ it('flags only human-decided outcomes as gated', function (): void {
     expect(ToolCallOutcome::Approved->wasGated())->toBeTrue()
         ->and(ToolCallOutcome::Denied->wasGated())->toBeTrue()
         ->and(ToolCallOutcome::Auto->wasGated())->toBeFalse()
-        ->and(ToolCallOutcome::RateLimited->wasGated())->toBeFalse();
+        ->and(ToolCallOutcome::RateLimited->wasGated())->toBeFalse()
+        ->and(ToolCallOutcome::NotOffered->wasGated())->toBeFalse();
 });

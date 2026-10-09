@@ -126,6 +126,10 @@ SESSION_SECURE_COOKIE=true
 You can make random values with `openssl rand -hex 32`. See
 [Security settings](#security-settings) for the rest.
 
+E-mail must work before other people use the server. People who sign up must
+confirm their e-mail address, and invitations and sign-in links are sent by
+e-mail.
+
 ::: info API keys are not in `.env`
 API keys and OAuth apps for outside services (AI providers, Firecrawl,
 chunk.fit, Stripe, social sign-in, Messenger/Instagram/WhatsApp, connectors,
@@ -241,7 +245,7 @@ section is for.
 | Setting | Value in `.env.example` | What it does |
 | --- | --- | --- |
 | `BILLING_ENABLED` | `false` | With `false` you do not need Stripe. Every workspace gets every feature, there are no quotas, messages are not counted, and the billing pages are off. Set `true` to sell plans with Stripe; then add the Stripe keys in the admin panel (**Settings → Billing**). |
-| `REGISTRATION_ENABLED` | on when billing is off | Opens the sign-up page at `/register`. Set it to `false` after you have created your accounts. You can still invite teammates. |
+| `REGISTRATION_ENABLED` | on when billing is off | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Set it to `false` after you have created your accounts. You can still invite teammates. |
 | `MARKETING_SITE_ENABLED` | `false` | With `false` there is no public landing, pricing or legal pages, and `/` opens the app. |
 | `CONVERSATION_RETENTION_DAYS` | `366` | How many days conversations are kept when billing is off. |
 | `FEATURE_YOUTUBE_SOURCES` | `false` | YouTube videos as sources. This feature is not finished: videos are saved but not read yet. |

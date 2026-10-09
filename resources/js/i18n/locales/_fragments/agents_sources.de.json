@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Connectors"
             },
-            "overview": {
-                "coming_soon": "{type} demnächst verfügbar",
-                "under_development": "Diese Funktion befindet sich derzeit in der Entwicklung.",
-                "files": {
-                    "label": "Dateien",
-                    "description": "Dokumente hochladen und verwalten (PDF, Word usw.)"
-                },
-                "text": {
-                    "label": "Text",
-                    "description": "Benutzerdefinierte Textinhalte und Notizen direkt hinzufügen"
-                },
-                "web": {
-                    "label": "Website",
-                    "description": "Websites und Webseiten für die Wissensdatenbank crawlen"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Audiodateien und Podcasts zur Transkription hochladen"
-                },
-                "video": {
-                    "label": "Video",
-                    "description": "Videodateien zur Transkription und Analyse hochladen"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "YouTube-Videos importieren und Transkripte extrahieren"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "Antworten auf häufige Fragen formulieren"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Aufnahme erfolgreich hochgeladen!",
                 "recording_uploaded_description": "\"{name}\" wurde Ihren Audioquellen hinzugefügt.",
@@ -195,8 +163,6 @@
                 "update_failed": "Q&A-Eintrag konnte nicht aktualisiert werden",
                 "deleted": "Q&A-Eintrag erfolgreich gelöscht",
                 "delete_failed": "Q&A-Eintrag konnte nicht gelöscht werden",
-                "unlinked": "Verknüpfung des Q&A-Eintrags erfolgreich aufgehoben",
-                "unlink_failed": "Verknüpfung des Q&A-Eintrags konnte nicht aufgehoben werden",
                 "load_entries_failed": "Q&A-Einträge konnten nicht geladen werden",
                 "status": {
                     "ingested": "Eingepflegt",
@@ -223,7 +189,6 @@
                 "question_prefix": "F{number}:",
                 "edit_action": "Bearbeiten",
                 "created_at": "Erstellt am {date}",
-                "used_by_agents": "Wird von {count} Agenten verwendet",
                 "delete_title": "Q&A-Eintrag löschen",
                 "delete_description": "Möchten Sie diesen Q&A-Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
             },

@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Embedding\Rerank;
 
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -28,15 +29,9 @@ class CohereReranker implements Reranker
         $results = Http::withToken((string) config('services.cohere.api_key'))
             ->throw()
             ->post(rtrim((string) config('services.cohere.api_endpoint'), '/').'/rerank', $payload)
-            ->json('results');
+            ->json('results') ?? [];
 
-        return collect($results)
-            ->map(fn (array $item): array => [
-                'index' => (int) $item['index'],
-                'relevance_score' => (float) $item['relevance_score'],
-            ])
-            ->values()
-            ->all();
+        return array_values(array_map(RerankedDocumentData::fromResult(...), $results));
     }
 
     public function isEnabled(): bool

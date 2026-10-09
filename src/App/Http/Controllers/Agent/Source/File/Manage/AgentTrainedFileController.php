@@ -49,7 +49,7 @@ class AgentTrainedFileController
     public function destroy(Agent $agent, SourceFile $file, UnlinkSourceFileFromAgentAction $unlink): void
     {
         if (! $unlink->execute($agent, $file)) {
-            abort(400, __('File is linked to multiple agents and cannot be unlinked.'));
+            abort(400, __('Only a file that other agents also use can be unlinked. Delete it instead.'));
         }
     }
 }

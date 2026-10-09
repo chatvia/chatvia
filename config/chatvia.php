@@ -468,11 +468,14 @@ return [
         'unknown_llm_external_name' => '',
 
         // The scheduled app:analyze-conversations pass analyzes each conversation
-        // once, `scan_age_hours` after creation, over its full transcript.
+        // once, `scan_age_hours` after creation, over its full transcript. A run
+        // that saves nothing (unusable model answer, provider error) is retried
+        // by the next pass, at most `max_attempts` runs in all.
         // Emergent topics surface once they recur across `min_occurrences`
         // conversations; `max_examples` caps the examples returned per label.
         'analysis' => [
             'scan_age_hours' => env('ANALYSIS_SCAN_AGE_HOURS', 6),
+            'max_attempts' => 5,
             'min_occurrences' => env('TOPIC_SUGGESTION_MIN', 3),
             'max_examples' => 10,
         ],

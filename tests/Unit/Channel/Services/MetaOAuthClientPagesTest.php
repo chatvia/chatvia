@@ -64,3 +64,25 @@ it('dedupes a Page that appears both personally and via a business (personal win
     expect($pages)->toHaveCount(1)
         ->and($pages[0]->access_token)->toBe('EAAG-personal'); // first write wins
 });
+
+it('sends the user and page tokens as bearer tokens, never in the URL', function (): void {
+    Http::fake([
+        'graph.facebook.com/v25.0/me/accounts*' => Http::response(['data' => [
+            ['id' => 'PAGE-1', 'name' => 'ChatVia', 'access_token' => 'EAAG-page-token'],
+        ]]),
+        'graph.facebook.com/v25.0/me/businesses*' => Http::response(['data' => [['id' => 'BIZ-1', 'name' => 'Acme']]]),
+        'graph.facebook.com/v25.0/BIZ-1/*' => Http::response(['data' => []]),
+        'graph.facebook.com/v25.0/PAGE-1*' => Http::response(['instagram_business_account' => ['id' => 'IG-1', 'username' => 'chatvia']]),
+    ]);
+
+    (new MetaOAuthClient)->pagesWithInstagram('USER-TOKEN');
+
+    Http::assertSentCount(5);
+    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'access_token='));
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/me/accounts')
+        && $request->header('Authorization') === ['Bearer USER-TOKEN']);
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/BIZ-1/owned_pages')
+        && $request->header('Authorization') === ['Bearer USER-TOKEN']);
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/PAGE-1?')
+        && $request->header('Authorization') === ['Bearer EAAG-page-token']);
+});

@@ -17,16 +17,24 @@ use Support\Exceptions\DomainValidationException;
  * RunEvalSuite snapshots a run and fans the ACTIVE cases out as a batch. The
  * contract we pin: inactive cases never run, the run is snapshotted as
  * "running", an empty suite is finalized inline (never left stuck), and a
- * workspace with no message credits can't start a suite at all (each scored
- * case bills one message). The credit gate is stubbed open by default.
+ * workspace the chat send gate would refuse (no active billing, or no message
+ * credits) can't start a suite at all (each scored case bills one message).
+ * The credit check is stubbed open by default.
  */
 beforeEach(function (): void {
     fakeMessageCreditGate();
 });
 
+/**
+ * An agent whose workspace has an active subscription, so the send gate's
+ * billing check passes and only the (stubbed) credit check decides.
+ */
 function agentWithLlm(): Agent
 {
-    return Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+    $agent = proPlanAgent();
+    $agent->update(['llm_id' => Llm::factory()->create()->id]);
+
+    return $agent;
 }
 
 function evalCaseFor(Agent $agent, bool $active): EvalCase
@@ -85,6 +93,22 @@ it('refuses to start a suite when the workspace is out of messages', function ()
 
     expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
         ->toThrow(DomainValidationException::class);
+
+    expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
+
+    Bus::assertNothingBatched();
+});
+
+it('refuses to start a suite when the workspace subscription has ended, even with credits left', function (): void {
+    Bus::fake();
+    // No subscription and no trial: live chat would refuse this workspace, so
+    // evals must too (the credit check alone is stubbed open).
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
+
+    evalCaseFor($agent, active: true);
+
+    expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
+        ->toThrow(DomainValidationException::class, 'Your subscription has expired. Renew it to run the suite.');
 
     expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
 

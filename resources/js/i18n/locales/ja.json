@@ -1043,38 +1043,6 @@
                 "markdown": "Markdown",
                 "connectors": "コネクタ"
             },
-            "overview": {
-                "coming_soon": "{type} は近日公開",
-                "under_development": "この機能は現在開発中です。",
-                "files": {
-                    "label": "ファイル",
-                    "description": "ドキュメント（PDF、Word など）をアップロードして管理します"
-                },
-                "text": {
-                    "label": "テキスト",
-                    "description": "カスタムのテキストコンテンツやメモを直接追加します"
-                },
-                "web": {
-                    "label": "ウェブサイト",
-                    "description": "ウェブサイトやウェブページをクロールして知識を取得します"
-                },
-                "audio": {
-                    "label": "音声",
-                    "description": "音声ファイルやポッドキャストをアップロードして文字起こしします"
-                },
-                "video": {
-                    "label": "動画",
-                    "description": "文字起こしと分析のために動画ファイルをアップロード"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "YouTube動画をインポートして文字起こしを抽出"
-                },
-                "qa": {
-                    "label": "Q&A",
-                    "description": "重要な質問への回答を作成"
-                }
-            },
             "audio": {
                 "recording_uploaded": "録音をアップロードしました！",
                 "recording_uploaded_description": "「{name}」を音声ソースに追加しました。",
@@ -1211,8 +1179,6 @@
                 "update_failed": "Q&Aエントリの更新に失敗しました",
                 "deleted": "Q&Aエントリを削除しました",
                 "delete_failed": "Q&Aエントリの削除に失敗しました",
-                "unlinked": "Q&Aエントリをリンク解除しました",
-                "unlink_failed": "Q&Aエントリのリンク解除に失敗しました",
                 "load_entries_failed": "Q&Aエントリの読み込みに失敗しました",
                 "status": {
                     "ingested": "取り込み済み",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "Q{number}:",
                 "edit_action": "編集",
                 "created_at": "作成日 {date}",
-                "used_by_agents": "{count} 件のエージェントで使用中",
                 "delete_title": "Q&Aエントリを削除",
                 "delete_description": "このQ&Aエントリを削除してもよろしいですか？この操作は取り消せません。",
                 "remove_question": "質問を削除",
@@ -1664,10 +1629,8 @@
                 "colors_error": "色を保存できませんでした",
                 "avatar_updated": "アバターを更新しました",
                 "logo_updated": "ロゴを更新しました",
-                "upload_error": "{key} をアップロードできませんでした",
                 "avatar_removed": "アバターを削除しました",
                 "logo_removed": "ロゴを削除しました",
-                "remove_error": "{key} を削除できませんでした",
                 "hosted_saved": "Hosted Chat の動作を保存しました",
                 "widget_saved": "Chat Widget の動作を保存しました",
                 "bar_saved": "Command Bar の動作を保存しました",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "プライバシーポリシーのリンクを保存できませんでした",
                 "branding_saved": "ブランディングを更新しました",
                 "languages_saved": "言語を保存しました",
-                "languages_error": "言語を保存できませんでした"
+                "languages_error": "言語を保存できませんでした",
+                "avatar_upload_error": "アバターをアップロードできませんでした",
+                "logo_upload_error": "ロゴをアップロードできませんでした",
+                "avatar_remove_error": "アバターを削除できませんでした",
+                "logo_remove_error": "ロゴを削除できませんでした"
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "色の濃さ",
             "light": "ライト",
-            "dark": "ダーク"
+            "dark": "ダーク",
+            "colors": {
+                "black": "ブラック",
+                "red": "レッド",
+                "orange": "オレンジ",
+                "amber": "アンバー",
+                "yellow": "イエロー",
+                "lime": "ライム",
+                "green": "グリーン",
+                "emerald": "エメラルド",
+                "teal": "ティール",
+                "cyan": "シアン",
+                "sky": "スカイ",
+                "blue": "ブルー",
+                "indigo": "インディゴ",
+                "violet": "バイオレット",
+                "purple": "パープル",
+                "fuchsia": "フューシャ",
+                "pink": "ピンク",
+                "rose": "ローズ",
+                "slate": "スレート",
+                "gray": "グレー",
+                "zinc": "ジンク",
+                "neutral": "ニュートラル",
+                "stone": "ストーン"
+            }
         },
         "color_theme_picker": {
             "title": "カラーテーマを選択",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "自動",
             "outcome_approved": "承認済み",
             "outcome_denied": "拒否",
-            "outcome_rate_limited": "レート制限"
+            "outcome_rate_limited": "レート制限",
+            "outcome_not_offered": "未提供"
         },
         "attach_file": {
             "title": "学習済みファイルから選択",

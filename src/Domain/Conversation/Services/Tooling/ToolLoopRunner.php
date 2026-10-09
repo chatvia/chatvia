@@ -32,8 +32,8 @@ use Throwable;
  * limit), dispatches the allowed ones, and iterates until the model produces a
  * final answer or the configured iteration cap kicks in.
  *
- * Every tool-call decision — auto, approved, denied or rate limited — is
- * announced for the governance audit ({@see ToolCallAuditTrail},
+ * Every tool-call decision — auto, approved, denied, rate limited or not
+ * offered — is announced for the governance audit ({@see ToolCallAuditTrail},
  * {@see ToolCallCompleted}) off the hot path.
  *
  * Shared by every source that needs the loop — `LlmSource` runs it on the
@@ -279,9 +279,10 @@ class ToolLoopRunner
     /**
      * Refuse calls to tools that were not offered: answer each with a tool
      * error right away (the model needs a result for every tool_call_id) and
-     * keep it away from approval and dispatch. Nothing is dispatched, no event
-     * is streamed (there is no real tool to show) and nothing is audited — the
-     * audit records decisions about real tools. Returns the offered calls.
+     * keep it away from approval and dispatch. Nothing is dispatched and no
+     * event is streamed (there is no real tool to show), but the refusal is
+     * audited as `not_offered` so the workspace sees what the model tried.
+     * Returns the offered calls.
      *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<int, EmittedToolCallData>  $toolCalls
@@ -300,16 +301,37 @@ class ToolLoopRunner
             }
 
             $loggedName = mb_substr($call->name, 0, self::MAX_LOGGED_NAME_LENGTH);
+            $message = sprintf(self::UNKNOWN_TOOL_RESULT, $loggedName);
 
-            $this->appendToolResult($llmMessages, $call->id, sprintf(self::UNKNOWN_TOOL_RESULT, $loggedName));
+            $this->appendToolResult($llmMessages, $call->id, $message);
 
             Log::warning('Refused a tool call to a tool that was not offered', [
                 'agent_id' => $context->requestData->agent->id,
                 'tool' => $loggedName,
             ]);
+
+            $this->auditTrail->record($context, $this->unofferedCall($call, $loggedName), ToolCallOutcome::NotOffered, ToolDispatchResult::error($message));
         }
 
         return $offeredCalls;
+    }
+
+    /**
+     * An unoffered call in the shape the audit records. The name is the
+     * shortened one, since the model may invent any text; it has no display
+     * details because no such tool exists.
+     */
+    private function unofferedCall(EmittedToolCallData $call, string $name): PendingToolCallData
+    {
+        return new PendingToolCallData(
+            toolCallId: $call->id,
+            name: $name,
+            arguments: $call->arguments,
+            requiresApproval: false,
+            access: null,
+            kind: ToolName::parse($name)->kind,
+            label: null,
+        );
     }
 
     /**

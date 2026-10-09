@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Domain\Llm\Contracts\LlmProviderInterface;
@@ -102,7 +103,7 @@ it('rerank() attributes usage.total_tokens to the active scope', function (): vo
 
     // The rerank result is still returned intact (usage capture is side-channel).
     expect($out)->toHaveCount(2)
-        ->and($out[0])->toMatchArray(['index' => 1, 'relevance_score' => 0.64]);
+        ->and($out[0])->toEqual(new RerankedDocumentData(1, 0.64));
 
     Event::assertDispatched(
         LlmTokensConsumed::class,

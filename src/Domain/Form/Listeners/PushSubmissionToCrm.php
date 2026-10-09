@@ -3,6 +3,7 @@
 namespace Domain\Form\Listeners;
 
 use Domain\Agent\Models\Agent;
+use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Events\FormSubmitted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -32,7 +33,7 @@ class PushSubmissionToCrm implements ShouldQueue
 
     public function handle(FormSubmitted $event): void
     {
-        $agent = Agent::find($event->agentId);
+        $agent = Agent::find($event->submission->agentId);
         if ($agent === null) {
             return;
         }
@@ -49,7 +50,7 @@ class PushSubmissionToCrm implements ShouldQueue
             $this->sender->send(
                 url: (string) $url,
                 event: 'form.submitted',
-                payload: $this->payload($agent, $event),
+                payload: $this->payload($agent, $event->submission),
                 secret: (string) $secret,
             );
         } catch (UnsafeUrlException $e) {
@@ -63,8 +64,8 @@ class PushSubmissionToCrm implements ShouldQueue
     public function failed(FormSubmitted $event, \Throwable $e): void
     {
         Log::warning('PushSubmissionToCrm delivery failed', [
-            'agent_id' => $event->agentId,
-            'submission_id' => $event->submissionId,
+            'agent_id' => $event->submission->agentId,
+            'submission_id' => $event->submission->submissionId,
             'error' => $e->getMessage(),
         ]);
     }
@@ -72,17 +73,17 @@ class PushSubmissionToCrm implements ShouldQueue
     /**
      * @return array<string, mixed>
      */
-    private function payload(Agent $agent, FormSubmitted $event): array
+    private function payload(Agent $agent, CapturedSubmissionData $submission): array
     {
         return [
             'event' => 'form.submitted',
-            'form' => $event->formSlug,
-            'form_type' => $event->formType,
-            'source' => $event->source,
+            'form' => $submission->formSlug,
+            'form_type' => $submission->formType->value,
+            'source' => $submission->source,
             'agent_id' => $agent->external_id,
-            'conversation_id' => $event->conversationExternalId,
+            'conversation_id' => $submission->conversationExternalId,
             'timestamp' => now()->toIso8601String(),
-            'values' => $event->values,
+            'values' => $submission->values,
         ];
     }
 }

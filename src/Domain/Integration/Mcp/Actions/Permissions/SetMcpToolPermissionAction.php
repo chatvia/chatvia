@@ -29,18 +29,21 @@ class SetMcpToolPermissionAction
         private readonly ToolRegistry $registry,
     ) {}
 
-    public function execute(AgentMcpServer $server, int $toolId, McpToolPermission $permission): McpToolPermissionData
+    /**
+     * @param  McpToolPermissionData  $change  the tool id (on this server) and its new permission
+     * @return McpToolPermissionData the stored change, for the page to patch its row
+     *
+     * @throws McpToolNotFoundException
+     */
+    public function execute(AgentMcpServer $server, McpToolPermissionData $change): McpToolPermissionData
     {
         $server->usesCentralCatalog()
-            ? $this->setMembershipPermission($server, $toolId, $permission)
-            : $this->setOwnToolPermission($server, $toolId, $permission);
+            ? $this->setMembershipPermission($server, $change->id, $change->permission)
+            : $this->setOwnToolPermission($server, $change->id, $change->permission);
 
         $this->registry->forgetAttachedTo($server);
 
-        return new McpToolPermissionData(
-            id: $toolId,
-            permission: $permission,
-        );
+        return $change;
     }
 
     /**

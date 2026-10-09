@@ -5,7 +5,6 @@ declare(strict_types=1);
 use Rector\CodingStyle\Rector\ArrowFunction\ArrowFunctionDelegatingCallToFirstClassCallableRector;
 use Rector\Config\RectorConfig;
 use Rector\TypeDeclaration\Rector\ClassMethod\StrictArrayParamDimFetchRector;
-use Rector\TypeDeclaration\Rector\StmtsAwareInterface\SafeDeclareStrictTypesRector;
 
 /*
  * Rector keeps the code on current PHP and Laravel idioms. `composer refactor`
@@ -17,9 +16,9 @@ use Rector\TypeDeclaration\Rector\StmtsAwareInterface\SafeDeclareStrictTypesRect
  * - withComposerBased(laravel: true): the Laravel rules for the installed
  *   framework version (Laravel 13).
  * - The prepared sets add missing types, remove dead code, simplify
- *   conditionals and return early.
- * - SafeDeclareStrictTypesRector adds declare(strict_types=1) only to files it
- *   can prove are free of scalar type coercion.
+ *   conditionals and return early. The code-quality set also adds
+ *   declare(strict_types=1), but only to files it can prove are free of
+ *   scalar type coercion (SafeDeclareStrictTypesRector).
  *
  * Shipped migrations are skipped on purpose: they already ran in production
  * and must never change. Generated caches are skipped too.
@@ -49,9 +48,6 @@ return RectorConfig::configure()
         typeDeclarations: true,
         earlyReturn: true,
     )
-    ->withRules([
-        SafeDeclareStrictTypesRector::class,
-    ])
     ->withSkip([
         __DIR__.'/bootstrap/cache',
         ArrowFunctionDelegatingCallToFirstClassCallableRector::class => [__DIR__.'/tests'],

@@ -37,6 +37,8 @@ interface Props {
     enableLanguageSwitcher?: boolean;
     /** Language codes the owner enabled in Setup → Languages. Empty means all locales. */
     enabledLanguages?: string[];
+    /** Whether the composer offers PDF uploads: the owner allows them and the server can read PDFs. */
+    allowFileUploads?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -60,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
     locale: 'auto',
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
+    allowFileUploads: false,
 });
 
 const { t, locale: i18nLocale } = useI18n();
@@ -121,7 +124,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                             v-if="canSendMessages"
                             :text="selectedStarter"
                             :placeholder="resolvedAppearance.composer_placeholder ?? undefined"
-                            :allow-file-uploads="appearance.allow_file_uploads !== false"
+                            :allow-file-uploads="allowFileUploads"
                             :allow-voice-input="appearance.allow_voice_input !== false"
                             :max-files="maxFilesPerChat"
                             :upload-endpoint="uploadEndpoint"

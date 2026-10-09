@@ -1,16 +1,23 @@
 import inertia from '@inertiajs/vite';
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
-import path from 'path';
-import tailwindcss from "@tailwindcss/vite";
-import { resolve } from 'node:path';
-import { defineConfig, type Plugin } from 'vite';
-import { compression } from 'vite-plugin-compression2';
 import { exec } from 'node:child_process';
 import fs from 'node:fs';
+import { resolve } from 'node:path';
+import path from 'path';
+import { defineConfig, type Plugin } from 'vite';
+import { compression } from 'vite-plugin-compression2';
 
-// Plugin to watch app/Data and run typescript:transform on changes
+// Dev-server plugin: re-run `php artisan typescript:transform` when a PHP class
+// that feeds resources/types/generated.d.ts changes. Watches the same folders
+// the transformer scans (TypeScriptTransformerServiceProvider) and skips files
+// without a #[TypeScript] attribute, so ordinary PHP edits do not trigger it.
+const TYPESCRIPT_SOURCE_DIRS = ['src/App', 'src/Domain'];
+
 function typescriptTransformPlugin(): Plugin {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
     const runTransform = () => {
         exec('php artisan typescript:transform', (error, stdout, stderr) => {
             if (error) {
@@ -21,13 +28,22 @@ function typescriptTransformPlugin(): Plugin {
         });
     };
 
+    // An editor save fires several watch events; run the transform once.
+    const scheduleTransform = () => {
+        clearTimeout(timer);
+        timer = setTimeout(runTransform, 300);
+    };
+
+    // A deleted file can no longer be read, so it always triggers a run.
+    const feedsTypes = (file: string): boolean => !fs.existsSync(file) || fs.readFileSync(file, 'utf8').includes('#[TypeScript');
+
     const watchDir = (dir: string) => {
         if (!fs.existsSync(dir)) return;
 
         fs.watch(dir, { recursive: true }, (eventType, filename) => {
-            if (filename && filename.endsWith('.php')) {
+            if (filename && filename.endsWith('.php') && feedsTypes(path.join(dir, filename))) {
                 console.log(`\x1b[33m[typescript:transform] Change detected: ${filename}\x1b[0m`);
-                runTransform();
+                scheduleTransform();
             }
         });
     };
@@ -35,9 +51,9 @@ function typescriptTransformPlugin(): Plugin {
     return {
         name: 'typescript-transform',
         configureServer() {
-            console.log('\x1b[36m[typescript:transform] Watching app/Data for changes...\x1b[0m');
+            console.log(`\x1b[36m[typescript:transform] Watching ${TYPESCRIPT_SOURCE_DIRS.join(', ')} for changes...\x1b[0m`);
             runTransform();
-            watchDir(path.resolve(__dirname, 'app/Data'));
+            TYPESCRIPT_SOURCE_DIRS.forEach((dir) => watchDir(path.resolve(__dirname, dir)));
         },
     };
 }

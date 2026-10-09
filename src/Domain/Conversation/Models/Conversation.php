@@ -50,6 +50,7 @@ use Support\Localization\Language\Models\Language;
  * @property string|null $sentiment
  * @property string|null $tone
  * @property Carbon|null $analyzed_at
+ * @property int $analysis_attempts end-of-life analysis runs that reached the model (see QueuePendingConversationAnalysisAction)
  * @property int|null $handoff_user_id
  * @property HandoffStatus|null $handoff_status null only on a freshly created model before refresh (the column defaults to `ai`)
  * @property Carbon|null $handoff_at
@@ -87,6 +88,7 @@ use Support\Localization\Language\Models\Language;
  * @method static ConversationQueryBuilder<static>|Conversation onlyVisible()
  * @method static ConversationQueryBuilder<static>|Conversation orderByLatestActivity()
  * @method static ConversationQueryBuilder<static>|Conversation query()
+ * @method static ConversationQueryBuilder<static>|Conversation reachableByWidgetVisitor(int $agentId, ?int $chatterId = null)
  * @method static ConversationQueryBuilder<static>|Conversation whereSessionId($value)
  * @method static ConversationQueryBuilder<static>|Conversation whereAnalyzedAt($value)
  * @method static ConversationQueryBuilder<static>|Conversation whereCreatedAt($value)

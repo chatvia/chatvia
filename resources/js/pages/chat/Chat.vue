@@ -42,6 +42,8 @@ interface Props {
     enableLanguageSwitcher?: boolean;
     /** Language codes the owner enabled in Setup → Languages. Empty means all locales. */
     enabledLanguages?: string[];
+    /** Whether the composer offers PDF uploads: the owner allows them and the server can read PDFs. */
+    allowFileUploads?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -62,6 +64,7 @@ const props = withDefaults(defineProps<Props>(), {
     locale: 'auto',
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
+    allowFileUploads: false,
 });
 
 const { t } = useI18n();
@@ -200,7 +203,7 @@ onMounted(async () => {
                         <ChatComposer
                             :isThinking="isStreaming"
                             :placeholder="resolvedAppearance.composer_placeholder ?? undefined"
-                            :allow-file-uploads="appearance.allow_file_uploads !== false"
+                            :allow-file-uploads="allowFileUploads"
                             :allow-voice-input="appearance.allow_voice_input !== false"
                             :max-files="maxFilesPerChat"
                             :disabled="!canSendMessages || hasPendingApprovals"

@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Avatarin lataaminen epäonnistui",
+                "logo_upload_error": "Logon lataaminen epäonnistui",
+                "avatar_remove_error": "Avatarin poistaminen epäonnistui",
+                "logo_remove_error": "Logon poistaminen epäonnistui"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Musta",
+                "red": "Punainen",
+                "orange": "Oranssi",
+                "amber": "Meripihka",
+                "yellow": "Keltainen",
+                "lime": "Limetti",
+                "green": "Vihreä",
+                "emerald": "Smaragdi",
+                "teal": "Sinivihreä",
+                "cyan": "Syaani",
+                "sky": "Taivaansininen",
+                "blue": "Sininen",
+                "indigo": "Indigo",
+                "violet": "Violetti",
+                "purple": "Purppura",
+                "fuchsia": "Fuksia",
+                "pink": "Vaaleanpunainen",
+                "rose": "Ruusu",
+                "slate": "Liuske",
+                "gray": "Harmaa",
+                "zinc": "Sinkki",
+                "neutral": "Neutraali",
+                "stone": "Kivi"
+            }
+        }
+    }
+}

@@ -30,7 +30,7 @@ class FeedbackController
         $sessionId = (string) $this->widgetSessionId($request);
         $conversationId = (string) $this->widgetConversationId($request);
 
-        if (! $findConversation->execute($conversationId, $sessionId, $agent) instanceof Conversation) {
+        if (! $findConversation->execute($conversationId, $sessionId, $agent, $this->widgetUser($request)) instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found.'], JsonResponse::HTTP_NOT_FOUND);
         }
 

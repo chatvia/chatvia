@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Actions\Permissions\SetMcpToolsScopePermissionAction;
+use Domain\Integration\Mcp\Data\McpScopePermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -51,7 +52,7 @@ it('flips every custom tool in the targeted scope and leaves the other scope alo
     $read2 = smtsCustomTool($server, 'list_b', McpToolScope::Read, McpToolPermission::Approval);
     $write = smtsCustomTool($server, 'delete_a', McpToolScope::Write, McpToolPermission::Allow);
 
-    $result = app(SetMcpToolsScopePermissionAction::class)->execute($server, McpToolScope::Read, McpToolPermission::Blocked);
+    $result = app(SetMcpToolsScopePermissionAction::class)->execute($server, new McpScopePermissionData(McpToolScope::Read, McpToolPermission::Blocked));
 
     expect($result->scope)->toBe(McpToolScope::Read)
         ->and($result->permission)->toBe(McpToolPermission::Blocked)
@@ -65,7 +66,7 @@ it('reports zero updates when the scope has no tools', function (): void {
     $server = smtsCustomServer();
     smtsCustomTool($server, 'list_a', McpToolScope::Read, McpToolPermission::Allow);
 
-    $result = app(SetMcpToolsScopePermissionAction::class)->execute($server, McpToolScope::Write, McpToolPermission::Blocked);
+    $result = app(SetMcpToolsScopePermissionAction::class)->execute($server, new McpScopePermissionData(McpToolScope::Write, McpToolPermission::Blocked));
 
     expect($result->updated)->toBe(0);
 });
@@ -77,7 +78,7 @@ it('does not touch tools belonging to a different server', function (): void {
     $other = smtsCustomServer();
     $otherRead = smtsCustomTool($other, 'list_x', McpToolScope::Read, McpToolPermission::Allow);
 
-    app(SetMcpToolsScopePermissionAction::class)->execute($server, McpToolScope::Read, McpToolPermission::Blocked);
+    app(SetMcpToolsScopePermissionAction::class)->execute($server, new McpScopePermissionData(McpToolScope::Read, McpToolPermission::Blocked));
 
     expect($otherRead->refresh()->permission)->toBe(McpToolPermission::Allow);
 });
@@ -105,7 +106,7 @@ it('flips the memberships for a preset connector scope', function (): void {
     McpServerTool::create(['mcp_server_id' => $server->id, 'connector_tool_id' => $read->id, 'permission' => McpToolPermission::Allow]);
     McpServerTool::create(['mcp_server_id' => $server->id, 'connector_tool_id' => $write->id, 'permission' => McpToolPermission::Allow]);
 
-    $result = app(SetMcpToolsScopePermissionAction::class)->execute($server, McpToolScope::Read, McpToolPermission::Approval);
+    $result = app(SetMcpToolsScopePermissionAction::class)->execute($server, new McpScopePermissionData(McpToolScope::Read, McpToolPermission::Approval));
 
     expect($result->updated)->toBe(1)
         ->and(McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $read->id)->first()->permission)

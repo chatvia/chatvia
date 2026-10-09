@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 
 /**
  * Deterministic, offline stand-in for the real reranker, bound by default in
@@ -18,7 +19,7 @@ class FakeReranker implements Reranker
     public function rerank(string $query, array $documents, ?int $topN = null): array
     {
         $ranked = array_map(
-            static fn (int $i): array => ['index' => $i, 'relevance_score' => 1.0 - ($i * 0.01)],
+            static fn (int $i): RerankedDocumentData => new RerankedDocumentData($i, 1.0 - ($i * 0.01)),
             array_keys(array_values($documents)),
         );
 

@@ -13,8 +13,10 @@ use Support\Exceptions\UnsafeUrlException;
  * security events, CRM form submissions). One place for the delivery rules so
  * they cannot drift between callers:
  *
- *  - the URL passes {@see SafeUrl::assert()} right before sending, because a
- *    URL that was safe at save time can later resolve to an internal address;
+ *  - the URL passes {@see SafeUrl::pinnedClientOptions()} right before
+ *    sending, because a URL that was safe at save time can later resolve to an
+ *    internal address, and the request connects to the address that was
+ *    checked;
  *  - redirects are never followed, so a public host cannot bounce the request
  *    into the internal network after the check;
  *  - the raw body is signed with {@see WebhookSignature} and sent as
@@ -38,12 +40,12 @@ final readonly class SignedWebhookSender
      */
     public function send(string $url, string $event, array $payload, string $secret): Response
     {
-        SafeUrl::assert($url);
+        $clientOptions = SafeUrl::pinnedClientOptions($url);
 
         $body = (string) json_encode($payload);
 
         $response = Http::timeout(self::TIMEOUT_SECONDS)
-            ->withOptions(SafeUrl::clientOptions())
+            ->withOptions($clientOptions)
             ->withHeaders([
                 'X-Chatvia-Event' => $event,
                 'X-Chatvia-Signature' => 'sha256='.WebhookSignature::sign($body, $secret),

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding\Contracts;
 
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
+
 /**
  * Scores how well each candidate text answers a query, so retrieval and tool
  * routing can keep the relevant candidates and drop the rest. The
@@ -17,7 +19,7 @@ interface Reranker
      *
      * @param  list<string>  $documents
      * @param  int|null  $topN  Cap on results returned; null keeps the reranker's default
-     * @return list<array{index: int, relevance_score: float}> `index` points into $documents
+     * @return list<RerankedDocumentData> each `index` points into $documents
      */
     public function rerank(string $query, array $documents, ?int $topN = null): array;
 

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Domain\Integration\Mcp\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Mcp\Data\McpToolResultData;
 use Domain\Integration\Mcp\Data\ResolvedMcpTool;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
@@ -79,12 +78,12 @@ class McpToolDispatcher implements ToolDispatcherInterface
         $start = microtime(true);
 
         try {
-            $result = McpToolResultData::fromEnvelope($this->client->callTool(
+            $result = $this->client->callTool(
                 $server,
                 $toolName,
                 $arguments,
                 ToolCallerIdentity::headers($agent, $call->conversationExternalId, $call->chatterExternalId),
-            ));
+            );
 
             $this->record($server, $agent, $toolName, $catalogEntry?->description, error: null);
 
@@ -95,9 +94,9 @@ class McpToolDispatcher implements ToolDispatcherInterface
                 'latency_ms' => (int) round((microtime(true) - $start) * 1000),
             ]);
 
-            return $result->isError
-                ? $this->error($result->text)
-                : new ToolDispatchResult($result->text, $result->artifacts());
+            // A failure the tool reports itself reads like this dispatcher's
+            // own refusals ("Tool error: …").
+            return $result->isError ? $this->error($result->text) : $result->toDispatchResult();
         } catch (Throwable $e) {
             // The full message stays with the workspace (the server row's
             // last_error); logs get the exception type only, since transport

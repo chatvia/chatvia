@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "Kunne ikke uploade avataren",
+                "logo_upload_error": "Kunne ikke uploade logoet",
+                "avatar_remove_error": "Kunne ikke fjerne avataren",
+                "logo_remove_error": "Kunne ikke fjerne logoet"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "Sort",
+                "red": "Rød",
+                "orange": "Orange",
+                "amber": "Rav",
+                "yellow": "Gul",
+                "lime": "Lime",
+                "green": "Grøn",
+                "emerald": "Smaragd",
+                "teal": "Blågrøn",
+                "cyan": "Cyan",
+                "sky": "Himmelblå",
+                "blue": "Blå",
+                "indigo": "Indigo",
+                "violet": "Violet",
+                "purple": "Lilla",
+                "fuchsia": "Fuchsia",
+                "pink": "Lyserød",
+                "rose": "Rosa",
+                "slate": "Skifer",
+                "gray": "Grå",
+                "zinc": "Zink",
+                "neutral": "Neutral",
+                "stone": "Sten"
+            }
+        }
+    }
+}

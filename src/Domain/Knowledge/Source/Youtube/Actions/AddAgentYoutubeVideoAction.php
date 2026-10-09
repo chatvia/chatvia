@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Source\Youtube\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
@@ -19,7 +18,7 @@ class AddAgentYoutubeVideoAction
     /**
      * @throws DomainValidationException
      */
-    public function execute(Agent $agent, User $user, string $url): SourceYoutubeVideo
+    public function execute(Agent $agent, string $url): SourceYoutubeVideo
     {
         if (! $this->extractVideoId($url)) {
             throw new DomainValidationException('url', __('Could not extract video ID from URL.'));

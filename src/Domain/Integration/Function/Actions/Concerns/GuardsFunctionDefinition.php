@@ -6,7 +6,7 @@ use Closure;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Validation\ValidationException;
+use Support\Exceptions\DomainValidationException;
 
 /**
  * Rules shared by creating and updating a webhook function: names are unique
@@ -18,6 +18,8 @@ trait GuardsFunctionDefinition
     /**
      * Names are unique per workspace (a DB unique index). Check up front so a
      * clash is a validation error rather than a database error.
+     *
+     * @throws DomainValidationException
      */
     private function ensureNameAvailable(int $ownerId, string $internalName, ?int $exceptFunctionId = null): void
     {
@@ -62,10 +64,12 @@ trait GuardsFunctionDefinition
             : null;
     }
 
-    private function duplicateNameException(): ValidationException
+    /**
+     * Rendered as a 422 on `internal_name` by the exception handler, the same
+     * shape a FormRequest rule would give.
+     */
+    private function duplicateNameException(): DomainValidationException
     {
-        return ValidationException::withMessages([
-            'internal_name' => __('A function with this name already exists in your workspace.'),
-        ]);
+        return new DomainValidationException('internal_name', __('A function with this name already exists in your workspace.'));
     }
 }

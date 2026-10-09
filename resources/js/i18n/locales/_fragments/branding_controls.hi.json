@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "अवतार अपलोड नहीं किया जा सका",
+                "logo_upload_error": "लोगो अपलोड नहीं किया जा सका",
+                "avatar_remove_error": "अवतार को हटाया नहीं जा सका",
+                "logo_remove_error": "लोगो को हटाया नहीं जा सका"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "काला",
+                "red": "लाल",
+                "orange": "नारंगी",
+                "amber": "अंबर",
+                "yellow": "पीला",
+                "lime": "नींबू हरा",
+                "green": "हरा",
+                "emerald": "पन्ना",
+                "teal": "हरा-नीला",
+                "cyan": "सियान",
+                "sky": "आसमानी",
+                "blue": "नीला",
+                "indigo": "नील",
+                "violet": "बैंगनी",
+                "purple": "जामुनी",
+                "fuchsia": "फ़ुशिया",
+                "pink": "गुलाबी",
+                "rose": "गुलाब",
+                "slate": "स्लेटी",
+                "gray": "धूसर",
+                "zinc": "ज़िंक",
+                "neutral": "तटस्थ",
+                "stone": "पत्थर"
+            }
+        }
+    }
+}

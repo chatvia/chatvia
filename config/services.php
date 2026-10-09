@@ -10,7 +10,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | This file is for storing the credentials for third party services such
-    | as Mailgun, Postmark, AWS and more. This file provides the de facto
+    | as AWS, Resend and more. This file provides the de facto
     | location for this type of information, allowing packages to have
     | a conventional file to locate the various service credentials.
     |
@@ -20,10 +20,6 @@ return [
     | (App\Admin\Settings\SettingsStore). Do not read them from .env.
     |
     */
-
-    'postmark' => [
-        'token' => env('POSTMARK_TOKEN'),
-    ],
 
     // Base URLs the built-in Weather / Currency MCP tools call. Each workspace
     // brings its own API key (sent to /mcp/* as a bearer token).
@@ -46,10 +42,6 @@ return [
     ],
 
     'slack' => [
-        'notifications' => [
-            'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
-        ],
         'client_id' => null,
         'client_secret' => null,
         'redirect' => null,
@@ -222,6 +214,9 @@ return [
     // refuses to sign rather than silently reuse another key.
     'builtin_mcp' => [
         'secret' => env('BUILTIN_MCP_SECRET'),
+        // Accept a signed call that has no one-time nonce. Only for the deploy
+        // that introduces the nonce, while workers still run the old code.
+        'allow_missing_nonce' => (bool) env('BUILTIN_MCP_ALLOW_MISSING_NONCE', false),
     ],
 
     'turnstile' => [

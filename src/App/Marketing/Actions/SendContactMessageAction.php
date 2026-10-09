@@ -5,21 +5,22 @@ declare(strict_types=1);
 namespace App\Marketing\Actions;
 
 use App\Marketing\Data\ContactMessageData;
-use App\Marketing\Mail\ContactMail;
+use App\Marketing\Events\ContactMessageSubmitted;
+use App\Marketing\Listeners\SendContactEmail;
 use App\Marketing\Services\ContactInbox;
-use Illuminate\Support\Facades\Mail;
 
 /**
- * Delivers a contact-form message to the install's contact inbox. Sending
- * the email is the whole operation, so it happens here rather than in a
- * listener. Nothing is sent when the install has no inbox configured.
+ * Accepts a contact-form message for the install's contact inbox. The email
+ * itself is a side effect, sent by {@see SendContactEmail} when
+ * {@see ContactMessageSubmitted} fires. Nothing is sent when the install has
+ * no inbox configured.
  */
 class SendContactMessageAction
 {
     public function __construct(private readonly ContactInbox $inbox) {}
 
     /**
-     * @return bool whether the message was sent (false when the form is off)
+     * @return bool whether the message was accepted (false when the form is off)
      */
     public function execute(ContactMessageData $contact): bool
     {
@@ -29,7 +30,7 @@ class SendContactMessageAction
             return false;
         }
 
-        Mail::to($recipient)->send(new ContactMail($contact));
+        ContactMessageSubmitted::dispatch($contact, $recipient);
 
         return true;
     }

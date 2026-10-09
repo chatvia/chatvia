@@ -241,10 +241,11 @@ return [
         'logo_url' => '/images/logos/connectors/gmail.svg',
         'priority' => 10,
         // Google does not support OAuth 2.1 Dynamic Client Registration. Register
-        // one OAuth 2.0 client at https://console.cloud.google.com/apis/credentials
-        // (Application type: Web; Authorized redirect URI: APP_URL + '/connectors/oauth/callback').
-        // The same client_id/secret is reused for Gmail, Calendar, and Drive — enable
-        // each API in the Cloud Console project.
+        // an OAuth 2.0 client at https://console.cloud.google.com/apis/credentials
+        // (Application type: Web; Authorized redirect URI: APP_URL + '/connectors/oauth/callback')
+        // and enter its Client ID / Client Secret in the admin panel (Settings → Connectors).
+        // Gmail, Google Calendar and Google Drive each have their own entry there; you
+        // may enter the same client for all three. Enable each API in the Cloud Console project.
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://gmailmcp.googleapis.com/mcp/v1',
         'oauth_client_id' => null,

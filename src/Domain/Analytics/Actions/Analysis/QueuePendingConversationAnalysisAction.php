@@ -11,6 +11,10 @@ use Illuminate\Support\Collection;
  * conversation that is old enough (`chatvia.analytics.analysis.scan_age_hours`)
  * and not analysed yet. Idempotent: the job stamps analyzed_at, and a
  * conversation already analysed is skipped by the job itself.
+ *
+ * A conversation whose analysis already ran `max_attempts` times without a
+ * saved result is left alone, so one that always fails is not paid for every
+ * hour forever.
  */
 class QueuePendingConversationAnalysisAction
 {
@@ -20,6 +24,7 @@ class QueuePendingConversationAnalysisAction
     public function execute(int $chunkSize = 100): int
     {
         $cutoff = now()->subHours((int) config('chatvia.analytics.analysis.scan_age_hours', 6));
+        $maxAttempts = (int) config('chatvia.analytics.analysis.max_attempts', 5);
         $queued = 0;
 
         // analyzed_at is set by the queued job (async), so it stays NULL for the
@@ -28,6 +33,7 @@ class QueuePendingConversationAnalysisAction
         Conversation::query()
             ->whereNull('analyzed_at')
             ->where('created_at', '<', $cutoff)
+            ->where('analysis_attempts', '<', $maxAttempts)
             ->whereNull('deleted_at')
             ->orderBy('id')
             ->chunkById(max(1, $chunkSize), function (Collection $conversations) use (&$queued): void {

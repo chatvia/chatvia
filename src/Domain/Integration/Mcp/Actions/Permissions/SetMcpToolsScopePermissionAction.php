@@ -2,6 +2,7 @@
 
 namespace Domain\Integration\Mcp\Actions\Permissions;
 
+use Domain\Integration\Mcp\Data\McpScopePermissionData;
 use Domain\Integration\Mcp\Data\McpToolsScopePermissionData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
@@ -23,19 +24,19 @@ class SetMcpToolsScopePermissionAction
         private readonly ToolRegistry $registry,
     ) {}
 
-    public function execute(AgentMcpServer $server, McpToolScope $scope, McpToolPermission $permission): McpToolsScopePermissionData
+    public function execute(AgentMcpServer $server, McpScopePermissionData $change): McpToolsScopePermissionData
     {
         $updated = $server->usesCentralCatalog()
-            ? $this->setMembershipScope($server, $scope, $permission)
-            : $this->setOwnToolsScope($server, $scope, $permission);
+            ? $this->setMembershipScope($server, $change->scope, $change->permission)
+            : $this->setOwnToolsScope($server, $change->scope, $change->permission);
 
         if ($updated > 0) {
             $this->registry->forgetAttachedTo($server);
         }
 
         return new McpToolsScopePermissionData(
-            scope: $scope,
-            permission: $permission,
+            scope: $change->scope,
+            permission: $change->permission,
             updated: $updated,
         );
     }

@@ -326,6 +326,9 @@ In short:
   only the list of AI models, no demo data), create the first admin with
   `php artisan admin:create-user <email> <name>`, add your API keys in the
   admin panel, then run `php artisan app:sync-builtin-mcp`.
+- Set up a working mailer (`MAIL_*`). People who sign up at `/register` must
+  confirm their e-mail address before they can use the app, and invitations
+  and sign-in links also go out by e-mail.
 - Cache the configuration with `php artisan config:cache`, `event:cache` and
   `view:cache`. Do not run `route:cache`: the localized public pages use
   routes that the route cache cannot store.

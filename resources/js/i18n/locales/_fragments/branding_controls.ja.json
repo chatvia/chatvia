@@ -1,0 +1,41 @@
+{
+    "agents": {
+        "setup": {
+            "toasts": {
+                "avatar_upload_error": "アバターをアップロードできませんでした",
+                "logo_upload_error": "ロゴをアップロードできませんでした",
+                "avatar_remove_error": "アバターを削除できませんでした",
+                "logo_remove_error": "ロゴを削除できませんでした"
+            }
+        }
+    },
+    "shared": {
+        "color_picker": {
+            "colors": {
+                "black": "ブラック",
+                "red": "レッド",
+                "orange": "オレンジ",
+                "amber": "アンバー",
+                "yellow": "イエロー",
+                "lime": "ライム",
+                "green": "グリーン",
+                "emerald": "エメラルド",
+                "teal": "ティール",
+                "cyan": "シアン",
+                "sky": "スカイ",
+                "blue": "ブルー",
+                "indigo": "インディゴ",
+                "violet": "バイオレット",
+                "purple": "パープル",
+                "fuchsia": "フューシャ",
+                "pink": "ピンク",
+                "rose": "ローズ",
+                "slate": "スレート",
+                "gray": "グレー",
+                "zinc": "ジンク",
+                "neutral": "ニュートラル",
+                "stone": "ストーン"
+            }
+        }
+    }
+}

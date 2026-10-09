@@ -4,6 +4,7 @@ use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Routing\ToolRelevanceGate;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 
 /**
@@ -42,8 +43,8 @@ it('ships nothing when no candidate clears the threshold (the "Hi" case)', funct
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
     $reranker->shouldReceive('rerank')->once()->andReturn([
-        ['index' => 0, 'relevance_score' => 0.04],
-        ['index' => 1, 'relevance_score' => 0.02],
+        new RerankedDocumentData(0, 0.04),
+        new RerankedDocumentData(1, 0.02),
     ]);
 
     $candidates = [
@@ -59,8 +60,8 @@ it('keeps only the tools above the threshold, in reranked order', function (): v
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
     // Reranker promotes index 1 (weather) and drops index 0 (events) below the bar.
     $reranker->shouldReceive('rerank')->once()->andReturn([
-        ['index' => 1, 'relevance_score' => 0.91],
-        ['index' => 0, 'relevance_score' => 0.10],
+        new RerankedDocumentData(1, 0.91),
+        new RerankedDocumentData(0, 0.10),
     ]);
 
     $events = toolEntry('create_event', 'Schedule a meeting on the calendar');
@@ -76,8 +77,8 @@ it('keeps multiple tools when several clear the threshold', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
     $reranker->shouldReceive('rerank')->once()->andReturn([
-        ['index' => 0, 'relevance_score' => 0.88],
-        ['index' => 1, 'relevance_score' => 0.72],
+        new RerankedDocumentData(0, 0.88),
+        new RerankedDocumentData(1, 0.72),
     ]);
 
     $commits = toolEntry('list_commits', 'List repository commits');
@@ -99,8 +100,8 @@ it('holds write tools to a stricter bar than read tools', function (): void {
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
     // Both land at 0.55 — between the read bar (0.45) and the write bar (0.65).
     $reranker->shouldReceive('rerank')->once()->andReturn([
-        ['index' => 0, 'relevance_score' => 0.55],
-        ['index' => 1, 'relevance_score' => 0.55],
+        new RerankedDocumentData(0, 0.55),
+        new RerankedDocumentData(1, 0.55),
     ]);
 
     $write = toolEntry('create_refund', 'Refund a charge to a customer', mutates: true);
@@ -117,7 +118,7 @@ it('treats the threshold as inclusive (>=)', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
     $reranker->shouldReceive('rerank')->once()->andReturn([
-        ['index' => 0, 'relevance_score' => 0.55],
+        new RerankedDocumentData(0, 0.55),
     ]);
 
     $kept = gateWith($reranker)->gate('exact boundary', [toolEntry('boundary_tool', 'right on the line')]);
@@ -182,8 +183,8 @@ it('only reranks up to the configured candidate cap', function (): void {
         ->once()
         ->with('anything', Mockery::on(fn (array $docs): bool => count($docs) === 2), 2)
         ->andReturn([
-            ['index' => 0, 'relevance_score' => 0.90],
-            ['index' => 1, 'relevance_score' => 0.80],
+            new RerankedDocumentData(0, 0.90),
+            new RerankedDocumentData(1, 0.80),
         ]);
 
     $candidates = [

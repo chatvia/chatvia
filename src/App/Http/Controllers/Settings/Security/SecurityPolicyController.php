@@ -50,7 +50,7 @@ class SecurityPolicyController
             // Country picker options for the geo rules — only needed when the form
             // (not the teaser) renders. Codes are the lowercase ISO-3166 alpha-2
             // values the geo gate stores and matches against.
-            'countries' => $entitled ? $this->countryOptions() : [],
+            'countries' => $entitled ? Country::options() : [],
             'current_country' => $currentCountry,
             // Retention bounds for the form: conversations cap at the plan ceiling
             // (shorten only); audit sits between the mandated floor and default.
@@ -61,19 +61,6 @@ class SecurityPolicyController
                 'audit_floor' => (int) config('chatvia.security_audit.retention_floor_days', 30),
             ] : null,
         ]);
-    }
-
-    /**
-     * @return array<int, array{code: string, name: string}>
-     */
-    private function countryOptions(): array
-    {
-        return Country::query()
-            ->select('code', 'name')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (Country $country): array => ['code' => $country->code, 'name' => __($country->name)])
-            ->all();
     }
 
     public function update(UpdateSecurityPolicyRequest $request, UpdateSecurityPolicyAction $action): RedirectResponse

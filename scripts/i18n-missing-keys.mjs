@@ -48,7 +48,7 @@ function collectCompileErrors(obj, prefix = '') {
     return errors;
 }
 
-/** vue-i18n treats `@` as linked-message syntax — literal emails need `@@`. */
+/** vue-i18n treats `@` as linked-message syntax — a literal `@` must be written `{'@'}`. */
 function collectUnescapedAt(obj, prefix = '') {
     const warnings = [];
     for (const [k, v] of Object.entries(obj)) {
@@ -120,7 +120,7 @@ for (const localeCode of localeCodes) {
     }
     for (const w of atWarnings) {
         hasCompileErrors = true;
-        console.log(`  UNESCAPED @ ${w.key} — use @@ for literal @ (e.g. email@@example.com)`);
+        console.log(`  UNESCAPED @ ${w.key} — write a literal @ as {'@'} (e.g. email{'@'}example.com)`);
         console.log(`    ${w.value}`);
     }
 }

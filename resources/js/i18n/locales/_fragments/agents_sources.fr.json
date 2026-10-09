@@ -27,38 +27,6 @@
                 "markdown": "Markdown",
                 "connectors": "Connecteurs"
             },
-            "overview": {
-                "coming_soon": "{type} Bientôt disponible",
-                "under_development": "Cette fonctionnalité est actuellement en cours de développement.",
-                "files": {
-                    "label": "Fichiers",
-                    "description": "Importez et gérez des documents (PDF, Word, etc.)"
-                },
-                "text": {
-                    "label": "Texte",
-                    "description": "Ajoutez directement du contenu textuel personnalisé et des notes"
-                },
-                "web": {
-                    "label": "Site web",
-                    "description": "Explorez des sites web et des pages web pour enrichir les connaissances"
-                },
-                "audio": {
-                    "label": "Audio",
-                    "description": "Importez des fichiers audio et des podcasts pour la transcription"
-                },
-                "video": {
-                    "label": "Vidéo",
-                    "description": "Importez des fichiers vidéo pour la transcription et l'analyse"
-                },
-                "youtube": {
-                    "label": "YouTube",
-                    "description": "Importez des vidéos YouTube et extrayez les transcriptions"
-                },
-                "qa": {
-                    "label": "Q&R",
-                    "description": "Rédigez des réponses aux questions clés"
-                }
-            },
             "audio": {
                 "recording_uploaded": "Enregistrement importé avec succès !",
                 "recording_uploaded_description": "« {name} » a été ajouté à vos sources audio.",
@@ -195,8 +163,6 @@
                 "update_failed": "Échec de la mise à jour de l'entrée Q&R",
                 "deleted": "Entrée Q&R supprimée avec succès",
                 "delete_failed": "Échec de la suppression de l'entrée Q&R",
-                "unlinked": "Entrée Q&R dissociée avec succès",
-                "unlink_failed": "Échec de la dissociation de l'entrée Q&R",
                 "load_entries_failed": "Échec du chargement des entrées Q&R",
                 "status": {
                     "ingested": "Ingéré",
@@ -223,7 +189,6 @@
                 "question_prefix": "Q{number} :",
                 "edit_action": "Modifier",
                 "created_at": "Créé le {date}",
-                "used_by_agents": "Utilisé par {count} agents",
                 "delete_title": "Supprimer l'entrée Q&R",
                 "delete_description": "Êtes-vous sûr de vouloir supprimer cette entrée Q&R ? Cette action est irréversible."
             },

@@ -29,7 +29,9 @@ use Support\Localization\Language\Models\Language;
  * `analyzed_at` is stamped exactly once, making the batch idempotent. When the
  * model's answer cannot be parsed nothing is saved and `analyzed_at` stays
  * null, so the next scheduled pass tries again instead of recording a
- * made-up "neutral" result.
+ * made-up "neutral" result. Every run that reaches the model counts one
+ * `analysis_attempts`; the scheduled pass stops after
+ * `chatvia.analytics.analysis.max_attempts`.
  */
 class AnalyzeConversationAction
 {
@@ -56,6 +58,9 @@ class AnalyzeConversationAction
             return;
         }
 
+        // Counted before the call, so a run that throws uses up an attempt too.
+        $this->countAttempt($conversation);
+
         $analysis = $this->analyzer->analyze($this->transcript($messages), $agent);
 
         if (! $analysis instanceof ConversationAnalysisData) {
@@ -69,6 +74,14 @@ class AnalyzeConversationAction
         foreach ($newlyAssignedTopicIds as $topicId) {
             ConversationTopicAssigned::dispatch($agent->id, $agent->user_id, $topicId, $conversation->created_at);
         }
+    }
+
+    /**
+     * Through the base query, so this bookkeeping leaves `updated_at` alone.
+     */
+    private function countAttempt(Conversation $conversation): void
+    {
+        Conversation::query()->whereKey($conversation->getKey())->toBase()->increment('analysis_attempts');
     }
 
     /**

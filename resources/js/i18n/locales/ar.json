@@ -1043,38 +1043,6 @@
                 "markdown": "ماركداون",
                 "connectors": "الموصِّلات"
             },
-            "overview": {
-                "coming_soon": "{type} قريباً",
-                "under_development": "هذه الميزة قيد التطوير حالياً.",
-                "files": {
-                    "label": "الملفات",
-                    "description": "رفع وإدارة المستندات (PDF، Word، إلخ.)"
-                },
-                "text": {
-                    "label": "النص",
-                    "description": "إضافة محتوى نصي وملاحظات مخصصة مباشرةً"
-                },
-                "web": {
-                    "label": "الموقع الإلكتروني",
-                    "description": "زحف المواقع وصفحات الويب لاكتساب المعرفة"
-                },
-                "audio": {
-                    "label": "الصوت",
-                    "description": "رفع الملفات الصوتية والبودكاست لتفريغها نصياً"
-                },
-                "video": {
-                    "label": "الفيديو",
-                    "description": "رفع ملفات الفيديو لتفريغها نصياً وتحليلها"
-                },
-                "youtube": {
-                    "label": "يوتيوب",
-                    "description": "استيراد مقاطع يوتيوب واستخراج النصوص منها"
-                },
-                "qa": {
-                    "label": "سؤال وجواب",
-                    "description": "صياغة إجابات للأسئلة الرئيسية"
-                }
-            },
             "audio": {
                 "recording_uploaded": "تم رفع التسجيل بنجاح!",
                 "recording_uploaded_description": "تمت إضافة \"{name}\" إلى مصادرك الصوتية.",
@@ -1211,8 +1179,6 @@
                 "update_failed": "فشل تحديث مُدخَل سؤال وجواب",
                 "deleted": "تم حذف مُدخَل سؤال وجواب بنجاح",
                 "delete_failed": "فشل حذف مُدخَل سؤال وجواب",
-                "unlinked": "تم إلغاء ربط مُدخَل سؤال وجواب بنجاح",
-                "unlink_failed": "فشل إلغاء ربط مُدخَل سؤال وجواب",
                 "load_entries_failed": "فشل تحميل مُدخَلات سؤال وجواب",
                 "status": {
                     "ingested": "تم الاستيعاب",
@@ -1239,7 +1205,6 @@
                 "question_prefix": "س{number}:",
                 "edit_action": "تعديل",
                 "created_at": "أُنشئ في {date}",
-                "used_by_agents": "مُستخدَم لدى {count} وكيل",
                 "delete_title": "حذف مُدخَل سؤال وجواب",
                 "delete_description": "هل أنت متأكد من رغبتك في حذف مُدخَل سؤال وجواب هذا؟ لا يمكن التراجع عن هذا الإجراء.",
                 "remove_question": "إزالة السؤال",
@@ -1664,10 +1629,8 @@
                 "colors_error": "تعذّر حفظ الألوان",
                 "avatar_updated": "تم تحديث الصورة الرمزية",
                 "logo_updated": "تم تحديث الشعار",
-                "upload_error": "تعذّر رفع {key}",
                 "avatar_removed": "تمت إزالة الصورة الرمزية",
                 "logo_removed": "تمت إزالة الشعار",
-                "remove_error": "تعذّر إزالة {key}",
                 "hosted_saved": "تم حفظ سلوك الدردشة المستضافة",
                 "widget_saved": "تم حفظ سلوك ودجت المحادثة",
                 "bar_saved": "تم حفظ سلوك شريط الأوامر",
@@ -1679,7 +1642,11 @@
                 "privacy_error": "تعذّر حفظ رابط سياسة الخصوصية",
                 "branding_saved": "تم تحديث العلامة التجارية",
                 "languages_saved": "تم حفظ اللغات",
-                "languages_error": "تعذّر حفظ اللغات"
+                "languages_error": "تعذّر حفظ اللغات",
+                "avatar_upload_error": "تعذّر رفع الصورة الرمزية",
+                "logo_upload_error": "تعذّر رفع الشعار",
+                "avatar_remove_error": "تعذّر إزالة الصورة الرمزية",
+                "logo_remove_error": "تعذّر إزالة الشعار"
             },
             "settings": {
                 "composer_title": "خيارات المحرر",
@@ -4003,7 +3970,32 @@
         "color_picker": {
             "color_intensity": "شدة اللون",
             "light": "فاتح",
-            "dark": "داكن"
+            "dark": "داكن",
+            "colors": {
+                "black": "أسود",
+                "red": "أحمر",
+                "orange": "برتقالي",
+                "amber": "كهرماني",
+                "yellow": "أصفر",
+                "lime": "ليموني",
+                "green": "أخضر",
+                "emerald": "زمردي",
+                "teal": "أزرق مخضر",
+                "cyan": "سماوي",
+                "sky": "أزرق سماوي",
+                "blue": "أزرق",
+                "indigo": "نيلي",
+                "violet": "بنفسجي",
+                "purple": "أرجواني",
+                "fuchsia": "فوشيا",
+                "pink": "وردي",
+                "rose": "زهري",
+                "slate": "رمادي أردوازي",
+                "gray": "رمادي",
+                "zinc": "رمادي زنكي",
+                "neutral": "محايد",
+                "stone": "حجري"
+            }
         },
         "color_theme_picker": {
             "title": "اختر سمة اللون",
@@ -4242,7 +4234,8 @@
             "outcome_auto": "تلقائي",
             "outcome_approved": "موافق عليه",
             "outcome_denied": "مرفوض",
-            "outcome_rate_limited": "تجاوز الحد"
+            "outcome_rate_limited": "تجاوز الحد",
+            "outcome_not_offered": "غير معروضة"
         },
         "attach_file": {
             "title": "اختر من الملفات المدربة مسبقًا",

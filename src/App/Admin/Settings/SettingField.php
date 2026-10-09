@@ -3,14 +3,15 @@
 namespace App\Admin\Settings;
 
 /**
- * One value an admin can set in a settings group, and the config key it
- * overrides. Secrets are write-only in the panel: they are never sent back to
- * the browser, and a blank input keeps the saved value.
+ * One value an admin can set in a settings group, and the config key it fills.
+ * Secrets are write-only in the panel: they are never sent back to the
+ * browser, and a blank input keeps the saved value.
  */
 final readonly class SettingField
 {
     /**
      * @param  list<string>  $rules  Extra validation rules for a filled value.
+     * @param  string|null  $defaultPath  A path in this app whose full URL is used while nothing is saved.
      */
     private function __construct(
         public string $name,
@@ -20,6 +21,7 @@ final readonly class SettingField
         public bool $required,
         public array $rules,
         public ?string $help,
+        public ?string $defaultPath = null,
     ) {}
 
     /**
@@ -38,8 +40,19 @@ final readonly class SettingField
         return new self($name, $label, $config, secret: true, required: $required, rules: $rules, help: $help);
     }
 
-    public static function url(string $name, string $label, string $config, ?string $help = null): self
+    /**
+     * A URL of this app, such as an OAuth redirect, that defaults to $defaultPath.
+     */
+    public static function url(string $name, string $label, string $config, string $defaultPath, ?string $help = null): self
     {
-        return new self($name, $label, $config, secret: false, required: false, rules: ['url'], help: $help);
+        return new self($name, $label, $config, secret: false, required: false, rules: ['url'], help: $help, defaultPath: $defaultPath);
+    }
+
+    /**
+     * The value used while nothing is saved.
+     */
+    public function defaultValue(): ?string
+    {
+        return $this->defaultPath === null ? null : url($this->defaultPath);
     }
 }

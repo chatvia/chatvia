@@ -53,6 +53,13 @@ beforeEach(function (): void {
         $this->markTestSkipped('schema out of date — run migrate:fresh on the testing DB.');
     }
 
+    // API keys live in the admin panel, not in .env, so the key passed on the
+    // command line (SCALEWAYAI_API_KEY=… pest --testsuite=Eval) is put into
+    // config here.
+    if (filled($key = env('SCALEWAYAI_API_KEY'))) {
+        config(['services.scalewayai.api_key' => $key]);
+    }
+
     // Swap the offline fake (bound in TestCase) for the real, config-selected
     // provider, then pin that one instance so the helpers, hybrid search and the
     // relevance gate all score with the same real embeddings + reranker.

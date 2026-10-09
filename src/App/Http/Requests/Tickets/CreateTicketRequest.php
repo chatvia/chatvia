@@ -6,6 +6,11 @@ use App\Identity\Workspace\Models\User;
 use Domain\Helpdesk\Data\CreateTicketData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a new support ticket from the dashboard's Support page: a title,
+ * the first message and a priority. Any signed-in user may open a ticket for
+ * themselves.
+ */
 class CreateTicketRequest extends FormRequest
 {
     public function authorize(): bool

@@ -7,6 +7,12 @@ use Domain\Agent\Prompt\Data\CreatePromptData;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates a new saved prompt in the workspace Library. The name must be
+ * unique within the workspace, so the check is keyed to the workspace owner,
+ * not the teammate who is typing. Access is gated by the `account.prompts`
+ * route permission.
+ */
 class CreatePromptRequest extends FormRequest
 {
     public function authorize(): bool

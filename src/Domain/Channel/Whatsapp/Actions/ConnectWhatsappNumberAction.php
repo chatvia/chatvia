@@ -3,6 +3,7 @@
 namespace Domain\Channel\Whatsapp\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Exceptions\ChannelConnectException;
 use Domain\Channel\Services\ChannelConnectionGuard;
 use Domain\Channel\Services\MetaOAuthClient;
@@ -13,8 +14,8 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Connects (or reconnects) a WhatsApp business number to an agent after the
- * workspace granted it through WhatsApp Embedded Signup — one shared Chatvia
- * Meta app, so customers no longer paste a Cloud API token + app secret. It
+ * workspace granted it through WhatsApp Embedded Signup on Chatvia's Meta app,
+ * so the workspace never pastes a Cloud API token or app secret. It
  * exchanges the popup's OAuth code for a business-integration token, subscribes
  * the WhatsApp Business Account to Chatvia's app (without the subscription the
  * app-level webhook never fires), registers the number for the Cloud API, then
@@ -24,7 +25,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Inbound events are routed back to this row by `phone_number_id` against the
  * single app-level webhook and the HMAC is verified with the shared app secret,
- * so the per-number `app_secret`/`webhook_secret` are no longer collected.
+ * so no per-number `app_secret`/`webhook_secret` is collected.
  */
 class ConnectWhatsappNumberAction
 {
@@ -84,12 +85,12 @@ class ConnectWhatsappNumberAction
             ]);
         }
 
-        $pin = (string) config('services.meta.whatsapp_register_pin');
+        $pin = MetaApp::Whatsapp->registerPin();
 
-        if ($pin !== '') {
+        if ($pin !== null) {
             $this->client->registerNumber($token, $data->phoneNumberId, $pin);
         } else {
-            Log::info('WhatsApp connect: no META_WHATSAPP_REGISTER_PIN set — skipping Cloud API number registration', [
+            Log::info('WhatsApp connect: no WhatsApp registration PIN set (admin panel: Settings → Channels) — skipping Cloud API number registration', [
                 'agent_id' => $agent->id,
                 'phone_number_id' => $data->phoneNumberId,
             ]);

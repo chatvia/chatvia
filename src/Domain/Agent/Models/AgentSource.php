@@ -43,11 +43,13 @@ use Illuminate\Support\Facades\DB;
 #[WithoutTimestamps]
 class AgentSource extends MorphPivot
 {
+    /** @return BelongsTo<Agent, $this> */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return MorphTo<Model, $this> */
     public function sourceable(): MorphTo
     {
         return $this->morphTo();

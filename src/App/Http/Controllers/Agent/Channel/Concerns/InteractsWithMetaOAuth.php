@@ -45,11 +45,11 @@ trait InteractsWithMetaOAuth
 
         Log::info("{$channel->label()} OAuth: starting connect", [
             'agent_id' => $agent->id,
-            'has_app_id' => (bool) config('services.meta.app_id'),
-            'has_app_secret' => (bool) config('services.meta.app_secret'),
+            'has_app_id' => $channel->app()->appId() !== '',
+            'has_app_secret' => $channel->app()->appSecret() !== '',
         ]);
 
-        return redirect()->away($oauth->authorizeUrl($state, $channel->scopes(), $channel->configId(), $channel->redirectUri()));
+        return redirect()->away($oauth->authorizeUrl($channel->app(), $state, $channel->scopes()));
     }
 
     private function completeMetaOAuth(Request $request, MetaOAuthChannel $channel, CompleteMetaOAuthAction $complete): RedirectResponse

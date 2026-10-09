@@ -59,6 +59,7 @@ class MistralOcr
                 'include_image_base64' => true,
             ])->throw();
 
+        /** @var list<array{index: int, markdown: string, images: list<array{image_base64: string}>|null, tables: list<array{content: string}>|null, hyperlinks?: list<mixed>}> $pages */
         $pages = $response->json('pages');
 
         return collect($pages)->map(function (array $page): PageData {
@@ -71,7 +72,7 @@ class MistralOcr
             }
 
             if ($page['tables']) {
-                $tables = collect($page['tables'])->map(fn (array $table) => $table['content'])->toArray();
+                $tables = collect($page['tables'])->map(fn (array $table): string => $table['content'])->toArray();
             }
 
             $text = str(Markdown::convert($page['markdown'])->getContent())

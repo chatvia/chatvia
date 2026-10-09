@@ -20,6 +20,7 @@ class ConversationQueryBuilder extends Builder
     /** A visitor counts as online while their conversation was active this recently. */
     public const int ONLINE_WINDOW_MINUTES = 3;
 
+    /** @return self<TModel> */
     public function forAgent(int $agentId): self
     {
         return $this->where('agent_id', $agentId);
@@ -29,6 +30,8 @@ class ConversationQueryBuilder extends Builder
      * Only conversations of one visitor session of one agent. Lookups by a
      * client-supplied conversation id go through this, so an id from another
      * session or agent never matches.
+     *
+     * @return self<TModel>
      */
     public function inSession(string $sessionExternalId, int $agentId): self
     {
@@ -37,16 +40,19 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /** @return self<TModel> */
     public function withSessionAndTopic(): self
     {
         return $this->with(['session.country', 'topics']);
     }
 
+    /** @return self<TModel> */
     public function filterByTopic(?string $topicId): self
     {
         return $this->when($topicId, fn ($query) => $query->whereHas('topics', fn ($q) => $q->where('topics.id', $topicId)));
     }
 
+    /** @return self<TModel> */
     public function filterBySentiment(?string $sentiment): self
     {
         // Conversation-level sentiment is stamped by the consolidated analysis
@@ -56,11 +62,13 @@ class ConversationQueryBuilder extends Builder
         return $this->when($sentiment, fn ($query) => $query->where('sentiment', $sentiment));
     }
 
+    /** @return self<TModel> */
     public function filterByTone(?string $tone): self
     {
         return $this->when($tone, fn ($query) => $query->where('tone', $tone));
     }
 
+    /** @return self<TModel> */
     public function filterByDateRange(?string $startDate, ?string $endDate): self
     {
         return $this->when($startDate && $endDate, function ($query) use ($startDate, $endDate): void {
@@ -68,6 +76,7 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /** @return self<TModel> */
     public function filterByCountry(?string $countryId): self
     {
         return $this->when($countryId, function ($query) use ($countryId): void {
@@ -75,6 +84,7 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /** @return self<TModel> */
     public function filterByConfidenceScore(?string $confidenceScore): self
     {
         return $this->when($confidenceScore, function ($query) use ($confidenceScore): void {
@@ -90,6 +100,7 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /** @return self<TModel> */
     public function filterByFeedback(?string $feedback): self
     {
         return $this->when($feedback, function ($query) use ($feedback): void {
@@ -101,6 +112,7 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /** @return self<TModel> */
     public function filterBySource(?string $source): self
     {
         // Each conversation carries its originating surface on the
@@ -109,6 +121,7 @@ class ConversationQueryBuilder extends Builder
         return $this->when($source, fn ($query) => $query->where('source', $source));
     }
 
+    /** @return self<TModel> */
     public function filterByOnlineStatus(?bool $onlineOnly): self
     {
         return $this->when($onlineOnly, function ($query): void {
@@ -116,11 +129,13 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
+    /** @return self<TModel> */
     public function orderByLatestActivity(): self
     {
         return $this->orderByDesc('updated_at');
     }
 
+    /** @return self<TModel> */
     public function onlyVisible(): self
     {
         return $this->where('is_visible', true);

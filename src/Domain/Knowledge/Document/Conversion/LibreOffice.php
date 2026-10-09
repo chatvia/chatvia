@@ -22,6 +22,7 @@ class LibreOffice
 
     private int $timeout = 3600;
 
+    /** @var list<string> */
     private readonly array $allowedFormats;
 
     /** Set once `soffice --version` has succeeded in this PHP process. */
@@ -135,6 +136,7 @@ class LibreOffice
         }
     }
 
+    /** @return list<string> */
     private function buildConvertCommand(
         string $profileDir,
         string $inputPath,
@@ -198,6 +200,7 @@ class LibreOffice
         return trim($result->output());
     }
 
+    /** @return array<string, string> */
     private function getLibreOfficeEnv(): array
     {
         $temp = rtrim($this->cacheDir, '/');

@@ -17,6 +17,9 @@ class MagicLinkNotification extends Notification
         public ?string $contextName = null,
     ) {}
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];

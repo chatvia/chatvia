@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Moves a signed-in chatter to another agent's hosted chat with a short-lived
@@ -16,7 +17,7 @@ use Inertia\Inertia;
  */
 class ChatterSwitchAgentController
 {
-    public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService)
+    public function __invoke(Request $request, Agent $agent, ChatterAuthTokenService $authTokenService): Response
     {
         /** @var User $user */
         $user = $request->user();

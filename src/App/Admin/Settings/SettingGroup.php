@@ -19,7 +19,9 @@ enum SettingGroup: string
     case GithubLogin = 'github-login';
     case SlackLogin = 'slack-login';
 
-    case Meta = 'meta';
+    case Messenger = 'messenger';
+    case Instagram = 'instagram';
+    case Whatsapp = 'whatsapp';
 
     case Scaleway = 'scaleway';
     case Mistral = 'mistral';
@@ -50,7 +52,7 @@ enum SettingGroup: string
     {
         return match ($this) {
             self::GoogleLogin, self::MicrosoftLogin, self::GithubLogin, self::SlackLogin => SettingCategory::SignIn,
-            self::Meta => SettingCategory::Channels,
+            self::Messenger, self::Instagram, self::Whatsapp => SettingCategory::Channels,
             self::Scaleway, self::Mistral, self::OpenRouter, self::Groq, self::Cohere, self::Jina => SettingCategory::Ai,
             self::Firecrawl, self::ChunkFit => SettingCategory::Knowledge,
             self::Stripe => SettingCategory::Billing,
@@ -67,7 +69,9 @@ enum SettingGroup: string
             self::MicrosoftLogin => 'Microsoft',
             self::GithubLogin => 'GitHub',
             self::SlackLogin => 'Slack',
-            self::Meta => 'Meta (Facebook)',
+            self::Messenger => 'Messenger',
+            self::Instagram => 'Instagram',
+            self::Whatsapp => 'WhatsApp',
             self::Scaleway => 'Scaleway AI',
             self::Mistral => 'Mistral',
             self::OpenRouter => 'OpenRouter',
@@ -101,7 +105,9 @@ enum SettingGroup: string
             self::MicrosoftLogin => 'Microsoft Entra app registration for work and personal accounts.',
             self::GithubLogin => 'GitHub OAuth app for signing in with GitHub.',
             self::SlackLogin => 'Slack app for "Sign in with Slack".',
-            self::Meta => 'The app that connects Facebook Pages, Instagram accounts and WhatsApp numbers.',
+            self::Messenger => 'Meta app that connects Facebook Pages to agents.',
+            self::Instagram => 'Meta app that connects Instagram professional accounts to agents.',
+            self::Whatsapp => 'Meta app for WhatsApp Embedded Signup and the Cloud API.',
             self::Scaleway => 'Chat, Qwen3 embeddings, reranking and speech to text.',
             self::Mistral => 'Chat, document OCR and whole-PDF reading.',
             self::OpenRouter => 'Chat models from many providers through one key.',
@@ -128,7 +134,9 @@ enum SettingGroup: string
             self::MicrosoftLogin => asset('images/llms/microsoft.svg'),
             self::GithubLogin => asset('images/logos/connectors/github.svg'),
             self::SlackLogin => asset('images/logos/connectors/slack.svg'),
-            self::Meta => asset('images/logos/brands/facebook.svg'),
+            self::Messenger => asset('images/logos/channels/messenger.svg'),
+            self::Instagram => asset('images/logos/channels/instagram.svg'),
+            self::Whatsapp => asset('images/logos/channels/whatsapp.svg'),
             self::Mistral => asset('images/llms/mistral.svg'),
             self::Cohere => asset('images/llms/cohere.svg'),
             self::Stripe => asset('images/logos/connectors/stripe.svg'),
@@ -155,23 +163,9 @@ enum SettingGroup: string
             self::MicrosoftLogin => $this->oauthLogin('microsoft'),
             self::GithubLogin => $this->oauthLogin('github'),
             self::SlackLogin => $this->oauthLogin('slack'),
-            self::Meta => [
-                SettingField::text('app_id', 'App ID', 'services.meta.app_id', required: true),
-                SettingField::secret('app_secret', 'App secret', 'services.meta.app_secret'),
-                SettingField::secret('webhook_verify_token', 'Webhook verify token', 'services.meta.webhook_verify_token',
-                    help: 'Any random string. Paste the same value in the webhook settings of the Meta app.'),
-                SettingField::secret('whatsapp_register_pin', 'WhatsApp registration PIN', 'services.meta.whatsapp_register_pin',
-                    required: false, rules: ['digits:6', 'not_in:000000'],
-                    help: 'Six digits used to register connected WhatsApp numbers. Do not use 000000.'),
-                SettingField::text('config_id', 'Login configuration ID', 'services.meta.config_id',
-                    help: 'Facebook Login for Business configuration. Without it the classic permission request is used.'),
-                SettingField::text('instagram_config_id', 'Instagram configuration ID', 'services.meta.instagram_config_id',
-                    help: 'Uses the login configuration ID when empty.'),
-                SettingField::text('whatsapp_config_id', 'WhatsApp configuration ID', 'services.meta.whatsapp_config_id',
-                    help: 'Uses the login configuration ID when empty.'),
-                SettingField::url('redirect', 'Messenger redirect URL', 'services.meta.redirect'),
-                SettingField::url('instagram_redirect', 'Instagram redirect URL', 'services.meta.instagram_redirect'),
-            ],
+            self::Messenger => $this->metaApp('messenger', redirectPath: '/my/channels/messenger/oauth/callback'),
+            self::Instagram => $this->metaApp('instagram', redirectPath: '/my/channels/instagram/oauth/callback'),
+            self::Whatsapp => $this->metaApp('whatsapp'),
             self::Scaleway => [SettingField::secret('api_key', 'API key', 'services.scalewayai.api_key')],
             self::Mistral => [SettingField::secret('api_key', 'API key', 'services.mistral.api_key')],
             self::OpenRouter => [SettingField::secret('api_key', 'API key', 'services.openrouter.api_key')],
@@ -185,7 +179,7 @@ enum SettingGroup: string
                 SettingField::secret('secret', 'Secret key', 'cashier.secret', rules: ['starts_with:sk_,rk_'],
                     help: 'A secret key (sk_) or a restricted key (rk_).'),
                 SettingField::secret('webhook_secret', 'Webhook signing secret', 'cashier.webhook.secret', rules: ['starts_with:whsec_'],
-                    help: 'With billing on, the app refuses to start in production without it.'),
+                    help: 'With billing on, production refuses web requests until it is set.'),
             ],
             self::Resend => [SettingField::secret('api_key', 'API key', 'services.resend.key')],
             self::Turnstile => [
@@ -210,7 +204,7 @@ enum SettingGroup: string
             self::MicrosoftLogin => 'https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade',
             self::GithubLogin, self::GithubConnector => 'https://github.com/settings/developers',
             self::SlackLogin, self::SlackConnector => 'https://api.slack.com/apps',
-            self::Meta => 'https://developers.facebook.com/apps/',
+            self::Messenger, self::Instagram, self::Whatsapp => 'https://developers.facebook.com/apps/',
             self::Scaleway => 'https://console.scaleway.com/iam/api-keys',
             self::Mistral => 'https://console.mistral.ai/api-keys',
             self::OpenRouter => 'https://openrouter.ai/settings/keys',
@@ -240,13 +234,9 @@ enum SettingGroup: string
             self::MicrosoftLogin => ['Redirect URL' => 'auth.microsoft.callback'],
             self::GithubLogin => ['Callback URL' => 'auth.github.callback'],
             self::SlackLogin => ['Redirect URL' => 'auth.slack.callback'],
-            self::Meta => [
-                'Messenger OAuth redirect' => 'channels.messenger.callback',
-                'Instagram OAuth redirect' => 'channels.instagram.callback',
-                'Messenger webhook' => 'messenger.webhook',
-                'Instagram webhook' => 'instagram.webhook',
-                'WhatsApp webhook' => 'whatsapp.webhook',
-            ],
+            self::Messenger => ['OAuth redirect' => 'channels.messenger.callback', 'Webhook callback URL' => 'messenger.webhook'],
+            self::Instagram => ['OAuth redirect' => 'channels.instagram.callback', 'Webhook callback URL' => 'instagram.webhook'],
+            self::Whatsapp => ['Webhook callback URL' => 'whatsapp.webhook'],
             self::Stripe => ['Webhook endpoint' => 'cashier.webhook'],
             default => $this->category() === SettingCategory::Connectors ? ['Redirect URL' => 'connectors.oauth.callback'] : [],
         };
@@ -286,6 +276,44 @@ enum SettingGroup: string
     }
 
     /**
+     * The Meta app of one channel. Without a redirect path it is WhatsApp:
+     * Embedded Signup has no redirect, needs the Login configuration, and can
+     * register numbers with a PIN.
+     *
+     * @return list<SettingField>
+     */
+    private function metaApp(string $channel, ?string $redirectPath = null): array
+    {
+        $config = "services.meta.{$channel}";
+
+        $app = [
+            SettingField::text('app_id', 'App ID', "{$config}.app_id", required: true),
+            SettingField::secret('app_secret', 'App secret', "{$config}.app_secret"),
+            SettingField::secret('webhook_verify_token', 'Webhook verify token', "{$config}.webhook_verify_token",
+                help: 'Any random string. Paste the same value in the webhook settings of the Meta app.'),
+        ];
+
+        if ($redirectPath === null) {
+            return [
+                ...$app,
+                SettingField::text('config_id', 'Login configuration ID', "{$config}.config_id", required: true,
+                    help: 'The Facebook Login for Business configuration that Embedded Signup opens.'),
+                SettingField::secret('register_pin', 'Number registration PIN', "{$config}.register_pin",
+                    required: false, rules: ['digits:6', 'not_in:000000'],
+                    help: 'Six digits used to register connected numbers for the Cloud API. Do not use 000000.'),
+            ];
+        }
+
+        return [
+            ...$app,
+            SettingField::text('config_id', 'Login configuration ID', "{$config}.config_id",
+                help: 'Facebook Login for Business configuration. Without it the classic permission request is used.'),
+            SettingField::url('redirect', 'Redirect URL', "{$config}.redirect", $redirectPath,
+                help: 'Leave empty to use the URL shown. It must be a valid OAuth redirect URI in the Meta app.'),
+        ];
+    }
+
+    /**
      * @return list<SettingField>
      */
     private function oauthLogin(string $service): array
@@ -293,8 +321,8 @@ enum SettingGroup: string
         return [
             SettingField::text('client_id', 'Client ID', "services.{$service}.client_id", required: true),
             SettingField::secret('client_secret', 'Client secret', "services.{$service}.client_secret"),
-            SettingField::url('redirect', 'Redirect URL', "services.{$service}.redirect",
-                help: 'Must match a redirect URL registered in the OAuth app.'),
+            SettingField::url('redirect', 'Redirect URL', "services.{$service}.redirect", "/auth/{$service}/callback",
+                help: 'Leave empty to use the URL shown. It must match a redirect URL registered in the OAuth app.'),
         ];
     }
 }

@@ -12,6 +12,9 @@ use Spatie\LaravelData\Data;
  */
 class ConversationData extends Data
 {
+    /**
+     * @param  array<int, array<string, mixed>>  $messages  the conversation's cached chat messages
+     */
     public function __construct(
         public string $id,
         public string $title,

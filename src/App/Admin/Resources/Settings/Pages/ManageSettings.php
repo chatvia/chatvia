@@ -68,7 +68,7 @@ class ManageSettings extends Page
 
         return $schema->components([
             Callout::make('Encrypted at rest')
-                ->description('Every value is encrypted with the app key before it is saved. A saved value takes priority over the .env file. Remove it to use the .env value again.')
+                ->description('Every value is encrypted with the app key before it is saved. Changes apply right away, also to the queue workers.')
                 ->icon(Heroicon::OutlinedLockClosed)
                 ->info(),
             Tabs::make('Categories')
@@ -103,7 +103,7 @@ class ManageSettings extends Page
         $groups = $category->groups();
         $usable = count(array_filter(
             $groups,
-            fn (SettingGroup $group): bool => $store->status($group, $settings->get($group->value))->isUsable(),
+            fn (SettingGroup $group): bool => $store->status($group, $settings->get($group->value)) === SettingStatus::Configured,
         ));
 
         return Tab::make($category->label())
@@ -156,7 +156,6 @@ class ManageSettings extends Page
         return match ($status) {
             SettingStatus::Configured => 'Saved '.$setting?->updated_at?->diffForHumans()
                 .($setting?->updatedBy ? ' by '.$setting->updatedBy->name : ''),
-            SettingStatus::FromEnv => 'Using the values in the .env file.',
             SettingStatus::Incomplete => 'Missing: '.collect($store->missingFields($group, $setting))
                 ->map(fn (SettingField $field): string => $field->label)
                 ->join(', ', ' and ').'.',

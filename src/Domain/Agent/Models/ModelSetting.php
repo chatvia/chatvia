@@ -43,6 +43,8 @@ class ModelSetting extends Model
 {
     /**
      * Get the parent model that owns the setting.
+     *
+     * @return MorphTo<Model, $this>
      */
     public function model(): MorphTo
     {

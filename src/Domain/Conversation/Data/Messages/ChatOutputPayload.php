@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace Domain\Conversation\Data\Messages;
 
 /**
- * @deprecated Renamed to {@see AssistantTurnData}. Kept so StoreMessageJob
- *             payloads queued before the deploy still unserialize (including
- *             the old unused `sources` field). Remove after the next release.
+ * The old class name of {@see AssistantTurnData}. A queued StoreMessageJob
+ * stores this payload by class name, so the alias lets those jobs still
+ * unserialize, together with the unused `sources` field they may carry. It can
+ * be deleted once no such job is left in the queue.
+ *
+ * @deprecated Use {@see AssistantTurnData}.
  */
 final class ChatOutputPayload extends AssistantTurnData
 {

@@ -20,6 +20,9 @@ class PermissionGroupData extends Data
         public array $permissions,
     ) {}
 
+    /**
+     * @param  array{scope?: string, label: string, description?: string|null, permissions?: list<string>}  $data
+     */
     public static function fromConfig(array $data): self
     {
         return new self(

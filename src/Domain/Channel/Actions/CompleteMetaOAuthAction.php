@@ -29,7 +29,7 @@ class CompleteMetaOAuthAction
      */
     public function execute(MetaOAuthChannel $channel, string $code): array
     {
-        $userToken = $this->oauth->exchangeCodeForUserToken($code, $channel->redirectUri());
+        $userToken = $this->oauth->exchangeCodeForUserToken($channel->app(), $code);
 
         $accounts = match (true) {
             $userToken === null => [],

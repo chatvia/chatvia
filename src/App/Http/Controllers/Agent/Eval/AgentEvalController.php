@@ -16,8 +16,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Per-agent Eval Suites (Agent Governance + Evals — Phase 1). Lists the agent's
- * eval cases plus its recent runs; the page lets a teammate with
+ * Per-agent Eval Suites page. Lists the agent's eval cases plus its recent
+ * runs; the page lets a teammate with
  * `agent.evals.manage` edit cases and trigger a run, while `agent.evals.view`
  * grants read-only access.
  */

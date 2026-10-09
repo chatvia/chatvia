@@ -7,6 +7,11 @@ use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Validates a new name and subdomain for an agent. The name is unique per
+ * workspace owner and the subdomain is unique across the platform, because it
+ * becomes part of the agent's public chat URL.
+ */
 class RenameAgentRequest extends FormRequest
 {
     public function authorize(): bool

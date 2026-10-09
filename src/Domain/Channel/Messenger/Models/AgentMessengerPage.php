@@ -40,6 +40,7 @@ class AgentMessengerPage extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return HasMany<MessengerThread, $this> */
     public function threads(): HasMany
     {
         return $this->hasMany(MessengerThread::class);

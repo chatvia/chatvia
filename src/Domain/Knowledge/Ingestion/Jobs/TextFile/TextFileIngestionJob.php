@@ -24,13 +24,13 @@ class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 
     public bool $deleteWhenMissingModels = true;
 
-    public $tries = 1;
+    public int $tries = 1;
 
-    public $backoff = 10;
+    public int $backoff = 10;
 
-    public $timeout = 600;
+    public int $timeout = 600;
 
-    public $uniqueFor = 3600;
+    public int $uniqueFor = 3600;
 
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {

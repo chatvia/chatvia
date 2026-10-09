@@ -7,6 +7,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
+use Domain\Conversation\Data\Conversations\ConversationSummaryData;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,8 @@ class ConversationController
 {
     /**
      * List conversations
+     *
+     * @return LengthAwarePaginator<int, ConversationSummaryData>
      */
     public function index(Request $request, Agent $agent, ListAgentConversationsAction $list): LengthAwarePaginator
     {

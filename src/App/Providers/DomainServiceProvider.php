@@ -117,10 +117,14 @@ use Laravel\Cashier\Events\WebhookReceived;
 use Support\Autoload\LegacyNamespaceAutoloader;
 
 /**
- * Domain wiring: observers, DI bindings against contracts, and event
- * listeners. Sibling to AppServiceProvider, which keeps framework-only
- * concerns (request macros, rate limiters, Stripe, Cashier, Scramble,
- * morphMap, gates, etc.).
+ * Domain wiring: observers, DI bindings against contracts (AI providers,
+ * billing entitlements, tool dispatch, …) and event listeners — every
+ * listener is registered here by hand; there is no auto-discovery.
+ *
+ * Framework wiring lives in sibling providers: AppServiceProvider (morph map,
+ * model strictness, Cashier, prompt views), AuthServiceProvider (gates,
+ * policies, Sanctum), HttpMacroServiceProvider, RateLimitServiceProvider,
+ * FeatureServiceProvider, FilesystemServiceProvider and ApiDocsServiceProvider.
  *
  * Loaded from bootstrap/providers.php.
  */

@@ -27,11 +27,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[WithoutTimestamps]
 class ConversationTopic extends Model
 {
+    /** @return BelongsTo<Conversation, $this> */
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class, 'chat_conversation_id');
     }
 
+    /** @return BelongsTo<Topic, $this> */
     public function topic(): BelongsTo
     {
         return $this->belongsTo(Topic::class);

@@ -2,6 +2,7 @@
 
 namespace Domain\Billing\Models;
 
+use Database\Factories\UserCreditFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,8 +37,12 @@ use Illuminate\Support\Carbon;
 #[WithoutTimestamps]
 class UserCredit extends Model
 {
+    /** @use HasFactory<UserCreditFactory> */
     use HasFactory;
 
+    /**
+     * @return HasOne<UserUsage, $this>
+     */
     public function usage(): HasOne
     {
         return $this->hasOne(UserUsage::class);

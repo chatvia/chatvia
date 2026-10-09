@@ -23,6 +23,9 @@ class NewDeviceSignInNotification extends Notification implements ShouldQueue
         public Carbon $signedInAt,
     ) {}
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];

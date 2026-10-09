@@ -79,6 +79,7 @@ class Chunk extends Model
 {
     use HasExternalId;
 
+    /** @return ChunkQueryBuilder<self> */
     public function newEloquentBuilder($query): ChunkQueryBuilder
     {
         return new ChunkQueryBuilder($query);
@@ -94,11 +95,13 @@ class Chunk extends Model
         ];
     }
 
+    /** @return MorphTo<Model, $this> */
     public function chunkable(): MorphTo
     {
         return $this->morphTo('chunkable');
     }
 
+    /** @return HasMany<ChunkReference, $this> */
     public function references(): HasMany
     {
         return $this->hasMany(ChunkReference::class);

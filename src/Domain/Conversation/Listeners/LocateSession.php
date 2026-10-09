@@ -29,9 +29,9 @@ class LocateSession implements ShouldQueue
         // Country comes ONLY from the request-time signal (Request::country() —
         // Cloudflare's CF-IPCountry, else a geo lookup of the real visitor IP).
         // Never geo-locate the stored connecting IP for country: behind
-        // Cloudflare that IP is the edge PoP and resolves to the wrong country
-        // (e.g. Bulgaria for Middle-East traffic). With no trusted country we
-        // leave country_id null rather than stamp the PoP's country.
+        // Cloudflare that IP is the edge PoP, which is often in a different
+        // country than the visitor. With no trusted country we leave
+        // country_id null rather than stamp the PoP's country.
         $countryCode = $event->countryCode;
         if (! $countryCode) {
             return;

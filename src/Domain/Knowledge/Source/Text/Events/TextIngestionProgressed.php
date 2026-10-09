@@ -37,6 +37,7 @@ class TextIngestionProgressed implements ShouldBroadcastNow
         return 'TextIngestionProgressed';
     }
 
+    /** @return array{text_id: int, progress: int} */
     public function broadcastWith(): array
     {
         return [

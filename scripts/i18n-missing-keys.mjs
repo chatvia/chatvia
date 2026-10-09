@@ -1,8 +1,8 @@
 #!/usr/bin/env node
+import { baseCompile } from '@intlify/message-compiler';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { baseCompile } from '@intlify/message-compiler';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -87,9 +87,7 @@ for (const file of await walk(jsDir)) {
     }
 }
 
-const missing = [...used]
-    .filter((k) => !hasKey(locale, k) && !k.includes('${') && !k.endsWith('.'))
-    .sort();
+const missing = [...used].filter((k) => !hasKey(locale, k) && !k.includes('${') && !k.endsWith('.')).sort();
 
 console.log(`Used: ${used.size}, In locale: ${localeKeys.size}, Missing: ${missing.length}`);
 console.log('\nBy namespace:');
@@ -105,7 +103,9 @@ console.log('\nAll missing keys:');
 for (const k of missing) console.log(k);
 
 let hasCompileErrors = false;
-for (const localeCode of ['en', 'ar']) {
+const localeCodes = (await readdir(localesDir)).filter((file) => /^[a-z]{2}\.json$/.test(file)).map((file) => file.slice(0, -'.json'.length));
+
+for (const localeCode of localeCodes) {
     const data = JSON.parse(await readFile(path.join(localesDir, `${localeCode}.json`), 'utf8'));
     const compileErrors = collectCompileErrors(data);
     const atWarnings = collectUnescapedAt(data);

@@ -11,6 +11,9 @@ use JsonException;
  */
 final readonly class StreamEvent
 {
+    /**
+     * @param  array<string, mixed>  $data  the event body; its keys depend on the event type
+     */
     public function __construct(
         public EventType $type,
         public string $id,
@@ -18,6 +21,7 @@ final readonly class StreamEvent
         public ?int $seq = null,
     ) {}
 
+    /** @param  array<string, mixed>  $data */
     public static function start(string $assistantMessageId, array $data): self
     {
         return new self(EventType::Start, $assistantMessageId, $data);
@@ -33,6 +37,7 @@ final readonly class StreamEvent
         return new self(EventType::Meta, $assistantMessageId, ['key' => $key, 'value' => $value]);
     }
 
+    /** @param  array<int, array<string, mixed>>  $sources  the retrieved sources, one array per source */
     public static function sources(string $assistantMessageId, array $sources): self
     {
         return new self(EventType::Sources, $assistantMessageId, ['sources' => $sources]);

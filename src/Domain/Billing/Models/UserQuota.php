@@ -74,6 +74,9 @@ class UserQuota extends Model
         return (int) $this->workspace_users_limit + (int) $this->extra_members_limit;
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

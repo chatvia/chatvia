@@ -9,6 +9,11 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a knowledge-base file (a {@see SourceFile} row) with its own owner.
+ * Only the row is made; no file is written to storage. Use
+ * `AgentFileFactory::new()`, because `SourceFile` does not resolve this factory
+ * by name.
+ *
  * @extends Factory<SourceFile>
  */
 class AgentFileFactory extends Factory

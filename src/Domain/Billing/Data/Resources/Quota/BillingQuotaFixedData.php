@@ -21,6 +21,9 @@ class BillingQuotaFixedData extends Data
         public int $workspace_users_limit = 0,
     ) {}
 
+    /**
+     * @param  array<string, int>  $fixed  limit name => value, e.g. `agents_limit`
+     */
     public static function fromArray(array $fixed): self
     {
         return new self(

@@ -10,10 +10,10 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
 
 /**
- * @tags Sources
- *
  * Lists all knowledge sources attached to an agent, regardless of type.
  * Each entry includes ingestion status so customers can poll for completion.
+ *
+ * @tags Sources
  */
 #[Group(name: 'Sources', weight: 70)]
 class SourceListController

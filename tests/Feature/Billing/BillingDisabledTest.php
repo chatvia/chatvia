@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Providers\AppServiceProvider;
 use Domain\Agent\Models\Agent;
@@ -19,12 +18,10 @@ use Domain\Evaluation\Models\EvalCase;
 use Domain\Llm\Models\Llm;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Security\Enums\SecurityFeature;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Inertia\Testing\AssertableInertia;
 use Laravel\Cashier\Cashier;
@@ -382,82 +379,24 @@ describe('booting', function (): void {
         app()->detectEnvironment(fn (): string => 'production');
 
         try {
-            (fn () => $this->assertProductionSecurityConfig())->call($provider);
             (fn () => $this->configureStripe())->call($provider);
 
             expect(Stripe::getApiKey())->toBe($previousKey);
-
-            config(['billing.enabled' => true]);
-
-            expect(fn (): null => (fn () => $this->assertProductionSecurityConfig())->call($provider))
-                ->toThrow(RuntimeException::class, 'STRIPE_WEBHOOK_SECRET');
         } finally {
             app()->detectEnvironment(fn (): string => 'testing');
             Stripe::setApiKey($previousKey);
         }
     });
-});
 
-describe('sign-up', function (): void {
-    it('shows the sign-up form and the link to it', function (): void {
-        $this->get(route('register'))
-            ->assertOk()
-            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('auth/Register'));
+    it('refuses an unsigned Stripe webhook in production when billing is on', function (): void {
+        config(['billing.enabled' => true, 'cashier.webhook.secret' => null]);
+        app()->detectEnvironment(fn (): string => 'production');
 
-        $this->get(route('login'))
-            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('canRegister', true));
-    });
-
-    it('creates a ready-to-use workspace account', function (): void {
-        Event::fake([Registered::class]);
-
-        $this->post(route('register.store'), [
-            'name' => 'Self Hoster',
-            'email' => 'owner@self-hosted.test',
-            'password' => 'a-long-password',
-            'password_confirmation' => 'a-long-password',
-        ])->assertRedirect(route('dashboard'));
-
-        $user = User::query()->where('email', 'owner@self-hosted.test')->sole();
-        $team = $user->ownedTeams()->sole();
-
-        $this->assertAuthenticatedAs($user);
-        expect($user->type)->toBe(UserType::Workspace)
-            ->and($user->current_team_id)->toBe($team->id)
-            ->and($team->roles()->where('code', 'owner')->exists())->toBeTrue()
-            ->and(app(MessageSendGate::class)->admit($user))->toBe(MessageAdmission::Allowed);
-        Event::assertDispatched(Registered::class);
-    });
-
-    it('answers 404 once sign-ups are closed', function (): void {
-        config(['billing.registration_enabled' => false]);
-
-        $this->get(route('register'))->assertNotFound();
-        $this->post(route('register.store'), [
-            'name' => 'Late Comer',
-            'email' => 'late@self-hosted.test',
-            'password' => 'a-long-password',
-            'password_confirmation' => 'a-long-password',
-        ])->assertNotFound();
-
-        $this->get(route('login'))
-            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->where('canRegister', false));
-
-        expect(User::query()->where('email', 'late@self-hosted.test')->exists())->toBeFalse();
-    });
-});
-
-describe('config defaults', function (): void {
-    it('keeps billing on and sign-up closed when nothing is set', function (): void {
-        $config = billingConfigWith(['BILLING_ENABLED' => null, 'REGISTRATION_ENABLED' => null]);
-
-        expect($config['enabled'])->toBeTrue()
-            ->and($config['registration_enabled'])->toBeFalse();
-    });
-
-    it('opens sign-up by default when billing is off, unless it is closed explicitly', function (): void {
-        expect(billingConfigWith(['BILLING_ENABLED' => 'false', 'REGISTRATION_ENABLED' => null])['registration_enabled'])->toBeTrue()
-            ->and(billingConfigWith(['BILLING_ENABLED' => 'false', 'REGISTRATION_ENABLED' => 'false'])['registration_enabled'])->toBeFalse()
-            ->and(billingConfigWith(['BILLING_ENABLED' => 'false', 'REGISTRATION_ENABLED' => null])['enabled'])->toBeFalse();
+        try {
+            expect(fn () => app(HandleStripeWebhook::class)->handle(new WebhookReceived(['id' => 'evt_forged', 'type' => 'invoice.paid'])))
+                ->toThrow(RuntimeException::class, 'Refusing to process an unsigned Stripe webhook');
+        } finally {
+            app()->detectEnvironment(fn (): string => 'testing');
+        }
     });
 });

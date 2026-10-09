@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Http;
  *
  * Stage 1 (discovery) uses the synchronous `/map` endpoint — one fast call that
  * returns the site's link list (sitemap + crawl heuristics combined), covering
- * every section and language variant without the async job + polling the old
- * `/crawl` flow needed. `/map` returns URLs only (no Markdown).
+ * every section and language variant with no async job to poll. `/map`
+ * returns URLs only (no Markdown).
  *
  * Stage 2 (ingestion) uses `/scrape` to fetch a single page as Markdown. Because
  * `/map` captures no Markdown, every trained page is scraped on demand here.

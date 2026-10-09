@@ -8,6 +8,9 @@ use Domain\Billing\Models\UserAddon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a one-month extra-messages add-on (1,000 messages). The caller sets
+ * `user_id`.
+ *
  * @extends Factory<UserAddon>
  */
 class UserAddonFactory extends Factory

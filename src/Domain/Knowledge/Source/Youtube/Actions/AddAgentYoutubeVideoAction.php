@@ -49,8 +49,8 @@ class AddAgentYoutubeVideoAction
             return $video;
         });
 
-        // YoutubeIngestionJob is not yet implemented (the prior path on the model
-        // was a TODO no-op). When the job lands, dispatch it here.
+        // There is no YouTube ingestion job yet, so the video stays Pending.
+        // When the job exists, dispatch it here.
 
         return $video;
     }

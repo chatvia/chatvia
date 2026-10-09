@@ -23,6 +23,9 @@ use Support\Exceptions\DomainValidationException;
  */
 class AgentYoutubeController
 {
+    /**
+     * @return Response|Collection<int, SourceYoutubeVideo>
+     */
     public function index(Request $request, Agent $agent): Response|Collection
     {
         if ($request->wantsJson()) {

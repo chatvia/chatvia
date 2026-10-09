@@ -191,6 +191,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     /**
      * Per-request memo bucket — Inertia's share() lambda + User Appends fan
      * billing/team derivations out 4–6× per request. Read/write via remember().
+     *
+     * @var array<string, mixed>
      */
     private array $memo = [];
 
@@ -411,6 +413,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     /**
      * The plan features this account has. Resolved by {@see Entitlements}: the
      * workspace's plan when billing is on, every feature when it is off.
+     *
+     * @return Attribute<BillingPackageCapabilitiesData, never>
      */
     public function capabilities(): Attribute
     {
@@ -446,6 +450,11 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return new MessageCredits($this);
     }
 
+    /**
+     * The id of the plan the account is on (a key of `billing.packages`).
+     *
+     * @return Attribute<mixed, never>
+     */
     public function plan(): Attribute
     {
         return Attribute::get(fn (): mixed => $this->getCurrentPackage()['id']);
@@ -456,6 +465,9 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     // Scaleway origin bucket.
     public const PROFILE_IMAGE_DISK = 'assets';
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     public function avatar(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->profile_image_path
@@ -463,9 +475,12 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             : null);
     }
 
+    /**
+     * @return Attribute<bool, never>
+     */
     public function isPaid(): Attribute
     {
-        // All users are now paid (on trial or subscribed)
+        // Every account is on a trial or a subscription.
         return Attribute::get(fn (): bool => $this->hasActiveSubscription());
     }
 
@@ -578,8 +593,10 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      * Account-scoped via workspace() — **lazy-only**. Eager-loading
      * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
      * through the workspace leg instead: `loadMissing(['parentWorkspace.sourceFiles', 'sourceFiles'])`.
+     *
+     * @return HasMany<SourceFile, self>
      */
-    public function sourceFiles()
+    public function sourceFiles(): HasMany
     {
         $workspace = $this->workspace();
 
@@ -626,6 +643,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
 
     /**
      * The workspace owner this employee/chatter belongs to.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function parentWorkspace(): BelongsTo
     {
@@ -720,6 +739,11 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Chatter);
     }
 
+    /**
+     * Every account (teammate or chatter) that belongs to this workspace.
+     *
+     * @return HasMany<User, $this>
+     */
     public function users(): HasMany
     {
         return $this->hasMany(User::class, 'workspace_id');

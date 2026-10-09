@@ -60,12 +60,20 @@ class EvalRun extends Model
         return $this->belongsTo(User::class, 'triggered_by_user_id');
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forAgent(Builder $query, int $agentId): Builder
     {
         return $query->where('agent_id', $agentId);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {

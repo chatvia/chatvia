@@ -2,6 +2,7 @@
 
 namespace Domain\Form\Models;
 
+use Database\Factories\FormSubmissionFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -58,6 +59,7 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class FormSubmission extends Model
 {
+    /** @use HasFactory<FormSubmissionFactory> */
     use HasExternalId, HasFactory;
 
     protected function casts(): array
@@ -136,6 +138,8 @@ class FormSubmission extends Model
     /**
      * Already-submitted rows carrying the same answer fingerprint for a form —
      * the de-dupe probe (the `form_definition_id, values_checksum` index serves it).
+     *
+     * @param  Builder<self>  $query
      */
     #[Scope]
     protected function duplicateOf(Builder $query, int $formDefinitionId, string $checksum): void
@@ -147,6 +151,8 @@ class FormSubmission extends Model
 
     /**
      * Captured contacts — the rows the Forms pages, exports and analytics show.
+     *
+     * @param  Builder<self>  $query
      */
     #[Scope]
     protected function submitted(Builder $query): void
@@ -157,6 +163,8 @@ class FormSubmission extends Model
     /**
      * Pending forms whose time to be sent has passed. They can never be claimed
      * and carry no answers.
+     *
+     * @param  Builder<self>  $query
      */
     #[Scope]
     protected function abandoned(Builder $query): void
@@ -185,31 +193,49 @@ class FormSubmission extends Model
         return is_scalar($value) ? (string) $value : null;
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function name(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->field('name'));
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function email(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->field('email'));
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function phone(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->field('phone'));
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function jobTitle(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->field('job_title'));
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function company(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->field('company'));
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     protected function location(): Attribute
     {
         return Attribute::get(fn (): ?string => $this->field('location'));

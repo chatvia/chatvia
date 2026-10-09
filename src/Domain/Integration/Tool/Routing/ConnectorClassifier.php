@@ -8,18 +8,18 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Small-model connector router — the "middle model" alternative to the embedding
- * connector prior that was tried and removed.
+ * Small-model connector router: picks which connector(s) a turn is about, so
+ * write tools of other connectors can be pruned.
  *
- * The cross-encoder couldn't separate `create_issue` (Linear) from `create_ticket`
- * (Zendesk): their scores bunched, and it mis-ranked the obvious match (Linear last
- * for "file an engineering issue"). A small instruction model can *reason* the
- * intent→connector mapping ("ticket → support → Zendesk") that a similarity score
- * can't. This service makes one cheap structured call to pick the relevant
- * connector(s) for a turn; {@see SemanticToolRouter} then drops write tools whose
- * connector wasn't picked.
+ * Similarity scores alone cannot do this well. A cross-encoder scores
+ * `create_issue` (Linear) and `create_ticket` (Zendesk) almost the same, and can
+ * rank the obvious match last (Linear for "file an engineering issue"). A small
+ * instruction model can *reason* the intent→connector mapping ("ticket → support
+ * → Zendesk") that a similarity score can't. This service makes one cheap
+ * structured call to pick the relevant connector(s) for a turn;
+ * {@see SemanticToolRouter} then drops write tools whose connector wasn't picked.
  *
- * Robustness, learned the hard way from the connector floor:
+ * Robustness rules:
  *   - The JSON-schema `enum` is the reachable slug set, so the model CANNOT return a
  *     connector that isn't connected (no hallucinated routes).
  *   - It only ever PRUNES writes from non-picked connectors — never reads, never

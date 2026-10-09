@@ -6,7 +6,6 @@ namespace Domain\Integration\Connector\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -48,8 +47,6 @@ use Illuminate\Support\Carbon;
 #[Table(name: 'connector_oauth_clients')]
 class ConnectorOAuthClient extends Model
 {
-    use HasFactory;
-
     protected function casts(): array
     {
         return [

@@ -18,8 +18,8 @@ use Support\Concerns\HasExternalId;
  * events arrive on Chatvia's single app-level Instagram Callback URL and are
  * routed here by `ig_id`; the HMAC + verify token are app-level config.
  *
- * The legacy per-account `access_token`/`app_secret`/`webhook_secret` columns are
- * nullable and unused by the OAuth flow (kept for already-connected rows).
+ * The per-account `access_token`/`app_secret`/`webhook_secret` columns are not
+ * used by the OAuth flow. They are nullable and only hold data on older rows.
  *
  * @property string $external_id
  * @property string|null $page_access_token
@@ -45,6 +45,7 @@ class AgentInstagramAccount extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return HasMany<InstagramThread, $this> */
     public function threads(): HasMany
     {
         return $this->hasMany(InstagramThread::class);
@@ -54,9 +55,9 @@ class AgentInstagramAccount extends Model
     {
         return [
             'page_access_token' => 'encrypted',
-            // `access_token` / `app_secret` are legacy, never-read, now-nullable
-            // columns — deliberately NOT cast: the `encrypted` caster can't decrypt a
-            // null and would throw on every OAuth-era row (which leaves them null).
+            // `access_token` / `app_secret` are never read and are null on rows
+            // connected through OAuth, so they are deliberately NOT cast: the
+            // `encrypted` caster can't decrypt a null and would throw.
             'enabled' => 'boolean',
         ];
     }

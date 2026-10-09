@@ -75,11 +75,12 @@ class HandleStripeWebhook
     /**
      * Cashier checks the Stripe signature only when a webhook secret is set, so
      * without one every POST to the webhook route is trusted and a forged event
-     * could grant plans and credits. Production refuses to boot without the
-     * secret; this covers every other shared environment (staging, demo).
-     * Cashier dispatches WebhookReceived before its own handlers run, so
-     * throwing here also stops Cashier from syncing subscriptions from the
-     * unsigned payload. Local development and the test suite may run unsigned.
+     * could grant plans and credits. This refuses them in every shared
+     * environment, production included (the secret is set in the admin panel,
+     * Settings → Billing). Cashier dispatches WebhookReceived before its own
+     * handlers run, so throwing here also stops Cashier from syncing
+     * subscriptions from the unsigned payload. Local development and the test
+     * suite may run unsigned.
      */
     private function assertWebhookIsSigned(): void
     {
@@ -88,7 +89,7 @@ class HandleStripeWebhook
         }
 
         throw new RuntimeException(
-            'STRIPE_WEBHOOK_SECRET is not set. Refusing to process an unsigned Stripe webhook.'
+            'The Stripe webhook signing secret is not set (admin panel: Settings → Billing). Refusing to process an unsigned Stripe webhook.'
         );
     }
 

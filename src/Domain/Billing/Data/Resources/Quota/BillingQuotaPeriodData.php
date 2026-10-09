@@ -15,6 +15,9 @@ class BillingQuotaPeriodData extends Data
         public int $messages_limit = 0,
     ) {}
 
+    /**
+     * @param  array{messages_limit?: int}  $period
+     */
     public static function fromArray(array $period): self
     {
         return new self(

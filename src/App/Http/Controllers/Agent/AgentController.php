@@ -27,6 +27,8 @@ class AgentController
 {
     /**
      * The page, or (as JSON) the agents of the selected team the user may see.
+     *
+     * @return Response|Collection<int, AgentResourceData>
      */
     public function index(Request $request, AgentVisibility $visibility, AgentMessageTotalsQuery $messageTotals): Response|Collection
     {

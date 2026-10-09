@@ -3,7 +3,9 @@
 namespace Domain\Conversation\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\SessionFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Listeners\LocateSession;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Collection;
@@ -16,6 +18,13 @@ use Support\Concerns\HasExternalId;
 use Support\Localization\Country\Models\Country;
 
 /**
+ * A visitor's identity with one agent, kept across all of their conversations
+ * (not the browser-bound WidgetSession). It holds what the chat log and
+ * analytics show about the visitor: contact details when given, device and
+ * browser, the page they came from, and a location that is filled in later
+ * by {@see LocateSession}. A signed-in
+ * chatter's session also links to their user.
+ *
  * @property int $id
  * @property string $external_id
  * @property int|null $agent_id
@@ -81,6 +90,7 @@ use Support\Localization\Country\Models\Country;
 #[Table(name: 'chat_sessions')]
 class Session extends Model
 {
+    /** @use HasFactory<SessionFactory> */
     use HasExternalId, HasFactory;
 
     protected function casts(): array
@@ -99,16 +109,19 @@ class Session extends Model
         return $this->hasMany(Conversation::class, 'chat_session_id');
     }
 
+    /** @return BelongsTo<Agent, $this> */
     public function agent(): BelongsTo
     {
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<Country, $this> */
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);

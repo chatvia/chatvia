@@ -7,6 +7,12 @@ namespace App\Http\Requests\Api\V1\Agent;
 use Domain\Agent\Data\Account\UpdateApiAgentData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Public API: validates a partial update of an agent. Only the fields sent are
+ * changed; system instructions and a saved prompt id cannot be sent together.
+ * Agent access and the `agent.setup` permission are checked by the route
+ * middleware.
+ */
 class UpdateApiAgentRequest extends FormRequest
 {
     public function authorize(): bool

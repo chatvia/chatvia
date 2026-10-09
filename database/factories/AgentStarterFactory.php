@@ -9,6 +9,9 @@ use Domain\Agent\Models\AgentStarter;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds an agent's conversation starters: two suggested opening messages, one
+ * with an icon and one without.
+ *
  * @extends Factory<AgentStarter>
  */
 class AgentStarterFactory extends Factory

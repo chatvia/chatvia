@@ -26,6 +26,9 @@ class AgentChatterInvitationNotification extends Notification
         return route('agents.invitation.show', ['token' => $this->token]);
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function via(object $notifiable): array
     {
         return ['mail'];

@@ -70,6 +70,8 @@ class Invitation extends Model
 
     /**
      * Get the team this invitation is for.
+     *
+     * @return BelongsTo<Team, $this>
      */
     public function team(): BelongsTo
     {
@@ -78,6 +80,8 @@ class Invitation extends Model
 
     /**
      * Get the role this invitation is for.
+     *
+     * @return BelongsTo<Role, $this>
      */
     public function role(): BelongsTo
     {

@@ -13,8 +13,8 @@ use Laravel\Cashier\Billable;
 use Laravel\Cashier\Subscription;
 
 /**
- * Stripe-side state for a billable `User`. Carries the Cashier `Billable`
- * trait — `User` no longer does. One row per user that ever needs billing
+ * Stripe-side state for a billable `User`. This model, not `User`, carries the
+ * Cashier `Billable` trait. One row per user that ever needs billing
  * (auto-provisioned for `type=workspace` accounts).
  *
  * @property int $id
@@ -50,6 +50,9 @@ class UserBilling extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

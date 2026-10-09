@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Services\InstagramClient;
@@ -28,12 +29,12 @@ class FakeInstagramOAuthClient extends MetaOAuthClient
 
     public ?string $userToken = 'USER-LONG-TOKEN';
 
-    public function authorizeUrl(string $state, string $scopes, ?string $configId = null, ?string $redirectUri = null): string
+    public function authorizeUrl(MetaApp $app, string $state, string $scopes): string
     {
         return 'https://www.facebook.com/dialog/oauth?state='.$state;
     }
 
-    public function exchangeCodeForUserToken(string $code, ?string $redirectUri = null): ?string
+    public function exchangeCodeForUserToken(MetaApp $app, string $code): ?string
     {
         return $this->userToken;
     }

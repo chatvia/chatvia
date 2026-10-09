@@ -34,7 +34,10 @@ class Qwen3Reranker implements Reranker
 
         app(TokenUsageContext::class)->addFromResponse($response);
 
-        return collect($response->json('results'))
+        /** @var list<array{index: int|string, relevance_score: float|string}> $results */
+        $results = $response->json('results');
+
+        return collect($results)
             ->map(fn (array $item): array => [
                 'index' => (int) $item['index'],
                 'relevance_score' => (float) $item['relevance_score'],

@@ -37,6 +37,7 @@ class AgentTelegramBot extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return HasMany<TelegramChat, $this> */
     public function chats(): HasMany
     {
         return $this->hasMany(TelegramChat::class);

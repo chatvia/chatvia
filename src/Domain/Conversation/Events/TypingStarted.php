@@ -40,6 +40,7 @@ class TypingStarted implements ShouldBroadcastNow
         return 'typing';
     }
 
+    /** @return array{conversation_id: string, is_typing: bool, typer_type: string, typer_name: string|null, typer_id: string|null, timestamp: string} */
     public function broadcastWith(): array
     {
         return [

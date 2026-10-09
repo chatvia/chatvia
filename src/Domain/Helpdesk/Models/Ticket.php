@@ -49,11 +49,17 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class Ticket extends Model
 {
+    /**
+     * @return HasMany<TicketReply, $this>
+     */
     public function replies(): HasMany
     {
         return $this->hasMany(TicketReply::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -62,6 +68,8 @@ class Ticket extends Model
     /**
      * The staff user handling the ticket. The column is `assigned_to`, not the
      * `assigned_to_id` Eloquent would guess from the method name.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function assignedTo(): BelongsTo
     {

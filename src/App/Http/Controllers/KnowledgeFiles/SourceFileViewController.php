@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Shows (or, with `?download=1`, downloads) the stored file behind a file,
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
  */
 class SourceFileViewController
 {
-    public function __invoke(Request $request, string $type, string $externalId)
+    public function __invoke(Request $request, string $type, string $externalId): StreamedResponse
     {
         $allowedType = ['file', 'text', 'website'];
 

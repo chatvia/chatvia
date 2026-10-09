@@ -104,8 +104,9 @@ The PHP code is split into three namespaces:
 - `src/Support/` (`Support\`): small shared helpers.
 
 The frontend lives in `resources/js/`, the embeddable widget in `widget/`, and
-the user documentation in `docs/`. [CONTRIBUTING.md](CONTRIBUTING.md) explains
-the conventions in more detail.
+the user documentation in `docs/`. [ARCHITECTURE.md](ARCHITECTURE.md) explains
+how the code is organised and the conventions; [CONTRIBUTING.md](CONTRIBUTING.md)
+explains how to work on it.
 
 ## Requirements
 
@@ -124,22 +125,26 @@ the conventions in more detail.
   features you use:
   - [LibreOffice](https://www.libreoffice.org/) (`soffice`): Word, PowerPoint and Excel files
   - [pandoc](https://pandoc.org/): EPUB and other e-book formats
-  - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`): PDF files
+  - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files
   - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): audio and video
   - Chrome (headless) for PDF export of chats. `npm install` downloads one
     through Puppeteer.
 
   If a tool is not at the default path in `config/services.php`, set its path
   in `.env`: `LIBREOFFICE_BIN_PATH`, `PANDOC_BIN_PATH`, `PDFINFO_BIN_PATH`,
-  `FFMPEG_BIN_PATH`, `FFPROBE_PATH`, `CHROME_EXECUTABLE_PATH` (and
-  `NODE_BIN_PATH` / `NPM_BIN_PATH` for Puppeteer).
+  `PDFTOTEXT_BIN_PATH`, `FFMPEG_BIN_PATH`, `FFPROBE_PATH`,
+  `CHROME_EXECUTABLE_PATH` (and `NODE_BIN_PATH` / `NPM_BIN_PATH` for
+  Puppeteer).
 
 **External AI services.** Chatvia calls AI models through OpenAI-compatible
-APIs. The default configuration uses Scaleway's Generative APIs with
-open-weight models (Qwen3 and others) for chat, embeddings and reranking, and
-Mistral for OCR. The chat provider can be changed with `LLM_PROVIDER`
-(`scaleway`, `mistral`, `groq` or `openrouter`). Website import uses
-Firecrawl. You need API keys for the services you use; see `.env.example`.
+APIs. You need a chat provider and an embedding provider. The default
+configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
+and others) for chat, embeddings and reranking. The chat provider can be
+changed with `LLM_PROVIDER` (`scaleway`, `mistral`, `groq` or `openrouter`).
+Reading documents and splitting text run on your server unless you add a
+Mistral or chunk.fit key. Website import uses Firecrawl. API keys are entered
+in the admin panel (**Settings**), not in `.env`; see
+[AI providers](docs/guide/self-hosting/ai-providers.md).
 
 ## Getting started
 
@@ -225,10 +230,9 @@ MAIL_HOST=127.0.0.1
 MAIL_PORT=1025
 ```
 
-Then add the API keys for the AI services you want to use, and set
-`BUILTIN_MCP_SECRET` to a long random string (the built-in tools need it).
-Billing is off by default (`BILLING_ENABLED=false`), so the app runs without
-Stripe; see `config/billing.php` to turn it on.
+Then set `BUILTIN_MCP_SECRET` to a long random string (the built-in tools need
+it). Billing is off in `.env.example` (`BILLING_ENABLED=false`), so the app
+runs without Stripe; see `config/billing.php` to turn it on.
 
 ### 4. Create the database schema and demo data
 
@@ -237,9 +241,21 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-The first migration installs the PostgreSQL extensions. The seeders create a
-demo account and sample data; see `database/seeders/DatabaseSeeder.php` for
-the details.
+The first migration installs the PostgreSQL extensions. The seeders load the
+list of AI models and, outside production, create a demo admin account
+(`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, by default `admin@example.com` /
+`password`) with sample data; see `database/seeders/DatabaseSeeder.php`.
+
+### 5. Add your API keys
+
+Sign in to the admin panel at `/admin` with the demo admin account and open
+**Settings → AI providers**. Enter the key of your chat and embedding provider
+(with the defaults, one Scaleway key covers both). Then add the built-in tools
+(charts, forms, weather, currency, web search) to the tool catalog:
+
+```bash
+php artisan app:sync-builtin-mcp
+```
 
 ## Running the app
 
@@ -301,18 +317,22 @@ npm run docs:build    # static site in docs/.vitepress/dist
 
 ## Going to production
 
-There is no single way to deploy Chatvia. A typical setup:
+The [self-hosting guide](docs/guide/self-hosting/index.md) has the full steps.
+In short:
 
-- PHP-FPM (or Laravel Octane) behind nginx, with `APP_ENV=production` and
-  `APP_DEBUG=false`.
+- PHP-FPM behind nginx, with `APP_ENV=production` and `APP_DEBUG=false`.
 - Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
-- Run `php artisan migrate --force`, then cache the configuration with
-  `php artisan config:cache`, `event:cache` and `view:cache`. Do not run
-  `route:cache`: the localized public pages use routes that the route cache
-  cannot store.
+- Run `php artisan migrate --seed --force` (in production the seeders load
+  only the list of AI models, no demo data), create the first admin with
+  `php artisan admin:create-user <email> <name>`, add your API keys in the
+  admin panel, then run `php artisan app:sync-builtin-mcp`.
+- Cache the configuration with `php artisan config:cache`, `event:cache` and
+  `view:cache`. Do not run `route:cache`: the localized public pages use
+  routes that the route cache cannot store.
 - Keep `php artisan horizon` and `php artisan reverb:start` running under a
   process manager (for example Supervisor or systemd), and run
   `php artisan schedule:run` every minute from cron.
+- Build the widget in `widget/` for your server and set `WIDGET_SCRIPT_URL`.
 - Go through the security settings in `.env.example` and set each one for
   your environment.
 

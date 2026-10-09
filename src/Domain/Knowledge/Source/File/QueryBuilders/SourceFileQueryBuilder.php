@@ -16,31 +16,37 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class SourceFileQueryBuilder extends Builder
 {
+    /** @return self<TModel> */
     public function ingested(): self
     {
         return $this->where('source_files.status', SourceStatus::Completed);
     }
 
+    /** @return self<TModel> */
     public function pdf(): self
     {
         return $this->whereIn('source_files.mime_type', config('mimes.pdf'));
     }
 
+    /** @return self<TModel> */
     public function word(): self
     {
         return $this->whereIn('source_files.mime_type', config('mimes.word'));
     }
 
+    /** @return self<TModel> */
     public function markdown(): self
     {
         return $this->whereIn('source_files.mime_type', config('mimes.markdown'));
     }
 
+    /** @return self<TModel> */
     public function audio(): self
     {
         return $this->whereIn('source_files.mime_type', config('mimes.audio'));
     }
 
+    /** @return self<TModel> */
     public function video(): self
     {
         return $this->whereIn('source_files.mime_type', config('mimes.video'));

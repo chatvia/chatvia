@@ -8,6 +8,13 @@ use Domain\Agent\Services\AgentLocator as AgentService;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Creates a new agent from the dashboard. The agent always belongs to the
+ * workspace owner, also when a teammate creates it, so it stays with the
+ * workspace if that teammate is removed. It starts private, gets a random
+ * external id (also used as its first subdomain) and its own signing secret,
+ * and is linked to every topic so conversation tagging works from the start.
+ */
 class CreateAgentAction
 {
     public function execute(CreateAgentData $data): Agent

@@ -54,6 +54,9 @@ class GovernanceAuditController
         ]);
     }
 
+    /**
+     * @param  Builder<AgentActivity>  $query
+     */
     private function applyFilters(Builder $query, Request $request): void
     {
         if ($request->filled('outcome')) {

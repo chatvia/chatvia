@@ -16,8 +16,8 @@ class PreferencesController
 {
     /**
      * Trivial single-column preference write — a model `update()` with no rule,
-     * transaction, or event, so it stays inline here per the Actions carve-out
-     * in CLAUDE.md rather than behind an Action.
+     * transaction, or event, so it stays inline here (see "Actions" under
+     * "Conventions" in ARCHITECTURE.md) rather than behind an Action.
      */
     public function update(UpdatePreferencesRequest $request): RedirectResponse
     {

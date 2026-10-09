@@ -13,6 +13,9 @@ use Spatie\LaravelData\Optional;
  */
 class UpdateApiAgentData extends Data
 {
+    /**
+     * @param  array<array-key, mixed>|null|Optional  $metadata  free-form JSON the API caller stores on the agent
+     */
     public function __construct(
         public string|Optional $name,
         public string|null|Optional $system_instructions,

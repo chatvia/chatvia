@@ -19,6 +19,8 @@ class AgentQuestionAnswerQueryBuilder extends Builder
     /**
      * Search Q&A entries using PostgreSQL full-text search with STRICT phrase matching.
      * Uses phraseto_tsquery for exact phrase matching (word order matters).
+     *
+     * @return list<\stdClass> matching rows (id, agent_id, title, questions, answer, rank), best first
      */
     public function phraseSearch(int $agentId, string $query, int $limit = 1): array
     {

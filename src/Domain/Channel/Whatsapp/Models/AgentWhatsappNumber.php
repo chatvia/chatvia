@@ -15,10 +15,10 @@ use Support\Concerns\HasExternalId;
  * a business-integration token from WhatsApp Embedded Signup that can send
  * messages as the number). `phone_number_id` is both the send endpoint and the
  * routing key — inbound events land on the single app-level webhook and are
- * matched to this row by it. `app_secret` / `webhook_secret` are legacy columns
- * from the old BYO paste-token model (HMAC is now verified with the shared
- * Chatvia app secret and the webhook is app-level); they stay nullable for
- * historical rows and are no longer written.
+ * matched to this row by it. The `app_secret` / `webhook_secret` columns are
+ * not used: the HMAC is verified with the shared Chatvia app secret and the
+ * webhook is app-level. They are nullable, never written, and only hold data
+ * on older rows.
  *
  * @property string $external_id
  * @property string $access_token
@@ -44,6 +44,7 @@ class AgentWhatsappNumber extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return HasMany<WhatsappChat, $this> */
     public function chats(): HasMany
     {
         return $this->hasMany(WhatsappChat::class);
@@ -53,10 +54,10 @@ class AgentWhatsappNumber extends Model
     {
         return [
             'access_token' => 'encrypted',
-            // `app_secret` is a legacy, never-read, now-nullable column — deliberately
-            // NOT cast: the `encrypted` caster can't decrypt a null and would throw on
-            // every OAuth-era row (which leaves it null). A raw null/ciphertext read is
-            // harmless since nothing consumes it.
+            // `app_secret` is never read and is null on rows connected through
+            // OAuth, so it is deliberately NOT cast: the `encrypted` caster can't
+            // decrypt a null and would throw. Reading the raw value is harmless
+            // because nothing uses it.
             'enabled' => 'boolean',
         ];
     }

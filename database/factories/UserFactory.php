@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
+ * Builds a verified workspace owner (the account that owns agents and billing).
+ * States turn it into a teammate or chatter. The email gets a random prefix
+ * because tests run against a seeded database whose rows could collide with
+ * plain fake addresses.
+ *
  * @extends Factory<User>
  */
 class UserFactory extends Factory

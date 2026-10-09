@@ -8,7 +8,8 @@ use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Renames a team.
+ * Renames a team. Only the team owner may do this ({@see UpdateTeamRequest}
+ * asks the team policy); the change itself is made by {@see UpdateTeamAction}.
  */
 class TeamUpdateController
 {

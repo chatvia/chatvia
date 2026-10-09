@@ -11,8 +11,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * The checks every widget API call relies on. This is one of the sanctioned
- * places where the domain reads the HTTP request (see CLAUDE.md).
+ * The checks every widget API call relies on. This is one of the few places
+ * where the domain layer reads the HTTP request on purpose: it is the
+ * boundary that turns the widget's request into trusted domain facts.
  *
  *  1. Embed origin — {@see isRequestFromAllowedSite()}: the calling page must be
  *     on one of the agent's allowed sites. This is a SOFT control: a script

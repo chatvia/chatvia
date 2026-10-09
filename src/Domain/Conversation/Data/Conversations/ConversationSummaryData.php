@@ -8,8 +8,9 @@ use Spatie\LaravelData\Data;
 /**
  * Lightweight conversation projection for the API list endpoint.
  *
- * Sentiment + tone are plan-gated by the conversation's team plan — Starter
- * teams see null even if the backfill happened on a previous Pro subscription.
+ * Sentiment and tone depend on the plan of the conversation's team: on a plan
+ * without them they are null, even when the row already holds values that
+ * were written while the team was on a higher plan.
  */
 class ConversationSummaryData extends Data
 {

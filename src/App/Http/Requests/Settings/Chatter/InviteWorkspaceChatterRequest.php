@@ -51,7 +51,7 @@ class InviteWorkspaceChatterRequest extends FormRequest
                 return;
             }
 
-            $requested = collect($this->validated('agents'))->filter()->unique();
+            $requested = $this->safe()->collect('agents')->filter()->unique();
 
             // Every requested id must resolve to a protected agent in the
             // workspace, otherwise the selection is stale or out of bounds.
@@ -87,7 +87,7 @@ class InviteWorkspaceChatterRequest extends FormRequest
         /** @var User $user */
         $user = $this->user();
 
-        $ids = collect($this->input('agents', []))->filter()->unique()->all();
+        $ids = $this->collect('agents')->filter()->unique()->all();
 
         return $this->resolvedAgents = $user->workspace()
             ->agents()

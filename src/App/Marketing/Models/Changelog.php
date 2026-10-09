@@ -37,6 +37,9 @@ use Illuminate\Support\Carbon;
 ])]
 class Changelog extends Model
 {
+    /**
+     * @return HasMany<ChangelogItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(ChangelogItem::class);

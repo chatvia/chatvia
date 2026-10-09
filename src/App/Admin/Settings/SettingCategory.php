@@ -36,7 +36,7 @@ enum SettingCategory: string
     {
         return match ($this) {
             self::SignIn => 'OAuth apps behind the "Sign in with …" buttons on the login and register pages.',
-            self::Channels => 'One Meta app for Messenger, Instagram and WhatsApp. Telegram, Slack and Teams are set per agent.',
+            self::Channels => 'A Meta app for each of Messenger, Instagram and WhatsApp. Telegram, Slack and Teams are set per agent.',
             self::Ai => 'API keys for chat, embeddings, reranking and speech to text.',
             self::Knowledge => 'Services that import websites and split documents into chunks.',
             self::Connectors => 'OAuth apps for connectors that do not support dynamic client registration.',

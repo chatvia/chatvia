@@ -2,6 +2,7 @@
 
 namespace Domain\Agent\Models;
 
+use Database\Factories\AgentStarterFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 class AgentStarter extends Model
 {
+    /** @use HasFactory<AgentStarterFactory> */
     use HasFactory;
 
     /**

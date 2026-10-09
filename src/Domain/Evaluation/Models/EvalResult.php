@@ -25,6 +25,7 @@ class EvalResult extends Model
     /** Insert-only. */
     public const UPDATED_AT = null;
 
+    /** @return BelongsTo<EvalRun, $this> */
     public function run(): BelongsTo
     {
         return $this->belongsTo(EvalRun::class, 'run_id');

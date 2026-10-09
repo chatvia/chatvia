@@ -17,6 +17,9 @@ class BillingQuotaLimitsData extends Data
         public BillingQuotaFixedData $fixed,
     ) {}
 
+    /**
+     * @param  array{monthly?: array<string, int>, yearly?: array<string, int>, fixed?: array<string, int>}  $limits
+     */
     public static function fromArray(array $limits): self
     {
         return new self(

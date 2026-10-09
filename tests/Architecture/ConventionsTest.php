@@ -3,9 +3,9 @@
 use Domain\Widget\Services\WidgetVerification;
 
 /*
- * Executable form of the "Conventions enforcement (grep checks)" section of
- * CLAUDE.md. Previously these were manual greps a reviewer had to remember to
- * run; here they fail CI instead, so the layering can't silently erode.
+ * Executable form of the layering and naming rules in ARCHITECTURE.md. Each
+ * rule would otherwise be a manual grep a reviewer has to remember to run;
+ * here it fails CI instead, so the layering can't silently erode.
  *
  * Lives in the Architecture suite, which runs framework-free (no app container,
  * no DB) — so source files are located by path relative to this file, exactly
@@ -72,10 +72,9 @@ function conventionOffenders(array $files, string $pattern): array
 // --- Dependency direction ------------------------------------------------
 
 it('the Domain layer does not import the HTTP request object', function (): void {
-    // Sanctioned HTTP→domain boundary adapters (see CLAUDE.md).
+    // Sanctioned HTTP→domain boundary adapters (see ARCHITECTURE.md).
     $allowed = [
         'src/Domain/Widget/Services/WidgetVerification.php',
-        'src/Domain/Analytics/Data/DateRangeData.php',
         'src/Domain/Conversation/Services/Streaming/Requests/StreamRequestDataFactory.php',
     ];
 
@@ -181,11 +180,12 @@ it('Actions never send notifications inline (listeners do that)', function (): v
 // --- Job conventions -----------------------------------------------------
 
 it('Jobs hold no business logic (no DB transactions or row locks)', function (): void {
-    // CLAUDE.md: "Jobs hold no logic. Receive a DTO in the constructor, call an
-    // Action's execute() in handle()." A DB::transaction / lockForUpdate inside
-    // a Job is the tell-tale of business logic that belongs in an Action (the
-    // UpdateUserCreditsJob → ConsumeMessageCreditsAction extraction). Guarding
-    // it here stops the pattern from being copied into the next job.
+    // ARCHITECTURE.md: "Jobs hold no logic. A job receives a DTO (or models)
+    // in its constructor and calls an Action in handle()." A DB::transaction /
+    // lockForUpdate inside a Job is the tell-tale of business logic that
+    // belongs in an Action (the UpdateUserCreditsJob →
+    // ConsumeMessageCreditsAction extraction). Guarding it here stops the
+    // pattern from being copied into the next job.
     expect(conventionOffenders(
         conventionFilesInSegment('Jobs'),
         '/DB::transaction\(|DB::beginTransaction\(|->lockForUpdate\(/',
@@ -218,7 +218,7 @@ it('Domain models do not carry HTTP-leakage Request names', function (): void {
  * the test, and once a listed file is migrated it must be removed (or the
  * "drift down" branch flags it).
  *
- * Pure read-only `index`/`show` are not in scope — CLAUDE.md exempts those
+ * Pure read-only `index`/`show` are not in scope — ARCHITECTURE.md exempts those
  * from the Action layer and `$request->validate` is allowed there. We catch
  * everything else by globbing the controllers tree.
  */
@@ -237,7 +237,7 @@ it('controllers use FormRequest + toData() instead of inline $request->validate(
         'New controller(s) using inline $request->validate():',
         ...array_map(fn (string $f): string => "  - {$f}", $newOffenders),
         '',
-        'Use a FormRequest with toData() instead (see CLAUDE.md FormRequests section)',
+        'Use a FormRequest with toData() instead (see ARCHITECTURE.md, "How a request flows")',
         'or add to INLINE_VALIDATE_ALLOWLIST in this file with a follow-up ticket.',
     ]));
 

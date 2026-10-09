@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Third-party credentials: OAuth apps, API keys and webhook secrets. They are
- * stored encrypted in `admin_settings` and override the matching .env values
+ * stored encrypted in `admin_settings` and put into config when the app boots
  * (see {@see SettingsStore}). The index shows one card per settings group;
  * each group has its own edit page.
  *

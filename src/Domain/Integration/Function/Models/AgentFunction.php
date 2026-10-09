@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -88,7 +87,7 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class AgentFunction extends Model implements AttachableToAgents
 {
-    use HasExternalId, HasFactory;
+    use HasExternalId;
 
     /** How long a webhook call may take when the function sets no timeout. */
     public const int DEFAULT_TIMEOUT_MS = 10_000;
@@ -121,6 +120,9 @@ class AgentFunction extends Model implements AttachableToAgents
         });
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

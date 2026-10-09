@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Webhooks\Concerns\InteractsWithMetaWebhooks;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Whatsapp\Actions\ReceiveWhatsappMessagesAction;
 use Domain\Channel\Whatsapp\Data\WhatsappInboundMessageData;
 use Illuminate\Http\JsonResponse;
@@ -25,12 +26,12 @@ class WhatsappWebhookController
 
     public function verify(Request $request): Response
     {
-        return $this->metaChallengeResponse($request, config('services.meta.webhook_verify_token'));
+        return $this->metaChallengeResponse($request, MetaApp::Whatsapp->webhookVerifyToken());
     }
 
     public function receive(Request $request, ReceiveWhatsappMessagesAction $receive): JsonResponse
     {
-        if ($this->isSignedByMeta($request)) {
+        if ($this->isSignedByMeta($request, MetaApp::Whatsapp)) {
             $receive->execute(WhatsappInboundMessageData::listFromWebhook($request->all()));
         }
 

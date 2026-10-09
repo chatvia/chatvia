@@ -3,6 +3,7 @@
 namespace Domain\Billing\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\UserAddonFactory;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,8 +41,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[WithoutTimestamps]
 class UserAddon extends Model
 {
+    /** @use HasFactory<UserAddonFactory> */
     use HasFactory;
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -8,6 +8,10 @@ use Domain\Conversation\Models\Session;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a conversation inside a fresh visitor session. The denormalized
+ * `agent_id` is copied from the session after making, so callers that pass only
+ * a session still get a valid row.
+ *
  * @extends Factory<Conversation>
  */
 class ConversationFactory extends Factory

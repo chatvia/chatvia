@@ -16,8 +16,8 @@ use Illuminate\Http\Request;
  *
  * NOT queued — it reads the live IP + User-Agent from the HTTP request and
  * denormalizes them onto the event; a queued worker would inject a fresh CLI
- * request (UA "Symfony", IP 127.0.0.1) and defeat the audit, the same trap
- * RecordKnownDevice documents. The DB write itself is queued downstream by
+ * request (UA "Symfony", IP 127.0.0.1) and defeat the audit (see
+ * RecordKnownDevice for the same reason). The DB write itself is queued downstream by
  * {@see RecordSecurityEvent}.
  */
 class RecordLoginSecurityEvent

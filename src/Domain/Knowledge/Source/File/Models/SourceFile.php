@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Source\File\Models;
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
@@ -12,6 +13,7 @@ use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\QueryBuilders\SourceFileQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -103,15 +105,19 @@ use Support\MimeType;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[UseFactory(AgentFileFactory::class)]
 class SourceFile extends Model implements ChunkableContract
 {
+    /** @use HasFactory<AgentFileFactory> */
     use Chunkable, HasExternalId, HasFactory, HasStorageFile;
 
+    /** @return SourceFileQueryBuilder<self> */
     public function newEloquentBuilder($query): SourceFileQueryBuilder
     {
         return new SourceFileQueryBuilder($query);
     }
 
+    /** @return MorphToMany<Agent, $this, AgentSource> */
     public function agents(): MorphToMany
     {
         return $this
@@ -119,6 +125,7 @@ class SourceFile extends Model implements ChunkableContract
             ->using(AgentSource::class);
     }
 
+    /** @return Attribute<string, never> */
     public function url(): Attribute
     {
         return Attribute::get(fn () => Storage::url($this->filepath));
@@ -169,6 +176,7 @@ class SourceFile extends Model implements ChunkableContract
         return MimeType::isVideo($this->mime_type);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

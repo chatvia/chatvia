@@ -40,6 +40,7 @@ class AgentTeamsBot extends Model
         return $this->belongsTo(Agent::class);
     }
 
+    /** @return HasMany<TeamsChat, $this> */
     public function chats(): HasMany
     {
         return $this->hasMany(TeamsChat::class);

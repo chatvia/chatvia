@@ -104,6 +104,7 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             ->using(AgentSource::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -124,8 +125,8 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             'failure_reason' => null,
         ]);
 
-        // YoutubeIngestionJob is not yet implemented (the workflow path that
-        // dispatched it from the model was a TODO). When the job lands, queue
-        // it here or — better — from AddAgentYoutubeVideoAction.
+        // There is no YouTube ingestion job yet, so nothing is queued and the
+        // video stays Pending. When the job exists, queue it from
+        // AddAgentYoutubeVideoAction (and from here for a retrain).
     }
 }

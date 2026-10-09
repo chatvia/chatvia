@@ -7,6 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 
 /**
  * The agent's Persona page: its instructions and the workspace's saved
@@ -14,7 +15,7 @@ use Inertia\Inertia;
  */
 class AgentShowPersonaController
 {
-    public function __invoke(Request $request, Agent $agent)
+    public function __invoke(Request $request, Agent $agent): Response
     {
         $agent->loadMissing('agentPrompt');
 

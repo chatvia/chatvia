@@ -3,6 +3,7 @@
 namespace App\Marketing\Models;
 
 use App\Marketing\Observers\PostObserver;
+use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -62,6 +63,7 @@ use Illuminate\Support\Facades\Storage;
 #[Guarded(['id'])]
 class Post extends Model
 {
+    /** @use HasFactory<PostFactory> */
     use HasFactory;
 
     protected function casts(): array
@@ -72,11 +74,17 @@ class Post extends Model
         ];
     }
 
+    /**
+     * @return Attribute<string|null, never>
+     */
     public function imgUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->image_path ? Storage::disk('private')->url($this->image_path) : null);
+        return Attribute::get(fn (): ?string => $this->image_path ? Storage::disk('private')->url($this->image_path) : null);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     */
     #[Scope]
     protected function featured(Builder $query): void
     {

@@ -19,6 +19,11 @@ use Domain\Conversation\Models\Session;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Seeder;
 
+/**
+ * Demo data: creates recent sessions, conversations and messages for the demo
+ * user's agents from a set of realistic scenarios, and fires the matching
+ * analytics events. Skipped in production.
+ */
 class ChatSeeder extends Seeder
 {
     use SkipsInProduction;

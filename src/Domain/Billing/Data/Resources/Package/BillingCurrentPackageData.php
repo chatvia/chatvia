@@ -27,6 +27,9 @@ class BillingCurrentPackageData extends Data
         public BillingPackageCapabilitiesData $capabilities,
     ) {}
 
+    /**
+     * @param  array<string, mixed>  $package  a plan from `PlanCatalog` (the `billing.packages` config plus display fields)
+     */
     public static function fromArray(array $package): self
     {
         $planId = $package['id'] ?? strtolower($package['name']);

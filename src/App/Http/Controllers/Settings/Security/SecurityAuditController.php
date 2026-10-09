@@ -60,6 +60,9 @@ class SecurityAuditController
         ]);
     }
 
+    /**
+     * @param  Builder<SecurityAuditLog>  $query
+     */
     private function applyFilters(Builder $query, Request $request): void
     {
         if ($request->filled('outcome')) {

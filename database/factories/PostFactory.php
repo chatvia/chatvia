@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
+ * Builds a published marketing blog post with the same short text as excerpt,
+ * markdown and HTML.
+ *
  * @extends Factory<Post>
  */
 class PostFactory extends Factory

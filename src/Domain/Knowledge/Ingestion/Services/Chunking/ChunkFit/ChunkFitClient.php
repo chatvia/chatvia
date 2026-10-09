@@ -54,13 +54,14 @@ class ChunkFitClient
         return $this->extractChunks($response);
     }
 
+    /** @param  array<string, mixed>  $body  the JSON request body */
     private function request(string $endpoint, array $body): Response
     {
         $apiKey = $this->apiKey();
 
         if ($apiKey === null || $apiKey === '') {
             throw new ChunkFitException(
-                'chunk.fit is not configured: missing CHUNK_FIT_API_KEY.',
+                'chunk.fit is not configured: add its API key in the admin panel (Settings → Knowledge).',
             );
         }
 

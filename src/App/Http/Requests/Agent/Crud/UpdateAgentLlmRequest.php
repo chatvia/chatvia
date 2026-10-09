@@ -5,6 +5,12 @@ namespace App\Http\Requests\Agent\Crud;
 use Domain\Agent\Data\Settings\UpdateAgentLlmData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates the agent's model choice and its sampling settings (temperature,
+ * top-k, top-p, presence and frequency penalty). The model must exist in the
+ * `llms` catalog. Agent access and the `agent.setup` permission are checked by
+ * the route middleware.
+ */
 class UpdateAgentLlmRequest extends FormRequest
 {
     public function authorize(): bool

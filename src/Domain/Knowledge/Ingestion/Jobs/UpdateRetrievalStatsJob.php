@@ -7,10 +7,10 @@ namespace Domain\Knowledge\Ingestion\Jobs;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob as RetrievalStatsJob;
 
 /**
- * The retrieval-stats job's previous class name. Jobs queued before the move
- * to `Knowledge\Retrieval` still name this class in their payload, so it stays
- * for one release and runs exactly like the new job. Nothing dispatches it any
- * more; delete it once those queues have drained.
+ * The old class name of the retrieval-stats job. A queued job is stored with
+ * its class name, so this alias lets jobs queued under the old name still run,
+ * exactly like the new job. Nothing dispatches it; it can be deleted once no
+ * job with this name is left in the queue.
  *
  * @deprecated Use {@see RetrievalStatsJob}.
  */

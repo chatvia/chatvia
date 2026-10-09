@@ -13,7 +13,10 @@ use Laravel\Mcp\Server\Tools\Annotations\IsIdempotent;
 use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 
 /**
- * get-response-time-stats: AI reply latency.
+ * Analytics MCP tool `get-response-time-stats`: how fast the AI replies in a
+ * period (average, p50, p95 and slowest reply, plus the average time to the
+ * first reply). Returns a one-line summary for the model and the full figures
+ * as structured content.
  */
 #[Description(<<<'TXT'
 How fast the AI responds, for a period: the average reply time, the median (p50)

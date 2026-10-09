@@ -11,31 +11,31 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * `php artisan app:backup-database` — pg_dump the Postgres database and ship
- * the dump to the private Scaleway bucket, off the application host.
+ * the dump to the private object-storage bucket, off the application host.
  *
- * Scheduled every 12 hours (see routes/console.php). Replaces the manual
- * `pg_dump > chatvia.sql` one-liner in server.sh, which left a plaintext dump
- * on the same box as APP_KEY. The dump is written to a temp file, streamed to
- * object storage, and the temp file is removed — nothing lingers on disk.
+ * Scheduled every 12 hours (see routes/console.php). A dump must never stay on
+ * the application host, where it would sit next to APP_KEY as plain text: it
+ * is written to a temp file, streamed to object storage, and the temp file is
+ * removed — nothing lingers on disk.
  *
  * Restore: pull the object, then `pg_restore -d <db> --clean --if-exists
  * --no-owner --no-privileges <file>` (the vector/vchord/pg_tokenizer
  * extensions must already be installed on the target — see DbFresh).
  */
-#[Description('Dump the Postgres database with pg_dump and upload it to the private Scaleway bucket, retaining the newest --keep dumps.')]
+#[Description('Dump the Postgres database with pg_dump and upload it to the private storage bucket, retaining the newest --keep dumps.')]
 #[Signature('app:backup-database {--keep=14 : Number of most-recent backups to keep in the bucket; older ones are pruned}')]
 class BackupDatabase extends Command
 {
-    /** Scaleway private (access-controlled) bucket disk — see config/filesystems.php. */
+    /** The private (access-controlled) bucket disk — see config/filesystems.php. */
     private const string DISK = 'private';
 
     /** Object-key prefix for database dumps within the bucket. */
     private const string PREFIX = 'backups';
 
     /**
-     * Extensions whose contents must be included so the dump restores cleanly
-     * — mirrors the proven server.sh invocation. Without these the bm25 /
-     * tokenizer catalogs and vector types come back incomplete.
+     * Extensions whose contents must be included so the dump restores cleanly.
+     * Without these the bm25 / tokenizer catalogs and vector types come back
+     * incomplete.
      */
     private const array EXTENSIONS = ['vector', 'vchord', 'vchord_bm25', 'pg_tokenizer'];
 

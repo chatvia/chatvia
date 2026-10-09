@@ -7,7 +7,9 @@ use Domain\Billing\Data\Account\UpdateAutoRechargeData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * The auto-recharge settings form.
+ * Validates the auto-recharge settings form: whether it is on, the message
+ * balance that triggers a top-up, and how many messages each top-up buys. The
+ * bounds keep a misconfigured form from charging tiny or very large amounts.
  */
 class UpdateAutoRechargeRequest extends FormRequest
 {

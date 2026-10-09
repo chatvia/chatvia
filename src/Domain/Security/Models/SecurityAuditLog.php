@@ -55,6 +55,10 @@ class SecurityAuditLog extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
     #[Scope]
     protected function forWorkspace(Builder $query, int $workspaceId): Builder
     {

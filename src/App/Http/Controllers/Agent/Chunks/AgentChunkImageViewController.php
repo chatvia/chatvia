@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Serves an image saved from a document page, by chunk and image position.
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
  */
 class AgentChunkImageViewController
 {
-    public function __invoke(Request $request, string $chunkExternalId, int $imageIndex)
+    public function __invoke(Request $request, string $chunkExternalId, int $imageIndex): StreamedResponse
     {
         // This route is public (anonymous visitor browsers load the agent's
         // markdown images), so it cannot sit behind `auth`. Instead every

@@ -5,6 +5,11 @@ declare(strict_types=1);
 namespace Domain\Analytics\Events;
 
 /**
- * @deprecated Moved to \Domain\Integration\Mcp\Events\McpToolInvoked; kept so queued listener jobs serialized before the deploy still unserialize. Remove after the next release.
+ * Old name of {@see \Domain\Integration\Mcp\Events\McpToolInvoked}. A queued
+ * listener job stores the event's class name, so this alias lets a job queued
+ * under the old name still unserialize.
+ *
+ * @deprecated Use \Domain\Integration\Mcp\Events\McpToolInvoked. Delete once no
+ *             queued job refers to this name.
  */
 final class McpToolInvoked extends \Domain\Integration\Mcp\Events\McpToolInvoked {}

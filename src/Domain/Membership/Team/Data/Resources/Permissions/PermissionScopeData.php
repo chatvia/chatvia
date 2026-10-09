@@ -17,6 +17,9 @@ class PermissionScopeData extends Data
         public string $description,
     ) {}
 
+    /**
+     * @param  array{label: string, description: string}  $data
+     */
     public static function fromConfig(array $data): self
     {
         return new self(

@@ -5,7 +5,6 @@ namespace Domain\Integration\Mcp\Models;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -43,8 +42,6 @@ use Pgvector\Laravel\Vector;
 #[Guarded(['id'])]
 class McpTool extends Model
 {
-    use HasFactory;
-
     protected function casts(): array
     {
         return [
@@ -57,6 +54,9 @@ class McpTool extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<AgentMcpServer, $this>
+     */
     public function mcpServer(): BelongsTo
     {
         return $this->belongsTo(AgentMcpServer::class, 'mcp_server_id');

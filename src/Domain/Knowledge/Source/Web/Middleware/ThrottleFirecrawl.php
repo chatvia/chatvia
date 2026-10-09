@@ -11,12 +11,11 @@ use Illuminate\Support\Facades\Redis;
  * per-minute request budget, shared across all workers via a Redis duration
  * limiter.
  *
- * Website ingestion fans a {@see WebsiteUrlTrainJob}
- * out per discovered URL, and the `ingestion-medium` Horizon supervisor scales
- * to 100 processes — so a large site would otherwise fire ~100 concurrent
- * `/scrape` calls and blow past FireCrawl's plan rate limit (HTTP 429
- * "Rate limit exceeded"). This caps the combined rate no matter how many workers
- * run, which lets us stay on the current plan.
+ * Website ingestion fans a {@see WebsiteUrlTrainJob} out per discovered URL,
+ * and many queue workers may run those jobs at once — so a large site would
+ * otherwise fire many concurrent `/scrape` calls and go past the FireCrawl
+ * account's rate limit (HTTP 429 "Rate limit exceeded"). This caps the
+ * combined rate no matter how many workers run.
  *
  * When the per-minute budget is exhausted the job is released back to the queue
  * with a short jittered delay instead of calling FireCrawl. These throttle

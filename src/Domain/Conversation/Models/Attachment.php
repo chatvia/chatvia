@@ -16,11 +16,11 @@ use Support\Concerns\HasExternalId;
 use Throwable;
 
 /**
- * Visitor- or member-uploaded file attached to a conversation. Currently
- * used for PDF Q&A (Mistral document_url chat), but the shape is generic
- * enough to back image / audio attachments later.
+ * Visitor- or member-uploaded file attached to a conversation. Used for PDF
+ * Q&A (Mistral document_url chat); the shape is generic enough to back image
+ * or audio attachments too.
  *
- * Stored on the public Scaleway bucket so Mistral and other URL-consuming
+ * Stored on the public object-storage disk so Mistral and other URL-consuming
  * MCP tools can fetch the file directly. Deleting a row (including via the
  * conversation cascade in {@see Conversation::booted}) wipes the
  * underlying S3 object through the `deleting` event.
@@ -88,6 +88,8 @@ class Attachment extends Model
      * Derived public URL. HasStorageFile's read helpers operate on the
      * default disk; ours live on the public disk, so we expose the URL via
      * an accessor instead of storing it.
+     *
+     * @return Attribute<string, never>
      */
     public function url(): Attribute
     {

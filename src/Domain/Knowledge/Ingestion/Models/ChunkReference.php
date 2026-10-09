@@ -35,11 +35,13 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 #[WithoutIncrementing]
 class ChunkReference extends Model
 {
+    /** @return BelongsTo<Chunk, $this> */
     public function chunk(): BelongsTo
     {
         return $this->belongsTo(Chunk::class);
     }
 
+    /** @return MorphTo<Model, $this> */
     public function referenceable(): MorphTo
     {
         return $this->morphTo();

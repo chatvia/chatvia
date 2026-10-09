@@ -8,6 +8,9 @@ use Domain\Billing\Models\UserCredit;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
+ * Builds a message-credit period that is active today, with a random message
+ * allowance. The caller sets `user_id`.
+ *
  * @extends Factory<UserCredit>
  */
 class UserCreditFactory extends Factory

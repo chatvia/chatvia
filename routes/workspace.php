@@ -106,7 +106,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
 
     // Library — account-level reusable prompts (Prompt Manager). Authored here,
     // attached to agents from each agent's Persona page via `agent_prompt_id`.
-    // Gated by `account.prompts` (404 to hide existence), formerly inline.
+    // Gated by `account.prompts` (404 to hide existence).
     Route::middleware('team.permission:account.prompts,404')->prefix('my/workspace/library')->name('library.')->group(function (): void {
         Route::get('prompts', [PromptController::class, 'edit'])->name('prompts.edit');
         Route::get('prompts/list', [PromptController::class, 'index'])->name('prompts.list');

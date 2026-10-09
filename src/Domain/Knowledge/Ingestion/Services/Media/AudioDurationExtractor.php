@@ -11,6 +11,7 @@ use RuntimeException;
  */
 class AudioDurationExtractor
 {
+    /** @return list<string> */
     private function getSupportedMimeTypes(): array
     {
         return array_merge(

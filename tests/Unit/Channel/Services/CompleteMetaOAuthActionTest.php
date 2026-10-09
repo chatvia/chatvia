@@ -2,6 +2,7 @@
 
 use Domain\Channel\Actions\CompleteMetaOAuthAction;
 use Domain\Channel\Data\MetaPageData;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Enums\MetaOAuthChannel;
 use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Domain\Channel\Services\MetaOAuthClient;
@@ -19,9 +20,9 @@ function fakeCompleteOAuth(?string $userToken): MetaOAuthClient
 
         public function __construct(private readonly ?string $userToken) {}
 
-        public function exchangeCodeForUserToken(string $code, ?string $redirectUri = null): ?string
+        public function exchangeCodeForUserToken(MetaApp $app, string $code): ?string
         {
-            $this->exchangedWith = $redirectUri;
+            $this->exchangedWith = $app->redirectUri();
 
             return $this->userToken;
         }
@@ -46,7 +47,7 @@ it('lists the granted Pages for Messenger', function (): void {
 });
 
 it('lists the IG accounts for Instagram, exchanging with the Instagram callback URL', function (): void {
-    config(['services.meta.instagram_redirect' => 'https://app.example/ig/callback']);
+    config(['services.meta.instagram.redirect' => 'https://app.example/ig/callback']);
     $oauth = fakeCompleteOAuth('USER');
 
     $accounts = new CompleteMetaOAuthAction($oauth)->execute(MetaOAuthChannel::Instagram, 'code');

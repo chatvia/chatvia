@@ -22,8 +22,8 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      * Stream a completion request using Guzzle.
      *
      * @param  string  $model  The model identifier
-     * @param  array  $messages  The messages array
-     * @param  array  $settings  Additional settings for the request
+     * @param  list<array<string, mixed>>  $messages  OpenAI-style chat messages
+     * @param  array<string, mixed>  $settings  Extra request body keys
      * @return ResponseInterface The streaming response
      */
     public function stream(string $model, array $messages, array $settings = []): ResponseInterface
@@ -53,7 +53,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     /**
      * Execute a completion request using Laravel HTTP client.
      *
-     * @param  array  $data  The request data
+     * @param  array<string, mixed>  $data  The full request body
      * @return Response The response
      */
     public function completion(array $data)
@@ -107,7 +107,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
      * Default implementation: no cost tracking support.
      *
      * @param  string  $generationId  The generation ID
-     * @return array|null Always returns null
+     * @return array<string, mixed>|null Always returns null
      */
     public function getGenerationCost(string $generationId): ?array
     {

@@ -68,8 +68,8 @@ class WidgetSettingsData extends Data
         public ?string $bar_placement,
         // Placeholder shown inside the composer/input textarea. Distinct from
         // `welcome_message` (which is the first assistant message shown when a
-        // thread is empty). The widget previously fell back to `welcome_message`
-        // here, which surfaced a full greeting inside the tiny input.
+        // thread is empty): the greeting is too long to show inside the small
+        // input, so the widget never uses it as the placeholder.
         public ?string $composer_placeholder,
         // Optional link to the workspace's own privacy policy. When non-empty,
         // the widget shows a "By chatting, you agree to our privacy policy"

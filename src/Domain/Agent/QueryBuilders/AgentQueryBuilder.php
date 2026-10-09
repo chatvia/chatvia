@@ -19,6 +19,8 @@ class AgentQueryBuilder extends Builder
 {
     /**
      * Add total members count as a subquery select.
+     *
+     * @return self<TModel>
      */
     public function withTotalMembers(): self
     {
@@ -33,6 +35,8 @@ class AgentQueryBuilder extends Builder
      * Agents that have claimed a non-empty custom domain. The shared predicate
      * behind the custom-domain quota count — used by SetAgentDomainAction's
      * gate and the Setup page's quota display, so the two never drift apart.
+     *
+     * @return self<TModel>
      */
     public function withCustomDomain(): self
     {

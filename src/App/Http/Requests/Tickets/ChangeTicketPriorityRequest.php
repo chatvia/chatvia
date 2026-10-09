@@ -6,6 +6,10 @@ use Domain\Helpdesk\Data\ChangeTicketPriorityData;
 use Domain\Helpdesk\Models\Ticket;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Validates a priority change on a support ticket (low, medium, high or
+ * urgent). Only a user the ticket policy lets update the ticket may change it.
+ */
 class ChangeTicketPriorityRequest extends FormRequest
 {
     public function authorize(): bool

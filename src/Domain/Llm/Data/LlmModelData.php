@@ -12,6 +12,9 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 #[TypeScript]
 class LlmModelData extends Data
 {
+    /**
+     * @param  array<string, bool>  $features  capability flags keyed by name (e.g. `vision`, `function_calling`)
+     */
     public function __construct(
         public string $id, // gpt-4o-mini
         public string $internal_id, // openai/gpt-4o-mini

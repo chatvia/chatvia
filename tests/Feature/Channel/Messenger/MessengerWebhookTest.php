@@ -23,8 +23,8 @@ beforeEach(function (): void {
     $this->verifyToken = Str::random(32);
     $this->appSecret = 'f1e2d3c4b5a6f1e2d3c4b5a6f1e2d3c4';
     config([
-        'services.meta.webhook_verify_token' => $this->verifyToken,
-        'services.meta.app_secret' => $this->appSecret,
+        'services.meta.messenger.webhook_verify_token' => $this->verifyToken,
+        'services.meta.messenger.app_secret' => $this->appSecret,
     ]);
     $agent = Agent::factory()->create();
     $this->page = AgentMessengerPage::create([

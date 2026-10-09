@@ -23,6 +23,9 @@ use Inertia\Response;
  */
 class AgentTextController
 {
+    /**
+     * @return Response|Collection<int, SourceText>
+     */
     public function index(Request $request, Agent $agent): Response|Collection
     {
         if ($request->wantsJson()) {

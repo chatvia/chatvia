@@ -45,6 +45,7 @@ class EvalCaseScored implements ShouldBroadcastNow
         return 'EvalCaseScored';
     }
 
+    /** @return array{run_external_id: string, result: array<string, mixed>, passed_count: int, failed_count: int} */
     public function broadcastWith(): array
     {
         return [

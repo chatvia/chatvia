@@ -2,6 +2,7 @@
 
 namespace Domain\Llm\Models;
 
+use Database\Factories\LlmFactory;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
@@ -19,7 +20,7 @@ use Illuminate\Support\Facades\Cache;
  * @property string $description
  * @property string $icon
  * @property int $context_window
- * @property array<array-key, mixed> $features
+ * @property array<string, bool> $features
  * @property string $location
  * @property bool $is_reasoning
  * @property numeric|null $input_price_per_1m_tokens
@@ -60,6 +61,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class Llm extends Model
 {
+    /** @use HasFactory<LlmFactory> */
     use HasFactory;
 
     protected function casts(): array

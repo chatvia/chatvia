@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Webhooks;
 
 use App\Http\Controllers\Webhooks\Concerns\InteractsWithMetaWebhooks;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Instagram\Actions\ReceiveInstagramMessagesAction;
 use Domain\Channel\Instagram\Data\InstagramInboundMessageData;
 use Illuminate\Http\JsonResponse;
@@ -25,12 +26,12 @@ class InstagramWebhookController
 
     public function verify(Request $request): Response
     {
-        return $this->metaChallengeResponse($request, config('services.meta.webhook_verify_token'));
+        return $this->metaChallengeResponse($request, MetaApp::Instagram->webhookVerifyToken());
     }
 
     public function receive(Request $request, ReceiveInstagramMessagesAction $receive): JsonResponse
     {
-        if ($this->isSignedByMeta($request)) {
+        if ($this->isSignedByMeta($request, MetaApp::Instagram)) {
             $receive->execute(InstagramInboundMessageData::listFromWebhook($request->all()));
         }
 

@@ -105,6 +105,7 @@ class SlackClient
     /**
      * Call a Slack Web API method; null on transport failure or `ok: false`.
      *
+     * @param  array<string, mixed>  $params  the method's arguments, sent as a JSON object
      * @return array<string, mixed>|null
      */
     protected function call(string $token, string $method, array $params = []): ?array

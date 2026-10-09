@@ -191,7 +191,11 @@ class DeleteUserAccountAction
         }
     }
 
-    /** Loop a bounded DELETE until it stops matching rows. */
+    /**
+     * Loop a bounded DELETE until it stops matching rows.
+     *
+     * @param  list<int>  $bindings
+     */
     private function batchDelete(string $sql, array $bindings): void
     {
         do {

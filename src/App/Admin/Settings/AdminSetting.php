@@ -80,7 +80,7 @@ class AdminSetting extends Model
     /**
      * The payload after an edit in the panel. Secrets are never sent to the
      * browser, so a blank secret means "unchanged" and keeps its saved value.
-     * Any other blank field is dropped, so its .env value applies again.
+     * Any other blank field is removed.
      *
      * @param  array<string, mixed>  $input
      * @return array<string, string>|null
@@ -105,7 +105,7 @@ class AdminSetting extends Model
     }
 
     /**
-     * Remove one saved value, so the .env value applies again.
+     * Remove one saved value.
      */
     public function forgetValue(SettingField $field, ?User $by): void
     {

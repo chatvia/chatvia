@@ -10,10 +10,10 @@ use Illuminate\Database\QueryException;
 use Throwable;
 
 /**
- * Puts the credentials saved in the admin panel into config, over the values
- * from the .env file, so the code that reads `config('services.google.client_id')`
- * and the like gets them with no change. A blank or missing saved value leaves
- * the .env value in place.
+ * Puts the credentials saved in the admin panel into config, so the code that
+ * reads `config('services.google.client_id')` and the like gets them with no
+ * change. The admin panel is the only source for these keys: a field with
+ * nothing saved gets its default (redirect URLs) or null.
  *
  * The rows are cached as ciphertext (any write clears the cache) and decrypted
  * in each process. Long-running queue workers call {@see apply()} before every
@@ -22,13 +22,6 @@ use Throwable;
 final class SettingsStore
 {
     private const string CACHE_KEY = 'admin_settings';
-
-    /**
-     * Config values from before the first override: the .env values.
-     *
-     * @var array<string, mixed>|null
-     */
-    private ?array $defaults = null;
 
     private ?string $appliedHash = null;
 
@@ -40,8 +33,6 @@ final class SettingsStore
 
     public function apply(): void
     {
-        $this->captureDefaults();
-
         $rows = $this->rows();
         $hash = md5(serialize($rows));
 
@@ -55,38 +46,26 @@ final class SettingsStore
             foreach ($group->fields() as $field) {
                 $value = $saved[$group->value][$field->name] ?? null;
 
-                // Setting the default back matters in a worker: a value removed
-                // in the panel must fall back to .env, not keep the old one.
-                $this->config->set($field->config, filled($value) ? $value : $this->defaults[$field->config]);
+                // Every field is set, also the empty ones: in a worker, a value
+                // removed in the panel must not keep its old value.
+                $this->config->set($field->config, filled($value) ? $value : $field->defaultValue());
             }
         }
 
         $this->appliedHash = $hash;
     }
 
-    /**
-     * The value of a field without the admin panel (from the .env file).
-     */
-    public function envValue(SettingField $field): mixed
-    {
-        $this->captureDefaults();
-
-        return $this->defaults[$field->config] ?? null;
-    }
-
     public function status(SettingGroup $group, ?AdminSetting $setting): SettingStatus
     {
         if ($this->missingFields($group, $setting) === []) {
-            return $setting?->hasSavedValues() ? SettingStatus::Configured : SettingStatus::FromEnv;
+            return SettingStatus::Configured;
         }
 
-        $anySet = array_filter($group->fields(), fn (SettingField $field): bool => $this->isSet($field, $setting)) !== [];
-
-        return $anySet ? SettingStatus::Incomplete : SettingStatus::Missing;
+        return $setting?->hasSavedValues() ? SettingStatus::Incomplete : SettingStatus::Missing;
     }
 
     /**
-     * The required fields with neither a saved nor an .env value.
+     * The required fields that have no saved value.
      *
      * @return list<SettingField>
      */
@@ -94,33 +73,13 @@ final class SettingsStore
     {
         return array_values(array_filter(
             $group->requiredFields(),
-            fn (SettingField $field): bool => ! $this->isSet($field, $setting),
+            fn (SettingField $field): bool => blank($setting?->value($field)),
         ));
-    }
-
-    private function isSet(SettingField $field, ?AdminSetting $setting): bool
-    {
-        return filled($setting?->value($field)) || filled($this->envValue($field));
     }
 
     public function forget(): bool
     {
         return $this->cache->forget(self::CACHE_KEY);
-    }
-
-    private function captureDefaults(): void
-    {
-        if ($this->defaults !== null) {
-            return;
-        }
-
-        $this->defaults = [];
-
-        foreach (SettingGroup::cases() as $group) {
-            foreach ($group->fields() as $field) {
-                $this->defaults[$field->config] = $this->config->get($field->config);
-            }
-        }
     }
 
     /**
@@ -138,7 +97,7 @@ final class SettingsStore
                 ->all());
         } catch (QueryException) {
             // No table yet (a fresh install before `migrate`) or no database
-            // (composer scripts in a build): the .env values apply.
+            // (composer scripts in a build): nothing is configured.
             return [];
         } catch (Throwable $e) {
             report($e);
@@ -160,8 +119,8 @@ final class SettingsStore
                 $saved[$key] = (new AdminSetting)->setRawAttributes(['payload' => $ciphertext])->payload ?? [];
             } catch (DecryptException $e) {
                 // Encrypted with another APP_KEY (add the old key to
-                // APP_PREVIOUS_KEYS). Run on the .env values rather than fail
-                // every request.
+                // APP_PREVIOUS_KEYS). Skip the group rather than fail every
+                // request.
                 report($e);
             }
         }

@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Starters\StarterGenerator;
 use Domain\Llm\Operations\Translate\TextTranslator;
 
@@ -9,7 +10,7 @@ use Domain\Llm\Operations\Translate\TextTranslator;
  * knowledge base.
  */
 beforeEach(function (): void {
-    $this->agent = proPlanAgent();
+    $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->user;
 });
 

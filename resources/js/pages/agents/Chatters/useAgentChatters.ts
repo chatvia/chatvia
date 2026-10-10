@@ -5,6 +5,7 @@
  * instead of refetching, so the table updates at once.
  */
 import { listAgentChatters, type AgentChatterRow } from '@/api/chatters';
+import { grant as grantAgentChatter } from '@/routes/agents/chatters';
 import { router } from '@inertiajs/vue3';
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -66,7 +67,7 @@ export function useAgentChatters(agentSource: MaybeRefOrGetter<Agent>) {
     const grantAccess = (member: AgentChatterRow) => {
         grantingId.value = member.external_id;
         router.post(
-            route('agents.chatters.grant', {
+            grantAgentChatter.url({
                 agent: toValue(agentSource).external_id,
                 chatter: member.external_id,
             }),

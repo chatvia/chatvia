@@ -1,18 +1,15 @@
 <script setup lang="ts">
 /**
- * Shows an analytics page's content only when it may be shown: a locked card
- * when the plan lacks the feature, the "turned off" screen (with its enable
- * switch) when the owner or the chat log has it off, else the default slot.
+ * Shows an analytics page's content only when it may be shown: the "turned
+ * off" screen (with its enable switch) when the owner or the chat log has it
+ * off, else the default slot.
  */
 import AnalyticsDisabled from '@/components/AnalyticsDisabled.vue';
-import LockedFeature from '@/components/LockedFeature.vue';
 
 interface Props {
-    hasAccess: boolean;
     enabled: boolean;
     chatlogEnabled: boolean;
     enabling: boolean;
-    lockedDescription: string;
     disabledTitle: string;
     disabledDescription: string;
     blockedReason: string;
@@ -24,11 +21,9 @@ const emit = defineEmits<{ enable: [] }>();
 </script>
 
 <template>
-    <LockedFeature v-if="!hasAccess" :description="lockedDescription" />
-
-    <!-- Plan allows it, but the owner switched it off for this agent -->
+    <!-- The owner switched it off for this agent, or the chat log is off -->
     <AnalyticsDisabled
-        v-else-if="!chatlogEnabled || !enabled"
+        v-if="!chatlogEnabled || !enabled"
         :title="disabledTitle"
         :description="disabledDescription"
         :can-enable="chatlogEnabled"

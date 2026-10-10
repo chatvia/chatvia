@@ -19,8 +19,6 @@ import { useI18n } from 'vue-i18n';
 const props = defineProps<{
     // code → name of every platform language (plus 'auto').
     availableLanguages: Record<string, string>;
-    // Whether the workspace's plan includes live-chat handoff.
-    canUseHandoff: boolean;
 }>();
 
 const { t } = useI18n();
@@ -67,7 +65,6 @@ const languageChoices = computed(() => languageOptions(props.availableLanguages)
                 :disabled="locked"
             />
             <SetupSwitchRow
-                v-if="canUseHandoff"
                 id="widget-handoff"
                 v-model="form.handoff_enabled"
                 class="bg-muted/40 rounded-md border sm:col-span-2"

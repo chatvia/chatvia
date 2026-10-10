@@ -44,7 +44,6 @@ templates-list.png
 template-editor.png
 teams.png
 team-roles.png
-usage.png
 chat-logs.png
 chat-leads.png
 analytics.png

@@ -5,18 +5,16 @@ namespace App\Http\Controllers\Agent\Form;
 use App\Http\Requests\Agent\Form\FormSubmissionSelectionRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Form\Actions\ExportSubmissionsCsvAction;
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Data\SubmissionData;
 use Domain\Form\Models\FormDefinition;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
 /**
- * The submissions of one of the agent's forms: the list page, a CSV export
- * and a bulk delete. Access is gated by the route middleware; the form must
+ * The submissions of one of the agent's forms: the list page and a bulk
+ * delete. Access is gated by the route middleware; the form must
  * belong to the agent.
  */
 class AgentSubmissionController
@@ -39,18 +37,6 @@ class AgentSubmissionController
                     ->limit(self::PAGE_LIMIT)
                     ->get(),
             ),
-        ]);
-    }
-
-    public function export(FormSubmissionSelectionRequest $request, Agent $agent, FormDefinition $form, ExportSubmissionsCsvAction $export): Response
-    {
-        $this->ensureFormOfAgent($agent, $form);
-
-        $filename = 'submissions-'.$form->slug.'-'.now()->format('Ymd-His').'.csv';
-
-        return response($export->execute($form, $request->toData()), 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 

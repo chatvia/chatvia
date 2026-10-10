@@ -4,9 +4,9 @@ In five minutes your workspace will have a working agent that answers questions 
 
 ## 1. Sign up
 
-Create a workspace at [chatvia.ai](https://chatvia.ai) and start a free trial. A new workspace comes with message credits, a sample agent, and seats for your teammates.
+Create a workspace on the sign-up page (`/register`) and confirm your email address. Every workspace can use every feature, and a new workspace comes with a default team, so you can invite teammates right away. If sign-up is closed, ask the person who runs your Chatvia server for an account.
 
-![SCREENSHOT — sign up / trial page](/screenshots/dashboard.png)
+![SCREENSHOT — dashboard](/screenshots/dashboard.png)
 
 ## 2. Create an agent
 
@@ -29,8 +29,6 @@ Open the new agent and go to **Sources**. Sources live with the agent — there 
 Sources are processed in the background. Status moves from **Pending → Processing → Ingested** (or **Failed**). Your team can keep working while ingestion finishes.
 
 ![SCREENSHOT — sources overview](/screenshots/sources-overview.png)
-
-Chativ.ai is not limited to 
 
 ## 4. Test it in the Playground
 

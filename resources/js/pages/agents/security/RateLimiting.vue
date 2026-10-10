@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { update as updateSecuritySettings } from '@/routes/agents/security/settings';
 import { useForm } from '@inertiajs/vue3';
 import { Gauge } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -30,7 +31,7 @@ const form = useForm({
 });
 
 const save = () => {
-    form.post(route('agents.security.settings.update', props.agent.external_id), {
+    form.post(updateSecuritySettings.url(props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => toast.success(t('agents.security.rate_limiting.saved')),
         onError: () => toast.error(t('agents.security.rate_limiting.save_error')),

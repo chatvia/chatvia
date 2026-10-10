@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { login } from '@/routes';
+import { store as storeRegistration } from '@/routes/register';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, LockKeyhole, Mail, User } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -23,7 +25,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('register.store'), {
+    form.post(storeRegistration.url(), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -138,7 +140,7 @@ const submit = () => {
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
                     {{ t('auth.register.have_account') }}
-                    <TextLink :href="route('login')" :tabindex="6" class="text-primary hover:text-primary/80 ms-1 font-semibold">
+                    <TextLink :href="login.url()" :tabindex="6" class="text-primary hover:text-primary/80 ms-1 font-semibold">
                         {{ t('auth.register.log_in') }}
                     </TextLink>
                 </p>

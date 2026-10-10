@@ -3,6 +3,7 @@
  * full (to edit it), unlink a shared text from the agent, or delete it for
  * every agent. Creating and updating a text are Inertia form visits on the page.
  */
+import text from '@/routes/agents/sources/text';
 import { del, get, post } from './http';
 
 /** A text's training status (the server's SourceStatus values a text can have). */
@@ -30,19 +31,19 @@ export interface TextSourceDetail {
 }
 
 export function fetchTextSources(agentId: string): Promise<TextSource[]> {
-    return get<TextSource[]>(route('agents.sources.text.index', { agent: agentId }));
+    return get<TextSource[]>(text.index.url(agentId));
 }
 
 export function fetchTextSource(agentId: string, id: number): Promise<TextSourceDetail> {
-    return get<TextSourceDetail>(route('agents.sources.text.show', { agent: agentId, id }));
+    return get<TextSourceDetail>(text.show.url({ agent: agentId, id }));
 }
 
 /** Removes the text from this agent only; other agents keep it. */
 export async function unlinkTextSource(agentId: string, id: number): Promise<void> {
-    await post(route('agents.sources.text.unlink', { agent: agentId, id }));
+    await post(text.unlink.url({ agent: agentId, id }));
 }
 
 /** Deletes the text for every agent that uses it. */
 export async function deleteTextSource(agentId: string, id: number): Promise<void> {
-    await del(route('agents.sources.text.destroy', { agent: agentId, id }));
+    await del(text.destroy.url({ agent: agentId, id }));
 }

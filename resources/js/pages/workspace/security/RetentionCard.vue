@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Data retention card: how many days conversations and audit entries are
-// kept. An empty field means "use the plan default" shown as the placeholder.
+// kept. An empty field means "use the default" shown as the placeholder.
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import type { RetentionLimits } from './useSecurityPolicyForm';
 
 defineProps<{
     canManage: boolean;
-    limits: RetentionLimits | null;
+    limits: RetentionLimits;
     errors: { retention_conversations_days?: string; retention_audit_days?: string };
 }>();
 
@@ -40,13 +40,13 @@ const { t } = useI18n();
                         id="ret-conv"
                         v-model="conversationsDays"
                         type="number"
-                        :min="limits?.conversations_floor"
-                        :max="limits?.conversations_max"
+                        :min="limits.conversations_floor"
+                        :max="limits.conversations_max"
                         :disabled="!canManage"
-                        :placeholder="t('workspace.security.retention.plan_default', { days: limits?.conversations_max ?? 0 })"
+                        :placeholder="t('workspace.security.retention.plan_default', { days: limits.conversations_max })"
                     />
                     <p class="text-muted-foreground text-xs">
-                        {{ t('workspace.security.retention.conversations_help', { max: limits?.conversations_max ?? 0 }) }}
+                        {{ t('workspace.security.retention.conversations_help', { max: limits.conversations_max }) }}
                     </p>
                     <p v-if="errors.retention_conversations_days" class="text-destructive text-xs">
                         {{ errors.retention_conversations_days }}
@@ -59,16 +59,16 @@ const { t } = useI18n();
                         id="ret-audit"
                         v-model="auditDays"
                         type="number"
-                        :min="limits?.audit_floor"
-                        :max="limits?.audit_default"
+                        :min="limits.audit_floor"
+                        :max="limits.audit_default"
                         :disabled="!canManage"
-                        :placeholder="t('workspace.security.retention.plan_default', { days: limits?.audit_default ?? 0 })"
+                        :placeholder="t('workspace.security.retention.plan_default', { days: limits.audit_default })"
                     />
                     <p class="text-muted-foreground text-xs">
                         {{
                             t('workspace.security.retention.audit_help', {
-                                default: limits?.audit_default ?? 0,
-                                floor: limits?.audit_floor ?? 0,
+                                default: limits.audit_default,
+                                floor: limits.audit_floor,
                             })
                         }}
                     </p>

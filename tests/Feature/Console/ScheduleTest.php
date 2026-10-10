@@ -10,7 +10,6 @@ it('schedules every recurring command from routes/console.php', function (): voi
 
     foreach ([
         'telescope:prune --hours=24',
-        'app:cache-message-usage',
         'app:prune-expired-data-exports',
         'app:prune-chat-attachments',
         'app:backup-database',

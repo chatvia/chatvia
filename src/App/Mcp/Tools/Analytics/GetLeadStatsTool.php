@@ -18,7 +18,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Leads captured for a period: the total, the breakdown by status (new, contacted,
 qualified, converted, lost), how many have been contacted, and the conversion
-rate (leads per 100 conversations). Answers "how many leads this cycle?", "what's
+rate (leads per 100 conversations). Answers "how many leads this month?", "what's
 my lead conversion rate?", "how many leads still need contacting?".
 TXT)]
 #[IsReadOnly]

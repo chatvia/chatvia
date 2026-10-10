@@ -20,8 +20,7 @@
             "send_link": "أرسل لي رابط تسجيل الدخول",
             "sending_link": "جارٍ إرسال الرابط...",
             "or_continue_with": "أو تابع باستخدام",
-            "no_account": "ليس لديك حساب؟",
-            "start_free_trial": "ابدأ الفترة التجريبية المجانية"
+            "no_account": "ليس لديك حساب؟"
         },
         "register": {
             "title": "إنشاء حساب",
@@ -94,18 +93,6 @@
             "use_recovery_code": "استخدام رمز الاسترداد",
             "use_authenticator_code": "استخدام رمز المصادقة"
         },
-        "set_password": {
-            "title": "اختر كلمة المرور",
-            "description": "حسابك جاهز. اختر كلمة مرور لإكمال إعداده.",
-            "head": "اختر كلمة المرور",
-            "email_label": "البريد الإلكتروني",
-            "password_label": "كلمة المرور",
-            "password_placeholder": "كلمة المرور",
-            "confirm_password_label": "تأكيد كلمة المرور",
-            "confirm_password_placeholder": "تأكيد كلمة المرور",
-            "set_password": "تعيين كلمة المرور",
-            "setting_password": "جارٍ تعيين كلمة المرور..."
-        },
         "login_member": {
             "description": "سجّل الدخول للوصول إلى مساحة المحادثة هذه",
             "head": "تسجيل دخول العضو",
@@ -168,16 +155,6 @@
             "or": "أو",
             "social_email_note_prefix": "تأكّد من أن حسابك على وسائل التواصل يستخدم",
             "social_email_note_suffix": "— يجب أن يطابق هذه الدعوة."
-        },
-        "invitation_invalid": {
-            "title": "الدعوة غير متاحة",
-            "description": "لا يمكن قبول هذه الدعوة",
-            "head": "الدعوة غير متاحة",
-            "card_title": "تعذّر قبول الدعوة",
-            "cannot_accept_prefix": "لا يمكن قبول دعوة الانضمام إلى",
-            "cannot_accept_suffix": "في الوقت الحالي.",
-            "contact_owner": "يرجى التواصل مع مالك الفريق لحل هذه المشكلة.",
-            "go_to_login": "الانتقال إلى تسجيل الدخول"
         },
         "invitation_expired": {
             "title": "انتهت صلاحية الدعوة",

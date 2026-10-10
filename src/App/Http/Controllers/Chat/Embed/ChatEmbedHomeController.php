@@ -18,8 +18,7 @@ class ChatEmbedHomeController
     {
         return Inertia::render('chat/Home', [
             ...HostedChatPageProps::for($agent, $documentLlm),
-            'chatRoute' => 'chat.embed.show',
-            'newChatRoute' => 'chat.embed.home',
+            'embedded' => true,
         ]);
     }
 }

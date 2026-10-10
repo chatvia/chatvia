@@ -1,0 +1,24 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This month: 10 conversations, averaging 2.7 messages each and about 152s long. Busiest day was 2026-06-14 (5 conversations)."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "this_month",
+            "label": "this month",
+            "start": "2026-06-01",
+            "end": "2026-06-15"
+        },
+        "conversations": 10,
+        "avg_messages_per_conversation": 2.7,
+        "avg_duration_seconds": 152,
+        "busiest_day": {
+            "date": "2026-06-14",
+            "conversations": 5
+        }
+    }
+}

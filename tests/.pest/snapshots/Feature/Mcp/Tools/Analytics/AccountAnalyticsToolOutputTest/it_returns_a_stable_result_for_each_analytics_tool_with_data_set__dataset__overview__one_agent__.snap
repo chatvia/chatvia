@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "This billing cycle: 6 messages (3 in, 3 AI) across 2 conversations from 2 visitors, 2 leads captured. Avg response 967ms. Feedback: 1👍 / 0👎."
+            "text": "This month: 6 messages (3 in, 3 AI) across 2 conversations from 2 visitors, 2 leads captured. Avg response 967ms. Feedback: 1👍 / 0👎."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "incoming_messages": 3,
         "ai_messages": 3,
@@ -23,7 +23,7 @@
         "positive_feedback": 1,
         "negative_feedback": 0,
         "tokens": 470,
-        "messages_used_this_cycle": 420,
-        "messages_limit_this_cycle": 1000
+        "messages_used_this_month": 420,
+        "messages_limit_this_month": 1000
     }
 }

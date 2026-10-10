@@ -32,12 +32,10 @@
         "intervention/image": "^4.3",
         "intervention/image-laravel": "^4.1",
         "irazasyed/telegram-bot-sdk": "^3.16",
-        "laravel/cashier": "^16.0",
         "laravel/fortify": "^1.37",
         "laravel/framework": "^13.0",
         "laravel/horizon": "^5.33",
         "laravel/mcp": "^1.0",
-        "laravel/pennant": "^1.23",
         "laravel/pulse": "^1.4",
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
@@ -47,7 +45,6 @@
         "laravel/wayfinder": "^0.1.20",
         "league/commonmark": "^2.7",
         "league/flysystem-aws-s3-v3": "^3.0",
-        "mcamara/laravel-localization": "^2.4",
         "pgvector/pgvector": "^0.2.2",
         "platformcommunity/flysystem-bunnycdn": "^3.3",
         "resend/resend-php": "^1.16",
@@ -62,7 +59,6 @@
         "spatie/laravel-typescript-transformer": "^3.3",
         "spatie/typescript-transformer": "^3.3",
         "spectra-php/laravel-spectra": "^1.2.0",
-        "tightenco/ziggy": "^2.5",
         "yethee/tiktoken": "^1.1"
     },
     "require-dev": {
@@ -144,6 +140,7 @@
             "@format:check",
             "@refactor:check",
             "@analyse",
+            "@php artisan wayfinder:generate --skip-actions",
             "npm run format:check",
             "npm run lint:check",
             "npm run typecheck",
@@ -160,7 +157,7 @@
         "refactor": "Apply Rector refactorings.",
         "refactor:check": "Show pending Rector refactorings without changing files.",
         "ci": "Auto-fix formatting, lint and Rector findings, then run ci:check.",
-        "ci:check": "Run every CI gate without changing files: composer validate + audit, npm audit (production deps), Pint, Rector, PHPStan, Prettier, ESLint, vue-tsc, i18n check and the test suite."
+        "ci:check": "Run every CI gate without changing tracked files: composer validate + audit, npm audit (production deps), Pint, Rector, PHPStan, Wayfinder routes, Prettier, ESLint, vue-tsc, i18n check and the test suite."
     },
     "extra": {
         "laravel": {

@@ -31,7 +31,7 @@ You land on the agent's **Setup** page, with cards pointing to the sections your
 Behind the scenes:
 
 - An empty agent is created in the current workspace.
-- A default model assignment is wired up (the first available model in the workspace plan).
+- A default model assignment is wired up (the first available model on your Chatvia server).
 - Default system instructions ("You are a helpful assistant…") are set — change these before sharing.
 - No sources yet — the agent will refuse to answer until your team adds at least one.
 

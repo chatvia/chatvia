@@ -14,6 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { LOCALES, normalizeLocale, persistLocale, setI18nLocale } from '@/i18n';
+import { home } from '@/routes';
+import { update as updatePreferences } from '@/routes/account/preferences';
+import { edit as editProfile } from '@/routes/account/profile';
+import governance from '@/routes/governance';
+import integrations from '@/routes/integrations';
+import library from '@/routes/library';
+import people from '@/routes/people';
 import type { SharedData, User } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Building2, Check, CircleUser, Languages, LogOut } from 'lucide-vue-next';
@@ -32,19 +39,19 @@ const { hasPermission } = useTeamPermissions();
 
 // Workspace administration is permission-gated. Point the entry at the first
 // section the signed-in role can actually reach; hide it entirely if none.
-const workspaceRoute = computed<string | null>(() => {
-    const sections: [permission: string, routeName: string][] = [
-        ['account.connectors', 'integrations.connectors.edit'],
-        ['account.functions', 'integrations.functions.edit'],
-        ['account.api_keys', 'integrations.api-keys.edit'],
-        ['account.prompts', 'library.prompts.edit'],
-        ['account.chatters.manage', 'people.chatters.index'],
-        ['account.governance', 'governance.audit'],
+const workspaceHref = computed<string | null>(() => {
+    const sections: [permission: string, url: string][] = [
+        ['account.connectors', integrations.connectors.edit.url()],
+        ['account.functions', integrations.functions.edit.url()],
+        ['account.api_keys', integrations.apiKeys.edit.url()],
+        ['account.prompts', library.prompts.edit.url()],
+        ['account.chatters.manage', people.chatters.index.url()],
+        ['account.governance', governance.audit.url()],
     ];
 
     const match = sections.find(([permission]) => hasPermission(permission));
 
-    return match ? route(match[1]) : null;
+    return match ? match[1] : null;
 });
 
 const activeLocale = computed(() => normalizeLocale(locale.value));
@@ -62,7 +69,7 @@ const changeLocale = (code: string): void => {
     // Persist the choice for the signed-in user. The Date & time preference is
     // required by the endpoint, so echo the current value back unchanged.
     router.patch(
-        route('account.preferences.update'),
+        updatePreferences.url(),
         { locale: code, date_format: page.props.auth.user?.date_format ?? 'iso' },
         { preserveScroll: true, preserveState: true },
     );
@@ -71,7 +78,7 @@ const changeLocale = (code: string): void => {
 const handleLogout = () => {
     router.flushAll();
     logout().then(() => {
-        window.location.href = route('home');
+        window.location.href = home.url();
     });
 };
 </script>
@@ -85,13 +92,13 @@ const handleLogout = () => {
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
-            <Link class="block w-full cursor-pointer" :href="route('account.profile.edit')" prefetch as="button">
+            <Link class="block w-full cursor-pointer" :href="editProfile.url()" prefetch as="button">
                 <CircleUser class="me-2 h-4 w-4" />
                 {{ t('nav.account') }}
             </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem v-if="workspaceRoute" :as-child="true">
-            <Link class="block w-full cursor-pointer" :href="workspaceRoute" prefetch as="button">
+        <DropdownMenuItem v-if="workspaceHref" :as-child="true">
+            <Link class="block w-full cursor-pointer" :href="workspaceHref" prefetch as="button">
                 <Building2 class="me-2 h-4 w-4" />
                 {{ t('nav.workspace') }}
             </Link>

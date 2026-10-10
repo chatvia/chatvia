@@ -23,22 +23,14 @@ it('flags API-created users as chatters', function (): void {
         ->and($user->workspace_id)->toBe($this->owner->id);
 });
 
-it('keeps chatters separate from team members in the informational counts', function (): void {
-    $before = $this->owner->teamMembersCount();
+it('keeps chatters out of the team members', function (): void {
+    $before = $this->owner->managedUsers()->count();
 
     app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
     app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'John'));
 
-    expect($this->owner->fresh()->teamMembersCount())->toBe($before);
-});
-
-it('counts chatters toward the shared workspace_users quota', function (): void {
-    $before = $this->owner->workspaceUsersCount();
-
-    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
-    app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'John'));
-
-    expect($this->owner->fresh()->workspaceUsersCount())->toBe($before + 2);
+    expect($this->owner->fresh()->managedUsers()->count())->toBe($before)
+        ->and($this->owner->fresh()->chatters()->count())->toBe(2);
 });
 
 it('does not create a team when a chatter is created', function (): void {

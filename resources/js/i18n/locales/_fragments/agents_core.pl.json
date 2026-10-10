@@ -161,7 +161,6 @@
                 "select_topic": "Wybierz temat",
                 "select_sentiment": "Wybierz nastrój",
                 "select_tone": "Wybierz ton",
-                "upgrade_to_unlock": "Ulepsz, aby odblokować",
                 "clear_all": "Wyczyść wszystko",
                 "close": "Zastosuj filtry"
             },
@@ -201,13 +200,11 @@
                 "page_url": "URL strony",
                 "referrer": "Odsyłacz",
                 "locale": "Ustawienia regionalne",
-                "upgrade_to_unlock": "Ulepsz, aby odblokować",
                 "waiting": "Oczekiwanie na analizę…"
             },
             "pulse": {
                 "title": "Puls rozmowy",
                 "select_conversation": "Wybierz rozmowę, aby wyświetlić puls",
-                "locked_description": "Ulepsz swój plan, aby odblokować analizę pulsu rozmowy.",
                 "refresh": "Odśwież",
                 "no_messages_title": "Zbyt mało wiadomości",
                 "no_messages_hint": "Puls wymaga co najmniej jednej wiadomości użytkownika, aby przeanalizować nastrój i ton w czasie.",
@@ -242,7 +239,6 @@
                 "waiting": "Oczekiwanie…"
             },
             "handoff": {
-                "locked_description": "Ulepsz swój plan, aby przejąć rozmowy na żywo z dziennika czatu.",
                 "visitor": "Odwiedzający",
                 "online": "Online",
                 "offline": "Offline",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Ton",
             "description": "Śledź, jak odwiedzający się czują na podstawie emocjonalnego tonu ich wiadomości.",
-            "locked_description": "Ulepsz swój plan, aby odblokować analizę tonu.",
             "disabled_title": "Analiza tonu jest wyłączona",
             "disabled_description": "Włącz analizę tonu, aby zobaczyć, jak odwiedzający czują się w rozmowach.",
             "blocked_reason": "Najpierw włącz rejestrowanie czatu — analiza tonu wymaga zapisanych wiadomości.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Nastrój",
             "description": "Śledź pozytywny, neutralny i negatywny nastrój wiadomości odwiedzających.",
-            "locked_description": "Ulepsz swój plan, aby odblokować analizę nastroju.",
             "disabled_title": "Analiza nastroju jest wyłączona",
             "disabled_description": "Włącz analizę nastroju, aby zobaczyć, jak odwiedzający czują się w rozmowach.",
             "blocked_reason": "Najpierw włącz rejestrowanie czatu — analiza nastroju wymaga zapisanych wiadomości.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Zarządzaj tematami",
                 "description": "Zdefiniuj tematy, które agent powinien rozpoznawać i klasyfikować w rozmowach.",
-                "locked_description": "Ulepsz swój plan, aby zarządzać tematami rozmów.",
                 "search_placeholder": "Szukaj tematów…",
                 "add_topic": "Dodaj temat",
                 "empty": "Brak tematów. Dodaj jeden, aby pomóc agentowi klasyfikować rozmowy.",

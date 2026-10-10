@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Anpassad domän",
                 "description": "Servera den här agentens Hosted Chat från din egen domän istället för {target}.",
-                "no_quota_title": "Anpassade domäner ingår inte i din nuvarande plan",
-                "no_quota_description": "Uppgradera till Pro eller prenumerera på tillägget Anpassad domän från {link} för att lägga till ditt eget värdnamn.",
-                "billing": "Fakturering",
-                "quota": "Använder {used} av {total} anpassad domän | Använder {used} av {total} anpassade domäner",
-                "add_more": "Lägg till fler",
                 "step1": "Steg 1 — Lägg till en CNAME-post hos din DNS-leverantör",
                 "type": "Typ",
                 "name": "Namn",

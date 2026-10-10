@@ -1,0 +1,30 @@
+#!/bin/sh
+# Entrypoint of the Chatvia image. Loads the secrets that chatvia-setup
+# created for this install, then hands over to the base image's entrypoint
+# (its start-up scripts in /etc/entrypoint.d, then the command).
+#
+# A secret is only used when the variable is not set already, so a value you
+# pass yourself (for example APP_KEY) always wins. An empty value counts as
+# not set.
+set -e
+
+secrets_file=/var/lib/chatvia/secrets.env
+
+if [ -r "$secrets_file" ]; then
+    while IFS= read -r line || [ -n "$line" ]; do
+        key=${line%%=*}
+        value=${line#*=}
+
+        # Only plain variable names; comments and anything else are skipped.
+        case "$key" in
+            '' | \#* | *[!A-Z0-9_]*) continue ;;
+        esac
+
+        eval "current=\${$key:-}"
+        if [ -z "$current" ]; then
+            export "$key=$value"
+        fi
+    done < "$secrets_file"
+fi
+
+exec docker-php-serversideup-entrypoint "$@"

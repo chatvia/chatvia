@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Ämnen",
             "description": "Analysera konversationsämnen och trender",
-            "locked_description": "Uppgradera din plan för att få tillgång till ämnesanalys och automatiskt identifiera och kategorisera konversationsämnen.",
             "disabled_title": "Ämnesanalys",
             "disabled_description": "Aktivera det för att automatiskt identifiera och gruppera vad dina besökare frågar om i konversationer.",
             "blocked_reason": "Chattloggen är avstängd, så det finns inget att analysera. Aktivera den under Inställningar → Konfiguration för att börja samla in ämnen.",

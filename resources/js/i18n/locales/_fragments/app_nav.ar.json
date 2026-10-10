@@ -3,16 +3,11 @@
         "header": {
             "dashboard": "لوحة التحكم",
             "agents": "الوكلاء",
-            "usage": "الاستخدام",
             "ask_your_data": "اسأل بياناتك",
-            "billing": "الفوترة",
-            "support": "الدعم",
             "teams": "الفرق",
             "documentation": "التوثيق",
             "api": "واجهة API",
-            "nav_menu_sr": "قائمة التنقل",
-            "upgrade": "ترقية",
-            "subscribed": "أنت مشترك"
+            "nav_menu_sr": "قائمة التنقل"
         }
     },
     "agents": {

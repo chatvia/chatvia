@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "Busiest channel this billing cycle is Telegram with 2 conversations (66.7% of 3 total)."
+            "text": "Busiest channel this month is Telegram with 2 conversations (66.7% of 3 total)."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "total_conversations": 3,
         "channels": [
@@ -59,7 +59,7 @@
                 }
             ],
             "title": {
-                "text": "Conversations by channel — this billing cycle",
+                "text": "Conversations by channel — this month",
                 "left": "center"
             }
         }

@@ -5,11 +5,10 @@ namespace App\Http\Middleware\Chat;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Tighten\Ziggy\Ziggy;
 
 /**
  * Inertia root for the hosted chat (`chat` group): the props every chat page
- * shares — product branding, the signed-in user, Ziggy routes, the current
+ * shares — product branding, the signed-in user, the current route, the
  * agent subdomain and the per-chat upload limit. The dashboard has its own
  * root middleware ({@see HandleInertiaRequests}).
  */
@@ -36,9 +35,12 @@ class ChatHandleInertiaRequests extends Middleware
                 'user' => $user,
                 'is_chatter' => $user?->isChatter() ?? false,
             ],
-            'ziggy' => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
+            // The matched route's name and raw parameters, for active-state
+            // checks (useCurrentRoute); URLs themselves come from Wayfinder.
+            'route' => [
+                'name' => $request->route()?->getName(),
+                // An object even when empty, so the page gets {} rather than [].
+                'params' => (object) ($request->route()?->originalParameters() ?? []),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'schema' => $request->getScheme(),

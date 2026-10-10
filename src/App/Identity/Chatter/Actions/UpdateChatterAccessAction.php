@@ -7,7 +7,7 @@ namespace App\Identity\Chatter\Actions;
 use App\Identity\Chatter\Data\UpdateChatterAccessData;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
-use Domain\Billing\Actions\ChatterAllowance\SetChatterMessageLimitAction;
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 class UpdateChatterAccessAction
 {
     public function __construct(
-        private readonly SetChatterMessageLimitAction $setMessageLimit,
+        private readonly SetMessageLimitAction $setMessageLimit,
         private readonly DeactivateAccountAction $deactivate,
         private readonly ReactivateAccountAction $reactivate,
     ) {}

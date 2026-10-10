@@ -31,11 +31,7 @@ it('creates a user and dispatches the Registered event', function (): void {
     Event::assertDispatched(Registered::class);
 });
 
-it('creates the default team and leaves billing and quota provisioning to the trial-checkout webhook', function (): void {
-    // The account must be usable straight away (a self-hosted install has no
-    // webhook), so the default team and its roles are created here. The
-    // UserBilling and UserQuota rows still come from HandleStripeWebhook when
-    // a trial checkout lands.
+it('creates the default team so the account is usable straight away', function (): void {
     Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
@@ -49,9 +45,41 @@ it('creates the default team and leaves billing and quota provisioning to the tr
     $team = $user->ownedTeams()->sole();
 
     expect($user->current_team_id)->toBe($team->id)
-        ->and($team->roles()->where('code', 'owner')->exists())->toBeTrue()
-        ->and($user->billing()->exists())->toBeFalse()
-        ->and($user->quota()->exists())->toBeFalse();
+        ->and($team->roles()->where('code', 'owner')->exists())->toBeTrue();
+});
+
+it('gives a new workspace no message limit by default', function (): void {
+    Event::fake([Registered::class]);
+    config(['chatvia.message_limits.new_workspace' => 0]);
+
+    $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
+        name: 'Edsger Dijkstra',
+        email: 'edsger@example.test',
+        password: 'shortest-path',
+        domain: 'example.test',
+        registered_ip: '127.0.0.1',
+    ));
+
+    expect($user->messageLimit()->exists())->toBeFalse();
+});
+
+it('gives a new workspace the monthly message limit set in the admin panel', function (): void {
+    Event::fake([Registered::class]);
+    config(['chatvia.message_limits.new_workspace' => 500]);
+
+    $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
+        name: 'Barbara Liskov',
+        email: 'barbara@example.test',
+        password: 'substitution',
+        domain: 'example.test',
+        registered_ip: '127.0.0.1',
+    ));
+
+    $limit = $user->messageLimit()->sole();
+
+    expect($limit->monthly_limit)->toBe(500)
+        ->and($limit->messages_used)->toBe(0)
+        ->and($limit->period_starts_at->equalTo(now()->startOfMonth()))->toBeTrue();
 });
 
 it('hashes the password before storing it', function (): void {

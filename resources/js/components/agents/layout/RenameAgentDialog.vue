@@ -5,6 +5,7 @@
  */
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { rename } from '@/routes/agents';
 import type { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
@@ -44,7 +45,7 @@ function renameAgent(): void {
     renameForm.name = renameForm.name.trim();
     renameForm.sub_domain = renameForm.sub_domain.trim().toLowerCase();
 
-    renameForm.patch(route('agents.rename', { agent: props.agentId }), {
+    renameForm.patch(rename.url(props.agentId), {
         preserveScroll: true,
         onSuccess: () => {
             open.value = false;

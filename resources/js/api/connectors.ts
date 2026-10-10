@@ -4,6 +4,7 @@
  * Salesforce), the enable toggle, disconnect, catalog refresh and per-tool
  * permissions. Every endpoint addresses a connector by its slug.
  */
+import connectors from '@/routes/integrations/connectors';
 import type { AgentMcpServer, ConnectorListResponse, ConnectorToolsResponse, McpToolPermission, McpToolScope } from '@/types/connector';
 import { del, get, post, put } from './http';
 
@@ -54,42 +55,42 @@ export interface ScopePermissionResponse {
 
 /** Featured catalog rows and the workspace's custom servers. */
 export function fetchConnectors(): Promise<ConnectorListResponse> {
-    return get<ConnectorListResponse>(route('integrations.connectors.data'));
+    return get<ConnectorListResponse>(connectors.data.url());
 }
 
 /** Connect a catalog connector: with credentials for token connectors, without a body for no-auth ones. */
 export function connectConnector(slug: string, payload?: ConnectTokenPayload): Promise<ConnectedServerResponse> {
-    return post<ConnectedServerResponse>(route('integrations.connectors.connect', { slug }), payload);
+    return post<ConnectedServerResponse>(connectors.connect.url(slug), payload);
 }
 
 /** Add a custom MCP server by URL. OAuth servers answer with a redirect instead of the new row. */
 export function addCustomConnector(payload: AddCustomConnectorPayload): Promise<ConnectedServerResponse | RedirectResponse> {
-    return post<ConnectedServerResponse | RedirectResponse>(route('integrations.connectors.custom.add'), payload);
+    return post<ConnectedServerResponse | RedirectResponse>(connectors.custom.add.url(), payload);
 }
 
 /** Start the Salesforce OAuth flow with the workspace's own OAuth client. */
 export function connectSalesforce(payload: SalesforceConnectPayload): Promise<RedirectResponse> {
-    return post<RedirectResponse>(route('integrations.connectors.salesforce.connect'), payload);
+    return post<RedirectResponse>(connectors.salesforce.connect.url(), payload);
 }
 
 /** Flip a connected server's enabled flag. */
 export function toggleConnector(slug: string): Promise<ServerResponse> {
-    return post<ServerResponse>(route('integrations.connectors.enable', { slug }));
+    return post<ServerResponse>(connectors.enable.url(slug));
 }
 
 /** Disconnect a server (deletes the workspace's connection). */
 export async function disconnectConnector(slug: string): Promise<void> {
-    await del(route('integrations.connectors.destroy', { slug }));
+    await del(connectors.destroy.url(slug));
 }
 
 /** Re-read the server's tool catalog. */
 export function refreshConnector(slug: string): Promise<ConnectedServerResponse> {
-    return post<ConnectedServerResponse>(route('integrations.connectors.refresh', { slug }));
+    return post<ConnectedServerResponse>(connectors.refresh.url(slug));
 }
 
 /** The server's cached tool catalog with each tool's permission. */
 export function fetchConnectorTools(slug: string): Promise<ConnectorToolsResponse> {
-    return get<ConnectorToolsResponse>(route('integrations.connectors.tools', { slug }));
+    return get<ConnectorToolsResponse>(connectors.tools.url(slug));
 }
 
 /** Set one tool's permission (allow / needs approval / blocked). */
@@ -98,12 +99,12 @@ export function setConnectorToolPermission(
     toolId: number,
     permission: McpToolPermission,
 ): Promise<Domain.Integration.Mcp.Data.McpToolPermissionData> {
-    return put<Domain.Integration.Mcp.Data.McpToolPermissionData>(route('integrations.connectors.tools.permission', { slug, tool: toolId }), {
+    return put<Domain.Integration.Mcp.Data.McpToolPermissionData>(connectors.tools.permission.url({ slug, tool: toolId }), {
         permission,
     });
 }
 
 /** Set the same permission on every tool of one scope (read or write). */
 export function setConnectorScopePermission(slug: string, scope: McpToolScope, permission: McpToolPermission): Promise<ScopePermissionResponse> {
-    return put<ScopePermissionResponse>(route('integrations.connectors.tools.scope-permission', { slug }), { scope, permission });
+    return put<ScopePermissionResponse>(connectors.tools.scopePermission.url(slug), { scope, permission });
 }

@@ -37,21 +37,8 @@ function teammateWithPermissions(User $owner, array $permissions): User
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
 
-    // Factory users start bare now (the Stripe webhook provisions on trial
-    // checkout) — create the default team + billing row explicitly.
+    // Factory users start bare — create the default team explicitly.
     app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->owner->billing()->firstOrCreate([]);
-
-    // Agent dashboard routes sit behind `user.subscribed`; subscribe the owner so
-    // the gate under test is the permission one. Employees inherit owner billing.
-    $this->owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_active',
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
-    $this->owner->refresh();
 
     $this->agent = createAgent($this->owner);
 });

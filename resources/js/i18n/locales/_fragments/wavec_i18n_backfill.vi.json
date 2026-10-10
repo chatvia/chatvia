@@ -103,9 +103,6 @@
     "dashboard": {
         "messages_this_month": "Tin nhắn trong tháng này"
     },
-    "usage": {
-        "no_limit": "Không giới hạn"
-    },
     "workspace": {
         "prompts": {
             "sheet": {
@@ -142,18 +139,6 @@
         },
         "time_ago": {
             "just_now": "Vừa xong"
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Chào mừng bạn đến với Chatvia",
-            "intro": "Hãy tạo trợ lý AI đầu tiên của bạn. Chỉ mất một phút.",
-            "what_title": "Trợ lý AI là gì?",
-            "what_body": "Trợ lý AI là trợ lý mà bạn huấn luyện bằng chính nội dung của mình. Trợ lý trả lời khách hàng của bạn trên trang web, tiện ích trò chuyện và các ứng dụng nhắn tin.",
-            "how_title": "Hoạt động như thế nào?",
-            "how_body": "Trước tiên, bạn tạo một trợ lý AI và đặt tên cho nó. Sau đó, bạn huấn luyện nó bằng tệp, trang web và văn bản của mình để nó có thể trả lời câu hỏi.",
-            "start": "Tạo trợ lý AI đầu tiên",
-            "video_caption": "Xem cách hoạt động"
         }
     }
 }

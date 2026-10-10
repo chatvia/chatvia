@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api\V1\Source;
 
 use App\Http\Requests\Api\V1\Source\StoreSourceTextRequest;
-use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
@@ -28,12 +27,9 @@ class SourceTextController
      */
     public function store(StoreSourceTextRequest $request, Agent $agent, CreateAgentSourceTextAction $createText): JsonResponse
     {
-        // Ingestion ownership stays with the agent's owner — the API token may
-        // belong to a workspace member but the source ends up on the account.
-        /** @var User $owner */
-        $owner = $agent->user;
-
-        $text = $createText->execute($agent, $owner, $request->textContent());
+        // The source is keyed to the agent's owner (the workspace), whoever
+        // holds the API token.
+        $text = $createText->execute($agent, $request->textContent());
 
         return response()->json([
             'data' => [

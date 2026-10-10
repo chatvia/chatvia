@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Emner",
             "description": "Analysér samtalemner og tendenser",
-            "locked_description": "Opgrader din plan for at få adgang til emneanalyse og automatisk registrering og kategorisering af samtalemner.",
             "disabled_title": "Emneanalyse",
             "disabled_description": "Slå det til for automatisk at registrere og gruppere, hvad dine besøgende spørger om på tværs af samtaler.",
             "blocked_reason": "Chatlog er slået fra, så der er intet at analysere. Slå det til under Opsætning → Indstillinger for at begynde at indsamle emner.",

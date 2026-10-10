@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Domaine personnalisé",
                 "description": "Servez le chat hébergé de cet agent depuis votre propre domaine plutôt que {target}.",
-                "no_quota_title": "Les domaines personnalisés ne sont pas inclus dans votre offre actuelle",
-                "no_quota_description": "Passez à l'offre Pro ou abonnez-vous au module complémentaire Domaine personnalisé depuis {link} pour ajouter votre propre nom d'hôte.",
-                "billing": "Facturation",
-                "quota": "Utilisation de {used} sur {total} domaine personnalisé | Utilisation de {used} sur {total} domaines personnalisés",
-                "add_more": "En ajouter",
                 "step1": "Étape 1 — Ajoutez un enregistrement CNAME chez votre fournisseur DNS",
                 "type": "Type",
                 "name": "Nom",

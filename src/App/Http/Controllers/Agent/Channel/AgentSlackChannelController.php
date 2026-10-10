@@ -21,7 +21,7 @@ class AgentSlackChannelController
 {
     use ExplainsChannelConnectFailures;
 
-    public function connect(ConnectSlackRequest $request, Agent $agent, ConnectSlackAppAction $connect): RedirectResponse
+    public function store(ConnectSlackRequest $request, Agent $agent, ConnectSlackAppAction $connect): RedirectResponse
     {
         try {
             $connect->execute($agent, $request->toData());
@@ -35,7 +35,7 @@ class AgentSlackChannelController
         return back();
     }
 
-    public function disconnect(Agent $agent): RedirectResponse
+    public function destroy(Agent $agent): RedirectResponse
     {
         $agent->slackApp?->delete();
 

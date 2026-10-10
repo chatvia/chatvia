@@ -1,12 +1,12 @@
 # Model & generation
 
-Every agent in your workspace runs against one of the LLMs your plan provides. The **Model** tab lets your team pick which model and tune its generation parameters. The same model choice applies across all three surfaces of the agent — Hosted Chat, Widget, and Bar.
+Every agent in your workspace runs on one of the LLMs that your Chatvia server provides. The **Model** tab lets your team pick which model and tune its generation parameters. The same model choice applies across all three surfaces of the agent — Hosted Chat, Widget, and Bar.
 
 ![SCREENSHOT — model selector](/screenshots/agent-model-selector.png)
 
 ## Picking a model
 
-Chatvia ships with a curated catalog of open-weight and proprietary models. The exact list depends on your plan and the providers Chatvia has enabled in your region. You'll typically see:
+Chatvia ships with a curated catalog of open-weight and proprietary models. The exact list depends on the AI providers that are set up on your Chatvia server. You'll typically see:
 
 - **Open-weight models** (Qwen, Llama, Mistral, gpt-oss) — privacy-first; some are hosted in the EU.
 - **Frontier models** (Claude, GPT, Gemini) — best quality on hard reasoning tasks.
@@ -14,7 +14,7 @@ Chatvia ships with a curated catalog of open-weight and proprietary models. The 
 Recommended approach:
 
 1. Start with the default model.
-2. If responses are too generic or miss nuance, upgrade to a larger model.
+2. If responses are too generic or miss nuance, switch to a larger model.
 3. If responses are too slow or too expensive, downshift.
 
 ## Generation parameters
@@ -40,9 +40,9 @@ Any agent can expose a **model picker** to chatters (off by default). The list o
 
 If the picker is off, only the **primary** model is used and the multi-select doesn't apply.
 
-## Model cost and credits
+## Messages and limits
 
-Each message consumes workspace credits based on input + output tokens and the model's price tier. See [Usage & billing](/guide/account/billing) for credit pricing and how to monitor consumption across your team.
+Each agent reply counts as one message, whatever the model and however many tokens it uses. If your workspace has a monthly message limit, see [Message limits](/guide/account/message-limits).
 
 ::: tip Match the model to the task
 Reasoning models are better at multi-step questions ("Given X and Y, what's Z?"). Smaller chat models are faster and cheaper for FAQ-style lookups. If your sources are exhaustive Q&A pairs, a cheap model often does fine.

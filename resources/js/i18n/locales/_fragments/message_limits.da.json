@@ -1,0 +1,8 @@
+{
+    "chat": {
+        "limit_resets_next_month": "Du kan sende beskeder igen næste måned."
+    },
+    "dashboard": {
+        "messages_used_of_limit": "{used} af {limit} brugt"
+    }
+}

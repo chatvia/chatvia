@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Source\Text\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
@@ -12,7 +11,6 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Support\Exceptions\DomainValidationException;
 use Throwable;
 
 /**
@@ -25,15 +23,13 @@ use Throwable;
  */
 class UpdateAgentSourceTextAction
 {
-    /** Words per quota page. */
+    /** Words per page. */
     private const int WORDS_PER_PAGE = 450;
 
     /**
      * Returns false when no-op (duplicate checksum already attached).
-     *
-     * @throws DomainValidationException
      */
-    public function execute(Agent $agent, User $user, SourceText $sourceText, string $rawContent): bool
+    public function execute(Agent $agent, SourceText $sourceText, string $rawContent): bool
     {
         $newContent = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
         $checksum = md5($newContent);
@@ -41,10 +37,6 @@ class UpdateAgentSourceTextAction
 
         if ($agent->texts()->where('checksum', $checksum)->exists()) {
             return false;
-        }
-
-        if (! $user->consumption()->canUploadPages($numberOfPages)) {
-            throw new DomainValidationException('content', __('This document requires :pages pages.', ['pages' => $numberOfPages]));
         }
 
         $oldFilepath = $sourceText->filepath;

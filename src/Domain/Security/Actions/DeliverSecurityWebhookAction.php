@@ -2,7 +2,6 @@
 
 namespace Domain\Security\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
@@ -13,9 +12,7 @@ use Support\Http\SignedWebhookSender;
  * Delivers a {@see SecurityEventOccurred} to the workspace's configured SIEM
  * endpoint — an HMAC-SHA256-signed JSON POST sent through
  * {@see SignedWebhookSender}, which re-checks the URL against SSRF right before
- * sending and never follows redirects. Requires the `siemWebhook` capability
- * (Pro / Enterprise), re-checked here so a stale webhook left on a
- * since-downgraded workspace stops delivering even if `webhook_enabled` is set.
+ * sending and never follows redirects.
  *
  * On a non-2xx response or transport error it throws, so the queued
  * {@see SendSecurityEventToSiem} retries; that listener's failed() handler
@@ -54,13 +51,6 @@ class DeliverSecurityWebhookAction
     private function shouldDeliver(?WorkspaceSecurityPolicy $policy, SecurityEventOccurred $event): bool
     {
         if (! $policy instanceof WorkspaceSecurityPolicy || ! $policy->webhook_enabled || blank($policy->webhook_url) || blank($policy->webhook_secret)) {
-            return false;
-        }
-
-        // Capability re-checked at delivery, so a stale webhook on a since-
-        // downgraded workspace stops delivering.
-        $workspace = User::find($event->workspaceId);
-        if ($workspace === null || ! $workspace->capabilities->siemWebhook) {
             return false;
         }
 

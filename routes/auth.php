@@ -9,7 +9,6 @@ use App\Http\Controllers\Agent\Invitations\AgentInvitationSocialStartController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\Registration\RegisteredUserController;
 use App\Http\Controllers\Auth\Sessions\MagicLinkController;
-use App\Http\Controllers\Auth\SetPasswordController;
 use App\Http\Controllers\Team\Invitations\AcceptTeamInvitationController;
 use App\Http\Controllers\Team\Invitations\TeamInvitationController;
 use App\Http\Middleware\Auth\EnsureRegistrationIsOpen;
@@ -53,22 +52,8 @@ Route::get('chat-invitation/oauth/{provider}/callback', AgentInvitationSocialCal
 // config/fortify.php for enabled features and FortifyServiceProvider for the
 // view callbacks and the authenticateUsing closure.
 
-// First-time password setup for accounts created by the trial-checkout
-// webhook (provisioned with a random password that is never emailed).
-// RequirePasswordSetup — in the web group — funnels flagged users here.
-Route::middleware('auth')->group(function (): void {
-    Route::get('set-password', [SetPasswordController::class, 'show'])
-        ->name('password.setup');
-
-    Route::post('set-password', [SetPasswordController::class, 'store'])
-        ->middleware('throttle:6,1')
-        ->name('password.setup.store');
-});
-
-// Self-serve sign-up. Closed on the hosted product, where the Stripe trial
-// checkout creates accounts; open by default on a self-hosted install without
-// billing. The "Open sign-up" option in the admin panel (Settings → Billing)
-// decides; a closed form answers 404.
+// Self-serve sign-up, open by default. The "Open sign-up" option in the admin
+// panel (Settings → Workspaces) decides; a closed form answers 404.
 Route::middleware(['guest', EnsureRegistrationIsOpen::class])->group(function (): void {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');

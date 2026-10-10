@@ -29,7 +29,6 @@ export function useBrand(): { brand: ComputedRef<Brand> } {
                 label: shared?.powered_by?.label || name,
                 url: urlOrNull(shared?.powered_by?.url),
             },
-            onboarding_video_url: urlOrNull(shared?.onboarding_video_url),
         };
     });
 

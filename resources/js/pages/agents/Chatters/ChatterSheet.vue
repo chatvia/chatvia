@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetFooter } from '@/components/ui/sheet';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { store as storeAgentChatter } from '@/routes/agents/chatters';
+import { index as chattersIndex } from '@/routes/people/chatters';
 import { Link, router } from '@inertiajs/vue3';
 import { CircleAlert, Clock, LoaderCircle, PlusCircle, RefreshCw, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -55,7 +57,7 @@ const resendInvitation = () => {
     if (!member?.email) return;
     isResending.value = true;
     router.post(
-        route('agents.chatters.store', { agent: props.agentId }),
+        storeAgentChatter.url(props.agentId),
         { email: member.email },
         {
             preserveScroll: true,
@@ -120,10 +122,7 @@ const resendInvitation = () => {
                 <!-- Manage hint -->
                 <i18n-t keypath="agents.chatters.manage_hint" tag="p" class="text-muted-foreground text-sm" scope="global">
                     <template #link>
-                        <Link
-                            :href="route('people.chatters.index')"
-                            class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
-                        >
+                        <Link :href="chattersIndex.url()" class="text-foreground font-medium underline underline-offset-4 hover:no-underline">
                             {{ t('agents.chatters.members_page') }}
                         </Link>
                     </template>

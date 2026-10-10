@@ -1,0 +1,8 @@
+{
+    "chat": {
+        "limit_resets_next_month": "来月になると、再びメッセージを送信できます。"
+    },
+    "dashboard": {
+        "messages_used_of_limit": "{limit} 件中 {used} 件を使用"
+    }
+}

@@ -25,15 +25,12 @@ class AgentLocator
     }
 
     /**
-     * Resolve a request host to an agent's `external_id` when the owner
-     * still has Custom Domain quota. Returns null for unknown hosts,
-     * agents whose owner has no quota (subscription cancelled, plan
-     * downgraded), or hosts that just aren't bound to any agent.
+     * Resolve a request host to the `external_id` of the agent that claimed
+     * it as its custom domain. Returns null for hosts that aren't bound to
+     * any agent.
      *
      * No caching: a single indexed lookup matches the existing
-     * `resolveAgentFromSubdomain` pattern, and the quota check stays
-     * authoritative without a TTL window where a cancelled subscription
-     * keeps serving.
+     * `resolveAgentFromSubdomain` pattern.
      */
     public static function resolveByHost(string $host): ?string
     {
@@ -46,20 +43,9 @@ class AgentLocator
         /** @var AgentModel|null $agent */
         $agent = AgentModel::query()
             ->where('domain', $host)
-            ->with('user.quota')
             ->first();
 
-        if (! $agent) {
-            return null;
-        }
-
-        $owner = $agent->user;
-
-        if (! $owner || $owner->totalCustomDomainsLimit() <= 0) {
-            return null;
-        }
-
-        return $agent->external_id;
+        return $agent?->external_id;
     }
 
     public static function generateRandomExternalId(int $len = 14): string

@@ -103,23 +103,8 @@
     "dashboard": {
         "messages_this_month": "Meldinger denne måneden"
     },
-    "usage": {
-        "no_limit": "Ingen grense"
-    },
     "nav": {
         "open_user_menu": "Åpne brukermenyen"
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Velkommen til Chatvia",
-            "intro": "La oss lage din første AI-agent. Det tar bare et minutt.",
-            "what_title": "Hva er en agent?",
-            "what_body": "En agent er en AI-assistent som du trener på ditt eget innhold. Den svarer kundene dine på nettstedet ditt, i chat-widgeten og i meldingsapper.",
-            "how_title": "Hvordan fungerer det?",
-            "how_body": "Først oppretter du en agent og gir den et navn. Deretter trener du den med filene, nettstedene og tekstene dine, slik at den kan svare på spørsmål.",
-            "start": "Opprett min første agent",
-            "video_caption": "Se hvordan det fungerer"
-        }
     },
     "workspace": {
         "prompts": {

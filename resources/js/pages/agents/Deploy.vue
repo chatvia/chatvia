@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSnippetClipboard } from '@/composables/agents/deploy/useSnippetClipboard';
 import { useSurfaceToggles } from '@/composables/agents/deploy/useSurfaceToggles';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { identity as agentIdentity, setup as agentSetup } from '@/routes/agents';
 import { Head, Link } from '@inertiajs/vue3';
 import { Command, Globe, MessageCircle, Shield } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -48,8 +49,8 @@ const widgetCode = computed(() =>
 );
 const barCode = computed(() => barSnippet({ scriptUrl: props.embedScriptUrl, agentId: props.agent.external_id, isProtected: isProtected.value }));
 
-const setupUrl = computed(() => route('agents.setup', { agent: props.agent.external_id }));
-const securityUrl = computed(() => route('agents.identity', { agent: props.agent.external_id }));
+const setupUrl = computed(() => agentSetup.url(props.agent.external_id));
+const securityUrl = computed(() => agentIdentity.url(props.agent.external_id));
 
 const showApiDocsDialog = ref(false);
 

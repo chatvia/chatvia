@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Webhooks\VerifyWhatsappWebhookController;
 use App\Http\Controllers\Webhooks\WhatsappWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,9 +17,9 @@ use Illuminate\Support\Facades\Route;
  * events from a small pool of IPs, so the limit only stops a flood from one
  * non-provider address and must never slow real traffic.
  */
-Route::get('whatsapp/webhook', [WhatsappWebhookController::class, 'verify'])
+Route::get('whatsapp/webhook', VerifyWhatsappWebhookController::class)
     ->middleware('throttle:60,1,whatsapp-webhook-verify')
     ->name('whatsapp.webhook.verify');
-Route::post('whatsapp/webhook', [WhatsappWebhookController::class, 'receive'])
+Route::post('whatsapp/webhook', WhatsappWebhookController::class)
     ->middleware('throttle:1200,1,whatsapp-webhook')
     ->name('whatsapp.webhook');

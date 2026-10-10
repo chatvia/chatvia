@@ -8,24 +8,16 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 
 /** A workspace owner with an active subscription — the agent routes sit behind the billing gate. */
-function subscribedOwner(): User
+function workspaceOwnerWithTeam(): User
 {
     $user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($user);
-    $user->billing()->firstOrCreate([]);
-    $user->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_'.$user->id,
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
 
     return $user->refresh();
 }
 
 beforeEach(function (): void {
-    $this->user = subscribedOwner();
+    $this->user = workspaceOwnerWithTeam();
     $this->agent = makeTeamAgent($this->user, 'Tutor Bot');
 
     $this->server = $this->user->mcpServers()->create([
@@ -95,7 +87,7 @@ it('validates the flag and 404s for a connector not attached to the agent', func
 });
 
 it('forbids another workspace from touching the flag', function (): void {
-    $stranger = subscribedOwner();
+    $stranger = workspaceOwnerWithTeam();
 
     $response = $this->actingAs($stranger)
         ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true]);

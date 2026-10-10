@@ -2,6 +2,7 @@
 
 namespace App\Identity\Workspace\Actions\Account;
 
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
 use App\Identity\Workspace\Data\Account\RegisterUserData;
 use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
@@ -12,18 +13,18 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Create a new workspace owner from the sign-up form, together with the
- * default team and its roles, so the account is ready to use.
+ * default team and its roles, so the account is ready to use. The workspace
+ * starts with the monthly message limit set in the admin panel (Settings →
+ * Workspaces), if one is set.
  *
- * The billing row, quota and message credits are not created here. With
- * billing on they come from the Stripe trial checkout's webhook; with billing
- * off they are not needed. `Registered` (which sends the verification email)
- * is dispatched after the transaction commits, so a listener never sees a
- * user that was rolled back.
+ * `Registered` (which sends the verification email) is dispatched after the
+ * transaction commits, so a listener never sees a user that was rolled back.
  */
 class RegisterUserAction
 {
     public function __construct(
         private readonly TeamService $teams,
+        private readonly SetMessageLimitAction $setMessageLimit,
     ) {}
 
     public function execute(RegisterUserData $data): User
@@ -42,6 +43,12 @@ class RegisterUserAction
             $this->teams->createDefaultTeam($user);
 
             $user->bootstrapCurrentTeam();
+
+            $limit = (int) config('chatvia.message_limits.new_workspace');
+
+            if ($limit > 0) {
+                $this->setMessageLimit->execute($user, $limit);
+            }
 
             return $user;
         });

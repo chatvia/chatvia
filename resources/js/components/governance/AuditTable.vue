@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useDateFormat } from '@/composables/useDateFormat';
 import { getInitials } from '@/composables/useInitials';
+import { logs } from '@/routes/agents';
 import { Link, router } from '@inertiajs/vue3';
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
@@ -29,11 +30,11 @@ interface Props {
     agents?: { id: number; name: string }[];
     showAgent?: boolean;
     filters: { outcome: string | null; agent_id: number | null; connector: string | null };
-    routeName: string;
-    routeParams?: Record<string, unknown>;
+    /** The page the filters reload (without a query string). */
+    url: string;
 }
 
-const props = withDefaults(defineProps<Props>(), { showAgent: false, agents: () => [], routeParams: () => ({}) });
+const props = withDefaults(defineProps<Props>(), { showAgent: false, agents: () => [] });
 
 const { formatDate } = useDateFormat();
 
@@ -64,7 +65,7 @@ const formatLatency = (ms: number | null): string => (ms !== null ? t('shared.au
 
 const applyFilters = (): void => {
     router.get(
-        route(props.routeName, props.routeParams),
+        props.url,
         {
             outcome: outcome.value || undefined,
             connector: connector.value || undefined,
@@ -305,7 +306,7 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                         {{ t('shared.audit_table.detail_conversation') }}
                         <Link
                             v-if="selected.agent_external_id && selected.conversation_external_id"
-                            :href="route('agents.logs', { agent: selected.agent_external_id, conversation_id: selected.conversation_external_id })"
+                            :href="logs.url(selected.agent_external_id, { query: { conversation_id: selected.conversation_external_id } })"
                             class="hover:text-foreground underline"
                         >
                             {{ selected.conversation_external_id }}

@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Agent\Setup;
 
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
-use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
-use Domain\Billing\Enums\Capability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Data\LlmModelData;
 use Domain\Llm\Models\Llm;
@@ -55,8 +53,6 @@ class SetupController
 
         $authToken = $agent->is_public ? null : $authTokenService->generateToken($agent, $request->user());
 
-        $domainContext = $this->buildDomainContext($request->user(), $agent);
-
         return Inertia::render('agents/setup/Setup', [
             'agent' => AgentResourceData::fromModel($agent),
             'authToken' => $authToken,
@@ -69,11 +65,6 @@ class SetupController
             'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent->id),
             'prompts' => $prompts,
             'hasPermission' => $permissions->allowsOnAgent($request->user(), $agent, 'agent.setup'),
-            'canUseHandoff' => $agent->team?->hasCapability(Capability::Handoff) ?? false,
-            // Whether the workspace may hide the "Powered by Chatvia" badge. Only
-            // then does the Branding section expose the show/hide toggle; otherwise
-            // the badge always shows and there's nothing to choose.
-            'canHideBranding' => $agent->loadMissing('team.owner')->team?->owner?->canHideBranding() ?? false,
 
             // Shared content settings + their defaults — written across all surfaces.
             'appearanceSettings' => $agent->settings('appearance'),
@@ -100,45 +91,11 @@ class SetupController
 
             'availableLanguages' => config('chatvia.languages'),
 
-            // Custom domain (Hosted Chat only) — quota + CNAME target.
-            'domain' => $domainContext,
-        ]);
-    }
-
-    /**
-     * Build the per-agent custom-domain context: current value, the CNAME
-     * target the user needs to point at, and the workspace owner's quota
-     * (plan + custom-domain subscription). Used by the Domain section in
-     * the Hosted Chat tab of the Setup page.
-     *
-     * @return array{value: ?string, cname_target: string, quota: array{total: int, used: int, available: int}, has_quota: bool}
-     */
-    private function buildDomainContext(User $user, Agent $agent): array
-    {
-        // `quota` and `agents()` on User already resolve to the workspace
-        // owner (`workspace`), so quota maths is the same whether the
-        // viewer is the owner or a team member.
-        $total = $user->totalCustomDomainsLimit();
-
-        // Agents (across the workspace) that have already claimed a custom
-        // domain. Exclude the current agent so editing its own value doesn't
-        // count against the available bucket.
-        $used = (int) $user->agents()
-            ->withCustomDomain()
-            ->where('id', '!=', $agent->id)
-            ->count();
-
-        $cnameTarget = (string) parse_url($agent->permanent_url, PHP_URL_HOST);
-
-        return [
-            'value' => $agent->domain,
-            'cname_target' => $cnameTarget,
-            'quota' => [
-                'total' => $total,
-                'used' => $used,
-                'available' => max(0, $total - $used),
+            // Custom domain (Hosted Chat only) — current value + CNAME target.
+            'domain' => [
+                'value' => $agent->domain,
+                'cname_target' => (string) parse_url($agent->permanent_url, PHP_URL_HOST),
             ],
-            'has_quota' => $total > 0,
-        ];
+        ]);
     }
 }

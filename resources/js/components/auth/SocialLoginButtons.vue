@@ -2,6 +2,7 @@
 // OAuth sign-in buttons (Google and Slack always; Microsoft and GitHub on
 // request). Each is a full-page redirect so the provider can take over.
 import { Button } from '@/components/ui/button';
+import { github, google, microsoft, slack } from '@/routes/auth';
 import { computed } from 'vue';
 
 interface Props {
@@ -28,10 +29,10 @@ const props = withDefaults(defineProps<Props>(), {
     showGithub: false,
 });
 
-const googleHref = computed(() => props.googleUrl || route('auth.google'));
-const slackHref = computed(() => props.slackUrl || route('auth.slack'));
-const microsoftHref = computed(() => props.microsoftUrl || route('auth.microsoft'));
-const githubHref = computed(() => props.githubUrl || route('auth.github'));
+const googleHref = computed(() => props.googleUrl || google.url());
+const slackHref = computed(() => props.slackUrl || slack.url());
+const microsoftHref = computed(() => props.microsoftUrl || microsoft.url());
+const githubHref = computed(() => props.githubUrl || github.url());
 
 const go = (url: string) => {
     window.location.href = url;

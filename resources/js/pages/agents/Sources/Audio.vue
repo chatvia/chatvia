@@ -1,17 +1,16 @@
 <script setup lang="ts">
 /**
  * Audio sources of an agent: upload audio files (the shared files page,
- * limited to audio) or record a voice note in the browser. A recording may be
- * as long as the plan's remaining minutes allow, at most one hour.
+ * limited to audio) or record a voice note in the browser. A recording may
+ * last at most one hour.
  */
 import { uploadSourceFile } from '@/api/fileSources';
-import { fetchUsage } from '@/api/usage';
 import VoiceRecorder from '@/components/VoiceRecorder.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { failureReason } from '@/lib/failureReason';
 import { Mic, Upload } from 'lucide-vue-next';
-import { computed, onMounted, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import Files from './Files.vue';
@@ -20,27 +19,12 @@ const props = defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
 }>();
 
-/** Without usage data a recording may last ten minutes. */
-const DEFAULT_REMAINING_MINUTES = 10;
 const MAX_RECORDING_SECONDS = 3600;
 
 const { t } = useI18n();
 const filesRef = ref<InstanceType<typeof Files> | null>(null);
 const activeTab = ref('upload');
 const isUploading = ref(false);
-const remainingMinutes = ref<number | null>(null);
-
-const refreshRemainingMinutes = async () => {
-    try {
-        remainingMinutes.value = (await fetchUsage()).minutes?.remaining ?? null;
-    } catch {
-        // Keep the default recording limit.
-    }
-};
-
-const maxRecordingDuration = computed(() => Math.min((remainingMinutes.value ?? DEFAULT_REMAINING_MINUTES) * 60, MAX_RECORDING_SECONDS));
-
-onMounted(refreshRemainingMinutes);
 
 const handleRecorded = async (recording: { blob: Blob; name: string; duration: number }) => {
     isUploading.value = true;
@@ -53,7 +37,6 @@ const handleRecorded = async (recording: { blob: Blob; name: string; duration: n
         });
 
         filesRef.value?.refreshFiles?.();
-        await refreshRemainingMinutes();
 
         // Show the uploads tab, where the new file waits for training.
         activeTab.value = 'upload';
@@ -91,8 +74,8 @@ const handleRecorded = async (recording: { blob: Blob; name: string; duration: n
                         <VoiceRecorder
                             :title="t('agents.sources.audio.record_voice_note')"
                             :description="t('agents.sources.audio.record_description')"
-                            :max-duration="maxRecordingDuration"
-                            :disabled="isUploading || maxRecordingDuration <= 0"
+                            :max-duration="MAX_RECORDING_SECONDS"
+                            :disabled="isUploading"
                             @recorded="handleRecorded"
                         />
                     </TabsContent>

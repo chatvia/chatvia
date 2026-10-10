@@ -25,11 +25,16 @@ use App\Http\Controllers\Agent\Capability\DisableAgentCapabilityController;
 use App\Http\Controllers\Agent\Capability\EnableAgentCapabilityController;
 use App\Http\Controllers\Agent\Channel\AgentChannelsController;
 use App\Http\Controllers\Agent\Channel\AgentInstagramChannelController;
+use App\Http\Controllers\Agent\Channel\AgentInstagramOAuthCallbackController;
+use App\Http\Controllers\Agent\Channel\AgentInstagramOAuthRedirectController;
 use App\Http\Controllers\Agent\Channel\AgentMessengerChannelController;
+use App\Http\Controllers\Agent\Channel\AgentMessengerOAuthCallbackController;
+use App\Http\Controllers\Agent\Channel\AgentMessengerOAuthRedirectController;
 use App\Http\Controllers\Agent\Channel\AgentSlackChannelController;
 use App\Http\Controllers\Agent\Channel\AgentTeamsChannelController;
 use App\Http\Controllers\Agent\Channel\AgentTelegramChannelController;
 use App\Http\Controllers\Agent\Channel\AgentWhatsappChannelController;
+use App\Http\Controllers\Agent\Channel\UpdateAgentTelegramCommandsController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogReviseAnswerController;
 use App\Http\Controllers\Agent\ChatLog\ConversationController as ChatLogConversationsController;
@@ -38,13 +43,17 @@ use App\Http\Controllers\Agent\ChatLog\ConversationPulseController as ChatLogCon
 use App\Http\Controllers\Agent\ChatLog\CountryController as ChatLogCountriesController;
 use App\Http\Controllers\Agent\ChatLog\TopicController as ChatLogTopicsController;
 use App\Http\Controllers\Agent\Chatter\AgentChatterController;
+use App\Http\Controllers\Agent\Chatter\GrantAgentChatterAccessController;
 use App\Http\Controllers\Agent\Eval\AgentEvalCaseController;
 use App\Http\Controllers\Agent\Eval\AgentEvalController;
 use App\Http\Controllers\Agent\Eval\AgentEvalRunController;
+use App\Http\Controllers\Agent\Eval\ClearAgentEvalRunsController;
 use App\Http\Controllers\Agent\Eval\CreateEvalCasesFromKnowledgeController;
 use App\Http\Controllers\Agent\Eval\RunAgentEvalController;
 use App\Http\Controllers\Agent\Form\AgentFormController;
 use App\Http\Controllers\Agent\Form\AgentSubmissionController;
+use App\Http\Controllers\Agent\Form\ExportFormSubmissionsController;
+use App\Http\Controllers\Agent\Form\RewriteFormDescriptionController;
 use App\Http\Controllers\Agent\Guardrail\AgentGuardrailController;
 use App\Http\Controllers\Agent\Handoff\AgentHandoffController;
 use App\Http\Controllers\Agent\Handoff\HandoffTypingController;
@@ -118,18 +127,18 @@ use App\Http\Controllers\Countries\CountriesListController;
 use App\Http\Middleware\Access\EnsureFeatureFlagIsOn;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'])->prefix('my/')->group(function (): void {
+Route::middleware(['auth', 'verified', 'can.access.dashboard'])->prefix('my/')->group(function (): void {
     Route::get('agents', [AgentController::class, 'index'])->name('agents.index');
     Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
 
     Route::get('countries/list', CountriesListController::class)->name('countries.list');
 
-    // NOTE: the Messenger/Instagram OAuth *callbacks* (`channels.messenger.callback`,
-    // `channels.instagram.callback`) are registered UN-prefixed in routes/web.php —
-    // the Meta app whitelists a single fixed redirect URI, so they can't live under
-    // the `/{locale}` prefix this file now inherits. The user-initiated redirect/
-    // select routes below stay here (locale-prefixed) and reference those callbacks
-    // by name, which resolves to the un-prefixed URL.
+    // Meta (Messenger/Instagram) channel OAuth callbacks. The Meta app whitelists a
+    // single fixed redirect URI, so they sit outside the `agents/{agent}` group —
+    // the agent rides in the OAuth `state` held in the session, not the URL.
+    Route::get('channels/messenger/oauth/callback', AgentMessengerOAuthCallbackController::class)->name('channels.messenger.callback');
+    Route::get('channels/instagram/oauth/callback', AgentInstagramOAuthCallbackController::class)->name('channels.instagram.callback');
+
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
         // Analytics pages and their data — each gated by its own analytics
@@ -141,21 +150,21 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         });
         Route::middleware('agent.permission:agent.analytics.sentiment')->group(function (): void {
             Route::get('analytics/sentiment', AgentSentimentController::class)->name('analytics.sentiment');
-            Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->middleware('capability:sentiment')->name('sentiment.data');
+            Route::get('analytics/sentiment/data', AgentSentimentDataController::class)->name('sentiment.data');
         });
         Route::middleware('agent.permission:agent.analytics.tone')->group(function (): void {
             Route::get('analytics/tone', AgentToneController::class)->name('analytics.tone');
-            Route::get('analytics/tone/data', AgentToneDataController::class)->middleware('capability:tone')->name('tone.data');
+            Route::get('analytics/tone/data', AgentToneDataController::class)->name('tone.data');
         });
         Route::middleware('agent.permission:agent.analytics.topics')->group(function (): void {
             Route::get('analytics/topics', AgentTopicController::class)->name('analytics.topics');
-            Route::get('analytics/topics/data', AgentTopicsDataController::class)->middleware('capability:topics')->name('topics.data');
+            Route::get('analytics/topics/data', AgentTopicsDataController::class)->name('topics.data');
 
             // Emergent (discovered) topic suggestions — surfaced from the consolidated
             // analysis pass; promotion turns one into a real, agent-attached topic.
-            Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->middleware('capability:topics')->name('topics.suggestions');
+            Route::get('analytics/topics/suggestions', SuggestedTopicsDataController::class)->name('topics.suggestions');
         });
-        Route::middleware(['capability:topics', 'agent.permission:agent.topics.manage'])->group(function (): void {
+        Route::middleware('agent.permission:agent.topics.manage')->group(function (): void {
             Route::post('analytics/topics/suggestions/promote', PromoteSuggestedTopicController::class)->name('topics.suggestions.promote');
             Route::delete('analytics/topics/suggestions', DismissSuggestedTopicController::class)->name('topics.suggestions.dismiss');
         });
@@ -164,12 +173,10 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
             Route::get('analytics/sources/data', AgentSourcesDataController::class)->name('analytics.sources.data');
         });
 
-        // Topics Management — the index page is allowed through so the Vue
-        // LockedFeature card can render on Starter/Standard; the mutations
-        // are hard-gated.
+        // Topics Management.
         Route::get('topics', [TopicsResourceController::class, 'index'])
             ->middleware('agent.permission:agent.topics.manage')->name('topics.index');
-        Route::middleware(['capability:topics', 'agent.permission:agent.topics.manage'])->group(function (): void {
+        Route::middleware('agent.permission:agent.topics.manage')->group(function (): void {
             Route::post('topics', [TopicsResourceController::class, 'store'])->name('topics.store');
             Route::patch('topics/{topic}', [TopicsResourceController::class, 'update'])->name('topics.update');
             Route::delete('topics/{topic}', [TopicsResourceController::class, 'destroy'])->name('topics.destroy');
@@ -285,7 +292,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Permissions reuse the agent.leads.* set.
         Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware('agent.permission:agent.leads.settings')->name('leads.settings');
         Route::get('forms/{form}/submissions', [AgentSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
-        Route::get('forms/{form}/submissions/export', [AgentSubmissionController::class, 'export'])->middleware('agent.permission:agent.leads.export')->name('forms.submissions.export');
+        Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware('agent.permission:agent.leads.export')->name('forms.submissions.export');
         Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.destroy');
 
         // Chatter members. index lists every workspace chatter (with a
@@ -295,7 +302,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::middleware('agent.permission:agent.chatters.manage')->group(function (): void {
             Route::get('chatters', [AgentChatterController::class, 'index'])->name('chatters.index');
             Route::post('chatters', [AgentChatterController::class, 'store'])->name('chatters.store');
-            Route::post('chatters/{chatter}/grant', [AgentChatterController::class, 'grant'])->name('chatters.grant');
+            Route::post('chatters/{chatter}/grant', GrantAgentChatterAccessController::class)->name('chatters.grant');
             Route::delete('chatters/{chatter}', [AgentChatterController::class, 'destroy'])->name('chatters.destroy');
         });
 
@@ -303,31 +310,25 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('logs/conversations', [ChatLogConversationsController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('logs.conversations');
         Route::get('logs/messages/{conversation}', ChatLogConversationMessagesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.messages');
 
-        // Per-agent tool-call audit log (Governed MCP Gateway), scoped to this agent.
-        // The `audit` capability (Pro+) is enforced in the controller (which skips
-        // the heavy queries) and the Vue page (LockedFeature card), so the upgrade
-        // prompt renders in place rather than 403-ing. Read-only — no mutations.
+        // Per-agent tool-call audit log (Governed MCP Gateway), scoped to this
+        // agent. Read-only — no mutations.
         Route::get('audit', AgentAuditController::class)->middleware('agent.permission:agent.audit.view')->name('audit');
 
-        // Per-agent Eval Suites. View lists
-        // cases + recent runs; manage edits cases and triggers a run (async).
-        // The `evals` capability (Standard+) hard-gates the mutations below and the
-        // Vue page; the view routes stay open so the LockedFeature card can render.
+        // Per-agent Eval Suites. View lists cases + recent runs; manage edits
+        // cases and triggers a run (async).
         Route::get('evals', AgentEvalController::class)->middleware('agent.permission:agent.evals.view')->name('evals');
         Route::get('evals/runs/{run}', [AgentEvalRunController::class, 'show'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.show');
-        Route::post('evals/runs', RunAgentEvalController::class)->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.runs.store');
-        Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.runs.destroy');
-        Route::delete('evals/runs', [AgentEvalRunController::class, 'clear'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.runs.clear');
-        Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.store');
-        Route::post('evals/cases/from-knowledge', CreateEvalCasesFromKnowledgeController::class)->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.from-knowledge');
-        Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.update');
-        Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware(['capability:evals', 'agent.permission:agent.evals.manage'])->name('evals.cases.destroy');
+        Route::post('evals/runs', RunAgentEvalController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.store');
+        Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.destroy');
+        Route::delete('evals/runs', ClearAgentEvalRunsController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.clear');
+        Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.store');
+        Route::post('evals/cases/from-knowledge', CreateEvalCasesFromKnowledgeController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.cases.from-knowledge');
+        Route::patch('evals/cases/{case}', [AgentEvalCaseController::class, 'update'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.update');
+        Route::delete('evals/cases/{case}', [AgentEvalCaseController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.destroy');
 
         // Per-agent AI-safety Guardrails — config form + immutable trigger log.
-        // The `guardrails` capability (Standard+) hard-gates the save below and the
-        // Vue page; the view route stays open so the LockedFeature card can render.
         Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
-        Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware(['capability:guardrails', 'agent.permission:agent.guardrails.manage'])->name('guardrails.update');
+        Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware('agent.permission:agent.guardrails.manage')->name('guardrails.update');
 
         // Capabilities — first-party, no-auth chat enrichments (Interactive
         // Charts, …). A friendlier surface over the builtin-connector machinery;
@@ -340,7 +341,7 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         Route::get('forms', [AgentFormController::class, 'index'])->name('forms.index');
         Route::post('forms', [AgentFormController::class, 'store'])
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.store');
-        Route::post('forms/rewrite-description', [AgentFormController::class, 'rewriteDescription'])
+        Route::post('forms/rewrite-description', RewriteFormDescriptionController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.rewrite-description');
         Route::put('forms/{form}', [AgentFormController::class, 'update'])
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.update');
@@ -354,42 +355,40 @@ Route::middleware(['auth', 'verified', 'user.subscribed', 'can.access.dashboard'
         // Channels — connecting the agent to messaging apps. Gated by its own
         // `agent.channels` permission (split out from `agent.setup`).
         Route::get('channels', AgentChannelsController::class)->middleware('agent.permission:agent.channels')->name('channels');
-        Route::post('channels/telegram', [AgentTelegramChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.telegram.connect');
-        Route::delete('channels/telegram', [AgentTelegramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.telegram.disconnect');
-        Route::put('channels/telegram/commands', [AgentTelegramChannelController::class, 'updateCommands'])->middleware('agent.permission:agent.channels')->name('channels.telegram.commands');
-        Route::post('channels/slack', [AgentSlackChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.slack.connect');
-        Route::delete('channels/slack', [AgentSlackChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.slack.disconnect');
+        Route::post('channels/telegram', [AgentTelegramChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.telegram.connect');
+        Route::delete('channels/telegram', [AgentTelegramChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.telegram.disconnect');
+        Route::put('channels/telegram/commands', UpdateAgentTelegramCommandsController::class)->middleware('agent.permission:agent.channels')->name('channels.telegram.commands');
+        Route::post('channels/slack', [AgentSlackChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.slack.connect');
+        Route::delete('channels/slack', [AgentSlackChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.slack.disconnect');
         // Messenger connects via Facebook Login for Business (one Chatvia Meta
         // app): redirect → Facebook consent → callback (outside this {agent}
         // group, see below) → select the Page. Disconnect is a single delete.
-        Route::get('channels/messenger/oauth/redirect', [AgentMessengerChannelController::class, 'redirect'])->middleware('agent.permission:agent.channels')->name('channels.messenger.redirect');
-        Route::post('channels/messenger/oauth/select', [AgentMessengerChannelController::class, 'select'])->middleware('agent.permission:agent.channels')->name('channels.messenger.select');
-        Route::delete('channels/messenger', [AgentMessengerChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.messenger.disconnect');
-        Route::post('channels/whatsapp', [AgentWhatsappChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.connect');
-        Route::delete('channels/whatsapp', [AgentWhatsappChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.disconnect');
-        Route::post('channels/msteams', [AgentTeamsChannelController::class, 'connect'])->middleware('agent.permission:agent.channels')->name('channels.msteams.connect');
-        Route::delete('channels/msteams', [AgentTeamsChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.msteams.disconnect');
+        Route::get('channels/messenger/oauth/redirect', AgentMessengerOAuthRedirectController::class)->middleware('agent.permission:agent.channels')->name('channels.messenger.redirect');
+        Route::post('channels/messenger/oauth/select', [AgentMessengerChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.messenger.select');
+        Route::delete('channels/messenger', [AgentMessengerChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.messenger.disconnect');
+        Route::post('channels/whatsapp', [AgentWhatsappChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.connect');
+        Route::delete('channels/whatsapp', [AgentWhatsappChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.disconnect');
+        Route::post('channels/msteams', [AgentTeamsChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.msteams.connect');
+        Route::delete('channels/msteams', [AgentTeamsChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.msteams.disconnect');
         // Instagram connects via Facebook Login for Business (one Chatvia Meta
         // app): redirect → Facebook consent → callback (outside this {agent}
         // group, see below) → select the account. Disconnect is a single delete.
-        Route::get('channels/instagram/oauth/redirect', [AgentInstagramChannelController::class, 'redirect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.redirect');
-        Route::post('channels/instagram/oauth/select', [AgentInstagramChannelController::class, 'select'])->middleware('agent.permission:agent.channels')->name('channels.instagram.select');
-        Route::delete('channels/instagram', [AgentInstagramChannelController::class, 'disconnect'])->middleware('agent.permission:agent.channels')->name('channels.instagram.disconnect');
-        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware(['capability:pulse', 'agent.permission:agent.chat.pulse'])->name('logs.pulse');
+        Route::get('channels/instagram/oauth/redirect', AgentInstagramOAuthRedirectController::class)->middleware('agent.permission:agent.channels')->name('channels.instagram.redirect');
+        Route::post('channels/instagram/oauth/select', [AgentInstagramChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.instagram.select');
+        Route::delete('channels/instagram', [AgentInstagramChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.instagram.disconnect');
+        Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware('agent.permission:agent.chat.pulse')->name('logs.pulse');
         Route::get('logs/topics', ChatLogTopicsController::class)->middleware('agent.permission:agent.chat.view')->name('logs.topics');
         Route::get('logs/countries', ChatLogCountriesController::class)->middleware('agent.permission:agent.chat.view')->name('logs.countries');
         Route::delete('logs/conversations/{conversation}', [ChatLogConversationsController::class, 'destroy'])->middleware('agent.permission:agent.chat.delete')->name('logs.delete-conversation');
         Route::post('logs/revise-answer', AgentChatLogReviseAnswerController::class)->middleware('agent.permission:agent.chat.view')->name('logs.revise-answer');
 
-        // Handoff (Admin Takeover) Routes — Pro-only capability.
-        Route::middleware('capability:handoff')->group(function (): void {
-            Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
-            Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->middleware('agent.permission:agent.chat.takeover')->name('handoff.takeover');
-            Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
-            Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
-            Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
-            Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->name('handoff.mark-read');
-        });
+        // Handoff (Admin Takeover) routes.
+        Route::get('handoff/pending', [AgentHandoffController::class, 'index'])->name('handoff.pending');
+        Route::post('handoff/{conversation}/takeover', TakeoverHandoffController::class)->middleware('agent.permission:agent.chat.takeover')->name('handoff.takeover');
+        Route::post('handoff/{conversation}/return', ReturnHandoffController::class)->name('handoff.return');
+        Route::post('handoff/{conversation}/message', SendHandoffMessageController::class)->name('handoff.message');
+        Route::post('handoff/{conversation}/typing', HandoffTypingController::class)->name('handoff.typing');
+        Route::post('handoff/{conversation}/mark-read', MarkHandoffReadController::class)->name('handoff.mark-read');
 
         // Setup — one unified configuration page for every agent. All content
         // settings (text / persona / starters / model / branding) are shared

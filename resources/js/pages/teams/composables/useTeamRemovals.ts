@@ -4,6 +4,8 @@
  * only takes them off this team; deleting a teammate from the workspace erases
  * their whole account; deleting a role removes it from the team.
  */
+import { remove as removeTeammate } from '@/routes/teammates';
+import { deleteRole as deleteRoleRoute, removeMember as removeMemberRoute } from '@/routes/teams';
 import { useForm } from '@inertiajs/vue3';
 import { ref, toValue, type MaybeRefOrGetter } from 'vue';
 
@@ -18,7 +20,7 @@ export function useTeamRemovals(team: MaybeRefOrGetter<TeamData>) {
     const removeMember = () => {
         if (!memberToRemove.value) return;
 
-        removeMemberForm.delete(route('teams.remove-member', { team: toValue(team).external_id, member: memberToRemove.value.id }), {
+        removeMemberForm.delete(removeMemberRoute.url({ team: toValue(team).external_id, member: memberToRemove.value.id }), {
             onSuccess: () => {
                 memberToRemove.value = null;
             },
@@ -32,7 +34,7 @@ export function useTeamRemovals(team: MaybeRefOrGetter<TeamData>) {
     const removeFromWorkspace = () => {
         if (!memberToDeleteFromWorkspace.value) return;
 
-        removeFromWorkspaceForm.delete(route('teammates.remove', { member: memberToDeleteFromWorkspace.value.id }), {
+        removeFromWorkspaceForm.delete(removeTeammate.url(memberToDeleteFromWorkspace.value.id), {
             onSuccess: () => {
                 memberToDeleteFromWorkspace.value = null;
             },
@@ -47,7 +49,7 @@ export function useTeamRemovals(team: MaybeRefOrGetter<TeamData>) {
 
         // A role that members still hold comes back as a validation error,
         // which the global handler shows as a toast; close the dialog either way.
-        deleteRoleForm.delete(route('teams.delete-role', { team: toValue(team).external_id, roleId: roleToDelete.value.id }), {
+        deleteRoleForm.delete(deleteRoleRoute.url({ team: toValue(team).external_id, roleId: roleToDelete.value.id }), {
             onFinish: () => {
                 roleToDelete.value = null;
             },

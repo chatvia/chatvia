@@ -1,8 +1,8 @@
 /**
  * Setup shared by the two hosted chat pages (Home and Chat): applies the
  * owner's language and colour theme on mount, localises the appearance strings
- * to the active UI language, and exposes the per-chat upload ceiling and the
- * plan's send capacity.
+ * to the active UI language, and exposes the per-chat upload ceiling and
+ * whether the visitor can still send messages this month.
  */
 import { useColorTheme } from '@/composables/useColorTheme';
 import { normalizeLocale, resolveLocale, setI18nLocale } from '@/i18n';

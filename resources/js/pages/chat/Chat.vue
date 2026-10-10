@@ -16,6 +16,7 @@ import { useChatScroll } from '@/composables/chat/useChatScroll';
 import { isNewConversationVisit, useChatStreamTurn } from '@/composables/chat/useChatStreamTurn';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
 import { useChatTurnActions } from '@/composables/chat/useChatTurnActions';
+import { deleteMethod as deleteAttachment, store as storeAttachment } from '@/routes/chat/messages/attachments';
 import type { ChatAppearance, ChatDefaultTheme } from '@/types/chat';
 import { useChatEventBus } from '@/utils/eventBus';
 import { ChevronDown } from 'lucide-vue-next';
@@ -34,7 +35,8 @@ interface Props {
     enableThemeSwitcher?: boolean;
     defaultTheme?: ChatDefaultTheme;
     enableChatExpand?: boolean;
-    newChatRoute?: string;
+    /** On the iframe-embed pages rather than the full hosted chat. */
+    embedded?: boolean;
     chatviaBranding?: boolean;
     /** Owner's pinned chat language ('auto' = detect from the visitor). */
     locale?: string;
@@ -59,7 +61,7 @@ const props = withDefaults(defineProps<Props>(), {
     enableThemeSwitcher: true,
     defaultTheme: 'auto',
     enableChatExpand: true,
-    newChatRoute: 'chat.home',
+    embedded: false,
     chatviaBranding: true,
     locale: 'auto',
     enableLanguageSwitcher: false,
@@ -77,7 +79,7 @@ const transcript = useChatMessages(props.conversation_id);
 const turn = useChatStreamTurn({ conversationId: props.conversation_id, transcript, scroll });
 const actions = useChatTurnActions({
     conversationId: props.conversation_id,
-    newChatRoute: props.newChatRoute,
+    embedded: props.embedded,
     transcript,
     turn,
     scroll,
@@ -96,7 +98,7 @@ const isChatExpanded = computed(() => bus.isChatExpanded.value);
 provide('inlineFormSubmit', submitInlineForm);
 
 const uploadHeaders = computed(() => ({ 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': props.conversation_id }));
-const deleteEndpoint = (attachmentId: string) => route('chat.messages.attachments.delete', { attachment: attachmentId });
+const deleteEndpoint = (attachmentId: string) => deleteAttachment.url(attachmentId);
 
 /**
  * A conversation created on Home arrives with only the visitor's first
@@ -145,7 +147,7 @@ onMounted(async () => {
         :enableChatExpand="enableChatExpand"
         :enableLanguageSwitcher="enableLanguageSwitcher"
         :enabledLanguages="enabledLanguages"
-        :newChatRoute="newChatRoute"
+        :embedded="embedded"
     >
         <template #content>
             <!-- Screen-reader status channel: narrates streaming, tool and
@@ -207,7 +209,7 @@ onMounted(async () => {
                             :allow-voice-input="appearance.allow_voice_input !== false"
                             :max-files="maxFilesPerChat"
                             :disabled="!canSendMessages || hasPendingApprovals"
-                            :upload-endpoint="route('chat.messages.attachments.store')"
+                            :upload-endpoint="storeAttachment.url()"
                             :upload-headers="uploadHeaders"
                             :delete-endpoint="deleteEndpoint"
                             @messageAdded="actions.send"

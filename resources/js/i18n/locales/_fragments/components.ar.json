@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "إنشاء وكيل",
-            "limit_title": "تم الوصول إلى حد الوكلاء",
-            "limit_description": "لقد وصلت إلى الحد الأقصى لعدد الوكلاء.",
-            "upgrade_plan": "ترقية الخطة",
             "name_label": "اسم الوكيل",
-            "name_placeholder": "مثال: دعم العملاء",
-            "load_error": "تعذّر تحميل معلومات الاستخدام",
-            "limit_toast_title": "تم الوصول إلى حد الوكلاء",
-            "limit_toast_description": "لقد وصلت إلى الحد الأقصى لعدد الوكلاء."
+            "name_placeholder": "مثال: دعم العملاء"
         }
     },
     "confirm_password": {

@@ -8,7 +8,6 @@ use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
 
 /*
  * The email-invite path must hand the mail send to a listener via
@@ -19,16 +18,6 @@ it('creates a pending invitation and dispatches TeamInvitationCreated', function
     Event::fake([TeamInvitationCreated::class]);
 
     $owner = User::factory()->create();
-    // hasActiveSubscription() gates invites — provision the billing row the
-    // way SubscribeUserAction does, then seed an active subscription.
-    $owner->billing()->firstOrCreate([])->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test_'.Str::random(6),
-        'quantity' => 1,
-    ]);
-    $owner->refresh();
 
     $team = app(TeamService::class)->createDefaultTeam($owner);
 

@@ -2,7 +2,6 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserQuota;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
@@ -27,7 +26,7 @@ use Illuminate\Support\Str;
  * upload→chunk→embed→retrieve test). Text sources are the simplest real path:
  *
  *   POST agents.sources.text.store
- *     → CreateAgentSourceTextAction (quota gate, storage write, pivot attach)
+ *     → CreateAgentSourceTextAction (storage write, pivot attach)
  *     → TextIngestionJob → IngestTextAction → Bus::batch(TextChunkIngestionJob)
  *     → CreateSourceChunkAction → Chunk rows (plaintext, morph-aliased)
  *     → KnowledgeBase::search (4-channel hybrid RRF over pgvector + bm25)
@@ -81,31 +80,15 @@ function ingestionPipelineEmbeddingFake(): void
 }
 
 /**
- * A subscribed, quota-provisioned workspace owner. Registration is
- * trial-checkout-only now (the Stripe webhook provisions billing/quota/team),
- * so the factory user gets the same rows created explicitly.
+ * A workspace owner with its default team.
  */
 function ingestionPipelineOwner(): User
 {
     $owner = User::factory()->create();
 
-    $owner->billing()->firstOrCreate([]);
-    $owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
-
-    UserQuota::firstOrCreate(
-        ['user_id' => $owner->id],
-        planFixedLimits()
-    );
-
     app(TeamService::class)->createDefaultTeam($owner);
 
-    // Re-fetch: primaryTeam() memoizes (a documented footgun) and billing was
+    // Re-fetch: primaryTeam() memoizes (a documented footgun) and the team was
     // created after the instance was loaded.
     return User::query()->findOrFail($owner->id);
 }
@@ -208,23 +191,6 @@ it('rejects an unauthenticated upload', function (): void {
 
     $this->postJson(route('agents.sources.text.store', $agent), ['content' => ingestionPipelineText()])
         ->assertUnauthorized();
-});
-
-it('rejects the upload as a validation error when the page quota is exhausted', function (): void {
-    Bus::fake([TextIngestionJob::class]);
-
-    $owner = ingestionPipelineOwner();
-    $agent = createAgent($owner);
-
-    UserQuota::query()->where('user_id', $owner->id)->update(['pages_limit' => 0]);
-
-    $this->actingAs($owner)
-        ->postJson(route('agents.sources.text.store', $agent), ['content' => ingestionPipelineText()])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('content');
-
-    expect(SourceText::query()->where('user_id', $owner->id)->count())->toBe(0);
-    Bus::assertNotDispatched(TextIngestionJob::class);
 });
 
 it('ingests an uploaded text into plaintext chunks stored under the source_text morph alias', function (): void {

@@ -45,7 +45,6 @@ class CreateConversationAction
         $rewritten = $this->usage->track(
             $agent->user_id,
             fn (): RewrittenQueryData => $this->queryRewriter->rewrite($data->message),
-            'conversation-create',
         );
 
         $conversationId = $this->startConversation->execute($data->scope, ConversationSource::HostedChat);

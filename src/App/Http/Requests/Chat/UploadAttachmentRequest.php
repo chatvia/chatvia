@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Chat;
 
-use App\Http\Chat\HostedChatAgent;
 use App\Http\Requests\Concerns\ValidatesPdfAttachment;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
@@ -15,16 +14,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class UploadAttachmentRequest extends FormRequest
 {
     use ValidatesPdfAttachment;
-
-    /**
-     * The workspace of the agent the hosted chat resolved for this request —
-     * never a client-supplied header, so a visitor cannot borrow another
-     * workspace's message balance to pass the PDF credit check.
-     */
-    protected function workspaceUserId(): ?int
-    {
-        return HostedChatAgent::from($this)?->user_id;
-    }
 
     /**
      * @param  Agent|null  $agent  The agent the hosted chat resolved for this

@@ -45,8 +45,6 @@ return new class extends Migration
 
             $table->timestamp('deactivated_at')->nullable();
             $table->timestamp('last_login_at')->nullable();
-            // Set when the user finishes the first-run welcome tour.
-            $table->timestamp('onboarded_at')->nullable();
 
             $table->string('date_format')->nullable();
 

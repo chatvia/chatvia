@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
+import twoFactor from '@/routes/two-factor';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { CheckCircle2, KeyRound, Loader2, ShieldCheck, Smartphone } from 'lucide-vue-next';
@@ -52,7 +53,7 @@ const enableForm = useForm({});
 
 const enable2fa = async () => {
     if (!(await ensureConfirmed())) return;
-    enableForm.post(route('two-factor.enable'), {
+    enableForm.post(twoFactor.enable.url(), {
         preserveScroll: true,
         onSuccess: () => fetchQr(),
     });
@@ -71,7 +72,7 @@ const fetchQr = async () => {
 
 const confirm2fa = async () => {
     if (!(await ensureConfirmed())) return;
-    confirmForm.post(route('two-factor.confirm'), {
+    confirmForm.post(twoFactor.confirm.url(), {
         preserveScroll: true,
         onSuccess: () => {
             confirmForm.reset();
@@ -94,7 +95,7 @@ const fetchRecoveryCodes = async () => {
 const regenerateCodes = async () => {
     if (!(await ensureConfirmed())) return;
     router.post(
-        route('two-factor.regenerate-recovery-codes'),
+        twoFactor.regenerateRecoveryCodes.url(),
         {},
         {
             preserveScroll: true,
@@ -112,7 +113,7 @@ const disable2fa = () => {
 const confirmDisable2fa = async () => {
     disableDialogOpen.value = false;
     if (!(await ensureConfirmed())) return;
-    disableForm.delete(route('two-factor.disable'), {
+    disableForm.delete(twoFactor.disable.url(), {
         preserveScroll: true,
         onSuccess: () => {
             qrSvg.value = null;

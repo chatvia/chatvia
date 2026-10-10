@@ -21,12 +21,13 @@ beforeEach(function (): void {
     $this->beta = Agent::factory()->create(['user_id' => $this->workspace->id]);
 });
 
-it('covers the whole account by default, over the current cycle', function (): void {
+it('covers the whole account by default, over this month', function (): void {
     $scope = app(AnalyticsScopeResolver::class)->resolve($this->workspace, new AnalyticsFilterData);
 
     expect($scope->agentId)->toBeNull()
         ->and($scope->agentIds)->toEqualCanonicalizing([$this->alpha->id, $this->beta->id])
-        ->and($scope->period->named)->toBe(AnalyticsPeriod::CurrentCycle);
+        ->and($scope->period->named)->toBe(AnalyticsPeriod::ThisMonth)
+        ->and($scope->period->start->toDateString())->toBe('2026-06-01');
 });
 
 it('narrows to one of the workspace\'s agents', function (): void {

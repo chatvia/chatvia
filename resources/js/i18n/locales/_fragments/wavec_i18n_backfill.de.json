@@ -103,23 +103,8 @@
     "dashboard": {
         "messages_this_month": "Nachrichten in diesem Monat"
     },
-    "usage": {
-        "no_limit": "Kein Limit"
-    },
     "nav": {
         "open_user_menu": "Benutzermenü öffnen"
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Willkommen bei Chatvia",
-            "intro": "Erstellen wir Ihren ersten KI-Agenten. Das dauert nur eine Minute.",
-            "what_title": "Was ist ein Agent?",
-            "what_body": "Ein Agent ist ein KI-Assistent, den Sie mit Ihren eigenen Inhalten trainieren. Er beantwortet die Fragen Ihrer Kunden auf Ihrer Website, im Chat-Widget und in Messaging-Apps.",
-            "how_title": "Wie funktioniert das?",
-            "how_body": "Zuerst erstellen Sie einen Agenten und geben ihm einen Namen. Dann trainieren Sie ihn mit Ihren Dateien, Websites und Texten, damit er Fragen beantworten kann.",
-            "start": "Meinen ersten Agenten erstellen",
-            "video_caption": "Sehen Sie, wie es funktioniert"
-        }
     },
     "workspace": {
         "prompts": {

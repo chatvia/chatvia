@@ -33,7 +33,7 @@
                     "reply_streams_live": "— svaret streames live"
                 },
                 "telegram": {
-                    "connected_description": "Folk kan sende beskeder til din bot på Telegram, og din agent svarer automatisk — fakturering, historik og sikkerhedsregler gælder alle.",
+                    "connected_description": "Folk kan sende beskeder til din bot på Telegram, og din agent svarer automatisk — beskedgrænser, historik og sikkerhedsregler gælder alle.",
                     "steps": {
                         "connect_1": "Åbn {botfather} i Telegram",
                         "connect_2": "Send {command} og følg vejledningen",

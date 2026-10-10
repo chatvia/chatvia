@@ -7,9 +7,9 @@ namespace Domain\Analytics\Data\Account\Activity;
 use Domain\Analytics\Data\Account\FeedbackTallyData;
 
 /**
- * A one-shot snapshot of an account (or one agent) over a window. The
- * this-cycle message usage and limit come from the billing cycle and are
- * null when the account has no active cycle.
+ * A one-shot snapshot of an account (or one agent) over a window. This
+ * month's message usage and limit come from the account's monthly message
+ * limit and are null when it has none.
  */
 final readonly class AccountOverviewData
 {
@@ -23,8 +23,8 @@ final readonly class AccountOverviewData
         public int|float|null $avgResponseMs,
         public FeedbackTallyData $feedback,
         public int $tokens,
-        public ?int $messagesUsedThisCycle,
-        public ?int $messagesLimitThisCycle,
+        public ?int $messagesUsedThisMonth,
+        public ?int $messagesLimitThisMonth,
     ) {}
 
     public function totalMessages(): int

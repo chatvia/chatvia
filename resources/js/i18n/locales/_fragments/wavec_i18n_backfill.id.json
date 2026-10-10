@@ -103,23 +103,8 @@
     "dashboard": {
         "messages_this_month": "Pesan Bulan Ini"
     },
-    "usage": {
-        "no_limit": "Tanpa batas"
-    },
     "nav": {
         "open_user_menu": "Buka menu pengguna"
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Selamat datang di Chatvia",
-            "intro": "Mari buat agen AI pertama Anda. Hanya butuh satu menit.",
-            "what_title": "Apa itu agen?",
-            "what_body": "Agen adalah asisten AI yang Anda latih dengan konten Anda sendiri. Agen menjawab pelanggan Anda di situs web, widget obrolan, dan aplikasi perpesanan.",
-            "how_title": "Bagaimana cara kerjanya?",
-            "how_body": "Pertama, Anda membuat agen dan memberinya nama. Lalu Anda melatihnya dengan file, situs web, dan teks Anda agar dapat menjawab pertanyaan.",
-            "start": "Buat agen pertama saya",
-            "video_caption": "Tonton cara kerjanya"
-        }
     },
     "workspace": {
         "prompts": {

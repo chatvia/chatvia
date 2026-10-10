@@ -3,6 +3,7 @@
 // signing secret; once connected, show the Request URL to paste into the app's
 // Event Subscriptions and the remaining setup steps.
 import { Button } from '@/components/ui/button';
+import { connect as connectSlack } from '@/routes/agents/channels/slack';
 import { useForm } from '@inertiajs/vue3';
 import { KeyRound, Link2, LoaderCircle, Lock, Plug } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -27,7 +28,7 @@ const { t } = useI18n();
 const form = useForm({ bot_token: '', signing_secret: '' });
 
 const connect = () => {
-    form.post(route('agents.channels.slack.connect', props.agent.external_id), {
+    form.post(connectSlack.url(props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {

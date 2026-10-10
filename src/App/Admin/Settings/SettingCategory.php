@@ -16,7 +16,7 @@ enum SettingCategory: string
     case Ai = 'ai';
     case Knowledge = 'knowledge';
     case Connectors = 'connectors';
-    case Billing = 'billing';
+    case Workspaces = 'workspaces';
     case Platform = 'platform';
 
     public function label(): string
@@ -27,7 +27,7 @@ enum SettingCategory: string
             self::Ai => 'AI providers',
             self::Knowledge => 'Knowledge',
             self::Connectors => 'Connectors',
-            self::Billing => 'Billing',
+            self::Workspaces => 'Workspaces',
             self::Platform => 'Platform',
         };
     }
@@ -40,7 +40,7 @@ enum SettingCategory: string
             self::Ai => 'API keys for chat, embeddings, reranking and speech to text.',
             self::Knowledge => 'Services that import websites and split documents into chunks.',
             self::Connectors => 'OAuth apps for connectors that do not support dynamic client registration.',
-            self::Billing => 'Paid plans on or off, sign-up and trial, and the Stripe keys for plans, add-ons and credit top-ups.',
+            self::Workspaces => 'Sign-up, message limits and how long conversations are kept.',
             self::Platform => 'Email delivery, bot protection and visitor location.',
         };
     }
@@ -53,7 +53,7 @@ enum SettingCategory: string
             self::Ai => Heroicon::OutlinedSparkles,
             self::Knowledge => Heroicon::OutlinedBookOpen,
             self::Connectors => Heroicon::OutlinedPuzzlePiece,
-            self::Billing => Heroicon::OutlinedCreditCard,
+            self::Workspaces => Heroicon::OutlinedBuildingOffice2,
             self::Platform => Heroicon::OutlinedServerStack,
         };
     }

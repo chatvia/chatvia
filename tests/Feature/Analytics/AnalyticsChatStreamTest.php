@@ -42,7 +42,7 @@ it('streams the answer through the runner and persists nothing', function (): vo
 
     $text = collect($events)
         ->filter(fn ($e): bool => $e->type === EventType::Delta)
-        ->map(fn ($e) => $e->data['text'])
+        ->map(fn ($e): mixed => $e->data['text'])
         ->implode('');
 
     expect($text)->toContain('You received 15 messages this cycle.');

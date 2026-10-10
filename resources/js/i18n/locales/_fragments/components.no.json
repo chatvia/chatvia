@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "Opprett agent",
-            "limit_title": "Agentgrense nådd",
-            "limit_description": "Du har nådd grensen for antall agenter.",
-            "upgrade_plan": "Oppgrader abonnement",
             "name_label": "Agentnavn",
-            "name_placeholder": "F.eks. Kundeservice",
-            "load_error": "Kunne ikke laste bruksinformasjon",
-            "limit_toast_title": "Agentgrense nådd",
-            "limit_toast_description": "Du har nådd grensen for antall agenter."
+            "name_placeholder": "F.eks. Kundeservice"
         }
     },
     "confirm_password": {

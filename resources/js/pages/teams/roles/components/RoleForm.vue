@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { show as showTeam } from '@/routes/teams';
 import RoleAgentAccess from './RoleAgentAccess.vue';
 import RolePermissionsCard from './RolePermissionsCard.vue';
 
@@ -84,7 +85,7 @@ const isAgentSelectionValid = computed(() => allAgents.value || agentIds.value.l
 
         <!-- Actions -->
         <div class="flex items-center justify-end gap-3 pt-4">
-            <Link :href="route('teams.show', team.external_id)">
+            <Link :href="showTeam.url(team.external_id)">
                 <Button type="button" variant="outline">{{ t('teams.common.cancel') }}</Button>
             </Link>
             <Button type="submit" :disabled="processing || !isAgentSelectionValid">

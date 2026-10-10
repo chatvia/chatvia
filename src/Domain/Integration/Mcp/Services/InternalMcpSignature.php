@@ -69,6 +69,25 @@ final class InternalMcpSignature
     }
 
     /**
+     * The address to send a request for one of our own servers to. With
+     * `services.builtin_mcp.internal_url` set (the Docker image sets it), the
+     * APP_URL part is swapped for it, so the call goes straight to the web
+     * container. The path, which the signature covers, does not change.
+     */
+    public static function transportUrl(string $url): string
+    {
+        $internal = config('services.builtin_mcp.internal_url');
+
+        if (blank($internal) || ! self::isInternalUrl($url)) {
+            return $url;
+        }
+
+        $base = rtrim((string) config('app.url'), '/');
+
+        return rtrim((string) $internal, '/').substr($url, strlen($base));
+    }
+
+    /**
      * Signature headers for one request.
      *
      * @param  array<string, string>  $identityHeaders  Every `X-Chatvia-*` header the request carries.

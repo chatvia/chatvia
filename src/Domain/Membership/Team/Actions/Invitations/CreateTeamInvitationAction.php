@@ -16,8 +16,7 @@ use Support\Exceptions\DomainValidationException;
  * writes the row and fires the event — side effects flow through events +
  * listeners, never an inline notification dispatch.
  *
- * The owner-side business gates (active subscription, seat limit) and the
- * already-a-member / direct-attach branches stay in
+ * The already-a-member / direct-attach branches stay in
  * {@see InviteTeamMemberAction}; this Action is the narrow "create the
  * invitation record" step it delegates to.
  */

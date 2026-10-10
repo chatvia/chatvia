@@ -1,7 +1,7 @@
 <?php
 
+use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserCredit;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
@@ -21,7 +21,7 @@ it('sets a chatter monthly message limit and returns the refreshed row', functio
         ->assertJsonPath('messages_used', 0)
         ->assertJsonPath('is_deactivated', false);
 
-    expect(UserCredit::query()->where('user_id', $this->chatter->id)->value('messages'))->toBe(500);
+    expect(MessageLimit::query()->where('user_id', $this->chatter->id)->value('monthly_limit'))->toBe(500);
 });
 
 it('deactivates a chatter with a reason', function (): void {
@@ -52,7 +52,7 @@ it('clears the limit when messages_limit is null', function (): void {
         'deactivated' => false,
     ])->assertOk()->assertJsonPath('messages_limit', null);
 
-    expect(UserCredit::query()->where('user_id', $chatter->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->where('user_id', $chatter->id)->exists())->toBeFalse();
 });
 
 it('404s for a chatter outside the workspace', function (): void {

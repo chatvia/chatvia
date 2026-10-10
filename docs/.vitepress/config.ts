@@ -109,7 +109,7 @@ export default defineConfig({
             { text: 'Prompts library', link: '/guide/account/prompts' },
             { text: 'Templates', link: '/guide/account/templates' },
             { text: 'Teams & roles', link: '/guide/account/teams' },
-            { text: 'Usage & billing', link: '/guide/account/billing' },
+            { text: 'Message limits', link: '/guide/account/message-limits' },
           ],
         },
         {
@@ -125,6 +125,7 @@ export default defineConfig({
           text: 'Self-hosting',
           items: [
             { text: 'Install and run', link: '/guide/self-hosting/' },
+            { text: 'Run with Docker', link: '/guide/self-hosting/docker' },
             { text: 'AI providers', link: '/guide/self-hosting/ai-providers' },
           ],
         },

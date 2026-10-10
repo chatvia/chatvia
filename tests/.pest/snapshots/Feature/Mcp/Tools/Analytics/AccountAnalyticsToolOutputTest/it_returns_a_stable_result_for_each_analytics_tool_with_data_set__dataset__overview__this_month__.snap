@@ -1,0 +1,29 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "This month: 8 messages (4 in, 4 AI) across 3 conversations from 3 visitors, 2 leads captured. Avg response 1,475ms. Feedback: 2👍 / 1👎."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "this_month",
+            "label": "this month",
+            "start": "2026-06-01",
+            "end": "2026-06-15"
+        },
+        "incoming_messages": 4,
+        "ai_messages": 4,
+        "total_messages": 8,
+        "conversations": 3,
+        "unique_visitors": 3,
+        "leads": 2,
+        "avg_response_ms": 1475,
+        "positive_feedback": 2,
+        "negative_feedback": 1,
+        "tokens": 560,
+        "messages_used_this_month": 420,
+        "messages_limit_this_month": 1000
+    }
+}

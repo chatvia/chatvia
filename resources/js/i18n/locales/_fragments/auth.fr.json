@@ -20,8 +20,7 @@
             "send_link": "M'envoyer un lien de connexion",
             "sending_link": "Envoi du lien...",
             "or_continue_with": "Ou continuer avec",
-            "no_account": "Vous n'avez pas de compte ?",
-            "start_free_trial": "Démarrer l'essai gratuit"
+            "no_account": "Vous n'avez pas de compte ?"
         },
         "register": {
             "title": "Créer un compte",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Utiliser un code de récupération",
             "use_authenticator_code": "Utiliser un code d'authentification"
         },
-        "set_password": {
-            "title": "Choisissez votre mot de passe",
-            "description": "Votre compte est prêt. Choisissez un mot de passe pour finaliser la configuration.",
-            "head": "Choisissez votre mot de passe",
-            "email_label": "Adresse e-mail",
-            "password_label": "Mot de passe",
-            "password_placeholder": "Mot de passe",
-            "confirm_password_label": "Confirmer le mot de passe",
-            "confirm_password_placeholder": "Confirmer le mot de passe",
-            "set_password": "Définir le mot de passe",
-            "setting_password": "Définition du mot de passe..."
-        },
         "login_member": {
             "description": "Connectez-vous pour accéder à cet espace de conversation",
             "head": "Connexion membre",
@@ -168,16 +155,6 @@
             "or": "Ou",
             "social_email_note_prefix": "Assurez-vous que votre compte social utilise",
             "social_email_note_suffix": "— il doit correspondre à cette invitation."
-        },
-        "invitation_invalid": {
-            "title": "Invitation indisponible",
-            "description": "Cette invitation ne peut pas être acceptée",
-            "head": "Invitation indisponible",
-            "card_title": "Impossible d'accepter l'invitation",
-            "cannot_accept_prefix": "L'invitation à rejoindre",
-            "cannot_accept_suffix": "ne peut pas être acceptée pour le moment.",
-            "contact_owner": "Veuillez contacter le responsable de l'équipe pour résoudre ce problème.",
-            "go_to_login": "Aller à la connexion"
         },
         "invitation_expired": {
             "title": "Invitation expirée",

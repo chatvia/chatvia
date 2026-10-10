@@ -11,7 +11,6 @@ import { toast } from 'vue-sonner';
 import 'vue-sonner/style.css';
 import Vue3ColorPicker from 'vue3-colorpicker';
 import 'vue3-colorpicker/style.css';
-import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
 import type { SharedData } from './types';
@@ -19,17 +18,25 @@ import { createChatEventBus } from './utils/eventBus';
 
 const chatEventBus = createChatEventBus();
 
+// Reverb settings baked in at build time win. A build without them (the Docker
+// image) reads the public app key from the page and connects to the page's own
+// host, where the web server forwards /app to Reverb.
+const reverbScheme = import.meta.env.VITE_REVERB_SCHEME || window.location.protocol.replace(':', '');
+const reverbPort = Number(import.meta.env.VITE_REVERB_PORT || window.location.port || (reverbScheme === 'https' ? 443 : 80));
+
 configureEcho({
     broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    key: import.meta.env.VITE_REVERB_APP_KEY || document.querySelector<HTMLMetaElement>('meta[name="reverb-key"]')?.content,
+    wsHost: import.meta.env.VITE_REVERB_HOST || window.location.hostname,
+    wsPort: reverbPort,
+    wssPort: reverbPort,
+    forceTLS: reverbScheme === 'https',
     enabledTransports: ['ws', 'wss'],
 });
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// The Docker image is built without VITE_APP_NAME; the server-rendered <title>
+// holds the brand name then.
+const appName = import.meta.env.VITE_APP_NAME || document.title || 'Chatvia';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -48,7 +55,6 @@ createInertiaApp({
         createApp({ render: () => h(ConfigProvider, { dir: dir.value }, () => h(App, props)) })
             .use(plugin)
             .use(i18n)
-            .use(ZiggyVue)
             .use(Vue3ColorPicker)
             .use(formKitPlugin, formKitConfig())
             .provide('chatEventBus', chatEventBus)

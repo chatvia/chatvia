@@ -35,12 +35,3 @@ it('refuses a file the workspace already uploaded', function (): void {
 
     app(AgentSourceAnalyzeFileAction::class)->execute($file, $user, $agent);
 })->throws(DomainValidationException::class, 'You have already uploaded this file.');
-
-it('refuses a document longer than the remaining page quota', function (): void {
-    // More pages than even an unlimited workspace allows.
-    analyzerReturningPages(2_000_000_000);
-    $user = User::factory()->workspace()->create();
-    $file = UploadedFile::fake()->createWithContent('book.txt', 'Long book');
-
-    app(AgentSourceAnalyzeFileAction::class)->execute($file, $user);
-})->throws(DomainValidationException::class);

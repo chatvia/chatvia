@@ -1,6 +1,6 @@
 # Instagram
 
-Connect an Instagram professional account to your agent. People send your account a DM, and your agent answers — with the same knowledge, guardrails, history, and billing as every other channel. No Facebook Page is needed: Chatvia uses the Instagram API with Instagram login.
+Connect an Instagram professional account to your agent. People send your account a DM, and your agent answers — with the same knowledge, guardrails, history, and message limits as every other channel. No Facebook Page is needed: Chatvia uses the Instagram API with Instagram login.
 
 Instagram is available for **public agents only**. An Instagram sender is anonymous to Chatvia, so a protected agent cannot answer there. You can make an agent public on its **Security** page.
 

@@ -7,7 +7,7 @@ use Domain\Analytics\Enums\AnalyticsPeriod;
 
 /**
  * An inclusive [start, end] window resolved from a tool's `period` argument.
- * `label` is a human phrase ("this billing cycle", "the last 7 days") that the
+ * `label` is a human phrase ("this month", "the last 7 days") that the
  * analytics tools weave into their text summary so the LLM answers naturally.
  * `named` is the named window it came from; null for explicit dates or a
  * derived window.

@@ -20,8 +20,7 @@
             "send_link": "Skicka en inloggningslänk",
             "sending_link": "Skickar länk...",
             "or_continue_with": "Eller fortsätt med",
-            "no_account": "Har du inget konto?",
-            "start_free_trial": "Starta gratis provperiod"
+            "no_account": "Har du inget konto?"
         },
         "register": {
             "title": "Skapa ett konto",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Använd en återställningskod",
             "use_authenticator_code": "Använd en autentiseringskod"
         },
-        "set_password": {
-            "title": "Välj ditt lösenord",
-            "description": "Ditt konto är redo. Välj ett lösenord för att slutföra konfigurationen.",
-            "head": "Välj ditt lösenord",
-            "email_label": "E-postadress",
-            "password_label": "Lösenord",
-            "password_placeholder": "Lösenord",
-            "confirm_password_label": "Bekräfta lösenord",
-            "confirm_password_placeholder": "Bekräfta lösenord",
-            "set_password": "Ange lösenord",
-            "setting_password": "Anger lösenord..."
-        },
         "login_member": {
             "description": "Logga in för att komma åt den här chattarbetsytan",
             "head": "Medlemsinloggning",
@@ -168,16 +155,6 @@
             "or": "Eller",
             "social_email_note_prefix": "Se till att ditt sociala konto använder",
             "social_email_note_suffix": "— det måste matcha den här inbjudan."
-        },
-        "invitation_invalid": {
-            "title": "Inbjudan otillgänglig",
-            "description": "Den här inbjudan kan inte accepteras",
-            "head": "Inbjudan otillgänglig",
-            "card_title": "Kan inte acceptera inbjudan",
-            "cannot_accept_prefix": "Inbjudan att gå med i",
-            "cannot_accept_suffix": "kan inte accepteras just nu.",
-            "contact_owner": "Kontakta teamägaren för att lösa det här problemet.",
-            "go_to_login": "Gå till inloggning"
         },
         "invitation_expired": {
             "title": "Inbjudan har gått ut",

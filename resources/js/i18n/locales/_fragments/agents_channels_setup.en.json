@@ -33,7 +33,7 @@
                     "reply_streams_live": "— the reply streams in live"
                 },
                 "telegram": {
-                    "connected_description": "People can message your bot on Telegram and your agent replies automatically — billing, history, and guardrails all apply.",
+                    "connected_description": "People can message your bot on Telegram and your agent replies automatically — message limits, history, and guardrails all apply.",
                     "steps": {
                         "connect_1": "Open {botfather} in Telegram",
                         "connect_2": "Send {command} and follow the prompts",

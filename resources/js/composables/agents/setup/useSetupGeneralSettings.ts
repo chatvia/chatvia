@@ -5,6 +5,7 @@
  * The chat log is the analytics' master switch: with nothing stored there is
  * nothing to analyse, so the dimensions are forced off while it is off.
  */
+import { update as updateSettings } from '@/routes/agents/settings';
 import { useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -13,7 +14,7 @@ import { submitSetupForm, type SetupSectionDeps } from './submitSetupForm';
 
 export function useSetupGeneralSettings({ agentId, reloadPreview }: SetupSectionDeps, appearance: SettingsReader, analytics: SettingsReader) {
     const { t } = useI18n();
-    const settingsUrl = (group: 'appearance' | 'analytics') => route('agents.settings.update', { agent: agentId(), group });
+    const settingsUrl = (group: 'appearance' | 'analytics') => updateSettings.url({ agent: agentId(), group });
 
     // Composer affordances — on by default; owners can hide the paperclip / mic.
     const composerForm = useForm({

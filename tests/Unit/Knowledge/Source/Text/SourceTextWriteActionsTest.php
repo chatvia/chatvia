@@ -1,7 +1,6 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserQuota;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
@@ -9,7 +8,6 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 /**
  * Creating or replacing a text source writes a file and several rows. The rows
@@ -19,17 +17,6 @@ use Illuminate\Support\Str;
 function textWriterOwner(): User
 {
     $owner = User::factory()->create();
-
-    $owner->billing()->firstOrCreate([]);
-    $owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
-
-    UserQuota::firstOrCreate(['user_id' => $owner->id], planFixedLimits());
 
     app(TeamService::class)->createDefaultTeam($owner);
 
@@ -45,10 +32,10 @@ it('replaces the file only after the row points at the new one', function (): vo
     $owner = textWriterOwner();
     $agent = createAgent($owner);
 
-    $text = app(CreateAgentSourceTextAction::class)->execute($agent, $owner, 'The original text about our product.');
+    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
     $oldPath = $text->filepath;
 
-    $changed = app(UpdateAgentSourceTextAction::class)->execute($agent, $owner, $text, 'A new text about our product.');
+    $changed = app(UpdateAgentSourceTextAction::class)->execute($agent, $text, 'A new text about our product.');
 
     $text->refresh();
 
@@ -64,14 +51,14 @@ it('keeps the old file and row when the update fails', function (): void {
     $owner = textWriterOwner();
     $agent = createAgent($owner);
 
-    $text = app(CreateAgentSourceTextAction::class)->execute($agent, $owner, 'The original text about our product.');
+    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
     $oldPath = $text->filepath;
 
     SourceText::updating(function (): void {
         throw new RuntimeException('database unavailable');
     });
 
-    expect(fn () => app(UpdateAgentSourceTextAction::class)->execute($agent, $owner, $text, 'A new text about our product.'))
+    expect(fn () => app(UpdateAgentSourceTextAction::class)->execute($agent, $text, 'A new text about our product.'))
         ->toThrow(RuntimeException::class);
 
     expect(SourceText::query()->find($text->id)->filepath)->toBe($oldPath)
@@ -90,7 +77,7 @@ it('leaves no row and no file when creating the text fails half way', function (
         throw new RuntimeException('database unavailable');
     });
 
-    expect(fn () => app(CreateAgentSourceTextAction::class)->execute($agent, $owner, 'Some text about our product.'))
+    expect(fn () => app(CreateAgentSourceTextAction::class)->execute($agent, 'Some text about our product.'))
         ->toThrow(RuntimeException::class);
 
     expect(SourceText::query()->where('user_id', $agent->user_id)->exists())->toBeFalse()

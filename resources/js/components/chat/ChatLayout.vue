@@ -7,6 +7,7 @@
 import { deleteConversation as deleteConversationRequest } from '@/api/chat';
 import Sidebar from '@/components/chat/ChatSidebar.vue';
 import Header from '@/components/chat/Header.vue';
+import { chatPages } from '@/composables/chat/chatPages';
 import { Toaster } from '@/components/ui/sonner';
 import { useIsMobile } from '@/composables/useIsMobile';
 import { safeStorage } from '@/lib/safeStorage';
@@ -26,7 +27,8 @@ interface Props {
     enableChatExpand?: boolean;
     enableLanguageSwitcher?: boolean;
     enabledLanguages?: string[];
-    newChatRoute?: string;
+    /** On the iframe-embed pages rather than the full hosted chat. */
+    embedded?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
     enableChatExpand: true,
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
-    newChatRoute: 'chat.home',
+    embedded: false,
 });
 
 const SIDEBAR_STORAGE_KEY = 'sidebarOpen';
@@ -92,7 +94,7 @@ onUnmounted(() => {
 
 async function deleteConversation(conversationId: string) {
     await deleteConversationRequest(conversationId);
-    router.visit(route(props.newChatRoute), {
+    router.visit(chatPages(props.embedded).home(), {
         preserveState: false,
         preserveScroll: false,
         replace: true,
@@ -142,7 +144,7 @@ onKeyStroke('b', (e) => {
             :class="{ '-translate-x-full rtl:translate-x-full': !isSidebarOpen }"
             v-on-click-outside="closeSidebarOnMobile"
         >
-            <Sidebar :appearance="appearance" v-model:open="isSidebarOpen" :newChatRoute="newChatRoute" />
+            <Sidebar :appearance="appearance" v-model:open="isSidebarOpen" :embedded="embedded" />
         </div>
 
         <div

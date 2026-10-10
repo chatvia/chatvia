@@ -18,8 +18,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 A one-shot snapshot of the whole account for a period: total messages (incoming
 + AI replies), conversations, unique visitors, leads captured, average response
-time, thumbs up/down, tokens, and — for the current cycle — messages used vs the
-plan limit. Use this first when the user asks "how's my account doing?" or wants
+time, thumbs up/down, tokens, and — when the account has a monthly message
+limit — this month's messages used vs that limit. Use this first when the user asks "how's my account doing?" or wants
 an overview, then drill in with the more specific tools.
 TXT)]
 #[IsReadOnly]
@@ -58,8 +58,8 @@ class GetAccountOverviewTool extends AnalyticsTool
             'positive_feedback' => $feedback->positive,
             'negative_feedback' => $feedback->negative,
             'tokens' => $data->tokens,
-            'messages_used_this_cycle' => $data->messagesUsedThisCycle,
-            'messages_limit_this_cycle' => $data->messagesLimitThisCycle,
+            'messages_used_this_month' => $data->messagesUsedThisMonth,
+            'messages_limit_this_month' => $data->messagesLimitThisMonth,
         ]);
     }
 }

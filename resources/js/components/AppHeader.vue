@@ -15,15 +15,17 @@ import {
 } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import UpgradeButton from '@/components/UpgradeButton.vue';
 import UserMenuContent from '@/components/UserMenuContent.vue';
-import { useBilling } from '@/composables/useBilling';
 import { useBrand } from '@/composables/useBrand';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import { dashboard } from '@/routes';
+import { index as agentsIndex } from '@/routes/agents';
+import { chat as askYourData } from '@/routes/analytics';
+import { index as teamsIndex } from '@/routes/teams';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart3, BookOpen, BotMessageSquare, Code2, CreditCard, HelpCircle, LayoutGrid, Menu, Sparkles, Users } from 'lucide-vue-next';
+import { BookOpen, BotMessageSquare, Code2, LayoutGrid, Menu, Sparkles, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -40,7 +42,6 @@ const props = withDefaults(defineProps<Props>(), {
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
 const { brand } = useBrand();
-const { billingEnabled } = useBilling();
 
 const isCurrentRoute = computed(() => (url: string) => {
     const currentUrl = page.url;
@@ -81,18 +82,13 @@ const mainNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
         {
             title: t('app.header.dashboard'),
-            href: route('dashboard'),
+            href: dashboard.url(),
             icon: LayoutGrid,
         },
         {
             title: t('app.header.agents'),
-            href: route('agents.index'),
+            href: agentsIndex.url(),
             icon: BotMessageSquare,
-        },
-        {
-            title: t('app.header.usage'),
-            href: route('usage'),
-            icon: BarChart3,
         },
     ];
 
@@ -101,27 +97,10 @@ const mainNavItems = computed<NavItem[]>(() => {
     if (!isEmployee.value && isOwner.value) {
         items.push({
             title: t('app.header.ask_your_data'),
-            href: route('analytics.chat'),
+            href: askYourData.url(),
             icon: Sparkles,
         });
     }
-
-    // Billing is workspace-owner only — employees/teammates are blocked from
-    // the billing routes server-side (DenyIfEmployee). Hidden entirely when
-    // the install runs without billing.
-    if (billingEnabled.value && !isEmployee.value && isOwner.value) {
-        items.push({
-            title: t('app.header.billing'),
-            href: route('billing.index'),
-            icon: CreditCard,
-        });
-    }
-
-    items.push({
-        title: t('app.header.support'),
-        href: route('support'),
-        icon: HelpCircle,
-    });
 
     return items;
 });
@@ -180,9 +159,9 @@ const rightNavItems = computed<NavItem[]>(() => {
                                     </Link>
                                     <!-- Teams Link -->
                                     <Link
-                                        :href="route('teams.index')"
+                                        :href="teamsIndex.url()"
                                         class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
-                                        :class="activeItemStyles(route('teams.index'))"
+                                        :class="activeItemStyles(teamsIndex.url())"
                                     >
                                         <Users class="h-5 w-5" />
                                         {{ t('app.header.teams') }}
@@ -205,7 +184,7 @@ const rightNavItems = computed<NavItem[]>(() => {
                     </Sheet>
                 </div>
 
-                <Link :href="route('dashboard')" class="flex items-center gap-x-2">
+                <Link :href="dashboard.url()" class="flex items-center gap-x-2">
                     <AppLogoIcon class="size-10" />
                 </Link>
 
@@ -234,8 +213,6 @@ const rightNavItems = computed<NavItem[]>(() => {
                 <div class="ms-auto flex items-center gap-2">
                     <TeamSwitcher class="hidden md:flex" />
                     <div class="relative flex items-center gap-1">
-                        <UpgradeButton />
-
                         <div class="hidden gap-1 lg:flex">
                             <template v-for="item in rightNavItems" :key="item.title">
                                 <TooltipProvider :delay-duration="0">

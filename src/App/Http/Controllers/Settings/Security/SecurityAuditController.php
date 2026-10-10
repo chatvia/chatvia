@@ -9,30 +9,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Pennant\Feature;
 
 /**
  * Read-only viewer for the immutable `security_audit_log` — every
  * authentication, membership, configuration, and data event for the workspace.
- * Part of the Security & Compliance suite (Pro+); non-entitled workspaces get
- * the upsell instead of rows. Gated by the `account.security` team permission.
+ * Part of the Security & Compliance suite. Gated by the `account.security`
+ * team permission.
  */
 class SecurityAuditController
 {
     public function __invoke(Request $request): Response
     {
-        $entitled = Feature::for($request->user())->active('security');
-
-        if (! $entitled) {
-            return Inertia::render('workspace/security/SecurityAudit', [
-                'entitled' => false,
-                'rows' => ['data' => [], 'next_page_url' => null, 'prev_page_url' => null],
-                'categories' => [],
-                'outcomes' => [],
-                'filters' => ['category' => null, 'outcome' => null],
-            ]);
-        }
-
         $query = SecurityAuditLog::query()
             ->forWorkspace($request->user()->workspace()->id)
             ->with('user:id,name,email,profile_image_path')
@@ -46,7 +33,6 @@ class SecurityAuditController
             ->through(fn (SecurityAuditLog $row): array => $row->toAuditArray());
 
         return Inertia::render('workspace/security/SecurityAudit', [
-            'entitled' => true,
             'rows' => $rows,
             'categories' => array_map(
                 fn (SecurityAuditCategory $c): array => ['value' => $c->value, 'label' => $c->label()],

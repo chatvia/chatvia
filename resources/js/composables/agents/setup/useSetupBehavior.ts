@@ -4,6 +4,7 @@
  * and Command Bar trigger + placement (`bar` group). Each surface has its own
  * form and Save button. Also builds the option lists for their selects.
  */
+import { update as updateSettings } from '@/routes/agents/settings';
 import { useForm } from '@inertiajs/vue3';
 import { computed, ref, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -21,7 +22,7 @@ export function useSetupBehavior({ agentId, reloadPreview }: SetupSectionDeps, e
     const { t } = useI18n();
 
     const saveGroup = (form: Parameters<typeof submitSetupForm>[0], group: BehaviorGroup, saving: Ref<boolean>, successKey: string): void =>
-        submitSetupForm(form, 'post', route('agents.settings.update', { agent: agentId(), group }), {
+        submitSetupForm(form, 'post', updateSettings.url({ agent: agentId(), group }), {
             saving,
             success: t(successKey),
             error: t('agents.setup.toasts.behaviour_error'),

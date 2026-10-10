@@ -3,6 +3,10 @@
  * texts and websites the agent does not use yet, and the calls that attach one
  * of them to the agent. Used by the "attach existing source" dialogs.
  */
+import { list as trainedFiles } from '@/routes/agents/sources';
+import { link as linkFile } from '@/routes/agents/sources/files';
+import texts from '@/routes/agents/sources/texts';
+import trainedWebsites from '@/routes/agents/sources/trained-websites';
 import { get, post } from './http';
 
 /** Another agent that already uses a source (shown as "used in N agents"). */
@@ -41,27 +45,27 @@ export function fetchAttachableFiles(agentId: string, fileType?: string): Promis
         params.type = fileType;
     }
 
-    return get<AttachableFile[]>(route('agents.sources.list', { agent: agentId }), { params });
+    return get<AttachableFile[]>(trainedFiles.url(agentId), { params });
 }
 
 export function attachFile(agentId: string, fileId: number): Promise<void> {
-    return post(route('agents.sources.files.link', { agent: agentId, fileId }), { file_id: fileId });
+    return post(linkFile.url({ agent: agentId, fileId }), { file_id: fileId });
 }
 
 /** Trained texts the agent does not use yet. */
 export function fetchAttachableTexts(agentId: string): Promise<AttachableText[]> {
-    return get<AttachableText[]>(route('agents.sources.texts.list', { agent: agentId }));
+    return get<AttachableText[]>(texts.list.url(agentId));
 }
 
 export function attachText(agentId: string, textId: number): Promise<void> {
-    return post(route('agents.sources.texts.link', { agent: agentId, textId }), { text_id: textId });
+    return post(texts.link.url({ agent: agentId, textId }), { text_id: textId });
 }
 
 /** Trained websites the agent does not use yet. */
 export function fetchAttachableWebsites(agentId: string | number): Promise<AttachableWebsite[]> {
-    return get<AttachableWebsite[]>(route('agents.sources.trained-websites.index', { agent: agentId }));
+    return get<AttachableWebsite[]>(trainedWebsites.index.url(String(agentId)));
 }
 
 export function attachWebsite(agentId: string | number, websiteId: number): Promise<void> {
-    return post(route('agents.sources.trained-websites.link', { agent: agentId, websiteId }), { website_id: websiteId });
+    return post(trainedWebsites.link.url({ agent: String(agentId), websiteId }), { website_id: websiteId });
 }

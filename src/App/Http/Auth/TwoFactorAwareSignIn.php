@@ -8,7 +8,7 @@ use Illuminate\Http\RedirectResponse;
 
 /**
  * The last step of the sign-in paths that do not go through Fortify's login
- * pipeline (magic links, social sign-in, the trial checkout): the credential
+ * pipeline (magic links, social sign-in): the credential
  * is already verified, and this decides how the session starts.
  *
  *  - A deactivated account is sent back to the login page.

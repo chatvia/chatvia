@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "Luo agentti",
-            "limit_title": "Agenttirajasi on täynnä",
-            "limit_description": "Olet saavuttanut agenttirajasi.",
-            "upgrade_plan": "Päivitä suunnitelma",
             "name_label": "Agentin nimi",
-            "name_placeholder": "Esim. Asiakastuki",
-            "load_error": "Käyttötietojen lataaminen epäonnistui",
-            "limit_toast_title": "Agenttirajasi on täynnä",
-            "limit_toast_description": "Olet saavuttanut agenttirajasi."
+            "name_placeholder": "Esim. Asiakastuki"
         }
     },
     "confirm_password": {

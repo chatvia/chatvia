@@ -3,16 +3,11 @@
         "header": {
             "dashboard": "Panel główny",
             "agents": "Agenci",
-            "usage": "Użycie",
             "ask_your_data": "Zapytaj swoje dane",
-            "billing": "Rozliczenia",
-            "support": "Wsparcie",
             "teams": "Zespoły",
             "documentation": "Dokumentacja",
             "api": "API",
-            "nav_menu_sr": "Menu nawigacyjne",
-            "upgrade": "Ulepsz plan",
-            "subscribed": "Masz aktywną subskrypcję"
+            "nav_menu_sr": "Menu nawigacyjne"
         }
     },
     "agents": {

@@ -15,7 +15,7 @@ use Support\Exceptions\DomainValidationException;
  * and kind — so the dashboard can show what will be ingested.
  *
  * Refuses (as a `file` validation error) a file the workspace already uploaded
- * when an agent is given, and a document longer than the remaining page quota.
+ * when an agent is given.
  */
 class AgentSourceAnalyzeFileAction
 {
@@ -30,13 +30,6 @@ class AgentSourceAnalyzeFileAction
         }
 
         $info = $this->fileAnalyzer->analyze($uploadedFile->getPathname(), file_extension($uploadedFile));
-
-        if (! $user->consumption()->canUploadPages($info->length)) {
-            throw new DomainValidationException(
-                'file',
-                __('File upload limit exceeded. This document requires :pages pages.', ['pages' => $info->length]),
-            );
-        }
 
         return KnowledgeAnalyzeResourceData::from([
             'length' => $info->length,

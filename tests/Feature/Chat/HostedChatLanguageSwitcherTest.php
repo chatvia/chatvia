@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Agent\Models\Agent;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -7,13 +8,9 @@ use Inertia\Testing\AssertableInertia as Assert;
  * the embed `show_language_switcher` setting. Default on; the owner can hide it.
  */
 beforeEach(function (): void {
-    $this->agent = proPlanAgent();
+    $this->agent = Agent::factory()->create();
     $this->agent->update(['is_public' => true]);
     $this->host = $this->agent->sub_domain.'.chatvia.test';
-
-    // Clear the message-credit gate so the hosted chat actually renders rather
-    // than the AgentNoMessages capacity screen.
-    fakeMessageCreditGate();
 });
 
 it('defaults the embed language-switcher setting on', function (): void {

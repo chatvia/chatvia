@@ -11,11 +11,9 @@ use Illuminate\Support\ServiceProvider;
  * Puts the values saved in the admin panel (Settings) into config, once every
  * provider has registered and before any provider boots (package providers
  * included). Listed first in bootstrap/providers.php, so its booting callback
- * runs before the ones the other app providers add: AppServiceProvider
- * decides there whether Cashier adds its routes, from `billing.enabled`.
- * Every boot() then sees the saved values (AppServiceProvider sets the Stripe
- * key), and so does everything after: the Entitlements driver, middleware,
- * controllers.
+ * runs before the ones the other app providers add. Every boot() then sees
+ * the saved values, and so does everything after: middleware, controllers,
+ * jobs.
  *
  * It cannot apply inside register(): the cache is a deferred service, which
  * can be resolved only after every provider has registered. Without a

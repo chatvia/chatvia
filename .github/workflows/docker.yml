@@ -1,0 +1,84 @@
+name: Docker image
+
+# Builds the application image (Dockerfile) for every version tag and pushes it
+# to the GitHub Container Registry, next to this repository. The tag v1.4.2
+# publishes ghcr.io/<owner>/<repo>:1.4.2, :1.4, :1 and :latest. A pre-release
+# tag (v1.5.0-rc.1) only publishes its own version. The image is built only
+# after the test suite passes.
+#
+# No secrets to set up: the job signs in with the workflow's own GITHUB_TOKEN.
+# The first push from a private repository creates a private package; make it
+# public once in the package settings (this cannot be undone).
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+# Two tags pushed together build one after the other, so `latest` ends on the
+# newest one.
+concurrency:
+  group: docker-image
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+
+jobs:
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+
+  image:
+    name: Build and push
+    needs: tests
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # arm64 is built through emulation. Only the PHP extensions and system
+      # packages are slow there, and those layers come from the cache after the
+      # first build.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags and labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref_name, 'v0.') }}
+          flavor: |
+            latest=auto
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

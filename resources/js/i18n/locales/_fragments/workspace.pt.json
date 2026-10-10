@@ -110,7 +110,6 @@
             "description": "Chaves de conta para a {api_link} — crie e gira agentes, conhecimento, servidores MCP e funções.",
             "api_link": "API do Chatvia",
             "generate": "Gerar chave",
-            "locked": "Atualize o seu plano para emitir chaves API e integrar o Chatvia nas suas aplicações.",
             "empty_title": "Ainda não há chaves API",
             "empty_description": "Gere uma para começar a utilizar a API do Chatvia.",
             "never": "Nunca",

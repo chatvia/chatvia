@@ -34,11 +34,9 @@ class WorkspaceChatterRowData extends Data
 
     public static function fromModel(User $chatter): self
     {
-        // Latest monthly credit (eager-load `chatterMessageCredit.usage`). The
-        // cap carries forward even between periods; usage is 0 until the new
-        // month's row is provisioned on the next message.
-        $credit = $chatter->chatterMessageCredit;
-        $isCurrentPeriod = $credit !== null && $credit->ends_at->greaterThanOrEqualTo(now());
+        // Eager-load `messageLimit`. The limit carries over to a new month;
+        // the count shows 0 until the chatter's first message of that month.
+        $limit = $chatter->messageLimit;
 
         return new self(
             external_id: $chatter->external_id,
@@ -48,8 +46,8 @@ class WorkspaceChatterRowData extends Data
             status: $chatter->email_verified_at !== null ? 'active' : 'pending',
             agents_count: (int) ($chatter->accessible_agents_count ?? $chatter->accessibleAgents()->count()),
             created_at: ($chatter->created_at ?? now())->toIso8601String(),
-            messages_limit: $credit?->messages,
-            messages_used: $isCurrentPeriod ? (int) ($credit->usage?->messages ?? 0) : 0,
+            messages_limit: $limit?->monthly_limit,
+            messages_used: $limit?->usedThisMonth() ?? 0,
             is_deactivated: $chatter->isDeactivated(),
             deactivation_reason: $chatter->deactivation_reason,
         );

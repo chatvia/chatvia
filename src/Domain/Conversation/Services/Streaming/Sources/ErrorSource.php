@@ -10,16 +10,16 @@ use Generator;
 use Illuminate\Support\Str;
 
 /**
- * Ends a turn that was refused before any model work began (no subscription,
- * no credits, a limit reached, an approval already handled) with one typed
- * error event.
+ * Ends a turn that was refused before any model work began (a monthly
+ * message limit or the rate limit reached, an approval already handled) with
+ * one typed error event.
  */
 class ErrorSource
 {
     /**
-     * Emit a single typed error event followed by `done`. Used for
-     * subscription/credit failures and any other reason the request was
-     * refused before LLM work began.
+     * Emit a single typed error event followed by `done`. Used for message
+     * limits and any other reason the request was refused before LLM work
+     * began.
      *
      * @return Generator<int, StreamEvent>
      */

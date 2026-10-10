@@ -1,6 +1,8 @@
 <?php
 
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
@@ -14,11 +16,6 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Mockery\MockInterface;
-use Stripe\Exception\ApiConnectionException;
-use Stripe\Exception\InvalidRequestException;
-use Stripe\StripeClient;
-use Stripe\Subscription as StripeSubscription;
 
 beforeEach(function (): void {
     // The teardown wipes users/{external_id} on the default, public and
@@ -71,62 +68,17 @@ it('tears down team memberships, owned teams, and workspace sub-users', function
         ->and(DB::table('team_user')->where('team_id', $team->id)->exists())->toBeFalse();
 });
 
-it('tears down a workspace with multiple already-canceled subscriptions without calling Stripe', function (): void {
+it('deletes the workspace message limit and its chatters\' limits', function (): void {
     $owner = User::factory()->create();
+    $chatter = User::factory()->chatter($owner)->create();
 
-    // Factory users carry no UserBilling row (the trial-checkout webhook
-    // provisions it in production) — create it explicitly.
-    $billing = $owner->billing()->firstOrCreate([]);
-
-    // Already-canceled subscriptions are skipped (no Stripe call) but must still
-    // cascade-delete with user_billing — and a workspace can hold more than one.
-    foreach (['sub_test_a', 'sub_test_b'] as $stripeId) {
-        $billing->subscriptions()->create([
-            'type' => $stripeId,
-            'stripe_id' => $stripeId,
-            'stripe_status' => 'canceled',
-            'ends_at' => now()->subDay(),
-        ]);
-    }
+    $setLimit = app(SetMessageLimitAction::class);
+    $setLimit->execute($owner, 1000);
+    $setLimit->execute($chatter, 50);
 
     app(DeleteUserAccountAction::class)->execute($owner);
 
-    expect(User::whereKey($owner->id)->exists())->toBeFalse()
-        ->and(DB::table('subscriptions')->whereIn('stripe_id', ['sub_test_a', 'sub_test_b'])->exists())->toBeFalse();
-});
-
-it('deletes a workspace whose subscription is canceled but still within its trial window', function (): void {
-    // Regression for the account-deletion 500: a subscription Stripe has already
-    // canceled still reports subscribed()/onTrial() === true locally while
-    // trial_ends_at is in the future. The teardown must NOT cancel it again —
-    // Stripe rejects re-cancelling a closed subscription ("A canceled subscription
-    // can only update its cancellation_details and metadata"). cancelSubscriptions()
-    // skips it (ends_at is set) and nothing else may reach for Stripe; if anything
-    // does, it hits $owner->stripe() and this test blows up. A clean delete proves
-    // no second cancel is attempted.
-    $owner = User::factory()->create();
-
-    $billing = $owner->billing()->firstOrCreate([]);
-    $billing->stripe_id = 'cus_test_trial';
-    $billing->save();
-
-    $subscription = $billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_trial',
-        'stripe_status' => 'canceled',
-        'ends_at' => now()->subHour(),        // already closed on Stripe
-        'trial_ends_at' => now()->addDays(2), // …but the trial window hasn't lapsed
-    ]);
-
-    // The precondition that used to trip UserObserver::deleting(): canceled, yet
-    // still "subscribed" because the trial is live.
-    expect($subscription->canceled())->toBeTrue()
-        ->and($owner->billing->subscribed())->toBeTrue();
-
-    app(DeleteUserAccountAction::class)->execute($owner);
-
-    expect(User::whereKey($owner->id)->exists())->toBeFalse()
-        ->and(DB::table('subscriptions')->where('id', $subscription->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->whereIn('user_id', [$owner->id, $chatter->id])->exists())->toBeFalse();
 });
 
 it('leaves other workspaces untouched while tearing one down', function (): void {
@@ -241,82 +193,4 @@ it('deletes leads, Sanctum tokens and HTTP sessions the FK cascade would orphan'
     expect(FormSubmission::whereKey($lead->id)->exists())->toBeFalse()
         ->and(DB::table('personal_access_tokens')->whereIn('tokenable_id', [$owner->id, $employee->id])->where('tokenable_type', $owner->getMorphClass())->exists())->toBeFalse()
         ->and(DB::table('sessions')->whereIn('user_id', [$owner->id, $employee->id])->exists())->toBeFalse();
-});
-
-/**
- * Give the owner a live subscription and stub the StripeClient Cashier
- * resolves, so `cancelNow()` can be made to fail in a chosen way.
- */
-function ownerWithLiveSubscription(MockInterface $subscriptions): User
-{
-    $owner = User::factory()->create();
-    $billing = $owner->billing()->firstOrCreate([]);
-    $billing->stripe_id = 'cus_live';
-    $billing->save();
-
-    $billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_live',
-        'stripe_status' => 'active',
-    ]);
-
-    $stripe = Mockery::mock(StripeClient::class);
-    $stripe->subscriptions = $subscriptions;
-    app()->bind(StripeClient::class, fn () => $stripe);
-
-    return $owner;
-}
-
-it('stops the deletion and rethrows when Stripe has a transient failure', function (): void {
-    // A network error is not proof the subscription is gone: deleting the
-    // customer now would leave a live subscription billing them. The job must
-    // fail and retry instead.
-    $subscriptions = Mockery::mock();
-    $subscriptions->shouldReceive('cancel')->andThrow(new ApiConnectionException('Could not connect to Stripe.'));
-    $owner = ownerWithLiveSubscription($subscriptions);
-
-    expect(fn () => app(DeleteUserAccountAction::class)->execute($owner))
-        ->toThrow(ApiConnectionException::class);
-
-    expect(User::whereKey($owner->id)->exists())->toBeTrue()
-        ->and(DB::table('subscriptions')->where('stripe_id', 'sub_live')->value('ends_at'))->toBeNull();
-});
-
-it('rethrows a Stripe rejection when the subscription is still live there', function (): void {
-    $subscriptions = Mockery::mock();
-    $subscriptions->shouldReceive('cancel')->andThrow(
-        InvalidRequestException::factory('Invalid request.', 400, null, null, null, 'parameter_invalid_empty'),
-    );
-    $subscriptions->shouldReceive('retrieve')->andReturn(StripeSubscription::constructFrom(['id' => 'sub_live', 'status' => 'active']));
-    $owner = ownerWithLiveSubscription($subscriptions);
-
-    expect(fn () => app(DeleteUserAccountAction::class)->execute($owner))
-        ->toThrow(InvalidRequestException::class);
-
-    expect(User::whereKey($owner->id)->exists())->toBeTrue();
-});
-
-it('treats a subscription Stripe no longer has as canceled and finishes the deletion', function (): void {
-    $subscriptions = Mockery::mock();
-    $subscriptions->shouldReceive('cancel')->andThrow(
-        InvalidRequestException::factory('No such subscription', 404, null, null, null, 'resource_missing'),
-    );
-    $owner = ownerWithLiveSubscription($subscriptions);
-
-    app(DeleteUserAccountAction::class)->execute($owner);
-
-    expect(User::whereKey($owner->id)->exists())->toBeFalse();
-});
-
-it('treats a subscription Stripe already closed as canceled and finishes the deletion', function (): void {
-    $subscriptions = Mockery::mock();
-    $subscriptions->shouldReceive('cancel')->andThrow(
-        InvalidRequestException::factory('A canceled subscription can only update its cancellation_details and metadata.', 400),
-    );
-    $subscriptions->shouldReceive('retrieve')->andReturn(StripeSubscription::constructFrom(['id' => 'sub_live', 'status' => 'canceled']));
-    $owner = ownerWithLiveSubscription($subscriptions);
-
-    app(DeleteUserAccountAction::class)->execute($owner);
-
-    expect(User::whereKey($owner->id)->exists())->toBeFalse();
 });

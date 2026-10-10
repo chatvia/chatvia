@@ -7,17 +7,13 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { Calendar, Circle, Filter, Globe, LoaderCircle, RefreshCcw, ThumbsDown, ThumbsUp, X } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getSourceIcon } from './sourceMeta';
 import { useChatLog } from './useChatLog';
 
 const { t } = useI18n();
-
-const { hasCapability } = useCapabilityGuard();
-const hasTopicsAccess = computed(() => hasCapability('topics'));
 
 const {
     conversations,
@@ -61,7 +57,7 @@ function toggleOnlineOnly() {
 
 const MS_PER_DAY = 86_400_000;
 
-// Relative-time string for the conversation's per-plan retention horizon.
+// Relative-time string for the conversation's retention horizon.
 // Returns null when the date is missing or already past so we can hide the
 // row entirely; the prune command will sweep the row on its next run anyway.
 function formatExpiresIn(iso: string | null | undefined): string | null {
@@ -343,12 +339,12 @@ function clearFilter(filter: FilterChip) {
                                 class="h-3 w-3 rounded-sm object-cover"
                                 :title="c.country.toUpperCase()"
                             />
-                            <span v-if="hasTopicsAccess && c.topics?.length" class="max-w-[100px] truncate">{{ c.topics.join(', ') }}</span>
-                            <span v-if="hasTopicsAccess && c.topics?.length" class="opacity-50">•</span>
+                            <span v-if="c.topics?.length" class="max-w-[100px] truncate">{{ c.topics.join(', ') }}</span>
+                            <span v-if="c.topics?.length" class="opacity-50">•</span>
                             <span>{{ formatTimeAgo(c.last_at) }}</span>
                         </div>
 
-                        <!-- Per-plan retention horizon. Hidden when expires_at
+                        <!-- Retention horizon. Hidden when expires_at
                              is null (legacy rows) or already in the past — the
                              prune command sweeps those on its next run. -->
                         <div

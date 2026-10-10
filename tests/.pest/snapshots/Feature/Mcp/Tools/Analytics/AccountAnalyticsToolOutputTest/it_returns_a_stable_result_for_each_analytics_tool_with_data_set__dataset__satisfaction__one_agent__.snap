@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "This billing cycle: 1👍 / 0👎 (100% positive). AI could not answer 33.3% of replies."
+            "text": "This month: 1👍 / 0👎 (100% positive). AI could not answer 33.3% of replies."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "positive_feedback": 1,
         "negative_feedback": 0,
@@ -63,7 +63,7 @@
                 }
             ],
             "title": {
-                "text": "Sentiment — this billing cycle",
+                "text": "Sentiment — this month",
                 "left": "center"
             }
         }

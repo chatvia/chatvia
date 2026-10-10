@@ -2,8 +2,8 @@
 
 use App\Identity\Chatter\Actions\UpdateChatterAccessAction;
 use App\Identity\Chatter\Data\UpdateChatterAccessData;
+use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserCredit;
 
 beforeEach(function (): void {
     $this->workspace = User::factory()->workspace()->create();
@@ -18,14 +18,14 @@ it('sets a monthly message limit', function (): void {
         deactivated: false,
     ));
 
-    expect(UserCredit::query()->where('user_id', $this->chatter->id)->value('messages'))->toBe(250);
+    expect(MessageLimit::query()->where('user_id', $this->chatter->id)->value('monthly_limit'))->toBe(250);
 });
 
 it('clears the limit when null is given', function (): void {
     $this->action->execute(new UpdateChatterAccessData($this->chatter, 100, false));
     $this->action->execute(new UpdateChatterAccessData($this->chatter, null, false));
 
-    expect(UserCredit::query()->where('user_id', $this->chatter->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->where('user_id', $this->chatter->id)->exists())->toBeFalse();
 });
 
 it('deactivates a chatter with a reason', function (): void {

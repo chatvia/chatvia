@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import type { Message } from '@/types/chat';
 import type { StreamErrorCode } from '@/types/stream';
-import { AlertTriangle, CreditCard, RefreshCw, WifiOff } from 'lucide-vue-next';
+import { AlertTriangle, MessageSquareOff, RefreshCw, WifiOff } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -22,27 +22,20 @@ interface Treatment {
     severity: Severity;
     icon: typeof AlertTriangle;
     titleKey: string;
-    cta?: { labelKey: string; href: string };
 }
 
 const TREATMENT: Record<StreamErrorCode, Treatment> = {
-    subscription_expired: {
-        severity: 'block',
-        icon: CreditCard,
-        titleKey: 'errors.subscription_expired',
-        cta: { labelKey: 'errors.renew_subscription', href: '/my/billing' },
-    },
+    // The agent's workspace or the chatter used up this month's messages; the
+    // server's message says which.
     message_limit_reached: {
         severity: 'block',
-        icon: CreditCard,
+        icon: MessageSquareOff,
         titleKey: 'errors.message_limit_reached',
-        cta: { labelKey: 'errors.upgrade_plan', href: '/my/billing' },
     },
-    token_limit_reached: {
+    chatter_message_limit_reached: {
         severity: 'block',
-        icon: CreditCard,
-        titleKey: 'errors.token_limit_reached',
-        cta: { labelKey: 'errors.upgrade_plan', href: '/my/billing' },
+        icon: MessageSquareOff,
+        titleKey: 'errors.message_limit_reached',
     },
     upstream_unavailable: {
         severity: 'transient',
@@ -104,10 +97,7 @@ const iconClass = computed(() => {
         <div class="min-w-0 flex-1">
             <p class="text-sm font-medium">{{ t(treatment.titleKey) }}</p>
             <p class="text-muted-foreground mt-0.5 text-sm leading-relaxed">{{ message.content }}</p>
-            <div v-if="treatment.cta || message.errorRetryable" class="mt-3 flex flex-wrap items-center gap-2">
-                <a v-if="treatment.cta" :href="treatment.cta.href" target="_top">
-                    <Button size="sm" variant="default">{{ t(treatment.cta.labelKey) }}</Button>
-                </a>
+            <div v-if="message.errorRetryable" class="mt-3 flex flex-wrap items-center gap-2">
                 <Button v-if="message.errorRetryable" size="sm" variant="outline" @click="emit('retry')">
                     <RefreshCw class="me-1.5 h-3.5 w-3.5" />
                     {{ t('errors.try_again') }}

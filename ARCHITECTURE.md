@@ -50,7 +50,7 @@ command bar, messaging apps and a REST API.
 | `src/Domain/` | `Domain\` namespace: business logic, one folder per bounded context. |
 | `src/Support/` | `Support\` namespace: small helpers with no business rules. |
 | `routes/` | One file per area (`agents.php`, `chat.php`, `widget.php`, `api.php`, `ai.php`, one per messaging channel, ...). |
-| `config/` | Laravel config plus `chatvia.php` (product settings), `billing.php`, `connectors.php`, `team-permissions.php`. |
+| `config/` | Laravel config plus `chatvia.php` (product settings), `connectors.php`, `team-permissions.php`. |
 | `database/` | Migrations, factories, seeders. |
 | `resources/js/` | The Vue frontend (dashboard and hosted chat). |
 | `resources/prompts/` | LLM prompt templates (Blade files, loaded with `prompt('folder/name')`). |
@@ -69,7 +69,7 @@ command bar, messaging apps and a REST API.
 
 | Namespace | Folder | What goes there |
 |---|---|---|
-| `App\` | `src/App/` | Everything that knows about HTTP or the framework: controllers, form requests, middleware, responses, providers, console commands, the admin panel, the built-in MCP servers, the public website, and the accounts (`App\Identity`). |
+| `App\` | `src/App/` | Everything that knows about HTTP or the framework: controllers, form requests, middleware, responses, providers, console commands, the admin panel, the built-in MCP servers and the accounts (`App\Identity`). |
 | `Domain\` | `src/Domain/` | The business logic: Actions, DTOs, models, services, events, listeners, jobs, policies, enums, queries. One folder per bounded context. |
 | `Support\` | `src/Support/` | Small, generic helpers that any layer may use: external ids, SSRF-safe URLs, signed webhooks, MIME types, UTF-8 text, encrypted casts, the Country and Language reference models, the TypeScript transformers. |
 
@@ -124,20 +124,48 @@ notifications and exceptions under `App\`, and Domain code may import it.
 
 | Sub-namespace | Holds |
 |---|---|
-| `App\Identity\Workspace` | The `User` model (all account types), sign-in flows, sessions and known devices, social accounts, data export, account deletion, password setup, `AgentAccessPolicy`, `TeamPermissionPolicy`, widget sign-in tokens and widget session tokens. |
+| `App\Identity\Workspace` | The `User` model (all account types), sign-in flows, sessions and known devices, social accounts, data export, account deletion, monthly message limits (`MessageLimit`, `MessageAllowance`, `Actions/MessageLimits`), `AgentAccessPolicy`, `TeamPermissionPolicy`, widget sign-in tokens and widget session tokens. |
 | `App\Identity\Chatter` | Chatter accounts: create, update, delete, reset password, chatter auth tokens. |
 | `App\Identity\ApiKey` | Creating and deleting API keys for the REST API. |
 
 All accounts are rows in `users`. The `type` column (`UserType`) says which
 kind: `admin`, `workspace`, `employee` (a teammate) or `chatter`.
 
+#### Message limits
+
+Every workspace gets every feature; there are no feature flags. The only usage
+cap is an optional **monthly message limit**, one `message_limits` row per
+limited account (no row means no limit):
+
+- On a **workspace**, it counts every agent reply of the workspace: web chat,
+  widget, hosted chat and messaging channels (the
+  `CountReplyAgainstMessageLimit` listener on `AssistantReplyCompleted`, so a
+  guardrail refusal is not counted), and each eval case that produced an
+  answer (`ScoreEvalCaseAction`). A platform admin sets it in the admin panel
+  (**Workspaces** → a workspace → **Set message limit**). A new workspace
+  starts with `chatvia.message_limits.new_workspace` (admin panel, **Settings
+  → Workspaces**; 0 = no limit).
+- On a **chatter**, it counts the chatter's own messages
+  (`StoreUserMessageAction`). The workspace sets it in the dashboard
+  (**Chatters** → a chatter → **Limits**).
+
+`MessageAllowance::canSend()` is the per-turn check (cached per account and
+month). `ChatStreamService` ends a refused turn with the SSE error
+`message_limit_reached` or `chatter_message_limit_reached`;
+`ChannelReplyRunner` replies with a short "unavailable" message; an eval run
+does not start, and a running one skips its remaining cases.
+`RecordMessageUsageAction` counts one message and restarts the count when a
+new calendar month has begun, so no scheduled job is needed.
+`SetMessageLimitAction` sets or clears a limit. Messages are counted, never
+tokens.
+
 ### `App\Http`
 
 | Folder | Holds |
 |---|---|
-| `Controllers/{Area}/` | Thin controllers, grouped by screen area (`Agent`, `Chat`, `Widget`, `Api/V1`, `Settings`, `Billing`, `Webhooks`, ...). |
+| `Controllers/{Area}/` | Thin controllers, grouped by screen area (`Agent`, `Chat`, `Widget`, `Api/V1`, `Settings`, `Webhooks`, ...). |
 | `Requests/{Area}/` | Form requests with `rules()`, `authorize()` and `toData()`. |
-| `Middleware/{Access,Auth,Chat,Web,Widget}/` | Access checks (`can.access.agent`, `agent.permission:…`, `team.permission:…`, `capability:…`), authentication, hosted-chat resolution, web concerns (CSP, locale, Inertia), widget origin and access checks. Aliases are registered in `bootstrap/app.php`. |
+| `Middleware/{Access,Auth,Chat,Web,Widget}/` | Access checks (`can.access.agent`, `agent.permission:…`, `team.permission:…`), authentication, hosted-chat resolution, web concerns (CSP, locale, Inertia), widget origin and access checks. Aliases are registered in `bootstrap/app.php`. |
 | `Resources/` | Response DTOs for the REST API (`Api/V1/...Data`) and handoff endpoints. |
 | `Responses/SseResponder.php` | The one place that owns the SSE transport: headers, flushing, sequence numbers, client disconnects. The domain only yields `StreamEvent` objects. |
 | `Rules/` | Validation rules that need the request or app state (PDF page limits, attachment limits, "an LLM that reads PDFs is set up"). |
@@ -185,7 +213,7 @@ dashboard. Link your own website with `BRAND_WEBSITE_URL`.
 |---|---|
 | `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Settings for third-party credentials live in `App\Admin\Settings`. |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
-| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, Stripe, morph map, model strictness). Others: rate limiters, gates, features, filesystems, API docs, Horizon, Telescope, TypeScript transformer. |
+| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, Telescope, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
 
 ---
@@ -268,7 +296,7 @@ files). The `Llm` model is the model catalog agents pick from.
 
 Main parts: `Operations` (summaries, tables, vision, speech to text, titles,
 query rewriting, starters, translation, cost), `Usage` (`TokenUsageContext`
-attributes token usage to a workspace for analytics; it is never billed).
+attributes each AI request to a workspace in the AI request log).
 
 ### Channel
 
@@ -280,31 +308,6 @@ pipeline as the web chat. A channel either shows a typing indicator
 (`SendsTypingIndicator`) or edits a message as the reply grows
 (`StreamsReplies`). Channels answer for public agents only
 (`ChannelAccessGate`).
-
-### Billing
-
-Plans, Stripe subscriptions (Laravel Cashier on the `UserBilling` model),
-message credits, add-ons, auto-recharge, trials and the Stripe webhook. Billing
-counts **messages**, not tokens.
-
-Plans and add-ons are database rows (`BillingPlan`, `BillingAddon`), managed in
-the admin panel. Every reader goes through `Services\Catalog\BillingCatalog`
-(cached, cleared when a row is saved); `PlanCatalog` adds the display fields
-the billing pages need. A plan's `key` is its permanent id. An archived plan is
-not offered any more but still resolves for its subscribers, and old Stripe
-prices stay in `legacy_stripe_price_ids` so renewals keep finding the plan.
-Saving a plan or add-on (`Actions/Catalog`) also creates its Stripe product and
-prices (`StripeCatalogSync`; a changed amount makes a new price, Stripe prices
-being immutable). The feature bullets on a plan card are built from the plan's
-limits, capabilities and ticked highlights (`PlanFeatureList`) and rendered
-with the `billing.features.*` vue-i18n messages.
-
-Everything else asks the **`Entitlements`** contract what a workspace may do.
-`DomainServiceProvider` binds it to `StripeEntitlements` when paid plans are
-on (`billing.enabled`, set in the admin panel under **Settings → Billing**)
-and to `UnlimitedEntitlements` when they are off (the default of a new
-install: every feature on, no limits). `MessageSendGate` is the
-one per-turn check that web chat and channels share.
 
 ### Membership
 
@@ -342,8 +345,8 @@ content are judged by one classifier call. Every decision is logged as a
 ### Security
 
 Workspace security settings and audit: IP allowlist and country rules
-(`NetworkAccessGuard`), the security audit log, delivery to a SIEM webhook,
-and per-workspace overrides for the security feature set.
+(`NetworkAccessGuard`), conversation retention, the security audit log and
+delivery to a SIEM webhook. Every workspace has the full security feature set.
 
 ### Form
 
@@ -359,11 +362,6 @@ widget settings, the visitor's conversation list, broadcast authorization.
 `WidgetHeaders` names the HTTP headers the widget sends (a wire contract), and
 `WidgetVerification` checks that every id in a widget call belongs to the
 agent.
-
-### Helpdesk
-
-Support tickets that workspaces send to the operator of the install
-(`Ticket`, `TicketReply`).
 
 ---
 
@@ -397,6 +395,12 @@ public function store(CreateAgentRequest $request, CreateAgentAction $createAgen
 - The **controller** only does HTTP work: read the form request, call the
   Action, choose the response, flash a message. No database writes, no
   outside HTTP calls, no event dispatch in the controller body.
+- A controller is a **resource controller** (`index`, `create`, `store`,
+  `show`, `edit`, `update`, `destroy`) or a **single-action controller**
+  (`__invoke`), nothing else. An endpoint that is not one of the seven
+  resource verbs gets its own invokable controller named after what it does
+  (`ExportFormSubmissionsController`, `RewriteFormDescriptionController`).
+  `ConventionsTest` fails on any other public method.
 - The **form request** validates, authorizes and builds the DTO with
   `toData()`. Permission checks that are the same for a whole route group go
   on the route as middleware (`can.access.agent`, `agent.permission:…`,
@@ -422,12 +426,12 @@ sign that logic belongs in an Action; `ConventionsTest` fails on it.
 ### Events and listeners
 
 Actions dispatch events for side effects that are not the core operation:
-e-mails, notifications, broadcasts, CRM pushes, billing charges, analysis jobs.
+e-mails, notifications, broadcasts, CRM pushes, message-limit counts, analysis jobs.
 Listeners do the side effect.
 
 - Events are named in the past tense (`MessagePosted`, `FormSubmitted`).
 - Listeners are named by what they do (`SendTeamInvitationEmail`,
-  `ChargeAssistantReply`).
+  `CountReplyAgainstMessageLimit`).
 - **There is no event auto-discovery.** Every listener is registered by hand
   in `DomainServiceProvider::registerEventListeners()`. A listener that is not
   registered never runs, even when its own unit test passes. `ConventionsTest`
@@ -454,7 +458,7 @@ Hosted chat / widget stream controller
       → ChatService             (TurnContextFactory → KnowledgeEnricher → SystemPromptBuilder)
       → a Streaming source       (GuardBlock | Qa | Pdf | Llm)
           → ToolLoopRunner      (stream, run allowed tool calls, repeat)
-      → AssistantReplyRecorder  (memory, chat log, AssistantReplyCompleted → billing)
+      → AssistantReplyRecorder  (memory, chat log, AssistantReplyCompleted → message limit)
   → SseResponder                (events → text/event-stream)
 ```
 
@@ -488,7 +492,7 @@ channel runner.
 | Enum | `{Context}/Enums/` | a noun | `HandoffStatus` |
 | Query | `{Context}/Queries/` | `…Query` (most) | `PendingHandoffsQuery` |
 | Query builder | `{Context}/QueryBuilders/` | `{Model}QueryBuilder` | `ConversationQueryBuilder` |
-| Contract | `{Context}/Contracts/` | a noun or capability | `Entitlements`, `StreamsReplies` |
+| Contract | `{Context}/Contracts/` | a noun or capability | `ChannelAdapter`, `StreamsReplies` |
 
 Domain models never have HTTP-sounding names: `ToolApprovalCheckpoint`, not
 `ToolApprovalRequest`.
@@ -543,7 +547,7 @@ to the column's `enum()` list in its create migration.
 When a folder of Actions, DTOs, form requests or controllers grows past about
 seven files, split it into feature subfolders, by subdomain or operation, not
 by file kind. Examples: `Conversation/Actions/{Conversations,Messages,Sessions,Handoff,...}`,
-`Billing/Actions/{Subscriptions,Credits,Webhooks,...}`,
+`Knowledge/Ingestion/Actions/{Chunks,Documents,Files,...}`,
 `App/Identity/Workspace/Actions/{Account,Sessions,Social,DataExport}`. Do not
 create a one-file `Misc/` folder; propose a real feature name.
 
@@ -635,7 +639,7 @@ Use these words in code, UI and docs. Do not invent synonyms.
 | Contact details captured in a conversation | **Lead** | a `FormSubmission` (`Domain\Form\Models\FormSubmission`) |
 | Where an agent answers | **Surface**: Hosted Chat, Chat Widget, Command Bar | values `hosted_chat`, `widget`, `bar` |
 | A messaging app connection | **Channel** | `Domain\Channel\*` |
-| What a workspace may do | **Entitlements** | `Domain\Billing\Contracts\Entitlements` |
+| A monthly cap on a workspace's agent replies or a chatter's messages | **MessageLimit** | `App\Identity\Workspace\Models\MessageLimit` (`message_limits`) |
 
 ---
 
@@ -656,13 +660,13 @@ accounts.
 | Splitting text | `TextSplitter` | `chunkfit`, `local` | `AI_TEXT_SPLITTER` |
 | Speech to text | `Transcriber` | `scaleway`, `none` | `AI_TRANSCRIBER` |
 | Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `AI_DOCUMENT_LLM` |
-| Plans and limits | `Entitlements` | `StripeEntitlements`, `UnlimitedEntitlements` | Admin panel, **Settings → Billing** |
 | Files | Laravel disks `private`, `public`, `assets` | local, S3-compatible, Bunny CDN (falls back to local) | `FILESYSTEM_*_DRIVER`, `SCALEWAY_BUCKET`, `BUNNYCDN_STORAGE_ZONE` |
 
 API keys and OAuth apps for outside services (AI providers, Firecrawl,
-chunk.fit, Stripe, social sign-in, Meta, connectors, Resend, Turnstile,
-IP2Location) and the billing options (paid plans on or off, sign-up, trial,
-currency, discount) are entered in the admin panel under **Settings**. They
+chunk.fit, social sign-in, Meta, connectors, Resend, Turnstile, IP2Location)
+and the workspace options (open sign-up, the message limit of new workspaces,
+days to keep conversations) are entered in the admin panel under
+**Settings**. They
 are stored encrypted and put into the same config keys when the app boots,
 before the providers boot (`App\Admin\Settings\SettingsStore`). The `.env`
 file chooses drivers, endpoints and models.
@@ -671,8 +675,9 @@ Switches for a self-hosted install:
 
 | Setting | Effect |
 |---|---|
-| Paid plans (admin panel, **Settings → Billing**) | Off by default. Off: no Stripe, every feature on, no quotas, billing pages answer 404. |
-| Open sign-up (admin panel, **Settings → Billing**) | Opens `/register`. On by default while paid plans are off. |
+| Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
+| Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
+| Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
 | `BRAND_*` | Product name, links and the "Powered by" line. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
@@ -692,7 +697,8 @@ The dashboard and the hosted chat are one Inertia + Vue 3 app in
 | `components/ui/` | shadcn-vue components, generated by the shadcn CLI (`components.json`). Do not edit them by hand; ESLint and Prettier skip them. |
 | `components/common/` | Our own shared components (for example `DeleteConfirmationDialog`, `DateRangePicker`). |
 | `components/{area}/` | Components for one area (`agents`, `chat`, `analytics`, ...). |
-| `api/` | Typed API modules, one per area (`api/topics.ts`, `api/chat.ts`, ...), built on `api/http.ts` (`get`, `post`, `put`, `patch`, `del`, `errorMessage`, `validationErrors`) and Ziggy's `route()`. Components never call axios directly. |
+| `api/` | Typed API modules, one per area (`api/topics.ts`, `api/chat.ts`, ...), built on `api/http.ts` (`get`, `post`, `put`, `patch`, `del`, `errorMessage`, `validationErrors`) and the Wayfinder route functions. Components never call axios directly. |
+| `routes/`, `wayfinder/` | Typed URL functions generated from the Laravel routes by Wayfinder (gitignored; see below). |
 | `composables/` | State and side effects shared by components (`useChatStream`, `useDateFormat`, `useTeamPermissions`, `composables/chat/*`, `composables/agents/*`). Each has a short TSDoc header. |
 | `lib/`, `utils/` | Small helpers (`safeStorage`, `fileSize`, the chat event bus). |
 | `types/` | Hand-written types (`SharedData`, chat, stream). |
@@ -700,6 +706,30 @@ The dashboard and the hosted chat are one Inertia + Vue 3 app in
 
 A page file should read like an outline: split a component of more than about
 400 lines into child components and composables.
+
+### URLs (Wayfinder)
+
+Build every URL with the functions Wayfinder generates from the named Laravel
+routes into `resources/js/routes` (`php artisan wayfinder:generate
+--skip-actions`). Route `agents.forms.store` is the `store` export of
+`@/routes/agents/forms`:
+
+```ts
+import { store } from '@/routes/agents/forms';
+
+router.post(store.url(agentId), payload);
+```
+
+The functions return a path, not a full URL; add `window.location.origin`
+when a URL leaves the page (copied, shown, put in an embed snippet). The
+generated folders are gitignored: Vite generates them before each dev or
+build run and again when a route file or controller changes, and
+`composer ci:check` generates them before the frontend checks. For "is this
+the current page?" use `useCurrentRoute()`, which reads the route name and
+parameters the server shares with every page.
+
+Dashboard URLs have no language segment: the UI language follows the
+signed-in user's saved locale.
 
 ### Types from PHP
 

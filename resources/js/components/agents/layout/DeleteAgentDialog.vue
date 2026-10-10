@@ -13,6 +13,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { deleteMethod as deleteAgentRoute } from '@/routes/agents';
 import { router } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -36,7 +37,7 @@ function deleteAgent(): void {
     if (!canDelete.value) return;
 
     isDeleting.value = true;
-    router.delete(route('agents.delete', { agent: props.agentId }), {
+    router.delete(deleteAgentRoute.url(props.agentId), {
         onSuccess: () => {
             isDeleting.value = false;
             open.value = false;

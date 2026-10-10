@@ -11,6 +11,7 @@ import WaitingIndicator from '@/components/chat/WaitingIndicator.vue';
 import { Button } from '@/components/ui/button';
 import { useChatStream } from '@/composables/useChatStream';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { stream as streamAnalyticsChat } from '@/routes/analytics/chat';
 import type { BreadcrumbItem } from '@/types';
 import type { StreamToolData, ToolArtifact } from '@/types/stream';
 import { Head } from '@inertiajs/vue3';
@@ -70,7 +71,7 @@ function send(text?: string): void {
     input.value = '';
     scrollToBottom();
 
-    start(route('analytics.chat.stream'), JSON.stringify({ message, history }), {
+    start(streamAnalyticsChat.url(), JSON.stringify({ message, history }), {
         onStart: (data) => {
             streamingId.value = data.assistant_message_id;
             messages.value.push({ id: data.assistant_message_id, role: 'assistant', content: '', artifacts: [] });

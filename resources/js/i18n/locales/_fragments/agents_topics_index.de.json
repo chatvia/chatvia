@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Themen",
             "description": "Gesprächsthemen und Trends analysieren",
-            "locked_description": "Führen Sie ein Upgrade Ihres Tarifs durch, um die Themenanalyse zu nutzen und Gesprächsthemen automatisch zu erkennen und zu kategorisieren.",
             "disabled_title": "Themenanalyse",
             "disabled_description": "Aktivieren Sie diese Funktion, um automatisch zu erkennen und zu gruppieren, wonach Ihre Besucher in Gesprächen fragen.",
             "blocked_reason": "Das Chat-Protokoll ist deaktiviert, daher gibt es nichts zu analysieren. Aktivieren Sie es unter Einrichtung → Einstellungen, um mit der Erfassung von Themen zu beginnen.",

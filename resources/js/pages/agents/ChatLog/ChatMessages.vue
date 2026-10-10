@@ -7,7 +7,6 @@
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -16,10 +15,6 @@ import { useChatLog } from './useChatLog';
 type Message = Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData;
 
 const { t } = useI18n();
-
-const { hasCapability } = useCapabilityGuard();
-const hasToneAccess = computed(() => hasCapability('tone'));
-const hasSentimentAccess = computed(() => hasCapability('sentiment'));
 
 const emit = defineEmits<{
     (e: 'open-revise', message: Message): void;
@@ -125,22 +120,18 @@ function goToPage(offset: number) {
                         <div class="text-muted-foreground flex flex-wrap items-center gap-2 px-1 text-xs">
                             <!-- Tone (for user messages) -->
                             <span
-                                v-if="hasToneAccess && m.role === 'user' && m.tone"
+                                v-if="m.role === 'user' && m.tone"
                                 :class="getToneBadgeColor(m.tone)"
                                 class="rounded px-1.5 py-0.5 text-[10px] font-medium"
                             >
                                 {{ getToneDisplayName(m.tone) }}
                             </span>
 
-                            <span
-                                v-if="hasToneAccess && hasSentimentAccess && m.role === 'user' && m.tone && m.sentiment"
-                                class="text-muted-foreground/30"
-                                >•</span
-                            >
+                            <span v-if="m.role === 'user' && m.tone && m.sentiment" class="text-muted-foreground/30">•</span>
 
                             <!-- Sentiment (for user messages) -->
                             <span
-                                v-if="hasSentimentAccess && m.role === 'user' && m.sentiment"
+                                v-if="m.role === 'user' && m.sentiment"
                                 class="capitalize"
                                 :class="{
                                     'text-green-600 dark:text-green-400': m.sentiment === 'positive',
@@ -151,11 +142,7 @@ function goToPage(offset: number) {
                                 {{ getSentimentDisplayName(m.sentiment) }}
                             </span>
 
-                            <span
-                                v-if="m.role === 'user' && ((hasToneAccess && m.tone) || (hasSentimentAccess && m.sentiment))"
-                                class="text-muted-foreground/30"
-                                >•</span
-                            >
+                            <span v-if="m.role === 'user' && (m.tone || m.sentiment)" class="text-muted-foreground/30">•</span>
 
                             <!-- Confidence (for assistant) -->
                             <template v-if="m.role === 'assistant'">

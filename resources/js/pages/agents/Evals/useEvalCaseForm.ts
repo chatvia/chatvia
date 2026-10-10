@@ -3,6 +3,7 @@
  * setting so switching scorer in the dialog never loses typed values; on submit
  * only the chosen scorer's settings are packed into `scorer_config`.
  */
+import { store as storeCase, update as updateCase } from '@/routes/agents/evals/cases';
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -107,9 +108,9 @@ export function useEvalCaseForm(agentExternalId: string) {
         };
 
         if (editingId.value) {
-            form.patch(route('agents.evals.cases.update', [agentExternalId, editingId.value]), opts);
+            form.patch(updateCase.url({ agent: agentExternalId, case: editingId.value }), opts);
         } else {
-            form.post(route('agents.evals.cases.store', agentExternalId), opts);
+            form.post(storeCase.url(agentExternalId), opts);
         }
     };
 

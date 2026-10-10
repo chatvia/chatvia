@@ -16,6 +16,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '
 import Switch from '@/components/ui/switch/Switch.vue';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAgentAttachments } from '@/composables/useAgentAttachments';
+import { destroy as destroyFunction, store as storeFunction, update as updateFunction } from '@/routes/integrations/functions';
 import { router, useForm } from '@inertiajs/vue3';
 import { AlignLeft, ExternalLink, Hash, LoaderCircle, Save, Send, Trash2, Webhook } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -125,12 +126,12 @@ watch(
 
 function submit(): void {
     if (props.func) {
-        form.patch(route('integrations.functions.update', { external_id: props.func.id }), {
+        form.patch(updateFunction.url(props.func.id), {
             preserveScroll: true,
             onSuccess: () => emit('update:open', false),
         });
     } else {
-        form.post(route('integrations.functions.store'), {
+        form.post(storeFunction.url(), {
             preserveScroll: true,
             onSuccess: () => emit('update:open', false),
         });
@@ -153,7 +154,7 @@ function askDelete(): void {
 
 function confirmDelete(): void {
     if (!props.func) return;
-    router.delete(route('integrations.functions.destroy', { external_id: props.func.id }), { preserveScroll: true });
+    router.delete(destroyFunction.url(props.func.id), { preserveScroll: true });
     deleteOpen.value = false;
 }
 

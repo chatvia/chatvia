@@ -20,8 +20,7 @@
             "send_link": "Send me a sign-in link",
             "sending_link": "Sending link...",
             "or_continue_with": "Or continue with",
-            "no_account": "Don't have an account?",
-            "start_free_trial": "Start free trial"
+            "no_account": "Don't have an account?"
         },
         "register": {
             "title": "Create an account",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Use a recovery code",
             "use_authenticator_code": "Use an authenticator code"
         },
-        "set_password": {
-            "title": "Choose your password",
-            "description": "Your account is ready. Pick a password to finish setting it up.",
-            "head": "Choose your password",
-            "email_label": "Email address",
-            "password_label": "Password",
-            "password_placeholder": "Password",
-            "confirm_password_label": "Confirm password",
-            "confirm_password_placeholder": "Confirm password",
-            "set_password": "Set password",
-            "setting_password": "Setting password..."
-        },
         "login_member": {
             "description": "Sign in to access this chat workspace",
             "head": "Member Login",
@@ -168,16 +155,6 @@
             "or": "Or",
             "social_email_note_prefix": "Make sure your social account uses",
             "social_email_note_suffix": "— it must match this invitation."
-        },
-        "invitation_invalid": {
-            "title": "Invitation Unavailable",
-            "description": "This invitation cannot be accepted",
-            "head": "Invitation Unavailable",
-            "card_title": "Cannot Accept Invitation",
-            "cannot_accept_prefix": "The invitation to join",
-            "cannot_accept_suffix": "cannot be accepted at this time.",
-            "contact_owner": "Please contact the team owner to resolve this issue.",
-            "go_to_login": "Go to Login"
         },
         "invitation_expired": {
             "title": "Invitation Expired",

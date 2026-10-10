@@ -3,6 +3,7 @@
  * topics attached to an agent (list, attach, create, rename, remove). Used by
  * the Topics analytics page and the Manage Topics page.
  */
+import topics from '@/routes/agents/topics';
 import { del, get, patch, post } from './http';
 
 /** Topic counts per day and in total (Domain\Conversation\Topic\Data\TopicsResourceData). */
@@ -50,52 +51,52 @@ export interface TopicMutation extends TopicMessage {
 
 /** Topic counts per day and in total, for the topic charts. */
 export function fetchTopicTrends(agentId: string): Promise<TopicTrends> {
-    return get<TopicTrends>(route('agents.topics.data', agentId));
+    return get<TopicTrends>(topics.data.url(agentId));
 }
 
 /** The emergent topic suggestions for the agent, most frequent first. */
 export async function fetchTopicSuggestions(agentId: string): Promise<TopicSuggestion[]> {
-    const response = await get<{ suggestions?: TopicSuggestion[] }>(route('agents.topics.suggestions', agentId));
+    const response = await get<{ suggestions?: TopicSuggestion[] }>(topics.suggestions.url(agentId));
 
     return response.suggestions ?? [];
 }
 
 /** Turns a suggestion into a real topic of the agent. */
 export function promoteTopicSuggestion(agentId: string, label: string): Promise<TopicMutation> {
-    return post<TopicMutation>(route('agents.topics.suggestions.promote', agentId), { label });
+    return post<TopicMutation>(topics.suggestions.promote.url(agentId), { label });
 }
 
 /** Dismisses a suggestion so it is not shown again. */
 export function dismissTopicSuggestion(agentId: string, label: string): Promise<TopicMessage> {
-    return del<TopicMessage>(route('agents.topics.suggestions.dismiss', agentId), { data: { label } });
+    return del<TopicMessage>(topics.suggestions.dismiss.url(agentId), { data: { label } });
 }
 
 /** The topics attached to the agent, sorted by name. */
 export function fetchAgentTopics(agentId: string): Promise<Topic[]> {
-    return get<Topic[]>(route('agents.topics.index', agentId));
+    return get<Topic[]>(topics.index.url(agentId));
 }
 
 /** Every topic the agent may use (system topics and the workspace's own), sorted by name. */
 export function fetchAvailableTopics(agentId: string): Promise<Topic[]> {
-    return get<Topic[]>(route('agents.topics.index', agentId), { params: { all: true } });
+    return get<Topic[]>(topics.index.url(agentId), { params: { all: true } });
 }
 
 /** Attaches an existing topic to the agent. */
 export function attachTopic(agentId: string, topicId: number): Promise<TopicMutation> {
-    return post<TopicMutation>(route('agents.topics.store', agentId), { topic_id: topicId });
+    return post<TopicMutation>(topics.store.url(agentId), { topic_id: topicId });
 }
 
 /** Creates a new topic and attaches it to the agent. */
 export function createTopic(agentId: string, input: TopicInput): Promise<TopicMutation> {
-    return post<TopicMutation>(route('agents.topics.store', agentId), input);
+    return post<TopicMutation>(topics.store.url(agentId), input);
 }
 
 /** Renames one of the agent's topics. */
 export function updateTopic(agentId: string, topicId: number, input: TopicInput): Promise<TopicMutation> {
-    return patch<TopicMutation>(route('agents.topics.update', [agentId, topicId]), input);
+    return patch<TopicMutation>(topics.update.url({ agent: agentId, topic: topicId }), input);
 }
 
 /** Removes a topic from the agent. */
 export function detachTopic(agentId: string, topicId: number): Promise<TopicMessage> {
-    return del<TopicMessage>(route('agents.topics.destroy', { agent: agentId, topic: topicId }));
+    return del<TopicMessage>(topics.destroy.url({ agent: agentId, topic: topicId }));
 }

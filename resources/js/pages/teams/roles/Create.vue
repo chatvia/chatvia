@@ -4,6 +4,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 import AppLayout from '@/layouts/AppLayout.vue';
+import { createRole } from '@/routes/teams';
 import { type BreadcrumbItem } from '@/types';
 import RoleForm from './components/RoleForm.vue';
 
@@ -49,7 +50,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('teams.create-role', props.team.external_id));
+    form.post(createRole.url(props.team.external_id));
 };
 </script>
 

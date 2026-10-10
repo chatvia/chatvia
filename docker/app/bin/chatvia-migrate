@@ -1,0 +1,79 @@
+#!/bin/sh
+# One-shot: prepares the database. Runs on every start of the stack, before
+# the web server and the workers, so an upgrade migrates before the new code
+# serves requests. Every step is safe to repeat.
+#
+#   1. wait for PostgreSQL
+#   2. run the migrations (the first one installs the search extensions)
+#   3. load the AI model list (reference data, never demo data)
+#   4. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, once
+#   5. add the built-in tools to the tool catalog (needs an embedding API key)
+set -eu
+
+cd "${APP_BASE_DIR:-/var/www/chatvia}"
+
+# Connects through Laravel, so the settings come from the same place as the
+# app's: environment variables, then the image's .env.
+database_is_ready() {
+    php -r '
+        require "vendor/autoload.php";
+        $app = require "bootstrap/app.php";
+        $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        Illuminate\Support\Facades\DB::connection()->getPdo();
+    ' > /dev/null 2>&1
+}
+
+echo "Waiting for the database..."
+attempt=0
+until database_is_ready; do
+    attempt=$((attempt + 1))
+    if [ "$attempt" -ge 60 ]; then
+        echo "The database did not answer within 2 minutes." >&2
+        exit 1
+    fi
+    sleep 2
+done
+
+php artisan migrate --force --no-interaction
+php artisan db:seed --class='Database\Seeders\LlmSeeder' --force --no-interaction
+
+admin_email="${ADMIN_EMAIL:-admin@example.com}"
+admin_password="${ADMIN_PASSWORD:-}"
+generated_password=false
+if [ -z "$admin_password" ]; then
+    admin_password=$(php -r 'echo bin2hex(random_bytes(12));')
+    generated_password=true
+fi
+
+output=$(php artisan admin:create-user "$admin_email" "${ADMIN_NAME:-Admin}" "$admin_password" --if-missing --no-interaction)
+echo "$output"
+
+if [ "$generated_password" = true ] && echo "$output" | grep -q 'created successfully'; then
+    cat <<EOF
+
+================================================================
+  First admin account created. This password is shown only once.
+
+  Email:    $admin_email
+  Password: $admin_password
+
+  Sign in, then change the password under Account settings.
+================================================================
+
+EOF
+fi
+
+# The tool catalog stores an embedding of each tool, so this needs the
+# embedding provider's API key (admin panel, Settings -> AI providers). On a
+# new install that key is not there yet: the stack still starts.
+if ! php artisan app:sync-builtin-mcp --no-interaction; then
+    cat <<'EOF'
+
+The built-in tools (charts, forms, weather, currency, web search) are not in
+the tool catalog yet. Add your embedding provider's API key in the admin panel
+(Settings -> AI providers), then run:
+
+    docker compose exec app php artisan app:sync-builtin-mcp
+
+EOF
+fi

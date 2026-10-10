@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n';
 
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { index as teamsIndex } from '@/routes/teams';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import EditMemberRoleDialog from './components/EditMemberRoleDialog.vue';
 import InviteMemberDialog from './components/InviteMemberDialog.vue';
@@ -101,7 +102,7 @@ const {
             <!-- Header with back button -->
             <div class="mb-8">
                 <Button variant="ghost" size="sm" as-child class="-ms-2 mb-4 gap-2">
-                    <Link :href="route('teams.index')">
+                    <Link :href="teamsIndex.url()">
                         <ChevronLeft class="size-4" />
                         {{ t('teams.show.back') }}
                     </Link>

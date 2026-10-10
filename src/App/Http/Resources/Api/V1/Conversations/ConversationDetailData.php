@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources\Api\V1\Conversations;
 
-use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
@@ -11,8 +10,6 @@ use Spatie\LaravelData\DataCollection;
 
 /**
  * Full conversation projection (header + messages) for the API show endpoint.
- *
- * Sentiment + tone are plan-gated by the conversation's team plan.
  */
 class ConversationDetailData extends Data
 {
@@ -42,8 +39,8 @@ class ConversationDetailData extends Data
         return new self(
             id: $conversation->external_id,
             title: $conversation->title,
-            sentiment: $conversation->agent?->team?->hasCapability(Capability::Sentiment) ? $conversation->sentiment : null,
-            tone: $conversation->agent?->team?->hasCapability(Capability::Tone) ? $conversation->tone : null,
+            sentiment: $conversation->sentiment,
+            tone: $conversation->tone,
             handoff_status: $conversation->handoff_status?->value,
             created_at: $conversation->created_at?->toIso8601String(),
             messages: new DataCollection(ConversationMessageData::class, $messages),

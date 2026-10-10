@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { update as updateAgent } from '@/routes/agents';
+import { edit as editPrompts } from '@/routes/library/prompts';
 import { Link, useForm } from '@inertiajs/vue3';
 import { Bot, LoaderCircle, Save } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -51,7 +53,7 @@ const updateGeneralSettings = () => {
         name: data.name,
         sub_domain: data.sub_domain,
         ...(mode.value === 'saved' ? { prompt_id: data.prompt_id } : { system_instructions: data.system_instructions }),
-    })).patch(route('agents.update', props.agent.external_id), {
+    })).patch(updateAgent.url(props.agent.external_id), {
         preserveScroll: true,
         onFinish: () => {
             isSubmitting.value = false;
@@ -133,7 +135,6 @@ const hasFormErrors = computed(() => {
                                             :error="form.errors.sub_domain"
                                             class="disabled rounded-e-none"
                                             placeholder=""
-                                            :readonly="!$page.props.subscribed"
                                         />
                                         <div
                                             class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-e-md border border-s-0 px-3 text-sm"
@@ -185,7 +186,7 @@ const hasFormErrors = computed(() => {
                                     <TabsContent value="saved" class="mt-4 space-y-3">
                                         <div v-if="prompts.length === 0" class="text-muted-foreground rounded-lg border py-8 text-center text-sm">
                                             {{ t('agents.persona.no_prompts_prefix') }}
-                                            <Link :href="route('library.prompts.edit')" class="text-foreground underline underline-offset-2">{{
+                                            <Link :href="editPrompts.url()" class="text-foreground underline underline-offset-2">{{
                                                 t('agents.persona.create_one')
                                             }}</Link>
                                             {{ t('agents.persona.no_prompts_suffix') }}

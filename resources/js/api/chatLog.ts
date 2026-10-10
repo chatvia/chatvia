@@ -4,6 +4,8 @@
  * the "revise answer" Q&A shortcut. Every endpoint is scoped to an agent by its
  * external id.
  */
+import { logs as chatLogPage } from '@/routes/agents';
+import chatLog from '@/routes/agents/logs';
 import { del, get, post } from './http';
 
 export type ChatLogConversation = Domain.Agent.Data.Resources.ChatLog.Conversations.ChatLogConversationData;
@@ -65,47 +67,48 @@ export interface ReviseAnswerPayload {
 }
 
 export function fetchChatLogConversations(agentId: string, filters: ChatLogConversationFilters): Promise<ChatLogConversationsPage> {
-    return get<ChatLogConversationsPage>(route('agents.logs.conversations', { agent: agentId }), { params: filters });
+    return get<ChatLogConversationsPage>(chatLog.conversations.url(agentId), { params: filters });
 }
 
 export function fetchChatLogMessages(agentId: string, conversationId: string, page: number): Promise<ChatLogMessagesPage> {
-    return get<ChatLogMessagesPage>(route('agents.logs.messages', { agent: agentId, conversation: conversationId }), {
+    return get<ChatLogMessagesPage>(chatLog.messages.url({ agent: agentId, conversation: conversationId }), {
         params: { page },
     });
 }
 
 export function fetchConversationPulse(agentId: string, conversationId: string): Promise<ChatLogPulse> {
-    return get<ChatLogPulse>(route('agents.logs.pulse', { agent: agentId, conversation: conversationId }));
+    return get<ChatLogPulse>(chatLog.pulse.url({ agent: agentId, conversation: conversationId }));
 }
 
 export async function fetchChatLogTopics(agentId: string): Promise<ChatLogTopic[]> {
-    const response = await get<{ topics?: ChatLogTopic[] }>(route('agents.logs.topics', { agent: agentId }));
+    const response = await get<{ topics?: ChatLogTopic[] }>(chatLog.topics.url(agentId));
 
     return response.topics || [];
 }
 
 export async function fetchChatLogCountries(agentId: string): Promise<ChatLogCountry[]> {
-    const response = await get<{ countries?: ChatLogCountry[] }>(route('agents.logs.countries', { agent: agentId }));
+    const response = await get<{ countries?: ChatLogCountry[] }>(chatLog.countries.url(agentId));
 
     return response.countries || [];
 }
 
 export function deleteChatLogConversation(agentId: string, conversationId: string): Promise<void> {
-    return del(route('agents.logs.delete-conversation', { agent: agentId, conversation: conversationId }));
+    return del(chatLog.deleteConversation.url({ agent: agentId, conversation: conversationId }));
 }
 
 /** Stores the operator's corrected answer as a Q&A entry and returns its id. */
 export async function reviseAnswer(agentId: string, payload: ReviseAnswerPayload): Promise<number> {
-    const response = await post<{ qa_id: number }>(route('agents.logs.revise-answer', { agent: agentId }), payload);
+    const response = await post<{ qa_id: number }>(chatLog.reviseAnswer.url(agentId), payload);
 
     return response.qa_id;
 }
 
 /** Address of the chat log page, used to keep the browser URL in step with the selection. */
 export function chatLogUrl(agentId: string, conversationId: string | null, page: number): string {
-    const params: Record<string, string | number> = { agent: agentId };
-    if (conversationId) params.conversation_id = conversationId;
-    if (page > 1) params.conversations = page;
-
-    return route('agents.logs', params);
+    return chatLogPage.url(agentId, {
+        query: {
+            conversation_id: conversationId || undefined,
+            conversations: page > 1 ? page : undefined,
+        },
+    });
 }

@@ -16,7 +16,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('chat_sessions', function (Blueprint $table) {
+        Schema::create('chat_sessions', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
@@ -55,7 +55,7 @@ return new class extends Migration
             $table->index(['agent_id', 'country_id']);
         });
 
-        Schema::create('chat_conversations', function (Blueprint $table) {
+        Schema::create('chat_conversations', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
@@ -95,7 +95,7 @@ return new class extends Migration
             $table->index(['agent_id', 'created_at']);
         });
 
-        Schema::create('chat_messages', function (Blueprint $table) {
+        Schema::create('chat_messages', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
@@ -105,8 +105,6 @@ return new class extends Migration
             $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->index()->constrained()->nullOnDelete();
 
             $table->string('generation_id')->nullable();
-
-            $table->unsignedTinyInteger('message_credits')->default(1);
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'playground', 'handoff'])->nullable();
 
@@ -140,7 +138,7 @@ return new class extends Migration
             $table->index(['chat_conversation_id', 'created_at']);
         });
 
-        Schema::create('chat_attachments', function (Blueprint $table) {
+        Schema::create('chat_attachments', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 

@@ -2,28 +2,24 @@
 
 namespace App\Http\Controllers\Agent\Form;
 
-use App\Http\Requests\Agent\Form\RewriteFormDescriptionRequest;
 use App\Http\Requests\Agent\Form\SaveFormDefinitionRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\DeleteFormDefinitionAction;
 use Domain\Form\Actions\EnableFormsCapabilityAction;
-use Domain\Form\Actions\RewriteFormDescriptionAction;
 use Domain\Form\Actions\SaveFormDefinitionAction;
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The agent's inline-form builder: the Forms page, create / update / delete
- * of a form, and the AI rewrite of a form's "when to show it" instruction.
- * Access is gated by the route middleware; a form must belong to the agent.
+ * The agent's inline-form builder: the Forms page and create / update /
+ * delete of a form. Access is gated by the route middleware; a form must
+ * belong to the agent.
  */
 class AgentFormController
 {
@@ -63,23 +59,6 @@ class AgentFormController
         $enableForms->execute($agent);
 
         return back();
-    }
-
-    /**
-     * Rewrite the form's "when to show this form" instruction with the LLM, so
-     * the owner can turn a rough note into a precise, intent-based trigger. The
-     * suggestion comes back as JSON for the editor; nothing is saved until the
-     * owner saves the form.
-     */
-    public function rewriteDescription(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $rewrite, TokenUsageContext $usage): JsonResponse
-    {
-        $instructions = $usage->track(
-            $agent->user_id,
-            fn (): string => $rewrite->execute($request->toData()),
-            'form',
-        );
-
-        return response()->json(['agent_instructions' => $instructions]);
     }
 
     public function update(SaveFormDefinitionRequest $request, Agent $agent, FormDefinition $form, SaveFormDefinitionAction $save): RedirectResponse

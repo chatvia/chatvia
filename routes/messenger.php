@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Webhooks\MessengerWebhookController;
+use App\Http\Controllers\Webhooks\VerifyMessengerWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -16,9 +17,9 @@ use Illuminate\Support\Facades\Route;
  * events from a small pool of IPs, so the limit only stops a flood from one
  * non-provider address and must never slow real traffic.
  */
-Route::get('messenger/webhook', [MessengerWebhookController::class, 'verify'])
+Route::get('messenger/webhook', VerifyMessengerWebhookController::class)
     ->middleware('throttle:60,1,messenger-webhook-verify')
     ->name('messenger.webhook.verify');
-Route::post('messenger/webhook', [MessengerWebhookController::class, 'receive'])
+Route::post('messenger/webhook', MessengerWebhookController::class)
     ->middleware('throttle:1200,1,messenger-webhook')
     ->name('messenger.webhook');

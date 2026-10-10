@@ -20,8 +20,7 @@
             "send_link": "لینک ورود را برایم ارسال کن",
             "sending_link": "در حال ارسال لینک...",
             "or_continue_with": "یا ادامه دهید با",
-            "no_account": "حساب کاربری ندارید؟",
-            "start_free_trial": "شروع آزمایش رایگان"
+            "no_account": "حساب کاربری ندارید؟"
         },
         "register": {
             "title": "ایجاد حساب کاربری",
@@ -94,18 +93,6 @@
             "use_recovery_code": "استفاده از کد بازیابی",
             "use_authenticator_code": "استفاده از کد احراز هویت"
         },
-        "set_password": {
-            "title": "انتخاب رمز عبور",
-            "description": "حساب شما آماده است. برای تکمیل راه‌اندازی یک رمز عبور انتخاب کنید.",
-            "head": "انتخاب رمز عبور",
-            "email_label": "آدرس ایمیل",
-            "password_label": "رمز عبور",
-            "password_placeholder": "رمز عبور",
-            "confirm_password_label": "تأیید رمز عبور",
-            "confirm_password_placeholder": "تأیید رمز عبور",
-            "set_password": "تعیین رمز عبور",
-            "setting_password": "در حال تعیین رمز عبور..."
-        },
         "login_member": {
             "description": "برای دسترسی به این فضای چت وارد شوید",
             "head": "ورود اعضا",
@@ -168,16 +155,6 @@
             "or": "یا",
             "social_email_note_prefix": "مطمئن شوید که حساب اجتماعی شما از",
             "social_email_note_suffix": "— باید با این دعوتنامه مطابقت داشته باشد."
-        },
-        "invitation_invalid": {
-            "title": "دعوتنامه در دسترس نیست",
-            "description": "این دعوتنامه قابل پذیرش نیست",
-            "head": "دعوتنامه در دسترس نیست",
-            "card_title": "پذیرش دعوتنامه امکان‌پذیر نیست",
-            "cannot_accept_prefix": "دعوتنامه پیوستن به",
-            "cannot_accept_suffix": "در حال حاضر قابل پذیرش نیست.",
-            "contact_owner": "لطفاً برای رفع این مشکل با مالک تیم تماس بگیرید.",
-            "go_to_login": "رفتن به صفحه ورود"
         },
         "invitation_expired": {
             "title": "دعوتنامه منقضی شده",

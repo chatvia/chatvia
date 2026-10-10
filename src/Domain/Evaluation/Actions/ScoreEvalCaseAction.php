@@ -2,9 +2,8 @@
 
 namespace Domain\Evaluation\Actions;
 
-use Domain\Billing\Enums\MessageAdmission;
-use Domain\Billing\Jobs\UpdateUserCreditsJob;
-use Domain\Billing\Services\MessageSendGate;
+use App\Identity\Workspace\Actions\MessageLimits\RecordMessageUsageAction;
+use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Data\ScoreResultData;
 use Domain\Evaluation\Events\EvalCaseScored;
@@ -29,7 +28,8 @@ class ScoreEvalCaseAction
     public function __construct(
         private readonly EvalAgentRunner $runner,
         private readonly ScorerRegistry $scorers,
-        private readonly MessageSendGate $sendGate,
+        private readonly MessageAllowance $allowance,
+        private readonly RecordMessageUsageAction $recordUsage,
     ) {}
 
     public function execute(EvalRun $run, EvalCase $case): EvalResult
@@ -45,26 +45,19 @@ class ScoreEvalCaseAction
             );
         }
 
-        // Credits can run dry (or the subscription end) mid-suite, since each
-        // case consumes one message, so re-check the same gate live chat uses
-        // before spending an LLM call.
-        $admission = $this->sendGate->admit($agent->user);
-
-        if (! $admission->allowed()) {
-            return $this->recordSkipped($run, $case, $admission);
+        // The monthly limit can be reached mid-suite, since each case counts
+        // as one message, so re-check it before spending an LLM call.
+        if (! $this->allowance->canSend($agent->user_id)) {
+            return $this->recordSkipped($run, $case);
         }
 
         $result = $this->runner->run($agent, $case->input);
 
-        // Per-answer billing: a successful run produced one real assistant reply,
-        // so charge the workspace the model's normal message cost — the same call
-        // the live chat path makes in ChatService::handleChatCompletion. An errored
-        // run produced no answer, so it costs nothing.
-        if (! $result->failed() && $agent->llm_id !== null) {
-            UpdateUserCreditsJob::dispatch(
-                userId: $agent->user_id,
-                modelId: $agent->llm_id,
-            );
+        // A successful run produced one real assistant reply, so it counts
+        // against the workspace's limit like a chat reply. An errored run
+        // produced no answer, so it does not count.
+        if (! $result->failed()) {
+            $this->recordUsage->execute($agent->user_id);
         }
 
         $score = $result->failed()
@@ -75,12 +68,12 @@ class ScoreEvalCaseAction
     }
 
     /**
-     * A failing result for a case the send gate refused, without running the
-     * agent (so no LLM call and no charge).
+     * A failing result for a case skipped because the workspace reached its
+     * monthly message limit, without running the agent (so no LLM call).
      */
-    private function recordSkipped(EvalRun $run, EvalCase $case, MessageAdmission $admission): EvalResult
+    private function recordSkipped(EvalRun $run, EvalCase $case): EvalResult
     {
-        $reason = $admission === MessageAdmission::SubscriptionInactive ? 'Subscription inactive' : 'Message limit reached';
+        $reason = 'Message limit reached';
 
         return $this->record(
             $run,

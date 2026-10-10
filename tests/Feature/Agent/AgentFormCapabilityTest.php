@@ -20,14 +20,6 @@ use Inertia\Testing\AssertableInertia as Assert;
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
-    $this->user->billing()->firstOrCreate([]);
-    $this->user->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_active',
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
     $this->user->refresh();
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 

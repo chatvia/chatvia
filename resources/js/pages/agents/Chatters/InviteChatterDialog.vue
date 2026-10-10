@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { store as storeAgentChatter } from '@/routes/agents/chatters';
 import { useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Mail, Send, UserPlus, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
@@ -40,7 +41,7 @@ watch(open, (isOpen) => {
 });
 
 const submitInvite = () => {
-    inviteForm.post(route('agents.chatters.store', { agent: props.agentId }), {
+    inviteForm.post(storeAgentChatter.url(props.agentId), {
         preserveScroll: true,
         onSuccess: (page) => {
             const invitation = flashedInvitation(page);

@@ -25,7 +25,7 @@ class AgentWhatsappChannelController
 {
     use ExplainsChannelConnectFailures;
 
-    public function connect(ConnectWhatsappRequest $request, Agent $agent, ConnectWhatsappNumberAction $connect): RedirectResponse
+    public function store(ConnectWhatsappRequest $request, Agent $agent, ConnectWhatsappNumberAction $connect): RedirectResponse
     {
         try {
             $connect->execute($agent, $request->toData());
@@ -40,7 +40,7 @@ class AgentWhatsappChannelController
         return back();
     }
 
-    public function disconnect(Agent $agent): RedirectResponse
+    public function destroy(Agent $agent): RedirectResponse
     {
         $agent->whatsappNumber?->delete();
 

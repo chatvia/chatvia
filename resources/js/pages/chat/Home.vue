@@ -10,10 +10,12 @@ import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
 import HeroIcon from '@/components/common/HeroIcon.vue';
+import { chatPages } from '@/composables/chat/chatPages';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
 import { useBrand } from '@/composables/useBrand';
 import { normalizeLocale } from '@/i18n';
 import { resolveStarters } from '@/lib/appearanceText';
+import { deleteMethod as deleteAttachment, store as storeAttachment } from '@/routes/chat/messages/attachments';
 import type { ChatAppearance, ChatAttachment, ChatDefaultTheme, ConversationStarter } from '@/types/chat';
 import { Head, router } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
@@ -26,9 +28,8 @@ interface Props {
     enableThemeSwitcher?: boolean;
     defaultTheme?: ChatDefaultTheme;
     enableChatExpand?: boolean;
-    /** Route name of the conversation page to open after the first message. */
-    chatRoute?: string;
-    newChatRoute?: string;
+    /** On the iframe-embed pages, so the first message opens the embed conversation page. */
+    embedded?: boolean;
     agent_id?: number | null;
     chatviaBranding?: boolean;
     /** Owner's pinned chat language ('auto' = detect from the visitor). */
@@ -55,8 +56,7 @@ const props = withDefaults(defineProps<Props>(), {
     enableThemeSwitcher: true,
     defaultTheme: 'auto',
     enableChatExpand: true,
-    chatRoute: 'chat.show',
-    newChatRoute: 'chat.home',
+    embedded: false,
     agent_id: null,
     chatviaBranding: true,
     locale: 'auto',
@@ -76,11 +76,9 @@ const selectedStarter = ref('');
 const resolvedStarters = computed(() => resolveStarters(starters.value, normalizeLocale(i18nLocale.value)));
 
 // Uploads need an agent to scope them to; without one the composer hides the upload button.
-const uploadEndpoint = computed(() => (props.agent_id ? route('chat.messages.attachments.store') : undefined));
+const uploadEndpoint = computed(() => (props.agent_id ? storeAttachment.url() : undefined));
 const uploadHeaders = computed(() => (props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined));
-const deleteEndpoint = computed(() =>
-    props.agent_id ? (attachmentId: string) => route('chat.messages.attachments.delete', { attachment: attachmentId }) : undefined,
-);
+const deleteEndpoint = computed(() => (props.agent_id ? (attachmentId: string) => deleteAttachment.url(attachmentId) : undefined));
 
 onMounted(async () => {
     starters.value = await fetchStarters();
@@ -88,7 +86,7 @@ onMounted(async () => {
 
 async function createNewConversation(message: string, attachments: ChatAttachment[] = []) {
     const { id } = await createConversation(message, attachments);
-    router.visit(route(props.chatRoute, { conversationId: id, new: '1' }));
+    router.visit(chatPages(props.embedded).show(id, { query: { new: '1' } }));
 }
 </script>
 
@@ -102,7 +100,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
         :enableChatExpand="enableChatExpand"
         :enableLanguageSwitcher="enableLanguageSwitcher"
         :enabledLanguages="enabledLanguages"
-        :newChatRoute="newChatRoute"
+        :embedded="embedded"
     >
         <Head :title="brand.name" />
         <template #content>
@@ -139,7 +137,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                         >
                             <div class="text-center">
                                 <p class="text-sm font-medium text-orange-800 dark:text-orange-200">{{ t('chat.message_limit_reached') }}</p>
-                                <p class="mt-1 text-xs text-orange-600 dark:text-orange-300">{{ t('chat.upgrade_prompt') }}</p>
+                                <p class="mt-1 text-xs text-orange-600 dark:text-orange-300">{{ t('chat.limit_resets_next_month') }}</p>
                             </div>
                         </div>
 

@@ -2,12 +2,17 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Settings\Account\ConfirmAccountDeletionController;
+use App\Http\Controllers\Settings\Account\ConnectSocialAccountController;
 use App\Http\Controllers\Settings\Account\DataExportController;
 use App\Http\Controllers\Settings\Account\DeleteAccountController;
+use App\Http\Controllers\Settings\Account\DownloadDataExportController;
 use App\Http\Controllers\Settings\Account\PasskeyController;
 use App\Http\Controllers\Settings\Account\PasswordController;
 use App\Http\Controllers\Settings\Account\PreferencesController;
 use App\Http\Controllers\Settings\Account\ProfileController;
+use App\Http\Controllers\Settings\Account\ProfilePhotoController;
+use App\Http\Controllers\Settings\Account\RequestAccountDeletionController;
 use App\Http\Controllers\Settings\Account\SocialController;
 use App\Http\Controllers\Settings\Account\TwoFactorController;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +26,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::prefix('my/account')->name('account.')->group(function (): void {
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+        Route::delete('profile/photo', [ProfilePhotoController::class, 'destroy'])->name('profile.photo.destroy');
 
         // Account deletion lives on its own page so the destructive flow has the
         // user's full attention. Two-factor: re-enter the password (request) →
@@ -29,10 +34,10 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
         // click (destroy). Workspace owners only — gated in the controller +
         // FormRequest.
         Route::get('delete-account', [DeleteAccountController::class, 'edit'])->name('delete');
-        Route::post('delete-account', [DeleteAccountController::class, 'request'])
+        Route::post('delete-account', RequestAccountDeletionController::class)
             ->middleware('throttle:5,60')
             ->name('delete.request');
-        Route::get('delete-account/confirm/{userId}', [DeleteAccountController::class, 'confirm'])
+        Route::get('delete-account/confirm/{userId}', ConfirmAccountDeletionController::class)
             ->whereNumber('userId')
             ->middleware('signed')
             ->name('delete.confirm');
@@ -45,10 +50,10 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
         Route::get('passkeys', [PasskeyController::class, 'edit'])->name('passkeys.edit');
 
         Route::get('social', [SocialController::class, 'edit'])->name('social.edit');
-        Route::get('social/{provider}/connect', [SocialController::class, 'connect'])
+        Route::get('social/{provider}/connect', ConnectSocialAccountController::class)
             ->middleware('throttle:10,1')
             ->name('social.connect');
-        Route::delete('social/{provider}', [SocialController::class, 'disconnect'])
+        Route::delete('social/{provider}', [SocialController::class, 'destroy'])
             ->middleware('throttle:10,1')
             ->name('social.disconnect');
 
@@ -59,7 +64,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
         Route::post('data-export', [DataExportController::class, 'store'])
             ->middleware('throttle:5,60')
             ->name('data-export.store');
-        Route::get('data-export/{export}/download', [DataExportController::class, 'download'])->name('data-export.download');
+        Route::get('data-export/{export}/download', DownloadDataExportController::class)->name('data-export.download');
         Route::delete('data-export/{export}', [DataExportController::class, 'destroy'])->name('data-export.destroy');
 
         // Date & time preference — its form lives on the Profile page (merged from

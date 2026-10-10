@@ -21,7 +21,7 @@ class AgentTeamsChannelController
 {
     use ExplainsChannelConnectFailures;
 
-    public function connect(ConnectTeamsRequest $request, Agent $agent, ConnectTeamsBotAction $connect): RedirectResponse
+    public function store(ConnectTeamsRequest $request, Agent $agent, ConnectTeamsBotAction $connect): RedirectResponse
     {
         try {
             $connect->execute($agent, $request->toData());
@@ -39,7 +39,7 @@ class AgentTeamsChannelController
         return back();
     }
 
-    public function disconnect(Agent $agent): RedirectResponse
+    public function destroy(Agent $agent): RedirectResponse
     {
         $agent->teamsBot?->delete();
 

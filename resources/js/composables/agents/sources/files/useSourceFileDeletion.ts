@@ -1,7 +1,7 @@
 /**
  * Removing a file from the agent: asks for confirmation (only teammates with
  * `agent.sources.delete` may), then either unlinks a shared file from this
- * agent only or deletes it everywhere, and refreshes the quota.
+ * agent only or deletes it everywhere.
  */
 import { deleteSourceFile, type SourceFile, unlinkSourceFile } from '@/api/fileSources';
 import { useSourceDeletePermission } from '@/composables/agents/sources/useSourceDeletePermission';
@@ -14,7 +14,7 @@ import type { SourceFilesState } from './useSourceFiles';
 /** Keep the file in the dialog until its closing animation is over. */
 const CLOSE_ANIMATION_MS = 300;
 
-export function useSourceFileDeletion(agentId: string, sourceFiles: SourceFilesState, refreshUsage: () => Promise<void>) {
+export function useSourceFileDeletion(agentId: string, sourceFiles: SourceFilesState) {
     const { t } = useI18n();
     const ensureCanDeleteSources = useSourceDeletePermission();
 
@@ -32,7 +32,6 @@ export function useSourceFileDeletion(agentId: string, sourceFiles: SourceFilesS
 
     async function finish(file: SourceFile, successMessage: string): Promise<void> {
         sourceFiles.removeFile(file.id);
-        await refreshUsage();
         toast.success(successMessage);
 
         isDialogOpen.value = false;

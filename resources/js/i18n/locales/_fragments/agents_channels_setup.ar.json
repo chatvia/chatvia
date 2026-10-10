@@ -33,7 +33,7 @@
                     "reply_streams_live": "— يتدفق الرد مباشرة"
                 },
                 "telegram": {
-                    "connected_description": "يمكن للأشخاص مراسلة بوتك على Telegram وسيرد وكيلك تلقائياً — تُطبَّق الفوترة والسجل وضوابط الأمان.",
+                    "connected_description": "يمكن للأشخاص مراسلة بوتك على Telegram وسيرد وكيلك تلقائياً — تُطبَّق حدود الرسائل والسجل وضوابط الأمان.",
                     "steps": {
                         "connect_1": "افتح {botfather} في Telegram",
                         "connect_2": "أرسل {command} واتبع التعليمات",

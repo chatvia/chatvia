@@ -70,7 +70,6 @@ class ToolSelector
             $routed = $this->usage->track(
                 $agent->user_id,
                 fn (): array => $this->router->route($userMessage, $agent),
-                'tool-routing',
             );
         } catch (Throwable $e) {
             return $this->shipFullPool($agent, $conversationId, $e);

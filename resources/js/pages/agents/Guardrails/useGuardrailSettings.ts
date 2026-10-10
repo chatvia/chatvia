@@ -3,6 +3,7 @@
  * the settings tab) so unsaved edits survive switching to the Activity tab.
  * The PII guard has no own flag: a non-empty filter list means it is on.
  */
+import { update as updateGuardrails } from '@/routes/agents/guardrails';
 import { useForm } from '@inertiajs/vue3';
 import { computed, ref, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -50,7 +51,7 @@ export function useGuardrailSettings(props: Options, canManage: Ref<boolean>) {
     }));
 
     const save = () => {
-        form.post(route('agents.guardrails.update', props.agent.external_id), {
+        form.post(updateGuardrails.url(props.agent.external_id), {
             preserveScroll: true,
             onSuccess: () => toast.success(t('agents.guardrails.saved')),
             onError: () => toast.error(t('agents.guardrails.save_error')),

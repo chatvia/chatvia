@@ -11,7 +11,7 @@ use Domain\Channel\Telegram\Models\TelegramChat;
  * Resolves Telegram slash commands (/start, /reset, /help and the agent's own
  * custom commands) *before* the chat pipeline runs.
  *
- * Each command is either a **message** — sent verbatim, no LLM, no billing — or a
+ * Each command is either a **message** — sent verbatim, no LLM, nothing counted — or a
  * **prompt**, run through the agent pipeline like a normal turn (RAG + tools +
  * LLM, billed). Built-in commands are pre-seeded, editable rows: /start greets,
  * /reset always starts a new thread, /help auto-lists the commands when blank.

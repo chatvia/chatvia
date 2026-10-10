@@ -103,9 +103,6 @@
     "dashboard": {
         "messages_this_month": "本月消息数"
     },
-    "usage": {
-        "no_limit": "无限制"
-    },
     "workspace": {
         "prompts": {
             "sheet": {
@@ -142,18 +139,6 @@
         },
         "time_ago": {
             "just_now": "刚刚"
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "欢迎使用 Chatvia",
-            "intro": "让我们创建您的第一个 AI 智能体。只需一分钟。",
-            "what_title": "什么是智能体？",
-            "what_body": "智能体是用您自己的内容训练的 AI 助手。它会在您的网站、聊天挂件和消息应用中回答客户的问题。",
-            "how_title": "它是如何运作的？",
-            "how_body": "首先创建一个智能体并为其命名。然后用您的文件、网站和文本训练它，让它能够回答问题。",
-            "start": "创建我的第一个智能体",
-            "video_caption": "观看运作方式"
         }
     }
 }

@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { create as createRole } from '@/routes/teams/roles';
 import TeamRoleItem from './TeamRoleItem.vue';
 
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -50,7 +51,7 @@ const memberCount = (roleCode: string): number => props.members.filter((m) => m.
                     </CardTitle>
                     <CardDescription>{{ t('teams.show.roles.description') }}</CardDescription>
                 </div>
-                <Link v-if="isOwner" :href="route('teams.roles.create', team.external_id)">
+                <Link v-if="isOwner" :href="createRole.url(team.external_id)">
                     <Button class="gap-2">
                         <Plus class="size-4" />
                         {{ t('teams.common.create_role') }}

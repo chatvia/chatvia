@@ -1,6 +1,6 @@
 # WhatsApp
 
-Connect a WhatsApp Business number to your agent. People message the number on WhatsApp, and your agent answers — with the same knowledge, guardrails, history, and billing as every other channel.
+Connect a WhatsApp Business number to your agent. People message the number on WhatsApp, and your agent answers — with the same knowledge, guardrails, history, and message limits as every other channel.
 
 WhatsApp is available for **public agents only**. A WhatsApp sender is anonymous to Chatvia, so a protected agent cannot answer there. You can make an agent public on its **Security** page.
 

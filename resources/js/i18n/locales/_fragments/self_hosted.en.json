@@ -6,8 +6,5 @@
     },
     "dashboard": {
         "messages_this_month": "Messages This Month"
-    },
-    "usage": {
-        "no_limit": "No limit"
     }
 }

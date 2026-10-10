@@ -239,9 +239,8 @@ class ChatCache
     }
 
     /**
-     * Per-plan retention applied as the TTL on every entry. Agent reads
-     * through team->owner->capabilities->retentionDays so this stays in
-     * lock-step with what's stamped on chat_conversations.expires_at.
+     * The install's conversation retention applied as the TTL on every
+     * entry, the same days that are stamped on chat_conversations.expires_at.
      */
     private function getMessageRetention(): CarbonInterface
     {

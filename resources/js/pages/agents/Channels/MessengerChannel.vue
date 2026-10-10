@@ -4,6 +4,7 @@
 // callback drops the granted Pages into `pick` → the workspace picks one here.
 // Callback errors come back as a shared page error (no form owns them).
 import { Button } from '@/components/ui/button';
+import { redirect as redirectToMessenger, select as selectMessengerPage } from '@/routes/agents/channels/messenger';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle, Plug } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -27,13 +28,13 @@ const page = usePage();
 const error = computed<string | undefined>(() => (page.props.errors as Record<string, string> | undefined)?.messenger);
 
 const connect = () => {
-    window.location.href = route('agents.channels.messenger.redirect', props.agent.external_id);
+    window.location.href = redirectToMessenger.url(props.agent.external_id);
 };
 
 const selectForm = useForm({ page_id: props.messenger.pick?.[0]?.id ?? '' });
 
 const selectPage = () => {
-    selectForm.post(route('agents.channels.messenger.select', props.agent.external_id), {
+    selectForm.post(selectMessengerPage.url(props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {

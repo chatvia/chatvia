@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules;
 
 /**
- * The self-serve sign-up form (open only when `billing.registration_enabled`
+ * The self-serve sign-up form (open only when `chatvia.registration_enabled`
  * is on). There are no legal checkboxes: a self-hosted install has no terms
  * of its own to accept.
  */

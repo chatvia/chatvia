@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 
@@ -9,7 +10,7 @@ use Domain\Widget\Actions\BuildWidgetSettingsAction;
  * chat surfaces serve the localized copy by visitor language.
  */
 beforeEach(function (): void {
-    $this->agent = proPlanAgent();
+    $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->user;
 });
 

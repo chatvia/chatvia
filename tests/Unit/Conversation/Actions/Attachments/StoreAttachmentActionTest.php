@@ -8,7 +8,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Unit coverage for the page-count capture added for page-based billing. The
+ * Unit coverage for the page-count capture of uploaded PDFs. The
  * upload + S3 write path is exercised end-to-end against a fake disk; PdfInfo is
  * stubbed so the body doesn't need real pages (same approach as MaxPdfPagesTest).
  */

@@ -6,6 +6,7 @@ import type { AuditPaginator } from '@/components/governance/types';
 import AuditTabs from '@/components/governance/AuditTabs.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
+import { audit } from '@/routes/governance';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
@@ -44,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [{ title: t('workspace.governance.breadcru
                     :agents="agents"
                     :show-agent="true"
                     :filters="filters"
-                    route-name="governance.audit"
+                    :url="audit.url()"
                 />
             </div>
         </WorkspaceLayout>

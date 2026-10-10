@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Du har nået din beskedgrænse",
-        "upgrade_prompt": "Opgradér din plan for at fortsætte med at chatte",
         "regenerate_failed": "Kunne ikke gendanne svaret. Prøv igen.",
         "loading_conversation": "Indlæser samtale",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "Serveren returnerede status {status}.",
             "interrupted": "Forbindelsen blev afbrudt.",
             "malformed": "Modtog ugyldige data fra serveren."
-        }
+        },
+        "limit_resets_next_month": "Du kan sende beskeder igen næste måned."
     },
     "messages": {
         "send": "Send",
@@ -140,11 +140,7 @@
         "edit_message": "Redigér besked"
     },
     "errors": {
-        "subscription_expired": "Abonnement udløbet",
-        "renew_subscription": "Fornyabonnement",
         "message_limit_reached": "Beskedgrænse nået",
-        "token_limit_reached": "Token-forbrugslimit nået",
-        "upgrade_plan": "Opgradér abonnement",
         "model_unavailable": "Model utilgængelig",
         "too_many_requests": "For mange anmodninger",
         "connection_lost": "Forbindelse mistet",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Aktivitetslog",
             "head_title": "Aktivitet · {name}",
-            "description": "Alle handlinger denne agent udfører via værktøjer og connectorer — tilladt, godkendt, afvist eller hastighedsbegrænset — med argumenter, resultat og hvem der udløste det.",
-            "locked_description": "Revisionsloggen er tilgængelig på Pro-abonnementet. Opgradér for at se hver eneste værktøjs- og connector-handling, denne agent foretager."
+            "description": "Alle handlinger denne agent udfører via værktøjer og connectorer — tilladt, godkendt, afvist eller hastighedsbegrænset — med argumenter, resultat og hvem der udløste det."
         },
         "channels": {
             "title": "Kanaler",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— svaret streames live"
                 },
                 "telegram": {
-                    "connected_description": "Folk kan sende beskeder til din bot på Telegram, og din agent svarer automatisk — fakturering, historik og sikkerhedsregler gælder alle.",
+                    "connected_description": "Folk kan sende beskeder til din bot på Telegram, og din agent svarer automatisk — beskedgrænser, historik og sikkerhedsregler gælder alle.",
                     "steps": {
                         "connect_1": "Åbn {botfather} i Telegram",
                         "connect_2": "Send {command} og følg vejledningen",
@@ -446,7 +441,6 @@
                 "select_topic": "Vælg emne",
                 "select_sentiment": "Vælg stemning",
                 "select_tone": "Vælg tone",
-                "upgrade_to_unlock": "Opgrader for at låse op",
                 "clear_all": "Ryd alle",
                 "close": "Anvend filtre"
             },
@@ -486,14 +480,12 @@
                 "page_url": "Side-URL",
                 "referrer": "Henviser",
                 "locale": "Sprogindstilling",
-                "upgrade_to_unlock": "Opgrader for at låse op",
                 "waiting": "Venter på analyse…",
                 "channel": "Kanal"
             },
             "pulse": {
                 "title": "Samtalepuls",
                 "select_conversation": "Vælg en samtale for at se puls",
-                "locked_description": "Opgrader din plan for at låse op for samtalepuls-analyser.",
                 "refresh": "Opdatér",
                 "no_messages_title": "Ikke nok beskeder endnu",
                 "no_messages_hint": "Puls kræver mindst én brugerbesked for at analysere stemning og tone over tid.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Stabil"
             },
             "handoff": {
-                "locked_description": "Opgrader din plan for at overtage live-samtaler fra chatlogen.",
                 "visitor": "Besøgende",
                 "online": "Online",
                 "offline": "Offline",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "Blokeret emne",
                 "toxicity": "Toksicitet"
-            },
-            "locked_description": "Guardrails er tilgængelige på Standard- og Pro-abonnementerne. Opgradér for at styre, hvad din agent kan tale om, og hvordan den håndterer følsomt indhold."
+            }
         },
         "persona": {
             "title": "Persona",
@@ -849,7 +839,6 @@
                     "run_deleted": "Kørsel slettet",
                     "history_cleared": "Kørselshistorik ryddet"
                 },
-                "locked_description": "Evals er tilgængelige på Standard- og Pro-abonnementerne. Opgradér for at teste og bedømme denne agents svar, før de når kunderne.",
                 "cost_note": "Kørsel af testsuiten koster én besked pr. aktiv sag, så denne kørsel bruger {count} besked. | Kørsel af testsuiten koster én besked pr. aktiv sag, så denne kørsel bruger {count} beskeder."
             },
             "scorers": {
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Tone",
             "description": "Spor, hvordan besøgende har det, baseret på den følelsesmæssige tone i deres beskeder.",
-            "locked_description": "Opgrader din plan for at låse op for toneanalyse.",
             "disabled_title": "Toneanalyse er slået fra",
             "disabled_description": "Aktivér toneanalyse for at se, hvordan besøgende har det på tværs af samtaler.",
             "blocked_reason": "Slå chatlog til først — toneanalyse kræver gemte beskeder.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Stemning",
             "description": "Spor positiv, neutral og negativ stemning på tværs af besøgendes beskeder.",
-            "locked_description": "Opgrader din plan for at låse op for stemningsanalyse.",
             "disabled_title": "Stemningsanalyse er slået fra",
             "disabled_description": "Aktivér stemningsanalyse for at se, hvordan besøgende har det på tværs af samtaler.",
             "blocked_reason": "Slå chatlog til først — stemningsanalyse kræver gemte beskeder.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Administrér emner",
                 "description": "Definer emner, som din agent skal genkende og klassificere i samtaler.",
-                "locked_description": "Opgrader din plan for at administrere samtalemner.",
                 "search_placeholder": "Søg efter emner…",
                 "add_topic": "Tilføj emne",
                 "empty": "Ingen emner endnu. Tilføj et for at hjælpe din agent med at klassificere samtaler.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "Det lykkedes ikke at fjerne tilknytningen til {name}: {error}",
                 "deleted": "{name} er blevet slettet.",
                 "delete_failed": "Det lykkedes ikke at slette {name}: {error}",
-                "usage_load_failed": "Det lykkedes ikke at indlæse brugsdata.",
                 "summary_only_completed": "Oversigt er kun tilgængelig for fuldførte filer.",
                 "summary_none": "Ingen oversigt tilgængelig for denne fil.",
                 "summary_load_failed": "Det lykkedes ikke at indlæse filoversigten.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Upload lydfiler",
                 "upload_title_video": "Upload videofiler",
                 "upload_title_default": "Upload nye dokumenter",
-                "quota_minutes": "minutter",
-                "quota_pages": "sider",
                 "uploads_disabled": "Filuploads er deaktiveret, mens træning er i gang",
                 "ready_to_train": "Klar til træning",
                 "uploaded_ready": "{count} fil uploadet og klar til træning | {count} filer uploadet og klar til træning",
-                "exceeds_quota": "Overstiger kvota",
                 "clear_all": "Ryd alle",
                 "training": "Træner...",
                 "train": "Træn",
@@ -1290,9 +1272,6 @@
                     "trained": "Trænet",
                     "failed": "Mislykkedes"
                 },
-                "limit_all_used": "Du har brugt alle {limit} links i din plan. Opgrader for at træne flere links.",
-                "limit_critical": "Du har brugt {used}/{limit} links ({percentage}%). Kun {remaining} links tilbage til træning. Overvej at opgradere din plan.",
-                "limit_warning": "Du har brugt {used}/{limit} links ({percentage}%). {remaining} links tilbage til træning.",
                 "load_failed": "Det lykkedes ikke at indlæse webkilder.",
                 "error_enter_url": "Angiv venligst en hjemmeside-URL.",
                 "error_invalid_url": "Angiv venligst en gyldig URL (f.eks. https://eksempel.dk).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "Det er ikke muligt at slette alle links. Mindst ét link skal bevares.",
                 "links_deleted": "Slettede {count} link. | Slettede {count} links.",
                 "links_delete_failed": "Det lykkedes ikke at slette links.",
-                "no_links_remaining": "Ingen links tilbage",
-                "no_links_remaining_description": "Opgrader venligst din plan for at træne hjemmesider.",
-                "cannot_select": "Kan ikke vælge hjemmeside",
-                "cannot_select_description": "{links} links ville overstige din kvota med {exceedBy}. Fravælg andre hjemmesider eller opgrader.",
-                "selected_count": "Valgte {selected} af {total} hjemmesider",
-                "selected_skipped": "{skipped} hjemmeside(r) sprunget over for at holde sig inden for din grænse på {remaining} links.",
                 "training_start_failed": "Det lykkedes ikke at starte træning for: {websites}",
                 "training_start_failed_all": "Det lykkedes ikke at starte træning for nogen hjemmesider.",
                 "dialog_links_load_failed": "Det lykkedes ikke at indlæse links",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Crawler",
                 "crawler_description": "Hent links fra hjemmesider til gennemsøgning og inkludér dem i agentens vidensbase.",
                 "settings": "Indstillinger",
-                "links_used": "{used} / {limit} links brugt",
-                "links_remaining": "{remaining} tilbage",
-                "upgrade_required": "Opgradering kræves for at træne flere links",
-                "consider_upgrading": "Overvej at opgradere",
                 "fetching": "Henter...",
                 "fetch_links": "Hent links",
                 "crawl_settings": "Gennemsøgningsindstillinger",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} valgt ({links} links)",
                 "no_websites_selected": "Ingen hjemmesider valgt",
                 "train": "Træn",
-                "train_exceeds_quota": "Valgte links ({selected}) overstiger din resterende kvota ({remaining})",
                 "links_badge": "{count} links",
-                "badge_upgrade_required": "Opgradering kræves",
-                "badge_exceeds_quota": "Overstiger kvota",
-                "no_links_remaining_plan": "Du har ingen links tilbage i din plan. Opgrader venligst for at træne denne hjemmeside.",
-                "website_exceeds_remaining": "Denne hjemmeside har {links} links, hvilket ville overstige dine resterende {remaining} links. Fravælg andre hjemmesider først eller opgrader din plan.",
                 "collapse_links": "Skjul opdagede links",
                 "expand_links": "Vis opdagede links",
                 "discovered_links": "Opdagede links",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Opret agent",
-            "limit_title": "Agentgrænse nået",
-            "limit_description": "Du har nået din agentgrænse.",
-            "upgrade_plan": "Opgrader plan",
             "name_label": "Agentens navn",
-            "name_placeholder": "F.eks. Kundesupport",
-            "load_error": "Kunne ikke indlæse forbrugsoplysninger",
-            "limit_toast_title": "Agentgrænse nået",
-            "limit_toast_description": "Du har nået din agentgrænse."
+            "name_placeholder": "F.eks. Kundesupport"
         },
         "analytics": {
             "title": "Agentstatistik",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Brugerdefineret domæne",
                 "description": "Vis denne agents hostede chat fra dit eget domæne i stedet for {target}.",
-                "no_quota_title": "Brugerdefinerede domæner er ikke inkluderet i din nuværende plan",
-                "no_quota_description": "Opgrader til Pro eller tilkøb tilføjelsespakken Brugerdefineret domæne fra {link} for at tilføje dit eget hostnavn.",
-                "billing": "Fakturering",
-                "quota": "Bruger {used} af {total} brugerdefineret domæne | Bruger {used} af {total} brugerdefinerede domæner",
-                "add_more": "Tilføj flere",
                 "step1": "Trin 1 — Tilføj en CNAME-post hos din DNS-udbyder",
                 "type": "Type",
                 "name": "Navn",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Emner",
             "description": "Analysér samtalemner og tendenser",
-            "locked_description": "Opgrader din plan for at få adgang til emneanalyse og automatisk registrering og kategorisering af samtalemner.",
             "disabled_title": "Emneanalyse",
             "disabled_description": "Slå det til for automatisk at registrere og gruppere, hvad dine besøgende spørger om på tværs af samtaler.",
             "blocked_reason": "Chatlog er slået fra, så der er intet at analysere. Slå det til under Opsætning → Indstillinger for at begynde at indsamle emner.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Sender link...",
             "or_continue_with": "Eller fortsæt med",
             "no_account": "Har du ikke en konto?",
-            "start_free_trial": "Start gratis prøveperiode",
             "create_account": "Opret en konto"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Vælg din adgangskode",
-            "description": "Din konto er klar. Vælg en adgangskode for at færdiggøre opsætningen.",
-            "head": "Vælg din adgangskode",
-            "email_label": "E-mailadresse",
-            "password_label": "Adgangskode",
-            "password_placeholder": "Adgangskode",
-            "confirm_password_label": "Bekræft adgangskode",
-            "confirm_password_placeholder": "Bekræft adgangskode",
-            "set_password": "Gem adgangskode",
-            "setting_password": "Gemmer adgangskode..."
-        },
         "login_member": {
             "description": "Log ind for at få adgang til dette chat-arbejdsområde",
             "head": "Medlemslogin",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Sørg for, at din sociale konto bruger",
             "social_email_note_suffix": "– den skal matche denne invitation."
         },
-        "invitation_invalid": {
-            "title": "Invitation ikke tilgængelig",
-            "description": "Denne invitation kan ikke accepteres",
-            "head": "Invitation ikke tilgængelig",
-            "card_title": "Kan ikke acceptere invitation",
-            "cannot_accept_prefix": "Invitationen til at tilslutte sig",
-            "cannot_accept_suffix": "kan ikke accepteres på nuværende tidspunkt.",
-            "contact_owner": "Kontakt venligst teamejeren for at løse dette problem.",
-            "go_to_login": "Gå til login"
-        },
         "invitation_expired": {
             "title": "Invitation udløbet",
             "description": "Denne invitation er ikke længere gyldig",
@@ -2325,386 +2254,6 @@
             "card_title": "Invitation udløbet",
             "contact_owner": "Kontakt venligst teamejeren for at anmode om en ny invitation.",
             "go_to_login": "Gå til login"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Fakturering",
-            "back_to_billing": "Tilbage til fakturering",
-            "view_plans": "Se abonnementer",
-            "cancel": "Annuller",
-            "processing": "Behandler...",
-            "not_available": "N/A"
-        },
-        "payment_success": {
-            "page_title": "Betaling gennemført",
-            "heading": "Betaling modtaget",
-            "description": "Tak! Din betaling er gennemført. Vi opretter dit abonnement nu.",
-            "redirecting_prefix": "Omdirigerer om",
-            "redirecting_suffix": "sekunder...",
-            "go_to_billing": "Gå til fakturering nu"
-        },
-        "invoices": {
-            "breadcrumb": "Fakturaer",
-            "page_title": "Fakturaer",
-            "heading": "Fakturaer",
-            "subheading": "Se og download din faktureringshistorik og fakturaer",
-            "history_title": "Faktureringshistorik",
-            "history_description": "Download kvitteringer og fakturaer for dine abonnementsbetalinger",
-            "invoice_number": "Faktura #{number}",
-            "status": {
-                "paid": "Betalt",
-                "pending": "Afventer",
-                "failed": "Mislykket"
-            },
-            "download_pdf": "Download PDF",
-            "view_online": "Se online",
-            "empty_title": "Ingen fakturaer endnu",
-            "empty_description": "Din faktureringshistorik og dine fakturaer vises her, når du starter et abonnement.",
-            "total_invoices": "Fakturaer i alt",
-            "total_spent": "Samlet forbrug",
-            "since": "Siden",
-            "help_title": "Brug for hjælp til fakturering?",
-            "help_description": "Har du spørgsmål om dine fakturaer eller brug for hjælp til fakturering, er vores supportteam klar til at hjælpe.",
-            "contact_support": "Kontakt support"
-        },
-        "payment_methods": {
-            "breadcrumb": "Betalingsmetoder",
-            "page_title": "Betalingsmetoder",
-            "heading": "Betalingsmetoder",
-            "subheading": "Administrer dine betalingsmetoder og faktureringsoplysninger",
-            "add_method": "Tilføj betalingsmetode",
-            "saved_title": "Gemte betalingsmetoder",
-            "saved_description": "Administrer dine gemte betalingsmetoder. Du kan angive en standardmetode til automatisk fakturering.",
-            "default": "Standard",
-            "expires": "Udløber {date}",
-            "set_default": "Angiv som standard",
-            "empty_title": "Ingen betalingsmetoder",
-            "empty_description": "Tilføj en betalingsmetode for at administrere dine abonnementer og foretage betalinger.",
-            "add_first": "Tilføj din første betalingsmetode",
-            "info_title": "Faktureringsoplysninger",
-            "info_description": "Opdater din faktureringsadresse og kontaktoplysninger",
-            "not_set": "Ikke angivet",
-            "update_info": "Opdater faktureringsoplysninger",
-            "secure_title": "Sikker betalingsbehandling",
-            "secure_description": "Dine betalingsoplysninger krypteres og behandles sikkert af Stripe. Vi gemmer aldrig dine fulde kortoplysninger på vores servere.",
-            "updating": "Opdaterer...",
-            "update_information": "Opdater oplysninger",
-            "card_information": "Kortoplysninger",
-            "remove_dialog": {
-                "title": "Fjern betalingsmetode",
-                "description": "Er du sikker på, at du vil fjerne denne betalingsmetode? Handlingen kan ikke fortrydes.",
-                "confirm": "Ja, fjern"
-            },
-            "fields": {
-                "name": "Navn",
-                "email": "E-mailadresse",
-                "address": "Adresse",
-                "city_state_country": "By, region og land",
-                "billing_address": "Faktureringsadresse",
-                "line1": "Adresselinje 1",
-                "line2": "Adresselinje 2 (valgfri)",
-                "city": "By",
-                "state": "Region",
-                "postal_code": "Postnummer",
-                "country": "Land"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "Storgade 123",
-                "line2": "Lejlighed, etage mv.",
-                "city": "København",
-                "state": "Hovedstaden",
-                "postal_code": "1000",
-                "country": "Vælg land..."
-            },
-            "info_dialog": {
-                "title": "Opdater faktureringsoplysninger",
-                "description": "Opdater din faktureringsadresse og kontaktoplysninger til fakturering og betalingsbehandling."
-            },
-            "add_dialog": {
-                "description": "Tilføj en ny betalingsmetode til din konto. Dine kortoplysninger er sikre og krypterede.",
-                "success_title": "Betalingsmetode tilføjet!",
-                "success_description": "Din betalingsmetode er blevet tilføjet til din konto.",
-                "secure_note": "Dine betalingsoplysninger krypteres og behandles sikkert af Stripe. Vi gemmer aldrig dine fulde kortoplysninger."
-            },
-            "errors": {
-                "init_failed": "Kunne ikke initialisere betalingssystemet",
-                "not_ready": "Betalingssystemet er ikke klar",
-                "add_failed": "Der opstod en fejl under tilføjelse af din betalingsmetode"
-            },
-            "toast": {
-                "added": "Betalingsmetode tilføjet!",
-                "info_updated": "Faktureringsoplysninger opdateret!",
-                "info_failed": "Kunne ikke opdatere faktureringsoplysninger"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Vælg abonnement",
-            "page_title": "Vælg dit abonnement",
-            "heading": "Vælg dit abonnement",
-            "subheading": "Find det rette abonnement til dine behov. Du kan skifte eller opsige når som helst.",
-            "monthly": "Månedlig",
-            "yearly": "Årlig",
-            "custom": "Tilpasset",
-            "per_month": "/måned",
-            "save_percent": "Spar {percent}%",
-            "billed_yearly": "Faktureres årligt til {amount}",
-            "features_included": "Inkluderede funktioner:",
-            "everything_in": "Alt i {plan} +",
-            "actions": {
-                "contact_sales": "Kontakt salg",
-                "upgrade": "Opgrader",
-                "upgrade_plan": "Opgrader abonnement",
-                "downgrade_to_free": "Nedgrader til gratis",
-                "downgrade_plan": "Nedgrader abonnement",
-                "switch_plan": "Skift abonnement",
-                "select_plan": "Vælg abonnement"
-            },
-            "discount": {
-                "banner": "{percent}% RABAT – Begrænset tilbud!",
-                "ends": "Tilbuddet slutter {date} – gå ikke glip af det!",
-                "limited": "Tidsbegrænset rabat på alle betalte abonnementer!",
-                "off": "{percent}% RABAT"
-            },
-            "most_popular": "Mest populær",
-            "current_plan": "Nuværende plan",
-            "save_up_to_percent": "Spar op til {percent}%"
-        },
-        "addons": {
-            "title": "Tilføjelser",
-            "description": "Ekstra kreditter, agenter og domæner oven i dit abonnement",
-            "per_agent": " / agent",
-            "per_domain": " / domæne",
-            "per_member": " / medlem",
-            "per_month": " / måned",
-            "requires_subscription": "Ekstra agenter, brugerdefineret domæne, fjernelse af branding og medlemmer kræver et aktivt hovedabonnement.",
-            "common": {
-                "none": "Ingen",
-                "subscribe": "Abonner",
-                "change": "Skift",
-                "update_quantity": "Opdater antal",
-                "monthly_cost": "Månedlig pris:",
-                "keep_subscription": "Behold abonnement",
-                "yes_cancel": "Ja, opsig",
-                "ends": "Slutter {date}"
-            },
-            "auto_recharge": {
-                "title": "Automatisk genopladning",
-                "on": "Til",
-                "off": "Fra",
-                "summary": "Køb automatisk {amount} kreditter, når saldoen falder under {threshold}.",
-                "manage": "Administrer",
-                "enable": "Aktivér",
-                "dialog_title": "Indstillinger for automatisk genopladning",
-                "dialog_description": "Når dine resterende kreditter falder til eller under grænsen, opkræver vi automatisk din standardbetalingsmetode og fylder din saldo op.",
-                "enable_label": "Aktivér automatisk genopladning",
-                "enable_hint": "Opkræv automatisk, når kreditterne er ved at løbe ud",
-                "threshold_label": "Grænse (kreditter)",
-                "threshold_hint": "Genopladning sker, når din saldo falder til eller under dette beløb.",
-                "amount_label": "Genopladningsbeløb (kreditter)",
-                "each_recharge": "Pr. genopladning:",
-                "charged_note": "Opkræves øjeblikkeligt via din standardbetalingsmetode, når grænsen nås.",
-                "save": "Gem indstillinger"
-            },
-            "extra_credits": {
-                "title": "Ekstra kreditter",
-                "summary": "Engangskøb. Hver pakke tilføjer 1.000 beskeder, der udløber efter 30 dage.",
-                "buy": "Køb kreditter",
-                "dialog_title": "Køb beskedkreditter",
-                "dialog_description": "Hver pakke indeholder 1.000 beskeder, som skal bruges inden for én måned efter købet.",
-                "quantity_label": "Antal (1.000 beskeder pr. pakke)",
-                "total_messages": "Beskeder i alt:",
-                "total_price": "Samlet pris:",
-                "purchase_for": "Køb for ${amount}"
-            },
-            "extra_agents": {
-                "title": "Ekstra agenter",
-                "summary": "Tilføj flere AI-agenter ud over din abonnementsgrænse.",
-                "cancel_title": "Opsig abonnement på ekstra agenter?",
-                "cancel_description": "Din kvote for ekstra agenter fjernes øjeblikkeligt, og du opkræves ikke igen.",
-                "change_title": "Skift ekstra agenter",
-                "subscribe_title": "Abonner på ekstra agenter",
-                "dialog_description": "Tilføj ekstra AI-agenter oven i dit abonnement. Faktureres månedligt til $5 pr. agent.",
-                "quantity_label": "Antal ekstra agenter"
-            },
-            "custom_domains": {
-                "title": "Brugerdefineret domæne",
-                "summary": "Brug dit eget domæne til AI-agenter.",
-                "cancel_title": "Opsig abonnement på brugerdefineret domæne?",
-                "cancel_description": "Din kvote for brugerdefinerede domæner fjernes øjeblikkeligt, og du opkræves ikke igen.",
-                "change_title": "Skift brugerdefinerede domæner",
-                "subscribe_title": "Abonner på brugerdefineret domæne",
-                "dialog_description": "Brug dit eget domæne til AI-agenter. Faktureres månedligt til $29 pr. domæne.",
-                "quantity_label": "Antal domæner"
-            },
-            "remove_branding": {
-                "title": "Fjern branding",
-                "active": "Aktiv",
-                "summary": "Skjul \"Powered by Chatvia\"-mærket på din widget og hostede chat.",
-                "cancel_title": "Opsig abonnement på fjernelse af branding?",
-                "cancel_description": "\"Powered by Chatvia\"-mærket vises igen på din widget og hostede chat øjeblikkeligt, og du opkræves ikke igen."
-            },
-            "members": {
-                "title": "Medlemmer",
-                "summary": "Tilføj flere teammedlemmer til dit arbejdsområde.",
-                "cancel_title": "Opsig abonnement på medlemmer?",
-                "cancel_description": "Dine ekstra medlemspladser fjernes øjeblikkeligt, og du opkræves ikke igen.",
-                "change_title": "Skift medlemmer",
-                "subscribe_title": "Abonner på medlemmer",
-                "dialog_description": "Tilføj ekstra teammedlemmer til dit arbejdsområde. Faktureres månedligt til $9 pr. medlem.",
-                "quantity_label": "Antal medlemmer"
-            }
-        },
-        "index": {
-            "page_title": "Fakturering",
-            "heading": "Fakturering",
-            "subheading": "Administrer dit abonnement, faktureringsoplysninger og forbrugsgrænser",
-            "stripe_notice": "Betalinger behandles sikkert af",
-            "status_label": "Status",
-            "trial_ends": "Prøveperiode slutter",
-            "next_billing": "Næste fakturering",
-            "access_ends": "Adgang slutter",
-            "plan_features": "Abonnementsfunktioner",
-            "show_less": "Vis færre",
-            "show_more": "Vis {count} mere",
-            "per_year": "År",
-            "per_month": "Måned",
-            "status": {
-                "active": "Aktiv",
-                "trial": "Prøveperiode",
-                "cancelled": "Opsagt",
-                "incomplete": "Ufuldstændig",
-                "past_due": "Forfalden"
-            },
-            "trial": {
-                "heading": "🎉 Du er på en gratis prøveperiode!",
-                "ends_on": "Din {plan}-prøveperiode slutter den",
-                "auto_start": "Dit betalte abonnement starter automatisk den {date}",
-                "badge": "Prøveperiode aktiv"
-            },
-            "upgrade": {
-                "heading": "Opgrader til Premium",
-                "description": "Få adgang til avancerede AI-modeller, højere beskedgrænser og prioriteret support"
-            },
-            "current_plan": {
-                "title": "Nuværende abonnement",
-                "description": "Dit aktive abonnement og forbrugsdetaljer"
-            },
-            "pending_change": {
-                "heading": "Abonnementsændring planlagt",
-                "change_from": "Dit abonnement skifter fra",
-                "to": "til",
-                "cycle_yearly": "(Årlig)",
-                "cycle_monthly": "(Månedlig)",
-                "on_date": "den {date}.",
-                "scheduled_for": "Du har en planlagt abonnementsændring den {date}.",
-                "access_note": "Du har fortsat adgang til dit nuværende abonnements funktioner indtil da.",
-                "cancel_schedule": "Annuller planlagt ændring",
-                "cancel_dialog": {
-                    "title": "Annuller planlagt abonnementsændring",
-                    "description": "Er du sikker på, at du vil annullere den planlagte abonnementsændring? Du forbliver på dit nuværende abonnement.",
-                    "confirm": "Ja, annuller planlagt ændring",
-                    "cancel": "Behold planlagt ændring"
-                }
-            },
-            "cancelled": {
-                "title": "Abonnement opsagt",
-                "description": "Dit abonnement slutter den {date}. Du kan genaktivere dit abonnement når som helst inden denne dato.",
-                "resume": "Genaktiver abonnement"
-            },
-            "management": {
-                "title": "Administration",
-                "manage_payment_methods": "Administrer betalingsmetoder",
-                "view_invoices": "Se fakturaer",
-                "go_to_stripe": "Gå til Stripe",
-                "change_plan": "Skift abonnement",
-                "cancel_subscription": "Opsig abonnement"
-            },
-            "cancel_dialog": {
-                "title": "Opsig abonnement",
-                "description": "Er du sikker på, at du vil opsige dit abonnement? Du har fortsat adgang til udløbet af din faktureringsperiode.",
-                "confirm": "Ja, opsig",
-                "cancel": "Behold abonnement"
-            },
-            "usage": {
-                "title": "Forbrug",
-                "messages": "Beskeder",
-                "pages": "Sider",
-                "agents": "Agenter",
-                "links": "Links",
-                "minutes": "Minutter",
-                "remaining": "{count} tilbage",
-                "load_error": "Kunne ikke indlæse forbrugsdata"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Starter",
-                    "description": "Til små virksomheder, der er ved at komme i gang."
-                },
-                "standard": {
-                    "name": "Standard",
-                    "description": "Til voksende teams og virksomheder."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "Til organisationer, der har brug for det hele."
-                },
-                "enterprise": {
-                    "name": "Enterprise",
-                    "description": "Til organisationer med behov for sikkerhed, compliance og skalering."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "{count} besked pr. måned | {count} beskeder pr. måned",
-            "messages_per_year": "{count} besked pr. år | {count} beskeder pr. år",
-            "messages_unlimited": "Ubegrænsede beskeder",
-            "messages_custom": "Tilpasset beskedvolumen",
-            "agents": "{count} AI-agent | {count} AI-agenter",
-            "agents_unlimited": "Ubegrænsede AI-agenter",
-            "pages": "{count} side (PDF, Word, tekst) | {count} sider (PDF, Word, tekst)",
-            "pages_unlimited": "Ubegrænsede sider (PDF, Word, tekst)",
-            "pages_custom": "Tilpasset vidensbase",
-            "links": "{count} webstedslink | {count} webstedslinks",
-            "links_unlimited": "Ubegrænsede webstedslinks",
-            "links_custom": "Tilpassede webstedslinks",
-            "minutes": "{count} minuts lyd/video | {count} minutters lyd/video",
-            "minutes_unlimited": "Ubegrænsede minutter lyd/video",
-            "minutes_custom": "Tilpasset lyd/video",
-            "teams": "{count} team | {count} teams",
-            "teams_unlimited": "Ubegrænsede teams",
-            "members": "{count} medlem (teammedlemmer + chattere) | {count} medlemmer (teammedlemmer + chattere)",
-            "members_unlimited": "Ubegrænsede medlemmer",
-            "retention": "{count} dags chathistorik | {count} dages chathistorik",
-            "retention_unlimited": "Ubegrænset chathistorik",
-            "retention_custom": "Tilpasset dataopbevaring",
-            "sentiment": "Sentimentanalyse",
-            "tone": "Toneanalyse",
-            "topics": "Emneanalyse",
-            "pulse": "Conversation Pulse",
-            "handoff": "Handoff",
-            "api": "API-adgang",
-            "evals": "Evalueringer",
-            "guardrails": "Guardrails",
-            "audit": "Aktivitetslog",
-            "branding": "White-label (fjern {brand}-branding)",
-            "network_access": "Netværksadgangskontrol (IP og geo)",
-            "siem_webhook": "SIEM-webhook (sikkerhedshændelser i realtid)",
-            "mcp": "MCP",
-            "function_calling": "Function Calling",
-            "custom_domains": "{count} eget domæne | {count} egne domæner",
-            "custom_domains_unlimited": "Ubegrænsede egne domæner",
-            "custom_domains_custom": "Egne domæner",
-            "custom_integrations": "Tilpassede integrationer",
-            "eu_data_residency": "EU-dataopbevaring",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "Oppetids-SLA",
-            "dedicated_support": "Dedikeret support",
-            "custom_contract": "Tilpasset kontrakt og DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "Oversigt over dine AI-agenter og aktivitet",
         "create_agent": "Opret agent",
         "total_agents": "Agenter i alt",
-        "messages_this_cycle": "Beskeder i denne periode",
         "percent_used": "{percent}% brugt",
         "total_conversations": "Samtaler i alt",
         "all_time_across_agents": "Samlet på tværs af agenter",
@@ -3110,97 +2658,8 @@
         "last_week": "Sidste uge",
         "last_month": "Sidste måned",
         "messages_tooltip": "{n} besked | {n} beskeder",
-        "messages_this_month": "Beskeder denne måned"
-    },
-    "support": {
-        "title": "Support",
-        "subtitle": "Se dine sager eller opret en ny.",
-        "create_ticket": "Opret ny sag",
-        "your_tickets": "Dine sager",
-        "your_tickets_description": "Tidligere indsendte sager",
-        "loading": "Henter sager...",
-        "empty": "Ingen sager endnu. Klik på \"Opret ny sag\" for at komme i gang.",
-        "th_id": "ID",
-        "th_type": "Type",
-        "th_status": "Status",
-        "th_priority": "Prioritet",
-        "th_created": "Oprettet",
-        "th_message": "Besked",
-        "th_replies": "Svar",
-        "status_open": "Åben",
-        "status_in_progress": "I gang",
-        "status_resolved": "Løst",
-        "status_closed": "Lukket",
-        "priority_urgent": "Kritisk",
-        "priority_high": "Høj",
-        "priority_medium": "Medium",
-        "priority_low": "Lav",
-        "create_ticket_description": "Vælg en type og beskriv din henvendelse.",
-        "label_type": "Type",
-        "type_placeholder": "Vælg en type",
-        "type_feature": "Anmod om en funktion",
-        "type_bug": "Rapporter en fejl",
-        "type_integration": "Anmod om integration",
-        "type_add_model": "Anmod om tilføjelse af model",
-        "type_refund": "Refunderingsanmodning",
-        "type_billing": "Faktureringsproblem",
-        "type_other": "Andet",
-        "label_priority": "Prioritet",
-        "priority_placeholder": "Vælg prioritet",
-        "label_message": "Besked",
-        "message_placeholder": "Beskriv din henvendelse eller dit problem i detaljer...",
-        "cancel": "Annuller",
-        "submitting": "Indsender...",
-        "submit": "Indsend"
-    },
-    "ticket": {
-        "support": "Support",
-        "title": "Sag #{id}",
-        "created_at": "Oprettet {date}",
-        "back_to_support": "Tilbage til support",
-        "status_open": "Åben",
-        "status_in_progress": "I gang",
-        "status_resolved": "Løst",
-        "status_closed": "Lukket",
-        "priority_urgent": "Kritisk",
-        "priority_high": "Høj",
-        "priority_medium": "Medium",
-        "priority_low": "Lav",
-        "change_priority": "Skift prioritet",
-        "change_priority_title": "Skift sagets prioritet",
-        "change_priority_description": "Skift kun prioriteten, hvis dette er reelt kritisk. Misbrug af den kritiske prioritet kan forsinke svar for alle.",
-        "label_priority": "Prioritet",
-        "priority_placeholder": "Vælg en prioritet",
-        "cancel": "Annuller",
-        "saving": "Gemmer...",
-        "save": "Gem",
-        "replies": "Svar ({count})",
-        "no_replies": "Ingen svar endnu.",
-        "role_staff": "Personale",
-        "role_user": "Bruger",
-        "resolved_notice": "Denne sag er blevet løst. Hvis problemet fortsætter, skal du oprette en ny sag fra supportsiden.",
-        "add_reply": "Tilføj et svar",
-        "reply_placeholder": "Skriv dit svar...",
-        "sending": "Sender...",
-        "send_reply": "Send svar"
-    },
-    "usage": {
-        "title": "Forbrug",
-        "subtitle": "Overvåg dit aktuelle forbrug på tværs af alle tjenester og funktioner.",
-        "plan_badge": "{plan}-abonnement",
-        "label_messages": "Beskeder",
-        "label_tokens": "Tokens",
-        "label_pages": "Sider",
-        "label_minutes": "Minutter",
-        "label_links": "Links",
-        "label_agents": "Agenter",
-        "label_teams": "Teams",
-        "label_members": "Medlemmer",
-        "tokens_note": "Forbrugt i denne periode — kun til orientering; dit abonnement faktureres pr. besked.",
-        "of": "af {limit}",
-        "remaining": "{count} tilbage",
-        "load_error": "Kunne ikke hente forbrugsdata.",
-        "no_limit": "Ingen grænse"
+        "messages_this_month": "Beskeder denne måned",
+        "messages_used_of_limit": "{used} af {limit} brugt"
     },
     "analytics_chat": {
         "title": "Spørg om dine data",
@@ -3326,7 +2785,6 @@
             "description": "Kontonøgler til {api_link} — opret og administrer agenter, videnskilder, MCP-servere og funktioner.",
             "api_link": "Chatvia API",
             "generate": "Generér nøgle",
-            "locked": "Opgrader din plan for at udstede API-nøgler og integrere Chatvia med dine applikationer.",
             "empty_title": "Ingen API-nøgler endnu",
             "empty_description": "Generér én for at begynde at bruge Chatvia API.",
             "never": "Aldrig",
@@ -3535,14 +2993,6 @@
             "save_error": "Dine sikkerhedsindstillinger kunne ikke gemmes",
             "cancel": "Annuller",
             "done": "Færdig",
-            "teaser": {
-                "title": "Sikkerhed og compliance",
-                "description": "Lås dit workspace ned til betroede netværk, og opfyld dine compliance-krav. Tilgængelig på Pro-abonnementet.",
-                "ip": "IP-tilladelsesliste — kun godkendte adresser kan logge ind",
-                "geo": "Landeregler — tillad eller bloker adgang efter land",
-                "more": "Plus dataopbevaring, SIEM-webhooks, SSO / SCIM og mere",
-                "cta": "Opgrader til Pro"
-            },
             "network": {
                 "title": "Netværksadgangskontrol",
                 "help": "Begræns dashboardadgang til betroede IP-adresser og lande. Når dette er slået fra, kan alle med et gyldigt login logge ind hvor som helst fra."
@@ -3578,7 +3028,7 @@
                 "title": "Dataopbevaring",
                 "help": "Hvor længe Chatvia opbevarer dine data, før de slettes automatisk. Forkort disse af hensyn til compliance — lad et felt stå tomt for at bruge standardværdien.",
                 "conversations": "Samtalehistorik (dage)",
-                "conversations_help": "Chathistorik slettes efter dette antal dage. Op til {max} på dit abonnement.",
+                "conversations_help": "Chathistorik slettes efter dette antal dage. Op til {max} dage.",
                 "audit": "Sikkerhedsauditlog (dage)",
                 "audit_help": "Standard {default} dage, minimum {floor}.",
                 "plan_default": "Standard ({days} dage)"
@@ -3606,11 +3056,6 @@
             "user_agent": "User agent",
             "metadata": "Detaljer",
             "integrity": "Integritetshash registreret",
-            "teaser": {
-                "title": "Sikkerhedsrevisionslog",
-                "description": "Se hvert login, hver rolleændring og hver ændring af sikkerhedsindstillinger — manipulationssikret og kan eksporteres. Tilgængelig på Pro-abonnementet.",
-                "cta": "Opgrader til Pro"
-            },
             "table": {
                 "actor": "Aktør",
                 "action": "Handling",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Oversigt",
             "agents": "Agenter",
-            "usage": "Forbrug",
             "ask_your_data": "Spørg dine data",
-            "billing": "Fakturering",
-            "support": "Support",
             "teams": "Teams",
             "documentation": "Dokumentation",
             "api": "API",
-            "nav_menu_sr": "Navigationsmenu",
-            "upgrade": "Opgrader",
-            "subscribed": "Du er abonnent"
+            "nav_menu_sr": "Navigationsmenu"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Videnskilder, dokumenter og uploadede filer",
             "removes_team": "Dit team, chattere, API-nøgler og connectors",
             "agents_will_delete": "{count} agent slettes permanent | {count} agenter slettes permanent",
-            "subscription_cancel": "Dit aktive abonnement annulleres, og du vil ikke blive opkrævet igen.",
             "email_confirmed": "E-mail bekræftet. Dette er dit sidste trin — der er ingen vej tilbage efter dette.",
             "delete_button": "Slet min konto permanent",
             "final_dialog_title": "Slet din konto permanent?",
             "final_dialog_description": "Dette sletter permanent din konto og alle dens data og kan ikke fortrydes.",
-            "final_dialog_subscription": "Dit abonnement vil også blive annulleret.",
             "final_confirm": "Ja, slet alt",
             "check_email": "Tjek din e-mail — vi har sendt et bekræftelseslink til at fuldføre sletningen af din konto. Det udløber om 30 minutter. Åbn linket for at fortsætte.",
             "resend_link": "Send linket igen",
@@ -3906,7 +3344,6 @@
         "enable_feature": "Aktivér {title}",
         "enabling": "Aktiverer…",
         "enable_now": "Aktivér nu",
-        "upgrade_now": "Opgrader nu",
         "chat_title_fallback": "Chat",
         "more_options": "Flere muligheder",
         "delete_confirmation_title": "Bekræft sletning",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Upload filer",
             "description_default": "Tilføj filer til analyse",
-            "quota_label_default": "sider",
             "file_count": "{current} / {max} filer",
-            "quota_limit_reached_alert": "Du har nået din grænse på {quotaLimit} {quotaLabel}. Opgrader din plan for at behandle flere dokumenter.",
             "drop_zone_file_limit_reached": "Filgrænsen er nået",
-            "drop_zone_quota_limit_reached": "{quotaLabel}-grænsen er nået",
             "drop_zone_select_files": "Vælg filer",
             "drop_zone_max_files_hint": "Maksimalt {max} filer tilladt. Fjern nogle filer for at tilføje flere.",
-            "drop_zone_quota_exhausted_hint": "Du har brugt alle {quotaLimit} {quotaLabel}. Opgrader din plan for at fortsætte.",
-            "drop_zone_unavailable": "Upload ikke tilgængelig",
             "drop_zone_default_hint": "Træk og slip, eller klik for at vælge filer",
-            "total_quota": "{count} {label} i alt",
-            "exceeds_quota": "Overskrider kvoten med {amount} {quotaLabel}",
             "clear_failed": "Ryd fejlede",
             "clear_all": "Ryd alle",
             "badge_analyzed": "Analyseret",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Forespørg på produktanalyse — hændelser, diagrammer og kohorter — fra dit Amplitude-projekt."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Velkommen til Chatvia",
-            "intro": "Lad os oprette din første AI-agent. Det tager kun et minut.",
-            "what_title": "Hvad er en agent?",
-            "what_body": "En agent er en AI-assistent, som du træner på dit eget indhold. Den besvarer dine kunders spørgsmål på din hjemmeside, i chat-widgetten og i beskedapps.",
-            "how_title": "Hvordan virker det?",
-            "how_body": "Først opretter du en agent og giver den et navn. Derefter træner du den med dine filer, hjemmesider og tekster, så den kan besvare spørgsmål.",
-            "start": "Opret min første agent",
-            "video_caption": "Se, hvordan det virker"
         }
     }
 }

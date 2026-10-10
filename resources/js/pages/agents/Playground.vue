@@ -5,6 +5,8 @@
  */
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { preview as barPreview } from '@/routes/agents/bar';
+import { preview as widgetPreview } from '@/routes/agents/widget';
 import { useClipboard } from '@vueuse/core';
 import { Check, Copy, ExternalLink, Globe, MessageSquare, Monitor, Search, Smartphone, Tablet } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -48,9 +50,9 @@ const hostedChatUrl = computed(() => {
 // Widget renders as a floating bubble on a blank host page. `full-preview=true`
 // tells the preview view NOT to mount the widget into a chat container — the
 // embed script positions itself as it would on a real customer site.
-const widgetUrl = computed(() => `${route('agents.widget.preview', { agent: props.agent.external_id })}?full-preview=true`);
+const widgetUrl = computed(() => widgetPreview.url(props.agent.external_id, { query: { 'full-preview': 'true' } }));
 
-const barUrl = computed(() => route('agents.bar.preview', { agent: props.agent.external_id }));
+const barUrl = computed(() => barPreview.url(props.agent.external_id));
 
 const currentUrl = computed(() => {
     if (surface.value === 'hosted_chat') return hostedChatUrl.value;

@@ -5,8 +5,6 @@ use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Notifications\AccountDeletionConfirmationNotification;
 use App\Identity\Workspace\Notifications\DataExportReadyNotification;
-use Domain\Billing\Notifications\TrialWelcomeNotification;
-use Illuminate\Support\Facades\App;
 
 /**
  * Transactional emails name the configured brand (`chatvia.brand.name`), in
@@ -14,22 +12,6 @@ use Illuminate\Support\Facades\App;
  */
 beforeEach(function (): void {
     config(['chatvia.brand.name' => 'Acme Chat']);
-});
-
-it('names the brand in the trial welcome email', function (): void {
-    $mail = new TrialWelcomeNotification('starter')->toMail(User::factory()->make());
-
-    expect($mail->subject)->toBe('Welcome to Acme Chat - Your Account is Ready!')
-        ->and($mail->greeting)->toBe('Welcome to Acme Chat!')
-        ->and(end($mail->outroLines))->toBe('Thank you for choosing Acme Chat!');
-});
-
-it('names the brand in the translated trial welcome email', function (): void {
-    App::setLocale('de');
-
-    $mail = new TrialWelcomeNotification('starter')->toMail(User::factory()->make());
-
-    expect($mail->greeting)->toBe('Willkommen bei Acme Chat!');
 });
 
 it('names the brand in the data export and account deletion emails', function (): void {

@@ -2,6 +2,7 @@
  * The agent's Q&A entries: list them, read one (to edit it) and delete one.
  * Creating and updating an entry are Inertia form visits on the page.
  */
+import qa from '@/routes/agents/sources/qa';
 import { del, get } from './http';
 
 /** One of the questions an entry answers. `id` is only a stable list key. */
@@ -27,15 +28,15 @@ export interface QaEntry {
 }
 
 export async function fetchQaEntries(agentId: string): Promise<QaEntry[]> {
-    const response = await get<{ data?: QaEntry[] }>(route('agents.sources.qa.index', { agent: agentId }));
+    const response = await get<{ data?: QaEntry[] }>(qa.index.url(agentId));
 
     return response.data || [];
 }
 
 export function fetchQaEntry(agentId: string, id: number): Promise<QaEntry> {
-    return get<QaEntry>(route('agents.sources.qa.show', { agent: agentId, id }));
+    return get<QaEntry>(qa.show.url({ agent: agentId, id }));
 }
 
 export async function deleteQaEntry(agentId: string, id: number): Promise<void> {
-    await del(route('agents.sources.qa.destroy', { agent: agentId, id }));
+    await del(qa.destroy.url({ agent: agentId, id }));
 }

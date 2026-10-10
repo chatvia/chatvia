@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import governance from '@/routes/governance';
+import security from '@/routes/security';
 import { Link } from '@inertiajs/vue3';
 import { ScrollText } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -17,8 +19,13 @@ const { hasPermission } = useTeamPermissions();
 
 const tabs = computed(() =>
     [
-        { key: 'tools' as const, label: t('workspace.audit.tabs.tool_calls'), name: 'governance.audit', show: hasPermission('account.governance') },
-        { key: 'security' as const, label: t('workspace.audit.tabs.security'), name: 'security.audit', show: hasPermission('account.security') },
+        {
+            key: 'tools' as const,
+            label: t('workspace.audit.tabs.tool_calls'),
+            href: governance.audit.url(),
+            show: hasPermission('account.governance'),
+        },
+        { key: 'security' as const, label: t('workspace.audit.tabs.security'), href: security.audit.url(), show: hasPermission('account.security') },
     ].filter((tab) => tab.show),
 );
 </script>
@@ -35,7 +42,7 @@ const tabs = computed(() =>
                 <Link
                     v-for="tab in tabs"
                     :key="tab.key"
-                    :href="route(tab.name)"
+                    :href="tab.href"
                     :class="[
                         'border-b-2 px-1 pb-2 text-sm font-medium transition-colors',
                         tab.key === active ? 'border-primary text-foreground' : 'text-muted-foreground hover:text-foreground border-transparent',

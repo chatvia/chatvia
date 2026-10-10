@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { destroy as destroyTeam, leave as leaveTeamRoute, show as showTeam } from '@/routes/teams';
 import { type BreadcrumbItem } from '@/types';
 import { Loader2, LogOut, MoreHorizontal, Plus, Search, Settings, Trash2, Users } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -66,7 +67,7 @@ const canDeleteTeam = (team: Team) => team.is_owner && !team.is_primary && owned
 const leaveTeam = () => {
     if (!teamToLeave.value) return;
 
-    leaveForm.post(route('teams.leave', teamToLeave.value.external_id), {
+    leaveForm.post(leaveTeamRoute.url(teamToLeave.value.external_id), {
         onSuccess: () => {
             teamToLeave.value = null;
         },
@@ -81,7 +82,7 @@ const openDelete = (team: Team) => {
 const deleteTeam = () => {
     if (!teamToDelete.value) return;
 
-    deleteForm.delete(route('teams.destroy', teamToDelete.value.external_id), {
+    deleteForm.delete(destroyTeam.url(teamToDelete.value.external_id), {
         onSuccess: () => {
             teamToDelete.value = null;
         },
@@ -150,7 +151,7 @@ const formatRole = (role: string) =>
                             v-for="team in filteredTeams"
                             :key="team.id"
                             class="hover:bg-muted/40 cursor-pointer"
-                            @click="router.visit(route('teams.show', team.external_id))"
+                            @click="router.visit(showTeam.url(team.external_id))"
                         >
                             <TableCell class="py-4 ps-5">
                                 <div class="flex items-center gap-4">
@@ -179,7 +180,7 @@ const formatRole = (role: string) =>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem as-child>
-                                            <Link :href="route('teams.show', team.external_id)" class="cursor-pointer">
+                                            <Link :href="showTeam.url(team.external_id)" class="cursor-pointer">
                                                 <Settings class="me-2 h-4 w-4" />
                                                 {{ t('teams.index.manage') }}
                                             </Link>

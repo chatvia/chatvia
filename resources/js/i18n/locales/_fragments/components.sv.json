@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "Skapa agent",
-            "limit_title": "Agentgräns nådd",
-            "limit_description": "Du har nått din agentgräns.",
-            "upgrade_plan": "Uppgradera plan",
             "name_label": "Agentnamn",
-            "name_placeholder": "T.ex. Kundsupport",
-            "load_error": "Det gick inte att läsa in användningsinformation",
-            "limit_toast_title": "Agentgräns nådd",
-            "limit_toast_description": "Du har nått din agentgräns."
+            "name_placeholder": "T.ex. Kundsupport"
         }
     },
     "confirm_password": {

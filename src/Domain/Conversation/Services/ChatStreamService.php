@@ -2,9 +2,7 @@
 
 namespace Domain\Conversation\Services;
 
-use Domain\Billing\Enums\MessageAdmission;
-use Domain\Billing\Services\ChatterMessageAllowance;
-use Domain\Billing\Services\MessageSendGate;
+use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
@@ -35,8 +33,8 @@ use Generator;
  *
  *   1. a retried request replays its finished answer;
  *   2. a conversation held by a human operator relays the message to them;
- *   3. the workspace's subscription, credits, the chatter's monthly limit and
- *      the agent's rate limit can refuse the turn with a typed error;
+ *   3. the workspace's and the chatter's monthly message limits and the
+ *      agent's rate limit can refuse the turn with a typed error;
  *   4. otherwise the turn is built and answered by the guardrail refusal, an
  *      exact Q&A match, the document LLM (PDF conversations) or the agent's
  *      LLM with its tools.
@@ -46,8 +44,7 @@ readonly class ChatStreamService
     public function __construct(
         private ChatService $chatService,
         private TurnContextFactory $contexts,
-        private MessageSendGate $sendGate,
-        private ChatterMessageAllowance $chatterAllowance,
+        private MessageAllowance $allowance,
         private SendVisitorHandoffMessageAction $sendVisitorMessage,
         private LlmSource $llmSource,
         private PdfSource $pdfSource,
@@ -155,27 +152,21 @@ readonly class ChatStreamService
     }
 
     /**
-     * The checks that refuse a turn before any model work. Billing meters the
-     * replies a workspace receives (tokens are analytics only and never
-     * gate); the same send gate guards the messaging channels.
+     * The checks that refuse a turn before any model work. The workspace's
+     * monthly limit counts the replies it receives; the messaging channels
+     * check the same limit.
      *
      * @return Generator<int, StreamEvent>|null
      */
     private function refusal(StreamRequestData $data): ?Generator
     {
-        $admission = $this->sendGate->admit($data->agent->user);
-
-        if ($admission === MessageAdmission::SubscriptionInactive) {
-            return $this->errorSource->events(ErrorCode::SubscriptionExpired, __('Your subscription has expired. Please renew to continue.'));
-        }
-
-        if ($admission === MessageAdmission::CreditsExhausted) {
-            return $this->errorSource->events(ErrorCode::MessageLimitReached, __('You have reached your message limit. Please upgrade to continue.'));
+        if (! $this->allowance->canSend($data->agent->user_id)) {
+            return $this->errorSource->events(ErrorCode::MessageLimitReached, __('This agent has reached its monthly message limit. Please try again next month.'));
         }
 
         // The chatter's own monthly limit, on top of the workspace's. Only
-        // signed-in chatters have one; a missing or new-month allowance passes.
-        if ($data->chatterUserId !== null && ! $this->chatterAllowance->canSendMessagesById($data->chatterUserId)) {
+        // signed-in chatters can have one.
+        if ($data->chatterUserId !== null && ! $this->allowance->canSend($data->chatterUserId)) {
             return $this->errorSource->events(ErrorCode::ChatterMessageLimitReached, __('You have reached your monthly message limit.'));
         }
 
@@ -195,16 +186,14 @@ readonly class ChatStreamService
      */
     private function answer(StreamRequestData $data, ?Conversation $conversation): Generator
     {
-        // The query rewrite, the query embedding and the reranking all use
-        // tokens: attribute them to the workspace. The streamed reply reports
-        // its own usage and is recorded when its message is stored.
+        // The query rewrite, the query embedding and the reranking call AI
+        // models: attribute those requests to the workspace.
         $context = $this->usage->track(
             $data->agent->user_id,
             fn (): ChatContext => $this->chatService->enrichContextWithKnowledge($this->chatService->initializeChatContext($data)),
-            'chat',
         );
 
-        // An input guardrail refused the message: no model call, no credit.
+        // An input guardrail refused the message: no model call, not counted.
         if ($context->guardBlocked) {
             return $this->guardBlockSource->events($context);
         }

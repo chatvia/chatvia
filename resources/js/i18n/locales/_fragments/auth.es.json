@@ -20,8 +20,7 @@
             "send_link": "Enviarme un enlace de acceso",
             "sending_link": "Enviando enlace...",
             "or_continue_with": "O continúa con",
-            "no_account": "¿No tienes una cuenta?",
-            "start_free_trial": "Comenzar prueba gratis"
+            "no_account": "¿No tienes una cuenta?"
         },
         "register": {
             "title": "Crear una cuenta",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Usar un código de recuperación",
             "use_authenticator_code": "Usar un código de autenticación"
         },
-        "set_password": {
-            "title": "Elige tu contraseña",
-            "description": "Tu cuenta está lista. Elige una contraseña para terminar de configurarla.",
-            "head": "Elige tu contraseña",
-            "email_label": "Correo electrónico",
-            "password_label": "Contraseña",
-            "password_placeholder": "Contraseña",
-            "confirm_password_label": "Confirmar contraseña",
-            "confirm_password_placeholder": "Confirmar contraseña",
-            "set_password": "Establecer contraseña",
-            "setting_password": "Estableciendo contraseña..."
-        },
         "login_member": {
             "description": "Inicia sesión para acceder a este espacio de chat",
             "head": "Acceso de miembro",
@@ -168,16 +155,6 @@
             "or": "O",
             "social_email_note_prefix": "Asegúrate de que tu cuenta social use",
             "social_email_note_suffix": "— debe coincidir con esta invitación."
-        },
-        "invitation_invalid": {
-            "title": "Invitación no disponible",
-            "description": "Esta invitación no puede ser aceptada",
-            "head": "Invitación no disponible",
-            "card_title": "No se puede aceptar la invitación",
-            "cannot_accept_prefix": "La invitación para unirse a",
-            "cannot_accept_suffix": "no puede ser aceptada en este momento.",
-            "contact_owner": "Por favor contacta al administrador del equipo para resolver este problema.",
-            "go_to_login": "Ir al inicio de sesión"
         },
         "invitation_expired": {
             "title": "Invitación expirada",

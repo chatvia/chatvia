@@ -1,0 +1,8 @@
+{
+    "chat": {
+        "limit_resets_next_month": "Anda dapat mengirim pesan lagi bulan depan."
+    },
+    "dashboard": {
+        "messages_used_of_limit": "{used} dari {limit} terpakai"
+    }
+}

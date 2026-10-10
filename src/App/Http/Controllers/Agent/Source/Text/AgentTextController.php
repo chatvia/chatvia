@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Source\Text;
 
 use App\Http\Requests\Agent\Source\Text\AgentSourceTextRequest;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
@@ -49,18 +48,12 @@ class AgentTextController
 
     public function store(AgentSourceTextRequest $request, Agent $agent, CreateAgentSourceTextAction $create): void
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        $create->execute($agent, $user, $request->textContent());
+        $create->execute($agent, $request->textContent());
     }
 
     public function update(AgentSourceTextRequest $request, Agent $agent, int $id, UpdateAgentSourceTextAction $update): void
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        $update->execute($agent, $user, $this->agentText($agent, $id), $request->textContent());
+        $update->execute($agent, $this->agentText($agent, $id), $request->textContent());
     }
 
     public function destroy(Request $request, Agent $agent, int $id, DeleteAgentSourceTextAction $delete): void

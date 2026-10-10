@@ -12,6 +12,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { destroy as destroyAgentChatter } from '@/routes/agents/chatters';
 import { router } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -42,7 +43,7 @@ const confirmDetach = () => {
     const target = props.member;
     isDetaching.value = true;
     router.delete(
-        route('agents.chatters.destroy', {
+        destroyAgentChatter.url({
             agent: props.agentId,
             chatter: target.external_id,
         }),

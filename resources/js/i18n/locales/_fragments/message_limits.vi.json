@@ -1,0 +1,8 @@
+{
+    "chat": {
+        "limit_resets_next_month": "Bạn có thể gửi tin nhắn lại vào tháng sau."
+    },
+    "dashboard": {
+        "messages_used_of_limit": "Đã dùng {used}/{limit}"
+    }
+}

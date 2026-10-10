@@ -113,7 +113,7 @@ it('catalogs the built-in servers as global rows and indexes their tools', funct
     $analytics = $globals->firstWhere('slug', 'account-analytics');
     expect($analytics->category)->toBe(McpServerCategory::Analytics)
         ->and($analytics->user_id)->toBeNull()
-        ->and($analytics->connectorTools()->count())->toBe(16);
+        ->and($analytics->connectorTools()->count())->toBe(15);
 
     $charts = $globals->firstWhere('slug', 'charts');
     expect($charts->category)->toBe(McpServerCategory::Builtin)

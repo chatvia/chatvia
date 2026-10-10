@@ -5,6 +5,7 @@
  * Danger Zone. A group the user can do nothing in is left out entirely.
  */
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import agents from '@/routes/agents';
 import {
     BarChart3,
     BotIcon,
@@ -38,18 +39,25 @@ interface AgentNavBase {
     tooltip: string;
 }
 
+/** The URL of one of the agent's pages, given the agent's external id. */
+export type AgentPageUrl = (agent: string) => string;
+
 /** A link inside a collapsible submenu. */
 export interface AgentNavSubItem {
     id: string;
     label: string;
     icon: Component;
+    /** Route name (or `*` pattern), only for the active state. */
     route: string;
+    url: AgentPageUrl;
 }
 
 /** A plain link to one of the agent's pages. */
 export interface AgentNavLinkItem extends AgentNavBase {
     kind: 'link';
+    /** Route name (or `*` pattern), only for the active state. */
     route: string;
+    url: AgentPageUrl;
 }
 
 /** A collapsible submenu (Analytics, Security) with its own links. */
@@ -88,12 +96,12 @@ const SOURCE_PERMISSIONS = [
     'agent.sources.train.video',
 ];
 
-function link(id: string, label: string, icon: Component, route: string, tooltip: string): AgentNavLinkItem {
-    return { kind: 'link', id, label, icon, route, tooltip };
+function link(id: string, label: string, icon: Component, route: string, url: AgentPageUrl, tooltip: string): AgentNavLinkItem {
+    return { kind: 'link', id, label, icon, route, url, tooltip };
 }
 
-function subLink(id: string, label: string, icon: Component, route: string): AgentNavSubItem {
-    return { id, label, icon, route };
+function subLink(id: string, label: string, icon: Component, route: string, url: AgentPageUrl): AgentNavSubItem {
+    return { id, label, icon, route, url };
 }
 
 export function useAgentNavigation() {
@@ -108,9 +116,9 @@ export function useAgentNavigation() {
         if (!hasPermission('agent.setup')) return [];
 
         return [
-            link('playground', t('agents.nav.playground'), BotIcon, 'agents.playground', t('agents.nav.playground_tooltip')),
-            link('setup', t('agents.nav.setup'), Code, 'agents.setup', t('agents.nav.setup_tooltip')),
-            link('deploy', t('agents.nav.deploy'), Rocket, 'agents.deploy', t('agents.nav.deploy_tooltip')),
+            link('playground', t('agents.nav.playground'), BotIcon, 'agents.playground', agents.playground.url, t('agents.nav.playground_tooltip')),
+            link('setup', t('agents.nav.setup'), Code, 'agents.setup', agents.setup.url, t('agents.nav.setup_tooltip')),
+            link('deploy', t('agents.nav.deploy'), Rocket, 'agents.deploy', agents.deploy.url, t('agents.nav.deploy_tooltip')),
         ];
     });
 
@@ -121,19 +129,23 @@ export function useAgentNavigation() {
 
         const analytics: AgentNavSubItem[] = [];
         if (hasPermission('agent.analytics.chats')) {
-            analytics.push(subLink('analytics-overview', t('agents.nav.chats'), BarChart3, 'agents.analytics'));
+            analytics.push(subLink('analytics-overview', t('agents.nav.chats'), BarChart3, 'agents.analytics', agents.analytics.url));
         }
         if (hasPermission('agent.analytics.sentiment')) {
-            analytics.push(subLink('analytics-sentiment', t('agents.nav.sentiment'), SmilePlus, 'agents.analytics.sentiment'));
+            analytics.push(
+                subLink('analytics-sentiment', t('agents.nav.sentiment'), SmilePlus, 'agents.analytics.sentiment', agents.analytics.sentiment.url),
+            );
         }
         if (hasPermission('agent.analytics.tone')) {
-            analytics.push(subLink('analytics-tone', t('agents.nav.tone'), Heart, 'agents.analytics.tone'));
+            analytics.push(subLink('analytics-tone', t('agents.nav.tone'), Heart, 'agents.analytics.tone', agents.analytics.tone.url));
         }
         if (hasPermission('agent.analytics.topics')) {
-            analytics.push(subLink('analytics-topics', t('agents.nav.topics'), MessageSquare, 'agents.analytics.topics'));
+            analytics.push(
+                subLink('analytics-topics', t('agents.nav.topics'), MessageSquare, 'agents.analytics.topics', agents.analytics.topics.url),
+            );
         }
         if (hasPermission('agent.analytics.sources')) {
-            analytics.push(subLink('analytics-sources', t('agents.nav.sources'), FileText, 'agents.analytics.sources'));
+            analytics.push(subLink('analytics-sources', t('agents.nav.sources'), FileText, 'agents.analytics.sources', agents.analytics.sources.url));
         }
         if (analytics.length > 0) {
             items.push({
@@ -147,16 +159,25 @@ export function useAgentNavigation() {
         }
 
         if (hasPermission('agent.chat.view')) {
-            items.push(link('logs', t('agents.nav.chat'), MessageSquare, 'agents.logs', t('agents.nav.chat_tooltip')));
+            items.push(link('logs', t('agents.nav.chat'), MessageSquare, 'agents.logs', agents.logs.url, t('agents.nav.chat_tooltip')));
         }
         if (hasPermission('agent.audit.view')) {
-            items.push(link('audit', t('agents.nav.audit'), ShieldCheck, 'agents.audit', t('agents.nav.audit_tooltip')));
+            items.push(link('audit', t('agents.nav.audit'), ShieldCheck, 'agents.audit', agents.audit.url, t('agents.nav.audit_tooltip')));
         }
         if (hasPermission('agent.evals.view')) {
-            items.push(link('evals', t('agents.nav.evals'), FlaskConical, 'agents.evals', t('agents.nav.evals_tooltip')));
+            items.push(link('evals', t('agents.nav.evals'), FlaskConical, 'agents.evals', agents.evals.url, t('agents.nav.evals_tooltip')));
         }
         if (hasPermission('agent.guardrails.view')) {
-            items.push(link('guardrails', t('agents.nav.guardrails'), ShieldAlert, 'agents.guardrails', t('agents.nav.guardrails_tooltip')));
+            items.push(
+                link(
+                    'guardrails',
+                    t('agents.nav.guardrails'),
+                    ShieldAlert,
+                    'agents.guardrails',
+                    agents.guardrails.url,
+                    t('agents.nav.guardrails_tooltip'),
+                ),
+            );
         }
 
         return items;
@@ -177,16 +198,37 @@ export function useAgentNavigation() {
         }
         if (hasPermission('agent.sources.train.functions')) {
             items.push(
-                link('functions', t('agents.nav.functions'), FunctionSquare, 'agents.sources.functions.index', t('agents.nav.functions_tooltip')),
+                link(
+                    'functions',
+                    t('agents.nav.functions'),
+                    FunctionSquare,
+                    'agents.sources.functions.index',
+                    agents.sources.functions.index.url,
+                    t('agents.nav.functions_tooltip'),
+                ),
             );
         }
         // Capabilities (first-party chat features such as Interactive Charts)
         // and Forms share the connector attach/detach permission.
         if (hasPermission('agent.sources.train.connectors')) {
             items.push(
-                link('connectors', t('agents.nav.connectors'), Plug, 'agents.sources.connectors.index', t('agents.nav.connectors_tooltip')),
-                link('capabilities', t('agents.nav.capabilities'), Sparkles, 'agents.capabilities', t('agents.nav.capabilities_tooltip')),
-                link('forms', t('agents.nav.forms'), FileText, 'agents.forms.index', t('agents.nav.forms_tooltip')),
+                link(
+                    'connectors',
+                    t('agents.nav.connectors'),
+                    Plug,
+                    'agents.sources.connectors.index',
+                    agents.sources.connectors.index.url,
+                    t('agents.nav.connectors_tooltip'),
+                ),
+                link(
+                    'capabilities',
+                    t('agents.nav.capabilities'),
+                    Sparkles,
+                    'agents.capabilities',
+                    agents.capabilities.url,
+                    t('agents.nav.capabilities_tooltip'),
+                ),
+                link('forms', t('agents.nav.forms'), FileText, 'agents.forms.index', agents.forms.index.url, t('agents.nav.forms_tooltip')),
             );
         }
 
@@ -199,12 +241,14 @@ export function useAgentNavigation() {
         const items: AgentNavItem[] = [];
 
         if (hasPermission('agent.chatters.manage')) {
-            items.push(link('members', t('agents.nav.members'), Users, 'agents.chatters.index', t('agents.nav.members_tooltip')));
+            items.push(
+                link('members', t('agents.nav.members'), Users, 'agents.chatters.index', agents.chatters.index.url, t('agents.nav.members_tooltip')),
+            );
         }
         // Channels has its own permission (mirrors the `agent.permission:agent.channels`
         // route gate): a teammate can manage channels without the broader setup grant.
         if (hasPermission('agent.channels')) {
-            items.push(link('channels', t('agents.nav.channels'), Send, 'agents.channels', t('agents.nav.channels_tooltip')));
+            items.push(link('channels', t('agents.nav.channels'), Send, 'agents.channels', agents.channels.url, t('agents.nav.channels_tooltip')));
         }
         if (hasPermission('agent.identity.manage')) {
             items.push({
@@ -214,8 +258,8 @@ export function useAgentNavigation() {
                 icon: ShieldCheck,
                 tooltip: t('agents.nav.security_tooltip'),
                 subItems: [
-                    subLink('security-identity', t('agents.nav.identity'), Fingerprint, 'agents.identity'),
-                    subLink('security-rate-limit', t('agents.nav.rate_limiting'), Gauge, 'agents.security.rate-limit'),
+                    subLink('security-identity', t('agents.nav.identity'), Fingerprint, 'agents.identity', agents.identity.url),
+                    subLink('security-rate-limit', t('agents.nav.rate_limiting'), Gauge, 'agents.security.rate-limit', agents.security.rateLimit.url),
                 ],
             });
         }

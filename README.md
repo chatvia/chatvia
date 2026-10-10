@@ -78,7 +78,8 @@ with open-weight models.
 - Teams with roles and permissions, sign-in with two-factor authentication,
   passkeys or social login, and workspace security settings (for example an
   IP allowlist).
-- Optional paid plans with Stripe. Self-hosted installs can turn billing off.
+- Every workspace gets every feature. Optional monthly message limits: per
+  workspace (set in the admin panel) and per chatter (set in the dashboard).
 - An admin panel and a dashboard translated into many languages, including
   right-to-left languages.
 
@@ -99,7 +100,7 @@ The PHP code is split into three namespaces:
 - `src/App/` (`App\`): the HTTP layer and framework wiring, plus
   `App\Identity` (accounts and sign-in).
 - `src/Domain/` (`Domain\`): business logic, one folder per module
-  (`Agent`, `Conversation`, `Knowledge`, `Integration`, `Channel`, `Billing`, ...).
+  (`Agent`, `Conversation`, `Knowledge`, `Integration`, `Channel`, ...).
   State changes go through Actions that take DTOs.
 - `src/Support/` (`Support\`): small shared helpers.
 
@@ -231,8 +232,9 @@ MAIL_PORT=1025
 ```
 
 Then set `BUILTIN_MCP_SECRET` to a long random string (the built-in tools need
-it). Billing is off until you turn it on in the admin panel (**Settings →
-Billing**), so the app runs without Stripe.
+it). Sign-up, the message limit of new workspaces and how long conversations
+are kept are set later in the admin panel (**Settings → Workspaces**), not in
+`.env`.
 
 ### 4. Create the database schema and demo data
 
@@ -331,8 +333,7 @@ In short:
   and sign-in links also go out by e-mail.
 - Cache the configuration with `php artisan config:cache`, `event:cache` and
   `view:cache`. Do not run `route:cache`: the app's addresses start with the
-  language (`/en/…`), and some routes depend on the billing settings; the
-  route cache cannot store either.
+  language (`/en/…`), and the route cache cannot store that.
 - Keep `php artisan horizon` and `php artisan reverb:start` running under a
   process manager (for example Supervisor or systemd), and run
   `php artisan schedule:run` every minute from cron.

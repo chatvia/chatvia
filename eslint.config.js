@@ -44,6 +44,10 @@ export default defineConfig(
             'widget',
             // Generated from PHP DTOs by `php artisan typescript:transform`.
             'resources/types/generated.d.ts',
+            // Generated from the Laravel routes by `php artisan wayfinder:generate`.
+            'resources/js/actions',
+            'resources/js/routes',
+            'resources/js/wayfinder',
         ],
     },
     {

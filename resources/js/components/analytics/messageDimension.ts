@@ -44,7 +44,6 @@ export interface DimensionSummaryCard<Bucket extends string> {
 
 /** The translated texts that differ between the dimension pages. */
 export interface DimensionCopy {
-    lockedDescription: string;
     disabledTitle: string;
     disabledDescription: string;
     blockedReason: string;

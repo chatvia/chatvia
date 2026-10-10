@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings\Security;
 
 use App\Rules\IpOrCidr;
+use Domain\Conversation\Services\ConversationRetention;
 use Domain\Security\Data\SecurityPolicyFormData;
 use Domain\Security\Enums\GeoMode;
 use Domain\Security\Enums\IpAllowlistMode;
@@ -16,8 +17,7 @@ use Support\Localization\Country\Models\Country;
 /**
  * Write path for the workspace security policy: the network-access gate (IP
  * allowlist + geo), conversation/audit retention and the SIEM webhook. The
- * `account.security` team permission and the `security` entitlement are
- * enforced on the route ({@see routes/workspace.php}); here we validate the
+ * `account.security` team permission is enforced on the route ({@see routes/workspace.php}); here we validate the
  * input and guard against self-lockout. Which stored settings the form may
  * change is decided by UpdateSecurityPolicyAction.
  */
@@ -47,9 +47,9 @@ class UpdateSecurityPolicyRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Conversation retention may be shortened but never beyond the plan ceiling;
+        // Conversation retention may be shortened but never beyond the install's;
         // audit retention sits between the mandated floor and the config default.
-        $conversationsCeiling = (int) $this->user()->workspace()->capabilities->retentionDays;
+        $conversationsCeiling = ConversationRetention::days();
         $conversationsFloor = (int) config('chatvia.retention.conversations_floor_days', 1);
         $auditFloor = (int) config('chatvia.security_audit.retention_floor_days', 30);
         $auditDefault = (int) config('chatvia.security_audit.retention_days', 365);
@@ -111,10 +111,9 @@ class UpdateSecurityPolicyRequest extends FormRequest
             $validator->errors()->add('ip_allowlist', $this->lockoutMessage($ipBlocks, $geoBlocks, $form->geo_mode, $ip, $country));
         });
 
-        // Enabling SIEM delivery needs a destination and a signing secret. Only
-        // for workspaces with the siemWebhook capability (others can't set it).
+        // Enabling SIEM delivery needs a destination and a signing secret.
         $validator->after(function (Validator $validator): void {
-            if (! $this->user()->workspace()->capabilities->siemWebhook || ! $this->boolean('webhook_enabled')) {
+            if (! $this->boolean('webhook_enabled')) {
                 return;
             }
 

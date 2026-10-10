@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Topics",
             "description": "Analyze conversation topics and trends",
-            "locked_description": "Upgrade your plan to access topic analysis and automatically detect and categorize conversation topics.",
             "disabled_title": "Topic analysis",
             "disabled_description": "Turn it on to automatically detect and group what your visitors ask about across conversations.",
             "blocked_reason": "Chat log is off, so there's nothing to analyze. Turn it on in Setup → Settings to start collecting topics.",

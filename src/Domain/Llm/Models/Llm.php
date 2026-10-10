@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Cache;
  * @property int $id
  * @property string $internal_name
  * @property string $external_name
- * @property int $credits
  * @property string $descriptive_name
  * @property string $description
  * @property string $icon
@@ -35,7 +34,6 @@ use Illuminate\Support\Facades\Cache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereContextWindow($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereCredits($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereDescriptiveName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereExternalName($value)
@@ -57,7 +55,7 @@ use Illuminate\Support\Facades\Cache;
 ])]
 /**
  * A model in the LLM catalog: its names, provider, context window, features
- * and message-credit price. Agents pick their chat model from it.
+ * and token prices. Agents pick their chat model from it.
  */
 class Llm extends Model
 {
@@ -70,7 +68,6 @@ class Llm extends Model
             'features' => 'json',
             'is_reasoning' => 'boolean',
             'context_window' => 'integer',
-            'credits' => 'integer',
             'input_price_per_1m_tokens' => 'decimal:4',
             'output_price_per_1m_tokens' => 'decimal:4',
             'provider' => LlmProviderEnum::class,
@@ -80,7 +77,6 @@ class Llm extends Model
     #[\Override]
     protected $attributes = [
         'is_reasoning' => false,
-        'credits' => 1,
     ];
 
     /**

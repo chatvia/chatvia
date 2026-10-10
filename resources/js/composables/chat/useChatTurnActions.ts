@@ -11,23 +11,24 @@ import { isAxiosError } from 'axios';
 import { nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
+import { chatPages } from './chatPages';
 import type { ChatMessages, MessageId } from './useChatMessages';
 import type { ChatScroll } from './useChatScroll';
 import { isNewConversationVisit, type ChatStreamTurn } from './useChatStreamTurn';
 
 interface TurnActionDeps {
     conversationId: string;
-    /** Route name of the surface's empty "new chat" screen. */
-    newChatRoute: string;
+    /** On the iframe-embed pages, whose "new chat" screen is the embed one. */
+    embedded: boolean;
     transcript: ChatMessages;
     turn: ChatStreamTurn;
     scroll: ChatScroll;
 }
 
-export function useChatTurnActions({ conversationId, newChatRoute, transcript, turn, scroll }: TurnActionDeps) {
+export function useChatTurnActions({ conversationId, embedded, transcript, turn, scroll }: TurnActionDeps) {
     const { t } = useI18n();
 
-    const goToNewChat = () => router.visit(route(newChatRoute));
+    const goToNewChat = () => router.visit(chatPages(embedded).home());
 
     async function send(content: string, attachments: ChatAttachment[] = []) {
         const slots = transcript.appendTurn(content, attachments);

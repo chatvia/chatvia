@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { regenerate as regenerateSigningSecret } from '@/routes/agents/identity';
 import { useForm } from '@inertiajs/vue3';
 import { Check, Copy, Eye, EyeOff, RefreshCw } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -59,7 +60,7 @@ watch(regenerateOpen, (open) => {
 });
 
 const confirmRegenerate = () => {
-    regenerateForm.post(route('agents.identity.regenerate', { agent: props.agentExternalId }), {
+    regenerateForm.post(regenerateSigningSecret.url(props.agentExternalId), {
         preserveScroll: true,
         onSuccess: () => {
             regenerateOpen.value = false;

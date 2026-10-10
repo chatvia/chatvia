@@ -1,10 +1,7 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\MessageSent;
-use Domain\Billing\Actions\Credits\RecordTokenUsageAction;
-use Domain\Billing\Actions\Credits\StartCreditCycleAction;
 use Domain\Conversation\Actions\Messages\StoreAssistantMessageAction;
 use Domain\Conversation\Actions\Messages\StoreUserMessageAction;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
@@ -84,7 +81,7 @@ function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmP
 
 function storeAssistantAction(LlmProviderInterface $provider): StoreAssistantMessageAction
 {
-    return new StoreAssistantMessageAction($provider, app(ChatLogWriter::class), app(RecordTokenUsageAction::class));
+    return new StoreAssistantMessageAction($provider, app(ChatLogWriter::class));
 }
 
 /** A stored visitor message, so the reply has its session and conversation. */
@@ -203,21 +200,6 @@ it('prefers inline stream usage over the provider cost lookup', function (): voi
         ->and($message->completion_tokens)->toBe(300)
         // inline usage carries no dollar cost
         ->and($message->cost_in_micro_cents)->toBeNull();
-});
-
-it('logs the reply tokens against the workspace owner billing cycle', function (): void {
-    $agent = Agent::factory()->create();
-    $owner = User::find($agent->user_id);
-    $credit = app(StartCreditCycleAction::class)->execute($owner, 4000, now()->addMonth());
-    $llm = Llm::factory()->create(['external_name' => 'gpt-token-log']);
-
-    storeAssistantAction(fakeLlmProvider(supportsCost: true, usage: [
-        'tokens_prompt' => 120,
-        'tokens_completion' => 80,
-        'total_cost' => 0.0,
-    ]))->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
-
-    expect($credit->usage()->first()->tokens)->toBe(200);
 });
 
 it('keeps tool artifacts and tool names in the message metadata', function (): void {

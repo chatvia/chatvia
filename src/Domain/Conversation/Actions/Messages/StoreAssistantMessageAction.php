@@ -3,7 +3,6 @@
 namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Actions\Credits\RecordTokenUsageAction;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
 use Domain\Conversation\Data\Messages\ReplyUsageData;
 use Domain\Conversation\Enums\ConversationSource;
@@ -14,27 +13,20 @@ use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Operations\Pricing\CostCalculator;
-use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 /**
  * Writes one assistant reply to the chat log. It first settles the reply's
  * token usage (from the stream, or from the provider when the stream carried
  * none), then in one transaction stores the message under its session and
- * conversation and adds the tokens to the workspace's usage log. Once
- * committed it announces the message to analytics and, on the first reply,
- * queues the conversation's title.
- *
- * Tokens are analytics only; message credits are charged elsewhere when the
- * turn completes.
+ * conversation. Once committed it announces the message to analytics and, on
+ * the first reply, queues the conversation's title.
  */
 class StoreAssistantMessageAction
 {
     public function __construct(
         private readonly LlmProviderInterface $llmProvider,
         private readonly ChatLogWriter $chatLog,
-        private readonly RecordTokenUsageAction $recordTokenUsage,
     ) {}
 
     public function execute(Agent $agent, AssistantTurnData $turn): Message
@@ -48,8 +40,6 @@ class StoreAssistantMessageAction
             $conversation = $this->chatLog->conversation($session, $turn->external_conversation_id, $turn->source);
 
             $message = Message::create($this->attributes($turn, $conversation, $usage));
-
-            $this->logTokenUsage($agent, $usage, $turn->message);
 
             return $message->setRelation('conversation', $conversation->setRelation('session', $session));
         });
@@ -114,30 +104,6 @@ class StoreAssistantMessageAction
             'created_at' => $turn->sent_at,
             'updated_at' => $turn->sent_at,
         ];
-    }
-
-    /**
-     * Add the reply's tokens to the workspace owner's current billing cycle
-     * (analytics only). Without provider usage the reply text is estimated
-     * with TikToken; an estimation failure just skips the log entry.
-     */
-    private function logTokenUsage(Agent $agent, ReplyUsageData $usage, string $reply): void
-    {
-        $tokens = $usage->totalTokens();
-
-        if ($tokens === 0 && $reply !== '') {
-            try {
-                $tokens = TikToken::countTokens($reply);
-            } catch (Throwable) {
-                $tokens = 0;
-            }
-        }
-
-        if ($tokens <= 0) {
-            return;
-        }
-
-        $this->recordTokenUsage->execute($agent->user_id, $tokens);
     }
 
     /**

@@ -20,8 +20,7 @@ class ChatEmbedController
             ...HostedChatPageProps::for($agent, $documentLlm),
             'agent_id' => $agent?->id,
             'conversation_id' => $conversationId,
-            'chatRoute' => 'chat.embed.show',
-            'newChatRoute' => 'chat.embed.home',
+            'embedded' => true,
         ]);
     }
 }

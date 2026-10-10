@@ -22,8 +22,7 @@
         "audit": {
             "title": "Audit log",
             "head_title": "Audit · {name}",
-            "description": "Every action this agent takes through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it.",
-            "locked_description": "The audit log is available on the Pro plan. Upgrade to see every tool and connector action this agent takes."
+            "description": "Every action this agent takes through tools and connectors — allowed, approved, denied, or rate-limited — with the arguments, result, and who triggered it."
         },
         "channels": {
             "title": "Channels",
@@ -162,7 +161,6 @@
                 "select_topic": "Select topic",
                 "select_sentiment": "Select sentiment",
                 "select_tone": "Select tone",
-                "upgrade_to_unlock": "Upgrade to unlock",
                 "clear_all": "Clear all",
                 "close": "Apply filters"
             },
@@ -203,13 +201,11 @@
                 "page_url": "Page URL",
                 "referrer": "Referrer",
                 "locale": "Locale",
-                "upgrade_to_unlock": "Upgrade to unlock",
                 "waiting": "Waiting for analysis…"
             },
             "pulse": {
                 "title": "Conversation pulse",
                 "select_conversation": "Select a conversation to view pulse",
-                "locked_description": "Upgrade your plan to unlock conversation pulse analytics.",
                 "refresh": "Refresh",
                 "no_messages_title": "Not enough messages yet",
                 "no_messages_hint": "Pulse needs at least one user message to analyze sentiment and tone over time.",
@@ -244,7 +240,6 @@
                 "waiting": "Pending…"
             },
             "handoff": {
-                "locked_description": "Upgrade your plan to take over live conversations from the chat log.",
                 "visitor": "Visitor",
                 "online": "Online",
                 "offline": "Offline",
@@ -300,7 +295,6 @@
             "title": "Guardrails",
             "description": "Control what your agent can discuss and how it handles sensitive content.",
             "head_title": "Guardrails · {name}",
-            "locked_description": "Guardrails are available on the Standard and Pro plans. Upgrade to control what your agent can discuss and how it handles sensitive content.",
             "configuration": "Configuration",
             "activity": "Activity",
             "enable_guardrails": "Enable guardrails",
@@ -506,7 +500,6 @@
         "tone": {
             "title": "Tone",
             "description": "Track how visitors feel based on the emotional tone of their messages.",
-            "locked_description": "Upgrade your plan to unlock tone analytics.",
             "disabled_title": "Tone analysis is off",
             "disabled_description": "Enable tone analysis to see how visitors feel across conversations.",
             "blocked_reason": "Turn on chat logging first — tone analysis requires stored messages.",
@@ -531,7 +524,6 @@
         "sentiment": {
             "title": "Sentiment",
             "description": "Track positive, neutral, and negative sentiment across visitor messages.",
-            "locked_description": "Upgrade your plan to unlock sentiment analytics.",
             "disabled_title": "Sentiment analysis is off",
             "disabled_description": "Enable sentiment analysis to see how visitors feel across conversations.",
             "blocked_reason": "Turn on chat logging first — sentiment analysis requires stored messages.",
@@ -550,7 +542,6 @@
             "manage": {
                 "title": "Manage topics",
                 "description": "Define topics your agent should recognize and classify in conversations.",
-                "locked_description": "Upgrade your plan to manage conversation topics.",
                 "search_placeholder": "Search topics…",
                 "add_topic": "Add topic",
                 "empty": "No topics yet. Add one to help your agent classify conversations.",

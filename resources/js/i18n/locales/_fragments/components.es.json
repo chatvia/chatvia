@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "Crear agente",
-            "limit_title": "Límite de agentes alcanzado",
-            "limit_description": "Has alcanzado tu límite de agentes.",
-            "upgrade_plan": "Mejorar plan",
             "name_label": "Nombre del agente",
-            "name_placeholder": "Ej., Soporte al cliente",
-            "load_error": "No se pudo cargar la información de uso",
-            "limit_toast_title": "Límite de agentes alcanzado",
-            "limit_toast_description": "Has alcanzado tu límite de agentes."
+            "name_placeholder": "Ej., Soporte al cliente"
         }
     },
     "confirm_password": {

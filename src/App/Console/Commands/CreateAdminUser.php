@@ -14,10 +14,11 @@ use Illuminate\Console\Command;
 /**
  * Creates an admin account from the command line (see
  * {@see CreateAdminUserAction}). The password is asked for when it is not
- * passed, so it stays out of the shell history.
+ * passed, so it stays out of the shell history. `--if-missing` makes a taken
+ * email a success, so the Docker image can run it on every start.
  */
 #[Description('Create an admin user')]
-#[Signature('admin:create-user {email} {name} {password?}')]
+#[Signature('admin:create-user {email} {name} {password?} {--if-missing : Succeed without changes when the email is already taken}')]
 class CreateAdminUser extends Command
 {
     public function handle(CreateAdminUserAction $createAdmin): int
@@ -31,6 +32,12 @@ class CreateAdminUser extends Command
         try {
             $admin = $createAdmin->execute($data);
         } catch (EmailAlreadyTakenException) {
+            if ($this->option('if-missing')) {
+                $this->info("A user with the email {$data->email} already exists. Nothing to do.");
+
+                return self::SUCCESS;
+            }
+
             $this->error('User with this email already exists!');
 
             return self::FAILURE;

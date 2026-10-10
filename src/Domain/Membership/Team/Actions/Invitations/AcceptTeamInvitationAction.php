@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Hash;
 use Support\Exceptions\DomainValidationException;
 
 /**
- * Accepts a team invitation from its signed link. Rejects an expired link and
- * an owner without an active subscription or a free workspace seat. Inside one
+ * Accepts a team invitation from its signed link. Rejects an expired link.
+ * Inside one
  * transaction it either verifies an existing account's password or creates a
  * new teammate account (email pre-verified — the link proves the address),
  * attaches it to the team under the invited role and deletes the invitation.
@@ -34,14 +34,6 @@ class AcceptTeamInvitationAction
         $team = $invitation->team;
         /** @var User $owner */
         $owner = $team->owner;
-
-        if (! $owner->hasActiveSubscription()) {
-            throw new DomainValidationException('invitation', __('The team owner does not have an active subscription.'));
-        }
-
-        if (! $owner->canAddWorkspaceUser()) {
-            throw new DomainValidationException('invitation', __('The team owner has reached their workspace user limit. Please contact them to upgrade their plan.'));
-        }
 
         return DB::transaction(function () use ($data, $invitation, $team, $owner): User {
             $existingUser = User::where('email', $invitation->email)->first();

@@ -9,16 +9,12 @@ use Support\MimeType;
 
 /**
  * Which files the knowledge base accepts, and the category each one is stored
- * and metered under (`source_files.filetype`).
+ * under (`source_files.filetype`).
  *
  * Documents are recognised by their extension, listed in config/mimes.php
  * `ocr`: exotic text formats share generic MIME types (.tex/.bib are
  * text/plain, .fb2 is xml), so the MIME type cannot tell them apart. Audio and
  * video are recognised by their MIME type, which is reliable for them.
- *
- * Every document category sits in the "pages" billing bucket and audio/video
- * in the "minutes" bucket (see Billing's WorkspaceConsumption); a new category
- * must be added there too, or its uploads are not metered.
  */
 final class SourceFileTypes
 {

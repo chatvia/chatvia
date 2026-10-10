@@ -60,8 +60,6 @@ interface Props {
     hasKnowledgeBase: boolean;
     prompts: PromptOption[];
     hasPermission: boolean;
-    canUseHandoff: boolean;
-    canHideBranding: boolean;
 
     appearanceSettings: Record<string, unknown>;
     defaultAppearance: Record<string, unknown>;
@@ -85,8 +83,6 @@ interface Props {
     domain: {
         value: string | null;
         cname_target: string;
-        quota: { total: number; used: number; available: number };
-        has_quota: boolean;
     };
 }
 
@@ -169,16 +165,12 @@ provideSetupContext({
                                 />
                                 <SetupBubblesPanel v-if="activeSection === 'bubbles'" />
                                 <SetupModelPanel v-if="activeSection === 'model'" />
-                                <SetupBrandingPanel v-if="activeSection === 'branding'" :can-hide-branding="canHideBranding" />
+                                <SetupBrandingPanel v-if="activeSection === 'branding'" />
 
                                 <!-- Behavior swaps its fields with the surface tab. -->
                                 <template v-if="activeSection === 'behavior'">
                                     <SetupHostedBehaviorPanel v-if="surface === 'hosted_chat'" :available-languages="availableLanguages" />
-                                    <SetupWidgetBehaviorPanel
-                                        v-else-if="surface === 'widget'"
-                                        :available-languages="availableLanguages"
-                                        :can-use-handoff="canUseHandoff"
-                                    />
+                                    <SetupWidgetBehaviorPanel v-else-if="surface === 'widget'" :available-languages="availableLanguages" />
                                     <SetupBarBehaviorPanel v-else />
                                 </template>
 

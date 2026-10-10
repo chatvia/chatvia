@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Third-party credentials managed from the admin panel (Settings): OAuth apps,
  * API keys, webhook secrets. One row per settings group (`google-login`,
- * `stripe`, ...). `payload` holds every value of the group as one encrypted
+ * `workspaces`, ...). `payload` holds every value of the group as one encrypted
  * JSON blob, so nothing is readable without APP_KEY. A saved value takes
  * priority over the matching .env value.
  */

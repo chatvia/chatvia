@@ -7,6 +7,7 @@
 //   otherwise      → a no-permission note.
 // Each channel component only fills in the two slots.
 import { Button } from '@/components/ui/button';
+import { identity } from '@/routes/agents';
 import { Link } from '@inertiajs/vue3';
 import { Unplug } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -50,7 +51,7 @@ const { t } = useI18n();
                     <template #channel>{{ channelName }}</template>
                     <template #security>
                         <Link
-                            :href="route('agents.identity', agent.external_id)"
+                            :href="identity.url(agent.external_id)"
                             class="text-foreground font-medium underline underline-offset-4 hover:no-underline"
                             >{{ t('agents.channels.security') }}</Link
                         >

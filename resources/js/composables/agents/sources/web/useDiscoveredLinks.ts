@@ -9,7 +9,6 @@ import { deleteWebsiteLink, deleteWebsiteLinks, listWebsiteLinks, type WebsiteLi
 import { onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-import type { WebLinkQuota } from './useWebLinkQuota';
 import type { WebsiteLink, WebSourcesState } from './useWebSources';
 
 export interface LinkPagination {
@@ -32,7 +31,7 @@ export function toWebsiteLink(record: WebsiteLinkRecord): WebsiteLink {
     };
 }
 
-export function useDiscoveredLinks(agentId: string, sources: WebSourcesState, quota: WebLinkQuota) {
+export function useDiscoveredLinks(agentId: string, sources: WebSourcesState) {
     const { t } = useI18n();
 
     const expandedSources = ref<Map<number, boolean>>(new Map());
@@ -212,8 +211,6 @@ export function useDiscoveredLinks(agentId: string, sources: WebSourcesState, qu
             const urlsCount = source.urls_count && source.urls_count >= deletedCount ? source.urls_count - deletedCount : source.urls_count;
             sources.updateSource(websiteId, { discovered_links: links, urls_count: urlsCount });
         }
-
-        await quota.refreshUsage();
     }
 
     async function deleteLink(websiteId: number, linkId: number): Promise<void> {

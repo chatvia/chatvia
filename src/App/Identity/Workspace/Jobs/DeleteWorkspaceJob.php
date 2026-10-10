@@ -20,8 +20,8 @@ class DeleteWorkspaceJob implements ShouldQueue
     public int $tries = 3;
 
     /**
-     * Seconds to wait before each retry. A failed Stripe cancel stops the
-     * teardown, and a short Stripe outage should be over by the next try.
+     * Seconds to wait before each retry, so a short storage or cache outage
+     * is over by the next try.
      *
      * @var list<int>
      */

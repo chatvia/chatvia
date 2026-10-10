@@ -103,23 +103,8 @@
     "dashboard": {
         "messages_this_month": "Viestit tässä kuussa"
     },
-    "usage": {
-        "no_limit": "Ei rajaa"
-    },
     "nav": {
         "open_user_menu": "Avaa käyttäjävalikko"
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Tervetuloa Chatviaan",
-            "intro": "Luodaan ensimmäinen tekoälyagenttisi. Se vie vain minuutin.",
-            "what_title": "Mikä on agentti?",
-            "what_body": "Agentti on tekoälyavustaja, jonka koulutat omalla sisällölläsi. Se vastaa asiakkaillesi verkkosivustollasi, chat-widgetissä ja viestisovelluksissa.",
-            "how_title": "Miten se toimii?",
-            "how_body": "Ensin luot agentin ja annat sille nimen. Sitten koulutat sen tiedostoillasi, verkkosivustoillasi ja teksteilläsi, jotta se osaa vastata kysymyksiin.",
-            "start": "Luo ensimmäinen agenttini",
-            "video_caption": "Katso, miten se toimii"
-        }
     },
     "workspace": {
         "prompts": {

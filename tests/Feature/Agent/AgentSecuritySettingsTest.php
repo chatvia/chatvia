@@ -1,13 +1,13 @@
 <?php
 
+use Domain\Agent\Models\Agent;
+
 /**
  * The Security page's rate-limit form persists into the `security` model-settings
  * group and validates the per-minute cap.
  */
 beforeEach(function (): void {
-    // proPlanAgent() gives the owner an active subscription so the agent route
-    // group's subscription gate doesn't redirect before the controller runs.
-    $this->agent = proPlanAgent();
+    $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->user;
 });
 

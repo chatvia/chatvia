@@ -13,7 +13,6 @@ use Illuminate\Support\Str;
  */
 beforeEach(function (): void {
     config(['cache.stores.chat' => ['driver' => 'array'], 'chatvia.ai.query.rewriter.enabled' => false]);
-    fakeMessageCreditGate();
     Bus::fake();
 
     $this->agent = Agent::factory()->create(['is_public' => true]);

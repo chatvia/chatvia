@@ -65,22 +65,6 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
 
     app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->owner->billing()->firstOrCreate([]);
-
-    // Agent dashboard routes sit behind `user.subscribed`; subscribe the owner
-    // so the gates under test are the permission ones. The price id must map
-    // to a configured package — the Inertia page render resolves the plan
-    // from it in shared props.
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => 'price_test']);
-
-    $this->owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_active',
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
-    $this->owner->refresh();
 
     $this->agent = createAgent($this->owner);
 });

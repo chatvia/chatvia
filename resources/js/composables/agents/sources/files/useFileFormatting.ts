@@ -20,8 +20,8 @@ const TYPE_LABELS: Record<string, string> = {
 
 const SIZE_UNITS = ['B', 'KB', 'MB', 'GB'];
 
-/** Audio and video use the plan's minutes; every other file uses pages. */
-export function usesMinutesQuota(file: FileKind | null | undefined): boolean {
+/** Audio and video are measured in minutes; every other file in pages. */
+export function isMeasuredInMinutes(file: FileKind | null | undefined): boolean {
     if (!file) return false;
     if (file.type === 'audio' || file.type === 'video') return true;
 
@@ -51,7 +51,7 @@ export function useFileFormatting() {
     const formatFileLength = (file: FileKind): string => {
         if (!file.length) return '';
 
-        return usesMinutesQuota(file) ? t('agents.sources.files.minutes_count', file.length) : t('agents.sources.files.pages_count', file.length);
+        return isMeasuredInMinutes(file) ? t('agents.sources.files.minutes_count', file.length) : t('agents.sources.files.pages_count', file.length);
     };
 
     return { formatFileType, formatFileSize, formatFileLength };

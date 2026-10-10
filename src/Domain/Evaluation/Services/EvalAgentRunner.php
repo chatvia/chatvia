@@ -22,8 +22,8 @@ use Throwable;
  * It reuses {@see ChatService} (context build + RAG + system prompt) and drives
  * {@see ToolLoopRunner::run()} directly — deliberately NOT going through
  * LlmSource::finishTurn(), so the runner itself never persists a chat message
- * or charges a credit. Billing happens one level up: ScoreEvalCaseAction
- * charges one message credit per case that produced an answer.
+ * or counts it. Counting happens one level up: ScoreEvalCaseAction counts one
+ * message per case that produced an answer.
  *
  * Tools are offered to the model but NEVER executed: the loop runs in
  * capture-only mode, so when the agent decides to call a tool the call (name +

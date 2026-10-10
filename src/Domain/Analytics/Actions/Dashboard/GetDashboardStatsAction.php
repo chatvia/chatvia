@@ -6,17 +6,13 @@ use App\Identity\Workspace\Models\User;
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Dashboard\AgentCountData;
-use Domain\Analytics\Data\Dashboard\BillingCycleData;
 use Domain\Analytics\Data\Dashboard\DailyVolumeData;
 use Domain\Analytics\Data\Dashboard\DashboardStatsData;
 use Domain\Analytics\Data\Dashboard\KnowledgeSourcesStatsData;
 use Domain\Analytics\Data\Dashboard\MessagesPanelData;
 use Domain\Analytics\Data\Dashboard\MessagesTrendData;
-use Domain\Analytics\Data\Dashboard\QuotaUsageData;
 use Domain\Analytics\Data\Dashboard\TeamSizeData;
-use Domain\Analytics\Data\Dashboard\UsageStatsData;
 use Domain\Analytics\Services\AnalyticsDatabase;
-use Domain\Billing\Services\MessageCredits;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Models\Team;
@@ -31,9 +27,10 @@ use Illuminate\Support\Facades\DB;
  * keyed to the workspace OWNER (agents and analytics rows are stamped with the
  * owner's id), so a teammate sees the same account-wide figures as the owner.
  *
- * Activity numbers read the analytics rollups; the message panel reads the
- * billing counter instead, because it must match what the customer is billed
- * on — including eval cases, which never reach the analytics tables.
+ * Activity numbers read the analytics rollups. With a monthly message limit,
+ * the message panel reads the limit's counter instead, so it matches what the
+ * limit enforces — including eval cases, which never reach the analytics
+ * tables.
  */
 class GetDashboardStatsAction
 {
@@ -46,19 +43,15 @@ class GetDashboardStatsAction
         $owner = $user->workspace();
         $agentIds = Agent::where('user_id', $owner->id)->pluck('id');
 
-        // One memoized MessageCredits instance for both panels.
-        $credits = $owner->messageCredits();
-
         return new DashboardStatsData(
             agents: new AgentCountData(total: $agentIds->count()),
-            messages: $this->messagesPanel($owner, $team, $credits),
+            messages: $this->messagesPanel($owner, $team),
             conversations: (int) $this->rollup()->where('workspace_id', $owner->id)->sum('conversations_started'),
             active_sessions: $this->activeSessions($owner->id),
             knowledge_sources: $this->knowledgeSources($agentIds),
             team: new TeamSizeData(members: $team instanceof Team ? $team->members()->count() : 0),
             weekly_usage: $this->dailyReplies($owner->id, 7, 'D'),
             monthly_usage: $this->dailyReplies($owner->id, 30, 'j'),
-            usage: $this->usage($owner, $credits),
         );
     }
 
@@ -77,33 +70,19 @@ class GetDashboardStatsAction
     }
 
     /**
-     * `total` is the billing counter (user_usages.messages via MessageCredits)
-     * — the same number the Usage page shows. Add-ons are a separate pool that
-     * survives a base-quota overrun.
+     * `total` is this month's count of the workspace's message limit when it
+     * has one, otherwise this month's agent replies from the analytics rollup.
      */
-    private function messagesPanel(User $owner, ?Team $team, MessageCredits $credits): MessagesPanelData
+    private function messagesPanel(User $owner, ?Team $team): MessagesPanelData
     {
-        $cycle = $credits->cycleBounds();
+        $limit = $owner->messageLimit;
+        $used = $limit?->usedThisMonth() ?? $this->assistantMessagesBetween($owner->id, now()->startOfMonth(), null);
 
         return new MessagesPanelData(
-            total: $credits->used(),
-            available: $credits->available(),
-            limit: $credits->limit(),
-            cycle: $cycle === null ? null : new BillingCycleData($cycle['started_at'], $cycle['ends_at']),
+            total: $used,
+            limit: $limit?->monthly_limit,
+            available: $limit === null ? null : max(0, $limit->monthly_limit - $used),
             trend: $team instanceof Team ? $this->messagesTrend($owner->id) : MessagesTrendData::none(),
-        );
-    }
-
-    private function usage(User $owner, MessageCredits $credits): UsageStatsData
-    {
-        $consumption = $owner->consumption();
-
-        return new UsageStatsData(
-            plan: $owner->plan ?? 'Free',
-            messages: new QuotaUsageData(used: $credits->used(), limit: $credits->limit(), remaining: $credits->available()),
-            pages: QuotaUsageData::of($consumption->pages(), $owner->quotaLimit('pages_limit')),
-            minutes: QuotaUsageData::of($consumption->minutes(), $owner->quotaLimit('minutes_limit')),
-            links: QuotaUsageData::of($consumption->links(), $owner->quotaLimit('links_limit')),
         );
     }
 

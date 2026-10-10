@@ -1,8 +1,9 @@
 /**
  * Dashboard home API: the workspace's headline numbers (agents, messages,
- * conversations, sessions), the message-credit panel and the daily reply
- * volume for the activity chart. Mirrors Domain\Analytics\Data\Dashboard.
+ * conversations, sessions), the messages panel and the daily reply volume for
+ * the activity chart. Mirrors Domain\Analytics\Data\Dashboard.
  */
+import { stats } from '@/routes/dashboard';
 import { get } from './http';
 
 /** AI replies on one day, with the short label the activity chart prints. */
@@ -19,18 +20,14 @@ export interface MessagesTrend {
     percent_change: number;
 }
 
-/** Start and end of the workspace's active billing cycle. */
-export interface BillingCycle {
-    started_at: string;
-    ends_at: string;
-}
-
-/** The "Messages this cycle" panel: replies used, what is left, the limit and the trend. */
+/**
+ * The "Messages this month" panel: replies this month, the workspace's monthly
+ * message limit and what is left of it (both null without a limit), and the trend.
+ */
 export interface MessagesPanel {
     total: number;
-    available: number;
-    limit: number;
-    cycle: BillingCycle | null;
+    limit: number | null;
+    available: number | null;
     trend: MessagesTrend;
 }
 
@@ -40,22 +37,6 @@ export interface KnowledgeSourcesStats {
     websites: number;
     crawled_pages: number;
     total: number;
-}
-
-/** One plan quota: how much is used, the limit, and what remains. */
-export interface QuotaUsage {
-    used: number;
-    limit: number;
-    remaining: number;
-}
-
-/** The plan-usage panel: the plan name and each quota. */
-export interface PlanUsage {
-    plan: string;
-    messages: QuotaUsage;
-    pages: QuotaUsage;
-    minutes: QuotaUsage;
-    links: QuotaUsage;
 }
 
 /** Response of `dashboard.stats` (Domain\Analytics\Data\Dashboard\DashboardStatsData). */
@@ -68,10 +49,9 @@ export interface DashboardStats {
     team: { members: number };
     weekly_usage: DailyVolume[];
     monthly_usage: DailyVolume[];
-    usage: PlanUsage;
 }
 
 /** Everything the dashboard home page shows, for the viewer's workspace and current team. */
 export function fetchDashboardStats(): Promise<DashboardStats> {
-    return get<DashboardStats>(route('dashboard.stats'));
+    return get<DashboardStats>(stats.url());
 }

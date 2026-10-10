@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent\Audit;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
@@ -22,19 +21,6 @@ class AgentAuditController
 {
     public function __invoke(Request $request, Agent $agent): Response
     {
-        // The audit log is a Pro-tier capability. Below it the page still renders
-        // so the Vue LockedFeature card can show the upgrade prompt, but we skip
-        // the queries and ship no audit data.
-        if (! $request->user()->hasCapability(Capability::Audit)) {
-            return Inertia::render('agents/Audit/index', [
-                'agent' => AgentResourceData::fromModel($agent),
-                'rows' => ['data' => []],
-                'connectors' => [],
-                'outcomes' => array_column(ToolCallOutcome::cases(), 'value'),
-                'filters' => ['outcome' => null, 'connector' => null],
-            ]);
-        }
-
         $query = AgentActivity::query()
             ->forAgent($agent->id)
             ->with(['user', 'agent:id,external_id'])

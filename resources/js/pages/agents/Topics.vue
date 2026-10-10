@@ -2,8 +2,8 @@
 /**
  * Topics analytics: which topics conversations are about, over time and in
  * total, plus suggestions for topics the agent does not have yet and a
- * manager to attach, create or remove topics. Shown only when the plan
- * includes topics and the owner switched the analysis on for the agent.
+ * manager to attach, create or remove topics. Shown only when the owner
+ * switched the analysis on for the agent.
  */
 import AnalyticsErrorState from '@/components/analytics/AnalyticsErrorState.vue';
 import AnalyticsFeatureGate from '@/components/analytics/AnalyticsFeatureGate.vue';
@@ -22,9 +22,7 @@ import { useTopicTrends } from './topics/useTopicTrends';
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
-    // Per-agent on/off switch (Setup → Settings). Independent of the plan
-    // capability: the plan must allow it AND the owner must not have
-    // switched it off.
+    // Per-agent on/off switch (Setup → Settings).
     enabled: boolean;
     // Master switch: when the chat log is off there are no stored messages to
     // analyze, so analytics can't be enabled until it's turned back on.
@@ -42,7 +40,7 @@ const { loading, topicsData, error, fetchTopicsData } = useTopicTrends(agentId);
 const { suggestions, promotingLabel, dismissTarget, dismissDialogOpen, dismissing, fetchSuggestions, promoteSuggestion, askDismiss, confirmDismiss } =
     useTopicSuggestions(agentId, fetchTopicsData);
 
-const { hasAccess, isEnabled, enabling, isActive, enable } = useAnalyticsFeature({
+const { isEnabled, enabling, isActive, enable } = useAnalyticsFeature({
     agentId,
     feature: 'topics',
     enabled: props.enabled,
@@ -72,11 +70,9 @@ onMounted(() => {
         </template>
 
         <AnalyticsFeatureGate
-            :has-access="hasAccess"
             :enabled="isEnabled"
             :chatlog-enabled="chatlogEnabled"
             :enabling="enabling"
-            :locked-description="t('agents.topics_index.locked_description')"
             :disabled-title="t('agents.topics_index.disabled_title')"
             :disabled-description="t('agents.topics_index.disabled_description')"
             :blocked-reason="t('agents.topics_index.blocked_reason')"

@@ -24,10 +24,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { chatPages } from '@/composables/chat/chatPages';
 import { useChatConversations } from '@/composables/chat/useChatConversations';
 import { useBrand } from '@/composables/useBrand';
+import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useIsMobile } from '@/composables/useIsMobile';
 import { safeStorage } from '@/lib/safeStorage';
+import chat from '@/routes/chat';
 import type { SharedData } from '@/types';
 import type { ChatAppearance } from '@/types/chat';
 import { Link, router, usePage } from '@inertiajs/vue3';
@@ -39,15 +42,17 @@ import { useI18n } from 'vue-i18n';
 const props = withDefaults(
     defineProps<{
         appearance?: ChatAppearance;
-        newChatRoute?: string;
+        /** On the iframe-embed pages rather than the full hosted chat. */
+        embedded?: boolean;
     }>(),
     {
         appearance: undefined,
-        newChatRoute: 'chat.home',
+        embedded: false,
     },
 );
 
 const isSidebarOpen = defineModel<boolean>('open', { default: false });
+const { params: routeParams } = useCurrentRoute();
 
 const SIDEBAR_STORAGE_KEY = 'sidebarOpen';
 
@@ -105,12 +110,12 @@ function closeDrawerOnMobile() {
 
 function newConversation() {
     closeDrawerOnMobile();
-    router.visit(route(props.newChatRoute), visitFresh);
+    router.visit(chatPages(props.embedded).home(), visitFresh);
 }
 
 function goToConversation(id: string | number) {
     closeDrawerOnMobile();
-    router.visit(route('chat.show', { conversationId: id }));
+    router.visit(chat.show.url(String(id)));
 }
 
 async function deleteConversation(id: string | number) {
@@ -118,20 +123,20 @@ async function deleteConversation(id: string | number) {
 
     // Deleting the open conversation sends the visitor to the new-chat screen.
     // Only the `conversationId` param matters: the route name differs per surface.
-    const openConversationId = route().params?.conversationId;
-    if (openConversationId !== undefined && String(openConversationId) === String(id)) {
-        router.visit(route(props.newChatRoute), { ...visitFresh, replace: true });
+    const openConversationId = routeParams.value.conversationId;
+    if (openConversationId !== undefined && openConversationId === String(id)) {
+        router.visit(chatPages(props.embedded).home(), { ...visitFresh, replace: true });
     }
 }
 
 async function deleteAllConversations() {
     if (await removeAll()) {
-        router.visit(route(props.newChatRoute), { ...visitFresh, replace: true });
+        router.visit(chatPages(props.embedded).home(), { ...visitFresh, replace: true });
     }
 }
 
 function logout() {
-    router.post(route('chat.logout'));
+    router.post(chat.logout.url());
 }
 </script>
 
@@ -155,7 +160,7 @@ function logout() {
     >
         <div class="flex h-full flex-col px-3 py-3">
             <div class="mb-2 flex items-center justify-between">
-                <Link :href="route('chat.home')" class="hover:bg-accent flex items-center gap-2 rounded-lg p-2 transition-colors">
+                <Link :href="chat.home.url()" class="hover:bg-accent flex items-center gap-2 rounded-lg p-2 transition-colors">
                     <img
                         v-if="appearance?.logo"
                         :src="appearance.logo"

@@ -49,12 +49,12 @@ it('uses the callback URL of this app for a redirect with nothing saved', functi
 });
 
 it('stores the payload encrypted', function (): void {
-    saveAdminSettings(SettingGroup::Stripe, ['secret' => 'sk_test_plaintext']);
+    saveAdminSettings(SettingGroup::Scaleway, ['api_key' => 'scw_plaintext']);
 
-    $raw = DB::table('admin_settings')->where('key', 'stripe')->value('payload');
+    $raw = DB::table('admin_settings')->where('key', 'scaleway')->value('payload');
 
-    expect($raw)->not->toContain('sk_test_plaintext')
-        ->and(json_decode(Crypt::decryptString($raw), true))->toBe(['secret' => 'sk_test_plaintext']);
+    expect($raw)->not->toContain('scw_plaintext')
+        ->and(json_decode(Crypt::decryptString($raw), true))->toBe(['api_key' => 'scw_plaintext']);
 });
 
 it('empties a value removed in the panel in a running process', function (): void {
@@ -135,9 +135,7 @@ it('keeps a blank secret and drops other blank fields when saving an edit', func
 it('maps every field to a config key that exists', function (): void {
     foreach (SettingGroup::cases() as $group) {
         foreach ($group->fields() as $field) {
-            foreach ([$field->config, ...array_keys($field->alsoFills)] as $config) {
-                expect(config()->has($config))->toBeTrue("{$group->value}.{$field->name} → {$config}");
-            }
+            expect(config()->has($field->config))->toBeTrue("{$group->value}.{$field->name} → {$field->config}");
         }
     }
 });
@@ -145,8 +143,8 @@ it('maps every field to a config key that exists', function (): void {
 it('reports a group without required fields as set up once something is saved', function (): void {
     $store = freshSettingsStore();
 
-    expect($store->status(SettingGroup::Billing, null))->toBe(SettingStatus::Missing)
-        ->and($store->status(SettingGroup::Billing, saveAdminSettings(SettingGroup::Billing, ['enabled' => '0'])))->toBe(SettingStatus::Configured);
+    expect($store->status(SettingGroup::Workspaces, null))->toBe(SettingStatus::Missing)
+        ->and($store->status(SettingGroup::Workspaces, saveAdminSettings(SettingGroup::Workspaces, ['registration_enabled' => '0'])))->toBe(SettingStatus::Configured);
 });
 
 it('reads the table directly when the cache is unreachable', function (): void {

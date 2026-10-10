@@ -7,7 +7,6 @@ use App\Mcp\McpCallerResolver;
 use App\Mcp\Servers\AccountAnalyticsServer;
 use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
@@ -92,31 +91,6 @@ it('reports account-overview numbers scoped to the workspace', function (): void
             ->where('ai_messages', 12)
             ->where('total_messages', 27)
             ->where('conversations', 5)
-            ->etc());
-});
-
-it('counts messages that fall in a mid-hour cycle (rollup boundary regression)', function (): void {
-    $this->travelTo(Carbon::create(2026, 6, 11, 17, 23, 0));
-
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
-
-    // Cycle starts 10 min into the hour (17:10) — the partial first hour the
-    // hour-bucketed rollup (bucket 17:00) dropped because 17:00 < 17:10. Events
-    // use exact occurred_at (17:23), so they count.
-    $workspace->credits()->create([
-        'messages' => 1000,
-        'started_at' => now()->startOfHour()->addMinutes(10),
-        'ends_at' => now()->addMonth(),
-    ]);
-    seedMessageEvents($workspace->id, 2, 2); // occurred_at = 17:23, in-cycle
-
-    callAs($workspace);
-
-    AccountAnalyticsServer::tool(GetAccountOverviewTool::class, ['period' => 'current_cycle'])
-        ->assertOk()
-        ->assertStructuredContent(fn (AssertableJson $json): AssertableJson => $json
-            ->where('incoming_messages', 2)
-            ->where('ai_messages', 2)
             ->etc());
 });
 

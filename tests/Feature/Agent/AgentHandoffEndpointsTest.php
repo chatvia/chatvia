@@ -11,7 +11,6 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
 
 /**
  * The dashboard side of a live chat: an operator takes a conversation over,
@@ -23,19 +22,8 @@ beforeEach(function (): void {
     config(['cache.stores.chat' => ['driver' => 'array']]);
     Event::fake([HandedOff::class, MessagePosted::class, TypingStarted::class]);
 
-    $priceId = 'price_test_pro_'.Str::random(6);
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
-
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->owner->billing()->firstOrCreate([]);
-    $this->owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => $priceId,
-        'quantity' => 1,
-    ]);
     $this->owner->refresh();
     $this->agent = makeTeamAgent($this->owner, 'Support Bot');
 });

@@ -161,7 +161,6 @@
                 "select_topic": "Thema auswählen",
                 "select_sentiment": "Stimmung auswählen",
                 "select_tone": "Ton auswählen",
-                "upgrade_to_unlock": "Upgrade zum Freischalten",
                 "clear_all": "Alle zurücksetzen",
                 "close": "Filter anwenden"
             },
@@ -201,13 +200,11 @@
                 "page_url": "Seiten-URL",
                 "referrer": "Referrer",
                 "locale": "Gebietsschema",
-                "upgrade_to_unlock": "Upgrade zum Freischalten",
                 "waiting": "Analyse wird durchgeführt…"
             },
             "pulse": {
                 "title": "Gesprächspuls",
                 "select_conversation": "Wählen Sie ein Gespräch aus, um den Puls anzuzeigen",
-                "locked_description": "Führen Sie ein Upgrade durch, um Gesprächspuls-Analysen freizuschalten.",
                 "refresh": "Aktualisieren",
                 "no_messages_title": "Noch nicht genug Nachrichten",
                 "no_messages_hint": "Für den Puls wird mindestens eine Benutzernachricht benötigt, um Stimmung und Ton im Verlauf zu analysieren.",
@@ -242,7 +239,6 @@
                 "waiting": "Ausstehend…"
             },
             "handoff": {
-                "locked_description": "Führen Sie ein Upgrade durch, um Live-Gespräche aus dem Chat-Protokoll zu übernehmen.",
                 "visitor": "Besucher",
                 "online": "Online",
                 "offline": "Offline",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Ton",
             "description": "Verfolgen Sie, wie Besucher sich anhand des emotionalen Tons ihrer Nachrichten fühlen.",
-            "locked_description": "Führen Sie ein Upgrade durch, um Ton-Analysen freizuschalten.",
             "disabled_title": "Tonanalyse ist deaktiviert",
             "disabled_description": "Aktivieren Sie die Tonanalyse, um zu sehen, wie Besucher in Gesprächen gestimmt sind.",
             "blocked_reason": "Aktivieren Sie zuerst die Chat-Protokollierung – die Tonanalyse erfordert gespeicherte Nachrichten.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Stimmung",
             "description": "Verfolgen Sie positive, neutrale und negative Stimmung in Besuchernachrichten.",
-            "locked_description": "Führen Sie ein Upgrade durch, um Stimmungsanalysen freizuschalten.",
             "disabled_title": "Stimmungsanalyse ist deaktiviert",
             "disabled_description": "Aktivieren Sie die Stimmungsanalyse, um zu sehen, wie Besucher in Gesprächen gestimmt sind.",
             "blocked_reason": "Aktivieren Sie zuerst die Chat-Protokollierung – die Stimmungsanalyse erfordert gespeicherte Nachrichten.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Themen verwalten",
                 "description": "Definieren Sie Themen, die Ihr Agent in Gesprächen erkennen und klassifizieren soll.",
-                "locked_description": "Führen Sie ein Upgrade durch, um Gesprächsthemen zu verwalten.",
                 "search_placeholder": "Themen suchen…",
                 "add_topic": "Thema hinzufügen",
                 "empty": "Noch keine Themen. Fügen Sie eines hinzu, um Ihrem Agenten die Klassifizierung von Gesprächen zu erleichtern.",

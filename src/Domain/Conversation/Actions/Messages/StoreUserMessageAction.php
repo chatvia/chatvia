@@ -2,8 +2,8 @@
 
 namespace Domain\Conversation\Actions\Messages;
 
+use App\Identity\Workspace\Actions\MessageLimits\RecordMessageUsageAction;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Actions\ChatterAllowance\RecordChatterMessageAction;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\SessionLocationUnknown;
@@ -25,7 +25,7 @@ class StoreUserMessageAction
 {
     public function __construct(
         private readonly ChatLogWriter $chatLog,
-        private readonly RecordChatterMessageAction $recordChatterMessage,
+        private readonly RecordMessageUsageAction $recordUsage,
     ) {}
 
     public function execute(Agent $agent, UserTurnData $turn): Message
@@ -42,10 +42,12 @@ class StoreUserMessageAction
             // horizon out when it is close (the model only writes then).
             $conversation->extendRetentionIfDueSoon($agent->messageRetentionInDays());
 
-            // Counted here, not from chat_messages (retention prunes those),
-            // so the monthly tally survives. A no-op for anyone without a limit.
-            if ($session->user) {
-                $this->recordChatterMessage->execute($session->user);
+            // A chatter's message counts against the chatter's own monthly
+            // limit (the workspace's limit counts replies). Counted here, not
+            // from chat_messages (retention prunes those), so the monthly
+            // tally survives. A no-op for a chatter without a limit.
+            if ($session->user?->isChatter()) {
+                $this->recordUsage->execute($session->user->id);
             }
 
             return $message->setRelation('conversation', $conversation->setRelation('session', $session));

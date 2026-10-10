@@ -3,6 +3,9 @@
  * prompts, saving the agent's instructions (inline text or a library prompt),
  * and suggesting a free subdomain for the agent's hosted chat.
  */
+import { generateRandomSubdomain as randomSubdomainRoute } from '@/routes';
+import { update as updateAgentRoute } from '@/routes/agents';
+import { list as libraryPromptsRoute } from '@/routes/library/prompts';
 import { get, patch } from './http';
 
 export type LibraryPrompt = Domain.Agent.Prompt.Data.Resources.AgentPromptPickerData;
@@ -15,19 +18,19 @@ export type AgentInstructionsUpdate = { system_instructions: string } | { prompt
 
 /** The workspace's saved prompts, newest first. */
 export async function fetchLibraryPrompts(): Promise<LibraryPrompt[]> {
-    const list = await get<Domain.Agent.Prompt.Data.Resources.AgentPromptPickerListData>(route('library.prompts.list'));
+    const list = await get<Domain.Agent.Prompt.Data.Resources.AgentPromptPickerListData>(libraryPromptsRoute.url());
 
     return list.data ?? [];
 }
 
 /** Saves the agent's instructions. */
 export function updateAgentInstructions(agentId: string, update: AgentInstructionsUpdate): Promise<void> {
-    return patch(route('agents.update', { agent: agentId }), update);
+    return patch(updateAgentRoute.url(agentId), update);
 }
 
 /** A free, randomly generated subdomain name (without the base domain). */
 export async function generateRandomSubdomain(): Promise<string> {
-    const { name } = await get<{ name: string }>(route('generate-random-subdomain'));
+    const { name } = await get<{ name: string }>(randomSubdomainRoute.url());
 
     return name;
 }

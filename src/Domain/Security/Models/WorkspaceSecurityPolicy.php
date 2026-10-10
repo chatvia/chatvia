@@ -36,7 +36,6 @@ use Illuminate\Support\Facades\Cache;
  * @property int $webhook_failures
  * @property Carbon|null $webhook_last_delivered_at
  * @property bool $scim_enabled
- * @property bool|null $security_override
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $workspace
@@ -80,7 +79,6 @@ class WorkspaceSecurityPolicy extends Model
             'webhook_failures' => 'integer',
             'webhook_last_delivered_at' => 'datetime',
             'scim_enabled' => 'boolean',
-            'security_override' => 'boolean',
         ];
     }
 

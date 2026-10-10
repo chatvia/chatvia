@@ -3,7 +3,6 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Notifications\AgentRateLimitNotification;
-use Domain\Billing\Models\UserCredit;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
@@ -22,7 +21,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /**
  * HTTP-path coverage for the streaming chat endpoint. Proves that a valid POST
  * makes it all the way through the `chat` middleware stack — agent resolution,
- * the subscription + messages-capacity gates — and the StreamRequestData factory
+ * the message-limit gate — and the StreamRequestData factory
  * + ChatStreamService, emerging as a well-formed SSE StreamedResponse (200,
  * text/event-stream). This request path previously had zero test coverage.
  *
@@ -117,25 +116,11 @@ function bindFakeStreamingLlm(string ...$tokens): void
     app()->instance(Reranker::class, new NullReranker);
 }
 
-/** A public agent whose owner holds an active subscription (so the turn isn't rejected). */
+/** A public agent of a fresh workspace. */
 function publicStreamingAgent(): Agent
 {
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
-
-    $priceId = 'price_test_pro_'.Str::random(6);
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
-    // UserObserver auto-provisioning is retired — create the billing row explicitly.
-    $owner->billing()->firstOrCreate([]);
-    $owner->refresh();
-    $owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => $priceId,
-        'quantity' => 1,
-    ]);
-    $owner->refresh();
 
     return Agent::create([
         'user_id' => $owner->id,
@@ -152,13 +137,6 @@ it('returns a 200 SSE stream for an authorized chat turn', function (): void {
     bindFakeStreamingLlm('Hello', ' there', '!');
 
     $agent = publicStreamingAgent();
-    // Message-based capacity gate — give the owner an active cycle with budget.
-    UserCredit::factory()->create([
-        'user_id' => $agent->user_id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
 
     $conversationId = (string) Str::uuid();
 
@@ -176,12 +154,6 @@ it('returns a 200 SSE stream for an authorized chat turn', function (): void {
 
 it('rejects a chat-stream request with no message (validation)', function (): void {
     $agent = publicStreamingAgent();
-    UserCredit::factory()->create([
-        'user_id' => $agent->user_id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
 
     $this->postJson(
         'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
@@ -195,12 +167,6 @@ it('dispatches a rate-limit event once the agent exceeds its per-minute cap', fu
     $agent = publicStreamingAgent();
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
     $agent->setSetting(key: 'notify_owner_on_rate_limit', value: true, group: 'security');
-    UserCredit::factory()->create([
-        'user_id' => $agent->user_id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
 
     // The per-agent gate runs synchronously before the SSE body streams, so the
     // bare POST exercises it — no need to consume the stream (which would fight
@@ -226,12 +192,6 @@ it('emails the owner when a rate-limited agent has alerts enabled', function ():
     $agent = publicStreamingAgent();
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
     $agent->setSetting(key: 'notify_owner_on_rate_limit', value: true, group: 'security');
-    UserCredit::factory()->create([
-        'user_id' => $agent->user_id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
 
     $send = fn (): TestResponse => $this->post(
         'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
@@ -253,12 +213,6 @@ it('does not email the owner when rate-limit alerts are disabled', function (): 
 
     $agent = publicStreamingAgent();
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
-    UserCredit::factory()->create([
-        'user_id' => $agent->user_id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
 
     $send = fn (): TestResponse => $this->post(
         'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",

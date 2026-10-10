@@ -1,6 +1,6 @@
 # Microsoft Teams
 
-Connect an Azure bot to your agent. People chat with the bot in Microsoft Teams — in a personal chat, a group chat, or a channel — and your agent answers, with the same knowledge, guardrails, history, and billing as every other channel. The reply streams in live: the bot posts a message right away and keeps updating it as the answer is generated.
+Connect an Azure bot to your agent. People chat with the bot in Microsoft Teams — in a personal chat, a group chat, or a channel — and your agent answers, with the same knowledge, guardrails, history, and message limits as every other channel. The reply streams in live: the bot posts a message right away and keeps updating it as the answer is generated.
 
 Microsoft Teams is available for **public agents only**. A Teams sender is anonymous to Chatvia, so a protected agent cannot answer there. You can make an agent public on its **Security** page.
 

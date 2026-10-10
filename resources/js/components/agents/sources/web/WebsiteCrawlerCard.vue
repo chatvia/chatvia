@@ -2,10 +2,9 @@
 /**
  * "Website crawler": the form that adds a website. The user picks the
  * protocol, types the address and may limit the crawl to (or exclude) some
- * paths. Shows the plan's link usage on top. Emits `added` once the server
- * accepted the website, so the page can reload its list.
+ * paths. Emits `added` once the server accepted the website, so the page can
+ * reload its list.
  */
-import type { UsageStats } from '@/api/usage';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +12,7 @@ import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { store as storeWebsite } from '@/routes/agents/sources/websites';
 import { useForm } from '@inertiajs/vue3';
 import { ChevronDown, ChevronUp, Globe, LoaderCircle, Settings } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -25,7 +25,6 @@ const MAX_URL_LENGTH = 2048;
 
 const props = defineProps<{
     agentId: string;
-    linkUsage: UsageStats | null;
 }>();
 
 const emit = defineEmits<{
@@ -86,7 +85,7 @@ function addWebsite(): void {
     form.url = fullUrl.value;
 
     try {
-        form.post(route('agents.sources.websites.store', { agent: props.agentId }), {
+        form.post(storeWebsite.url(props.agentId), {
             preserveScroll: true,
             onSuccess: () => {
                 emit('added');
@@ -121,25 +120,6 @@ function addWebsite(): void {
             </div>
         </CardHeader>
         <CardContent>
-            <div v-if="linkUsage" class="bg-muted/20 mb-4 rounded-lg p-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-muted-foreground text-sm">
-                        {{ t('agents.sources.web.links_used', { used: linkUsage.used, limit: linkUsage.limit }) }}
-                    </span>
-                    <span class="text-sm font-medium" :class="linkUsage.remaining <= 0 ? 'text-red-600' : 'text-green-600'">
-                        {{ t('agents.sources.web.links_remaining', { remaining: linkUsage.remaining }) }}
-                    </span>
-                </div>
-                <div class="mt-1 flex items-center justify-between text-xs">
-                    <span v-if="linkUsage.remaining <= 0" class="font-medium text-red-600">
-                        {{ t('agents.sources.web.upgrade_required') }}
-                    </span>
-                    <span v-else-if="linkUsage.used / linkUsage.limit >= 0.9" class="font-medium text-yellow-600">
-                        {{ t('agents.sources.web.consider_upgrading') }}
-                    </span>
-                </div>
-            </div>
-
             <div class="space-y-3">
                 <div class="flex gap-2">
                     <div class="relative flex-1">

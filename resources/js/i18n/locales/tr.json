@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Mesaj sınırına ulaştınız",
-        "upgrade_prompt": "Sohbete devam etmek için lütfen planınızı yükseltin",
         "regenerate_failed": "Yanıt yeniden oluşturulamadı. Lütfen tekrar deneyin.",
         "loading_conversation": "Konuşma yükleniyor",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "Sunucu {status} durumunu döndürdü.",
             "interrupted": "Bağlantı kesildi.",
             "malformed": "Sunucudan geçersiz veri alındı."
-        }
+        },
+        "limit_resets_next_month": "Gelecek ay yeniden mesaj gönderebilirsiniz."
     },
     "messages": {
         "send": "Gönder",
@@ -140,11 +140,7 @@
         "edit_message": "Mesajı düzenle"
     },
     "errors": {
-        "subscription_expired": "Abonelik süresi doldu",
-        "renew_subscription": "Aboneliği yenile",
         "message_limit_reached": "Mesaj sınırına ulaşıldı",
-        "token_limit_reached": "Token kullanım sınırına ulaşıldı",
-        "upgrade_plan": "Planı yükselt",
         "model_unavailable": "Model kullanılamıyor",
         "too_many_requests": "Çok fazla istek",
         "connection_lost": "Bağlantı kesildi",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Denetim günlüğü",
             "head_title": "Denetim · {name}",
-            "description": "Bu asistanın araçlar ve bağlayıcılar aracılığıyla gerçekleştirdiği her işlem — izin verilen, onaylanan, reddedilen veya hız sınırlı — argümanları, sonucu ve işlemi başlatan kişiyle birlikte.",
-            "locked_description": "Denetim günlüğü Pro planında kullanılabilir. Bu asistanın gerçekleştirdiği her araç ve bağlayıcı işlemini görmek için yükseltin."
+            "description": "Bu asistanın araçlar ve bağlayıcılar aracılığıyla gerçekleştirdiği her işlem — izin verilen, onaylanan, reddedilen veya hız sınırlı — argümanları, sonucu ve işlemi başlatan kişiyle birlikte."
         },
         "channels": {
             "title": "Kanallar",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— yanıt canlı olarak akar"
                 },
                 "telegram": {
-                    "connected_description": "İnsanlar botunuza Telegram üzerinden mesaj gönderebilir ve asistanınız otomatik olarak yanıt verir — faturalandırma, geçmiş ve koruma kuralları geçerlidir.",
+                    "connected_description": "İnsanlar botunuza Telegram üzerinden mesaj gönderebilir ve asistanınız otomatik olarak yanıt verir — mesaj sınırları, geçmiş ve koruma kuralları geçerlidir.",
                     "steps": {
                         "connect_1": "Telegram'da {botfather} botunu açın",
                         "connect_2": "{command} gönderin ve yönergeleri izleyin",
@@ -446,7 +441,6 @@
                 "select_topic": "Konu seçin",
                 "select_sentiment": "Duygu seçin",
                 "select_tone": "Ton seçin",
-                "upgrade_to_unlock": "Kilidi açmak için yükseltin",
                 "clear_all": "Tümünü temizle",
                 "close": "Filtreleri uygula"
             },
@@ -486,14 +480,12 @@
                 "page_url": "Sayfa URL'si",
                 "referrer": "Yönlendiren",
                 "locale": "Yerel ayar",
-                "upgrade_to_unlock": "Kilidi açmak için yükseltin",
                 "waiting": "Analiz bekleniyor…",
                 "channel": "Kanal"
             },
             "pulse": {
                 "title": "Görüşme nabzı",
                 "select_conversation": "Nabzı görüntülemek için bir görüşme seçin",
-                "locked_description": "Görüşme nabzı analitiğinin kilidini açmak için planınızı yükseltin.",
                 "refresh": "Yenile",
                 "no_messages_title": "Henüz yeterli mesaj yok",
                 "no_messages_hint": "Nabız, zaman içindeki duygu ve tonu analiz etmek için en az bir kullanıcı mesajı gerektirir.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Sabit"
             },
             "handoff": {
-                "locked_description": "Görüşme günlüğünden canlı görüşmeleri devralmak için planınızı yükseltin.",
                 "visitor": "Ziyaretçi",
                 "online": "Çevrimiçi",
                 "offline": "Çevrimdışı",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "Engellenen konu",
                 "toxicity": "Zararlı içerik"
-            },
-            "locked_description": "Koruma kuralları Standard ve Pro planlarında kullanılabilir. Asistanınızın neleri görüşebileceğini ve hassas içeriği nasıl ele alacağını denetlemek için yükseltin."
+            }
         },
         "persona": {
             "title": "Karakter",
@@ -849,8 +839,7 @@
                     "run_start_error": "Çalıştırma başlatılamadı",
                     "run_deleted": "Çalıştırma silindi",
                     "history_cleared": "Çalıştırma geçmişi temizlendi"
-                },
-                "locked_description": "Değerlendirmeler Standard ve Pro planlarında kullanılabilir. Bu asistanın yanıtlarını müşterilere ulaşmadan önce test edip puanlamak için yükseltin."
+                }
             },
             "scorers": {
                 "contains": "İçerir",
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Üslup",
             "description": "Ziyaretçilerin mesajlarındaki duygusal üsluba göre nasıl hissettiklerini takip edin.",
-            "locked_description": "Üslup analitiğinin kilidini açmak için planınızı yükseltin.",
             "disabled_title": "Üslup analizi kapalı",
             "disabled_description": "Ziyaretçilerin görüşmeler boyunca nasıl hissettiğini görmek için üslup analizini etkinleştirin.",
             "blocked_reason": "Önce sohbet kaydını açın — üslup analizi için saklanan mesajlar gereklidir.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Duygu durumu",
             "description": "Ziyaretçi mesajlarında olumlu, nötr ve olumsuz duygu durumunu takip edin.",
-            "locked_description": "Duygu durumu analitiğinin kilidini açmak için planınızı yükseltin.",
             "disabled_title": "Duygu durumu analizi kapalı",
             "disabled_description": "Ziyaretçilerin görüşmeler boyunca nasıl hissettiğini görmek için duygu durumu analizini etkinleştirin.",
             "blocked_reason": "Önce sohbet kaydını açın — duygu durumu analizi için saklanan mesajlar gereklidir.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Konuları yönet",
                 "description": "Asistanınızın görüşmelerde tanıması ve sınıflandırması gereken konuları tanımlayın.",
-                "locked_description": "Görüşme konularını yönetmek için planınızı yükseltin.",
                 "search_placeholder": "Konularda ara…",
                 "add_topic": "Konu ekle",
                 "empty": "Henüz konu yok. Asistanınızın görüşmeleri sınıflandırmasına yardımcı olmak için bir tane ekleyin.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "{name} bağlantısı kaldırılamadı: {error}",
                 "deleted": "{name} silindi.",
                 "delete_failed": "{name} silinemedi: {error}",
-                "usage_load_failed": "Kullanım verileri yüklenemedi.",
                 "summary_only_completed": "Özet yalnızca tamamlanmış dosyalar için kullanılabilir.",
                 "summary_none": "Bu dosya için özet bulunmuyor.",
                 "summary_load_failed": "Dosya özeti yüklenemedi.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Ses Dosyaları Yükle",
                 "upload_title_video": "Video Dosyaları Yükle",
                 "upload_title_default": "Yeni Belgeler Yükle",
-                "quota_minutes": "dakika",
-                "quota_pages": "sayfa",
                 "uploads_disabled": "Eğitim sürerken dosya yüklemeleri devre dışıdır",
                 "ready_to_train": "Eğitime Hazır",
                 "uploaded_ready": "{count} dosya yüklendi ve eğitime hazır | {count} dosya yüklendi ve eğitime hazır",
-                "exceeds_quota": "Kotayı aşıyor",
                 "clear_all": "Tümünü Temizle",
                 "training": "Eğitiliyor...",
                 "train": "Eğit",
@@ -1290,9 +1272,6 @@
                     "trained": "Eğitildi",
                     "failed": "Başarısız"
                 },
-                "limit_all_used": "Planınızdaki {limit} bağlantının tamamını kullandınız. Daha fazla bağlantı eğitmek için yükseltin.",
-                "limit_critical": "{limit} bağlantının {used} tanesini kullandınız (%{percentage}). Eğitim için yalnızca {remaining} bağlantı kaldı. Planınızı yükseltmeyi düşünün.",
-                "limit_warning": "{limit} bağlantının {used} tanesini kullandınız (%{percentage}). Eğitim için {remaining} bağlantı kaldı.",
                 "load_failed": "Web kaynakları yüklenemedi.",
                 "error_enter_url": "Lütfen bir web sitesi URL'si girin.",
                 "error_invalid_url": "Lütfen geçerli bir URL biçimi girin (ör. https://example.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "Tüm bağlantılar silinemez. En az bir bağlantı kalmalıdır.",
                 "links_deleted": "{count} bağlantı başarıyla silindi. | {count} bağlantı başarıyla silindi.",
                 "links_delete_failed": "Bağlantılar silinemedi.",
-                "no_links_remaining": "Kalan bağlantı yok",
-                "no_links_remaining_description": "Web sitelerini eğitmek için lütfen planınızı yükseltin.",
-                "cannot_select": "Web sitesi seçilemiyor",
-                "cannot_select_description": "{links} bağlantı kotanızı {exceedBy} kadar aşar. Diğer web sitelerinin seçimini kaldırın veya yükseltin.",
-                "selected_count": "{total} web sitesinden {selected} tanesi seçildi",
-                "selected_skipped": "{remaining} bağlantı sınırınız içinde kalmak için {skipped} web sitesi atlandı.",
                 "training_start_failed": "Şunlar için eğitim başlatılamadı: {websites}",
                 "training_start_failed_all": "Hiçbir web sitesi için eğitim başlatılamadı.",
                 "dialog_links_load_failed": "Bağlantılar yüklenemedi",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Tarayıcı",
                 "crawler_description": "Web sitelerinden bağlantılar getirerek tarayın ve asistanınızın bilgi tabanına ekleyin.",
                 "settings": "Ayarlar",
-                "links_used": "{used} / {limit} bağlantı kullanıldı",
-                "links_remaining": "{remaining} kaldı",
-                "upgrade_required": "Daha fazla bağlantı eğitmek için yükseltme gerekli",
-                "consider_upgrading": "Yükseltmeyi düşünün",
                 "fetching": "Getiriliyor...",
                 "fetch_links": "Bağlantıları Getir",
                 "crawl_settings": "Tarama Ayarları",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} seçildi ({links} bağlantı)",
                 "no_websites_selected": "Hiçbir web sitesi seçilmedi",
                 "train": "Eğit",
-                "train_exceeds_quota": "Seçilen bağlantılar ({selected}), kalan kotanızı ({remaining}) aşıyor",
                 "links_badge": "{count} bağlantı",
-                "badge_upgrade_required": "Yükseltme gerekli",
-                "badge_exceeds_quota": "Kotayı aşıyor",
-                "no_links_remaining_plan": "Planınızda kalan bağlantınız yok. Bu web sitesini eğitmek için lütfen yükseltin.",
-                "website_exceeds_remaining": "Bu web sitesinde {links} bağlantı var; bu, kalan {remaining} bağlantınızı aşar. Önce diğer web sitelerinin seçimini kaldırın veya planınızı yükseltin.",
                 "collapse_links": "Keşfedilen bağlantıları daralt",
                 "expand_links": "Keşfedilen bağlantıları genişlet",
                 "discovered_links": "Keşfedilen Bağlantılar",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Asistan Oluştur",
-            "limit_title": "Asistan Sınırına Ulaşıldı",
-            "limit_description": "Asistan sınırınıza ulaştınız.",
-            "upgrade_plan": "Planı Yükselt",
             "name_label": "Asistan Adı",
-            "name_placeholder": "Örn. Müşteri Desteği",
-            "load_error": "Kullanım bilgileri yüklenemedi",
-            "limit_toast_title": "Asistan sınırına ulaşıldı",
-            "limit_toast_description": "Asistan sınırınıza ulaştınız."
+            "name_placeholder": "Örn. Müşteri Desteği"
         },
         "analytics": {
             "title": "Asistan İstatistikleri",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Özel Alan Adı",
                 "description": "Bu asistanın Hosted Chat hizmetini {target} yerine kendi alan adınızdan sunun.",
-                "no_quota_title": "Özel alan adları mevcut planınıza dahil değil",
-                "no_quota_description": "Kendi ana makine adınızı eklemek için Pro'ya yükseltin veya {link} üzerinden Özel Alan Adı ek paketine abone olun.",
-                "billing": "Faturalandırma",
-                "quota": "{total} özel alan adından {used} tanesi kullanılıyor | {total} özel alan adından {used} tanesi kullanılıyor",
-                "add_more": "Daha fazla ekle",
                 "step1": "1. Adım — DNS sağlayıcınızda bir CNAME kaydı ekleyin",
                 "type": "Tür",
                 "name": "Ad",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Konular",
             "description": "Görüşme konularını ve eğilimlerini analiz edin",
-            "locked_description": "Konu analizine erişmek ve görüşme konularını otomatik olarak algılayıp kategorilere ayırmak için planınızı yükseltin.",
             "disabled_title": "Konu analizi",
             "disabled_description": "Ziyaretçilerinizin görüşmeler boyunca neler sorduğunu otomatik olarak algılayıp gruplamak için bunu açın.",
             "blocked_reason": "Sohbet günlüğü kapalı, bu yüzden analiz edilecek bir şey yok. Konu toplamaya başlamak için bunu Kurulum → Ayarlar bölümünden açın.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Bağlantı gönderiliyor...",
             "or_continue_with": "Veya şununla devam edin",
             "no_account": "Hesabınız yok mu?",
-            "start_free_trial": "Ücretsiz denemeyi başlat",
             "create_account": "Hesap oluştur"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Parolanızı seçin",
-            "description": "Hesabınız hazır. Kurulumu tamamlamak için bir parola belirleyin.",
-            "head": "Parolanızı seçin",
-            "email_label": "E-posta adresi",
-            "password_label": "Parola",
-            "password_placeholder": "Parola",
-            "confirm_password_label": "Parolayı onayla",
-            "confirm_password_placeholder": "Parolayı onayla",
-            "set_password": "Parolayı belirle",
-            "setting_password": "Parola belirleniyor..."
-        },
         "login_member": {
             "description": "Bu sohbet çalışma alanına erişmek için giriş yapın",
             "head": "Üye Girişi",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Sosyal hesabınızın şunu kullandığından emin olun:",
             "social_email_note_suffix": "— bu davetle eşleşmelidir."
         },
-        "invitation_invalid": {
-            "title": "Davet Kullanılamıyor",
-            "description": "Bu davet kabul edilemez",
-            "head": "Davet Kullanılamıyor",
-            "card_title": "Davet Kabul Edilemiyor",
-            "cannot_accept_prefix": "Katılma daveti:",
-            "cannot_accept_suffix": "şu anda kabul edilemez.",
-            "contact_owner": "Bu sorunu çözmek için lütfen ekip sahibiyle iletişime geçin.",
-            "go_to_login": "Giriş Ekranına Git"
-        },
         "invitation_expired": {
             "title": "Davetin Süresi Doldu",
             "description": "Bu davet artık geçerli değil",
@@ -2325,386 +2254,6 @@
             "card_title": "Davetin Süresi Doldu",
             "contact_owner": "Yeni bir davet istemek için lütfen ekip sahibiyle iletişime geçin.",
             "go_to_login": "Giriş Ekranına Git"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Faturalandırma",
-            "back_to_billing": "Faturalandırmaya Dön",
-            "view_plans": "Planları Görüntüle",
-            "cancel": "İptal",
-            "processing": "İşleniyor...",
-            "not_available": "Yok"
-        },
-        "payment_success": {
-            "page_title": "Ödeme Başarılı",
-            "heading": "Ödeme Alındı",
-            "description": "Teşekkürler! Ödemeniz başarıyla işlendi. Aboneliğinizi şimdi ayarlıyoruz.",
-            "redirecting_prefix": "Yönlendiriliyor:",
-            "redirecting_suffix": "saniye içinde...",
-            "go_to_billing": "Şimdi faturalandırmaya git"
-        },
-        "invoices": {
-            "breadcrumb": "Faturalar",
-            "page_title": "Faturalar",
-            "heading": "Faturalar",
-            "subheading": "Faturalandırma geçmişinizi ve faturalarınızı görüntüleyin ve indirin",
-            "history_title": "Faturalandırma Geçmişi",
-            "history_description": "Abonelik ödemeleriniz için makbuzları ve faturaları indirin",
-            "invoice_number": "Fatura #{number}",
-            "status": {
-                "paid": "Ödendi",
-                "pending": "Beklemede",
-                "failed": "Başarısız"
-            },
-            "download_pdf": "PDF İndir",
-            "view_online": "Çevrimiçi Görüntüle",
-            "empty_title": "Henüz fatura yok",
-            "empty_description": "Bir abonelik başlattığınızda faturalandırma geçmişiniz ve faturalarınız burada görünecek.",
-            "total_invoices": "Toplam Fatura",
-            "total_spent": "Toplam Harcama",
-            "since": "Şu tarihten beri",
-            "help_title": "Faturalandırma konusunda yardıma mı ihtiyacınız var?",
-            "help_description": "Faturalarınızla ilgili sorularınız varsa veya faturalandırma konusunda yardıma ihtiyacınız varsa, destek ekibimiz size yardımcı olmaya hazır.",
-            "contact_support": "Destekle İletişime Geç"
-        },
-        "payment_methods": {
-            "breadcrumb": "Ödeme Yöntemleri",
-            "page_title": "Ödeme Yöntemleri",
-            "heading": "Ödeme Yöntemleri",
-            "subheading": "Ödeme yöntemlerinizi ve faturalandırma bilgilerinizi yönetin",
-            "add_method": "Ödeme Yöntemi Ekle",
-            "saved_title": "Kayıtlı Ödeme Yöntemleri",
-            "saved_description": "Kayıtlı ödeme yöntemlerinizi yönetin. Otomatik faturalandırma için varsayılan bir yöntem belirleyebilirsiniz.",
-            "default": "Varsayılan",
-            "expires": "Son kullanma tarihi {date}",
-            "set_default": "Varsayılan Yap",
-            "empty_title": "Ödeme yöntemi yok",
-            "empty_description": "Aboneliklerinizi yönetmek ve ödeme yapmak için bir ödeme yöntemi ekleyin.",
-            "add_first": "İlk Ödeme Yönteminizi Ekleyin",
-            "info_title": "Faturalandırma Bilgileri",
-            "info_description": "Faturalandırma adresinizi ve iletişim bilgilerinizi güncelleyin",
-            "not_set": "Ayarlanmadı",
-            "update_info": "Faturalandırma Bilgilerini Güncelle",
-            "secure_title": "Güvenli Ödeme İşleme",
-            "secure_description": "Ödeme bilgileriniz şifrelenir ve Stripe tarafından güvenli bir şekilde işlenir. Eksiksiz kart bilgilerinizi asla sunucularımızda saklamayız.",
-            "updating": "Güncelleniyor...",
-            "update_information": "Bilgileri Güncelle",
-            "card_information": "Kart Bilgileri",
-            "remove_dialog": {
-                "title": "Ödeme Yöntemini Kaldır",
-                "description": "Bu ödeme yöntemini kaldırmak istediğinizden emin misiniz? Bu işlem geri alınamaz.",
-                "confirm": "Evet, Kaldır"
-            },
-            "fields": {
-                "name": "Ad",
-                "email": "E-posta Adresi",
-                "address": "Adres",
-                "city_state_country": "Şehir, İl ve Ülke",
-                "billing_address": "Faturalandırma Adresi",
-                "line1": "Adres Satırı 1",
-                "line2": "Adres Satırı 2 (İsteğe bağlı)",
-                "city": "Şehir",
-                "state": "İl",
-                "postal_code": "Posta Kodu",
-                "country": "Ülke"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "123 Main Street",
-                "line2": "Daire, ofis vb.",
-                "city": "New York",
-                "state": "NY",
-                "postal_code": "10001",
-                "country": "Ülke seçin..."
-            },
-            "info_dialog": {
-                "title": "Faturalandırma Bilgilerini Güncelle",
-                "description": "Faturalandırma ve ödeme işlemleri için faturalandırma adresinizi ve iletişim bilgilerinizi güncelleyin."
-            },
-            "add_dialog": {
-                "description": "Hesabınıza yeni bir ödeme yöntemi ekleyin. Kart bilgileriniz güvenli ve şifrelidir.",
-                "success_title": "Ödeme Yöntemi Eklendi!",
-                "success_description": "Ödeme yönteminiz hesabınıza başarıyla eklendi.",
-                "secure_note": "Ödeme bilgileriniz şifrelenir ve Stripe tarafından güvenli bir şekilde işlenir. Eksiksiz kart bilgilerinizi asla saklamayız."
-            },
-            "errors": {
-                "init_failed": "Ödeme sistemi başlatılamadı",
-                "not_ready": "Ödeme sistemi hazır değil",
-                "add_failed": "Ödeme yönteminiz eklenirken bir hata oluştu"
-            },
-            "toast": {
-                "added": "Ödeme yöntemi başarıyla eklendi!",
-                "info_updated": "Faturalandırma bilgileri başarıyla güncellendi!",
-                "info_failed": "Faturalandırma bilgileri güncellenemedi"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Plan Seç",
-            "page_title": "Planınızı Seçin",
-            "heading": "Planınızı Seçin",
-            "subheading": "İhtiyaçlarınıza en uygun planı seçin. İstediğiniz zaman değiştirebilir veya iptal edebilirsiniz.",
-            "monthly": "Aylık",
-            "yearly": "Yıllık",
-            "custom": "Özel",
-            "per_month": "/ay",
-            "save_percent": "%{percent} tasarruf",
-            "billed_yearly": "Yıllık {amount} olarak faturalandırılır",
-            "features_included": "Dahil olan özellikler:",
-            "everything_in": "{plan} planındaki her şey +",
-            "actions": {
-                "contact_sales": "Satış ekibiyle iletişime geç",
-                "upgrade": "Yükselt",
-                "upgrade_plan": "Planı Yükselt",
-                "downgrade_to_free": "Ücretsiz Plana Geç",
-                "downgrade_plan": "Planı Düşür",
-                "switch_plan": "Planı Değiştir",
-                "select_plan": "Planı Seç"
-            },
-            "discount": {
-                "banner": "%{percent} İNDİRİM Sınırlı Süreli Teklif!",
-                "ends": "Teklif {date} tarihinde sona eriyor - Kaçırmayın!",
-                "limited": "Tüm ücretli planlarda sınırlı süreli indirim!",
-                "off": "%{percent} İNDİRİM"
-            },
-            "most_popular": "En Popüler",
-            "current_plan": "Mevcut Plan",
-            "save_up_to_percent": "En fazla %{percent} tasarruf"
-        },
-        "addons": {
-            "title": "Eklentiler",
-            "description": "Planınıza ek olarak ekstra kredi, asistan ve alan adı",
-            "per_agent": " / asistan",
-            "per_domain": " / alan adı",
-            "per_member": " / üye",
-            "per_month": " / ay",
-            "requires_subscription": "Ekstra Asistanlar, Özel Alan Adı, Markayı Kaldırma ve Üyeler için etkin bir ana abonelik gerekir.",
-            "common": {
-                "none": "Yok",
-                "subscribe": "Abone Ol",
-                "change": "Değiştir",
-                "update_quantity": "Adedi Güncelle",
-                "monthly_cost": "Aylık maliyet:",
-                "keep_subscription": "Aboneliği koru",
-                "yes_cancel": "Evet, iptal et",
-                "ends": "{date} tarihinde sona eriyor"
-            },
-            "auto_recharge": {
-                "title": "Otomatik Yükleme",
-                "on": "Açık",
-                "off": "Kapalı",
-                "summary": "Bakiye {threshold} altına düştüğünde otomatik olarak {amount} kredi satın al.",
-                "manage": "Yönet",
-                "enable": "Etkinleştir",
-                "dialog_title": "Otomatik Yükleme Ayarları",
-                "dialog_description": "Kalan krediniz eşik değerine veya altına düştüğünde, varsayılan ödeme yönteminizden otomatik olarak ücret alır ve bakiyenizi yükleriz.",
-                "enable_label": "Otomatik Yüklemeyi Etkinleştir",
-                "enable_hint": "Krediler azaldığında otomatik olarak ücret al",
-                "threshold_label": "Eşik (kredi)",
-                "threshold_hint": "Bakiyeniz bu tutara veya altına düştüğünde yükleme tetiklenir.",
-                "amount_label": "Yükleme tutarı (kredi)",
-                "each_recharge": "Her yükleme:",
-                "charged_note": "Tetiklendiğinde varsayılan ödeme yönteminizden anında tahsil edilir.",
-                "save": "Ayarları Kaydet"
-            },
-            "extra_credits": {
-                "title": "Ekstra Kredi",
-                "summary": "Tek seferlik yükleme. Her paket, 30 gün sonra sona eren 1.000 mesaj ekler.",
-                "buy": "Kredi Satın Al",
-                "dialog_title": "Mesaj Kredisi Satın Al",
-                "dialog_description": "Her paket, satın alma tarihinden itibaren bir ay içinde kullanılması gereken 1.000 mesaj içerir.",
-                "quantity_label": "Adet (paket başına 1.000 mesaj)",
-                "total_messages": "Toplam Mesaj:",
-                "total_price": "Toplam Fiyat:",
-                "purchase_for": "${amount} karşılığında satın al"
-            },
-            "extra_agents": {
-                "title": "Ekstra Asistanlar",
-                "summary": "Plan sınırınızın ötesinde daha fazla AI asistanı ekleyin.",
-                "cancel_title": "Ekstra Asistanlar aboneliği iptal edilsin mi?",
-                "cancel_description": "Ekstra asistan kotanız anında kaldırılır ve tekrar ücretlendirilmezsiniz.",
-                "change_title": "Ekstra Asistanları Değiştir",
-                "subscribe_title": "Ekstra Asistanlara Abone Ol",
-                "dialog_description": "Planınıza ek olarak daha fazla AI asistanı ekleyin. Asistan başına aylık 5 $ olarak faturalandırılır.",
-                "quantity_label": "Ekstra asistan sayısı"
-            },
-            "custom_domains": {
-                "title": "Özel Alan Adı",
-                "summary": "AI asistanları için kendi özel alan adınızı kullanın.",
-                "cancel_title": "Özel Alan Adı aboneliği iptal edilsin mi?",
-                "cancel_description": "Özel alan adı kotanız anında kaldırılır ve tekrar ücretlendirilmezsiniz.",
-                "change_title": "Özel Alan Adlarını Değiştir",
-                "subscribe_title": "Özel Alan Adına Abone Ol",
-                "dialog_description": "AI asistanları için kendi alan adınızı kullanın. Alan adı başına aylık 29 $ olarak faturalandırılır.",
-                "quantity_label": "Alan adı sayısı"
-            },
-            "remove_branding": {
-                "title": "Markayı Kaldır",
-                "active": "Etkin",
-                "summary": "Widget'ınız ve barındırılan sohbetinizde \"Powered by Chatvia\" rozetini gizleyin.",
-                "cancel_title": "Markayı Kaldır aboneliği iptal edilsin mi?",
-                "cancel_description": "\"Powered by Chatvia\" rozeti, widget'ınız ve barındırılan sohbetinizde anında yeniden görünür ve tekrar ücretlendirilmezsiniz."
-            },
-            "members": {
-                "title": "Üyeler",
-                "summary": "Çalışma alanınıza daha fazla ekip üyesi ekleyin.",
-                "cancel_title": "Üyeler aboneliği iptal edilsin mi?",
-                "cancel_description": "Ek üye koltuklarınız anında kaldırılır ve tekrar ücretlendirilmezsiniz.",
-                "change_title": "Üyeleri Değiştir",
-                "subscribe_title": "Üyelere Abone Ol",
-                "dialog_description": "Çalışma alanınıza ek ekip üyeleri ekleyin. Üye başına aylık 9 $ olarak faturalandırılır.",
-                "quantity_label": "Üye sayısı"
-            }
-        },
-        "index": {
-            "page_title": "Faturalandırma",
-            "heading": "Faturalandırma",
-            "subheading": "Aboneliğinizi, faturalandırma bilgilerinizi ve kullanım sınırlarınızı yönetin",
-            "stripe_notice": "Ödemeler güvenli şekilde şunun tarafından işlenir:",
-            "status_label": "Durum",
-            "trial_ends": "Deneme Süresi Bitişi",
-            "next_billing": "Sonraki Faturalandırma",
-            "access_ends": "Erişim Bitişi",
-            "plan_features": "Plan Özellikleri",
-            "show_less": "Daha az göster",
-            "show_more": "{count} tane daha göster",
-            "per_year": "Yıl",
-            "per_month": "Ay",
-            "status": {
-                "active": "Etkin",
-                "trial": "Deneme",
-                "cancelled": "İptal Edildi",
-                "incomplete": "Tamamlanmadı",
-                "past_due": "Vadesi Geçmiş"
-            },
-            "trial": {
-                "heading": "🎉 Ücretsiz Deneme Sürümündesiniz!",
-                "ends_on": "{plan} deneme süreniz şu tarihte sona eriyor:",
-                "auto_start": "Ücretli aboneliğiniz {date} tarihinde otomatik olarak başlayacak",
-                "badge": "Deneme Etkin"
-            },
-            "upgrade": {
-                "heading": "Premium'a Yükselt",
-                "description": "Gelişmiş AI modellerine, daha yüksek mesaj sınırlarına ve öncelikli desteğe erişin"
-            },
-            "current_plan": {
-                "title": "Mevcut Plan",
-                "description": "Etkin abonelik planınız ve kullanım ayrıntılarınız"
-            },
-            "pending_change": {
-                "heading": "Plan Değişikliği Planlandı",
-                "change_from": "Planınız şuradan değişecek:",
-                "to": "şuna:",
-                "cycle_yearly": "(Yıllık)",
-                "cycle_monthly": "(Aylık)",
-                "on_date": "{date} tarihinde.",
-                "scheduled_for": "{date} tarihi için planlanmış bir plan değişikliğiniz var.",
-                "access_note": "O tarihe kadar mevcut plan özelliklerinize erişmeye devam edeceksiniz.",
-                "cancel_schedule": "Planlamayı İptal Et",
-                "cancel_dialog": {
-                    "title": "Planlanmış Plan Değişikliğini İptal Et",
-                    "description": "Planlanmış plan değişikliğinizi iptal etmek istediğinizden emin misiniz? Mevcut planınızda kalacaksınız.",
-                    "confirm": "Evet, Planlamayı İptal Et",
-                    "cancel": "Planlamayı Koru"
-                }
-            },
-            "cancelled": {
-                "title": "Abonelik İptal Edildi",
-                "description": "Aboneliğiniz {date} tarihinde sona erecek. Bu tarihten önce istediğiniz zaman aboneliğinizi sürdürebilirsiniz.",
-                "resume": "Aboneliği Sürdür"
-            },
-            "management": {
-                "title": "Yönetim",
-                "manage_payment_methods": "Ödeme Yöntemlerini Yönet",
-                "view_invoices": "Faturaları Görüntüle",
-                "go_to_stripe": "Stripe'a Git",
-                "change_plan": "Planı Değiştir",
-                "cancel_subscription": "Aboneliği İptal Et"
-            },
-            "cancel_dialog": {
-                "title": "Aboneliği İptal Et",
-                "description": "Aboneliğinizi iptal etmek istediğinizden emin misiniz? Faturalandırma döneminizin sonuna kadar erişiminiz devam edecek.",
-                "confirm": "Evet, İptal Et",
-                "cancel": "Aboneliği Koru"
-            },
-            "usage": {
-                "title": "Kullanım",
-                "messages": "Mesajlar",
-                "pages": "Sayfalar",
-                "agents": "Asistanlar",
-                "links": "Bağlantılar",
-                "minutes": "Dakikalar",
-                "remaining": "{count} kaldı",
-                "load_error": "Kullanım verileri yüklenemiyor"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Başlangıç",
-                    "description": "Yeni başlayan küçük işletmeler için."
-                },
-                "standard": {
-                    "name": "Standart",
-                    "description": "Büyüyen ekipler ve işletmeler için."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "Her şeye ihtiyaç duyan kuruluşlar için."
-                },
-                "enterprise": {
-                    "name": "Kurumsal",
-                    "description": "Güvenlik, uyumluluk ve ölçek ihtiyacı olan kuruluşlar için."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "Ayda {count} mesaj | Ayda {count} mesaj",
-            "messages_per_year": "Yılda {count} mesaj | Yılda {count} mesaj",
-            "messages_unlimited": "Sınırsız mesaj",
-            "messages_custom": "Özel mesaj hacmi",
-            "agents": "{count} AI asistanı | {count} AI asistanı",
-            "agents_unlimited": "Sınırsız AI asistanı",
-            "pages": "{count} sayfa (PDF, Word, Metin) | {count} sayfa (PDF, Word, Metin)",
-            "pages_unlimited": "Sınırsız sayfa (PDF, Word, Metin)",
-            "pages_custom": "Özel bilgi tabanı",
-            "links": "{count} web sitesi bağlantısı | {count} web sitesi bağlantısı",
-            "links_unlimited": "Sınırsız web sitesi bağlantısı",
-            "links_custom": "Özel web sitesi bağlantıları",
-            "minutes": "{count} dakika ses/video | {count} dakika ses/video",
-            "minutes_unlimited": "Sınırsız dakika ses/video",
-            "minutes_custom": "Özel ses/video",
-            "teams": "{count} ekip | {count} ekip",
-            "teams_unlimited": "Sınırsız ekip",
-            "members": "{count} üye (ekip üyeleri + kullanıcılar) | {count} üye (ekip üyeleri + kullanıcılar)",
-            "members_unlimited": "Sınırsız üye",
-            "retention": "{count} günlük görüşme geçmişi | {count} günlük görüşme geçmişi",
-            "retention_unlimited": "Sınırsız görüşme geçmişi",
-            "retention_custom": "Özel veri saklama",
-            "sentiment": "Duygu analizi",
-            "tone": "Ton analizi",
-            "topics": "Konu analizi",
-            "pulse": "Görüşme Nabzı",
-            "handoff": "Devretme",
-            "api": "API erişimi",
-            "evals": "Değerlendirmeler",
-            "guardrails": "Koruma kuralları",
-            "audit": "Denetim günlüğü",
-            "branding": "Beyaz etiket ({brand} markasını kaldırma)",
-            "network_access": "Ağ erişim denetimi (IP ve konum)",
-            "siem_webhook": "SIEM Webhook (gerçek zamanlı güvenlik olayları)",
-            "mcp": "MCP",
-            "function_calling": "İşlev Çağırma",
-            "custom_domains": "{count} özel alan adı | {count} özel alan adı",
-            "custom_domains_unlimited": "Sınırsız özel alan adı",
-            "custom_domains_custom": "Özel alan adları",
-            "custom_integrations": "Özel entegrasyonlar",
-            "eu_data_residency": "AB veri ikametgâhı",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "Çalışma süresi SLA'sı",
-            "dedicated_support": "Özel destek",
-            "custom_contract": "Özel sözleşme ve DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "AI asistanlarınızın ve etkinliğinizin genel görünümü",
         "create_agent": "Asistan Oluştur",
         "total_agents": "Toplam Asistan",
-        "messages_this_cycle": "Bu Dönemdeki Mesajlar",
         "percent_used": "%{percent} kullanıldı",
         "total_conversations": "Toplam Görüşme",
         "all_time_across_agents": "Tüm asistanlarda tüm zamanlar",
@@ -3110,97 +2658,8 @@
         "last_week": "Geçen Hafta",
         "last_month": "Geçen Ay",
         "messages_tooltip": "{n} mesaj | {n} mesaj",
-        "messages_this_month": "Bu Ayki Mesajlar"
-    },
-    "support": {
-        "title": "Destek",
-        "subtitle": "Taleplerinizi görüntüleyin veya yeni bir tane oluşturun.",
-        "create_ticket": "Yeni Talep Oluştur",
-        "your_tickets": "Talepleriniz",
-        "your_tickets_description": "Daha önce gönderilen talepler",
-        "loading": "Talepler yükleniyor...",
-        "empty": "Henüz talep yok. Başlamak için \"Yeni Talep Oluştur\"a tıklayın.",
-        "th_id": "Kimlik",
-        "th_type": "Tür",
-        "th_status": "Durum",
-        "th_priority": "Öncelik",
-        "th_created": "Oluşturulma",
-        "th_message": "Mesaj",
-        "th_replies": "Yanıtlar",
-        "status_open": "Açık",
-        "status_in_progress": "Devam Ediyor",
-        "status_resolved": "Çözüldü",
-        "status_closed": "Kapatıldı",
-        "priority_urgent": "Acil",
-        "priority_high": "Yüksek",
-        "priority_medium": "Orta",
-        "priority_low": "Düşük",
-        "create_ticket_description": "Bir tür seçin ve talebinizi açıklayın.",
-        "label_type": "Tür",
-        "type_placeholder": "Bir tür seçin",
-        "type_feature": "Özellik talep et",
-        "type_bug": "Hata bildir",
-        "type_integration": "Entegrasyon talep et",
-        "type_add_model": "Model eklenmesini talep et",
-        "type_refund": "İade Talebi",
-        "type_billing": "Faturalandırma Sorunu",
-        "type_other": "Diğer",
-        "label_priority": "Öncelik",
-        "priority_placeholder": "Öncelik seçin",
-        "label_message": "Mesaj",
-        "message_placeholder": "Talebinizi veya sorununuzu ayrıntılı olarak açıklayın...",
-        "cancel": "İptal",
-        "submitting": "Gönderiliyor...",
-        "submit": "Gönder"
-    },
-    "ticket": {
-        "support": "Destek",
-        "title": "Talep #{id}",
-        "created_at": "{date} tarihinde oluşturuldu",
-        "back_to_support": "Desteğe Dön",
-        "status_open": "Açık",
-        "status_in_progress": "Devam Ediyor",
-        "status_resolved": "Çözüldü",
-        "status_closed": "Kapatıldı",
-        "priority_urgent": "Acil",
-        "priority_high": "Yüksek",
-        "priority_medium": "Orta",
-        "priority_low": "Düşük",
-        "change_priority": "Önceliği Değiştir",
-        "change_priority_title": "Talep Önceliğini Değiştir",
-        "change_priority_description": "Lütfen önceliği yalnızca gerçekten acilse değiştirin. Acil önceliğini yanlış kullanmak herkes için yanıtları yavaşlatabilir.",
-        "label_priority": "Öncelik",
-        "priority_placeholder": "Bir öncelik seçin",
-        "cancel": "İptal",
-        "saving": "Kaydediliyor...",
-        "save": "Kaydet",
-        "replies": "Yanıtlar ({count})",
-        "no_replies": "Henüz yanıt yok.",
-        "role_staff": "Personel",
-        "role_user": "Kullanıcı",
-        "resolved_notice": "Bu talep çözüldü. Sorun devam ederse lütfen Destek sayfasından yeni bir talep açın.",
-        "add_reply": "Yanıt ekle",
-        "reply_placeholder": "Yanıtınızı yazın...",
-        "sending": "Gönderiliyor...",
-        "send_reply": "Yanıt gönder"
-    },
-    "usage": {
-        "title": "Kullanım",
-        "subtitle": "Tüm hizmetler ve özellikler genelinde mevcut kullanımınızı izleyin.",
-        "plan_badge": "{plan} planı",
-        "label_messages": "Mesajlar",
-        "label_tokens": "Token",
-        "label_pages": "Sayfalar",
-        "label_minutes": "Dakika",
-        "label_links": "Bağlantılar",
-        "label_agents": "Asistanlar",
-        "label_teams": "Ekipler",
-        "label_members": "Üyeler",
-        "tokens_note": "Bu dönemde tüketildi — yalnızca bilgi amaçlıdır; planınız mesaj üzerinden faturalandırılır.",
-        "of": "/ {limit}",
-        "remaining": "{count} kaldı",
-        "load_error": "Kullanım verileri yüklenemiyor.",
-        "no_limit": "Sınırsız"
+        "messages_this_month": "Bu Ayki Mesajlar",
+        "messages_used_of_limit": "{used}/{limit} kullanıldı"
     },
     "analytics_chat": {
         "title": "Verilerinize sorun",
@@ -3326,7 +2785,6 @@
             "description": "{api_link} için hesap anahtarları — asistanlar, bilgi, MCP sunucuları ve işlevler oluşturun ve yönetin.",
             "api_link": "Chatvia API",
             "generate": "Anahtar oluştur",
-            "locked": "API anahtarları oluşturmak ve Chatvia'yı uygulamalarınızla entegre etmek için planınızı yükseltin.",
             "empty_title": "Henüz API anahtarı yok",
             "empty_description": "Chatvia API'sini kullanmaya başlamak için bir tane oluşturun.",
             "never": "Hiçbir zaman",
@@ -3535,14 +2993,6 @@
             "save_error": "Güvenlik ayarlarınız kaydedilemedi",
             "cancel": "İptal",
             "done": "Bitti",
-            "teaser": {
-                "title": "Güvenlik ve Uyumluluk",
-                "description": "Çalışma alanınızı güvenilir ağlarla sınırlandırın ve uyumluluk gereksinimlerinizi karşılayın. Pro planında kullanılabilir.",
-                "ip": "IP izin listesi — yalnızca onaylanan adresler giriş yapabilir",
-                "geo": "Ülke kuralları — ülkeye göre erişime izin verin veya engelleyin",
-                "more": "Ayrıca veri saklama, SIEM Webhook'ları, SSO / SCIM ve daha fazlası",
-                "cta": "Pro'ya yükselt"
-            },
             "network": {
                 "title": "Ağ erişim denetimi",
                 "help": "Kontrol paneli erişimini güvenilir IP adresleri ve ülkelerle sınırlandırın. Kapalıyken, geçerli bir girişe sahip herkes her yerden oturum açabilir."
@@ -3578,7 +3028,7 @@
                 "title": "Veri saklama",
                 "help": "Chatvia'nın verilerinizi otomatik olarak silmeden önce ne kadar süre sakladığı. Uyumluluk için bunları kısaltın — varsayılanı kullanmak için bir alanı boş bırakın.",
                 "conversations": "Görüşme geçmişi (gün)",
-                "conversations_help": "Sohbet geçmişi bu kadar gün sonra silinir. Planınızda en fazla {max}.",
+                "conversations_help": "Sohbet geçmişi bu kadar gün sonra silinir. En fazla {max} gün.",
                 "audit": "Güvenlik denetim günlüğü (gün)",
                 "audit_help": "Varsayılan {default} gün, en az {floor}.",
                 "plan_default": "Varsayılan ({days} gün)"
@@ -3606,11 +3056,6 @@
             "user_agent": "Kullanıcı aracısı",
             "metadata": "Ayrıntılar",
             "integrity": "Bütünlük karması kaydedildi",
-            "teaser": {
-                "title": "Güvenlik denetim günlüğü",
-                "description": "Her oturum açmayı, rol değişikliğini ve güvenlik ayarı değişikliğini görün — kurcalamaya karşı korumalı ve dışa aktarılabilir. Pro planında kullanılabilir.",
-                "cta": "Pro'ya yükselt"
-            },
             "table": {
                 "actor": "Aktör",
                 "action": "İşlem",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Kontrol paneli",
             "agents": "Asistanlar",
-            "usage": "Kullanım",
             "ask_your_data": "Verilerinize sorun",
-            "billing": "Faturalandırma",
-            "support": "Destek",
             "teams": "Ekipler",
             "documentation": "Belgeler",
             "api": "API",
-            "nav_menu_sr": "Gezinme Menüsü",
-            "upgrade": "Yükselt",
-            "subscribed": "Aboneliğiniz aktif"
+            "nav_menu_sr": "Gezinme Menüsü"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Bilgi kaynakları, belgeler ve yüklenen dosyalar",
             "removes_team": "Ekibiniz, kullanıcılarınız, API anahtarlarınız ve bağlayıcılarınız",
             "agents_will_delete": "{count} asistan kalıcı olarak silinecek: | {count} asistan kalıcı olarak silinecek:",
-            "subscription_cancel": "Etkin aboneliğiniz iptal edilecek ve sizden tekrar ücret alınmayacak.",
             "email_confirmed": "E-posta onaylandı. Bu son adımınız — bundan sonra geri dönüş yok.",
             "delete_button": "Hesabımı kalıcı olarak sil",
             "final_dialog_title": "Hesabınız kalıcı olarak silinsin mi?",
             "final_dialog_description": "Bu işlem hesabınızı ve tüm verilerini kalıcı olarak siler ve geri alınamaz.",
-            "final_dialog_subscription": "Aboneliğiniz de iptal edilecek.",
             "final_confirm": "Evet, her şeyi sil",
             "check_email": "E-postanızı kontrol edin — hesabınızı silme işlemini tamamlamanız için bir onay bağlantısı gönderdik. 30 dakika içinde geçerliliğini yitirir. Devam etmek için bağlantıyı açın.",
             "resend_link": "Bağlantıyı tekrar gönder",
@@ -3906,7 +3344,6 @@
         "enable_feature": "{title} özelliğini etkinleştir",
         "enabling": "Etkinleştiriliyor…",
         "enable_now": "Şimdi etkinleştir",
-        "upgrade_now": "Şimdi Yükselt",
         "chat_title_fallback": "Sohbet",
         "more_options": "Diğer seçenekler",
         "delete_confirmation_title": "Silme onayı",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Dosya Yükle",
             "description_default": "Analiz edilecek dosyalar ekleyin",
-            "quota_label_default": "sayfa",
             "file_count": "{current} / {max} dosya",
-            "quota_limit_reached_alert": "{quotaLimit} {quotaLabel} olan {quotaLabel} sınırınıza ulaştınız. Daha fazla belge işlemek için lütfen planınızı yükseltin.",
             "drop_zone_file_limit_reached": "Dosya sınırına ulaşıldı",
-            "drop_zone_quota_limit_reached": "{quotaLabel} limitine ulaşıldı",
             "drop_zone_select_files": "Dosya seç",
             "drop_zone_max_files_hint": "En fazla {max} dosyaya izin verilir. Daha fazla eklemek için bazı dosyaları kaldırın.",
-            "drop_zone_quota_exhausted_hint": "{quotaLimit} {quotaLabel} kotanızın tamamını kullandınız. Devam etmek için planınızı yükseltin.",
-            "drop_zone_unavailable": "Yükleme kullanılamıyor",
             "drop_zone_default_hint": "Sürükleyip bırakın veya dosya seçmek için tıklayın",
-            "total_quota": "toplam {count} {label}",
-            "exceeds_quota": "Kotayı {amount} {quotaLabel} aşıyor",
             "clear_failed": "Başarısızları Temizle",
             "clear_all": "Tümünü Temizle",
             "badge_analyzed": "Analiz edildi",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Amplitude projenizden ürün analitiğini — etkinlikler, grafikler ve kohortlar — sorgulayın."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Chatvia'ya hoş geldiniz",
-            "intro": "İlk AI asistanınızı oluşturalım. Yalnızca bir dakika sürer.",
-            "what_title": "Asistan nedir?",
-            "what_body": "Asistan, kendi içeriğinizle eğittiğiniz bir AI yardımcısıdır. Web sitenizde, sohbet widget'ınızda ve mesajlaşma uygulamalarında müşterilerinizin sorularını yanıtlar.",
-            "how_title": "Nasıl çalışır?",
-            "how_body": "Önce bir asistan oluşturup ona bir ad verirsiniz. Ardından soruları yanıtlayabilmesi için onu dosyalarınız, web siteleriniz ve metinlerinizle eğitirsiniz.",
-            "start": "İlk asistanımı oluştur",
-            "video_caption": "Nasıl çalıştığını izleyin"
         }
     }
 }

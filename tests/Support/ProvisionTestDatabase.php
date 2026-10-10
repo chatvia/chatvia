@@ -36,7 +36,6 @@ class ProvisionTestDatabase
             // Seeding loads reference data (the LLM catalogue) that tests read.
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
-            $this->seedStripeTestPrices();
             $this->recordChecksum();
 
             return;
@@ -53,31 +52,11 @@ class ProvisionTestDatabase
             Artisan::call('db:wipe');
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
-            $this->seedStripeTestPrices();
             // Record the checksum only after a successful rebuild — writing it
             // first would mark a failed migration as up to date and skip every
             // retry.
             $this->recordChecksum();
         }
-    }
-
-    /**
-     * Gives the default plans and the credit packs the Stripe price ids the
-     * billing tests subscribe with. A new install has none: an admin creates
-     * them under Billing → Plans.
-     */
-    protected function seedStripeTestPrices(): void
-    {
-        foreach (['starter', 'standard', 'pro'] as $plan) {
-            DB::table('billing_plans')->where('key', $plan)->update([
-                'stripe_monthly_price_id' => "price_test_{$plan}_monthly",
-                'stripe_yearly_price_id' => "price_test_{$plan}_yearly",
-            ]);
-        }
-
-        DB::table('billing_addons')
-            ->whereIn('key', ['auto_recharge_credits', 'extra_message_credits'])
-            ->update(['stripe_price_id' => 'price_test_extra_1000']);
     }
 
     protected function databaseAlreadyMigrated(): bool

@@ -1,10 +1,10 @@
 <?php
 
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\MessageSent;
-use Domain\Billing\Actions\ChatterAllowance\SetChatterMessageLimitAction;
-use Domain\Billing\Services\ChatterMessageAllowance;
 use Domain\Conversation\Actions\Messages\StoreUserMessageAction;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\MessageRole;
@@ -106,12 +106,20 @@ it('asks for the location with the request-resolved country', function (): void 
 it('counts a chatter message against their monthly limit', function (): void {
     $agent = Agent::factory()->create();
     $chatter = User::factory()->chatter(User::factory()->workspace()->create())->create();
-    app(SetChatterMessageLimitAction::class)->execute($chatter, 5);
-    $allowance = app(ChatterMessageAllowance::class);
+    app(SetMessageLimitAction::class)->execute($chatter, 5);
 
     app(StoreUserMessageAction::class)->execute($agent, userTurn(['user_id' => $chatter->id]));
 
-    expect($allowance->usedThisPeriod($chatter))->toBe(1);
+    expect(MessageLimit::query()->where('user_id', $chatter->id)->value('messages_used'))->toBe(1);
+});
+
+it('does not count a visitor message against the workspace limit (replies count there)', function (): void {
+    $agent = Agent::factory()->create();
+    app(SetMessageLimitAction::class)->execute($agent->user, 5);
+
+    app(StoreUserMessageAction::class)->execute($agent, userTurn(['user_id' => $agent->user_id]));
+
+    expect(MessageLimit::query()->where('user_id', $agent->user_id)->value('messages_used'))->toBe(0);
 });
 
 it('ties the files uploaded into the conversation to the message', function (): void {

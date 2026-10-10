@@ -10,9 +10,7 @@ use Support\Exceptions\DomainValidationException;
 /**
  * Adds someone to a team from the team page. Two paths: a user the inviter
  * already manages is attached straight away under the chosen role; anyone else
- * gets an emailed invitation ({@see CreateTeamInvitationAction}). Both need the
- * owner to have an active subscription and a free workspace seat — seats are
- * shared between teammates and chatters.
+ * gets an emailed invitation ({@see CreateTeamInvitationAction}).
  */
 class InviteTeamMemberAction
 {
@@ -27,21 +25,10 @@ class InviteTeamMemberAction
     {
         $team = $data->team;
 
-        if (! $team->canInviteMembers()) {
-            throw new DomainValidationException('email', __('You need an active subscription to invite team members.'));
-        }
-
-        /** @var User $owner */
-        $owner = $team->owner;
-
-        if (! $owner->canAddWorkspaceUser()) {
-            throw new DomainValidationException('email', __("You've reached your workspace user limit (:limit), shared between team members and chatters. Upgrade your plan to invite more.", ['limit' => $owner->quotaLimit('workspace_users_limit')]));
-        }
-
         // Duplicate detection (already-a-member / already-invited) lives in
         // InviteTeamMemberRequest's rules, backed by the `team_user` composite
         // key and the `team_invitations` unique index. The Action keeps only
-        // the owner-side business gates above and the workspace-scoping check.
+        // the workspace-scoping check.
         if ($data->userId) {
             $existingUser = User::findOrFail($data->userId);
 

@@ -73,10 +73,7 @@ return [
     |
     */
 
-    // The dashboard lives under the `/{locale}` prefix; Fortify's auth routes do
-    // not, so point its post-auth redirect at the default-locale dashboard. (Update
-    // the segment if the default locale changes.)
-    'home' => '/en/dashboard',
+    'home' => '/dashboard',
 
     /*
     |--------------------------------------------------------------------------

@@ -114,7 +114,7 @@ it('answers /start with the default message and never runs the pipeline', functi
         ->and($client->sent[0]['text'])->toBe('Hello')
         ->and($client->sent[0]['text'])->not->toBe('PIPELINE REPLY');
 
-    // Message-mode commands answer instantly — no "typing…", no LLM, no billing.
+    // Message-mode commands answer instantly — no "typing…", no LLM, nothing counted.
     expect($client->actions)->toBeEmpty();
 });
 

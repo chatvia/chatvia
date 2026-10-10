@@ -6,13 +6,11 @@
  */
 import { type DashboardStats, fetchDashboardStats } from '@/api/dashboard';
 import CreateAgentModal from '@/components/CreateAgentModal.vue';
-import OnboardingWelcome from '@/components/onboarding/OnboardingWelcome.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useBilling } from '@/composables/useBilling';
 import { useLocaleDate } from '@/composables/useLocaleDate';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData } from '@/types';
@@ -23,7 +21,6 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { formatWeekdayShort, formatDayOfMonth, intlLocale } = useLocaleDate();
-const { billingEnabled } = useBilling();
 
 // The parts of the dashboard stats this page shows.
 type DashboardView = Pick<DashboardStats, 'agents' | 'messages' | 'conversations' | 'active_sessions' | 'weekly_usage' | 'monthly_usage'>;
@@ -42,9 +39,8 @@ const dashboardData = ref<DashboardView>({
     },
     messages: {
         total: 0,
-        available: 0,
-        limit: 0,
-        cycle: null,
+        limit: null,
+        available: null,
         trend: {
             this_month: 0,
             last_month: 0,
@@ -106,10 +102,11 @@ const maxUsage = computed(() => {
     return Math.max(...currentActivityData.value.map((item) => item.value), 1);
 });
 
-// Share of the cycle's paid quota consumed: used / limit (base + addons).
+// Share of the workspace's monthly message limit used this month (0 without a limit).
 const messageUsagePercent = computed(() => {
-    if (dashboardData.value.messages.limit === 0) return 0;
-    return Math.min(100, Math.round((dashboardData.value.messages.total / dashboardData.value.messages.limit) * 100));
+    const { total, limit } = dashboardData.value.messages;
+    if (!limit) return 0;
+    return Math.min(100, Math.round((total / limit) * 100));
 });
 
 onMounted(() => {
@@ -160,25 +157,22 @@ const formatNumber = (num: number): string => {
                     <!-- Messages Card -->
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">{{
-                                billingEnabled ? t('dashboard.messages_this_cycle') : t('dashboard.messages_this_month')
-                            }}</CardTitle>
+                            <CardTitle class="text-sm font-medium">{{ t('dashboard.messages_this_month') }}</CardTitle>
                             <MessageSquare class="text-muted-foreground h-4 w-4" />
                         </CardHeader>
                         <CardContent>
                             <div v-if="loading" class="bg-muted h-8 w-16 animate-pulse rounded"></div>
-                            <!-- Without billing there is no credit cycle or limit: show this month's replies. -->
-                            <div v-else-if="!billingEnabled">
-                                <div class="text-2xl font-bold">{{ formatNumber(dashboardData.messages.trend.this_month) }}</div>
-                            </div>
                             <div v-else>
                                 <div class="text-2xl font-bold">{{ formatNumber(dashboardData.messages.total) }}</div>
-                                <div class="mt-2">
-                                    <div class="text-muted-foreground mb-1 flex items-center justify-between text-xs">
-                                        <span
-                                            >{{ dashboardData.messages.total.toLocaleString() }} /
-                                            {{ dashboardData.messages.limit.toLocaleString() }}</span
-                                        >
+                                <!-- Only when the workspace has a monthly message limit. -->
+                                <div v-if="dashboardData.messages.limit !== null" class="mt-2">
+                                    <div class="text-muted-foreground mb-1 flex items-center justify-between gap-2 text-xs">
+                                        <span>{{
+                                            t('dashboard.messages_used_of_limit', {
+                                                used: dashboardData.messages.total.toLocaleString(intlLocale),
+                                                limit: dashboardData.messages.limit.toLocaleString(intlLocale),
+                                            })
+                                        }}</span>
                                         <span>{{ t('dashboard.percent_used', { percent: messageUsagePercent }) }}</span>
                                     </div>
                                     <Progress :model-value="messageUsagePercent" class="h-1" />
@@ -270,8 +264,5 @@ const formatNumber = (num: number): string => {
 
         <!-- Create Agent Modal -->
         <CreateAgentModal v-model:open="showCreateAgentModal" @agent-created="refreshDashboardData" />
-
-        <!-- First-run welcome popup + guided tour for new workspace owners -->
-        <OnboardingWelcome @start-create="showCreateAgentModal = true" />
     </AppLayout>
 </template>

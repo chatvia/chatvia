@@ -1,11 +1,10 @@
 /**
- * Access and on/off state of one per-agent analytics feature (tone, sentiment,
- * topics). The plan must include the feature AND the owner must have switched
- * it on for the agent; `enable()` flips the switch from the disabled screen so
- * the page can swap straight to its charts without a reload.
+ * On/off state of one per-agent analytics feature (tone, sentiment, topics).
+ * The owner must have switched it on for the agent; `enable()` flips the
+ * switch from the disabled screen so the page can swap straight to its charts
+ * without a reload.
  */
 import { enableAnalyticsFeature, type AnalyticsFeature } from '@/api/analytics';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { computed, ref, toValue, type MaybeRefOrGetter } from 'vue';
 
 interface AnalyticsFeatureOptions {
@@ -20,15 +19,12 @@ interface AnalyticsFeatureOptions {
 }
 
 export function useAnalyticsFeature(options: AnalyticsFeatureOptions) {
-    const { hasCapability } = useCapabilityGuard();
-    const hasAccess = computed(() => hasCapability(options.feature));
-
     // Local mirror of the per-agent switch, so enabling it shows the charts at once.
     const isEnabled = ref(options.enabled);
     const enabling = ref(false);
 
     /** True when the page should load and show its data. */
-    const isActive = computed(() => hasAccess.value && toValue(options.chatlogEnabled) && isEnabled.value);
+    const isActive = computed(() => toValue(options.chatlogEnabled) && isEnabled.value);
 
     const enable = async () => {
         if (!toValue(options.chatlogEnabled)) return;
@@ -44,5 +40,5 @@ export function useAnalyticsFeature(options: AnalyticsFeatureOptions) {
         }
     };
 
-    return { hasAccess, isEnabled, enabling, isActive, enable };
+    return { isEnabled, enabling, isActive, enable };
 }

@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Domena niestandardowa",
                 "description": "Serwuj hostowany czat tego agenta z własnej domeny zamiast {target}.",
-                "no_quota_title": "Domeny niestandardowe nie są uwzględnione w Twoim obecnym planie",
-                "no_quota_description": "Przejdź na plan Pro lub zasubskrybuj dodatek Domena niestandardowa w {link}, aby dodać własną nazwę hosta.",
-                "billing": "Rozliczenia",
-                "quota": "Używasz {used} z {total} domeny niestandardowej | Używasz {used} z {total} domen niestandardowych",
-                "add_more": "Dodaj więcej",
                 "step1": "Krok 1 — Dodaj rekord CNAME u swojego dostawcy DNS",
                 "type": "Typ",
                 "name": "Nazwa",

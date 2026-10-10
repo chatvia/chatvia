@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserBilling;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
@@ -18,54 +17,29 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
-use Laravel\Cashier\Cashier;
 use SocialiteProviders\Manager\SocialiteWasCalled;
 use SocialiteProviders\Microsoft\Provider as MicrosoftProvider;
-use Stripe\Stripe;
 
 /**
- * Application-wide framework settings: the password policy, Stripe and
- * Cashier, the morph map, model strictness, view and factory resolution,
- * HTTPS, and the Microsoft Socialite extension.
+ * Application-wide framework settings: the password policy, the morph map,
+ * model strictness, view and factory resolution, HTTPS, and the Microsoft
+ * Socialite extension.
  *
  * The rest of the wiring has its own provider: request macros
  * ({@see HttpMacroServiceProvider}), rate limiters
  * ({@see RateLimitServiceProvider}), gates and policies
- * ({@see AuthServiceProvider}), feature flags ({@see FeatureServiceProvider}),
- * filesystem drivers ({@see FilesystemServiceProvider}), API docs
+ * ({@see AuthServiceProvider}), filesystem drivers
+ * ({@see FilesystemServiceProvider}), API docs
  * ({@see ApiDocsServiceProvider}) and domain wiring — observers, contract
  * bindings, event listeners ({@see DomainServiceProvider}).
  */
 class AppServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        // Cashier adds its routes while the providers boot, so decide just
-        // before that: after AdminSettingsServiceProvider has put the billing
-        // setting of the admin panel into config (its booting callback is
-        // added first, so it runs first).
-        $this->app->booting($this->skipCashierRoutesWithoutBilling(...));
-    }
-
-    /**
-     * With billing turned off (a self-hosted install) there is no Stripe
-     * account, so Cashier's webhook and payment routes are not registered and
-     * answer 404.
-     */
-    private function skipCashierRoutesWithoutBilling(): void
-    {
-        if (! config('billing.enabled', true)) {
-            Cashier::ignoreRoutes();
-        }
-    }
-
     public function boot(): void
     {
         $this->configurePasswordDefaults();
-        $this->configureStripe();
         $this->enforceMorphMap();
         $this->configureModelStrictness();
-        $this->configureCashier();
         $this->registerPromptViewNamespace();
         $this->configureFactoryResolution();
         $this->forceHttpsInProduction();
@@ -75,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Centralised password policy consumed by every Password::defaults() /
      * Password::default() call site (registration, reset, invitations,
-     * set-password, settings). Production demands long, mixed, uncompromised
+     * settings). Production demands long, mixed, uncompromised
      * passwords; everywhere else stays at min(8) so local logins and the test
      * suite keep working. uncompromised() calls the haveibeenpwned.com range
      * API, which is another reason to keep it production-only.
@@ -85,16 +59,6 @@ class AppServiceProvider extends ServiceProvider
         Password::defaults(fn (): Password => app()->isProduction()
             ? Password::min(12)->letters()->mixedCase()->numbers()->symbols()->uncompromised()
             : Password::min(8));
-    }
-
-    private function configureStripe(): void
-    {
-        // A self-hosted install without billing has no Stripe keys.
-        if (! config('billing.enabled', true)) {
-            return;
-        }
-
-        Stripe::setApiKey(config('cashier.secret'));
     }
 
     // Short morph keys instead of FQCNs. Saves ~50 bytes per row on chunks
@@ -121,15 +85,6 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! app()->isProduction());
     }
 
-    // The `Billable` trait lives on `UserBilling`, not `User`, so Cashier
-    // resolves customers (e.g. `Cashier::findBillable($stripeId)`) to a
-    // `UserBilling` row. The owning `User` is reachable via
-    // `$billing->user` / `User::billing()` HasOne.
-    private function configureCashier(): void
-    {
-        Cashier::useCustomerModel(UserBilling::class);
-    }
-
     // Prompts are Blade views (markdown + Blade) loaded via the `prompt()`
     // helper, e.g. prompt('knowledge/system') → resources/prompts/knowledge/system.blade.php.
     private function registerPromptViewNamespace(): void
@@ -147,9 +102,12 @@ class AppServiceProvider extends ServiceProvider
         );
     }
 
+    // Behind a proxy that ends TLS, PHP sees plain HTTP, so links would come out
+    // as http://. An http:// APP_URL means there is no TLS at all (a first run
+    // of the Docker image on localhost), and forcing https would break it.
     private function forceHttpsInProduction(): void
     {
-        if (app()->isProduction()) {
+        if (app()->isProduction() && str_starts_with((string) config('app.url'), 'https://')) {
             URL::forceScheme('https');
         }
     }

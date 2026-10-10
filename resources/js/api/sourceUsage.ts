@@ -2,6 +2,7 @@
  * Which knowledge sources, functions and MCP tools an agent used, how often
  * and when last. Feeds the agent's "Source usage" analytics page.
  */
+import sourceAnalytics from '@/routes/agents/analytics/sources';
 import { get } from './http';
 
 export interface KnowledgeUsageItem {
@@ -36,5 +37,5 @@ export interface SourceUsage {
 }
 
 export function fetchSourceUsage(agentId: string): Promise<SourceUsage> {
-    return get<SourceUsage>(route('agents.analytics.sources.data', agentId));
+    return get<SourceUsage>(sourceAnalytics.data.url(agentId));
 }

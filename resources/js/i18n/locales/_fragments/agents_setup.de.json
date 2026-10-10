@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Benutzerdefinierte Domain",
                 "description": "Stellen Sie den gehosteten Chat dieses Agenten über Ihre eigene Domain anstelle von {target} bereit.",
-                "no_quota_title": "Benutzerdefinierte Domains sind in Ihrem aktuellen Tarif nicht enthalten",
-                "no_quota_description": "Upgraden Sie auf Pro oder abonnieren Sie das Add-on für benutzerdefinierte Domains unter {link}, um Ihren eigenen Hostnamen hinzuzufügen.",
-                "billing": "Abrechnung",
-                "quota": "Es wird {used} von {total} benutzerdefinierter Domain verwendet | Es werden {used} von {total} benutzerdefinierten Domains verwendet",
-                "add_more": "Weitere hinzufügen",
                 "step1": "Schritt 1 — Fügen Sie einen CNAME-Eintrag bei Ihrem DNS-Anbieter hinzu",
                 "type": "Typ",
                 "name": "Name",

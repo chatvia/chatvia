@@ -28,7 +28,7 @@ beforeEach(function (): void {
 
 it('serves the hosted chat when the surface is enabled (default)', function (): void {
     $this->get('https://'.$this->host.'/chat')
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNoMessages'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
 });
 
 it('shows AgentNotFound when the hosted chat surface is disabled', function (): void {
@@ -43,5 +43,5 @@ it('serves the hosted chat again once the surface is re-enabled', function (): v
     $this->agent->setSetting(key: 'hosted_chat', value: true, group: 'surfaces');
 
     $this->get('https://'.$this->host.'/chat')
-        ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNoMessages'));
+        ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
 });

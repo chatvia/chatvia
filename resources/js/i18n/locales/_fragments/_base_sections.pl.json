@@ -56,16 +56,11 @@
     },
     "chat": {
         "message_limit_reached": "Osiągnięto limit wiadomości",
-        "upgrade_prompt": "Uaktualnij swój plan, aby kontynuować czatowanie",
         "regenerate_failed": "Nie udało się wygenerować odpowiedzi ponownie. Spróbuj jeszcze raz.",
         "loading_conversation": "Ładowanie rozmowy"
     },
     "errors": {
-        "subscription_expired": "Subskrypcja wygasła",
-        "renew_subscription": "Odnów subskrypcję",
         "message_limit_reached": "Osiągnięto limit wiadomości",
-        "token_limit_reached": "Osiągnięto limit tokenów",
-        "upgrade_plan": "Uaktualnij plan",
         "model_unavailable": "Model niedostępny",
         "too_many_requests": "Zbyt wiele żądań",
         "connection_lost": "Utracono połączenie",

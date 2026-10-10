@@ -95,8 +95,8 @@ abstract class AnalyticsTool extends Tool
         return [
             'period' => $schema->string()
                 ->enum(AnalyticsPeriod::values())
-                ->description('Time window. Defaults to "current_cycle" — the current billing cycle. Use "previous_cycle" for the one before, or a rolling window like "last_7_days"/"last_30_days".')
-                ->default(AnalyticsPeriod::CurrentCycle->value),
+                ->description('Time window. Defaults to "this_month". Use "last_month" for the one before, or a rolling window like "last_7_days"/"last_30_days".')
+                ->default(AnalyticsPeriod::ThisMonth->value),
             'start_date' => $schema->string()
                 ->description('Optional explicit start date (YYYY-MM-DD). When given together with end_date it overrides `period`.'),
             'end_date' => $schema->string()

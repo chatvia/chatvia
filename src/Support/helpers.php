@@ -122,7 +122,7 @@ if (! function_exists('is_video_file')) {
 if (! function_exists('template')) {
     /**
      * Replace each `{key}` in $template with its value, e.g.
-     * `template('credits:{id}', ['id' => 7])` → `credits:7`.
+     * `template('agent:{id}', ['id' => 7])` → `agent:7`.
      *
      * @param  array<string, string|int|float>  $placeholders
      */

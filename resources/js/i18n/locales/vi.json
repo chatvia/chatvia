@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Bạn đã đạt giới hạn tin nhắn",
-        "upgrade_prompt": "Vui lòng nâng cấp gói để tiếp tục trò chuyện",
         "regenerate_failed": "Không thể tạo lại phản hồi. Vui lòng thử lại.",
         "loading_conversation": "Đang tải cuộc trò chuyện",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "Máy chủ trả về trạng thái {status}.",
             "interrupted": "Kết nối đã bị gián đoạn.",
             "malformed": "Nhận được dữ liệu không hợp lệ từ máy chủ."
-        }
+        },
+        "limit_resets_next_month": "Bạn có thể gửi tin nhắn lại vào tháng sau."
     },
     "messages": {
         "send": "Gửi",
@@ -140,11 +140,7 @@
         "edit_message": "Sửa tin nhắn"
     },
     "errors": {
-        "subscription_expired": "Gói đăng ký đã hết hạn",
-        "renew_subscription": "Gia hạn gói",
         "message_limit_reached": "Đã đạt giới hạn tin nhắn",
-        "token_limit_reached": "Đã đạt giới hạn sử dụng token",
-        "upgrade_plan": "Nâng cấp gói",
         "model_unavailable": "Mô hình không khả dụng",
         "too_many_requests": "Quá nhiều yêu cầu",
         "connection_lost": "Mất kết nối",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Nhật ký kiểm tra",
             "head_title": "Kiểm tra · {name}",
-            "description": "Mọi hành động mà trợ lý AI này thực hiện thông qua công cụ và trình kết nối — được cho phép, đã duyệt, bị từ chối hay bị giới hạn tốc độ — kèm theo tham số, kết quả và người đã kích hoạt.",
-            "locked_description": "Nhật ký kiểm tra có sẵn trên gói Pro. Nâng cấp để xem mọi hành động công cụ và trình kết nối mà trợ lý AI này thực hiện."
+            "description": "Mọi hành động mà trợ lý AI này thực hiện thông qua công cụ và trình kết nối — được cho phép, đã duyệt, bị từ chối hay bị giới hạn tốc độ — kèm theo tham số, kết quả và người đã kích hoạt."
         },
         "channels": {
             "title": "Kênh",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— phản hồi được truyền trực tiếp"
                 },
                 "telegram": {
-                    "connected_description": "Mọi người có thể nhắn tin cho bot của bạn trên Telegram và trợ lý AI sẽ tự động trả lời — vẫn áp dụng đầy đủ thanh toán, lịch sử và quy tắc kiểm soát.",
+                    "connected_description": "Mọi người có thể nhắn tin cho bot của bạn trên Telegram và trợ lý AI sẽ tự động trả lời — vẫn áp dụng đầy đủ giới hạn tin nhắn, lịch sử và quy tắc kiểm soát.",
                     "steps": {
                         "connect_1": "Mở {botfather} trong Telegram",
                         "connect_2": "Gửi {command} và làm theo hướng dẫn",
@@ -446,7 +441,6 @@
                 "select_topic": "Chọn chủ đề",
                 "select_sentiment": "Chọn cảm xúc",
                 "select_tone": "Chọn giọng điệu",
-                "upgrade_to_unlock": "Nâng cấp để mở khóa",
                 "clear_all": "Xóa tất cả",
                 "close": "Áp dụng bộ lọc"
             },
@@ -486,14 +480,12 @@
                 "page_url": "URL trang",
                 "referrer": "Nguồn giới thiệu",
                 "locale": "Ngôn ngữ",
-                "upgrade_to_unlock": "Nâng cấp để mở khóa",
                 "waiting": "Đang chờ phân tích…",
                 "channel": "Kênh"
             },
             "pulse": {
                 "title": "Pulse cuộc trò chuyện",
                 "select_conversation": "Chọn một cuộc trò chuyện để xem Pulse",
-                "locked_description": "Nâng cấp gói dịch vụ của bạn để mở khóa phân tích Pulse cuộc trò chuyện.",
                 "refresh": "Làm mới",
                 "no_messages_title": "Chưa đủ tin nhắn",
                 "no_messages_hint": "Pulse cần ít nhất một tin nhắn của người dùng để phân tích cảm xúc và giọng điệu theo thời gian.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Ổn định"
             },
             "handoff": {
-                "locked_description": "Nâng cấp gói dịch vụ để tiếp quản các cuộc trò chuyện trực tiếp từ nhật ký trò chuyện.",
                 "visitor": "Khách truy cập",
                 "online": "Trực tuyến",
                 "offline": "Ngoại tuyến",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "Chủ đề bị chặn",
                 "toxicity": "Nội dung độc hại"
-            },
-            "locked_description": "Quy tắc kiểm soát có sẵn trong gói Standard và Pro. Nâng cấp để kiểm soát những gì trợ lý AI của bạn có thể thảo luận và cách xử lý nội dung nhạy cảm."
+            }
         },
         "persona": {
             "title": "Tính cách",
@@ -849,8 +839,7 @@
                     "run_start_error": "Không thể bắt đầu lần chạy",
                     "run_deleted": "Đã xóa lần chạy",
                     "history_cleared": "Đã xóa lịch sử chạy"
-                },
-                "locked_description": "Đánh giá có sẵn trong gói Standard và Pro. Nâng cấp để kiểm thử và chấm điểm câu trả lời của trợ lý AI này trước khi đến tay khách hàng."
+                }
             },
             "scorers": {
                 "contains": "Chứa",
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Sắc thái",
             "description": "Theo dõi cảm xúc của khách truy cập dựa trên sắc thái cảm xúc trong tin nhắn của họ.",
-            "locked_description": "Nâng cấp gói dịch vụ để mở khóa phân tích sắc thái.",
             "disabled_title": "Phân tích sắc thái đang tắt",
             "disabled_description": "Bật phân tích sắc thái để xem cảm xúc của khách truy cập qua các cuộc trò chuyện.",
             "blocked_reason": "Hãy bật ghi nhật ký trò chuyện trước — phân tích sắc thái cần tin nhắn được lưu trữ.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Tâm trạng",
             "description": "Theo dõi tâm trạng tích cực, trung tính và tiêu cực qua các tin nhắn của khách truy cập.",
-            "locked_description": "Nâng cấp gói dịch vụ để mở khóa phân tích tâm trạng.",
             "disabled_title": "Phân tích tâm trạng đang tắt",
             "disabled_description": "Bật phân tích tâm trạng để xem cảm xúc của khách truy cập qua các cuộc trò chuyện.",
             "blocked_reason": "Hãy bật ghi nhật ký trò chuyện trước — phân tích tâm trạng cần tin nhắn được lưu trữ.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Quản lý chủ đề",
                 "description": "Xác định các chủ đề mà Trợ lý AI nên nhận diện và phân loại trong các cuộc trò chuyện.",
-                "locked_description": "Nâng cấp gói dịch vụ để quản lý chủ đề cuộc trò chuyện.",
                 "search_placeholder": "Tìm chủ đề…",
                 "add_topic": "Thêm chủ đề",
                 "empty": "Chưa có chủ đề nào. Thêm một chủ đề để giúp Trợ lý AI phân loại cuộc trò chuyện.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "Không thể gỡ liên kết {name}: {error}",
                 "deleted": "{name} đã được xóa.",
                 "delete_failed": "Không thể xóa {name}: {error}",
-                "usage_load_failed": "Không thể tải dữ liệu sử dụng.",
                 "summary_only_completed": "Bản tóm tắt chỉ có sẵn cho các tệp đã hoàn tất.",
                 "summary_none": "Không có bản tóm tắt cho tệp này.",
                 "summary_load_failed": "Không thể tải bản tóm tắt tệp.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Tải lên tệp âm thanh",
                 "upload_title_video": "Tải lên tệp video",
                 "upload_title_default": "Tải lên tài liệu mới",
-                "quota_minutes": "phút",
-                "quota_pages": "trang",
                 "uploads_disabled": "Việc tải tệp lên bị tắt trong khi đang huấn luyện",
                 "ready_to_train": "Sẵn sàng huấn luyện",
                 "uploaded_ready": "{count} tệp đã tải lên và sẵn sàng huấn luyện | {count} tệp đã tải lên và sẵn sàng huấn luyện",
-                "exceeds_quota": "Vượt hạn mức",
                 "clear_all": "Xóa tất cả",
                 "training": "Đang huấn luyện...",
                 "train": "Huấn luyện",
@@ -1290,9 +1272,6 @@
                     "trained": "Đã huấn luyện",
                     "failed": "Thất bại"
                 },
-                "limit_all_used": "Bạn đã dùng hết {limit} liên kết trong gói của mình. Nâng cấp để huấn luyện thêm liên kết.",
-                "limit_critical": "Bạn đã dùng {used}/{limit} liên kết ({percentage}%). Chỉ còn {remaining} liên kết để huấn luyện. Hãy cân nhắc nâng cấp gói của bạn.",
-                "limit_warning": "Bạn đã dùng {used}/{limit} liên kết ({percentage}%). Còn {remaining} liên kết để huấn luyện.",
                 "load_failed": "Không tải được nguồn web.",
                 "error_enter_url": "Vui lòng nhập URL trang web.",
                 "error_invalid_url": "Vui lòng nhập URL đúng định dạng (ví dụ: https://example.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "Không thể xóa tất cả liên kết. Phải giữ lại ít nhất một liên kết.",
                 "links_deleted": "Đã xóa {count} liên kết thành công. | Đã xóa {count} liên kết thành công.",
                 "links_delete_failed": "Không xóa được các liên kết.",
-                "no_links_remaining": "Không còn liên kết nào",
-                "no_links_remaining_description": "Vui lòng nâng cấp gói của bạn để huấn luyện trang web.",
-                "cannot_select": "Không thể chọn trang web",
-                "cannot_select_description": "{links} liên kết sẽ vượt hạn mức của bạn thêm {exceedBy}. Bỏ chọn các trang web khác hoặc nâng cấp.",
-                "selected_count": "Đã chọn {selected} trên {total} trang web",
-                "selected_skipped": "Đã bỏ qua {skipped} trang web để giữ trong giới hạn {remaining} liên kết của bạn.",
                 "training_start_failed": "Không bắt đầu huấn luyện được cho: {websites}",
                 "training_start_failed_all": "Không bắt đầu huấn luyện được cho bất kỳ trang web nào.",
                 "dialog_links_load_failed": "Không tải được liên kết",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Trình thu thập",
                 "crawler_description": "Lấy liên kết từ các trang web để thu thập và đưa vào cơ sở kiến thức của trợ lý AI.",
                 "settings": "Cài đặt",
-                "links_used": "Đã dùng {used} / {limit} liên kết",
-                "links_remaining": "Còn {remaining}",
-                "upgrade_required": "Cần nâng cấp để huấn luyện thêm liên kết",
-                "consider_upgrading": "Cân nhắc nâng cấp",
                 "fetching": "Đang lấy...",
                 "fetch_links": "Lấy liên kết",
                 "crawl_settings": "Cài đặt thu thập",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "Đã chọn {count} ({links} liên kết)",
                 "no_websites_selected": "Chưa chọn website nào",
                 "train": "Huấn luyện",
-                "train_exceeds_quota": "Số liên kết đã chọn ({selected}) vượt quá hạn mức còn lại của bạn ({remaining})",
                 "links_badge": "{count} liên kết",
-                "badge_upgrade_required": "Cần nâng cấp",
-                "badge_exceeds_quota": "Vượt hạn mức",
-                "no_links_remaining_plan": "Bạn không còn liên kết nào trong gói dịch vụ. Vui lòng nâng cấp để huấn luyện website này.",
-                "website_exceeds_remaining": "Website này có {links} liên kết, vượt quá {remaining} liên kết còn lại của bạn. Hãy bỏ chọn các website khác trước hoặc nâng cấp gói dịch vụ.",
                 "collapse_links": "Thu gọn các liên kết đã phát hiện",
                 "expand_links": "Mở rộng các liên kết đã phát hiện",
                 "discovered_links": "Liên kết đã phát hiện",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Tạo trợ lý AI",
-            "limit_title": "Đã đạt giới hạn trợ lý AI",
-            "limit_description": "Bạn đã đạt giới hạn trợ lý AI.",
-            "upgrade_plan": "Nâng cấp gói dịch vụ",
             "name_label": "Tên trợ lý AI",
-            "name_placeholder": "Ví dụ: Hỗ trợ khách hàng",
-            "load_error": "Không thể tải thông tin sử dụng",
-            "limit_toast_title": "Đã đạt giới hạn trợ lý AI",
-            "limit_toast_description": "Bạn đã đạt giới hạn trợ lý AI."
+            "name_placeholder": "Ví dụ: Hỗ trợ khách hàng"
         },
         "analytics": {
             "title": "Thống kê trợ lý AI",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Tên miền tùy chỉnh",
                 "description": "Phục vụ Hosted Chat của trợ lý AI này từ tên miền của riêng bạn thay vì {target}.",
-                "no_quota_title": "Tên miền tùy chỉnh không được bao gồm trong gói dịch vụ hiện tại của bạn",
-                "no_quota_description": "Nâng cấp lên Pro hoặc đăng ký gói bổ sung Tên miền tùy chỉnh từ {link} để thêm tên máy chủ của riêng bạn.",
-                "billing": "Thanh toán",
-                "quota": "Đang dùng {used} trong {total} tên miền tùy chỉnh | Đang dùng {used} trong {total} tên miền tùy chỉnh",
-                "add_more": "Thêm",
                 "step1": "Bước 1 — Thêm bản ghi CNAME tại nhà cung cấp DNS của bạn",
                 "type": "Loại",
                 "name": "Tên",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Chủ đề",
             "description": "Phân tích các chủ đề và xu hướng cuộc trò chuyện",
-            "locked_description": "Nâng cấp gói của bạn để truy cập phân tích chủ đề và tự động phát hiện, phân loại các chủ đề cuộc trò chuyện.",
             "disabled_title": "Phân tích chủ đề",
             "disabled_description": "Bật để tự động phát hiện và nhóm những gì khách truy cập của bạn hỏi qua các cuộc trò chuyện.",
             "blocked_reason": "Nhật ký trò chuyện đang tắt nên không có gì để phân tích. Bật nó trong Thiết lập → Cài đặt để bắt đầu thu thập chủ đề.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Đang gửi liên kết...",
             "or_continue_with": "Hoặc tiếp tục với",
             "no_account": "Chưa có tài khoản?",
-            "start_free_trial": "Bắt đầu dùng thử miễn phí",
             "create_account": "Tạo tài khoản"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Chọn mật khẩu của bạn",
-            "description": "Tài khoản của bạn đã sẵn sàng. Hãy chọn một mật khẩu để hoàn tất thiết lập.",
-            "head": "Chọn mật khẩu của bạn",
-            "email_label": "Địa chỉ email",
-            "password_label": "Mật khẩu",
-            "password_placeholder": "Mật khẩu",
-            "confirm_password_label": "Xác nhận mật khẩu",
-            "confirm_password_placeholder": "Xác nhận mật khẩu",
-            "set_password": "Đặt mật khẩu",
-            "setting_password": "Đang đặt mật khẩu..."
-        },
         "login_member": {
             "description": "Đăng nhập để truy cập không gian làm việc trò chuyện này",
             "head": "Đăng nhập thành viên",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Hãy đảm bảo tài khoản mạng xã hội của bạn dùng",
             "social_email_note_suffix": "— nó phải khớp với lời mời này."
         },
-        "invitation_invalid": {
-            "title": "Lời mời không khả dụng",
-            "description": "Không thể chấp nhận lời mời này",
-            "head": "Lời mời không khả dụng",
-            "card_title": "Không thể chấp nhận lời mời",
-            "cannot_accept_prefix": "Lời mời tham gia",
-            "cannot_accept_suffix": "không thể được chấp nhận vào lúc này.",
-            "contact_owner": "Vui lòng liên hệ chủ sở hữu nhóm để giải quyết vấn đề này.",
-            "go_to_login": "Đến trang đăng nhập"
-        },
         "invitation_expired": {
             "title": "Lời mời đã hết hạn",
             "description": "Lời mời này không còn hợp lệ",
@@ -2325,386 +2254,6 @@
             "card_title": "Lời mời đã hết hạn",
             "contact_owner": "Vui lòng liên hệ chủ sở hữu nhóm để yêu cầu lời mời mới.",
             "go_to_login": "Đến trang đăng nhập"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Thanh toán",
-            "back_to_billing": "Quay lại Thanh toán",
-            "view_plans": "Xem các gói dịch vụ",
-            "cancel": "Hủy",
-            "processing": "Đang xử lý...",
-            "not_available": "Không có"
-        },
-        "payment_success": {
-            "page_title": "Thanh toán thành công",
-            "heading": "Đã nhận thanh toán",
-            "description": "Cảm ơn bạn! Khoản thanh toán của bạn đã được xử lý thành công. Chúng tôi đang thiết lập gói đăng ký của bạn ngay bây giờ.",
-            "redirecting_prefix": "Chuyển hướng trong",
-            "redirecting_suffix": "giây...",
-            "go_to_billing": "Đến trang thanh toán ngay"
-        },
-        "invoices": {
-            "breadcrumb": "Hóa đơn",
-            "page_title": "Hóa đơn",
-            "heading": "Hóa đơn",
-            "subheading": "Xem và tải xuống lịch sử thanh toán và hóa đơn của bạn",
-            "history_title": "Lịch sử thanh toán",
-            "history_description": "Tải xuống biên nhận và hóa đơn cho các khoản thanh toán gói đăng ký của bạn",
-            "invoice_number": "Hóa đơn #{number}",
-            "status": {
-                "paid": "Đã thanh toán",
-                "pending": "Đang chờ",
-                "failed": "Thất bại"
-            },
-            "download_pdf": "Tải xuống PDF",
-            "view_online": "Xem trực tuyến",
-            "empty_title": "Chưa có hóa đơn nào",
-            "empty_description": "Lịch sử thanh toán và hóa đơn của bạn sẽ xuất hiện ở đây khi bạn bắt đầu một gói đăng ký.",
-            "total_invoices": "Tổng số hóa đơn",
-            "total_spent": "Tổng chi tiêu",
-            "since": "Kể từ",
-            "help_title": "Cần trợ giúp về thanh toán?",
-            "help_description": "Nếu bạn có thắc mắc về hóa đơn hoặc cần hỗ trợ về thanh toán, đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ.",
-            "contact_support": "Liên hệ hỗ trợ"
-        },
-        "payment_methods": {
-            "breadcrumb": "Phương thức thanh toán",
-            "page_title": "Phương thức thanh toán",
-            "heading": "Phương thức thanh toán",
-            "subheading": "Quản lý phương thức thanh toán và thông tin thanh toán của bạn",
-            "add_method": "Thêm phương thức thanh toán",
-            "saved_title": "Phương thức thanh toán đã lưu",
-            "saved_description": "Quản lý các phương thức thanh toán đã lưu của bạn. Bạn có thể đặt một phương thức mặc định cho việc thanh toán tự động.",
-            "default": "Mặc định",
-            "expires": "Hết hạn {date}",
-            "set_default": "Đặt làm mặc định",
-            "empty_title": "Chưa có phương thức thanh toán",
-            "empty_description": "Thêm phương thức thanh toán để quản lý các gói đăng ký và thực hiện thanh toán.",
-            "add_first": "Thêm phương thức thanh toán đầu tiên của bạn",
-            "info_title": "Thông tin thanh toán",
-            "info_description": "Cập nhật địa chỉ thanh toán và thông tin liên hệ của bạn",
-            "not_set": "Chưa thiết lập",
-            "update_info": "Cập nhật thông tin thanh toán",
-            "secure_title": "Xử lý thanh toán an toàn",
-            "secure_description": "Thông tin thanh toán của bạn được mã hóa và xử lý an toàn bởi Stripe. Chúng tôi không bao giờ lưu trữ toàn bộ thông tin thẻ của bạn trên máy chủ của chúng tôi.",
-            "updating": "Đang cập nhật...",
-            "update_information": "Cập nhật thông tin",
-            "card_information": "Thông tin thẻ",
-            "remove_dialog": {
-                "title": "Gỡ bỏ phương thức thanh toán",
-                "description": "Bạn có chắc chắn muốn gỡ bỏ phương thức thanh toán này không? Hành động này không thể hoàn tác.",
-                "confirm": "Có, gỡ bỏ"
-            },
-            "fields": {
-                "name": "Tên",
-                "email": "Địa chỉ email",
-                "address": "Địa chỉ",
-                "city_state_country": "Thành phố, tỉnh/bang & quốc gia",
-                "billing_address": "Địa chỉ thanh toán",
-                "line1": "Địa chỉ dòng 1",
-                "line2": "Địa chỉ dòng 2 (Tùy chọn)",
-                "city": "Thành phố",
-                "state": "Tỉnh/Bang",
-                "postal_code": "Mã bưu chính",
-                "country": "Quốc gia"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "123 Main Street",
-                "line2": "Căn hộ, phòng, v.v.",
-                "city": "New York",
-                "state": "NY",
-                "postal_code": "10001",
-                "country": "Chọn quốc gia..."
-            },
-            "info_dialog": {
-                "title": "Cập nhật thông tin thanh toán",
-                "description": "Cập nhật địa chỉ thanh toán và thông tin liên hệ của bạn để lập hóa đơn và xử lý thanh toán."
-            },
-            "add_dialog": {
-                "description": "Thêm phương thức thanh toán mới vào tài khoản của bạn. Thông tin thẻ của bạn được bảo mật và mã hóa.",
-                "success_title": "Đã thêm phương thức thanh toán!",
-                "success_description": "Phương thức thanh toán của bạn đã được thêm thành công vào tài khoản của bạn.",
-                "secure_note": "Thông tin thanh toán của bạn được mã hóa và xử lý an toàn bởi Stripe. Chúng tôi không bao giờ lưu trữ toàn bộ thông tin thẻ của bạn."
-            },
-            "errors": {
-                "init_failed": "Không thể khởi tạo hệ thống thanh toán",
-                "not_ready": "Hệ thống thanh toán chưa sẵn sàng",
-                "add_failed": "Đã xảy ra lỗi khi thêm phương thức thanh toán của bạn"
-            },
-            "toast": {
-                "added": "Đã thêm phương thức thanh toán thành công!",
-                "info_updated": "Đã cập nhật thông tin thanh toán thành công!",
-                "info_failed": "Không thể cập nhật thông tin thanh toán"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Chọn gói dịch vụ",
-            "page_title": "Chọn gói dịch vụ của bạn",
-            "heading": "Chọn gói dịch vụ của bạn",
-            "subheading": "Chọn gói dịch vụ phù hợp nhất với nhu cầu của bạn. Bạn có thể thay đổi hoặc hủy bất cứ lúc nào.",
-            "monthly": "Hàng tháng",
-            "yearly": "Hàng năm",
-            "custom": "Tùy chỉnh",
-            "per_month": "/tháng",
-            "save_percent": "Tiết kiệm {percent}%",
-            "billed_yearly": "Thanh toán hàng năm với {amount}",
-            "features_included": "Tính năng đi kèm:",
-            "everything_in": "Mọi tính năng của {plan} +",
-            "actions": {
-                "contact_sales": "Liên hệ bộ phận kinh doanh",
-                "upgrade": "Nâng cấp",
-                "upgrade_plan": "Nâng cấp gói dịch vụ",
-                "downgrade_to_free": "Hạ xuống gói Miễn phí",
-                "downgrade_plan": "Hạ cấp gói dịch vụ",
-                "switch_plan": "Đổi gói dịch vụ",
-                "select_plan": "Chọn gói dịch vụ"
-            },
-            "discount": {
-                "banner": "Ưu đãi có hạn GIẢM {percent}%!",
-                "ends": "Ưu đãi kết thúc vào {date} - Đừng bỏ lỡ!",
-                "limited": "Giảm giá có thời hạn cho tất cả gói dịch vụ trả phí!",
-                "off": "GIẢM {percent}%"
-            },
-            "most_popular": "Phổ biến nhất",
-            "current_plan": "Gói hiện tại",
-            "save_up_to_percent": "Tiết kiệm đến {percent}%"
-        },
-        "addons": {
-            "title": "Tiện ích bổ sung",
-            "description": "Tín dụng, trợ lý AI và tên miền bổ sung ngoài gói dịch vụ của bạn",
-            "per_agent": " / trợ lý AI",
-            "per_domain": " / tên miền",
-            "per_member": " / thành viên",
-            "per_month": " / tháng",
-            "requires_subscription": "Trợ lý AI bổ sung, Tên miền tùy chỉnh, Xóa thương hiệu và Thành viên yêu cầu một gói đăng ký chính đang hoạt động.",
-            "common": {
-                "none": "Không có",
-                "subscribe": "Đăng ký",
-                "change": "Thay đổi",
-                "update_quantity": "Cập nhật số lượng",
-                "monthly_cost": "Chi phí hàng tháng:",
-                "keep_subscription": "Giữ gói đăng ký",
-                "yes_cancel": "Có, hủy",
-                "ends": "Kết thúc {date}"
-            },
-            "auto_recharge": {
-                "title": "Tự động nạp lại",
-                "on": "Bật",
-                "off": "Tắt",
-                "summary": "Tự động mua {amount} tín dụng khi số dư giảm xuống dưới {threshold}.",
-                "manage": "Quản lý",
-                "enable": "Bật",
-                "dialog_title": "Cài đặt tự động nạp lại",
-                "dialog_description": "Khi số tín dụng còn lại của bạn giảm xuống bằng hoặc dưới ngưỡng, chúng tôi sẽ tự động tính phí vào phương thức thanh toán mặc định và nạp thêm vào số dư của bạn.",
-                "enable_label": "Bật tự động nạp lại",
-                "enable_hint": "Tự động tính phí khi tín dụng sắp hết",
-                "threshold_label": "Ngưỡng (tín dụng)",
-                "threshold_hint": "Việc nạp lại sẽ kích hoạt khi số dư của bạn giảm xuống bằng hoặc dưới mức này.",
-                "amount_label": "Số tiền nạp thêm (tín dụng)",
-                "each_recharge": "Mỗi lần nạp lại:",
-                "charged_note": "Được tính phí ngay vào phương thức thanh toán mặc định khi kích hoạt.",
-                "save": "Lưu cài đặt"
-            },
-            "extra_credits": {
-                "title": "Tín dụng bổ sung",
-                "summary": "Nạp thêm một lần. Mỗi gói thêm 1.000 tin nhắn hết hạn sau 30 ngày.",
-                "buy": "Mua tín dụng",
-                "dialog_title": "Mua tín dụng tin nhắn",
-                "dialog_description": "Mỗi gói bao gồm 1.000 tin nhắn phải được sử dụng trong vòng một tháng kể từ khi mua.",
-                "quantity_label": "Số lượng (1.000 tin nhắn mỗi gói)",
-                "total_messages": "Tổng số tin nhắn:",
-                "total_price": "Tổng giá:",
-                "purchase_for": "Mua với giá ${amount}"
-            },
-            "extra_agents": {
-                "title": "Trợ lý AI bổ sung",
-                "summary": "Thêm nhiều trợ lý AI vượt quá giới hạn gói dịch vụ của bạn.",
-                "cancel_title": "Hủy gói đăng ký Trợ lý AI bổ sung?",
-                "cancel_description": "Hạn mức trợ lý AI bổ sung của bạn sẽ bị xóa ngay lập tức và bạn sẽ không bị tính phí lần nữa.",
-                "change_title": "Thay đổi Trợ lý AI bổ sung",
-                "subscribe_title": "Đăng ký Trợ lý AI bổ sung",
-                "dialog_description": "Thêm trợ lý AI bổ sung ngoài gói dịch vụ của bạn. Thanh toán hàng tháng với mức $5 mỗi trợ lý AI.",
-                "quantity_label": "Số lượng trợ lý AI bổ sung"
-            },
-            "custom_domains": {
-                "title": "Tên miền tùy chỉnh",
-                "summary": "Sử dụng tên miền tùy chỉnh của riêng bạn cho các trợ lý AI.",
-                "cancel_title": "Hủy gói đăng ký Tên miền tùy chỉnh?",
-                "cancel_description": "Hạn mức tên miền tùy chỉnh của bạn sẽ bị xóa ngay lập tức và bạn sẽ không bị tính phí lần nữa.",
-                "change_title": "Thay đổi Tên miền tùy chỉnh",
-                "subscribe_title": "Đăng ký Tên miền tùy chỉnh",
-                "dialog_description": "Sử dụng tên miền của riêng bạn cho các trợ lý AI. Thanh toán hàng tháng với mức $29 mỗi tên miền.",
-                "quantity_label": "Số lượng tên miền"
-            },
-            "remove_branding": {
-                "title": "Xóa thương hiệu",
-                "active": "Đang hoạt động",
-                "summary": "Ẩn huy hiệu \"Powered by Chatvia\" trên widget và trang trò chuyện được lưu trữ của bạn.",
-                "cancel_title": "Hủy gói đăng ký Xóa thương hiệu?",
-                "cancel_description": "Huy hiệu \"Powered by Chatvia\" sẽ xuất hiện lại trên widget và trang trò chuyện được lưu trữ của bạn ngay lập tức, và bạn sẽ không bị tính phí lần nữa."
-            },
-            "members": {
-                "title": "Thành viên",
-                "summary": "Thêm nhiều thành viên nhóm vào không gian làm việc của bạn.",
-                "cancel_title": "Hủy gói đăng ký Thành viên?",
-                "cancel_description": "Số chỗ thành viên bổ sung của bạn sẽ bị xóa ngay lập tức và bạn sẽ không bị tính phí lần nữa.",
-                "change_title": "Thay đổi Thành viên",
-                "subscribe_title": "Đăng ký Thành viên",
-                "dialog_description": "Thêm thành viên nhóm bổ sung vào không gian làm việc của bạn. Thanh toán hàng tháng với mức $9 mỗi thành viên.",
-                "quantity_label": "Số lượng thành viên"
-            }
-        },
-        "index": {
-            "page_title": "Thanh toán",
-            "heading": "Thanh toán",
-            "subheading": "Quản lý gói đăng ký, thông tin thanh toán và giới hạn sử dụng của bạn",
-            "stripe_notice": "Thanh toán được xử lý an toàn bởi",
-            "status_label": "Trạng thái",
-            "trial_ends": "Dùng thử kết thúc",
-            "next_billing": "Kỳ thanh toán tiếp theo",
-            "access_ends": "Quyền truy cập kết thúc",
-            "plan_features": "Tính năng gói dịch vụ",
-            "show_less": "Thu gọn",
-            "show_more": "Hiển thị thêm {count}",
-            "per_year": "Năm",
-            "per_month": "Tháng",
-            "status": {
-                "active": "Đang hoạt động",
-                "trial": "Dùng thử",
-                "cancelled": "Đã hủy",
-                "incomplete": "Chưa hoàn tất",
-                "past_due": "Quá hạn"
-            },
-            "trial": {
-                "heading": "🎉 Bạn đang dùng thử miễn phí!",
-                "ends_on": "Bản dùng thử {plan} của bạn kết thúc vào",
-                "auto_start": "Gói đăng ký trả phí của bạn sẽ tự động bắt đầu vào {date}",
-                "badge": "Dùng thử đang hoạt động"
-            },
-            "upgrade": {
-                "heading": "Nâng cấp lên Premium",
-                "description": "Truy cập các mô hình AI nâng cao, giới hạn tin nhắn cao hơn và hỗ trợ ưu tiên"
-            },
-            "current_plan": {
-                "title": "Gói dịch vụ hiện tại",
-                "description": "Gói đăng ký đang hoạt động và chi tiết sử dụng của bạn"
-            },
-            "pending_change": {
-                "heading": "Đã lên lịch thay đổi gói dịch vụ",
-                "change_from": "Gói dịch vụ của bạn sẽ thay đổi từ",
-                "to": "thành",
-                "cycle_yearly": "(Hàng năm)",
-                "cycle_monthly": "(Hàng tháng)",
-                "on_date": "vào {date}.",
-                "scheduled_for": "Bạn có một thay đổi gói dịch vụ được lên lịch vào {date}.",
-                "access_note": "Bạn sẽ tiếp tục có quyền truy cập các tính năng của gói dịch vụ hiện tại cho đến lúc đó.",
-                "cancel_schedule": "Hủy lịch",
-                "cancel_dialog": {
-                    "title": "Hủy thay đổi gói dịch vụ đã lên lịch",
-                    "description": "Bạn có chắc muốn hủy thay đổi gói dịch vụ đã lên lịch không? Bạn sẽ tiếp tục sử dụng gói dịch vụ hiện tại.",
-                    "confirm": "Có, hủy lịch",
-                    "cancel": "Giữ lịch"
-                }
-            },
-            "cancelled": {
-                "title": "Đã hủy gói đăng ký",
-                "description": "Gói đăng ký của bạn sẽ kết thúc vào {date}. Bạn có thể tiếp tục gói đăng ký bất cứ lúc nào trước ngày này.",
-                "resume": "Tiếp tục gói đăng ký"
-            },
-            "management": {
-                "title": "Quản lý",
-                "manage_payment_methods": "Quản lý phương thức thanh toán",
-                "view_invoices": "Xem hóa đơn",
-                "go_to_stripe": "Đến Stripe",
-                "change_plan": "Thay đổi gói dịch vụ",
-                "cancel_subscription": "Hủy gói đăng ký"
-            },
-            "cancel_dialog": {
-                "title": "Hủy gói đăng ký",
-                "description": "Bạn có chắc muốn hủy gói đăng ký không? Bạn sẽ tiếp tục có quyền truy cập cho đến hết kỳ thanh toán của mình.",
-                "confirm": "Có, hủy",
-                "cancel": "Giữ gói đăng ký"
-            },
-            "usage": {
-                "title": "Mức sử dụng",
-                "messages": "Tin nhắn",
-                "pages": "Trang",
-                "agents": "Trợ lý AI",
-                "links": "Liên kết",
-                "minutes": "Phút",
-                "remaining": "Còn lại {count}",
-                "load_error": "Không thể tải dữ liệu sử dụng"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Starter",
-                    "description": "Dành cho doanh nghiệp nhỏ mới bắt đầu."
-                },
-                "standard": {
-                    "name": "Standard",
-                    "description": "Dành cho nhóm và doanh nghiệp đang phát triển."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "Dành cho tổ chức cần tất cả mọi thứ."
-                },
-                "enterprise": {
-                    "name": "Enterprise",
-                    "description": "Dành cho tổ chức có nhu cầu về bảo mật, tuân thủ và quy mô lớn."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "{count} tin nhắn mỗi tháng | {count} tin nhắn mỗi tháng",
-            "messages_per_year": "{count} tin nhắn mỗi năm | {count} tin nhắn mỗi năm",
-            "messages_unlimited": "Tin nhắn không giới hạn",
-            "messages_custom": "Số lượng tin nhắn tùy chỉnh",
-            "agents": "{count} trợ lý AI | {count} trợ lý AI",
-            "agents_unlimited": "Trợ lý AI không giới hạn",
-            "pages": "{count} trang (PDF, Word, Văn bản) | {count} trang (PDF, Word, Văn bản)",
-            "pages_unlimited": "Số trang không giới hạn (PDF, Word, Văn bản)",
-            "pages_custom": "Cơ sở kiến thức tùy chỉnh",
-            "links": "{count} liên kết website | {count} liên kết website",
-            "links_unlimited": "Liên kết website không giới hạn",
-            "links_custom": "Liên kết website tùy chỉnh",
-            "minutes": "{count} phút âm thanh/video | {count} phút âm thanh/video",
-            "minutes_unlimited": "Số phút âm thanh/video không giới hạn",
-            "minutes_custom": "Âm thanh/video tùy chỉnh",
-            "teams": "{count} nhóm | {count} nhóm",
-            "teams_unlimited": "Nhóm không giới hạn",
-            "members": "{count} thành viên (thành viên nhóm + người dùng) | {count} thành viên (thành viên nhóm + người dùng)",
-            "members_unlimited": "Thành viên không giới hạn",
-            "retention": "{count} ngày lịch sử trò chuyện | {count} ngày lịch sử trò chuyện",
-            "retention_unlimited": "Lịch sử trò chuyện không giới hạn",
-            "retention_custom": "Lưu giữ dữ liệu tùy chỉnh",
-            "sentiment": "Phân tích cảm xúc",
-            "tone": "Phân tích giọng điệu",
-            "topics": "Phân tích chủ đề",
-            "pulse": "Conversation Pulse",
-            "handoff": "Chuyển tiếp",
-            "api": "Truy cập API",
-            "evals": "Đánh giá",
-            "guardrails": "Quy tắc kiểm soát",
-            "audit": "Nhật ký kiểm tra",
-            "branding": "White-label (gỡ thương hiệu {brand})",
-            "network_access": "Kiểm soát truy cập mạng (IP và vị trí địa lý)",
-            "siem_webhook": "Webhook SIEM (sự kiện bảo mật theo thời gian thực)",
-            "mcp": "MCP",
-            "function_calling": "Gọi hàm (Function Calling)",
-            "custom_domains": "{count} tên miền tùy chỉnh | {count} tên miền tùy chỉnh",
-            "custom_domains_unlimited": "Tên miền tùy chỉnh không giới hạn",
-            "custom_domains_custom": "Tên miền tùy chỉnh",
-            "custom_integrations": "Tích hợp tùy chỉnh",
-            "eu_data_residency": "Lưu trữ dữ liệu tại EU",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "SLA về thời gian hoạt động",
-            "dedicated_support": "Hỗ trợ riêng",
-            "custom_contract": "Hợp đồng & DPA tùy chỉnh"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "Tổng quan về các trợ lý AI và hoạt động của bạn",
         "create_agent": "Tạo trợ lý AI",
         "total_agents": "Tổng số trợ lý AI",
-        "messages_this_cycle": "Tin nhắn trong chu kỳ này",
         "percent_used": "Đã dùng {percent}%",
         "total_conversations": "Tổng số cuộc trò chuyện",
         "all_time_across_agents": "Toàn thời gian trên tất cả trợ lý AI",
@@ -3110,97 +2658,8 @@
         "last_week": "Tuần trước",
         "last_month": "Tháng trước",
         "messages_tooltip": "{n} tin nhắn | {n} tin nhắn",
-        "messages_this_month": "Tin nhắn trong tháng này"
-    },
-    "support": {
-        "title": "Hỗ trợ",
-        "subtitle": "Xem các phiếu yêu cầu của bạn hoặc tạo phiếu mới.",
-        "create_ticket": "Tạo phiếu mới",
-        "your_tickets": "Phiếu của bạn",
-        "your_tickets_description": "Các phiếu đã gửi trước đây",
-        "loading": "Đang tải phiếu...",
-        "empty": "Chưa có phiếu nào. Nhấp \"Tạo phiếu mới\" để bắt đầu.",
-        "th_id": "ID",
-        "th_type": "Loại",
-        "th_status": "Trạng thái",
-        "th_priority": "Mức ưu tiên",
-        "th_created": "Đã tạo",
-        "th_message": "Tin nhắn",
-        "th_replies": "Phản hồi",
-        "status_open": "Đang mở",
-        "status_in_progress": "Đang xử lý",
-        "status_resolved": "Đã giải quyết",
-        "status_closed": "Đã đóng",
-        "priority_urgent": "Khẩn cấp",
-        "priority_high": "Cao",
-        "priority_medium": "Trung bình",
-        "priority_low": "Thấp",
-        "create_ticket_description": "Chọn một loại và mô tả yêu cầu của bạn.",
-        "label_type": "Loại",
-        "type_placeholder": "Chọn một loại",
-        "type_feature": "Yêu cầu tính năng",
-        "type_bug": "Báo lỗi",
-        "type_integration": "Yêu cầu tích hợp",
-        "type_add_model": "Yêu cầu thêm mô hình",
-        "type_refund": "Yêu cầu hoàn tiền",
-        "type_billing": "Vấn đề thanh toán",
-        "type_other": "Khác",
-        "label_priority": "Mức ưu tiên",
-        "priority_placeholder": "Chọn mức ưu tiên",
-        "label_message": "Tin nhắn",
-        "message_placeholder": "Mô tả chi tiết yêu cầu hoặc vấn đề của bạn...",
-        "cancel": "Hủy",
-        "submitting": "Đang gửi...",
-        "submit": "Gửi"
-    },
-    "ticket": {
-        "support": "Hỗ trợ",
-        "title": "Phiếu #{id}",
-        "created_at": "Đã tạo {date}",
-        "back_to_support": "Quay lại Hỗ trợ",
-        "status_open": "Đang mở",
-        "status_in_progress": "Đang xử lý",
-        "status_resolved": "Đã giải quyết",
-        "status_closed": "Đã đóng",
-        "priority_urgent": "Khẩn cấp",
-        "priority_high": "Cao",
-        "priority_medium": "Trung bình",
-        "priority_low": "Thấp",
-        "change_priority": "Đổi mức ưu tiên",
-        "change_priority_title": "Đổi mức ưu tiên của ticket",
-        "change_priority_description": "Chỉ thay đổi mức ưu tiên nếu việc này thực sự khẩn cấp. Lạm dụng mức ưu tiên khẩn cấp có thể làm chậm phản hồi cho mọi người.",
-        "label_priority": "Mức ưu tiên",
-        "priority_placeholder": "Chọn mức ưu tiên",
-        "cancel": "Hủy",
-        "saving": "Đang lưu...",
-        "save": "Lưu",
-        "replies": "Phản hồi ({count})",
-        "no_replies": "Chưa có phản hồi nào.",
-        "role_staff": "Nhân viên",
-        "role_user": "Người dùng",
-        "resolved_notice": "Ticket này đã được giải quyết. Nếu sự cố vẫn tiếp diễn, vui lòng mở ticket mới từ trang Hỗ trợ.",
-        "add_reply": "Thêm phản hồi",
-        "reply_placeholder": "Viết phản hồi của bạn...",
-        "sending": "Đang gửi...",
-        "send_reply": "Gửi phản hồi"
-    },
-    "usage": {
-        "title": "Mức sử dụng",
-        "subtitle": "Theo dõi mức sử dụng hiện tại của bạn trên tất cả dịch vụ và tính năng.",
-        "plan_badge": "Gói {plan}",
-        "label_messages": "Tin nhắn",
-        "label_tokens": "Token",
-        "label_pages": "Trang",
-        "label_minutes": "Phút",
-        "label_links": "Liên kết",
-        "label_agents": "Trợ lý AI",
-        "label_teams": "Nhóm",
-        "label_members": "Thành viên",
-        "tokens_note": "Đã dùng trong chu kỳ này — chỉ để tham khảo; gói của bạn được tính phí theo tin nhắn.",
-        "of": "trên {limit}",
-        "remaining": "Còn lại {count}",
-        "load_error": "Không thể tải dữ liệu mức sử dụng.",
-        "no_limit": "Không giới hạn"
+        "messages_this_month": "Tin nhắn trong tháng này",
+        "messages_used_of_limit": "Đã dùng {used}/{limit}"
     },
     "analytics_chat": {
         "title": "Hỏi dữ liệu của bạn",
@@ -3326,7 +2785,6 @@
             "description": "Khóa tài khoản cho {api_link} — tạo và quản lý trợ lý AI, kiến thức, máy chủ MCP và hàm.",
             "api_link": "Chatvia API",
             "generate": "Tạo khóa",
-            "locked": "Nâng cấp gói của bạn để phát hành khóa API và tích hợp Chatvia với các ứng dụng của bạn.",
             "empty_title": "Chưa có khóa API nào",
             "empty_description": "Tạo một khóa để bắt đầu sử dụng Chatvia API.",
             "never": "Không bao giờ",
@@ -3535,14 +2993,6 @@
             "save_error": "Không thể lưu cài đặt bảo mật của bạn",
             "cancel": "Hủy",
             "done": "Xong",
-            "teaser": {
-                "title": "Bảo mật & Tuân thủ",
-                "description": "Khóa không gian làm việc của bạn vào các mạng tin cậy và đáp ứng nhu cầu tuân thủ. Có sẵn trên gói Pro.",
-                "ip": "Danh sách IP được phép — chỉ các địa chỉ được duyệt mới đăng nhập được",
-                "geo": "Quy tắc quốc gia — cho phép hoặc chặn truy cập theo quốc gia",
-                "more": "Cùng với lưu giữ dữ liệu, SIEM webhook, SSO / SCIM và nhiều hơn nữa",
-                "cta": "Nâng cấp lên Pro"
-            },
             "network": {
                 "title": "Kiểm soát truy cập mạng",
                 "help": "Hạn chế truy cập bảng điều khiển theo các địa chỉ IP và quốc gia tin cậy. Khi tắt, bất kỳ ai có thông tin đăng nhập hợp lệ đều có thể đăng nhập từ bất kỳ đâu."
@@ -3578,7 +3028,7 @@
                 "title": "Lưu giữ dữ liệu",
                 "help": "Khoảng thời gian Chatvia giữ dữ liệu của bạn trước khi tự động xóa. Rút ngắn để tuân thủ quy định — để trống một trường để dùng giá trị mặc định.",
                 "conversations": "Lịch sử cuộc trò chuyện (ngày)",
-                "conversations_help": "Lịch sử trò chuyện sẽ bị xóa sau số ngày này. Tối đa {max} trên gói của bạn.",
+                "conversations_help": "Lịch sử trò chuyện sẽ bị xóa sau số ngày này. Tối đa {max} ngày.",
                 "audit": "Nhật ký kiểm tra bảo mật (ngày)",
                 "audit_help": "Mặc định {default} ngày, tối thiểu {floor}.",
                 "plan_default": "Mặc định ({days} ngày)"
@@ -3606,11 +3056,6 @@
             "user_agent": "User agent",
             "metadata": "Chi tiết",
             "integrity": "Đã ghi mã băm toàn vẹn",
-            "teaser": {
-                "title": "Nhật ký kiểm tra bảo mật",
-                "description": "Xem mọi lần đăng nhập, thay đổi vai trò và thay đổi cài đặt bảo mật — có thể phát hiện giả mạo và xuất ra. Có trên gói Pro.",
-                "cta": "Nâng cấp lên Pro"
-            },
             "table": {
                 "actor": "Người thực hiện",
                 "action": "Hành động",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Bảng điều khiển",
             "agents": "Trợ lý AI",
-            "usage": "Mức sử dụng",
             "ask_your_data": "Hỏi dữ liệu của bạn",
-            "billing": "Thanh toán",
-            "support": "Hỗ trợ",
             "teams": "Nhóm",
             "documentation": "Tài liệu",
             "api": "API",
-            "nav_menu_sr": "Menu điều hướng",
-            "upgrade": "Nâng cấp",
-            "subscribed": "Bạn đã đăng ký"
+            "nav_menu_sr": "Menu điều hướng"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Các nguồn kiến thức, tài liệu và tệp đã tải lên",
             "removes_team": "Nhóm, người dùng, khóa API và trình kết nối của bạn",
             "agents_will_delete": "{count} Trợ lý AI sẽ bị xóa vĩnh viễn: | {count} Trợ lý AI sẽ bị xóa vĩnh viễn:",
-            "subscription_cancel": "Gói đăng ký đang hoạt động của bạn sẽ bị hủy và bạn sẽ không bị tính phí lại.",
             "email_confirmed": "Đã xác nhận email. Đây là bước cuối cùng của bạn — sau bước này sẽ không thể quay lại.",
             "delete_button": "Xóa vĩnh viễn tài khoản của tôi",
             "final_dialog_title": "Xóa vĩnh viễn tài khoản của bạn?",
             "final_dialog_description": "Thao tác này sẽ xóa vĩnh viễn tài khoản của bạn cùng toàn bộ dữ liệu và không thể hoàn tác.",
-            "final_dialog_subscription": "Gói đăng ký của bạn cũng sẽ bị hủy.",
             "final_confirm": "Có, xóa mọi thứ",
             "check_email": "Kiểm tra email của bạn — chúng tôi đã gửi một liên kết xác nhận để hoàn tất việc xóa tài khoản. Liên kết hết hạn sau 30 phút. Mở liên kết để tiếp tục.",
             "resend_link": "Gửi lại liên kết",
@@ -3906,7 +3344,6 @@
         "enable_feature": "Bật {title}",
         "enabling": "Đang bật…",
         "enable_now": "Bật ngay",
-        "upgrade_now": "Nâng cấp ngay",
         "chat_title_fallback": "Trò chuyện",
         "more_options": "Thêm tùy chọn",
         "delete_confirmation_title": "Xác nhận xóa",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Tải tệp lên",
             "description_default": "Thêm tệp để phân tích",
-            "quota_label_default": "trang",
             "file_count": "{current} / {max} tệp",
-            "quota_limit_reached_alert": "Bạn đã đạt đến giới hạn {quotaLabel} của mình là {quotaLimit} {quotaLabel}. Vui lòng nâng cấp gói dịch vụ để xử lý thêm tài liệu.",
             "drop_zone_file_limit_reached": "Đã đạt giới hạn tệp",
-            "drop_zone_quota_limit_reached": "Đã đạt giới hạn {quotaLabel}",
             "drop_zone_select_files": "Chọn tệp",
             "drop_zone_max_files_hint": "Tối đa {max} tệp được phép. Hãy xóa bớt một số tệp để thêm tệp mới.",
-            "drop_zone_quota_exhausted_hint": "Bạn đã dùng hết {quotaLimit} {quotaLabel}. Nâng cấp gói dịch vụ để tiếp tục.",
-            "drop_zone_unavailable": "Không thể tải lên",
             "drop_zone_default_hint": "Kéo và thả hoặc nhấp để chọn tệp",
-            "total_quota": "Tổng {count} {label}",
-            "exceeds_quota": "Vượt hạn mức {amount} {quotaLabel}",
             "clear_failed": "Xóa các tệp lỗi",
             "clear_all": "Xóa tất cả",
             "badge_analyzed": "Đã phân tích",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Truy vấn phân tích sản phẩm — sự kiện, biểu đồ và nhóm khách hàng — từ dự án Amplitude của bạn."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Chào mừng bạn đến với Chatvia",
-            "intro": "Hãy tạo trợ lý AI đầu tiên của bạn. Chỉ mất một phút.",
-            "what_title": "Trợ lý AI là gì?",
-            "what_body": "Trợ lý AI là trợ lý mà bạn huấn luyện bằng chính nội dung của mình. Trợ lý trả lời khách hàng của bạn trên trang web, tiện ích trò chuyện và các ứng dụng nhắn tin.",
-            "how_title": "Hoạt động như thế nào?",
-            "how_body": "Trước tiên, bạn tạo một trợ lý AI và đặt tên cho nó. Sau đó, bạn huấn luyện nó bằng tệp, trang web và văn bản của mình để nó có thể trả lời câu hỏi.",
-            "start": "Tạo trợ lý AI đầu tiên",
-            "video_caption": "Xem cách hoạt động"
         }
     }
 }

@@ -103,23 +103,8 @@
     "dashboard": {
         "messages_this_month": "Mensajes este mes"
     },
-    "usage": {
-        "no_limit": "Sin límite"
-    },
     "nav": {
         "open_user_menu": "Abrir menú de usuario"
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Bienvenido a Chatvia",
-            "intro": "Vamos a crear tu primer agente de IA. Solo te llevará un minuto.",
-            "what_title": "¿Qué es un agente?",
-            "what_body": "Un agente es un asistente de IA que entrenas con tu propio contenido. Responde a tus clientes en tu sitio web, en el widget de chat y en las aplicaciones de mensajería.",
-            "how_title": "¿Cómo funciona?",
-            "how_body": "Primero creas un agente y le das un nombre. Luego lo entrenas con tus archivos, sitios web y textos para que pueda responder preguntas.",
-            "start": "Crear mi primer agente",
-            "video_caption": "Mira cómo funciona"
-        }
     },
     "workspace": {
         "prompts": {

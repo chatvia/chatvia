@@ -36,7 +36,7 @@ class StreamRequestData extends Data
         public ?string $chatterExternalId = null,
         // The authenticated user who caused this turn — ANY type (chatter, owner,
         // teammate), or null for an anonymous visitor. Unlike chatterUserId this is
-        // not filtered to chatters and never affects billing/prompts; it exists so
+        // not filtered to chatters and never affects message limits/prompts; it exists so
         // the governance audit attributes the action to whoever is logged in.
         public ?int $actorUserId = null,
         public ?string $actorName = null,

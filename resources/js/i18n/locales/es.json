@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Alcanzaste el límite de mensajes",
-        "upgrade_prompt": "Actualiza tu plan para continuar chateando",
         "regenerate_failed": "No se pudo regenerar la respuesta. Intenta de nuevo.",
         "loading_conversation": "Cargando conversación",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "El servidor devolvió el estado {status}.",
             "interrupted": "La conexión se interrumpió.",
             "malformed": "Se recibieron datos no válidos del servidor."
-        }
+        },
+        "limit_resets_next_month": "Podrás enviar mensajes de nuevo el próximo mes."
     },
     "messages": {
         "send": "Enviar",
@@ -140,11 +140,7 @@
         "edit_message": "Editar mensaje"
     },
     "errors": {
-        "subscription_expired": "Suscripción vencida",
-        "renew_subscription": "Renovar suscripción",
         "message_limit_reached": "Límite de mensajes alcanzado",
-        "token_limit_reached": "Límite de uso de tokens alcanzado",
-        "upgrade_plan": "Actualizar plan",
         "model_unavailable": "Modelo no disponible",
         "too_many_requests": "Demasiadas solicitudes",
         "connection_lost": "Conexión perdida",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Registro de auditoría",
             "head_title": "Auditoría · {name}",
-            "description": "Cada acción que este agente realiza a través de herramientas y conectores — permitida, aprobada, denegada o limitada por tasa — con los argumentos, el resultado y quién la activó.",
-            "locked_description": "El registro de auditoría está disponible en el plan Pro. Mejora tu plan para ver cada acción de herramienta y conector que realiza este agente."
+            "description": "Cada acción que este agente realiza a través de herramientas y conectores — permitida, aprobada, denegada o limitada por tasa — con los argumentos, el resultado y quién la activó."
         },
         "channels": {
             "title": "Canales",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— la respuesta se transmite en vivo"
                 },
                 "telegram": {
-                    "connected_description": "Las personas pueden enviarle mensajes a tu bot en Telegram y tu agente responde automáticamente — la facturación, el historial y las restricciones se aplican.",
+                    "connected_description": "Las personas pueden enviarle mensajes a tu bot en Telegram y tu agente responde automáticamente — se aplican los límites de mensajes, el historial y las restricciones.",
                     "steps": {
                         "connect_1": "Abre {botfather} en Telegram",
                         "connect_2": "Envía {command} y sigue las instrucciones",
@@ -446,7 +441,6 @@
                 "select_topic": "Seleccionar tema",
                 "select_sentiment": "Seleccionar sentimiento",
                 "select_tone": "Seleccionar tono",
-                "upgrade_to_unlock": "Actualiza para desbloquear",
                 "clear_all": "Limpiar todo",
                 "close": "Aplicar filtros"
             },
@@ -486,14 +480,12 @@
                 "page_url": "URL de la página",
                 "referrer": "Referente",
                 "locale": "Configuración regional",
-                "upgrade_to_unlock": "Actualiza para desbloquear",
                 "waiting": "Esperando análisis…",
                 "channel": "Canal"
             },
             "pulse": {
                 "title": "Pulso de la conversación",
                 "select_conversation": "Selecciona una conversación para ver el pulso",
-                "locked_description": "Actualiza tu plan para desbloquear el análisis de pulso de conversaciones.",
                 "refresh": "Actualizar",
                 "no_messages_title": "Aún no hay suficientes mensajes",
                 "no_messages_hint": "El pulso necesita al menos un mensaje del usuario para analizar el sentimiento y el tono a lo largo del tiempo.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Estable"
             },
             "handoff": {
-                "locked_description": "Actualiza tu plan para tomar el control de conversaciones en vivo desde el registro de chat.",
                 "visitor": "Visitante",
                 "online": "En línea",
                 "offline": "Sin conexión",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "Tema bloqueado",
                 "toxicity": "Toxicidad"
-            },
-            "locked_description": "Los guardrails están disponibles en los planes Standard y Pro. Mejora tu plan para controlar de qué puede hablar tu agente y cómo maneja el contenido sensible."
+            }
         },
         "persona": {
             "title": "Personalidad",
@@ -849,7 +839,6 @@
                     "run_deleted": "Ejecución eliminada",
                     "history_cleared": "Historial de ejecuciones limpiado"
                 },
-                "locked_description": "Las evaluaciones están disponibles en los planes Standard y Pro. Mejora tu plan para probar y calificar las respuestas de este agente antes de que lleguen a los clientes.",
                 "cost_note": "Ejecutar la suite cuesta un mensaje por cada caso activo, así que esta ejecución usará {count} mensaje. | Ejecutar la suite cuesta un mensaje por cada caso activo, así que esta ejecución usará {count} mensajes."
             },
             "scorers": {
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Tono",
             "description": "Monitorea cómo se sienten los visitantes según el tono emocional de sus mensajes.",
-            "locked_description": "Actualiza tu plan para desbloquear el análisis de tono.",
             "disabled_title": "El análisis de tono está desactivado",
             "disabled_description": "Activa el análisis de tono para ver cómo se sienten los visitantes en las conversaciones.",
             "blocked_reason": "Activa primero el registro de chat — el análisis de tono requiere mensajes almacenados.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Sentimiento",
             "description": "Monitorea el sentimiento positivo, neutro y negativo en los mensajes de los visitantes.",
-            "locked_description": "Actualiza tu plan para desbloquear el análisis de sentimiento.",
             "disabled_title": "El análisis de sentimiento está desactivado",
             "disabled_description": "Activa el análisis de sentimiento para ver cómo se sienten los visitantes en las conversaciones.",
             "blocked_reason": "Activa primero el registro de chat — el análisis de sentimiento requiere mensajes almacenados.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Gestionar temas",
                 "description": "Define los temas que tu agente debe reconocer y clasificar en las conversaciones.",
-                "locked_description": "Actualiza tu plan para gestionar los temas de conversación.",
                 "search_placeholder": "Buscar temas…",
                 "add_topic": "Agregar tema",
                 "empty": "Aún no hay temas. Agrega uno para ayudar a tu agente a clasificar las conversaciones.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "Error al desvincular {name}: {error}",
                 "deleted": "{name} ha sido eliminado.",
                 "delete_failed": "Error al eliminar {name}: {error}",
-                "usage_load_failed": "Error al cargar los datos de uso.",
                 "summary_only_completed": "El resumen solo está disponible para archivos completados.",
                 "summary_none": "No hay resumen disponible para este archivo.",
                 "summary_load_failed": "Error al cargar el resumen del archivo.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Subir archivos de audio",
                 "upload_title_video": "Subir archivos de video",
                 "upload_title_default": "Subir nuevos documentos",
-                "quota_minutes": "minutos",
-                "quota_pages": "páginas",
                 "uploads_disabled": "Las subidas de archivos están desactivadas mientras el entrenamiento está en progreso",
                 "ready_to_train": "Listo para entrenar",
                 "uploaded_ready": "{count} archivo subido y listo para entrenamiento | {count} archivos subidos y listos para entrenamiento",
-                "exceeds_quota": "Supera la cuota",
                 "clear_all": "Borrar todo",
                 "training": "Entrenando...",
                 "train": "Entrenar",
@@ -1290,9 +1272,6 @@
                     "trained": "Entrenado",
                     "failed": "Fallido"
                 },
-                "limit_all_used": "Has usado todos los {limit} enlaces de tu plan. Actualiza tu plan para entrenar más enlaces.",
-                "limit_critical": "Has usado {used}/{limit} enlaces ({percentage}%). Solo quedan {remaining} enlaces para entrenar. Considera actualizar tu plan.",
-                "limit_warning": "Has usado {used}/{limit} enlaces ({percentage}%). Quedan {remaining} enlaces para entrenar.",
                 "load_failed": "Error al cargar las fuentes web.",
                 "error_enter_url": "Por favor, ingresa una URL de sitio web.",
                 "error_invalid_url": "Por favor, ingresa una URL válida (p. ej., https://ejemplo.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "No se pueden eliminar todos los enlaces. Debe quedar al menos un enlace.",
                 "links_deleted": "Se eliminó {count} enlace con éxito. | Se eliminaron {count} enlaces con éxito.",
                 "links_delete_failed": "Error al eliminar los enlaces.",
-                "no_links_remaining": "No quedan enlaces",
-                "no_links_remaining_description": "Por favor, actualiza tu plan para entrenar sitios web.",
-                "cannot_select": "No se puede seleccionar el sitio web",
-                "cannot_select_description": "{links} enlaces superarían tu cuota en {exceedBy}. Deselecciona otros sitios web o actualiza tu plan.",
-                "selected_count": "{selected} de {total} sitios web seleccionados",
-                "selected_skipped": "{skipped} sitio(s) web omitido(s) para mantenerte dentro del límite de {remaining} enlaces.",
                 "training_start_failed": "Error al iniciar el entrenamiento para: {websites}",
                 "training_start_failed_all": "Error al iniciar el entrenamiento para cualquier sitio web.",
                 "dialog_links_load_failed": "Error al cargar los enlaces",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Rastreador",
                 "crawler_description": "Obtén enlaces de sitios web para rastrear e incluir en la base de conocimiento de tu agente.",
                 "settings": "Configuración",
-                "links_used": "{used} / {limit} enlaces usados",
-                "links_remaining": "{remaining} restantes",
-                "upgrade_required": "Se requiere actualización para entrenar más enlaces",
-                "consider_upgrading": "Considera actualizar",
                 "fetching": "Obteniendo...",
                 "fetch_links": "Obtener enlaces",
                 "crawl_settings": "Configuración de rastreo",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} seleccionado ({links} enlaces)",
                 "no_websites_selected": "Ningún sitio web seleccionado",
                 "train": "Entrenar",
-                "train_exceeds_quota": "Los enlaces seleccionados ({selected}) superan tu cuota restante ({remaining})",
                 "links_badge": "{count} enlaces",
-                "badge_upgrade_required": "Se requiere actualización",
-                "badge_exceeds_quota": "Supera la cuota",
-                "no_links_remaining_plan": "No tienes enlaces restantes en tu plan. Por favor, actualiza tu plan para entrenar este sitio web.",
-                "website_exceeds_remaining": "Este sitio web tiene {links} enlaces, lo que superaría tus {remaining} enlaces restantes. Deselecciona otros sitios web primero o actualiza tu plan.",
                 "collapse_links": "Contraer enlaces descubiertos",
                 "expand_links": "Expandir enlaces descubiertos",
                 "discovered_links": "Enlaces descubiertos",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Crear agente",
-            "limit_title": "Límite de agentes alcanzado",
-            "limit_description": "Has alcanzado tu límite de agentes.",
-            "upgrade_plan": "Mejorar plan",
             "name_label": "Nombre del agente",
-            "name_placeholder": "Ej., Soporte al cliente",
-            "load_error": "No se pudo cargar la información de uso",
-            "limit_toast_title": "Límite de agentes alcanzado",
-            "limit_toast_description": "Has alcanzado tu límite de agentes."
+            "name_placeholder": "Ej., Soporte al cliente"
         },
         "analytics": {
             "title": "Estadísticas del agente",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Dominio personalizado",
                 "description": "Sirve el chat alojado de este agente desde tu propio dominio en lugar de {target}.",
-                "no_quota_title": "Los dominios personalizados no están incluidos en tu plan actual",
-                "no_quota_description": "Actualiza a Pro o suscríbete al complemento de dominio personalizado desde {link} para agregar tu propio nombre de host.",
-                "billing": "Facturación",
-                "quota": "Usando {used} de {total} dominio personalizado | Usando {used} de {total} dominios personalizados",
-                "add_more": "Agregar más",
                 "step1": "Paso 1 — Agrega un registro CNAME en tu proveedor de DNS",
                 "type": "Tipo",
                 "name": "Nombre",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Temas",
             "description": "Analiza los temas y tendencias de las conversaciones",
-            "locked_description": "Mejora tu plan para acceder al análisis de temas y detectar y categorizar automáticamente los temas de las conversaciones.",
             "disabled_title": "Análisis de temas",
             "disabled_description": "Actívalo para detectar y agrupar automáticamente lo que tus visitantes preguntan en las conversaciones.",
             "blocked_reason": "El registro de chat está desactivado, por lo que no hay nada que analizar. Actívalo en Configuración → Ajustes para comenzar a recopilar temas.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Enviando enlace...",
             "or_continue_with": "O continúa con",
             "no_account": "¿No tienes una cuenta?",
-            "start_free_trial": "Comenzar prueba gratis",
             "create_account": "Crear una cuenta"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Elige tu contraseña",
-            "description": "Tu cuenta está lista. Elige una contraseña para terminar de configurarla.",
-            "head": "Elige tu contraseña",
-            "email_label": "Correo electrónico",
-            "password_label": "Contraseña",
-            "password_placeholder": "Contraseña",
-            "confirm_password_label": "Confirmar contraseña",
-            "confirm_password_placeholder": "Confirmar contraseña",
-            "set_password": "Establecer contraseña",
-            "setting_password": "Estableciendo contraseña..."
-        },
         "login_member": {
             "description": "Inicia sesión para acceder a este espacio de chat",
             "head": "Acceso de miembro",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Asegúrate de que tu cuenta social use",
             "social_email_note_suffix": "— debe coincidir con esta invitación."
         },
-        "invitation_invalid": {
-            "title": "Invitación no disponible",
-            "description": "Esta invitación no puede ser aceptada",
-            "head": "Invitación no disponible",
-            "card_title": "No se puede aceptar la invitación",
-            "cannot_accept_prefix": "La invitación para unirse a",
-            "cannot_accept_suffix": "no puede ser aceptada en este momento.",
-            "contact_owner": "Por favor contacta al administrador del equipo para resolver este problema.",
-            "go_to_login": "Ir al inicio de sesión"
-        },
         "invitation_expired": {
             "title": "Invitación expirada",
             "description": "Esta invitación ya no es válida",
@@ -2325,386 +2254,6 @@
             "card_title": "Invitación expirada",
             "contact_owner": "Por favor contacta al administrador del equipo para solicitar una nueva invitación.",
             "go_to_login": "Ir al inicio de sesión"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Facturación",
-            "back_to_billing": "Volver a Facturación",
-            "view_plans": "Ver Planes",
-            "cancel": "Cancelar",
-            "processing": "Procesando...",
-            "not_available": "N/D"
-        },
-        "payment_success": {
-            "page_title": "Pago Exitoso",
-            "heading": "Pago Recibido",
-            "description": "¡Gracias! Tu pago se procesó correctamente. Estamos configurando tu suscripción ahora.",
-            "redirecting_prefix": "Redirigiendo en",
-            "redirecting_suffix": "segundos...",
-            "go_to_billing": "Ir a facturación ahora"
-        },
-        "invoices": {
-            "breadcrumb": "Facturas",
-            "page_title": "Facturas",
-            "heading": "Facturas",
-            "subheading": "Consulta y descarga tu historial de facturación y tus facturas",
-            "history_title": "Historial de Facturación",
-            "history_description": "Descarga recibos y facturas de tus pagos de suscripción",
-            "invoice_number": "Factura #{number}",
-            "status": {
-                "paid": "Pagada",
-                "pending": "Pendiente",
-                "failed": "Fallida"
-            },
-            "download_pdf": "Descargar PDF",
-            "view_online": "Ver en línea",
-            "empty_title": "Aún no hay facturas",
-            "empty_description": "Tu historial de facturación y tus facturas aparecerán aquí una vez que inicies una suscripción.",
-            "total_invoices": "Total de Facturas",
-            "total_spent": "Total Gastado",
-            "since": "Desde",
-            "help_title": "¿Necesitas ayuda con la facturación?",
-            "help_description": "Si tienes preguntas sobre tus facturas o necesitas asistencia con la facturación, nuestro equipo de soporte está aquí para ayudarte.",
-            "contact_support": "Contactar Soporte"
-        },
-        "payment_methods": {
-            "breadcrumb": "Métodos de Pago",
-            "page_title": "Métodos de Pago",
-            "heading": "Métodos de Pago",
-            "subheading": "Administra tus métodos de pago e información de facturación",
-            "add_method": "Agregar Método de Pago",
-            "saved_title": "Métodos de Pago Guardados",
-            "saved_description": "Administra tus métodos de pago guardados. Puedes establecer un método predeterminado para la facturación automática.",
-            "default": "Predeterminado",
-            "expires": "Vence {date}",
-            "set_default": "Establecer como Predeterminado",
-            "empty_title": "Sin métodos de pago",
-            "empty_description": "Agrega un método de pago para administrar tus suscripciones y realizar pagos.",
-            "add_first": "Agrega tu Primer Método de Pago",
-            "info_title": "Información de Facturación",
-            "info_description": "Actualiza tu dirección de facturación e información de contacto",
-            "not_set": "No establecido",
-            "update_info": "Actualizar Información de Facturación",
-            "secure_title": "Procesamiento Seguro de Pagos",
-            "secure_description": "Tu información de pago está cifrada y es procesada de forma segura por Stripe. Nunca almacenamos los datos completos de tu tarjeta en nuestros servidores.",
-            "updating": "Actualizando...",
-            "update_information": "Actualizar Información",
-            "card_information": "Información de Tarjeta",
-            "remove_dialog": {
-                "title": "Eliminar Método de Pago",
-                "description": "¿Estás seguro de que deseas eliminar este método de pago? Esta acción no se puede deshacer.",
-                "confirm": "Sí, Eliminar"
-            },
-            "fields": {
-                "name": "Nombre",
-                "email": "Correo Electrónico",
-                "address": "Dirección",
-                "city_state_country": "Ciudad, Estado y País",
-                "billing_address": "Dirección de Facturación",
-                "line1": "Dirección Línea 1",
-                "line2": "Dirección Línea 2 (Opcional)",
-                "city": "Ciudad",
-                "state": "Estado",
-                "postal_code": "Código Postal",
-                "country": "País"
-            },
-            "placeholders": {
-                "name": "Juan Pérez",
-                "email": "juan{'@'}ejemplo.com",
-                "line1": "Calle Principal 123",
-                "line2": "Apto, suite, etc.",
-                "city": "Ciudad de México",
-                "state": "CDMX",
-                "postal_code": "06600",
-                "country": "Seleccionar país..."
-            },
-            "info_dialog": {
-                "title": "Actualizar Información de Facturación",
-                "description": "Actualiza tu dirección de facturación e información de contacto para la emisión de facturas y el procesamiento de pagos."
-            },
-            "add_dialog": {
-                "description": "Agrega un nuevo método de pago a tu cuenta. La información de tu tarjeta es segura y está cifrada.",
-                "success_title": "¡Método de Pago Agregado!",
-                "success_description": "Tu método de pago se agregó correctamente a tu cuenta.",
-                "secure_note": "Tu información de pago está cifrada y es procesada de forma segura por Stripe. Nunca almacenamos los datos completos de tu tarjeta."
-            },
-            "errors": {
-                "init_failed": "Error al inicializar el sistema de pago",
-                "not_ready": "El sistema de pago no está listo",
-                "add_failed": "Ocurrió un error al agregar tu método de pago"
-            },
-            "toast": {
-                "added": "¡Método de pago agregado correctamente!",
-                "info_updated": "¡Información de facturación actualizada correctamente!",
-                "info_failed": "Error al actualizar la información de facturación"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Elegir Plan",
-            "page_title": "Elige tu Plan",
-            "heading": "Elige tu Plan",
-            "subheading": "Selecciona el plan ideal para tus necesidades. Puedes cambiar o cancelar en cualquier momento.",
-            "monthly": "Mensual",
-            "yearly": "Anual",
-            "custom": "Personalizado",
-            "per_month": "/mes",
-            "save_percent": "Ahorra {percent}%",
-            "billed_yearly": "Facturado anualmente en {amount}",
-            "features_included": "Características incluidas:",
-            "everything_in": "Todo en {plan} +",
-            "actions": {
-                "contact_sales": "Contactar ventas",
-                "upgrade": "Mejorar",
-                "upgrade_plan": "Mejorar Plan",
-                "downgrade_to_free": "Cambiar a Gratuito",
-                "downgrade_plan": "Cambiar a Plan Inferior",
-                "switch_plan": "Cambiar Plan",
-                "select_plan": "Seleccionar Plan"
-            },
-            "discount": {
-                "banner": "¡{percent}% DE DESCUENTO por Tiempo Limitado!",
-                "ends": "La oferta vence el {date} - ¡No te la pierdas!",
-                "limited": "¡Descuento por tiempo limitado en todos los planes de pago!",
-                "off": "{percent}% DE DESCUENTO"
-            },
-            "most_popular": "Más Popular",
-            "current_plan": "Plan Actual",
-            "save_up_to_percent": "Ahorra hasta un {percent}%"
-        },
-        "addons": {
-            "title": "Complementos",
-            "description": "Créditos, agentes y dominios adicionales sobre tu plan",
-            "per_agent": " / agente",
-            "per_domain": " / dominio",
-            "per_member": " / miembro",
-            "per_month": " / mes",
-            "requires_subscription": "Los Agentes Adicionales, el Dominio Personalizado, Eliminar Marca y los Miembros requieren una suscripción principal activa.",
-            "common": {
-                "none": "Ninguno",
-                "subscribe": "Suscribirse",
-                "change": "Cambiar",
-                "update_quantity": "Actualizar Cantidad",
-                "monthly_cost": "Costo mensual:",
-                "keep_subscription": "Mantener suscripción",
-                "yes_cancel": "Sí, cancelar",
-                "ends": "Vence {date}"
-            },
-            "auto_recharge": {
-                "title": "Recarga Automática",
-                "on": "Activado",
-                "off": "Desactivado",
-                "summary": "Compra automáticamente {amount} créditos cuando el saldo baje de {threshold}.",
-                "manage": "Administrar",
-                "enable": "Activar",
-                "dialog_title": "Configuración de Recarga Automática",
-                "dialog_description": "Cuando tus créditos restantes bajen al umbral o por debajo de él, cargaremos automáticamente tu método de pago predeterminado y recargaremos tu saldo.",
-                "enable_label": "Activar Recarga Automática",
-                "enable_hint": "Cargar automáticamente cuando los créditos sean bajos",
-                "threshold_label": "Umbral (créditos)",
-                "threshold_hint": "La recarga se activa cuando tu saldo baja a esta cantidad o por debajo de ella.",
-                "amount_label": "Monto de recarga (créditos)",
-                "each_recharge": "Cada recarga:",
-                "charged_note": "Se carga inmediatamente a tu método de pago predeterminado cuando se activa.",
-                "save": "Guardar Configuración"
-            },
-            "extra_credits": {
-                "title": "Créditos Adicionales",
-                "summary": "Recarga única. Cada paquete agrega 1,000 mensajes que vencen después de 30 días.",
-                "buy": "Comprar Créditos",
-                "dialog_title": "Comprar Créditos de Mensajes",
-                "dialog_description": "Cada paquete incluye 1,000 mensajes que deben usarse dentro de un mes a partir de la compra.",
-                "quantity_label": "Cantidad (1,000 mensajes por paquete)",
-                "total_messages": "Total de Mensajes:",
-                "total_price": "Precio Total:",
-                "purchase_for": "Comprar por ${amount}"
-            },
-            "extra_agents": {
-                "title": "Agentes Adicionales",
-                "summary": "Agrega más agentes de IA más allá del límite de tu plan.",
-                "cancel_title": "¿Cancelar suscripción de Agentes Adicionales?",
-                "cancel_description": "Tu cuota de agentes adicionales se eliminará de inmediato y no se te cobrará más.",
-                "change_title": "Cambiar Agentes Adicionales",
-                "subscribe_title": "Suscribirse a Agentes Adicionales",
-                "dialog_description": "Agrega agentes de IA adicionales sobre tu plan. Facturado mensualmente a $5 por agente.",
-                "quantity_label": "Número de agentes adicionales"
-            },
-            "custom_domains": {
-                "title": "Dominio Personalizado",
-                "summary": "Usa tu propio dominio personalizado para los agentes de IA.",
-                "cancel_title": "¿Cancelar suscripción de Dominio Personalizado?",
-                "cancel_description": "Tu cuota de dominio personalizado se eliminará de inmediato y no se te cobrará más.",
-                "change_title": "Cambiar Dominios Personalizados",
-                "subscribe_title": "Suscribirse a Dominio Personalizado",
-                "dialog_description": "Usa tu propio dominio para los agentes de IA. Facturado mensualmente a $29 por dominio.",
-                "quantity_label": "Número de dominios"
-            },
-            "remove_branding": {
-                "title": "Eliminar Marca",
-                "active": "Activo",
-                "summary": "Oculta el distintivo \"Powered by Chatvia\" en tu widget y chat alojado.",
-                "cancel_title": "¿Cancelar suscripción de Eliminar Marca?",
-                "cancel_description": "El distintivo \"Powered by Chatvia\" reaparecerá en tu widget y chat alojado de inmediato, y no se te cobrará más."
-            },
-            "members": {
-                "title": "Miembros",
-                "summary": "Agrega más miembros al equipo de tu espacio de trabajo.",
-                "cancel_title": "¿Cancelar suscripción de Miembros?",
-                "cancel_description": "Tus puestos de miembro adicionales se eliminarán de inmediato y no se te cobrará más.",
-                "change_title": "Cambiar Miembros",
-                "subscribe_title": "Suscribirse a Miembros",
-                "dialog_description": "Agrega miembros adicionales al equipo de tu espacio de trabajo. Facturado mensualmente a $9 por miembro.",
-                "quantity_label": "Número de miembros"
-            }
-        },
-        "index": {
-            "page_title": "Facturación",
-            "heading": "Facturación",
-            "subheading": "Administra tu suscripción, información de facturación y límites de uso",
-            "stripe_notice": "Pagos procesados de forma segura por",
-            "status_label": "Estado",
-            "trial_ends": "Fin del Período de Prueba",
-            "next_billing": "Próxima Facturación",
-            "access_ends": "Fin del Acceso",
-            "plan_features": "Características del Plan",
-            "show_less": "Ver menos",
-            "show_more": "Ver {count} más",
-            "per_year": "Año",
-            "per_month": "Mes",
-            "status": {
-                "active": "Activo",
-                "trial": "Prueba",
-                "cancelled": "Cancelado",
-                "incomplete": "Incompleto",
-                "past_due": "Vencido"
-            },
-            "trial": {
-                "heading": "🎉 ¡Estás en un Período de Prueba Gratuito!",
-                "ends_on": "Tu período de prueba de {plan} vence el",
-                "auto_start": "Tu suscripción de pago comenzará automáticamente el {date}",
-                "badge": "Prueba Activa"
-            },
-            "upgrade": {
-                "heading": "Mejora a Premium",
-                "description": "Accede a modelos de IA avanzados, límites de mensajes más altos y soporte prioritario"
-            },
-            "current_plan": {
-                "title": "Plan Actual",
-                "description": "Tu plan de suscripción activo y detalles de uso"
-            },
-            "pending_change": {
-                "heading": "Cambio de Plan Programado",
-                "change_from": "Tu plan cambiará de",
-                "to": "a",
-                "cycle_yearly": "(Anual)",
-                "cycle_monthly": "(Mensual)",
-                "on_date": "el {date}.",
-                "scheduled_for": "Tienes un cambio de plan programado para el {date}.",
-                "access_note": "Seguirás teniendo acceso a las características de tu plan actual hasta entonces.",
-                "cancel_schedule": "Cancelar Programación",
-                "cancel_dialog": {
-                    "title": "Cancelar Cambio de Plan Programado",
-                    "description": "¿Estás seguro de que deseas cancelar el cambio de plan programado? Permanecerás en tu plan actual.",
-                    "confirm": "Sí, Cancelar Programación",
-                    "cancel": "Mantener Programación"
-                }
-            },
-            "cancelled": {
-                "title": "Suscripción Cancelada",
-                "description": "Tu suscripción finalizará el {date}. Puedes reactivar tu suscripción en cualquier momento antes de esa fecha.",
-                "resume": "Reactivar Suscripción"
-            },
-            "management": {
-                "title": "Administración",
-                "manage_payment_methods": "Administrar Métodos de Pago",
-                "view_invoices": "Ver Facturas",
-                "go_to_stripe": "Ir a Stripe",
-                "change_plan": "Cambiar Plan",
-                "cancel_subscription": "Cancelar Suscripción"
-            },
-            "cancel_dialog": {
-                "title": "Cancelar Suscripción",
-                "description": "¿Estás seguro de que deseas cancelar tu suscripción? Seguirás teniendo acceso hasta el final de tu período de facturación.",
-                "confirm": "Sí, Cancelar",
-                "cancel": "Mantener Suscripción"
-            },
-            "usage": {
-                "title": "Uso",
-                "messages": "Mensajes",
-                "pages": "Páginas",
-                "agents": "Agentes",
-                "links": "Enlaces",
-                "minutes": "Minutos",
-                "remaining": "{count} restantes",
-                "load_error": "No se pudieron cargar los datos de uso"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Starter",
-                    "description": "Para pequeñas empresas que están comenzando."
-                },
-                "standard": {
-                    "name": "Standard",
-                    "description": "Para equipos y empresas en crecimiento."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "Para organizaciones que necesitan todo."
-                },
-                "enterprise": {
-                    "name": "Enterprise",
-                    "description": "Para organizaciones con necesidades de seguridad, cumplimiento normativo y escala."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "{count} mensaje por mes | {count} mensajes por mes",
-            "messages_per_year": "{count} mensaje por año | {count} mensajes por año",
-            "messages_unlimited": "Mensajes ilimitados",
-            "messages_custom": "Volumen de mensajes personalizado",
-            "agents": "{count} agente de IA | {count} agentes de IA",
-            "agents_unlimited": "Agentes de IA ilimitados",
-            "pages": "{count} página (PDF, Word, Texto) | {count} páginas (PDF, Word, Texto)",
-            "pages_unlimited": "Páginas ilimitadas (PDF, Word, Texto)",
-            "pages_custom": "Base de conocimiento personalizada",
-            "links": "{count} enlace de sitio web | {count} enlaces de sitios web",
-            "links_unlimited": "Enlaces de sitios web ilimitados",
-            "links_custom": "Enlaces de sitios web personalizados",
-            "minutes": "{count} minuto de audio/video | {count} minutos de audio/video",
-            "minutes_unlimited": "Minutos de audio/video ilimitados",
-            "minutes_custom": "Audio/video personalizado",
-            "teams": "{count} equipo | {count} equipos",
-            "teams_unlimited": "Equipos ilimitados",
-            "members": "{count} miembro (miembros del equipo + chatters) | {count} miembros (miembros del equipo + chatters)",
-            "members_unlimited": "Miembros ilimitados",
-            "retention": "{count} día de historial de chat | {count} días de historial de chat",
-            "retention_unlimited": "Historial de chat ilimitado",
-            "retention_custom": "Retención de datos personalizada",
-            "sentiment": "Análisis de sentimientos",
-            "tone": "Análisis de tono",
-            "topics": "Análisis de temas",
-            "pulse": "Conversation Pulse",
-            "handoff": "Handoff",
-            "api": "Acceso a la API",
-            "evals": "Evaluaciones",
-            "guardrails": "Restricciones",
-            "audit": "Registro de auditoría",
-            "branding": "White-label (eliminar la marca de {brand})",
-            "network_access": "Control de acceso a la red (IP y geolocalización)",
-            "siem_webhook": "Webhook SIEM (eventos de seguridad en tiempo real)",
-            "mcp": "MCP",
-            "function_calling": "Function Calling",
-            "custom_domains": "{count} dominio personalizado | {count} dominios personalizados",
-            "custom_domains_unlimited": "Dominios personalizados ilimitados",
-            "custom_domains_custom": "Dominios personalizados",
-            "custom_integrations": "Integraciones personalizadas",
-            "eu_data_residency": "Residencia de datos en la UE",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "SLA de disponibilidad",
-            "dedicated_support": "Soporte dedicado",
-            "custom_contract": "Contrato personalizado y DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "Resumen de tus agentes de IA y actividad",
         "create_agent": "Crear agente",
         "total_agents": "Total de agentes",
-        "messages_this_cycle": "Mensajes en este ciclo",
         "percent_used": "{percent}% usado",
         "total_conversations": "Total de conversaciones",
         "all_time_across_agents": "Total histórico entre agentes",
@@ -3110,97 +2658,8 @@
         "last_week": "Última semana",
         "last_month": "Último mes",
         "messages_tooltip": "{n} mensaje | {n} mensajes",
-        "messages_this_month": "Mensajes este mes"
-    },
-    "support": {
-        "title": "Soporte",
-        "subtitle": "Consulta tus tickets o crea uno nuevo.",
-        "create_ticket": "Crear nuevo ticket",
-        "your_tickets": "Tus tickets",
-        "your_tickets_description": "Tickets enviados anteriormente",
-        "loading": "Cargando tickets...",
-        "empty": "Aún no hay tickets. Haz clic en \"Crear nuevo ticket\" para comenzar.",
-        "th_id": "ID",
-        "th_type": "Tipo",
-        "th_status": "Estado",
-        "th_priority": "Prioridad",
-        "th_created": "Creado",
-        "th_message": "Mensaje",
-        "th_replies": "Respuestas",
-        "status_open": "Abierto",
-        "status_in_progress": "En progreso",
-        "status_resolved": "Resuelto",
-        "status_closed": "Cerrado",
-        "priority_urgent": "Urgente",
-        "priority_high": "Alta",
-        "priority_medium": "Media",
-        "priority_low": "Baja",
-        "create_ticket_description": "Elige un tipo y describe tu solicitud.",
-        "label_type": "Tipo",
-        "type_placeholder": "Selecciona un tipo",
-        "type_feature": "Solicitar una función",
-        "type_bug": "Reportar un error",
-        "type_integration": "Solicitar integración",
-        "type_add_model": "Solicitar agregar modelo",
-        "type_refund": "Solicitud de reembolso",
-        "type_billing": "Problema de facturación",
-        "type_other": "Otro",
-        "label_priority": "Prioridad",
-        "priority_placeholder": "Selecciona una prioridad",
-        "label_message": "Mensaje",
-        "message_placeholder": "Describe tu solicitud o problema en detalle...",
-        "cancel": "Cancelar",
-        "submitting": "Enviando...",
-        "submit": "Enviar"
-    },
-    "ticket": {
-        "support": "Soporte",
-        "title": "Ticket #{id}",
-        "created_at": "Creado {date}",
-        "back_to_support": "Volver a soporte",
-        "status_open": "Abierto",
-        "status_in_progress": "En progreso",
-        "status_resolved": "Resuelto",
-        "status_closed": "Cerrado",
-        "priority_urgent": "Urgente",
-        "priority_high": "Alta",
-        "priority_medium": "Media",
-        "priority_low": "Baja",
-        "change_priority": "Cambiar prioridad",
-        "change_priority_title": "Cambiar prioridad del ticket",
-        "change_priority_description": "Por favor, cambia la prioridad solo si es verdaderamente urgente. El uso incorrecto de la prioridad urgente puede ralentizar las respuestas para todos.",
-        "label_priority": "Prioridad",
-        "priority_placeholder": "Selecciona una prioridad",
-        "cancel": "Cancelar",
-        "saving": "Guardando...",
-        "save": "Guardar",
-        "replies": "Respuestas ({count})",
-        "no_replies": "Aún no hay respuestas.",
-        "role_staff": "Personal",
-        "role_user": "Usuario",
-        "resolved_notice": "Este ticket ha sido resuelto. Si el problema persiste, abre un nuevo ticket desde la página de Soporte.",
-        "add_reply": "Agregar una respuesta",
-        "reply_placeholder": "Escribe tu respuesta...",
-        "sending": "Enviando...",
-        "send_reply": "Enviar respuesta"
-    },
-    "usage": {
-        "title": "Uso",
-        "subtitle": "Monitorea tu uso actual en todos los servicios y funciones.",
-        "plan_badge": "Plan {plan}",
-        "label_messages": "Mensajes",
-        "label_tokens": "Tokens",
-        "label_pages": "Páginas",
-        "label_minutes": "Minutos",
-        "label_links": "Enlaces",
-        "label_agents": "Agentes",
-        "label_teams": "Equipos",
-        "label_members": "Miembros",
-        "tokens_note": "Consumidos en este ciclo — solo informativo; tu plan se factura por mensajes.",
-        "of": "de {limit}",
-        "remaining": "{count} restantes",
-        "load_error": "No se pueden cargar los datos de uso.",
-        "no_limit": "Sin límite"
+        "messages_this_month": "Mensajes este mes",
+        "messages_used_of_limit": "{used} de {limit} usados"
     },
     "analytics_chat": {
         "title": "Pregunta a tus datos",
@@ -3326,7 +2785,6 @@
             "description": "Claves de cuenta para la {api_link} — crea y administra agentes, base de conocimiento, servidores MCP y funciones.",
             "api_link": "API de Chatvia",
             "generate": "Generar clave",
-            "locked": "Actualiza tu plan para emitir claves API e integrar Chatvia con tus aplicaciones.",
             "empty_title": "Aún no hay claves API",
             "empty_description": "Genera una para comenzar a usar la API de Chatvia.",
             "never": "Nunca",
@@ -3535,14 +2993,6 @@
             "save_error": "No se pudieron guardar tus ajustes de seguridad",
             "cancel": "Cancelar",
             "done": "Listo",
-            "teaser": {
-                "title": "Seguridad y cumplimiento",
-                "description": "Restringe tu espacio de trabajo a redes de confianza y cumple tus requisitos de conformidad. Disponible en el plan Pro.",
-                "ip": "Lista de IP permitidas: solo las direcciones aprobadas pueden iniciar sesión",
-                "geo": "Reglas por país: permite o bloquea el acceso según el país",
-                "more": "Además de retención de datos, webhooks SIEM, SSO / SCIM y más",
-                "cta": "Mejorar a Pro"
-            },
             "network": {
                 "title": "Control de acceso a la red",
                 "help": "Restringe el acceso al panel a direcciones IP y países de confianza. Cuando está desactivado, cualquier persona con un inicio de sesión válido puede acceder desde cualquier lugar."
@@ -3578,7 +3028,7 @@
                 "title": "Retención de datos",
                 "help": "Cuánto tiempo conserva Chatvia tus datos antes de eliminarlos automáticamente. Acorta estos plazos por motivos de cumplimiento; deja un campo en blanco para usar el valor predeterminado.",
                 "conversations": "Historial de conversaciones (días)",
-                "conversations_help": "El historial de chat se elimina tras este número de días. Hasta {max} en tu plan.",
+                "conversations_help": "El historial de chat se elimina tras este número de días. Hasta {max} días.",
                 "audit": "Registro de auditoría de seguridad (días)",
                 "audit_help": "{default} días por defecto, mínimo {floor}.",
                 "plan_default": "Por defecto ({days} días)"
@@ -3606,11 +3056,6 @@
             "user_agent": "Agente de usuario",
             "metadata": "Detalles",
             "integrity": "Hash de integridad registrado",
-            "teaser": {
-                "title": "Registro de auditoría de seguridad",
-                "description": "Consulta cada inicio de sesión, cambio de rol y cambio de ajustes de seguridad: a prueba de manipulaciones y exportable. Disponible en el plan Pro.",
-                "cta": "Mejorar a Pro"
-            },
             "table": {
                 "actor": "Actor",
                 "action": "Acción",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Panel",
             "agents": "Agentes",
-            "usage": "Uso",
             "ask_your_data": "Consulta tus datos",
-            "billing": "Facturación",
-            "support": "Soporte",
             "teams": "Equipos",
             "documentation": "Documentación",
             "api": "API",
-            "nav_menu_sr": "Menú de navegación",
-            "upgrade": "Mejorar plan",
-            "subscribed": "Estás suscrito"
+            "nav_menu_sr": "Menú de navegación"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Fuentes de conocimiento, documentos y archivos subidos",
             "removes_team": "Tu equipo, chatters, claves API y conectores",
             "agents_will_delete": "{count} agente se eliminará permanentemente: | {count} agentes se eliminarán permanentemente:",
-            "subscription_cancel": "Tu suscripción activa se cancelará y no se te cobrará más.",
             "email_confirmed": "Correo confirmado. Este es tu último paso — no hay vuelta atrás después de esto.",
             "delete_button": "Eliminar permanentemente mi cuenta",
             "final_dialog_title": "¿Eliminar permanentemente tu cuenta?",
             "final_dialog_description": "Esto eliminará permanentemente tu cuenta y todos sus datos, y no se puede deshacer.",
-            "final_dialog_subscription": "Tu suscripción también se cancelará.",
             "final_confirm": "Sí, eliminar todo",
             "check_email": "Revisa tu correo — te enviamos un enlace de confirmación para finalizar la eliminación de tu cuenta. Expira en 30 minutos. Abre el enlace para continuar.",
             "resend_link": "Enviar el enlace de nuevo",
@@ -3906,7 +3344,6 @@
         "enable_feature": "Activar {title}",
         "enabling": "Activando…",
         "enable_now": "Activar ahora",
-        "upgrade_now": "Mejorar plan",
         "chat_title_fallback": "Chat",
         "more_options": "Más opciones",
         "delete_confirmation_title": "Confirmar eliminación",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Subir archivos",
             "description_default": "Agrega archivos para analizar",
-            "quota_label_default": "páginas",
             "file_count": "{current} / {max} archivos",
-            "quota_limit_reached_alert": "Has alcanzado tu límite de {quotaLimit} {quotaLabel}. Mejora tu plan para procesar más documentos.",
             "drop_zone_file_limit_reached": "Límite de archivos alcanzado",
-            "drop_zone_quota_limit_reached": "Límite de {quotaLabel} alcanzado",
             "drop_zone_select_files": "Seleccionar archivos",
             "drop_zone_max_files_hint": "Máximo {max} archivos permitidos. Elimina algunos para agregar más.",
-            "drop_zone_quota_exhausted_hint": "Has usado todos los {quotaLimit} {quotaLabel}. Mejora tu plan para continuar.",
-            "drop_zone_unavailable": "Carga no disponible",
             "drop_zone_default_hint": "Arrastra y suelta o haz clic para seleccionar archivos",
-            "total_quota": "{count} {label} en total",
-            "exceeds_quota": "Supera la cuota en {amount} {quotaLabel}",
             "clear_failed": "Limpiar fallidos",
             "clear_all": "Limpiar todo",
             "badge_analyzed": "Analizado",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Consulta análisis de producto — eventos, gráficos y cohortes — desde tu proyecto de Amplitude."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Bienvenido a Chatvia",
-            "intro": "Vamos a crear tu primer agente de IA. Solo te llevará un minuto.",
-            "what_title": "¿Qué es un agente?",
-            "what_body": "Un agente es un asistente de IA que entrenas con tu propio contenido. Responde a tus clientes en tu sitio web, en el widget de chat y en las aplicaciones de mensajería.",
-            "how_title": "¿Cómo funciona?",
-            "how_body": "Primero creas un agente y le das un nombre. Luego lo entrenas con tus archivos, sitios web y textos para que pueda responder preguntas.",
-            "start": "Crear mi primer agente",
-            "video_caption": "Mira cómo funciona"
         }
     }
 }

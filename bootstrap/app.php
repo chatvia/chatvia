@@ -1,20 +1,16 @@
 <?php
 
-use App\Http\Middleware\Access\EnsureAgentHasMessagesCapacity;
 use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
-use App\Http\Middleware\Access\EnsureUserHasCapability;
-use App\Http\Middleware\Access\EnsureUserHasSubscription;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
 use App\Http\Middleware\Auth\AuthenticateChatter;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
 use App\Http\Middleware\Auth\RedirectIfChatterAuthenticated;
-use App\Http\Middleware\Auth\RequirePasswordSetup;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectToAgent;
@@ -23,7 +19,6 @@ use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
-use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -31,13 +26,9 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
-use Mcamara\LaravelLocalization\Middleware\LaravelLocalizationRedirectFilter;
-use Mcamara\LaravelLocalization\Middleware\LocaleSessionRedirect;
 use Spatie\LaravelFlare\Facades\Flare;
 use Support\Exceptions\DomainValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
@@ -72,7 +63,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
             RedirectToAgent::class,
             HandleAppearance::class,
             SetLocale::class,
-            RequirePasswordSetup::class,
             EnsureWorkspaceNetworkAllowed::class,
             // Also covers the hosted chat: chat routes run the `web` group too.
             // CSP_MODE (config/chatvia.php) picks off / report-only / enforce.
@@ -89,7 +79,6 @@ $app = Application::configure(basePath: dirname(__DIR__))
             AuthenticateChatViaSignInToken::class,
             LogoutDeactivatedUser::class,
             EnsureChatIsAccessible::class,
-            EnsureAgentHasMessagesCapacity::class,
             ChatHandleInertiaRequests::class,
         ]);
 
@@ -97,27 +86,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'auth.chatter' => AuthenticateChatter::class,
             'guest.chatter' => RedirectIfChatterAuthenticated::class,
             'can.access.agent' => EnsureUserCanAccessAgent::class,
-            'user.subscribed' => EnsureUserHasSubscription::class,
             'api.owner' => EnsureApiWorkspaceOwner::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
-            'capability' => EnsureUserHasCapability::class,
-            'features' => EnsureFeaturesAreActive::class,
             'agent.permission' => EnsureAgentPermission::class,
             'team.permission' => EnsureTeamPermission::class,
-            // Public-site localization (mcamara/laravel-localization): browser-detect
-            // + redirect to the matching `/ar` URL, persisting the choice in session.
-            'localeSessionRedirect' => LocaleSessionRedirect::class,
-            'localizationRedirect' => LaravelLocalizationRedirectFilter::class,
         ]);
 
         // Exempt only endpoints that the session cookie doesn't authenticate:
-        // the embeddable widget (token auth) and server-to-server webhooks
-        // (Stripe). The hosted chat (/chat/*) is cookie-authenticated,
-        // so it keeps CSRF protection: its frontend sends the XSRF-TOKEN cookie
-        // back as the X-XSRF-TOKEN header.
+        // the embeddable widget (token auth). The hosted chat (/chat/*) is
+        // cookie-authenticated, so it keeps CSRF protection: its frontend sends
+        // the XSRF-TOKEN cookie back as the X-XSRF-TOKEN header.
         $middleware->preventRequestForgery(except: [
             '/widget/*',
-            '/stripe/*',
         ]);
 
         // Set TRUSTED_PROXIES to a comma-separated list of upstream IPs/CIDRs (e.g. Cloudflare).
@@ -147,13 +127,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
             $e->field => [$e->getMessage()],
         ]));
 
-        // A visitor asked for a human operator on an agent whose plan or
-        // live-chat toggle does not allow it.
+        // A visitor asked for a human operator on an agent whose live-chat
+        // toggle does not allow it.
         $exceptions->map(fn (HandoffUnavailableException $e): AccessDeniedHttpException => new AccessDeniedHttpException($e->getMessage(), $e));
-
-        // A workspace with no free seat asked for another chatter: 402 so API
-        // clients can show an upgrade prompt.
-        $exceptions->map(fn (ChatterQuotaExceededException $e): HttpException => new HttpException(402, $e->getMessage(), $e));
     })->create();
 
 // DDD layout: the Laravel framework surface lives at src/App/ rather than

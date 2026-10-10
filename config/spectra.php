@@ -604,8 +604,8 @@ return [
         | Whether to enable budget checking and enforcement. When disabled,
         | budget limits will not be checked and all requests will be allowed.
         |
-        | Off by default: Chatvia meters usage through its own message credits,
-        | not Spectra budgets. `spectra_budgets.budgetable_id` is a uuid
+        | Off by default: Chatvia limits usage through its own monthly message
+        | limits, not Spectra budgets. `spectra_budgets.budgetable_id` is a uuid
         | morph, while requests are attributed to integer-keyed Users, so
         | enabling this makes Spectra's post-request budget lookup (added in
         | v1.3) fail with "invalid input syntax for type uuid".

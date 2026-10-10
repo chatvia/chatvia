@@ -11,6 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { resetPassword } from '@/routes/people/chatters';
 import { router } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -40,7 +41,7 @@ const confirmReset = () => {
     const target = props.member;
     isResetting.value = true;
     router.post(
-        route('people.chatters.reset-password', { chatter: target.external_id }),
+        resetPassword.url(target.external_id),
         {},
         {
             preserveScroll: true,

@@ -2,7 +2,6 @@
 
 namespace Domain\Conversation\Actions\Handoff;
 
-use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
@@ -16,7 +15,7 @@ use Domain\Conversation\Models\Conversation;
 class RequestHandoffAction
 {
     /**
-     * @throws HandoffUnavailableException when the plan or the agent's live-chat toggle does not allow handoff
+     * @throws HandoffUnavailableException when the agent's live-chat toggle does not allow handoff
      */
     public function execute(Conversation $conversation): HandoffStatus
     {
@@ -34,22 +33,14 @@ class RequestHandoffAction
     }
 
     /**
-     * The visitor endpoint has no signed-in user, so the plan gate cannot live
-     * in route middleware: it is checked here against the plan of the team
-     * that owns the agent. Live chat is widget-only, so the agent's widget
-     * toggle can also switch it off on a capable plan.
+     * Live chat is widget-only, so the agent's widget toggle can switch it off.
      */
     private function ensureHandoffIsAvailable(Conversation $conversation): void
     {
         $agent = $conversation->agent;
+        $widgetSettings = $agent?->settings('widget');
 
-        if ($agent === null || ! ($agent->team?->hasCapability(Capability::Handoff) ?? false)) {
-            throw HandoffUnavailableException::notOnPlan();
-        }
-
-        $widgetSettings = $agent->settings('widget');
-
-        if ($widgetSettings !== null && ! ($widgetSettings['handoff_enabled'] ?? true)) {
+        if ($agent === null || ($widgetSettings !== null && ! ($widgetSettings['handoff_enabled'] ?? true))) {
             throw HandoffUnavailableException::liveChatDisabled();
         }
     }

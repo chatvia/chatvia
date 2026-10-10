@@ -44,8 +44,8 @@ class StoreAttachmentAction
     }
 
     /**
-     * Page count for PDFs, captured here so page-based billing can read it back
-     * without re-downloading the file from S3. Non-PDFs and files pdfinfo can't
+     * Page count for PDFs, captured here so it can be shown with the file
+     * without re-downloading it from S3. Non-PDFs and files pdfinfo can't
      * read return null — validation already gates real PDFs, so this only ever
      * fails soft on an edge case rather than 500-ing the upload.
      */

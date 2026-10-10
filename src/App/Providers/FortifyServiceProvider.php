@@ -80,7 +80,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/Login', [
             'canResetPassword' => true,
             // Shows the "Create an account" link when self-serve sign-up is open.
-            'canRegister' => (bool) config('billing.registration_enabled', false),
+            'canRegister' => (bool) (config('chatvia.registration_enabled') ?? true),
             'status' => $request->session()->get('status'),
         ]));
 

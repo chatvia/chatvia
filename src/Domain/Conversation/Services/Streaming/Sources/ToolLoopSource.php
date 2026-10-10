@@ -311,7 +311,6 @@ abstract class ToolLoopSource
         $guard = $this->tokenUsage->track(
             $context->requestData->agent->user_id,
             fn (): GuardResultData => $this->guardrails->inspectOutput($context->requestData->agent, $original),
-            'guardrail',
         );
 
         if (! $guard->triggered()) {

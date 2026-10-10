@@ -2,16 +2,16 @@
 
 namespace Domain\Conversation\Actions\Retention;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Conversation\Data\Retention\ConversationPruneResultData;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Services\ConversationRetention;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
  * The daily conversation retention sweep. Soft-deletes conversations past
- * their retention — a workspace's shorter override, or the plan horizon
+ * their retention — a workspace's shorter override, or the install's horizon
  * stamped on `expires_at` — then hard-deletes those soft-deleted longer than
  * the grace window, so the chat tables really shrink, and removes anonymous
  * sessions left empty.
@@ -38,17 +38,17 @@ class PruneExpiredConversationsAction
     }
 
     /**
-     * Workspaces that shortened conversation retention below their plan
+     * Workspaces that shortened conversation retention below the install's
      * (WorkspaceSecurityPolicy.retention_conversations_days): their
      * conversations idle past the override are deleted, anchored on
-     * updated_at like the plan's sliding window. The window is clamped to the
-     * configured floor and to the workspace's CURRENT plan ceiling, so a stale
-     * override left behind by a downgrade never keeps data longer than the new
-     * plan allows.
+     * updated_at like the install's sliding window. The window is clamped to
+     * the configured floor and to the install's CURRENT retention, so an
+     * override saved before the admin lowered it never keeps data longer.
      */
     private function pruneWorkspaceOverrides(int $chunk): int
     {
         $floor = (int) config('chatvia.retention.conversations_floor_days', 1);
+        $ceiling = ConversationRetention::days();
 
         $overrides = WorkspaceSecurityPolicy::query()
             ->whereNotNull('retention_conversations_days')
@@ -58,17 +58,10 @@ class PruneExpiredConversationsAction
             return 0;
         }
 
-        $workspaces = User::query()->whereIn('id', $overrides->keys())->get()->keyBy('id');
         $deleted = 0;
 
         foreach ($overrides as $workspaceId => $days) {
-            $workspace = $workspaces->get($workspaceId);
-
-            if ($workspace === null) {
-                continue;
-            }
-
-            $retentionDays = min(max($floor, (int) $days), (int) $workspace->capabilities->retentionDays);
+            $retentionDays = min(max($floor, (int) $days), $ceiling);
 
             $deleted += $this->deleteEach(
                 Conversation::query()

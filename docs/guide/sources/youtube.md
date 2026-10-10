@@ -31,8 +31,7 @@ Videos with team-uploaded captions index more cleanly than auto-captioned ones. 
 
 ## Limits
 
-- Max video length: 4 hours per video (most plans).
-- Max videos per agent depends on plan.
+- Max video length: 4 hours per video.
 - Live streams and members-only videos are not supported.
 
 ## Metadata

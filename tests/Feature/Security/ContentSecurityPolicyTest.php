@@ -33,7 +33,7 @@ describe('enforce mode', function (): void {
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // The app deliberately ships a minimal CSP (no script-src/style-src
-        // allowlist): it requires 'unsafe-inline' (Alpine, AOS, Ziggy @routes,
+        // allowlist): it requires 'unsafe-inline' (Alpine, AOS,
         // inline handlers) which a nonce would silently disable, and the
         // allowlist kept breaking on new CDN/font/Turnstile/Stripe/Vite origins.
         // What remains are the high-value directives that never fight asset
@@ -47,11 +47,9 @@ describe('enforce mode', function (): void {
             ->not->toContain('connect-src');
     });
 
-    it('lets the trial sign-up form redirect to Stripe Checkout', function (): void {
-        // The form POSTs to us and we 302 to Stripe; browsers check that
-        // redirect against form-action.
+    it('lets forms post only to this app', function (): void {
         expect($this->get('/_csp-probe')->headers->get('Content-Security-Policy'))
-            ->toContain('https://checkout.stripe.com');
+            ->not->toContain('https://checkout.stripe.com');
     });
 
     it('frames the dashboard same-origin only (clickjacking)', function (): void {

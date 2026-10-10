@@ -2,7 +2,6 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserCredit;
 use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\ChannelReplyRunner;
 use Domain\Conversation\Enums\ConversationSource;
@@ -26,26 +25,6 @@ function rateLimitedChannelAgent(): Agent
 {
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
-
-    $priceId = 'price_test_pro_'.Str::random(6);
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
-    $owner->billing()->firstOrCreate([]);
-    $owner->refresh();
-    $owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => $priceId,
-        'quantity' => 1,
-    ]);
-    $owner->refresh();
-
-    UserCredit::factory()->create([
-        'user_id' => $owner->id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
 
     $agent = Agent::create([
         'user_id' => $owner->id,

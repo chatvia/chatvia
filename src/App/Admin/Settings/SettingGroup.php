@@ -2,16 +2,16 @@
 
 namespace App\Admin\Settings;
 
+use Domain\Conversation\Services\ConversationRetention;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Route;
 use LogicException;
-use NumberFormatter;
 
 /**
  * A set of values an admin manages together in Settings: usually the
- * credentials of one third-party app or API key, or the billing options. Each
- * field overrides one config key, so the code that reads `config('services.…')`
- * or `config('billing.…')` needs no change. The value is the
+ * credentials of one third-party app or API key, or the workspace options.
+ * Each field overrides one config key, so the code that reads
+ * `config('services.…')` or `config('chatvia.…')` needs no change. The value is the
  * `admin_settings.key` of the group's row, so never rename a case value.
  */
 enum SettingGroup: string
@@ -44,8 +44,7 @@ enum SettingGroup: string
     case BoxConnector = 'box-connector';
     case AsanaConnector = 'asana-connector';
 
-    case Billing = 'billing';
-    case Stripe = 'stripe';
+    case Workspaces = 'workspaces';
 
     case Resend = 'resend';
     case Turnstile = 'turnstile';
@@ -58,7 +57,7 @@ enum SettingGroup: string
             self::Messenger, self::Instagram, self::Whatsapp => SettingCategory::Channels,
             self::Scaleway, self::Mistral, self::OpenRouter, self::Groq, self::Cohere, self::Jina => SettingCategory::Ai,
             self::Firecrawl, self::ChunkFit => SettingCategory::Knowledge,
-            self::Billing, self::Stripe => SettingCategory::Billing,
+            self::Workspaces => SettingCategory::Workspaces,
             self::Resend, self::Turnstile, self::Ip2Location => SettingCategory::Platform,
             default => SettingCategory::Connectors,
         };
@@ -83,8 +82,7 @@ enum SettingGroup: string
             self::Jina => 'Jina',
             self::Firecrawl => 'Firecrawl',
             self::ChunkFit => 'chunk.fit',
-            self::Billing => 'Billing',
-            self::Stripe => 'Stripe',
+            self::Workspaces => 'Workspaces',
             self::Resend => 'Resend',
             self::Turnstile => 'Cloudflare Turnstile',
             self::Ip2Location => 'IP2Location',
@@ -120,8 +118,7 @@ enum SettingGroup: string
             self::Jina => 'Embeddings.',
             self::Firecrawl => 'Imports websites as knowledge sources.',
             self::ChunkFit => 'Hosted text splitter for documents.',
-            self::Billing => 'Paid plans on or off, sign-up, free trial, currency and discount.',
-            self::Stripe => 'Payments, subscriptions and the billing webhook.',
+            self::Workspaces => 'Open sign-up, the message limit of new workspaces and how long conversations are kept.',
             self::Resend => 'Sends email when MAIL_MAILER is resend.',
             self::Turnstile => 'Bot check on the public contact form.',
             self::Ip2Location => 'Finds the country of a visitor from their IP address.',
@@ -144,8 +141,7 @@ enum SettingGroup: string
             self::Whatsapp => asset('images/logos/channels/whatsapp.svg'),
             self::Mistral => asset('images/llms/mistral.svg'),
             self::Cohere => asset('images/llms/cohere.svg'),
-            self::Stripe => asset('images/logos/connectors/stripe.svg'),
-            self::Billing => Heroicon::OutlinedBanknotes,
+            self::Workspaces => Heroicon::OutlinedBuildingOffice2,
             self::Scaleway => Heroicon::OutlinedCpuChip,
             self::OpenRouter => Heroicon::OutlinedArrowsRightLeft,
             self::Groq => Heroicon::OutlinedBolt,
@@ -180,14 +176,7 @@ enum SettingGroup: string
             self::Jina => [SettingField::secret('api_key', 'API key', 'services.jina.api_key')],
             self::Firecrawl => [SettingField::secret('api_key', 'API key', 'services.firecrawl.key')],
             self::ChunkFit => [SettingField::secret('api_key', 'API key', 'services.chunkfit.api_key')],
-            self::Billing => $this->billing(),
-            self::Stripe => [
-                SettingField::text('key', 'Publishable key', 'cashier.key', required: true, rules: ['starts_with:pk_']),
-                SettingField::secret('secret', 'Secret key', 'cashier.secret', rules: ['starts_with:sk_,rk_'],
-                    help: 'A secret key (sk_) or a restricted key (rk_).'),
-                SettingField::secret('webhook_secret', 'Webhook signing secret', 'cashier.webhook.secret', rules: ['starts_with:whsec_'],
-                    help: 'With billing on, production refuses web requests until it is set.'),
-            ],
+            self::Workspaces => $this->workspaces(),
             self::Resend => [SettingField::secret('api_key', 'API key', 'services.resend.key')],
             self::Turnstile => [
                 SettingField::text('site_key', 'Site key', 'services.turnstile.key', required: true),
@@ -220,7 +209,6 @@ enum SettingGroup: string
             self::Firecrawl => 'https://www.firecrawl.dev/app/api-keys',
             self::BoxConnector => 'https://app.box.com/developers/console',
             self::AsanaConnector => 'https://app.asana.com/0/my-apps',
-            self::Stripe => 'https://dashboard.stripe.com/apikeys',
             self::Resend => 'https://resend.com/api-keys',
             self::Turnstile => 'https://dash.cloudflare.com/?to=/:account/turnstile',
             self::Ip2Location => 'https://www.ip2location.io/dashboard',
@@ -244,11 +232,10 @@ enum SettingGroup: string
             self::Messenger => ['OAuth redirect' => 'channels.messenger.callback', 'Webhook callback URL' => 'messenger.webhook'],
             self::Instagram => ['OAuth redirect' => 'channels.instagram.callback', 'Webhook callback URL' => 'instagram.webhook'],
             self::Whatsapp => ['Webhook callback URL' => 'whatsapp.webhook'],
-            self::Stripe => ['Webhook endpoint' => 'cashier.webhook'],
             default => $this->category() === SettingCategory::Connectors ? ['Redirect URL' => 'connectors.oauth.callback'] : [],
         };
 
-        // Cashier's webhook route only exists while billing is on.
+        // Only the routes this install has (a channel's routes may be off).
         return array_map(
             fn (string $name): string => route($name),
             array_filter($urls, fn (string $name): bool => Route::has($name)),
@@ -266,19 +253,6 @@ enum SettingGroup: string
     public function hasSecrets(): bool
     {
         return array_any($this->fields(), fn (SettingField $field): bool => $field->isSecret());
-    }
-
-    /**
-     * A caution shown above the form, for a group whose change has effects
-     * outside this app.
-     */
-    public function warning(): ?string
-    {
-        return match ($this) {
-            self::Billing => 'Turning paid plans off removes the plan limits and stops all charging inside the app. '
-                .'It does not cancel subscriptions in Stripe. Stripe keeps charging them until you cancel them in the Stripe dashboard.',
-            default => null,
-        };
     }
 
     /**
@@ -339,57 +313,21 @@ enum SettingGroup: string
     }
 
     /**
-     * Paid plans, sign-up, trial, currency and discount. A fresh install has
-     * paid plans off, so it runs free without a Stripe account.
+     * Sign-up, the message limit a new workspace starts with, and how long
+     * conversations are kept. A fresh install has open sign-up and no limit.
      *
      * @return list<SettingField>
      */
-    private function billing(): array
+    private function workspaces(): array
     {
         return [
-            SettingField::toggle('enabled', 'Paid plans', 'billing.enabled', default: false,
-                help: 'On: workspaces choose a plan and pay with Stripe. Off: every workspace gets every feature, with no limits, and the billing pages are hidden.'),
-            SettingField::toggle('registration_enabled', 'Open sign-up', 'billing.registration_enabled',
-                default: fn (array $earlier): bool => ! $earlier['enabled'],
-                help: 'Anyone can create an account at /register. With paid plans on, people normally sign up through the trial checkout, so keep this off.'),
-            SettingField::integer('trial_days', 'Free trial days', 'billing.trial.days', default: 7, min: 0, max: 730,
-                help: 'The free trial of a new subscription. 0 means no trial.'),
-            SettingField::select('currency', 'Currency', 'billing.currency', options: [
-                'eur' => 'Euro (EUR)',
-                'usd' => 'US dollar (USD)',
-                'gbp' => 'British pound (GBP)',
-                'chf' => 'Swiss franc (CHF)',
-                'sek' => 'Swedish krona (SEK)',
-                'nok' => 'Norwegian krone (NOK)',
-                'dkk' => 'Danish krone (DKK)',
-                'pln' => 'Polish złoty (PLN)',
-                'czk' => 'Czech koruna (CZK)',
-                'huf' => 'Hungarian forint (HUF)',
-                'ron' => 'Romanian leu (RON)',
-            ], default: 'eur', help: 'Use the currency of your plan prices in Stripe.', alsoFills: [
-                'cashier.currency' => fn (mixed $currency): mixed => $currency,
-                'billing.currency_symbol' => fn (mixed $currency): string => self::currencySymbol((string) $currency),
-            ]),
-            SettingField::integer('unlimited_retention_days', 'Days to keep conversations', 'billing.unlimited_retention_days', default: 366, min: 1,
-                help: 'Used while paid plans are off. With paid plans on, each plan has its own number of days.'),
-            SettingField::integer('discount_percentage', 'Discount (%)', 'billing.discount.percentage', default: 0, min: 0, max: 100,
-                help: 'Shown on the plans page. It does not change what Stripe charges: for that, add a coupon in Stripe. 0 means no discount.'),
-            SettingField::date('discount_ends_at', 'Discount end date', 'billing.discount.ends_at',
-                help: 'The discount is shown until this day starts. Leave empty for no end date.'),
-            SettingField::integer('auto_recharge_max_per_day', 'Automatic top-ups per day', 'billing.addons.auto_recharge_credits.max_per_day', default: 3, min: 1,
-                help: 'The most automatic credit top-ups one workspace can have in 24 hours. This limits the charges when a widget gets a lot of abusive traffic.'),
+            SettingField::toggle('registration_enabled', 'Open sign-up', 'chatvia.registration_enabled', default: true,
+                help: 'Anyone can create a workspace at /register. When off, the sign-up page is closed.'),
+            SettingField::integer('new_workspace_message_limit', 'Monthly message limit of new workspaces', 'chatvia.message_limits.new_workspace', default: 0, min: 0,
+                help: 'How many agent replies a new workspace can get each month. 0 means no limit. To change the limit of one workspace, open it under Workspaces.'),
+            SettingField::integer('retention_days', 'Days to keep conversations', 'chatvia.retention.conversations_days', default: ConversationRetention::DEFAULT_DAYS, min: 1,
+                help: 'Older conversations are deleted. A workspace can choose fewer days in its security settings.'),
         ];
-    }
-
-    /**
-     * The symbol shown before prices: € for eur, but SEK for sek.
-     */
-    private static function currencySymbol(string $currency): string
-    {
-        $locale = (string) config('cashier.currency_locale', 'en');
-        $formatter = new NumberFormatter($locale.'@currency='.strtoupper($currency), NumberFormatter::CURRENCY);
-
-        return $formatter->getSymbol(NumberFormatter::CURRENCY_SYMBOL) ?: strtoupper($currency);
     }
 
     /**

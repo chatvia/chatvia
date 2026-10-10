@@ -57,35 +57,6 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info("Demo user: {$user->email}");
 
-        // Create or update user quota (for showcase purposes, give generous limits)
-        $user->quota()->updateOrCreate(
-            [],
-            [
-                'agents_limit' => 100,
-                'pages_limit' => 10000,
-                'links_limit' => 1000,
-                'minutes_limit' => 100000,
-                'custom_domains_limit' => 10,
-                'workspace_users_limit' => 50,
-                'teams_limit' => 10,
-            ]
-        );
-
-        $this->command->info('User quota configured');
-
-        // Create or update user credit (for showcase purposes, give generous credit)
-        $user->credit()->updateOrCreate(
-            [
-                'started_at' => now()->startOfDay(),
-            ],
-            [
-                'messages' => 1000000, // 1 million messages
-                'ends_at' => now()->addYear(),
-            ]
-        );
-
-        $this->command->info('User credit configured');
-
         // Get or create primary team
         $team = $user->primaryTeam();
         if (! $team) {

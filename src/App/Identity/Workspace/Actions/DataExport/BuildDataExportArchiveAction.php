@@ -10,15 +10,10 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Prompt\Models\AgentPrompt;
-use Domain\Billing\Models\UserAddon;
-use Domain\Billing\Models\UserCredit;
-use Domain\Billing\Models\UserQuota;
-use Domain\Billing\Models\UserUsage;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
-use Domain\Helpdesk\Models\Ticket;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -79,9 +74,8 @@ class BuildDataExportArchiveAction
             $this->writeKnowledge($zip, $user);
             $this->writeConversationsAndMessages($zip, $user);
             $this->writeTeams($zip, $user);
-            $this->writeBilling($zip, $user);
+            $this->writeMessageLimit($zip, $user);
             $this->writeApiKeys($zip, $user);
-            $this->writeTickets($zip, $user);
             $this->copyConversationAttachments($zip, $user);
             $this->copyKnowledgeFiles($zip, $user);
 
@@ -142,11 +136,10 @@ Contents
 - conversations.json        all conversations across your agents
 - messages.json             all messages within those conversations
 - teams.json                teams you own or belong to
-- billing.json              billing, credit and usage records
+- message-limit.json        your monthly message limit, if one is set
 - api-keys.json             personal access tokens (metadata only — the
                             secret value of an API token is never stored
                             in plaintext and therefore cannot be exported)
-- tickets.json              support tickets you have opened
 - attachments/              binary files you uploaded
 
 This export will be available for 24 hours, then it will be deleted from
@@ -265,21 +258,10 @@ TXT;
         ]);
     }
 
-    private function writeBilling(ZipArchive $zip, User $user): void
+    private function writeMessageLimit(ZipArchive $zip, User $user): void
     {
-        $billing = $user->billing()->first()?->toArray();
-        $credits = UserCredit::query()->where('user_id', $user->id)->get()->toArray();
-        $creditIds = array_column($credits, 'id');
-        $usages = UserUsage::query()->whereIn('user_credit_id', $creditIds)->get()->toArray();
-        $addons = UserAddon::query()->where('user_id', $user->id)->get()->toArray();
-        $quota = UserQuota::query()->where('user_id', $user->id)->first()?->toArray();
-
-        $this->putJson($zip, 'billing.json', [
-            'billing' => $billing,
-            'credits' => $credits,
-            'usages' => $usages,
-            'addons' => $addons,
-            'quota' => $quota,
+        $this->putJson($zip, 'message-limit.json', [
+            'message_limit' => $user->messageLimit()->first()?->toArray(),
         ]);
     }
 
@@ -296,12 +278,6 @@ TXT;
             ->toArray();
 
         $this->putJson($zip, 'api-keys.json', $tokens);
-    }
-
-    private function writeTickets(ZipArchive $zip, User $user): void
-    {
-        $this->putJson($zip, 'tickets.json',
-            Ticket::query()->where('user_id', $user->id)->get()->toArray());
     }
 
     private function copyConversationAttachments(ZipArchive $zip, User $user): void

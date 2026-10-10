@@ -11,6 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { destroy as destroyChatter } from '@/routes/people/chatters';
 import { router } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -39,7 +40,7 @@ const confirmDelete = () => {
     if (!props.member) return;
     const target = props.member;
     isDeleting.value = true;
-    router.delete(route('people.chatters.destroy', { chatter: target.external_id }), {
+    router.delete(destroyChatter.url(target.external_id), {
         preserveScroll: true,
         onSuccess: () => {
             emit('deleted', target);

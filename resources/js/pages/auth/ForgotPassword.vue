@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import { login } from '@/routes';
+import { email as sendResetLink } from '@/routes/password';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Mail } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -21,7 +23,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.email'));
+    form.post(sendResetLink.url());
 };
 </script>
 
@@ -77,7 +79,7 @@ const submit = () => {
             <div class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
                     {{ t('auth.forgot_password.return_to') }}
-                    <TextLink :href="route('login')" class="text-primary hover:text-primary/80 ms-1 font-semibold">
+                    <TextLink :href="login.url()" class="text-primary hover:text-primary/80 ms-1 font-semibold">
                         {{ t('auth.forgot_password.log_in') }}
                     </TextLink>
                 </p>

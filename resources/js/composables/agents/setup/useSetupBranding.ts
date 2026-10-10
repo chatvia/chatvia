@@ -6,6 +6,7 @@
  * an optimistic preview that is rolled back if the upload fails.
  */
 import { deleteAppearanceImage, uploadAppearanceImage, type AppearanceImage } from '@/api/agentSetup';
+import { update as updateSettings } from '@/routes/agents/settings';
 import { router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -15,7 +16,7 @@ import { submitSetupForm, type SetupSectionDeps } from './submitSetupForm';
 
 export function useSetupBranding({ agentId, reloadPreview }: SetupSectionDeps, appearance: SettingsReader, latestAppearance: () => SettingsGroup) {
     const { t } = useI18n();
-    const settingsUrl = () => route('agents.settings.update', { agent: agentId(), group: 'appearance' });
+    const settingsUrl = () => updateSettings.url({ agent: agentId(), group: 'appearance' });
 
     const brandingForm = useForm({
         color_theme: appearance.string('color_theme', 'black'),

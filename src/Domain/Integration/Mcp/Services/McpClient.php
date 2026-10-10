@@ -157,12 +157,14 @@ class McpClient
     {
         $httpMethod = $payload === null ? 'DELETE' : 'POST';
         $body = $payload === null ? '' : json_encode($payload, JSON_THROW_ON_ERROR);
+        $firstParty = $this->isFirstPartyServer($server);
+        $url = $firstParty ? InternalMcpSignature::transportUrl($server->url) : $server->url;
 
-        $request = $this->request($server, $sessionId, $identityHeaders, $httpMethod, $body);
+        $request = $this->request($server, $firstParty, $url, $sessionId, $identityHeaders, $httpMethod, $body);
 
         return $payload === null
-            ? $request->delete($server->url)
-            : $request->withBody($body, 'application/json')->post($server->url);
+            ? $request->delete($url)
+            : $request->withBody($body, 'application/json')->post($url);
     }
 
     /**
@@ -175,10 +177,8 @@ class McpClient
      *
      * @param  array<string, string>  $identityHeaders
      */
-    private function request(AgentMcpServer $server, ?string $sessionId, array $identityHeaders, string $httpMethod, string $body): PendingRequest
+    private function request(AgentMcpServer $server, bool $firstParty, string $url, ?string $sessionId, array $identityHeaders, string $httpMethod, string $body): PendingRequest
     {
-        $firstParty = $this->isFirstPartyServer($server);
-
         $headers = [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json, text/event-stream',
@@ -194,8 +194,13 @@ class McpClient
         // SSRF guard: a custom MCP server URL is user-supplied. Re-validate at
         // dispatch time (DNS can change since save), connect to the address
         // that was checked, and disable redirects so a public host can't 30x
-        // into internal infrastructure. Skipped in local.
-        $clientOptions = SafeUrl::pinnedClientOptions($server->url);
+        // into internal infrastructure. Skipped in local. One of our own
+        // servers sent to the internal URL is the exception: that address is
+        // the operator's config, not a workspace's input, and a private one
+        // (a container network) is the point.
+        $clientOptions = $url === $server->url
+            ? SafeUrl::pinnedClientOptions($server->url)
+            : SafeUrl::clientOptions();
 
         // Identity headers are stamped last so a server's custom headers
         // can't shadow them.

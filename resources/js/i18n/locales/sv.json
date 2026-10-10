@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Du har nått din meddelandegräns",
-        "upgrade_prompt": "Uppgradera ditt abonnemang för att fortsätta chatta",
         "regenerate_failed": "Det gick inte att generera om svaret. Försök igen.",
         "loading_conversation": "Laddar konversation",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "Servern returnerade status {status}.",
             "interrupted": "Anslutningen avbröts.",
             "malformed": "Tog emot ogiltiga data från servern."
-        }
+        },
+        "limit_resets_next_month": "Du kan skicka meddelanden igen nästa månad."
     },
     "messages": {
         "send": "Skicka",
@@ -140,11 +140,7 @@
         "edit_message": "Redigera meddelande"
     },
     "errors": {
-        "subscription_expired": "Abonnemanget har gått ut",
-        "renew_subscription": "Förnya abonnemang",
         "message_limit_reached": "Meddelandegränsen har nåtts",
-        "token_limit_reached": "Token-användningsgränsen har nåtts",
-        "upgrade_plan": "Uppgradera abonnemang",
         "model_unavailable": "Modellen är inte tillgänglig",
         "too_many_requests": "För många förfrågningar",
         "connection_lost": "Anslutningen förlorades",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Granskningslogg",
             "head_title": "Granskning · {name}",
-            "description": "Varje åtgärd som den här agenten utför via verktyg och anslutningar — tillåten, godkänd, nekad eller hastighetsbegränsad — med argumenten, resultatet och vem som initierade den.",
-            "locked_description": "Granskningsloggen är tillgänglig i Pro-planen. Uppgradera för att se varje verktygs- och kopplingsåtgärd som den här agenten utför."
+            "description": "Varje åtgärd som den här agenten utför via verktyg och anslutningar — tillåten, godkänd, nekad eller hastighetsbegränsad — med argumenten, resultatet och vem som initierade den."
         },
         "channels": {
             "title": "Kanaler",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— svaret strömmas live"
                 },
                 "telegram": {
-                    "connected_description": "Användare kan skicka meddelanden till din bot på Telegram och din agent svarar automatiskt — fakturering, historik och skyddsregler gäller som vanligt.",
+                    "connected_description": "Användare kan skicka meddelanden till din bot på Telegram och din agent svarar automatiskt — meddelandegränser, historik och skyddsregler gäller som vanligt.",
                     "steps": {
                         "connect_1": "Öppna {botfather} i Telegram",
                         "connect_2": "Skicka {command} och följ anvisningarna",
@@ -446,7 +441,6 @@
                 "select_topic": "Välj ämne",
                 "select_sentiment": "Välj känsloläge",
                 "select_tone": "Välj ton",
-                "upgrade_to_unlock": "Uppgradera för att låsa upp",
                 "clear_all": "Rensa alla",
                 "close": "Tillämpa filter"
             },
@@ -486,14 +480,12 @@
                 "page_url": "Sidans URL",
                 "referrer": "Referens",
                 "locale": "Språkinställning",
-                "upgrade_to_unlock": "Uppgradera för att låsa upp",
                 "waiting": "Väntar på analys…",
                 "channel": "Kanal"
             },
             "pulse": {
                 "title": "Konversationspuls",
                 "select_conversation": "Välj en konversation för att visa puls",
-                "locked_description": "Uppgradera din plan för att låsa upp konversationspulsanalys.",
                 "refresh": "Uppdatera",
                 "no_messages_title": "Inte tillräckligt med meddelanden ännu",
                 "no_messages_hint": "Puls behöver minst ett användarmeddelande för att analysera känsloläge och ton över tid.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Stabil"
             },
             "handoff": {
-                "locked_description": "Uppgradera din plan för att ta över live-konversationer från chattloggen.",
                 "visitor": "Besökare",
                 "online": "Online",
                 "offline": "Offline",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "Blockerat ämne",
                 "toxicity": "Toxicitet"
-            },
-            "locked_description": "Skyddsräcken är tillgängliga i Standard- och Pro-planerna. Uppgradera för att styra vad din agent får diskutera och hur den hanterar känsligt innehåll."
+            }
         },
         "persona": {
             "title": "Persona",
@@ -849,7 +839,6 @@
                     "run_deleted": "Körning borttagen",
                     "history_cleared": "Körningshistorik rensad"
                 },
-                "locked_description": "Utvärderingar är tillgängliga i Standard- och Pro-planerna. Uppgradera för att testa och betygsätta agentens svar innan de når kunderna.",
                 "cost_note": "Att köra sviten kostar ett meddelande per aktivt fall, så den här körningen använder {count} meddelande. | Att köra sviten kostar ett meddelande per aktivt fall, så den här körningen använder {count} meddelanden."
             },
             "scorers": {
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Ton",
             "description": "Spåra hur besökare känner sig baserat på den känslomässiga tonen i deras meddelanden.",
-            "locked_description": "Uppgradera din plan för att låsa upp tonanalys.",
             "disabled_title": "Tonanalys är avstängd",
             "disabled_description": "Aktivera tonanalys för att se hur besökare känner sig i konversationer.",
             "blocked_reason": "Slå på chattloggning först — tonanalys kräver lagrade meddelanden.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Känsloläge",
             "description": "Spåra positivt, neutralt och negativt känsloläge i besökarnas meddelanden.",
-            "locked_description": "Uppgradera din plan för att låsa upp känslolägesanalys.",
             "disabled_title": "Känslolägesanalys är avstängd",
             "disabled_description": "Aktivera känslolägesanalys för att se hur besökare känner sig i konversationer.",
             "blocked_reason": "Slå på chattloggning först — känslolägesanalys kräver lagrade meddelanden.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Hantera ämnen",
                 "description": "Definiera ämnen som din agent bör känna igen och klassificera i konversationer.",
-                "locked_description": "Uppgradera din plan för att hantera konversationsämnen.",
                 "search_placeholder": "Sök ämnen…",
                 "add_topic": "Lägg till ämne",
                 "empty": "Inga ämnen ännu. Lägg till ett för att hjälpa din agent klassificera konversationer.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "Det gick inte att koppla bort {name}: {error}",
                 "deleted": "{name} har tagits bort.",
                 "delete_failed": "Det gick inte att ta bort {name}: {error}",
-                "usage_load_failed": "Det gick inte att läsa in användningsdata.",
                 "summary_only_completed": "Sammanfattning är bara tillgänglig för färdiga filer.",
                 "summary_none": "Ingen sammanfattning tillgänglig för den här filen.",
                 "summary_load_failed": "Det gick inte att läsa in filsammanfattningen.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Ladda upp ljudfiler",
                 "upload_title_video": "Ladda upp videofiler",
                 "upload_title_default": "Ladda upp nya dokument",
-                "quota_minutes": "minuter",
-                "quota_pages": "sidor",
                 "uploads_disabled": "Filuppladdningar är inaktiverade medan träning pågår",
                 "ready_to_train": "Redo att träna",
                 "uploaded_ready": "{count} fil uppladdad och redo för träning | {count} filer uppladdade och redo för träning",
-                "exceeds_quota": "Överskrider kvoten",
                 "clear_all": "Rensa alla",
                 "training": "Tränar...",
                 "train": "Träna",
@@ -1290,9 +1272,6 @@
                     "trained": "Tränad",
                     "failed": "Misslyckades"
                 },
-                "limit_all_used": "Du har använt alla {limit} länkar i din plan. Uppgradera för att träna fler länkar.",
-                "limit_critical": "Du har använt {used}/{limit} länkar ({percentage}%). Bara {remaining} länkar kvar för träning. Överväg att uppgradera din plan.",
-                "limit_warning": "Du har använt {used}/{limit} länkar ({percentage}%). {remaining} länkar kvar för träning.",
                 "load_failed": "Det gick inte att läsa in webbkällor.",
                 "error_enter_url": "Ange en webbadress.",
                 "error_invalid_url": "Ange en giltig URL (t.ex. https://example.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "Kan inte ta bort alla länkar. Minst en länk måste finnas kvar.",
                 "links_deleted": "Tog bort {count} länk. | Tog bort {count} länkar.",
                 "links_delete_failed": "Det gick inte att ta bort länkarna.",
-                "no_links_remaining": "Inga länkar kvar",
-                "no_links_remaining_description": "Uppgradera din plan för att träna webbplatser.",
-                "cannot_select": "Kan inte välja webbplats",
-                "cannot_select_description": "{links} länkar skulle överskrida din kvot med {exceedBy}. Avmarkera andra webbplatser eller uppgradera.",
-                "selected_count": "Valde {selected} av {total} webbplatser",
-                "selected_skipped": "{skipped} webbplats(er) hoppades över för att hålla sig inom din gräns på {remaining} länkar.",
                 "training_start_failed": "Det gick inte att starta träning för: {websites}",
                 "training_start_failed_all": "Det gick inte att starta träning för några webbplatser.",
                 "dialog_links_load_failed": "Det gick inte att läsa in länkar",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Crawler",
                 "crawler_description": "Hämta länkar från webbplatser för att crawla och inkludera i agentens kunskapsbas.",
                 "settings": "Inställningar",
-                "links_used": "{used} / {limit} länkar använda",
-                "links_remaining": "{remaining} kvar",
-                "upgrade_required": "Uppgradering krävs för att träna fler länkar",
-                "consider_upgrading": "Överväg att uppgradera",
                 "fetching": "Hämtar...",
                 "fetch_links": "Hämta länkar",
                 "crawl_settings": "Crawlinställningar",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} valda ({links} länkar)",
                 "no_websites_selected": "Inga webbplatser valda",
                 "train": "Träna",
-                "train_exceeds_quota": "Valda länkar ({selected}) överskrider din återstående kvot ({remaining})",
                 "links_badge": "{count} länkar",
-                "badge_upgrade_required": "Uppgradering krävs",
-                "badge_exceeds_quota": "Överskrider kvoten",
-                "no_links_remaining_plan": "Du har inga länkar kvar i din plan. Uppgradera för att träna den här webbplatsen.",
-                "website_exceeds_remaining": "Den här webbplatsen har {links} länkar, vilket skulle överskrida dina återstående {remaining} länkar. Avmarkera andra webbplatser först eller uppgradera din plan.",
                 "collapse_links": "Dölj hittade länkar",
                 "expand_links": "Visa hittade länkar",
                 "discovered_links": "Hittade länkar",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Skapa agent",
-            "limit_title": "Agentgräns nådd",
-            "limit_description": "Du har nått din agentgräns.",
-            "upgrade_plan": "Uppgradera plan",
             "name_label": "Agentnamn",
-            "name_placeholder": "T.ex. Kundsupport",
-            "load_error": "Det gick inte att läsa in användningsinformation",
-            "limit_toast_title": "Agentgräns nådd",
-            "limit_toast_description": "Du har nått din agentgräns."
+            "name_placeholder": "T.ex. Kundsupport"
         },
         "analytics": {
             "title": "Agentstatistik",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Anpassad domän",
                 "description": "Servera den här agentens Hosted Chat från din egen domän istället för {target}.",
-                "no_quota_title": "Anpassade domäner ingår inte i din nuvarande plan",
-                "no_quota_description": "Uppgradera till Pro eller prenumerera på tillägget Anpassad domän från {link} för att lägga till ditt eget värdnamn.",
-                "billing": "Fakturering",
-                "quota": "Använder {used} av {total} anpassad domän | Använder {used} av {total} anpassade domäner",
-                "add_more": "Lägg till fler",
                 "step1": "Steg 1 — Lägg till en CNAME-post hos din DNS-leverantör",
                 "type": "Typ",
                 "name": "Namn",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Ämnen",
             "description": "Analysera konversationsämnen och trender",
-            "locked_description": "Uppgradera din plan för att få tillgång till ämnesanalys och automatiskt identifiera och kategorisera konversationsämnen.",
             "disabled_title": "Ämnesanalys",
             "disabled_description": "Aktivera det för att automatiskt identifiera och gruppera vad dina besökare frågar om i konversationer.",
             "blocked_reason": "Chattloggen är avstängd, så det finns inget att analysera. Aktivera den under Inställningar → Konfiguration för att börja samla in ämnen.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Skickar länk...",
             "or_continue_with": "Eller fortsätt med",
             "no_account": "Har du inget konto?",
-            "start_free_trial": "Starta gratis provperiod",
             "create_account": "Skapa ett konto"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Välj ditt lösenord",
-            "description": "Ditt konto är redo. Välj ett lösenord för att slutföra konfigurationen.",
-            "head": "Välj ditt lösenord",
-            "email_label": "E-postadress",
-            "password_label": "Lösenord",
-            "password_placeholder": "Lösenord",
-            "confirm_password_label": "Bekräfta lösenord",
-            "confirm_password_placeholder": "Bekräfta lösenord",
-            "set_password": "Ange lösenord",
-            "setting_password": "Anger lösenord..."
-        },
         "login_member": {
             "description": "Logga in för att komma åt den här chattarbetsytan",
             "head": "Medlemsinloggning",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Se till att ditt sociala konto använder",
             "social_email_note_suffix": "— det måste matcha den här inbjudan."
         },
-        "invitation_invalid": {
-            "title": "Inbjudan otillgänglig",
-            "description": "Den här inbjudan kan inte accepteras",
-            "head": "Inbjudan otillgänglig",
-            "card_title": "Kan inte acceptera inbjudan",
-            "cannot_accept_prefix": "Inbjudan att gå med i",
-            "cannot_accept_suffix": "kan inte accepteras just nu.",
-            "contact_owner": "Kontakta teamägaren för att lösa det här problemet.",
-            "go_to_login": "Gå till inloggning"
-        },
         "invitation_expired": {
             "title": "Inbjudan har gått ut",
             "description": "Den här inbjudan är inte längre giltig",
@@ -2325,386 +2254,6 @@
             "card_title": "Inbjudan har gått ut",
             "contact_owner": "Kontakta teamägaren för att begära en ny inbjudan.",
             "go_to_login": "Gå till inloggning"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Fakturering",
-            "back_to_billing": "Tillbaka till fakturering",
-            "view_plans": "Visa planer",
-            "cancel": "Avbryt",
-            "processing": "Bearbetar...",
-            "not_available": "N/A"
-        },
-        "payment_success": {
-            "page_title": "Betalning genomförd",
-            "heading": "Betalning mottagen",
-            "description": "Tack! Din betalning har behandlats. Vi konfigurerar din prenumeration nu.",
-            "redirecting_prefix": "Omdirigerar om",
-            "redirecting_suffix": "sekunder...",
-            "go_to_billing": "Gå till fakturering nu"
-        },
-        "invoices": {
-            "breadcrumb": "Fakturor",
-            "page_title": "Fakturor",
-            "heading": "Fakturor",
-            "subheading": "Visa och ladda ned din faktureringshistorik och dina fakturor",
-            "history_title": "Faktureringshistorik",
-            "history_description": "Ladda ned kvitton och fakturor för dina prenumerationsbetalningar",
-            "invoice_number": "Faktura #{number}",
-            "status": {
-                "paid": "Betald",
-                "pending": "Väntar",
-                "failed": "Misslyckades"
-            },
-            "download_pdf": "Ladda ned PDF",
-            "view_online": "Visa online",
-            "empty_title": "Inga fakturor ännu",
-            "empty_description": "Din faktureringshistorik och dina fakturor visas här när du startar en prenumeration.",
-            "total_invoices": "Totalt antal fakturor",
-            "total_spent": "Totalt spenderat",
-            "since": "Sedan",
-            "help_title": "Behöver du hjälp med fakturering?",
-            "help_description": "Om du har frågor om dina fakturor eller behöver hjälp med fakturering finns vårt supportteam här för att hjälpa dig.",
-            "contact_support": "Kontakta support"
-        },
-        "payment_methods": {
-            "breadcrumb": "Betalningsmetoder",
-            "page_title": "Betalningsmetoder",
-            "heading": "Betalningsmetoder",
-            "subheading": "Hantera dina betalningsmetoder och faktureringsinformation",
-            "add_method": "Lägg till betalningsmetod",
-            "saved_title": "Sparade betalningsmetoder",
-            "saved_description": "Hantera dina sparade betalningsmetoder. Du kan ange en standardmetod för automatisk fakturering.",
-            "default": "Standard",
-            "expires": "Utgår {date}",
-            "set_default": "Ange som standard",
-            "empty_title": "Inga betalningsmetoder",
-            "empty_description": "Lägg till en betalningsmetod för att hantera dina prenumerationer och göra betalningar.",
-            "add_first": "Lägg till din första betalningsmetod",
-            "info_title": "Faktureringsinformation",
-            "info_description": "Uppdatera din faktureringsadress och kontaktinformation",
-            "not_set": "Ej angiven",
-            "update_info": "Uppdatera faktureringsinformation",
-            "secure_title": "Säker betalningshantering",
-            "secure_description": "Din betalningsinformation krypteras och behandlas säkert av Stripe. Vi lagrar aldrig dina fullständiga kortuppgifter på våra servrar.",
-            "updating": "Uppdaterar...",
-            "update_information": "Uppdatera information",
-            "card_information": "Kortinformation",
-            "remove_dialog": {
-                "title": "Ta bort betalningsmetod",
-                "description": "Är du säker på att du vill ta bort den här betalningsmetoden? Åtgärden kan inte ångras.",
-                "confirm": "Ja, ta bort"
-            },
-            "fields": {
-                "name": "Namn",
-                "email": "E-postadress",
-                "address": "Adress",
-                "city_state_country": "Stad, region och land",
-                "billing_address": "Faktureringsadress",
-                "line1": "Adressrad 1",
-                "line2": "Adressrad 2 (valfritt)",
-                "city": "Stad",
-                "state": "Region",
-                "postal_code": "Postnummer",
-                "country": "Land"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "Storgatan 1",
-                "line2": "Lägenhet, våning etc.",
-                "city": "Stockholm",
-                "state": "Stockholms län",
-                "postal_code": "11122",
-                "country": "Välj land..."
-            },
-            "info_dialog": {
-                "title": "Uppdatera faktureringsinformation",
-                "description": "Uppdatera din faktureringsadress och kontaktinformation för fakturering och betalningshantering."
-            },
-            "add_dialog": {
-                "description": "Lägg till en ny betalningsmetod på ditt konto. Din kortinformation är säker och krypterad.",
-                "success_title": "Betalningsmetod tillagd!",
-                "success_description": "Din betalningsmetod har lagts till på ditt konto.",
-                "secure_note": "Din betalningsinformation krypteras och behandlas säkert av Stripe. Vi lagrar aldrig dina fullständiga kortuppgifter."
-            },
-            "errors": {
-                "init_failed": "Det gick inte att initiera betalningssystemet",
-                "not_ready": "Betalningssystemet är inte redo",
-                "add_failed": "Ett fel uppstod när betalningsmetoden skulle läggas till"
-            },
-            "toast": {
-                "added": "Betalningsmetod tillagd!",
-                "info_updated": "Faktureringsinformation uppdaterad!",
-                "info_failed": "Det gick inte att uppdatera faktureringsinformationen"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Välj plan",
-            "page_title": "Välj din plan",
-            "heading": "Välj din plan",
-            "subheading": "Välj den plan som passar dig bäst. Du kan byta eller säga upp när som helst.",
-            "monthly": "Månadsvis",
-            "yearly": "Årsvis",
-            "custom": "Anpassad",
-            "per_month": "/månad",
-            "save_percent": "Spara {percent}%",
-            "billed_yearly": "Faktureras årsvis med {amount}",
-            "features_included": "Inkluderade funktioner:",
-            "everything_in": "Allt i {plan} +",
-            "actions": {
-                "contact_sales": "Kontakta försäljning",
-                "upgrade": "Uppgradera",
-                "upgrade_plan": "Uppgradera plan",
-                "downgrade_to_free": "Nedgradera till gratis",
-                "downgrade_plan": "Nedgradera plan",
-                "switch_plan": "Byt plan",
-                "select_plan": "Välj plan"
-            },
-            "discount": {
-                "banner": "{percent}% RABATT – Tidsbegränsat erbjudande!",
-                "ends": "Erbjudandet slutar {date} – Missa inte!",
-                "limited": "Tidsbegränsad rabatt på alla betalda planer!",
-                "off": "{percent}% RABATT"
-            },
-            "most_popular": "Mest populär",
-            "current_plan": "Nuvarande plan",
-            "save_up_to_percent": "Spara upp till {percent}%"
-        },
-        "addons": {
-            "title": "Tillägg",
-            "description": "Extra krediter, agenter och domäner utöver din plan",
-            "per_agent": " / agent",
-            "per_domain": " / domän",
-            "per_member": " / medlem",
-            "per_month": " / månad",
-            "requires_subscription": "Extra agenter, anpassad domän, ta bort varumärkning och medlemmar kräver en aktiv prenumeration.",
-            "common": {
-                "none": "Ingen",
-                "subscribe": "Prenumerera",
-                "change": "Ändra",
-                "update_quantity": "Uppdatera antal",
-                "monthly_cost": "Månadskostnad:",
-                "keep_subscription": "Behåll prenumeration",
-                "yes_cancel": "Ja, avbryt",
-                "ends": "Slutar {date}"
-            },
-            "auto_recharge": {
-                "title": "Automatisk påfyllning",
-                "on": "På",
-                "off": "Av",
-                "summary": "Köper automatiskt {amount} krediter när saldot sjunker under {threshold}.",
-                "manage": "Hantera",
-                "enable": "Aktivera",
-                "dialog_title": "Inställningar för automatisk påfyllning",
-                "dialog_description": "När dina återstående krediter sjunker till eller under tröskeln debiterar vi automatiskt din standardbetalningsmetod och fyller på ditt saldo.",
-                "enable_label": "Aktivera automatisk påfyllning",
-                "enable_hint": "Debitera automatiskt när krediterna håller på att ta slut",
-                "threshold_label": "Tröskel (krediter)",
-                "threshold_hint": "Påfyllning utlöses när ditt saldo sjunker till eller under detta belopp.",
-                "amount_label": "Påfyllningsbelopp (krediter)",
-                "each_recharge": "Varje påfyllning:",
-                "charged_note": "Debiteras omedelbart från din standardbetalningsmetod när det utlöses.",
-                "save": "Spara inställningar"
-            },
-            "extra_credits": {
-                "title": "Extra krediter",
-                "summary": "Engångspåfyllning. Varje paket lägger till 1 000 meddelanden som löper ut efter 30 dagar.",
-                "buy": "Köp krediter",
-                "dialog_title": "Köp meddelandekrediter",
-                "dialog_description": "Varje paket innehåller 1 000 meddelanden som måste förbrukas inom en månad från köpet.",
-                "quantity_label": "Antal (1 000 meddelanden per paket)",
-                "total_messages": "Totalt antal meddelanden:",
-                "total_price": "Totalpris:",
-                "purchase_for": "Köp för ${amount}"
-            },
-            "extra_agents": {
-                "title": "Extra agenter",
-                "summary": "Lägg till fler AI-agenter utöver din plans gräns.",
-                "cancel_title": "Avbryt prenumerationen på extra agenter?",
-                "cancel_description": "Din extra agentkvot tas bort omedelbart och du debiteras inte igen.",
-                "change_title": "Ändra extra agenter",
-                "subscribe_title": "Prenumerera på extra agenter",
-                "dialog_description": "Lägg till ytterligare AI-agenter utöver din plan. Faktureras månadsvis med $5 per agent.",
-                "quantity_label": "Antal extra agenter"
-            },
-            "custom_domains": {
-                "title": "Anpassad domän",
-                "summary": "Använd din egen anpassade domän för AI-agenter.",
-                "cancel_title": "Avbryt prenumerationen på anpassad domän?",
-                "cancel_description": "Din anpassade domänkvot tas bort omedelbart och du debiteras inte igen.",
-                "change_title": "Ändra anpassade domäner",
-                "subscribe_title": "Prenumerera på anpassad domän",
-                "dialog_description": "Använd din egen domän för AI-agenter. Faktureras månadsvis med $29 per domän.",
-                "quantity_label": "Antal domäner"
-            },
-            "remove_branding": {
-                "title": "Ta bort varumärkning",
-                "active": "Aktiv",
-                "summary": "Dölj \"Powered by Chatvia\"-märket i din widget och din värdbaserade chatt.",
-                "cancel_title": "Avbryt prenumerationen på ta bort varumärkning?",
-                "cancel_description": "\"Powered by Chatvia\"-märket visas igen i din widget och din värdbaserade chatt omedelbart, och du debiteras inte igen."
-            },
-            "members": {
-                "title": "Medlemmar",
-                "summary": "Lägg till fler teammedlemmar i din arbetsyta.",
-                "cancel_title": "Avbryt prenumerationen på medlemmar?",
-                "cancel_description": "Dina extra medlemsplatser tas bort omedelbart och du debiteras inte igen.",
-                "change_title": "Ändra medlemmar",
-                "subscribe_title": "Prenumerera på medlemmar",
-                "dialog_description": "Lägg till ytterligare teammedlemmar i din arbetsyta. Faktureras månadsvis med $9 per medlem.",
-                "quantity_label": "Antal medlemmar"
-            }
-        },
-        "index": {
-            "page_title": "Fakturering",
-            "heading": "Fakturering",
-            "subheading": "Hantera din prenumeration, faktureringsinformation och användningsgränser",
-            "stripe_notice": "Betalningar behandlas säkert av",
-            "status_label": "Status",
-            "trial_ends": "Provperioden slutar",
-            "next_billing": "Nästa fakturering",
-            "access_ends": "Åtkomsten upphör",
-            "plan_features": "Planfunktioner",
-            "show_less": "Visa mindre",
-            "show_more": "Visa {count} till",
-            "per_year": "År",
-            "per_month": "Månad",
-            "status": {
-                "active": "Aktiv",
-                "trial": "Provperiod",
-                "cancelled": "Avbruten",
-                "incomplete": "Ofullständig",
-                "past_due": "Förfallen"
-            },
-            "trial": {
-                "heading": "🎉 Du använder en gratis provperiod!",
-                "ends_on": "Din {plan}-provperiod slutar den",
-                "auto_start": "Din betalda prenumeration startar automatiskt den {date}",
-                "badge": "Provperiod aktiv"
-            },
-            "upgrade": {
-                "heading": "Uppgradera till Premium",
-                "description": "Få tillgång till avancerade AI-modeller, högre meddelandegränser och prioriterad support"
-            },
-            "current_plan": {
-                "title": "Nuvarande plan",
-                "description": "Din aktiva prenumerationsplan och användningsdetaljer"
-            },
-            "pending_change": {
-                "heading": "Planbyte schemalagt",
-                "change_from": "Din plan kommer att ändras från",
-                "to": "till",
-                "cycle_yearly": "(Årsvis)",
-                "cycle_monthly": "(Månadsvis)",
-                "on_date": "den {date}.",
-                "scheduled_for": "Du har ett schemalagt planbyte den {date}.",
-                "access_note": "Du har fortsatt tillgång till din nuvarande plans funktioner fram till dess.",
-                "cancel_schedule": "Avbryt schema",
-                "cancel_dialog": {
-                    "title": "Avbryt schemalagt planbyte",
-                    "description": "Är du säker på att du vill avbryta ditt schemalagda planbyte? Du stannar kvar på din nuvarande plan.",
-                    "confirm": "Ja, avbryt schema",
-                    "cancel": "Behåll schema"
-                }
-            },
-            "cancelled": {
-                "title": "Prenumeration avbruten",
-                "description": "Din prenumeration avslutas den {date}. Du kan återuppta din prenumeration när som helst före detta datum.",
-                "resume": "Återuppta prenumeration"
-            },
-            "management": {
-                "title": "Hantering",
-                "manage_payment_methods": "Hantera betalningsmetoder",
-                "view_invoices": "Visa fakturor",
-                "go_to_stripe": "Gå till Stripe",
-                "change_plan": "Byt plan",
-                "cancel_subscription": "Avbryt prenumeration"
-            },
-            "cancel_dialog": {
-                "title": "Avbryt prenumeration",
-                "description": "Är du säker på att du vill avbryta din prenumeration? Du har fortsatt tillgång till och med slutet av din faktureringsperiod.",
-                "confirm": "Ja, avbryt",
-                "cancel": "Behåll prenumeration"
-            },
-            "usage": {
-                "title": "Användning",
-                "messages": "Meddelanden",
-                "pages": "Sidor",
-                "agents": "Agenter",
-                "links": "Länkar",
-                "minutes": "Minuter",
-                "remaining": "{count} återstår",
-                "load_error": "Det gick inte att läsa in användningsdata"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Starter",
-                    "description": "För småföretag som precis kommit igång."
-                },
-                "standard": {
-                    "name": "Standard",
-                    "description": "För växande team och företag."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "För organisationer som behöver allt."
-                },
-                "enterprise": {
-                    "name": "Enterprise",
-                    "description": "För organisationer med krav på säkerhet, regelefterlevnad och skalbarhet."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "{count} meddelande per månad | {count} meddelanden per månad",
-            "messages_per_year": "{count} meddelande per år | {count} meddelanden per år",
-            "messages_unlimited": "Obegränsat antal meddelanden",
-            "messages_custom": "Anpassad meddelandevolym",
-            "agents": "{count} AI-agent | {count} AI-agenter",
-            "agents_unlimited": "Obegränsat antal AI-agenter",
-            "pages": "{count} sida (PDF, Word, Text) | {count} sidor (PDF, Word, Text)",
-            "pages_unlimited": "Obegränsat antal sidor (PDF, Word, Text)",
-            "pages_custom": "Anpassad kunskapsbas",
-            "links": "{count} webbplatslänk | {count} webbplatslänkar",
-            "links_unlimited": "Obegränsat antal webbplatslänkar",
-            "links_custom": "Anpassade webbplatslänkar",
-            "minutes": "{count} minut ljud/video | {count} minuter ljud/video",
-            "minutes_unlimited": "Obegränsat antal minuter ljud/video",
-            "minutes_custom": "Anpassat ljud/video",
-            "teams": "{count} team | {count} team",
-            "teams_unlimited": "Obegränsat antal team",
-            "members": "{count} medlem (teammedlemmar + chatters) | {count} medlemmar (teammedlemmar + chatters)",
-            "members_unlimited": "Obegränsat antal medlemmar",
-            "retention": "{count} dags chatthistorik | {count} dagars chatthistorik",
-            "retention_unlimited": "Obegränsad chatthistorik",
-            "retention_custom": "Anpassad datalagring",
-            "sentiment": "Sentimentanalys",
-            "tone": "Tonanalys",
-            "topics": "Ämnesanalys",
-            "pulse": "Conversation Pulse",
-            "handoff": "Handoff",
-            "api": "API-åtkomst",
-            "evals": "Utvärderingar",
-            "guardrails": "Skyddsräcken",
-            "audit": "Granskningslogg",
-            "branding": "White-label (ta bort {brand}-varumärket)",
-            "network_access": "Nätverksåtkomstkontroll (IP och geo)",
-            "siem_webhook": "SIEM-webhook (säkerhetshändelser i realtid)",
-            "mcp": "MCP",
-            "function_calling": "Function Calling",
-            "custom_domains": "{count} egen domän | {count} egna domäner",
-            "custom_domains_unlimited": "Obegränsat antal egna domäner",
-            "custom_domains_custom": "Egna domäner",
-            "custom_integrations": "Anpassade integrationer",
-            "eu_data_residency": "EU-datalagring",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "Drifttids-SLA",
-            "dedicated_support": "Dedikerad support",
-            "custom_contract": "Anpassat avtal och DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "Översikt över dina AI-agenter och aktivitet",
         "create_agent": "Skapa agent",
         "total_agents": "Totalt antal agenter",
-        "messages_this_cycle": "Meddelanden denna period",
         "percent_used": "{percent}% använt",
         "total_conversations": "Totalt antal konversationer",
         "all_time_across_agents": "Totalt för alla agenter",
@@ -3110,97 +2658,8 @@
         "last_week": "Förra veckan",
         "last_month": "Förra månaden",
         "messages_tooltip": "{n} meddelande | {n} meddelanden",
-        "messages_this_month": "Meddelanden denna månad"
-    },
-    "support": {
-        "title": "Support",
-        "subtitle": "Visa dina ärenden eller skapa ett nytt.",
-        "create_ticket": "Skapa nytt ärende",
-        "your_tickets": "Dina ärenden",
-        "your_tickets_description": "Tidigare inskickade ärenden",
-        "loading": "Laddar ärenden...",
-        "empty": "Inga ärenden än. Klicka på \"Skapa nytt ärende\" för att komma igång.",
-        "th_id": "ID",
-        "th_type": "Typ",
-        "th_status": "Status",
-        "th_priority": "Prioritet",
-        "th_created": "Skapad",
-        "th_message": "Meddelande",
-        "th_replies": "Svar",
-        "status_open": "Öppen",
-        "status_in_progress": "Pågår",
-        "status_resolved": "Löst",
-        "status_closed": "Stängd",
-        "priority_urgent": "Brådskande",
-        "priority_high": "Hög",
-        "priority_medium": "Medel",
-        "priority_low": "Låg",
-        "create_ticket_description": "Välj en typ och beskriv din förfrågan.",
-        "label_type": "Typ",
-        "type_placeholder": "Välj en typ",
-        "type_feature": "Begär en funktion",
-        "type_bug": "Rapportera ett fel",
-        "type_integration": "Begär integration",
-        "type_add_model": "Begär att lägga till modell",
-        "type_refund": "Återbetalningsbegäran",
-        "type_billing": "Faktureringsproblem",
-        "type_other": "Övrigt",
-        "label_priority": "Prioritet",
-        "priority_placeholder": "Välj prioritet",
-        "label_message": "Meddelande",
-        "message_placeholder": "Beskriv din förfrågan eller ditt problem i detalj...",
-        "cancel": "Avbryt",
-        "submitting": "Skickar...",
-        "submit": "Skicka"
-    },
-    "ticket": {
-        "support": "Support",
-        "title": "Ärende #{id}",
-        "created_at": "Skapad {date}",
-        "back_to_support": "Tillbaka till support",
-        "status_open": "Öppen",
-        "status_in_progress": "Pågår",
-        "status_resolved": "Löst",
-        "status_closed": "Stängd",
-        "priority_urgent": "Brådskande",
-        "priority_high": "Hög",
-        "priority_medium": "Medel",
-        "priority_low": "Låg",
-        "change_priority": "Ändra prioritet",
-        "change_priority_title": "Ändra ärendets prioritet",
-        "change_priority_description": "Ändra bara prioriteten om ärendet verkligen är brådskande. Att missbruka brådskande-prioriteten kan försämra svarstiderna för alla.",
-        "label_priority": "Prioritet",
-        "priority_placeholder": "Välj en prioritet",
-        "cancel": "Avbryt",
-        "saving": "Sparar...",
-        "save": "Spara",
-        "replies": "Svar ({count})",
-        "no_replies": "Inga svar än.",
-        "role_staff": "Personal",
-        "role_user": "Användare",
-        "resolved_notice": "Det här ärendet har lösts. Om problemet kvarstår, vänligen öppna ett nytt ärende från supportsidan.",
-        "add_reply": "Lägg till ett svar",
-        "reply_placeholder": "Skriv ditt svar...",
-        "sending": "Skickar...",
-        "send_reply": "Skicka svar"
-    },
-    "usage": {
-        "title": "Användning",
-        "subtitle": "Övervaka din nuvarande användning för alla tjänster och funktioner.",
-        "plan_badge": "{plan}-plan",
-        "label_messages": "Meddelanden",
-        "label_tokens": "Token",
-        "label_pages": "Sidor",
-        "label_minutes": "Minuter",
-        "label_links": "Länkar",
-        "label_agents": "Agenter",
-        "label_teams": "Team",
-        "label_members": "Medlemmar",
-        "tokens_note": "Förbrukat denna period — endast för information; din plan faktureras per meddelanden.",
-        "of": "av {limit}",
-        "remaining": "{count} kvar",
-        "load_error": "Det gick inte att läsa in användningsdata.",
-        "no_limit": "Ingen gräns"
+        "messages_this_month": "Meddelanden denna månad",
+        "messages_used_of_limit": "{used} av {limit} använda"
     },
     "analytics_chat": {
         "title": "Fråga din data",
@@ -3326,7 +2785,6 @@
             "description": "Kontonycklar för {api_link} — skapa och hantera agenter, kunskapsbaser, MCP-servrar och funktioner.",
             "api_link": "Chatvia API",
             "generate": "Generera nyckel",
-            "locked": "Uppgradera din plan för att utfärda API-nycklar och integrera Chatvia med dina applikationer.",
             "empty_title": "Inga API-nycklar än",
             "empty_description": "Generera en för att börja använda Chatvia API.",
             "never": "Aldrig",
@@ -3535,14 +2993,6 @@
             "save_error": "Kunde inte spara dina säkerhetsinställningar",
             "cancel": "Avbryt",
             "done": "Klar",
-            "teaser": {
-                "title": "Säkerhet och efterlevnad",
-                "description": "Lås ner din arbetsyta till betrodda nätverk och uppfyll dina efterlevnadskrav. Tillgängligt i Pro-planen.",
-                "ip": "IP-tillåtelselista — endast godkända adresser kan logga in",
-                "geo": "Landsregler — tillåt eller blockera åtkomst per land",
-                "more": "Dessutom datalagring, SIEM-webhooks, SSO / SCIM och mer",
-                "cta": "Uppgradera till Pro"
-            },
             "network": {
                 "title": "Nätverksåtkomstkontroll",
                 "help": "Begränsa åtkomsten till instrumentpanelen till betrodda IP-adresser och länder. När avstängt kan vem som helst med en giltig inloggning logga in var som helst ifrån."
@@ -3578,7 +3028,7 @@
                 "title": "Datalagring",
                 "help": "Hur länge Chatvia behåller din data innan den raderas automatiskt. Korta ner dessa för efterlevnad — lämna ett fält tomt för att använda standardvärdet.",
                 "conversations": "Konversationshistorik (dagar)",
-                "conversations_help": "Chatthistorik raderas efter så här många dagar. Upp till {max} på din plan.",
+                "conversations_help": "Chatthistorik raderas efter så här många dagar. Upp till {max} dagar.",
                 "audit": "Säkerhetsgranskningslogg (dagar)",
                 "audit_help": "Standard {default} dagar, minimum {floor}.",
                 "plan_default": "Standard ({days} dagar)"
@@ -3606,11 +3056,6 @@
             "user_agent": "Användaragent",
             "metadata": "Detaljer",
             "integrity": "Integritetshash registrerad",
-            "teaser": {
-                "title": "Säkerhetsgranskningslogg",
-                "description": "Se varje inloggning, rolländring och säkerhetsinställningsändring — manipuleringssäker och exporterbar. Tillgängligt i Pro-planen.",
-                "cta": "Uppgradera till Pro"
-            },
             "table": {
                 "actor": "Aktör",
                 "action": "Åtgärd",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Instrumentpanel",
             "agents": "Agenter",
-            "usage": "Användning",
             "ask_your_data": "Fråga din data",
-            "billing": "Fakturering",
-            "support": "Support",
             "teams": "Team",
             "documentation": "Dokumentation",
             "api": "API",
-            "nav_menu_sr": "Navigeringsmeny",
-            "upgrade": "Uppgradera",
-            "subscribed": "Du är prenumerant"
+            "nav_menu_sr": "Navigeringsmeny"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Kunskapskällor, dokument och uppladdade filer",
             "removes_team": "Ditt team, chatters, API-nycklar och kopplingar",
             "agents_will_delete": "{count} agent raderas permanent: | {count} agenter raderas permanent:",
-            "subscription_cancel": "Din aktiva prenumeration avslutas och du debiteras inte igen.",
             "email_confirmed": "E-post bekräftad. Det här är ditt sista steg — det går inte att ångra efter detta.",
             "delete_button": "Radera mitt konto permanent",
             "final_dialog_title": "Radera ditt konto permanent?",
             "final_dialog_description": "Det här raderar ditt konto och all dess data permanent och går inte att ångra.",
-            "final_dialog_subscription": "Din prenumeration avslutas också.",
             "final_confirm": "Ja, radera allt",
             "check_email": "Kolla din e-post — vi skickade en bekräftelselänk för att slutföra raderingen av ditt konto. Den går ut om 30 minuter. Öppna länken för att fortsätta.",
             "resend_link": "Skicka länken igen",
@@ -3906,7 +3344,6 @@
         "enable_feature": "Aktivera {title}",
         "enabling": "Aktiverar…",
         "enable_now": "Aktivera nu",
-        "upgrade_now": "Uppgradera nu",
         "chat_title_fallback": "Chatt",
         "more_options": "Fler alternativ",
         "delete_confirmation_title": "Bekräfta borttagning",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Ladda upp filer",
             "description_default": "Lägg till filer att analysera",
-            "quota_label_default": "sidor",
             "file_count": "{current} / {max} filer",
-            "quota_limit_reached_alert": "Du har nått din gräns på {quotaLimit} {quotaLabel}. Uppgradera ditt abonnemang för att bearbeta fler dokument.",
             "drop_zone_file_limit_reached": "Filgränsen är nådd",
-            "drop_zone_quota_limit_reached": "Gränsen för {quotaLabel} är nådd",
             "drop_zone_select_files": "Välj filer",
             "drop_zone_max_files_hint": "Maximalt {max} filer tillåtna. Ta bort några filer för att lägga till fler.",
-            "drop_zone_quota_exhausted_hint": "Du har använt alla {quotaLimit} {quotaLabel}. Uppgradera ditt abonnemang för att fortsätta.",
-            "drop_zone_unavailable": "Uppladdning ej tillgänglig",
             "drop_zone_default_hint": "Dra och släpp eller klicka för att välja filer",
-            "total_quota": "{count} {label} totalt",
-            "exceeds_quota": "Överskrider kvoten med {amount} {quotaLabel}",
             "clear_failed": "Rensa misslyckade",
             "clear_all": "Rensa alla",
             "badge_analyzed": "Analyserad",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Hämta produktanalys — händelser, diagram och kohorter — från ditt Amplitude-projekt."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Välkommen till Chatvia",
-            "intro": "Nu skapar vi din första AI-agent. Det tar bara en minut.",
-            "what_title": "Vad är en agent?",
-            "what_body": "En agent är en AI-assistent som du tränar på ditt eget innehåll. Den svarar dina kunder på din webbplats, i chattwidgeten och i meddelandeappar.",
-            "how_title": "Hur fungerar det?",
-            "how_body": "Först skapar du en agent och ger den ett namn. Sedan tränar du den med dina filer, webbplatser och texter så att den kan svara på frågor.",
-            "start": "Skapa min första agent",
-            "video_caption": "Se hur det fungerar"
         }
     }
 }

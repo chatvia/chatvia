@@ -1,14 +1,14 @@
 <?php
 
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Events\AssistantReplyCompleted;
-use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\ChatContext;
@@ -20,8 +20,9 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 /**
- * A completed answer is stored and announced for billing (with the pages of
- * the conversation's PDFs); a guardrail refusal is stored but never billed.
+ * A completed answer is stored and announced, so it counts against the
+ * workspace's monthly message limit; a guardrail refusal is stored but never
+ * counted.
  */
 beforeEach(function (): void {
     config(['cache.stores.chat' => ['driver' => 'array']]);
@@ -73,35 +74,29 @@ function recorderHistory(ChatContext $context): array
         ->getMessagesForConversation();
 }
 
-it('stores a completed answer and announces it with the PDF pages to charge', function (): void {
+it('stores a completed answer and announces it', function (): void {
     Event::fake([AssistantReplyCompleted::class]);
     $context = recorderContext();
-    $conversation = Conversation::query()->firstWhere('external_id', $context->requestData->conversationId);
-    Attachment::create(['chat_conversation_id' => $conversation->id, 'filepath' => 'a.pdf', 'filename' => 'a.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1, 'pages' => 3]);
-    Attachment::create(['chat_conversation_id' => $conversation->id, 'filepath' => 'b.pdf', 'filename' => 'b.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 1, 'pages' => 2]);
 
     app(AssistantReplyRecorder::class)->recordCompletedReply($context);
 
     Event::assertDispatched(AssistantReplyCompleted::class, fn (AssistantReplyCompleted $event): bool => $event->workspaceId === $context->requestData->agent->user_id
-        && $event->llmId === $context->requestData->message->model->id
-        && $event->assistantMessageId === $context->assistantMessageId
-        && $event->documentPages === 5);
+        && $event->assistantMessageId === $context->assistantMessageId);
 
     expect(recorderHistory($context)[0]['content'])->toBe('Here is the summary.')
         ->and(recorderHistory($context)[0]['role'])->toBe('assistant');
 });
 
-it('charges the reply through the billing listener', function (): void {
+it('counts the reply against the workspace monthly message limit', function (): void {
     $context = recorderContext();
+    app(SetMessageLimitAction::class)->execute($context->requestData->agent->user, 10);
 
     app(AssistantReplyRecorder::class)->recordCompletedReply($context);
 
-    Bus::assertDispatched(UpdateUserCreditsJob::class, fn (UpdateUserCreditsJob $job): bool => $job->userId === $context->requestData->agent->user_id
-        && $job->modelId === $context->requestData->message->model->id
-        && $job->additionalMessages === 0);
+    expect(MessageLimit::query()->where('user_id', $context->requestData->agent->user_id)->value('messages_used'))->toBe(1);
 });
 
-it('stores a refusal without charging for it', function (): void {
+it('stores a refusal without counting it', function (): void {
     Event::fake([AssistantReplyCompleted::class]);
     $context = recorderContext();
 

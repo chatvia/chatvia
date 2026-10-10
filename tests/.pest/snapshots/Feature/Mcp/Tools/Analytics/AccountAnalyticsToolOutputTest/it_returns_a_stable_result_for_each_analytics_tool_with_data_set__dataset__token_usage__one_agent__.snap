@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "This billing cycle: 470 tokens consumed (300 prompt, 170 completion), ~157 per AI reply."
+            "text": "This month: 470 tokens consumed (300 prompt, 170 completion), ~157 per AI reply."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "total_tokens": 470,
         "prompt_tokens": 300,
@@ -64,7 +64,7 @@
                 }
             ],
             "title": {
-                "text": "Tokens per day — this billing cycle",
+                "text": "Tokens per day — this month",
                 "left": "center"
             }
         }

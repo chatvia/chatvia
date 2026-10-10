@@ -3,6 +3,7 @@
  * user's teams lazily when its menu opens, so the list is not part of every
  * page's shared props.
  */
+import teams from '@/routes/my/teams';
 import { get } from './http';
 
 /** One team in the switcher: owned teams first, then teams the user belongs to. */
@@ -16,7 +17,7 @@ export interface SwitcherTeam {
 
 /** Every team the signed-in user owns or belongs to. */
 export async function listSwitcherTeams(): Promise<SwitcherTeam[]> {
-    const response = await get<{ teams: SwitcherTeam[] }>(route('my.teams.list'));
+    const response = await get<{ teams: SwitcherTeam[] }>(teams.list.url());
 
     return response.teams;
 }

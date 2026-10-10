@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "ایجاد دستیار",
-            "limit_title": "محدودیت دستیار به پایان رسید",
-            "limit_description": "به حداکثر تعداد مجاز دستیار رسیده‌اید.",
-            "upgrade_plan": "ارتقای پلن",
             "name_label": "نام دستیار",
-            "name_placeholder": "مثلاً: پشتیبانی مشتریان",
-            "load_error": "بارگذاری اطلاعات مصرف ناموفق بود",
-            "limit_toast_title": "محدودیت دستیار به پایان رسید",
-            "limit_toast_description": "به حداکثر تعداد مجاز دستیار رسیده‌اید."
+            "name_placeholder": "مثلاً: پشتیبانی مشتریان"
         }
     },
     "confirm_password": {

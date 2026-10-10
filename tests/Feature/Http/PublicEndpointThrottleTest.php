@@ -6,14 +6,14 @@ use Illuminate\Support\Facades\Route;
  * Public, unauthenticated endpoints that cost money or CPU per call are rate
  * limited with route middleware.
  */
-it('throttles guest trial checkout', function (): void {
-    // An invalid package fails validation, so no Stripe session is created;
-    // the throttle still counts every call.
-    foreach (range(1, 10) as $i) {
-        $this->post(route('trial.checkout'), ['package' => 'nope'])->assertRedirect();
+it('throttles guest sign-up', function (): void {
+    // Invalid input fails validation, so no account is created; the throttle
+    // still counts every call.
+    foreach (range(1, 6) as $i) {
+        $this->post(route('register.store'), ['email' => 'not-an-email'])->assertRedirect();
     }
 
-    $this->post(route('trial.checkout'), ['package' => 'nope'])->assertTooManyRequests();
+    $this->post(route('register.store'), ['email' => 'not-an-email'])->assertTooManyRequests();
 });
 
 it('rate limits every messaging-channel webhook route', function (string $routeName): void {

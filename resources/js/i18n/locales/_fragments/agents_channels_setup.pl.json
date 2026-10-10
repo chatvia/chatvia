@@ -33,7 +33,7 @@
                     "reply_streams_live": "— odpowiedź pojawia się na żywo"
                 },
                 "telegram": {
-                    "connected_description": "Użytkownicy mogą pisać do Twojego bota na Telegram, a agent odpowiada automatycznie — rozliczenia, historia i reguły bezpieczeństwa są stosowane.",
+                    "connected_description": "Użytkownicy mogą pisać do Twojego bota na Telegram, a agent odpowiada automatycznie — limity wiadomości, historia i reguły bezpieczeństwa są stosowane.",
                     "steps": {
                         "connect_1": "Otwórz {botfather} w Telegram",
                         "connect_2": "Wyślij {command} i postępuj zgodnie z instrukcjami",

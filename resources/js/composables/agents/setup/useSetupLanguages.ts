@@ -5,6 +5,7 @@
  * A stored empty list means "all", so selecting every language saves `[]`
  * and any language the platform adds later is included automatically.
  */
+import { update as updateSettings } from '@/routes/agents/settings';
 import { useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -49,7 +50,7 @@ export function useSetupLanguages(
         submitSetupForm(
             form.transform((data) => ({ enabled_languages: isAll ? [] : data.enabled_languages })),
             'post',
-            route('agents.settings.update', { agent: agentId(), group: 'appearance' }),
+            updateSettings.url({ agent: agentId(), group: 'appearance' }),
             {
                 saving: isSaving,
                 success: t('agents.setup.toasts.languages_saved'),

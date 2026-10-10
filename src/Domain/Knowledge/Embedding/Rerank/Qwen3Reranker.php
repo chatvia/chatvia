@@ -5,7 +5,6 @@ namespace Domain\Knowledge\Embedding\Rerank;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Llm\Providers\Scaleway;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -32,8 +31,6 @@ class Qwen3Reranker implements Reranker
                 'documents' => $documents,
                 'top_n' => $topN ?? self::DEFAULT_TOP_N,
             ]);
-
-        app(TokenUsageContext::class)->addFromResponse($response);
 
         /** @var list<array{index: int|string, relevance_score: float|string}> $results */
         $results = $response->json('results') ?? [];

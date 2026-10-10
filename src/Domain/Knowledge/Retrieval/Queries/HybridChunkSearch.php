@@ -27,13 +27,13 @@ use Illuminate\Support\Facades\DB;
  * Retrieval quality is measured by an evaluation harness: any change to this
  * SQL changes search results and must be measured first.
  */
-final class HybridChunkSearch
+final readonly class HybridChunkSearch
 {
     /** Each channel returns this many times the final limit before fusion. */
     private const int CANDIDATES_PER_RESULT = 3;
 
     public function __construct(
-        private readonly EmbeddingStorage $storage,
+        private EmbeddingStorage $storage,
     ) {}
 
     /**
@@ -53,7 +53,10 @@ final class HybridChunkSearch
         $bindings = [];
 
         foreach ($channels as $channel) {
-            array_push($bindings, $channel['keyword'] ? $query : $queryVector, $workspaceId, $agentId, $candidateLimit);
+            $bindings[] = $channel['keyword'] ? $query : $queryVector;
+            $bindings[] = $workspaceId;
+            $bindings[] = $agentId;
+            $bindings[] = $candidateLimit;
         }
 
         $bindings[] = $limit;

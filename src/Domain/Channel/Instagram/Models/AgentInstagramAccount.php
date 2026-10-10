@@ -3,6 +3,7 @@
 namespace Domain\Channel\Instagram\Models;
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Enums\MetaApp;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
@@ -12,23 +13,18 @@ use Support\Concerns\HasExternalId;
 
 /**
  * An agent's Instagram Direct channel, connected via Facebook Login for Business
- * (one Chatvia Meta app). The professional account is linked to a Facebook Page;
+ * (the Instagram Meta app set in the admin panel, {@see MetaApp::Instagram}).
+ * The professional account is linked to a Facebook Page;
  * we store that Page's access token (encrypted — it sends DMs as the account)
  * and the IG account id (`ig_id`, the routing key for inbound webhooks). Inbound
  * events arrive on Chatvia's single app-level Instagram Callback URL and are
  * routed here by `ig_id`; the HMAC + verify token are app-level config.
  *
- * The per-account `access_token`/`app_secret`/`webhook_secret` columns are not
- * used by the OAuth flow. They are nullable and only hold data on older rows.
- *
  * @property string $external_id
  * @property string|null $page_access_token
  * @property string|null $page_id
- * @property string|null $access_token
- * @property string|null $app_secret
  * @property string|null $ig_id
  * @property string|null $username
- * @property string|null $webhook_secret
  * @property bool $enabled
  */
 #[Guarded(['id'])]
@@ -55,9 +51,6 @@ class AgentInstagramAccount extends Model
     {
         return [
             'page_access_token' => 'encrypted',
-            // `access_token` / `app_secret` are never read and are null on rows
-            // connected through OAuth, so they are deliberately NOT cast: the
-            // `encrypted` caster can't decrypt a null and would throw.
             'enabled' => 'boolean',
         ];
     }

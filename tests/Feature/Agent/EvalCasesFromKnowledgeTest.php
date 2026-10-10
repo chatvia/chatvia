@@ -71,7 +71,7 @@ beforeEach(function (): void {
     // so the gates under test are the permission ones. The price id must map
     // to a configured package — the Inertia page render resolves the plan
     // from it in shared props.
-    config(['billing.packages.pro.stripe_monthly_price_id' => 'price_test']);
+    updateBillingPlan('pro', ['stripe_monthly_price_id' => 'price_test']);
 
     $this->owner->billing->subscriptions()->create([
         'type' => 'default',

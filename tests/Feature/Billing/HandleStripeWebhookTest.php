@@ -143,7 +143,7 @@ it('applies starter-plan quota limits and message credits on subscription_cycle'
 
     $quota = $user->fresh()->quota;
 
-    // From config/billing.php → packages.starter.quota_limits.fixed
+    // From the Starter plan's quota_limits.fixed (billing_plans)
     expect($quota->agents_limit)->toBe(2)
         ->and($quota->pages_limit)->toBe(2000)
         ->and($quota->minutes_limit)->toBe(500)
@@ -152,7 +152,7 @@ it('applies starter-plan quota limits and message credits on subscription_cycle'
         ->and($quota->workspace_users_limit)->toBe(5)
         ->and($quota->teams_limit)->toBe(1);
 
-    // From config/billing.php → packages.starter.quota_limits.monthly.messages_limit
+    // From the Starter plan's quota_limits.monthly.messages_limit
     $credit = UserCredit::where('user_id', $user->id)->latest('id')->first();
     expect($credit)->not->toBeNull()
         ->and($credit->messages)->toBe(3000);
@@ -306,14 +306,12 @@ it('provisions a user when Stripe POSTs a trial checkout.session.completed to th
 
 function configurePlanPrices(): void
 {
-    config([
-        'billing.packages.starter.stripe_monthly_price_id' => 'price_starter_monthly',
-        'billing.packages.starter.stripe_yearly_price_id' => 'price_starter_yearly',
-        'billing.packages.standard.stripe_monthly_price_id' => 'price_standard_monthly',
-        'billing.packages.standard.stripe_yearly_price_id' => 'price_standard_yearly',
-        'billing.packages.pro.stripe_monthly_price_id' => 'price_pro_monthly',
-        'billing.packages.pro.stripe_yearly_price_id' => 'price_pro_yearly',
-    ]);
+    foreach (['starter', 'standard', 'pro'] as $plan) {
+        updateBillingPlan($plan, [
+            'stripe_monthly_price_id' => "price_{$plan}_monthly",
+            'stripe_yearly_price_id' => "price_{$plan}_yearly",
+        ]);
+    }
 }
 
 /**
@@ -434,7 +432,7 @@ it('does not re-grant the plan when an add-on subscription renews', function ():
     // An extra-agents add-on renews on its own invoice. Granting the plan from
     // it would reset the cycle's message credits and overwrite the quotas.
     configurePlanPrices();
-    config(['billing.addons.extra_agents.stripe_price_id' => 'price_extra_agent']);
+    updateBillingAddon('extra_agents', ['stripe_price_id' => 'price_extra_agent']);
 
     $user = User::factory()->create();
     $user->billing()->create(['stripe_id' => 'cus_addon_renewal']);

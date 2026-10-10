@@ -60,12 +60,12 @@ return [
     |--------------------------------------------------------------------------
     |
     | This is the default currency that will be used when generating charges
-    | from your application. Of course, you are welcome to use any of the
-    | various world currencies that are currently supported via Stripe.
+    | from your application. It is set in the admin panel (Settings →
+    | Billing), together with `billing.currency`, when the app boots.
     |
     */
 
-    'currency' => env('CASHIER_CURRENCY', 'eur'),
+    'currency' => null,
 
     /*
     |--------------------------------------------------------------------------

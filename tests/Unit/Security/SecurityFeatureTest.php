@@ -15,7 +15,7 @@ use Laravel\Pennant\Feature;
 function enterpriseUser(): User
 {
     $priceId = 'price_test_ent_'.Str::random(6);
-    config(['billing.packages.enterprise.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('enterprise', ['stripe_monthly_price_id' => $priceId]);
 
     $user = User::factory()->create();
     $user->billing()->firstOrCreate([]);
@@ -40,7 +40,7 @@ it('activates the security feature for an enterprise workspace', function (): vo
 function proUser(): User
 {
     $priceId = 'price_test_pro_'.Str::random(6);
-    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
 
     $user = User::factory()->create();
     $user->billing()->firstOrCreate([]);

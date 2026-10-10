@@ -14,8 +14,6 @@ import type { PlanBillingConfig, PlanPackage } from '../types';
 
 const props = defineProps<{
     pkg: PlanPackage;
-    /** The v-for key of the plan in the packages prop, as a string. */
-    packageKey: string;
     billingConfig: PlanBillingConfig;
     isYearly: boolean;
     isCurrent: boolean;
@@ -27,12 +25,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     select: [packageId: string];
-    featureClick: [feature: string, index: number, packageKey: string];
 }>();
 
 const { t } = useI18n();
 const { brand } = useBrand();
-const { planName, featureLabel, uiText } = usePlanText();
+const { planName, featureText } = usePlanText();
 const { isDiscountActive, getPackagePrice, getOriginalPrice, getPackagePeriod, getYearlyTotal, getSavingsText } = usePlanPricing(
     () => props.billingConfig,
     () => props.isYearly,
@@ -64,10 +61,8 @@ const getPackageIconBackground = (packageId: string): string => {
     return backgroundMap[iconKey] || 'bg-gray-100 dark:bg-gray-900/20';
 };
 
-const getPackageFeatures = (pkg: PlanPackage): Record<string, string> => (props.isYearly ? pkg.features_yearly : pkg.features_monthly);
-
-// The first feature of the free and starter plans opens the list of models.
-const isModelsLink = (index: number): boolean => index === 0 && (props.packageKey === 'free' || props.packageKey === 'starter');
+const getPackageFeatures = (pkg: PlanPackage): Domain.Billing.Data.Resources.Package.PlanFeatureData[] =>
+    props.isYearly ? pkg.features.yearly : pkg.features.monthly;
 </script>
 
 <template>
@@ -76,7 +71,7 @@ const isModelsLink = (index: number): boolean => index === 0 && (props.packageKe
         <div v-if="pkg.is_popular" class="absolute -top-3 left-1/2 z-10 -translate-x-1/2">
             <Badge class="bg-primary text-primary-foreground px-3 py-1 text-xs">
                 <Star class="me-1 h-3 w-3" />
-                {{ uiText('popular_badge_text', billingConfig.ui.popular_badge_text) }}
+                {{ t('billing.plans.most_popular') }}
             </Badge>
         </div>
 
@@ -92,7 +87,7 @@ const isModelsLink = (index: number): boolean => index === 0 && (props.packageKe
             <!-- Current Plan Indicator -->
             <div v-if="isCurrent" class="absolute end-4 top-4">
                 <Badge variant="secondary" class="text-xs">
-                    {{ uiText('current_plan_text', billingConfig.ui.current_plan_text) }}
+                    {{ t('billing.plans.current_plan') }}
                 </Badge>
             </div>
 
@@ -172,28 +167,19 @@ const isModelsLink = (index: number): boolean => index === 0 && (props.packageKe
                 <div class="flex-1 space-y-3">
                     <h4 class="text-sm font-semibold">{{ featureHeader }}</h4>
                     <div class="space-y-2">
-                        <div v-for="([key, feature], index) in Object.entries(getPackageFeatures(pkg))" :key="key" class="flex items-start gap-2">
+                        <div v-for="(feature, index) in getPackageFeatures(pkg)" :key="index" class="flex items-start gap-2">
                             <Check class="mt-0.5 h-4 w-4 flex-shrink-0 text-green-500" />
                             <a
-                                v-if="key === 'api' && brand.api_docs_url"
+                                v-if="feature.key === 'api' && brand.api_docs_url"
                                 :href="brand.api_docs_url"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="text-sm leading-relaxed text-blue-600 underline decoration-dotted underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                             >
-                                {{ featureLabel(pkg.id, isYearly, key, feature) }}
+                                {{ featureText(feature) }}
                             </a>
-                            <span
-                                v-else
-                                :class="[
-                                    'text-sm leading-relaxed',
-                                    isModelsLink(index)
-                                        ? 'cursor-pointer text-blue-600 underline decoration-dotted underline-offset-2 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300'
-                                        : '',
-                                ]"
-                                @click="emit('featureClick', feature, index, packageKey)"
-                            >
-                                {{ featureLabel(pkg.id, isYearly, key, feature) }}
+                            <span v-else class="text-sm leading-relaxed">
+                                {{ featureText(feature) }}
                             </span>
                         </div>
                     </div>

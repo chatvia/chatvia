@@ -139,11 +139,6 @@
                 "ends": "Offer ends {date} - Don't miss out!",
                 "limited": "Limited time discount on all paid plans!",
                 "off": "{percent}% OFF"
-            },
-            "llms": {
-                "title": "Available AI Models",
-                "description": "Choose from our comprehensive selection of state-of-the-art language models",
-                "empty": "No models available"
             }
         },
         "addons": {

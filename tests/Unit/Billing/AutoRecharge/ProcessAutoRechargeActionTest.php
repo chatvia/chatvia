@@ -42,7 +42,7 @@ function parExpectRecharge(int $times, int $units = 3): void
 }
 
 it('charges the configured amount rounded up to whole units', function (): void {
-    config(['billing.addons.auto_recharge_credits.unit_messages' => 1000]);
+    updateBillingAddon('auto_recharge_credits', ['unit_messages' => 1000]);
     parExpectRecharge(times: 1, units: 3);
 
     app(ProcessAutoRechargeAction::class)->execute(parWorkspace()->id);

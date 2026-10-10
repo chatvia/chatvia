@@ -60,9 +60,9 @@ function arcaFakeInvoice(string $stripeInvoiceId): Invoice
 }
 
 it('charges the price off-session and records the addon, reserving the debounce before the charge', function (): void {
-    config([
-        'billing.addons.auto_recharge_credits.stripe_price_id' => 'price_extra_1000',
-        'billing.addons.auto_recharge_credits.unit_messages' => 1000,
+    updateBillingAddon('auto_recharge_credits', [
+        'stripe_price_id' => 'price_extra_1000',
+        'unit_messages' => 1000,
     ]);
 
     [$user, $billing] = arcaUser();
@@ -94,9 +94,9 @@ it('charges the price off-session and records the addon, reserving the debounce 
 });
 
 it('is idempotent on the Stripe invoice id — a re-run for the same charge grants nothing extra', function (): void {
-    config([
-        'billing.addons.auto_recharge_credits.stripe_price_id' => 'price_extra_1000',
-        'billing.addons.auto_recharge_credits.unit_messages' => 1000,
+    updateBillingAddon('auto_recharge_credits', [
+        'stripe_price_id' => 'price_extra_1000',
+        'unit_messages' => 1000,
     ]);
 
     [$user, $billing] = arcaUser();
@@ -121,7 +121,7 @@ it('is idempotent on the Stripe invoice id — a re-run for the same charge gran
 });
 
 it('returns null without charging or reserving the debounce when no price is configured', function (): void {
-    config(['billing.addons.auto_recharge_credits.stripe_price_id' => null]);
+    updateBillingAddon('auto_recharge_credits', ['stripe_price_id' => null]);
 
     [$user, $billing] = arcaUser();
 

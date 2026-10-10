@@ -3,7 +3,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Enums\ToneEnum;
-use Domain\Knowledge\Source\QA\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -72,6 +72,9 @@ return new class extends Migration
             $table->enum('tone', ToneEnum::values())->nullable();
 
             $table->timestamp('analyzed_at')->nullable();
+            // Model calls spent analysing this conversation; the hourly pass stops
+            // retrying at chatvia.analytics.analysis.max_attempts.
+            $table->unsignedSmallInteger('analysis_attempts')->default(0);
 
             $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $table->enum('handoff_status', ['ai', 'pending', 'human', 'returned'])->default('ai');
@@ -105,7 +108,7 @@ return new class extends Migration
 
             $table->unsignedTinyInteger('message_credits')->default(1);
 
-            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram'])->nullable();
+            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'playground', 'handoff'])->nullable();
 
             $table->text('content')->nullable();
 

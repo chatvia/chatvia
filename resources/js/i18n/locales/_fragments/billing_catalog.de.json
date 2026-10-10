@@ -4,177 +4,20 @@
             "packages": {
                 "starter": {
                     "name": "Starter",
-                    "description": "Für kleine Unternehmen, die gerade starten.",
-                    "features": {
-                        "monthly": {
-                            "messages": "3.000 Nachrichten pro Monat",
-                            "agents": "2 KI-Agenten",
-                            "pages": "2.000 Seiten (PDF, Word, Text)",
-                            "links": "2.000 Website-Links",
-                            "minutes": "500 Minuten Audio/Video",
-                            "teams": "1 Team",
-                            "members": "5 Mitglieder (Teammitglieder + Chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 Tage Chatverlauf"
-                        },
-                        "yearly": {
-                            "messages": "39.000 Nachrichten pro Jahr",
-                            "agents": "2 KI-Agenten",
-                            "pages": "2.000 Seiten (PDF, Word, Text)",
-                            "links": "2.000 Website-Links",
-                            "minutes": "500 Minuten Audio/Video",
-                            "teams": "1 Team",
-                            "members": "5 Mitglieder (Teammitglieder + Chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 Tage Chatverlauf"
-                        }
-                    }
+                    "description": "Für kleine Unternehmen, die gerade starten."
                 },
                 "standard": {
                     "name": "Standard",
-                    "description": "Für wachsende Teams und Unternehmen.",
-                    "features": {
-                        "monthly": {
-                            "messages": "15.000 Nachrichten pro Monat",
-                            "agents": "10 KI-Agenten",
-                            "pages": "5.000 Seiten (PDF, Word, Text)",
-                            "links": "5.000 Website-Links",
-                            "minutes": "2.000 Minuten Audio/Video",
-                            "sentiment": "Sentiment-Analyse",
-                            "handoff": "Handoff",
-                            "api": "API-Zugang",
-                            "teams": "5 Teams",
-                            "members": "20 Mitglieder (Teammitglieder + Chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 Tage Chatverlauf"
-                        },
-                        "yearly": {
-                            "messages": "192.000 Nachrichten pro Jahr",
-                            "agents": "10 KI-Agenten",
-                            "pages": "5.000 Seiten (PDF, Word, Text)",
-                            "links": "5.000 Website-Links",
-                            "minutes": "2.000 Minuten Audio/Video",
-                            "sentiment": "Sentiment-Analyse",
-                            "handoff": "Handoff",
-                            "api": "API-Zugang",
-                            "teams": "5 Teams",
-                            "members": "20 Mitglieder (Teammitglieder + Chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 Tage Chatverlauf"
-                        }
-                    }
+                    "description": "Für wachsende Teams und Unternehmen."
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "Für Organisationen, die alles brauchen.",
-                    "features": {
-                        "monthly": {
-                            "messages": "50.000 Nachrichten pro Monat",
-                            "agents": "20 KI-Agenten",
-                            "pages": "10.000 Seiten (PDF, Word, Text)",
-                            "links": "10.000 Website-Links",
-                            "minutes": "10.000 Minuten Audio/Video",
-                            "sentiment": "Sentiment-Analyse",
-                            "tone": "Tonalitätsanalyse",
-                            "topics": "Themenanalyse",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-Zugang",
-                            "integrations": "Individuelle Integrationen",
-                            "branding": "White-Label (Chatvia-Branding entfernen)",
-                            "teams": "10 Teams",
-                            "members": "100 Mitglieder (Teammitglieder + Chatter)",
-                            "retention": "366 Tage Chatverlauf"
-                        },
-                        "yearly": {
-                            "messages": "648.000 Nachrichten pro Jahr",
-                            "agents": "20 KI-Agenten",
-                            "pages": "10.000 Seiten (PDF, Word, Text)",
-                            "links": "10.000 Website-Links",
-                            "minutes": "10.000 Minuten Audio/Video",
-                            "sentiment": "Sentiment-Analyse",
-                            "tone": "Tonalitätsanalyse",
-                            "topics": "Themenanalyse",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-Zugang",
-                            "integrations": "Individuelle Integrationen",
-                            "branding": "White-Label (Chatvia-Branding entfernen)",
-                            "teams": "10 Teams",
-                            "members": "100 Mitglieder (Teammitglieder + Chatter)",
-                            "retention": "366 Tage Chatverlauf"
-                        }
-                    }
+                    "description": "Für Organisationen, die alles brauchen."
                 },
                 "enterprise": {
                     "name": "Enterprise",
-                    "description": "Für Organisationen mit Anforderungen an Sicherheit, Compliance und Skalierung.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Individuelles Nachrichtenvolumen",
-                            "agents": "Unbegrenzte KI-Agenten",
-                            "pages": "Individuelle Wissensdatenbank",
-                            "links": "Individuelle Website-Links",
-                            "minutes": "Individuelles Audio/Video",
-                            "sentiment": "Sentiment-Analyse",
-                            "tone": "Tonalitätsanalyse",
-                            "topics": "Themenanalyse",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-Zugang",
-                            "integrations": "Individuelle Integrationen",
-                            "branding": "White-Label (Chatvia-Branding entfernen)",
-                            "residency": "EU-Datenspeicherort",
-                            "sso": "SSO / SAML",
-                            "sla": "Verfügbarkeits-SLA",
-                            "support": "Dedizierter Support",
-                            "dpa": "Individueller Vertrag & AVV",
-                            "teams": "Unbegrenzte Teams",
-                            "members": "Unbegrenzte Mitglieder",
-                            "retention": "Individuelle Datenspeicherung"
-                        },
-                        "yearly": {
-                            "messages": "Individuelles Nachrichtenvolumen",
-                            "agents": "Unbegrenzte KI-Agenten",
-                            "pages": "Individuelle Wissensdatenbank",
-                            "links": "Individuelle Website-Links",
-                            "minutes": "Individuelles Audio/Video",
-                            "sentiment": "Sentiment-Analyse",
-                            "tone": "Tonalitätsanalyse",
-                            "topics": "Themenanalyse",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-Zugang",
-                            "integrations": "Individuelle Integrationen",
-                            "branding": "White-Label (Chatvia-Branding entfernen)",
-                            "residency": "EU-Datenspeicherort",
-                            "sso": "SSO / SAML",
-                            "sla": "Verfügbarkeits-SLA",
-                            "support": "Dedizierter Support",
-                            "dpa": "Individueller Vertrag & AVV",
-                            "teams": "Unbegrenzte Teams",
-                            "members": "Unbegrenzte Mitglieder",
-                            "retention": "Individuelle Datenspeicherung"
-                        }
-                    }
+                    "description": "Für Organisationen mit Anforderungen an Sicherheit, Compliance und Skalierung."
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "20 % sparen",
-                "popular_badge_text": "Beliebteste Wahl",
-                "current_plan_text": "Aktueller Plan"
             }
         }
     }

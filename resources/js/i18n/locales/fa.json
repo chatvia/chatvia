@@ -2468,11 +2468,9 @@
                 "limited": "تخفیف محدود روی تمام پلان‌های پولی!",
                 "off": "{percent}٪ تخفیف"
             },
-            "llms": {
-                "title": "مدل‌های هوش مصنوعی موجود",
-                "description": "از میان مجموعه جامع مدل‌های زبانی پیشرفته ما انتخاب کنید",
-                "empty": "هیچ مدلی موجود نیست"
-            }
+            "most_popular": "محبوب‌ترین",
+            "current_plan": "پلن فعلی",
+            "save_up_to_percent": "تا {percent}٪ صرفه‌جویی"
         },
         "addons": {
             "title": "افزونه‌ها",
@@ -2645,178 +2643,68 @@
             "packages": {
                 "starter": {
                     "name": "استارتر",
-                    "description": "برای کسب‌وکارهای کوچک در آغاز راه.",
-                    "features": {
-                        "monthly": {
-                            "messages": "۶٬۰۰۰ پیام در ماه",
-                            "agents": "۵ عامل هوش مصنوعی",
-                            "pages": "۲٬۰۰۰ صفحه (PDF، Word، متن)",
-                            "links": "۲٬۰۰۰ لینک وب‌سایت",
-                            "minutes": "۵۰۰ دقیقه صوتی/تصویری",
-                            "teams": "۱ تیم",
-                            "members": "۵ عضو (اعضای تیم + چت‌کنندگان)",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "retention": "۹۰ روز تاریخچه گفتگو"
-                        },
-                        "yearly": {
-                            "messages": "۷۸٬۰۰۰ پیام در سال",
-                            "agents": "۵ عامل هوش مصنوعی",
-                            "pages": "۲٬۰۰۰ صفحه (PDF، Word، متن)",
-                            "links": "۲٬۰۰۰ لینک وب‌سایت",
-                            "minutes": "۵۰۰ دقیقه صوتی/تصویری",
-                            "teams": "۱ تیم",
-                            "members": "۵ عضو (اعضای تیم + چت‌کنندگان)",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "retention": "۹۰ روز تاریخچه گفتگو"
-                        }
-                    }
+                    "description": "برای کسب‌وکارهای کوچک در آغاز راه."
                 },
                 "standard": {
                     "name": "استاندارد",
-                    "description": "برای تیم‌ها و کسب‌وکارهای در حال رشد.",
-                    "features": {
-                        "monthly": {
-                            "messages": "۱۵٬۰۰۰ پیام در ماه",
-                            "agents": "۱۰ عامل هوش مصنوعی",
-                            "pages": "۵٬۰۰۰ صفحه (PDF، Word، متن)",
-                            "links": "۵٬۰۰۰ لینک وب‌سایت",
-                            "minutes": "۲٬۰۰۰ دقیقه صوتی/تصویری",
-                            "sentiment": "تحلیل احساسات",
-                            "handoff": "انتقال به انسان",
-                            "api": "دسترسی به API",
-                            "teams": "۵ تیم",
-                            "members": "۲۰ عضو (اعضای تیم + چت‌کنندگان)",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "retention": "۱۸۰ روز تاریخچه گفتگو"
-                        },
-                        "yearly": {
-                            "messages": "۱۹۲٬۰۰۰ پیام در سال",
-                            "agents": "۱۰ عامل هوش مصنوعی",
-                            "pages": "۵٬۰۰۰ صفحه (PDF، Word، متن)",
-                            "links": "۵٬۰۰۰ لینک وب‌سایت",
-                            "minutes": "۲٬۰۰۰ دقیقه صوتی/تصویری",
-                            "sentiment": "تحلیل احساسات",
-                            "handoff": "انتقال به انسان",
-                            "api": "دسترسی به API",
-                            "teams": "۵ تیم",
-                            "members": "۲۰ عضو (اعضای تیم + چت‌کنندگان)",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "retention": "۱۸۰ روز تاریخچه گفتگو"
-                        }
-                    }
+                    "description": "برای تیم‌ها و کسب‌وکارهای در حال رشد."
                 },
                 "pro": {
                     "name": "حرفه‌ای",
-                    "description": "برای سازمان‌هایی که به همه امکانات نیاز دارند.",
-                    "features": {
-                        "monthly": {
-                            "messages": "۵۰٬۰۰۰ پیام در ماه",
-                            "agents": "۲۰ عامل هوش مصنوعی",
-                            "pages": "۱۰٬۰۰۰ صفحه (PDF، Word، متن)",
-                            "links": "۱۰٬۰۰۰ لینک وب‌سایت",
-                            "minutes": "۱۰٬۰۰۰ دقیقه صوتی/تصویری",
-                            "sentiment": "تحلیل احساسات",
-                            "tone": "تحلیل لحن",
-                            "topics": "تحلیل موضوع",
-                            "pulse": "نبض گفتگو",
-                            "handoff": "انتقال به انسان",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "api": "دسترسی به API",
-                            "integrations": "یکپارچه‌سازی‌های سفارشی",
-                            "branding": "لیبل سفید (حذف برند Chatvia)",
-                            "teams": "۱۰ تیم",
-                            "members": "۱۰۰ عضو (اعضای تیم + چت‌کنندگان)",
-                            "retention": "۳۶۶ روز تاریخچه گفتگو"
-                        },
-                        "yearly": {
-                            "messages": "۶۴۸٬۰۰۰ پیام در سال",
-                            "agents": "۲۰ عامل هوش مصنوعی",
-                            "pages": "۱۰٬۰۰۰ صفحه (PDF، Word، متن)",
-                            "links": "۱۰٬۰۰۰ لینک وب‌سایت",
-                            "minutes": "۱۰٬۰۰۰ دقیقه صوتی/تصویری",
-                            "sentiment": "تحلیل احساسات",
-                            "tone": "تحلیل لحن",
-                            "topics": "تحلیل موضوع",
-                            "pulse": "نبض گفتگو",
-                            "handoff": "انتقال به انسان",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "api": "دسترسی به API",
-                            "integrations": "یکپارچه‌سازی‌های سفارشی",
-                            "branding": "لیبل سفید (حذف برند Chatvia)",
-                            "teams": "۱۰ تیم",
-                            "members": "۱۰۰ عضو (اعضای تیم + چت‌کنندگان)",
-                            "retention": "۳۶۶ روز تاریخچه گفتگو"
-                        }
-                    }
+                    "description": "برای سازمان‌هایی که به همه امکانات نیاز دارند."
                 },
                 "enterprise": {
                     "name": "سازمانی",
-                    "description": "برای سازمان‌هایی با نیازهای امنیتی، انطباقی و مقیاس‌پذیری.",
-                    "features": {
-                        "monthly": {
-                            "messages": "حجم پیام سفارشی",
-                            "agents": "عوامل هوش مصنوعی نامحدود",
-                            "pages": "پایگاه دانش سفارشی",
-                            "links": "لینک‌های وب‌سایت سفارشی",
-                            "minutes": "صوتی/تصویری سفارشی",
-                            "sentiment": "تحلیل احساسات",
-                            "tone": "تحلیل لحن",
-                            "topics": "تحلیل موضوع",
-                            "pulse": "نبض گفتگو",
-                            "handoff": "انتقال به انسان",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "api": "دسترسی به API",
-                            "integrations": "یکپارچه‌سازی‌های سفارشی",
-                            "branding": "لیبل سفید (حذف برند Chatvia)",
-                            "residency": "میزبانی داده در اتحادیه اروپا",
-                            "sso": "SSO / SAML",
-                            "sla": "SLA زمان کارکرد",
-                            "support": "پشتیبانی اختصاصی",
-                            "dpa": "قرارداد و DPA سفارشی",
-                            "teams": "تیم‌های نامحدود",
-                            "members": "اعضای نامحدود",
-                            "retention": "نگهداری داده سفارشی"
-                        },
-                        "yearly": {
-                            "messages": "حجم پیام سفارشی",
-                            "agents": "عوامل هوش مصنوعی نامحدود",
-                            "pages": "پایگاه دانش سفارشی",
-                            "links": "لینک‌های وب‌سایت سفارشی",
-                            "minutes": "صوتی/تصویری سفارشی",
-                            "sentiment": "تحلیل احساسات",
-                            "tone": "تحلیل لحن",
-                            "topics": "تحلیل موضوع",
-                            "pulse": "نبض گفتگو",
-                            "handoff": "انتقال به انسان",
-                            "mcp": "MCP",
-                            "function_calling": "فراخوانی توابع",
-                            "api": "دسترسی به API",
-                            "integrations": "یکپارچه‌سازی‌های سفارشی",
-                            "branding": "لیبل سفید (حذف برند Chatvia)",
-                            "residency": "میزبانی داده در اتحادیه اروپا",
-                            "sso": "SSO / SAML",
-                            "sla": "SLA زمان کارکرد",
-                            "support": "پشتیبانی اختصاصی",
-                            "dpa": "قرارداد و DPA سفارشی",
-                            "teams": "تیم‌های نامحدود",
-                            "members": "اعضای نامحدود",
-                            "retention": "نگهداری داده سفارشی"
-                        }
-                    }
+                    "description": "برای سازمان‌هایی با نیازهای امنیتی، انطباقی و مقیاس‌پذیری."
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "۲۰٪ صرفه‌جویی",
-                "popular_badge_text": "محبوب‌ترین",
-                "current_plan_text": "پلن فعلی"
             }
+        },
+        "features": {
+            "messages_per_month": "{count} پیام در ماه | {count} پیام در ماه",
+            "messages_per_year": "{count} پیام در سال | {count} پیام در سال",
+            "messages_unlimited": "پیام نامحدود",
+            "messages_custom": "حجم پیام سفارشی",
+            "agents": "{count} عامل هوش مصنوعی | {count} عامل هوش مصنوعی",
+            "agents_unlimited": "عامل‌های هوش مصنوعی نامحدود",
+            "pages": "{count} صفحه (PDF، Word، متن) | {count} صفحه (PDF، Word، متن)",
+            "pages_unlimited": "صفحات نامحدود (PDF، Word، متن)",
+            "pages_custom": "پایگاه دانش سفارشی",
+            "links": "{count} لینک وب‌سایت | {count} لینک وب‌سایت",
+            "links_unlimited": "لینک‌های وب‌سایت نامحدود",
+            "links_custom": "لینک‌های وب‌سایت سفارشی",
+            "minutes": "{count} دقیقه صوتی/تصویری | {count} دقیقه صوتی/تصویری",
+            "minutes_unlimited": "دقیقه‌های صوتی/تصویری نامحدود",
+            "minutes_custom": "صوتی/تصویری سفارشی",
+            "teams": "{count} تیم | {count} تیم",
+            "teams_unlimited": "تیم‌های نامحدود",
+            "members": "{count} عضو (اعضای تیم + چت‌کنندگان) | {count} عضو (اعضای تیم + چت‌کنندگان)",
+            "members_unlimited": "اعضای نامحدود",
+            "retention": "{count} روز تاریخچه گفتگو | {count} روز تاریخچه گفتگو",
+            "retention_unlimited": "تاریخچه گفتگوی نامحدود",
+            "retention_custom": "نگهداری داده سفارشی",
+            "sentiment": "تحلیل احساسات",
+            "tone": "تحلیل لحن",
+            "topics": "تحلیل موضوع",
+            "pulse": "نبض گفتگو",
+            "handoff": "انتقال به انسان",
+            "api": "دسترسی به API",
+            "evals": "ارزیابی‌ها",
+            "guardrails": "حفاظ‌ها",
+            "audit": "گزارش حسابرسی",
+            "branding": "لیبل سفید (حذف برند {brand})",
+            "network_access": "کنترل دسترسی شبکه (IP و موقعیت جغرافیایی)",
+            "siem_webhook": "وب‌هوک SIEM (رویدادهای امنیتی بی‌درنگ)",
+            "mcp": "MCP",
+            "function_calling": "فراخوانی توابع",
+            "custom_domains": "{count} دامنه سفارشی | {count} دامنه سفارشی",
+            "custom_domains_unlimited": "دامنه‌های سفارشی نامحدود",
+            "custom_domains_custom": "دامنه‌های سفارشی",
+            "custom_integrations": "یکپارچه‌سازی‌های سفارشی",
+            "eu_data_residency": "میزبانی داده در اتحادیه اروپا",
+            "sso_saml": "SSO / SAML",
+            "uptime_sla": "SLA زمان کارکرد",
+            "dedicated_support": "پشتیبانی اختصاصی",
+            "custom_contract": "قرارداد و DPA سفارشی"
         }
     },
     "teams": {

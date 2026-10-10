@@ -24,7 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { planName, packageDescription, featureLabel } = usePlanText();
+const { planName, packageDescription, featureText } = usePlanText();
 const { formatTimestamp } = useBillingTimestamp();
 
 const resumeForm = useForm({});
@@ -69,20 +69,18 @@ const getStatusLabel = (status: string): string => {
 
 const isYearly = computed<boolean>(() => props.billingData.current_package?.is_yearly ?? false);
 
-const currentFeatures = computed(() => {
-    if (!props.billingData.current_package?.features) return [];
-    return isYearly.value ? props.billingData.current_package.features.yearly : props.billingData.current_package.features.monthly;
-});
+type PlanFeature = Domain.Billing.Data.Resources.Package.PlanFeatureData;
 
-const planFeatureLabel = (key: string, text: string): string => featureLabel(props.billingData.current_package?.id, isYearly.value, key, text);
-
-// Higher tiers list ~17 features. Show the first 3 so the card stays scannable
-// and let the user expand the rest. `features` may arrive as an array or a
-// numeric-keyed object, so read it through Object.entries either way.
+// Higher tiers list ~20 features. Show the first 3 so the card stays scannable
+// and let the user expand the rest.
 const FEATURES_PREVIEW_COUNT = 3;
 const featuresExpanded = ref(false);
-const featuresList = computed<[string, string][]>(() => Object.entries(currentFeatures.value ?? {}) as [string, string][]);
-const visibleFeatures = computed<[string, string][]>(() =>
+const featuresList = computed<PlanFeature[]>(() => {
+    const features = props.billingData.current_package?.features;
+    if (!features) return [];
+    return isYearly.value ? features.yearly : features.monthly;
+});
+const visibleFeatures = computed<PlanFeature[]>(() =>
     featuresExpanded.value ? featuresList.value : featuresList.value.slice(0, FEATURES_PREVIEW_COUNT),
 );
 const hiddenFeaturesCount = computed(() => Math.max(0, featuresList.value.length - FEATURES_PREVIEW_COUNT));
@@ -188,9 +186,9 @@ const hiddenFeaturesCount = computed(() => Math.max(0, featuresList.value.length
                 <Separator />
                 <h4 class="font-semibold">{{ t('billing.index.plan_features') }}</h4>
                 <div class="grid gap-2">
-                    <div v-for="[key, feature] in visibleFeatures" :key="key" class="flex items-center gap-2">
+                    <div v-for="(feature, index) in visibleFeatures" :key="index" class="flex items-center gap-2">
                         <CheckCircle class="h-4 w-4 text-green-500" />
-                        <span class="text-sm">{{ planFeatureLabel(key, feature) }}</span>
+                        <span class="text-sm">{{ featureText(feature) }}</span>
                     </div>
                 </div>
                 <button

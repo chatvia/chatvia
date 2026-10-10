@@ -1,7 +1,6 @@
 <?php
 
 use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
-use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -39,30 +38,6 @@ it('stores registration secrets only in the encrypted columns', function (): voi
 
     $raw = (string) DB::table('connector_oauth_clients')->where('id', $client->id)->value('metadata');
     expect($raw)->not->toContain('dcr-secret')->not->toContain('dcr-rat');
-});
-
-it('scrubs secrets already stored in the metadata column', function (): void {
-    $client = ConnectorOAuthClient::create([
-        'auth_server_url' => 'https://legacy.example.test',
-        'client_id' => 'legacy-client',
-        'client_secret' => 'legacy-secret',
-        'token_endpoint' => 'https://legacy.example.test/token',
-        'authorization_endpoint' => 'https://legacy.example.test/authorize',
-        'metadata' => [
-            'client_id' => 'legacy-client',
-            'client_secret' => 'legacy-secret',
-            'registration_access_token' => 'legacy-rat',
-            'client_name' => 'ChatVia',
-        ],
-    ]);
-
-    (require database_path('migrations/2026_10_08_417253_scrub_secrets_from_connector_oauth_clients_metadata.php'))->up();
-
-    $metadata = $client->fresh()->metadata;
-    expect($metadata)->not->toHaveKeys(['client_secret', 'registration_access_token'])
-        ->and($metadata)->toMatchArray(['client_id' => 'legacy-client', 'client_name' => 'ChatVia'])
-        // The encrypted column is untouched.
-        ->and($client->fresh()->client_secret)->toBe('legacy-secret');
 });
 
 it('registers the client under the configured brand name', function (): void {

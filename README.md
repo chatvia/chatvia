@@ -231,8 +231,8 @@ MAIL_PORT=1025
 ```
 
 Then set `BUILTIN_MCP_SECRET` to a long random string (the built-in tools need
-it). Billing is off in `.env.example` (`BILLING_ENABLED=false`), so the app
-runs without Stripe; see `config/billing.php` to turn it on.
+it). Billing is off until you turn it on in the admin panel (**Settings →
+Billing**), so the app runs without Stripe.
 
 ### 4. Create the database schema and demo data
 
@@ -330,8 +330,9 @@ In short:
   confirm their e-mail address before they can use the app, and invitations
   and sign-in links also go out by e-mail.
 - Cache the configuration with `php artisan config:cache`, `event:cache` and
-  `view:cache`. Do not run `route:cache`: the localized public pages use
-  routes that the route cache cannot store.
+  `view:cache`. Do not run `route:cache`: the app's addresses start with the
+  language (`/en/…`), and some routes depend on the billing settings; the
+  route cache cannot store either.
 - Keep `php artisan horizon` and `php artisan reverb:start` running under a
   process manager (for example Supervisor or systemd), and run
   `php artisan schedule:run` every minute from cron.

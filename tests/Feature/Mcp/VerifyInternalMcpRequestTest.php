@@ -174,19 +174,10 @@ function internalHeadersWithoutNonce(string $path, array $payload, array $identi
     ];
 }
 
-it('refuses a request signed without a nonce by default', function (): void {
+it('refuses a request signed without a nonce', function (): void {
     $call = internalToolCall('get-account-overview-tool');
 
     $this->withHeaders(internalHeadersWithoutNonce('/mcp/account-analytics', $call, $this->identity))
         ->postJson('/mcp/account-analytics', $call)
         ->assertStatus(401);
-});
-
-it('accepts a request signed without a nonce while the deploy flag allows it', function (): void {
-    config(['services.builtin_mcp.allow_missing_nonce' => true]);
-    $call = internalToolCall('get-account-overview-tool');
-
-    $this->withHeaders(internalHeadersWithoutNonce('/mcp/account-analytics', $call, $this->identity))
-        ->postJson('/mcp/account-analytics', $call)
-        ->assertOk();
 });

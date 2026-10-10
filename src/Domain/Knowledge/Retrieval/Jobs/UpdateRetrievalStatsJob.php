@@ -17,11 +17,9 @@ class UpdateRetrievalStatsJob implements ShouldQueue
     use Queueable;
 
     /**
-     * `$results` holds source references only. Jobs queued by an older release
-     * carry full search-result rows (objects); the action reads both shapes.
-     * The property name stays `results` so those jobs still unserialize.
+     * `$results` holds source references only: `{chunkable_type, chunkable_id}`.
      *
-     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}|object>  $results
+     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
      */
     public function __construct(
         public array $results,

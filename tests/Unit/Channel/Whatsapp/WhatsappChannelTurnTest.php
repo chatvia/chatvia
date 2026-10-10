@@ -6,7 +6,6 @@ use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Models\WhatsappChat;
 use Domain\Channel\Whatsapp\Services\WhatsappAdapter;
 use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
-use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Whatsapp\FakeWhatsappClient;
 
@@ -24,10 +23,8 @@ function whatsappTurnNumber(bool $public = true): AgentWhatsappNumber
     return AgentWhatsappNumber::create([
         'agent_id' => $agent->id,
         'access_token' => 'EAAG-secret-token',
-        'app_secret' => 'app-secret-value-1234567890',
         'phone_number_id' => '111222333444555',
         'waba_id' => '999888777666555',
-        'webhook_secret' => Str::random(48),
         'enabled' => true,
     ]);
 }

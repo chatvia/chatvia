@@ -112,7 +112,6 @@ use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
 use Laravel\Cashier\Events\WebhookHandled;
 use Laravel\Cashier\Events\WebhookReceived;
-use Support\Autoload\LegacyNamespaceAutoloader;
 
 /**
  * Domain wiring: observers, DI bindings against contracts (AI providers,
@@ -130,14 +129,6 @@ class DomainServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Old letter-case spellings of renamed namespaces (`Source\QA`,
-        // `Data\OCR`) still sit in queued payloads, caches and a shipped
-        // migration; keep them loadable.
-        LegacyNamespaceAutoloader::register([
-            'Domain\\Knowledge\\Source\\QA\\' => 'Domain\\Knowledge\\Source\\Qa\\',
-            'Domain\\Knowledge\\Ingestion\\Data\\OCR\\' => 'Domain\\Knowledge\\Ingestion\\Data\\Ocr\\',
-        ]);
-
         // Tool dispatcher: routes by tool name to either the webhook
         // (AgentFunctions) or MCP backend.
         $this->app->bind(ToolDispatcherInterface::class, RoutingToolDispatcher::class);
@@ -171,9 +162,9 @@ class DomainServiceProvider extends ServiceProvider
             fn (): PasswordAuthenticator => new PasswordAuthenticator(Auth::guard('web')),
         );
 
-        // Billing can be switched off for a self-hosted install
-        // (BILLING_ENABLED=false). Resolved on every use, not as a singleton,
-        // so the driver always matches the current config.
+        // Billing can be switched off in the admin panel (Settings →
+        // Billing). Resolved on every use, not as a singleton, so the driver
+        // always matches the current config.
         $this->app->bind(Entitlements::class, fn ($app): Entitlements => config('billing.enabled', true)
             ? $app->make(StripeEntitlements::class)
             : $app->make(UnlimitedEntitlements::class));

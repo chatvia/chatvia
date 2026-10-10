@@ -29,7 +29,7 @@ function textWriterOwner(): User
         'quantity' => 1,
     ]);
 
-    UserQuota::firstOrCreate(['user_id' => $owner->id], config('billing.packages.starter.quota_limits.fixed', []));
+    UserQuota::firstOrCreate(['user_id' => $owner->id], planFixedLimits());
 
     app(TeamService::class)->createDefaultTeam($owner);
 

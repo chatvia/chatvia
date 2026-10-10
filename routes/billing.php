@@ -33,7 +33,7 @@ use App\Http\Middleware\Auth\DenyIfEmployee;
 use Illuminate\Support\Facades\Route;
 
 // Every billing page and Stripe flow answers 404 when billing is turned off
-// (a self-hosted install with BILLING_ENABLED=false).
+// (paid plans off in the admin panel, Settings → Billing).
 Route::prefix('my')->middleware(EnsureBillingIsEnabled::class)->group(function (): void {
     Route::get('subscribe', BillingSubscribeController::class)
         ->middleware(['auth', 'verified', DenyIfEmployee::class])

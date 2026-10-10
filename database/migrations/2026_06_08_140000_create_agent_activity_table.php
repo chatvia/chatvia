@@ -29,7 +29,7 @@ return new class extends Migration
             $table->string('connector_slug')->nullable();
             $table->string('connector_name')->nullable();
 
-            $table->enum('outcome', ['auto', 'approved', 'denied', 'rate_limited']);
+            $table->enum('outcome', ['auto', 'approved', 'denied', 'rate_limited', 'not_offered']);
             $table->boolean('gated')->default(false);
             $table->boolean('is_error')->default(false);
             $table->unsignedInteger('latency_ms')->nullable();

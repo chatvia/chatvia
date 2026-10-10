@@ -96,23 +96,3 @@ it('treats erasing an already-deleted conversation as a no-op', function (): voi
 
     expect(Conversation::withTrashed()->find($conversation->id)->trashed())->toBeTrue();
 });
-
-it('the data migration clears leftover BM25 copies of already-erased messages only', function (): void {
-    [, , $conversation, $erased] = erasureSetup();
-    $kept = Message::create([
-        'external_id' => (string) Str::uuid(),
-        'chat_conversation_id' => $conversation->id,
-        'role' => MessageRole::Assistant,
-        'content' => 'Your order has shipped.',
-    ]);
-
-    // How the old erase path left rows: content gone, BM25 copy still there.
-    DB::table('chat_messages')->where('id', $erased->id)->update(['content' => null]);
-    expect(erasureRow($erased)->content_bm25)->not->toBeNull();
-
-    $migration = require database_path('migrations/2026_10_08_174213_clear_bm25_copy_of_erased_chat_messages.php');
-    $migration->up();
-
-    expect(erasureRow($erased)->content_bm25)->toBeNull()
-        ->and(erasureRow($kept)->content_bm25)->not->toBeNull();
-});

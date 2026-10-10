@@ -30,6 +30,7 @@ it('shows a card for every settings group', function (): void {
     $response->assertSee(SettingGroup::Instagram->label())
         ->assertSee(SettingGroup::Whatsapp->label())
         ->assertSee(SettingGroup::Stripe->label())
+        ->assertSee(SettingGroup::Billing->description())
         ->assertSee(SettingResource::getUrl('edit', ['record' => SettingGroup::GoogleLogin->value]));
 });
 
@@ -125,4 +126,70 @@ it('removes every saved value of a group', function (): void {
         ->callAction('removeSavedValues');
 
     expect($setting->refresh()->payload)->toBeNull();
+});
+
+it('shows the billing values in use, with the warning about Stripe subscriptions', function (): void {
+    Livewire::actingAs($this->admin, 'admin')
+        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->assertOk()
+        ->assertSchemaStateSet([
+            'payload.enabled' => false,
+            'payload.registration_enabled' => true,
+            'payload.trial_days' => 7,
+            'payload.currency' => 'eur',
+            'payload.unlimited_retention_days' => 366,
+            'payload.discount_percentage' => 0,
+            'payload.discount_ends_at' => null,
+            'payload.auto_recharge_max_per_day' => 3,
+        ])
+        ->assertSee('It does not cancel subscriptions in Stripe.');
+});
+
+it('saves the billing values as strings, an off switch included', function (): void {
+    Livewire::actingAs($this->admin, 'admin')
+        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->fillForm([
+            'payload.enabled' => true,
+            'payload.registration_enabled' => false,
+            'payload.trial_days' => 14,
+            'payload.currency' => 'usd',
+            'payload.discount_percentage' => 10,
+            'payload.discount_ends_at' => '2026-12-31',
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(AdminSetting::forGroup(SettingGroup::Billing)->payload)->toBe([
+        'enabled' => '1',
+        'registration_enabled' => '0',
+        'trial_days' => '14',
+        'currency' => 'usd',
+        'unlimited_retention_days' => '366',
+        'discount_percentage' => '10',
+        'discount_ends_at' => '2026-12-31',
+        'auto_recharge_max_per_day' => '3',
+    ]);
+});
+
+it('shows saved billing values back in the form', function (): void {
+    AdminSetting::forGroup(SettingGroup::Billing)->update(['payload' => ['enabled' => '1', 'trial_days' => '30', 'currency' => 'gbp']]);
+
+    Livewire::actingAs($this->admin, 'admin')
+        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->assertSchemaStateSet([
+            'payload.enabled' => true,
+            'payload.registration_enabled' => false,
+            'payload.trial_days' => 30,
+            'payload.currency' => 'gbp',
+        ]);
+});
+
+it('validates the billing values', function (): void {
+    Livewire::actingAs($this->admin, 'admin')
+        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->fillForm(['payload.discount_percentage' => 150, 'payload.trial_days' => -1, 'payload.currency' => 'xyz'])
+        ->call('save')
+        ->assertHasFormErrors(['payload.discount_percentage', 'payload.trial_days', 'payload.currency']);
+
+    expect(AdminSetting::forGroup(SettingGroup::Billing)->payload)->toBeNull();
 });

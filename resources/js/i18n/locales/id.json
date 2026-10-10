@@ -2468,11 +2468,9 @@
                 "limited": "Diskon waktu terbatas untuk semua paket berbayar!",
                 "off": "Diskon {percent}%"
             },
-            "llms": {
-                "title": "Model AI yang Tersedia",
-                "description": "Pilih dari rangkaian lengkap model bahasa mutakhir kami",
-                "empty": "Tidak ada model yang tersedia"
-            }
+            "most_popular": "Paling Populer",
+            "current_plan": "Paket Saat Ini",
+            "save_up_to_percent": "Hemat hingga {percent}%"
         },
         "addons": {
             "title": "Add-on",
@@ -2645,178 +2643,68 @@
             "packages": {
                 "starter": {
                     "name": "Starter",
-                    "description": "Untuk bisnis kecil yang baru memulai.",
-                    "features": {
-                        "monthly": {
-                            "messages": "3.000 pesan per bulan",
-                            "agents": "2 agen AI",
-                            "pages": "2.000 halaman (PDF, Word, Teks)",
-                            "links": "2.000 tautan situs web",
-                            "minutes": "500 menit audio/video",
-                            "teams": "1 tim",
-                            "members": "5 anggota (anggota tim + chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "Riwayat obrolan 90 hari"
-                        },
-                        "yearly": {
-                            "messages": "39.000 pesan per tahun",
-                            "agents": "2 agen AI",
-                            "pages": "2.000 halaman (PDF, Word, Teks)",
-                            "links": "2.000 tautan situs web",
-                            "minutes": "500 menit audio/video",
-                            "teams": "1 tim",
-                            "members": "5 anggota (anggota tim + chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "Riwayat obrolan 90 hari"
-                        }
-                    }
+                    "description": "Untuk bisnis kecil yang baru memulai."
                 },
                 "standard": {
                     "name": "Standard",
-                    "description": "Untuk tim dan bisnis yang sedang berkembang.",
-                    "features": {
-                        "monthly": {
-                            "messages": "15.000 pesan per bulan",
-                            "agents": "10 agen AI",
-                            "pages": "5.000 halaman (PDF, Word, Teks)",
-                            "links": "5.000 tautan situs web",
-                            "minutes": "2.000 menit audio/video",
-                            "sentiment": "Analisis sentimen",
-                            "handoff": "Pengalihan",
-                            "api": "Akses API",
-                            "teams": "5 tim",
-                            "members": "20 anggota (anggota tim + chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "Riwayat obrolan 180 hari"
-                        },
-                        "yearly": {
-                            "messages": "192.000 pesan per tahun",
-                            "agents": "10 agen AI",
-                            "pages": "5.000 halaman (PDF, Word, Teks)",
-                            "links": "5.000 tautan situs web",
-                            "minutes": "2.000 menit audio/video",
-                            "sentiment": "Analisis sentimen",
-                            "handoff": "Pengalihan",
-                            "api": "Akses API",
-                            "teams": "5 tim",
-                            "members": "20 anggota (anggota tim + chatter)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "Riwayat obrolan 180 hari"
-                        }
-                    }
+                    "description": "Untuk tim dan bisnis yang sedang berkembang."
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "Untuk organisasi yang membutuhkan semuanya.",
-                    "features": {
-                        "monthly": {
-                            "messages": "50.000 pesan per bulan",
-                            "agents": "20 agen AI",
-                            "pages": "10.000 halaman (PDF, Word, Teks)",
-                            "links": "10.000 tautan situs web",
-                            "minutes": "10.000 menit audio/video",
-                            "sentiment": "Analisis sentimen",
-                            "tone": "Analisis nada",
-                            "topics": "Analisis topik",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Pengalihan",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Akses API",
-                            "integrations": "Integrasi khusus",
-                            "branding": "White-label (hapus merek Chatvia)",
-                            "teams": "10 tim",
-                            "members": "100 anggota (anggota tim + chatter)",
-                            "retention": "Riwayat obrolan 366 hari"
-                        },
-                        "yearly": {
-                            "messages": "648.000 pesan per tahun",
-                            "agents": "20 agen AI",
-                            "pages": "10.000 halaman (PDF, Word, Teks)",
-                            "links": "10.000 tautan situs web",
-                            "minutes": "10.000 menit audio/video",
-                            "sentiment": "Analisis sentimen",
-                            "tone": "Analisis nada",
-                            "topics": "Analisis topik",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Pengalihan",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Akses API",
-                            "integrations": "Integrasi khusus",
-                            "branding": "White-label (hapus merek Chatvia)",
-                            "teams": "10 tim",
-                            "members": "100 anggota (anggota tim + chatter)",
-                            "retention": "Riwayat obrolan 366 hari"
-                        }
-                    }
+                    "description": "Untuk organisasi yang membutuhkan semuanya."
                 },
                 "enterprise": {
                     "name": "Enterprise",
-                    "description": "Untuk organisasi dengan kebutuhan keamanan, kepatuhan, dan skala.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Volume pesan khusus",
-                            "agents": "Agen AI tanpa batas",
-                            "pages": "Basis Pengetahuan khusus",
-                            "links": "Tautan situs web khusus",
-                            "minutes": "Audio/video khusus",
-                            "sentiment": "Analisis sentimen",
-                            "tone": "Analisis nada",
-                            "topics": "Analisis topik",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Pengalihan",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Akses API",
-                            "integrations": "Integrasi khusus",
-                            "branding": "White-label (hapus merek Chatvia)",
-                            "residency": "Residensi data UE",
-                            "sso": "SSO / SAML",
-                            "sla": "SLA waktu aktif",
-                            "support": "Dukungan khusus",
-                            "dpa": "Kontrak & DPA khusus",
-                            "teams": "Tim tanpa batas",
-                            "members": "Anggota tanpa batas",
-                            "retention": "Retensi data khusus"
-                        },
-                        "yearly": {
-                            "messages": "Volume pesan khusus",
-                            "agents": "Agen AI tanpa batas",
-                            "pages": "Basis Pengetahuan khusus",
-                            "links": "Tautan situs web khusus",
-                            "minutes": "Audio/video khusus",
-                            "sentiment": "Analisis sentimen",
-                            "tone": "Analisis nada",
-                            "topics": "Analisis topik",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Pengalihan",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Akses API",
-                            "integrations": "Integrasi khusus",
-                            "branding": "White-label (hapus merek Chatvia)",
-                            "residency": "Residensi data UE",
-                            "sso": "SSO / SAML",
-                            "sla": "SLA waktu aktif",
-                            "support": "Dukungan khusus",
-                            "dpa": "Kontrak & DPA khusus",
-                            "teams": "Tim tanpa batas",
-                            "members": "Anggota tanpa batas",
-                            "retention": "Retensi data khusus"
-                        }
-                    }
+                    "description": "Untuk organisasi dengan kebutuhan keamanan, kepatuhan, dan skala."
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "Hemat 20%",
-                "popular_badge_text": "Paling Populer",
-                "current_plan_text": "Paket Saat Ini"
             }
+        },
+        "features": {
+            "messages_per_month": "{count} pesan per bulan | {count} pesan per bulan",
+            "messages_per_year": "{count} pesan per tahun | {count} pesan per tahun",
+            "messages_unlimited": "Pesan tanpa batas",
+            "messages_custom": "Volume pesan khusus",
+            "agents": "{count} agen AI | {count} agen AI",
+            "agents_unlimited": "Agen AI tanpa batas",
+            "pages": "{count} halaman (PDF, Word, Teks) | {count} halaman (PDF, Word, Teks)",
+            "pages_unlimited": "Halaman tanpa batas (PDF, Word, Teks)",
+            "pages_custom": "Basis pengetahuan khusus",
+            "links": "{count} tautan situs web | {count} tautan situs web",
+            "links_unlimited": "Tautan situs web tanpa batas",
+            "links_custom": "Tautan situs web khusus",
+            "minutes": "{count} menit audio/video | {count} menit audio/video",
+            "minutes_unlimited": "Menit audio/video tanpa batas",
+            "minutes_custom": "Audio/video khusus",
+            "teams": "{count} tim | {count} tim",
+            "teams_unlimited": "Tim tanpa batas",
+            "members": "{count} anggota (anggota tim + chatter) | {count} anggota (anggota tim + chatter)",
+            "members_unlimited": "Anggota tanpa batas",
+            "retention": "Riwayat obrolan {count} hari | Riwayat obrolan {count} hari",
+            "retention_unlimited": "Riwayat obrolan tanpa batas",
+            "retention_custom": "Retensi data khusus",
+            "sentiment": "Analisis sentimen",
+            "tone": "Analisis nada",
+            "topics": "Analisis topik",
+            "pulse": "Conversation Pulse",
+            "handoff": "Pengalihan",
+            "api": "Akses API",
+            "evals": "Evaluasi",
+            "guardrails": "Pagar Pengaman",
+            "audit": "Log Audit",
+            "branding": "White-label (hapus merek {brand})",
+            "network_access": "Kontrol akses jaringan (IP & geo)",
+            "siem_webhook": "Webhook SIEM (peristiwa keamanan real-time)",
+            "mcp": "MCP",
+            "function_calling": "Function Calling",
+            "custom_domains": "{count} domain khusus | {count} domain khusus",
+            "custom_domains_unlimited": "Domain khusus tanpa batas",
+            "custom_domains_custom": "Domain khusus",
+            "custom_integrations": "Integrasi khusus",
+            "eu_data_residency": "Residensi data UE",
+            "sso_saml": "SSO / SAML",
+            "uptime_sla": "SLA waktu aktif",
+            "dedicated_support": "Dukungan khusus",
+            "custom_contract": "Kontrak & DPA khusus"
         }
     },
     "teams": {

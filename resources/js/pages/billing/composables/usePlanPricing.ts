@@ -9,7 +9,7 @@ import type { PlanBillingConfig, PlanPackage } from '../types';
  * free plan never gets a discount and contact-sales plans show no price.
  */
 export function usePlanPricing(config: MaybeRefOrGetter<PlanBillingConfig>, isYearly: MaybeRefOrGetter<boolean>) {
-    const { t } = useI18n();
+    const { t, n } = useI18n();
 
     const isDiscountActive = computed(() => {
         const discount = toValue(config).discount;
@@ -51,9 +51,10 @@ export function usePlanPricing(config: MaybeRefOrGetter<PlanBillingConfig>, isYe
         return money(isDiscountActive.value ? applyDiscount(pkg.yearly_price) : pkg.yearly_price);
     };
 
+    /** "Save 20%" on the yearly cycle: what the plan's yearly price saves against twelve monthly payments. */
     const getSavingsText = (pkg: PlanPackage): string | null => {
-        if (!toValue(isYearly) || pkg.monthly_savings.percentage === 0) return null;
-        return t('billing.plans.save_percent', { percent: toValue(config).ui.yearly_savings_percentage });
+        if (!toValue(isYearly) || pkg.contact_sales || pkg.monthly_savings.percentage <= 0) return null;
+        return t('billing.plans.save_percent', { percent: n(pkg.monthly_savings.percentage) });
     };
 
     return { isDiscountActive, getPackagePrice, getOriginalPrice, getPackagePeriod, getYearlyTotal, getSavingsText };

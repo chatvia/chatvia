@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,17 +14,19 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->unique()->constrained()->cascadeOnDelete();
             $table->text('access_token');
-            $table->text('app_secret');
             $table->string('phone_number_id');
             $table->string('waba_id');
             $table->string('display_phone_number')->nullable();
             $table->string('verified_name')->nullable();
-            $table->string('webhook_secret', 64)->unique();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
 
             $table->index('phone_number_id');
         });
+
+        // One enabled connection per WhatsApp number, so an incoming message
+        // reaches exactly one agent.
+        DB::statement('CREATE UNIQUE INDEX agent_whatsapp_numbers_phone_number_id_enabled_unique ON agent_whatsapp_numbers (phone_number_id) WHERE enabled');
     }
 
     public function down(): void

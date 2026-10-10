@@ -3,6 +3,7 @@
 namespace Domain\Channel\Whatsapp\Models;
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Enums\MetaApp;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
@@ -15,19 +16,15 @@ use Support\Concerns\HasExternalId;
  * a business-integration token from WhatsApp Embedded Signup that can send
  * messages as the number). `phone_number_id` is both the send endpoint and the
  * routing key — inbound events land on the single app-level webhook and are
- * matched to this row by it. The `app_secret` / `webhook_secret` columns are
- * not used: the HMAC is verified with the shared Chatvia app secret and the
- * webhook is app-level. They are nullable, never written, and only hold data
- * on older rows.
+ * matched to this row by it. The webhook signature and verify token come from
+ * the WhatsApp Meta app set in the admin panel ({@see MetaApp::Whatsapp}).
  *
  * @property string $external_id
  * @property string $access_token
- * @property string|null $app_secret
  * @property string $phone_number_id
  * @property string $waba_id
  * @property string|null $display_phone_number
  * @property string|null $verified_name
- * @property string|null $webhook_secret
  * @property bool $enabled
  */
 #[Guarded(['id'])]
@@ -54,10 +51,6 @@ class AgentWhatsappNumber extends Model
     {
         return [
             'access_token' => 'encrypted',
-            // `app_secret` is never read and is null on rows connected through
-            // OAuth, so it is deliberately NOT cast: the `encrypted` caster can't
-            // decrypt a null and would throw. Reading the raw value is harmless
-            // because nothing uses it.
             'enabled' => 'boolean',
         ];
     }

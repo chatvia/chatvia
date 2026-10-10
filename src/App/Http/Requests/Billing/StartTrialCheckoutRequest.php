@@ -4,7 +4,9 @@ namespace App\Http\Requests\Billing;
 
 use Domain\Billing\Data\Stripe\CheckoutUrlsData;
 use Domain\Billing\Data\Trials\StartTrialCheckoutData;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Start the public trial checkout. Stripe replaces `{CHECKOUT_SESSION_ID}` in
@@ -24,7 +26,7 @@ class StartTrialCheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'package' => ['required', 'string', 'in:starter,standard,pro'],
+            'package' => ['required', 'string', Rule::in(app(BillingCatalog::class)->selfServePlans()->keys()->all())],
             'yearly' => ['required', 'boolean'],
         ];
     }

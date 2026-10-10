@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
             $table->string('name');
             $table->text('input');
-            $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge']);
+            $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge', 'tool_call']);
             $table->jsonb('scorer_config')->nullable();
             $table->text('expected_output')->nullable();
             $table->boolean('active')->default(true);
@@ -56,7 +56,7 @@ return new class extends Migration
             $table->foreignId('run_id')->constrained('eval_runs')->cascadeOnDelete();
             $table->foreignId('case_id')->nullable()->constrained('eval_cases')->nullOnDelete();
             $table->string('case_name');
-            $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge']);
+            $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge', 'tool_call']);
             $table->boolean('pass')->default(false);
             $table->decimal('score', 5, 4)->nullable();
             $table->text('actual_output')->nullable();

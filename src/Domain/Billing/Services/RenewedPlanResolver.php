@@ -6,7 +6,9 @@ use Domain\Billing\Actions\Webhooks\GrantRenewalAction;
 use Domain\Billing\Data\Stripe\PaidInvoiceData;
 use Domain\Billing\Data\Stripe\StripeMetadata;
 use Domain\Billing\Data\Subscriptions\PlanSelectionData;
+use Domain\Billing\Models\BillingAddon;
 use Domain\Billing\Models\UserBilling;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 use Illuminate\Support\Facades\Log;
 use Laravel\Cashier\Subscription;
 
@@ -15,16 +17,17 @@ use Laravel\Cashier\Subscription;
  * {@see GrantRenewalAction}), or null when the invoice renews an add-on
  * subscription instead of the plan.
  *
- * The Stripe price is the source of truth: first the invoice's own
- * subscription lines, then the locally synced Cashier subscription. The
- * subscription metadata is only a last resort for a price that is not in the
- * billing config, because applying a scheduled plan change clears its
- * `to_package` and `is_yearly` keys.
+ * The Stripe price is the source of truth (a plan's current or legacy price):
+ * first the invoice's own subscription lines, then the locally synced Cashier
+ * subscription. The subscription metadata is only a last resort for a price no
+ * plan has, because applying a scheduled plan change clears its `to_package`
+ * and `is_yearly` keys.
  */
 class RenewedPlanResolver
 {
     public function __construct(
         private readonly PlanCatalog $plans,
+        private readonly BillingCatalog $catalog,
     ) {}
 
     public function resolve(PaidInvoiceData $invoice, UserBilling $billing, ?Subscription $subscription): ?PlanSelectionData
@@ -63,11 +66,12 @@ class RenewedPlanResolver
 
     /**
      * Every add-on checkout tags its subscription (see {@see StripeMetadata}),
-     * and every add-on gets its own non-default Cashier subscription row.
+     * every add-on gets its own non-default Cashier subscription row, and an
+     * add-on price (current or legacy) is never a plan price.
      */
     private function isAddonInvoice(PaidInvoiceData $invoice, StripeMetadata $metadata, UserBilling $billing): bool
     {
-        if ($metadata->isAddonSubscription()) {
+        if ($metadata->isAddonSubscription() || $this->billsAnAddonPrice($invoice)) {
             return true;
         }
 
@@ -79,6 +83,14 @@ class RenewedPlanResolver
             ->where('stripe_id', $invoice->subscriptionId)
             ->where('type', '!=', 'default')
             ->exists();
+    }
+
+    private function billsAnAddonPrice(PaidInvoiceData $invoice): bool
+    {
+        return array_any(
+            $invoice->linePriceIds,
+            fn (string $priceId): bool => $this->catalog->addonForPrice($priceId) instanceof BillingAddon,
+        );
     }
 
     /**
@@ -100,7 +112,7 @@ class RenewedPlanResolver
     {
         $package = $metadata->targetPackage()
             ?? $billing->plan
-            ?? (string) config('billing.default_package', 'starter');
+            ?? $this->catalog->defaultPlanKey();
 
         Log::warning('Stripe renewal: no configured plan price found, using the subscription metadata', [
             'invoice_id' => $invoice->invoiceId,

@@ -6,6 +6,7 @@ use Domain\Billing\Enums\Addon;
 use Domain\Billing\Enums\MessageCreditAddon;
 use Domain\Billing\Enums\PurchaseType;
 use Domain\Billing\Enums\RegistrationType;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 
 /**
  * Typed view of the `metadata` we attach to Stripe checkouts, invoices and
@@ -100,10 +101,10 @@ final readonly class StripeMetadata
             || $this->subscriptionAddon() instanceof Addon;
     }
 
-    /** The plan a trial checkout signed up for; starter when it is missing. */
+    /** The plan a trial checkout signed up for; the default plan when it is missing. */
     public function package(): string
     {
-        return $this->string(self::PACKAGE) ?? (string) config('billing.default_package', 'starter');
+        return $this->string(self::PACKAGE) ?? app(BillingCatalog::class)->defaultPlanKey();
     }
 
     /** The plan a scheduled change moves to (or the original package), if recorded. */

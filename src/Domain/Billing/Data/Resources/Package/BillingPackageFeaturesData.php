@@ -2,31 +2,29 @@
 
 namespace Domain\Billing\Data\Resources\Package;
 
+use Domain\Billing\Services\Catalog\PlanFeatureList;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * The marketing feature lists of a plan, per billing cycle.
+ * The feature bullets of a plan card, per billing cycle (only the message
+ * volume differs between the two). Built from the plan by
+ * {@see PlanFeatureList}.
  */
 #[TypeScript]
 class BillingPackageFeaturesData extends Data
 {
     public function __construct(
-        /** @var Collection<int, string> */
+        /** @var Collection<int, PlanFeatureData> */
         public Collection $monthly,
-        /** @var Collection<int, string> */
+        /** @var Collection<int, PlanFeatureData> */
         public Collection $yearly,
     ) {}
 
-    /**
-     * @param  array{monthly?: list<string>, yearly?: list<string>}  $features
-     */
-    public static function fromArray(array $features): self
+    /** No bullets, for a page that has no plan to show. */
+    public static function none(): self
     {
-        return new self(
-            monthly: collect($features['monthly'] ?? []),
-            yearly: collect($features['yearly'] ?? []),
-        );
+        return new self(monthly: collect(), yearly: collect());
     }
 }

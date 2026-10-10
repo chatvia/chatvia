@@ -43,7 +43,7 @@ beforeEach(function (): void {
 it('queues a Messenger message once and ignores the Page’s own and unknown Pages', function (): void {
     $page = AgentMessengerPage::create([
         'agent_id' => $this->agent->id, 'page_access_token' => 't', 'page_id' => 'PAGE-1',
-        'page_name' => 'Acme', 'webhook_secret' => Str::random(48), 'enabled' => true,
+        'page_name' => 'Acme', 'enabled' => true,
     ]);
     $action = app(ReceiveMessengerMessagesAction::class);
 

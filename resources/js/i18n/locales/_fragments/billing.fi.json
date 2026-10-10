@@ -139,11 +139,6 @@
                 "ends": "Tarjous päättyy {date} – älä missaa!",
                 "limited": "Rajoitetun ajan alennus kaikista maksullisista suunnitelmista!",
                 "off": "{percent}% ALENNUS"
-            },
-            "llms": {
-                "title": "Saatavilla olevat tekoälymallit",
-                "description": "Valitse kattavasta valikoimastamme huippuluokan kielimalleja",
-                "empty": "Ei saatavilla olevia malleja"
             }
         },
         "addons": {

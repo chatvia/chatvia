@@ -54,9 +54,9 @@ command bar, messaging apps and a REST API.
 | `database/` | Migrations, factories, seeders. |
 | `resources/js/` | The Vue frontend (dashboard and hosted chat). |
 | `resources/prompts/` | LLM prompt templates (Blade files, loaded with `prompt('folder/name')`). |
-| `resources/views/` | Blade views: the public site, e-mails, PDF exports, the app shell. |
+| `resources/views/` | Blade views: e-mails, PDF exports, the app shell. |
 | `resources/types/generated.d.ts` | TypeScript types generated from PHP classes. |
-| `lang/` | Server-side translations (e-mails, flash messages, the public site). |
+| `lang/` | Server-side translations (e-mails, flash messages, validation). |
 | `widget/` | The embeddable chat widget, a separate JavaScript package. |
 | `docs/` | The user documentation (VitePress). |
 | `tests/` | Pest tests: `Unit`, `Feature`, `Architecture`, `Eval`. |
@@ -287,10 +287,23 @@ Plans, Stripe subscriptions (Laravel Cashier on the `UserBilling` model),
 message credits, add-ons, auto-recharge, trials and the Stripe webhook. Billing
 counts **messages**, not tokens.
 
+Plans and add-ons are database rows (`BillingPlan`, `BillingAddon`), managed in
+the admin panel. Every reader goes through `Services\Catalog\BillingCatalog`
+(cached, cleared when a row is saved); `PlanCatalog` adds the display fields
+the billing pages need. A plan's `key` is its permanent id. An archived plan is
+not offered any more but still resolves for its subscribers, and old Stripe
+prices stay in `legacy_stripe_price_ids` so renewals keep finding the plan.
+Saving a plan or add-on (`Actions/Catalog`) also creates its Stripe product and
+prices (`StripeCatalogSync`; a changed amount makes a new price, Stripe prices
+being immutable). The feature bullets on a plan card are built from the plan's
+limits, capabilities and ticked highlights (`PlanFeatureList`) and rendered
+with the `billing.features.*` vue-i18n messages.
+
 Everything else asks the **`Entitlements`** contract what a workspace may do.
-`DomainServiceProvider` binds it to `StripeEntitlements` when
-`BILLING_ENABLED=true` and to `UnlimitedEntitlements` when it is false (a
-self-hosted install: every feature on, no limits). `MessageSendGate` is the
+`DomainServiceProvider` binds it to `StripeEntitlements` when paid plans are
+on (`billing.enabled`, set in the admin panel under **Settings → Billing**)
+and to `UnlimitedEntitlements` when they are off (the default of a new
+install: every feature on, no limits). `MessageSendGate` is the
 one per-turn check that web chat and channels share.
 
 ### Membership
@@ -522,8 +535,8 @@ Ask: is this something the app **does**, or something the app **uses**?
 
 Enum-like strings are backed enums in `{Context}/Enums/`, cast on the model,
 and turned into `->value` only at the edges (HTTP, JSON, queue payloads). Some
-enum columns also have a Postgres `CHECK` constraint: a new case needs a
-migration that updates the constraint.
+enum columns also have a Postgres `CHECK` constraint: a new case must be added
+to the column's `enum()` list in its create migration.
 
 ### Feature subfolders
 
@@ -555,8 +568,7 @@ the frontend. Do not rename or move them without a migration plan:
 
 - Eloquent models, queued job classes and queued listener classes (serialized
   jobs keep the class name). When one must move, keep a `@deprecated` subclass
-  at the old name for one release, as `Domain\Conversation\Jobs\EmbedFunctionJob`
-  does.
+  at the old name for one release.
 - Morph-map aliases (`AppServiceProvider::enforceMorphMap()`). Polymorphic
   columns store the alias (`source_file`), never the class name.
 - Broadcast names, route names used by the frontend, built-in MCP tool class
@@ -572,7 +584,10 @@ removing a teammate would delete workspace data.
 
 ### Database
 
-- Never edit a migration that has shipped. Add a new forward migration.
+- Until the first release, each table has one create migration that holds its
+  whole schema. A schema change edits that migration; there are no
+  `add_*`/`alter_*` or data migrations. From the first release on, migrations
+  only move forward.
 - Do not set `protected $table` when Laravel's default name is right.
 - Pivot tables and pivot models have no timestamps.
 - Embeddings are `halfvec` with 1024 dimensions.
@@ -641,22 +656,23 @@ accounts.
 | Splitting text | `TextSplitter` | `chunkfit`, `local` | `AI_TEXT_SPLITTER` |
 | Speech to text | `Transcriber` | `scaleway`, `none` | `AI_TRANSCRIBER` |
 | Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `AI_DOCUMENT_LLM` |
-| Plans and limits | `Entitlements` | `StripeEntitlements`, `UnlimitedEntitlements` | `BILLING_ENABLED` |
+| Plans and limits | `Entitlements` | `StripeEntitlements`, `UnlimitedEntitlements` | Admin panel, **Settings → Billing** |
 | Files | Laravel disks `private`, `public`, `assets` | local, S3-compatible, Bunny CDN (falls back to local) | `FILESYSTEM_*_DRIVER`, `SCALEWAY_BUCKET`, `BUNNYCDN_STORAGE_ZONE` |
 
 API keys and OAuth apps for outside services (AI providers, Firecrawl,
 chunk.fit, Stripe, social sign-in, Meta, connectors, Resend, Turnstile,
-IP2Location) are entered in the admin panel under **Settings**. They are
-stored encrypted and put into config when the app boots
-(`App\Admin\Settings\SettingsStore`). The `.env` file chooses drivers,
-endpoints and models.
+IP2Location) and the billing options (paid plans on or off, sign-up, trial,
+currency, discount) are entered in the admin panel under **Settings**. They
+are stored encrypted and put into the same config keys when the app boots,
+before the providers boot (`App\Admin\Settings\SettingsStore`). The `.env`
+file chooses drivers, endpoints and models.
 
 Switches for a self-hosted install:
 
 | Setting | Effect |
 |---|---|
-| `BILLING_ENABLED=false` | No Stripe: every feature on, no quotas, billing pages answer 404. |
-| `REGISTRATION_ENABLED` | Opens `/register`. On by default when billing is off. |
+| Paid plans (admin panel, **Settings → Billing**) | Off by default. Off: no Stripe, every feature on, no quotas, billing pages answer 404. |
+| Open sign-up (admin panel, **Settings → Billing**) | Opens `/register`. On by default while paid plans are off. |
 | `BRAND_*` | Product name, links and the "Powered by" line. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
@@ -795,5 +811,5 @@ Both tests print the live ratio on every run, in the form
 | A new messaging channel | `Domain\Channel\{Name}\` with a `ChannelAdapter` |
 | Account or sign-in logic | `App\Identity\*` |
 | A generic helper with no business rule | `Support\` |
-| A schema change | a new migration in `database/migrations/` |
+| A schema change | the table's create migration in `database/migrations/` (before the first release) |
 | UI text | an i18n fragment, then `npm run i18n:merge` |

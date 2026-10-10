@@ -2,14 +2,12 @@
 
 use App\Http\Auth\MagicLinkSignIn;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
-use App\Identity\Workspace\Magic\TwoFactorAwareLoginAction;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Passkeys\Passkey;
 use Laravel\Passkeys\Passkeys;
-use MagicLink\Security\Serializable\ActionSerializable;
 
 /**
  * Login-path rules that must hold on every way into the dashboard session:
@@ -111,16 +109,4 @@ it('does not stamp last_login_at when the login stops at the 2FA challenge', fun
         ->assertRedirect(route('two-factor.login'));
 
     expect($user->fresh()->last_login_at)->toBeNull();
-});
-
-it('still opens a magic link stored under the action\'s previous class name', function (): void {
-    // Links live 15 minutes and store their action serialized, so a link
-    // emailed just before the rename must keep working.
-    $user = User::factory()->create();
-    $stored = ActionSerializable::serialize(new TwoFactorAwareLoginAction($user->id, route('dashboard')));
-
-    $response = ActionSerializable::unserialize($stored)->run();
-
-    expect($response->getTargetUrl())->toBe(route('dashboard'))
-        ->and(Auth::guard('web')->id())->toBe($user->id);
 });

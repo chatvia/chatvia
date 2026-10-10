@@ -139,11 +139,6 @@
                 "ends": "Offre valable jusqu'au {date} - Ne la manquez pas !",
                 "limited": "Remise temporaire sur tous les forfaits payants !",
                 "off": "{percent} % de réduction"
-            },
-            "llms": {
-                "title": "Modèles d'IA disponibles",
-                "description": "Choisissez parmi notre large sélection de modèles de langage de pointe",
-                "empty": "Aucun modèle disponible"
             }
         },
         "addons": {

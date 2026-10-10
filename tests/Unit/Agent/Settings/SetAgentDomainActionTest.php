@@ -18,7 +18,7 @@ function setAgentDomainWorkspace(int $limit): User
 
     UserQuota::firstOrCreate(
         ['user_id' => $workspace->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     );
 
     $workspace->quota()->update([

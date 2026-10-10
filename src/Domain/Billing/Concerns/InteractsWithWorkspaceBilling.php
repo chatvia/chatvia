@@ -73,7 +73,7 @@ trait InteractsWithWorkspaceBilling
 
     /**
      * The plan the account's subscription is on (the default plan without one),
-     * as configured in `config('billing.packages')`.
+     * as {@see PlanCatalog} shows it.
      *
      * @return array<string, mixed>
      */
@@ -86,7 +86,7 @@ trait InteractsWithWorkspaceBilling
     }
 
     /**
-     * The id of the plan the account is on (a key of `billing.packages`).
+     * The id of the plan the account is on (a `billing_plans.key`).
      *
      * @return Attribute<mixed, never>
      */

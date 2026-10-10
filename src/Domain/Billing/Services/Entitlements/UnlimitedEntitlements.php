@@ -9,8 +9,8 @@ use Domain\Billing\Contracts\Entitlements;
 use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 
 /**
- * Entitlements when billing is off (a self-hosted install with
- * BILLING_ENABLED=false): every workspace may always send messages, has
+ * Entitlements when billing is off (paid plans off in the admin panel, the
+ * default of a new install): every workspace may always send messages, has
  * every feature, and has no quota limits. Conversations are kept for
  * `billing.unlimited_retention_days`.
  */

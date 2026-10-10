@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Domain\Billing\Enums;
 
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 
 /**
  * The single source of truth for add-on subscriptions. The case value doubles
  * as the Cashier subscription `type`, the `addon` metadata slug on the Stripe
- * subscription, and the `config('billing.addons.<value>')` key — so adding a
- * new add-on means adding one case here, not editing five files.
+ * subscription, and the `billing_addons.key` of the row that holds its price —
+ * so adding a new add-on means adding one case here (and its row), not editing
+ * five files.
  */
 enum Addon: string
 {
@@ -44,23 +46,10 @@ enum Addon: string
         return $this !== self::RemoveBranding;
     }
 
-    /** The add-on's Stripe price, or null when it is not configured. */
+    /** The add-on's Stripe price, or null when it has none or is not sold (inactive). */
     public function stripePriceId(): ?string
     {
-        $priceId = config("billing.addons.{$this->value}.stripe_price_id");
-
-        return is_string($priceId) && $priceId !== '' ? $priceId : null;
-    }
-
-    /** The environment variable that holds the add-on's Stripe price. */
-    public function priceEnvironmentKey(): string
-    {
-        return match ($this) {
-            self::ExtraAgents => 'STRIPE_EXTRA_AGENT_PRICE_ID',
-            self::CustomDomains => 'STRIPE_CUSTOM_DOMAIN_PRICE_ID',
-            self::RemoveBranding => 'STRIPE_REMOVE_BRANDING_PRICE_ID',
-            self::Members => 'STRIPE_MEMBERS_PRICE_ID',
-        };
+        return app(BillingCatalog::class)->addon($this)?->purchasablePriceId();
     }
 
     /** Short English name, used in operator-facing messages. */

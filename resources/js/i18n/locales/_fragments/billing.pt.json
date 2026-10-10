@@ -139,11 +139,6 @@
                 "ends": "Oferta termina em {date} - Não perca!",
                 "limited": "Desconto por tempo limitado em todos os planos pagos!",
                 "off": "{percent}% DE DESCONTO"
-            },
-            "llms": {
-                "title": "Modelos de IA Disponíveis",
-                "description": "Escolha entre a nossa seleção abrangente de modelos de linguagem de última geração",
-                "empty": "Nenhum modelo disponível"
             }
         },
         "addons": {

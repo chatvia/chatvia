@@ -71,7 +71,7 @@ class AnalyticsDemoSeeder extends Seeder
         if (class_exists(Telescope::class)) {
             Telescope::stopRecording();
         }
-        ini_set('memory_limit', '512M');
+        $this->ensureMemoryLimit('512M');
 
         $agents = Agent::query()->orderBy('id')->get();
 
@@ -302,5 +302,21 @@ class AnalyticsDemoSeeder extends Seeder
         $u = random_int(1, 999999) / 1000000;
 
         return -log($u) * $mean;
+    }
+
+    /**
+     * A year of demo analytics needs more memory than PHP's default 128M.
+     * Raise the limit to $limit, but never lower it: the test suite seeds in
+     * its own process, which runs with a higher limit.
+     */
+    private function ensureMemoryLimit(string $limit): void
+    {
+        $current = ini_get('memory_limit');
+
+        if ($current === '-1' || ini_parse_quantity((string) $current) >= ini_parse_quantity($limit)) {
+            return;
+        }
+
+        ini_set('memory_limit', $limit);
     }
 }

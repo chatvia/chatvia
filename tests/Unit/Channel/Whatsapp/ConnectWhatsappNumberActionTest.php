@@ -53,9 +53,6 @@ it('connects a number: exchanges the code, subscribes the WABA, registers the nu
         ->and($row->display_phone_number)->toBe('+15551234567')
         ->and($row->verified_name)->toBe('Acme Support')
         ->and($row->enabled)->toBeTrue()
-        // The legacy BYO secrets are no longer collected.
-        ->and($row->app_secret)->toBeNull()
-        ->and($row->webhook_secret)->toBeNull()
         // The business token round-trips through the encrypted cast.
         ->and($row->access_token)->toBe('EAAG-business-token-value-xxxx')
         ->and($row->getRawOriginal('access_token'))->not->toBe('EAAG-business-token-value-xxxx');

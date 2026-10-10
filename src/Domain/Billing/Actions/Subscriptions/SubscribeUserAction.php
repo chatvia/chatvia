@@ -4,27 +4,34 @@ namespace Domain\Billing\Actions\Subscriptions;
 
 use Domain\Billing\Data\Stripe\StripeMetadata;
 use Domain\Billing\Data\Subscriptions\SubscribeData;
+use Domain\Billing\Enums\BillingInterval;
 use Domain\Billing\Enums\PurchaseType;
+use Domain\Billing\Models\BillingPlan;
 use Domain\Billing\Models\UserBilling;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 use Laravel\Cashier\Checkout;
 use Laravel\Cashier\SubscriptionBuilder;
 
 /**
  * Opens a Stripe Checkout for a self-serve plan (with the configured trial).
- * Returns null for a plan that is not configured or is sold through sales
- * only (Enterprise has no Stripe price).
+ * Returns null for a plan that does not exist, is archived, or is sold through
+ * sales only (Enterprise has no Stripe price).
  */
 class SubscribeUserAction
 {
+    public function __construct(
+        private readonly BillingCatalog $catalog,
+    ) {}
+
     public function execute(SubscribeData $data): ?Checkout
     {
-        $plan = ((array) config('billing.packages', []))[$data->package] ?? null;
+        $plan = $this->catalog->plan($data->package);
 
-        if (! is_array($plan) || ($plan['contact_sales'] ?? false)) {
+        if (! $plan instanceof BillingPlan || ! $plan->is_active || $plan->contact_sales) {
             return null;
         }
 
-        $stripePriceId = $data->yearly ? $plan['stripe_yearly_price_id'] : $plan['stripe_monthly_price_id'];
+        $stripePriceId = $plan->stripePriceId(BillingInterval::fromYearly($data->yearly));
         $package = strtolower($data->package);
 
         // Seeded accounts (and any created before the UserObserver provisioned

@@ -12,13 +12,10 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->unique()->constrained()->cascadeOnDelete();
-            $table->text('access_token')->nullable();
-            $table->text('app_secret')->nullable();
             $table->text('page_access_token')->nullable();
             $table->string('page_id')->nullable();
             $table->string('ig_id')->nullable()->unique();
             $table->string('username')->nullable();
-            $table->string('webhook_secret', 64)->nullable();
             $table->boolean('enabled')->default(true);
             $table->timestamps();
         });

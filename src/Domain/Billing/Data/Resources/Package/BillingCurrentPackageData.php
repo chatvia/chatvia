@@ -28,7 +28,7 @@ class BillingCurrentPackageData extends Data
     ) {}
 
     /**
-     * @param  array<string, mixed>  $package  a plan from `PlanCatalog` (the `billing.packages` config plus display fields)
+     * @param  array<string, mixed>  $package  a plan from `PlanCatalog` (the plan plus display fields)
      */
     public static function fromArray(array $package): self
     {
@@ -38,7 +38,7 @@ class BillingCurrentPackageData extends Data
             id: $planId,
             name: $package['name'],
             description: $package['description'] ?? '',
-            features: BillingPackageFeaturesData::fromArray($package['features'] ?? []),
+            features: $package['features'] ?? BillingPackageFeaturesData::none(),
             monthly_price: $package['monthly_price'],
             monthly_price_formatted: $package['monthly_price_formatted'],
             yearly_price: $package['yearly_price'],

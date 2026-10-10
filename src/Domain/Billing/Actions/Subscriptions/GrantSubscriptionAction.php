@@ -5,6 +5,7 @@ namespace Domain\Billing\Actions\Subscriptions;
 use App\Identity\Workspace\Models\User;
 use Domain\Billing\Actions\Credits\StartCreditCycleAction;
 use Domain\Billing\Data\Subscriptions\PlanSelectionData;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 use Domain\Billing\Services\UserCreditSystem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -37,14 +38,16 @@ class GrantSubscriptionAction
     public function __construct(
         private readonly StartCreditCycleAction $startCreditCycle,
         private readonly UserCreditSystem $creditSystem,
+        private readonly BillingCatalog $catalog,
     ) {}
 
     public function execute(User $user, PlanSelectionData $plan): void
     {
         $cycle = $plan->isYearly ? 'yearly' : 'monthly';
 
-        $cycleLimits = config("billing.packages.{$plan->package}.quota_limits.{$cycle}");
-        $fixedLimits = config("billing.packages.{$plan->package}.quota_limits.fixed");
+        $quotaLimits = $this->catalog->plan($plan->package)?->quota_limits ?? [];
+        $cycleLimits = $quotaLimits[$cycle] ?? null;
+        $fixedLimits = $quotaLimits['fixed'] ?? null;
 
         if (! $cycleLimits || ! $fixedLimits) {
             Log::warning('Invalid package configuration', ['package' => $plan->package, 'cycle' => $cycle]);

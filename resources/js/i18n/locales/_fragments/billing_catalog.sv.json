@@ -4,177 +4,20 @@
             "packages": {
                 "starter": {
                     "name": "Starter",
-                    "description": "För småföretag som precis kommit igång.",
-                    "features": {
-                        "monthly": {
-                            "messages": "3 000 meddelanden per månad",
-                            "agents": "2 AI-agenter",
-                            "pages": "2 000 sidor (PDF, Word, Text)",
-                            "links": "2 000 webbplatslänkar",
-                            "minutes": "500 minuter ljud/video",
-                            "teams": "1 team",
-                            "members": "5 medlemmar (teammedlemmar + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 dagars chatthistorik"
-                        },
-                        "yearly": {
-                            "messages": "39 000 meddelanden per år",
-                            "agents": "2 AI-agenter",
-                            "pages": "2 000 sidor (PDF, Word, Text)",
-                            "links": "2 000 webbplatslänkar",
-                            "minutes": "500 minuter ljud/video",
-                            "teams": "1 team",
-                            "members": "5 medlemmar (teammedlemmar + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 dagars chatthistorik"
-                        }
-                    }
+                    "description": "För småföretag som precis kommit igång."
                 },
                 "standard": {
                     "name": "Standard",
-                    "description": "För växande team och företag.",
-                    "features": {
-                        "monthly": {
-                            "messages": "15 000 meddelanden per månad",
-                            "agents": "10 AI-agenter",
-                            "pages": "5 000 sidor (PDF, Word, Text)",
-                            "links": "5 000 webbplatslänkar",
-                            "minutes": "2 000 minuter ljud/video",
-                            "sentiment": "Sentimentanalys",
-                            "handoff": "Handoff",
-                            "api": "API-åtkomst",
-                            "teams": "5 team",
-                            "members": "20 medlemmar (teammedlemmar + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 dagars chatthistorik"
-                        },
-                        "yearly": {
-                            "messages": "192 000 meddelanden per år",
-                            "agents": "10 AI-agenter",
-                            "pages": "5 000 sidor (PDF, Word, Text)",
-                            "links": "5 000 webbplatslänkar",
-                            "minutes": "2 000 minuter ljud/video",
-                            "sentiment": "Sentimentanalys",
-                            "handoff": "Handoff",
-                            "api": "API-åtkomst",
-                            "teams": "5 team",
-                            "members": "20 medlemmar (teammedlemmar + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 dagars chatthistorik"
-                        }
-                    }
+                    "description": "För växande team och företag."
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "För organisationer som behöver allt.",
-                    "features": {
-                        "monthly": {
-                            "messages": "50 000 meddelanden per månad",
-                            "agents": "20 AI-agenter",
-                            "pages": "10 000 sidor (PDF, Word, Text)",
-                            "links": "10 000 webbplatslänkar",
-                            "minutes": "10 000 minuter ljud/video",
-                            "sentiment": "Sentimentanalys",
-                            "tone": "Tonanalys",
-                            "topics": "Ämnesanalys",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-åtkomst",
-                            "integrations": "Anpassade integrationer",
-                            "branding": "White-label (ta bort Chatvia-varumärket)",
-                            "teams": "10 team",
-                            "members": "100 medlemmar (teammedlemmar + chatters)",
-                            "retention": "366 dagars chatthistorik"
-                        },
-                        "yearly": {
-                            "messages": "648 000 meddelanden per år",
-                            "agents": "20 AI-agenter",
-                            "pages": "10 000 sidor (PDF, Word, Text)",
-                            "links": "10 000 webbplatslänkar",
-                            "minutes": "10 000 minuter ljud/video",
-                            "sentiment": "Sentimentanalys",
-                            "tone": "Tonanalys",
-                            "topics": "Ämnesanalys",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-åtkomst",
-                            "integrations": "Anpassade integrationer",
-                            "branding": "White-label (ta bort Chatvia-varumärket)",
-                            "teams": "10 team",
-                            "members": "100 medlemmar (teammedlemmar + chatters)",
-                            "retention": "366 dagars chatthistorik"
-                        }
-                    }
+                    "description": "För organisationer som behöver allt."
                 },
                 "enterprise": {
                     "name": "Enterprise",
-                    "description": "För organisationer med krav på säkerhet, regelefterlevnad och skalbarhet.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Anpassad meddelandevolym",
-                            "agents": "Obegränsat antal AI-agenter",
-                            "pages": "Anpassad kunskapsbas",
-                            "links": "Anpassade webbplatslänkar",
-                            "minutes": "Anpassat ljud/video",
-                            "sentiment": "Sentimentanalys",
-                            "tone": "Tonanalys",
-                            "topics": "Ämnesanalys",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-åtkomst",
-                            "integrations": "Anpassade integrationer",
-                            "branding": "White-label (ta bort Chatvia-varumärket)",
-                            "residency": "EU-datalagring",
-                            "sso": "SSO / SAML",
-                            "sla": "Drifttids-SLA",
-                            "support": "Dedikerad support",
-                            "dpa": "Anpassat avtal och DPA",
-                            "teams": "Obegränsat antal team",
-                            "members": "Obegränsat antal medlemmar",
-                            "retention": "Anpassad datalagring"
-                        },
-                        "yearly": {
-                            "messages": "Anpassad meddelandevolym",
-                            "agents": "Obegränsat antal AI-agenter",
-                            "pages": "Anpassad kunskapsbas",
-                            "links": "Anpassade webbplatslänkar",
-                            "minutes": "Anpassat ljud/video",
-                            "sentiment": "Sentimentanalys",
-                            "tone": "Tonanalys",
-                            "topics": "Ämnesanalys",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API-åtkomst",
-                            "integrations": "Anpassade integrationer",
-                            "branding": "White-label (ta bort Chatvia-varumärket)",
-                            "residency": "EU-datalagring",
-                            "sso": "SSO / SAML",
-                            "sla": "Drifttids-SLA",
-                            "support": "Dedikerad support",
-                            "dpa": "Anpassat avtal och DPA",
-                            "teams": "Obegränsat antal team",
-                            "members": "Obegränsat antal medlemmar",
-                            "retention": "Anpassad datalagring"
-                        }
-                    }
+                    "description": "För organisationer med krav på säkerhet, regelefterlevnad och skalbarhet."
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "Spara 20%",
-                "popular_badge_text": "Mest populär",
-                "current_plan_text": "Nuvarande plan"
             }
         }
     }

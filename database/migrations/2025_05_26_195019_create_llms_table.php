@@ -30,7 +30,7 @@ return new class extends Migration
             $table->decimal('input_price_per_1m_tokens', 10, 4)->nullable();
             $table->decimal('output_price_per_1m_tokens', 10, 4)->nullable();
 
-            $table->enum('provider', ['scaleway', 'openai', 'anthropic', 'mistral', 'google'])->index();
+            $table->enum('provider', ['scaleway', 'openai', 'anthropic', 'mistral', 'google', 'openrouter', 'groq'])->index();
 
             $table->timestamps();
         });

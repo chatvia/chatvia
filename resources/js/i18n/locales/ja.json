@@ -2468,11 +2468,9 @@
                 "limited": "全有料プランが期間限定割引中！",
                 "off": "{percent}% OFF"
             },
-            "llms": {
-                "title": "利用可能な AI モデル",
-                "description": "最先端の言語モデルの豊富なラインナップからお選びいただけます",
-                "empty": "利用可能なモデルがありません"
-            }
+            "most_popular": "一番人気",
+            "current_plan": "現在のプラン",
+            "save_up_to_percent": "最大{percent}% お得"
         },
         "addons": {
             "title": "アドオン",
@@ -2645,178 +2643,68 @@
             "packages": {
                 "starter": {
                     "name": "スターター",
-                    "description": "利用を始めたばかりの小規模ビジネス向け。",
-                    "features": {
-                        "monthly": {
-                            "messages": "月3,000メッセージ",
-                            "agents": "AIエージェント2個",
-                            "pages": "2,000ページ（PDF、Word、テキスト）",
-                            "links": "2,000件のウェブサイトリンク",
-                            "minutes": "音声・動画500分",
-                            "teams": "1チーム",
-                            "members": "5メンバー（チームメンバー＋チャッター）",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "retention": "チャット履歴90日間"
-                        },
-                        "yearly": {
-                            "messages": "年39,000メッセージ",
-                            "agents": "AIエージェント2個",
-                            "pages": "2,000ページ（PDF、Word、テキスト）",
-                            "links": "2,000件のウェブサイトリンク",
-                            "minutes": "音声・動画500分",
-                            "teams": "1チーム",
-                            "members": "5メンバー（チームメンバー＋チャッター）",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "retention": "チャット履歴90日間"
-                        }
-                    }
+                    "description": "利用を始めたばかりの小規模ビジネス向け。"
                 },
                 "standard": {
                     "name": "スタンダード",
-                    "description": "成長するチームやビジネス向け。",
-                    "features": {
-                        "monthly": {
-                            "messages": "月15,000メッセージ",
-                            "agents": "AIエージェント10個",
-                            "pages": "5,000ページ（PDF、Word、テキスト）",
-                            "links": "5,000件のウェブサイトリンク",
-                            "minutes": "音声・動画2,000分",
-                            "sentiment": "感情分析",
-                            "handoff": "引き継ぎ",
-                            "api": "APIアクセス",
-                            "teams": "5チーム",
-                            "members": "20メンバー（チームメンバー＋チャッター）",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "retention": "チャット履歴180日間"
-                        },
-                        "yearly": {
-                            "messages": "年192,000メッセージ",
-                            "agents": "AIエージェント10個",
-                            "pages": "5,000ページ（PDF、Word、テキスト）",
-                            "links": "5,000件のウェブサイトリンク",
-                            "minutes": "音声・動画2,000分",
-                            "sentiment": "感情分析",
-                            "handoff": "引き継ぎ",
-                            "api": "APIアクセス",
-                            "teams": "5チーム",
-                            "members": "20メンバー（チームメンバー＋チャッター）",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "retention": "チャット履歴180日間"
-                        }
-                    }
+                    "description": "成長するチームやビジネス向け。"
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "すべてを必要とする組織向け。",
-                    "features": {
-                        "monthly": {
-                            "messages": "月50,000メッセージ",
-                            "agents": "AIエージェント20個",
-                            "pages": "10,000ページ（PDF、Word、テキスト）",
-                            "links": "10,000件のウェブサイトリンク",
-                            "minutes": "音声・動画10,000分",
-                            "sentiment": "感情分析",
-                            "tone": "トーン分析",
-                            "topics": "トピック分析",
-                            "pulse": "会話パルス",
-                            "handoff": "引き継ぎ",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "api": "APIアクセス",
-                            "integrations": "カスタム連携",
-                            "branding": "ホワイトラベル（Chatviaのブランド表示を削除）",
-                            "teams": "10チーム",
-                            "members": "100メンバー（チームメンバー＋チャッター）",
-                            "retention": "チャット履歴366日間"
-                        },
-                        "yearly": {
-                            "messages": "年648,000メッセージ",
-                            "agents": "AIエージェント20個",
-                            "pages": "10,000ページ（PDF、Word、テキスト）",
-                            "links": "10,000件のウェブサイトリンク",
-                            "minutes": "音声・動画10,000分",
-                            "sentiment": "感情分析",
-                            "tone": "トーン分析",
-                            "topics": "トピック分析",
-                            "pulse": "会話パルス",
-                            "handoff": "引き継ぎ",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "api": "APIアクセス",
-                            "integrations": "カスタム連携",
-                            "branding": "ホワイトラベル（Chatviaのブランド表示を削除）",
-                            "teams": "10チーム",
-                            "members": "100メンバー（チームメンバー＋チャッター）",
-                            "retention": "チャット履歴366日間"
-                        }
-                    }
+                    "description": "すべてを必要とする組織向け。"
                 },
                 "enterprise": {
                     "name": "エンタープライズ",
-                    "description": "セキュリティ、コンプライアンス、スケールのニーズがある組織向け。",
-                    "features": {
-                        "monthly": {
-                            "messages": "メッセージ量はカスタム",
-                            "agents": "AIエージェント無制限",
-                            "pages": "カスタムナレッジベース",
-                            "links": "ウェブサイトリンクはカスタム",
-                            "minutes": "音声・動画はカスタム",
-                            "sentiment": "感情分析",
-                            "tone": "トーン分析",
-                            "topics": "トピック分析",
-                            "pulse": "会話パルス",
-                            "handoff": "引き継ぎ",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "api": "APIアクセス",
-                            "integrations": "カスタム連携",
-                            "branding": "ホワイトラベル（Chatviaのブランド表示を削除）",
-                            "residency": "EUデータレジデンシー",
-                            "sso": "SSO / SAML",
-                            "sla": "稼働率SLA",
-                            "support": "専任サポート",
-                            "dpa": "カスタム契約＆DPA",
-                            "teams": "チーム無制限",
-                            "members": "メンバー無制限",
-                            "retention": "データ保持期間はカスタム"
-                        },
-                        "yearly": {
-                            "messages": "メッセージ量はカスタム",
-                            "agents": "AIエージェント無制限",
-                            "pages": "カスタムナレッジベース",
-                            "links": "ウェブサイトリンクはカスタム",
-                            "minutes": "音声・動画はカスタム",
-                            "sentiment": "感情分析",
-                            "tone": "トーン分析",
-                            "topics": "トピック分析",
-                            "pulse": "会話パルス",
-                            "handoff": "引き継ぎ",
-                            "mcp": "MCP",
-                            "function_calling": "関数呼び出し",
-                            "api": "APIアクセス",
-                            "integrations": "カスタム連携",
-                            "branding": "ホワイトラベル（Chatviaのブランド表示を削除）",
-                            "residency": "EUデータレジデンシー",
-                            "sso": "SSO / SAML",
-                            "sla": "稼働率SLA",
-                            "support": "専任サポート",
-                            "dpa": "カスタム契約＆DPA",
-                            "teams": "チーム無制限",
-                            "members": "メンバー無制限",
-                            "retention": "データ保持期間はカスタム"
-                        }
-                    }
+                    "description": "セキュリティ、コンプライアンス、スケールのニーズがある組織向け。"
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "20%お得",
-                "popular_badge_text": "一番人気",
-                "current_plan_text": "現在のプラン"
             }
+        },
+        "features": {
+            "messages_per_month": "月{count}メッセージ | 月{count}メッセージ",
+            "messages_per_year": "年{count}メッセージ | 年{count}メッセージ",
+            "messages_unlimited": "メッセージ無制限",
+            "messages_custom": "メッセージ量はカスタム",
+            "agents": "AIエージェント{count}個 | AIエージェント{count}個",
+            "agents_unlimited": "AIエージェント無制限",
+            "pages": "{count}ページ（PDF、Word、テキスト） | {count}ページ（PDF、Word、テキスト）",
+            "pages_unlimited": "ページ無制限（PDF、Word、テキスト）",
+            "pages_custom": "カスタムナレッジベース",
+            "links": "{count}件のウェブサイトリンク | {count}件のウェブサイトリンク",
+            "links_unlimited": "ウェブサイトリンク無制限",
+            "links_custom": "ウェブサイトリンクはカスタム",
+            "minutes": "音声・動画{count}分 | 音声・動画{count}分",
+            "minutes_unlimited": "音声・動画の時間は無制限",
+            "minutes_custom": "音声・動画はカスタム",
+            "teams": "{count}チーム | {count}チーム",
+            "teams_unlimited": "チーム無制限",
+            "members": "{count}メンバー（チームメンバー＋チャッター） | {count}メンバー（チームメンバー＋チャッター）",
+            "members_unlimited": "メンバー無制限",
+            "retention": "チャット履歴{count}日間 | チャット履歴{count}日間",
+            "retention_unlimited": "チャット履歴は無期限",
+            "retention_custom": "データ保持期間はカスタム",
+            "sentiment": "感情分析",
+            "tone": "トーン分析",
+            "topics": "トピック分析",
+            "pulse": "会話パルス",
+            "handoff": "引き継ぎ",
+            "api": "APIアクセス",
+            "evals": "評価",
+            "guardrails": "ガードレール",
+            "audit": "監査ログ",
+            "branding": "ホワイトラベル（{brand}のブランド表示を削除）",
+            "network_access": "ネットワークアクセス制御（IP・地域）",
+            "siem_webhook": "SIEM Webhook（セキュリティイベントをリアルタイムで送信）",
+            "mcp": "MCP",
+            "function_calling": "関数呼び出し",
+            "custom_domains": "カスタムドメイン{count}個 | カスタムドメイン{count}個",
+            "custom_domains_unlimited": "カスタムドメイン無制限",
+            "custom_domains_custom": "カスタムドメイン",
+            "custom_integrations": "カスタム連携",
+            "eu_data_residency": "EUデータレジデンシー",
+            "sso_saml": "SSO / SAML",
+            "uptime_sla": "稼働率SLA",
+            "dedicated_support": "専任サポート",
+            "custom_contract": "カスタム契約＆DPA"
         }
     },
     "teams": {

@@ -8,8 +8,8 @@ use App\Identity\Workspace\Models\User;
 use Spatie\LaravelData\Data;
 
 /**
- * Inputs for scheduling a move to another plan. `package` is the plan's name
- * as the plan-change form posts it.
+ * Inputs for scheduling a move to another plan. `package` is the key of the
+ * new plan (`billing_plans.key`).
  */
 class SchedulePlanChangeData extends Data
 {

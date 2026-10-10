@@ -13,13 +13,13 @@ beforeEach(function (): void {
 });
 
 it('shows the not-configured message when the add-on price is missing', function (): void {
-    config(['billing.addons.custom_domains.stripe_price_id' => null]);
+    updateBillingAddon('custom_domains', ['stripe_price_id' => null]);
 
     $this->actingAs($this->owner)
         ->from(route('billing.index'))
         ->get(route('billing.addons.custom-domains', ['quantity' => 1]))
         ->assertRedirect(route('billing.index'))
-        ->assertSessionHasErrors(['addon' => 'Custom Domain addon is not configured. Set STRIPE_CUSTOM_DOMAIN_PRICE_ID in your environment.']);
+        ->assertSessionHasErrors(['addon' => 'Custom Domain addon is not configured. Set its Stripe price in the admin panel.']);
 });
 
 it('hides database error text and reports the exception', function (): void {

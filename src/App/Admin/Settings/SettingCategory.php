@@ -40,7 +40,7 @@ enum SettingCategory: string
             self::Ai => 'API keys for chat, embeddings, reranking and speech to text.',
             self::Knowledge => 'Services that import websites and split documents into chunks.',
             self::Connectors => 'OAuth apps for connectors that do not support dynamic client registration.',
-            self::Billing => 'Stripe keys for plans, add-ons and credit top-ups.',
+            self::Billing => 'Paid plans on or off, sign-up and trial, and the Stripe keys for plans, add-ons and credit top-ups.',
             self::Platform => 'Email delivery, bot protection and visitor location.',
         };
     }

@@ -67,8 +67,8 @@ Route::middleware('auth')->group(function (): void {
 
 // Self-serve sign-up. Closed on the hosted product, where the Stripe trial
 // checkout creates accounts; open by default on a self-hosted install without
-// billing. REGISTRATION_ENABLED decides (config/billing.php); a closed form
-// answers 404.
+// billing. The "Open sign-up" option in the admin panel (Settings → Billing)
+// decides; a closed form answers 404.
 Route::middleware(['guest', EnsureRegistrationIsOpen::class])->group(function (): void {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');

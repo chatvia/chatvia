@@ -5,15 +5,21 @@ namespace App\Admin\Resources\Settings\Pages;
 use App\Admin\Resources\Settings\SettingResource;
 use App\Admin\Settings\AdminSetting;
 use App\Admin\Settings\SettingField;
+use App\Admin\Settings\SettingFieldKind;
 use App\Admin\Settings\SettingGroup;
 use App\Admin\Settings\SettingsStore;
 use App\Identity\Workspace\Models\User;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Field;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
@@ -25,7 +31,8 @@ use Illuminate\Support\Str;
 /**
  * Edit one settings group. Secrets are write-only: the form never receives
  * their saved value, a blank input keeps it, and the trash button next to the
- * input removes it.
+ * input removes it. Typed fields (toggles, numbers, choices, dates) always
+ * show the value in use: the saved one, or the default.
  *
  * @property-read AdminSetting $record
  */
@@ -73,7 +80,9 @@ class EditSetting extends EditRecord
                 ->icon(Heroicon::OutlinedTrash)
                 ->color('danger')
                 ->requiresConfirmation()
-                ->modalDescription('Every value of this group is deleted. The features that use it stop working until you add new values.')
+                ->modalDescription(fn (): string => $this->group()->hasSecrets()
+                    ? 'Every value of this group is deleted. The features that use it stop working until you add new values.'
+                    : 'Every value of this group goes back to its default.')
                 ->modalSubmitActionLabel('Remove')
                 ->visible(fn (): bool => $this->record->hasSavedValues())
                 ->action(function (): void {
@@ -91,12 +100,21 @@ class EditSetting extends EditRecord
         $store = app(SettingsStore::class);
         $callbackUrls = $group->callbackUrls();
 
+        $warning = $group->warning();
+
         return $schema
             ->columns(1)
             ->components([
-                Section::make('Credentials')
-                    ->description('Encrypted before they are saved. Secrets are never shown again: leave one blank to keep it.')
-                    ->icon(Heroicon::OutlinedKey)
+                Callout::make('Before you change this')
+                    ->description($warning)
+                    ->icon(Heroicon::OutlinedExclamationTriangle)
+                    ->warning()
+                    ->visible($warning !== null),
+                Section::make($group->hasSecrets() ? 'Credentials' : 'Options')
+                    ->description($group->hasSecrets()
+                        ? 'Encrypted before they are saved. Secrets are never shown again: leave one blank to keep it.'
+                        : 'Encrypted before they are saved. A change applies from the next request.')
+                    ->icon($group->hasSecrets() ? Heroicon::OutlinedKey : Heroicon::OutlinedAdjustmentsHorizontal)
                     ->afterHeader([
                         Text::make(fn (): string => $store->status($group, $this->record)->getLabel())
                             ->badge()
@@ -122,18 +140,26 @@ class EditSetting extends EditRecord
             ]);
     }
 
-    private function input(SettingField $field): TextInput
+    private function input(SettingField $field): Field
     {
+        if ($field->kind->isTyped()) {
+            return $this->typedInput($field)
+                ->label($field->label)
+                ->helperText($field->help)
+                ->hint(fn (): ?string => $this->record->value($field) === null ? 'Default' : null)
+                ->hintColor('gray');
+        }
+
         $input = TextInput::make("payload.{$field->name}")
             ->label($field->label)
             ->helperText($field->help)
-            ->password($field->secret)
-            ->autocomplete($field->secret ? 'new-password' : 'off')
+            ->password($field->isSecret())
+            ->autocomplete($field->isSecret() ? 'new-password' : 'off')
             ->rules(['nullable', 'string', 'max:2000', ...$field->rules])
             // A URL field shows the URL it uses while empty.
-            ->placeholder(fn (): ?string => $field->secret && filled($this->record->value($field))
+            ->placeholder(fn (): ?string => $field->isSecret() && filled($this->record->value($field))
                 ? '•••••••• saved, leave blank to keep'
-                : $field->defaultValue())
+                : $this->defaultText($field))
             ->hint(fn (): ?string => match (true) {
                 filled($this->record->value($field)) => 'Saved',
                 $field->required => 'Required',
@@ -142,7 +168,27 @@ class EditSetting extends EditRecord
             ->hintIcon(fn (): ?Heroicon => filled($this->record->value($field)) ? Heroicon::OutlinedLockClosed : null)
             ->hintColor(fn (): string => filled($this->record->value($field)) ? 'success' : 'gray');
 
-        return $field->secret ? $input->suffixAction($this->forgetAction($field)) : $input;
+        return $field->isSecret() ? $input->suffixAction($this->forgetAction($field)) : $input;
+    }
+
+    private function typedInput(SettingField $field): Field
+    {
+        $name = "payload.{$field->name}";
+
+        return match ($field->kind) {
+            SettingFieldKind::Toggle => Toggle::make($name),
+            SettingFieldKind::Integer => TextInput::make($name)->integer()->minValue($field->min)->maxValue($field->max)->required(),
+            SettingFieldKind::Select => Select::make($name)->options($field->options)->selectablePlaceholder(false)->required(),
+            SettingFieldKind::Date => DatePicker::make($name),
+            default => TextInput::make($name),
+        };
+    }
+
+    private function defaultText(SettingField $field): ?string
+    {
+        $default = $field->defaultValue();
+
+        return is_string($default) ? $default : null;
     }
 
     private function forgetAction(SettingField $field): Action
@@ -164,14 +210,20 @@ class EditSetting extends EditRecord
     }
 
     /**
-     * Never send a saved secret to the browser.
+     * Never send a saved secret to the browser. A typed field shows the value
+     * in use, which is its default while nothing is saved.
      */
     protected function mutateFormDataBeforeFill(array $data): array
     {
+        $values = app(SettingsStore::class)->values($this->group(), $this->record->payload ?? []);
         $payload = [];
 
         foreach ($this->group()->fields() as $field) {
-            $payload[$field->name] = $field->secret ? null : $this->record->value($field);
+            $payload[$field->name] = match (true) {
+                $field->isSecret() => null,
+                $field->kind->isTyped() => $values[$field->name],
+                default => $this->record->value($field),
+            };
         }
 
         return ['payload' => $payload];

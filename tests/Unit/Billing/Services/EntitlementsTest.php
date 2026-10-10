@@ -27,7 +27,7 @@ it('resolves the Stripe driver when billing is on and the unlimited driver when 
 it('reads the plan quota row, then the default package, for the Stripe driver', function (): void {
     $withRow = User::factory()->workspace()->create();
     UserQuota::create([
-        ...config('billing.packages.pro.quota_limits.fixed'),
+        ...planFixedLimits('pro'),
         'user_id' => $withRow->id,
         'extra_members_limit' => 3,
     ]);
@@ -43,7 +43,7 @@ it('reads the plan quota row, then the default package, for the Stripe driver', 
 
 it('reads the plan from the Stripe price for the Stripe driver', function (): void {
     $priceId = 'price_entitlements_'.Str::random(6);
-    config(['billing.packages.standard.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('standard', ['stripe_monthly_price_id' => $priceId]);
 
     $owner = User::factory()->workspace()->create();
     $owner->billing()->create([])->subscriptions()->create([

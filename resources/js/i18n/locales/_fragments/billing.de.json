@@ -139,11 +139,6 @@
                 "ends": "Angebot endet am {date} – Nicht verpassen!",
                 "limited": "Zeitlich begrenzter Rabatt auf alle kostenpflichtigen Pläne!",
                 "off": "{percent}% RABATT"
-            },
-            "llms": {
-                "title": "Verfügbare KI-Modelle",
-                "description": "Wählen Sie aus unserem umfangreichen Angebot modernster Sprachmodelle",
-                "empty": "Keine Modelle verfügbar"
             }
         },
         "addons": {

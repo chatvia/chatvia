@@ -19,8 +19,6 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravel\Pulse\Facades\Pulse;
-use Laravel\Telescope\Telescope;
 
 /**
  * Seeds 30 days of "historical" analytics events that have NO backing rows in
@@ -62,15 +60,7 @@ class AnalyticsDemoSeeder extends Seeder
             return;
         }
 
-        // Pulse's SlowQueries recorder captures a backtrace per query and the
-        // seeder fires tens of thousands of upserts — without this, the seeder
-        // OOMs at ~130MB. Telescope behaves the same way.
-        if (class_exists(Pulse::class)) {
-            Pulse::stopRecording();
-        }
-        if (class_exists(Telescope::class)) {
-            Telescope::stopRecording();
-        }
+        // The seeder fires tens of thousands of upserts.
         $this->ensureMemoryLimit('512M');
 
         $agents = Agent::query()->orderBy('id')->get();

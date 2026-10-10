@@ -225,7 +225,7 @@ dashboard. Link your own website with `BRAND_WEBSITE_URL`.
 |---|---|
 | `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Settings for third-party credentials live in `App\Admin\Settings`. |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
-| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, Telescope, TypeScript transformer. |
+| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
 
 ---

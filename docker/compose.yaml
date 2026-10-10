@@ -1,5 +1,6 @@
 # Chatvia: the whole stack in Docker. Web app, queue workers, scheduler,
-# WebSocket server, PostgreSQL (with the search extensions) and Redis.
+# WebSocket server, text splitter, PostgreSQL (with the search extensions)
+# and Redis.
 #
 #   docker compose up -d          start (the first start sets everything up)
 #   docker compose logs migrate   the first admin's password, on the first start
@@ -113,7 +114,11 @@ services:
     command: ["php", "artisan", "horizon"]
     stop_signal: SIGTERM
     stop_grace_period: 60s
-    depends_on: *depends-on-migrate
+    # The queue workers split text with the chunker.
+    depends_on:
+      <<: *depends-on-migrate
+      chunker:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "healthcheck-horizon"]
       start_period: 30s
@@ -135,6 +140,15 @@ services:
     healthcheck:
       test: ["CMD", "healthcheck-reverb"]
       start_period: 30s
+
+  # The text splitter (github.com/chatvia/chunker, built from
+  # docker/chunker). Only the app's containers reach it, on this network, and
+  # it takes no API key. Its health check is in its image.
+  chunker:
+    image: ${CHUNKER_IMAGE:-ghcr.io/chatvia/chunker}:${CHATVIA_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      WEB_CONCURRENCY: ${CHUNKER_WORKERS:-2}
 
 volumes:
   storage:

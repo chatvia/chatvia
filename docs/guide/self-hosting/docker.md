@@ -1,9 +1,19 @@
 # Run with Docker
 
 The Chatvia image runs the whole app: the web app, the queue workers, the
-scheduler and the WebSocket server. The compose file adds PostgreSQL (with
-the search extensions) and Redis. You need Docker with Docker Compose 2.24 or
-newer.
+scheduler and the WebSocket server. The compose file adds the text splitter
+(the open-source [chunker](https://github.com/chatvia/chunker), its own image
+`ghcr.io/chatvia/chunker`), PostgreSQL (with the search extensions) and Redis.
+You need Docker with Docker Compose 2.24 or newer.
+
+Each part runs in its own container: `app` (web), `horizon` (queue workers),
+`scheduler`, `reverb` (WebSockets), `chunker`, `postgres` and `redis`. Docker
+restarts any of them that stops, and a health check marks one that hangs, so
+no process supervisor is needed inside the containers. See them with
+`docker compose ps`, and the logs of one with `docker compose logs horizon`.
+
+The chunker is only reachable inside the stack and needs no API key. The
+app uses it for every text it splits into chunks.
 
 The image is published at `ghcr.io/chatvia/chatvia`, with one tag per
 release (for example `1.4.2`, `1.4`, `1` and `latest`).
@@ -100,6 +110,7 @@ too. API keys are not set in this file: enter them in the admin panel.
 | `ADMIN_PASSWORD` | random | First start only. Remove it from `.env` afterwards. |
 | `APP_KEY` | random | Your own app key instead of a random one. |
 | `MAIL_*` | write to the logs | Your SMTP server. Needed for sign-up, invitations and password resets. |
+| `CHUNKER_WORKERS` | `2` | Worker processes of the chunker. Each one uses about 200 MB. |
 
 "First start only" settings are read when the database is created. Changing
 them later does not change the existing database or account.

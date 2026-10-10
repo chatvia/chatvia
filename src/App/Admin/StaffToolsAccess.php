@@ -9,7 +9,7 @@ use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Foundation\Application;
 
 /**
- * Who may open the staff tools — Horizon, Telescope, Pulse, Spectra and the
+ * Who may open the staff tools — Horizon, Spectra and the
  * panel's Settings: an active admin signed in to the admin panel's own `admin`
  * guard who has set up two-factor authentication. On a local machine
  * (APP_ENV=local) the two-factor requirement is skipped.

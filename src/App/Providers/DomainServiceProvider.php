@@ -64,6 +64,7 @@ use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\LocalTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
@@ -200,7 +201,7 @@ class DomainServiceProvider extends ServiceProvider
             default => throw $this->unknownAiDriver('document_parser', ['mistral', 'local']),
         });
 
-        $this->app->bind(fn ($app): TextSplitter => match ($this->aiDriver('text_splitter', auto: filled(config('services.chunkfit.api_key')) ? 'chunkfit' : 'local')) {
+        $this->app->bind(fn ($app): TextSplitter => match ($this->aiDriver('text_splitter', auto: $app->make(ChunkFitClient::class)->isAvailable() ? 'chunkfit' : 'local')) {
             'chunkfit' => $app->make(ChunkFitTextSplitter::class),
             'local' => $app->make(LocalTextSplitter::class),
             default => throw $this->unknownAiDriver('text_splitter', ['chunkfit', 'local']),

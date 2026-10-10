@@ -8,11 +8,25 @@ use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * HTTP client for the hosted chunk.fit text splitter (`services.chunkfit`).
- * Used through ChunkFitTextSplitter when that splitter is configured.
+ * HTTP client for the chunk.fit text splitter (`services.chunkfit`): either
+ * the hosted service at chunk.fit, which needs an API key, or a self-hosted
+ * chunker (github.com/chatvia/chunker, which the Docker stack runs), which
+ * takes no key. Used through ChunkFitTextSplitter.
  */
 class ChunkFitClient
 {
+    /** Host of the hosted service, the only one that receives the API key. */
+    private const string HOSTED_HOST = 'chunk.fit';
+
+    /**
+     * Whether it can be used: the hosted service needs its API key, a
+     * self-hosted chunker only its address.
+     */
+    public function isAvailable(): bool
+    {
+        return $this->usesHostedService() ? filled($this->apiKey()) : $this->baseUrl() !== '';
+    }
+
     /**
      * Chunk document text by section/title via chunk.fit's Unstructured
      * `chunk_by_title` strategy.
@@ -57,22 +71,27 @@ class ChunkFitClient
     /** @param  array<string, mixed>  $body  the JSON request body */
     private function request(string $endpoint, array $body): Response
     {
-        $apiKey = $this->apiKey();
+        $headers = ['Accept' => 'application/json'];
 
-        if ($apiKey === null || $apiKey === '') {
-            throw new ChunkFitException(
-                'chunk.fit is not configured: add its API key in the admin panel (Settings → Knowledge).',
-            );
+        // The API key belongs to the hosted service: a self-hosted chunker
+        // never receives it, even when one is saved in the admin panel.
+        if ($this->usesHostedService()) {
+            $apiKey = $this->apiKey();
+
+            if ($apiKey === null || $apiKey === '') {
+                throw new ChunkFitException(
+                    'chunk.fit is not configured: add its API key in the admin panel (Settings → Knowledge), or set CHUNK_FIT_BASE_URL to your own chunker.',
+                );
+            }
+
+            $headers['Authorization'] = 'Bearer '.$apiKey;
         }
 
         try {
             $response = Http::baseUrl($this->baseUrl())
                 ->timeout($this->timeoutSeconds())
                 ->retry(2, 250, throw: false)
-                ->withHeaders([
-                    'Authorization' => 'Bearer '.$apiKey,
-                    'Accept' => 'application/json',
-                ])
+                ->withHeaders($headers)
                 ->asJson()
                 ->post($endpoint, $body);
         } catch (Throwable $e) {
@@ -126,6 +145,13 @@ class ChunkFitClient
     private function baseUrl(): string
     {
         return rtrim((string) config('services.chunkfit.base_url'), '/');
+    }
+
+    private function usesHostedService(): bool
+    {
+        $host = strtolower((string) parse_url($this->baseUrl(), PHP_URL_HOST));
+
+        return $host === self::HOSTED_HOST || str_ends_with($host, '.'.self::HOSTED_HOST);
     }
 
     private function timeoutSeconds(): int

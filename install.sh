@@ -26,6 +26,7 @@
 #   CHATVIA_EMBEDDING_TYPE        halfvec (default) or vector
 #   CHATVIA_EMBEDDING_DIMENSIONS  1024 (default)
 #   CHATVIA_COMPOSE_URL           where to download compose.yaml from
+#   CHUNKER_IMAGE                 chunker image name (ghcr.io/chatvia/chunker)
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -39,6 +40,7 @@ readonly COMPOSE_PROJECT="chatvia-stack"
 readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
+readonly DEFAULT_CHUNKER_IMAGE="ghcr.io/chatvia/chunker"
 
 #------------------------------------------------------------------------------
 # Output
@@ -528,15 +530,22 @@ image_ref() {
     printf '%s:%s' "${CHATVIA_IMAGE:-$DEFAULT_IMAGE}" "$CHATVIA_VERSION"
 }
 
+chunker_ref() {
+    printf '%s:%s' "${CHUNKER_IMAGE:-$DEFAULT_CHUNKER_IMAGE}" "$CHATVIA_VERSION"
+}
+
 # With --no-pull the image must already be here; checked before anything
 # is written.
 require_local_image() {
     [ "$NO_PULL" = 1 ] || return 0
     [ "$DRY_RUN" = 0 ] || return 0
-    if ! docker_cmd image inspect "$(image_ref)" >/dev/null 2>&1; then
-        die "The image $(image_ref) is not on this machine." \
-            'Build it first (docker build -t NAME:VERSION .), or run without --no-pull.'
-    fi
+    local ref
+    for ref in "$(image_ref)" "$(chunker_ref)"; do
+        if ! docker_cmd image inspect "$ref" >/dev/null 2>&1; then
+            die "The image $ref is not on this machine." \
+                'Build it first (docker build -t NAME:VERSION ., and docker/chunker for the chunker), or run without --no-pull.'
+        fi
+    done
 }
 
 # Downloads the image, unless --no-pull uses the one already here.
@@ -545,7 +554,7 @@ get_image() {
         run_step "$1" compose pull
         return
     fi
-    ok "Using the image on this machine $(dim "($(image_ref))")"
+    ok "Using the images on this machine $(dim "($(image_ref), $(chunker_ref))")"
 }
 
 compose_url() {
@@ -574,6 +583,7 @@ download_compose() {
 write_env() {
     local secure='' image_line=''
     [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
+    [ -n "$CHUNKER_IMAGE" ] && image_line="${image_line}CHUNKER_IMAGE=$CHUNKER_IMAGE"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
     (
         umask 077
@@ -738,6 +748,7 @@ do_resume() {
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     APP_PORT=${APP_PORT:-8000} APP_URL=${APP_URL:-http://localhost:${APP_PORT:-8000}} CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
+    CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
 
     step 2 'Install'
     # Used only when the earlier attempt did not make the admin account yet.
@@ -930,6 +941,7 @@ do_upgrade() {
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
+    CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
 
     step 2 'Upgrade'
     if [ "$DRY_RUN" = 0 ]; then
@@ -1005,6 +1017,7 @@ main() {
     EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-}
+    CHUNKER_IMAGE=${CHUNKER_IMAGE:-}
     NO_PULL=${CHATVIA_NO_PULL:-0}
 
     setup_output

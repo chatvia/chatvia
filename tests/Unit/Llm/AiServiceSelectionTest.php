@@ -82,6 +82,12 @@ it('keeps the hosted services when their keys are set, as in production', functi
         ->and($documentLlm->slug())->toBe('mistral');
 });
 
+it('uses a self-hosted chunker without an API key', function (): void {
+    config(['services.chunkfit.base_url' => 'http://chunker:8000/api/v1']);
+
+    expect(app(TextSplitter::class))->toBeInstanceOf(ChunkFitTextSplitter::class);
+});
+
 it('lets an explicit driver override auto', function (): void {
     config([
         'services.mistral.api_key' => 'mistral-key',

@@ -11,7 +11,7 @@ use Filament\Facades\Filament;
  *
  * MFA is required only in production (AdminPanelProvider
  * `isRequired: App::isProduction()`); these tests run outside production, where
- * it is offered but optional. Staff tools (Horizon, Telescope, Pulse, Spectra)
+ * it is offered but optional. Staff tools (Horizon, Spectra)
  * always require MFA — see StaffToolsAccess.
  */
 beforeEach(function (): void {

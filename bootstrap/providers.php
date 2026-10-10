@@ -14,7 +14,6 @@ use App\Providers\FortifyServiceProvider;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\HttpMacroServiceProvider;
 use App\Providers\RateLimitServiceProvider;
-use App\Providers\TelescopeServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 
 return [
@@ -31,6 +30,5 @@ return [
     AdminPanelProvider::class,
     FortifyServiceProvider::class,
     HorizonServiceProvider::class,
-    TelescopeServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
 ];

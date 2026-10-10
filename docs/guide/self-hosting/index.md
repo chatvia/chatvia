@@ -230,7 +230,7 @@ section is for.
 | --- | --- |
 | App | Name, URL, environment, logging. |
 | Brand | Your product name and links (see [Your brand](#your-brand)). |
-| Database | PostgreSQL connection. Analytics, Pulse, Telescope and the AI request log can move to their own databases. |
+| Database | PostgreSQL connection. Analytics and the AI request log can move to their own databases. |
 | Redis, cache, sessions and queues | Redis connection. Keep `SESSION_DRIVER=database` and `QUEUE_CONNECTION=redis`. |
 | Mail | How e-mail is sent. |
 | Broadcasting / Reverb | The WebSocket server. |
@@ -240,7 +240,7 @@ section is for.
 | Binaries | Paths to LibreOffice, poppler, pandoc, ffmpeg and Chrome. |
 | Security | Built-in tool secret, trusted proxies, cookies, content security policy, rate limits. |
 | Channels, Connectors, Social login | Only addresses and versions. The keys are in the admin panel. |
-| Observability | Error reports, Horizon alerts, Pulse, Telescope, the AI request log. |
+| Observability | Error reports, Horizon alerts, the AI request log. |
 | Advanced tuning | Search, tools, retention and audit settings. The defaults are fine for most installs. |
 
 ### Workspaces and sign-up
@@ -423,9 +423,8 @@ it ends, so give PHP-FPM enough workers.
 
 ### Staff tools
 
-Horizon (`/horizon`), Pulse (`/pulse`), Telescope (`/telescope`, off by
-default) and the AI request log (`/spectra`) open only for an admin who is
-signed in to the admin panel with two-factor authentication.
+Horizon (`/horizon`) and the AI request log (`/spectra`) open only for an
+admin who is signed in to the admin panel with two-factor authentication.
 
 ## Upgrading
 

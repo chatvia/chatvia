@@ -20,8 +20,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * Every admin sees the Settings page, but only an admin who has set up
  * two-factor authentication can see or change the credentials: the same bar as
- * Horizon and Telescope ({@see StaffToolsAccess}). The others get a prompt to
- * set it up.
+ * Horizon ({@see StaffToolsAccess}). The others get a prompt to set it up.
  */
 class SettingResource extends Resource
 {

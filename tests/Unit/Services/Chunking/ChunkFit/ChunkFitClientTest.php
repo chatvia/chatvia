@@ -102,15 +102,42 @@ class ChunkFitClientTest extends TestCase
         $client->splitByTitle('text');
     }
 
-    public function test_raises_when_api_key_is_missing(): void
+    public function test_raises_when_the_hosted_service_has_no_api_key(): void
     {
         config()->set('services.chunkfit.api_key');
 
         $client = new ChunkFitClient;
 
+        $this->assertFalse($client->isAvailable());
         $this->expectException(ChunkFitException::class);
         $this->expectExceptionMessage('chunk.fit is not configured');
 
         $client->splitByTitle('text');
+    }
+
+    public function test_calls_a_self_hosted_chunker_without_any_api_key(): void
+    {
+        // A key saved for the hosted service must never reach a self-hosted one.
+        config()->set('services.chunkfit.base_url', 'http://chunker:8000/api/v1');
+
+        Http::fake([
+            'chunker:8000/api/v1/unstructured/splitters/text' => Http::response(['chunks' => ['Only chunk.']], 200),
+        ]);
+
+        $client = new ChunkFitClient;
+
+        $this->assertTrue($client->isAvailable());
+        $this->assertSame(['Only chunk.'], $client->splitByTitle('Some text.'));
+
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'http://chunker:8000/api/v1/unstructured/splitters/text'
+            && ! $request->hasHeader('Authorization'));
+    }
+
+    public function test_a_self_hosted_chunker_needs_only_its_address(): void
+    {
+        config()->set('services.chunkfit.api_key');
+        config()->set('services.chunkfit.base_url', 'http://chunker:8000/api/v1');
+
+        $this->assertTrue((new ChunkFitClient)->isAvailable());
     }
 }

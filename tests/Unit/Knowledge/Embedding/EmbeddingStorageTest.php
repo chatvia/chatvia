@@ -29,13 +29,13 @@ it('reads the vector type and size from the settings', function (): void {
 it('rejects a vector type the database cannot store', function (): void {
     config(['chatvia.embeddings.type' => 'float']);
 
-    expect(fn () => (new EmbeddingStorage)->type())
+    expect(fn (): VectorType => (new EmbeddingStorage)->type())
         ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_VECTOR_TYPE must be "halfvec" or "vector", not "float".');
 });
 
 it('rejects a size the database cannot store', function (mixed $dimensions): void {
     config(['chatvia.embeddings.dimensions' => $dimensions]);
 
-    expect(fn () => (new EmbeddingStorage)->dimensions())
+    expect(fn (): int => (new EmbeddingStorage)->dimensions())
         ->toThrow(InvalidEmbeddingStorageException::class, 'EMBEDDING_DIMENSIONS must be a whole number from 1 to 16000');
 })->with([0, 16001, '1024.5', 'many']);

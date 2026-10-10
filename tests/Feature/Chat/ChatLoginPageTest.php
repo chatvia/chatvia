@@ -13,7 +13,7 @@ it('does not send the agent model or its system prompt to the guest login page',
         'system_instructions' => 'SECRET SYSTEM PROMPT',
     ]);
 
-    $response = $this->get("https://{$agent->sub_domain}.chatvia.test/chat/login");
+    $response = $this->get("/chat/{$agent->slug}/login");
 
     $response->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page

@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -27,11 +28,11 @@ return new class extends Migration
             $table->unsignedBigInteger('cost_in_micro_cents')->default(0);
             $table->unsignedInteger('tokens');
 
-            $table->halfvec('embedding', 1024);
+            $table->embedding('embedding');
             $table->bm25vector('embedding_bm25');
 
             $table->text('questions')->nullable();
-            $table->halfvec('questions_embedding', 1024)->nullable();
+            $table->embedding('questions_embedding')->nullable();
             $table->bm25vector('questions_embedding_bm25')->nullable();
 
             $table->jsonb('metadata')->nullable();
@@ -81,6 +82,9 @@ kmeans_iterations = 25
 
 EOT;
 
-        DB::statement("CREATE INDEX {$indexName} ON chunks USING vchordrq ({$column} halfvec_l2_ops) WITH (options = '{$options}')");
+        // The install's vector type decides the operator class (EmbeddingStorage).
+        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
+
+        DB::statement("CREATE INDEX {$indexName} ON chunks USING vchordrq ({$column} {$ops}) WITH (options = '{$options}')");
     }
 };

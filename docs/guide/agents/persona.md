@@ -58,11 +58,11 @@ The persona is where your business voice lives. Pair it with sources that come f
 
 Chatvia doesn't interpolate the persona — it's passed verbatim. If you want per-chatter personalization (their name, their plan), use [identity verification](/guide/account/identity) to sign chatters in, and then expose the chatter object to the agent via your sign-in flow.
 
-## Name and subdomain
+## Name and chat address
 
-The **Persona** page is also where teammates edit the agent's **Name** and **Subdomain**.
+The **Persona** page is also where teammates edit the agent's **Name** and **Chat address**.
 
 - **Name** is visible to chatters (chat header, browser tab title) on every surface.
-- **Subdomain** changes the Hosted Chat URL — old links will 404 once it changes, so update embeds and shared links.
+- **Chat address** is the last part of the Hosted Chat URL (`/chat/{address}`). Old links stop working when it changes, so update shared links. Embed snippets use the agent ID and keep working.
 
 Click **Save** to apply changes. There's a header indicator when there are unsaved edits.

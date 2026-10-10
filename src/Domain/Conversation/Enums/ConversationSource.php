@@ -11,7 +11,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
  * read-only thereafter; drives chat-log filtering and analytics segmentation.
  *
  * An agent exposes several surfaces simultaneously — Hosted Chat (the standalone
- * chat page served at `{sub_domain}.app`), Chat Widget (the embeddable floating-
+ * chat page served at `/chat/{slug}`), Chat Widget (the embeddable floating-
  * bubble script), Command Bar (the embeddable command-palette launcher), and the
  * messaging channels (Telegram, Slack, Messenger, WhatsApp, Microsoft Teams,
  * Instagram). Playground previews reuse the same enum since they render the same

@@ -126,6 +126,12 @@ SESSION_SECURE_COOKIE=true
 You can make random values with `openssl rand -hex 32`. See
 [Security settings](#security-settings) for the rest.
 
+::: warning Decide on the embedding storage now
+`EMBEDDING_VECTOR_TYPE` and `EMBEDDING_DIMENSIONS` can only be set before step
+4 creates the tables. The defaults suit almost every install. See
+[Embedding storage](#embedding-storage).
+:::
+
 E-mail must work before other people use the server. People who sign up must
 confirm their e-mail address, and invitations and sign-in links are sent by
 e-mail.
@@ -272,6 +278,27 @@ Chatvia can show your own name and links instead of its own:
 | `BRAND_WEBSITE_URL`, `BRAND_DOCS_URL`, `BRAND_API_DOCS_URL` | Links shown in the app. Leave one empty to hide that link. |
 | `BRAND_POWERED_BY_ENABLED`, `BRAND_POWERED_BY_LABEL`, `BRAND_POWERED_BY_URL` | The "Powered by ..." line under hosted chats and widgets. Each agent can also hide it. |
 
+### Embedding storage
+
+Chatvia stores a vector (an embedding) for every chunk of your knowledge, and
+for every tool and form, to find the ones that match a question. Two settings
+decide how. They are read when the tables are created and **cannot change
+afterwards**:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `EMBEDDING_VECTOR_TYPE` | `halfvec` | `halfvec` stores 2 bytes per dimension, half the space of `vector` (4 bytes), with almost the same search quality. |
+| `EMBEDDING_DIMENSIONS` | `1024` | The size of each vector. 1024 works with every embedding provider; other sizes limit your choice (see [AI providers](./ai-providers.md#search-vectors-embeddings)). |
+
+After the migrations, `php artisan app:check-embedding-storage` compares the
+settings with the database. It fails, with the columns that differ, when
+someone changed them after install. Run it after every upgrade (the Docker
+image does).
+
+Keyword search is different: it is a switch in the admin panel (**Settings →
+Knowledge → Knowledge search**) that you can change at any time. When it is
+on (the default), agents search by keywords as well as by meaning.
+
 ### Files and storage
 
 Chatvia uses three storage disks:
@@ -302,52 +329,72 @@ for the `private` disk, or copy the backups somewhere else.
 
 ### Hosted chat addresses
 
-Every agent's hosted chat page lives on its own subdomain:
-`https://{agent}.chat.example.com` when `APP_URL` is `https://chat.example.com`.
-The embed snippets in the dashboard use these addresses too. So:
+Every agent's hosted chat page lives under `APP_URL`, at `/chat/{agent}`: for
+example `https://chat.example.com/chat/support` when `APP_URL` is
+`https://chat.example.com`. `{agent}` is the agent's chat address (you can
+change it on the agent's **Persona** page) or its ID. The embed snippets in the
+dashboard use the ID, so they keep working after a rename. You need no extra
+DNS records or certificates.
 
-- add a wildcard DNS record (`*.chat.example.com`) that points to your server;
-- use a TLS certificate that covers the wildcard name.
+The hosted chat has its own sign-in, separate from the dashboard: signing in to
+a chat never signs you in to the dashboard, and the reverse.
 
-If the agents should live under a different host than the dashboard, set
-`AGENT_HOSTING_URL` (for example `https://agents.example.com`).
+An agent can also have its own domain (for example `support.example.org`):
+
+1. Point the domain at your server with a DNS record. For a subdomain, use a
+   CNAME to your `APP_URL` host.
+2. Add a TLS certificate for that domain to your web server or proxy.
+3. Enter the domain under **Setup → Domain** in the agent.
+
+The domain then shows only that agent's chat.
 
 ### The chat widget
 
-The widget that customers put on their own websites is a separate project in
-the `widget/` folder. Build it for your server:
+The widget that customers put on their own websites is called Shakomako. Its
+code is in the `shakomako/` folder. Build it into `public/shakomako`:
 
 ```bash
-cd widget
-cp .env.example .env
+npm ci --prefix shakomako
+npm run shakomako:build
 ```
 
-Set these values in `widget/.env`:
+The built widget needs no settings of its own:
 
-```dotenv
-VITE_APP_VERSION=1.0.0
-VITE_API_URL=https://chat.example.com/widget
-VITE_SCRIPT_URL=https://chat.example.com/widget-assets
-VITE_REVERB_APP_KEY=the REVERB_APP_KEY value
-VITE_REVERB_HOST=chat.example.com
-VITE_REVERB_PORT=443
-VITE_REVERB_SCHEME=https
-```
+- It loads its other files from the folder its `embed.js` came from.
+- It uses the `/widget` API on the same server.
+- It gets the live-chat (Reverb) address from the server. The server sends
+  `VITE_REVERB_HOST`, `VITE_REVERB_PORT` and `VITE_REVERB_SCHEME` from `.env`,
+  the same values the dashboard is built with. When they are empty, the widget
+  connects to the same server, so your web server must forward `/app/` to
+  Reverb.
 
-`VITE_SCRIPT_URL` is the public folder where you will put the built files.
-Then build:
+The embed snippets in the dashboard point to `{APP_URL}/shakomako/embed.js`.
+To serve the widget from somewhere else, for example a CDN, set
+`WIDGET_SCRIPT_URL`.
 
-```bash
-npm ci
-npm run build:prod
-```
+Other websites load these files, and the loader reads `version.json` with a
+browser request, so nginx must allow any origin for `/shakomako/`. A release
+folder never changes after it is built, so it can stay in caches for a long
+time:
 
-Copy the contents of `widget/dist/` to a public folder, for example
-`public/widget-assets/` in the app. Then point the app to the loader script in
-`.env`:
+```nginx
+location ^~ /shakomako/ {
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Cache-Control "public, max-age=31536000, immutable" always;
+    try_files $uri =404;
+}
 
-```dotenv
-WIDGET_SCRIPT_URL=https://chat.example.com/widget-assets/embed.js
+location = /shakomako/embed.js {
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Cache-Control "public, max-age=300" always;
+    try_files $uri =404;
+}
+
+location = /shakomako/version.json {
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Cache-Control "no-cache" always;
+    try_files $uri =404;
+}
 ```
 
 Each agent has a list of websites where its widget may load. To allow a host
@@ -393,8 +440,11 @@ composer install --no-dev --optimize-autoloader
 npm ci
 npm run i18n:merge
 npm run build
+npm ci --prefix shakomako
+npm run shakomako:build
 
 php artisan migrate --force
+php artisan app:check-embedding-storage
 php artisan app:sync-builtin-mcp
 
 php artisan config:cache
@@ -405,8 +455,7 @@ php artisan horizon:terminate   # your process manager starts Horizon again
 php artisan reverb:restart
 ```
 
-Then reload PHP-FPM, so it loads the new code. Rebuild the widget when the
-`widget/` folder changed.
+Then reload PHP-FPM, so it loads the new code.
 
 From the first release on, migrations only move forward: a released
 migration is never changed. Queue workers keep running old code until they

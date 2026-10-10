@@ -20,7 +20,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Support Agent',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => false,
         'source' => 'api',
     ]);
@@ -61,7 +61,7 @@ function htdFunction(string $method = 'POST', string $authType = 'none', ?array 
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Support Agent',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => false,
         'source' => 'api',
     ]);

@@ -351,7 +351,7 @@ describe('agent access isolation + tenancy', function (): void {
 
     it('forbids a member from an agent their role does not grant', function (): void {
         $granted = $this->agent;
-        $ungranted = createAgent($this->owner, ['name' => 'Other', 'external_id' => Str::random(20), 'sub_domain' => Str::random(14)]);
+        $ungranted = createAgent($this->owner, ['name' => 'Other', 'external_id' => Str::random(20), 'slug' => Str::random(14)]);
 
         // Access to ONLY the granted agent, with the chat permission.
         $token = permMemberToken($this->owner, ['agent.chat.view'], allAgents: false, agentIds: [$granted->external_id]);

@@ -20,21 +20,21 @@ beforeEach(function (): void {
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Public Agent',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => true,
     ]);
-    $this->host = $this->agent->sub_domain.'.chatvia.test';
+    $this->chat = '/chat/'.$this->agent->slug;
 });
 
 it('serves the hosted chat when the surface is enabled (default)', function (): void {
-    $this->get('https://'.$this->host.'/chat')
+    $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
 });
 
 it('shows AgentNotFound when the hosted chat surface is disabled', function (): void {
     $this->agent->setSetting(key: 'hosted_chat', value: false, group: 'surfaces');
 
-    $this->get('https://'.$this->host.'/chat')
+    $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
 });
 
@@ -42,6 +42,6 @@ it('serves the hosted chat again once the surface is re-enabled', function (): v
     $this->agent->setSetting(key: 'hosted_chat', value: false, group: 'surfaces');
     $this->agent->setSetting(key: 'hosted_chat', value: true, group: 'surfaces');
 
-    $this->get('https://'.$this->host.'/chat')
+    $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page->component('chat/Home'));
 });

@@ -34,6 +34,7 @@ enum SettingGroup: string
 
     case Firecrawl = 'firecrawl';
     case ChunkFit = 'chunkfit';
+    case KnowledgeSearch = 'knowledge-search';
 
     case GithubConnector = 'github-connector';
     case GmailConnector = 'gmail-connector';
@@ -56,7 +57,7 @@ enum SettingGroup: string
             self::GoogleLogin, self::MicrosoftLogin, self::GithubLogin, self::SlackLogin => SettingCategory::SignIn,
             self::Messenger, self::Instagram, self::Whatsapp => SettingCategory::Channels,
             self::Scaleway, self::Mistral, self::OpenRouter, self::Groq, self::Cohere, self::Jina => SettingCategory::Ai,
-            self::Firecrawl, self::ChunkFit => SettingCategory::Knowledge,
+            self::Firecrawl, self::ChunkFit, self::KnowledgeSearch => SettingCategory::Knowledge,
             self::Workspaces => SettingCategory::Workspaces,
             self::Resend, self::Turnstile, self::Ip2Location => SettingCategory::Platform,
             default => SettingCategory::Connectors,
@@ -82,6 +83,7 @@ enum SettingGroup: string
             self::Jina => 'Jina',
             self::Firecrawl => 'Firecrawl',
             self::ChunkFit => 'chunk.fit',
+            self::KnowledgeSearch => 'Knowledge search',
             self::Workspaces => 'Workspaces',
             self::Resend => 'Resend',
             self::Turnstile => 'Cloudflare Turnstile',
@@ -118,6 +120,7 @@ enum SettingGroup: string
             self::Jina => 'Embeddings.',
             self::Firecrawl => 'Imports websites as knowledge sources.',
             self::ChunkFit => 'Hosted text splitter for documents.',
+            self::KnowledgeSearch => 'How agents search their knowledge sources.',
             self::Workspaces => 'Open sign-up, the message limit of new workspaces and how long conversations are kept.',
             self::Resend => 'Sends email when MAIL_MAILER is resend.',
             self::Turnstile => 'Bot check on the public contact form.',
@@ -148,6 +151,7 @@ enum SettingGroup: string
             self::Jina => Heroicon::OutlinedCubeTransparent,
             self::Firecrawl => Heroicon::OutlinedFire,
             self::ChunkFit => Heroicon::OutlinedScissors,
+            self::KnowledgeSearch => Heroicon::OutlinedMagnifyingGlass,
             self::Resend => Heroicon::OutlinedEnvelope,
             self::Turnstile => Heroicon::OutlinedShieldCheck,
             self::Ip2Location => Heroicon::OutlinedMapPin,
@@ -176,6 +180,10 @@ enum SettingGroup: string
             self::Jina => [SettingField::secret('api_key', 'API key', 'services.jina.api_key')],
             self::Firecrawl => [SettingField::secret('api_key', 'API key', 'services.firecrawl.key')],
             self::ChunkFit => [SettingField::secret('api_key', 'API key', 'services.chunkfit.api_key')],
+            self::KnowledgeSearch => [
+                SettingField::toggle('hybrid', 'Keyword search', 'chatvia.vector.search.hybrid', default: true,
+                    help: 'Search by keywords (BM25) as well as by meaning. Finds exact names, codes and rare words better. When off, agents search by meaning only. You can change this at any time.'),
+            ],
             self::Workspaces => $this->workspaces(),
             self::Resend => [SettingField::secret('api_key', 'API key', 'services.resend.key')],
             self::Turnstile => [

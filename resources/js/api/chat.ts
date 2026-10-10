@@ -37,11 +37,11 @@ export interface InlineFormSubmitResult {
 export type MessageFeedbackValue = 'positive' | 'negative' | null;
 
 export function chatStreamUrl(conversationId: string): string {
-    return chat.stream.url(conversationId);
+    return chat.stream.url({ conversationId });
 }
 
 export function toolApprovalResolveUrl(approvalId: string): string {
-    return chat.tools.resolve.url(approvalId);
+    return chat.tools.resolve.url({ approval: approvalId });
 }
 
 export function fetchConversations(): Promise<ChatConversationSummary[]> {
@@ -58,11 +58,11 @@ export function createConversation(message: string, attachments: ChatAttachment[
 }
 
 export function renameConversation(conversationId: string | number, title: string): Promise<void> {
-    return patch(conversations.update.url(conversationId), { title });
+    return patch(conversations.update.url({ conversationId }), { title });
 }
 
 export function deleteConversation(conversationId: string | number): Promise<void> {
-    return del(conversations.delete.url(conversationId));
+    return del(conversations.delete.url({ conversationId }));
 }
 
 export function deleteAllConversations(): Promise<void> {
@@ -70,17 +70,17 @@ export function deleteAllConversations(): Promise<void> {
 }
 
 export function fetchConversationMessages(conversationId: string): Promise<Message[]> {
-    return get<Message[]>(conversations.messages.url(conversationId));
+    return get<Message[]>(conversations.messages.url({ conversationId }));
 }
 
 /** Knowledge sources per assistant message, keyed by the assistant message UUID. */
 export function fetchConversationSources(conversationId: string): Promise<Record<string, MessageSource[]>> {
-    return get<Record<string, MessageSource[]>>(chat.sources.url(conversationId));
+    return get<Record<string, MessageSource[]>>(chat.sources.url({ conversationId }));
 }
 
 /** Names the conversation from its first message. Idempotent once a title exists. */
 export function generateConversationTitle(conversationId: string): Promise<{ title: string | null }> {
-    return post<{ title: string | null }>(conversations.title.url(conversationId));
+    return post<{ title: string | null }>(conversations.title.url({ conversationId }));
 }
 
 export function fetchSendCapacity(): Promise<ChatUsage> {
@@ -145,7 +145,7 @@ export function submitInlineForm(
     fields: Record<string, unknown>,
     assistantMessageId?: string,
 ): Promise<InlineFormSubmitResult> {
-    return post<InlineFormSubmitResult>(chat.forms.submit.url(formInstanceId), {
+    return post<InlineFormSubmitResult>(chat.forms.submit.url({ formInstance: formInstanceId }), {
         fields,
         assistant_message_id: assistantMessageId,
     });

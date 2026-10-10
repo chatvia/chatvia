@@ -206,7 +206,7 @@ function toolLoopAgent(): Agent
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Tool Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => true,
     ]);
@@ -264,7 +264,7 @@ it('runs an auto-approved webhook tool mid-stream and persists the assistant rep
 
     $conversationId = (string) Str::uuid();
     $response = $this->post(
-        "https://chatvia.test/chat/stream/{$conversationId}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/{$conversationId}",
         ['message' => 'What is the status of order 1234?'],
         ['Accept' => 'text/event-stream'],
     );
@@ -344,7 +344,7 @@ it('persists both the user and assistant messages of a tool-using turn in the sa
 
     $conversationId = (string) Str::uuid();
     $response = $this->post(
-        "https://chatvia.test/chat/stream/{$conversationId}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/{$conversationId}",
         [
             'message' => 'What is the status of order 1234?',
             // The client flag the hosted-chat surface sends when the user turn

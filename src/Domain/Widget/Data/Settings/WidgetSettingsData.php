@@ -94,5 +94,8 @@ class WidgetSettingsData extends Data
         // same value via MaxConversationAttachments so a forged request
         // still gets a 422.
         public int $max_files_per_chat,
+        // Where this server's live chat (Reverb) runs. The widget uses it for
+        // any value its embed tag and its build do not set.
+        public WidgetSettingsReverbData $reverb,
     ) {}
 }

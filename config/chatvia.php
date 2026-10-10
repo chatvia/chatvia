@@ -222,12 +222,6 @@ return [
         // it stays bounded as a chat grows — older messages are dropped. Raise
         // it to give the model more follow-up context, lower it to save tokens.
         'history_messages' => (int) env('AGENT_HISTORY_MESSAGES', 3),
-
-        // The base URL each agent's Hosted Chat lives under, as
-        // `{scheme}://{sub_domain}.{host}{:port}`. Leave it empty to use
-        // APP_URL. Set it when agents are served from a different host than
-        // the dashboard (the host needs a wildcard DNS record).
-        'hosting_url' => env('AGENT_HOSTING_URL'),
     ],
 
     /*
@@ -294,8 +288,8 @@ return [
             'tables' => 'mistral-small-3.2-24b-instruct-2506',
             'chunker' => 'llama-3.1-70b-instruct',
             'title' => 'mistral-small-3.2-24b-instruct-2506',
-            // Suggests a subdomain name for a new agent (the "generate" button).
-            'subdomain' => 'mistral-small-3.2-24b-instruct-2506',
+            // Suggests a chat-address slug for an agent (the "generate" button).
+            'agent_slug' => 'mistral-small-3.2-24b-instruct-2506',
             'form_description' => 'mistral-small-3.2-24b-instruct-2506',
             'tone' => 'mistral-small-3.2-24b-instruct-2506',
             'topic' => 'mistral-small-3.2-24b-instruct-2506',
@@ -353,6 +347,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Embedding storage
+    |--------------------------------------------------------------------------
+    |
+    | How the database stores embeddings (Domain\Knowledge\Embedding\Services\
+    | EmbeddingStorage). Set these before the first migration and never change
+    | them afterwards: the embedding columns and their indexes are created with
+    | them, and `php artisan app:check-embedding-storage` stops a start whose
+    | values no longer match the database.
+    |
+    */
+
+    'embeddings' => [
+        // halfvec: 2 bytes per dimension, half the space of vector (4 bytes),
+        // with almost the same search quality.
+        'type' => env('EMBEDDING_VECTOR_TYPE', 'halfvec'),
+
+        // The embedding provider must return this many dimensions. 1024 works
+        // with every provider; Mistral only returns 1024, Jina at most 1024,
+        // Cohere 256, 512, 1024 or 1536, and Qwen3 up to 4096.
+        'dimensions' => env('EMBEDDING_DIMENSIONS', 1024),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Vector search (VectorChord / RAG)
     |--------------------------------------------------------------------------
     |
@@ -365,6 +383,12 @@ return [
         'search' => [
             // Search accuracy mode: 'default', 'high_accuracy', or 'high_speed'
             'mode' => env('VECTOR_SEARCH_MODE', 'default'),
+
+            // Knowledge search combines meaning (vector) and keyword (BM25)
+            // search; off means meaning only. Set in the admin panel
+            // (Settings → Knowledge → Knowledge search), on by default. Keyword
+            // data is always stored, so it can change at any time.
+            'hybrid' => null,
 
             // Rerank is the relevance gate: chunks scoring below
             // relevance_threshold are dropped. Turning this off means every query
@@ -657,7 +681,22 @@ return [
     */
 
     'widget' => [
-        'script_url_embed' => env('WIDGET_SCRIPT_URL', 'http://localhost:3000/dist/embed.js'),
+        // The widget's embed.js. By default the copy this server builds from
+        // shakomako/ into public/shakomako (`npm run shakomako:build`). Set
+        // WIDGET_SCRIPT_URL to load it from elsewhere, e.g. the widget dev
+        // server (http://localhost:3000/dist/embed.js) or a CDN.
+        'script_url_embed' => env('WIDGET_SCRIPT_URL') ?: rtrim((string) env('APP_URL', 'http://localhost'), '/').'/shakomako/embed.js',
+
+        // Public address of the Reverb (WebSocket) server for live-agent
+        // handoff, sent to the widget with its settings, so a widget build
+        // needs no Reverb settings of its own. The same values the dashboard
+        // is built with. Empty values mean "the server the widget API is on"
+        // (the Docker image forwards /app/ to Reverb).
+        'reverb' => [
+            'host' => env('VITE_REVERB_HOST'),
+            'port' => env('VITE_REVERB_PORT'),
+            'scheme' => env('VITE_REVERB_SCHEME'),
+        ],
 
         // Hosts every agent's widget may load on, on top of each agent's own
         // allowed sites. Always this install's own host (from APP_URL), where

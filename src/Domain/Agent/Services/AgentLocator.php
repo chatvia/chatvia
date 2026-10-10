@@ -5,34 +5,37 @@ namespace Domain\Agent\Services;
 use Domain\Agent\Models\Agent as AgentModel;
 
 /**
- * Stateless locator helpers for resolving an {@see AgentModel} from a
- * request (sub-domain or custom host) and minting collision-free external
- * ids. Named distinctly from the `Agent` model so call sites never have to
- * alias one of them away.
+ * Stateless locator helpers for finding an {@see AgentModel} from a hosted
+ * chat address (the `/chat/{agentSlug}` path segment or a custom domain) and
+ * minting collision-free external ids. Named distinctly from the `Agent` model
+ * so call sites never have to alias one of them away.
  */
 class AgentLocator
 {
     /**
-     * The agent whose subdomain or external id is $subdomain. Callers pass a
-     * non-empty slug: a NULL lookup would match agents without a subdomain.
+     * The agent whose slug or external id is $slug (the `/chat/{agentSlug}`
+     * segment). An empty slug matches nothing: a NULL lookup would match
+     * agents without a slug.
      */
-    public static function resolveAgentFromSubdomain(string $subdomain): ?AgentModel
+    public static function resolveAgentBySlug(string $slug): ?AgentModel
     {
+        if ($slug === '') {
+            return null;
+        }
+
         return AgentModel::query()
-            ->where('sub_domain', $subdomain)
-            ->orWhere('external_id', $subdomain)
+            ->where('slug', $slug)
+            ->orWhere('external_id', $slug)
             ->first();
     }
 
     /**
-     * Resolve a request host to the `external_id` of the agent that claimed
-     * it as its custom domain. Returns null for hosts that aren't bound to
-     * any agent.
+     * The agent that claimed $host as its custom domain, or null for hosts
+     * that aren't bound to any agent.
      *
-     * No caching: a single indexed lookup matches the existing
-     * `resolveAgentFromSubdomain` pattern.
+     * No caching: a single indexed lookup, like `resolveAgentBySlug`.
      */
-    public static function resolveByHost(string $host): ?string
+    public static function resolveByHost(string $host): ?AgentModel
     {
         $host = strtolower(trim($host));
 
@@ -40,12 +43,9 @@ class AgentLocator
             return null;
         }
 
-        /** @var AgentModel|null $agent */
-        $agent = AgentModel::query()
+        return AgentModel::query()
             ->where('domain', $host)
             ->first();
-
-        return $agent?->external_id;
     }
 
     public static function generateRandomExternalId(int $len = 14): string

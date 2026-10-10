@@ -61,6 +61,7 @@ use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\CohereReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
@@ -138,13 +139,14 @@ class DomainServiceProvider extends ServiceProvider
 
         $this->registerAiServices();
 
-        // PasswordAuthenticator wraps the `web` guard so Domain Actions don't
-        // have to reach for the Auth facade. We bind it explicitly because
-        // StatefulGuard has multiple implementations and Laravel can't
-        // auto-resolve which one we want.
+        // PasswordAuthenticator wraps the request's default guard (`web`, or
+        // `chat` inside the hosted chat) so Domain Actions don't have to reach
+        // for the Auth facade. We bind it explicitly because StatefulGuard has
+        // multiple implementations and Laravel can't auto-resolve which one we
+        // want. A plain bind, so each resolve picks up the current guard.
         $this->app->bind(
             PasswordAuthenticator::class,
-            fn (): PasswordAuthenticator => new PasswordAuthenticator(Auth::guard('web')),
+            fn (): PasswordAuthenticator => new PasswordAuthenticator(Auth::guard()),
         );
     }
 
@@ -172,8 +174,10 @@ class DomainServiceProvider extends ServiceProvider
 
             // The vector columns have a fixed size: fail here with a clear
             // message instead of on the first insert or search.
-            if ((int) $provider->getDimensions() !== EmbeddingsProviderInterface::STORED_DIMENSIONS) {
-                throw EmbeddingDimensionsMismatchException::for($provider);
+            $stored = $app->make(EmbeddingStorage::class)->dimensions();
+
+            if ((int) $provider->getDimensions() !== $stored) {
+                throw EmbeddingDimensionsMismatchException::for($provider, $stored);
             }
 
             return $provider;

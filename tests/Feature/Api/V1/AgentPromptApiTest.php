@@ -81,7 +81,7 @@ it('swaps an agent between a library prompt and a custom prompt on update', func
         'team_id' => $this->user->primaryTeam()->id,
         'name' => 'Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::random(14),
+        'slug' => Str::random(14),
         'system_instructions' => 'Original custom',
         'is_public' => false,
         'source' => 'api',

@@ -2,12 +2,10 @@
 
 use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
-use App\Http\Middleware\Auth\RedirectIfChatterAuthenticated;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Routing\ResponseFactory;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Pest\Expectation;
@@ -104,19 +102,3 @@ it('EnsureAgentPermission denies a user without the permission with 403, or the 
     expect(fn () => app(EnsureAgentPermission::class)->handle(mwRequestForAgent($stranger, $agent), mwPassThrough(), ...$arguments))
         ->toThrow(fn (HttpException $e): Expectation => expect($e->getStatusCode())->toBe((int) $status));
 })->with(['403', '404']);
-
-/*
-|--------------------------------------------------------------------------
-| RedirectIfChatterAuthenticated (guest.chatter)
-|--------------------------------------------------------------------------
-*/
-
-it('RedirectIfChatterAuthenticated sends a signed-in visitor to the chat home and lets guests through', function (): void {
-    $middleware = app(RedirectIfChatterAuthenticated::class);
-
-    expect($middleware->handle(Request::create('/chat/login'), mwPassThrough())->getContent())->toBe('ok');
-
-    $this->actingAs(User::factory()->create());
-
-    expect($middleware->handle(Request::create('/chat/login'), mwPassThrough()))->toBeInstanceOf(RedirectResponse::class);
-});

@@ -214,4 +214,25 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Hosted Chat Session
+    |--------------------------------------------------------------------------
+    |
+    | The hosted chat (/chat/{agent}) keeps its own session, separate from the
+    | dashboard's: its own cookie, sent only to /chat. UseHostedChatSession
+    | swaps these values in for /chat requests. Over HTTPS the cookie is
+    | SameSite=None and partitioned, so the chat keeps its session inside an
+    | iframe on another site (the embed); the dashboard cookie stays "lax".
+    |
+    */
+
+    'chat' => [
+        'cookie' => env(
+            'SESSION_CHAT_COOKIE',
+            Str::slug(env('APP_NAME', 'laravel'), '_').'_chat_session'
+        ),
+        'path' => '/chat',
+    ],
+
 ];

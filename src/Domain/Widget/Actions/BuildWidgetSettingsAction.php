@@ -9,6 +9,7 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsData;
+use Domain\Widget\Data\Settings\WidgetSettingsReverbData;
 use Illuminate\Support\Collection;
 
 /**
@@ -87,6 +88,25 @@ class BuildWidgetSettingsAction
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->documentLlm->isAvailable(),
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
+            reverb: $this->reverb(),
+        );
+    }
+
+    /**
+     * The Reverb address browsers connect to: the app key the dashboard pages
+     * also get, and the public host, port and scheme from
+     * `chatvia.widget.reverb` (null = the widget API's own server).
+     */
+    private function reverb(): WidgetSettingsReverbData
+    {
+        $public = (array) config('chatvia.widget.reverb');
+        $port = $public['port'] ?? null;
+
+        return new WidgetSettingsReverbData(
+            key: ((string) config('broadcasting.connections.reverb.key')) ?: null,
+            host: ((string) ($public['host'] ?? '')) ?: null,
+            port: is_numeric($port) ? (int) $port : null,
+            scheme: ((string) ($public['scheme'] ?? '')) ?: null,
         );
     }
 

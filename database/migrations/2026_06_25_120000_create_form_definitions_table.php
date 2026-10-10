@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Embedding columns use the install's vector type and size (EmbeddingStorage).
+        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
         Schema::create('form_definitions', function (Blueprint $table): void {
             $table->id();
@@ -34,7 +37,7 @@ return new class extends Migration
             $table->text('agent_instructions')->nullable();
             $table->boolean('is_active')->default(true);
 
-            $table->vector('embedding', 1024)->nullable();
+            $table->embedding('embedding')->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 
             $table->timestamps();
@@ -43,7 +46,7 @@ return new class extends Migration
         });
 
         DB::statement('CREATE INDEX form_definitions_embedding_bm25 ON form_definitions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
-        DB::statement('CREATE INDEX form_definitions_embedding_vchordrq ON form_definitions USING vchordrq (embedding vector_l2_ops)');
+        DB::statement("CREATE INDEX form_definitions_embedding_vchordrq ON form_definitions USING vchordrq (embedding {$ops})");
 
         Schema::create('form_submissions', function (Blueprint $table): void {
             $table->id();

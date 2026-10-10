@@ -8,7 +8,7 @@ use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Rename an agent (and re-slug its `sub_domain` for knowledge_base agents).
+ * Rename an agent (and re-slug its `slug` for knowledge_base agents).
  * Authorization lives on {@see RenameAgentRequest}; the rename itself in
  * {@see RenameAgentAction}.
  */

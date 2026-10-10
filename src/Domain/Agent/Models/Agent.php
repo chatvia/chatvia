@@ -54,7 +54,7 @@ use Support\MimeType;
  *
  * Owned by the workspace (`user_id` is the workspace owner, never the teammate
  * who created it) and placed in one team. `external_id` is the stable public
- * id (route key, permanent URL, storage prefix); `sub_domain` is the friendly,
+ * id (route key, permanent URL, storage prefix); `slug` is the friendly,
  * renameable Hosted Chat label. Lifecycle hooks live in {@see AgentObserver};
  * deleting an agent with its data goes through DeleteAgentAction.
  *
@@ -63,7 +63,7 @@ use Support\MimeType;
  * @property int $user_id
  * @property int $team_id
  * @property string $name
- * @property string|null $sub_domain
+ * @property string|null $slug
  * @property string|null $domain
  * @property string|null $system_instructions
  * @property int|null $agent_prompt_id
@@ -126,7 +126,7 @@ use Support\MimeType;
  * @method static AgentQueryBuilder<static>|Agent whereIsPublic($value)
  * @method static AgentQueryBuilder<static>|Agent whereMcpServersCount($value)
  * @method static AgentQueryBuilder<static>|Agent whereName($value)
- * @method static AgentQueryBuilder<static>|Agent whereSubDomain($value)
+ * @method static AgentQueryBuilder<static>|Agent whereSlug($value)
  * @method static AgentQueryBuilder<static>|Agent whereSystemInstructions($value)
  * @method static AgentQueryBuilder<static>|Agent whereTeamId($value)
  * @method static AgentQueryBuilder<static>|Agent whereUpdatedAt($value)
@@ -585,7 +585,8 @@ class Agent extends Model
     }
 
     /**
-     * The Hosted Chat address on the agent's renameable subdomain.
+     * The Hosted Chat address under the agent's renameable slug
+     * (`/chat/{slug}`); the same as `chat_url`.
      *
      * @return Attribute<string, never>
      */
@@ -595,7 +596,8 @@ class Agent extends Model
     }
 
     /**
-     * The Hosted Chat address on the agent's permanent (external id) subdomain.
+     * The Hosted Chat address under the agent's permanent external id
+     * (`/chat/{external_id}`).
      *
      * @return Attribute<string, never>
      */

@@ -10,7 +10,7 @@ Create a workspace on the sign-up page (`/register`) and confirm your email addr
 
 ## 2. Create an agent
 
-From **Dashboard → Agents → Create agent**, give the agent a name and press **Create**. That is the only field — every agent ships with three surfaces (Hosted Chat, Widget, and Bar) which you configure later in **Setup**. The subdomain is generated for you and can be renamed any time under **Agent → Dashboard → Rename**.
+From **Dashboard → Agents → Create agent**, give the agent a name and press **Create**. That is the only field — every agent ships with three surfaces (Hosted Chat, Widget, and Bar) which you configure later in **Setup**. The chat address is generated for you and can be renamed any time under **Agent → Dashboard → Rename**.
 
 
 
@@ -42,7 +42,7 @@ Every agent has three surfaces, plus the unified chat hub and the public API. Pi
 
 - **Unified chat at `/chat`.** Invite your team or customers as **chatters** from **Settings → Members** (or from the agent's **Members** tab for a per-agent grant). Signed-in chatters open `/chat` and switch between every agent they have access to — ChatGPT-style.
 - **Embed the Widget.** Open **Embed → Widget** on the agent and copy the `<script>` snippet. Paste it before `</body>` on your marketing site or app. See the [Widget guide](/embed/widget).
-- **Share the Hosted Chat URL.** Each agent has a standalone chat at `{agent}.chatvia.ai` (or your own domain via CNAME). Good for iframe embeds and SSO scenarios.
+- **Share the Hosted Chat URL.** Each agent has a standalone chat at `chatvia.ai/chat/{agent}` (or your own domain via CNAME). Good for iframe embeds and SSO scenarios.
 - **Drop in the Bar.** A search-style trigger that opens a full-screen chat modal — ideal for in-app assistants. Configure it per agent under **Embed → Bar**.
 - **Use the public API.** Create a key in [Settings → API keys](/guide/account/api-keys) and call the [public API](https://chatvia.ai/docs/api) for programmatic access.
 

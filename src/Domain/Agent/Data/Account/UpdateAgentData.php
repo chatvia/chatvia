@@ -26,7 +26,7 @@ class UpdateAgentData extends Data
         public Agent $agent,
         public User $actor,
         public ?string $name,
-        public ?string $sub_domain,
+        public ?string $slug,
         public bool $changePrompt,
         public ?string $promptExternalId,
         public bool $changeSystemInstructions,

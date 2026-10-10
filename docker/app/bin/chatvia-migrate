@@ -5,9 +5,10 @@
 #
 #   1. wait for PostgreSQL
 #   2. run the migrations (the first one installs the search extensions)
-#   3. load the AI model list (reference data, never demo data)
-#   4. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, once
-#   5. add the built-in tools to the tool catalog (needs an embedding API key)
+#   3. check the embedding storage settings still match the database
+#   4. load the AI model list (reference data, never demo data)
+#   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, once
+#   6. add the built-in tools to the tool catalog (needs an embedding API key)
 set -eu
 
 cd "${APP_BASE_DIR:-/var/www/chatvia}"
@@ -35,6 +36,12 @@ until database_is_ready; do
 done
 
 php artisan migrate --force --no-interaction
+
+# EMBEDDING_VECTOR_TYPE and EMBEDDING_DIMENSIONS are chosen at install. When
+# they were changed afterwards this fails, so the app does not start with
+# settings that would break every search.
+php artisan app:check-embedding-storage --no-interaction
+
 php artisan db:seed --class='Database\Seeders\LlmSeeder' --force --no-interaction
 
 admin_email="${ADMIN_EMAIL:-admin@example.com}"

@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Embedding;
 
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -12,6 +13,28 @@ use Illuminate\Support\Facades\Cache;
  */
 abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
 {
+    /** The size a model returns when it cannot return the stored size. */
+    protected const int DEFAULT_DIMENSIONS = 1024;
+
+    public function __construct(
+        protected readonly EmbeddingStorage $storage,
+    ) {}
+
+    /**
+     * The stored size when this model can return it. Otherwise the model's
+     * own size, which then fails the check when the provider is resolved,
+     * with a message that names both sizes.
+     */
+    public function getDimensions(): int
+    {
+        $stored = $this->storage->dimensions();
+
+        return $this->supportsDimensions($stored) ? $stored : static::DEFAULT_DIMENSIONS;
+    }
+
+    /** Whether the model can return vectors of this size. */
+    abstract protected function supportsDimensions(int $dimensions): bool;
+
     /**
      * Cached entry point for query embeddings. Same (model, text) always
      * yields the same vector, so we cache for 24h to absorb retries,

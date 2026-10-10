@@ -1,9 +1,9 @@
 /**
  * The calls behind an agent's persona editors: the workspace's saved library
  * prompts, saving the agent's instructions (inline text or a library prompt),
- * and suggesting a free subdomain for the agent's hosted chat.
+ * and suggesting a free chat-address slug for the agent's hosted chat.
  */
-import { generateRandomSubdomain as randomSubdomainRoute } from '@/routes';
+import { generateAgentSlug as agentSlugRoute } from '@/routes';
 import { update as updateAgentRoute } from '@/routes/agents';
 import { list as libraryPromptsRoute } from '@/routes/library/prompts';
 import { get, patch } from './http';
@@ -28,9 +28,9 @@ export function updateAgentInstructions(agentId: string, update: AgentInstructio
     return patch(updateAgentRoute.url(agentId), update);
 }
 
-/** A free, randomly generated subdomain name (without the base domain). */
-export async function generateRandomSubdomain(): Promise<string> {
-    const { name } = await get<{ name: string }>(randomSubdomainRoute.url());
+/** A free, randomly generated chat-address slug (without the base URL). */
+export async function generateAgentSlug(): Promise<string> {
+    const { name } = await get<{ name: string }>(agentSlugRoute.url());
 
     return name;
 }

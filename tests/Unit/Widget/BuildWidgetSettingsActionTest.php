@@ -187,3 +187,35 @@ it('leaves a locale out of a text map when its stored override is empty', functi
 
     expect($settings->text_translations)->toBe(['title' => ['de' => 'Hilfe']]);
 });
+
+it('sends the public Reverb address so a widget build needs none of its own', function (): void {
+    config([
+        'broadcasting.connections.reverb.key' => 'reverb-app-key',
+        'chatvia.widget.reverb' => ['host' => 'ws.example.test', 'port' => '6001', 'scheme' => 'https'],
+    ]);
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
+
+    expect($settings->reverb->toArray())->toBe([
+        'key' => 'reverb-app-key',
+        'host' => 'ws.example.test',
+        'port' => 6001,
+        'scheme' => 'https',
+    ]);
+});
+
+it('leaves the Reverb address empty so the widget uses its API server', function (): void {
+    config([
+        'broadcasting.connections.reverb.key' => 'reverb-app-key',
+        'chatvia.widget.reverb' => ['host' => null, 'port' => '', 'scheme' => null],
+    ]);
+
+    $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
+
+    expect($settings->reverb->toArray())->toBe([
+        'key' => 'reverb-app-key',
+        'host' => null,
+        'port' => null,
+        'scheme' => null,
+    ]);
+});

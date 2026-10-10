@@ -4,30 +4,40 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentUrlBuilder;
 
 /**
- * Agent URLs live on a subdomain of the hosting base URL. The scheme and the
- * port of that base URL are kept (a local install runs on a port).
+ * Every agent's hosted chat lives under `{APP_URL}/chat/`: its slug for the
+ * friendly address, its external id for the permanent and embed addresses. The
+ * scheme and port of APP_URL are kept (a local install runs on a port).
  */
-it('builds the hosted and permanent URLs on the app URL host', function (): void {
-    config(['app.url' => 'https://chatvia.example', 'chatvia.agent.hosting_url' => null]);
-    $agent = Agent::factory()->make(['sub_domain' => 'helper', 'external_id' => 'abc123']);
+it('builds the hosted, permanent and embed URLs under the app URL', function (): void {
+    config(['app.url' => 'https://chatvia.example']);
+    $agent = Agent::factory()->make(['slug' => 'helper', 'external_id' => 'abc123']);
 
-    expect(AgentUrlBuilder::hostedUrl($agent))->toBe('https://helper.chatvia.example')
-        ->and(AgentUrlBuilder::permanentUrl($agent))->toBe('https://abc123.chatvia.example')
-        ->and(AgentUrlBuilder::chatUrl($agent))->toBe('https://helper.chatvia.example/chat')
-        ->and(AgentUrlBuilder::chatEmbedUrl($agent))->toBe('https://abc123.chatvia.example/chat/embed');
+    expect(AgentUrlBuilder::chatBaseUrl())->toBe('https://chatvia.example/chat')
+        ->and(AgentUrlBuilder::hostedUrl($agent))->toBe('https://chatvia.example/chat/helper')
+        ->and(AgentUrlBuilder::permanentUrl($agent))->toBe('https://chatvia.example/chat/abc123')
+        ->and(AgentUrlBuilder::chatUrl($agent))->toBe('https://chatvia.example/chat/helper')
+        ->and(AgentUrlBuilder::chatEmbedUrl($agent))->toBe('https://chatvia.example/chat/abc123/embed');
 });
 
-it('keeps the port of the base URL', function (): void {
-    config(['app.url' => 'http://localhost:8000', 'chatvia.agent.hosting_url' => null]);
-    $agent = Agent::factory()->make(['sub_domain' => 'helper', 'external_id' => 'abc123']);
+it('keeps the port of the app URL', function (): void {
+    config(['app.url' => 'http://localhost:8000/']);
+    $agent = Agent::factory()->make(['slug' => 'helper', 'external_id' => 'abc123']);
 
-    expect($agent->url)->toBe('http://helper.localhost:8000')
-        ->and($agent->chat_embed_url)->toBe('http://abc123.localhost:8000/chat/embed');
+    expect($agent->url)->toBe('http://localhost:8000/chat/helper')
+        ->and($agent->chat_embed_url)->toBe('http://localhost:8000/chat/abc123/embed');
 });
 
-it('uses the configured hosting URL instead of the app URL', function (): void {
-    config(['app.url' => 'https://dashboard.example', 'chatvia.agent.hosting_url' => 'https://agents.example:8443']);
-    $agent = Agent::factory()->make(['sub_domain' => 'helper', 'external_id' => 'abc123']);
+it('falls back to the external id when an agent has no slug', function (): void {
+    config(['app.url' => 'https://chatvia.example']);
+    $agent = Agent::factory()->make(['slug' => null, 'external_id' => 'abc123']);
 
-    expect($agent->url)->toBe('https://helper.agents.example:8443');
+    expect($agent->chat_url)->toBe('https://chatvia.example/chat/abc123');
+});
+
+it('matches the chat routes', function (): void {
+    config(['app.url' => 'https://chatvia.example']);
+    $agent = Agent::factory()->make(['slug' => 'helper', 'external_id' => 'abc123']);
+
+    expect(parse_url(AgentUrlBuilder::chatUrl($agent), PHP_URL_PATH))->toBe(route('chat.home', ['agentSlug' => 'helper'], absolute: false))
+        ->and(parse_url(AgentUrlBuilder::chatEmbedUrl($agent), PHP_URL_PATH))->toBe(route('chat.embed.home', ['agentSlug' => 'abc123'], absolute: false));
 });

@@ -38,7 +38,7 @@ class AgentFactory extends Factory
                 return ($user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user))->id;
             },
             'name' => fake()->words(2, true),
-            'sub_domain' => fake()->unique()->slug(),
+            'slug' => fake()->unique()->slug(),
             'system_instructions' => 'You are a helpful assistant.',
             'is_public' => false,
         ];

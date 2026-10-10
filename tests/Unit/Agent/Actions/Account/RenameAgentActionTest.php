@@ -9,19 +9,19 @@ use Domain\Agent\Models\Agent;
  * given; without one the subdomain stays.
  */
 it('renames the agent and moves its subdomain', function (): void {
-    $agent = Agent::factory()->create(['name' => 'Old', 'sub_domain' => 'old-name']);
+    $agent = Agent::factory()->create(['name' => 'Old', 'slug' => 'old-name']);
 
     $renamed = app(RenameAgentAction::class)->execute($agent, new RenameAgentData('New', 'new-name'));
 
     expect($renamed->name)->toBe('New')
-        ->and($renamed->sub_domain)->toBe('new-name');
+        ->and($renamed->slug)->toBe('new-name');
 });
 
 it('keeps the subdomain when none is given', function (): void {
-    $agent = Agent::factory()->create(['name' => 'Old', 'sub_domain' => 'old-name']);
+    $agent = Agent::factory()->create(['name' => 'Old', 'slug' => 'old-name']);
 
     $renamed = app(RenameAgentAction::class)->execute($agent, new RenameAgentData('New'));
 
     expect($renamed->name)->toBe('New')
-        ->and($renamed->sub_domain)->toBe('old-name');
+        ->and($renamed->slug)->toBe('old-name');
 });

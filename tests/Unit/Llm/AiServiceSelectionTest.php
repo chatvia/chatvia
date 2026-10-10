@@ -4,6 +4,8 @@ use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
+use Domain\Knowledge\Embedding\Jina;
+use Domain\Knowledge\Embedding\Mistral as MistralEmbeddings;
 use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\CohereReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
@@ -151,21 +153,33 @@ it('uses one provider vocabulary for chat routing and the LLM catalog', function
         ->and(LlmProviderEnum::SCALEWAY->readsDocuments())->toBeFalse();
 });
 
-it('fails fast when the embedding provider returns a different vector size than the database stores', function (): void {
+it('fails fast when the embedding provider cannot return the size the database stores', function (string $provider, int $stored): void {
     config([
-        'chatvia.ai.models.embedding' => 'cohere',
-        'services.cohere.embedding_dimensions' => 1536,
+        'chatvia.ai.models.embedding' => $provider,
+        'chatvia.embeddings.dimensions' => $stored,
     ]);
 
     expect(fn () => app(EmbeddingsProviderInterface::class))
-        ->toThrow(EmbeddingDimensionsMismatchException::class, 'returns 1536 dimensions, but the database stores 1024');
-});
+        ->toThrow(EmbeddingDimensionsMismatchException::class, "returns 1024 dimensions, but the database stores {$stored}");
+})->with([
+    'mistral is fixed at 1024' => ['mistral', 1536],
+    'jina stops at 1024' => ['jina', 2048],
+    'cohere has fixed sizes' => ['cohere', 768],
+]);
 
-it('accepts an embedding provider with the stored vector size', function (): void {
+it('asks the embedding provider for the size the database stores', function (string $provider, string $class, int $stored): void {
     config([
-        'chatvia.ai.models.embedding' => 'cohere',
-        'services.cohere.embedding_dimensions' => 1024,
+        'chatvia.ai.models.embedding' => $provider,
+        'chatvia.embeddings.dimensions' => $stored,
     ]);
 
-    expect(app(EmbeddingsProviderInterface::class))->toBeInstanceOf(Cohere::class);
-});
+    $embeddings = app(EmbeddingsProviderInterface::class);
+
+    expect($embeddings)->toBeInstanceOf($class)
+        ->and($embeddings->getDimensions())->toBe($stored);
+})->with([
+    'cohere 1536' => ['cohere', Cohere::class, 1536],
+    'jina 512' => ['jina', Jina::class, 512],
+    'qwen 2048' => ['qwen', Qwen3::class, 2048],
+    'mistral 1024' => ['mistral', MistralEmbeddings::class, 1024],
+]);

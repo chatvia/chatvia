@@ -32,9 +32,10 @@ class Jina extends AbstractEmbeddingsProvider
         return $embedding;
     }
 
-    public function getDimensions(): int
+    /** jina-embeddings-v3 returns any size up to 1024 (Matryoshka). */
+    protected function supportsDimensions(int $dimensions): bool
     {
-        return config('services.jina.embedding_dimensions', 1024);
+        return $dimensions >= 32 && $dimensions <= 1024;
     }
 
     protected function getApiKey(): string

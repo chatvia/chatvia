@@ -28,7 +28,7 @@ An **agent** is one chatbot. There is no agent "type" — every agent can do eve
 
 Every agent is exposed through three surfaces at once. A single unified **Setup** page configures appearance, persona, starters, model, and branding once — those choices apply across all three surfaces. Behavior and Embed settings swap per active surface tab.
 
-- **Hosted Chat** — the standalone chat at `{agent}.chatvia.ai` (or a custom domain via CNAME). Looks like the unified chat, but locked to one agent. Useful for embed, iframe, or SSO scenarios.
+- **Hosted Chat** — the standalone chat at `chatvia.ai/chat/{agent}` (or a custom domain via CNAME). Looks like the unified chat, but locked to one agent. Useful for embed, iframe, or SSO scenarios.
 - **Widget** — an embeddable floating chat bubble. One `<script>` tag drops it onto any host page.
 - **Bar** — a search-style trigger that opens a full-screen chat modal. A first-class surface, configured per agent.
 

@@ -31,7 +31,7 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Attachment Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => $isPublic,
     ]);
@@ -82,7 +82,7 @@ it('deletes an orphan attachment (Home.vue pending flow) and wipes its S3 object
     Storage::disk('public')->assertExists($attachment->filepath);
 
     $response = $this->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertNoContent();
@@ -96,7 +96,7 @@ it('deletes a conversation-bound attachment on a public agent and wipes its S3 o
     $attachment = makeAttachment($agent, $conversation);
 
     $response = $this->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertNoContent();
@@ -115,7 +115,7 @@ it('refuses to delete an attachment already bound to a sent message (composer-on
     $attachment = makeAttachment($agent, $conversation, messageId: $message->id);
 
     $response = $this->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();
@@ -131,7 +131,7 @@ it('refuses to delete an orphan attachment that lives under a different agent\'s
     $requesterAgent = attachmentDeleteAgent();
 
     $response = $this->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$requesterAgent->external_id}",
+        "/chat/{$requesterAgent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();
@@ -147,7 +147,7 @@ it('refuses to delete a conversation-bound attachment whose conversation belongs
     $requesterAgent = attachmentDeleteAgent();
 
     $response = $this->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$requesterAgent->external_id}",
+        "/chat/{$requesterAgent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();
@@ -173,8 +173,8 @@ it('refuses to delete on a private agent when the auth user does not own the con
 
     $attachment = makeAttachment($agent, $conversation);
 
-    $response = $this->actingAs($intruder)->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    $response = $this->actingAs($intruder, 'chat')->delete(
+        "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();
@@ -195,8 +195,8 @@ it('lets the rightful owner delete on a private agent', function (): void {
 
     $attachment = makeAttachment($agent, $conversation);
 
-    $response = $this->actingAs($owner)->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    $response = $this->actingAs($owner, 'chat')->delete(
+        "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertNoContent();
@@ -208,7 +208,7 @@ it('returns 404 for a non-existent attachment external_id (route-model binding)'
     $agent = attachmentDeleteAgent();
 
     $response = $this->delete(
-        'https://chatvia.test/chat/messages/attachments/01999999-0000-7000-8000-000000000000?agent='.$agent->external_id,
+        "/chat/{$agent->external_id}/messages/attachments/01999999-0000-7000-8000-000000000000",
     );
 
     $response->assertNotFound();
@@ -227,7 +227,7 @@ it('refuses to delete an attachment whose conversation has been soft-deleted', f
     $conversation->forceFill(['deleted_at' => now()])->saveQuietly();
 
     $response = $this->delete(
-        "https://chatvia.test/chat/messages/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();

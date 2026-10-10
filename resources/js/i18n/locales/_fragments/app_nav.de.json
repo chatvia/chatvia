@@ -73,9 +73,9 @@
                 "description": "Geben Sie einen neuen Namen für Ihren Agenten {name} ein.",
                 "name_label": "Agentenname",
                 "name_placeholder": "Neuen Agentennamen eingeben",
-                "subdomain_label": "Subdomain",
-                "subdomain_placeholder": "ihre-subdomain",
-                "subdomain_hint": "Nur Kleinbuchstaben, Ziffern und Bindestriche erlaubt.",
+                "slug_label": "Chat-Adresse",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Nur Kleinbuchstaben, Ziffern und Bindestriche erlaubt.",
                 "save": "Speichern",
                 "updated_toast": "Agent erfolgreich aktualisiert"
             }

@@ -62,9 +62,16 @@ export interface SharedData extends PageProps {
     // by name (e.g. `youtube_sources`). Read them through `useFeature()`.
     features: Record<string, boolean>;
 
+    // Where every agent's hosted chat lives (`{chatBaseUrl}/{slug}`).
+    chatBaseUrl: string;
+    // On a hosted chat page: its `/chat/{agentSlug}` segment (null elsewhere).
+    agentSlug: string | null;
+    // The session's CSRF token, sent as X-CSRF-TOKEN (utils/csrf.ts).
+    csrfToken: string;
+
     // Chat-flow / widget contexts share the resolved agent and surface flash
-    // messages, request schema, and the active subdomain. Most pages don't
-    // see these but typing them here keeps `$page.props.X` honest.
+    // messages and the request schema. Most pages don't see these but typing
+    // them here keeps `$page.props.X` honest.
     agent?: {
         id: number;
         external_id: string;
@@ -73,8 +80,6 @@ export interface SharedData extends PageProps {
     };
     schema?: string;
     environment?: string;
-    domain?: string;
-    subdomain?: string | null;
     flash?: {
         success?: string | null;
         error?: string | null;

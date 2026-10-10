@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Team::class)->index()->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->string('sub_domain')->nullable()->unique();
+            $table->string('slug')->nullable()->unique();
             $table->string('domain')->nullable()->unique();
             $table->text('system_instructions')->nullable();
             $table->foreignId('agent_prompt_id')->nullable()->index()->constrained('agent_prompts')->nullOnDelete();

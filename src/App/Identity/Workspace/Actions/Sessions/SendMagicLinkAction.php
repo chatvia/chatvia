@@ -10,7 +10,8 @@ use Domain\Agent\Models\Agent;
 use MagicLink\MagicLink;
 
 /**
- * Issue a single-use magic sign-in link and email it to the address.
+ * Issue a single-use magic sign-in link and email it to the address. A link
+ * scoped to an agent signs in to that agent's hosted chat, not the dashboard.
  *
  * Silently no-ops when no matching user exists, when the account is
  * deactivated, or (when scoped to an agent) when the user can't access that
@@ -41,6 +42,7 @@ class SendMagicLinkAction
             action: new MagicLinkSignIn(
                 userId: $user->id,
                 redirectUrl: $redirectUrl,
+                agentId: $agent?->id,
             ),
             lifetime: self::LIFETIME_MINUTES,
             numMaxVisits: 1,

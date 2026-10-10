@@ -7,7 +7,7 @@ use Domain\Agent\Models\Agent;
 
 /**
  * Rename an agent. Every agent has a Hosted Chat surface served at
- * `{sub_domain}.app`, so the subdomain may be renamed alongside the name.
+ * `/chat/{slug}`, so the slug may be renamed alongside the name.
  */
 class RenameAgentAction
 {
@@ -15,8 +15,8 @@ class RenameAgentAction
     {
         $attributes = ['name' => $data->name];
 
-        if ($data->sub_domain !== null) {
-            $attributes['sub_domain'] = $data->sub_domain;
+        if ($data->slug !== null) {
+            $attributes['slug'] = $data->slug;
         }
 
         $agent->update($attributes);

@@ -43,7 +43,7 @@ Render the token into the script tag from your team's server-side template:
 ```html
 <script
   id="chatbot-embed-script"
-  src="https://chatvia.ai/embed.js"
+  src="https://chatvia.ai/shakomako/embed.js"
   data-agent-id="YOUR_AGENT_ID"
   data-auth="<%= chatviaToken %>"
   defer></script>
@@ -57,7 +57,7 @@ Or attach the token before the script loads from JS:
 </script>
 <script
   id="chatbot-embed-script"
-  src="https://chatvia.ai/embed.js"
+  src="https://chatvia.ai/shakomako/embed.js"
   data-agent-id="YOUR_AGENT_ID"
   data-auth-from="window.__chatviaToken"
   defer></script>
@@ -70,7 +70,7 @@ On a session refresh, mint a new token and call `window.Chatvia.setAuth(newToken
 Redirect signed-in chatters from your app:
 
 ```js
-res.redirect(`https://your-agent.chatvia.ai/?token=${chatviaToken}`)
+res.redirect(`https://chatvia.ai/chat/YOUR_AGENT_ID?token=${chatviaToken}`)
 ```
 
 Chatvia validates the token, sets a session cookie, and strips `?token=` from the URL. From then on the chatter can browse the chat as long as the session cookie is valid (it inherits the token's expiry).
@@ -105,7 +105,7 @@ The `sub` value from a successful sign-in is attached to the conversation. Your 
 
 ## Common mistakes
 
-- **Wrong audience.** `aud` must be the agent's external ID, not its name or subdomain.
+- **Wrong audience.** `aud` must be the agent's external ID, not its name or chat address.
 - **Wrong subject.** `sub` must map to the workspace owner, a teammate, or a chatter who has been granted access to this agent. Just any string isn't enough.
 - **Token in URL hash.** Don't put the token in `#fragment` — it ends up in browser history and can leak. Use `?token=` (consumed and stripped) or `data-auth` (never in the URL).
 - **Signing on the client.** Never ship the signing secret to the browser. If it's bundled in JS, anyone can mint sign-ins as anyone.

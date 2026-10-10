@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Embedding columns use the install's vector type and size (EmbeddingStorage).
+        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
         Schema::create('connector_tools', function (Blueprint $table) {
             $table->id();
@@ -26,7 +29,7 @@ return new class extends Migration
             $table->enum('default_permission', ['allow', 'approval', 'blocked'])
                 ->default('approval');
 
-            $table->vector('embedding', 1024)->nullable();
+            $table->embedding('embedding')->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 
             $table->timestamp('fetched_at');
@@ -36,7 +39,7 @@ return new class extends Migration
         });
 
         DB::statement('CREATE INDEX connector_tools_embedding_bm25 ON connector_tools USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
-        DB::statement('CREATE INDEX connector_tools_embedding_vchordrq ON connector_tools USING vchordrq (embedding vector_l2_ops)');
+        DB::statement("CREATE INDEX connector_tools_embedding_vchordrq ON connector_tools USING vchordrq (embedding {$ops})");
 
         Schema::create('mcp_tools', function (Blueprint $table) {
             $table->id();
@@ -55,7 +58,7 @@ return new class extends Migration
             $table->enum('permission', ['allow', 'approval', 'blocked'])
                 ->default('approval');
 
-            $table->vector('embedding', 1024)->nullable();
+            $table->embedding('embedding')->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 
             $table->timestamp('fetched_at');
@@ -67,7 +70,7 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX mcp_tools_embedding_bm25 ON mcp_tools USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
 
-        DB::statement('CREATE INDEX mcp_tools_embedding_vchordrq ON mcp_tools USING vchordrq (embedding vector_l2_ops)');
+        DB::statement("CREATE INDEX mcp_tools_embedding_vchordrq ON mcp_tools USING vchordrq (embedding {$ops})");
 
         Schema::create('mcp_server_tool', function (Blueprint $table) {
             $table->foreignId('mcp_server_id')

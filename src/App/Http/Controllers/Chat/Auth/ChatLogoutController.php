@@ -13,7 +13,7 @@ class ChatLogoutController
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        Auth::guard()->logout();
 
         $request->session()->invalidate();
 

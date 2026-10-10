@@ -2,8 +2,9 @@ import '../css/app.css';
 
 import '@formkit/themes/genesis';
 import { defaultConfig as formKitConfig, plugin as formKitPlugin } from '@formkit/vue';
-import { createInertiaApp, router } from '@inertiajs/vue3';
+import { createInertiaApp, http, router } from '@inertiajs/vue3';
 import { configureEcho } from '@laravel/echo-vue';
+import axios from 'axios';
 import 'primeicons/primeicons.css';
 import { ConfigProvider } from 'reka-ui';
 import { computed, createApp, h } from 'vue';
@@ -14,7 +15,9 @@ import 'vue3-colorpicker/style.css';
 import { initializeTheme } from './composables/useAppearance';
 import { i18n, isRTL, normalizeLocale, resolveLocale, setI18nLocale } from './i18n';
 import type { SharedData } from './types';
+import { csrfHeaders, setCsrfToken } from './utils/csrf';
 import { createChatEventBus } from './utils/eventBus';
+import { setUrlDefaults } from './wayfinder';
 
 const chatEventBus = createChatEventBus();
 
@@ -34,6 +37,26 @@ configureEcho({
     enabledTransports: ['ws', 'wss'],
 });
 
+// Hosted chat pages live under /chat/{agentSlug}. The server sends the page's
+// segment as `agentSlug`, and every chat route helper fills it in from here, so
+// call sites never pass the agent.
+let agentSlug: string | null = null;
+setUrlDefaults(() => (agentSlug ? { agentSlug } : {}));
+
+// Every request (axios and Inertia's own) sends the page's CSRF token as a
+// header; see utils/csrf.ts for why the cookie is not enough.
+axios.interceptors.request.use((config) => {
+    Object.entries(csrfHeaders()).forEach(([name, value]) => config.headers.set(name, value));
+    return config;
+});
+http.onRequest((config) => ({ ...config, headers: { ...config.headers, ...csrfHeaders() } }));
+
+/** Takes the agent segment and the CSRF token from each page the server sends. */
+function syncPageContext(pageProps: Record<string, unknown>): void {
+    agentSlug = typeof pageProps.agentSlug === 'string' && pageProps.agentSlug !== '' ? pageProps.agentSlug : null;
+    setCsrfToken(pageProps.csrfToken);
+}
+
 // The Docker image is built without VITE_APP_NAME; the server-rendered <title>
 // holds the brand name then.
 const appName = import.meta.env.VITE_APP_NAME || document.title || 'Chatvia';
@@ -41,6 +64,8 @@ const appName = import.meta.env.VITE_APP_NAME || document.title || 'Chatvia';
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
     setup({ el, App, props, plugin }) {
+        syncPageContext(props.initialPage.props);
+
         const initialLocale: unknown = props.initialPage?.props?.locale;
         if (typeof initialLocale === 'string' && initialLocale.length > 0) {
             void setI18nLocale(resolveLocale(initialLocale));
@@ -71,6 +96,8 @@ createInertiaApp({
 router.on('navigate', (event) => {
     const page = event.detail.page;
     const { props } = page;
+
+    syncPageContext(props);
 
     // Sync the active i18n locale (and document dir/lang) with whatever
     // the server resolved for this Inertia page (chat surfaces send `locale`).

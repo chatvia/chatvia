@@ -98,7 +98,7 @@ const isChatExpanded = computed(() => bus.isChatExpanded.value);
 provide('inlineFormSubmit', submitInlineForm);
 
 const uploadHeaders = computed(() => ({ 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': props.conversation_id }));
-const deleteEndpoint = (attachmentId: string) => deleteAttachment.url(attachmentId);
+const deleteEndpoint = (attachmentId: string) => deleteAttachment.url({ attachment: attachmentId });
 
 /**
  * A conversation created on Home arrives with only the visitor's first

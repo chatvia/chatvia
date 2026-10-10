@@ -30,9 +30,10 @@ class Mistral extends AbstractEmbeddingsProvider
         return $embedding;
     }
 
-    public function getDimensions(): int
+    /** mistral-embed always returns 1024 dimensions. */
+    protected function supportsDimensions(int $dimensions): bool
     {
-        return 1024;
+        return $dimensions === 1024;
     }
 
     protected function getApiKey(): string

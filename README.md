@@ -104,7 +104,7 @@ The PHP code is split into three namespaces:
   State changes go through Actions that take DTOs.
 - `src/Support/` (`Support\`): small shared helpers.
 
-The frontend lives in `resources/js/`, the embeddable widget in `widget/`, and
+The frontend lives in `resources/js/`, the embeddable widget in `shakomako/`, and
 the user documentation in `docs/`. [ARCHITECTURE.md](ARCHITECTURE.md) explains
 how the code is organised and the conventions; [CONTRIBUTING.md](CONTRIBUTING.md)
 explains how to work on it.
@@ -304,9 +304,17 @@ composer ci:check                              # every CI gate (see below)
 
 ## The chat widget
 
-The embeddable widget (chat bubble and command bar) is a separate frontend
-project in [`widget/`](widget/README.md), with its own `package.json` and build.
-See [widget/README.md](widget/README.md).
+The embeddable widget (chat bubble and command bar) is called Shakomako. It is
+a separate frontend package in [`shakomako/`](shakomako/README.md), with its
+own `package.json`, tests and build, so it also works as a project on its own.
+The app serves a built copy from `public/shakomako`:
+
+```bash
+npm ci --prefix shakomako   # once
+npm run shakomako:build     # builds the widget into public/shakomako
+```
+
+See [shakomako/README.md](shakomako/README.md).
 
 ## Documentation site
 
@@ -319,8 +327,16 @@ npm run docs:build    # static site in docs/.vitepress/dist
 
 ## Going to production
 
-The [self-hosting guide](docs/guide/self-hosting/index.md) has the full steps.
-In short:
+The quickest way is Docker. On Linux or macOS, the installer checks Docker,
+asks a few questions and starts everything:
+
+```bash
+curl -fsSL https://chatvia.ai/install.sh | bash
+```
+
+See [Run with Docker](docs/guide/self-hosting/docker.md). The
+[self-hosting guide](docs/guide/self-hosting/index.md) has the steps without
+Docker. In short:
 
 - PHP-FPM behind nginx, with `APP_ENV=production` and `APP_DEBUG=false`.
 - Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
@@ -337,7 +353,9 @@ In short:
 - Keep `php artisan horizon` and `php artisan reverb:start` running under a
   process manager (for example Supervisor or systemd), and run
   `php artisan schedule:run` every minute from cron.
-- Build the widget in `widget/` for your server and set `WIDGET_SCRIPT_URL`.
+- Build the widget with `npm ci --prefix shakomako && npm run shakomako:build`.
+  Other sites load it, so nginx must allow any origin for `/shakomako/` (see
+  the self-hosting guide).
 - Go through the security settings in `.env.example` and set each one for
   your environment.
 

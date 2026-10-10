@@ -159,3 +159,14 @@ it('reads the table directly when the cache is unreachable', function (): void {
     expect(config('services.google.client_id'))->toBe('saved-id');
     Exceptions::assertReported(RuntimeException::class);
 });
+
+it('turns keyword search on by default and off from the panel', function (): void {
+    $store = freshSettingsStore();
+
+    $store->apply();
+    expect(config('chatvia.vector.search.hybrid'))->toBeTrue();
+
+    saveAdminSettings(SettingGroup::KnowledgeSearch, ['hybrid' => '0']);
+    $store->apply();
+    expect(config('chatvia.vector.search.hybrid'))->toBeFalse();
+});

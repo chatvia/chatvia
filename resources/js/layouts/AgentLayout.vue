@@ -27,7 +27,7 @@ import { useI18n } from 'vue-i18n';
 interface AgentLayoutAgent {
     external_id: string;
     name: string;
-    sub_domain?: string | null;
+    slug?: string | null;
     is_public?: boolean;
 }
 
@@ -92,6 +92,6 @@ function onSidebarAction(action: AgentNavAction): void {
         </div>
 
         <DeleteAgentDialog v-model:open="showDeleteDialog" :agent-id="agent.external_id" :agent-name="agent.name" />
-        <RenameAgentDialog v-model:open="showRenameDialog" :agent-id="agent.external_id" :agent-name="agent.name" :sub-domain="agent.sub_domain" />
+        <RenameAgentDialog v-model:open="showRenameDialog" :agent-id="agent.external_id" :agent-name="agent.name" :slug="agent.slug" />
     </SidebarProvider>
 </template>

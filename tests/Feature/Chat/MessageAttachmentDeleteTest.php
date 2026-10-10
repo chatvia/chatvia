@@ -32,7 +32,7 @@ function messageAgent(bool $isPublic = true): Agent
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Msg Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => $isPublic,
     ]);
 }
@@ -80,7 +80,7 @@ it('deletes a sent-message attachment on a public agent and wipes the S3 object'
     $attachment = messageAttachment($agent, $conversation, $message);
 
     $response = $this->delete(
-        "https://chatvia.test/chat/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}",
     );
 
     $response->assertNoContent();
@@ -102,7 +102,7 @@ it('refuses when the URL conversation id does not match the attachment row', fun
     $attachment = messageAttachment($agent, $conversation, $message);
 
     $response = $this->delete(
-        "https://chatvia.test/chat/conversations/{$otherConversation->external_id}/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/conversations/{$otherConversation->external_id}/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();
@@ -124,8 +124,8 @@ it('refuses on a private agent when the requester does not own the conversation'
     ]);
     $attachment = messageAttachment($agent, $conversation, $message);
 
-    $response = $this->actingAs($intruder)->delete(
-        "https://chatvia.test/chat/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    $response = $this->actingAs($intruder, 'chat')->delete(
+        "/chat/{$agent->external_id}/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}",
     );
 
     $response->assertForbidden();
@@ -145,8 +145,8 @@ it('lets the rightful owner delete on a private agent', function (): void {
     ]);
     $attachment = messageAttachment($agent, $conversation, $message);
 
-    $response = $this->actingAs($owner)->delete(
-        "https://chatvia.test/chat/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}?agent={$agent->external_id}",
+    $response = $this->actingAs($owner, 'chat')->delete(
+        "/chat/{$agent->external_id}/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}",
     );
 
     $response->assertNoContent();
@@ -159,7 +159,7 @@ it('returns 404 for a non-existent attachment external_id', function (): void {
     $conversation = messageConversation($agent);
 
     $response = $this->delete(
-        "https://chatvia.test/chat/conversations/{$conversation->external_id}/attachments/01999999-0000-7000-8000-000000000000?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/conversations/{$conversation->external_id}/attachments/01999999-0000-7000-8000-000000000000",
     );
 
     $response->assertNotFound();

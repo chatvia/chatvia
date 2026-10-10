@@ -54,7 +54,7 @@ class RegenerateMessageRequest extends FormRequest
         // Mirrors EnsureChatIsAccessible's protected-agent gate: an
         // authenticated chatter on a private agent must own the
         // conversation whose turn is being regenerated.
-        if ($agent->is_public === false && Auth::guard('web')->check()) {
+        if ($agent->is_public === false && Auth::guard()->check()) {
             return ChatCache::isOwnedBy($conversationId, Auth::id(), $agent->workspaceExternalId());
         }
 

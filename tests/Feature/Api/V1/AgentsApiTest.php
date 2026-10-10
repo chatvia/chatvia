@@ -427,7 +427,7 @@ function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent')
         'team_id' => $teamId,
         'name' => $name,
         'external_id' => Str::random(14),
-        'sub_domain' => Str::random(14),
+        'slug' => Str::random(14),
         'is_public' => false,
         'source' => 'api',
     ]);

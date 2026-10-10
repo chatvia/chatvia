@@ -25,9 +25,9 @@ it('shares the current route with the hosted chat', function (): void {
     $agent = Agent::factory()->create();
     $agent->update(['is_public' => true]);
 
-    $this->get('https://'.$agent->sub_domain.'.chatvia.test/chat')
+    $this->get('/chat/'.$agent->slug)
         ->assertInertia(fn (Assert $page): Assert => $page
             ->component('chat/Home')
             ->where('route.name', 'chat.home')
-            ->where('route.params', []));
+            ->where('route.params', ['agentSlug' => $agent->slug]));
 });

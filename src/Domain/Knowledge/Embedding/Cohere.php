@@ -28,9 +28,10 @@ class Cohere extends AbstractEmbeddingsProvider
         return $embedding;
     }
 
-    public function getDimensions(): int
+    /** embed-v4.0 returns one of these sizes (`output_dimension`). */
+    protected function supportsDimensions(int $dimensions): bool
     {
-        return config('services.cohere.embedding_dimensions', 1024);
+        return in_array($dimensions, [256, 512, 1024, 1536], true);
     }
 
     protected function getApiKey(): string

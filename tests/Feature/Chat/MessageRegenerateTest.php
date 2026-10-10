@@ -30,7 +30,7 @@ function regenerateAgent(bool $isPublic = true): Agent
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Regenerate Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => $isPublic,
     ]);
@@ -67,7 +67,7 @@ it('returns 404 (not 403) when the conversation has been soft-deleted', function
     $conversation->forceFill(['deleted_at' => now()])->saveQuietly();
 
     $response = $this->postJson(
-        "https://chatvia.test/chat/messages/regenerate?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/messages/regenerate",
         regeneratePayload($conversation),
     );
 
@@ -78,7 +78,7 @@ it('returns 404 for a conversation id that does not exist', function (): void {
     $agent = regenerateAgent();
 
     $response = $this->postJson(
-        "https://chatvia.test/chat/messages/regenerate?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/messages/regenerate",
         [
             'conversation_id' => (string) Str::uuid(),
             'user_message_id' => (string) Str::uuid(),
@@ -96,7 +96,7 @@ it('returns 404 when the conversation belongs to another agent', function (): vo
     $requesterAgent = regenerateAgent();
 
     $response = $this->postJson(
-        "https://chatvia.test/chat/messages/regenerate?agent={$requesterAgent->external_id}",
+        "/chat/{$requesterAgent->external_id}/messages/regenerate",
         regeneratePayload($conversation),
     );
 
@@ -114,8 +114,8 @@ it('returns 403 on a private agent when the auth user does not own the conversat
     $conversation = regenerateConversation($agent, $owner);
     ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
 
-    $response = $this->actingAs($intruder)->postJson(
-        "https://chatvia.test/chat/messages/regenerate?agent={$agent->external_id}",
+    $response = $this->actingAs($intruder, 'chat')->postJson(
+        "/chat/{$agent->external_id}/messages/regenerate",
         regeneratePayload($conversation),
     );
 

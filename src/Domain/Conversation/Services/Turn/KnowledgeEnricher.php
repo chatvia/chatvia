@@ -246,7 +246,7 @@ class KnowledgeEnricher
                 // delimiters so it cannot break out of the alt text and add
                 // another image URL.
                 'description' => str_replace([']', '[', '(', ')', "\n", "\r"], ' ', (string) $description),
-                // Always the main domain (not the agent subdomain). The path
+                // Always the main domain (not an agent's custom domain). The path
                 // carries an HMAC over (chunk, index), so the public image route
                 // only serves links the server minted.
                 'url' => rtrim((string) config('app.url'), '/').ChunkImageLink::path((string) $source->external_id, $index),

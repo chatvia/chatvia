@@ -82,7 +82,7 @@ function createAgent(User $user, array $overrides = []): Agent
         'team_id' => $team->id,
         'name' => 'Bot',
         'external_id' => Str::random(20),
-        'sub_domain' => Str::random(14),
+        'slug' => Str::random(14),
         'is_public' => false,
         'source' => 'dashboard',
     ], $overrides));
@@ -97,7 +97,7 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
         'team_id' => $team->id,
         'name' => $name,
         'external_id' => Str::random(14),
-        'sub_domain' => Str::random(14),
+        'slug' => Str::random(14),
         'is_public' => false,
         'source' => 'api',
     ]);

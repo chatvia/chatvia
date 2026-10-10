@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 /**
- * The agent's Persona page: name, subdomain and instructions — either a saved
+ * The agent's Persona page: name, chat address and instructions — either a saved
  * library prompt or inline text (mutually exclusive), saved together.
  */
-import { generateRandomSubdomain } from '@/api/agentPersona';
+import { generateAgentSlug } from '@/api/agentPersona';
 import HeaderActions from '@/components/HeaderActions.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +27,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const isGeneratingSubdomain = ref(false);
+const isGeneratingSlug = ref(false);
 
 // 'saved' = use a reusable library prompt (prompt_id); 'custom' = write
 // instructions inline (system_instructions). The two are mutually exclusive.
@@ -36,7 +36,7 @@ const mode = ref<'saved' | 'custom'>(initialMode);
 
 const form = useForm({
     name: props.agent.name,
-    sub_domain: props.agent.sub_domain,
+    slug: props.agent.slug,
     prompt_id: props.agent.prompt_id ?? null,
     system_instructions: props.agent.system_instructions,
 });
@@ -51,7 +51,7 @@ const updateGeneralSettings = () => {
     // exclusivity (prompt_id and system_instructions can't both be present).
     form.transform((data) => ({
         name: data.name,
-        sub_domain: data.sub_domain,
+        slug: data.slug,
         ...(mode.value === 'saved' ? { prompt_id: data.prompt_id } : { system_instructions: data.system_instructions }),
     })).patch(updateAgent.url(props.agent.external_id), {
         preserveScroll: true,
@@ -61,13 +61,13 @@ const updateGeneralSettings = () => {
     });
 };
 
-const generateNewSubdomain = async () => {
-    isGeneratingSubdomain.value = true;
+const generateNewSlug = async () => {
+    isGeneratingSlug.value = true;
     try {
-        form.sub_domain = await generateRandomSubdomain();
+        form.slug = await generateAgentSlug();
     } finally {
         // Also on failure, so the button doesn't spin forever.
-        isGeneratingSubdomain.value = false;
+        isGeneratingSlug.value = false;
     }
 };
 
@@ -77,7 +77,7 @@ const hasUnsavedChanges = computed(() => {
         mode.value !== initialMode ||
         (mode.value === 'saved' ? form.prompt_id !== (props.agent.prompt_id ?? null) : form.system_instructions !== props.agent.system_instructions);
 
-    return form.name !== props.agent.name || form.sub_domain !== props.agent.sub_domain || promptChanged;
+    return form.name !== props.agent.name || form.slug !== props.agent.slug || promptChanged;
 });
 
 const hasFormErrors = computed(() => {
@@ -127,30 +127,30 @@ const hasFormErrors = computed(() => {
                                 </div>
 
                                 <div class="grid gap-2">
-                                    <Label for="domain" required>{{ t('agents.persona.domain_label') }}</Label>
-                                    <div class="flex items-center">
+                                    <Label for="slug" required>{{ t('agents.persona.slug_label') }}</Label>
+                                    <div class="flex items-center" dir="ltr">
+                                        <div
+                                            class="border-input bg-muted text-muted-foreground flex h-9 max-w-[60%] items-center truncate rounded-s-md border border-e-0 px-3 text-sm"
+                                        >
+                                            {{ $page.props.chatBaseUrl }}/
+                                        </div>
                                         <Input
-                                            id="domain"
-                                            v-model="form.sub_domain"
-                                            :error="form.errors.sub_domain"
-                                            class="disabled rounded-e-none"
+                                            id="slug"
+                                            v-model="form.slug"
+                                            :error="form.errors.slug"
+                                            class="min-w-0 rounded-s-none"
                                             placeholder=""
                                         />
-                                        <div
-                                            class="border-input bg-muted text-muted-foreground flex h-9 items-center rounded-e-md border border-s-0 px-3 text-sm"
-                                        >
-                                            .{{ $page.props.domain }}
-                                        </div>
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             class="ms-1 h-6 w-6 p-0"
                                             size="icon"
-                                            :aria-label="t('agents.persona.generate_subdomain')"
-                                            @click="generateNewSubdomain"
-                                            :disabled="isGeneratingSubdomain"
+                                            :aria-label="t('agents.persona.generate_slug')"
+                                            @click="generateNewSlug"
+                                            :disabled="isGeneratingSlug"
                                         >
-                                            <LoaderCircle v-if="isGeneratingSubdomain" class="h-3.5 w-3.5 animate-spin" />
+                                            <LoaderCircle v-if="isGeneratingSlug" class="h-3.5 w-3.5 animate-spin" />
                                             <svg
                                                 v-else
                                                 class="h-3.5 w-3.5"
@@ -166,8 +166,8 @@ const hasFormErrors = computed(() => {
                                             </svg>
                                         </Button>
                                     </div>
-                                    <p v-if="form.errors.sub_domain" class="text-destructive text-sm">
-                                        {{ form.errors.sub_domain }}
+                                    <p v-if="form.errors.slug" class="text-destructive text-sm">
+                                        {{ form.errors.slug }}
                                     </p>
                                 </div>
                             </div>

@@ -36,7 +36,7 @@ final class KnowledgeFileData extends Data
             agent: new AgentData(
                 id: $agent->id,
                 name: $agent->name,
-                sub_domain: $agent->sub_domain,
+                slug: $agent->slug,
                 url: $agent->url,
                 chat_url: $agent->chat_url,
             ),

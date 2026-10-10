@@ -21,8 +21,8 @@ use Throwable;
  * we read it back, look up the row, resolve the social user from the provider,
  * and hand off to the accept action — which checks expiry and deletes the
  * invitation in the same transaction that activates the chatter. Then we
- * redirect to the agent's subdomain with an `auth_token` (the bare callback
- * host can't share a session with the subdomain).
+ * redirect into the agent's hosted chat with an `auth_token` (the chat has its
+ * own session, separate from this callback's).
  */
 class AgentInvitationSocialCallbackController
 {

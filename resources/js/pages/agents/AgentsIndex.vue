@@ -56,9 +56,7 @@ const filteredAgents = computed(() => {
     if (!searchQuery.value) return agents.value;
 
     const query = searchQuery.value.toLowerCase();
-    return agents.value.filter(
-        (agent) => agent.name.toLowerCase().includes(query) || (agent.sub_domain && agent.sub_domain.toLowerCase().includes(query)),
-    );
+    return agents.value.filter((agent) => agent.name.toLowerCase().includes(query) || (agent.slug && agent.slug.toLowerCase().includes(query)));
 });
 
 const openAgent = (agent: Agent) => {

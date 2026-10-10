@@ -20,7 +20,7 @@ beforeEach(function (): void {
 });
 
 it('reattaches an authenticated chatter to their existing session for the agent', function (): void {
-    // ChatLogoutController invalidates the Laravel session, so cs:session is
+    // ChatLogoutController invalidates the chat session, so cs:session:* is
     // gone on the next login. Without this lookup the chatter
     // gets a fresh chat_sessions row every time and their prior
     // conversations stay orphaned under the old session id.
@@ -32,7 +32,8 @@ it('reattaches an authenticated chatter to their existing session for the agent'
         'user_id' => $chatter->id,
     ]);
 
-    Auth::guard('web')->login($chatter);
+    Auth::shouldUse('chat');
+    Auth::guard('chat')->login($chatter);
     Session::flush(); // post-logout Laravel session state
 
     $resolved = app(HostedChatSession::class)->findOrStart($agent);
@@ -42,10 +43,10 @@ it('reattaches an authenticated chatter to their existing session for the agent'
         ->toBe(1);
 });
 
-it('honours an in-memory cs:session marker on the same request', function (): void {
+it('honours an in-memory cs:session marker for the agent on the same request', function (): void {
     $agent = Agent::factory()->create();
     $session = ChatSession::create(['agent_id' => $agent->id]);
-    Session::put('cs:session', $session->external_id);
+    Session::put('cs:session:'.$agent->id, $session->external_id);
 
     // Plant under the same [workspace, agent, session] tag set the reader uses
     // (see ChatCache::sessionTags).
@@ -59,7 +60,8 @@ it('stamps user_id on a freshly minted session for an authenticated chatter', fu
     $agent = Agent::factory()->create();
     $chatter = User::factory()->chatter(User::factory()->workspace()->create())->create();
 
-    Auth::guard('web')->login($chatter);
+    Auth::shouldUse('chat');
+    Auth::guard('chat')->login($chatter);
 
     $resolved = app(HostedChatSession::class)->findOrStart($agent);
 
@@ -86,11 +88,24 @@ it('finds no session for a guest without starting one', function (): void {
 it('builds the memory scope with the signed-in viewer', function (): void {
     $agent = Agent::factory()->create();
     $chatter = User::factory()->chatter(User::factory()->workspace()->create())->create();
-    Auth::guard('web')->login($chatter);
+    Auth::shouldUse('chat');
+    Auth::guard('chat')->login($chatter);
 
     $scope = app(HostedChatSession::class)->scope($agent, 'conversation-1');
 
     expect($scope->viewerId)->toBe($chatter->id)
         ->and($scope->conversationId)->toBe('conversation-1')
-        ->and(Session::get('cs:session'))->toBe($scope->sessionId);
+        ->and(Session::get('cs:session:'.$agent->id))->toBe($scope->sessionId);
+});
+
+it('keeps a separate chat session per agent in one browser session', function (): void {
+    [$first, $second] = Agent::factory()->count(2)->create();
+
+    $chat = app(HostedChatSession::class);
+    $firstSession = $chat->findOrStart($first);
+    $secondSession = $chat->findOrStart($second);
+
+    expect($firstSession)->not->toBe($secondSession)
+        ->and(Session::get('cs:session:'.$first->id))->toBe($firstSession)
+        ->and(Session::get('cs:session:'.$second->id))->toBe($secondSession);
 });

@@ -57,7 +57,7 @@ class ContentSecurityPolicy
             'form-action '.$this->sources(["'self'"], [config('app.url')]),
         ];
 
-        // The hosted-chat surface (the agent subdomains — every route is named
+        // The hosted-chat surface (/chat/{agent} — every route is named
         // `chat.*`) is built to be embedded in third-party iframes. The auth
         // pages (login / magic-link) are the exception: a cross-origin-framable
         // login form is a clickjacking/UI-redress target, so those stay

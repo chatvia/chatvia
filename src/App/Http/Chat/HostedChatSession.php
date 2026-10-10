@@ -13,17 +13,19 @@ use Illuminate\Support\Facades\Session;
 
 /**
  * The hosted chat visitor's chat session, resolved for the current request.
- * The session id is remembered in the browser's Laravel session; a signed-in
- * user whose browser session was reset (signing out clears it) is reattached
- * to their latest session with the agent instead of getting a new one.
+ * The session id is remembered in the browser's chat session, one per agent
+ * (one chat session cookie serves every agent); a signed-in user whose browser
+ * session was reset (signing out clears it) is reattached to their latest
+ * session with the agent instead of getting a new one.
  *
  * This is the HTTP side of the domain's visitor sessions: it reads the browser
- * session and the web guard, and hands the domain plain ids
+ * session and the chat guard, and hands the domain plain ids
  * ({@see ChatScopeData}).
  */
 final readonly class HostedChatSession
 {
-    private const string SESSION_KEY = 'cs:session';
+    /** Session key prefix; the agent id follows. */
+    private const string SESSION_KEY = 'cs:session:';
 
     public function __construct(
         private ChatSessions $sessions,
@@ -35,7 +37,7 @@ final readonly class HostedChatSession
     {
         $sessionId = $this->find($agent) ?? $this->startSession->execute($agent, $this->viewerId());
 
-        Session::put(self::SESSION_KEY, $sessionId);
+        Session::put(self::SESSION_KEY.$agent->id, $sessionId);
 
         return $sessionId;
     }
@@ -46,7 +48,7 @@ final readonly class HostedChatSession
      */
     public function find(Agent $agent): ?string
     {
-        $remembered = Session::get(self::SESSION_KEY);
+        $remembered = Session::get(self::SESSION_KEY.$agent->id);
 
         if (is_string($remembered) && $this->sessions->isLive($agent, $remembered)) {
             return $remembered;
@@ -66,10 +68,10 @@ final readonly class HostedChatSession
         return new ChatScopeData($agent, $this->findOrStart($agent), $conversationId, $this->viewerId());
     }
 
-    /** The signed-in web user (any type), or null for a guest. */
+    /** The user signed in to the chat (any type), or null for a guest. */
     public function viewerId(): ?int
     {
-        $id = Auth::guard('web')->id();
+        $id = Auth::guard()->id();
 
         return $id !== null ? (int) $id : null;
     }

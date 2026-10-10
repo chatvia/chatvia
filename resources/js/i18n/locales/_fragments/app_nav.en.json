@@ -73,9 +73,9 @@
                 "description": "Enter a new name for your agent {name}.",
                 "name_label": "Agent name",
                 "name_placeholder": "Enter new agent name",
-                "subdomain_label": "Subdomain",
-                "subdomain_placeholder": "your-subdomain",
-                "subdomain_hint": "Only lowercase letters, numbers, and hyphens allowed.",
+                "slug_label": "Chat address",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Only lowercase letters, numbers, and hyphens allowed.",
                 "save": "Save",
                 "updated_toast": "Agent updated successfully"
             },

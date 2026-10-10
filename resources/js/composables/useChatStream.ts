@@ -1,5 +1,6 @@
 import { i18n } from '@/i18n';
 import type { StreamCallbacks, StreamDoneData, StreamEnvelope, StreamError, StreamErrorCode, StreamState } from '@/types/stream';
+import { csrfHeaders } from '@/utils/csrf';
 import { ref } from 'vue';
 
 /**
@@ -53,16 +54,6 @@ export function useChatStream(options: UseChatStreamOptions = {}) {
 
     let abortController: AbortController | null = null;
     let generation = 0;
-
-    /**
-     * CSRF header for the raw fetch() below. axios and the Inertia router read
-     * the XSRF-TOKEN cookie and send it back as X-XSRF-TOKEN on their own;
-     * fetch() does not, so do the same here.
-     */
-    function csrfHeaders(): Record<string, string> {
-        const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
-        return match ? { 'X-XSRF-TOKEN': decodeURIComponent(match[1]) } : {};
-    }
 
     function synthesizeError(code: StreamErrorCode, message: string, retryable: boolean): StreamError {
         return { code, message, retryable };

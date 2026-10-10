@@ -5,6 +5,7 @@ namespace Domain\Integration\Mcp\Services\Routing;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -24,14 +25,12 @@ use Throwable;
  */
 class BuiltinToolRouter
 {
-    /** vchordrq + BM25 indexes were built against this dim (Qwen3-Embedding). */
-    private const int EMBEDDING_DIMS = 1024;
-
     /** RRF constant — the Cormack et al. default, as in ToolHybridSearch. */
     private const int RRF_K = 60;
 
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingStorage $storage,
     ) {}
 
     /**
@@ -125,7 +124,8 @@ SQL;
 
         $vectorString = '['.implode(',', $vector).']';
         $candidate = max($limit * 3, $limit);
-        $dims = self::EMBEDDING_DIMS;
+        // The query vector takes the stored embeddings' type and size.
+        $cast = $this->storage->columnType();
         $rrfK = self::RRF_K;
 
         $sql = <<<SQL
@@ -138,9 +138,9 @@ WITH scoped AS (
       AND mst.permission != 'blocked'
 ),
 vec AS (
-    SELECT id, ROW_NUMBER() OVER (ORDER BY embedding <-> ?::vector({$dims})) AS rank
+    SELECT id, ROW_NUMBER() OVER (ORDER BY embedding <-> ?::{$cast}) AS rank
     FROM scoped WHERE embedding IS NOT NULL
-    ORDER BY embedding <-> ?::vector({$dims})
+    ORDER BY embedding <-> ?::{$cast}
     LIMIT ?
 ),
 bm25 AS (

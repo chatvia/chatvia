@@ -56,7 +56,7 @@ class DeleteAttachmentRequest extends FormRequest
         // Mirrors EnsureChatIsAccessible's protected-agent gate: an
         // authenticated chatter on a private agent must own the
         // conversation that holds this attachment.
-        if ($agent->is_public === false && Auth::guard('web')->check()) {
+        if ($agent->is_public === false && Auth::guard()->check()) {
             return ChatCache::isOwnedBy($conversation->external_id, Auth::id(), $agent->workspaceExternalId());
         }
 

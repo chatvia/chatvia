@@ -57,7 +57,7 @@ command bar, messaging apps and a REST API.
 | `resources/views/` | Blade views: e-mails, PDF exports, the app shell. |
 | `resources/types/generated.d.ts` | TypeScript types generated from PHP classes. |
 | `lang/` | Server-side translations (e-mails, flash messages, validation). |
-| `widget/` | The embeddable chat widget, a separate JavaScript package. |
+| `shakomako/` | Shakomako, the embeddable chat widget: a separate JavaScript package, built into `public/shakomako`. |
 | `docs/` | The user documentation (VitePress). |
 | `tests/` | Pest tests: `Unit`, `Feature`, `Architecture`, `Eval`. |
 
@@ -169,16 +169,28 @@ tokens.
 | `Resources/` | Response DTOs for the REST API (`Api/V1/...Data`) and handoff endpoints. |
 | `Responses/SseResponder.php` | The one place that owns the SSE transport: headers, flushing, sequence numbers, client disconnects. The domain only yields `StreamEvent` objects. |
 | `Rules/` | Validation rules that need the request or app state (PDF page limits, attachment limits, "an LLM that reads PDFs is set up"). |
-| `Chat/` | Request-scoped resolvers for the hosted chat: `#[HostedChatAgent]` (the agent a request is for), `HostedChatSession` (the visitor's chat session, kept in the browser session), `HostedChatPageProps`. |
+| `Chat/` | Request-scoped resolvers for the hosted chat: `#[HostedChatAgent]` (the agent a request is for, from the `/chat/{agentSlug}` path), `HostedChatSession` (the visitor's chat session, kept in the browser session), `HostedChatPageProps`. |
 | `Widget/` | `#[WidgetAgent]`: the agent a widget API call is for, from the `X-AGENT-ID` header. |
 | `Auth/` | Sign-in helpers outside Fortify's pipeline (magic links, social sign-in, two-factor-aware sign-in). |
-| `Macros/` | Request macros: subdomain, registrable domain, `country()`, the agent slug. |
+| `Macros/` | Request macros: `country()`. |
 
 `#[HostedChatAgent] Agent $agent` and `#[WidgetAgent] Agent $agent` are
 contextual attributes. Put one on a controller or form request parameter to
 receive the agent. The lookup runs once per request and is shared by the
 middleware, the form request and the controller. Middleware calls
 `HostedChatAgent::from($request)` or `WidgetAgent::from($request)`.
+
+The hosted chat lives at `/chat/{agentSlug}` (the agent's slug, or its
+external id for the permanent and embed addresses). `ResolveHostedChatAgent`
+(alias `chat.agent`) finds the agent first, fills `agentSlug` into
+`URL::defaults()` and drops it from the route parameters, so controllers keep
+their positional `{conversationId}`. The chat runs on its own session and sign-in:
+`UseHostedChatSession` (global middleware) gives `/chat/*` requests their own
+cookie (`session.chat`, path `/chat`) and the `chat` guard. Chat code uses the
+default guard, never `guard('web')`. Sign-ins that happen outside `/chat`
+(magic links with two-factor, invitations, dashboard previews) reach the chat
+with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokenService`). An
+agent's custom domain redirects to its chat (`RedirectCustomDomainToChat`).
 
 ### `App\Mcp`: built-in MCP servers
 
@@ -229,12 +241,12 @@ next to it.
 
 The `Agent` model and everything about configuring one: settings
 (`ModelSetting`), conversation starters, the agent-to-source pivot
-(`AgentSource`), appearance texts and their translations, URLs and subdomains,
+(`AgentSource`), appearance texts and their translations, URLs and chat slugs,
 visibility. `Agent\Prompt` is the prompt library (`AgentPrompt`), reusable
 prompts a workspace attaches to many agents.
 
 Main parts: `Actions/{Account,Analytics,ChatLog,Settings,Sources}`, `Prompt`,
-`Services` (`AgentUrlBuilder`, `SubdomainGenerator`, `AppearanceTextResolver`),
+`Services` (`AgentUrlBuilder`, `AgentSlugGenerator`, `AppearanceTextResolver`),
 `ValueObjects/TranslatableText`.
 
 ### Conversation
@@ -776,19 +788,32 @@ responses with these types or a small local interface; do not use `any`.
 
 ## 10. The widget package
 
-`widget/` is the embeddable chat widget (chat bubble and command bar) that
-customers put on their own sites with one `<script>` tag. It is a separate
-vanilla JavaScript package with its own `package.json`, ESLint config, Vitest
-tests and Rollup build, and its own CI workflow (`.github/workflows/widget.yml`).
+`shakomako/` is Shakomako, the embeddable chat widget (chat bubble and command
+bar) that customers put on their own sites with one `<script>` tag. It is a
+separate vanilla JavaScript package with its own `package.json`, ESLint config,
+Vitest tests and Rollup build, and its own CI workflow
+(`.github/workflows/shakomako.yml`). It imports nothing from the app, so the
+folder also works on its own.
 
 - It talks to the `/widget/*` API (`routes/widget.php`) and streams answers
   over SSE. It sends the ids in the headers named in `Domain\Widget\WidgetHeaders`;
   those names are a contract on both sides.
 - The in-app chat (`resources/js`) serves the dashboard, the hosted chat page
   and the playground. The widget does not share code with it.
-- The app points to the built `embed.js` with `WIDGET_SCRIPT_URL`.
+- `npm run shakomako:build` builds it into `public/shakomako` (the Docker
+  image and `deploy.php` run it). The build has no server settings: the widget
+  takes its API from the address its `embed.js` loads from (`/widget` on the
+  same server), and the WebSocket (Reverb) settings from the widget settings
+  response (`chatvia.widget.reverb`).
+- The app points to `embed.js` with `chatvia.widget.script_url_embed`: the copy
+  in `public/shakomako`, unless `WIDGET_SCRIPT_URL` names another one.
+- `.github/workflows/shakomako-mirror.yml` publishes the folder, with only its
+  own history, to a separate read-only repository (every push to `main` and
+  every `v*` tag). The copy closes pull requests with a pointer back here
+  (`shakomako/.github/workflows/close-pull-request.yml`). This repository stays
+  the only place to change the widget.
 
-See [widget/README.md](widget/README.md) for building and embed options.
+See [shakomako/README.md](shakomako/README.md) for building and embed options.
 
 ---
 

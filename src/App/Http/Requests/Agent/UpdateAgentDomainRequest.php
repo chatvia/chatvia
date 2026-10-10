@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Requests\Agent;
 
 use Domain\Agent\Data\Settings\UpdateAgentDomainData;
+use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
  * Validates the custom domain of an agent's Hosted Chat. The value must be a
- * bare hostname (no scheme or path) and must not be the platform's own host; an
- * empty value clears the domain. Agent access and the `agent.setup` permission
- * are checked by the route middleware.
+ * bare hostname (no scheme or path), must not be the platform's own host, and
+ * must not belong to another agent; an empty value clears the domain. Agent
+ * access and the `agent.setup` permission are checked by the route
+ * middleware.
  */
 class UpdateAgentDomainRequest extends FormRequest
 {
@@ -28,6 +30,9 @@ class UpdateAgentDomainRequest extends FormRequest
     {
         $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
 
+        /** @var Agent $agent */
+        $agent = $this->route('agent');
+
         return [
             'domain' => [
                 'nullable',
@@ -40,6 +45,8 @@ class UpdateAgentDomainRequest extends FormRequest
                 // own host (APP_URL's host): it must never resolve to a
                 // workspace-controlled record.
                 Rule::notIn([$appHost]),
+                // A custom domain shows one agent's chat.
+                Rule::unique('agents', 'domain')->ignore($agent->id),
             ],
         ];
     }

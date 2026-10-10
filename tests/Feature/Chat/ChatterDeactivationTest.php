@@ -20,36 +20,36 @@ beforeEach(function (): void {
         'team_id' => $this->owner->primaryTeam()->id,
         'name' => 'Private Agent',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => false,
     ]);
 
     // Provisions the chatter + the agent_user grant so the sign-in token resolves.
     $this->chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
-    $this->host = $this->agent->sub_domain.'.chatvia.test';
+    $this->chat = '/chat/'.$this->agent->slug;
 });
 
 function signIn(): void
 {
     $token = app(AgentSignInTokenService::class)->issue(test()->chatter, test()->agent)['token'];
 
-    test()->get('https://'.test()->host.'/chat?token='.$token)
-        ->assertRedirect('https://'.test()->host.'/chat');
+    test()->get(test()->chat.'?token='.$token)
+        ->assertRedirect(test()->chat);
 }
 
 it('keeps an active chatter signed in across chat requests', function (): void {
     signIn();
-    expect(Auth::guard('web')->id())->toBe($this->chatter->id);
+    expect(Auth::guard('chat')->id())->toBe($this->chatter->id);
 
     // A follow-up chat request is NOT bounced to the login page.
-    $response = $this->get('https://'.$this->host.'/chat');
+    $response = $this->get($this->chat);
     $location = $response->isRedirect() ? (string) $response->headers->get('Location') : '';
-    expect($location)->not->toContain('/chat/login');
+    expect($location)->not->toContain('/login');
 });
 
 it('signs a deactivated chatter out of the hosted chat mid-session', function (): void {
     signIn();
-    expect(Auth::guard('web')->id())->toBe($this->chatter->id);
+    expect(Auth::guard('chat')->id())->toBe($this->chatter->id);
 
     // Admin deactivates the chatter while their session is live.
     app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
@@ -61,10 +61,10 @@ it('signs a deactivated chatter out of the hosted chat mid-session', function ()
 
     // The very next chat request must bounce them to login (login-time gates
     // can't catch an already-open session — this is the per-request re-check).
-    $this->get('https://'.$this->host.'/chat')
-        ->assertRedirectContains('/chat/login');
+    $this->get($this->chat)
+        ->assertRedirectContains($this->chat.'/login');
 
-    expect(Auth::guard('web')->check())->toBeFalse();
+    expect(Auth::guard('chat')->check())->toBeFalse();
 });
 
 it('blocks a reactivated-then-deactivated chatter again', function (): void {
@@ -72,12 +72,12 @@ it('blocks a reactivated-then-deactivated chatter again', function (): void {
 
     app(DeactivateAccountAction::class)->execute($this->chatter, 'temporary');
     Auth::forgetGuards();
-    $this->get('https://'.$this->host.'/chat')->assertRedirectContains('/chat/login');
+    $this->get($this->chat)->assertRedirectContains($this->chat.'/login');
 
     // Reactivate + sign in again → allowed.
     app(ReactivateAccountAction::class)->execute($this->chatter);
     signIn();
-    expect(Auth::guard('web')->id())->toBe($this->chatter->id);
+    expect(Auth::guard('chat')->id())->toBe($this->chatter->id);
 });
 
 it('tells a signed-out deactivated chatter why they were signed out', function (): void {
@@ -85,7 +85,7 @@ it('tells a signed-out deactivated chatter why they were signed out', function (
     app(DeactivateAccountAction::class)->execute($this->chatter, 'blocked by admin');
     Auth::forgetGuards();
 
-    $this->get('https://'.$this->host.'/chat')
-        ->assertRedirectContains('/chat/login')
+    $this->get($this->chat)
+        ->assertRedirectContains($this->chat.'/login')
         ->assertSessionHas('error', 'Your account has been deactivated.');
 });

@@ -81,7 +81,7 @@ export interface ChatterAgent {
     id: number;
     external_id: string;
     name: string;
-    sub_domain: string;
+    slug: string;
 }
 
 /** A conversation starter as stored on the agent (resolved per locale on the client). */

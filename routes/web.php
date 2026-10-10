@@ -16,78 +16,26 @@ use App\Http\Controllers\Auth\Social\Slack\SlackCallbackController;
 use App\Http\Controllers\Billing\Trials\TrialCheckoutController;
 use App\Http\Controllers\Billing\Trials\TrialSuccessController;
 use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
-use App\Http\Controllers\Landing\AppHomeController;
-use App\Http\Controllers\Landing\Blog\BlogController;
-use App\Http\Controllers\Landing\Blog\ChangelogController;
-use App\Http\Controllers\Landing\Blog\PostController;
-use App\Http\Controllers\Landing\FreeTools\ChatPdfController;
-use App\Http\Controllers\Landing\HomeController;
-use App\Http\Controllers\Landing\Legal\DpaController;
-use App\Http\Controllers\Landing\Legal\PrivacyController;
-use App\Http\Controllers\Landing\Legal\RefundController;
-use App\Http\Controllers\Landing\Legal\SecurityController;
-use App\Http\Controllers\Landing\Legal\SubprocessorsController;
-use App\Http\Controllers\Landing\Legal\TermsController;
-use App\Http\Controllers\Landing\Marketing\ContactController;
-use App\Http\Controllers\Landing\Marketing\MissionController;
-use App\Http\Controllers\Landing\Marketing\PricingController;
 use App\Http\Middleware\Access\EnsureBillingIsEnabled;
-use App\Http\Middleware\Web\ResolveLandingLocale;
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
-// The public marketing site (landing, pricing, mission, security, legal, blog,
-// contact) is optional: a self-hosted install turns it off with
-// MARKETING_SITE_ENABLED=false. Its routes are then not registered at all, and
-// `/` (still named `home`, which the app redirects to) sends visitors to the app.
-$marketingSite = (bool) config('chatvia.brand.marketing_site');
-
-if (! $marketingSite) {
-    Route::group([
-        'prefix' => LaravelLocalization::setLocale(),
-    ], function (): void {
-        Route::get('/', AppHomeController::class)->name('home');
-    });
-}
-
-// Public marketing + legal pages, served under an explicit locale segment
-// (e.g. `/en`, `/ar`). `localeSessionRedirect` forwards a visitor to a remembered/
-// preferred locale; `localizationRedirect` redirects an un-prefixed URL like `/`
-// to `/en`. OAuth callbacks, every POST endpoint, and the trial/Stripe flow stay
-// OUTSIDE this group — their URLs must not be locale-prefixed or redirected.
+// `/` has no landing page: guests go to the login form, signed-in users to
+// their dashboard. Registered under the locale prefix like the dashboard, so
+// `/en` resolves too.
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
-    'middleware' => [ResolveLandingLocale::class, 'localeSessionRedirect', 'localizationRedirect'],
-], function () use ($marketingSite): void {
-    if (! $marketingSite) {
-        return;
-    }
-
+], function (): void {
     Route::get('/', HomeController::class)->name('home');
-    Route::get('/pricing', PricingController::class)->name('pricing');
-    Route::get('/mission', MissionController::class)->name('mission');
-    Route::get('/security', SecurityController::class)->name('security');
-
-    Route::get('/privacy-policy', PrivacyController::class)->name('privacy');
-    Route::get('/terms-of-service', TermsController::class)->name('terms');
-    Route::get('/refund', RefundController::class)->name('refund');
-    Route::get('/legal/dpa', [DpaController::class, 'show'])->name('dpa');
-    Route::get('/legal/subprocessors', SubprocessorsController::class)->name('subprocessors');
-    Route::get('/changelog', ChangelogController::class)->name('changelog');
-    Route::get('/blog', BlogController::class)->name('blog');
-    Route::get('/blog/{post:slug}', PostController::class)->name('blog.post');
-
-    Route::get('contact', [ContactController::class, 'show'])->name('contact');
-    Route::get('free-tools/chat-with-pdf', ChatPdfController::class)->name('free-tools.chat-with-pdf');
 });
 
 // Authenticated dashboard, served under the same `/{locale}` prefix so every app
-// URL is locale-explicit. Only `localeSessionRedirect` (forwards an un-prefixed
-// `/dashboard` to `/en/dashboard`) — NOT `ResolveLandingLocale`, which would
-// persist the URL locale onto the account on every request. The rendered language
-// still follows the signed-in user's saved `users.locale`. Each required file
-// keeps its own auth/permission middleware.
+// URL is locale-explicit. `localeSessionRedirect` forwards an un-prefixed
+// `/dashboard` to `/en/dashboard`. The rendered language still follows the
+// signed-in user's saved `users.locale`. Each required file keeps its own
+// auth/permission middleware.
 Route::group([
     'prefix' => LaravelLocalization::setLocale(),
     'middleware' => ['localeSessionRedirect'],
@@ -98,20 +46,6 @@ Route::group([
     require __DIR__.'/agents.php';
     require __DIR__.'/billing.php';
 });
-
-if ($marketingSite) {
-    // Each download starts a headless browser, so cap it per visitor. The named
-    // prefix keeps this counter separate from other plain `throttle:` routes.
-    Route::get('/legal/dpa/download', [DpaController::class, 'download'])
-        ->middleware('throttle:10,1,dpa-download')
-        ->name('dpa.download');
-
-    // Contact form submission posts to the non-localized action URL (a localized POST
-    // would be redirected to a GET by the locale middleware).
-    Route::post('contact', [ContactController::class, 'submit'])
-        ->middleware('throttle:5,1,contact')
-        ->name('contact.submit');
-}
 
 // Social OAuth routes. Starts get a tighter cap (cheap redirect, only abused
 // for traffic generation); callbacks get a higher cap (legit users can land

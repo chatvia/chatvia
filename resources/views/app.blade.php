@@ -42,7 +42,7 @@
              visitor's IP address. Arabic / Farsi text uses the system font. --}}
         <link href="{{ asset('fonts/inter/inter.css') }}" rel="stylesheet">
 
-        @include('partials.cover')
+        @include('partials.meta')
 
         @routes
 

@@ -326,5 +326,6 @@
     "This form is for chat members only. Team members can open this chat from the dashboard.": "Tämä lomake on vain keskustelun jäsenille. Tiimin jäsenet voivat avata tämän keskustelun hallintapaneelista.",
     "Warm regards, :name — Founder of :brand": "Lämpimin terveisin :name — palvelun :brand perustaja",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "Vain tiedoston, jota myös muut agentit käyttävät, voi irrottaa. Poista tiedosto sen sijaan.",
-    "Your subscription has expired. Renew it to run the suite.": "Tilauksesi on päättynyt. Uusi se ajaaksesi sarjan."
+    "Your subscription has expired. Renew it to run the suite.": "Tilauksesi on päättynyt. Uusi se ajaaksesi sarjan.",
+    "Your payment is being processed. We will e-mail you when your account is ready; then sign in here.": "Maksuasi käsitellään. Lähetämme sinulle sähköpostia, kun tilisi on valmis; kirjaudu sen jälkeen sisään täällä."
 }

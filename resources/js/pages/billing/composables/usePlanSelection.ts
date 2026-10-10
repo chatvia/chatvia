@@ -121,12 +121,10 @@ export function usePlanSelection(options: PlanSelectionOptions) {
     };
 
     const handlePackageSelection = (packageId: string): void => {
-        // Contact-sales packages aren't self-serve: go to the contact page (or
-        // the brand's website when the marketing site is off).
+        // Contact-sales packages aren't self-serve: go to the brand's website.
         if (findPackage(packageId)?.contact_sales) {
-            const contactUrl = route().has('contact') ? route('contact') : brand.value.website_url;
-            if (contactUrl) {
-                window.location.href = contactUrl;
+            if (brand.value.website_url) {
+                window.location.href = brand.value.website_url;
             }
             return;
         }

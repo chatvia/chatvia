@@ -30,7 +30,6 @@ export function useBrand(): { brand: ComputedRef<Brand> } {
                 url: urlOrNull(shared?.powered_by?.url),
             },
             onboarding_video_url: urlOrNull(shared?.onboarding_video_url),
-            marketing_site: shared?.marketing_site !== false,
         };
     });
 

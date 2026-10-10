@@ -29,8 +29,6 @@ return [
     | - website_url / docs_url / api_docs_url: links shown in the app.
     | - powered_by: the "Powered by …" credit under hosted chats and widgets.
     | - onboarding_video_url: optional video on the first-run welcome screen.
-    | - marketing_site: serve the public landing, pricing and legal pages.
-    |   Turn it off for a self-hosted install; `/` then goes to the app.
     |
     */
 
@@ -45,9 +43,6 @@ return [
             'url' => env('BRAND_POWERED_BY_URL'),
         ],
         'onboarding_video_url' => env('BRAND_ONBOARDING_VIDEO_URL'),
-        // Optional social handle (e.g. "@acme") for the twitter:site meta tag.
-        'twitter_handle' => env('BRAND_TWITTER_HANDLE'),
-        'marketing_site' => (bool) env('MARKETING_SITE_ENABLED', true),
     ],
 
     /*
@@ -70,25 +65,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Company
-    |--------------------------------------------------------------------------
-    |
-    | The legal entity that runs this install. The public legal pages, the DPA
-    | and the footer show these details. Leave a value empty to hide the line
-    | that uses it. Separate address lines with "\n" (in a double-quoted .env
-    | value), e.g. COMPANY_ADDRESS="Main Street 1\n1000 Copenhagen, Denmark".
-    |
-    */
-
-    'company' => [
-        'name' => env('COMPANY_NAME'),
-        'address' => env('COMPANY_ADDRESS'),
-        'email' => env('COMPANY_EMAIL'),
-        'vat_id' => env('COMPANY_VAT_ID'),
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | Demo seed
     |--------------------------------------------------------------------------
     |
@@ -101,18 +77,6 @@ return [
         'admin_email' => env('SEED_ADMIN_EMAIL', 'admin@example.com'),
         'admin_password' => env('SEED_ADMIN_PASSWORD', 'password'),
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Contact form
-    |--------------------------------------------------------------------------
-    |
-    | The inbox that receives messages from the public contact form. Leave it
-    | empty to turn the form off: the page then shows a short notice instead.
-    |
-    */
-
-    'contact_email' => env('CONTACT_EMAIL'),
 
     /*
     |--------------------------------------------------------------------------
@@ -682,14 +646,13 @@ return [
     | Widget (embeddable chat)
     |--------------------------------------------------------------------------
     |
-    | The embed script URL, the demo widget id, and the language picker — which
+    | The embed script URL and the language picker — which
     | reads the shared `chatvia.languages` list above (no duplicate copy).
     |
     */
 
     'widget' => [
         'script_url_embed' => env('WIDGET_SCRIPT_URL', 'http://localhost:3000/dist/embed.js'),
-        'chatvia_widget_id' => env('CHATVIA_WIDGET_ID'),
 
         // Hosts every agent's widget may load on, on top of each agent's own
         // allowed sites. Always this install's own host (from APP_URL), where

@@ -38,7 +38,6 @@ export interface Brand {
         url: string | null;
     };
     onboarding_video_url: string | null;
-    marketing_site: boolean;
 }
 
 export interface SharedData extends PageProps {

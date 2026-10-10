@@ -173,12 +173,11 @@ other connector (`config/connectors.php`).
 - After you add or change a built-in tool, run `php artisan app:sync-builtin-mcp`.
   It writes the tools into the shared catalog and embeds them for tool search.
 
-### `App\Marketing`
+### No public website
 
-The public website: blog posts, changelog, the contact form, the company
-details on legal pages (`CompanyDetails`). It is framework-coupled glue for
-Blade pages, so it lives in App, like Identity. `MARKETING_SITE_ENABLED=false`
-turns the public pages off; `/` then opens the app.
+Chatvia has no landing, pricing, blog or legal pages. `/` (route `home`,
+`HomeController`) sends guests to the login form and signed-in users to their
+dashboard. Link your own website with `BRAND_WEBSITE_URL`.
 
 ### Other App folders
 
@@ -658,8 +657,7 @@ Switches for a self-hosted install:
 |---|---|
 | `BILLING_ENABLED=false` | No Stripe: every feature on, no quotas, billing pages answer 404. |
 | `REGISTRATION_ENABLED` | Opens `/register`. On by default when billing is off. |
-| `MARKETING_SITE_ENABLED=false` | No public landing, pricing or legal pages; `/` opens the app. |
-| `BRAND_*`, `COMPANY_*` | Product name, links, "Powered by" line, and the operator's company details. |
+| `BRAND_*` | Product name, links and the "Powered by" line. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: `docs/guide/self-hosting/`.
@@ -708,8 +706,7 @@ responses with these types or a small local interface; do not use `any`.
 - vue-i18n treats `@ { } $ |` as special. Write a literal `@` as `{'@'}`.
   A plural message has exactly two forms (`one | many`).
 - Server-side text (e-mails, flash messages, validation) uses Laravel's
-  `__('English text')` with `lang/*.json`. The public site uses
-  `lang/{locale}/landing.php`. These are separate from vue-i18n.
+  `__('English text')` with `lang/*.json`. This is separate from vue-i18n.
 
 ### Other frontend rules
 

@@ -4,16 +4,11 @@ declare(strict_types=1);
 
 return [
 
-    // Languages the public site is served in — kept in lock-step with the dashboard
-    // switcher (resources/js/i18n `LOCALES`). `en` is the default (config/app.php);
-    // `ar` and `fa` are right-to-left. `flag` is the SVG basename under
-    // public/images/flags/ used by the header language dropdown. Only locales with
-    // a `lang/{code}/landing.php` file are actually translated — the rest resolve
-    // and fall back to English (fallback_locale) until translations land.
+    // The locale segments the app's URLs accept (`/en/dashboard`, `/de/…`). `en`
+    // is the default (config/app.php); `ar` and `fa` are right-to-left. `flag` is
+    // the SVG basename under public/images/flags/. The language the dashboard is
+    // shown in follows the user's saved `users.locale`, not this list.
     'supportedLocales' => [
-        // Kept in lock-step with the dashboard switcher (resources/js/i18n `LOCALES`).
-        // Every row here has a lang/{code}/landing.php file; `ar` and `fa` are
-        // right-to-left. Remove a row to hide a language on the public site.
         'en' => ['name' => 'English',    'script' => 'Latn', 'native' => 'English',  'regional' => 'en_GB', 'flag' => 'gb'],
         'de' => ['name' => 'German',     'script' => 'Latn', 'native' => 'Deutsch',  'regional' => 'de_DE', 'flag' => 'de'],
         'fr' => ['name' => 'French',     'script' => 'Latn', 'native' => 'Français', 'regional' => 'fr_FR', 'flag' => 'fr'],
@@ -28,22 +23,16 @@ return [
         'fa' => ['name' => 'Persian',    'script' => 'Arab', 'native' => 'فارسی',    'regional' => 'fa_IR', 'flag' => 'ir'],
     ],
 
-    // Browser auto-detection stays OFF (locale is resolved in
-    // App\Http\Middleware\Web\ResolveLandingLocale, not the package). Guests land on the
-    // English default and pick German or French from the switcher; letting the package
-    // auto-detect would send a browser to a locale before the visitor chooses and set a
-    // sticky session that fights the switcher.
+    // Browser auto-detection stays OFF: guests land on the English default and
+    // pick a language themselves; auto-detection would set a sticky session that
+    // fights the user's saved preference.
     'useAcceptLanguageHeader' => false,
 
-    // Every locale — including the default `en` — has a URL segment: the English
-    // site is served under `/en` (e.g. `/en/pricing`), German under `/de`, and so
-    // on. Combined with the `localizationRedirect` middleware, an un-prefixed URL
-    // like `/` redirects to `/en`, so there is one canonical, locale-explicit URL
-    // per page (no SEO duplicate content).
+    // Every locale — including the default `en` — has a URL segment: the
+    // dashboard is served under `/en/dashboard`, `/de/dashboard`, and so on.
     'hideDefaultLocaleInURL' => false,
 
-    // Order shown in the language dropdown — mirrors the dashboard switcher
-    // (resources/js/i18n `LOCALES`): EU majors, EU/EEA Nordic + Polish, then RTL.
+    // EU majors, EU/EEA Nordic + Polish, then RTL.
     'localesOrder' => ['en', 'de', 'fr', 'es', 'pt', 'pl', 'da', 'sv', 'fi', 'no', 'ar', 'fa'],
 
     'localesMapping' => [],

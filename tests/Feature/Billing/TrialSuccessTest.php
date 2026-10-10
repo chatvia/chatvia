@@ -133,12 +133,12 @@ it('refuses a checkout that is not complete or is too old', function (array $ove
     'two days old' => [['created' => now()->subDays(2)->getTimestamp()]],
 ]);
 
-it('shows the processing page while the webhook has not provisioned the user yet', function (): void {
+it('sends the customer to the login page while the webhook has not provisioned the user yet', function (): void {
     fakeStripeCheckoutSession('cs_test_pending', 'cus_not_provisioned_yet');
 
     $this->get(route('trial.success', ['session_id' => 'cs_test_pending']))
-        ->assertOk()
-        ->assertViewIs('landing.payment-success');
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'Your payment is being processed. We will e-mail you when your account is ready; then sign in here.');
 
     $this->assertGuest();
 });

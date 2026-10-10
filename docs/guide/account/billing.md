@@ -27,7 +27,7 @@ Chatvia plans bundle, at the workspace level:
 - A cap on chatters (end-users with access to /chat).
 - Access to specific model tiers.
 
-Compare tiers on the [pricing page](https://chatvia.ai/pricing) on the marketing site.
+Compare the plans in the dashboard under **Billing → Plans**.
 
 ## Trial
 

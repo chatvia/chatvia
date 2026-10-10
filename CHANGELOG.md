@@ -33,14 +33,16 @@ theme.
   issue templates and a pull request template.
 - New `ARCHITECTURE.md`: how the code is organised, the conventions and the
   glossary. The README was rewritten for new contributors and self-hosters.
-- The product name, links and the operator's company details come from
-  configuration (`BRAND_*`, `COMPANY_*`). There are no hard-coded links,
-  personal e-mail addresses or vendor account ids any more.
+- The product name and links come from configuration (`BRAND_*`). There
+  are no hard-coded links, personal e-mail addresses or vendor account ids
+  any more.
 - Fonts are served by the app itself. Page-view analytics (Plausible) only
   load when `PLAUSIBLE_DOMAIN` is set.
 - Seeders and factories no longer depend on a personal account, and demo data
   is never created in production.
-- The site footer says that Chatvia is open source under the MIT License.
+- The public website (landing, pricing, blog, changelog, contact, legal and
+  DPA pages) was removed. `/` opens the login page, or the dashboard when
+  signed in.
 
 ### Self-hosting
 
@@ -48,7 +50,7 @@ theme.
   every feature, there are no quotas, and the billing pages are off. Plan
   features moved to `config/billing.php`.
 - `REGISTRATION_ENABLED` opens normal sign-up (on by default when billing is
-  off). `MARKETING_SITE_ENABLED=false` turns the public website off.
+  off).
 - AI services sit behind contracts with `auto` drivers: document reading
   (Mistral or local `pdftotext` + LibreOffice), text splitting (chunk.fit or
   local), reranking, speech to text and whole-PDF reading. Each one uses the

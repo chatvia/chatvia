@@ -45,8 +45,10 @@ class TrialSuccessController
 
         $user = $result->user;
 
+        // Stripe's webhook has not created the account yet: the customer gets
+        // an e-mail once it has, and signs in from the login page.
         if (! $user instanceof User) {
-            return view('landing.payment-success');
+            return to_route('login')->with('status', __('Your payment is being processed. We will e-mail you when your account is ready; then sign in here.'));
         }
 
         $next = $passwordSetup->isRequired($user) ? route('password.setup') : route('billing.success');

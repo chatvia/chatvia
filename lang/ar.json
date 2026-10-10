@@ -326,5 +326,6 @@
     "This form is for chat members only. Team members can open this chat from the dashboard.": "هذا النموذج مخصص لأعضاء الدردشة فقط. يمكن لأعضاء الفريق فتح هذه الدردشة من لوحة التحكم.",
     "Warm regards, :name — Founder of :brand": "مع أطيب التحيات، :name — مؤسس :brand",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "لا يمكن إلغاء ربط ملف إلا إذا كان وكلاء آخرون يستخدمونه أيضًا. احذفه بدلًا من ذلك.",
-    "Your subscription has expired. Renew it to run the suite.": "انتهت صلاحية اشتراكك. جدّده لتشغيل مجموعة التقييم."
+    "Your subscription has expired. Renew it to run the suite.": "انتهت صلاحية اشتراكك. جدّده لتشغيل مجموعة التقييم.",
+    "Your payment is being processed. We will e-mail you when your account is ready; then sign in here.": "جارٍ معالجة الدفع. سنرسل إليك بريدًا إلكترونيًا عندما يصبح حسابك جاهزًا، ثم سجّل الدخول من هنا."
 }

@@ -246,7 +246,6 @@ section is for.
 | --- | --- | --- |
 | `BILLING_ENABLED` | `false` | With `false` you do not need Stripe. Every workspace gets every feature, there are no quotas, messages are not counted, and the billing pages are off. Set `true` to sell plans with Stripe; then add the Stripe keys in the admin panel (**Settings → Billing**). |
 | `REGISTRATION_ENABLED` | on when billing is off | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Set it to `false` after you have created your accounts. You can still invite teammates. |
-| `MARKETING_SITE_ENABLED` | `false` | With `false` there is no public landing, pricing or legal pages, and `/` opens the app. |
 | `CONVERSATION_RETENTION_DAYS` | `366` | How many days conversations are kept when billing is off. |
 | `FEATURE_YOUTUBE_SOURCES` | `false` | YouTube videos as sources. This feature is not finished: videos are saved but not read yet. |
 
@@ -260,8 +259,6 @@ Chatvia can show your own name and links instead of its own:
 | `BRAND_WEBSITE_URL`, `BRAND_DOCS_URL`, `BRAND_API_DOCS_URL` | Links shown in the app. Leave one empty to hide that link. |
 | `BRAND_POWERED_BY_ENABLED`, `BRAND_POWERED_BY_LABEL`, `BRAND_POWERED_BY_URL` | The "Powered by ..." line under hosted chats and widgets. |
 | `BRAND_ONBOARDING_VIDEO_URL` | An optional video on the first welcome screen. |
-| `BRAND_TWITTER_HANDLE` | The social handle in page meta tags, for example `@acme`. |
-| `COMPANY_NAME`, `COMPANY_ADDRESS`, `COMPANY_EMAIL`, `COMPANY_VAT_ID` | The company that runs this install. Shown on the legal pages, the data processing agreement and the footer. An empty value hides its line. Write address lines with `\n` inside double quotes. |
 
 ### Files and storage
 

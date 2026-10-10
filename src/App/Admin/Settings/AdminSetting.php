@@ -11,9 +11,9 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 
 /**
- * The credentials saved in the admin panel for one settings group. Every value
- * of the group lives in `payload`, encrypted as one JSON blob. Read them through
- * config (see {@see SettingsStore}), not from this model.
+ * The values saved in the admin panel for one settings group. Every value of
+ * the group lives in `payload`, encrypted as one JSON blob of strings. Read
+ * them through config (see {@see SettingsStore}), not from this model.
  *
  * @property int $id
  * @property SettingGroup $key
@@ -80,7 +80,7 @@ class AdminSetting extends Model
     /**
      * The payload after an edit in the panel. Secrets are never sent to the
      * browser, so a blank secret means "unchanged" and keeps its saved value.
-     * Any other blank field is removed.
+     * Any other blank field is removed, so its default applies again.
      *
      * @param  array<string, mixed>  $input
      * @return array<string, string>|null
@@ -90,13 +90,13 @@ class AdminSetting extends Model
         $payload = [];
 
         foreach ($this->key->fields() as $field) {
-            $value = trim((string) ($input[$field->name] ?? ''));
+            $value = $field->toPayload($input[$field->name] ?? null);
 
-            if ($value === '' && $field->secret) {
-                $value = (string) $this->value($field);
+            if ($value === null && $field->isSecret()) {
+                $value = $this->value($field);
             }
 
-            if ($value !== '') {
+            if ($value !== null) {
                 $payload[$field->name] = $value;
             }
         }

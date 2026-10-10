@@ -5,11 +5,13 @@ namespace App\Admin\Settings;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Route;
 use LogicException;
+use NumberFormatter;
 
 /**
- * A set of credentials an admin manages together in Settings, usually one
- * third-party app or API key. Each field overrides one config key, so the code
- * that reads `config('services.…')` needs no change. The value is the
+ * A set of values an admin manages together in Settings: usually the
+ * credentials of one third-party app or API key, or the billing options. Each
+ * field overrides one config key, so the code that reads `config('services.…')`
+ * or `config('billing.…')` needs no change. The value is the
  * `admin_settings.key` of the group's row, so never rename a case value.
  */
 enum SettingGroup: string
@@ -42,6 +44,7 @@ enum SettingGroup: string
     case BoxConnector = 'box-connector';
     case AsanaConnector = 'asana-connector';
 
+    case Billing = 'billing';
     case Stripe = 'stripe';
 
     case Resend = 'resend';
@@ -55,7 +58,7 @@ enum SettingGroup: string
             self::Messenger, self::Instagram, self::Whatsapp => SettingCategory::Channels,
             self::Scaleway, self::Mistral, self::OpenRouter, self::Groq, self::Cohere, self::Jina => SettingCategory::Ai,
             self::Firecrawl, self::ChunkFit => SettingCategory::Knowledge,
-            self::Stripe => SettingCategory::Billing,
+            self::Billing, self::Stripe => SettingCategory::Billing,
             self::Resend, self::Turnstile, self::Ip2Location => SettingCategory::Platform,
             default => SettingCategory::Connectors,
         };
@@ -80,6 +83,7 @@ enum SettingGroup: string
             self::Jina => 'Jina',
             self::Firecrawl => 'Firecrawl',
             self::ChunkFit => 'chunk.fit',
+            self::Billing => 'Billing',
             self::Stripe => 'Stripe',
             self::Resend => 'Resend',
             self::Turnstile => 'Cloudflare Turnstile',
@@ -116,6 +120,7 @@ enum SettingGroup: string
             self::Jina => 'Embeddings.',
             self::Firecrawl => 'Imports websites as knowledge sources.',
             self::ChunkFit => 'Hosted text splitter for documents.',
+            self::Billing => 'Paid plans on or off, sign-up, free trial, currency and discount.',
             self::Stripe => 'Payments, subscriptions and the billing webhook.',
             self::Resend => 'Sends email when MAIL_MAILER is resend.',
             self::Turnstile => 'Bot check on the public contact form.',
@@ -140,6 +145,7 @@ enum SettingGroup: string
             self::Mistral => asset('images/llms/mistral.svg'),
             self::Cohere => asset('images/llms/cohere.svg'),
             self::Stripe => asset('images/logos/connectors/stripe.svg'),
+            self::Billing => Heroicon::OutlinedBanknotes,
             self::Scaleway => Heroicon::OutlinedCpuChip,
             self::OpenRouter => Heroicon::OutlinedArrowsRightLeft,
             self::Groq => Heroicon::OutlinedBolt,
@@ -174,6 +180,7 @@ enum SettingGroup: string
             self::Jina => [SettingField::secret('api_key', 'API key', 'services.jina.api_key')],
             self::Firecrawl => [SettingField::secret('api_key', 'API key', 'services.firecrawl.key')],
             self::ChunkFit => [SettingField::secret('api_key', 'API key', 'services.chunkfit.api_key')],
+            self::Billing => $this->billing(),
             self::Stripe => [
                 SettingField::text('key', 'Publishable key', 'cashier.key', required: true, rules: ['starts_with:pk_']),
                 SettingField::secret('secret', 'Secret key', 'cashier.secret', rules: ['starts_with:sk_,rk_'],
@@ -256,6 +263,24 @@ enum SettingGroup: string
         return array_values(array_filter($this->fields(), fn (SettingField $field): bool => $field->required));
     }
 
+    public function hasSecrets(): bool
+    {
+        return array_any($this->fields(), fn (SettingField $field): bool => $field->isSecret());
+    }
+
+    /**
+     * A caution shown above the form, for a group whose change has effects
+     * outside this app.
+     */
+    public function warning(): ?string
+    {
+        return match ($this) {
+            self::Billing => 'Turning paid plans off removes the plan limits and stops all charging inside the app. '
+                .'It does not cancel subscriptions in Stripe. Stripe keeps charging them until you cancel them in the Stripe dashboard.',
+            default => null,
+        };
+    }
+
     /**
      * The `config/connectors.php` entry behind a connector group. The other
      * groups must be handled by name in the `match` that called this.
@@ -311,6 +336,60 @@ enum SettingGroup: string
             SettingField::url('redirect', 'Redirect URL', "{$config}.redirect", $redirectPath,
                 help: 'Leave empty to use the URL shown. It must be a valid OAuth redirect URI in the Meta app.'),
         ];
+    }
+
+    /**
+     * Paid plans, sign-up, trial, currency and discount. A fresh install has
+     * paid plans off, so it runs free without a Stripe account.
+     *
+     * @return list<SettingField>
+     */
+    private function billing(): array
+    {
+        return [
+            SettingField::toggle('enabled', 'Paid plans', 'billing.enabled', default: false,
+                help: 'On: workspaces choose a plan and pay with Stripe. Off: every workspace gets every feature, with no limits, and the billing pages are hidden.'),
+            SettingField::toggle('registration_enabled', 'Open sign-up', 'billing.registration_enabled',
+                default: fn (array $earlier): bool => ! $earlier['enabled'],
+                help: 'Anyone can create an account at /register. With paid plans on, people normally sign up through the trial checkout, so keep this off.'),
+            SettingField::integer('trial_days', 'Free trial days', 'billing.trial.days', default: 7, min: 0, max: 730,
+                help: 'The free trial of a new subscription. 0 means no trial.'),
+            SettingField::select('currency', 'Currency', 'billing.currency', options: [
+                'eur' => 'Euro (EUR)',
+                'usd' => 'US dollar (USD)',
+                'gbp' => 'British pound (GBP)',
+                'chf' => 'Swiss franc (CHF)',
+                'sek' => 'Swedish krona (SEK)',
+                'nok' => 'Norwegian krone (NOK)',
+                'dkk' => 'Danish krone (DKK)',
+                'pln' => 'Polish złoty (PLN)',
+                'czk' => 'Czech koruna (CZK)',
+                'huf' => 'Hungarian forint (HUF)',
+                'ron' => 'Romanian leu (RON)',
+            ], default: 'eur', help: 'Use the currency of your plan prices in Stripe.', alsoFills: [
+                'cashier.currency' => fn (mixed $currency): mixed => $currency,
+                'billing.currency_symbol' => fn (mixed $currency): string => self::currencySymbol((string) $currency),
+            ]),
+            SettingField::integer('unlimited_retention_days', 'Days to keep conversations', 'billing.unlimited_retention_days', default: 366, min: 1,
+                help: 'Used while paid plans are off. With paid plans on, each plan has its own number of days.'),
+            SettingField::integer('discount_percentage', 'Discount (%)', 'billing.discount.percentage', default: 0, min: 0, max: 100,
+                help: 'Shown on the plans page. It does not change what Stripe charges: for that, add a coupon in Stripe. 0 means no discount.'),
+            SettingField::date('discount_ends_at', 'Discount end date', 'billing.discount.ends_at',
+                help: 'The discount is shown until this day starts. Leave empty for no end date.'),
+            SettingField::integer('auto_recharge_max_per_day', 'Automatic top-ups per day', 'billing.addons.auto_recharge_credits.max_per_day', default: 3, min: 1,
+                help: 'The most automatic credit top-ups one workspace can have in 24 hours. This limits the charges when a widget gets a lot of abusive traffic.'),
+        ];
+    }
+
+    /**
+     * The symbol shown before prices: € for eur, but SEK for sek.
+     */
+    private static function currencySymbol(string $currency): string
+    {
+        $locale = (string) config('cashier.currency_locale', 'en');
+        $formatter = new NumberFormatter($locale.'@currency='.strtoupper($currency), NumberFormatter::CURRENCY);
+
+        return $formatter->getSymbol(NumberFormatter::CURRENCY_SYMBOL) ?: strtoupper($currency);
     }
 
     /**

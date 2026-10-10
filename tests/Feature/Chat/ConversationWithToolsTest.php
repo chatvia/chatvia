@@ -207,7 +207,7 @@ function toolLoopAgent(): Agent
     $billing = $owner->billing()->firstOrCreate([]);
 
     $priceId = 'price_test_pro_'.Str::random(6);
-    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
     $billing->subscriptions()->create([
         'type' => 'default',
         'stripe_id' => 'sub_test_'.Str::random(8),

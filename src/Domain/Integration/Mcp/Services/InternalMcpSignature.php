@@ -23,8 +23,7 @@ use Illuminate\Support\Str;
  * signed `X-Chatvia-*` header, so the canonical string keeps its shape, and the
  * verifier remembers each nonce (in the cache) until the signature expires: an
  * identical copy of a captured request is refused too. A request without a
- * nonce is accepted only while `services.builtin_mcp.allow_missing_nonce` is
- * on, which covers a deploy where workers still run the previous code.
+ * nonce is refused.
  *
  * The signature is only attached to first-party server rows (see
  * McpClient, which asks the connector catalog whether a row is one) — never to
@@ -131,11 +130,7 @@ final class InternalMcpSignature
      */
     private static function claimNonce(?string $nonce, int $timestamp): bool
     {
-        if ($nonce === null || $nonce === '') {
-            return (bool) config('services.builtin_mcp.allow_missing_nonce', false);
-        }
-
-        if (preg_match('/^[A-Za-z0-9]{16,128}$/', $nonce) !== 1) {
+        if ($nonce === null || preg_match('/^[A-Za-z0-9]{16,128}$/', $nonce) !== 1) {
             return false;
         }
 

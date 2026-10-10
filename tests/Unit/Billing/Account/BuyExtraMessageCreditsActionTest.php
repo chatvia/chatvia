@@ -13,9 +13,9 @@ afterEach(function (): void {
 });
 
 it('opens a checkout for the packs with the return URLs it was given and the pack metadata', function (): void {
-    config([
-        'billing.addons.extra_message_credits.stripe_price_id' => 'price_extra_1000',
-        'billing.addons.extra_message_credits.unit_messages' => 1000,
+    updateBillingAddon('extra_message_credits', [
+        'stripe_price_id' => 'price_extra_1000',
+        'unit_messages' => 1000,
     ]);
 
     $user = User::factory()->workspace()->create();

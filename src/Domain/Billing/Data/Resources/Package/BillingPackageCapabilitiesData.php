@@ -2,12 +2,14 @@
 
 namespace Domain\Billing\Data\Resources\Package;
 
+use Domain\Billing\Services\Catalog\BillingCatalog;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
- * The features a plan includes and how long it keeps conversations. Built from
- * the plan config, or all-on when billing is turned off.
+ * The features a plan includes and how long it keeps conversations. Stored on
+ * the plan (`billing_plans.capabilities`, cast to this class), or all-on when
+ * billing is turned off.
  */
 #[TypeScript]
 class BillingPackageCapabilitiesData extends Data
@@ -43,23 +45,23 @@ class BillingPackageCapabilitiesData extends Data
         // Enterprise, which is Pro + manual grants).
         public bool $siemWebhook = false,
         // Days a conversation (and its cached memory) lives before the
-        // scheduled prune deletes it. Set per plan in config/billing.php;
+        // scheduled prune deletes it. Set per plan (admin panel);
         // ChatCache reads it for the Redis TTL and the conversation create
         // path stamps `chat_conversations.expires_at` from it.
         public int $retentionDays = self::DEFAULT_RETENTION_DAYS,
     ) {}
 
     /**
-     * The features a plan turns on, read from the plan's `capabilities` entry
-     * in config/billing.php. An unknown plan gets the safe default: every
-     * feature off and the Starter retention floor.
+     * The features a plan turns on (its `capabilities` column, archived plans
+     * included). An unknown plan gets the safe default: every feature off and
+     * the Starter retention floor. Returns a copy, so a caller that changes it
+     * never changes the cached plan.
      */
     public static function forPlan(string $plan): self
     {
-        $packages = (array) config('billing.packages', []);
-        $capabilities = $packages[strtolower($plan)]['capabilities'] ?? null;
+        $capabilities = app(BillingCatalog::class)->plan(strtolower($plan))?->capabilities;
 
-        return is_array($capabilities) ? self::fromArray($capabilities) : new self;
+        return $capabilities instanceof self ? clone $capabilities : new self;
     }
 
     /**
@@ -86,7 +88,7 @@ class BillingPackageCapabilitiesData extends Data
     }
 
     /**
-     * @param  array<string, bool|int>  $capabilities  a plan's `capabilities` config: feature flags plus `retentionDays`
+     * @param  array<string, bool|int>  $capabilities  feature flags plus `retentionDays`
      */
     public static function fromArray(array $capabilities): self
     {

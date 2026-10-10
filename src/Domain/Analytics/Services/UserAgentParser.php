@@ -43,19 +43,6 @@ class UserAgentParser
         );
     }
 
-    /**
-     * @deprecated Use {@see self::detect()} on an injected instance; kept for
-     *             callers still on the array shape.
-     *
-     * @return array{device_type: ?string, browser: ?string, os: ?string}
-     */
-    public static function parse(?string $userAgent): array
-    {
-        $data = new self()->detect($userAgent);
-
-        return ['device_type' => $data->deviceType, 'browser' => $data->browser, 'os' => $data->os];
-    }
-
     private function deviceType(string $userAgent): string
     {
         return match (true) {

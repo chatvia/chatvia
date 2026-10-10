@@ -214,9 +214,6 @@ return [
     // refuses to sign rather than silently reuse another key.
     'builtin_mcp' => [
         'secret' => env('BUILTIN_MCP_SECRET'),
-        // Accept a signed call that has no one-time nonce. Only for the deploy
-        // that introduces the nonce, while workers still run the old code.
-        'allow_missing_nonce' => (bool) env('BUILTIN_MCP_ALLOW_MISSING_NONCE', false),
     ],
 
     'turnstile' => [

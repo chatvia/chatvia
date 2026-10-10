@@ -20,7 +20,7 @@ use Support\Http\WebhookSignature;
 function siemEnterpriseWorkspace(): User
 {
     $priceId = 'price_test_ent_'.Str::random(6);
-    config(['billing.packages.enterprise.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('enterprise', ['stripe_monthly_price_id' => $priceId]);
 
     $user = User::factory()->create();
     $user->billing()->firstOrCreate([]);

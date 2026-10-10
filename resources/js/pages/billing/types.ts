@@ -70,13 +70,14 @@ export interface PlanPackage {
     id: string;
     name: string;
     description: string;
-    features_monthly: Record<string, string>;
-    features_yearly: Record<string, string>;
+    /** The feature bullets per billing cycle, rendered by `usePlanText().featureText`. */
+    features: Domain.Billing.Data.Resources.Package.BillingPackageFeaturesData;
     capabilities: Record<string, string | number | boolean>;
     monthly_price: number;
     yearly_price: number;
     monthly_price_formatted: string;
     yearly_price_formatted: string;
+    /** What paying yearly saves; `percentage` is a whole number, 0 when it saves nothing. */
     monthly_savings: {
         amount: number;
         percentage: number;
@@ -86,27 +87,8 @@ export interface PlanPackage {
     contact_sales?: boolean;
 }
 
-/** A language model listed in the "available models" dialog. */
-export interface PlanLlm {
-    name: string;
-    icon: string;
-    paid: boolean;
-}
-
 /** The pricing-page settings from `config('billing')`. */
 export interface PlanBillingConfig {
-    ui: {
-        yearly_savings_percentage: number;
-        yearly_savings_text: string;
-        most_popular_text: string;
-        current_plan_text: string;
-        popular_badge_text: string;
-
-        money_back_guarantee_days: number;
-        yearly_upfront_text: string;
-        yearly_benefit_text: string;
-    };
-    commonFeatures: Record<string, string>;
     packageIcons: Record<string, string>;
     currencySymbol: string;
     trial: {

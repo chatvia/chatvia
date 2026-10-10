@@ -7,26 +7,22 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { ArrowLeft, Sparkles } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import BillingIntervalToggle from './components/BillingIntervalToggle.vue';
 import DiscountBanner from './components/DiscountBanner.vue';
 import PlanCard from './components/PlanCard.vue';
-import PlanLlmsDialog from './components/PlanLlmsDialog.vue';
 import { usePlanPricing } from './composables/usePlanPricing';
 import { usePlanSelection } from './composables/usePlanSelection';
-import { usePlanText } from './composables/usePlanText';
-import type { PlanBillingConfig, PlanLlm, PlanPackage } from './types';
+import type { PlanBillingConfig, PlanPackage } from './types';
 
 const props = defineProps<{
     packages: PlanPackage[];
     currentPackage: string;
-    llms?: PlanLlm[];
     billingConfig: PlanBillingConfig;
 }>();
 
-const { t } = useI18n();
-const { uiText } = usePlanText();
+const { t, n } = useI18n();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -46,25 +42,24 @@ const { isDiscountActive } = usePlanPricing(() => props.billingConfig, isYearly)
 const { isSubscribing, subscribingPackage, isCurrentPackage, getButtonText, getFeatureHeader, handlePackageSelection } = usePlanSelection({
     packages: () => props.packages,
     currentPackage: () => props.currentPackage,
-    billingConfig: () => props.billingConfig,
     isYearly,
 });
 
-// The "available models" dialog, opened from the first feature of the free
-// (free models only) and starter (every model) plans.
-const showLLMsModal = ref(false);
-const currentLLMs = ref<PlanLlm[]>([]);
+// The badge on the yearly option, from what the plans save by paying yearly:
+// "Save 20%" when every plan saves the same, "Save up to 25%" otherwise, and
+// no badge when no plan saves anything.
+const yearlySavingsText = computed<string | null>(() => {
+    const percentages = Object.values(props.packages)
+        .map((pkg) => pkg.monthly_savings.percentage)
+        .filter((percentage) => percentage > 0);
 
-const handleFeatureClick = (feature: string, index: number, packageKey: string): void => {
-    if (index === 0 && (packageKey === 'free' || packageKey === 'starter')) {
-        if (feature.includes('fast')) {
-            currentLLMs.value = (props.llms || []).filter((llm) => !llm.paid);
-        } else {
-            currentLLMs.value = props.llms || [];
-        }
-        showLLMsModal.value = true;
-    }
-};
+    if (percentages.length === 0) return null;
+
+    const best = Math.max(...percentages);
+    const key = percentages.every((percentage) => percentage === best) ? 'billing.plans.save_percent' : 'billing.plans.save_up_to_percent';
+
+    return t(key, { percent: n(best) });
+});
 </script>
 
 <template>
@@ -90,17 +85,16 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string):
                     </Button>
                 </div>
 
-                <BillingIntervalToggle v-model="isYearly" :savings-text="uiText('yearly_savings_text', billingConfig.ui.yearly_savings_text)" />
+                <BillingIntervalToggle v-model="isYearly" :savings-text="yearlySavingsText" />
 
                 <DiscountBanner v-if="isDiscountActive" :percentage="billingConfig.discount.percentage" :ends-at="billingConfig.discount.ends_at" />
 
                 <!-- Packages Grid -->
                 <div class="flex flex-wrap justify-center gap-8">
                     <PlanCard
-                        v-for="(pkg, packageKey) in packages"
+                        v-for="pkg in packages"
                         :key="pkg.id"
                         :pkg="pkg"
-                        :package-key="String(packageKey)"
                         :billing-config="billingConfig"
                         :is-yearly="isYearly"
                         :is-current="isCurrentPackage(pkg.id)"
@@ -109,12 +103,9 @@ const handleFeatureClick = (feature: string, index: number, packageKey: string):
                         :button-text="getButtonText(pkg.id)"
                         :feature-header="getFeatureHeader(pkg.id)"
                         @select="handlePackageSelection"
-                        @feature-click="handleFeatureClick"
                     />
                 </div>
             </div>
         </div>
-
-        <PlanLlmsDialog v-model:open="showLLMsModal" :llms="currentLLMs" />
     </AppLayout>
 </template>

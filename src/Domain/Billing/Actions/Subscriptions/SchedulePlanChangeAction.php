@@ -5,7 +5,9 @@ namespace Domain\Billing\Actions\Subscriptions;
 use Domain\Billing\Data\Stripe\StripeMetadata;
 use Domain\Billing\Data\Subscriptions\SchedulePlanChangeData;
 use Domain\Billing\Data\Subscriptions\StripeScheduleData;
-use Domain\Billing\Services\PlanCatalog;
+use Domain\Billing\Enums\BillingInterval;
+use Domain\Billing\Models\BillingPlan;
+use Domain\Billing\Services\Catalog\BillingCatalog;
 use Laravel\Cashier\Cashier;
 use Laravel\Cashier\Subscription;
 
@@ -16,12 +18,17 @@ use Laravel\Cashier\Subscription;
  * in the subscription's metadata ({@see StripeScheduleData}) so the billing
  * page can show it and the renewal webhook can clear it.
  *
- * Returns false when the account has no active plan subscription.
+ * The new plan is found by its key, so renaming a plan in the admin panel
+ * never breaks a plan change.
+ *
+ * Returns false when the account has no active plan subscription, or the new
+ * plan is not sold on that billing cycle (unknown, archived, contact-sales or
+ * without a Stripe price).
  */
 class SchedulePlanChangeAction
 {
     public function __construct(
-        private readonly PlanCatalog $plans,
+        private readonly BillingCatalog $catalog,
     ) {}
 
     public function execute(SchedulePlanChangeData $data): bool
@@ -34,8 +41,11 @@ class SchedulePlanChangeAction
             return false;
         }
 
-        $toPackage = $this->plans->packageByName($data->package);
-        $newPriceId = $data->isYearly ? $toPackage['stripe_yearly_price_id'] : $toPackage['stripe_monthly_price_id'];
+        $newPriceId = $this->newPriceId($data);
+
+        if ($newPriceId === null) {
+            return false;
+        }
 
         $stripeSubscription = $subscription->asStripeSubscription();
         $subscriptionItem = $stripeSubscription->items->data[0];
@@ -77,5 +87,17 @@ class SchedulePlanChangeAction
         ]);
 
         return true;
+    }
+
+    /** The Stripe price of the new plan on the chosen cycle, or null when it cannot be bought that way. */
+    private function newPriceId(SchedulePlanChangeData $data): ?string
+    {
+        $plan = $this->catalog->plan($data->package);
+
+        if (! $plan instanceof BillingPlan || ! $plan->is_active || $plan->contact_sales) {
+            return null;
+        }
+
+        return $plan->stripePriceId(BillingInterval::fromYearly($data->isYearly));
     }
 }

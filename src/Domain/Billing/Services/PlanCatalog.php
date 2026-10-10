@@ -1,58 +1,70 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Billing\Services;
 
-use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
+use Domain\Billing\Data\Resources\Package\BillingCurrentPackageData;
 use Domain\Billing\Data\Subscriptions\PlanSelectionData;
+use Domain\Billing\Models\BillingPlan;
 use Domain\Billing\Models\UserBilling;
+use Domain\Billing\Services\Catalog\BillingCatalog;
+use Domain\Billing\Services\Catalog\PlanFeatureList;
 use Illuminate\Support\Collection;
 
 /**
- * Read-only view of the plans in `config('billing.packages')`: look a plan up
- * by key, name or Stripe price, and add the display fields (formatted prices,
- * yearly savings) the pricing pages need.
+ * Read-only view of the plans in {@see BillingCatalog}: look a plan up by key
+ * or Stripe price, and add the display fields (formatted prices, yearly
+ * savings, feature bullets) the pricing pages need. A plan comes back as an
+ * array in the shape the billing pages read.
  *
- * The config key of a package (`starter`, `pro`, …) is the stable plan id. The
- * display name may change, so nothing is matched by name except the plan-change
- * form, which posts names.
+ * The key of a plan (`starter`, `pro`, …) is the stable plan id; the display
+ * name can be changed in the admin panel, so nothing is matched by name.
+ * Archived plans are left out of the plans a workspace can
+ * choose, but still resolve by key and by Stripe price for the workspaces
+ * subscribed to them.
  */
 class PlanCatalog
 {
+    public function __construct(
+        private readonly BillingCatalog $catalog,
+        private readonly PlanFeatureList $features,
+    ) {}
+
     /**
-     * Every plan with its display fields and capabilities, keyed by plan id.
+     * Every plan a workspace can choose, with its display fields and
+     * capabilities, keyed by plan id.
      *
      * @return Collection<string, non-empty-array<string, mixed>>
      */
     public function availablePackages(): Collection
     {
-        return collect($this->packages())->map(fn (array $package, string $key): array => [
-            ...$this->withDisplayFields($package, $key),
-            'capabilities' => BillingPackageCapabilitiesData::forPlan($key)->toArray(),
-            'features_monthly' => $package['features']['monthly'] ?? [],
-            'features_yearly' => $package['features']['yearly'] ?? [],
-        ]);
+        return $this->catalog->activePlans()->map($this->toPackage(...));
     }
 
     /**
-     * One plan with its display fields, or null when the key is not configured.
+     * One plan with its display fields (archived plans included), or null
+     * when there is no plan with this key.
      *
      * @return array<string, mixed>|null
      */
     public function package(string $packageId): ?array
     {
-        $package = $this->packages()[$packageId] ?? null;
+        $plan = $this->catalog->plan($packageId);
 
-        return is_array($package) ? $this->withDisplayFields($package, $packageId) : null;
+        return $plan instanceof BillingPlan ? $this->toPackage($plan) : null;
     }
 
     /**
-     * The plan new accounts start on (`billing.default_package`).
+     * The plan new accounts start on (the plan marked as the default).
      *
      * @return array<string, mixed>|null
      */
     public function defaultPackage(): ?array
     {
-        return $this->package($this->defaultPackageId());
+        $plan = $this->catalog->defaultPlan();
+
+        return $plan instanceof BillingPlan ? $this->toPackage($plan) : null;
     }
 
     /**
@@ -72,9 +84,9 @@ class PlanCatalog
 
     /**
      * The plan a subscription's Stripe price belongs to, with `is_yearly` set
-     * and the Stripe price ids removed. A price that is no longer in the config
-     * (an archived or legacy price) falls back to the default plan, so a page
-     * never breaks on an old subscription.
+     * and the Stripe price ids removed. A price no plan has (current or
+     * legacy) falls back to the default plan, so a page never breaks on an
+     * old subscription.
      *
      * @return array<string, mixed>
      */
@@ -93,10 +105,11 @@ class PlanCatalog
     }
 
     /**
-     * The plan and billing cycle behind a Stripe price, or null when the price
-     * is not a configured plan price (an add-on price, or an archived one).
-     * Unlike {@see packageForPrice()} this never falls back to the default
-     * plan, so a caller can tell "unknown price" apart from "starter".
+     * The plan and billing cycle behind a Stripe price (a current or a legacy
+     * price of the plan), or null when the price is not a plan price (an
+     * add-on price, or an unknown one). Unlike {@see packageForPrice()} this
+     * never falls back to the default plan, so a caller can tell "unknown
+     * price" apart from "starter".
      */
     public function planForPrice(?string $priceId): ?PlanSelectionData
     {
@@ -104,28 +117,7 @@ class PlanCatalog
             return null;
         }
 
-        foreach ($this->packages() as $key => $package) {
-            if (($package['stripe_monthly_price_id'] ?? null) === $priceId) {
-                return new PlanSelectionData(package: (string) $key, isYearly: false);
-            }
-
-            if (($package['stripe_yearly_price_id'] ?? null) === $priceId) {
-                return new PlanSelectionData(package: (string) $key, isYearly: true);
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * A plan by its display name (case-insensitive on the first letter, as the
-     * plan-change form posts lower-case names).
-     *
-     * @return array<string, mixed>|null
-     */
-    public function packageByName(string $name): ?array
-    {
-        return $this->availablePackages()->firstWhere('name', ucfirst($name));
+        return $this->catalog->planForPrice($priceId);
     }
 
     /**
@@ -135,34 +127,49 @@ class PlanCatalog
      */
     public function defaultFixedLimit(string $key, int $default = 0): int
     {
-        return (int) config("billing.packages.{$this->defaultPackageId()}.quota_limits.fixed.{$key}", $default);
-    }
-
-    private function defaultPackageId(): string
-    {
-        return (string) config('billing.default_package', 'starter');
+        return $this->catalog->defaultPlan()?->quota_limits['fixed'][$key] ?? $default;
     }
 
     /**
-     * @return array<string, array<string, mixed>>
+     * The icon name of every plan, keyed by plan id.
+     *
+     * @return array<string, string>
      */
-    private function packages(): array
+    public function packageIcons(): array
     {
-        return (array) config('billing.packages', []);
+        return $this->catalog->plans()
+            ->map(fn (BillingPlan $plan): ?string => $plan->icon)
+            ->filter()
+            ->all();
     }
 
     /**
-     * @param  array<string, mixed>  $package
-     * @return array<string, mixed>
+     * A plan in the shape the billing pages and {@see BillingCurrentPackageData}
+     * read.
+     *
+     * @return non-empty-array<string, mixed>
      */
-    private function withDisplayFields(array $package, string $packageId): array
+    private function toPackage(BillingPlan $plan): array
     {
+        $monthlyPrice = $plan->monthly_price_cents;
+        $yearlyPrice = $plan->yearly_price_cents ?? 0;
+
         return [
-            ...$package,
-            'id' => $packageId,
-            'monthly_price_formatted' => $this->formatPrice($package['monthly_price']),
-            'yearly_price_formatted' => $this->formatPrice($package['yearly_price']),
-            'monthly_savings' => $this->yearlySavings($package['monthly_price'], $package['yearly_price']),
+            'id' => $plan->key,
+            'name' => $plan->name,
+            'description' => $plan->description ?? '',
+            'features' => $this->features->forPlan($plan),
+            'stripe_monthly_price_id' => $plan->stripe_monthly_price_id,
+            'stripe_yearly_price_id' => $plan->stripe_yearly_price_id,
+            'monthly_price' => $monthlyPrice,
+            'yearly_price' => $yearlyPrice,
+            'is_popular' => $plan->is_popular,
+            'contact_sales' => $plan->contact_sales,
+            'capabilities' => $plan->capabilities->toArray(),
+            'quota_limits' => $plan->quota_limits,
+            'monthly_price_formatted' => $this->formatPrice($monthlyPrice),
+            'yearly_price_formatted' => $this->formatPrice($yearlyPrice),
+            'monthly_savings' => $this->yearlySavings($monthlyPrice, $yearlyPrice),
         ];
     }
 
@@ -172,7 +179,12 @@ class PlanCatalog
     }
 
     /**
-     * @return array{amount: int, percentage: float|int, formatted: string}
+     * What paying yearly saves against twelve monthly payments, with the
+     * whole-number percentage the plan cards show ("Save 20%"). Zero when
+     * the plan has no price for one of the cycles or the yearly price saves
+     * nothing.
+     *
+     * @return array{amount: int, percentage: int, formatted: string}
      */
     private function yearlySavings(int $monthlyPrice, int $yearlyPrice): array
     {
@@ -185,7 +197,7 @@ class PlanCatalog
 
         return [
             'amount' => $savings,
-            'percentage' => round(($savings / $yearlyEquivalent) * 100),
+            'percentage' => max(0, (int) round(($savings / $yearlyEquivalent) * 100)),
             'formatted' => $this->formatPrice($savings),
         ];
     }

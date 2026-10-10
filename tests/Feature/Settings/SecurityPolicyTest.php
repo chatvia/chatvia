@@ -232,7 +232,7 @@ it('rejects audit retention below the mandated floor', function (): void {
 function enterpriseOwner(): User
 {
     $priceId = 'price_test_ent_'.Str::random(6);
-    config(['billing.packages.enterprise.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('enterprise', ['stripe_monthly_price_id' => $priceId]);
 
     $owner = User::factory()->create();
     $owner->billing()->firstOrCreate([]);

@@ -7,7 +7,6 @@ use Domain\Channel\Messenger\Services\MessengerThreadResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Illuminate\Support\Str;
 use Tests\Support\Messenger\FakeMessengerClient;
 
 /**
@@ -23,10 +22,8 @@ function messengerResolverPage(): AgentMessengerPage
     return AgentMessengerPage::create([
         'agent_id' => $agent->id,
         'page_access_token' => 'EAAG-token',
-        'app_secret' => 'app-secret-value-1234567890',
         'page_id' => '1234567890',
         'page_name' => 'Acme Support',
-        'webhook_secret' => Str::random(48),
         'enabled' => true,
     ]);
 }

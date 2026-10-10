@@ -139,11 +139,6 @@
                 "ends": "Erbjudandet slutar {date} – Missa inte!",
                 "limited": "Tidsbegränsad rabatt på alla betalda planer!",
                 "off": "{percent}% RABATT"
-            },
-            "llms": {
-                "title": "Tillgängliga AI-modeller",
-                "description": "Välj bland vårt breda urval av toppmoderna språkmodeller",
-                "empty": "Inga modeller tillgängliga"
             }
         },
         "addons": {

@@ -29,9 +29,11 @@ use Laravel\Cashier\Events\WebhookReceived;
 use Laravel\Pennant\Feature;
 use Stripe\Stripe;
 use Support\Exceptions\DomainValidationException;
+use Tests\Support\ReregisterProviders;
 
 /**
- * A self-hosted install can run without Stripe (BILLING_ENABLED=false). Then
+ * A self-hosted install can run without Stripe (paid plans off in the admin
+ * panel, Settings → Billing, which is also the default). Then
  * every workspace may always send messages, has every feature and no quota
  * limits, the billing pages and Stripe flows answer 404, and people sign up
  * through the normal registration form. With billing on (production) every
@@ -54,50 +56,6 @@ function billingOffOwner(): User
     $owner->bootstrapCurrentTeam();
 
     return $owner->fresh();
-}
-
-/**
- * Evaluate config/billing.php under the given environment variables, as a
- * fresh boot would.
- *
- * @param  array<string, string|null>  $env
- * @return array<string, mixed>
- */
-function billingConfigWith(array $env): array
-{
-    $previous = [];
-
-    foreach ($env as $key => $value) {
-        $previous[$key] = [$_SERVER[$key] ?? null, $_ENV[$key] ?? null, getenv($key)];
-
-        if ($value === null) {
-            unset($_SERVER[$key], $_ENV[$key]);
-            putenv($key);
-        } else {
-            $_SERVER[$key] = $_ENV[$key] = $value;
-            putenv("{$key}={$value}");
-        }
-    }
-
-    try {
-        return require base_path('config/billing.php');
-    } finally {
-        foreach ($previous as $key => [$server, $envValue, $putenv]) {
-            if ($server === null) {
-                unset($_SERVER[$key]);
-            } else {
-                $_SERVER[$key] = $server;
-            }
-
-            if ($envValue === null) {
-                unset($_ENV[$key]);
-            } else {
-                $_ENV[$key] = $envValue;
-            }
-
-            $putenv === false ? putenv($key) : putenv("{$key}={$putenv}");
-        }
-    }
 }
 
 describe('sending messages', function (): void {
@@ -236,7 +194,7 @@ describe('quotas', function (): void {
         config(['billing.enabled' => true]);
         $owner = billingOffOwner();
 
-        expect($owner->quotaLimit('teams_limit'))->toBe((int) config('billing.packages.starter.quota_limits.fixed.teams_limit'))
+        expect($owner->quotaLimit('teams_limit'))->toBe(planFixedLimits()['teams_limit'])
             ->and($owner->totalCustomDomainsLimit())->toBe(0)
             ->and($owner->canCreateTeam())->toBeFalse();
     });
@@ -260,7 +218,7 @@ describe('quotas', function (): void {
             ->getJson(route('usage'))
             ->assertOk()
             ->assertJsonPath('unlimited', false)
-            ->assertJsonPath('pages.limit', (int) config('billing.packages.starter.quota_limits.fixed.pages_limit'));
+            ->assertJsonPath('pages.limit', planFixedLimits()['pages_limit']);
     });
 });
 
@@ -355,14 +313,14 @@ describe('Stripe webhook', function (): void {
         try {
             Cashier::$registersRoutes = true;
 
-            new AppServiceProvider(app())->register();
+            ReregisterProviders::andRunBootingCallbacks(AppServiceProvider::class);
 
             expect(Cashier::$registersRoutes)->toBeFalse();
 
             Cashier::$registersRoutes = true;
             config(['billing.enabled' => true]);
 
-            new AppServiceProvider(app())->register();
+            ReregisterProviders::andRunBootingCallbacks(AppServiceProvider::class);
 
             expect(Cashier::$registersRoutes)->toBeTrue();
         } finally {

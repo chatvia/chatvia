@@ -46,11 +46,16 @@ theme.
 
 ### Self-hosting
 
-- `BILLING_ENABLED=false` runs Chatvia without Stripe: every workspace gets
-  every feature, there are no quotas, and the billing pages are off. Plan
-  features moved to `config/billing.php`.
-- `REGISTRATION_ENABLED` opens normal sign-up (on by default when billing is
-  off).
+- Billing is set up in the admin panel. **Settings → Billing** turns paid
+  plans on or off (off by default: no Stripe, every feature on, no quotas,
+  billing pages off), opens sign-up, and sets the trial, currency, discount
+  and conversation retention.
+- **Billing → Plans** and **Billing → Add-ons** manage what you sell: prices,
+  limits, features and highlights. Saving creates the products and prices in
+  Stripe; a new amount creates a new price and existing subscribers keep
+  theirs. **Check against Stripe** compares the saved prices with Stripe
+  without changing anything. Plan cards list their features from these
+  values, in every language.
 - AI services sit behind contracts with `auto` drivers: document reading
   (Mistral or local `pdftotext` + LibreOffice), text splitting (chunk.fit or
   local), reranking, speech to text and whole-PDF reading. Each one uses the
@@ -158,25 +163,10 @@ theme.
   an empty `testing` database for the test suite.
 - Editor and AI-assistant settings, generated IDE helper files and the
   generated `resources/js/ziggy.js` are no longer in the repository.
-
-### Upgrade notes
-
-- Run `php artisan migrate --force` and `php artisan app:sync-builtin-mcp`,
-  then restart Horizon and Reverb.
-- API keys and OAuth apps move from `.env` to the admin panel. A migration
-  copies the values that are still in `.env`; after that, the old lines can be
-  removed.
-- Long ingestion and export jobs use a new `redis-long` queue connection (see
-  `config/horizon.php`), so they are no longer started twice.
-- Laravel Octane is no longer supported. Run the app with PHP-FPM.
-- Queued jobs and events that were serialized under old class names keep
-  working for one release.
-- Restart Horizon right after deploying: workers that still run the old code
-  send internal tool calls without the new one-time value, and those calls are
-  refused. To avoid any refused call during the deploy, set
-  `BUILTIN_MCP_ALLOW_MISSING_NONCE=true` for that one deploy, then remove it.
-- The Postmark mailer and the Slack notification channel were removed; they
-  were not used. Use SMTP or Resend for mail.
 - ESLint is configured with `typescript-eslint` and `eslint-plugin-vue`
   directly; `@vue/eslint-config-typescript` was removed (its file scanner
-  pulled in a vulnerable `braces`). The lint rules are unchanged.
+  pulled in a vulnerable `braces`).
+- The unused Postmark mailer and Slack notification channel were removed. Use
+  SMTP or Resend for mail.
+- One create migration per table holds the whole schema; there are no upgrade
+  or data-fix migrations.

@@ -2468,11 +2468,9 @@
                 "limited": "Tüm ücretli planlarda sınırlı süreli indirim!",
                 "off": "%{percent} İNDİRİM"
             },
-            "llms": {
-                "title": "Mevcut AI Modelleri",
-                "description": "Son teknoloji dil modellerinden oluşan kapsamlı seçeneklerimiz arasından seçim yapın",
-                "empty": "Mevcut model yok"
-            }
+            "most_popular": "En Popüler",
+            "current_plan": "Mevcut Plan",
+            "save_up_to_percent": "En fazla %{percent} tasarruf"
         },
         "addons": {
             "title": "Eklentiler",
@@ -2645,178 +2643,68 @@
             "packages": {
                 "starter": {
                     "name": "Başlangıç",
-                    "description": "Yeni başlayan küçük işletmeler için.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Ayda 3.000 mesaj",
-                            "agents": "2 AI asistanı",
-                            "pages": "2.000 sayfa (PDF, Word, Metin)",
-                            "links": "2.000 web sitesi bağlantısı",
-                            "minutes": "500 dakika ses/video",
-                            "teams": "1 ekip",
-                            "members": "5 üye (ekip üyeleri + kullanıcılar)",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "retention": "90 günlük görüşme geçmişi"
-                        },
-                        "yearly": {
-                            "messages": "Yılda 39.000 mesaj",
-                            "agents": "2 AI asistanı",
-                            "pages": "2.000 sayfa (PDF, Word, Metin)",
-                            "links": "2.000 web sitesi bağlantısı",
-                            "minutes": "500 dakika ses/video",
-                            "teams": "1 ekip",
-                            "members": "5 üye (ekip üyeleri + kullanıcılar)",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "retention": "90 günlük görüşme geçmişi"
-                        }
-                    }
+                    "description": "Yeni başlayan küçük işletmeler için."
                 },
                 "standard": {
                     "name": "Standart",
-                    "description": "Büyüyen ekipler ve işletmeler için.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Ayda 15.000 mesaj",
-                            "agents": "10 AI asistanı",
-                            "pages": "5.000 sayfa (PDF, Word, Metin)",
-                            "links": "5.000 web sitesi bağlantısı",
-                            "minutes": "2.000 dakika ses/video",
-                            "sentiment": "Duygu analizi",
-                            "handoff": "Devretme",
-                            "api": "API erişimi",
-                            "teams": "5 ekip",
-                            "members": "20 üye (ekip üyeleri + kullanıcılar)",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "retention": "180 günlük görüşme geçmişi"
-                        },
-                        "yearly": {
-                            "messages": "Yılda 192.000 mesaj",
-                            "agents": "10 AI asistanı",
-                            "pages": "5.000 sayfa (PDF, Word, Metin)",
-                            "links": "5.000 web sitesi bağlantısı",
-                            "minutes": "2.000 dakika ses/video",
-                            "sentiment": "Duygu analizi",
-                            "handoff": "Devretme",
-                            "api": "API erişimi",
-                            "teams": "5 ekip",
-                            "members": "20 üye (ekip üyeleri + kullanıcılar)",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "retention": "180 günlük görüşme geçmişi"
-                        }
-                    }
+                    "description": "Büyüyen ekipler ve işletmeler için."
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "Her şeye ihtiyaç duyan kuruluşlar için.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Ayda 50.000 mesaj",
-                            "agents": "20 AI asistanı",
-                            "pages": "10.000 sayfa (PDF, Word, Metin)",
-                            "links": "10.000 web sitesi bağlantısı",
-                            "minutes": "10.000 dakika ses/video",
-                            "sentiment": "Duygu analizi",
-                            "tone": "Ton analizi",
-                            "topics": "Konu analizi",
-                            "pulse": "Görüşme Nabzı",
-                            "handoff": "Devretme",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "api": "API erişimi",
-                            "integrations": "Özel entegrasyonlar",
-                            "branding": "Beyaz etiket (Chatvia markasını kaldırır)",
-                            "teams": "10 ekip",
-                            "members": "100 üye (ekip üyeleri + kullanıcılar)",
-                            "retention": "366 günlük görüşme geçmişi"
-                        },
-                        "yearly": {
-                            "messages": "Yılda 648.000 mesaj",
-                            "agents": "20 AI asistanı",
-                            "pages": "10.000 sayfa (PDF, Word, Metin)",
-                            "links": "10.000 web sitesi bağlantısı",
-                            "minutes": "10.000 dakika ses/video",
-                            "sentiment": "Duygu analizi",
-                            "tone": "Ton analizi",
-                            "topics": "Konu analizi",
-                            "pulse": "Görüşme Nabzı",
-                            "handoff": "Devretme",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "api": "API erişimi",
-                            "integrations": "Özel entegrasyonlar",
-                            "branding": "Beyaz etiket (Chatvia markasını kaldırır)",
-                            "teams": "10 ekip",
-                            "members": "100 üye (ekip üyeleri + kullanıcılar)",
-                            "retention": "366 günlük görüşme geçmişi"
-                        }
-                    }
+                    "description": "Her şeye ihtiyaç duyan kuruluşlar için."
                 },
                 "enterprise": {
                     "name": "Kurumsal",
-                    "description": "Güvenlik, uyumluluk ve ölçek ihtiyacı olan kuruluşlar için.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Özel mesaj hacmi",
-                            "agents": "Sınırsız AI asistanı",
-                            "pages": "Özel bilgi tabanı",
-                            "links": "Özel web sitesi bağlantıları",
-                            "minutes": "Özel ses/video",
-                            "sentiment": "Duygu analizi",
-                            "tone": "Ton analizi",
-                            "topics": "Konu analizi",
-                            "pulse": "Görüşme Nabzı",
-                            "handoff": "Devretme",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "api": "API erişimi",
-                            "integrations": "Özel entegrasyonlar",
-                            "branding": "Beyaz etiket (Chatvia markasını kaldırır)",
-                            "residency": "AB veri ikametgâhı",
-                            "sso": "SSO / SAML",
-                            "sla": "Çalışma süresi SLA'sı",
-                            "support": "Özel destek",
-                            "dpa": "Özel sözleşme ve DPA",
-                            "teams": "Sınırsız ekip",
-                            "members": "Sınırsız üye",
-                            "retention": "Özel veri saklama"
-                        },
-                        "yearly": {
-                            "messages": "Özel mesaj hacmi",
-                            "agents": "Sınırsız AI asistanı",
-                            "pages": "Özel bilgi tabanı",
-                            "links": "Özel web sitesi bağlantıları",
-                            "minutes": "Özel ses/video",
-                            "sentiment": "Duygu analizi",
-                            "tone": "Ton analizi",
-                            "topics": "Konu analizi",
-                            "pulse": "Görüşme Nabzı",
-                            "handoff": "Devretme",
-                            "mcp": "MCP",
-                            "function_calling": "İşlev Çağırma",
-                            "api": "API erişimi",
-                            "integrations": "Özel entegrasyonlar",
-                            "branding": "Beyaz etiket (Chatvia markasını kaldırır)",
-                            "residency": "AB veri ikametgâhı",
-                            "sso": "SSO / SAML",
-                            "sla": "Çalışma süresi SLA'sı",
-                            "support": "Özel destek",
-                            "dpa": "Özel sözleşme ve DPA",
-                            "teams": "Sınırsız ekip",
-                            "members": "Sınırsız üye",
-                            "retention": "Özel veri saklama"
-                        }
-                    }
+                    "description": "Güvenlik, uyumluluk ve ölçek ihtiyacı olan kuruluşlar için."
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "%20 tasarruf",
-                "popular_badge_text": "En Popüler",
-                "current_plan_text": "Mevcut Plan"
             }
+        },
+        "features": {
+            "messages_per_month": "Ayda {count} mesaj | Ayda {count} mesaj",
+            "messages_per_year": "Yılda {count} mesaj | Yılda {count} mesaj",
+            "messages_unlimited": "Sınırsız mesaj",
+            "messages_custom": "Özel mesaj hacmi",
+            "agents": "{count} AI asistanı | {count} AI asistanı",
+            "agents_unlimited": "Sınırsız AI asistanı",
+            "pages": "{count} sayfa (PDF, Word, Metin) | {count} sayfa (PDF, Word, Metin)",
+            "pages_unlimited": "Sınırsız sayfa (PDF, Word, Metin)",
+            "pages_custom": "Özel bilgi tabanı",
+            "links": "{count} web sitesi bağlantısı | {count} web sitesi bağlantısı",
+            "links_unlimited": "Sınırsız web sitesi bağlantısı",
+            "links_custom": "Özel web sitesi bağlantıları",
+            "minutes": "{count} dakika ses/video | {count} dakika ses/video",
+            "minutes_unlimited": "Sınırsız dakika ses/video",
+            "minutes_custom": "Özel ses/video",
+            "teams": "{count} ekip | {count} ekip",
+            "teams_unlimited": "Sınırsız ekip",
+            "members": "{count} üye (ekip üyeleri + kullanıcılar) | {count} üye (ekip üyeleri + kullanıcılar)",
+            "members_unlimited": "Sınırsız üye",
+            "retention": "{count} günlük görüşme geçmişi | {count} günlük görüşme geçmişi",
+            "retention_unlimited": "Sınırsız görüşme geçmişi",
+            "retention_custom": "Özel veri saklama",
+            "sentiment": "Duygu analizi",
+            "tone": "Ton analizi",
+            "topics": "Konu analizi",
+            "pulse": "Görüşme Nabzı",
+            "handoff": "Devretme",
+            "api": "API erişimi",
+            "evals": "Değerlendirmeler",
+            "guardrails": "Koruma kuralları",
+            "audit": "Denetim günlüğü",
+            "branding": "Beyaz etiket ({brand} markasını kaldırma)",
+            "network_access": "Ağ erişim denetimi (IP ve konum)",
+            "siem_webhook": "SIEM Webhook (gerçek zamanlı güvenlik olayları)",
+            "mcp": "MCP",
+            "function_calling": "İşlev Çağırma",
+            "custom_domains": "{count} özel alan adı | {count} özel alan adı",
+            "custom_domains_unlimited": "Sınırsız özel alan adı",
+            "custom_domains_custom": "Özel alan adları",
+            "custom_integrations": "Özel entegrasyonlar",
+            "eu_data_residency": "AB veri ikametgâhı",
+            "sso_saml": "SSO / SAML",
+            "uptime_sla": "Çalışma süresi SLA'sı",
+            "dedicated_support": "Özel destek",
+            "custom_contract": "Özel sözleşme ve DPA"
         }
     },
     "teams": {

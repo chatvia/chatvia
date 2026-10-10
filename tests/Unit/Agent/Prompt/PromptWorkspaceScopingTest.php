@@ -8,7 +8,6 @@ use Domain\Agent\Prompt\Data\CreatePromptData;
 use Domain\Agent\Prompt\Data\UpdatePromptData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -77,17 +76,4 @@ it('refuses to resolve a prompt from another workspace', function (): void {
 
     expect(fn () => app(ResolveAgentPromptIdAction::class)->execute(User::factory()->create(), $prompt->external_id))
         ->toThrow(DomainValidationException::class);
-});
-
-it('moves prompts a teammate created earlier onto their workspace', function (): void {
-    $owner = User::factory()->create();
-    $teammate = User::factory()->employee($owner)->create();
-    $legacy = $teammate->prompts()->create(['name' => 'Legacy', 'prompt' => 'Old']);
-    $ownPrompt = workspacePrompt($owner, 'Owner prompt');
-
-    $migration = require database_path('migrations/2026_10_08_583915_move_teammate_prompts_to_workspace.php');
-    $migration->up();
-
-    expect(DB::table('agent_prompts')->where('id', $legacy->id)->value('user_id'))->toBe($owner->id)
-        ->and(DB::table('agent_prompts')->where('id', $ownPrompt->id)->value('user_id'))->toBe($owner->id);
 });

@@ -15,7 +15,7 @@ it('turns a domain rejection into a field error on a web form', function (): voi
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
     $owner->billing()->firstOrCreate([]);
-    UserQuota::firstOrCreate(['user_id' => $owner->id], config('billing.packages.starter.quota_limits.fixed', []));
+    UserQuota::firstOrCreate(['user_id' => $owner->id], planFixedLimits());
 
     $team = $owner->primaryTeam();
     $this->actingAs($owner)->post(route('teams.create-role', $team), ['name' => 'Support', 'all_agents' => true]);
@@ -43,7 +43,7 @@ it('refuses to delete a role a member still holds with a field error', function 
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
     $owner->billing()->firstOrCreate([]);
-    UserQuota::firstOrCreate(['user_id' => $owner->id], config('billing.packages.starter.quota_limits.fixed', []));
+    UserQuota::firstOrCreate(['user_id' => $owner->id], planFixedLimits());
 
     $team = $owner->primaryTeam();
     $this->actingAs($owner)->post(route('teams.create-role', $team), ['name' => 'Support', 'all_agents' => true]);

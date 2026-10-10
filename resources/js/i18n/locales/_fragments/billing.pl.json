@@ -139,11 +139,6 @@
                 "ends": "Oferta kończy się {date} — nie przegap!",
                 "limited": "Ograniczona czasowo zniżka na wszystkie płatne plany!",
                 "off": "{percent}% TANIEJ"
-            },
-            "llms": {
-                "title": "Dostępne modele AI",
-                "description": "Wybieraj spośród naszej bogatej oferty najnowocześniejszych modeli językowych",
-                "empty": "Brak dostępnych modeli"
             }
         },
         "addons": {

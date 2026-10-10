@@ -6,7 +6,6 @@ use Domain\Channel\Whatsapp\Models\WhatsappChat;
 use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Illuminate\Support\Str;
 
 /**
  * The resolver maps a WhatsApp (number, wa_id) pair onto a persistent
@@ -21,10 +20,8 @@ function whatsappResolverNumber(): AgentWhatsappNumber
     return AgentWhatsappNumber::create([
         'agent_id' => $agent->id,
         'access_token' => 'EAAG-token',
-        'app_secret' => 'app-secret-value-1234567890',
         'phone_number_id' => '111222333444555',
         'waba_id' => '999888777666555',
-        'webhook_secret' => Str::random(48),
         'enabled' => true,
     ]);
 }

@@ -40,14 +40,17 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->skipCashierRoutesWithoutBilling();
+        // Cashier adds its routes while the providers boot, so decide just
+        // before that: after AdminSettingsServiceProvider has put the billing
+        // setting of the admin panel into config (its booting callback is
+        // added first, so it runs first).
+        $this->app->booting($this->skipCashierRoutesWithoutBilling(...));
     }
 
     /**
      * With billing turned off (a self-hosted install) there is no Stripe
      * account, so Cashier's webhook and payment routes are not registered and
-     * answer 404. This must run in register(): Cashier adds its routes while
-     * the providers boot.
+     * answer 404.
      */
     private function skipCashierRoutesWithoutBilling(): void
     {

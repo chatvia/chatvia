@@ -2468,11 +2468,9 @@
                 "limited": "Remise temporaire sur tous les forfaits payants !",
                 "off": "{percent} % de réduction"
             },
-            "llms": {
-                "title": "Modèles d'IA disponibles",
-                "description": "Choisissez parmi notre large sélection de modèles de langage de pointe",
-                "empty": "Aucun modèle disponible"
-            }
+            "most_popular": "Le plus populaire",
+            "current_plan": "Forfait actuel",
+            "save_up_to_percent": "Économisez jusqu'à {percent} %"
         },
         "addons": {
             "title": "Extensions",
@@ -2645,178 +2643,68 @@
             "packages": {
                 "starter": {
                     "name": "Starter",
-                    "description": "Pour les petites entreprises qui démarrent.",
-                    "features": {
-                        "monthly": {
-                            "messages": "3 000 messages par mois",
-                            "agents": "2 agents IA",
-                            "pages": "2 000 pages (PDF, Word, Texte)",
-                            "links": "2 000 liens de site web",
-                            "minutes": "500 minutes audio/vidéo",
-                            "teams": "1 équipe",
-                            "members": "5 membres (membres d'équipe + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 jours d'historique de conversation"
-                        },
-                        "yearly": {
-                            "messages": "39 000 messages par an",
-                            "agents": "2 agents IA",
-                            "pages": "2 000 pages (PDF, Word, Texte)",
-                            "links": "2 000 liens de site web",
-                            "minutes": "500 minutes audio/vidéo",
-                            "teams": "1 équipe",
-                            "members": "5 membres (membres d'équipe + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 jours d'historique de conversation"
-                        }
-                    }
+                    "description": "Pour les petites entreprises qui démarrent."
                 },
                 "standard": {
                     "name": "Standard",
-                    "description": "Pour les équipes et entreprises en croissance.",
-                    "features": {
-                        "monthly": {
-                            "messages": "15 000 messages par mois",
-                            "agents": "10 agents IA",
-                            "pages": "5 000 pages (PDF, Word, Texte)",
-                            "links": "5 000 liens de site web",
-                            "minutes": "2 000 minutes audio/vidéo",
-                            "sentiment": "Analyse de sentiment",
-                            "handoff": "Handoff",
-                            "api": "Accès API",
-                            "teams": "5 équipes",
-                            "members": "20 membres (membres d'équipe + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 jours d'historique de conversation"
-                        },
-                        "yearly": {
-                            "messages": "192 000 messages par an",
-                            "agents": "10 agents IA",
-                            "pages": "5 000 pages (PDF, Word, Texte)",
-                            "links": "5 000 liens de site web",
-                            "minutes": "2 000 minutes audio/vidéo",
-                            "sentiment": "Analyse de sentiment",
-                            "handoff": "Handoff",
-                            "api": "Accès API",
-                            "teams": "5 équipes",
-                            "members": "20 membres (membres d'équipe + chatters)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 jours d'historique de conversation"
-                        }
-                    }
+                    "description": "Pour les équipes et entreprises en croissance."
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "Pour les organisations qui ont besoin de tout.",
-                    "features": {
-                        "monthly": {
-                            "messages": "50 000 messages par mois",
-                            "agents": "20 agents IA",
-                            "pages": "10 000 pages (PDF, Word, Texte)",
-                            "links": "10 000 liens de site web",
-                            "minutes": "10 000 minutes audio/vidéo",
-                            "sentiment": "Analyse de sentiment",
-                            "tone": "Analyse de ton",
-                            "topics": "Analyse de sujets",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Accès API",
-                            "integrations": "Intégrations personnalisées",
-                            "branding": "Marque blanche (suppression de la marque Chatvia)",
-                            "teams": "10 équipes",
-                            "members": "100 membres (membres d'équipe + chatters)",
-                            "retention": "366 jours d'historique de conversation"
-                        },
-                        "yearly": {
-                            "messages": "648 000 messages par an",
-                            "agents": "20 agents IA",
-                            "pages": "10 000 pages (PDF, Word, Texte)",
-                            "links": "10 000 liens de site web",
-                            "minutes": "10 000 minutes audio/vidéo",
-                            "sentiment": "Analyse de sentiment",
-                            "tone": "Analyse de ton",
-                            "topics": "Analyse de sujets",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Accès API",
-                            "integrations": "Intégrations personnalisées",
-                            "branding": "Marque blanche (suppression de la marque Chatvia)",
-                            "teams": "10 équipes",
-                            "members": "100 membres (membres d'équipe + chatters)",
-                            "retention": "366 jours d'historique de conversation"
-                        }
-                    }
+                    "description": "Pour les organisations qui ont besoin de tout."
                 },
                 "enterprise": {
                     "name": "Enterprise",
-                    "description": "Pour les organisations ayant des besoins en sécurité, conformité et scalabilité.",
-                    "features": {
-                        "monthly": {
-                            "messages": "Volume de messages personnalisé",
-                            "agents": "Agents IA illimités",
-                            "pages": "Base de connaissances personnalisée",
-                            "links": "Liens de site web personnalisés",
-                            "minutes": "Audio/vidéo personnalisé",
-                            "sentiment": "Analyse de sentiment",
-                            "tone": "Analyse de ton",
-                            "topics": "Analyse de sujets",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Accès API",
-                            "integrations": "Intégrations personnalisées",
-                            "branding": "Marque blanche (suppression de la marque Chatvia)",
-                            "residency": "Hébergement des données en UE",
-                            "sso": "SSO / SAML",
-                            "sla": "SLA de disponibilité",
-                            "support": "Support dédié",
-                            "dpa": "Contrat personnalisé & DPA",
-                            "teams": "Équipes illimitées",
-                            "members": "Membres illimités",
-                            "retention": "Conservation des données personnalisée"
-                        },
-                        "yearly": {
-                            "messages": "Volume de messages personnalisé",
-                            "agents": "Agents IA illimités",
-                            "pages": "Base de connaissances personnalisée",
-                            "links": "Liens de site web personnalisés",
-                            "minutes": "Audio/vidéo personnalisé",
-                            "sentiment": "Analyse de sentiment",
-                            "tone": "Analyse de ton",
-                            "topics": "Analyse de sujets",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "Handoff",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "Accès API",
-                            "integrations": "Intégrations personnalisées",
-                            "branding": "Marque blanche (suppression de la marque Chatvia)",
-                            "residency": "Hébergement des données en UE",
-                            "sso": "SSO / SAML",
-                            "sla": "SLA de disponibilité",
-                            "support": "Support dédié",
-                            "dpa": "Contrat personnalisé & DPA",
-                            "teams": "Équipes illimitées",
-                            "members": "Membres illimités",
-                            "retention": "Conservation des données personnalisée"
-                        }
-                    }
+                    "description": "Pour les organisations ayant des besoins en sécurité, conformité et scalabilité."
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "Économisez 20 %",
-                "popular_badge_text": "Le plus populaire",
-                "current_plan_text": "Forfait actuel"
             }
+        },
+        "features": {
+            "messages_per_month": "{count} message par mois | {count} messages par mois",
+            "messages_per_year": "{count} message par an | {count} messages par an",
+            "messages_unlimited": "Messages illimités",
+            "messages_custom": "Volume de messages personnalisé",
+            "agents": "{count} agent IA | {count} agents IA",
+            "agents_unlimited": "Agents IA illimités",
+            "pages": "{count} page (PDF, Word, Texte) | {count} pages (PDF, Word, Texte)",
+            "pages_unlimited": "Pages illimitées (PDF, Word, Texte)",
+            "pages_custom": "Base de connaissances personnalisée",
+            "links": "{count} lien de site web | {count} liens de site web",
+            "links_unlimited": "Liens de site web illimités",
+            "links_custom": "Liens de site web personnalisés",
+            "minutes": "{count} minute audio/vidéo | {count} minutes audio/vidéo",
+            "minutes_unlimited": "Minutes audio/vidéo illimitées",
+            "minutes_custom": "Audio/vidéo personnalisé",
+            "teams": "{count} équipe | {count} équipes",
+            "teams_unlimited": "Équipes illimitées",
+            "members": "{count} membre (membres d'équipe + chatters) | {count} membres (membres d'équipe + chatters)",
+            "members_unlimited": "Membres illimités",
+            "retention": "{count} jour d'historique de conversation | {count} jours d'historique de conversation",
+            "retention_unlimited": "Historique de conversation illimité",
+            "retention_custom": "Conservation des données personnalisée",
+            "sentiment": "Analyse de sentiment",
+            "tone": "Analyse de ton",
+            "topics": "Analyse de sujets",
+            "pulse": "Conversation Pulse",
+            "handoff": "Handoff",
+            "api": "Accès API",
+            "evals": "Évaluations",
+            "guardrails": "Garde-fous",
+            "audit": "Journal d'audit",
+            "branding": "Marque blanche (suppression de la marque {brand})",
+            "network_access": "Contrôle d'accès réseau (IP et géolocalisation)",
+            "siem_webhook": "Webhook SIEM (événements de sécurité en temps réel)",
+            "mcp": "MCP",
+            "function_calling": "Function Calling",
+            "custom_domains": "{count} domaine personnalisé | {count} domaines personnalisés",
+            "custom_domains_unlimited": "Domaines personnalisés illimités",
+            "custom_domains_custom": "Domaines personnalisés",
+            "custom_integrations": "Intégrations personnalisées",
+            "eu_data_residency": "Hébergement des données en UE",
+            "sso_saml": "SSO / SAML",
+            "uptime_sla": "SLA de disponibilité",
+            "dedicated_support": "Support dédié",
+            "custom_contract": "Contrat personnalisé & DPA"
         }
     },
     "teams": {

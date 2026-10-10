@@ -6,7 +6,6 @@ use Domain\Channel\Exceptions\ChannelConnectException;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Services\ChannelConnectionGuard;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Pest\Expectation;
 
 /**
@@ -20,7 +19,6 @@ it('turns a unique-index clash into a taken-by-another-agent failure', function 
         'page_access_token' => 'token',
         'page_id' => 'PAGE-1',
         'page_name' => 'Acme',
-        'webhook_secret' => Str::random(48),
         'enabled' => true,
     ]);
 

@@ -10,7 +10,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The self-serve sign-up form (open only when REGISTRATION_ENABLED is on):
+ * The self-serve sign-up form (open only when `billing.registration_enabled`
+ * is on, the "Open sign-up" option in the admin panel):
  * shows it, creates the workspace account and signs the new owner in.
  */
 class RegisteredUserController

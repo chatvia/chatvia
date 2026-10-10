@@ -28,7 +28,7 @@ function rateLimitedChannelAgent(): Agent
     app(TeamService::class)->createDefaultTeam($owner);
 
     $priceId = 'price_test_pro_'.Str::random(6);
-    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
     $owner->billing()->firstOrCreate([]);
     $owner->refresh();
     $owner->billing->subscriptions()->create([

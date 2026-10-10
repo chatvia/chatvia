@@ -139,11 +139,6 @@
                 "ends": "Tilbuddet slutter {date} – gå ikke glip af det!",
                 "limited": "Tidsbegrænset rabat på alle betalte abonnementer!",
                 "off": "{percent}% RABAT"
-            },
-            "llms": {
-                "title": "Tilgængelige AI-modeller",
-                "description": "Vælg fra vores brede udvalg af avancerede sprogmodeller",
-                "empty": "Ingen modeller tilgængelige"
             }
         },
         "addons": {

@@ -52,7 +52,7 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
     $team = app(TeamService::class)->createDefaultTeam($owner);
     UserQuota::firstOrCreate(
         ['user_id' => $owner->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     );
 
     // Active billing cycle: 1000 base messages, started 5 days ago. The billed
@@ -129,7 +129,7 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
     // Usage panel reads the same credit math plus the quota row limits.
     expect($stats['usage']['plan'])->toBeString()
         ->and($stats['usage']['messages'])->toBe(['used' => 11, 'limit' => 1000, 'remaining' => 989])
-        ->and($stats['usage']['pages']['limit'])->toBe(config('billing.packages.starter.quota_limits.fixed.pages_limit'))
+        ->and($stats['usage']['pages']['limit'])->toBe(planFixedLimits()['pages_limit'])
         ->and($stats['usage']['pages']['used'])->toBe(0)
         ->and($stats['usage']['minutes']['used'])->toBe(0)
         ->and($stats['usage']['links']['used'])->toBe(0);
@@ -139,7 +139,7 @@ it('returns a zeroed trend and member count when no team is passed', function ()
     $owner = User::factory()->create();
     UserQuota::firstOrCreate(
         ['user_id' => $owner->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     );
 
     $stats = app(GetDashboardStatsAction::class)->execute($owner, null)->toArray();

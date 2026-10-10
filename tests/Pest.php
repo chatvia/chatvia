@@ -13,6 +13,8 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Billing\Models\BillingAddon;
+use Domain\Billing\Models\BillingPlan;
 use Domain\Billing\Services\UserCreditSystem;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
@@ -144,7 +146,7 @@ function fakeLlmCompletion(string $content): void
 function proPlanAgent(): Agent
 {
     $priceId = 'price_test_pro_'.Str::random(6);
-    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
 
     $agent = Agent::factory()->create();
 
@@ -162,4 +164,43 @@ function proPlanAgent(): Agent
     $agent->user->refresh();
 
     return $agent;
+}
+
+/**
+ * Change one of the migrated plans (`starter`, `standard`, `pro`,
+ * `enterprise`) for a test, e.g. its Stripe price ids. Saved through Eloquent,
+ * so the billing catalog cache is cleared as it is in the admin panel.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function updateBillingPlan(string $key, array $attributes): BillingPlan
+{
+    $plan = BillingPlan::query()->where('key', $key)->firstOrFail();
+    $plan->update($attributes);
+
+    return $plan;
+}
+
+/**
+ * Change one of the migrated add-ons (keyed by its enum value) for a test.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function updateBillingAddon(string $key, array $attributes): BillingAddon
+{
+    $addon = BillingAddon::query()->where('key', $key)->firstOrFail();
+    $addon->update($attributes);
+
+    return $addon;
+}
+
+/**
+ * A plan's fixed (cycle-independent) limits, as `user_quotas` columns, for
+ * seeding a quota row.
+ *
+ * @return array<string, int>
+ */
+function planFixedLimits(string $key = 'starter'): array
+{
+    return BillingPlan::query()->where('key', $key)->firstOrFail()->quota_limits['fixed'];
 }

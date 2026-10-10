@@ -180,10 +180,12 @@ npm run build
 
 ### Database
 
-- Never edit a migration that is already on `main`. Add a new migration
-  instead.
-- Some enum-like columns have Postgres `CHECK` constraints. Adding a new value
-  needs a migration that updates the constraint.
+- Until the first release, each table has one create migration. Put a schema
+  change into that migration instead of adding a new one, and do not add
+  data-fix migrations. (From the first release on, migrations only move
+  forward.)
+- Some enum-like columns have Postgres `CHECK` constraints. A new value goes
+  into the column's `enum()` list in its create migration.
 - Key workspace data to the workspace **owner** (`$agent->user_id`,
   `$user->workspace()->id`), not to the teammate who is acting.
 
@@ -237,7 +239,7 @@ and commit the regenerated file. Do not edit it by hand.
 - [ ] `composer ci:check` passes on your machine.
 - [ ] You added or updated tests, and new Actions have a unit test.
 - [ ] New classes have a docblock that says what they are for.
-- [ ] No existing migration was edited (schema changes use a new migration).
+- [ ] Schema changes are in the table's create migration (no new `add_*` migration).
 - [ ] New listeners are registered in `DomainServiceProvider`.
 - [ ] New UI text goes through vue-i18n (fragments + `npm run i18n:merge`).
 - [ ] `resources/types/generated.d.ts` is regenerated if a `#[TypeScript]`

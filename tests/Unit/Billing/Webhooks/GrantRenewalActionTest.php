@@ -29,9 +29,9 @@ function grInvoice(string $customerId, string $reason, array $metadata = [], str
 }
 
 beforeEach(function (): void {
-    config([
-        'billing.packages.standard.stripe_monthly_price_id' => 'price_standard_monthly',
-        'billing.packages.standard.stripe_yearly_price_id' => 'price_standard_yearly',
+    updateBillingPlan('standard', [
+        'stripe_monthly_price_id' => 'price_standard_monthly',
+        'stripe_yearly_price_id' => 'price_standard_yearly',
     ]);
 });
 
@@ -90,4 +90,36 @@ it('clears a scheduled plan change once the renewal applied it', function (): vo
     ]));
 
     expect($owner->fresh()->billing->plan)->toBe('standard');
+});
+
+it('grants the plan a renewal on a legacy price paid for, with that price interval', function (): void {
+    updateBillingPlan('pro', ['legacy_stripe_price_ids' => ['price_pro_2025_yearly' => 'yearly']]);
+    $owner = User::factory()->workspace()->create();
+    $owner->billing()->updateOrCreate([], ['stripe_id' => 'cus_legacy']);
+
+    app(GrantRenewalAction::class)->execute(grInvoice('cus_legacy', 'subscription_cycle', priceId: 'price_pro_2025_yearly'));
+
+    expect($owner->fresh()->billing->plan)->toBe('pro')
+        ->and(UserCredit::query()->where('user_id', $owner->id)->value('messages'))->toBe(648000);
+});
+
+it('skips a renewal that bills an add-on price, even without add-on metadata', function (): void {
+    updateBillingAddon('members', [
+        'stripe_price_id' => 'price_members_now',
+        'legacy_stripe_price_ids' => ['price_members_2025'],
+    ]);
+    $owner = User::factory()->workspace()->create();
+    $billing = $owner->billing()->updateOrCreate([], ['stripe_id' => 'cus_addon_price']);
+    // The plan subscription the old fallback would have re-granted.
+    $billing->subscriptions()->create([
+        'type' => 'default',
+        'stripe_id' => 'sub_plan_cus_addon_price',
+        'stripe_status' => 'active',
+        'stripe_price' => 'price_standard_monthly',
+        'quantity' => 1,
+    ]);
+
+    app(GrantRenewalAction::class)->execute(grInvoice('cus_addon_price', 'subscription_cycle', priceId: 'price_members_2025'));
+
+    expect(UserCredit::query()->where('user_id', $owner->id)->exists())->toBeFalse();
 });

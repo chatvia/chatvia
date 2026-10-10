@@ -49,7 +49,7 @@ function invitationFlowOwner(): User
 
     UserQuota::firstOrCreate(
         ['user_id' => $owner->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     );
 
     app(TeamService::class)->createDefaultTeam($owner);

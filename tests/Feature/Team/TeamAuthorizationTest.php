@@ -31,7 +31,7 @@ beforeEach(function (): void {
         $user->billing()->firstOrCreate([]);
         UserQuota::firstOrCreate(
             ['user_id' => $user->id],
-            config('billing.packages.starter.quota_limits.fixed', []),
+            planFixedLimits(),
         );
     }
 

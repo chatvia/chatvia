@@ -7,7 +7,6 @@ use Domain\Channel\Instagram\Services\InstagramThreadResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Session;
-use Illuminate\Support\Str;
 use Tests\Support\Instagram\FakeInstagramClient;
 
 /**
@@ -26,7 +25,6 @@ function instagramResolverAccount(): AgentInstagramAccount
         'page_id' => '998877',
         'ig_id' => '17840012345',
         'username' => 'acme.support',
-        'webhook_secret' => Str::random(48),
         'enabled' => true,
     ]);
 }

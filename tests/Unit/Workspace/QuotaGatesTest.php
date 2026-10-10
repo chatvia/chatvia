@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
+use Domain\Billing\Models\BillingPlan;
 use Domain\Billing\Models\UserQuota;
 
 /**
@@ -24,11 +25,11 @@ it('quota gates fall back to the default package when the account has no quota r
 });
 
 it('uses the configured default-package limits as the fallback values', function (): void {
-    config([
-        'billing.default_package' => 'starter',
-        'billing.packages.starter.quota_limits.fixed.workspace_users_limit' => 5,
-        'billing.packages.starter.quota_limits.fixed.teams_limit' => 2,
-    ]);
+    $starter = BillingPlan::query()->where('key', 'starter')->firstOrFail();
+    $limits = $starter->quota_limits;
+    $limits['fixed']['workspace_users_limit'] = 5;
+    $limits['fixed']['teams_limit'] = 2;
+    updateBillingPlan('starter', ['is_default' => true, 'quota_limits' => $limits]);
 
     $user = User::factory()->create(['type' => UserType::Workspace]);
     $user->quota()->delete();
@@ -54,7 +55,7 @@ it('lets the Members add-on lift the workspace seat limit past the plan base', f
     // base plan: no seats free beyond those already in use.
     UserQuota::firstOrCreate(
         ['user_id' => $user->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     );
 
     $user->quota()->update([

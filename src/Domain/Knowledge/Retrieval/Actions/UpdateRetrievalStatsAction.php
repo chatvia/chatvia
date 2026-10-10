@@ -22,11 +22,9 @@ class UpdateRetrievalStatsAction
     private const int TEXT_LABEL_LENGTH = 80;
 
     /**
-     * Each entry is a `{chunkable_type, chunkable_id}` pair. Jobs queued by an
-     * older release pass full search-result rows (stdClass) instead; only the
-     * two keys are read, so both shapes work.
+     * Each entry is a `{chunkable_type, chunkable_id}` pair.
      *
-     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}|object>  $results
+     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
      */
     public function execute(array $results, int $agentId): void
     {
@@ -35,9 +33,9 @@ class UpdateRetrievalStatsAction
         foreach ($this->idsByType($results) as $type => $ids) {
             // chunks.chunkable_type stores the morph alias (e.g. "source_file");
             // agent_sources.sourceable_type stores the same alias.
-            $class = Relation::getMorphedModel($type) ?? $type;
+            $class = Relation::getMorphedModel($type);
 
-            if (! class_exists($class)) {
+            if ($class === null || ! class_exists($class)) {
                 continue;
             }
 
@@ -64,15 +62,15 @@ class UpdateRetrievalStatsAction
     }
 
     /**
-     * @param  array<int, array<string, mixed>|object>  $results
+     * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
      * @return Collection<string, Collection<int, int>> distinct source ids per morph alias
      */
     private function idsByType(array $results): Collection
     {
         return collect($results)
-            ->groupBy(fn (array|object $result): string => (string) data_get($result, 'chunkable_type'))
+            ->groupBy(fn (array $result): string => (string) $result['chunkable_type'])
             ->map(fn (Collection $group): Collection => $group
-                ->map(fn (array|object $result): int => (int) data_get($result, 'chunkable_id'))
+                ->map(fn (array $result): int => (int) $result['chunkable_id'])
                 ->unique()
                 ->values());
     }

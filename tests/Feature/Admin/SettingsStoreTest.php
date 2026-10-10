@@ -4,6 +4,7 @@ use App\Admin\Settings\AdminSetting;
 use App\Admin\Settings\SettingGroup;
 use App\Admin\Settings\SettingsStore;
 use App\Admin\Settings\SettingStatus;
+use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -134,56 +135,29 @@ it('keeps a blank secret and drops other blank fields when saving an edit', func
 it('maps every field to a config key that exists', function (): void {
     foreach (SettingGroup::cases() as $group) {
         foreach ($group->fields() as $field) {
-            expect(config()->has($field->config))->toBeTrue("{$group->value}.{$field->name} → {$field->config}");
+            foreach ([$field->config, ...array_keys($field->alsoFills)] as $config) {
+                expect(config()->has($config))->toBeTrue("{$group->value}.{$field->name} → {$config}");
+            }
         }
     }
 });
 
-it('moves the old .env values into the panel without overwriting saved ones', function (): void {
-    saveAdminSettings(SettingGroup::Stripe, ['key' => 'pk_saved_in_panel']);
+it('reports a group without required fields as set up once something is saved', function (): void {
+    $store = freshSettingsStore();
 
-    putenv('STRIPE_KEY=pk_from_env');
-    putenv('STRIPE_SECRET=sk_from_env');
-    putenv('FIRECRAWL_API_KEY=fc_from_env');
-
-    try {
-        (require database_path('migrations/2026_10_09_204518_move_env_credentials_into_admin_settings.php'))->up();
-    } finally {
-        putenv('STRIPE_KEY');
-        putenv('STRIPE_SECRET');
-        putenv('FIRECRAWL_API_KEY');
-    }
-
-    expect(AdminSetting::forGroup(SettingGroup::Stripe)->payload)->toBe(['key' => 'pk_saved_in_panel', 'secret' => 'sk_from_env'])
-        ->and(AdminSetting::forGroup(SettingGroup::Firecrawl)->payload)->toBe(['api_key' => 'fc_from_env'])
-        ->and(AdminSetting::query()->where('key', SettingGroup::Mistral)->exists())->toBeFalse();
+    expect($store->status(SettingGroup::Billing, null))->toBe(SettingStatus::Missing)
+        ->and($store->status(SettingGroup::Billing, saveAdminSettings(SettingGroup::Billing, ['enabled' => '0'])))->toBe(SettingStatus::Configured);
 });
 
-it('copies the one shared Meta app from .env into each channel', function (): void {
-    $env = [
-        'META_APP_ID' => '1029384756',
-        'META_APP_SECRET' => 'meta-secret',
-        'META_WEBHOOK_VERIFY_TOKEN' => 'verify-me',
-        'META_LOGIN_CONFIG_ID' => 'cfg-shared',
-        'META_INSTAGRAM_LOGIN_CONFIG_ID' => 'cfg-instagram',
-        'META_WHATSAPP_REGISTER_PIN' => '482915',
-    ];
+it('reads the table directly when the cache is unreachable', function (): void {
+    Exceptions::fake();
+    saveAdminSettings(SettingGroup::GoogleLogin, ['client_id' => 'saved-id']);
 
-    foreach ($env as $name => $value) {
-        putenv("{$name}={$value}");
-    }
+    $cache = Mockery::mock(Repository::class);
+    $cache->shouldReceive('rememberForever')->andThrow(new RuntimeException('cache down'));
 
-    try {
-        (require database_path('migrations/2026_10_09_204518_move_env_credentials_into_admin_settings.php'))->up();
-    } finally {
-        foreach (array_keys($env) as $name) {
-            putenv($name);
-        }
-    }
+    new SettingsStore(app('config'), $cache, app('db'))->apply();
 
-    $app = ['app_id' => '1029384756', 'app_secret' => 'meta-secret', 'webhook_verify_token' => 'verify-me'];
-
-    expect(AdminSetting::forGroup(SettingGroup::Messenger)->payload)->toBe([...$app, 'config_id' => 'cfg-shared'])
-        ->and(AdminSetting::forGroup(SettingGroup::Instagram)->payload)->toBe([...$app, 'config_id' => 'cfg-instagram'])
-        ->and(AdminSetting::forGroup(SettingGroup::Whatsapp)->payload)->toBe([...$app, 'config_id' => 'cfg-shared', 'register_pin' => '482915']);
+    expect(config('services.google.client_id'))->toBe('saved-id');
+    Exceptions::assertReported(RuntimeException::class);
 });

@@ -213,8 +213,9 @@ php artisan event:cache
 php artisan view:cache
 ```
 
-Do **not** run `php artisan route:cache`. The translated public pages use
-routes that the route cache cannot store.
+Do **not** run `php artisan route:cache` (or `php artisan optimize`). The
+app's addresses start with the language (`/en/…`), and some routes depend on
+the billing settings in the admin panel; the route cache cannot store either.
 
 Run `config:cache` again every time you change `.env`.
 
@@ -232,7 +233,7 @@ section is for.
 | Mail | How e-mail is sent. |
 | Broadcasting / Reverb | The WebSocket server. |
 | Storage | Where files are kept (see [Files and storage](#files-and-storage)). |
-| Billing | Paid plans on or off (see [Billing, sign-up and the public site](#billing-sign-up-and-the-public-site)). |
+| Billing | Only the locale for money amounts. Billing itself is set in the admin panel (see [Billing and sign-up](#billing-and-sign-up)). |
 | AI providers | Which service does each AI step. See [AI providers](./ai-providers.md). |
 | Binaries | Paths to LibreOffice, poppler, pandoc, ffmpeg and Chrome. |
 | Security | Built-in tool secret, trusted proxies, cookies, content security policy, rate limits. |
@@ -240,13 +241,44 @@ section is for.
 | Observability | Error reports, Horizon alerts, Pulse, Telescope, the AI request log. |
 | Advanced tuning | Search, tools, retention and audit settings. The defaults are fine for most installs. |
 
-### Billing, sign-up and the public site
+### Billing and sign-up
+
+Billing and sign-up are not set in `.env`. Set them in the admin panel,
+under **Settings → Billing**:
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| Paid plans | Off | Off: you do not need Stripe. Every workspace gets every feature, there are no quotas, messages are not counted, and the billing pages are off. On: you sell plans with Stripe; then also add the Stripe keys under **Settings → Billing**. |
+| Open sign-up | On while paid plans are off | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Turn it off after you have created your accounts. You can still invite teammates. |
+| Days to keep conversations | `366` | How many days conversations are kept while paid plans are off. |
+
+The same page sets the free trial, the currency, a discount and the most
+automatic credit top-ups per day. A change applies from the next request.
+Turning paid plans off does not cancel subscriptions in Stripe: cancel them
+in the Stripe dashboard.
+
+#### Plans and add-ons
+
+With paid plans on, set up what you sell under **Billing → Plans** and
+**Billing → Add-ons** in the admin panel:
+
+- A plan has a name, a monthly and a yearly price, its limits (messages,
+  agents, pages, website links, audio and video minutes, custom domains,
+  members, teams), the features it turns on, and how long conversations are
+  kept. The list of features on the plan card is made from these values, in
+  every language. You can also tick highlights such as "SSO / SAML", and add
+  your own lines.
+- When you save, Chatvia creates the product and the prices in your Stripe
+  account. Stripe prices cannot be changed, so a new amount creates a new
+  price: new customers pay it, and existing subscribers keep their old price.
+- **Check against Stripe** compares your saved prices with the prices in
+  Stripe, without changing anything. Use it before you save, if you already
+  sell plans through Stripe.
+- A plan's key (for example `starter`) cannot be changed. A plan that has
+  subscribers can be archived, not deleted.
 
 | Setting | Value in `.env.example` | What it does |
 | --- | --- | --- |
-| `BILLING_ENABLED` | `false` | With `false` you do not need Stripe. Every workspace gets every feature, there are no quotas, messages are not counted, and the billing pages are off. Set `true` to sell plans with Stripe; then add the Stripe keys in the admin panel (**Settings → Billing**). |
-| `REGISTRATION_ENABLED` | on when billing is off | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Set it to `false` after you have created your accounts. You can still invite teammates. |
-| `CONVERSATION_RETENTION_DAYS` | `366` | How many days conversations are kept when billing is off. |
 | `FEATURE_YOUTUBE_SOURCES` | `false` | YouTube videos as sources. This feature is not finished: videos are saved but not read yet. |
 
 ### Your brand
@@ -355,7 +387,7 @@ Before you open the install to other people, check these settings:
 | `REVERB_APP_SECRET` | A long random value. |
 | `CSP_MODE` | Starts as `report-only`. Switch to `enforce` when the reports are clean. |
 | `DB_SSLMODE` | `require` or `verify-full` when the database is on another server. |
-| `REGISTRATION_ENABLED` | `false` once your accounts exist, unless you want open sign-up. |
+| Open sign-up (admin panel, **Settings → Billing**) | Off once your accounts exist, unless you want open sign-up. |
 
 Chat answers stream as server-sent events. Chatvia sends the header
 `X-Accel-Buffering: no`; make sure no proxy between the app and the browser
@@ -396,9 +428,9 @@ php artisan reverb:restart
 Then reload PHP-FPM, so it loads the new code. Rebuild the widget when the
 `widget/` folder changed.
 
-Migrations only move forward; Chatvia never changes a migration that was
-already released. Queue workers keep running old code until they restart,
-which is why `horizon:terminate` is part of every upgrade.
+From the first release on, migrations only move forward: a released
+migration is never changed. Queue workers keep running old code until they
+restart, which is why `horizon:terminate` is part of every upgrade.
 
 ## Next steps
 

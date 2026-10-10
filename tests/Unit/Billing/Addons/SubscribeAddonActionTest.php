@@ -15,7 +15,7 @@ use Domain\Billing\Exceptions\AddonNotConfiguredException;
  * live API and is not covered here.
  */
 it('throws AddonNotConfiguredException when the add-on price is missing', function (Addon $addon, string $message): void {
-    config(["billing.addons.{$addon->value}.stripe_price_id" => null]);
+    updateBillingAddon($addon->value, ['stripe_price_id' => null]);
     $user = User::factory()->create();
 
     expect(fn () => app(SubscribeAddonAction::class)->execute(new SubscribeAddonData(
@@ -25,14 +25,14 @@ it('throws AddonNotConfiguredException when the add-on price is missing', functi
         urls: new CheckoutUrlsData(successUrl: 'https://example.test/ok', cancelUrl: 'https://example.test/back'),
     )))->toThrow(AddonNotConfiguredException::class, $message);
 })->with([
-    'custom domains' => [Addon::CustomDomains, 'Custom Domain addon is not configured. Set STRIPE_CUSTOM_DOMAIN_PRICE_ID in your environment.'],
-    'extra agents' => [Addon::ExtraAgents, 'Extra Agents addon is not configured. Set STRIPE_EXTRA_AGENT_PRICE_ID in your environment.'],
-    'members' => [Addon::Members, 'Members addon is not configured. Set STRIPE_MEMBERS_PRICE_ID in your environment.'],
-    'remove branding' => [Addon::RemoveBranding, 'Remove Branding addon is not configured. Set STRIPE_REMOVE_BRANDING_PRICE_ID in your environment.'],
+    'custom domains' => [Addon::CustomDomains, 'Custom Domain addon is not configured. Set its Stripe price in the admin panel.'],
+    'extra agents' => [Addon::ExtraAgents, 'Extra Agents addon is not configured. Set its Stripe price in the admin panel.'],
+    'members' => [Addon::Members, 'Members addon is not configured. Set its Stripe price in the admin panel.'],
+    'remove branding' => [Addon::RemoveBranding, 'Remove Branding addon is not configured. Set its Stripe price in the admin panel.'],
 ]);
 
 it('needs no checkout for a yes/no add-on the workspace already has', function (): void {
-    config(['billing.addons.remove_branding.stripe_price_id' => 'price_remove_branding']);
+    updateBillingAddon('remove_branding', ['stripe_price_id' => 'price_remove_branding']);
 
     $user = User::factory()->workspace()->create();
     $user->billing()->firstOrCreate([])->subscriptions()->create([

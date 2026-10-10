@@ -42,10 +42,10 @@ function subscriptionFlowOwner(string $stripeCustomerId): User
 it('schedules a plan change on Stripe and redirects back with a success flash', function (): void {
     $this->travelTo(Carbon::parse('2026-06-11 12:00:00'));
 
-    config([
-        'billing.packages.starter.stripe_monthly_price_id' => 'price_flow_starter_m',
-        'billing.packages.standard.stripe_monthly_price_id' => 'price_flow_standard_m',
-        'billing.packages.standard.stripe_yearly_price_id' => 'price_flow_standard_y',
+    updateBillingPlan('starter', ['stripe_monthly_price_id' => 'price_flow_starter_m']);
+    updateBillingPlan('standard', [
+        'stripe_monthly_price_id' => 'price_flow_standard_m',
+        'stripe_yearly_price_id' => 'price_flow_standard_y',
     ]);
 
     $periodStart = now()->subDays(20)->getTimestamp();
@@ -157,7 +157,7 @@ it('redirects back with an error flash when the owner has no active subscription
 it('cancels the subscription into a grace period that ends with the current cycle', function (): void {
     $this->travelTo(Carbon::parse('2026-06-11 12:00:00'));
 
-    config(['billing.packages.starter.stripe_monthly_price_id' => 'price_flow_starter_m']);
+    updateBillingPlan('starter', ['stripe_monthly_price_id' => 'price_flow_starter_m']);
 
     $trialEndsAt = now()->addDays(5);
 
@@ -211,10 +211,8 @@ it('cancels the subscription into a grace period that ends with the current cycl
 });
 
 it('creates a Stripe Checkout session for a trial signup and redirects the guest to it', function (): void {
-    config([
-        'billing.packages.standard.stripe_monthly_price_id' => 'price_flow_trial_standard_m',
-        'billing.trial.days' => 7,
-    ]);
+    updateBillingPlan('standard', ['stripe_monthly_price_id' => 'price_flow_trial_standard_m']);
+    config(['billing.trial.days' => 7]);
 
     $stripe = subscriptionFlowStripeClient();
 
@@ -262,11 +260,24 @@ it('creates a Stripe Checkout session for a trial signup and redirects the guest
 });
 
 it('rejects a trial checkout for an unknown package without touching Stripe', function (): void {
-    // Validation stops in:starter,standard,pro before the action runs, so a
-    // bogus package can never reach the (unbound, would-be-real) Stripe client.
+    // Validation accepts only the self-serve plans (not contact-sales
+    // Enterprise, not archived ones) before the action runs, so a bogus
+    // package can never reach the (unbound, would-be-real) Stripe client.
     $this->from(route('home'))
         ->post(route('trial.checkout'), [
             'package' => 'enterprise',
+            'yearly' => false,
+        ])
+        ->assertRedirect(route('home'))
+        ->assertSessionHasErrors('package');
+});
+
+it('rejects a trial checkout for an archived plan without touching Stripe', function (): void {
+    updateBillingPlan('standard', ['is_active' => false]);
+
+    $this->from(route('home'))
+        ->post(route('trial.checkout'), [
+            'package' => 'standard',
             'yearly' => false,
         ])
         ->assertRedirect(route('home'))

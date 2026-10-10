@@ -5,8 +5,8 @@ import { Label } from '@/components/ui/label';
 import { useI18n } from 'vue-i18n';
 
 defineProps<{
-    /** The "save X%" text on the yearly option. */
-    savingsText: string;
+    /** The "save X%" badge on the yearly option, or null for no badge. */
+    savingsText: string | null;
 }>();
 
 const isYearly = defineModel<boolean>({ required: true });
@@ -41,7 +41,7 @@ const { t } = useI18n();
                 "
             >
                 {{ t('billing.plans.yearly') }}
-                <Badge variant="secondary" class="text-xs">{{ savingsText }}</Badge>
+                <Badge v-if="savingsText" variant="secondary" class="text-xs">{{ savingsText }}</Badge>
             </Label>
         </div>
     </div>

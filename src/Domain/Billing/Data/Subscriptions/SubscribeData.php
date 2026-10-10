@@ -10,7 +10,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * Inputs for subscribing a workspace to a plan through Stripe Checkout.
- * `package` is the plan's key in `config('billing.packages')`.
+ * `package` is the plan's key (`billing_plans.key`).
  */
 class SubscribeData extends Data
 {

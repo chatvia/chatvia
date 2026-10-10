@@ -394,8 +394,13 @@ declare namespace Domain {
                         retentionDays: number;
                     };
                     export type BillingPackageFeaturesData = {
-                        monthly: string[];
-                        yearly: string[];
+                        monthly: Domain.Billing.Data.Resources.Package.PlanFeatureData[];
+                        yearly: Domain.Billing.Data.Resources.Package.PlanFeatureData[];
+                    };
+                    export type PlanFeatureData = {
+                        key: Domain.Billing.Enums.PlanFeature | null;
+                        params: Record<string, number | string>;
+                        text: string | null;
                     };
                 }
                 namespace Quota {
@@ -494,6 +499,54 @@ declare namespace Domain {
                     };
                 }
             }
+        }
+        namespace Enums {
+            export type PlanFeature =
+                | 'messages_per_month'
+                | 'messages_per_year'
+                | 'messages_unlimited'
+                | 'messages_custom'
+                | 'agents'
+                | 'agents_unlimited'
+                | 'pages'
+                | 'pages_unlimited'
+                | 'pages_custom'
+                | 'links'
+                | 'links_unlimited'
+                | 'links_custom'
+                | 'minutes'
+                | 'minutes_unlimited'
+                | 'minutes_custom'
+                | 'custom_domains'
+                | 'custom_domains_unlimited'
+                | 'custom_domains_custom'
+                | 'teams'
+                | 'teams_unlimited'
+                | 'members'
+                | 'members_unlimited'
+                | 'retention'
+                | 'retention_unlimited'
+                | 'retention_custom'
+                | 'sentiment'
+                | 'tone'
+                | 'topics'
+                | 'pulse'
+                | 'handoff'
+                | 'api'
+                | 'evals'
+                | 'guardrails'
+                | 'audit'
+                | 'branding'
+                | 'network_access'
+                | 'siem_webhook'
+                | 'mcp'
+                | 'function_calling'
+                | 'custom_integrations'
+                | 'eu_data_residency'
+                | 'sso_saml'
+                | 'uptime_sla'
+                | 'dedicated_support'
+                | 'custom_contract';
         }
     }
     namespace Conversation {

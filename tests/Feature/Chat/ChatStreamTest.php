@@ -124,7 +124,7 @@ function publicStreamingAgent(): Agent
     app(TeamService::class)->createDefaultTeam($owner);
 
     $priceId = 'price_test_pro_'.Str::random(6);
-    config(['billing.packages.pro.stripe_monthly_price_id' => $priceId]);
+    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
     // UserObserver auto-provisioning is retired — create the billing row explicitly.
     $owner->billing()->firstOrCreate([]);
     $owner->refresh();

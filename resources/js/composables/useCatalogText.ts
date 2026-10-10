@@ -1,8 +1,8 @@
 import { useI18n } from 'vue-i18n';
 
 /**
- * Translate a config-sourced catalog string (connector names, billing features,
- * …) by a stable key, falling back to the raw English the server sent when no
+ * Translate a config-sourced catalog string (connector names, plan names, …)
+ * by a stable key, falling back to the raw English the server sent when no
  * translation exists for the active locale.
  *
  * The catalog text itself lives in PHP config (the English source of truth) and

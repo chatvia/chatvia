@@ -13,7 +13,7 @@ function userWithPagesQuota(int $pagesLimit = 100): User
 
     UserQuota::firstOrCreate(
         ['user_id' => $user->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     )->update(['pages_limit' => $pagesLimit]);
 
     return $user;

@@ -2,13 +2,12 @@ import { useBrand } from '@/composables/useBrand';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { ref, toValue, type MaybeRefOrGetter } from 'vue';
 import { useI18n } from 'vue-i18n';
-import type { PlanBillingConfig, PlanPackage } from '../types';
+import type { PlanPackage } from '../types';
 import { usePlanText } from './usePlanText';
 
 interface PlanSelectionOptions {
     packages: MaybeRefOrGetter<PlanPackage[]>;
     currentPackage: MaybeRefOrGetter<string>;
-    billingConfig: MaybeRefOrGetter<PlanBillingConfig>;
     isYearly: MaybeRefOrGetter<boolean>;
 }
 
@@ -23,7 +22,7 @@ type PackageAction = 'current' | 'upgrade' | 'downgrade' | 'same';
 export function usePlanSelection(options: PlanSelectionOptions) {
     const { t } = useI18n();
     const { brand } = useBrand();
-    const { planName, uiText } = usePlanText();
+    const { planName } = usePlanText();
     const page = usePage();
 
     const isSubscribing = ref(false);
@@ -72,7 +71,7 @@ export function usePlanSelection(options: PlanSelectionOptions) {
 
         switch (getPackageAction(packageId)) {
             case 'current':
-                return uiText('current_plan_text', toValue(options.billingConfig).ui.current_plan_text);
+                return t('billing.plans.current_plan');
             case 'upgrade':
                 return toValue(options.currentPackage) === 'free' ? t('billing.plans.actions.upgrade') : t('billing.plans.actions.upgrade_plan');
             case 'downgrade':

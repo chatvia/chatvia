@@ -2468,11 +2468,9 @@
                 "limited": "सभी पेड प्लान पर सीमित समय की छूट!",
                 "off": "{percent}% की छूट"
             },
-            "llms": {
-                "title": "उपलब्ध AI मॉडल",
-                "description": "अत्याधुनिक भाषा मॉडलों के हमारे व्यापक चयन में से चुनें",
-                "empty": "कोई मॉडल उपलब्ध नहीं"
-            }
+            "most_popular": "सबसे लोकप्रिय",
+            "current_plan": "मौजूदा प्लान",
+            "save_up_to_percent": "{percent}% तक बचाएं"
         },
         "addons": {
             "title": "ऐड-ऑन",
@@ -2645,178 +2643,68 @@
             "packages": {
                 "starter": {
                     "name": "Starter",
-                    "description": "शुरुआत करने वाले छोटे व्यवसायों के लिए।",
-                    "features": {
-                        "monthly": {
-                            "messages": "प्रति माह 3,000 संदेश",
-                            "agents": "2 AI एजेंट",
-                            "pages": "2,000 पेज (PDF, Word, टेक्स्ट)",
-                            "links": "2,000 वेबसाइट लिंक",
-                            "minutes": "500 मिनट ऑडियो/वीडियो",
-                            "teams": "1 टीम",
-                            "members": "5 सदस्य (टीम सदस्य + चैटर)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 दिनों का चैट इतिहास"
-                        },
-                        "yearly": {
-                            "messages": "प्रति वर्ष 39,000 संदेश",
-                            "agents": "2 AI एजेंट",
-                            "pages": "2,000 पेज (PDF, Word, टेक्स्ट)",
-                            "links": "2,000 वेबसाइट लिंक",
-                            "minutes": "500 मिनट ऑडियो/वीडियो",
-                            "teams": "1 टीम",
-                            "members": "5 सदस्य (टीम सदस्य + चैटर)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "90 दिनों का चैट इतिहास"
-                        }
-                    }
+                    "description": "शुरुआत करने वाले छोटे व्यवसायों के लिए।"
                 },
                 "standard": {
                     "name": "Standard",
-                    "description": "बढ़ती टीमों और व्यवसायों के लिए।",
-                    "features": {
-                        "monthly": {
-                            "messages": "प्रति माह 15,000 संदेश",
-                            "agents": "10 AI एजेंट",
-                            "pages": "5,000 पेज (PDF, Word, टेक्स्ट)",
-                            "links": "5,000 वेबसाइट लिंक",
-                            "minutes": "2,000 मिनट ऑडियो/वीडियो",
-                            "sentiment": "भावना विश्लेषण",
-                            "handoff": "हैंडऑफ़",
-                            "api": "API एक्सेस",
-                            "teams": "5 टीम",
-                            "members": "20 सदस्य (टीम सदस्य + चैटर)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 दिनों का चैट इतिहास"
-                        },
-                        "yearly": {
-                            "messages": "प्रति वर्ष 192,000 संदेश",
-                            "agents": "10 AI एजेंट",
-                            "pages": "5,000 पेज (PDF, Word, टेक्स्ट)",
-                            "links": "5,000 वेबसाइट लिंक",
-                            "minutes": "2,000 मिनट ऑडियो/वीडियो",
-                            "sentiment": "भावना विश्लेषण",
-                            "handoff": "हैंडऑफ़",
-                            "api": "API एक्सेस",
-                            "teams": "5 टीम",
-                            "members": "20 सदस्य (टीम सदस्य + चैटर)",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "retention": "180 दिनों का चैट इतिहास"
-                        }
-                    }
+                    "description": "बढ़ती टीमों और व्यवसायों के लिए।"
                 },
                 "pro": {
                     "name": "Pro",
-                    "description": "उन संगठनों के लिए जिन्हें सब कुछ चाहिए।",
-                    "features": {
-                        "monthly": {
-                            "messages": "प्रति माह 50,000 संदेश",
-                            "agents": "20 AI एजेंट",
-                            "pages": "10,000 पेज (PDF, Word, टेक्स्ट)",
-                            "links": "10,000 वेबसाइट लिंक",
-                            "minutes": "10,000 मिनट ऑडियो/वीडियो",
-                            "sentiment": "भावना विश्लेषण",
-                            "tone": "टोन विश्लेषण",
-                            "topics": "विषय विश्लेषण",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "हैंडऑफ़",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API एक्सेस",
-                            "integrations": "कस्टम इंटीग्रेशन",
-                            "branding": "व्हाइट-लेबल (Chatvia ब्रांडिंग हटाएं)",
-                            "teams": "10 टीम",
-                            "members": "100 सदस्य (टीम सदस्य + चैटर)",
-                            "retention": "366 दिनों का चैट इतिहास"
-                        },
-                        "yearly": {
-                            "messages": "प्रति वर्ष 648,000 संदेश",
-                            "agents": "20 AI एजेंट",
-                            "pages": "10,000 पेज (PDF, Word, टेक्स्ट)",
-                            "links": "10,000 वेबसाइट लिंक",
-                            "minutes": "10,000 मिनट ऑडियो/वीडियो",
-                            "sentiment": "भावना विश्लेषण",
-                            "tone": "टोन विश्लेषण",
-                            "topics": "विषय विश्लेषण",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "हैंडऑफ़",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API एक्सेस",
-                            "integrations": "कस्टम इंटीग्रेशन",
-                            "branding": "व्हाइट-लेबल (Chatvia ब्रांडिंग हटाएं)",
-                            "teams": "10 टीम",
-                            "members": "100 सदस्य (टीम सदस्य + चैटर)",
-                            "retention": "366 दिनों का चैट इतिहास"
-                        }
-                    }
+                    "description": "उन संगठनों के लिए जिन्हें सब कुछ चाहिए।"
                 },
                 "enterprise": {
                     "name": "Enterprise",
-                    "description": "सुरक्षा, अनुपालन और स्केल आवश्यकताओं वाले संगठनों के लिए।",
-                    "features": {
-                        "monthly": {
-                            "messages": "कस्टम संदेश वॉल्यूम",
-                            "agents": "असीमित AI एजेंट",
-                            "pages": "कस्टम नॉलेज बेस",
-                            "links": "कस्टम वेबसाइट लिंक",
-                            "minutes": "कस्टम ऑडियो/वीडियो",
-                            "sentiment": "भावना विश्लेषण",
-                            "tone": "टोन विश्लेषण",
-                            "topics": "विषय विश्लेषण",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "हैंडऑफ़",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API एक्सेस",
-                            "integrations": "कस्टम इंटीग्रेशन",
-                            "branding": "व्हाइट-लेबल (Chatvia ब्रांडिंग हटाएं)",
-                            "residency": "EU डेटा रेज़िडेंसी",
-                            "sso": "SSO / SAML",
-                            "sla": "अपटाइम SLA",
-                            "support": "समर्पित सहायता",
-                            "dpa": "कस्टम अनुबंध और DPA",
-                            "teams": "असीमित टीमें",
-                            "members": "असीमित सदस्य",
-                            "retention": "कस्टम डेटा रिटेंशन"
-                        },
-                        "yearly": {
-                            "messages": "कस्टम संदेश वॉल्यूम",
-                            "agents": "असीमित AI एजेंट",
-                            "pages": "कस्टम नॉलेज बेस",
-                            "links": "कस्टम वेबसाइट लिंक",
-                            "minutes": "कस्टम ऑडियो/वीडियो",
-                            "sentiment": "भावना विश्लेषण",
-                            "tone": "टोन विश्लेषण",
-                            "topics": "विषय विश्लेषण",
-                            "pulse": "Conversation Pulse",
-                            "handoff": "हैंडऑफ़",
-                            "mcp": "MCP",
-                            "function_calling": "Function Calling",
-                            "api": "API एक्सेस",
-                            "integrations": "कस्टम इंटीग्रेशन",
-                            "branding": "व्हाइट-लेबल (Chatvia ब्रांडिंग हटाएं)",
-                            "residency": "EU डेटा रेज़िडेंसी",
-                            "sso": "SSO / SAML",
-                            "sla": "अपटाइम SLA",
-                            "support": "समर्पित सहायता",
-                            "dpa": "कस्टम अनुबंध और DPA",
-                            "teams": "असीमित टीमें",
-                            "members": "असीमित सदस्य",
-                            "retention": "कस्टम डेटा रिटेंशन"
-                        }
-                    }
+                    "description": "सुरक्षा, अनुपालन और स्केल आवश्यकताओं वाले संगठनों के लिए।"
                 }
-            },
-            "ui": {
-                "yearly_savings_text": "20% बचाएं",
-                "popular_badge_text": "सबसे लोकप्रिय",
-                "current_plan_text": "मौजूदा प्लान"
             }
+        },
+        "features": {
+            "messages_per_month": "प्रति माह {count} संदेश | प्रति माह {count} संदेश",
+            "messages_per_year": "प्रति वर्ष {count} संदेश | प्रति वर्ष {count} संदेश",
+            "messages_unlimited": "असीमित संदेश",
+            "messages_custom": "कस्टम संदेश वॉल्यूम",
+            "agents": "{count} AI एजेंट | {count} AI एजेंट",
+            "agents_unlimited": "असीमित AI एजेंट",
+            "pages": "{count} पेज (PDF, Word, टेक्स्ट) | {count} पेज (PDF, Word, टेक्स्ट)",
+            "pages_unlimited": "असीमित पेज (PDF, Word, टेक्स्ट)",
+            "pages_custom": "कस्टम नॉलेज बेस",
+            "links": "{count} वेबसाइट लिंक | {count} वेबसाइट लिंक",
+            "links_unlimited": "असीमित वेबसाइट लिंक",
+            "links_custom": "कस्टम वेबसाइट लिंक",
+            "minutes": "{count} मिनट ऑडियो/वीडियो | {count} मिनट ऑडियो/वीडियो",
+            "minutes_unlimited": "असीमित मिनट ऑडियो/वीडियो",
+            "minutes_custom": "कस्टम ऑडियो/वीडियो",
+            "teams": "{count} टीम | {count} टीमें",
+            "teams_unlimited": "असीमित टीमें",
+            "members": "{count} सदस्य (टीम सदस्य + चैटर) | {count} सदस्य (टीम सदस्य + चैटर)",
+            "members_unlimited": "असीमित सदस्य",
+            "retention": "{count} दिन का चैट इतिहास | {count} दिनों का चैट इतिहास",
+            "retention_unlimited": "असीमित चैट इतिहास",
+            "retention_custom": "कस्टम डेटा रिटेंशन",
+            "sentiment": "भावना विश्लेषण",
+            "tone": "टोन विश्लेषण",
+            "topics": "विषय विश्लेषण",
+            "pulse": "Conversation Pulse",
+            "handoff": "हैंडऑफ़",
+            "api": "API एक्सेस",
+            "evals": "मूल्यांकन",
+            "guardrails": "गार्डरेल",
+            "audit": "ऑडिट लॉग",
+            "branding": "व्हाइट-लेबल ({brand} ब्रांडिंग हटाएं)",
+            "network_access": "नेटवर्क पहुंच नियंत्रण (IP और भौगोलिक स्थान)",
+            "siem_webhook": "SIEM Webhook (रीयल-टाइम सुरक्षा इवेंट)",
+            "mcp": "MCP",
+            "function_calling": "Function Calling",
+            "custom_domains": "{count} कस्टम डोमेन | {count} कस्टम डोमेन",
+            "custom_domains_unlimited": "असीमित कस्टम डोमेन",
+            "custom_domains_custom": "कस्टम डोमेन",
+            "custom_integrations": "कस्टम इंटीग्रेशन",
+            "eu_data_residency": "EU डेटा रेज़िडेंसी",
+            "sso_saml": "SSO / SAML",
+            "uptime_sla": "अपटाइम SLA",
+            "dedicated_support": "समर्पित सहायता",
+            "custom_contract": "कस्टम अनुबंध और DPA"
         }
     },
     "teams": {

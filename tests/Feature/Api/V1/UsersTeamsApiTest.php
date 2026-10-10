@@ -24,7 +24,7 @@ beforeEach(function (): void {
     $this->user->billing()->firstOrCreate([]);
     UserQuota::firstOrCreate(
         ['user_id' => $this->user->id],
-        config('billing.packages.starter.quota_limits.fixed', []),
+        planFixedLimits(),
     );
     $this->user->quota()->update(['teams_limit' => 10]);
     $this->agent = createAgent($this->user);

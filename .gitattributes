@@ -17,11 +17,8 @@
 # Production infrastructure and deployment
 /server export-ignore
 /server.sh export-ignore
-/deploy.php export-ignore
-/.github/workflows/deploy.yml export-ignore
 /postgresql.conf export-ignore
 /Caddyfile export-ignore
-/widget/.github export-ignore
 
 # Private maintainer documents and the export tooling itself
 /internal export-ignore

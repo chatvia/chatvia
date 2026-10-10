@@ -14,6 +14,8 @@
 #   --port PORT         port on this machine         CHATVIA_PORT (8899, or the next free one)
 #   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
 #   --version VERSION   image version                CHATVIA_VERSION (latest)
+#   --image NAME        image name, without version  CHATVIA_IMAGE (ghcr.io/chatvia/chatvia)
+#   --no-pull           use the image already on this machine (a local build)
 #   --yes               no questions: use the options and the defaults
 #   --upgrade           upgrade an existing install without asking
 #   --dry-run           show what would happen and change nothing
@@ -36,6 +38,7 @@ readonly CHATVIA_DOCS="https://docs.chatvia.ai/guide/self-hosting/docker"
 readonly COMPOSE_PROJECT="chatvia-stack"
 readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
+readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 
 #------------------------------------------------------------------------------
 # Output
@@ -521,6 +524,30 @@ check_docker() {
 # Install
 #------------------------------------------------------------------------------
 
+image_ref() {
+    printf '%s:%s' "${CHATVIA_IMAGE:-$DEFAULT_IMAGE}" "$CHATVIA_VERSION"
+}
+
+# With --no-pull the image must already be here; checked before anything
+# is written.
+require_local_image() {
+    [ "$NO_PULL" = 1 ] || return 0
+    [ "$DRY_RUN" = 0 ] || return 0
+    if ! docker_cmd image inspect "$(image_ref)" >/dev/null 2>&1; then
+        die "The image $(image_ref) is not on this machine." \
+            'Build it first (docker build -t NAME:VERSION .), or run without --no-pull.'
+    fi
+}
+
+# Downloads the image, unless --no-pull uses the one already here.
+get_image() {
+    if [ "$NO_PULL" = 0 ]; then
+        run_step "$1" compose pull
+        return
+    fi
+    ok "Using the image on this machine $(dim "($(image_ref))")"
+}
+
 compose_url() {
     if [ -n "${CHATVIA_COMPOSE_URL:-}" ]; then
         printf '%s' "$CHATVIA_COMPOSE_URL"
@@ -545,7 +572,8 @@ download_compose() {
 }
 
 write_env() {
-    local secure=''
+    local secure='' image_line=''
+    [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
     (
         umask 077
@@ -560,7 +588,7 @@ write_env() {
 EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
 EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
 
-CHATVIA_VERSION=$CHATVIA_VERSION
+${image_line}CHATVIA_VERSION=$CHATVIA_VERSION
 APP_PORT=$APP_PORT
 APP_URL=$APP_URL
 ${secure}
@@ -641,6 +669,7 @@ do_install() {
     STEPS=4
     check_docker
     if command -v docker >/dev/null 2>&1; then check_existing_data; fi
+    require_local_image
 
     step 2 'Your Chatvia'
     collect_settings
@@ -666,7 +695,7 @@ do_install() {
     else
         printf '  %s %s %s\n' "$(dim "$SYM_DOT")" "Saving the settings to $(pretty_path "$INSTALL_DIR")/.env" "$(dim '(dry run)')"
     fi
-    run_step 'Downloading Chatvia (a few minutes the first time)' compose pull
+    get_image 'Downloading Chatvia (a few minutes the first time)'
     start_and_finish
 }
 
@@ -708,6 +737,7 @@ do_resume() {
     APP_URL=$(env_value APP_URL)
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     APP_PORT=${APP_PORT:-8000} APP_URL=${APP_URL:-http://localhost:${APP_PORT:-8000}} CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
+    CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
 
     step 2 'Install'
     # Used only when the earlier attempt did not make the admin account yet.
@@ -727,7 +757,7 @@ do_resume() {
         printf '\n== Finish the install %s\n' "$(date)" >>"$LOG"
     fi
     [ -f "$INSTALL_DIR/compose.yaml" ] || run_step 'Downloading compose.yaml' download_compose
-    run_step 'Downloading Chatvia' compose pull
+    get_image 'Downloading Chatvia'
     start_and_finish
 }
 
@@ -824,7 +854,7 @@ show_summary() {
     printf '  %-18s %s\n' 'Address' "$(bold "$APP_URL")"
     printf '  %-18s %s\n' 'Port' "$(bold "$APP_PORT")"
     printf '  %-18s %s %s\n' 'Search storage' "$(bold "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions")" "$(dim '(permanent)')"
-    printf '  %-18s %s\n' 'Version' "$(bold "$CHATVIA_VERSION")"
+    printf '  %-18s %s\n' 'Image' "$(bold "$(image_ref)")$( [ "$NO_PULL" = 1 ] && dim ' (already on this machine)')"
     rule
 }
 
@@ -899,6 +929,7 @@ do_upgrade() {
     APP_URL=${APP_URL:-http://localhost:$APP_PORT}
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
+    CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
 
     step 2 'Upgrade'
     if [ "$DRY_RUN" = 0 ]; then
@@ -909,7 +940,7 @@ do_upgrade() {
         warn "This install stays on version $CHATVIA_VERSION (CHATVIA_VERSION in .env)."
     fi
     run_step 'Updating compose.yaml' download_compose
-    run_step 'Downloading the new version' compose pull
+    get_image 'Downloading the new version'
     if ! run_step 'Updating the database, then restarting' compose up -d; then
         setup_failed 'The upgrade did not finish.'
     fi
@@ -941,6 +972,8 @@ parse_args() {
             --port) CHATVIA_PORT=${2:?--port needs a number}; shift ;;
             --url) CHATVIA_URL=${2:?--url needs an address}; shift ;;
             --version) CHATVIA_VERSION=${2:?--version needs a version}; shift ;;
+            --image) CHATVIA_IMAGE=${2:?--image needs a name}; shift ;;
+            --no-pull) NO_PULL=1 ;;
             --yes | -y) YES=1 ;;
             --upgrade) UPGRADE=1 ;;
             --dry-run) DRY_RUN=1 ;;
@@ -971,6 +1004,8 @@ main() {
     ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL=''
     EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
+    CHATVIA_IMAGE=${CHATVIA_IMAGE:-}
+    NO_PULL=${CHATVIA_NO_PULL:-0}
 
     setup_output
     parse_args "$@"

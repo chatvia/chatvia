@@ -6,6 +6,7 @@
  * component and is replayed to the server as `history` each turn. Clearing it
  * (reload / navigate away) wipes it.
  */
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import AssistantMessageBody from '@/components/chat/AssistantMessageBody.vue';
 import WaitingIndicator from '@/components/chat/WaitingIndicator.vue';
 import { Button } from '@/components/ui/button';
@@ -119,7 +120,7 @@ function onComposerKeydown(e: KeyboardEvent): void {
             <div ref="scrollEl" class="flex-1 space-y-6 overflow-y-auto py-6">
                 <!-- Empty state -->
                 <div v-if="messages.length === 0" class="flex h-full flex-col items-center justify-center text-center">
-                    <img src="/images/logo.svg" :alt="t('analytics_chat.logo_alt')" class="mb-5 size-14" />
+                    <AppLogoIcon :aria-label="t('analytics_chat.logo_alt')" class="mb-5 size-14" />
                     <h1 class="text-xl font-semibold">{{ t('analytics_chat.title') }}</h1>
                     <p class="text-muted-foreground mx-auto mt-1.5 max-w-md text-sm">
                         {{ t('analytics_chat.subtitle') }}

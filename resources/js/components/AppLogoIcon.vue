@@ -1,32 +1,20 @@
 <script setup lang="ts">
+/**
+ * The Chatvia mark: a "C" drawn as a speech bubble, with a dot for the reply.
+ * Inline SVG in `currentColor`, so it follows the surrounding text color and
+ * the app's light/dark theme. Size it with classes (`size-8`); pass
+ * `aria-hidden="true"` where text next to it already names the product.
+ * public/images/logo.svg and the favicons are drawn from the same paths.
+ */
 import { useBrand } from '@/composables/useBrand';
-import type { HTMLAttributes } from 'vue';
-defineOptions({
-    inheritAttrs: false,
-});
-
-interface Props {
-    className?: HTMLAttributes['class'];
-}
-
-defineProps<Props>();
 
 const { brand } = useBrand();
-// <!--        :class="['logo-adaptive', className]"-->
 </script>
 
 <template>
-    <img src="/images/logo.svg" :alt="brand.name" :class="[className]" v-bind="$attrs" />
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="currentColor" role="img" :aria-label="brand.name">
+        <path d="M44.6 18.4A18 18 0 1 0 44.6 41.6" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" />
+        <path d="M23.5 45.5 21.8 52.2C17.6 55.2 12.2 57 6.4 57.6 5.2 57.7 4.6 56.4 5.4 55.6 8.8 51.8 10.6 47 11 42L16.5 38.5Z" />
+        <circle cx="53" cy="30" r="6" />
+    </svg>
 </template>
-
-<style scoped>
-.logo-adaptive {
-    /* Light mode - dark logo */
-    filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%);
-}
-
-.dark .logo-adaptive {
-    /* Dark mode - white logo */
-    filter: brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
-}
-</style>

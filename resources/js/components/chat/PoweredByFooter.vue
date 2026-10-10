@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { useBrand } from '@/composables/useBrand';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,7 +31,7 @@ const visible = computed(() => props.show && brand.value.powered_by.enabled);
             :class="{ 'hover:text-muted-foreground/80': brand.powered_by.url }"
         >
             <!-- Decorative: the label next to it already names the product. -->
-            <img src="/images/logo.svg" alt="" class="h-3.5 w-3.5 opacity-70" />
+            <AppLogoIcon aria-hidden="true" class="h-3.5 w-3.5" />
             {{ t('chat.powered_by', { label: brand.powered_by.label }) }}
         </component>
     </div>

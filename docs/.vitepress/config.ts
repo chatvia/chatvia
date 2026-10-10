@@ -38,11 +38,11 @@ export default defineConfig({
   },
 
   head: [
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
   ],
 
   themeConfig: {
-    logo: { src: '/logo.svg', alt: 'Chatvia' },
+    logo: { light: '/logo.svg', dark: '/logo-dark.svg', alt: 'Chatvia' },
     siteTitle: 'Chatvia Docs',
 
     nav: [

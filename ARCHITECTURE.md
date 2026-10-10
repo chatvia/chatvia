@@ -801,7 +801,7 @@ folder also works on its own.
 - The in-app chat (`resources/js`) serves the dashboard, the hosted chat page
   and the playground. The widget does not share code with it.
 - `npm run shakomako:build` builds it into `public/shakomako` (the Docker
-  image and `deploy.php` run it). The build has no server settings: the widget
+  image runs it). The build has no server settings: the widget
   takes its API from the address its `embed.js` loads from (`/widget` on the
   same server), and the WebSocket (Reverb) settings from the widget settings
   response (`chatvia.widget.reverb`).

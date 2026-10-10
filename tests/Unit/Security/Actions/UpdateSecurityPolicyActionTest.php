@@ -12,11 +12,6 @@ use Domain\Security\Exceptions\UnsafeWebhookUrlException;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Event;
 
-beforeEach(function (): void {
-    // Billing off turns every plan capability on, the SIEM webhook included.
-    config(['billing.enabled' => false]);
-});
-
 function policyActor(User $user): SecurityActorData
 {
     return SecurityActorData::forUser($user, '203.0.113.7', 'TestAgent/1.0');
@@ -73,24 +68,6 @@ it('keeps the settings the form does not own', function (): void {
         ->and($fresh->webhook_events)->toBe(['auth.login'])
         ->and($fresh->scim_enabled)->toBeTrue()
         ->and($fresh->retention_audit_days)->toBe(200);
-});
-
-it('keeps the stored webhook when the plan has no SIEM webhook', function (): void {
-    config(['billing.enabled' => true]);
-    $user = User::factory()->create();
-    WorkspaceSecurityPolicy::forWorkspace($user->id)->update(['webhook_url' => 'https://old.example.com/siem']);
-
-    app(UpdateSecurityPolicyAction::class)->execute(
-        $user,
-        new SecurityPolicyFormData(webhook_url: 'https://new.example.com/siem', webhook_secret: 'shh', webhook_enabled: true),
-        policyActor($user),
-    );
-
-    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->id);
-
-    expect($fresh->webhook_url)->toBe('https://old.example.com/siem')
-        ->and($fresh->webhook_enabled)->toBeFalse()
-        ->and($fresh->webhook_secret)->toBeNull();
 });
 
 it('emits a category-specific audit event per changed group', function (): void {

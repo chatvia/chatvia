@@ -1,6 +1,5 @@
 import type { PageProps } from '@inertiajs/core';
 import type { LucideIcon } from 'lucide-vue-next';
-import type { Config } from 'ziggy-js';
 
 export interface Auth {
     user: User;
@@ -16,6 +15,11 @@ export interface NavItem {
     href: string;
     icon?: LucideIcon;
     isActive?: boolean;
+}
+
+export interface CurrentRoute {
+    name: string | null;
+    params: Record<string, string>;
 }
 
 export interface CurrentTeam {
@@ -37,7 +41,6 @@ export interface Brand {
         label: string | null;
         url: string | null;
     };
-    onboarding_video_url: string | null;
 }
 
 export interface SharedData extends PageProps {
@@ -45,18 +48,18 @@ export interface SharedData extends PageProps {
     brand?: Brand;
     quote: { message: string; author: string };
     auth: Auth;
-    ziggy: Config & { location: string };
+    // The matched route's name and raw parameters, shared by the server for
+    // active-state checks. Read them through `useCurrentRoute()`; build URLs
+    // with the Wayfinder functions in `@/routes`.
+    route: CurrentRoute;
     sidebarOpen: boolean;
     tenant: string;
-    subscribed: boolean;
-    // Paid plans on/off (config/billing.php). Read it through `useBilling()`.
-    billing?: { enabled: boolean };
     permissions: Record<number, string[]>;
     currentTeam: CurrentTeam | null;
     // Persisted UI language for the signed-in user (`auto` follows the browser).
     locale?: string;
-    // Pennant feature flags, keyed by feature name (e.g. `security`). Resolved
-    // per request from the workspace's live plan entitlement.
+    // Install-wide switches for unfinished features (`chatvia.features`), keyed
+    // by name (e.g. `youtube_sources`). Read them through `useFeature()`.
     features: Record<string, boolean>;
 
     // Chat-flow / widget contexts share the resolved agent and surface flash
@@ -95,7 +98,6 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
-    is_paid: boolean;
     // Mirrors App\Identity\Workspace\Enums\UserType. `workspace` = account owner,
     // `employee` = invited teammate/collaborator, `chatter` = widget end-user,
     // `admin` = internal Chatvia staff.
@@ -106,11 +108,6 @@ export interface User {
     // Preferred UI language key (e.g. `en`, `ar`). Null/undefined follows the
     // browser locale — see resources/js/i18n and the language switcher.
     locale?: string | null;
-    // When the user finished or skipped the first-run welcome tour. Null means
-    // not yet onboarded — the dashboard shows the welcome popup. See
-    // resources/js/components/onboarding and CompleteOnboardingController.
-    onboarded_at?: string | null;
-    capabilities?: Domain.Billing.Data.Resources.Package.BillingPackageCapabilitiesData;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

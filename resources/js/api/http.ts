@@ -3,8 +3,8 @@
  *
  * Components should not call axios directly. Each feature area gets a small
  * module in `resources/js/api/` (e.g. `api/topics.ts`) whose functions take
- * typed arguments, build the URL with Ziggy's `route()`, and return the typed
- * response body. That keeps URLs, payload shapes and error handling in one
+ * typed arguments, build the URL with the Wayfinder route functions in
+ * `@/routes` (`index.url(agentId)`), and return the typed response body. That keeps URLs, payload shapes and error handling in one
  * place and lets vue-tsc check what the pages use.
  *
  * axios already sends the XSRF token (read from the XSRF-TOKEN cookie) and an

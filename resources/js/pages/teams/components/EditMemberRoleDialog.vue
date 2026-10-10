@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { updateMember } from '@/routes/teams';
 
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
 type TeamMemberData = Domain.Membership.Team.Data.Resources.Members.TeamMemberData;
@@ -38,7 +39,7 @@ watch(member, (opened) => {
 const updateMemberRole = () => {
     if (!member.value) return;
 
-    updateMemberForm.put(route('teams.update-member', { team: props.team.external_id, member: member.value.id }), {
+    updateMemberForm.put(updateMember.url({ team: props.team.external_id, member: member.value.id }), {
         onSuccess: () => {
             member.value = null;
             updateMemberForm.reset();

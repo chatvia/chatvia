@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Viestiraja on saavutettu",
-        "upgrade_prompt": "Päivitä tilaussuunnitelmasi jatkaaksesi keskustelua",
         "regenerate_failed": "Vastausta ei voitu luoda uudelleen. Yritä uudelleen.",
         "loading_conversation": "Ladataan keskustelua",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "Palvelin palautti tilan {status}.",
             "interrupted": "Yhteys katkesi.",
             "malformed": "Palvelimelta saatiin virheellisiä tietoja."
-        }
+        },
+        "limit_resets_next_month": "Voit lähettää viestejä taas ensi kuussa."
     },
     "messages": {
         "send": "Lähetä",
@@ -140,11 +140,7 @@
         "edit_message": "Muokkaa viestiä"
     },
     "errors": {
-        "subscription_expired": "Tilaus on vanhentunut",
-        "renew_subscription": "Uudista tilaus",
         "message_limit_reached": "Viestiraja saavutettu",
-        "token_limit_reached": "Tokeni-käyttöraja saavutettu",
-        "upgrade_plan": "Päivitä suunnitelma",
         "model_unavailable": "Malli ei ole käytettävissä",
         "too_many_requests": "Liian monta pyyntöä",
         "connection_lost": "Yhteys katkesi",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Tarkistusloki",
             "head_title": "Tarkistus · {name}",
-            "description": "Kaikki toiminnot, jotka tämä agentti suorittaa työkalujen ja liitännäisten kautta — sallittu, hyväksytty, hylätty tai nopeusrajoitettu — argumentteineen, tuloksineen ja käynnistäjineen.",
-            "locked_description": "Tarkastusloki on käytettävissä Pro-tilauksessa. Päivitä nähdäksesi jokaisen työkalu- ja liitintoiminnon, jonka tämä agentti suorittaa."
+            "description": "Kaikki toiminnot, jotka tämä agentti suorittaa työkalujen ja liitännäisten kautta — sallittu, hyväksytty, hylätty tai nopeusrajoitettu — argumentteineen, tuloksineen ja käynnistäjineen."
         },
         "channels": {
             "title": "Kanavat",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— vastaus tulee näkyviin reaaliajassa"
                 },
                 "telegram": {
-                    "connected_description": "Käyttäjät voivat lähettää viestejä botillesi Telegramissa ja agenttisi vastaa automaattisesti — laskutus, historia ja suojakaiteet kaikki soveltuvat.",
+                    "connected_description": "Käyttäjät voivat lähettää viestejä botillesi Telegramissa ja agenttisi vastaa automaattisesti — viestirajat, historia ja suojakaiteet kaikki soveltuvat.",
                     "steps": {
                         "connect_1": "Avaa {botfather} Telegramissa",
                         "connect_2": "Lähetä {command} ja seuraa ohjeita",
@@ -446,7 +441,6 @@
                 "select_topic": "Valitse aihe",
                 "select_sentiment": "Valitse tunnelma",
                 "select_tone": "Valitse sävy",
-                "upgrade_to_unlock": "Päivitä avataksesi",
                 "clear_all": "Tyhjennä kaikki",
                 "close": "Käytä suodattimia"
             },
@@ -486,14 +480,12 @@
                 "page_url": "Sivun URL",
                 "referrer": "Viittaaja",
                 "locale": "Kielialue",
-                "upgrade_to_unlock": "Päivitä avataksesi",
                 "waiting": "Odotetaan analyysia…",
                 "channel": "Kanava"
             },
             "pulse": {
                 "title": "Keskustelun pulssi",
                 "select_conversation": "Valitse keskustelu nähdäksesi pulssin",
-                "locked_description": "Päivitä suunnitelmasi avataksesi keskustelupulssianalytiikan.",
                 "refresh": "Päivitä",
                 "no_messages_title": "Ei vielä tarpeeksi viestejä",
                 "no_messages_hint": "Pulssi tarvitsee vähintään yhden käyttäjäviestin analysoidakseen tunnelmaa ja sävyä ajan kuluessa.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Vakaa"
             },
             "handoff": {
-                "locked_description": "Päivitä suunnitelmasi ottaaksesi live-keskustelut haltuun chatlogista.",
                 "visitor": "Kävijä",
                 "online": "Paikalla",
                 "offline": "Poissa",
@@ -651,8 +642,7 @@
                 "pii": "Henkilötiedot",
                 "blocked_topic": "Estetty aihe",
                 "toxicity": "Myrkyllisyys"
-            },
-            "locked_description": "Suojarajat ovat käytettävissä Standard- ja Pro-tilauksissa. Päivitä hallitaksesi, mistä agenttisi voi keskustella ja miten se käsittelee arkaluonteista sisältöä."
+            }
         },
         "persona": {
             "title": "Persoona",
@@ -849,7 +839,6 @@
                     "run_deleted": "Suoritus poistettu",
                     "history_cleared": "Suoritushistoria tyhjennetty"
                 },
-                "locked_description": "Arvioinnit ovat käytettävissä Standard- ja Pro-tilauksissa. Päivitä testataksesi ja arvostellaksesi tämän agentin vastaukset ennen kuin ne tavoittavat asiakkaat.",
                 "cost_note": "Sarjan suorittaminen maksaa yhden viestin aktiivista tapausta kohden, joten tämä suoritus käyttää {count} viestin. | Sarjan suorittaminen maksaa yhden viestin aktiivista tapausta kohden, joten tämä suoritus käyttää {count} viestiä."
             },
             "scorers": {
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Sävy",
             "description": "Seuraa, miten kävijät suhtautuvat viestiensä tunnepitoiseen sävyyn.",
-            "locked_description": "Päivitä suunnitelmasi avataksesi sävyanalytiikan.",
             "disabled_title": "Sävyanalyysi on pois käytöstä",
             "disabled_description": "Ota sävyanalyysi käyttöön nähdäksesi, miten kävijät suhtautuvat keskusteluihin.",
             "blocked_reason": "Ota ensin chatin kirjaaminen käyttöön — sävyanalyysi vaatii tallennettuja viestejä.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Tunnelma",
             "description": "Seuraa positiivista, neutraalia ja negatiivista tunnelmaa kävijäviesteissä.",
-            "locked_description": "Päivitä suunnitelmasi avataksesi tunnelma-analytiikan.",
             "disabled_title": "Tunnelma-analyysi on pois käytöstä",
             "disabled_description": "Ota tunnelma-analyysi käyttöön nähdäksesi, miten kävijät suhtautuvat keskusteluihin.",
             "blocked_reason": "Ota ensin chatin kirjaaminen käyttöön — tunnelma-analyysi vaatii tallennettuja viestejä.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Hallinnoi aiheita",
                 "description": "Määrittele aiheet, jotka agenttisi tunnistaa ja luokittelee keskusteluissa.",
-                "locked_description": "Päivitä suunnitelmasi hallinnoidaksesi keskusteluaiheita.",
                 "search_placeholder": "Etsi aiheita…",
                 "add_topic": "Lisää aihe",
                 "empty": "Ei vielä aiheita. Lisää yksi auttaaksesi agenttiasi luokittelemaan keskusteluja.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "Kohteen {name} irrottaminen epäonnistui: {error}",
                 "deleted": "{name} on poistettu.",
                 "delete_failed": "Kohteen {name} poistaminen epäonnistui: {error}",
-                "usage_load_failed": "Käyttötietojen lataaminen epäonnistui.",
                 "summary_only_completed": "Yhteenveto on saatavilla vain valmiille tiedostoille.",
                 "summary_none": "Tälle tiedostolle ei ole saatavilla yhteenvetoa.",
                 "summary_load_failed": "Tiedoston yhteenvedon lataaminen epäonnistui.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Lataa äänitiedostoja",
                 "upload_title_video": "Lataa videotiedostoja",
                 "upload_title_default": "Lataa uusia asiakirjoja",
-                "quota_minutes": "minuuttia",
-                "quota_pages": "sivuja",
                 "uploads_disabled": "Tiedostojen lataaminen on poistettu käytöstä koulutuksen aikana",
                 "ready_to_train": "Valmis koulutukseen",
                 "uploaded_ready": "{count} tiedosto ladattu ja valmis koulutukseen | {count} tiedostoa ladattu ja valmiita koulutukseen",
-                "exceeds_quota": "Ylittää kiintiön",
                 "clear_all": "Tyhjennä kaikki",
                 "training": "Koulutetaan...",
                 "train": "Kouluta",
@@ -1290,9 +1272,6 @@
                     "trained": "Koulutettu",
                     "failed": "Epäonnistui"
                 },
-                "limit_all_used": "Olet käyttänyt kaikki {limit} linkkiä suunnitelmastasi. Päivitä suunnitelmasi kouluttaaksesi lisää linkkejä.",
-                "limit_critical": "Olet käyttänyt {used}/{limit} linkkiä ({percentage}%). Vain {remaining} linkkiä jäljellä koulutukseen. Harkitse suunnitelman päivittämistä.",
-                "limit_warning": "Olet käyttänyt {used}/{limit} linkkiä ({percentage}%). {remaining} linkkiä jäljellä koulutukseen.",
                 "load_failed": "Verkkolähteiden lataaminen epäonnistui.",
                 "error_enter_url": "Syötä verkkosivuston URL-osoite.",
                 "error_invalid_url": "Syötä kelvollinen URL-muoto (esim. https://example.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "Kaikkia linkkejä ei voi poistaa. Vähintään yksi linkki on jätettävä jäljelle.",
                 "links_deleted": "{count} linkki poistettu onnistuneesti. | {count} linkkiä poistettu onnistuneesti.",
                 "links_delete_failed": "Linkkien poistaminen epäonnistui.",
-                "no_links_remaining": "Linkkejä ei ole jäljellä",
-                "no_links_remaining_description": "Päivitä suunnitelmasi kouluttaaksesi verkkosivustoja.",
-                "cannot_select": "Verkkosivustoa ei voi valita",
-                "cannot_select_description": "{links} linkkiä ylittäisi kiintiön {exceedBy}:llä. Poista muiden verkkosivustojen valinta tai päivitä suunnitelmaasi.",
-                "selected_count": "Valittu {selected}/{total} verkkosivustoa",
-                "selected_skipped": "{skipped} verkkosivusto(a) ohitettu pysyäksesi {remaining} linkin rajan sisällä.",
                 "training_start_failed": "Koulutuksen aloittaminen epäonnistui: {websites}",
                 "training_start_failed_all": "Koulutuksen aloittaminen epäonnistui kaikille verkkosivustoille.",
                 "dialog_links_load_failed": "Linkkien lataaminen epäonnistui",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Indeksointirobotti",
                 "crawler_description": "Hae linkkejä verkkosivustoilta indeksointia varten ja lisää ne agentin tietokantaan.",
                 "settings": "Asetukset",
-                "links_used": "{used} / {limit} linkkiä käytetty",
-                "links_remaining": "{remaining} jäljellä",
-                "upgrade_required": "Päivitys vaaditaan lisälinkkien kouluttamiseksi",
-                "consider_upgrading": "Harkitse päivittämistä",
                 "fetching": "Haetaan...",
                 "fetch_links": "Hae linkit",
                 "crawl_settings": "Indeksointiasetukset",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} valittu ({links} linkkiä)",
                 "no_websites_selected": "Ei valittuja verkkosivustoja",
                 "train": "Kouluta",
-                "train_exceeds_quota": "Valitut linkit ({selected}) ylittävät jäljellä olevan kiintiösi ({remaining})",
                 "links_badge": "{count} linkkiä",
-                "badge_upgrade_required": "Päivitys vaaditaan",
-                "badge_exceeds_quota": "Ylittää kiintiön",
-                "no_links_remaining_plan": "Suunnitelmassasi ei ole linkkejä jäljellä. Päivitä suunnitelmasi kouluttaaksesi tämän verkkosivuston.",
-                "website_exceeds_remaining": "Tällä verkkosivustolla on {links} linkkiä, mikä ylittäisi jäljellä olevat {remaining} linkkiäsi. Poista ensin muiden verkkosivustojen valinta tai päivitä suunnitelmaasi.",
                 "collapse_links": "Piilota löydetyt linkit",
                 "expand_links": "Näytä löydetyt linkit",
                 "discovered_links": "Löydetyt linkit",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Luo agentti",
-            "limit_title": "Agenttirajasi on täynnä",
-            "limit_description": "Olet saavuttanut agenttirajasi.",
-            "upgrade_plan": "Päivitä suunnitelma",
             "name_label": "Agentin nimi",
-            "name_placeholder": "Esim. Asiakastuki",
-            "load_error": "Käyttötietojen lataaminen epäonnistui",
-            "limit_toast_title": "Agenttirajasi on täynnä",
-            "limit_toast_description": "Olet saavuttanut agenttirajasi."
+            "name_placeholder": "Esim. Asiakastuki"
         },
         "analytics": {
             "title": "Agentin tilastot",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Mukautettu verkkotunnus",
                 "description": "Tarjoa tämän agentin isännöity chat omalta verkkotunnukseltasi {target} sijaan.",
-                "no_quota_title": "Mukautetut verkkotunnukset eivät sisälly nykyiseen tilaussuunnitelmaasi",
-                "no_quota_description": "Päivitä Pro-tilaajaksi tai tilaa mukautetun verkkotunnuksen lisäosa kohdasta {link} lisätäksesi oman isäntänimesi.",
-                "billing": "Laskutus",
-                "quota": "Käytössä {used}/{total} mukautettu verkkotunnus | Käytössä {used}/{total} mukautettua verkkotunnusta",
-                "add_more": "Lisää enemmän",
                 "step1": "Vaihe 1 — Lisää CNAME-tietue DNS-palveluntarjoajallesi",
                 "type": "Tyyppi",
                 "name": "Nimi",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Aiheet",
             "description": "Analysoi keskusteluaiheita ja trendejä",
-            "locked_description": "Päivitä tilauksesi saadaksesi käyttöön aiheanalyysin, joka tunnistaa ja luokittelee keskusteluaiheet automaattisesti.",
             "disabled_title": "Aiheanalyysi",
             "disabled_description": "Ota käyttöön havaitaksesi ja ryhmitelläksesi automaattisesti, mitä kävijäsi kysyvät eri keskusteluissa.",
             "blocked_reason": "Keskusteluloki on pois käytöstä, joten analysoitavaa ei ole. Ota se käyttöön kohdassa Asennus → Asetukset aloittaaksesi aiheiden keräämisen.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Lähetetään linkkiä...",
             "or_continue_with": "Tai jatka",
             "no_account": "Eikö sinulla ole tiliä?",
-            "start_free_trial": "Aloita ilmainen kokeilu",
             "create_account": "Luo tili"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Valitse salasanasi",
-            "description": "Tilisi on valmis. Valitse salasana viimeistelläksesi sen käyttöönoton.",
-            "head": "Valitse salasanasi",
-            "email_label": "Sähköpostiosoite",
-            "password_label": "Salasana",
-            "password_placeholder": "Salasana",
-            "confirm_password_label": "Vahvista salasana",
-            "confirm_password_placeholder": "Vahvista salasana",
-            "set_password": "Aseta salasana",
-            "setting_password": "Asetetaan salasanaa..."
-        },
         "login_member": {
             "description": "Kirjaudu sisään päästäksesi tähän chat-työtilaan",
             "head": "Jäsenen kirjautuminen",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Varmista, että sosiaalisen median tilisi käyttää osoitetta",
             "social_email_note_suffix": "— sen täytyy vastata tätä kutsua."
         },
-        "invitation_invalid": {
-            "title": "Kutsu ei ole saatavilla",
-            "description": "Tätä kutsua ei voida hyväksyä",
-            "head": "Kutsu ei ole saatavilla",
-            "card_title": "Kutsua ei voi hyväksyä",
-            "cannot_accept_prefix": "Kutsua liittyä",
-            "cannot_accept_suffix": "ei tällä hetkellä voida hyväksyä.",
-            "contact_owner": "Ota yhteyttä tiimin omistajaan asian selvittämiseksi.",
-            "go_to_login": "Siirry kirjautumiseen"
-        },
         "invitation_expired": {
             "title": "Kutsu on vanhentunut",
             "description": "Tämä kutsu ei ole enää voimassa",
@@ -2325,386 +2254,6 @@
             "card_title": "Kutsu on vanhentunut",
             "contact_owner": "Pyydä tiimin omistajalta uutta kutsua.",
             "go_to_login": "Siirry kirjautumiseen"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Laskutus",
-            "back_to_billing": "Takaisin laskutukseen",
-            "view_plans": "Katso suunnitelmat",
-            "cancel": "Peruuta",
-            "processing": "Käsitellään...",
-            "not_available": "Ei saatavilla"
-        },
-        "payment_success": {
-            "page_title": "Maksu onnistui",
-            "heading": "Maksu vastaanotettu",
-            "description": "Kiitos! Maksusi on käsitelty onnistuneesti. Aktivoimme tilauksesi nyt.",
-            "redirecting_prefix": "Ohjataan",
-            "redirecting_suffix": "sekunnin kuluttua...",
-            "go_to_billing": "Siirry laskutukseen nyt"
-        },
-        "invoices": {
-            "breadcrumb": "Laskut",
-            "page_title": "Laskut",
-            "heading": "Laskut",
-            "subheading": "Tarkastele ja lataa laskutushistoriasi ja laskusi",
-            "history_title": "Laskutushistoria",
-            "history_description": "Lataa kuitit ja laskut tilausmaksuistasi",
-            "invoice_number": "Lasku #{number}",
-            "status": {
-                "paid": "Maksettu",
-                "pending": "Odottaa",
-                "failed": "Epäonnistui"
-            },
-            "download_pdf": "Lataa PDF",
-            "view_online": "Tarkastele verkossa",
-            "empty_title": "Ei laskuja vielä",
-            "empty_description": "Laskutushistoriasi ja laskusi näkyvät tässä, kun olet aloittanut tilauksen.",
-            "total_invoices": "Laskuja yhteensä",
-            "total_spent": "Yhteensä käytetty",
-            "since": "Alkaen",
-            "help_title": "Tarvitsetko apua laskutuksessa?",
-            "help_description": "Jos sinulla on kysyttävää laskuistasi tai tarvitset apua laskutuksessa, tukitiimimme on käytettävissäsi.",
-            "contact_support": "Ota yhteyttä tukeen"
-        },
-        "payment_methods": {
-            "breadcrumb": "Maksutavat",
-            "page_title": "Maksutavat",
-            "heading": "Maksutavat",
-            "subheading": "Hallinnoi maksutapojasi ja laskutustietojasi",
-            "add_method": "Lisää maksutapa",
-            "saved_title": "Tallennetut maksutavat",
-            "saved_description": "Hallinnoi tallennettuja maksutapojasi. Voit asettaa oletusmaksutavan automaattista laskutusta varten.",
-            "default": "Oletus",
-            "expires": "Vanhenee {date}",
-            "set_default": "Aseta oletukseksi",
-            "empty_title": "Ei maksutapoja",
-            "empty_description": "Lisää maksutapa hallitaksesi tilauksiasi ja suorittaaksesi maksuja.",
-            "add_first": "Lisää ensimmäinen maksutapasi",
-            "info_title": "Laskutustiedot",
-            "info_description": "Päivitä laskutusosoitteesi ja yhteystietosi",
-            "not_set": "Ei asetettu",
-            "update_info": "Päivitä laskutustiedot",
-            "secure_title": "Turvallinen maksunkäsittely",
-            "secure_description": "Maksutietosi salataan ja käsitellään turvallisesti Stripe-palvelussa. Emme koskaan tallenna täydellisiä korttitietojasi palvelimillemme.",
-            "updating": "Päivitetään...",
-            "update_information": "Päivitä tiedot",
-            "card_information": "Korttitiedot",
-            "remove_dialog": {
-                "title": "Poista maksutapa",
-                "description": "Haluatko varmasti poistaa tämän maksutavan? Tätä toimintoa ei voi kumota.",
-                "confirm": "Kyllä, poista"
-            },
-            "fields": {
-                "name": "Nimi",
-                "email": "Sähköpostiosoite",
-                "address": "Osoite",
-                "city_state_country": "Kaupunki, osavaltio ja maa",
-                "billing_address": "Laskutusosoite",
-                "line1": "Osoiterivi 1",
-                "line2": "Osoiterivi 2 (valinnainen)",
-                "city": "Kaupunki",
-                "state": "Osavaltio",
-                "postal_code": "Postinumero",
-                "country": "Maa"
-            },
-            "placeholders": {
-                "name": "Matti Meikäläinen",
-                "email": "matti{'@'}esimerkki.fi",
-                "line1": "Esimerkkikatu 123",
-                "line2": "Huoneisto, toimisto jne.",
-                "city": "Helsinki",
-                "state": "Uusimaa",
-                "postal_code": "00100",
-                "country": "Valitse maa..."
-            },
-            "info_dialog": {
-                "title": "Päivitä laskutustiedot",
-                "description": "Päivitä laskutusosoitteesi ja yhteystietosi laskutusta ja maksunkäsittelyä varten."
-            },
-            "add_dialog": {
-                "description": "Lisää uusi maksutapa tilillesi. Korttitietosi ovat suojattuja ja salattuja.",
-                "success_title": "Maksutapa lisätty!",
-                "success_description": "Maksutapasi on lisätty onnistuneesti tilillesi.",
-                "secure_note": "Maksutietosi salataan ja käsitellään turvallisesti Stripe-palvelussa. Emme koskaan tallenna täydellisiä korttitietojasi."
-            },
-            "errors": {
-                "init_failed": "Maksujärjestelmän alustaminen epäonnistui",
-                "not_ready": "Maksujärjestelmä ei ole valmis",
-                "add_failed": "Maksutavan lisäämisen aikana tapahtui virhe"
-            },
-            "toast": {
-                "added": "Maksutapa lisätty onnistuneesti!",
-                "info_updated": "Laskutustiedot päivitetty onnistuneesti!",
-                "info_failed": "Laskutustietojen päivittäminen epäonnistui"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Valitse suunnitelma",
-            "page_title": "Valitse suunnitelmasi",
-            "heading": "Valitse suunnitelmasi",
-            "subheading": "Valitse tarpeisiisi sopiva suunnitelma. Voit vaihtaa tai peruuttaa milloin tahansa.",
-            "monthly": "Kuukausittain",
-            "yearly": "Vuosittain",
-            "custom": "Mukautettu",
-            "per_month": "/kk",
-            "save_percent": "Säästä {percent}%",
-            "billed_yearly": "Laskutetaan vuosittain {amount}",
-            "features_included": "Sisältyvät ominaisuudet:",
-            "everything_in": "Kaikki {plan}-suunnitelman ominaisuudet +",
-            "actions": {
-                "contact_sales": "Ota yhteyttä myyntiin",
-                "upgrade": "Päivitä",
-                "upgrade_plan": "Päivitä suunnitelma",
-                "downgrade_to_free": "Siirry ilmaiseen",
-                "downgrade_plan": "Alenna suunnitelma",
-                "switch_plan": "Vaihda suunnitelma",
-                "select_plan": "Valitse suunnitelma"
-            },
-            "discount": {
-                "banner": "{percent}% ALENNUS – Rajoitetun ajan tarjous!",
-                "ends": "Tarjous päättyy {date} – älä missaa!",
-                "limited": "Rajoitetun ajan alennus kaikista maksullisista suunnitelmista!",
-                "off": "{percent}% ALENNUS"
-            },
-            "most_popular": "Suosituin",
-            "current_plan": "Nykyinen paketti",
-            "save_up_to_percent": "Säästä jopa {percent}%"
-        },
-        "addons": {
-            "title": "Lisäosat",
-            "description": "Lisäkredittejä, agentteja ja verkkotunnuksia suunnitelmasi päälle",
-            "per_agent": " / agentti",
-            "per_domain": " / verkkotunnus",
-            "per_member": " / jäsen",
-            "per_month": " / kk",
-            "requires_subscription": "Lisäagentit, mukautettu verkkotunnus, brändäyksen poisto ja jäsenet edellyttävät voimassa olevaa päätilauksen.",
-            "common": {
-                "none": "Ei mitään",
-                "subscribe": "Tilaa",
-                "change": "Muuta",
-                "update_quantity": "Päivitä määrä",
-                "monthly_cost": "Kuukausikustannus:",
-                "keep_subscription": "Pidä tilaus",
-                "yes_cancel": "Kyllä, peruuta",
-                "ends": "Päättyy {date}"
-            },
-            "auto_recharge": {
-                "title": "Automaattinen täyttö",
-                "on": "Päällä",
-                "off": "Pois päältä",
-                "summary": "Ostetaan automaattisesti {amount} kredittiä, kun saldo laskee alle {threshold}.",
-                "manage": "Hallinnoi",
-                "enable": "Ota käyttöön",
-                "dialog_title": "Automaattisen täytön asetukset",
-                "dialog_description": "Kun jäljellä olevat kredittisi laskevat kynnysarvoon tai sen alle, veloitamme automaattisesti oletuksena olevaa maksutapaasi ja täydennämme saldosi.",
-                "enable_label": "Ota automaattinen täyttö käyttöön",
-                "enable_hint": "Veloita automaattisesti, kun kredittejä on vähän",
-                "threshold_label": "Kynnysarvo (kredittejä)",
-                "threshold_hint": "Täyttö käynnistyy, kun saldosi laskee tähän määrään tai sen alle.",
-                "amount_label": "Täyttömäärä (kredittejä)",
-                "each_recharge": "Jokainen täyttö:",
-                "charged_note": "Veloitetaan välittömästi oletuksena olevalta maksutavaltasi käynnistymisen yhteydessä.",
-                "save": "Tallenna asetukset"
-            },
-            "extra_credits": {
-                "title": "Lisäkreditit",
-                "summary": "Kertaostos. Jokainen paketti lisää 1 000 viestiä, jotka vanhenevat 30 päivässä.",
-                "buy": "Osta kredittejä",
-                "dialog_title": "Osta viestikredittejä",
-                "dialog_description": "Jokainen paketti sisältää 1 000 viestiä, jotka on käytettävä yhden kuukauden kuluessa ostosta.",
-                "quantity_label": "Määrä (1 000 viestiä per paketti)",
-                "total_messages": "Viestejä yhteensä:",
-                "total_price": "Kokonaishinta:",
-                "purchase_for": "Osta hintaan ${amount}"
-            },
-            "extra_agents": {
-                "title": "Lisäagentit",
-                "summary": "Lisää enemmän tekoälyagentteja suunnitelmasi rajan yli.",
-                "cancel_title": "Peruuta lisäagenttien tilaus?",
-                "cancel_description": "Lisäagenttikiintiösi poistetaan välittömästi, eikä sinua veloiteta enää.",
-                "change_title": "Muuta lisäagentteja",
-                "subscribe_title": "Tilaa lisäagentteja",
-                "dialog_description": "Lisää ylimääräisiä tekoälyagentteja suunnitelmasi päälle. Laskutetaan kuukausittain 5 $ per agentti.",
-                "quantity_label": "Lisäagenttien määrä"
-            },
-            "custom_domains": {
-                "title": "Mukautettu verkkotunnus",
-                "summary": "Käytä omaa verkkotunnustasi tekoälyagenteille.",
-                "cancel_title": "Peruuta mukautetun verkkotunnuksen tilaus?",
-                "cancel_description": "Mukautetun verkkotunnuksen kiintiösi poistetaan välittömästi, eikä sinua veloiteta enää.",
-                "change_title": "Muuta mukautettuja verkkotunnuksia",
-                "subscribe_title": "Tilaa mukautettu verkkotunnus",
-                "dialog_description": "Käytä omaa verkkotunnustasi tekoälyagenteille. Laskutetaan kuukausittain 29 $ per verkkotunnus.",
-                "quantity_label": "Verkkotunnusten määrä"
-            },
-            "remove_branding": {
-                "title": "Poista brändäys",
-                "active": "Aktiivinen",
-                "summary": "Piilota \"Powered by Chatvia\" -merkki widgetistäsi ja isännöidystä chatistasi.",
-                "cancel_title": "Peruuta brändäyksen poiston tilaus?",
-                "cancel_description": "\"Powered by Chatvia\" -merkki ilmestyy uudelleen widgetiisi ja isännöityyn chatiisi välittömästi, eikä sinua veloiteta enää."
-            },
-            "members": {
-                "title": "Jäsenet",
-                "summary": "Lisää enemmän tiimin jäseniä työtilaan.",
-                "cancel_title": "Peruuta jäsenten tilaus?",
-                "cancel_description": "Lisäjäsenpaikkasi poistetaan välittömästi, eikä sinua veloiteta enää.",
-                "change_title": "Muuta jäseniä",
-                "subscribe_title": "Tilaa jäseniä",
-                "dialog_description": "Lisää ylimääräisiä tiimin jäseniä työtilaan. Laskutetaan kuukausittain 9 $ per jäsen.",
-                "quantity_label": "Jäsenten määrä"
-            }
-        },
-        "index": {
-            "page_title": "Laskutus",
-            "heading": "Laskutus",
-            "subheading": "Hallinnoi tilaustasi, laskutustietojasi ja käyttörajoituksiasi",
-            "stripe_notice": "Maksut käsittelee turvallisesti",
-            "status_label": "Tila",
-            "trial_ends": "Kokeilujakso päättyy",
-            "next_billing": "Seuraava laskutus",
-            "access_ends": "Käyttöoikeus päättyy",
-            "plan_features": "Suunnitelman ominaisuudet",
-            "show_less": "Näytä vähemmän",
-            "show_more": "Näytä {count} lisää",
-            "per_year": "Vuosi",
-            "per_month": "Kuukausi",
-            "status": {
-                "active": "Aktiivinen",
-                "trial": "Kokeilujakso",
-                "cancelled": "Peruutettu",
-                "incomplete": "Keskeneräinen",
-                "past_due": "Erääntynyt"
-            },
-            "trial": {
-                "heading": "🎉 Olet ilmaisella kokeilujaksolla!",
-                "ends_on": "{plan}-kokeilujaksosi päättyy",
-                "auto_start": "Maksullinen tilauksesi alkaa automaattisesti {date}",
-                "badge": "Kokeilujakso aktiivinen"
-            },
-            "upgrade": {
-                "heading": "Päivitä Premium-versioon",
-                "description": "Käytä edistyneitä tekoälymalleja, korkeampia viestirajoituksia ja prioriteettitukea"
-            },
-            "current_plan": {
-                "title": "Nykyinen suunnitelma",
-                "description": "Aktiivinen tilaussuunnitelmasi ja käyttötiedot"
-            },
-            "pending_change": {
-                "heading": "Suunnitelman vaihto ajastettu",
-                "change_from": "Suunnitelmasi vaihtuu",
-                "to": "suunnitelmaan",
-                "cycle_yearly": "(Vuosittain)",
-                "cycle_monthly": "(Kuukausittain)",
-                "on_date": "{date}.",
-                "scheduled_for": "Sinulla on suunnitelman vaihto ajastettuna {date}.",
-                "access_note": "Sinulla on pääsy nykyisen suunnitelmasi ominaisuuksiin siihen asti.",
-                "cancel_schedule": "Peruuta ajastus",
-                "cancel_dialog": {
-                    "title": "Peruuta ajastettu suunnitelman vaihto",
-                    "description": "Haluatko varmasti peruuttaa ajastetun suunnitelman vaihdon? Pysyt nykyisessä suunnitelmassasi.",
-                    "confirm": "Kyllä, peruuta ajastus",
-                    "cancel": "Pidä ajastus"
-                }
-            },
-            "cancelled": {
-                "title": "Tilaus peruutettu",
-                "description": "Tilauksesi päättyy {date}. Voit jatkaa tilaustasi milloin tahansa ennen tätä päivämäärää.",
-                "resume": "Jatka tilausta"
-            },
-            "management": {
-                "title": "Hallinta",
-                "manage_payment_methods": "Hallinnoi maksutapoja",
-                "view_invoices": "Tarkastele laskuja",
-                "go_to_stripe": "Siirry Stripeen",
-                "change_plan": "Vaihda suunnitelma",
-                "cancel_subscription": "Peruuta tilaus"
-            },
-            "cancel_dialog": {
-                "title": "Peruuta tilaus",
-                "description": "Haluatko varmasti peruuttaa tilauksesi? Sinulla on pääsy palveluun laskutuskauden loppuun asti.",
-                "confirm": "Kyllä, peruuta",
-                "cancel": "Pidä tilaus"
-            },
-            "usage": {
-                "title": "Käyttö",
-                "messages": "Viestit",
-                "pages": "Sivut",
-                "agents": "Agentit",
-                "links": "Linkit",
-                "minutes": "Minuutit",
-                "remaining": "{count} jäljellä",
-                "load_error": "Käyttötietojen lataaminen epäonnistui"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Starter",
-                    "description": "Pienyrityksille, jotka aloittavat toimintansa."
-                },
-                "standard": {
-                    "name": "Standard",
-                    "description": "Kasvaville tiimeille ja yrityksille."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "Organisaatioille, jotka tarvitsevat kaiken."
-                },
-                "enterprise": {
-                    "name": "Enterprise",
-                    "description": "Organisaatioille, joilla on tietoturva-, vaatimustenmukaisuus- ja skaalaustarpeita."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "{count} viesti kuukaudessa | {count} viestiä kuukaudessa",
-            "messages_per_year": "{count} viesti vuodessa | {count} viestiä vuodessa",
-            "messages_unlimited": "Rajattomasti viestejä",
-            "messages_custom": "Mukautettu viestivolyymi",
-            "agents": "{count} tekoälyagentti | {count} tekoälyagenttia",
-            "agents_unlimited": "Rajaton määrä tekoälyagentteja",
-            "pages": "{count} sivu (PDF, Word, teksti) | {count} sivua (PDF, Word, teksti)",
-            "pages_unlimited": "Rajattomasti sivuja (PDF, Word, teksti)",
-            "pages_custom": "Mukautettu tietopohja",
-            "links": "{count} verkkosivulinkki | {count} verkkosivulinkkiä",
-            "links_unlimited": "Rajattomasti verkkosivulinkkejä",
-            "links_custom": "Mukautetut verkkosivulinkit",
-            "minutes": "{count} minuutti ääntä/videota | {count} minuuttia ääntä/videota",
-            "minutes_unlimited": "Rajattomasti minuutteja ääntä/videota",
-            "minutes_custom": "Mukautettu ääni/video",
-            "teams": "{count} tiimi | {count} tiimiä",
-            "teams_unlimited": "Rajaton määrä tiimejä",
-            "members": "{count} jäsen (tiimin jäsenet + chatters) | {count} jäsentä (tiimin jäsenet + chatters)",
-            "members_unlimited": "Rajaton määrä jäseniä",
-            "retention": "{count} päivän chat-historia | {count} päivän chat-historia",
-            "retention_unlimited": "Rajaton chat-historia",
-            "retention_custom": "Mukautettu tietojen säilytys",
-            "sentiment": "Tunneanalyysi",
-            "tone": "Sävyanalyysi",
-            "topics": "Aiheanalyysi",
-            "pulse": "Keskustelupulssi",
-            "handoff": "Handoff",
-            "api": "API-käyttöoikeus",
-            "evals": "Arvioinnit",
-            "guardrails": "Turvarajat",
-            "audit": "Tarkistusloki",
-            "branding": "White-label (poista {brand}-brändäys)",
-            "network_access": "Verkon pääsynhallinta (IP ja sijainti)",
-            "siem_webhook": "SIEM-webhook (tietoturvatapahtumat reaaliajassa)",
-            "mcp": "MCP",
-            "function_calling": "Function Calling",
-            "custom_domains": "{count} oma verkkotunnus | {count} omaa verkkotunnusta",
-            "custom_domains_unlimited": "Rajoittamattomasti omia verkkotunnuksia",
-            "custom_domains_custom": "Omat verkkotunnukset",
-            "custom_integrations": "Mukautetut integraatiot",
-            "eu_data_residency": "EU-tietojen sijainti",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "Käytettävyyden SLA",
-            "dedicated_support": "Omistettu tuki",
-            "custom_contract": "Mukautettu sopimus ja DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "Yhteenveto tekoälyagenteistasi ja toiminnastasi",
         "create_agent": "Luo agentti",
         "total_agents": "Agentit yhteensä",
-        "messages_this_cycle": "Viestit tällä jaksolla",
         "percent_used": "{percent}% käytetty",
         "total_conversations": "Keskustelut yhteensä",
         "all_time_across_agents": "Kaikkien aikojen tilasto kaikilla agenteilla",
@@ -3110,97 +2658,8 @@
         "last_week": "Viime viikko",
         "last_month": "Viime kuukausi",
         "messages_tooltip": "{n} viesti | {n} viestiä",
-        "messages_this_month": "Viestit tässä kuussa"
-    },
-    "support": {
-        "title": "Tuki",
-        "subtitle": "Tarkastele tukipyyntöjäsi tai luo uusi.",
-        "create_ticket": "Luo uusi tukipyyntö",
-        "your_tickets": "Tukipyyntösi",
-        "your_tickets_description": "Aiemmin lähetetyt tukipyynnöt",
-        "loading": "Ladataan tukipyyntöjä...",
-        "empty": "Ei tukipyyntöjä vielä. Napsauta \"Luo uusi tukipyyntö\" aloittaaksesi.",
-        "th_id": "Tunnus",
-        "th_type": "Tyyppi",
-        "th_status": "Tila",
-        "th_priority": "Prioriteetti",
-        "th_created": "Luotu",
-        "th_message": "Viesti",
-        "th_replies": "Vastaukset",
-        "status_open": "Avoin",
-        "status_in_progress": "Käynnissä",
-        "status_resolved": "Ratkaistu",
-        "status_closed": "Suljettu",
-        "priority_urgent": "Kiireellinen",
-        "priority_high": "Korkea",
-        "priority_medium": "Keskitaso",
-        "priority_low": "Matala",
-        "create_ticket_description": "Valitse tyyppi ja kuvaile pyyntösi.",
-        "label_type": "Tyyppi",
-        "type_placeholder": "Valitse tyyppi",
-        "type_feature": "Pyydä ominaisuutta",
-        "type_bug": "Ilmoita virheestä",
-        "type_integration": "Pyydä integraatiota",
-        "type_add_model": "Pyydä mallin lisäämistä",
-        "type_refund": "Hyvityspyyntö",
-        "type_billing": "Laskutusongelma",
-        "type_other": "Muu",
-        "label_priority": "Prioriteetti",
-        "priority_placeholder": "Valitse prioriteetti",
-        "label_message": "Viesti",
-        "message_placeholder": "Kuvaile pyyntösi tai ongelmasi yksityiskohtaisesti...",
-        "cancel": "Peruuta",
-        "submitting": "Lähetetään...",
-        "submit": "Lähetä"
-    },
-    "ticket": {
-        "support": "Tuki",
-        "title": "Tukipyyntö #{id}",
-        "created_at": "Luotu {date}",
-        "back_to_support": "Takaisin tukeen",
-        "status_open": "Avoin",
-        "status_in_progress": "Käynnissä",
-        "status_resolved": "Ratkaistu",
-        "status_closed": "Suljettu",
-        "priority_urgent": "Kiireellinen",
-        "priority_high": "Korkea",
-        "priority_medium": "Keskitaso",
-        "priority_low": "Matala",
-        "change_priority": "Muuta prioriteettia",
-        "change_priority_title": "Muuta tukipyynnön prioriteettia",
-        "change_priority_description": "Muuta prioriteettia vain, jos kyse on todella kiireellisestä asiasta. Kiireellisen prioriteetin väärinkäyttö voi hidastaa vastausaikoja kaikkien osalta.",
-        "label_priority": "Prioriteetti",
-        "priority_placeholder": "Valitse prioriteetti",
-        "cancel": "Peruuta",
-        "saving": "Tallennetaan...",
-        "save": "Tallenna",
-        "replies": "Vastaukset ({count})",
-        "no_replies": "Ei vastauksia vielä.",
-        "role_staff": "Henkilökunta",
-        "role_user": "Käyttäjä",
-        "resolved_notice": "Tämä tukipyyntö on ratkaistu. Jos ongelma jatkuu, avaa uusi tukipyyntö Tuki-sivulta.",
-        "add_reply": "Lisää vastaus",
-        "reply_placeholder": "Kirjoita vastauksesi...",
-        "sending": "Lähetetään...",
-        "send_reply": "Lähetä vastaus"
-    },
-    "usage": {
-        "title": "Käyttö",
-        "subtitle": "Seuraa nykyistä käyttöäsi kaikissa palveluissa ja ominaisuuksissa.",
-        "plan_badge": "{plan}-paketti",
-        "label_messages": "Viestit",
-        "label_tokens": "Tokenit",
-        "label_pages": "Sivut",
-        "label_minutes": "Minuutit",
-        "label_links": "Linkit",
-        "label_agents": "Agentit",
-        "label_teams": "Tiimit",
-        "label_members": "Jäsenet",
-        "tokens_note": "Kulutettu tällä jaksolla — vain seurantaa varten; pakettisi laskutetaan viestien mukaan.",
-        "of": "{limit} kappaletta",
-        "remaining": "{count} jäljellä",
-        "load_error": "Käyttötietoja ei voitu ladata.",
-        "no_limit": "Ei rajaa"
+        "messages_this_month": "Viestit tässä kuussa",
+        "messages_used_of_limit": "{used}/{limit} käytetty"
     },
     "analytics_chat": {
         "title": "Kysy tiedoistasi",
@@ -3326,7 +2785,6 @@
             "description": "Tilinavaimet {api_link}-rajapintaa varten — luo ja hallinnoi agentteja, tietokantoja, MCP-palvelimia ja funktioita.",
             "api_link": "Chatvia API",
             "generate": "Luo avain",
-            "locked": "Päivitä tilaukseasi luodaksesi API-avaimia ja integroidaksesi Chatvian sovelluksiisi.",
             "empty_title": "Ei vielä API-avaimia",
             "empty_description": "Luo avain aloittaaksesi Chatvia API:n käytön.",
             "never": "Ei koskaan",
@@ -3535,14 +2993,6 @@
             "save_error": "Tietoturva-asetuksia ei voitu tallentaa",
             "cancel": "Peruuta",
             "done": "Valmis",
-            "teaser": {
-                "title": "Tietoturva ja vaatimustenmukaisuus",
-                "description": "Rajaa työtilasi luotettuihin verkkoihin ja täytä vaatimustenmukaisuustarpeesi. Käytettävissä Pro-tilauksessa.",
-                "ip": "IP-sallittujen lista — vain hyväksytyt osoitteet voivat kirjautua sisään",
-                "geo": "Maasäännöt — salli tai estä pääsy maan perusteella",
-                "more": "Lisäksi tietojen säilytys, SIEM-webhookit, SSO / SCIM ja paljon muuta",
-                "cta": "Päivitä Pro-tilaukseen"
-            },
             "network": {
                 "title": "Verkon pääsynhallinta",
                 "help": "Rajoita hallintapaneelin pääsy luotettuihin IP-osoitteisiin ja maihin. Kun pois päältä, kuka tahansa kelvollisilla kirjautumistiedoilla voi kirjautua sisään mistä tahansa."
@@ -3578,7 +3028,7 @@
                 "title": "Tietojen säilytys",
                 "help": "Kuinka kauan Chatvia säilyttää tietojasi ennen niiden automaattista poistamista. Lyhennä näitä vaatimustenmukaisuuden vuoksi — jätä kenttä tyhjäksi käyttääksesi oletusarvoa.",
                 "conversations": "Keskusteluhistoria (päivää)",
-                "conversations_help": "Keskusteluhistoria poistetaan tämän päivämäärän jälkeen. Enintään {max} tilauksessasi.",
+                "conversations_help": "Keskusteluhistoria poistetaan näin monen päivän jälkeen. Enintään {max} päivää.",
                 "audit": "Suojaustarkastusloki (päivää)",
                 "audit_help": "Oletus {default} päivää, vähintään {floor}.",
                 "plan_default": "Oletus ({days} päivää)"
@@ -3606,11 +3056,6 @@
             "user_agent": "Käyttäjäagentti",
             "metadata": "Tiedot",
             "integrity": "Eheystiiviste tallennettu",
-            "teaser": {
-                "title": "Suojaustarkastusloki",
-                "description": "Näe jokainen kirjautuminen, roolin muutos ja suojausasetuksen muutos — väärentämisen paljastava ja vietävissä. Saatavilla Pro-tilauksessa.",
-                "cta": "Päivitä Pro-tilaukseen"
-            },
             "table": {
                 "actor": "Tekijä",
                 "action": "Toiminto",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Kojelauta",
             "agents": "Agentit",
-            "usage": "Käyttö",
             "ask_your_data": "Kysy tiedoistasi",
-            "billing": "Laskutus",
-            "support": "Tuki",
             "teams": "Tiimit",
             "documentation": "Dokumentaatio",
             "api": "API",
-            "nav_menu_sr": "Navigointivalikko",
-            "upgrade": "Päivitä",
-            "subscribed": "Olet tilaaja"
+            "nav_menu_sr": "Navigointivalikko"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Tietolähteet, asiakirjat ja ladatut tiedostot",
             "removes_team": "Tiimisi, chatterit, API-avaimet ja yhdistimet",
             "agents_will_delete": "{count} agentti poistetaan pysyvästi: | {count} agenttia poistetaan pysyvästi:",
-            "subscription_cancel": "Aktiivinen tilauksesi peruutetaan, eikä sinua laskuteta enää.",
             "email_confirmed": "Sähköposti vahvistettu. Tämä on viimeinen vaiheesi — tästä ei ole paluuta.",
             "delete_button": "Poista tilini pysyvästi",
             "final_dialog_title": "Poistetaanko tilisi pysyvästi?",
             "final_dialog_description": "Tämä poistaa tilisi ja kaikki sen tiedot pysyvästi, eikä toimintoa voi peruuttaa.",
-            "final_dialog_subscription": "Tilauksesi peruutetaan myös.",
             "final_confirm": "Kyllä, poista kaikki",
             "check_email": "Tarkista sähköpostisi — lähetimme vahvistuslinkin tilin poistamisen viimeistelemiseksi. Se vanhenee 30 minuutissa. Avaa linkki jatkaaksesi.",
             "resend_link": "Lähetä linkki uudelleen",
@@ -3906,7 +3344,6 @@
         "enable_feature": "Ota {title} käyttöön",
         "enabling": "Otetaan käyttöön…",
         "enable_now": "Ota käyttöön nyt",
-        "upgrade_now": "Päivitä nyt",
         "chat_title_fallback": "Chat",
         "more_options": "Lisää vaihtoehtoja",
         "delete_confirmation_title": "Poiston vahvistus",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Lataa tiedostoja",
             "description_default": "Lisää tiedostoja analysoitavaksi",
-            "quota_label_default": "sivua",
             "file_count": "{current} / {max} tiedostoa",
-            "quota_limit_reached_alert": "Olet saavuttanut {quotaLabel}-rajoituksesi {quotaLimit} {quotaLabel}. Päivitä tilauksesi käsitelläksesi lisää asiakirjoja.",
             "drop_zone_file_limit_reached": "Tiedostorajoitus saavutettu",
-            "drop_zone_quota_limit_reached": "{quotaLabel}-rajoitus saavutettu",
             "drop_zone_select_files": "Valitse tiedostoja",
             "drop_zone_max_files_hint": "Enintään {max} tiedostoa sallittu. Poista joitakin tiedostoja lisätäksesi lisää.",
-            "drop_zone_quota_exhausted_hint": "Olet käyttänyt kaikki {quotaLimit} {quotaLabel}. Päivitä tilauksesi jatkaaksesi.",
-            "drop_zone_unavailable": "Lataus ei ole käytettävissä",
             "drop_zone_default_hint": "Vedä ja pudota tai napsauta valitaksesi tiedostoja",
-            "total_quota": "{count} {label} yhteensä",
-            "exceeds_quota": "Ylittää kiintiön {amount} {quotaLabel}:llä",
             "clear_failed": "Tyhjennä epäonnistuneet",
             "clear_all": "Tyhjennä kaikki",
             "badge_analyzed": "Analysoitu",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Tee kyselyitä tuoteanalytiikkaan — tapahtumat, kaaviot ja kohortit — Amplitude-projektistasi."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Tervetuloa Chatviaan",
-            "intro": "Luodaan ensimmäinen tekoälyagenttisi. Se vie vain minuutin.",
-            "what_title": "Mikä on agentti?",
-            "what_body": "Agentti on tekoälyavustaja, jonka koulutat omalla sisällölläsi. Se vastaa asiakkaillesi verkkosivustollasi, chat-widgetissä ja viestisovelluksissa.",
-            "how_title": "Miten se toimii?",
-            "how_body": "Ensin luot agentin ja annat sille nimen. Sitten koulutat sen tiedostoillasi, verkkosivustoillasi ja teksteilläsi, jotta se osaa vastata kysymyksiin.",
-            "start": "Luo ensimmäinen agenttini",
-            "video_caption": "Katso, miten se toimii"
         }
     }
 }

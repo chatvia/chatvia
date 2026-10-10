@@ -1,7 +1,6 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Actions\Invitations\CreateTeamInvitationAction;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
@@ -20,23 +19,12 @@ use Domain\Membership\Team\Services\TeamService;
  */
 
 beforeEach(function (): void {
-    // Registration is trial-checkout-only now (the Stripe webhook provisions
-    // billing/quota/default team), so factory users start bare — provision the
-    // pieces these routes rely on explicitly.
     $this->owner = User::factory()->create();
     $this->outsider = User::factory()->create();
 
     foreach ([$this->owner, $this->outsider] as $user) {
         app(TeamService::class)->createDefaultTeam($user);
-        $user->billing()->firstOrCreate([]);
-        UserQuota::firstOrCreate(
-            ['user_id' => $user->id],
-            planFixedLimits(),
-        );
     }
-
-    // Headroom to spin up a second, deletable team (the primary can't be deleted).
-    $this->owner->quota()->update(['teams_limit' => 10]);
 });
 
 describe('teams.update (FormRequest::authorize)', function (): void {

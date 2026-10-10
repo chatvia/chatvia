@@ -29,22 +29,22 @@ it('shows a card for every settings group', function (): void {
 
     $response->assertSee(SettingGroup::Instagram->label())
         ->assertSee(SettingGroup::Whatsapp->label())
-        ->assertSee(SettingGroup::Stripe->label())
-        ->assertSee(SettingGroup::Billing->description())
+        ->assertSee(SettingGroup::Turnstile->label())
+        ->assertSee(SettingGroup::Workspaces->description())
         ->assertSee(SettingResource::getUrl('edit', ['record' => SettingGroup::GoogleLogin->value]));
 });
 
 it('locks the credentials for admins without two-factor authentication', function (): void {
     $withoutMfa = User::factory()->admin()->create()->fresh();
-    AdminSetting::forGroup(SettingGroup::Stripe)->update(['payload' => ['key' => 'pk_test_hidden']]);
+    AdminSetting::forGroup(SettingGroup::Turnstile)->update(['payload' => ['site_key' => 'site-key-hidden']]);
 
     $this->actingAs($withoutMfa, 'admin')
         ->get(SettingResource::getUrl('index'))
         ->assertOk()
         ->assertSee('Set up two-factor authentication first')
-        ->assertDontSee(SettingGroup::Stripe->label());
+        ->assertDontSee(SettingGroup::Turnstile->label());
 
-    $this->get(SettingResource::getUrl('edit', ['record' => SettingGroup::Stripe->value]))
+    $this->get(SettingResource::getUrl('edit', ['record' => SettingGroup::Turnstile->value]))
         ->assertForbidden();
 
     expect(SettingResource::canManage())->toBeFalse();
@@ -98,12 +98,12 @@ it('creates the row of a group on first save', function (): void {
 
 it('validates the format of a field', function (): void {
     Livewire::actingAs($this->admin, 'admin')
-        ->test(EditSetting::class, ['record' => SettingGroup::Stripe->value])
-        ->fillForm(['payload.key' => 'not-a-publishable-key'])
+        ->test(EditSetting::class, ['record' => SettingGroup::Whatsapp->value])
+        ->fillForm(['payload.register_pin' => 'not-six-digits'])
         ->call('save')
-        ->assertHasFormErrors(['payload.key']);
+        ->assertHasFormErrors(['payload.register_pin']);
 
-    expect(AdminSetting::forGroup(SettingGroup::Stripe)->payload)->toBeNull();
+    expect(AdminSetting::forGroup(SettingGroup::Whatsapp)->payload)->toBeNull();
 });
 
 it('removes one saved secret', function (): void {
@@ -128,68 +128,53 @@ it('removes every saved value of a group', function (): void {
     expect($setting->refresh()->payload)->toBeNull();
 });
 
-it('shows the billing values in use, with the warning about Stripe subscriptions', function (): void {
+it('shows the workspace values in use', function (): void {
     Livewire::actingAs($this->admin, 'admin')
-        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->test(EditSetting::class, ['record' => SettingGroup::Workspaces->value])
         ->assertOk()
         ->assertSchemaStateSet([
-            'payload.enabled' => false,
             'payload.registration_enabled' => true,
-            'payload.trial_days' => 7,
-            'payload.currency' => 'eur',
-            'payload.unlimited_retention_days' => 366,
-            'payload.discount_percentage' => 0,
-            'payload.discount_ends_at' => null,
-            'payload.auto_recharge_max_per_day' => 3,
-        ])
-        ->assertSee('It does not cancel subscriptions in Stripe.');
+            'payload.new_workspace_message_limit' => 0,
+            'payload.retention_days' => 366,
+        ]);
 });
 
-it('saves the billing values as strings, an off switch included', function (): void {
+it('saves the workspace values as strings, an off switch included', function (): void {
     Livewire::actingAs($this->admin, 'admin')
-        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->test(EditSetting::class, ['record' => SettingGroup::Workspaces->value])
         ->fillForm([
-            'payload.enabled' => true,
             'payload.registration_enabled' => false,
-            'payload.trial_days' => 14,
-            'payload.currency' => 'usd',
-            'payload.discount_percentage' => 10,
-            'payload.discount_ends_at' => '2026-12-31',
+            'payload.new_workspace_message_limit' => 500,
+            'payload.retention_days' => 90,
         ])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(AdminSetting::forGroup(SettingGroup::Billing)->payload)->toBe([
-        'enabled' => '1',
+    expect(AdminSetting::forGroup(SettingGroup::Workspaces)->payload)->toBe([
         'registration_enabled' => '0',
-        'trial_days' => '14',
-        'currency' => 'usd',
-        'unlimited_retention_days' => '366',
-        'discount_percentage' => '10',
-        'discount_ends_at' => '2026-12-31',
-        'auto_recharge_max_per_day' => '3',
+        'new_workspace_message_limit' => '500',
+        'retention_days' => '90',
     ]);
 });
 
-it('shows saved billing values back in the form', function (): void {
-    AdminSetting::forGroup(SettingGroup::Billing)->update(['payload' => ['enabled' => '1', 'trial_days' => '30', 'currency' => 'gbp']]);
+it('shows saved workspace values back in the form', function (): void {
+    AdminSetting::forGroup(SettingGroup::Workspaces)->update(['payload' => ['registration_enabled' => '0', 'new_workspace_message_limit' => '250']]);
 
     Livewire::actingAs($this->admin, 'admin')
-        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
+        ->test(EditSetting::class, ['record' => SettingGroup::Workspaces->value])
         ->assertSchemaStateSet([
-            'payload.enabled' => true,
             'payload.registration_enabled' => false,
-            'payload.trial_days' => 30,
-            'payload.currency' => 'gbp',
+            'payload.new_workspace_message_limit' => 250,
+            'payload.retention_days' => 366,
         ]);
 });
 
-it('validates the billing values', function (): void {
+it('validates the workspace values', function (): void {
     Livewire::actingAs($this->admin, 'admin')
-        ->test(EditSetting::class, ['record' => SettingGroup::Billing->value])
-        ->fillForm(['payload.discount_percentage' => 150, 'payload.trial_days' => -1, 'payload.currency' => 'xyz'])
+        ->test(EditSetting::class, ['record' => SettingGroup::Workspaces->value])
+        ->fillForm(['payload.new_workspace_message_limit' => -1, 'payload.retention_days' => 0])
         ->call('save')
-        ->assertHasFormErrors(['payload.discount_percentage', 'payload.trial_days', 'payload.currency']);
+        ->assertHasFormErrors(['payload.new_workspace_message_limit', 'payload.retention_days']);
 
-    expect(AdminSetting::forGroup(SettingGroup::Billing)->payload)->toBeNull();
+    expect(AdminSetting::forGroup(SettingGroup::Workspaces)->payload)->toBeNull();
 });

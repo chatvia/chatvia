@@ -1,0 +1,8 @@
+{
+    "chat": {
+        "limit_resets_next_month": "Voit lähettää viestejä taas ensi kuussa."
+    },
+    "dashboard": {
+        "messages_used_of_limit": "{used}/{limit} käytetty"
+    }
+}

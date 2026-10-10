@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 The topics visitors talk about most, for a period — each topic ranked by the
 number of conversations it appears in. Answers "what are people asking about?",
-"top topics this cycle?", "what's trending?". Great input for a bar chart of
+"top topics this month?", "what's trending?". Great input for a bar chart of
 demand by topic.
 TXT)]
 #[IsReadOnly]

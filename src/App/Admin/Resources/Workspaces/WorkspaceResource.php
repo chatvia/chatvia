@@ -19,9 +19,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Read-only oversight of customer accounts — the `users` rows with
- * `type = workspace` (account owners who sign up, manage a team and pay).
- * Staff-only; the panel itself is gated to admins.
+ * Oversight of customer accounts — the `users` rows with `type = workspace`
+ * (account owners who sign up and manage a team). Read-only apart from the
+ * monthly message limit set on the view page. Staff-only; the panel itself is
+ * gated to admins.
  */
 class WorkspaceResource extends Resource
 {
@@ -42,12 +43,14 @@ class WorkspaceResource extends Resource
 
     /**
      * Restrict every query (list + record binding) to workspace owners, and
-     * eager-count their members so the table column is a single aggregate.
+     * eager-load their members count and message limit so the columns cost
+     * no query per row.
      */
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->where('type', UserType::Workspace)
+            ->with('messageLimit')
             ->withCount('users');
     }
 
@@ -69,6 +72,10 @@ class WorkspaceResource extends Resource
                     ->label('Members')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('messageLimit.monthly_limit')
+                    ->label('Message limit')
+                    ->numeric()
+                    ->placeholder('No limit'),
                 TextColumn::make('status')
                     ->badge()
                     ->state(fn (User $record): string => $record->isDeactivated() ? 'Deactivated' : 'Active')
@@ -140,8 +147,20 @@ class WorkspaceResource extends Resource
                             ->label('Registered IP')
                             ->placeholder('—'),
                         TextEntry::make('users_count')
-                            ->label('Members')
-                            ->state(fn (User $record): int => $record->workspaceUsersCount()),
+                            ->label('Members'),
+                    ]),
+                Section::make('Messages')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('messageLimit.monthly_limit')
+                            ->label('Monthly limit on agent replies')
+                            ->numeric()
+                            ->placeholder('No limit'),
+                        TextEntry::make('messages_used')
+                            ->label('Used this month')
+                            ->state(fn (User $record): ?int => $record->messageLimit?->usedThisMonth())
+                            ->numeric()
+                            ->placeholder('Counted only while a limit is set'),
                     ]),
             ]);
     }

@@ -30,12 +30,12 @@ class StreamEventTest extends TestCase
 
     public function test_emits_typed_error_event_distinct_from_delta(): void
     {
-        $event = StreamEvent::error('msg-1', ErrorCode::SubscriptionExpired, 'Renew to continue.');
+        $event = StreamEvent::error('msg-1', ErrorCode::MessageLimitReached, 'Try again next month.');
         $payload = json_decode(substr($event->toLine(), 6, -2), true);
 
         $this->assertSame('error', $payload['type']);
-        $this->assertSame('subscription_expired', $payload['data']['code']);
-        $this->assertSame('Renew to continue.', $payload['data']['message']);
+        $this->assertSame('message_limit_reached', $payload['data']['code']);
+        $this->assertSame('Try again next month.', $payload['data']['message']);
         $this->assertFalse($payload['data']['retryable']);
     }
 
@@ -43,7 +43,7 @@ class StreamEventTest extends TestCase
     {
         $this->assertTrue(ErrorCode::UpstreamUnavailable->isRetryable());
         $this->assertTrue(ErrorCode::RateLimited->isRetryable());
-        $this->assertFalse(ErrorCode::SubscriptionExpired->isRetryable());
+        $this->assertFalse(ErrorCode::MessageLimitReached->isRetryable());
         $this->assertFalse(ErrorCode::Internal->isRetryable());
     }
 

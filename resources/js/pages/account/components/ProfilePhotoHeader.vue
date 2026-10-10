@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/composables/useInitials';
+import { update as updateProfile } from '@/routes/account/profile';
+import { destroy as destroyProfilePhoto } from '@/routes/account/profile/photo';
 import { type User } from '@/types';
 
 const props = defineProps<{
@@ -64,7 +66,7 @@ const onPhotoSelected = (event: Event) => {
     photoForm.email = props.user.email;
     photoForm.photo = file;
 
-    photoForm.patch(route('account.profile.update'), {
+    photoForm.patch(updateProfile.url(), {
         forceFormData: true,
         preserveScroll: true,
         onFinish: () => {
@@ -80,7 +82,7 @@ const removeOpen = ref(false);
 const removing = ref(false);
 
 const confirmRemovePhoto = () => {
-    router.delete(route('account.profile.photo.destroy'), {
+    router.delete(destroyProfilePhoto.url(), {
         preserveScroll: true,
         onStart: () => {
             removing.value = true;

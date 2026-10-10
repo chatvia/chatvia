@@ -14,14 +14,6 @@ use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Agent\Prompt\Models\AgentPrompt;
-use Domain\Billing\Concerns\InteractsWithWorkspaceBilling;
-use Domain\Billing\Concerns\InteractsWithWorkspaceQuotas;
-use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
-use Domain\Billing\Models\UserAddon;
-use Domain\Billing\Models\UserBilling;
-use Domain\Billing\Models\UserCredit;
-use Domain\Billing\Models\UserQuota;
-use Domain\Helpdesk\Models\Ticket;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -44,6 +36,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -60,18 +53,15 @@ use Support\Concerns\HasExternalId;
 /**
  * An account: who someone is and what they belong to. One table holds four
  * kinds of account ({@see UserType}): platform admins, workspace owners (the
- * tenant that owns agents, billing and quotas), teammates (employees of a
+ * tenant that owns agents and settings), teammates (employees of a
  * workspace) and chatters (end-users of a workspace's agents).
  *
  * Everything account-wide resolves through {@see workspace()}: a teammate or
- * chatter reads the owner's billing, quotas and agents. The model keeps the
+ * chatter reads the owner's settings and agents. The model keeps the
  * identity, casts and the knowledge/integration relations; the rest lives in
  * concern traits: {@see ResolvesWorkspaceHierarchy} (owner link, account type,
  * agent access; the rules in {@see AgentAccessPolicy}), {@see HasTeams} and
- * {@see ResolvesTeamMembership} (teams, team roles), and the thin accessors
- * over Domain\Billing in {@see InteractsWithWorkspaceBilling} and
- * {@see InteractsWithWorkspaceQuotas} (`creditSystem()`, `capabilities`,
- * `quotaLimit()`, …).
+ * {@see ResolvesTeamMembership} (teams, team roles).
  *
  * @property int $id
  * @property string $external_id
@@ -92,26 +82,17 @@ use Support\Concerns\HasExternalId;
  * @property string|null $deactivated_at
  * @property DateFormat|null $date_format
  * @property Carbon|null $last_login_at
- * @property Carbon|null $onboarded_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Agent> $accessibleAgents
  * @property-read int|null $accessible_agents_count
- * @property-read Collection<int, UserAddon> $addons
- * @property-read int|null $addons_count
  * @property-read Collection<int, Agent> $agents
  * @property-read int|null $agents_count
  * @property-read string|null $avatar
- * @property-read UserBilling|null $billing
- * @property-read BillingPackageCapabilitiesData $capabilities
  * @property-read Collection<int, User> $chatters
  * @property-read int|null $chatters_count
- * @property-read UserCredit|null $credit
- * @property-read UserCredit|null $chatterMessageCredit
- * @property-read Collection<int, UserCredit> $credits
- * @property-read int|null $credits_count
  * @property-read Team|null $currentTeam
- * @property-read bool $is_paid
+ * @property-read MessageLimit|null $messageLimit
  * @property-read Collection<int, User> $managedUsers
  * @property-read int|null $managed_users_count
  * @property-read User|null $parentWorkspace
@@ -125,14 +106,10 @@ use Support\Concerns\HasExternalId;
  * @property-read int|null $owned_teams_count
  * @property-read Collection<int, Permission> $permissions
  * @property-read int|null $permissions_count
- * @property-read mixed $plan
- * @property-read UserQuota|null $quota
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
  * @property-read Collection<int, UserSocial> $socials
  * @property-read int|null $socials_count
- * @property-read Collection<int, Ticket> $tickets
- * @property-read int|null $tickets_count
  *
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User newModelQuery()
@@ -165,7 +142,7 @@ use Support\Concerns\HasExternalId;
  *
  * @mixin \Eloquent
  */
-#[Appends(['plan', 'is_paid', 'capabilities', 'avatar'])]
+#[Appends(['avatar'])]
 #[Guarded(['id'])]
 #[Hidden([
     'password',
@@ -176,7 +153,7 @@ use Support\Concerns\HasExternalId;
 class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasLocalePreference, MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, HasTeams, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, InteractsWithWorkspaceBilling, InteractsWithWorkspaceQuotas, Notifiable, PasskeyAuthenticatable, ResolvesTeamMembership, ResolvesWorkspaceHierarchy, TwoFactorAuthenticatable;
+    use HasApiTokens, HasExternalId, HasFactory, HasRoles, HasSettings, HasTeams, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable, PasskeyAuthenticatable, ResolvesTeamMembership, ResolvesWorkspaceHierarchy, TwoFactorAuthenticatable;
 
     // Profile photos are public, small and read-heavy, so they live on the
     // CDN-backed `assets` disk (served via the pull zone) rather than the
@@ -184,8 +161,9 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     public const PROFILE_IMAGE_DISK = 'assets';
 
     /**
-     * Per-request memo bucket — Inertia's share() lambda + User Appends fan
-     * billing/team derivations out 4–6× per request. Read/write via remember().
+     * Per-request memo bucket — Inertia's share() lambda and the access checks
+     * fan team derivations out several times per request. Read/write via
+     * remember().
      *
      * @var array<string, mixed>
      */
@@ -211,7 +189,6 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
-            'onboarded_at' => 'datetime',
             'type' => UserType::class,
             'source' => UserSource::class,
             'date_format' => DateFormat::class,
@@ -305,8 +282,8 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
      * Org-wide security & compliance policy for this user's account — the
      * workspace owner's `WorkspaceSecurityPolicy` row, created on first read so
      * no caller (middleware, command, Action) ever sees null. Resolved through
-     * `workspace()` and memoized, mirroring `accountBilling()`, so employees and
-     * chatters inherit the workspace answer through a single resolution path.
+     * `workspace()` and memoized, so employees and chatters inherit the
+     * workspace answer through a single resolution path.
      */
     public function securityPolicy(): WorkspaceSecurityPolicy
     {
@@ -317,11 +294,14 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * @return HasMany<Ticket, $this>
+     * This account's monthly message limit: on a workspace it counts agent
+     * replies, on a chatter the chatter's own messages. Null means no limit.
+     *
+     * @return HasOne<MessageLimit, $this>
      */
-    public function tickets(): HasMany
+    public function messageLimit(): HasOne
     {
-        return $this->hasMany(Ticket::class);
+        return $this->hasOne(MessageLimit::class);
     }
 
     /**

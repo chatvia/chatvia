@@ -38,10 +38,9 @@ When a chatter asks the agent a question:
 4. Those top blocks are passed to the AI alongside the question and the persona.
 5. The AI grounds its answer in those blocks. The Playground and Chat logs show your team which were used.
 
-## Source limits and credits
+## Sources and limits
 
-- Each plan has a storage cap and a monthly ingestion credit budget. See **Usage** in Settings.
-- A failed ingestion does not consume ingestion credits.
+- Adding, processing, and retraining sources does not count against a [monthly message limit](/guide/account/message-limits). Only agent replies count.
 - Deleting a source frees its storage immediately and removes its chunks from the index.
 
 ## Retraining a source

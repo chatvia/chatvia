@@ -9,15 +9,12 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Laravel\Cashier\Subscription;
-use Stripe\Exception\InvalidRequestException;
-use Stripe\Subscription as StripeSubscription;
 use Throwable;
 
 /**
  * Tear down a whole workspace: the owner, their employees + chatters, their
  * teams, and (by FK cascade) every agent, conversation, knowledge source,
- * credit, billing row, etc. that hangs off them.
+ * message limit, etc. that hangs off them.
  *
  * What the FK cascade can't do, handled explicitly here:
  *  - Attachment files on S3 — the cascade drops the rows but never fires the
@@ -35,8 +32,6 @@ class DeleteUserAccountAction
 {
     public function execute(User $user): void
     {
-        $this->cancelSubscriptions($user);
-
         // Wipe attachment files through Eloquent BEFORE the raw chat_messages
         // delete and the final user cascade. Both remove chat_attachments rows
         // by FK cascade (chat_message_id and chat_conversation_id are
@@ -150,7 +145,7 @@ class DeleteUserAccountAction
      * caches and the `forever` ownership markers that would otherwise outlive
      * the deleted DB rows (they never expire). Best-effort: a teardown must not
      * fail because the cache store is briefly unreachable — log and carry on,
-     * mirroring how the S3 and Stripe steps tolerate downstream failures.
+     * mirroring how the S3 step tolerates downstream failures.
      */
     private function flushChatMemoryCache(User $user): void
     {
@@ -201,75 +196,5 @@ class DeleteUserAccountAction
         do {
             $deleted = DB::affectingStatement($sql, $bindings);
         } while ($deleted > 0);
-    }
-
-    /**
-     * Immediately cancel every Stripe subscription on the workspace's billing (a
-     * workspace can hold more than one — e.g. add-ons as separate subscriptions)
-     * before the teardown cascade-deletes the `user_billing` row. This is the
-     * single place account deletion talks to Stripe, and it runs *outside* the
-     * DB transaction so a slow or failing Stripe call never holds it open.
-     *
-     * We use cancelNow() — not a grace-period cancel() — so we don't orphan a
-     * still-billing subscription. Already-canceled subscriptions are skipped: a
-     * subscription Stripe has already closed must not be cancelled again, which
-     * Stripe rejects ("A canceled subscription can only update its
-     * cancellation_details and metadata") — even when it still looks "subscribed"
-     * locally because its trial window hasn't lapsed.
-     *
-     * When Stripe rejects the cancel because the subscription can't bill anyone
-     * any more — it no longer exists there (`resource_missing`, e.g. stale/test
-     * data) or it is already closed there — we log it, mark it canceled locally,
-     * and carry on. Every other failure (network error, rate limit, outage, any
-     * other rejection) is rethrown: the queued job then retries, instead of
-     * deleting the customer while a live subscription keeps billing.
-     */
-    private function cancelSubscriptions(User $user): void
-    {
-        $billing = $user->billing;
-
-        if ($billing === null) {
-            return;
-        }
-
-        /** @var Subscription $subscription */
-        foreach ($billing->subscriptions()->get() as $subscription) {
-            if ($subscription->canceled()) {
-                continue;
-            }
-
-            try {
-                $subscription->cancelNow();
-            } catch (InvalidRequestException $e) {
-                if (! $this->cannotBillAnyMore($subscription, $e)) {
-                    throw $e;
-                }
-
-                Log::warning('Account deletion: Stripe subscription is gone or already closed; marking canceled locally.', [
-                    'subscription_id' => $subscription->id,
-                    'stripe_id' => $subscription->stripe_id,
-                    'error' => $e->getMessage(),
-                ]);
-
-                $subscription->markAsCanceled();
-            }
-        }
-    }
-
-    /**
-     * Whether a rejected cancel means the subscription can no longer bill:
-     * Stripe doesn't know it (`resource_missing`), or Stripe already closed it
-     * (it rejects a cancel on a closed subscription with a different code). If
-     * the status lookup itself fails, that error propagates so the job retries.
-     */
-    private function cannotBillAnyMore(Subscription $subscription, InvalidRequestException $e): bool
-    {
-        if ($e->getStripeCode() === 'resource_missing') {
-            return true;
-        }
-
-        $status = $subscription->asStripeSubscription()->status;
-
-        return in_array($status, [StripeSubscription::STATUS_CANCELED, StripeSubscription::STATUS_INCOMPLETE_EXPIRED], true);
     }
 }

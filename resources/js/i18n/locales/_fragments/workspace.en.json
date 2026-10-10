@@ -110,7 +110,6 @@
             "description": "Account keys for the {api_link} — create and manage agents, knowledge, MCP servers, and functions.",
             "api_link": "Chatvia API",
             "generate": "Generate key",
-            "locked": "Upgrade your plan to issue API keys and integrate Chatvia with your applications.",
             "empty_title": "No API keys yet",
             "empty_description": "Generate one to start using the Chatvia API.",
             "never": "Never",
@@ -299,14 +298,6 @@
             "save_error": "Could not save your security settings",
             "cancel": "Cancel",
             "done": "Done",
-            "teaser": {
-                "title": "Security & Compliance",
-                "description": "Lock your workspace down to trusted networks and meet your compliance needs. Available on the Pro plan.",
-                "ip": "IP allowlist — only approved addresses can sign in",
-                "geo": "Country rules — allow or block access by country",
-                "more": "Plus data retention, SIEM webhooks, SSO / SCIM and more",
-                "cta": "Upgrade to Pro"
-            },
             "network": {
                 "title": "Network access control",
                 "help": "Restrict dashboard access to trusted IP addresses and countries. When off, anyone with a valid login can sign in from anywhere."
@@ -342,7 +333,7 @@
                 "title": "Data retention",
                 "help": "How long Chatvia keeps your data before deleting it automatically. Shorten these for compliance — leave a field blank to use the default.",
                 "conversations": "Conversation history (days)",
-                "conversations_help": "Chat history is deleted after this many days. Up to {max} on your plan.",
+                "conversations_help": "Chat history is deleted after this many days. Up to {max} days.",
                 "audit": "Security audit log (days)",
                 "audit_help": "Default {default} days, minimum {floor}.",
                 "plan_default": "Default ({days} days)"
@@ -370,11 +361,6 @@
             "user_agent": "User agent",
             "metadata": "Details",
             "integrity": "Integrity hash recorded",
-            "teaser": {
-                "title": "Security audit log",
-                "description": "See every sign-in, role change, and security setting change — tamper-evident and exportable. Available on the Pro plan.",
-                "cta": "Upgrade to Pro"
-            },
             "table": {
                 "actor": "Actor",
                 "action": "Action",

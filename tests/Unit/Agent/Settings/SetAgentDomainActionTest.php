@@ -4,70 +4,33 @@ use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\SetAgentDomainAction;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserQuota;
-use Support\Exceptions\DomainValidationException;
-
-/**
- * Build a workspace whose custom-domain quota is exactly $limit. Registration
- * no longer auto-provisions a `user_quotas` row (the trial-checkout webhook
- * does), so seed one explicitly — mirroring QuotaGatesTest.
- */
-function setAgentDomainWorkspace(int $limit): User
-{
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
-
-    UserQuota::firstOrCreate(
-        ['user_id' => $workspace->id],
-        planFixedLimits(),
-    );
-
-    $workspace->quota()->update([
-        'custom_domains_limit' => $limit,
-        'extra_custom_domains_limit' => 0,
-    ]);
-
-    return $workspace->fresh();
-}
 
 beforeEach(function (): void {
     $this->action = app(SetAgentDomainAction::class);
+    $this->workspace = User::factory()->create(['type' => UserType::Workspace]);
 });
 
-it('sets a custom domain when the workspace has quota', function (): void {
-    $workspace = setAgentDomainWorkspace(1);
-    $agent = Agent::factory()->for($workspace, 'user')->create();
+it('sets a custom domain', function (): void {
+    $agent = Agent::factory()->for($this->workspace, 'user')->create();
 
-    $this->action->execute($agent, $workspace, 'help.acme.com');
+    $this->action->execute($agent, 'help.acme.com');
 
     expect($agent->fresh()->domain)->toBe('help.acme.com');
 });
 
-it('rejects a custom domain when the plan grants none', function (): void {
-    $workspace = setAgentDomainWorkspace(0);
-    $agent = Agent::factory()->for($workspace, 'user')->create();
+it('lets every agent of a workspace have its own custom domain', function (): void {
+    Agent::factory()->for($this->workspace, 'user')->create(['domain' => 'first.acme.com']);
+    $agent = Agent::factory()->for($this->workspace, 'user')->create();
 
-    expect(fn () => $this->action->execute($agent, $workspace, 'help.acme.com'))
-        ->toThrow(DomainValidationException::class);
+    $this->action->execute($agent, 'second.acme.com');
 
-    expect($agent->fresh()->domain)->toBeNull();
+    expect($agent->fresh()->domain)->toBe('second.acme.com');
 });
 
-it('rejects when the custom-domain quota is already used up', function (): void {
-    $workspace = setAgentDomainWorkspace(1);
+it('clears the domain', function (): void {
+    $agent = Agent::factory()->for($this->workspace, 'user')->create(['domain' => 'old.acme.com']);
 
-    // First agent claims the only available slot.
-    Agent::factory()->for($workspace, 'user')->create(['domain' => 'taken.acme.com']);
-    $agent = Agent::factory()->for($workspace, 'user')->create();
-
-    expect(fn () => $this->action->execute($agent, $workspace, 'second.acme.com'))
-        ->toThrow(DomainValidationException::class);
-});
-
-it('always allows clearing the domain, even with no quota', function (): void {
-    $workspace = setAgentDomainWorkspace(0);
-    $agent = Agent::factory()->for($workspace, 'user')->create(['domain' => 'old.acme.com']);
-
-    $this->action->execute($agent, $workspace, null);
+    $this->action->execute($agent, null);
 
     expect($agent->fresh()->domain)->toBeNull();
 });

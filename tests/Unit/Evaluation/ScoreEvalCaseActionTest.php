@@ -1,7 +1,8 @@
 <?php
 
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Jobs\UpdateUserCreditsJob;
 use Domain\Evaluation\Actions\ScoreEvalCaseAction;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Enums\EvalRunStatus;
@@ -18,21 +19,17 @@ use Illuminate\Support\Facades\Event;
  * We fake the runner (the real one needs a live LLM) and assert the mapping:
  * the captured answer/sources/tools/trace land on the row, the scorer's verdict
  * drives pass/score, and a failed agent run becomes a failing result — never an
- * exception that would abort the batch. It also bills the workspace one message
- * credit per case that produced an answer, so fake the bus in every test, and
- * asks the same send gate as live chat (active billing + credits; the credit
- * check is stubbed open here).
+ * exception that would abort the batch. It also counts one message against the
+ * workspace's monthly limit per case that produced an answer, and checks the
+ * same limit as live chat before spending an LLM call.
  */
 beforeEach(function (): void {
     Bus::fake();
-    fakeMessageCreditGate();
 });
 
-function scoringFixtures(string $value = 'paris', bool $activeBilling = true): array
+function scoringFixtures(string $value = 'paris'): array
 {
-    // An active subscription passes the send gate's billing check, so only the
-    // (stubbed) credit check decides.
-    $agent = $activeBilling ? proPlanAgent() : Agent::factory()->create();
+    $agent = Agent::factory()->create();
     $agent->update(['llm_id' => Llm::factory()->create()->id]);
 
     $run = EvalRun::create([
@@ -91,7 +88,7 @@ it('records a passing result with the captured run state', function (): void {
 });
 
 it('scores a tool_call case from the captured (never executed) tool call', function (): void {
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $agent->update(['llm_id' => Llm::factory()->create()->id]);
 
     $run = EvalRun::create([
@@ -170,9 +167,9 @@ it('records a failing result (not an exception) when the agent run errored', fun
         ->and($result->judge_rationale)->toContain('model timeout');
 });
 
-it('charges one message credit to the workspace for a case that produced an answer', function (): void {
+it('counts one message against the workspace limit for a case that produced an answer', function (): void {
     [$run, $case] = scoringFixtures();
-    $agent = $run->agent;
+    app(SetMessageLimitAction::class)->execute($run->agent->user, 10);
 
     app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
         answer: 'The capital is Paris.',
@@ -180,19 +177,17 @@ it('charges one message credit to the workspace for a case that produced an answ
         toolsCalled: [],
         tokens: 42,
         latencyMs: 120,
-        traceId: 'trace-bill',
+        traceId: 'trace-count',
     )));
 
     app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    Bus::assertDispatched(
-        UpdateUserCreditsJob::class,
-        fn (UpdateUserCreditsJob $job): bool => $job->userId === $agent->user_id && $job->modelId === $agent->llm_id,
-    );
+    expect(MessageLimit::query()->where('user_id', $run->agent->user_id)->value('messages_used'))->toBe(1);
 });
 
-it('does not charge a credit when the agent run errored (no answer produced)', function (): void {
+it('does not count a message when the agent run errored (no answer produced)', function (): void {
     [$run, $case] = scoringFixtures();
+    app(SetMessageLimitAction::class)->execute($run->agent->user, 10);
 
     app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
         answer: '',
@@ -206,15 +201,19 @@ it('does not charge a credit when the agent run errored (no answer produced)', f
 
     app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    Bus::assertNotDispatched(UpdateUserCreditsJob::class);
+    expect(MessageLimit::query()->where('user_id', $run->agent->user_id)->value('messages_used'))->toBe(0);
 });
 
-it('skips the LLM call and charges nothing when the workspace is out of messages', function (): void {
+it('skips the LLM call when the workspace has reached its monthly message limit', function (): void {
     [$run, $case] = scoringFixtures();
+    MessageLimit::create([
+        'user_id' => $run->agent->user_id,
+        'monthly_limit' => 1,
+        'messages_used' => 1,
+        'period_starts_at' => now()->startOfMonth(),
+    ]);
 
-    fakeMessageCreditGate(false);
-
-    // The runner must never be invoked — an out-of-credit case spends no LLM call.
+    // The runner must never be invoked — a case over the limit spends no LLM call.
     $runner = Mockery::mock(EvalAgentRunner::class);
     $runner->shouldNotReceive('run');
     app()->instance(EvalAgentRunner::class, $runner);
@@ -223,23 +222,6 @@ it('skips the LLM call and charges nothing when the workspace is out of messages
 
     expect($result->pass)->toBeFalse()
         ->and($result->judge_rationale)->toContain('Message limit reached');
-
-    Bus::assertNotDispatched(UpdateUserCreditsJob::class);
-});
-
-it('skips the LLM call when the workspace subscription has ended mid-suite', function (): void {
-    [$run, $case] = scoringFixtures(activeBilling: false);
-
-    $runner = Mockery::mock(EvalAgentRunner::class);
-    $runner->shouldNotReceive('run');
-    app()->instance(EvalAgentRunner::class, $runner);
-
-    $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
-
-    expect($result->pass)->toBeFalse()
-        ->and($result->judge_rationale)->toContain('Subscription inactive');
-
-    Bus::assertNotDispatched(UpdateUserCreditsJob::class);
 });
 
 it('broadcasts the scored case with the run external id and running pass/fail tally', function (): void {

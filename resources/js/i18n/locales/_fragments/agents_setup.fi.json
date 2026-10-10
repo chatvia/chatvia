@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Mukautettu verkkotunnus",
                 "description": "Tarjoa tämän agentin isännöity chat omalta verkkotunnukseltasi {target} sijaan.",
-                "no_quota_title": "Mukautetut verkkotunnukset eivät sisälly nykyiseen tilaussuunnitelmaasi",
-                "no_quota_description": "Päivitä Pro-tilaajaksi tai tilaa mukautetun verkkotunnuksen lisäosa kohdasta {link} lisätäksesi oman isäntänimesi.",
-                "billing": "Laskutus",
-                "quota": "Käytössä {used}/{total} mukautettu verkkotunnus | Käytössä {used}/{total} mukautettua verkkotunnusta",
-                "add_more": "Lisää enemmän",
                 "step1": "Vaihe 1 — Lisää CNAME-tietue DNS-palveluntarjoajallesi",
                 "type": "Tyyppi",
                 "name": "Nimi",

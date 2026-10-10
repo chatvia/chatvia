@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Agent\Channel\Concerns;
 
-use App\Http\Controllers\Agent\Channel\AgentInstagramChannelController;
-use App\Http\Controllers\Agent\Channel\AgentMessengerChannelController;
+use App\Http\Controllers\Agent\Channel\AgentMessengerOAuthCallbackController;
+use App\Http\Controllers\Agent\Channel\AgentMessengerOAuthRedirectController;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Actions\CompleteMetaOAuthAction;
 use Domain\Channel\Enums\MetaOAuthChannel;
@@ -15,8 +15,8 @@ use Illuminate\Support\Str;
 
 /**
  * The HTTP half of connecting Messenger or Instagram through Facebook Login
- * for Business ({@see AgentMessengerChannelController},
- * {@see AgentInstagramChannelController}):
+ * for Business ({@see AgentMessengerOAuthRedirectController},
+ * {@see AgentMessengerOAuthCallbackController} and their Instagram twins):
  *
  *   start    → stash the pending connection in the SESSION, bounce to consent
  *   complete → verify the returned state, list what was granted, hold it for the picker

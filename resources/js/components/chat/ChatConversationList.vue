@@ -19,6 +19,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useCurrentRoute } from '@/composables/useCurrentRoute';
+import { show as showChat } from '@/routes/chat';
 import type { ChatConversationSummary } from '@/types/chat';
 import { Link } from '@inertiajs/vue3';
 import { Check, Edit, MoreVertical, Trash2, X } from 'lucide-vue-next';
@@ -37,6 +39,8 @@ const props = defineProps<{
 const emit = defineEmits<{
     delete: [id: ConversationId];
 }>();
+
+const { current: isCurrentRoute } = useCurrentRoute();
 
 const { t } = useI18n();
 
@@ -115,11 +119,11 @@ function closeDeleteDialog() {
                                 <Link
                                     :class="[
                                         'flex w-full cursor-pointer items-center rounded-lg px-3 py-2.5 text-sm transition-colors',
-                                        route().current('chat.show', { conversationId: chat.id })
+                                        isCurrentRoute('chat.show', { conversationId: chat.id })
                                             ? 'text-foreground bg-sidebar-accent'
                                             : 'text-foreground/80 hover:bg-sidebar-accent/60',
                                     ]"
-                                    :href="route('chat.show', { conversationId: chat.id })"
+                                    :href="showChat.url(chat.id)"
                                 >
                                     <span class="flex-1 truncate">{{ chat.title }}</span>
                                 </Link>

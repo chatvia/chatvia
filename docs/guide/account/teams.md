@@ -1,12 +1,12 @@
 # Workspaces, teams & roles
 
-Chatvia is organised around a **workspace** — the company account that owns your agents, sources, MCP connectors, functions, billing, and people. Inside a workspace, **teams** group your people by scope-of-access. Roles control what each member can do.
+Chatvia is organised around a **workspace** — the company account that owns your agents, sources, MCP connectors, functions, and people. Inside a workspace, **teams** group your people by scope-of-access. Roles control what each member can do.
 
 ![SCREENSHOT — teams list](/screenshots/teams.png)
 
 ## Workspace vs team
 
-- **Workspace** — the customer account. One per company. Owns agents, sources, secrets, billing, and the full member list.
+- **Workspace** — the customer account. One per company. Owns agents, sources, secrets, and the full member list. It can have a [monthly message limit](/guide/account/message-limits).
 - **Team** — a scope-of-access grouping inside the workspace. Teams let you silo work (one per client, one per product area, one per environment) without spinning up a new workspace.
 
 The workspace switcher in the top nav toggles between any workspaces you belong to. Within a workspace, the team selector picks which team you're acting on.
@@ -48,7 +48,7 @@ You can't remove the workspace owner. Transfer ownership (support-assisted) firs
 
 A **role** is a named permission set. Built-in roles cover the common cases:
 
-- **Owner** — full access, including billing, connectors, and member management.
+- **Owner** — full access, including connectors and member management.
 - **Editor** — manage all agents, sources, connectors, functions.
 - **Viewer** — read-only.
 
@@ -79,13 +79,13 @@ From a team, edit a teammate to change their role. From a role, you can also add
 | Accept handoff | ✓ | ✓ | ✓ (write) | — |
 | Resolve tool-approval checkpoints | ✓ | ✓ | ✓ (write) | — |
 | Grant chatter access (workspace-wide or per-agent) | ✓ | ✓ | — | — |
+| Set a chatter's monthly message limit | ✓ | ✓ | — | — |
 | Manage Connectors / Functions (workspace-level) | ✓ | — | — | — |
 | Invite / remove teammates | ✓ | — | — | — |
-| Manage billing | ✓ | — | — | — |
 
 ## Multiple teams
 
-You can belong to many teams inside a workspace (and to several workspaces). The team selector swaps the context — agents, settings, and member lists all scope to the active team. Billing and connectors stay at the workspace level.
+You can belong to many teams inside a workspace (and to several workspaces). The team selector swaps the context — agents, settings, and member lists all scope to the active team. Connectors and the workspace's message limit stay at the workspace level.
 
 ::: tip Workspace secrets are shared across teams
 Your **signing secret** (for identity verification) and your **API keys** are tied to the *workspace*, not a team. Switching teams in the dashboard doesn't switch credentials — a single API key covers every team in the workspace.

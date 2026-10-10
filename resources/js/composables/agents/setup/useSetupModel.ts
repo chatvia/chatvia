@@ -3,6 +3,7 @@
  * the platform and never shown or editable here; owners only tune how
  * precise or creative the answers are.
  */
+import { update as updateTemperature } from '@/routes/agents/temperature';
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -15,7 +16,7 @@ export function useSetupModel({ agentId }: SetupSectionDeps, temperature: number
     const isSaving = ref(false);
 
     const save = (): void =>
-        submitSetupForm(form, 'patch', route('agents.temperature.update', { agent: agentId() }), {
+        submitSetupForm(form, 'patch', updateTemperature.url(agentId()), {
             saving: isSaving,
             success: t('agents.setup.toasts.saved'),
             error: t('agents.setup.toasts.save_error'),

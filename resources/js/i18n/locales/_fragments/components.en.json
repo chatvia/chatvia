@@ -13,14 +13,8 @@
     "agents": {
         "create_modal": {
             "title": "Create Agent",
-            "limit_title": "Agent Limit Reached",
-            "limit_description": "You've reached your agent limit.",
-            "upgrade_plan": "Upgrade Plan",
             "name_label": "Agent Name",
-            "name_placeholder": "E.g., Customer Support",
-            "load_error": "Failed to load usage information",
-            "limit_toast_title": "Agent limit reached",
-            "limit_toast_description": "You've reached your agent limit."
+            "name_placeholder": "E.g., Customer Support"
         }
     },
     "confirm_password": {

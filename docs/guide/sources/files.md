@@ -31,7 +31,7 @@ While processing, your team will see:
 - A spinner while the background ingestion job parses, chunks, and embeds.
 - A green check when the source is ready.
 
-If a file fails (encrypted PDF, unsupported variant, no extractable text), the source goes to **Failed** and the teammate who uploaded it can hover for the error. Re-upload after fixing the source — failed uploads don't consume credits.
+If a file fails (encrypted PDF, unsupported variant, no extractable text), the source goes to **Failed** and the teammate who uploaded it can hover for the error. Re-upload after fixing the source.
 
 ## Markdown sources
 

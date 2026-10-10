@@ -4,6 +4,7 @@
  * Real-time updates arrive over the conversation's presence channel (see
  * `useHandoff`); these calls only change state on the server.
  */
+import handoff from '@/routes/agents/handoff';
 import { post } from './http';
 
 export type HandoffTakeoverResult = App.Http.Resources.Handoff.HandoffTakeoverResultData & {
@@ -23,21 +24,21 @@ function params(target: HandoffTarget): { agent: string; conversation: string } 
 }
 
 export function takeOverConversation(target: HandoffTarget): Promise<HandoffTakeoverResult> {
-    return post<HandoffTakeoverResult>(route('agents.handoff.takeover', params(target)));
+    return post<HandoffTakeoverResult>(handoff.takeover.url(params(target)));
 }
 
 export function returnConversationToAi(target: HandoffTarget): Promise<HandoffReturnResult> {
-    return post<HandoffReturnResult>(route('agents.handoff.return', params(target)));
+    return post<HandoffReturnResult>(handoff.return.url(params(target)));
 }
 
 export function sendHandoffMessage(target: HandoffTarget, content: string): Promise<HandoffMessageResult> {
-    return post<HandoffMessageResult>(route('agents.handoff.message', params(target)), { content });
+    return post<HandoffMessageResult>(handoff.message.url(params(target)), { content });
 }
 
 export function sendHandoffTyping(target: HandoffTarget, isTyping: boolean): Promise<void> {
-    return post(route('agents.handoff.typing', params(target)), { is_typing: isTyping });
+    return post(handoff.typing.url(params(target)), { is_typing: isTyping });
 }
 
 export function markHandoffMessagesRead(target: HandoffTarget): Promise<void> {
-    return post(route('agents.handoff.mark-read', params(target)));
+    return post(handoff.markRead.url(params(target)));
 }

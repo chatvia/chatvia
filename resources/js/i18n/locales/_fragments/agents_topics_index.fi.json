@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Aiheet",
             "description": "Analysoi keskusteluaiheita ja trendejä",
-            "locked_description": "Päivitä tilauksesi saadaksesi käyttöön aiheanalyysin, joka tunnistaa ja luokittelee keskusteluaiheet automaattisesti.",
             "disabled_title": "Aiheanalyysi",
             "disabled_description": "Ota käyttöön havaitaksesi ja ryhmitelläksesi automaattisesti, mitä kävijäsi kysyvät eri keskusteluissa.",
             "blocked_reason": "Keskusteluloki on pois käytöstä, joten analysoitavaa ei ole. Ota se käyttöön kohdassa Asennus → Asetukset aloittaaksesi aiheiden keräämisen.",

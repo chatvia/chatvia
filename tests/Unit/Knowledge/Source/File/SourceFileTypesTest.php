@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 
 /**
@@ -45,19 +47,4 @@ it('maps audio and video MIME types to their category and rejects unknown ones',
         ->and(SourceFileTypes::categoryOfMimeType('video/mp4'))->toBe('video')
         ->and(fn (): string => SourceFileTypes::categoryOfMimeType('application/x-unknown'))
         ->toThrow(RuntimeException::class, 'Unsupported mime type');
-});
-
-it('keeps every non-audio/video category inside the billable pages bucket', function (): void {
-    // Mirror of WorkspaceConsumption::pages() — every category a document can
-    // get must be metered, or uploads slip through free.
-    $pagesBucket = ['pdf', 'word', 'markdown', 'text', 'presentation', 'spreadsheet', 'image', 'document'];
-
-    $categories = collect(SourceFileTypes::supportedExtensions())
-        ->map(fn (string $ext): string => SourceFileTypes::category('x.'.$ext))
-        ->unique()
-        ->values();
-
-    expect($categories->diff($pagesBucket))->toBeEmpty(
-        'Some document categories are not counted by WorkspaceConsumption::pages()'
-    );
 });

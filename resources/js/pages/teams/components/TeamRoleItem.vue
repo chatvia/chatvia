@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n';
 
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { edit as editRole } from '@/routes/teams/roles';
 import { usePermissionCatalog } from '../composables/usePermissionCatalog';
 
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -148,7 +149,7 @@ const hasPermission = (permission: string): boolean => {
                     <Tooltip>
                         <TooltipTrigger as-child>
                             <Button variant="ghost" size="icon" class="size-8" as-child :aria-label="t('teams.show.roles.edit_role')">
-                                <Link :href="route('teams.roles.edit', { team: team.external_id, roleId: role.id })">
+                                <Link :href="editRole.url({ team: team.external_id, roleId: role.id })">
                                     <Edit class="size-4" />
                                 </Link>
                             </Button>

@@ -103,23 +103,8 @@
     "dashboard": {
         "messages_this_month": "Wiadomości w tym miesiącu"
     },
-    "usage": {
-        "no_limit": "Bez limitu"
-    },
     "nav": {
         "open_user_menu": "Otwórz menu użytkownika"
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Witamy w Chatvia",
-            "intro": "Utwórzmy Twojego pierwszego agenta AI. Zajmie to tylko minutę.",
-            "what_title": "Czym jest agent?",
-            "what_body": "Agent to asystent AI, którego trenujesz na własnych treściach. Odpowiada Twoim klientom na Twojej stronie internetowej, w widżecie czatu i w komunikatorach.",
-            "how_title": "Jak to działa?",
-            "how_body": "Najpierw tworzysz agenta i nadajesz mu nazwę. Następnie trenujesz go na swoich plikach, stronach internetowych i tekstach, aby mógł odpowiadać na pytania.",
-            "start": "Utwórz mojego pierwszego agenta",
-            "video_caption": "Zobacz, jak to działa"
-        }
     },
     "workspace": {
         "prompts": {

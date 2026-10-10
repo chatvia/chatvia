@@ -9,10 +9,6 @@ Schedule::command('horizon:snapshot')->everyFiveMinutes();
 
 Schedule::command('telescope:prune --hours=24')->dailyAt('00:00');
 
-// Refreshes the cached per-workspace message usage that the message-capacity
-// gate reads between consumptions.
-Schedule::command('app:cache-message-usage')->everyFiveMinutes();
-
 Schedule::command('app:prune-expired-data-exports')->dailyAt('00:15');
 
 // Daily cleanup of visitor-uploaded chat attachments: files whose
@@ -21,7 +17,7 @@ Schedule::command('app:prune-expired-data-exports')->dailyAt('00:15');
 // files are deleted together.
 Schedule::command('app:prune-chat-attachments')->dailyAt('03:00');
 
-// Soft-deletes conversations past their per-plan retention horizon. Runs
+// Soft-deletes conversations past their retention horizon. Runs
 // after the attachment prune so the two passes don't fight over Horizon
 // workers — and so any conversation-cascade attachment deletions happen
 // before the next attachment sweep.
@@ -70,11 +66,6 @@ Schedule::command('app:analyze-conversations')->hourly();
 // dashboard aggregate, so the raw firehose only needs to cover the window
 // where re-deriving (or debugging) per-event data is still useful.
 Schedule::command('app:prune-analytics-events')->dailyAt('04:45');
-
-// Drain the Redis token-usage buffer (RecordLlmTokenUsage) into
-// user_usages.tokens — one UPDATE per active workspace per minute instead of
-// one contended row-increment per LLM op on the request path.
-Schedule::command('app:flush-token-usage-buffer')->everyMinute();
 
 // Retrain the vchordrq k-means partitioning on the chunks indexes against the
 // CURRENT rows (migrate:fresh builds them on an empty table, so the initial

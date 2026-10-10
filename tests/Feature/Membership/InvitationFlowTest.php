@@ -2,7 +2,6 @@
 
 use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Domain\Membership\Agent\Notifications\AgentChatterInvitationNotification;
@@ -14,7 +13,6 @@ use Domain\Membership\Team\Notifications\TeamInvitationNotification;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 
 /*
  * HTTP-level coverage for the two invitation flows and their side effects:
@@ -31,26 +29,11 @@ use Illuminate\Support\Str;
  */
 
 /**
- * A workspace owner with billing + active subscription + quota + default team.
- * Registration no longer auto-provisions any of these (trial-checkout only),
- * so seed them explicitly the way the Stripe webhook would.
+ * A workspace owner with its default team.
  */
 function invitationFlowOwner(): User
 {
     $owner = User::factory()->create();
-
-    $owner->billing()->firstOrCreate([])->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test_'.Str::random(6),
-        'quantity' => 1,
-    ]);
-
-    UserQuota::firstOrCreate(
-        ['user_id' => $owner->id],
-        planFixedLimits(),
-    );
 
     app(TeamService::class)->createDefaultTeam($owner);
 

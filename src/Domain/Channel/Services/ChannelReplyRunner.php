@@ -2,9 +2,9 @@
 
 namespace Domain\Channel\Services;
 
+use App\Identity\Workspace\Services\MessageAllowance;
 use Closure;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Services\MessageSendGate;
 use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\Replies\StreamingReplyStrategy;
 use Domain\Channel\Services\Replies\TypingReplyStrategy;
@@ -22,17 +22,17 @@ use Throwable;
 
 /**
  * Runs one messaging-channel turn through the REAL chat pipeline (RAG + tools
- * + guardrails + persistence + billing) and returns the full reply as a
+ * + guardrails + persistence + message limits) and returns the full reply as a
  * string. Shared by every channel — the reply strategies
  * ({@see TypingReplyStrategy}, {@see StreamingReplyStrategy}) only decide what
  * happens *while* the reply generates (refresh a typing indicator, push
  * streamed partials) via `$onProgress`.
  *
- * Mirrors {@see ChatStreamService}: the same owner send gate
- * ({@see MessageSendGate}), the same per-agent rate limit, the same source
+ * Mirrors {@see ChatStreamService}: the same workspace message limit
+ * ({@see MessageAllowance}), the same per-agent rate limit, the same source
  * selection (guard-block → Q&A → LLM). The fixed replies below are sent in
- * the agent's channel language ({@see ChannelLocale}). The sources persist + bill +
- * apply output guards as the generator is drained; the final (already
+ * the agent's channel language ({@see ChannelLocale}). The sources persist, count
+ * the reply and apply output guards as the generator is drained; the final (already
  * redacted/corrected) text lands in `ChatContext::streamedMessage` —
  * mid-drain reads of it are pre-guard, exactly as on the web SSE surface.
  */
@@ -43,7 +43,7 @@ class ChannelReplyRunner
         private readonly LlmSource $llmSource,
         private readonly QaSource $qaSource,
         private readonly GuardBlockSource $guardBlockSource,
-        private readonly MessageSendGate $sendGate,
+        private readonly MessageAllowance $allowance,
         private readonly AgentChatRateLimiter $rateLimiter,
     ) {}
 
@@ -83,11 +83,8 @@ class ChannelReplyRunner
      */
     private function refusal(Agent $agent): ?string
     {
-        $owner = $agent->user;
-
-        // Same gate as the web chat (subscription/trial, then message credits),
-        // so admins and everyone else are treated alike on every surface.
-        if ($owner === null || ! $this->sendGate->admit($owner)->allowed()) {
+        // Same monthly limit as the web chat, so every surface is treated alike.
+        if (! $this->allowance->canSend($agent->user_id)) {
             return 'Sorry — this assistant is unavailable right now. Please try again later.';
         }
 

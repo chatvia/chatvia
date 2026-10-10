@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useColorTheme } from '@/composables/useColorTheme';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { login as chatterLogin } from '@/routes/chat';
+import { send as sendChatterMagicLink } from '@/routes/chat/magic-link';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, Mail, Sparkles } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
@@ -46,13 +48,13 @@ const magicLinkForm = useForm({
 const { applyColorTheme } = useColorTheme();
 
 const submitPassword = () => {
-    passwordForm.post(route('chat.login'), {
+    passwordForm.post(chatterLogin.url(), {
         onFinish: () => passwordForm.reset('password'),
     });
 };
 
 const submitMagicLink = () => {
-    magicLinkForm.post(route('chat.magic-link.send'), {
+    magicLinkForm.post(sendChatterMagicLink.url(), {
         preserveScroll: true,
     });
 };

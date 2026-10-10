@@ -10,7 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The self-serve sign-up form (open only when `billing.registration_enabled`
+ * The self-serve sign-up form (open only when `chatvia.registration_enabled`
  * is on, the "Open sign-up" option in the admin panel):
  * shows it, creates the workspace account and signs the new owner in.
  */

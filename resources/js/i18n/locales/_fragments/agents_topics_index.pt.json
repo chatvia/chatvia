@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Tópicos",
             "description": "Analise tópicos e tendências de conversas",
-            "locked_description": "Atualize o seu plano para aceder à análise de tópicos e detetar e categorizar automaticamente os tópicos das conversas.",
             "disabled_title": "Análise de tópicos",
             "disabled_description": "Ative para detetar e agrupar automaticamente o que os seus visitantes perguntam nas conversas.",
             "blocked_reason": "O registo de conversas está desativado, pelo que não há nada para analisar. Ative-o em Configuração → Definições para começar a recolher tópicos.",

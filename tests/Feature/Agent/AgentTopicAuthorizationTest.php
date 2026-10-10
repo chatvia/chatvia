@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
 
 /*
@@ -13,7 +14,7 @@ use Domain\Conversation\Topic\Models\Topic;
 
 beforeEach(function (): void {
     // Pro plan grants the `topics` capability the route is gated behind.
-    $this->agent = proPlanAgent();
+    $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->user;
 });
 

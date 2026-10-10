@@ -2,6 +2,7 @@
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
+import { update as updatePasswordRoute } from '@/routes/account/password';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -33,7 +34,7 @@ const form = useForm({
 });
 
 const updatePassword = () => {
-    form.put(route('account.password.update'), {
+    form.put(updatePasswordRoute.url(), {
         preserveScroll: true,
         onSuccess: () => form.reset(),
         onError: (errors) => {

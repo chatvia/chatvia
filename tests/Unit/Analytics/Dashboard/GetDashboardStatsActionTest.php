@@ -1,10 +1,9 @@
 <?php
 
+use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Dashboard\GetDashboardStatsAction;
-use Domain\Billing\Models\UserCredit;
-use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +14,7 @@ use Illuminate\Support\Str;
  * analytics rollup + events stream, keyed on the workspace owner's id. These
  * tests pin the structure and the representative scoping rules: only the
  * owner's agents/rollups count, active sessions are 24h-distinct, and the
- * messages panel reads the active UserCredit cycle.
+ * messages panel reads the workspace's monthly message limit when it has one.
  */
 function gdsRollup(Agent $agent, string $bucketHour, array $values = []): void
 {
@@ -50,22 +49,17 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
 
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
-    UserQuota::firstOrCreate(
-        ['user_id' => $owner->id],
-        planFixedLimits(),
-    );
 
-    // Active billing cycle: 1000 base messages, started 5 days ago. The billed
-    // counter (11) deliberately differs from the rollup sum (9) — as when 2 of
-    // the replies were eval cases, which bill but never reach the analytics
+    // A monthly limit of 1000 with 11 replies counted. The limit's counter
+    // (11) deliberately differs from the rollup sum (9) — as when 2 of the
+    // replies were eval cases, which count but never reach the analytics
     // rollup — to pin which source each panel reads.
-    $credit = UserCredit::create([
+    MessageLimit::create([
         'user_id' => $owner->id,
-        'messages' => 1000,
-        'started_at' => now()->subDays(5),
-        'ends_at' => now()->addDays(25),
+        'monthly_limit' => 1000,
+        'messages_used' => 11,
+        'period_starts_at' => now()->startOfMonth(),
     ]);
-    $credit->usage()->create(['messages' => 11]);
 
     $agentA = createAgent($owner, ['name' => 'Agent A']);
     $agentB = createAgent($owner, ['name' => 'Agent B']);
@@ -91,20 +85,19 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
 
     expect($stats)->toHaveKeys([
         'agents', 'messages', 'conversations', 'active_sessions',
-        'knowledge_sources', 'team', 'weekly_usage', 'monthly_usage', 'usage',
-    ]);
+        'knowledge_sources', 'team', 'weekly_usage', 'monthly_usage',
+    ])->not->toHaveKey('usage');
 
     expect($stats['agents']['total'])->toBe(2)
         ->and($stats['conversations'])->toBe(5)
         ->and($stats['active_sessions'])->toBe(2)
         ->and($stats['team']['members'])->toBe(0);
 
-    // Messages panel: used from the BILLING counter (covers eval cases the
-    // rollup never sees); base quota from the UserCredit row; no addons.
+    // Messages panel: used from the LIMIT's counter (covers eval cases the
+    // rollup never sees).
     expect($stats['messages']['total'])->toBe(11)
         ->and($stats['messages']['limit'])->toBe(1000)
-        ->and($stats['messages']['available'])->toBe(989)
-        ->and($stats['messages']['cycle'])->not->toBeNull();
+        ->and($stats['messages']['available'])->toBe(989);
 
     // Trend (team present): all 9 assistant messages landed this month.
     expect($stats['messages']['trend']['this_month'])->toBe(9)
@@ -125,22 +118,10 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
         'crawled_pages' => 0,
         'total' => 0,
     ]);
-
-    // Usage panel reads the same credit math plus the quota row limits.
-    expect($stats['usage']['plan'])->toBeString()
-        ->and($stats['usage']['messages'])->toBe(['used' => 11, 'limit' => 1000, 'remaining' => 989])
-        ->and($stats['usage']['pages']['limit'])->toBe(planFixedLimits()['pages_limit'])
-        ->and($stats['usage']['pages']['used'])->toBe(0)
-        ->and($stats['usage']['minutes']['used'])->toBe(0)
-        ->and($stats['usage']['links']['used'])->toBe(0);
 });
 
 it('returns a zeroed trend and member count when no team is passed', function (): void {
     $owner = User::factory()->create();
-    UserQuota::firstOrCreate(
-        ['user_id' => $owner->id],
-        planFixedLimits(),
-    );
 
     $stats = app(GetDashboardStatsAction::class)->execute($owner, null)->toArray();
 
@@ -148,7 +129,24 @@ it('returns a zeroed trend and member count when no team is passed', function ()
         ->and($stats['team']['members'])->toBe(0)
         ->and($stats['agents']['total'])->toBe(0)
         ->and($stats['conversations'])->toBe(0)
-        // No UserCredit row: panel reports an empty cycle, not an error.
+        // No limit: the panel reports this month's replies and no limit.
         ->and($stats['messages']['total'])->toBe(0)
-        ->and($stats['messages']['cycle'])->toBeNull();
+        ->and($stats['messages']['limit'])->toBeNull()
+        ->and($stats['messages']['available'])->toBeNull();
+});
+
+it('counts this month\'s replies from the rollup when the workspace has no limit', function (): void {
+    $this->travelTo(Carbon::parse('2026-06-15 12:00:00', 'UTC'));
+
+    $owner = User::factory()->create();
+    $agent = createAgent($owner);
+
+    gdsRollup($agent, '2026-06-10 10:00:00+00', ['assistant_messages' => 4]);
+    // Last month does not count.
+    gdsRollup($agent, '2026-05-20 10:00:00+00', ['assistant_messages' => 6]);
+
+    $stats = app(GetDashboardStatsAction::class)->execute($owner, null)->toArray();
+
+    expect($stats['messages']['total'])->toBe(4)
+        ->and($stats['messages']['limit'])->toBeNull();
 });

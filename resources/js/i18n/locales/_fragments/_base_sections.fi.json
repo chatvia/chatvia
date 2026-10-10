@@ -56,16 +56,11 @@
     },
     "chat": {
         "message_limit_reached": "Viestiraja on saavutettu",
-        "upgrade_prompt": "Päivitä tilaussuunnitelmasi jatkaaksesi keskustelua",
         "regenerate_failed": "Vastausta ei voitu luoda uudelleen. Yritä uudelleen.",
         "loading_conversation": "Ladataan keskustelua"
     },
     "errors": {
-        "subscription_expired": "Tilaus on vanhentunut",
-        "renew_subscription": "Uudista tilaus",
         "message_limit_reached": "Viestiraja saavutettu",
-        "token_limit_reached": "Tokeni-käyttöraja saavutettu",
-        "upgrade_plan": "Päivitä suunnitelma",
         "model_unavailable": "Malli ei ole käytettävissä",
         "too_many_requests": "Liian monta pyyntöä",
         "connection_lost": "Yhteys katkesi",

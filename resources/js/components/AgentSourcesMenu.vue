@@ -4,10 +4,12 @@
  * sidebar, filtered by the teammate's permissions and suffixed with counts.
  * Renders through a slot so the sidebar can use it as a dropdown or a submenu.
  */
+import type { AgentPageUrl } from '@/composables/agents/layout/useAgentNavigation';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import sources from '@/routes/agents/sources';
 import { Link } from '@inertiajs/vue3';
 import { File, FileAudio, FileText, Globe, HelpCircle, Video } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { type Component, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 /** Source counts keyed by kind (files, texts, websites, …); missing kinds show no count. */
@@ -38,12 +40,24 @@ const getSourceCount = (statsKey: string, stats: SourceCounts | null | undefined
     return count > 0 ? ` (${count})` : '';
 };
 
-const menuItemDefinitions = [
+interface SourceMenuItem {
+    id: string;
+    labelKey: string;
+    icon: Component;
+    /** Route name, only for the active state. */
+    route: string;
+    url: AgentPageUrl;
+    statsKey: string;
+    permission: string;
+}
+
+const menuItemDefinitions: SourceMenuItem[] = [
     {
         id: 'files',
         labelKey: 'agents.sources.page_title.files',
         icon: File,
         route: 'agents.sources.files',
+        url: sources.files.url,
         statsKey: 'files',
         permission: 'agent.sources.train.files',
     },
@@ -52,6 +66,7 @@ const menuItemDefinitions = [
         labelKey: 'agents.sources.page_title.text',
         icon: FileText,
         route: 'agents.sources.text.index',
+        url: sources.text.index.url,
         statsKey: 'texts',
         permission: 'agent.sources.train.text',
     },
@@ -60,6 +75,7 @@ const menuItemDefinitions = [
         labelKey: 'agents.sources.page_title.qa',
         icon: HelpCircle,
         route: 'agents.sources.qa.index',
+        url: sources.qa.index.url,
         statsKey: 'qa',
         permission: 'agent.sources.train.qa',
     },
@@ -68,6 +84,7 @@ const menuItemDefinitions = [
         labelKey: 'agents.sources.page_title.web',
         icon: Globe,
         route: 'agents.sources.web',
+        url: sources.web.url,
         statsKey: 'websites',
         permission: 'agent.sources.train.web',
     },
@@ -76,6 +93,7 @@ const menuItemDefinitions = [
         labelKey: 'agents.sources.page_title.audio',
         icon: FileAudio,
         route: 'agents.sources.audio',
+        url: sources.audio.url,
         statsKey: 'audio',
         permission: 'agent.sources.train.audio',
     },
@@ -84,6 +102,7 @@ const menuItemDefinitions = [
         labelKey: 'agents.sources.page_title.video',
         icon: Video,
         route: 'agents.sources.video',
+        url: sources.video.url,
         statsKey: 'video',
         permission: 'agent.sources.train.video',
     },
@@ -105,7 +124,7 @@ const menuItems = computed(() => {
     <template v-if="props.variant === 'dropdown'">
         <slot v-for="item in menuItems" :key="item.id" :item="item" :label="item.label + getSourceCount(item.statsKey, props.sourceStats)">
             <!-- Default slot content if parent doesn't provide one -->
-            <Link :href="route(item.route, { agent: props.agentId })" class="flex items-center gap-2">
+            <Link :href="item.url(props.agentId)" class="flex items-center gap-2">
                 <component :is="item.icon" class="h-4 w-4" />
                 <span>{{ item.label }}{{ getSourceCount(item.statsKey, props.sourceStats) }}</span>
             </Link>
@@ -122,7 +141,7 @@ const menuItems = computed(() => {
             :is-active="props.isActiveRoute(item.route)"
         >
             <!-- Default slot content if parent doesn't provide one -->
-            <Link :href="route(item.route, { agent: props.agentId })">
+            <Link :href="item.url(props.agentId)">
                 <component :is="item.icon" class="h-4 w-4" />
                 <span>{{ item.label }}{{ getSourceCount(item.statsKey, props.sourceStats) }}</span>
             </Link>

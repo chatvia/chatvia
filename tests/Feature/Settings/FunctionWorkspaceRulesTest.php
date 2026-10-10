@@ -202,14 +202,6 @@ describe('the dashboard never receives webhook header values', function (): void
 
     // The agent routes sit behind the billing gate.
     beforeEach(function (): void {
-        $this->owner->billing()->firstOrCreate([]);
-        $this->owner->billing->subscriptions()->create([
-            'type' => 'default',
-            'stripe_id' => 'sub_'.$this->owner->id,
-            'stripe_status' => 'active',
-            'stripe_price' => 'price_test',
-            'quantity' => 1,
-        ]);
         $this->owner->refresh();
     });
 

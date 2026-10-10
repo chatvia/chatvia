@@ -18,9 +18,9 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Token consumption for a period: total tokens used, the prompt vs completion
 split, the average tokens per AI reply, and a per-day series. Answers "how many
-tokens did I consume this cycle?", "what's my prompt vs completion split?".
-Tokens are reported for analytics only — billing is per message received, not
-per token.
+tokens did I consume this month?", "what's my prompt vs completion split?".
+Tokens are reported for analytics only; message limits count replies, not
+tokens.
 TXT)]
 #[IsReadOnly]
 #[IsIdempotent]

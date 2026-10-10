@@ -11,10 +11,9 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\QueryBuilders\AgentQueryBuilder;
 use Domain\Agent\Services\AgentUrlBuilder;
 use Domain\Agent\ValueObjects\TranslatableText;
-use Domain\Billing\Contracts\Entitlements;
-use Domain\Billing\Data\Resources\Package\BillingPackageCapabilitiesData;
 use Domain\Channel\Concerns\HasMessagingChannels;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Services\ConversationRetention;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Form\Models\FormSubmission;
@@ -271,20 +270,11 @@ class Agent extends Model
      * Whether the "Powered by Chatvia" badge renders for this agent — on both
      * the embedded widget and the hosted chat.
      *
-     * Workspaces that can't hide branding (no white-label plan / remove-branding
-     * add-on) always show it — there's no per-agent choice to make. Entitled
-     * workspaces choose per agent via the `show_branding` appearance setting
+     * Each agent chooses with the `show_branding` appearance setting
      * (Setup → Branding), which defaults to hidden.
-     *
-     * Reads `team.owner`; callers under strict mode must eager-load it
-     * (BuildWidgetSettingsAction and the chat controllers already do).
      */
     public function showsChatviaBranding(): bool
     {
-        if (! ($this->team?->owner?->canHideBranding() ?? false)) {
-            return true;
-        }
-
         return (bool) $this->settings('appearance')->get('show_branding', false);
     }
 
@@ -584,30 +574,14 @@ class Agent extends Model
     }
 
     /**
-     * Per-plan conversation retention. Drives both the Redis TTL in
-     * {@see ChatCache::getMessageRetention()}
-     * and the `chat_conversations.expires_at` stamped on create. Asks the
-     * billing {@see Entitlements} for the agent's team owner's plan (billing
-     * is workspace-owner-scoped);
-     * falls back to the Starter floor when ownership can't be resolved so
-     * we never write a TTL shorter than what the user paid for.
-     *
-     * Cached per workspace for an hour — the team→owner→capabilities chain
-     * runs on every stored user message.
+     * How many days this agent's conversations are kept: the install-wide
+     * {@see ConversationRetention}. Drives both the Redis TTL in
+     * {@see ChatCache::getMessageRetention()} and the
+     * `chat_conversations.expires_at` stamped on create.
      */
     public function messageRetentionInDays(): int
     {
-        return (int) Cache::remember(
-            "workspace:{$this->user_id}:retention-days",
-            3600,
-            function (): int {
-                $owner = $this->team?->owner;
-
-                return $owner !== null
-                    ? app(Entitlements::class)->capabilities($owner)->retentionDays
-                    : BillingPackageCapabilitiesData::DEFAULT_RETENTION_DAYS;
-            },
-        );
+        return ConversationRetention::days();
     }
 
     /**

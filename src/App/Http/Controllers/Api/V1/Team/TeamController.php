@@ -11,7 +11,6 @@ use Domain\Membership\Team\Data\TeamPayloadData;
 use Domain\Membership\Team\Data\UpdateTeamData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 /**
  * Teams organise your agents. Each agent belongs to a team — create a team
@@ -47,12 +46,6 @@ class TeamController
     public function store(Request $request, TeamPayloadData $payload, CreateTeamAction $action): array
     {
         $owner = $request->user()->workspace();
-
-        if (! $owner->canCreateTeam()) {
-            throw ValidationException::withMessages([
-                'name' => __('You have reached your team limit.'),
-            ]);
-        }
 
         return ['data' => TeamData::fromModel($action->execute(
             new CreateTeamData(owner: $owner, name: $payload->name),

@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { commands as telegramCommands } from '@/routes/agents/channels/telegram';
 import { useForm } from '@inertiajs/vue3';
 import { Check, LoaderCircle, Plus, Trash2, X } from 'lucide-vue-next';
 import { watch } from 'vue';
@@ -48,7 +49,7 @@ const save = () => {
         .transform((data) => ({
             commands: data.commands.filter((c) => c.builtin || c.command.trim() || c.description.trim() || c.value.trim()),
         }))
-        .put(route('agents.channels.telegram.commands', props.agentId), {
+        .put(telegramCommands.url(props.agentId), {
             preserveScroll: true,
             preserveState: true,
             onSuccess: () => {

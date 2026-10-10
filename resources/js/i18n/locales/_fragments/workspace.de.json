@@ -110,7 +110,6 @@
             "description": "Kontoschlüssel für die {api_link} — Agenten, Wissensdatenbanken, MCP-Server und Funktionen erstellen und verwalten.",
             "api_link": "Chatvia API",
             "generate": "Schlüssel generieren",
-            "locked": "Upgraden Sie Ihren Plan, um API-Schlüssel zu erstellen und Chatvia mit Ihren Anwendungen zu integrieren.",
             "empty_title": "Noch keine API-Schlüssel",
             "empty_description": "Generieren Sie einen, um die Chatvia API zu nutzen.",
             "never": "Nie",

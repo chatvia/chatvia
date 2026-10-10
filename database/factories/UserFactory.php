@@ -61,9 +61,6 @@ class UserFactory extends Factory
             'deactivation_reason' => null,
             'deactivated_at' => null,
             'last_login_at' => null,
-            // Settled by default so existing tests don't trip the first-run
-            // welcome tour; override with `['onboarded_at' => null]` to exercise it.
-            'onboarded_at' => now(),
             'locale' => null,
         ];
     }

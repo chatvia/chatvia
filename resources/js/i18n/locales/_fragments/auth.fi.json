@@ -20,8 +20,7 @@
             "send_link": "Lähetä kirjautumislinkki",
             "sending_link": "Lähetetään linkkiä...",
             "or_continue_with": "Tai jatka",
-            "no_account": "Eikö sinulla ole tiliä?",
-            "start_free_trial": "Aloita ilmainen kokeilu"
+            "no_account": "Eikö sinulla ole tiliä?"
         },
         "register": {
             "title": "Luo tili",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Käytä palautuskoodia",
             "use_authenticator_code": "Käytä tunnistautumissovelluksen koodia"
         },
-        "set_password": {
-            "title": "Valitse salasanasi",
-            "description": "Tilisi on valmis. Valitse salasana viimeistelläksesi sen käyttöönoton.",
-            "head": "Valitse salasanasi",
-            "email_label": "Sähköpostiosoite",
-            "password_label": "Salasana",
-            "password_placeholder": "Salasana",
-            "confirm_password_label": "Vahvista salasana",
-            "confirm_password_placeholder": "Vahvista salasana",
-            "set_password": "Aseta salasana",
-            "setting_password": "Asetetaan salasanaa..."
-        },
         "login_member": {
             "description": "Kirjaudu sisään päästäksesi tähän chat-työtilaan",
             "head": "Jäsenen kirjautuminen",
@@ -168,16 +155,6 @@
             "or": "Tai",
             "social_email_note_prefix": "Varmista, että sosiaalisen median tilisi käyttää osoitetta",
             "social_email_note_suffix": "— sen täytyy vastata tätä kutsua."
-        },
-        "invitation_invalid": {
-            "title": "Kutsu ei ole saatavilla",
-            "description": "Tätä kutsua ei voida hyväksyä",
-            "head": "Kutsu ei ole saatavilla",
-            "card_title": "Kutsua ei voi hyväksyä",
-            "cannot_accept_prefix": "Kutsua liittyä",
-            "cannot_accept_suffix": "ei tällä hetkellä voida hyväksyä.",
-            "contact_owner": "Ota yhteyttä tiimin omistajaan asian selvittämiseksi.",
-            "go_to_login": "Siirry kirjautumiseen"
         },
         "invitation_expired": {
             "title": "Kutsu on vanhentunut",

@@ -5,6 +5,7 @@
  * UI when the request fails.
  */
 import type { SurfaceSettings } from '@/components/agents/deploy/installSnippets';
+import { update as updateSettings } from '@/routes/agents/settings';
 import { router } from '@inertiajs/vue3';
 import { type MaybeRefOrGetter, reactive, ref, toValue } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -26,7 +27,7 @@ export function useSurfaceToggles(agentId: MaybeRefOrGetter<string>, surfaces: S
         surfaceEnabled[key] = value;
         savingSurfaces.value = true;
         router.post(
-            route('agents.settings.update', { agent: toValue(agentId), group: 'surfaces' }),
+            updateSettings.url({ agent: toValue(agentId), group: 'surfaces' }),
             { ...surfaceEnabled },
             {
                 preserveScroll: true,

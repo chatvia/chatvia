@@ -20,8 +20,7 @@
             "send_link": "Send meg en innloggingslenke",
             "sending_link": "Sender lenke...",
             "or_continue_with": "Eller fortsett med",
-            "no_account": "Har du ikke en konto?",
-            "start_free_trial": "Start gratis prøveperiode"
+            "no_account": "Har du ikke en konto?"
         },
         "register": {
             "title": "Opprett en konto",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Bruk en gjenopprettingskode",
             "use_authenticator_code": "Bruk en autentiseringskode"
         },
-        "set_password": {
-            "title": "Velg passord",
-            "description": "Kontoen din er klar. Velg et passord for å fullføre oppsettet.",
-            "head": "Velg passord",
-            "email_label": "E-postadresse",
-            "password_label": "Passord",
-            "password_placeholder": "Passord",
-            "confirm_password_label": "Bekreft passord",
-            "confirm_password_placeholder": "Bekreft passord",
-            "set_password": "Angi passord",
-            "setting_password": "Angir passord..."
-        },
         "login_member": {
             "description": "Logg inn for å få tilgang til dette chat-arbeidsområdet",
             "head": "Medlemsinnlogging",
@@ -168,16 +155,6 @@
             "or": "Eller",
             "social_email_note_prefix": "Sørg for at den sosiale kontoen din bruker",
             "social_email_note_suffix": "– den må samsvare med denne invitasjonen."
-        },
-        "invitation_invalid": {
-            "title": "Invitasjon utilgjengelig",
-            "description": "Denne invitasjonen kan ikke aksepteres",
-            "head": "Invitasjon utilgjengelig",
-            "card_title": "Kan ikke akseptere invitasjon",
-            "cannot_accept_prefix": "Invitasjonen til å bli med i",
-            "cannot_accept_suffix": "kan ikke aksepteres på dette tidspunktet.",
-            "contact_owner": "Kontakt teamets eier for å løse dette problemet.",
-            "go_to_login": "Gå til innlogging"
         },
         "invitation_expired": {
             "title": "Invitasjon utløpt",

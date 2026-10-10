@@ -20,8 +20,7 @@
             "send_link": "Wyślij mi link do logowania",
             "sending_link": "Wysyłanie linku...",
             "or_continue_with": "Lub kontynuuj przez",
-            "no_account": "Nie masz jeszcze konta?",
-            "start_free_trial": "Rozpocznij bezpłatny okres próbny"
+            "no_account": "Nie masz jeszcze konta?"
         },
         "register": {
             "title": "Utwórz konto",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Użyj kodu odzyskiwania",
             "use_authenticator_code": "Użyj kodu z aplikacji uwierzytelniającej"
         },
-        "set_password": {
-            "title": "Wybierz hasło",
-            "description": "Twoje konto jest gotowe. Ustaw hasło, aby zakończyć konfigurację.",
-            "head": "Wybierz hasło",
-            "email_label": "Adres e-mail",
-            "password_label": "Hasło",
-            "password_placeholder": "Hasło",
-            "confirm_password_label": "Potwierdź hasło",
-            "confirm_password_placeholder": "Potwierdź hasło",
-            "set_password": "Ustaw hasło",
-            "setting_password": "Ustawianie hasła..."
-        },
         "login_member": {
             "description": "Zaloguj się, aby uzyskać dostęp do tego obszaru roboczego czatu",
             "head": "Logowanie członka",
@@ -168,16 +155,6 @@
             "or": "Lub",
             "social_email_note_prefix": "Upewnij się, że Twoje konto społecznościowe używa adresu",
             "social_email_note_suffix": "— musi on odpowiadać temu zaproszeniu."
-        },
-        "invitation_invalid": {
-            "title": "Zaproszenie niedostępne",
-            "description": "Tego zaproszenia nie można zaakceptować",
-            "head": "Zaproszenie niedostępne",
-            "card_title": "Nie można zaakceptować zaproszenia",
-            "cannot_accept_prefix": "Zaproszenie do dołączenia do",
-            "cannot_accept_suffix": "nie może zostać zaakceptowane w tej chwili.",
-            "contact_owner": "Skontaktuj się z właścicielem zespołu, aby rozwiązać ten problem.",
-            "go_to_login": "Przejdź do logowania"
         },
         "invitation_expired": {
             "title": "Zaproszenie wygasło",

@@ -23,6 +23,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDateWith } from '@/composables/useDateFormat';
+import { update as updatePreferences } from '@/routes/account/preferences';
 import { type User } from '@/types';
 
 const props = defineProps<{
@@ -40,7 +41,7 @@ const dateForm = useForm({
 const datePreview = computed(() => formatDateWith(dateForm.date_format, new Date()));
 
 const submitDateFormat = () => {
-    dateForm.patch(route('account.preferences.update'), {
+    dateForm.patch(updatePreferences.url(), {
         preserveScroll: true,
     });
 };

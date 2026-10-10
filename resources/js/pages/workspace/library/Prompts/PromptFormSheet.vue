@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Textarea } from '@/components/ui/textarea';
+import { destroy as destroyPrompt, store as storePrompt, update as updatePrompt } from '@/routes/library/prompts';
 import { router, useForm } from '@inertiajs/vue3';
 import { Hash, LoaderCircle, Save, Trash2 } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -58,7 +59,7 @@ watch(
 
 function submit(): void {
     if (props.prompt) {
-        form.patch(route('library.prompts.update', { external_id: props.prompt.id }), {
+        form.patch(updatePrompt.url(props.prompt.id), {
             preserveScroll: true,
             onSuccess: () => {
                 emit('update:open', false);
@@ -66,7 +67,7 @@ function submit(): void {
             },
         });
     } else {
-        form.post(route('library.prompts.store'), {
+        form.post(storePrompt.url(), {
             preserveScroll: true,
             onSuccess: () => {
                 emit('update:open', false);
@@ -86,7 +87,7 @@ function askDelete(): void {
 
 function confirmDelete(): void {
     if (!props.prompt) return;
-    router.delete(route('library.prompts.destroy', { external_id: props.prompt.id }), {
+    router.delete(destroyPrompt.url(props.prompt.id), {
         preserveScroll: true,
         onSuccess: () => emit('changed'),
     });

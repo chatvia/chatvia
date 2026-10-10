@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Emner",
             "description": "Analyser samtaletemaer og trender",
-            "locked_description": "Oppgrader planen din for å få tilgang til emnanalyse og automatisk oppdage og kategorisere samtaletemaer.",
             "disabled_title": "Emnanalyse",
             "disabled_description": "Slå det på for å automatisk oppdage og gruppere hva besøkende spør om på tvers av samtaler.",
             "blocked_reason": "Samtaletjenesten er av, så det er ingenting å analysere. Slå den på under Oppsett → Innstillinger for å begynne å samle inn emner.",

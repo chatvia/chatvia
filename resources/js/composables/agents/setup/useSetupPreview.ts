@@ -4,6 +4,8 @@
  * key that reloads the iframe after every save. Also copies the agent id from
  * the preview toolbar.
  */
+import { preview as barPreview } from '@/routes/agents/bar';
+import { preview as widgetPreview } from '@/routes/agents/widget';
 import { useClipboard } from '@vueuse/core';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -49,9 +51,9 @@ export function useSetupPreview(agent: () => PreviewAgent, authToken: () => stri
     const url = computed(() => {
         if (surface.value === 'hosted_chat') return hostedChatUrl.value;
         if (surface.value === 'widget') {
-            return `${route('agents.widget.preview', { agent: agent().external_id })}?full-preview=true`;
+            return widgetPreview.url(agent().external_id, { query: { 'full-preview': 'true' } });
         }
-        return route('agents.bar.preview', { agent: agent().external_id });
+        return barPreview.url(agent().external_id);
     });
 
     const frameClass = computed(() => {

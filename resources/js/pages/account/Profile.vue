@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
+import { update as updateProfile } from '@/routes/account/profile';
+import { send as sendVerification } from '@/routes/verification';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { CheckCircle, Mail, Save, User as UserIcon } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -47,7 +49,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.patch(route('account.profile.update'), {
+    form.patch(updateProfile.url(), {
         preserveScroll: true,
     });
 };
@@ -112,7 +114,7 @@ const submit = () => {
                                 <p class="text-sm text-amber-800 dark:text-amber-200">
                                     {{ t('account.profile.email_unverified') }}
                                     <Link
-                                        :href="route('verification.send')"
+                                        :href="sendVerification.url()"
                                         method="post"
                                         as="button"
                                         class="font-medium text-amber-600 underline decoration-amber-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current dark:text-amber-400 dark:decoration-amber-700"

@@ -4,6 +4,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 import AppLayout from '@/layouts/AppLayout.vue';
+import { updateRole } from '@/routes/teams';
 import { type BreadcrumbItem } from '@/types';
 import RoleForm from './components/RoleForm.vue';
 
@@ -51,7 +52,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(route('teams.update-role', { team: props.team.external_id, roleId: props.role.id }));
+    form.put(updateRole.url({ team: props.team.external_id, roleId: props.role.id }));
 };
 </script>
 

@@ -3,6 +3,7 @@
 // full-page hop to Facebook consent → our callback drops the IG-linked accounts
 // into `pick` → the workspace selects one here.
 import { Button } from '@/components/ui/button';
+import { redirect as redirectToInstagram, select as selectInstagramAccount } from '@/routes/agents/channels/instagram';
 import { useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle, Plug } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -26,13 +27,13 @@ const page = usePage();
 const error = computed<string | undefined>(() => (page.props.errors as Record<string, string> | undefined)?.instagram);
 
 const connect = () => {
-    window.location.href = route('agents.channels.instagram.redirect', props.agent.external_id);
+    window.location.href = redirectToInstagram.url(props.agent.external_id);
 };
 
 const selectForm = useForm({ ig_id: props.instagram.pick?.[0]?.ig_id ?? '' });
 
 const selectAccount = () => {
-    selectForm.post(route('agents.channels.instagram.select', props.agent.external_id), {
+    selectForm.post(selectInstagramAccount.url(props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {

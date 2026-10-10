@@ -59,10 +59,10 @@ it('accepts a hosted-chat POST that echoes the XSRF-TOKEN cookie back', function
     expect($response->getContent())->toBe('ok');
 });
 
-it('keeps the server-to-server endpoints exempt', function (string $uri): void {
+it('keeps the token-authenticated widget endpoints exempt', function (string $uri): void {
     $response = csrfMiddleware()->handle(csrfRequest($uri), fn (): Response => new Response('ok'));
 
     expect($response->getContent())->toBe('ok');
 })->with([
-    'stripe webhook' => '/stripe/webhook',
+    'widget stream' => '/widget/stream',
 ]);

@@ -3,6 +3,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { login } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
 import { Clock, Home } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -37,7 +38,7 @@ defineProps<Props>();
                 </CardHeader>
                 <CardContent class="space-y-4 text-center">
                     <p class="text-muted-foreground">{{ t('auth.invitation_expired.contact_owner') }}</p>
-                    <Link :href="route('login')">
+                    <Link :href="login.url()">
                         <Button variant="outline" class="gap-2">
                             <Home class="h-4 w-4" />
                             {{ t('auth.invitation_expired.go_to_login') }}

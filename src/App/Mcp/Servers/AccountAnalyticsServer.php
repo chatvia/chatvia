@@ -8,7 +8,6 @@ use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
 use App\Mcp\Tools\Analytics\GetActivityPatternsTool;
 use App\Mcp\Tools\Analytics\GetAgentBreakdownTool;
 use App\Mcp\Tools\Analytics\GetAiUsageTool;
-use App\Mcp\Tools\Analytics\GetBillingCycleUsageTool;
 use App\Mcp\Tools\Analytics\GetChannelBreakdownTool;
 use App\Mcp\Tools\Analytics\GetConversationStatsTool;
 use App\Mcp\Tools\Analytics\GetGeographyStatsTool;
@@ -40,13 +39,12 @@ use Laravel\Mcp\Server\Tool;
 #[Version('1.0.0')]
 #[Instructions(<<<'TXT'
 Answer the workspace owner's questions about their own Chatvia account in
-numbers. Every tool takes a `period` (default "current_cycle" — the current
-billing cycle) and returns both a short text answer and exact figures.
+numbers. Every tool takes a `period` (default "this_month") and returns both a
+short text answer and exact figures.
 
 Pick the tool that matches the question:
 - get-account-overview     — a one-shot snapshot of everything
 - get-message-stats        — message volume, in vs out, trend, per-day series
-- get-billing-cycle-usage  — messages used vs the plan limit, days left, projection
 - get-conversation-stats   — conversation count, length, duration, busiest day
 - get-top-users            — most active end-users by messages; unique/new visitors
 - get-channel-breakdown    — conversations per channel (web, WhatsApp, Telegram, ...)
@@ -73,7 +71,6 @@ class AccountAnalyticsServer extends Server
     protected array $tools = [
         GetAccountOverviewTool::class,
         GetMessageStatsTool::class,
-        GetBillingCycleUsageTool::class,
         GetConversationStatsTool::class,
         GetTopUsersTool::class,
         GetChannelBreakdownTool::class,

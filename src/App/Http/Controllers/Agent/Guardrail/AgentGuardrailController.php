@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent\Guardrail;
 use App\Http\Requests\Agent\Guardrail\SaveGuardrailSettingsRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\Capability;
 use Domain\Guardrail\Actions\SaveGuardrailSettingsAction;
 use Domain\Guardrail\Data\GuardrailSettingsData;
 use Domain\Guardrail\Enums\GuardOutcome;
@@ -13,7 +12,6 @@ use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Enums\PiiFilterType;
 use Domain\Guardrail\Models\GuardrailEvent;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -25,20 +23,15 @@ use Inertia\Response;
  */
 class AgentGuardrailController
 {
-    public function show(Request $request, Agent $agent): Response
+    public function show(Agent $agent): Response
     {
-        // Guardrails are a Standard-tier capability. Below it the page still
-        // renders so the Vue LockedFeature card can show the upgrade prompt, but
-        // we skip the trigger-log query and ship no activity data.
-        $triggers = $request->user()->hasCapability(Capability::Guardrails)
-            ? GuardrailEvent::query()
-                ->forAgent($agent->id)
-                ->with(['user', 'agent:id,external_id'])
-                ->orderByDesc('id')
-                ->paginate(20)
-                ->withQueryString()
-                ->through(fn (GuardrailEvent $event): array => $event->toLogArray())
-            : ['data' => []];
+        $triggers = GuardrailEvent::query()
+            ->forAgent($agent->id)
+            ->with(['user', 'agent:id,external_id'])
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn (GuardrailEvent $event): array => $event->toLogArray());
 
         return Inertia::render('agents/Guardrails/index', [
             'agent' => AgentResourceData::fromModel($agent),

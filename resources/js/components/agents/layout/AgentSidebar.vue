@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useActiveRoute } from '@/composables/agents/layout/useActiveRoute';
 import { type AgentNavAction, useAgentNavigation } from '@/composables/agents/layout/useAgentNavigation';
+import { dashboard } from '@/routes';
 import { Link } from '@inertiajs/vue3';
 import { onMounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -43,8 +44,8 @@ const { isActiveRoute } = useActiveRoute();
 const { topItems, managementGroups, dangerZoneItems } = useAgentNavigation();
 
 // Which submenus start expanded: the one holding the current page.
-// Ziggy's `*` only matches after the literal prefix ('agents.analytics.*' does
-// not match 'agents.analytics' itself), so the bare name is checked as well.
+// A route-name `*` only matches after the literal prefix ('agents.analytics.*'
+// does not match 'agents.analytics' itself), so the bare name is checked as well.
 // Functions and Connectors sit under `agents.sources.*` but are top-level
 // items, so they do not open Knowledge Sources.
 const submenuOpen = reactive<Record<string, boolean>>({
@@ -67,8 +68,6 @@ onMounted(async () => {
         console.error('Failed to fetch source stats:', error);
     }
 });
-
-const agentRoute = (name: string): string => route(name, { agent: props.agentId });
 </script>
 
 <template>
@@ -77,7 +76,7 @@ const agentRoute = (name: string): string => route(name, { agent: props.agentId 
         <div class="border-border border-b">
             <!-- Expanded: logo, with the collapse trigger on the other side -->
             <div class="flex h-16 items-center justify-between px-4 group-data-[collapsible=icon]:hidden">
-                <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2 overflow-hidden">
+                <Link :href="dashboard.url()" class="flex min-w-0 items-center gap-2 overflow-hidden">
                     <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center">
                         <AppLogoIcon class="h-8 w-8" />
                     </div>
@@ -117,7 +116,7 @@ const agentRoute = (name: string): string => route(name, { agent: props.agentId 
                 <SidebarMenu>
                     <SidebarMenuItem v-for="item in topItems" :key="item.id">
                         <AgentSidebarLink
-                            :href="agentRoute(item.route)"
+                            :href="item.url(agentId)"
                             :icon="item.icon"
                             :label="item.label"
                             :tooltip="item.tooltip"
@@ -138,14 +137,14 @@ const agentRoute = (name: string): string => route(name, { agent: props.agentId 
                             <template #dropdown>
                                 <AgentSourcesMenu :agent-id="agentId" :source-stats="sourceStats" variant="dropdown" :is-active-route="isActiveRoute">
                                     <template #default="{ item: source, label }">
-                                        <AgentSidebarDropdownLink :href="agentRoute(source.route)" :icon="source.icon" :label="label" />
+                                        <AgentSidebarDropdownLink :href="source.url(agentId)" :icon="source.icon" :label="label" />
                                     </template>
                                 </AgentSourcesMenu>
                             </template>
                             <template #submenu>
                                 <AgentSourcesMenu :agent-id="agentId" :source-stats="sourceStats" variant="submenu" :is-active-route="isActiveRoute">
                                     <template #default="{ item: source, label, isActive }">
-                                        <AgentSidebarSubLink :href="agentRoute(source.route)" :icon="source.icon" :label="label" :active="isActive" />
+                                        <AgentSidebarSubLink :href="source.url(agentId)" :icon="source.icon" :label="label" :active="isActive" />
                                     </template>
                                 </AgentSourcesMenu>
                             </template>
@@ -163,7 +162,7 @@ const agentRoute = (name: string): string => route(name, { agent: props.agentId 
                             </SidebarMenuButton>
                             <AgentSidebarLink
                                 v-else
-                                :href="agentRoute(item.route)"
+                                :href="item.url(agentId)"
                                 :icon="item.icon"
                                 :label="item.label"
                                 :tooltip="item.tooltip"

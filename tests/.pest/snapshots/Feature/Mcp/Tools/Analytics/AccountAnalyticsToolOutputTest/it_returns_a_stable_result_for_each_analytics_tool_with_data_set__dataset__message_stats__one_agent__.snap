@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "This billing cycle: 2 messages total — 1 incoming, 1 AI replies. up 0% vs the prior period."
+            "text": "This month: 2 messages total — 1 incoming, 1 AI replies. up 0% vs the prior period."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "incoming_messages": 1,
         "ai_messages": 1,

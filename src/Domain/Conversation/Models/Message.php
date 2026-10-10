@@ -21,7 +21,7 @@ use Support\Concerns\HasExternalId;
 /**
  * One message of a conversation in the chat log: a visitor message, an AI
  * reply, or a human operator's reply during a handoff (see MessageRole). Holds
- * what analytics and billing read back — usage, cost, timing, confidence,
+ * what analytics read back — usage, cost, timing, confidence,
  * feedback — and a BM25 copy of the text for search, kept in step with the
  * text on every save.
  *
@@ -31,7 +31,6 @@ use Support\Concerns\HasExternalId;
  * @property int|null $llm_id
  * @property int|null $agent_question_answer_id
  * @property string|null $generation_id
- * @property int $message_credits
  * @property string|null $source
  * @property string|null $content
  * @property string|null $content_bm25
@@ -75,7 +74,6 @@ use Support\Concerns\HasExternalId;
  * @method static MessageQueryBuilder<static>|Message whereIsUsageCounted($value)
  * @method static MessageQueryBuilder<static>|Message whereHasLlmFoundAnswer($value)
  * @method static MessageQueryBuilder<static>|Message whereLlmId($value)
- * @method static MessageQueryBuilder<static>|Message whereMessageCredits($value)
  * @method static MessageQueryBuilder<static>|Message whereMetadata($value)
  * @method static MessageQueryBuilder<static>|Message wherePromptTokens($value)
  * @method static MessageQueryBuilder<static>|Message whereReadAt($value)
@@ -94,7 +92,6 @@ use Support\Concerns\HasExternalId;
     'llm_id',
     'agent_question_answer_id',
     'generation_id',
-    'message_credits',
     'source',
     'content',
     'metadata',
@@ -130,7 +127,6 @@ class Message extends Model
             'has_llm_found_answer' => 'boolean',
             'is_response_from_qa' => 'boolean',
             'is_usage_counted' => 'boolean',
-            'message_credits' => 'integer',
             'response_time_ms' => 'integer',
             'prompt_tokens' => 'integer',
             'completion_tokens' => 'integer',

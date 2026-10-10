@@ -18,7 +18,6 @@ final class ChatController
     public function __invoke(string $conversationId, #[HostedChatAgent] ?Agent $agent, DocumentLlm $documentLlm): Response
     {
         $agent?->loadSettingsGroups(['appearance', 'embed']);
-        $agent?->loadMissing('team.owner');
 
         return Inertia::render('chat/Chat', [
             ...HostedChatPageProps::for($agent, $documentLlm),

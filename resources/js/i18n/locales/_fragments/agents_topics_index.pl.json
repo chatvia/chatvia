@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Tematy",
             "description": "Analizuj tematy i trendy w rozmowach",
-            "locked_description": "Ulepsz swój plan, aby uzyskać dostęp do analizy tematów i automatycznie wykrywać oraz kategoryzować tematy rozmów.",
             "disabled_title": "Analiza tematów",
             "disabled_description": "Włącz, aby automatycznie wykrywać i grupować to, o co pytają Twoi odwiedzający w rozmowach.",
             "blocked_reason": "Dziennik czatu jest wyłączony, więc nie ma nic do analizy. Włącz go w Konfiguracji → Ustawienia, aby zacząć zbierać tematy.",

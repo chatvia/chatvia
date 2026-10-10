@@ -5,6 +5,7 @@
  */
 import { rewriteFormDescription } from '@/api/agentForms';
 import { blankForm, editableCopy, type FormDefinition, savePayload } from '@/components/agents/forms/formDefinition';
+import { destroy as destroyForm, store as storeForm, update as updateForm } from '@/routes/agents/forms';
 import { router } from '@inertiajs/vue3';
 import { type MaybeRefOrGetter, ref, toValue } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -69,15 +70,15 @@ export function useAgentForms(agentId: MaybeRefOrGetter<string>) {
         };
 
         if (form.external_id) {
-            router.put(route('agents.forms.update', { agent: toValue(agentId), form: form.external_id }), savePayload(form), options);
+            router.put(updateForm.url({ agent: toValue(agentId), form: form.external_id }), savePayload(form), options);
         } else {
-            router.post(route('agents.forms.store', { agent: toValue(agentId) }), savePayload(form), options);
+            router.post(storeForm.url(toValue(agentId)), savePayload(form), options);
         }
     }
 
     function destroy(form: FormDefinition): void {
         if (!form.external_id) return;
-        router.delete(route('agents.forms.destroy', { agent: toValue(agentId), form: form.external_id }), {
+        router.delete(destroyForm.url({ agent: toValue(agentId), form: form.external_id }), {
             preserveScroll: true,
             onSuccess: () => toast.success(t('agents.forms.deleted')),
         });

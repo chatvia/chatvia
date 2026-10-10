@@ -100,4 +100,4 @@ it('resolves no hosted-chat agent when the request names none, even if an agent 
 
 it('no longer registers routes that render missing pages', function (string $name): void {
     expect(Route::has($name))->toBeFalse();
-})->with(['knowledge-base.show', 'billing.payment-methods.create']);
+})->with(['knowledge-base.show', 'billing.packages', 'trial.checkout', 'usage']);

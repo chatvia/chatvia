@@ -26,11 +26,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { AlertTriangle, Bot, CreditCard, Download, Loader2, Lock, MailCheck, ShieldAlert, Trash2 } from 'lucide-vue-next';
+import { destroy as destroyAccount } from '@/routes/account';
+import { request as requestDeletion } from '@/routes/account/delete';
+import { AlertTriangle, Bot, Download, Loader2, Lock, MailCheck, ShieldAlert, Trash2 } from 'lucide-vue-next';
 
 interface Props {
     agents: { name: string }[];
-    hasSubscription: boolean;
     confirmed: boolean;
 }
 
@@ -49,7 +50,7 @@ const destroyForm = useForm({});
 const sendConfirmationLink = (e: Event) => {
     e.preventDefault();
 
-    passwordForm.post(route('account.delete.request'), {
+    passwordForm.post(requestDeletion.url(), {
         preserveScroll: true,
         onSuccess: () => {
             linkSent.value = true;
@@ -67,7 +68,7 @@ const openDialog = () => {
 };
 
 const destroy = () => {
-    destroyForm.delete(route('account.destroy'), {
+    destroyForm.delete(destroyAccount.url(), {
         preserveScroll: true,
         onSuccess: () => {
             // Account and session are gone — do a full-page native redirect to the
@@ -142,15 +143,6 @@ const destroy = () => {
                 </div>
             </div>
 
-            <!-- Subscription cancellation notice -->
-            <div
-                v-if="props.hasSubscription"
-                class="ms-8 flex items-start gap-2 rounded-md bg-red-100/60 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-100"
-            >
-                <CreditCard class="mt-0.5 size-4 shrink-0" />
-                <span>{{ t('account.delete.subscription_cancel') }}</span>
-            </div>
-
             <!-- State B: email confirmed → final, explicit delete -->
             <template v-if="props.confirmed">
                 <div
@@ -172,7 +164,6 @@ const destroy = () => {
                             <AlertDialogTitle>{{ t('account.delete.final_dialog_title') }}</AlertDialogTitle>
                             <AlertDialogDescription>
                                 {{ t('account.delete.final_dialog_description') }}
-                                {{ props.hasSubscription ? t('account.delete.final_dialog_subscription') : '' }}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

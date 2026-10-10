@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "Anda telah mencapai batas pesan",
-        "upgrade_prompt": "Silakan tingkatkan paket Anda untuk melanjutkan obrolan",
         "regenerate_failed": "Tidak dapat membuat ulang respons. Silakan coba lagi.",
         "loading_conversation": "Memuat percakapan",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "Server mengembalikan status {status}.",
             "interrupted": "Koneksi terputus.",
             "malformed": "Menerima data tidak valid dari server."
-        }
+        },
+        "limit_resets_next_month": "Anda dapat mengirim pesan lagi bulan depan."
     },
     "messages": {
         "send": "Kirim",
@@ -140,11 +140,7 @@
         "edit_message": "Edit pesan"
     },
     "errors": {
-        "subscription_expired": "Langganan kedaluwarsa",
-        "renew_subscription": "Perpanjang langganan",
         "message_limit_reached": "Batas pesan tercapai",
-        "token_limit_reached": "Batas penggunaan token tercapai",
-        "upgrade_plan": "Tingkatkan paket",
         "model_unavailable": "Model tidak tersedia",
         "too_many_requests": "Terlalu banyak permintaan",
         "connection_lost": "Koneksi terputus",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "Log Audit",
             "head_title": "Audit · {name}",
-            "description": "Setiap tindakan yang dilakukan agen ini melalui alat dan konektor — diizinkan, disetujui, ditolak, atau dibatasi lajunya — beserta argumen, hasil, dan siapa yang memicunya.",
-            "locked_description": "Log audit tersedia pada paket Pro. Tingkatkan untuk melihat setiap tindakan alat dan konektor yang dilakukan agen ini."
+            "description": "Setiap tindakan yang dilakukan agen ini melalui alat dan konektor — diizinkan, disetujui, ditolak, atau dibatasi lajunya — beserta argumen, hasil, dan siapa yang memicunya."
         },
         "channels": {
             "title": "Saluran",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— balasan mengalir secara langsung"
                 },
                 "telegram": {
-                    "connected_description": "Orang dapat mengirim pesan ke bot Anda di Telegram dan agen Anda membalas secara otomatis — penagihan, riwayat, dan pagar pengaman semuanya berlaku.",
+                    "connected_description": "Orang dapat mengirim pesan ke bot Anda di Telegram dan agen Anda membalas secara otomatis — batas pesan, riwayat, dan pagar pengaman semuanya berlaku.",
                     "steps": {
                         "connect_1": "Buka {botfather} di Telegram",
                         "connect_2": "Kirim {command} dan ikuti petunjuknya",
@@ -446,7 +441,6 @@
                 "select_topic": "Pilih topik",
                 "select_sentiment": "Pilih sentimen",
                 "select_tone": "Pilih nada",
-                "upgrade_to_unlock": "Tingkatkan untuk membuka",
                 "clear_all": "Hapus semua",
                 "close": "Terapkan filter"
             },
@@ -486,14 +480,12 @@
                 "page_url": "URL halaman",
                 "referrer": "Perujuk",
                 "locale": "Lokal",
-                "upgrade_to_unlock": "Tingkatkan untuk membuka",
                 "waiting": "Menunggu analisis…",
                 "channel": "Saluran"
             },
             "pulse": {
                 "title": "Pulse percakapan",
                 "select_conversation": "Pilih percakapan untuk melihat pulse",
-                "locked_description": "Tingkatkan paket Anda untuk membuka analitik pulse percakapan.",
                 "refresh": "Segarkan",
                 "no_messages_title": "Pesan belum cukup",
                 "no_messages_hint": "Pulse memerlukan setidaknya satu pesan pengguna untuk menganalisis sentimen dan nada dari waktu ke waktu.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "Stabil"
             },
             "handoff": {
-                "locked_description": "Tingkatkan paket Anda untuk mengambil alih percakapan langsung dari log obrolan.",
                 "visitor": "Pengunjung",
                 "online": "Online",
                 "offline": "Offline",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "Topik yang diblokir",
                 "toxicity": "Toksisitas"
-            },
-            "locked_description": "Pagar Pengaman tersedia pada paket Standard dan Pro. Tingkatkan untuk mengontrol apa yang dapat dibahas agen Anda dan bagaimana ia menangani konten sensitif."
+            }
         },
         "persona": {
             "title": "Persona",
@@ -849,8 +839,7 @@
                     "run_start_error": "Tidak dapat memulai eksekusi",
                     "run_deleted": "Eksekusi dihapus",
                     "history_cleared": "Riwayat eksekusi dibersihkan"
-                },
-                "locked_description": "Evaluasi tersedia pada paket Standard dan Pro. Tingkatkan untuk menguji dan menilai jawaban agen ini sebelum sampai ke pelanggan."
+                }
             },
             "scorers": {
                 "contains": "Memuat",
@@ -938,7 +927,6 @@
         "tone": {
             "title": "Nada",
             "description": "Pantau perasaan pengunjung berdasarkan nada emosional pesan mereka.",
-            "locked_description": "Tingkatkan paket Anda untuk membuka analitik nada.",
             "disabled_title": "Analisis nada nonaktif",
             "disabled_description": "Aktifkan analisis nada untuk melihat perasaan pengunjung di seluruh percakapan.",
             "blocked_reason": "Aktifkan pencatatan obrolan terlebih dahulu — analisis nada memerlukan pesan tersimpan.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "Sentimen",
             "description": "Pantau sentimen positif, netral, dan negatif di seluruh pesan pengunjung.",
-            "locked_description": "Tingkatkan paket Anda untuk membuka analitik sentimen.",
             "disabled_title": "Analisis sentimen nonaktif",
             "disabled_description": "Aktifkan analisis sentimen untuk melihat perasaan pengunjung di seluruh percakapan.",
             "blocked_reason": "Aktifkan pencatatan obrolan terlebih dahulu — analisis sentimen memerlukan pesan tersimpan.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "Kelola topik",
                 "description": "Tetapkan topik yang harus dikenali dan diklasifikasikan agen Anda dalam percakapan.",
-                "locked_description": "Tingkatkan paket Anda untuk mengelola topik percakapan.",
                 "search_placeholder": "Cari topik…",
                 "add_topic": "Tambah topik",
                 "empty": "Belum ada topik. Tambahkan satu untuk membantu agen Anda mengklasifikasikan percakapan.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "Gagal memutus tautan {name}: {error}",
                 "deleted": "{name} telah dihapus.",
                 "delete_failed": "Gagal menghapus {name}: {error}",
-                "usage_load_failed": "Gagal memuat data penggunaan.",
                 "summary_only_completed": "Ringkasan hanya tersedia untuk file yang telah selesai.",
                 "summary_none": "Tidak ada ringkasan untuk file ini.",
                 "summary_load_failed": "Gagal memuat ringkasan file.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "Unggah File Audio",
                 "upload_title_video": "Unggah File Video",
                 "upload_title_default": "Unggah Dokumen Baru",
-                "quota_minutes": "menit",
-                "quota_pages": "halaman",
                 "uploads_disabled": "Unggahan file dinonaktifkan selama pelatihan berlangsung",
                 "ready_to_train": "Siap Dilatih",
                 "uploaded_ready": "{count} file diunggah dan siap untuk pelatihan | {count} file diunggah dan siap untuk pelatihan",
-                "exceeds_quota": "Melebihi kuota",
                 "clear_all": "Hapus Semua",
                 "training": "Melatih...",
                 "train": "Latih",
@@ -1290,9 +1272,6 @@
                     "trained": "Terlatih",
                     "failed": "Gagal"
                 },
-                "limit_all_used": "Anda telah menggunakan semua {limit} tautan dalam paket Anda. Tingkatkan untuk melatih lebih banyak tautan.",
-                "limit_critical": "Anda telah menggunakan {used}/{limit} tautan ({percentage}%). Hanya tersisa {remaining} tautan untuk pelatihan. Pertimbangkan untuk meningkatkan paket Anda.",
-                "limit_warning": "Anda telah menggunakan {used}/{limit} tautan ({percentage}%). Tersisa {remaining} tautan untuk pelatihan.",
                 "load_failed": "Gagal memuat sumber web.",
                 "error_enter_url": "Silakan masukkan URL situs web.",
                 "error_invalid_url": "Silakan masukkan format URL yang valid (mis. https://example.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "Tidak dapat menghapus semua tautan. Setidaknya satu tautan harus tetap ada.",
                 "links_deleted": "Berhasil menghapus {count} tautan. | Berhasil menghapus {count} tautan.",
                 "links_delete_failed": "Gagal menghapus tautan.",
-                "no_links_remaining": "Tidak ada tautan yang tersisa",
-                "no_links_remaining_description": "Silakan tingkatkan paket Anda untuk melatih situs web.",
-                "cannot_select": "Tidak dapat memilih situs web",
-                "cannot_select_description": "{links} tautan akan melebihi kuota Anda sebanyak {exceedBy}. Batalkan pilihan situs web lain atau tingkatkan paket.",
-                "selected_count": "{selected} dari {total} situs web dipilih",
-                "selected_skipped": "{skipped} situs web dilewati agar tetap dalam batas {remaining} tautan Anda.",
                 "training_start_failed": "Gagal memulai pelatihan untuk: {websites}",
                 "training_start_failed_all": "Gagal memulai pelatihan untuk semua situs web.",
                 "dialog_links_load_failed": "Gagal memuat tautan",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "Perayap",
                 "crawler_description": "Ambil tautan dari situs web untuk dirayapi dan disertakan dalam basis pengetahuan agen Anda.",
                 "settings": "Pengaturan",
-                "links_used": "{used} / {limit} tautan digunakan",
-                "links_remaining": "{remaining} tersisa",
-                "upgrade_required": "Peningkatan diperlukan untuk melatih lebih banyak tautan",
-                "consider_upgrading": "Pertimbangkan untuk meningkatkan",
                 "fetching": "Mengambil...",
                 "fetch_links": "Ambil Tautan",
                 "crawl_settings": "Pengaturan Perayapan",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} dipilih ({links} tautan)",
                 "no_websites_selected": "Tidak ada situs web yang dipilih",
                 "train": "Latih",
-                "train_exceeds_quota": "Tautan yang dipilih ({selected}) melebihi sisa kuota Anda ({remaining})",
                 "links_badge": "{count} tautan",
-                "badge_upgrade_required": "Perlu ditingkatkan",
-                "badge_exceeds_quota": "Melebihi kuota",
-                "no_links_remaining_plan": "Anda tidak memiliki sisa tautan dalam paket Anda. Silakan tingkatkan untuk melatih situs web ini.",
-                "website_exceeds_remaining": "Situs web ini memiliki {links} tautan, yang akan melebihi sisa {remaining} tautan Anda. Batalkan pilihan situs web lain terlebih dahulu atau tingkatkan paket Anda.",
                 "collapse_links": "Ciutkan tautan yang ditemukan",
                 "expand_links": "Perluas tautan yang ditemukan",
                 "discovered_links": "Tautan yang Ditemukan",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "Buat Agen",
-            "limit_title": "Batas Agen Tercapai",
-            "limit_description": "Anda telah mencapai batas agen Anda.",
-            "upgrade_plan": "Tingkatkan Paket",
             "name_label": "Nama Agen",
-            "name_placeholder": "Mis., Dukungan Pelanggan",
-            "load_error": "Gagal memuat informasi penggunaan",
-            "limit_toast_title": "Batas agen tercapai",
-            "limit_toast_description": "Anda telah mencapai batas agen Anda."
+            "name_placeholder": "Mis., Dukungan Pelanggan"
         },
         "analytics": {
             "title": "Statistik Agen",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "Domain Kustom",
                 "description": "Sajikan Hosted Chat agen ini dari domain Anda sendiri alih-alih {target}.",
-                "no_quota_title": "Domain kustom tidak termasuk dalam paket Anda saat ini",
-                "no_quota_description": "Tingkatkan ke Pro atau berlangganan add-on Domain Kustom dari {link} untuk menambahkan nama host Anda sendiri.",
-                "billing": "Penagihan",
-                "quota": "Menggunakan {used} dari {total} domain kustom | Menggunakan {used} dari {total} domain kustom",
-                "add_more": "Tambah lagi",
                 "step1": "Langkah 1 — Tambahkan catatan CNAME di penyedia DNS Anda",
                 "type": "Tipe",
                 "name": "Nama",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "Topik",
             "description": "Analisis topik dan tren percakapan",
-            "locked_description": "Tingkatkan paket Anda untuk mengakses analisis topik serta mendeteksi dan mengategorikan topik percakapan secara otomatis.",
             "disabled_title": "Analisis topik",
             "disabled_description": "Aktifkan untuk mendeteksi dan mengelompokkan secara otomatis apa yang ditanyakan pengunjung Anda di seluruh percakapan.",
             "blocked_reason": "Log obrolan nonaktif, jadi tidak ada yang bisa dianalisis. Aktifkan di Penyiapan → Pengaturan untuk mulai mengumpulkan topik.",
@@ -2159,7 +2111,6 @@
             "sending_link": "Mengirim tautan...",
             "or_continue_with": "Atau lanjutkan dengan",
             "no_account": "Belum punya akun?",
-            "start_free_trial": "Mulai uji coba gratis",
             "create_account": "Buat akun"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "Pilih kata sandi Anda",
-            "description": "Akun Anda sudah siap. Pilih kata sandi untuk menyelesaikan penyiapannya.",
-            "head": "Pilih kata sandi Anda",
-            "email_label": "Alamat email",
-            "password_label": "Kata sandi",
-            "password_placeholder": "Kata sandi",
-            "confirm_password_label": "Konfirmasi kata sandi",
-            "confirm_password_placeholder": "Konfirmasi kata sandi",
-            "set_password": "Atur kata sandi",
-            "setting_password": "Mengatur kata sandi..."
-        },
         "login_member": {
             "description": "Masuk untuk mengakses ruang kerja chat ini",
             "head": "Masuk Anggota",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "Pastikan akun media sosial Anda menggunakan",
             "social_email_note_suffix": "— harus cocok dengan undangan ini."
         },
-        "invitation_invalid": {
-            "title": "Undangan Tidak Tersedia",
-            "description": "Undangan ini tidak dapat diterima",
-            "head": "Undangan Tidak Tersedia",
-            "card_title": "Tidak Dapat Menerima Undangan",
-            "cannot_accept_prefix": "Undangan untuk bergabung",
-            "cannot_accept_suffix": "tidak dapat diterima saat ini.",
-            "contact_owner": "Silakan hubungi pemilik tim untuk menyelesaikan masalah ini.",
-            "go_to_login": "Buka Halaman Masuk"
-        },
         "invitation_expired": {
             "title": "Undangan Kedaluwarsa",
             "description": "Undangan ini sudah tidak berlaku",
@@ -2325,386 +2254,6 @@
             "card_title": "Undangan Kedaluwarsa",
             "contact_owner": "Silakan hubungi pemilik tim untuk meminta undangan baru.",
             "go_to_login": "Buka Halaman Masuk"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "Penagihan",
-            "back_to_billing": "Kembali ke Penagihan",
-            "view_plans": "Lihat Paket",
-            "cancel": "Batal",
-            "processing": "Memproses...",
-            "not_available": "T/A"
-        },
-        "payment_success": {
-            "page_title": "Pembayaran Berhasil",
-            "heading": "Pembayaran Diterima",
-            "description": "Terima kasih! Pembayaran Anda telah berhasil diproses. Kami sedang menyiapkan langganan Anda sekarang.",
-            "redirecting_prefix": "Mengalihkan dalam",
-            "redirecting_suffix": "detik...",
-            "go_to_billing": "Buka penagihan sekarang"
-        },
-        "invoices": {
-            "breadcrumb": "Faktur",
-            "page_title": "Faktur",
-            "heading": "Faktur",
-            "subheading": "Lihat dan unduh riwayat penagihan serta faktur Anda",
-            "history_title": "Riwayat Penagihan",
-            "history_description": "Unduh kuitansi dan faktur untuk pembayaran langganan Anda",
-            "invoice_number": "Faktur #{number}",
-            "status": {
-                "paid": "Dibayar",
-                "pending": "Tertunda",
-                "failed": "Gagal"
-            },
-            "download_pdf": "Unduh PDF",
-            "view_online": "Lihat Online",
-            "empty_title": "Belum ada faktur",
-            "empty_description": "Riwayat penagihan dan faktur Anda akan muncul di sini setelah Anda memulai langganan.",
-            "total_invoices": "Total Faktur",
-            "total_spent": "Total Pengeluaran",
-            "since": "Sejak",
-            "help_title": "Butuh bantuan dengan penagihan?",
-            "help_description": "Jika Anda memiliki pertanyaan tentang faktur atau memerlukan bantuan dengan penagihan, tim dukungan kami siap membantu.",
-            "contact_support": "Hubungi Dukungan"
-        },
-        "payment_methods": {
-            "breadcrumb": "Metode Pembayaran",
-            "page_title": "Metode Pembayaran",
-            "heading": "Metode Pembayaran",
-            "subheading": "Kelola metode pembayaran dan informasi penagihan Anda",
-            "add_method": "Tambah Metode Pembayaran",
-            "saved_title": "Metode Pembayaran Tersimpan",
-            "saved_description": "Kelola metode pembayaran tersimpan Anda. Anda dapat menetapkan metode default untuk penagihan otomatis.",
-            "default": "Default",
-            "expires": "Kedaluwarsa {date}",
-            "set_default": "Tetapkan sebagai Default",
-            "empty_title": "Tidak ada metode pembayaran",
-            "empty_description": "Tambahkan metode pembayaran untuk mengelola langganan dan melakukan pembayaran.",
-            "add_first": "Tambahkan Metode Pembayaran Pertama Anda",
-            "info_title": "Informasi Penagihan",
-            "info_description": "Perbarui alamat penagihan dan informasi kontak Anda",
-            "not_set": "Belum diatur",
-            "update_info": "Perbarui Informasi Penagihan",
-            "secure_title": "Pemrosesan Pembayaran yang Aman",
-            "secure_description": "Informasi pembayaran Anda dienkripsi dan diproses secara aman oleh Stripe. Kami tidak pernah menyimpan detail lengkap kartu Anda di server kami.",
-            "updating": "Memperbarui...",
-            "update_information": "Perbarui Informasi",
-            "card_information": "Informasi Kartu",
-            "remove_dialog": {
-                "title": "Hapus Metode Pembayaran",
-                "description": "Apakah Anda yakin ingin menghapus metode pembayaran ini? Tindakan ini tidak dapat dibatalkan.",
-                "confirm": "Ya, Hapus"
-            },
-            "fields": {
-                "name": "Nama",
-                "email": "Alamat Email",
-                "address": "Alamat",
-                "city_state_country": "Kota, Provinsi & Negara",
-                "billing_address": "Alamat Penagihan",
-                "line1": "Baris Alamat 1",
-                "line2": "Baris Alamat 2 (Opsional)",
-                "city": "Kota",
-                "state": "Provinsi",
-                "postal_code": "Kode Pos",
-                "country": "Negara"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "Jl. Sudirman No. 123",
-                "line2": "Apt, suite, dll.",
-                "city": "Jakarta",
-                "state": "NY",
-                "postal_code": "10001",
-                "country": "Pilih negara..."
-            },
-            "info_dialog": {
-                "title": "Perbarui Informasi Penagihan",
-                "description": "Perbarui alamat penagihan dan informasi kontak Anda untuk pembuatan faktur dan pemrosesan pembayaran."
-            },
-            "add_dialog": {
-                "description": "Tambahkan metode pembayaran baru ke akun Anda. Informasi kartu Anda aman dan dienkripsi.",
-                "success_title": "Metode Pembayaran Ditambahkan!",
-                "success_description": "Metode pembayaran Anda telah berhasil ditambahkan ke akun Anda.",
-                "secure_note": "Informasi pembayaran Anda dienkripsi dan diproses secara aman oleh Stripe. Kami tidak pernah menyimpan detail lengkap kartu Anda."
-            },
-            "errors": {
-                "init_failed": "Gagal menginisialisasi sistem pembayaran",
-                "not_ready": "Sistem pembayaran belum siap",
-                "add_failed": "Terjadi kesalahan saat menambahkan metode pembayaran Anda"
-            },
-            "toast": {
-                "added": "Metode pembayaran berhasil ditambahkan!",
-                "info_updated": "Informasi penagihan berhasil diperbarui!",
-                "info_failed": "Gagal memperbarui informasi penagihan"
-            }
-        },
-        "plans": {
-            "breadcrumb": "Pilih Paket",
-            "page_title": "Pilih Paket Anda",
-            "heading": "Pilih Paket Anda",
-            "subheading": "Pilih paket yang tepat untuk kebutuhan Anda. Anda dapat mengubah atau membatalkan kapan saja.",
-            "monthly": "Bulanan",
-            "yearly": "Tahunan",
-            "custom": "Khusus",
-            "per_month": "/bulan",
-            "save_percent": "Hemat {percent}%",
-            "billed_yearly": "Ditagih tahunan sebesar {amount}",
-            "features_included": "Fitur yang termasuk:",
-            "everything_in": "Semua di {plan} +",
-            "actions": {
-                "contact_sales": "Hubungi tim penjualan",
-                "upgrade": "Tingkatkan",
-                "upgrade_plan": "Tingkatkan Paket",
-                "downgrade_to_free": "Turunkan ke Gratis",
-                "downgrade_plan": "Turunkan Paket",
-                "switch_plan": "Ganti Paket",
-                "select_plan": "Pilih Paket"
-            },
-            "discount": {
-                "banner": "Diskon {percent}% Penawaran Waktu Terbatas!",
-                "ends": "Penawaran berakhir {date} - Jangan sampai terlewat!",
-                "limited": "Diskon waktu terbatas untuk semua paket berbayar!",
-                "off": "Diskon {percent}%"
-            },
-            "most_popular": "Paling Populer",
-            "current_plan": "Paket Saat Ini",
-            "save_up_to_percent": "Hemat hingga {percent}%"
-        },
-        "addons": {
-            "title": "Add-on",
-            "description": "Kredit, agen, dan domain tambahan di atas paket Anda",
-            "per_agent": " / agen",
-            "per_domain": " / domain",
-            "per_member": " / anggota",
-            "per_month": " / bulan",
-            "requires_subscription": "Agen Tambahan, Domain Khusus, Hapus Branding, dan Anggota memerlukan langganan utama yang aktif.",
-            "common": {
-                "none": "Tidak ada",
-                "subscribe": "Berlangganan",
-                "change": "Ubah",
-                "update_quantity": "Perbarui Jumlah",
-                "monthly_cost": "Biaya bulanan:",
-                "keep_subscription": "Pertahankan langganan",
-                "yes_cancel": "Ya, batalkan",
-                "ends": "Berakhir {date}"
-            },
-            "auto_recharge": {
-                "title": "Isi Ulang Otomatis",
-                "on": "Aktif",
-                "off": "Nonaktif",
-                "summary": "Beli otomatis {amount} kredit saat saldo turun di bawah {threshold}.",
-                "manage": "Kelola",
-                "enable": "Aktifkan",
-                "dialog_title": "Pengaturan Isi Ulang Otomatis",
-                "dialog_description": "Saat sisa kredit Anda turun ke atau di bawah ambang batas, kami akan otomatis menagih metode pembayaran default Anda dan mengisi saldo Anda.",
-                "enable_label": "Aktifkan Isi Ulang Otomatis",
-                "enable_hint": "Tagih otomatis saat kredit menipis",
-                "threshold_label": "Ambang batas (kredit)",
-                "threshold_hint": "Isi ulang aktif saat saldo Anda turun ke atau di bawah jumlah ini.",
-                "amount_label": "Jumlah isi ulang (kredit)",
-                "each_recharge": "Setiap isi ulang:",
-                "charged_note": "Ditagih segera ke metode pembayaran default Anda saat dipicu.",
-                "save": "Simpan Pengaturan"
-            },
-            "extra_credits": {
-                "title": "Kredit Tambahan",
-                "summary": "Isi ulang sekali bayar. Setiap paket menambahkan 1.000 pesan yang kedaluwarsa setelah 30 hari.",
-                "buy": "Beli Kredit",
-                "dialog_title": "Beli Kredit Pesan",
-                "dialog_description": "Setiap paket mencakup 1.000 pesan yang harus digunakan dalam satu bulan sejak pembelian.",
-                "quantity_label": "Jumlah (1.000 pesan per paket)",
-                "total_messages": "Total Pesan:",
-                "total_price": "Total Harga:",
-                "purchase_for": "Beli seharga ${amount}"
-            },
-            "extra_agents": {
-                "title": "Agen Tambahan",
-                "summary": "Tambahkan lebih banyak agen AI melampaui batas paket Anda.",
-                "cancel_title": "Batalkan langganan Agen Tambahan?",
-                "cancel_description": "Kuota agen tambahan Anda akan dihapus segera dan Anda tidak akan ditagih lagi.",
-                "change_title": "Ubah Agen Tambahan",
-                "subscribe_title": "Berlangganan Agen Tambahan",
-                "dialog_description": "Tambahkan agen AI tambahan di atas paket Anda. Ditagih bulanan sebesar $5 per agen.",
-                "quantity_label": "Jumlah agen tambahan"
-            },
-            "custom_domains": {
-                "title": "Domain Khusus",
-                "summary": "Gunakan domain khusus Anda sendiri untuk agen AI.",
-                "cancel_title": "Batalkan langganan Domain Khusus?",
-                "cancel_description": "Kuota domain khusus Anda akan dihapus segera dan Anda tidak akan ditagih lagi.",
-                "change_title": "Ubah Domain Khusus",
-                "subscribe_title": "Berlangganan Domain Khusus",
-                "dialog_description": "Gunakan domain Anda sendiri untuk agen AI. Ditagih bulanan sebesar $29 per domain.",
-                "quantity_label": "Jumlah domain"
-            },
-            "remove_branding": {
-                "title": "Hapus Branding",
-                "active": "Aktif",
-                "summary": "Sembunyikan badge \"Powered by Chatvia\" di seluruh widget dan hosted chat Anda.",
-                "cancel_title": "Batalkan langganan Hapus Branding?",
-                "cancel_description": "Badge \"Powered by Chatvia\" akan muncul kembali di widget dan hosted chat Anda segera, dan Anda tidak akan ditagih lagi."
-            },
-            "members": {
-                "title": "Anggota",
-                "summary": "Tambahkan lebih banyak anggota tim ke ruang kerja Anda.",
-                "cancel_title": "Batalkan langganan Anggota?",
-                "cancel_description": "Kursi anggota tambahan Anda akan dihapus segera dan Anda tidak akan ditagih lagi.",
-                "change_title": "Ubah Anggota",
-                "subscribe_title": "Berlangganan Anggota",
-                "dialog_description": "Tambahkan anggota tim tambahan ke ruang kerja Anda. Ditagih bulanan sebesar $9 per anggota.",
-                "quantity_label": "Jumlah anggota"
-            }
-        },
-        "index": {
-            "page_title": "Penagihan",
-            "heading": "Penagihan",
-            "subheading": "Kelola langganan, informasi penagihan, dan batas penggunaan Anda",
-            "stripe_notice": "Pembayaran diproses secara aman oleh",
-            "status_label": "Status",
-            "trial_ends": "Uji Coba Berakhir",
-            "next_billing": "Penagihan Berikutnya",
-            "access_ends": "Akses Berakhir",
-            "plan_features": "Fitur Paket",
-            "show_less": "Tampilkan lebih sedikit",
-            "show_more": "Tampilkan {count} lainnya",
-            "per_year": "Tahun",
-            "per_month": "Bulan",
-            "status": {
-                "active": "Aktif",
-                "trial": "Uji Coba",
-                "cancelled": "Dibatalkan",
-                "incomplete": "Tidak Lengkap",
-                "past_due": "Jatuh Tempo"
-            },
-            "trial": {
-                "heading": "🎉 Anda sedang Uji Coba Gratis!",
-                "ends_on": "Uji coba {plan} Anda berakhir pada",
-                "auto_start": "Langganan berbayar Anda akan dimulai otomatis pada {date}",
-                "badge": "Uji Coba Aktif"
-            },
-            "upgrade": {
-                "heading": "Tingkatkan ke Premium",
-                "description": "Akses model AI canggih, batas pesan lebih tinggi & dukungan prioritas"
-            },
-            "current_plan": {
-                "title": "Paket Saat Ini",
-                "description": "Paket langganan aktif dan detail penggunaan Anda"
-            },
-            "pending_change": {
-                "heading": "Perubahan Paket Dijadwalkan",
-                "change_from": "Paket Anda akan berubah dari",
-                "to": "ke",
-                "cycle_yearly": "(Tahunan)",
-                "cycle_monthly": "(Bulanan)",
-                "on_date": "pada {date}.",
-                "scheduled_for": "Anda memiliki perubahan paket yang dijadwalkan pada {date}.",
-                "access_note": "Anda akan tetap memiliki akses ke fitur paket Anda saat ini hingga saat itu.",
-                "cancel_schedule": "Batalkan Jadwal",
-                "cancel_dialog": {
-                    "title": "Batalkan Perubahan Paket Terjadwal",
-                    "description": "Apakah Anda yakin ingin membatalkan perubahan paket terjadwal Anda? Anda akan tetap pada paket Anda saat ini.",
-                    "confirm": "Ya, Batalkan Jadwal",
-                    "cancel": "Pertahankan Jadwal"
-                }
-            },
-            "cancelled": {
-                "title": "Langganan Dibatalkan",
-                "description": "Langganan Anda akan berakhir pada {date}. Anda dapat melanjutkan langganan Anda kapan saja sebelum tanggal ini.",
-                "resume": "Lanjutkan Langganan"
-            },
-            "management": {
-                "title": "Pengelolaan",
-                "manage_payment_methods": "Kelola Metode Pembayaran",
-                "view_invoices": "Lihat Faktur",
-                "go_to_stripe": "Buka Stripe",
-                "change_plan": "Ubah Paket",
-                "cancel_subscription": "Batalkan Langganan"
-            },
-            "cancel_dialog": {
-                "title": "Batalkan Langganan",
-                "description": "Apakah Anda yakin ingin membatalkan langganan Anda? Anda akan tetap memiliki akses hingga akhir periode penagihan Anda.",
-                "confirm": "Ya, Batalkan",
-                "cancel": "Pertahankan Langganan"
-            },
-            "usage": {
-                "title": "Penggunaan",
-                "messages": "Pesan",
-                "pages": "Halaman",
-                "agents": "Agen",
-                "links": "Tautan",
-                "minutes": "Menit",
-                "remaining": "{count} tersisa",
-                "load_error": "Tidak dapat memuat data penggunaan"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "Starter",
-                    "description": "Untuk bisnis kecil yang baru memulai."
-                },
-                "standard": {
-                    "name": "Standard",
-                    "description": "Untuk tim dan bisnis yang sedang berkembang."
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "Untuk organisasi yang membutuhkan semuanya."
-                },
-                "enterprise": {
-                    "name": "Enterprise",
-                    "description": "Untuk organisasi dengan kebutuhan keamanan, kepatuhan, dan skala."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "{count} pesan per bulan | {count} pesan per bulan",
-            "messages_per_year": "{count} pesan per tahun | {count} pesan per tahun",
-            "messages_unlimited": "Pesan tanpa batas",
-            "messages_custom": "Volume pesan khusus",
-            "agents": "{count} agen AI | {count} agen AI",
-            "agents_unlimited": "Agen AI tanpa batas",
-            "pages": "{count} halaman (PDF, Word, Teks) | {count} halaman (PDF, Word, Teks)",
-            "pages_unlimited": "Halaman tanpa batas (PDF, Word, Teks)",
-            "pages_custom": "Basis pengetahuan khusus",
-            "links": "{count} tautan situs web | {count} tautan situs web",
-            "links_unlimited": "Tautan situs web tanpa batas",
-            "links_custom": "Tautan situs web khusus",
-            "minutes": "{count} menit audio/video | {count} menit audio/video",
-            "minutes_unlimited": "Menit audio/video tanpa batas",
-            "minutes_custom": "Audio/video khusus",
-            "teams": "{count} tim | {count} tim",
-            "teams_unlimited": "Tim tanpa batas",
-            "members": "{count} anggota (anggota tim + chatter) | {count} anggota (anggota tim + chatter)",
-            "members_unlimited": "Anggota tanpa batas",
-            "retention": "Riwayat obrolan {count} hari | Riwayat obrolan {count} hari",
-            "retention_unlimited": "Riwayat obrolan tanpa batas",
-            "retention_custom": "Retensi data khusus",
-            "sentiment": "Analisis sentimen",
-            "tone": "Analisis nada",
-            "topics": "Analisis topik",
-            "pulse": "Conversation Pulse",
-            "handoff": "Pengalihan",
-            "api": "Akses API",
-            "evals": "Evaluasi",
-            "guardrails": "Pagar Pengaman",
-            "audit": "Log Audit",
-            "branding": "White-label (hapus merek {brand})",
-            "network_access": "Kontrol akses jaringan (IP & geo)",
-            "siem_webhook": "Webhook SIEM (peristiwa keamanan real-time)",
-            "mcp": "MCP",
-            "function_calling": "Function Calling",
-            "custom_domains": "{count} domain khusus | {count} domain khusus",
-            "custom_domains_unlimited": "Domain khusus tanpa batas",
-            "custom_domains_custom": "Domain khusus",
-            "custom_integrations": "Integrasi khusus",
-            "eu_data_residency": "Residensi data UE",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "SLA waktu aktif",
-            "dedicated_support": "Dukungan khusus",
-            "custom_contract": "Kontrak & DPA khusus"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "Ringkasan agen AI dan aktivitas Anda",
         "create_agent": "Buat Agen",
         "total_agents": "Total Agen",
-        "messages_this_cycle": "Pesan Siklus Ini",
         "percent_used": "{percent}% terpakai",
         "total_conversations": "Total Percakapan",
         "all_time_across_agents": "Sepanjang waktu di seluruh agen",
@@ -3110,97 +2658,8 @@
         "last_week": "Minggu Lalu",
         "last_month": "Bulan Lalu",
         "messages_tooltip": "{n} pesan | {n} pesan",
-        "messages_this_month": "Pesan Bulan Ini"
-    },
-    "support": {
-        "title": "Dukungan",
-        "subtitle": "Lihat tiket Anda atau buat tiket baru.",
-        "create_ticket": "Buat Tiket Baru",
-        "your_tickets": "Tiket Anda",
-        "your_tickets_description": "Tiket yang sebelumnya dikirim",
-        "loading": "Memuat tiket...",
-        "empty": "Belum ada tiket. Klik \"Buat Tiket Baru\" untuk memulai.",
-        "th_id": "ID",
-        "th_type": "Jenis",
-        "th_status": "Status",
-        "th_priority": "Prioritas",
-        "th_created": "Dibuat",
-        "th_message": "Pesan",
-        "th_replies": "Balasan",
-        "status_open": "Terbuka",
-        "status_in_progress": "Sedang Diproses",
-        "status_resolved": "Terselesaikan",
-        "status_closed": "Ditutup",
-        "priority_urgent": "Mendesak",
-        "priority_high": "Tinggi",
-        "priority_medium": "Sedang",
-        "priority_low": "Rendah",
-        "create_ticket_description": "Pilih jenis dan jelaskan permintaan Anda.",
-        "label_type": "Jenis",
-        "type_placeholder": "Pilih jenis",
-        "type_feature": "Minta fitur",
-        "type_bug": "Laporkan bug",
-        "type_integration": "Minta integrasi",
-        "type_add_model": "Minta penambahan model",
-        "type_refund": "Permintaan Pengembalian Dana",
-        "type_billing": "Masalah Penagihan",
-        "type_other": "Lainnya",
-        "label_priority": "Prioritas",
-        "priority_placeholder": "Pilih prioritas",
-        "label_message": "Pesan",
-        "message_placeholder": "Jelaskan permintaan atau masalah Anda secara rinci...",
-        "cancel": "Batal",
-        "submitting": "Mengirim...",
-        "submit": "Kirim"
-    },
-    "ticket": {
-        "support": "Dukungan",
-        "title": "Tiket #{id}",
-        "created_at": "Dibuat {date}",
-        "back_to_support": "Kembali ke Dukungan",
-        "status_open": "Terbuka",
-        "status_in_progress": "Sedang Diproses",
-        "status_resolved": "Terselesaikan",
-        "status_closed": "Ditutup",
-        "priority_urgent": "Mendesak",
-        "priority_high": "Tinggi",
-        "priority_medium": "Sedang",
-        "priority_low": "Rendah",
-        "change_priority": "Ubah Prioritas",
-        "change_priority_title": "Ubah Prioritas Tiket",
-        "change_priority_description": "Harap ubah prioritas hanya jika ini benar-benar mendesak. Penyalahgunaan prioritas mendesak dapat memperlambat respons untuk semua orang.",
-        "label_priority": "Prioritas",
-        "priority_placeholder": "Pilih prioritas",
-        "cancel": "Batal",
-        "saving": "Menyimpan...",
-        "save": "Simpan",
-        "replies": "Balasan ({count})",
-        "no_replies": "Belum ada balasan.",
-        "role_staff": "Staf",
-        "role_user": "Pengguna",
-        "resolved_notice": "Tiket ini telah diselesaikan. Jika masalah masih berlanjut, harap buka tiket baru dari halaman Dukungan.",
-        "add_reply": "Tambahkan balasan",
-        "reply_placeholder": "Tulis balasan Anda...",
-        "sending": "Mengirim...",
-        "send_reply": "Kirim balasan"
-    },
-    "usage": {
-        "title": "Penggunaan",
-        "subtitle": "Pantau penggunaan Anda saat ini di seluruh layanan dan fitur.",
-        "plan_badge": "Paket {plan}",
-        "label_messages": "Pesan",
-        "label_tokens": "Token",
-        "label_pages": "Halaman",
-        "label_minutes": "Menit",
-        "label_links": "Tautan",
-        "label_agents": "Agen",
-        "label_teams": "Tim",
-        "label_members": "Anggota",
-        "tokens_note": "Digunakan pada siklus ini — hanya untuk wawasan; paket Anda ditagih per pesan.",
-        "of": "dari {limit}",
-        "remaining": "{count} tersisa",
-        "load_error": "Tidak dapat memuat data penggunaan.",
-        "no_limit": "Tanpa batas"
+        "messages_this_month": "Pesan Bulan Ini",
+        "messages_used_of_limit": "{used} dari {limit} terpakai"
     },
     "analytics_chat": {
         "title": "Tanyakan data Anda",
@@ -3326,7 +2785,6 @@
             "description": "Kunci akun untuk {api_link} — buat dan kelola agen, pengetahuan, server MCP, dan fungsi.",
             "api_link": "Chatvia API",
             "generate": "Buat kunci",
-            "locked": "Tingkatkan paket Anda untuk menerbitkan kunci API dan mengintegrasikan Chatvia dengan aplikasi Anda.",
             "empty_title": "Belum ada kunci API",
             "empty_description": "Buat satu untuk mulai menggunakan Chatvia API.",
             "never": "Tidak pernah",
@@ -3535,14 +2993,6 @@
             "save_error": "Tidak dapat menyimpan pengaturan keamanan Anda",
             "cancel": "Batal",
             "done": "Selesai",
-            "teaser": {
-                "title": "Keamanan & Kepatuhan",
-                "description": "Kunci ruang kerja Anda ke jaringan tepercaya dan penuhi kebutuhan kepatuhan Anda. Tersedia di paket Pro.",
-                "ip": "Daftar izin IP — hanya alamat yang disetujui yang dapat masuk",
-                "geo": "Aturan negara — izinkan atau blokir akses berdasarkan negara",
-                "more": "Plus retensi data, webhook SIEM, SSO / SCIM, dan lainnya",
-                "cta": "Tingkatkan ke Pro"
-            },
             "network": {
                 "title": "Kontrol akses jaringan",
                 "help": "Batasi akses dasbor ke alamat IP dan negara tepercaya. Saat nonaktif, siapa pun dengan login yang valid dapat masuk dari mana saja."
@@ -3578,7 +3028,7 @@
                 "title": "Retensi data",
                 "help": "Berapa lama Chatvia menyimpan data Anda sebelum menghapusnya secara otomatis. Persingkat ini untuk kepatuhan — biarkan kolom kosong untuk memakai nilai bawaan.",
                 "conversations": "Riwayat percakapan (hari)",
-                "conversations_help": "Riwayat chat dihapus setelah sekian hari ini. Hingga {max} pada paket Anda.",
+                "conversations_help": "Riwayat chat dihapus setelah sekian hari ini. Hingga {max} hari.",
                 "audit": "Log audit keamanan (hari)",
                 "audit_help": "Bawaan {default} hari, minimum {floor}.",
                 "plan_default": "Bawaan ({days} hari)"
@@ -3606,11 +3056,6 @@
             "user_agent": "User agent",
             "metadata": "Detail",
             "integrity": "Hash integritas tercatat",
-            "teaser": {
-                "title": "Log audit keamanan",
-                "description": "Lihat setiap proses masuk, perubahan peran, dan perubahan pengaturan keamanan — terbukti anti-rusak dan dapat diekspor. Tersedia pada paket Pro.",
-                "cta": "Tingkatkan ke Pro"
-            },
             "table": {
                 "actor": "Pelaku",
                 "action": "Tindakan",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "Dasbor",
             "agents": "Agen",
-            "usage": "Penggunaan",
             "ask_your_data": "Tanya data Anda",
-            "billing": "Penagihan",
-            "support": "Dukungan",
             "teams": "Tim",
             "documentation": "Dokumentasi",
             "api": "API",
-            "nav_menu_sr": "Menu Navigasi",
-            "upgrade": "Tingkatkan",
-            "subscribed": "Anda telah berlangganan"
+            "nav_menu_sr": "Menu Navigasi"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "Sumber pengetahuan, dokumen, dan berkas yang diunggah",
             "removes_team": "Tim, chatter, kunci API, dan konektor Anda",
             "agents_will_delete": "{count} agen akan dihapus secara permanen: | {count} agen akan dihapus secara permanen:",
-            "subscription_cancel": "Langganan aktif Anda akan dibatalkan dan Anda tidak akan ditagih lagi.",
             "email_confirmed": "Email dikonfirmasi. Ini langkah terakhir Anda — tidak ada jalan kembali setelah ini.",
             "delete_button": "Hapus akun saya secara permanen",
             "final_dialog_title": "Hapus akun Anda secara permanen?",
             "final_dialog_description": "Ini akan menghapus akun Anda dan semua datanya secara permanen, dan tidak dapat dibatalkan.",
-            "final_dialog_subscription": "Langganan Anda juga akan dibatalkan.",
             "final_confirm": "Ya, hapus semuanya",
             "check_email": "Periksa email Anda — kami telah mengirim tautan konfirmasi untuk menyelesaikan penghapusan akun Anda. Tautan ini kedaluwarsa dalam 30 menit. Buka tautan untuk melanjutkan.",
             "resend_link": "Kirim tautan lagi",
@@ -3906,7 +3344,6 @@
         "enable_feature": "Aktifkan {title}",
         "enabling": "Mengaktifkan…",
         "enable_now": "Aktifkan sekarang",
-        "upgrade_now": "Tingkatkan Sekarang",
         "chat_title_fallback": "Obrolan",
         "more_options": "Opsi lainnya",
         "delete_confirmation_title": "Konfirmasi penghapusan",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "Unggah Berkas",
             "description_default": "Tambahkan berkas untuk dianalisis",
-            "quota_label_default": "halaman",
             "file_count": "{current} / {max} berkas",
-            "quota_limit_reached_alert": "Anda telah mencapai batas {quotaLabel} Anda sebanyak {quotaLimit} {quotaLabel}. Silakan tingkatkan paket Anda untuk memproses lebih banyak dokumen.",
             "drop_zone_file_limit_reached": "Batas file tercapai",
-            "drop_zone_quota_limit_reached": "Batas {quotaLabel} tercapai",
             "drop_zone_select_files": "Pilih file",
             "drop_zone_max_files_hint": "Maksimum {max} file diizinkan. Hapus beberapa file untuk menambah lagi.",
-            "drop_zone_quota_exhausted_hint": "Anda telah memakai seluruh {quotaLimit} {quotaLabel}. Tingkatkan paket Anda untuk melanjutkan.",
-            "drop_zone_unavailable": "Unggah tidak tersedia",
             "drop_zone_default_hint": "Seret dan lepas atau klik untuk memilih file",
-            "total_quota": "Total {count} {label}",
-            "exceeds_quota": "Melebihi kuota sebesar {amount} {quotaLabel}",
             "clear_failed": "Bersihkan yang Gagal",
             "clear_all": "Bersihkan Semua",
             "badge_analyzed": "Dianalisis",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Kueri analitik produk — peristiwa, grafik, dan kohort — dari proyek Amplitude Anda."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Selamat datang di Chatvia",
-            "intro": "Mari buat agen AI pertama Anda. Hanya butuh satu menit.",
-            "what_title": "Apa itu agen?",
-            "what_body": "Agen adalah asisten AI yang Anda latih dengan konten Anda sendiri. Agen menjawab pelanggan Anda di situs web, widget obrolan, dan aplikasi perpesanan.",
-            "how_title": "Bagaimana cara kerjanya?",
-            "how_body": "Pertama, Anda membuat agen dan memberinya nama. Lalu Anda melatihnya dengan file, situs web, dan teks Anda agar dapat menjawab pertanyaan.",
-            "start": "Buat agen pertama saya",
-            "video_caption": "Tonton cara kerjanya"
         }
     }
 }

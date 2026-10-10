@@ -73,7 +73,7 @@ function attachTopics(Agent $agent, array $names): array
 it('assigns multiple topics, records a suggestion, sets fields and stamps analyzed_at', function (): void {
     Event::fake([ConversationTopicAssigned::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing', 'Bug Report']);
     $conversation = conversationFor($agent);
@@ -114,7 +114,7 @@ it('assigns multiple topics, records a suggestion, sets fields and stamps analyz
 it('is idempotent — a second run changes nothing', function (): void {
     Event::fake([ConversationTopicAssigned::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing']);
     $conversation = conversationFor($agent);
@@ -171,7 +171,7 @@ it('stores the full analysis regardless of plan capabilities', function (): void
 });
 
 it('stamps analyzed_at and skips analysis when there are no user messages', function (): void {
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $conversation = conversationFor($agent, userMessages: 0);
     Message::factory()->create([
         'chat_conversation_id' => $conversation->id,
@@ -188,7 +188,7 @@ it('stamps analyzed_at and skips analysis when there are no user messages', func
 it('rolls the assigned topic into analytics_agent_topic_daily', function (): void {
     config(['queue.default' => 'sync']); // run the queued RecordAnalytics subscriber inline
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     acaEnableTopics($agent);
     $ids = attachTopics($agent, ['Billing']);
     $conversation = conversationFor($agent);
@@ -219,7 +219,7 @@ it('leaves the conversation pending when the model output cannot be parsed', fun
     // in the rollups and the scheduled scan would never retry it.
     Event::fake([ConversationTopicAssigned::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     acaEnableTopics($agent);
     attachTopics($agent, ['Billing']);
     $conversation = conversationFor($agent);
@@ -238,7 +238,7 @@ it('leaves the conversation pending when the model output cannot be parsed', fun
 });
 
 it('counts every run that calls the model, also one that throws', function (): void {
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $conversation = conversationFor($agent);
 
     Http::fake(['*' => Http::failedConnection()]);
@@ -255,7 +255,7 @@ it('counts every run that calls the model, also one that throws', function (): v
 });
 
 it('does not count a conversation with nothing to analyse', function (): void {
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $conversation = conversationFor($agent, userMessages: 0);
 
     app(AnalyzeConversationAction::class)->execute($conversation);

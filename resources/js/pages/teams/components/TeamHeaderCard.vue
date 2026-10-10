@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getInitials } from '@/composables/useInitials';
+import { update as updateTeam } from '@/routes/teams';
 
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
 
@@ -56,7 +57,7 @@ const cancelEditingName = () => {
 };
 
 const updateTeamName = () => {
-    updateTeamForm.put(route('teams.update', props.team.external_id), {
+    updateTeamForm.put(updateTeam.url(props.team.external_id), {
         onSuccess: () => {
             isEditingName.value = false;
         },

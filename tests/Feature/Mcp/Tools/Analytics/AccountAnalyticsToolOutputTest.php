@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
@@ -9,7 +10,6 @@ use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
 use App\Mcp\Tools\Analytics\GetActivityPatternsTool;
 use App\Mcp\Tools\Analytics\GetAgentBreakdownTool;
 use App\Mcp\Tools\Analytics\GetAiUsageTool;
-use App\Mcp\Tools\Analytics\GetBillingCycleUsageTool;
 use App\Mcp\Tools\Analytics\GetChannelBreakdownTool;
 use App\Mcp\Tools\Analytics\GetConversationStatsTool;
 use App\Mcp\Tools\Analytics\GetGeographyStatsTool;
@@ -62,7 +62,7 @@ function seedAnalyticsWorkspace(): array
     $other = User::factory()->create(['type' => UserType::Workspace]);
     $noise = Agent::factory()->create(['user_id' => $other->id, 'name' => 'Noise']);
 
-    seedAnalyticsBilling($workspace);
+    seedAnalyticsMessageLimit($workspace);
     seedAnalyticsEvents($workspace, $alpha, $beta, $other, $noise);
     seedAnalyticsRollups($workspace, $alpha, $beta, $other, $noise);
     seedAnalyticsChats($alpha, $beta, $noise);
@@ -70,25 +70,14 @@ function seedAnalyticsWorkspace(): array
     return ['workspace' => $workspace, 'alpha' => $alpha, 'beta' => $beta];
 }
 
-function seedAnalyticsBilling(User $workspace): void
+function seedAnalyticsMessageLimit(User $workspace): void
 {
-    $previous = $workspace->credits()->create([
-        'messages' => 800,
-        'started_at' => '2026-05-01 00:00:00',
-        'ends_at' => '2026-05-31 23:59:59',
+    MessageLimit::create([
+        'user_id' => $workspace->id,
+        'monthly_limit' => 1000,
+        'messages_used' => 420,
+        'period_starts_at' => '2026-06-01 00:00:00',
     ]);
-    $previous->usage()->create(['messages' => 700, 'messages_exceeded' => 0, 'tokens' => 5000]);
-
-    $current = $workspace->credits()->create([
-        'messages' => 1000,
-        'started_at' => '2026-06-01 00:00:00',
-        'ends_at' => '2026-07-01 00:00:00',
-    ]);
-    $current->usage()->create(['messages' => 420, 'messages_exceeded' => 15, 'tokens' => 98765]);
-
-    $workspace->addons()->create(['type' => 'extra_message_credits', 'amount' => 500, 'stripe_id' => 'cs_test_open', 'started_at' => '2026-06-02 00:00:00', 'ends_at' => null]);
-    $workspace->addons()->create(['type' => 'extra_message_credits', 'amount' => 300, 'stripe_id' => 'cs_test_late', 'started_at' => '2026-06-03 00:00:00', 'ends_at' => '2026-06-20 00:00:00']);
-    $workspace->addons()->create(['type' => 'extra_message_credits', 'amount' => 900, 'stripe_id' => 'cs_test_gone', 'started_at' => '2026-05-01 00:00:00', 'ends_at' => '2026-05-10 00:00:00']);
 }
 
 function seedAnalyticsEvents(User $workspace, Agent $alpha, Agent $beta, User $other, Agent $noise): void
@@ -332,42 +321,41 @@ function analyticsToolResult(TestResponse $response, array $agents): string
 }
 
 dataset('analytics tool calls', [
-    'overview, current cycle' => [GetAccountOverviewTool::class, []],
+    'overview, this month' => [GetAccountOverviewTool::class, []],
     'overview, all time' => [GetAccountOverviewTool::class, ['period' => 'all_time']],
     'overview, one agent' => [GetAccountOverviewTool::class, ['agent' => '@alpha']],
     'overview, unknown agent' => [GetAccountOverviewTool::class, ['agent' => 'no-such-agent']],
     'overview, invalid period' => [GetAccountOverviewTool::class, ['period' => 'yesterday']],
-    'message stats, current cycle' => [GetMessageStatsTool::class, []],
+    'message stats, this month' => [GetMessageStatsTool::class, []],
     'message stats, one agent' => [GetMessageStatsTool::class, ['agent' => '@beta']],
     'message stats, last 7 days' => [GetMessageStatsTool::class, ['period' => 'last_7_days']],
-    'billing cycle usage' => [GetBillingCycleUsageTool::class, []],
-    'conversation stats, current cycle' => [GetConversationStatsTool::class, []],
+    'conversation stats, this month' => [GetConversationStatsTool::class, []],
     'conversation stats, one agent' => [GetConversationStatsTool::class, ['agent' => '@alpha']],
     'conversation stats, empty window' => [GetConversationStatsTool::class, ['start_date' => '2025-01-01', 'end_date' => '2025-01-02']],
-    'top users, current cycle' => [GetTopUsersTool::class, []],
+    'top users, this month' => [GetTopUsersTool::class, []],
     'top users, limit 1' => [GetTopUsersTool::class, ['limit' => 1]],
-    'channel breakdown, current cycle' => [GetChannelBreakdownTool::class, []],
+    'channel breakdown, this month' => [GetChannelBreakdownTool::class, []],
     'channel breakdown, one agent' => [GetChannelBreakdownTool::class, ['agent' => '@beta']],
-    'agent breakdown, current cycle' => [GetAgentBreakdownTool::class, []],
-    'agent breakdown, previous cycle' => [GetAgentBreakdownTool::class, ['period' => 'previous_cycle']],
-    'geography, current cycle' => [GetGeographyStatsTool::class, []],
+    'agent breakdown, this month' => [GetAgentBreakdownTool::class, []],
+    'agent breakdown, last month' => [GetAgentBreakdownTool::class, ['period' => 'last_month']],
+    'geography, this month' => [GetGeographyStatsTool::class, []],
     'geography, limit 1' => [GetGeographyStatsTool::class, ['limit' => 1]],
-    'activity patterns, current cycle' => [GetActivityPatternsTool::class, []],
+    'activity patterns, this month' => [GetActivityPatternsTool::class, []],
     'activity patterns, one day' => [GetActivityPatternsTool::class, ['start_date' => '2026-06-14', 'end_date' => '2026-06-14']],
-    'satisfaction, current cycle' => [GetSatisfactionStatsTool::class, []],
+    'satisfaction, this month' => [GetSatisfactionStatsTool::class, []],
     'satisfaction, one agent' => [GetSatisfactionStatsTool::class, ['agent' => '@alpha']],
-    'response time, current cycle' => [GetResponseTimeStatsTool::class, []],
+    'response time, this month' => [GetResponseTimeStatsTool::class, []],
     'response time, unknown agent' => [GetResponseTimeStatsTool::class, ['agent' => 'no-such-agent']],
     'response time, one agent' => [GetResponseTimeStatsTool::class, ['agent' => '@beta']],
-    'top topics, current cycle' => [GetTopTopicsTool::class, []],
+    'top topics, this month' => [GetTopTopicsTool::class, []],
     'top topics, limit 1' => [GetTopTopicsTool::class, ['limit' => 1]],
-    'lead stats, current cycle' => [GetLeadStatsTool::class, []],
+    'lead stats, this month' => [GetLeadStatsTool::class, []],
     'lead stats, all time' => [GetLeadStatsTool::class, ['period' => 'all_time']],
-    'handoff stats, current cycle' => [GetHandoffStatsTool::class, []],
-    'token usage, current cycle' => [GetTokenUsageTool::class, []],
+    'handoff stats, this month' => [GetHandoffStatsTool::class, []],
+    'token usage, this month' => [GetTokenUsageTool::class, []],
     'token usage, one agent' => [GetTokenUsageTool::class, ['agent' => '@alpha']],
     'token usage, empty window' => [GetTokenUsageTool::class, ['period' => 'today']],
-    'ai usage, current cycle' => [GetAiUsageTool::class, []],
+    'ai usage, this month' => [GetAiUsageTool::class, []],
     'ai usage, limit 1' => [GetAiUsageTool::class, ['limit' => 1]],
 ]);
 
@@ -384,13 +372,6 @@ it('returns a stable result for each analytics tool', function (string $tool, ar
     expect(analyticsToolResult(AccountAnalyticsServer::tool($tool, $arguments), $agents))->toMatchSnapshot();
 })->with('analytics tool calls');
 
-it('reports no active billing cycle for a workspace without credits', function (): void {
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
-    analyticsCaller($workspace);
-
-    expect(analyticsToolResult(AccountAnalyticsServer::tool(GetBillingCycleUsageTool::class), []))->toMatchSnapshot();
-});
-
 it('refuses every analytics tool without a workspace identity', function (string $tool): void {
     analyticsCaller(null);
 
@@ -400,7 +381,6 @@ it('refuses every analytics tool without a workspace identity', function (string
     GetActivityPatternsTool::class,
     GetAgentBreakdownTool::class,
     GetAiUsageTool::class,
-    GetBillingCycleUsageTool::class,
     GetChannelBreakdownTool::class,
     GetConversationStatsTool::class,
     GetGeographyStatsTool::class,

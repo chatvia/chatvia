@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\RunEvalSuiteAction;
 use Domain\Evaluation\Enums\EvalRunStatus;
@@ -17,21 +18,16 @@ use Support\Exceptions\DomainValidationException;
  * RunEvalSuite snapshots a run and fans the ACTIVE cases out as a batch. The
  * contract we pin: inactive cases never run, the run is snapshotted as
  * "running", an empty suite is finalized inline (never left stuck), and a
- * workspace the chat send gate would refuse (no active billing, or no message
- * credits) can't start a suite at all (each scored case bills one message).
- * The credit check is stubbed open by default.
+ * workspace that reached its monthly message limit can't start a suite at all
+ * (each scored case counts as one message).
  */
-beforeEach(function (): void {
-    fakeMessageCreditGate();
-});
 
 /**
- * An agent whose workspace has an active subscription, so the send gate's
- * billing check passes and only the (stubbed) credit check decides.
+ * An agent with a chat model.
  */
 function agentWithLlm(): Agent
 {
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $agent->update(['llm_id' => Llm::factory()->create()->id]);
 
     return $agent;
@@ -83,32 +79,20 @@ it('finalizes immediately when there are no active cases', function (): void {
     Bus::assertNothingBatched();
 });
 
-it('refuses to start a suite when the workspace is out of messages', function (): void {
+it('refuses to start a suite when the workspace reached its monthly message limit', function (): void {
     Bus::fake();
     $agent = agentWithLlm();
 
     evalCaseFor($agent, active: true);
-
-    fakeMessageCreditGate(false);
+    MessageLimit::create([
+        'user_id' => $agent->user_id,
+        'monthly_limit' => 5,
+        'messages_used' => 5,
+        'period_starts_at' => now()->startOfMonth(),
+    ]);
 
     expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
         ->toThrow(DomainValidationException::class);
-
-    expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
-
-    Bus::assertNothingBatched();
-});
-
-it('refuses to start a suite when the workspace subscription has ended, even with credits left', function (): void {
-    Bus::fake();
-    // No subscription and no trial: live chat would refuse this workspace, so
-    // evals must too (the credit check alone is stubbed open).
-    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
-
-    evalCaseFor($agent, active: true);
-
-    expect(fn () => app(RunEvalSuiteAction::class)->execute($agent))
-        ->toThrow(DomainValidationException::class, 'Your subscription has expired. Renew it to run the suite.');
 
     expect(EvalRun::query()->forAgent($agent->id)->count())->toBe(0);
 

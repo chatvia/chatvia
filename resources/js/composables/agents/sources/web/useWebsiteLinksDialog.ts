@@ -9,7 +9,6 @@ import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import { toWebsiteLink } from './useDiscoveredLinks';
-import type { WebLinkQuota } from './useWebLinkQuota';
 import type { WebsiteLink, WebSource, WebSourcesState } from './useWebSources';
 
 export interface DialogLinkPagination {
@@ -25,7 +24,7 @@ const TRAINED_MARK_MS = 2000;
 
 const firstPage = (): DialogLinkPagination => ({ currentPage: 1, lastPage: 1, total: 0, hasNextPage: false, hasPrevPage: false });
 
-export function useWebsiteLinksDialog(agentId: string, sources: WebSourcesState, quota: WebLinkQuota) {
+export function useWebsiteLinksDialog(agentId: string, sources: WebSourcesState) {
     const { t } = useI18n();
 
     const isOpen = ref(false);
@@ -146,7 +145,6 @@ export function useWebsiteLinksDialog(agentId: string, sources: WebSourcesState,
             await deleteWebsiteLink(agentId, website.value.id, linkId);
             toast.success(t('agents.sources.web.link_deleted'));
             await reloadCurrentPage();
-            await quota.refreshUsage();
         } catch (error) {
             toast.error(errorMessage(error, t('agents.sources.web.link_delete_failed')));
         }
@@ -164,7 +162,6 @@ export function useWebsiteLinksDialog(agentId: string, sources: WebSourcesState,
             selectedIds.value.clear();
             toast.success(t('agents.sources.web.links_deleted', deletedCount));
             await reloadCurrentPage();
-            await quota.refreshUsage();
         } catch (error) {
             toast.error(errorMessage(error, t('agents.sources.web.links_delete_failed')));
         }

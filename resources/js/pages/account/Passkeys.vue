@@ -21,6 +21,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
+import { destroy as destroyPasskey } from '@/routes/passkey';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { Fingerprint, Loader2, Plus, Trash2 } from 'lucide-vue-next';
@@ -102,7 +103,7 @@ const confirmDelete = async () => {
     deleteDialogOpen.value = false;
     if (!target) return;
     if (!(await ensureConfirmed())) return;
-    router.delete(route('passkey.destroy', { passkey: target.id }), {
+    router.delete(destroyPasskey.url(target.id), {
         preserveScroll: true,
         only: ['passkeys'],
     });

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent\Chatter;
 use App\Http\Requests\Agent\Chatter\InviteAgentChatterRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
 use Domain\Membership\Agent\Actions\InviteAgentChatterAction;
 use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
 use Domain\Membership\Agent\Data\Resources\AgentChatterRowData;
@@ -21,11 +20,11 @@ use Spatie\LaravelData\DataCollection;
  * Agent-scoped Members tab. We surface every chatter in the workspace — not
  * just the ones already granted to this agent — so the owner can give an
  * existing member access to another agent in one click. Rows already on the
- * pivot sort first; the rest get a "Grant" affordance.
+ * pivot sort first; the rest get a "Grant" affordance
+ * ({@see GrantAgentChatterAccessController}).
  *
  *   index    — list all workspace chatters with a `has_access` flag.
  *   store    — invite a brand-new chatter (creates the user + grants this agent).
- *   grant    — give an existing chatter access to this agent.
  *   destroy  — revoke this agent's grant (user stays).
  */
 class AgentChatterController
@@ -103,24 +102,6 @@ class AgentChatterController
             'accept_url' => route('agents.invitation.show', ['token' => $invitation->token]),
             'expires_at' => $invitation->expires_at->toIso8601String(),
         ]);
-    }
-
-    public function grant(
-        Request $request,
-        Agent $agent,
-        string $chatter,
-        GrantAgentMembershipAction $grant,
-    ): RedirectResponse {
-        abort_if($agent->is_public, 422, __('Public agents do not use per-member grants.'));
-
-        $member = $agent->user
-            ->chatters()
-            ->where('external_id', $chatter)
-            ->firstOrFail();
-
-        $grant->execute($agent, $member);
-
-        return back();
     }
 
     public function destroy(

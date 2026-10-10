@@ -13,10 +13,16 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { disconnect as disconnectInstagram } from '@/routes/agents/channels/instagram';
+import { disconnect as disconnectMessenger } from '@/routes/agents/channels/messenger';
+import { disconnect as disconnectMsTeams } from '@/routes/agents/channels/msteams';
+import { disconnect as disconnectSlack } from '@/routes/agents/channels/slack';
+import { disconnect as disconnectTelegram } from '@/routes/agents/channels/telegram';
+import { disconnect as disconnectWhatsapp } from '@/routes/agents/channels/whatsapp';
 import { router } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-import type { ChannelItem } from './types';
+import type { ChannelItem, ChannelKind } from './types';
 
 const props = defineProps<{
     agentId: string;
@@ -27,11 +33,21 @@ const open = defineModel<boolean>('open', { required: true });
 
 const { t } = useI18n();
 
+// Typed per kind so adding a channel without its disconnect route fails to compile.
+const disconnectUrl: Record<ChannelKind, (agent: string) => string> = {
+    telegram: (agent) => disconnectTelegram.url(agent),
+    slack: (agent) => disconnectSlack.url(agent),
+    whatsapp: (agent) => disconnectWhatsapp.url(agent),
+    messenger: (agent) => disconnectMessenger.url(agent),
+    msteams: (agent) => disconnectMsTeams.url(agent),
+    instagram: (agent) => disconnectInstagram.url(agent),
+};
+
 const disconnect = () => {
     const channel = props.channel;
     if (channel === null) return;
 
-    router.delete(route(`agents.channels.${channel.kind}.disconnect`, props.agentId), {
+    router.delete(disconnectUrl[channel.kind](props.agentId), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {

@@ -8,8 +8,8 @@ use Domain\Agent\Models\Agent;
 use Illuminate\Http\RedirectResponse;
 
 /**
- * Sets or removes the custom domain of an agent's Hosted Chat. The quota
- * check lives in SetAgentDomainAction; gated by `agent.permission:agent.setup`.
+ * Sets or removes the custom domain of an agent's Hosted Chat. Gated by
+ * `agent.permission:agent.setup`.
  */
 class UpdateAgentDomainController
 {
@@ -20,10 +20,7 @@ class UpdateAgentDomainController
     ): RedirectResponse {
         $newValue = $request->toData()->domain;
 
-        // The quota gate lives in the Action. A DomainValidationException it
-        // throws bubbles to the global handler, which redirects back with the
-        // `domain` field error — no inline rule or duplicated count here.
-        $setDomain->execute($agent, $request->user(), $newValue);
+        $setDomain->execute($agent, $newValue);
 
         return back()->with('success', $newValue ? 'Custom domain updated.' : 'Custom domain removed.');
     }

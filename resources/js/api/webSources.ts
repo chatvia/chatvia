@@ -4,6 +4,8 @@
  * them. Adding a website and starting training are Inertia visits and stay in
  * the components.
  */
+import trainedWebsites from '@/routes/agents/sources/trained-websites';
+import websites from '@/routes/agents/sources/websites';
 import { del, get, post } from './http';
 
 /** Lifecycle of a website: discovery (pending → crawling → crawled), then training (ingesting → ingested). */
@@ -55,7 +57,7 @@ export interface WebsiteLinkPage {
 }
 
 export function listWebsites(agentId: string): Promise<WebsiteRecord[]> {
-    return get<WebsiteRecord[]>(route('agents.sources.websites.index', { agent: agentId }));
+    return get<WebsiteRecord[]>(websites.index.url(agentId));
 }
 
 /** A page of a website's links, optionally filtered by a URL search. */
@@ -65,28 +67,28 @@ export function listWebsiteLinks(agentId: string, websiteId: number, page: numbe
         params.q = search.trim();
     }
 
-    return get<WebsiteLinkPage>(route('agents.sources.websites.links.index', { agent: agentId, website: websiteId }), { params });
+    return get<WebsiteLinkPage>(websites.links.index.url({ agent: agentId, website: websiteId }), { params });
 }
 
 /** Deletes the website everywhere, for every agent that uses it. */
 export function deleteWebsite(agentId: string, websiteId: number): Promise<void> {
-    return del(route('agents.sources.websites.destroy', { agent: agentId, website: websiteId }));
+    return del(websites.destroy.url({ agent: agentId, website: websiteId }));
 }
 
 /** Removes a shared website from this agent only. */
 export function unlinkWebsite(agentId: string, websiteId: number): Promise<void> {
-    return post(route('agents.sources.trained-websites.unlink', { agent: agentId, websiteId }));
+    return post(trainedWebsites.unlink.url({ agent: agentId, websiteId }));
 }
 
 export function deleteWebsiteLink(agentId: string, websiteId: number, linkId: number): Promise<void> {
-    return del(route('agents.sources.websites.links.destroy', { agent: agentId, website: websiteId, link: linkId }));
+    return del(websites.links.destroy.url({ agent: agentId, website: websiteId, link: linkId }));
 }
 
 export function deleteWebsiteLinks(agentId: string, websiteId: number, linkIds: number[]): Promise<void> {
-    return post(route('agents.sources.websites.links.bulk-destroy', { agent: agentId, website: websiteId }), { link_ids: linkIds });
+    return post(websites.links.bulkDestroy.url({ agent: agentId, website: websiteId }), { link_ids: linkIds });
 }
 
 /** Scrapes and trains one page again. */
 export function retrainWebsiteLink(agentId: string, websiteId: number, linkId: number): Promise<void> {
-    return post(route('agents.sources.websites.links.retrain', { agent: agentId, website: websiteId, link: linkId }));
+    return post(websites.links.retrain.url({ agent: agentId, website: websiteId, link: linkId }));
 }

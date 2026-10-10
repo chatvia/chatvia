@@ -4,7 +4,7 @@ namespace Domain\Channel\Telegram\Services;
 
 /**
  * What a matched Telegram command resolves to: either a canned **message** sent
- * verbatim (no LLM, no billing) or a **prompt** run through the agent pipeline
+ * verbatim (no LLM, nothing counted) or a **prompt** run through the agent pipeline
  * like a normal turn (RAG + tools + LLM, billed). The Action branches on
  * {@see $runThroughAgent} to decide which path to take.
  */

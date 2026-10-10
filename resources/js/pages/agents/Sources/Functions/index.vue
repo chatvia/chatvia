@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { edit as editFunctions } from '@/routes/integrations/functions';
 import { Link } from '@inertiajs/vue3';
 import { AlertCircle, Code, FunctionSquare, LoaderCircle, Search } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
@@ -106,9 +107,7 @@ onMounted(loadFunctions);
                             <p class="font-medium">{{ t('agents.sources.functions.empty_title') }}</p>
                             <p class="mt-1">
                                 {{ t('agents.sources.functions.empty_prefix') }}
-                                <Link :href="route('integrations.functions.edit')" class="underline">{{
-                                    t('agents.sources.functions.settings_link')
-                                }}</Link
+                                <Link :href="editFunctions.url()" class="underline">{{ t('agents.sources.functions.settings_link') }}</Link
                                 >.
                             </p>
                         </div>

@@ -7,7 +7,6 @@ use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
 use Domain\Conversation\Enums\ConfidenceBand;
 use Domain\Conversation\Events\AssistantReplyCompleted;
-use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
 
@@ -15,8 +14,9 @@ use Domain\Conversation\Services\Memory\ChatMemory;
  * Records the assistant's answer when a turn ends: adds it to the conversation
  * (live memory now, chat log through the queue) and, on the hosted chat,
  * remembers which sources it was answered from. A turn where a model really
- * answered also announces {@see AssistantReplyCompleted}, which billing
- * charges for; a guardrail refusal is recorded for the history only.
+ * answered also announces {@see AssistantReplyCompleted}, which counts against
+ * the workspace's message limit; a guardrail refusal is recorded for the
+ * history only.
  */
 class AssistantReplyRecorder
 {
@@ -25,17 +25,12 @@ class AssistantReplyRecorder
         private readonly ChatMemory $memory,
     ) {}
 
-    /** A completed turn: announce it for billing, store the answer and its sources. */
+    /** A completed turn: announce it, store the answer and its sources. */
     public function recordCompletedReply(ChatContext $context): void
     {
         $request = $context->requestData;
 
-        AssistantReplyCompleted::dispatch(
-            $request->agent->user_id,
-            $request->message->model->id,
-            $context->assistantMessageId,
-            $this->documentPages($context),
-        );
+        AssistantReplyCompleted::dispatch($request->agent->user_id, $context->assistantMessageId);
 
         $this->store($context);
 
@@ -48,7 +43,7 @@ class AssistantReplyRecorder
 
     /**
      * A refused turn (an input guardrail blocked the message): kept in the
-     * history, never billed — no model ran.
+     * history, never counted — no model ran.
      */
     public function recordRefusal(ChatContext $context): void
     {
@@ -97,27 +92,6 @@ class AssistantReplyRecorder
 
         return $context->confidenceScore !== null
             && $context->confidenceScore >= ConfidenceBand::MEDIUM_FLOOR;
-    }
-
-    /**
-     * The summed page count of every PDF in the conversation — the same PDFs
-     * that route the turn to the document LLM, so the pages are charged
-     * exactly when the documents were sent. 0 for text conversations.
-     */
-    private function documentPages(ChatContext $context): int
-    {
-        $request = $context->requestData;
-
-        if (! $request->conversationId) {
-            return 0;
-        }
-
-        return (int) (Conversation::query()
-            ->inSession($request->externalSessionId, $request->agent->id)
-            ->where('external_id', $request->conversationId)
-            ->first()
-            ?->pdfAttachments()
-            ->sum('pages') ?? 0);
     }
 
     private function scope(ChatContext $context): ChatScopeData

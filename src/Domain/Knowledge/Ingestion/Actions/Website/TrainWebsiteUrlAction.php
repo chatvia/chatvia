@@ -16,7 +16,6 @@ use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Firecrawl;
 use Domain\Llm\Services\TikToken;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +40,6 @@ class TrainWebsiteUrlAction
         private readonly Firecrawl $firecrawl,
         private readonly TextSplitter $splitter,
         private readonly EmbeddingsProviderInterface $embeddings,
-        private readonly TokenUsageContext $tokenUsage,
     ) {}
 
     public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent): void
@@ -59,12 +57,6 @@ class TrainWebsiteUrlAction
 
             return;
         }
-
-        // FireCrawl returns no `usage` block, so the scraped content is metered
-        // with the shared tokenizer and added to the workspace scope that
-        // WebsiteUrlTrainJob opens (a no-op outside a scope). Counted on every
-        // scrape, even when the page is unchanged.
-        $this->tokenUsage->add(TikToken::countTokens($markdown));
 
         $checksum = hash('sha256', $markdown);
 

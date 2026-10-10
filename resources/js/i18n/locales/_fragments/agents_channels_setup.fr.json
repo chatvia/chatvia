@@ -33,7 +33,7 @@
                     "reply_streams_live": "— la réponse s'affiche en direct"
                 },
                 "telegram": {
-                    "connected_description": "Les utilisateurs peuvent envoyer des messages à votre bot sur Telegram et votre agent répond automatiquement — facturation, historique et garde-fous s'appliquent.",
+                    "connected_description": "Les utilisateurs peuvent envoyer des messages à votre bot sur Telegram et votre agent répond automatiquement — limites de messages, historique et garde-fous s'appliquent.",
                     "steps": {
                         "connect_1": "Ouvrez {botfather} dans Telegram",
                         "connect_2": "Envoyez {command} et suivez les instructions",

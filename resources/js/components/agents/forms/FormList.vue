@@ -9,6 +9,7 @@ import DeleteConfirmationDialog from '@/components/common/DeleteConfirmationDial
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFormTypeLabel } from '@/composables/agents/forms/useFormTypeLabel';
+import { index as submissionsIndex } from '@/routes/agents/forms/submissions';
 import { Link } from '@inertiajs/vue3';
 import { FileText, Plus, Trash2 } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -60,7 +61,7 @@ function confirmDelete(): void {
                             <span v-if="!form.is_active"> · {{ t('agents.forms.inactive') }}</span>
                         </p>
                     </div>
-                    <Link v-if="form.external_id" :href="route('agents.forms.submissions.index', { agent: agentId, form: form.external_id })">
+                    <Link v-if="form.external_id" :href="submissionsIndex.url({ agent: agentId, form: form.external_id })">
                         <Button variant="ghost" size="sm">{{ t('agents.forms.submissions') }} ({{ form.submissions_count }})</Button>
                     </Link>
                     <Button variant="outline" size="sm" @click="emit('edit', form)">{{ t('agents.forms.edit') }}</Button>

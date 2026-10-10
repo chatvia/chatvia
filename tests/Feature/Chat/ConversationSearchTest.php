@@ -14,9 +14,7 @@ use Illuminate\Support\Str;
  * Conversation search is a read: it must never create a chat session, and it
  * returns nothing when the visitor has no session yet.
  */
-beforeEach(function (): void {
-    fakeMessageCreditGate();
-});
+beforeEach(function (): void {});
 
 it('returns no results and creates no session for a visitor without one', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);

@@ -22,9 +22,7 @@ import { useI18n } from 'vue-i18n';
 
 interface Props {
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
-    // Per-agent on/off switch (Setup → Settings). Independent of the plan
-    // capability: the plan must allow it AND the owner must not have
-    // switched it off.
+    // Per-agent on/off switch (Setup → Settings).
     enabled: boolean;
     // Master switch: when the chat log is off there are no stored messages to
     // analyze, so analytics can't be enabled until it's turned back on.
@@ -42,7 +40,6 @@ const loadTone = async (): Promise<DimensionBreakdown<ToneBucket>> => {
 };
 
 const copy = computed<DimensionCopy>(() => ({
-    lockedDescription: t('agents.tone.locked_description'),
     disabledTitle: t('agents.tone.disabled_title'),
     disabledDescription: t('agents.tone.disabled_description'),
     blockedReason: t('agents.tone.blocked_reason'),

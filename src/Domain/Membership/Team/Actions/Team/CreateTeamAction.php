@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Creates a team for its owner together with the default roles, in one
  * transaction so a team never exists without its roles. Used for every new
- * team: the dashboard, the API, registration and trial provisioning (through
+ * team: the dashboard, the API and registration (through
  * TeamService::createDefaultTeam).
  */
 class CreateTeamAction

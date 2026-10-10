@@ -30,13 +30,6 @@ class TeamInvitationController
         $owner = $team->owner;
         $role = $invitation->role;
 
-        if (! $owner->hasActiveSubscription()) {
-            return Inertia::render('auth/InvitationInvalid', [
-                'message' => __('The team owner does not have an active subscription. Please contact them to upgrade their plan.'),
-                'team' => ['name' => $team->name],
-            ]);
-        }
-
         $existingUser = User::where('email', $invitation->email)->first();
 
         return Inertia::render('auth/AcceptInvitation', [

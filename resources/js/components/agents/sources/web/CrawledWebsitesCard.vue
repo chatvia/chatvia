@@ -1,16 +1,13 @@
 <script setup lang="ts">
 /**
  * "Ready for training": the crawled websites, with a "select all" bar that
- * shows how many links the picked websites hold and a Train button that is
- * disabled while the pick does not fit in the remaining link quota.
+ * shows how many links the picked websites hold and a Train button.
  */
-import type { UsageStats } from '@/api/usage';
 import CrawledWebsiteRow from '@/components/agents/sources/web/CrawledWebsiteRow.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DiscoveredLinks } from '@/composables/agents/sources/web/useDiscoveredLinks';
 import type { WebSource } from '@/composables/agents/sources/web/useWebSources';
 import type { WebsiteTraining } from '@/composables/agents/sources/web/useWebsiteTraining';
@@ -21,7 +18,6 @@ const props = defineProps<{
     sources: WebSource[];
     training: WebsiteTraining;
     links: DiscoveredLinks;
-    linkUsage: UsageStats | null;
 }>();
 
 const emit = defineEmits<{
@@ -66,24 +62,11 @@ const { selectedCount, selectedTotalLinks, canTrain, isTraining, allSelected, so
                         </template>
                         <template v-else>{{ t('agents.sources.web.no_websites_selected') }}</template>
                     </span>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <Button :disabled="!canTrain || isTraining" size="sm" @click="training.trainSelected">
-                                    <LoaderCircle v-if="isTraining" class="me-2 h-4 w-4 animate-spin" />
-                                    <Database v-else class="me-2 h-4 w-4" />
-                                    {{ t('agents.sources.web.train') }}
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent v-if="!canTrain && selectedCount > 0 && linkUsage">
-                                <p>
-                                    {{
-                                        t('agents.sources.web.train_exceeds_quota', { selected: selectedTotalLinks, remaining: linkUsage.remaining })
-                                    }}
-                                </p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <Button :disabled="!canTrain || isTraining" size="sm" @click="training.trainSelected">
+                        <LoaderCircle v-if="isTraining" class="me-2 h-4 w-4 animate-spin" />
+                        <Database v-else class="me-2 h-4 w-4" />
+                        {{ t('agents.sources.web.train') }}
+                    </Button>
                 </div>
             </div>
 
@@ -94,7 +77,6 @@ const { selectedCount, selectedTotalLinks, canTrain, isTraining, allSelected, so
                     :source="source"
                     :training="training"
                     :links="links"
-                    :link-usage="linkUsage"
                     @delete="emit('delete', $event)"
                 />
             </div>

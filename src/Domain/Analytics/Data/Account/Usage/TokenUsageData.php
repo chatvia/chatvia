@@ -7,8 +7,8 @@ namespace Domain\Analytics\Data\Account\Usage;
 use Domain\Analytics\Data\Account\DailyCountData;
 
 /**
- * Tokens consumed over a window. Reported for analytics only — billing counts
- * messages, not tokens.
+ * Tokens consumed over a window. Reported for analytics only — message limits
+ * count replies, not tokens.
  */
 final readonly class TokenUsageData
 {

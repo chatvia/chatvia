@@ -32,8 +32,6 @@ return new class extends Migration
 
             $table->boolean('scim_enabled')->default(false);
 
-            $table->boolean('security_override')->nullable();
-
             $table->timestamps();
         });
     }

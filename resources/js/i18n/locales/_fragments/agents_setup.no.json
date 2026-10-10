@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Egendefinert domene",
                 "description": "Server denne agentens Hosted Chat fra ditt eget domene i stedet for {target}.",
-                "no_quota_title": "Egendefinerte domener er ikke inkludert i din nåværende plan",
-                "no_quota_description": "Oppgrader til Pro eller abonner på tillegget for egendefinert domene fra {link} for å legge til ditt eget vertsnavn.",
-                "billing": "Fakturering",
-                "quota": "Bruker {used} av {total} egendefinert domene | Bruker {used} av {total} egendefinerte domener",
-                "add_more": "Legg til flere",
                 "step1": "Steg 1 — Legg til en CNAME-post hos din DNS-leverandør",
                 "type": "Type",
                 "name": "Navn",

@@ -18,7 +18,7 @@ class AnalyticsScopeResolver
 
     public function resolve(User $workspace, AnalyticsFilterData $filter): AnalyticsScopeData
     {
-        $period = $this->periods->resolve($workspace, $filter);
+        $period = $this->periods->resolve($filter);
 
         if ($filter->agentExternalId === null) {
             return new AnalyticsScopeData(

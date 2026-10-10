@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { fromKnowledge } from '@/routes/agents/evals/cases';
 import { router } from '@inertiajs/vue3';
 import { LoaderCircle, Plus, Search, X } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -68,7 +69,7 @@ const submit = () => {
 
     submitting.value = true;
     router.post(
-        route('agents.evals.cases.from-knowledge', props.agentExternalId),
+        fromKnowledge.url(props.agentExternalId),
         { items },
         {
             preserveScroll: true,

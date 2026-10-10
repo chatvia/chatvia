@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Sujets",
             "description": "Analysez les sujets et les tendances des conversations",
-            "locked_description": "Mettez à niveau votre abonnement pour accéder à l'analyse des sujets et détecter et catégoriser automatiquement les sujets des conversations.",
             "disabled_title": "Analyse des sujets",
             "disabled_description": "Activez-la pour détecter et regrouper automatiquement ce que vos visiteurs demandent dans les conversations.",
             "blocked_reason": "L'historique des conversations est désactivé, il n'y a donc rien à analyser. Activez-le dans Configuration → Paramètres pour commencer à collecter des sujets.",

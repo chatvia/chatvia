@@ -161,7 +161,6 @@
                 "select_topic": "Velg emne",
                 "select_sentiment": "Velg sentiment",
                 "select_tone": "Velg tone",
-                "upgrade_to_unlock": "Oppgrader for å låse opp",
                 "clear_all": "Fjern alle",
                 "close": "Bruk filtre"
             },
@@ -201,13 +200,11 @@
                 "page_url": "Side-URL",
                 "referrer": "Referrer",
                 "locale": "Språkinnstilling",
-                "upgrade_to_unlock": "Oppgrader for å låse opp",
                 "waiting": "Venter på analyse…"
             },
             "pulse": {
                 "title": "Samtalepuls",
                 "select_conversation": "Velg en samtale for å se puls",
-                "locked_description": "Oppgrader planen din for å låse opp samtalepuls-analyse.",
                 "refresh": "Oppdater",
                 "no_messages_title": "Ikke nok meldinger ennå",
                 "no_messages_hint": "Puls trenger minst én brukermelding for å analysere sentiment og tone over tid.",
@@ -242,7 +239,6 @@
                 "waiting": "Venter…"
             },
             "handoff": {
-                "locked_description": "Oppgrader planen din for å overta live-samtaler fra samtaleloggen.",
                 "visitor": "Besøkende",
                 "online": "Pålogget",
                 "offline": "Frakoblet",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Tone",
             "description": "Spor hvordan besøkende føler seg basert på den emosjonelle tonen i meldingene deres.",
-            "locked_description": "Oppgrader planen din for å låse opp toneanalyse.",
             "disabled_title": "Toneanalyse er av",
             "disabled_description": "Aktiver toneanalyse for å se hvordan besøkende føler seg på tvers av samtaler.",
             "blocked_reason": "Slå på samtalelogging først — toneanalyse krever lagrede meldinger.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Sentiment",
             "description": "Spor positivt, nøytralt og negativt sentiment på tvers av besøkendes meldinger.",
-            "locked_description": "Oppgrader planen din for å låse opp sentimentanalyse.",
             "disabled_title": "Sentimentanalyse er av",
             "disabled_description": "Aktiver sentimentanalyse for å se hvordan besøkende føler seg på tvers av samtaler.",
             "blocked_reason": "Slå på samtalelogging først — sentimentanalyse krever lagrede meldinger.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Administrer emner",
                 "description": "Definer emner agenten din skal gjenkjenne og klassifisere i samtaler.",
-                "locked_description": "Oppgrader planen din for å administrere samtaleemner.",
                 "search_placeholder": "Søk etter emner…",
                 "add_topic": "Legg til emne",
                 "empty": "Ingen emner ennå. Legg til ett for å hjelpe agenten med å klassifisere samtaler.",

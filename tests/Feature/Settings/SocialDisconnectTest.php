@@ -4,7 +4,7 @@ use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 
 /*
- * Covers SocialController::disconnect — the inline `$user->socials()
+ * Covers SocialController::destroy — the inline `$user->socials()
  * ->where('provider', …)->delete()` (formerly UnlinkSocialAccountAction). The
  * action was inlined as a trivial single-relation delete; this feature test
  * keeps the behaviour covered end-to-end (route + provider guard + scoped delete).

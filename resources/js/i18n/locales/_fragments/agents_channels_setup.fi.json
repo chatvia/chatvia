@@ -33,7 +33,7 @@
                     "reply_streams_live": "— vastaus tulee näkyviin reaaliajassa"
                 },
                 "telegram": {
-                    "connected_description": "Käyttäjät voivat lähettää viestejä botillesi Telegramissa ja agenttisi vastaa automaattisesti — laskutus, historia ja suojakaiteet kaikki soveltuvat.",
+                    "connected_description": "Käyttäjät voivat lähettää viestejä botillesi Telegramissa ja agenttisi vastaa automaattisesti — viestirajat, historia ja suojakaiteet kaikki soveltuvat.",
                     "steps": {
                         "connect_1": "Avaa {botfather} Telegramissa",
                         "connect_2": "Lähetä {command} ja seuraa ohjeita",

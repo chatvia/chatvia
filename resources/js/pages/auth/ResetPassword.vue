@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import { update as resetPassword } from '@/routes/password';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, LockKeyhole, Mail } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -26,7 +27,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.update'), {
+    form.post(resetPassword.url(), {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
         },

@@ -1,7 +1,7 @@
 <script setup lang="ts" generic="Bucket extends string">
 /**
  * Body of the Tone and Sentiment pages, which differ only in their buckets,
- * labels and colours: gates on plan + per-agent switch, loads the breakdown
+ * labels and colours: gates on the per-agent switch, loads the breakdown
  * once the feature is on, and shows summary cards above the trend chart.
  * The page owns the layout (title, header icon) and passes `load`, which
  * calls its own endpoint and normalises the response.
@@ -22,7 +22,7 @@ const props = defineProps<{
     agent: Domain.Agent.Data.Resources.Account.AgentResourceData;
     enabled: boolean;
     chatlogEnabled: boolean;
-    /** Plan capability and per-agent settings flag; both use the same name. */
+    /** The per-agent settings flag. */
     feature: Extract<AnalyticsFeature, 'tone' | 'sentiment'>;
     load: () => Promise<DimensionBreakdown<Bucket>>;
     copy: DimensionCopy;
@@ -50,7 +50,7 @@ const fetchData = async () => {
     }
 };
 
-const { hasAccess, isEnabled, enabling, isActive, enable } = useAnalyticsFeature({
+const { isEnabled, enabling, isActive, enable } = useAnalyticsFeature({
     agentId: () => props.agent.external_id,
     feature: props.feature,
     enabled: props.enabled,
@@ -81,11 +81,9 @@ onMounted(() => {
 
 <template>
     <AnalyticsFeatureGate
-        :has-access="hasAccess"
         :enabled="isEnabled"
         :chatlog-enabled="chatlogEnabled"
         :enabling="enabling"
-        :locked-description="copy.lockedDescription"
         :disabled-title="copy.disabledTitle"
         :disabled-description="copy.disabledDescription"
         :blocked-reason="copy.blockedReason"

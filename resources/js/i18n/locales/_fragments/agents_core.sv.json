@@ -161,7 +161,6 @@
                 "select_topic": "Välj ämne",
                 "select_sentiment": "Välj känsloläge",
                 "select_tone": "Välj ton",
-                "upgrade_to_unlock": "Uppgradera för att låsa upp",
                 "clear_all": "Rensa alla",
                 "close": "Tillämpa filter"
             },
@@ -201,13 +200,11 @@
                 "page_url": "Sidans URL",
                 "referrer": "Referens",
                 "locale": "Språkinställning",
-                "upgrade_to_unlock": "Uppgradera för att låsa upp",
                 "waiting": "Väntar på analys…"
             },
             "pulse": {
                 "title": "Konversationspuls",
                 "select_conversation": "Välj en konversation för att visa puls",
-                "locked_description": "Uppgradera din plan för att låsa upp konversationspulsanalys.",
                 "refresh": "Uppdatera",
                 "no_messages_title": "Inte tillräckligt med meddelanden ännu",
                 "no_messages_hint": "Puls behöver minst ett användarmeddelande för att analysera känsloläge och ton över tid.",
@@ -242,7 +239,6 @@
                 "waiting": "Väntar…"
             },
             "handoff": {
-                "locked_description": "Uppgradera din plan för att ta över live-konversationer från chattloggen.",
                 "visitor": "Besökare",
                 "online": "Online",
                 "offline": "Offline",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Ton",
             "description": "Spåra hur besökare känner sig baserat på den känslomässiga tonen i deras meddelanden.",
-            "locked_description": "Uppgradera din plan för att låsa upp tonanalys.",
             "disabled_title": "Tonanalys är avstängd",
             "disabled_description": "Aktivera tonanalys för att se hur besökare känner sig i konversationer.",
             "blocked_reason": "Slå på chattloggning först — tonanalys kräver lagrade meddelanden.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Känsloläge",
             "description": "Spåra positivt, neutralt och negativt känsloläge i besökarnas meddelanden.",
-            "locked_description": "Uppgradera din plan för att låsa upp känslolägesanalys.",
             "disabled_title": "Känslolägesanalys är avstängd",
             "disabled_description": "Aktivera känslolägesanalys för att se hur besökare känner sig i konversationer.",
             "blocked_reason": "Slå på chattloggning först — känslolägesanalys kräver lagrade meddelanden.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Hantera ämnen",
                 "description": "Definiera ämnen som din agent bör känna igen och klassificera i konversationer.",
-                "locked_description": "Uppgradera din plan för att hantera konversationsämnen.",
                 "search_placeholder": "Sök ämnen…",
                 "add_topic": "Lägg till ämne",
                 "empty": "Inga ämnen ännu. Lägg till ett för att hjälpa din agent klassificera konversationer.",

@@ -18,7 +18,6 @@ class AgentsGenerateRandomSubDomainController
         $name = $usage->track(
             $request->user()->workspace()->id,
             fn (): string => $generator->generate(),
-            'subdomain',
         );
 
         return response()->json(['name' => $name]);

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { store as storeText, update as updateText } from '@/routes/agents/sources/text';
 import { useForm } from '@inertiajs/vue3';
 import { Edit3, LoaderCircle, Save } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -63,9 +64,9 @@ function save(): void {
     };
 
     if (props.entryId !== null) {
-        form.patch(route('agents.sources.text.update', { agent: props.agentId, id: props.entryId }), callbacks);
+        form.patch(updateText.url({ agent: props.agentId, id: props.entryId }), callbacks);
     } else {
-        form.post(route('agents.sources.text.store', { agent: props.agentId }), callbacks);
+        form.post(storeText.url(props.agentId), callbacks);
     }
 }
 </script>

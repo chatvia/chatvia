@@ -43,7 +43,6 @@ final readonly class AgentTextTranslator
                 array_map(static fn (TranslatableText $text): string => (string) $text->base, $texts),
                 $languages,
             ),
-            'translate',
         );
 
         foreach ($texts as $key => $text) {

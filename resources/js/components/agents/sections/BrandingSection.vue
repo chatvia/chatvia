@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * The Branding section's fields: theme color, avatar, logo, privacy-policy
- * link and (when the plan allows) the "Powered by" badge switch. Purely
+ * link and the "Powered by" badge switch. Purely
  * presentational; the Setup page owns the forms and saves.
  */
 import ColorThemePicker from '@/components/agents/ColorThemePicker.vue';
@@ -24,9 +24,6 @@ withDefaults(
         colorShade: number;
         avatarPreview?: string | null;
         logoPreview?: string | null;
-        // Whether the workspace may hide the "Powered by" badge. When
-        // false the show/hide toggle is omitted and the badge always shows.
-        canHideBranding?: boolean;
         showBranding?: boolean;
         // Optional link to the workspace's own privacy policy. Surfaces a "By
         // chatting, you agree to our privacy policy" consent notice in the chat
@@ -40,7 +37,6 @@ withDefaults(
     {
         avatarPreview: null,
         logoPreview: null,
-        canHideBranding: false,
         showBranding: false,
         privacyPolicyUrl: '',
         privacyError: undefined,
@@ -142,10 +138,9 @@ defineEmits<{
             <p v-if="privacyError" class="text-destructive text-sm">{{ privacyError }}</p>
         </div>
 
-        <!-- Show/hide the "Powered by" badge — only for workspaces whose
-             plan/add-on allows it. Otherwise the badge always shows. Not shown
-             at all when the install turns the badge off (brand.powered_by). -->
-        <template v-if="canHideBranding && brand.powered_by.enabled">
+        <!-- Show/hide the "Powered by" badge. Not shown at all when the
+             install turns the badge off (brand.powered_by). -->
+        <template v-if="brand.powered_by.enabled">
             <Separator />
 
             <div class="flex items-center justify-between gap-3">

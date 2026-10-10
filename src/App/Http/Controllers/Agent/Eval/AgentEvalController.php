@@ -4,14 +4,12 @@ namespace App\Http\Controllers\Agent\Eval;
 
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Enums\Capability;
 use Domain\Evaluation\Actions\ListKnowledgeQuestionCandidatesAction;
 use Domain\Evaluation\Data\Resources\EvalCaseResourceData;
 use Domain\Evaluation\Data\Resources\EvalRunResourceData;
 use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -24,22 +22,9 @@ use Inertia\Response;
 class AgentEvalController
 {
     public function __invoke(
-        Request $request,
         Agent $agent,
         ListKnowledgeQuestionCandidatesAction $knowledgeQuestions,
     ): Response {
-        // Eval suites are a Standard-tier capability. Below it the page still
-        // renders so the Vue LockedFeature card can show the upgrade prompt, but
-        // we skip the queries and ship no eval data.
-        if (! $request->user()->hasCapability(Capability::Evals)) {
-            return Inertia::render('agents/Evals/index', [
-                'agent' => AgentResourceData::fromModel($agent),
-                'cases' => [],
-                'runs' => [],
-                'scorerTypes' => array_column(ScorerType::cases(), 'value'),
-            ]);
-        }
-
         $cases = EvalCase::query()->forAgent($agent->id)->orderByDesc('id')->get();
         $runs = EvalRun::query()->forAgent($agent->id)->with('triggeredByUser')->orderByDesc('id')->limit(20)->get();
 

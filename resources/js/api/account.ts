@@ -5,6 +5,9 @@
  */
 import { isAxiosError } from 'axios';
 
+import { logout as logoutRoute } from '@/routes';
+import { store as confirmPasswordRoute } from '@/routes/password/confirm';
+import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
 import { get, post } from './http';
 
 /** The QR code for a pending authenticator-app setup. */
@@ -30,7 +33,7 @@ const twoFactorReadConfig = {
 
 /** Re-confirm the current password; rejects with a 422 when it is wrong. */
 export function confirmPassword(password: string): Promise<void> {
-    return post(route('password.confirm.store'), { password });
+    return post(confirmPasswordRoute.url(), { password });
 }
 
 /**
@@ -48,22 +51,22 @@ export function passwordConfirmationError(error: unknown, fallback: string): str
 
 /** End the current session. */
 export function logout(): Promise<void> {
-    return post(route('logout'));
+    return post(logoutRoute.url());
 }
 
 /** The QR code SVG for the pending authenticator setup. Fields are missing when the request failed. */
 export function getTwoFactorQrCode(): Promise<TwoFactorQrCode> {
-    return get<TwoFactorQrCode>(route('two-factor.qr-code'), twoFactorReadConfig);
+    return get<TwoFactorQrCode>(qrCode.url(), twoFactorReadConfig);
 }
 
 /** The authenticator secret key. The field is missing when the request failed. */
 export function getTwoFactorSecretKey(): Promise<TwoFactorSecretKey> {
-    return get<TwoFactorSecretKey>(route('two-factor.secret-key'), twoFactorReadConfig);
+    return get<TwoFactorSecretKey>(secretKey.url(), twoFactorReadConfig);
 }
 
 /** The unused recovery codes; empty when there are none or the request failed. */
 export async function getTwoFactorRecoveryCodes(): Promise<string[]> {
-    const codes = await get<unknown>(route('two-factor.recovery-codes'), twoFactorReadConfig);
+    const codes = await get<unknown>(recoveryCodes.url(), twoFactorReadConfig);
 
     return Array.isArray(codes) ? codes : [];
 }

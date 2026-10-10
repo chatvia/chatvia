@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Webhooks\InstagramWebhookController;
+use App\Http\Controllers\Webhooks\VerifyInstagramWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -16,9 +17,9 @@ use Illuminate\Support\Facades\Route;
  * events from a small pool of IPs, so the limit only stops a flood from one
  * non-provider address and must never slow real traffic.
  */
-Route::get('instagram/webhook', [InstagramWebhookController::class, 'verify'])
+Route::get('instagram/webhook', VerifyInstagramWebhookController::class)
     ->middleware('throttle:60,1,instagram-webhook-verify')
     ->name('instagram.webhook.verify');
-Route::post('instagram/webhook', [InstagramWebhookController::class, 'receive'])
+Route::post('instagram/webhook', InstagramWebhookController::class)
     ->middleware('throttle:1200,1,instagram-webhook')
     ->name('instagram.webhook');

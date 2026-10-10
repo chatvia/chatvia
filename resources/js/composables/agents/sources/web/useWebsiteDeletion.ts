@@ -10,11 +10,10 @@ import { failureReason } from '@/lib/failureReason';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
-import type { WebLinkQuota } from './useWebLinkQuota';
 import type { WebSource, WebSourcesState } from './useWebSources';
 import type { WebsiteTraining } from './useWebsiteTraining';
 
-export function useWebsiteDeletion(agentId: string, sources: WebSourcesState, training: WebsiteTraining, quota: WebLinkQuota) {
+export function useWebsiteDeletion(agentId: string, sources: WebSourcesState, training: WebsiteTraining) {
     const { t } = useI18n();
     const { hasPermission } = useTeamPermissions();
 
@@ -57,7 +56,6 @@ export function useWebsiteDeletion(agentId: string, sources: WebSourcesState, tr
             target.value = null;
 
             await sources.fetchWebSources();
-            await quota.refreshUsage();
         } catch (error) {
             toast.error(t('agents.sources.web.unlink_failed', { error: failureReason(error) }));
         } finally {
@@ -76,7 +74,6 @@ export function useWebsiteDeletion(agentId: string, sources: WebSourcesState, tr
             await deleteWebsite(agentId, website.id);
             sources.removeSource(website.id);
             training.deselect(website.id);
-            await quota.refreshUsage();
             toast.success(t('agents.sources.web.deleted'));
         } catch (error) {
             toast.error(errorMessage(error, t('agents.sources.web.delete_failed')));

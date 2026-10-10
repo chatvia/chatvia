@@ -1,0 +1,138 @@
+# Chatvia: the whole stack in Docker. Web app, queue workers, scheduler,
+# WebSocket server, PostgreSQL (with the search extensions) and Redis.
+#
+#   docker compose up -d          start (the first start sets everything up)
+#   docker compose logs migrate   the first admin's password, on the first start
+#   docker compose ps             show the services and their health
+#   docker compose pull && docker compose up -d     upgrade
+#   docker compose down           stop (data is kept)
+#
+# Then open http://localhost:8000.
+#
+# Settings go in a .env file next to this file (see .env.example). Values like
+# the database name and password, and the first admin, are only read on the
+# first start. Everything else applies on the next `docker compose up -d`.
+#
+# This file is for running Chatvia. To work on the code, use the
+# docker-compose.yml in the project root (database, Redis and Mailpit only).
+
+name: chatvia-stack
+
+x-app: &app
+  image: ${CHATVIA_IMAGE:-ghcr.io/ahmadmayahi/chatvia}:${CHATVIA_VERSION:-latest}
+  restart: unless-stopped
+  # Any app setting from the project's .env.example can go in this .env file.
+  env_file:
+    - path: .env
+      required: false
+  volumes:
+    - storage:/var/www/chatvia/storage
+    - secrets:/var/lib/chatvia:ro
+
+x-depends-on-migrate: &depends-on-migrate
+  migrate:
+    condition: service_completed_successfully
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+
+services:
+  # One-shot: creates APP_KEY, the database password and the other secrets
+  # of this install, once.
+  setup:
+    <<: *app
+    command: ["chatvia-setup"]
+    restart: "no"
+    volumes:
+      - secrets:/var/lib/chatvia
+
+  postgres:
+    # PostgreSQL 18 with pgvector, VectorChord, VectorChord-bm25 and
+    # pg_tokenizer. The image's default command loads the extensions.
+    image: tensorchord/vchord-suite:pg18-20260501
+    restart: unless-stopped
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-chatvia}
+      POSTGRES_USER: ${DB_USERNAME:-chatvia}
+      POSTGRES_PASSWORD_FILE: /var/lib/chatvia/db-password
+      TZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - secrets:/var/lib/chatvia:ro
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot, on every start: migrations, the AI model list, the first admin
+  # and the built-in tools.
+  migrate:
+    <<: *app
+    command: ["chatvia-migrate"]
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Web app: nginx + PHP-FPM. Also forwards browser WebSocket connections
+  # (/app/) to Reverb, so only this one port needs to be published.
+  app:
+    <<: *app
+    ports:
+      - "${APP_PORT:-8000}:8080"
+    depends_on: *depends-on-migrate
+
+  horizon:
+    <<: *app
+    command: ["php", "artisan", "horizon"]
+    stop_signal: SIGTERM
+    stop_grace_period: 60s
+    depends_on: *depends-on-migrate
+    healthcheck:
+      test: ["CMD", "healthcheck-horizon"]
+      start_period: 30s
+
+  scheduler:
+    <<: *app
+    command: ["php", "artisan", "schedule:work"]
+    stop_signal: SIGTERM
+    depends_on: *depends-on-migrate
+    healthcheck:
+      test: ["CMD", "healthcheck-schedule"]
+      start_period: 30s
+
+  reverb:
+    <<: *app
+    command: ["php", "artisan", "reverb:start"]
+    stop_signal: SIGTERM
+    depends_on: *depends-on-migrate
+    healthcheck:
+      test: ["CMD", "healthcheck-reverb"]
+      start_period: 30s
+
+volumes:
+  storage:
+  secrets:
+  pgdata:
+  redisdata:

@@ -9,7 +9,6 @@ import { useEcho } from '@laravel/echo-vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
 import type { DiscoveredLinks } from './useDiscoveredLinks';
-import type { WebLinkQuota } from './useWebLinkQuota';
 import type { WebsiteLinksDialog } from './useWebsiteLinksDialog';
 import type { WebsiteTraining } from './useWebsiteTraining';
 import type { WebSourcesState } from './useWebSources';
@@ -34,10 +33,9 @@ interface WebPageState {
     links: DiscoveredLinks;
     training: WebsiteTraining;
     linksDialog: WebsiteLinksDialog;
-    quota: WebLinkQuota;
 }
 
-export function useWebsiteLiveUpdates(agentId: string, { sources, links, training, linksDialog, quota }: WebPageState) {
+export function useWebsiteLiveUpdates(agentId: string, { sources, links, training, linksDialog }: WebPageState) {
     const { t } = useI18n();
 
     /** The website a broadcast is about; falls back to the first one still in progress when the id is missing. */
@@ -76,7 +74,6 @@ export function useWebsiteLiveUpdates(agentId: string, { sources, links, trainin
                 if (websiteId) {
                     void links.loadAfterCrawl(websiteId);
                 }
-                await quota.refreshUsage();
                 break;
 
             case 'ingesting':
@@ -92,7 +89,6 @@ export function useWebsiteLiveUpdates(agentId: string, { sources, links, trainin
                     training.deselect(websiteId);
                     links.forget(websiteId);
                 }
-                await quota.refreshUsage();
                 break;
 
             case 'failed':

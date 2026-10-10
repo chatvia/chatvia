@@ -29,7 +29,7 @@ it('returns grouped suggestions with examples from a single batched query', func
     config(['chatvia.analytics.analysis.max_examples' => 2]);
 
     // Pro plan grants the `topics` capability the route is gated behind.
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $owner = $agent->user;
 
     // "refunds" appears in 3 conversations (above threshold, examples capped
@@ -69,7 +69,7 @@ it('returns grouped suggestions with examples from a single batched query', func
 it('does not leak another agent\'s suggestions or examples', function (): void {
     config(['chatvia.analytics.analysis.min_occurrences' => 1]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $owner = $agent->user;
 
     $other = User::factory()->create();

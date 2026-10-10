@@ -1,16 +1,12 @@
 <script lang="ts" setup>
 /**
  * Details tab of the chat log: the selected conversation's channel, activity,
- * retention date, topic/sentiment/tone (or an upgrade prompt) and the
+ * retention date, topic/sentiment/tone and the
  * visitor's location, device and page.
  */
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useDateFormat } from '@/composables/useDateFormat';
-import { Link } from '@inertiajs/vue3';
-import { CalendarClock, MessageSquare, Zap } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { CalendarClock, MessageSquare } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 import { getSourceIcon } from './sourceMeta';
 import { useChatLog } from './useChatLog';
@@ -30,11 +26,6 @@ const {
     getToneEmoji,
     getToneBadgeColor,
 } = useChatLog();
-
-const { hasCapability } = useCapabilityGuard();
-const hasSentimentAccess = computed(() => hasCapability('sentiment'));
-const hasToneAccess = computed(() => hasCapability('tone'));
-const hasTopicsAccess = computed(() => hasCapability('topics'));
 
 // Explicit calendar date for the detail panel, in the user's chosen format
 // (Settings → Date & time). The sidebar shows the relative form ("in 5
@@ -96,10 +87,9 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                         <td class="px-4 py-3">{{ formatTimeAgo(currentConversationData.last_at) }}</td>
                     </tr>
 
-                    <!-- Expires — driven by the workspace's plan retention
-                         (Starter 90 / Standard 180 / Pro 366). The daily
-                         prune command wipes the conversation, its messages,
-                         and any attachments on this date. -->
+                    <!-- Expires — driven by the workspace's retention setting.
+                         The daily prune command wipes the conversation, its
+                         messages, and any attachments on this date. -->
                     <tr v-if="currentConversationData.expires_at">
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.expires') }}</td>
                         <td class="px-4 py-3">
@@ -115,15 +105,7 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                     <tr>
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.topic') }}</td>
                         <td class="px-4 py-3">
-                            <template v-if="!hasTopicsAccess">
-                                <Button as-child size="sm" class="h-7 gap-1 text-xs">
-                                    <Link :href="route('billing.packages')">
-                                        <Zap class="h-3 w-3" />
-                                        {{ t('agents.chatlog.details.upgrade_to_unlock') }}
-                                    </Link>
-                                </Button>
-                            </template>
-                            <template v-else-if="currentConversationData.topics?.length">
+                            <template v-if="currentConversationData.topics?.length">
                                 {{ currentConversationData.topics.join(', ') }}
                             </template>
                             <span v-else class="text-muted-foreground text-sm italic">{{ t('agents.chatlog.details.waiting') }}</span>
@@ -134,15 +116,7 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                     <tr>
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.sentiment') }}</td>
                         <td class="px-4 py-3">
-                            <template v-if="!hasSentimentAccess">
-                                <Button as-child size="sm" class="h-7 gap-1 text-xs">
-                                    <Link :href="route('billing.packages')">
-                                        <Zap class="h-3 w-3" />
-                                        {{ t('agents.chatlog.details.upgrade_to_unlock') }}
-                                    </Link>
-                                </Button>
-                            </template>
-                            <template v-else-if="currentConversationData.sentiment">
+                            <template v-if="currentConversationData.sentiment">
                                 <Badge :class="getSentimentBadgeColor(currentConversationData.sentiment)">
                                     {{ getSentimentDisplayName(currentConversationData.sentiment) }}
                                 </Badge>
@@ -155,15 +129,7 @@ function formatExpiresRelative(iso: string | null | undefined): string {
                     <tr>
                         <td class="text-muted-foreground px-4 py-3 font-medium">{{ t('agents.chatlog.details.tone') }}</td>
                         <td class="px-4 py-3">
-                            <template v-if="!hasToneAccess">
-                                <Button as-child size="sm" class="h-7 gap-1 text-xs">
-                                    <Link :href="route('billing.packages')">
-                                        <Zap class="h-3 w-3" />
-                                        {{ t('agents.chatlog.details.upgrade_to_unlock') }}
-                                    </Link>
-                                </Button>
-                            </template>
-                            <template v-else-if="currentConversationData.tone">
+                            <template v-if="currentConversationData.tone">
                                 <Badge :class="getToneBadgeColor(currentConversationData.tone)">
                                     {{ getToneEmoji(currentConversationData.tone) }}
                                     {{ getToneDisplayName(currentConversationData.tone) }}

@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserQuota;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
@@ -14,8 +14,6 @@ use Domain\Membership\Team\Services\TeamService;
 it('turns a domain rejection into a field error on a web form', function (): void {
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
-    $owner->billing()->firstOrCreate([]);
-    UserQuota::firstOrCreate(['user_id' => $owner->id], planFixedLimits());
 
     $team = $owner->primaryTeam();
     $this->actingAs($owner)->post(route('teams.create-role', $team), ['name' => 'Support', 'all_agents' => true]);
@@ -28,7 +26,7 @@ it('turns a domain rejection into a field error on a web form', function (): voi
 });
 
 it('turns a domain rejection into a 422 with the same message for JSON callers', function (): void {
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     $topic = Topic::create(['user_id' => $agent->user_id, 'topic' => 'Billing', 'description' => 'x']);
     $agent->topics()->attach($topic->id);
 
@@ -42,8 +40,6 @@ it('turns a domain rejection into a 422 with the same message for JSON callers',
 it('refuses to delete a role a member still holds with a field error', function (): void {
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
-    $owner->billing()->firstOrCreate([]);
-    UserQuota::firstOrCreate(['user_id' => $owner->id], planFixedLimits());
 
     $team = $owner->primaryTeam();
     $this->actingAs($owner)->post(route('teams.create-role', $team), ['name' => 'Support', 'all_agents' => true]);

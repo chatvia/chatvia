@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AccountLayout from '@/layouts/account/Layout.vue';
+import { connect as connectSocial, disconnect as disconnectSocial } from '@/routes/account/social';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { CheckCircle2, Link2, Link2Off, Share2 } from 'lucide-vue-next';
@@ -47,7 +48,7 @@ const accountToDisconnect = ref<SocialAccount | null>(null);
 const dialogOpen = ref(false);
 
 const connect = (account: SocialAccount) => {
-    window.location.href = route('account.social.connect', { provider: account.provider });
+    window.location.href = connectSocial.url(account.provider);
 };
 
 const disconnect = (account: SocialAccount) => {
@@ -59,7 +60,7 @@ const confirmDisconnect = () => {
     const target = accountToDisconnect.value;
     dialogOpen.value = false;
     if (!target) return;
-    router.delete(route('account.social.disconnect', { provider: target.provider }), {
+    router.delete(disconnectSocial.url(target.provider), {
         preserveScroll: true,
     });
 };

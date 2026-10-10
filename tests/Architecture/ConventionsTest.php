@@ -183,9 +183,8 @@ it('Jobs hold no business logic (no DB transactions or row locks)', function ():
     // ARCHITECTURE.md: "Jobs hold no logic. A job receives a DTO (or models)
     // in its constructor and calls an Action in handle()." A DB::transaction /
     // lockForUpdate inside a Job is the tell-tale of business logic that
-    // belongs in an Action (the UpdateUserCreditsJob →
-    // ConsumeMessageCreditsAction extraction). Guarding it here stops the
-    // pattern from being copied into the next job.
+    // belongs in an Action. Guarding it here stops the pattern from being
+    // copied into the next job.
     expect(conventionOffenders(
         conventionFilesInSegment('Jobs'),
         '/DB::transaction\(|DB::beginTransaction\(|->lockForUpdate\(/',
@@ -248,6 +247,39 @@ it('controllers use FormRequest + toData() instead of inline $request->validate(
         '',
         'Files in INLINE_VALIDATE_ALLOWLIST no longer call $request->validate() — remove:',
         ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
+/**
+ * Controllers are resource controllers or single-action controllers: their
+ * public methods are the seven resource verbs or `__invoke`. Any other action
+ * (export, connect, rewrite, …) gets its own invokable controller, so a
+ * controller never grows into a grab bag of unrelated endpoints.
+ */
+const CONTROLLER_PUBLIC_METHODS = ['index', 'create', 'store', 'show', 'edit', 'update', 'destroy', '__invoke', '__construct'];
+
+it('controllers expose only resource methods or __invoke', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
+
+    foreach (conventionPhpFiles('src/App/Http/Controllers') as $path) {
+        if (str_contains($path, DIRECTORY_SEPARATOR.'Concerns'.DIRECTORY_SEPARATOR)) {
+            continue;
+        }
+
+        preg_match_all('/^\s*public\s+(?:static\s+)?function\s+(\w+)\s*\(/m', (string) file_get_contents($path), $matches);
+
+        foreach (array_diff($matches[1], CONTROLLER_PUBLIC_METHODS) as $method) {
+            $offenders[] = str_replace($root, '', $path).'::'.$method.'()';
+        }
+    }
+
+    expect($offenders)->toBe([], implode("\n", [
+        '',
+        'Controller methods that are neither a resource verb nor __invoke:',
+        ...array_map(fn (string $o): string => "  - {$o}", $offenders),
+        '',
+        'Rename it to the matching resource verb, or move it into its own invokable controller.',
     ]));
 });
 

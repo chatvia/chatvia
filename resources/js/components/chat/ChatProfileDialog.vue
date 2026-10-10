@@ -23,6 +23,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { getInitials } from '@/composables/useInitials';
+import { update as updateProfile } from '@/routes/chat/profile';
+import { destroy as destroyProfilePhoto } from '@/routes/chat/profile/photo';
 import type { SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { Loader2, Mail, Trash2, Upload, User } from 'lucide-vue-next';
@@ -72,7 +74,7 @@ function onAvatarSelected(event: Event) {
     if (!file) return;
 
     photoForm.photo = file;
-    photoForm.patch(route('chat.profile.update'), {
+    photoForm.patch(updateProfile.url(), {
         forceFormData: true,
         preserveState: true,
         preserveScroll: true,
@@ -84,7 +86,7 @@ function onAvatarSelected(event: Event) {
 }
 
 function confirmRemoveAvatar() {
-    router.delete(route('chat.profile.photo.destroy'), {
+    router.delete(destroyProfilePhoto.url(), {
         preserveState: true,
         preserveScroll: true,
         onStart: () => {
@@ -98,7 +100,7 @@ function confirmRemoveAvatar() {
 }
 
 function saveProfile() {
-    profileForm.patch(route('chat.profile.update'), {
+    profileForm.patch(updateProfile.url(), {
         preserveState: true,
         preserveScroll: true,
         onSuccess: () => {

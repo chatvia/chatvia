@@ -4,6 +4,7 @@
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { store } from '@/routes/account/data-export';
 import type { SharedData } from '@/types';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
@@ -32,7 +33,7 @@ const props = defineProps<Props>();
 const form = useForm({});
 
 const submit = () => {
-    form.post(route('account.data-export.store'), {
+    form.post(store.url(), {
         preserveScroll: true,
     });
 };

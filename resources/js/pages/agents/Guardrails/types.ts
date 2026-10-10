@@ -41,7 +41,7 @@ export interface GuardrailTrigger {
     conversation_external_id: string | null;
 }
 
-/** Laravel length-aware paginator of trigger rows (only `data` is sent when the plan lacks guardrails). */
+/** Laravel length-aware paginator of trigger rows. */
 export interface GuardrailTriggerPage {
     data: GuardrailTrigger[];
     current_page: number;

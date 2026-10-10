@@ -4,7 +4,6 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -25,22 +24,9 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
 
-    $priceId = 'price_test_pro_'.Str::random(6);
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
-
-    // Registration is trial-checkout-only now (the Stripe webhook provisions
-    // billing), so factory users have no UserBilling row — create it explicitly.
-    $owner->billing()->firstOrCreate([]);
-    $owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => $priceId,
-        'quantity' => 1,
-    ]);
     $owner->refresh();
 
-    $agent = Agent::create([
+    return Agent::create([
         'user_id' => $owner->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Attachment Bot',
@@ -49,10 +35,6 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => $isPublic,
     ]);
-
-    app(UserCreditSystem::class)->forWorkspace($agent->user_id)->setCanSendMessages(true);
-
-    return $agent;
 }
 
 function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $messageId = null): Attachment

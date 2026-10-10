@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\DB;
  * rows. A few slices with no rollup (channel, leads, handoff, device) read the
  * live main-DB tables, scoped to the workspace's agent ids.
  *
- * Counts that must respect a window's exact start (a billing cycle can start
- * mid-hour) read the granular event log or per-conversation metrics, not the
- * hour-bucketed rollup, whose first partial hour would fall before the start.
+ * Counts that must respect a window's exact start read the granular event log
+ * or per-conversation metrics, not the hour-bucketed rollup, which cannot
+ * split an hour.
  */
 abstract class AccountAnalyticsQuery
 {

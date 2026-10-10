@@ -8,14 +8,7 @@
 export type StreamEventType = 'start' | 'delta' | 'meta' | 'sources' | 'tool' | 'replace' | 'error' | 'done';
 
 export type StreamErrorCode =
-    | 'subscription_expired'
-    | 'message_limit_reached'
-    | 'token_limit_reached'
-    | 'upstream_unavailable'
-    | 'rate_limited'
-    | 'internal'
-    | 'network'
-    | 'parse';
+    'message_limit_reached' | 'chatter_message_limit_reached' | 'upstream_unavailable' | 'rate_limited' | 'internal' | 'network' | 'parse';
 
 export interface StreamStartData {
     assistant_message_id: string;

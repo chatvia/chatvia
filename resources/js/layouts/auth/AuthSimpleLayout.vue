@@ -2,6 +2,7 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { Toaster } from '@/components/ui/sonner';
+import { home } from '@/routes';
 
 defineProps<{
     title?: string;
@@ -17,7 +18,7 @@ defineProps<{
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-4">
-                    <a :href="route('home')" class="flex flex-col items-center gap-2 font-medium">
+                    <a :href="home.url()" class="flex flex-col items-center gap-2 font-medium">
                         <div class="mb-1 flex items-center justify-center rounded-md">
                             <AppLogoIcon class="size-10" />
                         </div>

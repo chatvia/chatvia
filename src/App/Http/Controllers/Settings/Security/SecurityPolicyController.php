@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings\Security;
 
 use App\Http\Requests\Settings\Security\UpdateSecurityPolicyRequest;
+use Domain\Conversation\Services\ConversationRetention;
 use Domain\Security\Actions\UpdateSecurityPolicyAction;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Data\WorkspaceSecurityPolicyData;
@@ -13,25 +14,21 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Laravel\Pennant\Feature;
 use Support\Localization\Country\Models\Country;
 
 /**
  * Workspace Security & Compliance settings: the network access control (IP
- * allowlist and country rules). Viewing requires the `account.security` team
- * permission; non-Enterprise workspaces see an upsell teaser (the `entitled`
- * flag). Saving additionally requires the `security` entitlement, enforced by
- * the `features:security` middleware on the update route.
+ * allowlist and country rules), retention and the SIEM webhook. Viewing and
+ * saving require the `account.security` team permission.
  */
 class SecurityPolicyController
 {
     public function edit(Request $request): Response
     {
         $workspace = $request->user()->workspace();
-        $entitled = Feature::for($request->user())->active('security');
 
-        // Read without firstOrCreate so merely viewing (incl. the teaser) never
-        // writes a policy row; fall back to defaults when none exists yet.
+        // Read without firstOrCreate so merely viewing never writes a policy
+        // row; fall back to defaults when none exists yet.
         $policy = WorkspaceSecurityPolicy::query()
             ->where('workspace_id', $workspace->id)
             ->first();
@@ -40,26 +37,23 @@ class SecurityPolicyController
         // before they ever hit Save — that a geo rule would lock them out. Prefers
         // Cloudflare's CF-IPCountry (the real visitor, not CF's edge IP); null when
         // unresolved ⇒ no warning, mirroring the gate's geo fail-open.
-        $currentCountry = $entitled ? $request->country() : null;
+        $currentCountry = $request->country();
 
         return Inertia::render('workspace/security/Security', [
-            'entitled' => $entitled,
-            // SIEM is its own capability (Pro+); the card shows only with it.
-            'siem' => (bool) $workspace->capabilities->siemWebhook,
             'policy' => $policy ? WorkspaceSecurityPolicyData::fromModel($policy) : new WorkspaceSecurityPolicyData,
-            // Country picker options for the geo rules — only needed when the form
-            // (not the teaser) renders. Codes are the lowercase ISO-3166 alpha-2
-            // values the geo gate stores and matches against.
-            'countries' => $entitled ? Country::options() : [],
+            // Country picker options for the geo rules. Codes are the lowercase
+            // ISO-3166 alpha-2 values the geo gate stores and matches against.
+            'countries' => Country::options(),
             'current_country' => $currentCountry,
-            // Retention bounds for the form: conversations cap at the plan ceiling
-            // (shorten only); audit sits between the mandated floor and default.
-            'limits' => $entitled ? [
-                'conversations_max' => (int) $workspace->capabilities->retentionDays,
+            // Retention bounds for the form: conversations cap at the install's
+            // retention (shorten only); audit sits between the mandated floor
+            // and default.
+            'limits' => [
+                'conversations_max' => ConversationRetention::days(),
                 'conversations_floor' => (int) config('chatvia.retention.conversations_floor_days', 1),
                 'audit_default' => (int) config('chatvia.security_audit.retention_days', 365),
                 'audit_floor' => (int) config('chatvia.security_audit.retention_floor_days', 30),
-            ] : null,
+            ],
         ]);
     }
 

@@ -2,10 +2,8 @@
 /**
  * One crawled website waiting for training. It has a checkbox to pick it for
  * training and a delete button. When pages were found it also shows their
- * count and expands to the discovered-links panel; a badge warns when picking
- * it would go over the link quota.
+ * count and expands to the discovered-links panel.
  */
-import type { UsageStats } from '@/api/usage';
 import DiscoveredLinksPanel from '@/components/agents/sources/web/DiscoveredLinksPanel.vue';
 import WebsiteInfo from '@/components/agents/sources/web/WebsiteInfo.vue';
 import WebsiteStatusIcon from '@/components/agents/sources/web/WebsiteStatusIcon.vue';
@@ -19,7 +17,7 @@ import type { DiscoveredLinks } from '@/composables/agents/sources/web/useDiscov
 import type { WebSource } from '@/composables/agents/sources/web/useWebSources';
 import type { WebsiteTraining } from '@/composables/agents/sources/web/useWebsiteTraining';
 import { useWebsiteStatusLabel } from '@/composables/agents/sources/web/useWebsiteStatusLabel';
-import { AlertCircle, ChevronDown, ChevronUp, Trash2 } from 'lucide-vue-next';
+import { ChevronDown, ChevronUp, Trash2 } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -27,7 +25,6 @@ const props = defineProps<{
     source: WebSource;
     training: WebsiteTraining;
     links: DiscoveredLinks;
-    linkUsage: UsageStats | null;
 }>();
 
 const emit = defineEmits<{
@@ -39,7 +36,6 @@ const statusLabel = useWebsiteStatusLabel();
 
 const hasLinks = computed(() => props.source.urls_count > 0);
 const isSelected = computed(() => props.training.isSelected(props.source.id));
-const exceedsQuota = computed(() => !!props.linkUsage && !isSelected.value && !props.training.canSelect(props.source.id));
 </script>
 
 <template>
@@ -64,32 +60,6 @@ const exceedsQuota = computed(() => !!props.linkUsage && !isSelected.value && !p
                             </TooltipTrigger>
                             <TooltipContent>
                                 <p>{{ statusLabel(source.status) }}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-
-                    <TooltipProvider v-if="exceedsQuota && linkUsage">
-                        <Tooltip>
-                            <TooltipTrigger as-child>
-                                <Badge variant="outline" class="border-yellow-500 text-xs text-yellow-700 dark:text-yellow-400">
-                                    <AlertCircle class="me-1 h-3 w-3" />
-                                    {{
-                                        linkUsage.remaining <= 0
-                                            ? t('agents.sources.web.badge_upgrade_required')
-                                            : t('agents.sources.web.badge_exceeds_quota')
-                                    }}
-                                </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p v-if="linkUsage.remaining <= 0">{{ t('agents.sources.web.no_links_remaining_plan') }}</p>
-                                <p v-else>
-                                    {{
-                                        t('agents.sources.web.website_exceeds_remaining', {
-                                            links: source.urls_count,
-                                            remaining: linkUsage.remaining,
-                                        })
-                                    }}
-                                </p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

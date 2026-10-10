@@ -1,0 +1,173 @@
+# syntax=docker/dockerfile:1
+
+# Chatvia application image. One image runs every part of the app; the command
+# picks the part (see docker/compose.yaml):
+#
+#   /init (default)                    web: nginx + PHP-FPM on port 8080
+#   php artisan horizon                queue workers
+#   php artisan schedule:work          scheduler
+#   php artisan reverb:start           WebSocket server on port 8080
+#   chatvia-setup                      one-shot: create the secrets of an install
+#   chatvia-migrate                    one-shot: migrate, seed, first admin
+#
+# Build:  docker build -t chatvia .
+# The release workflow (.github/workflows/docker.yml) builds it for every v* tag.
+
+ARG PHP_IMAGE=serversideup/php:8.5-fpm-nginx-trixie-v5.0.0
+ARG NODE_IMAGE=node:22-trixie-slim
+
+#-------------------------------------------------------------------------------
+# PHP packages. Plain PHP files, so this stage runs on the build machine's own
+# platform; extensions are checked in the final stage.
+#-------------------------------------------------------------------------------
+FROM --platform=$BUILDPLATFORM composer:2 AS vendor
+
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install \
+        --no-dev \
+        --no-scripts \
+        --no-autoloader \
+        --prefer-dist \
+        --no-interaction \
+        --no-progress \
+        --ignore-platform-reqs
+
+#-------------------------------------------------------------------------------
+# PHP runtime: the base image plus the extensions it does not have. Shared by
+# the routes stage and the application.
+#-------------------------------------------------------------------------------
+FROM ${PHP_IMAGE} AS php
+
+USER root
+
+RUN install-php-extensions intl gd exif
+
+#-------------------------------------------------------------------------------
+# Wayfinder route functions (resources/js/routes), generated from the Laravel
+# routes for the frontend build. It boots the app, so it needs PHP; the assets
+# stage has none. No database, Redis or Reverb exists here, so those are off.
+#-------------------------------------------------------------------------------
+FROM php AS routes
+
+WORKDIR /app
+COPY --from=vendor /app/vendor ./vendor
+COPY . .
+RUN set -eux; \
+    cp docker/app/production.env .env; \
+    mkdir -p bootstrap/cache storage/framework/cache/data storage/framework/views storage/logs; \
+    composer dump-autoload --no-dev --no-scripts --no-interaction; \
+    BROADCAST_CONNECTION=null CACHE_STORE=array APP_KEY="base64:$(head -c 32 /dev/urandom | base64)" \
+        php artisan wayfinder:generate --skip-actions
+
+#-------------------------------------------------------------------------------
+# Frontend assets. Built without any VITE_* settings: the browser then takes
+# the WebSocket address and key from the page (see resources/js/app.ts).
+#-------------------------------------------------------------------------------
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS assets
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+# --ignore-scripts skips the postinstall Chrome download; the build needs no
+# install scripts.
+RUN npm ci --ignore-scripts --no-audit --no-fund
+
+COPY . .
+# Tailwind reads the pagination views from vendor/ (resources/css/app.css).
+COPY --from=vendor /app/vendor ./vendor
+COPY --from=routes /app/resources/js/routes ./resources/js/routes
+COPY --from=routes /app/resources/js/wayfinder ./resources/js/wayfinder
+RUN WAYFINDER_GENERATE=false npm run build
+
+#-------------------------------------------------------------------------------
+# The application.
+#-------------------------------------------------------------------------------
+FROM php AS app
+
+# - postgresql-client-18: pg_dump for the scheduled backup must match the
+#   PostgreSQL 18 server, so it comes from the PostgreSQL apt repository.
+# - LibreOffice (Word, PowerPoint, Excel), poppler (PDF), pandoc (EPUB, FB2)
+#   and ffmpeg (audio, video): file sources are read with them.
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg; \
+    install -d /usr/share/keyrings; \
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+        | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg; \
+    . /etc/os-release; \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        postgresql-client-18 \
+        libreoffice-writer-nogui \
+        libreoffice-calc-nogui \
+        libreoffice-impress-nogui \
+        poppler-utils \
+        pandoc \
+        ffmpeg \
+        fonts-dejavu-core \
+        fonts-noto-core; \
+    apt-get purge -y gnupg; \
+    apt-get autoremove -y; \
+    rm -rf /var/lib/apt/lists/*
+
+# Container scripts: the entrypoint wrapper, the one-shot commands, a start-up
+# hook and nginx settings.
+COPY --chmod=755 docker/app/bin/ /usr/local/bin/
+COPY --chmod=755 docker/app/entrypoint.d/ /etc/entrypoint.d/
+COPY docker/app/nginx/ /etc/chatvia/nginx/
+COPY docker/app/nginx/security.conf /etc/nginx/server-opts.d/security.conf
+
+# The app lives in /var/www/chatvia. The base image's scripts, its artisan
+# helper and nginx follow these two settings.
+ENV APP_BASE_DIR=/var/www/chatvia \
+    NGINX_WEBROOT=/var/www/chatvia/public
+
+# The app folder, and where chatvia-setup keeps the generated secrets (a
+# volume in compose).
+RUN install -d -o www-data -g www-data -m 0755 /var/www/chatvia /var/lib/chatvia \
+    && rmdir /var/www/html \
+    && chown www-data:www-data /etc/nginx/server-opts.d/security.conf
+
+WORKDIR /var/www/chatvia
+
+COPY --chown=www-data:www-data --from=vendor /app/vendor ./vendor
+COPY --chown=www-data:www-data . .
+COPY --chown=www-data:www-data --from=assets /app/public/build ./public/build
+# Production defaults. Real environment variables always win over this file.
+COPY --chown=www-data:www-data docker/app/production.env ./.env
+
+USER www-data
+
+# composer dump-autoload runs the package scripts (package discovery and the
+# Filament assets). They boot the app, which has no Reverb keys yet (those are
+# made per install) and no Redis, so broadcasting and the cache are off for
+# this one command. check-platform-reqs fails the build when an extension is
+# missing.
+RUN set -eux; \
+    mkdir -p \
+        bootstrap/cache \
+        storage/app/private \
+        storage/app/public \
+        storage/framework/cache/data \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs; \
+    BROADCAST_CONNECTION=null CACHE_STORE=array composer dump-autoload --optimize --no-dev --no-interaction; \
+    composer check-platform-reqs --no-dev; \
+    ln -sfn /var/www/chatvia/storage/app/public public/storage; \
+    rm -rf storage/framework/views/* storage/logs/*
+
+ENV AUTORUN_ENABLED=false \
+    SHOW_WELCOME_MESSAGE=false \
+    PHP_OPCACHE_ENABLE=1 \
+    PHP_MEMORY_LIMIT=512M \
+    PHP_MAX_EXECUTION_TIME=300 \
+    PHP_FPM_PM_MAX_CHILDREN=32 \
+    NGINX_FASTCGI_BUFFER_SIZE=32k \
+    NGINX_FASTCGI_BUFFERS="16 32k" \
+    CHATVIA_REVERB_UPSTREAM=reverb:8080
+
+ENTRYPOINT ["chatvia-entrypoint"]
+CMD ["/init"]

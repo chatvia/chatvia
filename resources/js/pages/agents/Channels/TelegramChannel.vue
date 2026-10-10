@@ -2,6 +2,7 @@
 // Telegram slide-over: connect a bot with its BotFather token; once connected,
 // show the bot and a summary of its slash commands (edited in TelegramCommandsDialog).
 import { Button } from '@/components/ui/button';
+import { connect as connectTelegram } from '@/routes/agents/channels/telegram';
 import { useForm } from '@inertiajs/vue3';
 import { Command, KeyRound, LoaderCircle, Plug } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -25,7 +26,7 @@ const { t } = useI18n();
 const form = useForm({ bot_token: '' });
 
 const connect = () => {
-    form.post(route('agents.channels.telegram.connect', props.agent.external_id), {
+    form.post(connectTelegram.url(props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {

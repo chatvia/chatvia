@@ -1,0 +1,49 @@
+#!/bin/sh
+# One-shot: creates the secrets of a new install in /var/lib/chatvia (a
+# volume). Runs before the database starts, because PostgreSQL takes its
+# password from here on its first start.
+#
+# It only writes once. Later runs keep the existing secrets: a new APP_KEY
+# would make every encrypted value (admin panel API keys, sessions)
+# unreadable, and PostgreSQL only reads its password on its first start.
+#
+# A value you set yourself (for example DB_PASSWORD in .env before the first
+# start) is used instead of a random one.
+set -eu
+
+dir=/var/lib/chatvia
+secrets_file="$dir/secrets.env"
+db_password_file="$dir/db-password"
+
+if [ -s "$secrets_file" ]; then
+    echo "Secrets already exist. Nothing to do."
+    exit 0
+fi
+
+random_hex() {
+    php -r 'echo bin2hex(random_bytes((int) $argv[1]));' "$1"
+}
+
+app_key="${APP_KEY:-base64:$(php -r 'echo base64_encode(random_bytes(32));')}"
+db_password="${DB_PASSWORD:-$(random_hex 24)}"
+
+umask 077
+tmp_file="$secrets_file.tmp"
+cat > "$tmp_file" <<EOF
+# Created by chatvia-setup on $(date -u +%Y-%m-%dT%H:%M:%SZ). Keep a copy
+# somewhere safe: without APP_KEY, encrypted data cannot be read.
+APP_KEY=$app_key
+DB_PASSWORD=$db_password
+REVERB_APP_ID=${REVERB_APP_ID:-$(random_hex 8)}
+REVERB_APP_KEY=${REVERB_APP_KEY:-$(random_hex 16)}
+REVERB_APP_SECRET=${REVERB_APP_SECRET:-$(random_hex 32)}
+BUILTIN_MCP_SECRET=${BUILTIN_MCP_SECRET:-$(random_hex 32)}
+EOF
+
+# PostgreSQL runs as another user, so its password file must be readable.
+printf '%s' "$db_password" > "$db_password_file"
+chmod 0644 "$db_password_file"
+
+mv "$tmp_file" "$secrets_file"
+
+echo "Created the secrets of this install in $secrets_file."

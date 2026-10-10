@@ -13,8 +13,6 @@ use Illuminate\Support\Facades\Cache;
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
-
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update(['security_override' => true]);
 });
 
 it('caches the network rules between requests', function (): void {

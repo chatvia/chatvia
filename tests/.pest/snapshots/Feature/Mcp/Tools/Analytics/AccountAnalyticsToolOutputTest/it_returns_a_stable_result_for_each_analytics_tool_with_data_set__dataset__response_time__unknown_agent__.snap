@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "No response-time data this billing cycle yet."
+            "text": "No response-time data this month yet."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "replies_measured": 0,
         "avg_response_ms": null,

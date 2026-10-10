@@ -12,10 +12,10 @@ use Throwable;
 
 /**
  * Puts the values saved in the admin panel into config, so the code that
- * reads `config('services.google.client_id')`, `config('billing.enabled')` and
- * the like gets them with no change. The admin panel is the only source for
- * these keys: a field with nothing saved gets its default (redirect URLs, the
- * billing defaults) or null. Typed values (toggles, numbers, dates) reach
+ * reads `config('services.google.client_id')`, `config('chatvia.registration_enabled')`
+ * and the like gets them with no change. The admin panel is the only source
+ * for these keys: a field with nothing saved gets its default (redirect URLs,
+ * the workspace options) or null. Typed values (toggles, numbers, dates) reach
  * config as their PHP type.
  *
  * The rows are cached as ciphertext (any write clears the cache) and decrypted
@@ -53,10 +53,6 @@ final class SettingsStore
                 // Every field is set, also the empty ones: in a worker, a value
                 // removed in the panel must not keep its old value.
                 $this->config->set($field->config, $values[$field->name]);
-
-                foreach ($field->alsoFills as $config => $derive) {
-                    $this->config->set($config, $derive($values[$field->name]));
-                }
             }
         }
 
@@ -65,8 +61,7 @@ final class SettingsStore
 
     /**
      * The value of each field of a group: the saved value as its type, or the
-     * default. Fields are resolved in order, so a default can depend on an
-     * earlier field (sign-up is open by default only while billing is off).
+     * default.
      *
      * @param  array<string, mixed>  $payload  The group's saved values.
      * @return array<string, bool|int|string|null> By field name.
@@ -76,7 +71,7 @@ final class SettingsStore
         $values = [];
 
         foreach ($group->fields() as $field) {
-            $values[$field->name] = $field->cast($payload[$field->name] ?? null) ?? $field->defaultValue($values);
+            $values[$field->name] = $field->cast($payload[$field->name] ?? null) ?? $field->defaultValue();
         }
 
         return $values;
@@ -84,7 +79,7 @@ final class SettingsStore
 
     public function status(SettingGroup $group, ?AdminSetting $setting): SettingStatus
     {
-        // A group without required fields (billing) works on its defaults,
+        // A group without required fields (workspaces) works on its defaults,
         // but it is only "configured" once something is saved.
         if (! $setting?->hasSavedValues()) {
             return SettingStatus::Missing;
@@ -128,7 +123,7 @@ final class SettingsStore
             report($e);
 
             // The cache is unreachable. Read the table directly, so a cache
-            // outage does not switch billing and every credential off.
+            // outage does not reset every option and credential.
             try {
                 return $this->query();
             } catch (Throwable) {

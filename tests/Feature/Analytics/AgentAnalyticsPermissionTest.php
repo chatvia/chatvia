@@ -33,14 +33,6 @@ function analyticsTeammate(User $owner, array $permissions): User
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->owner->billing()->firstOrCreate([]);
-    $this->owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_active',
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test',
-        'quantity' => 1,
-    ]);
     $this->owner->refresh();
 
     $this->agent = createAgent($this->owner);

@@ -33,7 +33,7 @@
                     "reply_streams_live": "— die Antwort wird live gestreamt"
                 },
                 "telegram": {
-                    "connected_description": "Personen können Ihrem Bot auf Telegram eine Nachricht senden, und Ihr Agent antwortet automatisch – Abrechnung, Verlauf und Sicherheitsregeln gelten dabei.",
+                    "connected_description": "Personen können Ihrem Bot auf Telegram eine Nachricht senden, und Ihr Agent antwortet automatisch – Nachrichtenlimits, Verlauf und Sicherheitsregeln gelten dabei.",
                     "steps": {
                         "connect_1": "{botfather} in Telegram öffnen",
                         "connect_2": "{command} senden und den Anweisungen folgen",

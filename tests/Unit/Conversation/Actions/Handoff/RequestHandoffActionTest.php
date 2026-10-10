@@ -16,15 +16,11 @@ use Illuminate\Support\Str;
  * State machine: 'ai' → 'pending' → 'human' → 'returned' → 'ai'.
  * This action only ever pushes a conversation FROM 'ai' INTO 'pending'.
  *
- * Capability gate: the agent's team must have HANDOFF (Pro plan).
  * Per-agent toggle: `settings.widget.handoff_enabled` (default true).
  */
-function makeHandoffScenario(string $initialStatus = 'ai', bool $proPlan = true, array $widgetSettings = []): Conversation
+function makeHandoffScenario(string $initialStatus = 'ai', array $widgetSettings = []): Conversation
 {
-    // proPlanAgent() (tests/Pest.php) provisions billing + an active Pro
-    // subscription explicitly — factory users carry no billing rows anymore,
-    // so the HANDOFF capability must be seeded through the shared helper.
-    $agent = $proPlan ? proPlanAgent() : Agent::factory()->create();
+    $agent = Agent::factory()->create();
 
     foreach ($widgetSettings as $key => $value) {
         $agent->setSetting($key, $value, 'widget');
@@ -85,22 +81,9 @@ it('returns "pending" without dispatching when handoff was already requested', f
     Event::assertNotDispatched(HandedOff::class);
 });
 
-it('refuses with HandoffUnavailableException when the plan does not include HANDOFF', function (): void {
-    // No pro-plan subscription seeded → starter plan, no HANDOFF capability.
-    $conversation = makeHandoffScenario(initialStatus: 'ai', proPlan: false);
-
-    expect(fn () => app(RequestHandoffAction::class)->execute($conversation))
-        ->toThrow(HandoffUnavailableException::class, 'Handoff is not available on this plan.');
-
-    expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
-    Event::assertNotDispatched(HandedOff::class);
-});
-
 it('refuses with HandoffUnavailableException when the agent has handoff_enabled=false in widget settings', function (): void {
-    // Pro plan grants capability, but the per-agent toggle is off.
     $conversation = makeHandoffScenario(
         initialStatus: 'ai',
-        proPlan: true,
         widgetSettings: ['handoff_enabled' => false],
     );
 

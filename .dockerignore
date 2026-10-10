@@ -1,0 +1,37 @@
+# The Docker build context is an allow-list: everything is left out, then the
+# folders the image needs are added back. Local files (.env, vendor/,
+# node_modules/, database dumps, storage data) can never reach the image.
+
+*
+
+!artisan
+!composer.json
+!composer.lock
+!package.json
+!package-lock.json
+!vite.config.ts
+!tsconfig.json
+
+!bootstrap/app.php
+!bootstrap/providers.php
+!config/
+!database/
+!lang/
+!public/
+!resources/
+!routes/
+!src/
+!docker/app/
+
+# Build output and local data inside the folders above
+public/build
+public/hot
+public/storage
+public/js
+public/css
+public/fonts/filament
+database/*.sqlite*
+resources/js/actions
+resources/js/routes
+resources/js/wayfinder
+**/.DS_Store

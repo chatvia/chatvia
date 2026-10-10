@@ -3,10 +3,6 @@
 import BrandingSection from '@/components/agents/sections/BrandingSection.vue';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 
-defineProps<{
-    canHideBranding: boolean;
-}>();
-
 const { locked, branding } = useSetupContext();
 const {
     brandingForm,
@@ -31,7 +27,6 @@ const {
             v-model:privacy-policy-url="privacyForm.privacy_policy_url"
             :avatar-preview="avatarPreview"
             :logo-preview="logoPreview"
-            :can-hide-branding="canHideBranding"
             :show-branding="brandingForm.show_branding"
             :errors="brandingForm.errors as Record<string, string>"
             :privacy-error="privacyForm.errors.privacy_policy_url"

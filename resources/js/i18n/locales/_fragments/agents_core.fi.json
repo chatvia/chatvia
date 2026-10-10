@@ -161,7 +161,6 @@
                 "select_topic": "Valitse aihe",
                 "select_sentiment": "Valitse tunnelma",
                 "select_tone": "Valitse sävy",
-                "upgrade_to_unlock": "Päivitä avataksesi",
                 "clear_all": "Tyhjennä kaikki",
                 "close": "Käytä suodattimia"
             },
@@ -201,13 +200,11 @@
                 "page_url": "Sivun URL",
                 "referrer": "Viittaaja",
                 "locale": "Kielialue",
-                "upgrade_to_unlock": "Päivitä avataksesi",
                 "waiting": "Odotetaan analyysia…"
             },
             "pulse": {
                 "title": "Keskustelun pulssi",
                 "select_conversation": "Valitse keskustelu nähdäksesi pulssin",
-                "locked_description": "Päivitä suunnitelmasi avataksesi keskustelupulssianalytiikan.",
                 "refresh": "Päivitä",
                 "no_messages_title": "Ei vielä tarpeeksi viestejä",
                 "no_messages_hint": "Pulssi tarvitsee vähintään yhden käyttäjäviestin analysoidakseen tunnelmaa ja sävyä ajan kuluessa.",
@@ -242,7 +239,6 @@
                 "waiting": "Odottaa…"
             },
             "handoff": {
-                "locked_description": "Päivitä suunnitelmasi ottaaksesi live-keskustelut haltuun chatlogista.",
                 "visitor": "Kävijä",
                 "online": "Paikalla",
                 "offline": "Poissa",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Sävy",
             "description": "Seuraa, miten kävijät suhtautuvat viestiensä tunnepitoiseen sävyyn.",
-            "locked_description": "Päivitä suunnitelmasi avataksesi sävyanalytiikan.",
             "disabled_title": "Sävyanalyysi on pois käytöstä",
             "disabled_description": "Ota sävyanalyysi käyttöön nähdäksesi, miten kävijät suhtautuvat keskusteluihin.",
             "blocked_reason": "Ota ensin chatin kirjaaminen käyttöön — sävyanalyysi vaatii tallennettuja viestejä.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Tunnelma",
             "description": "Seuraa positiivista, neutraalia ja negatiivista tunnelmaa kävijäviesteissä.",
-            "locked_description": "Päivitä suunnitelmasi avataksesi tunnelma-analytiikan.",
             "disabled_title": "Tunnelma-analyysi on pois käytöstä",
             "disabled_description": "Ota tunnelma-analyysi käyttöön nähdäksesi, miten kävijät suhtautuvat keskusteluihin.",
             "blocked_reason": "Ota ensin chatin kirjaaminen käyttöön — tunnelma-analyysi vaatii tallennettuja viestejä.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Hallinnoi aiheita",
                 "description": "Määrittele aiheet, jotka agenttisi tunnistaa ja luokittelee keskusteluissa.",
-                "locked_description": "Päivitä suunnitelmasi hallinnoidaksesi keskusteluaiheita.",
                 "search_placeholder": "Etsi aiheita…",
                 "add_topic": "Lisää aihe",
                 "empty": "Ei vielä aiheita. Lisää yksi auttaaksesi agenttiasi luokittelemaan keskusteluja.",

@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "メッセージの上限に達しました",
-        "upgrade_prompt": "チャットを続けるにはプランをアップグレードしてください",
         "regenerate_failed": "応答を再生成できませんでした。もう一度お試しください。",
         "loading_conversation": "会話を読み込み中",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "サーバーがステータス {status} を返しました。",
             "interrupted": "接続が中断されました。",
             "malformed": "サーバーから不正なデータを受信しました。"
-        }
+        },
+        "limit_resets_next_month": "来月になると、再びメッセージを送信できます。"
     },
     "messages": {
         "send": "送信",
@@ -140,11 +140,7 @@
         "edit_message": "メッセージを編集"
     },
     "errors": {
-        "subscription_expired": "サブスクリプションが期限切れです",
-        "renew_subscription": "サブスクリプションを更新",
         "message_limit_reached": "メッセージの上限に達しました",
-        "token_limit_reached": "トークン使用量の上限に達しました",
-        "upgrade_plan": "プランをアップグレード",
         "model_unavailable": "モデルを利用できません",
         "too_many_requests": "リクエストが多すぎます",
         "connection_lost": "接続が切れました",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "監査ログ",
             "head_title": "監査ログ · {name}",
-            "description": "このエージェントがツールやコネクタを通じて行ったすべての操作（許可、承認、拒否、レート制限）を、引数、結果、実行者とともに表示します。",
-            "locked_description": "監査ログは Pro プランでご利用いただけます。アップグレードすると、このエージェントが行うすべてのツールおよびコネクタの操作を確認できます。"
+            "description": "このエージェントがツールやコネクタを通じて行ったすべての操作（許可、承認、拒否、レート制限）を、引数、結果、実行者とともに表示します。"
         },
         "channels": {
             "title": "チャネル",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— 返信がリアルタイムでストリーミングされます"
                 },
                 "telegram": {
-                    "connected_description": "Telegram でボットにメッセージを送ると、エージェントが自動で返信します。請求、履歴、ガードレールはすべて適用されます。",
+                    "connected_description": "Telegram でボットにメッセージを送ると、エージェントが自動で返信します。メッセージ上限、履歴、ガードレールはすべて適用されます。",
                     "steps": {
                         "connect_1": "Telegram で {botfather} を開きます",
                         "connect_2": "{command} を送信し、表示される指示に従います",
@@ -446,7 +441,6 @@
                 "select_topic": "トピックを選択",
                 "select_sentiment": "感情を選択",
                 "select_tone": "トーンを選択",
-                "upgrade_to_unlock": "アップグレードして利用",
                 "clear_all": "すべてクリア",
                 "close": "フィルターを適用"
             },
@@ -486,14 +480,12 @@
                 "page_url": "ページ URL",
                 "referrer": "リファラー",
                 "locale": "ロケール",
-                "upgrade_to_unlock": "アップグレードして利用",
                 "waiting": "分析を待機中…",
                 "channel": "チャネル"
             },
             "pulse": {
                 "title": "会話パルス",
                 "select_conversation": "パルスを表示する会話を選択してください",
-                "locked_description": "会話パルス分析を利用するには、プランをアップグレードしてください。",
                 "refresh": "更新",
                 "no_messages_title": "メッセージがまだ十分ではありません",
                 "no_messages_hint": "パルスで感情とトーンの推移を分析するには、少なくとも 1 件のユーザーメッセージが必要です。",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "安定"
             },
             "handoff": {
-                "locked_description": "チャットログからライブ会話を引き継ぐには、プランをアップグレードしてください。",
                 "visitor": "訪問者",
                 "online": "オンライン",
                 "offline": "オフライン",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "ブロックするトピック",
                 "toxicity": "有害表現"
-            },
-            "locked_description": "ガードレールはStandardおよびProプランでご利用いただけます。アップグレードして、エージェントが話せる内容と機密情報の扱い方を制御しましょう。"
+            }
         },
         "persona": {
             "title": "ペルソナ",
@@ -849,8 +839,7 @@
                     "run_start_error": "実行を開始できませんでした",
                     "run_deleted": "実行を削除しました",
                     "history_cleared": "実行履歴をクリアしました"
-                },
-                "locked_description": "評価は Standard プランと Pro プランでご利用いただけます。アップグレードして、お客様に届く前にこのエージェントの回答をテスト・採点しましょう。"
+                }
             },
             "scorers": {
                 "contains": "含む",
@@ -938,7 +927,6 @@
         "tone": {
             "title": "トーン",
             "description": "メッセージの感情的なトーンに基づいて、訪問者の気持ちを追跡します。",
-            "locked_description": "トーン分析を利用するにはプランをアップグレードしてください。",
             "disabled_title": "トーン分析はオフです",
             "disabled_description": "トーン分析を有効にすると、会話全体で訪問者の気持ちを確認できます。",
             "blocked_reason": "まずチャットログを有効にしてください。トーン分析には保存されたメッセージが必要です。",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "センチメント",
             "description": "訪問者のメッセージ全体でポジティブ・中立・ネガティブのセンチメントを追跡します。",
-            "locked_description": "センチメント分析を利用するにはプランをアップグレードしてください。",
             "disabled_title": "センチメント分析はオフです",
             "disabled_description": "センチメント分析を有効にすると、会話全体で訪問者の気持ちを確認できます。",
             "blocked_reason": "まずチャットログを有効にしてください。センチメント分析には保存されたメッセージが必要です。",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "トピックの管理",
                 "description": "エージェントが会話の中で認識・分類すべきトピックを定義します。",
-                "locked_description": "会話トピックを管理するにはプランをアップグレードしてください。",
                 "search_placeholder": "トピックを検索…",
                 "add_topic": "トピックを追加",
                 "empty": "まだトピックがありません。追加して、エージェントが会話を分類できるようにしましょう。",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "{name}のリンク解除に失敗しました: {error}",
                 "deleted": "{name}を削除しました。",
                 "delete_failed": "{name}の削除に失敗しました: {error}",
-                "usage_load_failed": "使用状況データの読み込みに失敗しました。",
                 "summary_only_completed": "概要は処理が完了したファイルでのみ利用できます。",
                 "summary_none": "このファイルの概要はありません。",
                 "summary_load_failed": "ファイルの概要の読み込みに失敗しました。",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "音声ファイルをアップロード",
                 "upload_title_video": "動画ファイルをアップロード",
                 "upload_title_default": "新しいドキュメントをアップロード",
-                "quota_minutes": "分",
-                "quota_pages": "ページ",
                 "uploads_disabled": "トレーニング中はファイルのアップロードができません",
                 "ready_to_train": "トレーニング準備完了",
                 "uploaded_ready": "{count}件のファイルをアップロードし、トレーニングの準備ができました | {count}件のファイルをアップロードし、トレーニングの準備ができました",
-                "exceeds_quota": "上限を超過しています",
                 "clear_all": "すべてクリア",
                 "training": "トレーニング中…",
                 "train": "トレーニング",
@@ -1290,9 +1272,6 @@
                     "trained": "トレーニング済み",
                     "failed": "失敗"
                 },
-                "limit_all_used": "プランの {limit} 件のリンクをすべて使い切りました。さらにリンクをトレーニングするにはアップグレードしてください。",
-                "limit_critical": "{used}/{limit} 件のリンクを使用しました（{percentage}%）。トレーニング可能なリンクは残り {remaining} 件のみです。プランのアップグレードをご検討ください。",
-                "limit_warning": "{used}/{limit} 件のリンクを使用しました（{percentage}%）。トレーニング可能なリンクは残り {remaining} 件です。",
                 "load_failed": "ウェブソースの読み込みに失敗しました。",
                 "error_enter_url": "ウェブサイトのURLを入力してください。",
                 "error_invalid_url": "有効なURL形式を入力してください（例: https://example.com）。",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "すべてのリンクは削除できません。少なくとも1つのリンクが必要です。",
                 "links_deleted": "{count} 件のリンクを削除しました。 | {count} 件のリンクを削除しました。",
                 "links_delete_failed": "リンクの削除に失敗しました。",
-                "no_links_remaining": "残りのリンクがありません",
-                "no_links_remaining_description": "ウェブサイトをトレーニングするにはプランをアップグレードしてください。",
-                "cannot_select": "ウェブサイトを選択できません",
-                "cannot_select_description": "{links} 件のリンクはクォータを {exceedBy} 件超過します。他のウェブサイトの選択を解除するか、アップグレードしてください。",
-                "selected_count": "{total} 件中 {selected} 件のウェブサイトを選択中",
-                "selected_skipped": "{remaining} 件のリンク上限内に収めるため、{skipped} 件のウェブサイトをスキップしました。",
                 "training_start_failed": "次のウェブサイトのトレーニング開始に失敗しました: {websites}",
                 "training_start_failed_all": "いずれのウェブサイトもトレーニングを開始できませんでした。",
                 "dialog_links_load_failed": "リンクの読み込みに失敗しました",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "クローラー",
                 "crawler_description": "ウェブサイトからリンクを取得してクロールし、エージェントのナレッジベースに含めます。",
                 "settings": "設定",
-                "links_used": "{used} / {limit} 件のリンクを使用中",
-                "links_remaining": "残り {remaining} 件",
-                "upgrade_required": "さらにリンクをトレーニングするにはアップグレードが必要です",
-                "consider_upgrading": "アップグレードをご検討ください",
                 "fetching": "取得中...",
                 "fetch_links": "リンクを取得",
                 "crawl_settings": "クロール設定",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count}件選択中（{links}個のリンク）",
                 "no_websites_selected": "Webサイトが選択されていません",
                 "train": "トレーニング",
-                "train_exceeds_quota": "選択したリンク（{selected}）が残りのクォータ（{remaining}）を超えています",
                 "links_badge": "{count}個のリンク",
-                "badge_upgrade_required": "アップグレードが必要",
-                "badge_exceeds_quota": "クォータ超過",
-                "no_links_remaining_plan": "プランの残りリンク数がありません。このWebサイトをトレーニングするにはアップグレードしてください。",
-                "website_exceeds_remaining": "このWebサイトには{links}個のリンクがあり、残りの{remaining}個のリンクを超えてしまいます。先に他のWebサイトの選択を解除するか、プランをアップグレードしてください。",
                 "collapse_links": "検出されたリンクを折りたたむ",
                 "expand_links": "検出されたリンクを展開",
                 "discovered_links": "検出されたリンク",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "エージェントを作成",
-            "limit_title": "エージェント上限に到達",
-            "limit_description": "エージェントの上限に達しました。",
-            "upgrade_plan": "プランをアップグレード",
             "name_label": "エージェント名",
-            "name_placeholder": "例: カスタマーサポート",
-            "load_error": "使用状況の情報を読み込めませんでした",
-            "limit_toast_title": "エージェント上限に到達",
-            "limit_toast_description": "エージェントの上限に達しました。"
+            "name_placeholder": "例: カスタマーサポート"
         },
         "analytics": {
             "title": "エージェント統計",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "カスタムドメイン",
                 "description": "このエージェントの Hosted Chat を {target} ではなく独自のドメインから配信します。",
-                "no_quota_title": "現在のプランにはカスタムドメインが含まれていません",
-                "no_quota_description": "独自のホスト名を追加するには、Pro にアップグレードするか、{link} からカスタムドメインのアドオンに登録してください。",
-                "billing": "請求",
-                "quota": "{total} 個中 {used} 個のカスタムドメインを使用中 | {total} 個中 {used} 個のカスタムドメインを使用中",
-                "add_more": "さらに追加",
                 "step1": "ステップ 1 — DNS プロバイダーで CNAME レコードを追加",
                 "type": "タイプ",
                 "name": "名前",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "トピック",
             "description": "会話のトピックとトレンドを分析します",
-            "locked_description": "プランをアップグレードすると、トピック分析を利用して会話のトピックを自動的に検出・分類できます。",
             "disabled_title": "トピック分析",
             "disabled_description": "オンにすると、複数の会話にわたって訪問者が尋ねている内容を自動的に検出してグループ化します。",
             "blocked_reason": "チャットログがオフになっているため、分析する対象がありません。トピックの収集を開始するには、セットアップ → 設定でオンにしてください。",
@@ -2159,7 +2111,6 @@
             "sending_link": "リンクを送信しています...",
             "or_continue_with": "または次で続行",
             "no_account": "アカウントをお持ちではありませんか？",
-            "start_free_trial": "無料トライアルを開始",
             "create_account": "アカウントを作成"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "パスワードを選択",
-            "description": "アカウントの準備が整いました。設定を完了するにはパスワードを選択してください。",
-            "head": "パスワードを選択",
-            "email_label": "メールアドレス",
-            "password_label": "パスワード",
-            "password_placeholder": "パスワード",
-            "confirm_password_label": "パスワードの確認",
-            "confirm_password_placeholder": "パスワードの確認",
-            "set_password": "パスワードを設定",
-            "setting_password": "パスワードを設定しています..."
-        },
         "login_member": {
             "description": "このチャットワークスペースにアクセスするにはログインしてください",
             "head": "メンバーログイン",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "ソーシャルアカウントが次のアドレスを使用していることを確認してください",
             "social_email_note_suffix": "— この招待と一致している必要があります。"
         },
-        "invitation_invalid": {
-            "title": "招待は利用できません",
-            "description": "この招待は承認できません",
-            "head": "招待は利用できません",
-            "card_title": "招待を承認できません",
-            "cannot_accept_prefix": "次への参加の招待",
-            "cannot_accept_suffix": "は現在承認できません。",
-            "contact_owner": "この問題を解決するには、チームのオーナーにお問い合わせください。",
-            "go_to_login": "ログインへ移動"
-        },
         "invitation_expired": {
             "title": "招待の有効期限切れ",
             "description": "この招待はすでに無効です",
@@ -2325,386 +2254,6 @@
             "card_title": "招待の有効期限切れ",
             "contact_owner": "新しい招待をリクエストするには、チームのオーナーにお問い合わせください。",
             "go_to_login": "ログインへ移動"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "請求",
-            "back_to_billing": "請求へ戻る",
-            "view_plans": "プランを表示",
-            "cancel": "キャンセル",
-            "processing": "処理中...",
-            "not_available": "N/A"
-        },
-        "payment_success": {
-            "page_title": "お支払い完了",
-            "heading": "お支払いを受領しました",
-            "description": "ありがとうございます。お支払いは正常に処理されました。現在サブスクリプションをセットアップしています。",
-            "redirecting_prefix": "リダイレクトまで",
-            "redirecting_suffix": "秒...",
-            "go_to_billing": "今すぐ請求へ移動"
-        },
-        "invoices": {
-            "breadcrumb": "請求書",
-            "page_title": "請求書",
-            "heading": "請求書",
-            "subheading": "請求履歴と請求書を表示・ダウンロード",
-            "history_title": "請求履歴",
-            "history_description": "サブスクリプションのお支払いに関する領収書と請求書をダウンロード",
-            "invoice_number": "請求書 #{number}",
-            "status": {
-                "paid": "支払い済み",
-                "pending": "保留中",
-                "failed": "失敗"
-            },
-            "download_pdf": "PDF をダウンロード",
-            "view_online": "オンラインで表示",
-            "empty_title": "請求書はまだありません",
-            "empty_description": "サブスクリプションを開始すると、請求履歴と請求書がここに表示されます。",
-            "total_invoices": "請求書の合計件数",
-            "total_spent": "支払い合計額",
-            "since": "開始日",
-            "help_title": "請求についてサポートが必要ですか？",
-            "help_description": "請求書についてご質問がある場合や請求に関するサポートが必要な場合は、サポートチームがお手伝いします。",
-            "contact_support": "サポートに問い合わせる"
-        },
-        "payment_methods": {
-            "breadcrumb": "お支払い方法",
-            "page_title": "お支払い方法",
-            "heading": "お支払い方法",
-            "subheading": "お支払い方法と請求情報を管理",
-            "add_method": "お支払い方法を追加",
-            "saved_title": "保存済みのお支払い方法",
-            "saved_description": "保存済みのお支払い方法を管理します。自動請求のデフォルト方法を設定できます。",
-            "default": "デフォルト",
-            "expires": "有効期限 {date}",
-            "set_default": "デフォルトに設定",
-            "empty_title": "お支払い方法がありません",
-            "empty_description": "お支払い方法を追加して、サブスクリプションの管理とお支払いを行いましょう。",
-            "add_first": "最初のお支払い方法を追加",
-            "info_title": "請求情報",
-            "info_description": "請求先住所と連絡先情報を更新",
-            "not_set": "未設定",
-            "update_info": "請求情報を更新",
-            "secure_title": "安全なお支払い処理",
-            "secure_description": "お支払い情報は暗号化され、Stripe によって安全に処理されます。完全なカード情報を当社のサーバーに保存することは一切ありません。",
-            "updating": "更新中...",
-            "update_information": "情報を更新",
-            "card_information": "カード情報",
-            "remove_dialog": {
-                "title": "お支払い方法を削除",
-                "description": "このお支払い方法を削除してもよろしいですか？この操作は取り消せません。",
-                "confirm": "はい、削除します"
-            },
-            "fields": {
-                "name": "名前",
-                "email": "メールアドレス",
-                "address": "住所",
-                "city_state_country": "市区町村、都道府県・国",
-                "billing_address": "請求先住所",
-                "line1": "住所 1 行目",
-                "line2": "住所 2 行目（任意）",
-                "city": "市区町村",
-                "state": "都道府県",
-                "postal_code": "郵便番号",
-                "country": "国"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "123 Main Street",
-                "line2": "アパート、部屋番号など",
-                "city": "New York",
-                "state": "NY",
-                "postal_code": "10001",
-                "country": "国を選択..."
-            },
-            "info_dialog": {
-                "title": "請求情報を更新",
-                "description": "請求書の発行とお支払い処理のために、請求先住所と連絡先情報を更新します。"
-            },
-            "add_dialog": {
-                "description": "アカウントに新しいお支払い方法を追加します。カード情報は安全に暗号化されます。",
-                "success_title": "お支払い方法を追加しました！",
-                "success_description": "お支払い方法がアカウントに正常に追加されました。",
-                "secure_note": "お支払い情報は暗号化され、Stripe によって安全に処理されます。完全なカード情報を保存することは一切ありません。"
-            },
-            "errors": {
-                "init_failed": "決済システムの初期化に失敗しました",
-                "not_ready": "決済システムの準備ができていません",
-                "add_failed": "お支払い方法の追加中にエラーが発生しました"
-            },
-            "toast": {
-                "added": "お支払い方法を正常に追加しました！",
-                "info_updated": "請求情報を正常に更新しました！",
-                "info_failed": "請求情報の更新に失敗しました"
-            }
-        },
-        "plans": {
-            "breadcrumb": "プランを選択",
-            "page_title": "プランを選択",
-            "heading": "プランを選択",
-            "subheading": "ニーズに最適なプランをお選びください。いつでも変更またはキャンセルできます。",
-            "monthly": "月払い",
-            "yearly": "年払い",
-            "custom": "カスタム",
-            "per_month": "/月",
-            "save_percent": "{percent}% お得",
-            "billed_yearly": "年払いで {amount} 請求",
-            "features_included": "含まれる機能:",
-            "everything_in": "{plan} のすべて +",
-            "actions": {
-                "contact_sales": "営業に問い合わせる",
-                "upgrade": "アップグレード",
-                "upgrade_plan": "プランをアップグレード",
-                "downgrade_to_free": "無料プランにダウングレード",
-                "downgrade_plan": "プランをダウングレード",
-                "switch_plan": "プランを切り替える",
-                "select_plan": "プランを選択"
-            },
-            "discount": {
-                "banner": "{percent}% OFF 期間限定オファー！",
-                "ends": "オファーは {date} に終了します - お見逃しなく！",
-                "limited": "全有料プランが期間限定割引中！",
-                "off": "{percent}% OFF"
-            },
-            "most_popular": "一番人気",
-            "current_plan": "現在のプラン",
-            "save_up_to_percent": "最大{percent}% お得"
-        },
-        "addons": {
-            "title": "アドオン",
-            "description": "プランに追加できるクレジット、エージェント、ドメイン",
-            "per_agent": " / エージェント",
-            "per_domain": " / ドメイン",
-            "per_member": " / メンバー",
-            "per_month": " / 月",
-            "requires_subscription": "追加エージェント、カスタムドメイン、ブランディングの削除、メンバーには有効なメインサブスクリプションが必要です。",
-            "common": {
-                "none": "なし",
-                "subscribe": "登録する",
-                "change": "変更",
-                "update_quantity": "数量を更新",
-                "monthly_cost": "月額費用:",
-                "keep_subscription": "サブスクリプションを継続",
-                "yes_cancel": "はい、キャンセルします",
-                "ends": "{date} に終了"
-            },
-            "auto_recharge": {
-                "title": "自動チャージ",
-                "on": "オン",
-                "off": "オフ",
-                "summary": "残高が {threshold} を下回ったら {amount} クレジットを自動購入します。",
-                "manage": "管理",
-                "enable": "有効にする",
-                "dialog_title": "自動チャージ設定",
-                "dialog_description": "残りのクレジットがしきい値以下になると、デフォルトの支払い方法に自動的に請求して残高をチャージします。",
-                "enable_label": "自動チャージを有効にする",
-                "enable_hint": "クレジットが少なくなったら自動的に請求します",
-                "threshold_label": "しきい値（クレジット）",
-                "threshold_hint": "残高がこの金額以下になるとチャージが実行されます。",
-                "amount_label": "チャージ額（クレジット）",
-                "each_recharge": "1 回のチャージ:",
-                "charged_note": "実行時にデフォルトの支払い方法に即時請求されます。",
-                "save": "設定を保存"
-            },
-            "extra_credits": {
-                "title": "追加クレジット",
-                "summary": "1 回限りのチャージ。各バンドルで 1,000 メッセージが追加され、30 日後に失効します。",
-                "buy": "クレジットを購入",
-                "dialog_title": "メッセージクレジットを購入",
-                "dialog_description": "各バンドルには 1,000 メッセージが含まれ、購入から 1 か月以内に使用する必要があります。",
-                "quantity_label": "数量（1 バンドルあたり 1,000 メッセージ）",
-                "total_messages": "合計メッセージ数:",
-                "total_price": "合計金額:",
-                "purchase_for": "${amount} で購入"
-            },
-            "extra_agents": {
-                "title": "追加エージェント",
-                "summary": "プランの上限を超えて AI エージェントを追加します。",
-                "cancel_title": "追加エージェントのサブスクリプションをキャンセルしますか？",
-                "cancel_description": "追加エージェントの枠はただちに削除され、再度請求されることはありません。",
-                "change_title": "追加エージェントを変更",
-                "subscribe_title": "追加エージェントに登録",
-                "dialog_description": "プランに追加の AI エージェントを加えます。エージェントごとに月額 $5 で請求されます。",
-                "quantity_label": "追加エージェントの数"
-            },
-            "custom_domains": {
-                "title": "カスタムドメイン",
-                "summary": "AI エージェントに独自のカスタムドメインを使用します。",
-                "cancel_title": "カスタムドメインのサブスクリプションをキャンセルしますか？",
-                "cancel_description": "カスタムドメインの枠はただちに削除され、再度請求されることはありません。",
-                "change_title": "カスタムドメインを変更",
-                "subscribe_title": "カスタムドメインに登録",
-                "dialog_description": "AI エージェントに独自のドメインを使用します。ドメインごとに月額 $29 で請求されます。",
-                "quantity_label": "ドメインの数"
-            },
-            "remove_branding": {
-                "title": "ブランディングの削除",
-                "active": "有効",
-                "summary": "ウィジェットとホスト型チャット全体で「Powered by Chatvia」バッジを非表示にします。",
-                "cancel_title": "ブランディングの削除のサブスクリプションをキャンセルしますか？",
-                "cancel_description": "「Powered by Chatvia」バッジがただちにウィジェットとホスト型チャットに再表示され、再度請求されることはありません。"
-            },
-            "members": {
-                "title": "メンバー",
-                "summary": "ワークスペースにチームメンバーを追加します。",
-                "cancel_title": "メンバーのサブスクリプションをキャンセルしますか？",
-                "cancel_description": "追加のメンバー枠はただちに削除され、再度請求されることはありません。",
-                "change_title": "メンバーを変更",
-                "subscribe_title": "メンバーに登録",
-                "dialog_description": "ワークスペースに追加のチームメンバーを加えます。メンバーごとに月額 $9 で請求されます。",
-                "quantity_label": "メンバーの数"
-            }
-        },
-        "index": {
-            "page_title": "請求",
-            "heading": "請求",
-            "subheading": "サブスクリプション、請求情報、利用上限を管理します",
-            "stripe_notice": "決済の安全な処理:",
-            "status_label": "ステータス",
-            "trial_ends": "トライアル終了",
-            "next_billing": "次回請求",
-            "access_ends": "アクセス終了",
-            "plan_features": "プランの機能",
-            "show_less": "折りたたむ",
-            "show_more": "さらに {count} 件表示",
-            "per_year": "年",
-            "per_month": "月",
-            "status": {
-                "active": "有効",
-                "trial": "トライアル",
-                "cancelled": "キャンセル済み",
-                "incomplete": "未完了",
-                "past_due": "支払い期限超過"
-            },
-            "trial": {
-                "heading": "🎉 無料トライアル中です！",
-                "ends_on": "{plan} トライアルの終了日",
-                "auto_start": "有料サブスクリプションは {date} に自動的に開始されます",
-                "badge": "トライアル有効"
-            },
-            "upgrade": {
-                "heading": "プレミアムにアップグレード",
-                "description": "高度な AI モデル、より高いメッセージ上限、優先サポートにアクセスできます"
-            },
-            "current_plan": {
-                "title": "現在のプラン",
-                "description": "現在有効なサブスクリプションプランと利用状況の詳細"
-            },
-            "pending_change": {
-                "heading": "プラン変更が予定されています",
-                "change_from": "プランは次から変更されます:",
-                "to": "→",
-                "cycle_yearly": "（年払い）",
-                "cycle_monthly": "（月払い）",
-                "on_date": "{date} に。",
-                "scheduled_for": "{date} にプラン変更が予定されています。",
-                "access_note": "それまでは現在のプランの機能を引き続きご利用いただけます。",
-                "cancel_schedule": "予定をキャンセル",
-                "cancel_dialog": {
-                    "title": "予定されたプラン変更をキャンセル",
-                    "description": "予定されたプラン変更をキャンセルしてもよろしいですか？現在のプランのままになります。",
-                    "confirm": "はい、予定をキャンセルします",
-                    "cancel": "予定を維持"
-                }
-            },
-            "cancelled": {
-                "title": "サブスクリプションをキャンセル済み",
-                "description": "サブスクリプションは {date} に終了します。この日付より前であればいつでもサブスクリプションを再開できます。",
-                "resume": "サブスクリプションを再開"
-            },
-            "management": {
-                "title": "管理",
-                "manage_payment_methods": "支払い方法を管理",
-                "view_invoices": "請求書を表示",
-                "go_to_stripe": "Stripe に移動",
-                "change_plan": "プランを変更",
-                "cancel_subscription": "サブスクリプションをキャンセル"
-            },
-            "cancel_dialog": {
-                "title": "サブスクリプションをキャンセル",
-                "description": "サブスクリプションをキャンセルしてもよろしいですか？請求期間が終了するまでは引き続きご利用いただけます。",
-                "confirm": "はい、キャンセルします",
-                "cancel": "サブスクリプションを継続"
-            },
-            "usage": {
-                "title": "利用状況",
-                "messages": "メッセージ",
-                "pages": "ページ",
-                "agents": "エージェント",
-                "links": "リンク",
-                "minutes": "分",
-                "remaining": "残り{count}",
-                "load_error": "使用状況データを読み込めません"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "スターター",
-                    "description": "利用を始めたばかりの小規模ビジネス向け。"
-                },
-                "standard": {
-                    "name": "スタンダード",
-                    "description": "成長するチームやビジネス向け。"
-                },
-                "pro": {
-                    "name": "Pro",
-                    "description": "すべてを必要とする組織向け。"
-                },
-                "enterprise": {
-                    "name": "エンタープライズ",
-                    "description": "セキュリティ、コンプライアンス、スケールのニーズがある組織向け。"
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "月{count}メッセージ | 月{count}メッセージ",
-            "messages_per_year": "年{count}メッセージ | 年{count}メッセージ",
-            "messages_unlimited": "メッセージ無制限",
-            "messages_custom": "メッセージ量はカスタム",
-            "agents": "AIエージェント{count}個 | AIエージェント{count}個",
-            "agents_unlimited": "AIエージェント無制限",
-            "pages": "{count}ページ（PDF、Word、テキスト） | {count}ページ（PDF、Word、テキスト）",
-            "pages_unlimited": "ページ無制限（PDF、Word、テキスト）",
-            "pages_custom": "カスタムナレッジベース",
-            "links": "{count}件のウェブサイトリンク | {count}件のウェブサイトリンク",
-            "links_unlimited": "ウェブサイトリンク無制限",
-            "links_custom": "ウェブサイトリンクはカスタム",
-            "minutes": "音声・動画{count}分 | 音声・動画{count}分",
-            "minutes_unlimited": "音声・動画の時間は無制限",
-            "minutes_custom": "音声・動画はカスタム",
-            "teams": "{count}チーム | {count}チーム",
-            "teams_unlimited": "チーム無制限",
-            "members": "{count}メンバー（チームメンバー＋チャッター） | {count}メンバー（チームメンバー＋チャッター）",
-            "members_unlimited": "メンバー無制限",
-            "retention": "チャット履歴{count}日間 | チャット履歴{count}日間",
-            "retention_unlimited": "チャット履歴は無期限",
-            "retention_custom": "データ保持期間はカスタム",
-            "sentiment": "感情分析",
-            "tone": "トーン分析",
-            "topics": "トピック分析",
-            "pulse": "会話パルス",
-            "handoff": "引き継ぎ",
-            "api": "APIアクセス",
-            "evals": "評価",
-            "guardrails": "ガードレール",
-            "audit": "監査ログ",
-            "branding": "ホワイトラベル（{brand}のブランド表示を削除）",
-            "network_access": "ネットワークアクセス制御（IP・地域）",
-            "siem_webhook": "SIEM Webhook（セキュリティイベントをリアルタイムで送信）",
-            "mcp": "MCP",
-            "function_calling": "関数呼び出し",
-            "custom_domains": "カスタムドメイン{count}個 | カスタムドメイン{count}個",
-            "custom_domains_unlimited": "カスタムドメイン無制限",
-            "custom_domains_custom": "カスタムドメイン",
-            "custom_integrations": "カスタム連携",
-            "eu_data_residency": "EUデータレジデンシー",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "稼働率SLA",
-            "dedicated_support": "専任サポート",
-            "custom_contract": "カスタム契約＆DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "AI エージェントとアクティビティの概要",
         "create_agent": "エージェントを作成",
         "total_agents": "エージェント総数",
-        "messages_this_cycle": "今サイクルのメッセージ",
         "percent_used": "{percent}% 使用中",
         "total_conversations": "会話総数",
         "all_time_across_agents": "全エージェントの累計",
@@ -3110,97 +2658,8 @@
         "last_week": "先週",
         "last_month": "先月",
         "messages_tooltip": "{n} 件のメッセージ | {n} 件のメッセージ",
-        "messages_this_month": "今月のメッセージ"
-    },
-    "support": {
-        "title": "サポート",
-        "subtitle": "チケットを表示するか、新しいチケットを作成します。",
-        "create_ticket": "新規チケットを作成",
-        "your_tickets": "あなたのチケット",
-        "your_tickets_description": "以前に送信したチケット",
-        "loading": "チケットを読み込み中...",
-        "empty": "チケットはまだありません。「新規チケットを作成」をクリックして始めましょう。",
-        "th_id": "ID",
-        "th_type": "種類",
-        "th_status": "ステータス",
-        "th_priority": "優先度",
-        "th_created": "作成日",
-        "th_message": "メッセージ",
-        "th_replies": "返信",
-        "status_open": "オープン",
-        "status_in_progress": "対応中",
-        "status_resolved": "解決済み",
-        "status_closed": "クローズ",
-        "priority_urgent": "緊急",
-        "priority_high": "高",
-        "priority_medium": "中",
-        "priority_low": "低",
-        "create_ticket_description": "種類を選択し、ご要望を記載してください。",
-        "label_type": "種類",
-        "type_placeholder": "種類を選択",
-        "type_feature": "機能のリクエスト",
-        "type_bug": "バグの報告",
-        "type_integration": "連携のリクエスト",
-        "type_add_model": "モデル追加のリクエスト",
-        "type_refund": "返金リクエスト",
-        "type_billing": "請求に関する問題",
-        "type_other": "その他",
-        "label_priority": "優先度",
-        "priority_placeholder": "優先度を選択",
-        "label_message": "メッセージ",
-        "message_placeholder": "ご要望や問題を詳しく記載してください...",
-        "cancel": "キャンセル",
-        "submitting": "送信中...",
-        "submit": "送信"
-    },
-    "ticket": {
-        "support": "サポート",
-        "title": "チケット #{id}",
-        "created_at": "作成日 {date}",
-        "back_to_support": "サポートに戻る",
-        "status_open": "オープン",
-        "status_in_progress": "対応中",
-        "status_resolved": "解決済み",
-        "status_closed": "クローズ",
-        "priority_urgent": "緊急",
-        "priority_high": "高",
-        "priority_medium": "中",
-        "priority_low": "低",
-        "change_priority": "優先度を変更",
-        "change_priority_title": "チケットの優先度を変更",
-        "change_priority_description": "本当に緊急の場合のみ優先度を変更してください。緊急の優先度を乱用すると、全員への対応が遅くなる可能性があります。",
-        "label_priority": "優先度",
-        "priority_placeholder": "優先度を選択",
-        "cancel": "キャンセル",
-        "saving": "保存中...",
-        "save": "保存",
-        "replies": "返信 ({count})",
-        "no_replies": "まだ返信はありません。",
-        "role_staff": "スタッフ",
-        "role_user": "ユーザー",
-        "resolved_notice": "このチケットは解決済みです。問題が解決しない場合は、サポートページから新しいチケットを作成してください。",
-        "add_reply": "返信を追加",
-        "reply_placeholder": "返信を入力...",
-        "sending": "送信中...",
-        "send_reply": "返信を送信"
-    },
-    "usage": {
-        "title": "使用状況",
-        "subtitle": "すべてのサービスと機能にわたる現在の使用状況を確認できます。",
-        "plan_badge": "{plan} プラン",
-        "label_messages": "メッセージ",
-        "label_tokens": "トークン",
-        "label_pages": "ページ",
-        "label_minutes": "分",
-        "label_links": "リンク",
-        "label_agents": "エージェント",
-        "label_teams": "チーム",
-        "label_members": "メンバー",
-        "tokens_note": "今回のサイクルで消費した量 — 参考情報のみです。プランはメッセージ単位で請求されます。",
-        "of": "/ {limit}",
-        "remaining": "残り {count}",
-        "load_error": "使用状況データを読み込めません。",
-        "no_limit": "無制限"
+        "messages_this_month": "今月のメッセージ",
+        "messages_used_of_limit": "{limit} 件中 {used} 件を使用"
     },
     "analytics_chat": {
         "title": "データに質問",
@@ -3326,7 +2785,6 @@
             "description": "{api_link} 用のアカウントキーです — エージェント、ナレッジ、MCP サーバー、関数を作成・管理できます。",
             "api_link": "Chatvia API",
             "generate": "キーを生成",
-            "locked": "プランをアップグレードすると、API キーを発行して Chatvia をアプリケーションと連携できます。",
             "empty_title": "API キーはまだありません",
             "empty_description": "キーを生成して Chatvia API の利用を開始します。",
             "never": "なし",
@@ -3535,14 +2993,6 @@
             "save_error": "セキュリティ設定を保存できませんでした",
             "cancel": "キャンセル",
             "done": "完了",
-            "teaser": {
-                "title": "セキュリティとコンプライアンス",
-                "description": "ワークスペースを信頼できるネットワークに限定し、コンプライアンス要件を満たします。Pro プランで利用できます。",
-                "ip": "IP 許可リスト — 承認済みのアドレスのみがサインイン可能",
-                "geo": "国別ルール — 国ごとにアクセスを許可またはブロック",
-                "more": "さらにデータ保持、SIEM Webhook、SSO / SCIM などにも対応",
-                "cta": "Pro にアップグレード"
-            },
             "network": {
                 "title": "ネットワークアクセス制御",
                 "help": "ダッシュボードへのアクセスを信頼できる IP アドレスと国に制限します。オフの場合、有効なログイン情報を持つ人はどこからでもサインインできます。"
@@ -3578,7 +3028,7 @@
                 "title": "データ保持",
                 "help": "Chatviaがデータを自動的に削除するまで保持する期間です。コンプライアンスのために短縮できます — フィールドを空白のままにするとデフォルトが使用されます。",
                 "conversations": "会話履歴（日数）",
-                "conversations_help": "チャット履歴はこの日数の経過後に削除されます。ご利用のプランでは最大{max}まで。",
+                "conversations_help": "チャット履歴はこの日数の経過後に削除されます。最大{max}日まで。",
                 "audit": "セキュリティ監査ログ（日数）",
                 "audit_help": "デフォルト{default}日、最小{floor}。",
                 "plan_default": "デフォルト（{days}日）"
@@ -3606,11 +3056,6 @@
             "user_agent": "ユーザーエージェント",
             "metadata": "詳細",
             "integrity": "整合性ハッシュを記録しました",
-            "teaser": {
-                "title": "セキュリティ監査ログ",
-                "description": "すべてのログイン、ロールの変更、セキュリティ設定の変更を確認できます — 改ざん検知が可能でエクスポートにも対応。Proプランでご利用いただけます。",
-                "cta": "Proにアップグレード"
-            },
             "table": {
                 "actor": "実行者",
                 "action": "アクション",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "ダッシュボード",
             "agents": "エージェント",
-            "usage": "使用状況",
             "ask_your_data": "データに質問",
-            "billing": "請求",
-            "support": "サポート",
             "teams": "チーム",
             "documentation": "ドキュメント",
             "api": "API",
-            "nav_menu_sr": "ナビゲーションメニュー",
-            "upgrade": "アップグレード",
-            "subscribed": "ご契約済みです"
+            "nav_menu_sr": "ナビゲーションメニュー"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "ナレッジソース、ドキュメント、アップロードしたファイル",
             "removes_team": "チーム、チャッター、API キー、コネクタ",
             "agents_will_delete": "{count} 件のエージェントが完全に削除されます。 | {count} 件のエージェントが完全に削除されます。",
-            "subscription_cancel": "有効なサブスクリプションはキャンセルされ、今後請求されることはありません。",
             "email_confirmed": "メールが確認されました。これが最後のステップです。この後は元に戻せません。",
             "delete_button": "アカウントを完全に削除",
             "final_dialog_title": "アカウントを完全に削除しますか？",
             "final_dialog_description": "これによりアカウントとそのすべてのデータが完全に削除され、元に戻すことはできません。",
-            "final_dialog_subscription": "サブスクリプションもキャンセルされます。",
             "final_confirm": "はい、すべて削除します",
             "check_email": "メールをご確認ください。アカウント削除を完了するための確認リンクを送信しました。リンクは30分で期限切れになります。続行するにはリンクを開いてください。",
             "resend_link": "リンクを再送信",
@@ -3906,7 +3344,6 @@
         "enable_feature": "{title} を有効にする",
         "enabling": "有効化中…",
         "enable_now": "今すぐ有効にする",
-        "upgrade_now": "今すぐアップグレード",
         "chat_title_fallback": "チャット",
         "more_options": "その他のオプション",
         "delete_confirmation_title": "削除の確認",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "ファイルをアップロード",
             "description_default": "分析するファイルを追加",
-            "quota_label_default": "ページ",
             "file_count": "{current} / {max} ファイル",
-            "quota_limit_reached_alert": "{quotaLabel}の上限である {quotaLimit} {quotaLabel}に達しました。より多くのドキュメントを処理するには、プランをアップグレードしてください。",
             "drop_zone_file_limit_reached": "ファイル数の上限に達しました",
-            "drop_zone_quota_limit_reached": "{quotaLabel}の上限に達しました",
             "drop_zone_select_files": "ファイルを選択",
             "drop_zone_max_files_hint": "アップロードできるファイルは最大 {max} 件です。さらに追加するには一部のファイルを削除してください。",
-            "drop_zone_quota_exhausted_hint": "{quotaLimit} {quotaLabel} をすべて使い切りました。続けるにはプランをアップグレードしてください。",
-            "drop_zone_unavailable": "アップロードは利用できません",
             "drop_zone_default_hint": "ドラッグ＆ドロップするか、クリックしてファイルを選択してください",
-            "total_quota": "合計 {count} {label}",
-            "exceeds_quota": "クォータを {amount} {quotaLabel} 超過しています",
             "clear_failed": "失敗分をクリア",
             "clear_all": "すべてクリア",
             "badge_analyzed": "解析済み",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "Amplitude プロジェクトからプロダクト分析（イベント、チャート、コホート）をクエリします。"
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Chatvia へようこそ",
-            "intro": "最初の AI エージェントを作成しましょう。1 分ほどで完了します。",
-            "what_title": "エージェントとは？",
-            "what_body": "エージェントは、独自のコンテンツで学習させる AI アシスタントです。ウェブサイト、チャットウィジェット、メッセージングアプリでお客様の質問に回答します。",
-            "how_title": "どのような仕組みですか？",
-            "how_body": "まずエージェントを作成して名前を付けます。次に、ファイル、ウェブサイト、テキストで学習させると、質問に回答できるようになります。",
-            "start": "最初のエージェントを作成",
-            "video_caption": "動画で仕組みを見る"
         }
     }
 }

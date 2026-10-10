@@ -1,0 +1,74 @@
+{
+    "content": [
+        {
+            "type": "text",
+            "text": "Busiest agent this month is Beta with 12 messages across 7 conversations."
+        }
+    ],
+    "isError": false,
+    "structuredContent": {
+        "period": {
+            "key": "this_month",
+            "label": "this month",
+            "start": "2026-06-01",
+            "end": "2026-06-15"
+        },
+        "agents": [
+            {
+                "agent_id": "@beta",
+                "name": "Beta",
+                "messages": 12,
+                "conversations": 7
+            },
+            {
+                "agent_id": "@alpha",
+                "name": "Alpha",
+                "messages": 6,
+                "conversations": 3
+            }
+        ],
+        "echarts_option": {
+            "tooltip": {
+                "trigger": "axis",
+                "axisPointer": {
+                    "type": "shadow"
+                }
+            },
+            "legend": {
+                "show": false,
+                "top": "bottom"
+            },
+            "grid": {
+                "left": 50,
+                "right": 30,
+                "top": 50,
+                "bottom": 20,
+                "containLabel": true
+            },
+            "xAxis": {
+                "type": "value"
+            },
+            "yAxis": {
+                "type": "category",
+                "data": [
+                    "Beta",
+                    "Alpha"
+                ]
+            },
+            "series": [
+                {
+                    "type": "bar",
+                    "name": "Messages",
+                    "data": [
+                        12,
+                        6
+                    ]
+                }
+            ],
+            "title": {
+                "text": "Messages by agent — this month",
+                "left": "center"
+            }
+        }
+    }
+}

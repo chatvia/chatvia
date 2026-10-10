@@ -1,8 +1,7 @@
 <script setup lang="ts">
 /**
  * "Ready to train": files that were uploaded but not trained yet, with their
- * total pages / minutes, a warning when they would go over the quota, and the
- * Clear all and Train buttons.
+ * total pages / minutes, and the Clear all and Train buttons.
  */
 import type { SourceFile } from '@/api/fileSources';
 import SourceActionButton from '@/components/agents/sources/SourceActionButton.vue';
@@ -17,7 +16,6 @@ defineProps<{
     files: SourceFile[];
     totalPages: number;
     totalMinutes: number;
-    wouldExceedQuota: boolean;
     isTraining: boolean;
 }>();
 
@@ -42,9 +40,6 @@ const { formatFileType, formatFileSize, formatFileLength } = useFileFormatting()
                             {{ t('agents.sources.files.uploaded_ready', files.length) }}
                             <span v-if="totalPages > 0" class="ms-1"> • {{ t('agents.sources.files.pages_count', totalPages) }} </span>
                             <span v-if="totalMinutes > 0" class="ms-1"> • {{ t('agents.sources.files.minutes_count', totalMinutes) }} </span>
-                            <span v-if="wouldExceedQuota" class="text-destructive ms-1 font-medium">
-                                • {{ t('agents.sources.files.exceeds_quota') }}
-                            </span>
                         </CardDescription>
                     </div>
                     <div class="flex items-center gap-2">
@@ -58,7 +53,7 @@ const { formatFileType, formatFileSize, formatFileLength } = useFileFormatting()
                             <Trash2 class="me-2 h-4 w-4" />
                             {{ t('agents.sources.files.clear_all') }}
                         </Button>
-                        <Button size="sm" :disabled="isTraining || files.length === 0 || wouldExceedQuota" @click="emit('train')">
+                        <Button size="sm" :disabled="isTraining || files.length === 0" @click="emit('train')">
                             <LoaderCircle v-if="isTraining" class="me-2 h-4 w-4 animate-spin" />
                             <Play v-else class="me-2 h-4 w-4" />
                             {{ isTraining ? t('agents.sources.files.training') : t('agents.sources.files.train') }}

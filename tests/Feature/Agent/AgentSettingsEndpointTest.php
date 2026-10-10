@@ -1,11 +1,13 @@
 <?php
 
+use Domain\Agent\Models\Agent;
+
 /**
  * The generic `settings/{group}` endpoint only manages groups that have
  * validation rules, and only deletes keys that belong to the group.
  */
 beforeEach(function (): void {
-    $this->agent = proPlanAgent();
+    $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->user;
 });
 

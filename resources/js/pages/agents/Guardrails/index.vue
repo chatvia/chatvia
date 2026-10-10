@@ -2,7 +2,6 @@
 // Guardrails page for one agent: a Configuration tab with the safety settings
 // (PII redaction, injection and toxicity checks, blocked topics, allowed scope,
 // refusal message) and an Activity tab with the trigger log.
-import LockedFeature from '@/components/LockedFeature.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head } from '@inertiajs/vue3';
@@ -38,9 +36,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const { hasCapability } = useCapabilityGuard();
-const hasAccess = computed(() => hasCapability('guardrails'));
-
 const { hasPermission } = useTeamPermissions();
 const canManage = computed(() => hasPermission('agent.guardrails.manage'));
 
@@ -58,9 +53,7 @@ const topicsOpen = ref(false);
     <AgentLayout :agent="props.agent" :title="t('agents.guardrails.title')" :description="t('agents.guardrails.description')">
         <Head :title="t('agents.guardrails.head_title', { name: props.agent.name })" />
 
-        <LockedFeature v-if="!hasAccess" :description="t('agents.guardrails.locked_description')" />
-
-        <div v-else class="flex justify-center">
+        <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl">
                 <Tabs v-model="activeTab">
                     <TabsList>

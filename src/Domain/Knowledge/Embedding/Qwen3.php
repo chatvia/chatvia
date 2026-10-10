@@ -3,7 +3,6 @@
 namespace Domain\Knowledge\Embedding;
 
 use Domain\Llm\Providers\Scaleway;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -32,8 +31,6 @@ class Qwen3 extends AbstractEmbeddingsProvider
                 'input' => $text,
                 'dimensions' => $this->getDimensions(),
             ]);
-
-        app(TokenUsageContext::class)->addFromResponse($response);
 
         $embedding = $response->json('data.0.embedding');
 
@@ -67,8 +64,6 @@ class Qwen3 extends AbstractEmbeddingsProvider
                 'input' => array_values($texts),
                 'dimensions' => $this->getDimensions(),
             ]);
-
-        app(TokenUsageContext::class)->addFromResponse($response);
 
         $data = $response->json('data');
 

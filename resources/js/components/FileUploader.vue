@@ -1,16 +1,15 @@
 <script setup lang="ts">
 /**
- * Knowledge-base file picker: drop zone, file and quota counters, and the list
+ * Knowledge-base file picker: drop zone, file counter, and the list
  * of picked files with their analysis state. The state lives in
  * `useFileUploader`; the parent reads the files through the exposed API.
  */
 import UploadingFileRow from '@/components/file-uploader/UploadingFileRow.vue';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useFileUploader, type FileAnalyzedData, type FileUploaderConfig, type UploadingFileData } from '@/composables/useFileUploader';
-import { AlertCircle, Trash2, Upload } from 'lucide-vue-next';
+import { Trash2, Upload } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -18,18 +17,14 @@ interface Props {
     title?: string;
     description?: string;
     config: FileUploaderConfig;
-    showQuota?: boolean;
-    quotaUsed?: number;
-    quotaLimit?: number;
-    quotaLabel?: string;
+    /** What a file's length counts: minutes (audio, video) or pages (everything else). */
+    lengthUnit?: 'pages' | 'minutes';
     disabled?: boolean;
     disabledMessage?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    showQuota: false,
-    quotaUsed: 0,
-    quotaLimit: 100,
+    lengthUnit: 'pages',
     disabled: false,
 });
 
@@ -37,7 +32,6 @@ const { t } = useI18n();
 
 const displayTitle = computed(() => props.title ?? t('shared.file_uploader.title_default'));
 const displayDescription = computed(() => props.description ?? t('shared.file_uploader.description_default'));
-const displayQuotaLabel = computed(() => props.quotaLabel ?? t('shared.file_uploader.quota_label_default'));
 
 const emit = defineEmits<{
     filesChanged: [files: UploadingFileData[]];
@@ -82,69 +76,30 @@ const {
     formatSpeed,
 } = useFileUploader(uploaderConfig);
 
-const quotaLabelForCount = (count: number): string => {
-    const label = displayQuotaLabel.value;
-    if (count === 1 && label.endsWith('s')) {
-        return label.slice(0, -1);
-    }
-
-    return label;
-};
-
-// Quota computations
-const quotaRemaining = computed(() => {
-    if (!props.showQuota) return Infinity;
-    return props.quotaLimit - props.quotaUsed;
-});
-
-const quotaUtilization = computed(() => {
-    if (!props.showQuota) return 0;
-    const used = props.quotaUsed + totalPages.value;
-    return Math.min((used / props.quotaLimit) * 100, 100);
-});
-
-const wouldExceedQuota = computed(() => {
-    if (!props.showQuota) return false;
-    return totalPages.value > quotaRemaining.value;
-});
+/** Total length of the picked files: "12 pages" or "3 minutes". */
+const totalLengthLabel = computed(() =>
+    props.lengthUnit === 'minutes'
+        ? t('shared.file_uploader.minute_length', { count: totalPages.value }, { plural: totalPages.value })
+        : t('shared.file_uploader.page_length', { count: totalPages.value }, { plural: totalPages.value }),
+);
 
 // UI state
 const canUpload = computed(() => {
-    return !props.disabled && totalFiles.value < props.config.maxFiles && (!props.showQuota || quotaRemaining.value > 0);
+    return !props.disabled && totalFiles.value < props.config.maxFiles;
 });
 
-const dropZoneTitle = computed(() => {
-    if (!canUpload.value && !props.disabled) {
-        if (totalFiles.value >= props.config.maxFiles) {
-            return t('shared.file_uploader.drop_zone_file_limit_reached');
-        }
+// Only the file limit can block an enabled uploader.
+const fileLimitReached = computed(() => !props.disabled && totalFiles.value >= props.config.maxFiles);
 
-        return t('shared.file_uploader.drop_zone_quota_limit_reached', {
-            quotaLabel: displayQuotaLabel.value.charAt(0).toUpperCase() + displayQuotaLabel.value.slice(1),
-        });
-    }
+const dropZoneTitle = computed(() =>
+    fileLimitReached.value ? t('shared.file_uploader.drop_zone_file_limit_reached') : t('shared.file_uploader.drop_zone_select_files'),
+);
 
-    return t('shared.file_uploader.drop_zone_select_files');
-});
-
-const dropZoneHint = computed(() => {
-    if (!canUpload.value && !props.disabled) {
-        if (totalFiles.value >= props.config.maxFiles) {
-            return t('shared.file_uploader.drop_zone_max_files_hint', { max: props.config.maxFiles });
-        }
-
-        if (props.showQuota) {
-            return t('shared.file_uploader.drop_zone_quota_exhausted_hint', {
-                quotaLimit: props.quotaLimit,
-                quotaLabel: displayQuotaLabel.value,
-            });
-        }
-
-        return t('shared.file_uploader.drop_zone_unavailable');
-    }
-
-    return t('shared.file_uploader.drop_zone_default_hint');
-});
+const dropZoneHint = computed(() =>
+    fileLimitReached.value
+        ? t('shared.file_uploader.drop_zone_max_files_hint', { max: props.config.maxFiles })
+        : t('shared.file_uploader.drop_zone_default_hint'),
+);
 
 const triggerFileInput = () => {
     if (canUpload.value) {
@@ -202,39 +157,12 @@ defineExpose({
         </CardHeader>
         <CardContent>
             <div class="space-y-4">
-                <!-- File count and quota indicators -->
+                <!-- File count -->
                 <div class="flex items-center justify-between">
                     <span class="text-muted-foreground text-sm">
                         {{ t('shared.file_uploader.file_count', { current: totalFiles, max: config.maxFiles }) }}
                     </span>
-                    <div v-if="showQuota" class="flex items-center gap-2">
-                        <span class="text-muted-foreground text-sm"> {{ quotaUsed + totalPages }} / {{ quotaLimit }} {{ displayQuotaLabel }} </span>
-                        <div class="bg-muted h-2 w-20 rounded-full">
-                            <div
-                                class="h-2 rounded-full transition-all duration-300"
-                                :class="{
-                                    'bg-green-500': quotaUtilization < 70,
-                                    'bg-yellow-500': quotaUtilization >= 70 && quotaUtilization < 90,
-                                    'bg-red-500': quotaUtilization >= 90,
-                                }"
-                                :style="{ width: `${quotaUtilization}%` }"
-                            ></div>
-                        </div>
-                    </div>
                 </div>
-
-                <!-- Quota warnings -->
-                <Alert v-if="showQuota && quotaRemaining <= 0" variant="destructive">
-                    <AlertCircle class="h-4 w-4" />
-                    <AlertDescription>
-                        {{
-                            t('shared.file_uploader.quota_limit_reached_alert', {
-                                quotaLabel: displayQuotaLabel,
-                                quotaLimit,
-                            })
-                        }}
-                    </AlertDescription>
-                </Alert>
 
                 <!-- File input -->
                 <input ref="fileInputRef" :accept="config.acceptedTypes" class="hidden" multiple type="file" @change="handleFileUpload" />
@@ -245,7 +173,6 @@ defineExpose({
                     :class="{
                         'cursor-not-allowed opacity-50': disabled,
                         'cursor-not-allowed': !canUpload && !disabled,
-                        'border-destructive bg-destructive/5': !disabled && showQuota && quotaRemaining <= 0,
                         'border-primary bg-primary/5': isDragOver && canUpload,
                     }"
                     @click="triggerFileInput"
@@ -268,23 +195,7 @@ defineExpose({
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-muted-foreground text-sm">
-                                <span v-if="totalPages > 0">
-                                    {{
-                                        t('shared.file_uploader.total_quota', {
-                                            count: totalPages,
-                                            label: quotaLabelForCount(totalPages),
-                                        })
-                                    }}
-                                </span>
-                                <span v-if="showQuota && wouldExceedQuota" class="text-destructive ms-2 font-medium">
-                                    •
-                                    {{
-                                        t('shared.file_uploader.exceeds_quota', {
-                                            amount: totalPages - quotaRemaining,
-                                            quotaLabel: displayQuotaLabel,
-                                        })
-                                    }}
-                                </span>
+                                <span v-if="totalPages > 0">{{ totalLengthLabel }}</span>
                             </p>
                         </div>
                         <div class="flex items-center gap-2">

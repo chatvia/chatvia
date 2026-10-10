@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { store as storeQa, update as updateQa } from '@/routes/agents/sources/qa';
 import { useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Plus, Save, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -63,7 +64,7 @@ function submit(): void {
     };
 
     if (props.entry) {
-        form.patch(route('agents.sources.qa.update', { agent: props.agentId, id: props.entry.id }), {
+        form.patch(updateQa.url({ agent: props.agentId, id: props.entry.id }), {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(t('agents.sources.qa.updated'));
@@ -75,7 +76,7 @@ function submit(): void {
             onFinish,
         });
     } else {
-        form.post(route('agents.sources.qa.store', { agent: props.agentId }), {
+        form.post(storeQa.url(props.agentId), {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(t('agents.sources.qa.created'));

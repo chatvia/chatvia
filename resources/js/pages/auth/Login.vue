@@ -11,8 +11,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useBilling } from '@/composables/useBilling';
 import AuthBase from '@/layouts/AuthLayout.vue';
+import { dashboard, login, register } from '@/routes';
+import { send as sendMagicLink } from '@/routes/magic-link';
+import { request as requestPasswordReset } from '@/routes/password';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Fingerprint, LoaderCircle, Lock, Mail, Sparkles } from 'lucide-vue-next';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
@@ -23,11 +25,9 @@ const { t } = useI18n();
 defineProps<{
     status?: string;
     canResetPassword: boolean;
-    // Self-serve sign-up is open (a self-hosted install without billing).
+    // Self-serve sign-up is open ("Open sign-up" in the admin panel).
     canRegister?: boolean;
 }>();
-
-const { billingEnabled } = useBilling();
 
 const mode = ref<'password' | 'magic-link'>('password');
 
@@ -42,13 +42,13 @@ const magicLinkForm = useForm({
 });
 
 const submitPassword = () => {
-    passwordForm.post(route('login'), {
+    passwordForm.post(login.url(), {
         onFinish: () => passwordForm.reset('password'),
     });
 };
 
 const submitMagicLink = () => {
-    magicLinkForm.post(route('magic-link.send'), {
+    magicLinkForm.post(sendMagicLink.url(), {
         preserveScroll: true,
     });
 };
@@ -61,7 +61,7 @@ const loadPasskeys = () => (passkeysModule ??= import('@laravel/passkeys'));
 
 const redirectAfterSignIn = (redirect?: string) => {
     // Hard-navigate so the new authenticated session is picked up on load.
-    window.location.href = redirect ?? route('dashboard');
+    window.location.href = redirect ?? dashboard.url();
 };
 
 const tryAutofill = async () => {
@@ -173,7 +173,7 @@ onBeforeUnmount(cancelPasskeys);
                                 <Label for="password" class="text-base font-medium">{{ t('auth.login.password_label') }}</Label>
                                 <TextLink
                                     v-if="canResetPassword"
-                                    :href="route('password.request')"
+                                    :href="requestPasswordReset.url()"
                                     class="text-primary hover:text-primary/80 text-sm font-medium"
                                     :tabindex="5"
                                 >
@@ -259,21 +259,13 @@ onBeforeUnmount(cancelPasskeys);
             <!-- Social Login Buttons -->
             <SocialLoginButtons show-microsoft show-github />
 
-            <!-- Sign Up Link: the sign-up form when it is open, else the trial on the pricing page (billing only) -->
-            <div v-if="canRegister || billingEnabled" class="pt-4 text-center">
+            <!-- Sign Up Link: only when self-serve sign-up is open -->
+            <div v-if="canRegister" class="pt-4 text-center">
                 <p class="text-muted-foreground text-base">
                     {{ t('auth.login.no_account') }}
-                    <TextLink
-                        v-if="canRegister"
-                        :href="route('register')"
-                        :tabindex="8"
-                        class="text-primary hover:text-primary/80 ms-1 font-semibold"
-                    >
+                    <TextLink :href="register.url()" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold">
                         {{ t('auth.login.create_account') }}
                     </TextLink>
-                    <a v-else href="/#pricing" :tabindex="8" class="text-primary hover:text-primary/80 ms-1 font-semibold">
-                        {{ t('auth.login.start_free_trial') }}
-                    </a>
                 </p>
             </div>
         </div>

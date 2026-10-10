@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { evals } from '@/routes/agents';
 import { Head, Link } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { ArrowLeft, CheckCircle2, Gauge, Hash, LoaderCircle, Target, XCircle } from 'lucide-vue-next';
@@ -83,10 +84,9 @@ useEcho(`agents.${props.agent.external_id}.evals`, '.EvalRunProgressed', (e: Eva
 
 const statusLabel = (status: string) => t(`agents.evals.statuses.${status}`);
 
-// Summary metrics in the Usage.vue card shape: header (label + icon), big value
-// with an optional "of N" secondary, a progress bar, and a note. Pass/fail show
-// a share-of-total bar; percentages fill the bar directly; Tokens is note-only
-// (uncapped) like the billing Tokens card.
+// Summary metrics as cards: header (label + icon), big value with an optional
+// "of N" secondary, a progress bar, and a note. Pass/fail show a share-of-total
+// bar; percentages fill the bar directly; Tokens is note-only (uncapped).
 const stats = computed(() => {
     const data = run.value;
     const total = data.passed_count + data.failed_count;
@@ -165,7 +165,7 @@ const openDetail = (result: EvalResult) => {
             <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl space-y-6">
                 <div class="flex items-center gap-3">
                     <Button variant="ghost" size="icon" as-child :aria-label="t('agents.evals.run.back')">
-                        <Link :href="route('agents.evals', props.agent.external_id)">
+                        <Link :href="evals.url(props.agent.external_id)">
                             <ArrowLeft class="h-4 w-4" />
                         </Link>
                     </Button>

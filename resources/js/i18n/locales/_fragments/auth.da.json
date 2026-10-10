@@ -20,8 +20,7 @@
             "send_link": "Send mig et login-link",
             "sending_link": "Sender link...",
             "or_continue_with": "Eller fortsæt med",
-            "no_account": "Har du ikke en konto?",
-            "start_free_trial": "Start gratis prøveperiode"
+            "no_account": "Har du ikke en konto?"
         },
         "register": {
             "title": "Opret en konto",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Brug en gendannelseskode",
             "use_authenticator_code": "Brug en godkendelseskode"
         },
-        "set_password": {
-            "title": "Vælg din adgangskode",
-            "description": "Din konto er klar. Vælg en adgangskode for at færdiggøre opsætningen.",
-            "head": "Vælg din adgangskode",
-            "email_label": "E-mailadresse",
-            "password_label": "Adgangskode",
-            "password_placeholder": "Adgangskode",
-            "confirm_password_label": "Bekræft adgangskode",
-            "confirm_password_placeholder": "Bekræft adgangskode",
-            "set_password": "Gem adgangskode",
-            "setting_password": "Gemmer adgangskode..."
-        },
         "login_member": {
             "description": "Log ind for at få adgang til dette chat-arbejdsområde",
             "head": "Medlemslogin",
@@ -168,16 +155,6 @@
             "or": "Eller",
             "social_email_note_prefix": "Sørg for, at din sociale konto bruger",
             "social_email_note_suffix": "– den skal matche denne invitation."
-        },
-        "invitation_invalid": {
-            "title": "Invitation ikke tilgængelig",
-            "description": "Denne invitation kan ikke accepteres",
-            "head": "Invitation ikke tilgængelig",
-            "card_title": "Kan ikke acceptere invitation",
-            "cannot_accept_prefix": "Invitationen til at tilslutte sig",
-            "cannot_accept_suffix": "kan ikke accepteres på nuværende tidspunkt.",
-            "contact_owner": "Kontakt venligst teamejeren for at løse dette problem.",
-            "go_to_login": "Gå til login"
         },
         "invitation_expired": {
             "title": "Invitation udløbet",

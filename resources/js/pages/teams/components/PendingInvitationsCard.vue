@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { cancelInvitation as cancelInvitationRoute, resendInvitation as resendInvitationRoute } from '@/routes/teams';
 import { roleBadgeVariant } from '../composables/roleBadgeVariant';
 
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -32,14 +33,14 @@ const roleName = (code: string | null): string | null => props.roles.find((r) =>
 
 const cancelInvitationForm = useForm({});
 const cancelInvitation = (invitationId: number) => {
-    cancelInvitationForm.delete(route('teams.cancel-invitation', { team: props.team.external_id, invitationId }));
+    cancelInvitationForm.delete(cancelInvitationRoute.url({ team: props.team.external_id, invitationId }));
 };
 
 const resendInvitationForm = useForm({});
 const resendingInvitationId = ref<number | null>(null);
 const resendInvitation = (invitationId: number) => {
     resendingInvitationId.value = invitationId;
-    resendInvitationForm.post(route('teams.resend-invitation', { team: props.team.external_id, invitationId }), {
+    resendInvitationForm.post(resendInvitationRoute.url({ team: props.team.external_id, invitationId }), {
         preserveScroll: true,
         onSuccess: () => toast.success(t('teams.show.invitations.toast_resent')),
         onError: (errors) => toast.error(errors.invitation || t('teams.show.invitations.toast_resend_failed')),

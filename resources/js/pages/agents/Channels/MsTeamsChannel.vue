@@ -3,6 +3,7 @@
 // secret and (single-tenant) tenant id; once connected, show the messaging
 // endpoint to paste into the bot's configuration and an "Open in Teams" link.
 import { Button } from '@/components/ui/button';
+import { connect as connectMsTeams } from '@/routes/agents/channels/msteams';
 import { useForm } from '@inertiajs/vue3';
 import { Building2, Fingerprint, Link2, LoaderCircle, Lock, Plug } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -27,7 +28,7 @@ const { t } = useI18n();
 const form = useForm({ app_id: '', app_secret: '', tenant_id: '' });
 
 const connect = () => {
-    form.post(route('agents.channels.msteams.connect', props.agent.external_id), {
+    form.post(connectMsTeams.url(props.agent.external_id), {
         preserveScroll: true,
         preserveState: true,
         onSuccess: () => {

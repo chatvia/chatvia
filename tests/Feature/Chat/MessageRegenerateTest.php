@@ -4,7 +4,6 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Services\UserCreditSystem;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
@@ -24,20 +23,9 @@ function regenerateAgent(bool $isPublic = true): Agent
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
 
-    $priceId = 'price_test_pro_'.Str::random(6);
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
-
-    $owner->billing()->firstOrCreate([]);
-    $owner->billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => $priceId,
-        'quantity' => 1,
-    ]);
     $owner->refresh();
 
-    $agent = Agent::create([
+    return Agent::create([
         'user_id' => $owner->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Regenerate Bot',
@@ -46,10 +34,6 @@ function regenerateAgent(bool $isPublic = true): Agent
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => $isPublic,
     ]);
-
-    app(UserCreditSystem::class)->forWorkspace($agent->user_id)->setCanSendMessages(true);
-
-    return $agent;
 }
 
 function regenerateConversation(Agent $agent, ?User $user = null): Conversation

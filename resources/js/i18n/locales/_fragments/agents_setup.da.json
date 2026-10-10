@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Brugerdefineret domæne",
                 "description": "Vis denne agents hostede chat fra dit eget domæne i stedet for {target}.",
-                "no_quota_title": "Brugerdefinerede domæner er ikke inkluderet i din nuværende plan",
-                "no_quota_description": "Opgrader til Pro eller tilkøb tilføjelsespakken Brugerdefineret domæne fra {link} for at tilføje dit eget hostnavn.",
-                "billing": "Fakturering",
-                "quota": "Bruger {used} af {total} brugerdefineret domæne | Bruger {used} af {total} brugerdefinerede domæner",
-                "add_more": "Tilføj flere",
                 "step1": "Trin 1 — Tilføj en CNAME-post hos din DNS-udbyder",
                 "type": "Type",
                 "name": "Navn",

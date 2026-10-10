@@ -33,7 +33,7 @@
                     "reply_streams_live": "— svaret strömmas live"
                 },
                 "telegram": {
-                    "connected_description": "Användare kan skicka meddelanden till din bot på Telegram och din agent svarar automatiskt — fakturering, historik och skyddsregler gäller som vanligt.",
+                    "connected_description": "Användare kan skicka meddelanden till din bot på Telegram och din agent svarar automatiskt — meddelandegränser, historik och skyddsregler gäller som vanligt.",
                     "steps": {
                         "connect_1": "Öppna {botfather} i Telegram",
                         "connect_2": "Skicka {command} och följ anvisningarna",

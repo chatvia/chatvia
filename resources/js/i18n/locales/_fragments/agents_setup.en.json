@@ -154,11 +154,6 @@
             "domain": {
                 "title": "Custom Domain",
                 "description": "Serve this agent's Hosted Chat from your own domain instead of {target}.",
-                "no_quota_title": "Custom domains aren't included in your current plan",
-                "no_quota_description": "Upgrade to Pro or subscribe to the Custom Domain add-on from {link} to add your own hostname.",
-                "billing": "Billing",
-                "quota": "Using {used} of {total} custom domain | Using {used} of {total} custom domains",
-                "add_more": "Add more",
                 "step1": "Step 1 — Add a CNAME record at your DNS provider",
                 "type": "Type",
                 "name": "Name",

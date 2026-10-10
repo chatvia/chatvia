@@ -16,7 +16,7 @@ use Domain\Channel\Telegram\Services\TelegramCommandRouter;
  * Handles one inbound Telegram text message end to end. The same turn as
  * {@see HandleChannelMessageAction}, plus Telegram's slash commands: once the
  * chat's Session + Conversation are resolved, a command may answer with a
- * canned message (no LLM, no billing) or swap the text for its prompt.
+ * canned message (no LLM, nothing counted) or swap the text for its prompt.
  * Invoked off the webhook via {@see HandleTelegramUpdateJob}.
  *
  * Messaging channels are for PUBLIC agents only ({@see ChannelAccessGate}).
@@ -38,7 +38,7 @@ class HandleTelegramUpdateAction
         $chat = $channel->resolveConversation();
 
         // A slash command resolves to either a canned message (sent directly — no
-        // LLM, no billing) or a prompt to run through the agent. A plain message,
+        // LLM, nothing counted) or a prompt to run through the agent. A plain message,
         // or an unknown /command, returns null and runs the pipeline as-is.
         $outcome = $this->commands->handle($channel->bot(), $chat, $text, $channel->sender());
 

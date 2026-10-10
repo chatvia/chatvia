@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use Closure;
-use DateTimeImmutable;
 
 /**
  * One value an admin can set in a settings group, and the config key it fills.
@@ -20,9 +19,7 @@ final readonly class SettingField
 {
     /**
      * @param  list<string>  $rules  Extra validation rules for a filled text value.
-     * @param  bool|int|string|(Closure(array<string, bool|int|string|null>): (bool|int|string|null))|null  $default  The value while nothing is saved. A closure gets the values of the fields before this one, by name.
-     * @param  array<string, string>  $options  The choices of a select field: value => label.
-     * @param  array<string, Closure(bool|int|string|null): mixed>  $alsoFills  More config keys this value fills, each with the way to derive it.
+     * @param  bool|int|string|(Closure(): (bool|int|string|null))|null  $default  The value while nothing is saved.
      */
     private function __construct(
         public string $name,
@@ -33,10 +30,8 @@ final readonly class SettingField
         public array $rules = [],
         public ?string $help = null,
         private bool|int|string|Closure|null $default = null,
-        public array $options = [],
         public ?int $min = null,
         public ?int $max = null,
-        public array $alsoFills = [],
     ) {}
 
     /**
@@ -64,13 +59,8 @@ final readonly class SettingField
             default: fn (): string => url($defaultPath));
     }
 
-    /**
-     * An on/off switch. The default may depend on an earlier field of the
-     * group, for example "on while billing is off".
-     *
-     * @param  bool|Closure(array<string, bool|int|string|null>): bool  $default
-     */
-    public static function toggle(string $name, string $label, string $config, bool|Closure $default, ?string $help = null): self
+    /** An on/off switch. */
+    public static function toggle(string $name, string $label, string $config, bool $default, ?string $help = null): self
     {
         return new self($name, $label, $config, SettingFieldKind::Toggle, help: $help, default: $default);
     }
@@ -80,36 +70,15 @@ final readonly class SettingField
         return new self($name, $label, $config, SettingFieldKind::Integer, help: $help, default: $default, min: $min, max: $max);
     }
 
-    /**
-     * @param  array<string, string>  $options  value => label
-     * @param  array<string, Closure(bool|int|string|null): mixed>  $alsoFills  config key => how to derive its value from this one
-     */
-    public static function select(string $name, string $label, string $config, array $options, string $default, ?string $help = null, array $alsoFills = []): self
-    {
-        return new self($name, $label, $config, SettingFieldKind::Select, help: $help, default: $default, options: $options, alsoFills: $alsoFills);
-    }
-
-    /**
-     * A calendar day, put into config as `Y-m-d`. Null while nothing is saved.
-     */
-    public static function date(string $name, string $label, string $config, ?string $help = null): self
-    {
-        return new self($name, $label, $config, SettingFieldKind::Date, help: $help);
-    }
-
     public function isSecret(): bool
     {
         return $this->kind === SettingFieldKind::Secret;
     }
 
-    /**
-     * The value used while nothing is saved.
-     *
-     * @param  array<string, bool|int|string|null>  $earlier  The values of the fields before this one, by name.
-     */
-    public function defaultValue(array $earlier = []): bool|int|string|null
+    /** The value used while nothing is saved. */
+    public function defaultValue(): bool|int|string|null
     {
-        return $this->default instanceof Closure ? ($this->default)($earlier) : $this->default;
+        return $this->default instanceof Closure ? ($this->default)() : $this->default;
     }
 
     /**
@@ -131,8 +100,6 @@ final readonly class SettingField
         return match ($this->kind) {
             SettingFieldKind::Toggle => filter_var($saved, FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE),
             SettingFieldKind::Integer => $this->integerInRange($saved),
-            SettingFieldKind::Select => array_key_exists($saved, $this->options) ? $saved : null,
-            SettingFieldKind::Date => $this->calendarDay($saved),
             SettingFieldKind::Text, SettingFieldKind::Secret, SettingFieldKind::Url => $saved,
         };
     }
@@ -164,12 +131,5 @@ final readonly class SettingField
         }
 
         return $value;
-    }
-
-    private function calendarDay(string $saved): ?string
-    {
-        $day = DateTimeImmutable::createFromFormat('!Y-m-d', $saved);
-
-        return $day !== false && $day->format('Y-m-d') === $saved ? $saved : null;
     }
 }

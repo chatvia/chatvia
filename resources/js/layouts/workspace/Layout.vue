@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import Heading from '@/components/Heading.vue';
+import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
+import governance from '@/routes/governance';
+import integrations from '@/routes/integrations';
+import library from '@/routes/library';
+import people from '@/routes/people';
+import security from '@/routes/security';
 import { Link } from '@inertiajs/vue3';
 import { Code, KeyRound, Lock, MessageSquareText, Plug, ScrollText, Users, type LucideIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -11,8 +17,9 @@ const { t } = useI18n();
 interface NavItem {
     // i18n key resolved at render time (see workspace.nav.* in the locale files).
     title: string;
-    // Ziggy route name — href + active state derive from it (see account layout).
+    // Route name, for the active state.
     name: string;
+    href: string;
     icon: LucideIcon;
     permission?: string;
     // Extra route names that also mark this item active — the unified Audit item
@@ -27,23 +34,58 @@ interface NavSection {
 }
 
 const { hasPermission } = useTeamPermissions();
+const { current } = useCurrentRoute();
 
 const baseSections: NavSection[] = [
     {
         title: 'workspace.sections.integrations',
         items: [
-            { title: 'workspace.nav.connectors', name: 'integrations.connectors.edit', icon: Plug, permission: 'account.connectors' },
-            { title: 'workspace.nav.functions', name: 'integrations.functions.edit', icon: Code, permission: 'account.functions' },
-            { title: 'workspace.nav.api_keys', name: 'integrations.api-keys.edit', icon: KeyRound, permission: 'account.api_keys' },
+            {
+                title: 'workspace.nav.connectors',
+                name: 'integrations.connectors.edit',
+                href: integrations.connectors.edit.url(),
+                icon: Plug,
+                permission: 'account.connectors',
+            },
+            {
+                title: 'workspace.nav.functions',
+                name: 'integrations.functions.edit',
+                href: integrations.functions.edit.url(),
+                icon: Code,
+                permission: 'account.functions',
+            },
+            {
+                title: 'workspace.nav.api_keys',
+                name: 'integrations.api-keys.edit',
+                href: integrations.apiKeys.edit.url(),
+                icon: KeyRound,
+                permission: 'account.api_keys',
+            },
         ],
     },
     {
         title: 'workspace.sections.library',
-        items: [{ title: 'workspace.nav.prompts', name: 'library.prompts.edit', icon: MessageSquareText, permission: 'account.prompts' }],
+        items: [
+            {
+                title: 'workspace.nav.prompts',
+                name: 'library.prompts.edit',
+                href: library.prompts.edit.url(),
+                icon: MessageSquareText,
+                permission: 'account.prompts',
+            },
+        ],
     },
     {
         title: 'workspace.sections.people',
-        items: [{ title: 'workspace.nav.members', name: 'people.chatters.index', icon: Users, permission: 'account.chatters.manage' }],
+        items: [
+            {
+                title: 'workspace.nav.members',
+                name: 'people.chatters.index',
+                href: people.chatters.index.url(),
+                icon: Users,
+                permission: 'account.chatters.manage',
+            },
+        ],
     },
 ];
 
@@ -54,16 +96,19 @@ const governanceItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [];
 
     if (hasPermission('account.governance') || hasPermission('account.security')) {
+        const canGovern = hasPermission('account.governance');
+
         items.push({
             title: 'workspace.nav.audit',
-            name: hasPermission('account.governance') ? 'governance.audit' : 'security.audit',
+            name: canGovern ? 'governance.audit' : 'security.audit',
+            href: canGovern ? governance.audit.url() : security.audit.url(),
             icon: ScrollText,
             activeNames: ['governance.audit', 'security.audit'],
         });
     }
 
     if (hasPermission('account.security')) {
-        items.push({ title: 'workspace.nav.security', name: 'security.edit', icon: Lock });
+        items.push({ title: 'workspace.nav.security', name: 'security.edit', href: security.edit.url(), icon: Lock });
     }
 
     return items;
@@ -87,7 +132,7 @@ withDefaults(
 );
 
 function isActive(item: NavItem): boolean {
-    return (item.activeNames ?? [item.name]).some((name) => route().current(name));
+    return (item.activeNames ?? [item.name]).some((name) => current(name));
 }
 </script>
 
@@ -105,7 +150,7 @@ function isActive(item: NavItem): boolean {
                         <Link
                             v-for="item in section.items"
                             :key="item.name"
-                            :href="route(item.name)"
+                            :href="item.href"
                             :class="[
                                 'group inline-flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
                                 isActive(item)

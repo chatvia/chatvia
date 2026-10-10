@@ -3,7 +3,6 @@
 use App\Http\Responses\SseResponder;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Billing\Models\UserCredit;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Conversation\Models\Conversation;
@@ -47,7 +46,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * flush plumbing, so everything upstream of the transport stays real.
  */
 beforeEach(function (): void {
-    // StoreMessageJob, UpdateUserCreditsJob and the queued analytics/audit
+    // StoreMessageJob and the queued analytics/audit
     // listeners must run inline so the test can assert persisted state.
     config(['queue.default' => 'sync']);
 
@@ -196,35 +195,11 @@ function toolLoopBindTwoTurnLlm(): void
     );
 }
 
-/** A public agent whose owner holds an active subscription and message budget. */
+/** A public agent of a fresh workspace. */
 function toolLoopAgent(): Agent
 {
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
-
-    // Registration is trial-checkout-only (the Stripe webhook provisions
-    // billing), so factory users carry no UserBilling row — create it here.
-    $billing = $owner->billing()->firstOrCreate([]);
-
-    $priceId = 'price_test_pro_'.Str::random(6);
-    updateBillingPlan('pro', ['stripe_monthly_price_id' => $priceId]);
-    $billing->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => $priceId,
-        'quantity' => 1,
-    ]);
-
-    // Message-based credit gate: an active cycle with budget.
-    UserCredit::factory()->create([
-        'user_id' => $owner->id,
-        'messages' => 4000,
-        'started_at' => now()->subDay(),
-        'ends_at' => now()->addDays(20),
-    ]);
-
-    $owner->refresh();
 
     return Agent::create([
         'user_id' => $owner->id,

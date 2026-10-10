@@ -32,7 +32,7 @@ it('shows the delete page to a workspace owner with their agents and subscriptio
                 ->component('account/DeleteAccount')
                 ->has('agents', 1)
                 ->where('agents.0.name', 'Support Bot')
-                ->has('hasSubscription')
+                ->missing('hasSubscription')
                 ->where('deletionConfirmed', false),
         );
 });

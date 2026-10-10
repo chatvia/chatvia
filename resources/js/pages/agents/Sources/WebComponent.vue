@@ -2,7 +2,7 @@
 /**
  * Website sources of an agent. A website goes through four stages, each with
  * its own card: crawling (pages are being discovered) → ready for training
- * (pick websites and train them within the link quota) → training → trained.
+ * (pick websites and train them) → training → trained.
  * Status changes arrive live over Reverb.
  */
 import AttachWebsiteDialog from '@/components/common/AttachWebsiteDialog.vue';
@@ -14,15 +14,12 @@ import TrainedWebsitesCard from '@/components/agents/sources/web/TrainedWebsites
 import TrainingWebsitesCard from '@/components/agents/sources/web/TrainingWebsitesCard.vue';
 import WebsiteCrawlerCard from '@/components/agents/sources/web/WebsiteCrawlerCard.vue';
 import WebsiteLinksDialog from '@/components/agents/sources/web/WebsiteLinksDialog.vue';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDiscoveredLinks } from '@/composables/agents/sources/web/useDiscoveredLinks';
-import { useWebLinkQuota } from '@/composables/agents/sources/web/useWebLinkQuota';
 import { useWebsiteDeletion } from '@/composables/agents/sources/web/useWebsiteDeletion';
 import { useWebsiteLinksDialog } from '@/composables/agents/sources/web/useWebsiteLinksDialog';
 import { useWebsiteLiveUpdates } from '@/composables/agents/sources/web/useWebsiteLiveUpdates';
 import { useWebSources } from '@/composables/agents/sources/web/useWebSources';
 import { useWebsiteTraining } from '@/composables/agents/sources/web/useWebsiteTraining';
-import { AlertCircle } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -33,15 +30,13 @@ const props = defineProps<{
 const { t } = useI18n();
 const agentId = props.agent.external_id;
 
-const quota = useWebLinkQuota();
 const sources = useWebSources(agentId);
-const links = useDiscoveredLinks(agentId, sources, quota);
-const training = useWebsiteTraining(agentId, sources, quota);
-const linksDialog = useWebsiteLinksDialog(agentId, sources, quota);
-const deletion = useWebsiteDeletion(agentId, sources, training, quota);
-useWebsiteLiveUpdates(agentId, { sources, links, training, linksDialog, quota });
+const links = useDiscoveredLinks(agentId, sources);
+const training = useWebsiteTraining(agentId, sources);
+const linksDialog = useWebsiteLinksDialog(agentId, sources);
+const deletion = useWebsiteDeletion(agentId, sources, training);
+useWebsiteLiveUpdates(agentId, { sources, links, training, linksDialog });
 
-const { linkUsage, limitWarning, refreshUsage } = quota;
 const { crawlingSources, crawledSources, trainingSources, completedSources, isLoadingSources, isInitialLoad, fetchWebSources } = sources;
 const { isDialogOpen: isDeleteDialogOpen, target: websiteToDelete, description: deleteDescription, isUnlinking, isDeleting } = deletion;
 
@@ -49,7 +44,6 @@ const isAttachDialogOpen = ref(false);
 
 const reload = () => {
     fetchWebSources();
-    refreshUsage();
 };
 
 onMounted(reload);
@@ -65,12 +59,7 @@ onMounted(reload);
                 variant="info"
             />
 
-            <Alert v-if="limitWarning" :variant="limitWarning.type === 'critical' ? 'destructive' : 'default'" class="mb-4">
-                <AlertCircle class="h-4 w-4" />
-                <AlertDescription>{{ limitWarning.message }}</AlertDescription>
-            </Alert>
-
-            <WebsiteCrawlerCard :agent-id="agentId" :link-usage="linkUsage" @added="fetchWebSources()" />
+            <WebsiteCrawlerCard :agent-id="agentId" @added="fetchWebSources()" />
 
             <CrawlingWebsitesCard v-if="crawlingSources.length > 0" :sources="crawlingSources" @delete="deletion.confirm" />
 
@@ -79,7 +68,6 @@ onMounted(reload);
                 :sources="crawledSources"
                 :training="training"
                 :links="links"
-                :link-usage="linkUsage"
                 @delete="deletion.confirm"
             />
 

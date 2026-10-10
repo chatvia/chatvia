@@ -79,6 +79,6 @@ If your workspace has integrated SSO with your app, mint a Chatvia JWT immediate
 
 ## Custom domain (CNAME)
 
-By default the Hosted Chat surface lives on `*.chatvia.ai`. Enterprise plans support hosting it on your own domain via CNAME (e.g. `chat.yourcompany.com → YOUR_AGENT.chatvia.ai`). Contact support to set up the certificate.
+By default the Hosted Chat surface lives on `*.chatvia.ai`. Every workspace can also host it on its own domain. Point a CNAME at the agent's subdomain (e.g. `chat.yourcompany.com → YOUR_AGENT.chatvia.ai`) and enter the domain under **Setup → Domain**. Then ask the person who runs your Chatvia server to add a TLS certificate for the domain. There is no limit on how many agents use a custom domain.
 
 This is purely cosmetic — the agent and all its settings stay the same.

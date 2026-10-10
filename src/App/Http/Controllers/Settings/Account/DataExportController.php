@@ -12,17 +12,14 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
- * The GDPR data export page: shows the current export, starts a new one,
- * downloads a ready ZIP and deletes an export. Only the owner of an export may
- * download or delete it (see DataExportPolicy).
+ * The GDPR data export page: shows the current export, starts a new one and
+ * deletes an export ({@see DownloadDataExportController} serves the ZIP). Only
+ * the owner of an export may delete it (see DataExportPolicy).
  */
 class DataExportController
 {
@@ -74,17 +71,6 @@ class DataExportController
         }
 
         return back()->with('status', 'data-export-requested');
-    }
-
-    public function download(DataExport $export): StreamedResponse
-    {
-        if (Gate::denies('download', $export)) {
-            throw new AccessDeniedHttpException;
-        }
-
-        $filename = Str::slug((string) config('chatvia.brand.name')).'-export-'.$export->user_id.'-'.$export->created_at->format('Ymd-His').'.zip';
-
-        return Storage::disk('local')->download($export->file_path, $filename);
     }
 
     public function destroy(DataExport $export, DeleteDataExportAction $deleteExport): RedirectResponse

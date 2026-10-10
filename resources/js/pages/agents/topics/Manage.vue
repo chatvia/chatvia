@@ -7,7 +7,6 @@
  */
 import { errorMessage } from '@/api/http';
 import { createTopic, detachTopic, fetchAgentTopics, type Topic, type TopicInput, updateTopic } from '@/api/topics';
-import LockedFeature from '@/components/LockedFeature.vue';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -20,9 +19,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { topics as topicsAnalytics } from '@/routes/agents/analytics';
 import { LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -40,10 +39,6 @@ const props = defineProps<Props>();
 // Permission checks
 const { hasPermission } = useTeamPermissions();
 const canManageTopics = computed(() => hasPermission('agent.topics.manage'));
-
-// Plan capability
-const { hasCapability } = useCapabilityGuard();
-const hasAccess = computed(() => hasCapability('topics'));
 
 const loading = ref(true);
 const topics = ref<Topic[]>([]);
@@ -180,9 +175,7 @@ onMounted(() => {
             <Plus class="h-5 w-5" />
         </template>
 
-        <LockedFeature v-if="!hasAccess" :description="t('agents.topics.manage.locked_description')" />
-
-        <div v-else class="space-y-6">
+        <div class="space-y-6">
             <!-- Search and Add -->
             <div class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                 <div class="relative w-full sm:w-96">
@@ -241,7 +234,7 @@ onMounted(() => {
 
             <div class="flex justify-end">
                 <Button variant="outline" size="sm" as-child>
-                    <a :href="route('agents.analytics.topics', props.agent.external_id)"> {{ t('agents.topics.manage.done') }} </a>
+                    <a :href="topicsAnalytics.url(props.agent.external_id)"> {{ t('agents.topics.manage.done') }} </a>
                 </Button>
             </div>
         </div>

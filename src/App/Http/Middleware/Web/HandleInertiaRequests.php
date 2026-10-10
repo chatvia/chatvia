@@ -6,13 +6,11 @@ use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Laravel\Pennant\Feature;
-use Tighten\Ziggy\Ziggy;
 
 /**
  * Inertia root for the dashboard and the rest of the `web` group: the props
- * every page shares — the signed-in user, flash messages, locale, billing and
- * subscription state, current team and its permissions, and feature flags.
+ * every page shares — the signed-in user, flash messages, locale, current
+ * team and its permissions, and feature flags.
  * The hosted chat has its own root middleware
  * ({@see ChatHandleInertiaRequests}).
  */
@@ -29,12 +27,6 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user('web');
 
-        if ($user) {
-            // One round-trip for the whole billing graph so the share() fields
-            // and the User Appends accessors all hit the same in-memory data.
-            $user->loadMissing(['parentWorkspace.billing.subscriptions', 'billing.subscriptions']);
-        }
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -44,9 +36,12 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
             ],
-            'ziggy' => [
-                ...(new Ziggy)->toArray(),
-                'location' => $request->url(),
+            // The matched route's name and raw parameters, for active-state
+            // checks (useCurrentRoute); URLs themselves come from Wayfinder.
+            'route' => [
+                'name' => $request->route()?->getName(),
+                // An object even when empty, so the page gets {} rather than [].
+                'params' => (object) ($request->route()?->originalParameters() ?? []),
             ],
             'flash' => [
                 'success' => $request->session()->get('success'),
@@ -62,12 +57,6 @@ class HandleInertiaRequests extends Middleware
             // document dir/lang from this on every Inertia navigation.
             'locale' => $user?->locale ?? 'auto',
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'subscribed' => (bool) $user?->hasActiveSubscription(),
-            // Off on a self-hosted install without billing: the UI then hides
-            // plans, upgrade prompts and billing links (useBilling()).
-            'billing' => [
-                'enabled' => (bool) config('billing.enabled', true),
-            ],
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
 
@@ -75,12 +64,9 @@ class HandleInertiaRequests extends Middleware
             'subdomain' => $request->subdomain(),
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
-            // Pennant feature flags (entitlement-derived) plus the install-wide
-            // switches for unfinished features (`chatvia.features`). Frontend
-            // gates via `useFeature().hasFeature('security')`; resolved per
-            // request so they always reflect the workspace's current plan.
+            // Install-wide switches for unfinished features (`chatvia.features`).
+            // Frontend gates via `useFeature().hasFeature('youtube_sources')`.
             'features' => $user ? [
-                ...Feature::all(),
                 'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
             ] : [],
         ];

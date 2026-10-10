@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useDateFormat } from '@/composables/useDateFormat';
+import { invite as inviteChatter } from '@/routes/people/chatters';
 import { useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Mail, Send, UserPlus, X } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
@@ -51,7 +52,7 @@ const toggleInviteAgent = (externalId: string, checked: boolean) => {
 };
 
 const submitInvite = () => {
-    inviteForm.post(route('people.chatters.invite'), {
+    inviteForm.post(inviteChatter.url(), {
         preserveScroll: true,
         onSuccess: (page) => {
             const invitation = flashedInvitation(page);

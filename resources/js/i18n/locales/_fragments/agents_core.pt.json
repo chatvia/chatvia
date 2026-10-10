@@ -161,7 +161,6 @@
                 "select_topic": "Selecionar tópico",
                 "select_sentiment": "Selecionar sentimento",
                 "select_tone": "Selecionar tom",
-                "upgrade_to_unlock": "Faça upgrade para desbloquear",
                 "clear_all": "Limpar tudo",
                 "close": "Aplicar filtros"
             },
@@ -201,13 +200,11 @@
                 "page_url": "URL da página",
                 "referrer": "Referência",
                 "locale": "Idioma",
-                "upgrade_to_unlock": "Faça upgrade para desbloquear",
                 "waiting": "À espera de análise…"
             },
             "pulse": {
                 "title": "Pulse da conversa",
                 "select_conversation": "Selecione uma conversa para ver o pulse",
-                "locked_description": "Faça upgrade do seu plano para desbloquear as análises de pulse da conversa.",
                 "refresh": "Atualizar",
                 "no_messages_title": "Ainda não há mensagens suficientes",
                 "no_messages_hint": "O Pulse precisa de pelo menos uma mensagem do utilizador para analisar o sentimento e o tom ao longo do tempo.",
@@ -242,7 +239,6 @@
                 "waiting": "Pendente…"
             },
             "handoff": {
-                "locked_description": "Faça upgrade do seu plano para assumir conversas ao vivo a partir do registo de conversa.",
                 "visitor": "Visitante",
                 "online": "Online",
                 "offline": "Offline",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Tom",
             "description": "Acompanhe como os visitantes se sentem com base no tom emocional das suas mensagens.",
-            "locked_description": "Faça upgrade do seu plano para desbloquear as análises de tom.",
             "disabled_title": "A análise de tom está desativada",
             "disabled_description": "Ative a análise de tom para ver como os visitantes se sentem nas conversas.",
             "blocked_reason": "Ative primeiro o registo de conversa — a análise de tom requer mensagens armazenadas.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Sentimento",
             "description": "Acompanhe o sentimento positivo, neutro e negativo nas mensagens dos visitantes.",
-            "locked_description": "Faça upgrade do seu plano para desbloquear as análises de sentimento.",
             "disabled_title": "A análise de sentimento está desativada",
             "disabled_description": "Ative a análise de sentimento para ver como os visitantes se sentem nas conversas.",
             "blocked_reason": "Ative primeiro o registo de conversa — a análise de sentimento requer mensagens armazenadas.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Gerir tópicos",
                 "description": "Defina tópicos que o seu agente deve reconhecer e classificar nas conversas.",
-                "locked_description": "Faça upgrade do seu plano para gerir tópicos de conversa.",
                 "search_placeholder": "Pesquisar tópicos…",
                 "add_topic": "Adicionar tópico",
                 "empty": "Ainda não há tópicos. Adicione um para ajudar o seu agente a classificar conversas.",

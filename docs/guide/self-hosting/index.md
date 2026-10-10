@@ -46,7 +46,7 @@ processed in background jobs. If a program is somewhere else, set its path in
 You need at least **one chat provider and one embedding provider** (the
 service that turns text into search vectors). With the default settings, one
 Scaleway API key covers both. Everything else is optional: Chatvia can read
-documents, split text and run without billing on your own server. See
+documents and split text on your own server. See
 [AI providers](./ai-providers.md) for every option.
 
 ### The database
@@ -132,7 +132,7 @@ e-mail.
 
 ::: info API keys are not in `.env`
 API keys and OAuth apps for outside services (AI providers, Firecrawl,
-chunk.fit, Stripe, social sign-in, Messenger/Instagram/WhatsApp, connectors,
+chunk.fit, social sign-in, Messenger/Instagram/WhatsApp, connectors,
 Resend, Turnstile, IP2Location) are entered in the admin panel, under
 **Settings**. They are stored encrypted in the database. `.env` only chooses
 which service to use, its address and its models.
@@ -196,7 +196,7 @@ Chatvia needs three long-running processes next to the web server:
 | --- | --- | --- |
 | Queue workers | `php artisan horizon` | Reads files and web pages, sends replies on messaging channels, analytics, exports. |
 | WebSocket server | `php artisan reverb:start` | Live updates in the browser: ingestion progress, human handoff, typing. |
-| Scheduler | `* * * * * cd /var/www/chatvia && php artisan schedule:run >> /dev/null 2>&1` (cron) | Clean-up, conversation analysis, usage numbers, backups. |
+| Scheduler | `* * * * * cd /var/www/chatvia && php artisan schedule:run >> /dev/null 2>&1` (cron) | Clean-up, conversation analysis, statistics, backups. |
 
 Keep `horizon` and `reverb:start` running with Supervisor or systemd, and
 restart them when they stop.
@@ -212,10 +212,6 @@ php artisan config:cache
 php artisan event:cache
 php artisan view:cache
 ```
-
-Do **not** run `php artisan route:cache` (or `php artisan optimize`). The
-app's addresses start with the language (`/en/…`), and some routes depend on
-the billing settings in the admin panel; the route cache cannot store either.
 
 Run `config:cache` again every time you change `.env`.
 
@@ -233,7 +229,7 @@ section is for.
 | Mail | How e-mail is sent. |
 | Broadcasting / Reverb | The WebSocket server. |
 | Storage | Where files are kept (see [Files and storage](#files-and-storage)). |
-| Billing | Only the locale for money amounts. Billing itself is set in the admin panel (see [Billing and sign-up](#billing-and-sign-up)). |
+| Workspaces | Nothing: sign-up, message limits and how long conversations are kept are set in the admin panel (see [Workspaces and sign-up](#workspaces-and-sign-up)). |
 | AI providers | Which service does each AI step. See [AI providers](./ai-providers.md). |
 | Binaries | Paths to LibreOffice, poppler, pandoc, ffmpeg and Chrome. |
 | Security | Built-in tool secret, trusted proxies, cookies, content security policy, rate limits. |
@@ -241,41 +237,26 @@ section is for.
 | Observability | Error reports, Horizon alerts, Pulse, Telescope, the AI request log. |
 | Advanced tuning | Search, tools, retention and audit settings. The defaults are fine for most installs. |
 
-### Billing and sign-up
+### Workspaces and sign-up
 
-Billing and sign-up are not set in `.env`. Set them in the admin panel,
-under **Settings → Billing**:
+Sign-up, message limits and how long conversations are kept are not set in
+`.env`. Set them in the admin panel, under **Settings → Workspaces**:
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| Paid plans | Off | Off: you do not need Stripe. Every workspace gets every feature, there are no quotas, messages are not counted, and the billing pages are off. On: you sell plans with Stripe; then also add the Stripe keys under **Settings → Billing**. |
-| Open sign-up | On while paid plans are off | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Turn it off after you have created your accounts. You can still invite teammates. |
-| Days to keep conversations | `366` | How many days conversations are kept while paid plans are off. |
+| Open sign-up | On | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Turn it off after you have created your accounts. You can still invite teammates. |
+| Monthly message limit of new workspaces | `0` | How many agent replies a new workspace can get each month. It is applied when someone signs up. `0` means no limit. |
+| Days to keep conversations | `366` | Older conversations are deleted. A workspace can choose fewer days in its security settings, but never more. |
 
-The same page sets the free trial, the currency, a discount and the most
-automatic credit top-ups per day. A change applies from the next request.
-Turning paid plans off does not cancel subscriptions in Stripe: cancel them
-in the Stripe dashboard.
+A change applies from the next request. Every workspace can use every
+feature.
 
-#### Plans and add-ons
+To change the limit of one workspace, open **Workspaces** in the admin panel,
+open the workspace and click **Set message limit**. Leave the field empty for
+no limit. See [Message limits](/guide/account/message-limits) for what is
+counted and what happens when a limit is reached.
 
-With paid plans on, set up what you sell under **Billing → Plans** and
-**Billing → Add-ons** in the admin panel:
-
-- A plan has a name, a monthly and a yearly price, its limits (messages,
-  agents, pages, website links, audio and video minutes, custom domains,
-  members, teams), the features it turns on, and how long conversations are
-  kept. The list of features on the plan card is made from these values, in
-  every language. You can also tick highlights such as "SSO / SAML", and add
-  your own lines.
-- When you save, Chatvia creates the product and the prices in your Stripe
-  account. Stripe prices cannot be changed, so a new amount creates a new
-  price: new customers pay it, and existing subscribers keep their old price.
-- **Check against Stripe** compares your saved prices with the prices in
-  Stripe, without changing anything. Use it before you save, if you already
-  sell plans through Stripe.
-- A plan's key (for example `starter`) cannot be changed. A plan that has
-  subscribers can be archived, not deleted.
+### Optional features
 
 | Setting | Value in `.env.example` | What it does |
 | --- | --- | --- |
@@ -289,8 +270,7 @@ Chatvia can show your own name and links instead of its own:
 | --- | --- |
 | `BRAND_NAME` | Product name in the app, e-mails and file names. The default is `APP_NAME`. |
 | `BRAND_WEBSITE_URL`, `BRAND_DOCS_URL`, `BRAND_API_DOCS_URL` | Links shown in the app. Leave one empty to hide that link. |
-| `BRAND_POWERED_BY_ENABLED`, `BRAND_POWERED_BY_LABEL`, `BRAND_POWERED_BY_URL` | The "Powered by ..." line under hosted chats and widgets. |
-| `BRAND_ONBOARDING_VIDEO_URL` | An optional video on the first welcome screen. |
+| `BRAND_POWERED_BY_ENABLED`, `BRAND_POWERED_BY_LABEL`, `BRAND_POWERED_BY_URL` | The "Powered by ..." line under hosted chats and widgets. Each agent can also hide it. |
 
 ### Files and storage
 
@@ -387,7 +367,7 @@ Before you open the install to other people, check these settings:
 | `REVERB_APP_SECRET` | A long random value. |
 | `CSP_MODE` | Starts as `report-only`. Switch to `enforce` when the reports are clean. |
 | `DB_SSLMODE` | `require` or `verify-full` when the database is on another server. |
-| Open sign-up (admin panel, **Settings → Billing**) | Off once your accounts exist, unless you want open sign-up. |
+| Open sign-up (admin panel, **Settings → Workspaces**) | Off once your accounts exist, unless you want open sign-up. |
 
 Chat answers stream as server-sent events. Chatvia sends the header
 `X-Accel-Buffering: no`; make sure no proxy between the app and the browser

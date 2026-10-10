@@ -10,6 +10,10 @@
              other image src, neutralising prompt-injection exfiltration pixels. --}}
         <meta name="app-url" content="{{ config('app.url') }}">
 
+        {{-- Public Reverb app key, for builds without VITE_REVERB_APP_KEY
+             (the Docker image). The browser sees this key anyway. --}}
+        <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
+
         @include('analytics')
 
         <script>
@@ -43,8 +47,6 @@
         <link href="{{ asset('fonts/inter/inter.css') }}" rel="stylesheet">
 
         @include('partials.meta')
-
-        @routes
 
         @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         @inertiaHead

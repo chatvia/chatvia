@@ -14,7 +14,6 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -24,8 +23,6 @@ use Support\Exceptions\DomainValidationException;
  * gate that, if it regressed, would let an invite link grant access it
  * shouldn't.
  *  - Expiry: a stale (>7d) link is dead.
- *  - Owner subscription: a lapsed owner can't onboard new seats.
- *  - Owner seat-limit: the shared workspace-users cap is enforced.
  *  - Chatter takeover: an end-user (chat) account can't be upgraded into a
  *    dashboard team member via the invite.
  *  - Password: an existing account must prove ownership before being attached.
@@ -33,25 +30,14 @@ use Support\Exceptions\DomainValidationException;
  */
 
 /**
- * Provision a team owner that clears the subscription + seat gates, returning
- * the team plus a fresh invitation into a non-owner role.
+ * Provision a team owner, returning the team plus a fresh invitation into a
+ * non-owner role.
  *
  * @return array{0: Team, 1: Invitation, 2: User, 3: Role}
  */
 function atiTeamAndInvitation(string $invitedEmail = 'invitee@example.com'): array
 {
     $owner = User::factory()->create(['email' => 'owner@example.com']);
-
-    // hasActiveSubscription() gates the accept — seed an active subscription
-    // the way SubscribeUserAction / the existing invite test does.
-    $owner->billing()->firstOrCreate([])->subscriptions()->create([
-        'type' => 'default',
-        'stripe_id' => 'sub_test_'.Str::random(8),
-        'stripe_status' => 'active',
-        'stripe_price' => 'price_test_'.Str::random(6),
-        'quantity' => 1,
-    ]);
-    $owner->refresh();
 
     $team = app(TeamService::class)->createDefaultTeam($owner);
 
@@ -143,47 +129,6 @@ it('rejects an invitation older than 7 days', function (): void {
         password: 'a-real-password-1234',
         name: 'Too Late',
     )))->toThrow(DomainValidationException::class, 'This invitation has expired.');
-});
-
-it('rejects accept when the team owner has no active subscription', function (): void {
-    $owner = User::factory()->create(['email' => 'broke-owner@example.com']);
-    $team = app(TeamService::class)->createDefaultTeam($owner);
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Support',
-        permissions: ['agent.chat.view'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $invitation = $team->invitations()->create([
-        'email' => 'invitee@example.com',
-        'role_id' => $role->id,
-    ]);
-
-    expect(fn () => app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation,
-        password: 'a-real-password-1234',
-        name: 'No Sub',
-    )))->toThrow(DomainValidationException::class, 'The team owner does not have an active subscription.');
-});
-
-it('rejects accept when the team owner has reached their workspace user limit', function (): void {
-    [, $invitation, $owner] = atiTeamAndInvitation();
-
-    // Active subscription, but zero seats — canAddWorkspaceUser() returns false
-    // because workspaceUsersCount() (0) is not < totalWorkspaceUsersLimit() (0).
-    $owner->quota()->create([
-        'workspace_users_limit' => 0,
-        'extra_members_limit' => 0,
-    ]);
-
-    expect(fn () => app(AcceptTeamInvitationAction::class)->execute(new AcceptInvitationData(
-        invitation: $invitation->fresh(),
-        password: 'a-real-password-1234',
-        name: 'No Seats',
-    )))->toThrow(DomainValidationException::class, 'The team owner has reached their workspace user limit. Please contact them to upgrade their plan.');
 });
 
 it('rejects a chat-user (chatter) account from joining a team', function (): void {

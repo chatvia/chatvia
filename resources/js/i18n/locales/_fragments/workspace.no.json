@@ -110,7 +110,6 @@
             "description": "Kontonøkler for {api_link} — opprett og administrer agenter, kunnskap, MCP-servere og funksjoner.",
             "api_link": "Chatvia API",
             "generate": "Generer nøkkel",
-            "locked": "Oppgrader planen din for å utstede API-nøkler og integrere Chatvia med applikasjonene dine.",
             "empty_title": "Ingen API-nøkler ennå",
             "empty_description": "Generer én for å begynne å bruke Chatvia API.",
             "never": "Aldri",

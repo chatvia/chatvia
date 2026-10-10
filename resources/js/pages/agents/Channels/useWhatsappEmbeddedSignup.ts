@@ -6,6 +6,7 @@
  * FB.login callback). We POST all three; the backend exchanges the code,
  * subscribes the WABA, registers the number, and stores the token.
  */
+import { connect as connectWhatsapp } from '@/routes/agents/channels/whatsapp';
 import { router } from '@inertiajs/vue3';
 import { ref, watch, type Ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -107,7 +108,7 @@ export function useWhatsappEmbeddedSignup(options: {
         }
 
         router.post(
-            route('agents.channels.whatsapp.connect', options.agentId()),
+            connectWhatsapp.url(options.agentId()),
             { code, waba_id: wabaId, phone_number_id: phoneNumberId },
             {
                 preserveScroll: true,

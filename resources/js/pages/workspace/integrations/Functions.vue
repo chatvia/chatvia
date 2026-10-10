@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
+import { toggle as toggleFunction } from '@/routes/integrations/functions';
 import { type BreadcrumbItem } from '@/types';
 
 import FunctionFormSheet, { type FunctionRow } from './Functions/FunctionFormSheet.vue';
@@ -50,7 +51,7 @@ function openEdit(fn: FunctionRow): void {
 }
 
 function toggleEnabled(fn: FunctionRow): void {
-    router.post(route('integrations.functions.toggle', { external_id: fn.id }), {}, { preserveScroll: true, only: ['functions'] });
+    router.post(toggleFunction.url(fn.id), {}, { preserveScroll: true, only: ['functions'] });
 }
 
 function refreshFunctions(): void {

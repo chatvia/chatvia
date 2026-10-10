@@ -7,6 +7,7 @@ import { fetchChatterAgents } from '@/api/chat';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { switchMethod as switchAgent } from '@/routes/chat/agents';
 import type { ChatterAgent } from '@/types/chat';
 import { useForm } from '@inertiajs/vue3';
 import { Bot } from 'lucide-vue-next';
@@ -56,7 +57,7 @@ watch(open, (isOpen) => {
 function switchToSelectedAgent() {
     if (!selectedAgent.value || agentSwitchForm.processing) return;
 
-    agentSwitchForm.post(route('chat.agents.switch', { agent: selectedAgent.value.external_id }), {
+    agentSwitchForm.post(switchAgent.url(selectedAgent.value.external_id), {
         preserveState: true,
         preserveScroll: true,
         onSuccess: () => {

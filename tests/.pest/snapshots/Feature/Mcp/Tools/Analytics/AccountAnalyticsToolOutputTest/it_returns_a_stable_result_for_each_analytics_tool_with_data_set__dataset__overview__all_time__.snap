@@ -23,7 +23,7 @@
         "positive_feedback": 2,
         "negative_feedback": 1,
         "tokens": 580,
-        "messages_used_this_cycle": 420,
-        "messages_limit_this_cycle": 1000
+        "messages_used_this_month": 420,
+        "messages_limit_this_month": 1000
     }
 }

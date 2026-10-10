@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import { store as confirmPassword } from '@/routes/password/confirm';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, ShieldCheck } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -15,7 +16,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.confirm.store'), {
+    form.post(confirmPassword.url(), {
         onFinish: () => form.reset(),
     });
 };

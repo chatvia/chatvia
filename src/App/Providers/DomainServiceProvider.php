@@ -7,6 +7,7 @@ use App\Identity\Chatter\Listeners\SendChatterPasswordResetLink;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
 use App\Identity\Workspace\Events\DataExportReady;
 use App\Identity\Workspace\Events\MagicLinkRequested;
+use App\Identity\Workspace\Listeners\CountReplyAgainstMessageLimit;
 use App\Identity\Workspace\Listeners\RecordFailedLoginSecurityEvent;
 use App\Identity\Workspace\Listeners\RecordKnownDevice;
 use App\Identity\Workspace\Listeners\RecordLastLogin;
@@ -15,8 +16,6 @@ use App\Identity\Workspace\Listeners\RecordLogoutSecurityEvent;
 use App\Identity\Workspace\Listeners\SendAccountDeletionConfirmationEmail;
 use App\Identity\Workspace\Listeners\SendDataExportReadyNotification;
 use App\Identity\Workspace\Listeners\SendMagicLinkEmail;
-use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Observers\UserObserver;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use App\Mcp\CodeDefinedToolDefinitions;
 use Domain\Agent\Events\AgentToolsChanged;
@@ -26,17 +25,6 @@ use Domain\Agent\Observers\AgentObserver;
 use Domain\Analytics\Events\MessageSent;
 use Domain\Analytics\Listeners\QueueMessageAnalysis;
 use Domain\Analytics\Listeners\RecordAnalytics;
-use Domain\Billing\Contracts\Entitlements;
-use Domain\Billing\Events\MessageCreditsLow;
-use Domain\Billing\Events\TrialWorkspaceProvisioned;
-use Domain\Billing\Listeners\ChargeAssistantReply;
-use Domain\Billing\Listeners\HandleStripeWebhook;
-use Domain\Billing\Listeners\RecordLlmTokenUsage;
-use Domain\Billing\Listeners\SendTrialWelcomeEmails;
-use Domain\Billing\Listeners\SyncAddonQuotasFromStripe;
-use Domain\Billing\Listeners\TriggerAutoRecharge;
-use Domain\Billing\Services\Entitlements\StripeEntitlements;
-use Domain\Billing\Services\Entitlements\UnlimitedEntitlements;
 use Domain\Conversation\Events\AgentRateLimitExceeded;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\SessionLocationUnknown;
@@ -90,7 +78,6 @@ use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\LlmProviderEnum;
-use Domain\Llm\Events\LlmTokensConsumed;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Providers\OpenRouter;
@@ -110,18 +97,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
-use Laravel\Cashier\Events\WebhookHandled;
-use Laravel\Cashier\Events\WebhookReceived;
 
 /**
  * Domain wiring: observers, DI bindings against contracts (AI providers,
- * billing entitlements, tool dispatch, …) and event listeners — every
+ * tool dispatch, …) and event listeners — every
  * listener is registered here by hand; there is no auto-discovery.
  *
  * Framework wiring lives in sibling providers: AppServiceProvider (morph map,
- * model strictness, Cashier, prompt views), AuthServiceProvider (gates,
- * policies, Sanctum), HttpMacroServiceProvider, RateLimitServiceProvider,
- * FeatureServiceProvider, FilesystemServiceProvider and ApiDocsServiceProvider.
+ * model strictness, prompt views), AuthServiceProvider (gates, policies,
+ * Sanctum), HttpMacroServiceProvider, RateLimitServiceProvider,
+ * FilesystemServiceProvider and ApiDocsServiceProvider.
  *
  * Loaded from bootstrap/providers.php.
  */
@@ -146,9 +131,9 @@ class DomainServiceProvider extends ServiceProvider
         // to drive canned tool-call streams without a live upstream.
         $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
 
-        // Per-request / per-job accumulator that attributes LLM token usage to a
-        // workspace for analytics. MUST be a singleton so every add() within one
-        // chat turn or queued job lands in the same scope.
+        // Per-request / per-job scope that attributes AI requests to a
+        // workspace. MUST be a singleton so every call within one chat turn or
+        // queued job sees the same scope.
         $this->app->singleton(TokenUsageContext::class);
 
         $this->registerAiServices();
@@ -161,13 +146,6 @@ class DomainServiceProvider extends ServiceProvider
             PasswordAuthenticator::class,
             fn (): PasswordAuthenticator => new PasswordAuthenticator(Auth::guard('web')),
         );
-
-        // Billing can be switched off in the admin panel (Settings →
-        // Billing). Resolved on every use, not as a singleton, so the driver
-        // always matches the current config.
-        $this->app->bind(Entitlements::class, fn ($app): Entitlements => config('billing.enabled', true)
-            ? $app->make(StripeEntitlements::class)
-            : $app->make(UnlimitedEntitlements::class));
     }
 
     /**
@@ -281,7 +259,6 @@ class DomainServiceProvider extends ServiceProvider
 
     private function registerObservers(): void
     {
-        User::observe(UserObserver::class);
         Agent::observe(AgentObserver::class);
         AgentFunction::observe(AgentFunctionObserver::class);
         FormDefinition::observe(FormDefinitionObserver::class);
@@ -312,17 +289,12 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(AgentChatterInvited::class, SendAgentChatterInvitationEmail::class);
         Event::listen(TeamInvitationCreated::class, SendTeamInvitationEmail::class);
         Event::listen(MagicLinkRequested::class, SendMagicLinkEmail::class);
-        Event::listen(MessageCreditsLow::class, TriggerAutoRecharge::class);
         Event::listen(DataExportReady::class, SendDataExportReadyNotification::class);
-        Event::listen(WebhookReceived::class, HandleStripeWebhook::class);
-        Event::listen(WebhookHandled::class, SyncAddonQuotasFromStripe::class);
-        Event::listen(TrialWorkspaceProvisioned::class, SendTrialWelcomeEmails::class);
         Event::listen(ChatterPasswordResetRequested::class, SendChatterPasswordResetLink::class);
         Event::listen(SessionLocationUnknown::class, LocateSession::class);
-        Event::listen(AssistantReplyCompleted::class, ChargeAssistantReply::class);
+        Event::listen(AssistantReplyCompleted::class, CountReplyAgainstMessageLimit::class);
         Event::listen(MessageSent::class, QueueMessageAnalysis::class);
         Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
-        Event::listen(LlmTokensConsumed::class, RecordLlmTokenUsage::class);
         Event::listen(ToolCallCompleted::class, RecordToolCallAudit::class);
         Event::listen(GuardrailTriggered::class, RecordGuardrailEvent::class);
         Event::listen(McpToolInvoked::class, UpdateMcpInvocationCounters::class);

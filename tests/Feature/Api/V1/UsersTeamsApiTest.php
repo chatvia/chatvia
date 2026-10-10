@@ -3,7 +3,6 @@
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserQuota;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Models\Team;
@@ -16,17 +15,7 @@ beforeEach(function (): void {
     // disk so the delete tests stay hermetic and never reach real S3.
     Storage::fake('public');
 
-    // Registration is trial-checkout-only now (the Stripe webhook provisions
-    // billing/quota/default team), so provision explicitly. Bump the team
-    // quota so tests that POST /api/v1/teams aren't blocked by the starter
-    // ceiling of 1 (which the default team already fills).
     $this->user = User::factory()->create();
-    $this->user->billing()->firstOrCreate([]);
-    UserQuota::firstOrCreate(
-        ['user_id' => $this->user->id],
-        planFixedLimits(),
-    );
-    $this->user->quota()->update(['teams_limit' => 10]);
     $this->agent = createAgent($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
@@ -37,22 +26,6 @@ function apiHeaders(string $token): array
 }
 
 describe('POST /api/v1/chatters', function (): void {
-    it('answers 402 with the seat limit when every workspace seat is taken', function (): void {
-        $this->user->quota()->update(['workspace_users_limit' => 0, 'extra_members_limit' => 0]);
-
-        $this->withHeaders(apiHeaders($this->token))
-            ->postJson('/api/v1/chatters', [
-                'name' => 'Overflow',
-                'agent_ids' => [$this->agent->external_id],
-                'email' => 'overflow@example.test',
-                'password' => 'super-secret-pw',
-            ])
-            ->assertStatus(402)
-            ->assertJsonPath('message', "You've reached your workspace user limit (0), shared between team members and chatters. Upgrade your plan to add more.");
-
-        expect($this->user->chatters()->count())->toBe(0);
-    });
-
     it('stops working once the account is deactivated', function (): void {
         $this->withHeaders(apiHeaders($this->token))
             ->getJson('/api/v1/teams')

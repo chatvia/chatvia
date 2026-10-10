@@ -2,6 +2,7 @@
 // Identity verification for one agent: the public/protected switch, and while
 // protected, the signing secret plus a guide to signing sign-in tokens.
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { update as updateSecurity } from '@/routes/agents/security';
 import { useForm } from '@inertiajs/vue3';
 import { ShieldCheck } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -32,7 +33,7 @@ const isProtected = computed(() => !protectionForm.is_public);
 
 const setPublic = (isPublic: boolean) => {
     protectionForm.is_public = isPublic;
-    protectionForm.patch(route('agents.security.update', props.agent.external_id), {
+    protectionForm.patch(updateSecurity.url(props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => toast.success(t('agents.identity_verification.security_updated')),
         onError: () => {

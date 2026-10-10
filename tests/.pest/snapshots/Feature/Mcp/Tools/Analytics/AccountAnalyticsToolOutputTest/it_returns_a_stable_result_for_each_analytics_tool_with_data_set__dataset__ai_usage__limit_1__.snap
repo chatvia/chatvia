@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "This billing cycle: top function \"lookup_order\" (5 calls); top MCP tool \"render-bar-chart-tool\" (4); most-used source \"Handbook.pdf\"."
+            "text": "This month: top function \"lookup_order\" (5 calls); top MCP tool \"render-bar-chart-tool\" (4); most-used source \"Handbook.pdf\"."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "top_functions": [
             {

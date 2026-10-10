@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "你已达到消息上限",
-        "upgrade_prompt": "请升级套餐以继续聊天",
         "regenerate_failed": "无法重新生成回复,请重试。",
         "loading_conversation": "正在加载对话",
         "forms": {
@@ -117,7 +116,8 @@
             "http_status": "服务器返回状态 {status}。",
             "interrupted": "连接已中断。",
             "malformed": "从服务器收到无效数据。"
-        }
+        },
+        "limit_resets_next_month": "下个月即可再次发送消息。"
     },
     "messages": {
         "send": "发送",
@@ -140,11 +140,7 @@
         "edit_message": "编辑消息"
     },
     "errors": {
-        "subscription_expired": "订阅已过期",
-        "renew_subscription": "续订",
         "message_limit_reached": "已达到消息上限",
-        "token_limit_reached": "已达到 Token 用量上限",
-        "upgrade_plan": "升级套餐",
         "model_unavailable": "模型不可用",
         "too_many_requests": "请求过多",
         "connection_lost": "连接中断",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "审计日志",
             "head_title": "审计日志 · {name}",
-            "description": "此智能体通过工具和连接器执行的每一项操作——已允许、已批准、已拒绝或受速率限制——均包含参数、结果以及触发者。",
-            "locked_description": "审计日志在 Pro 套餐中提供。升级后即可查看此智能体执行的每一项工具和连接器操作。"
+            "description": "此智能体通过工具和连接器执行的每一项操作——已允许、已批准、已拒绝或受速率限制——均包含参数、结果以及触发者。"
         },
         "channels": {
             "title": "渠道",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "——回复将实时流式传输"
                 },
                 "telegram": {
-                    "connected_description": "用户可以在 Telegram 上向您的 Bot 发送消息，您的智能体会自动回复——账单、历史记录和防护规则均适用。",
+                    "connected_description": "用户可以在 Telegram 上向您的 Bot 发送消息，您的智能体会自动回复——消息上限、历史记录和防护规则均适用。",
                     "steps": {
                         "connect_1": "在 Telegram 中打开 {botfather}",
                         "connect_2": "发送 {command} 并按照提示操作",
@@ -446,7 +441,6 @@
                 "select_topic": "选择主题",
                 "select_sentiment": "选择情绪",
                 "select_tone": "选择语气",
-                "upgrade_to_unlock": "升级以解锁",
                 "clear_all": "全部清除",
                 "close": "应用筛选器"
             },
@@ -486,14 +480,12 @@
                 "page_url": "页面 URL",
                 "referrer": "来源页",
                 "locale": "语言区域",
-                "upgrade_to_unlock": "升级以解锁",
                 "waiting": "等待分析…",
                 "channel": "渠道"
             },
             "pulse": {
                 "title": "会话动态",
                 "select_conversation": "选择一个会话以查看动态",
-                "locked_description": "升级你的套餐以解锁会话动态分析。",
                 "refresh": "刷新",
                 "no_messages_title": "消息还不够",
                 "no_messages_hint": "动态分析至少需要一条用户消息，才能分析随时间变化的情绪和语气。",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "稳定"
             },
             "handoff": {
-                "locked_description": "升级套餐即可从聊天记录接管实时会话。",
                 "visitor": "访客",
                 "online": "在线",
                 "offline": "离线",
@@ -651,8 +642,7 @@
                 "pii": "PII",
                 "blocked_topic": "屏蔽主题",
                 "toxicity": "有害内容"
-            },
-            "locked_description": "防护规则适用于 Standard 和 Pro 套餐。升级即可控制智能体可以讨论的内容，以及它如何处理敏感信息。"
+            }
         },
         "persona": {
             "title": "角色设定",
@@ -849,8 +839,7 @@
                     "run_start_error": "无法开始运行",
                     "run_deleted": "运行已删除",
                     "history_cleared": "运行历史已清除"
-                },
-                "locked_description": "评估功能在 Standard 和 Pro 套餐中可用。升级即可在智能体的回答触达客户之前对其进行测试和评分。"
+                }
             },
             "scorers": {
                 "contains": "包含",
@@ -938,7 +927,6 @@
         "tone": {
             "title": "语气",
             "description": "根据访客消息的情绪语气追踪他们的感受。",
-            "locked_description": "升级套餐以解锁语气分析。",
             "disabled_title": "语气分析已关闭",
             "disabled_description": "启用语气分析以查看访客在各会话中的感受。",
             "blocked_reason": "请先开启聊天记录 —— 语气分析需要已存储的消息。",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "情感",
             "description": "追踪访客消息中的正面、中性和负面情感。",
-            "locked_description": "升级套餐以解锁情感分析。",
             "disabled_title": "情感分析已关闭",
             "disabled_description": "启用情感分析以查看访客在各会话中的感受。",
             "blocked_reason": "请先开启聊天记录 —— 情感分析需要已存储的消息。",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "管理主题",
                 "description": "定义你的智能体应在会话中识别和分类的主题。",
-                "locked_description": "升级套餐以管理会话主题。",
                 "search_placeholder": "搜索主题…",
                 "add_topic": "添加主题",
                 "empty": "暂无主题。添加一个以帮助你的智能体对会话进行分类。",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "无法解除 {name} 的关联：{error}",
                 "deleted": "{name} 已删除。",
                 "delete_failed": "无法删除 {name}：{error}",
-                "usage_load_failed": "无法加载用量数据。",
                 "summary_only_completed": "摘要仅对已完成的文件可用。",
                 "summary_none": "此文件没有可用的摘要。",
                 "summary_load_failed": "无法加载文件摘要。",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "上传音频文件",
                 "upload_title_video": "上传视频文件",
                 "upload_title_default": "上传新文档",
-                "quota_minutes": "分钟",
-                "quota_pages": "页",
                 "uploads_disabled": "训练进行期间，文件上传已停用",
                 "ready_to_train": "可开始训练",
                 "uploaded_ready": "已上传 {count} 个文件，可供训练 | 已上传 {count} 个文件，可供训练",
-                "exceeds_quota": "超出配额",
                 "clear_all": "全部清除",
                 "training": "训练中…",
                 "train": "训练",
@@ -1290,9 +1272,6 @@
                     "trained": "已训练",
                     "failed": "失败"
                 },
-                "limit_all_used": "您已用完套餐中的全部 {limit} 个链接。升级以训练更多链接。",
-                "limit_critical": "您已使用 {used}/{limit} 个链接（{percentage}%）。仅剩 {remaining} 个链接可用于训练。建议升级您的套餐。",
-                "limit_warning": "您已使用 {used}/{limit} 个链接（{percentage}%）。还剩 {remaining} 个链接可用于训练。",
                 "load_failed": "加载网页来源失败。",
                 "error_enter_url": "请输入网站 URL。",
                 "error_invalid_url": "请输入有效的 URL 格式（例如 https://example.com）。",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "无法删除所有链接。至少需保留一个链接。",
                 "links_deleted": "成功删除 {count} 个链接。 | 成功删除 {count} 个链接。",
                 "links_delete_failed": "删除链接失败。",
-                "no_links_remaining": "无剩余链接",
-                "no_links_remaining_description": "请升级您的套餐以训练网站。",
-                "cannot_select": "无法选择网站",
-                "cannot_select_description": "{links} 个链接将使您的配额超出 {exceedBy}。请取消选择其他网站或进行升级。",
-                "selected_count": "已选择 {total} 个网站中的 {selected} 个",
-                "selected_skipped": "已跳过 {skipped} 个网站，以保持在您 {remaining} 个链接的限额之内。",
                 "training_start_failed": "无法开始训练：{websites}",
                 "training_start_failed_all": "无法开始训练任何网站。",
                 "dialog_links_load_failed": "加载链接失败",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "抓取器",
                 "crawler_description": "从网站获取要抓取的链接，并将其纳入智能体的知识库。",
                 "settings": "设置",
-                "links_used": "已使用 {used} / {limit} 个链接",
-                "links_remaining": "还剩 {remaining} 个",
-                "upgrade_required": "需要升级才能训练更多链接",
-                "consider_upgrading": "建议升级",
                 "fetching": "获取中……",
                 "fetch_links": "获取链接",
                 "crawl_settings": "抓取设置",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "已选择 {count} 个（{links} 个链接）",
                 "no_websites_selected": "未选择任何网站",
                 "train": "训练",
-                "train_exceeds_quota": "所选链接（{selected}）超出您的剩余配额（{remaining}）",
                 "links_badge": "{count} 个链接",
-                "badge_upgrade_required": "需要升级",
-                "badge_exceeds_quota": "超出配额",
-                "no_links_remaining_plan": "您的套餐中已无剩余链接。请升级以训练此网站。",
-                "website_exceeds_remaining": "此网站有 {links} 个链接，将超出您剩余的 {remaining} 个链接。请先取消选择其他网站或升级套餐。",
                 "collapse_links": "收起已发现的链接",
                 "expand_links": "展开已发现的链接",
                 "discovered_links": "已发现的链接",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "创建智能体",
-            "limit_title": "已达智能体数量上限",
-            "limit_description": "你已达到智能体数量上限。",
-            "upgrade_plan": "升级套餐",
             "name_label": "智能体名称",
-            "name_placeholder": "例如：客户支持",
-            "load_error": "加载用量信息失败",
-            "limit_toast_title": "已达智能体数量上限",
-            "limit_toast_description": "你已达到智能体数量上限。"
+            "name_placeholder": "例如：客户支持"
         },
         "analytics": {
             "title": "智能体统计",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "自定义域名",
                 "description": "用你自己的域名而非 {target} 来提供此智能体的托管聊天。",
-                "no_quota_title": "你当前的套餐不包含自定义域名",
-                "no_quota_description": "升级到 Pro，或从 {link} 订阅自定义域名附加项，以添加你自己的主机名。",
-                "billing": "账单",
-                "quota": "已使用 {total} 个自定义域名中的 {used} 个 | 已使用 {total} 个自定义域名中的 {used} 个",
-                "add_more": "添加更多",
                 "step1": "第 1 步——在你的 DNS 提供商处添加一条 CNAME 记录",
                 "type": "类型",
                 "name": "名称",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "主题",
             "description": "分析会话主题与趋势",
-            "locked_description": "升级您的套餐以使用主题分析，自动检测并归类会话主题。",
             "disabled_title": "主题分析",
             "disabled_description": "开启后，可自动检测并归类访客在各会话中所询问的内容。",
             "blocked_reason": "聊天记录已关闭，因此没有可分析的内容。在“配置 → 设置”中开启即可开始收集主题。",
@@ -2159,7 +2111,6 @@
             "sending_link": "正在发送链接...",
             "or_continue_with": "或使用以下方式继续",
             "no_account": "还没有账户？",
-            "start_free_trial": "开始免费试用",
             "create_account": "创建账户"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "设置你的密码",
-            "description": "你的账户已就绪。请设置一个密码以完成设置。",
-            "head": "设置你的密码",
-            "email_label": "电子邮件地址",
-            "password_label": "密码",
-            "password_placeholder": "密码",
-            "confirm_password_label": "确认密码",
-            "confirm_password_placeholder": "确认密码",
-            "set_password": "设置密码",
-            "setting_password": "正在设置密码..."
-        },
         "login_member": {
             "description": "登录以访问此聊天工作区",
             "head": "成员登录",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "请确保您的社交账户使用的是",
             "social_email_note_suffix": "——它必须与此邀请相匹配。"
         },
-        "invitation_invalid": {
-            "title": "邀请不可用",
-            "description": "无法接受此邀请",
-            "head": "邀请不可用",
-            "card_title": "无法接受邀请",
-            "cannot_accept_prefix": "加入以下对象的邀请",
-            "cannot_accept_suffix": "目前无法接受。",
-            "contact_owner": "请联系团队所有者以解决此问题。",
-            "go_to_login": "前往登录"
-        },
         "invitation_expired": {
             "title": "邀请已过期",
             "description": "此邀请已失效",
@@ -2325,386 +2254,6 @@
             "card_title": "邀请已过期",
             "contact_owner": "请联系团队所有者以申请新的邀请。",
             "go_to_login": "前往登录"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "账单",
-            "back_to_billing": "返回账单",
-            "view_plans": "查看套餐",
-            "cancel": "取消",
-            "processing": "处理中…",
-            "not_available": "不适用"
-        },
-        "payment_success": {
-            "page_title": "支付成功",
-            "heading": "已收到付款",
-            "description": "感谢您！您的付款已成功处理。我们正在为您设置订阅。",
-            "redirecting_prefix": "即将跳转，剩余",
-            "redirecting_suffix": "秒…",
-            "go_to_billing": "立即前往账单"
-        },
-        "invoices": {
-            "breadcrumb": "发票",
-            "page_title": "发票",
-            "heading": "发票",
-            "subheading": "查看并下载您的账单记录和发票",
-            "history_title": "账单记录",
-            "history_description": "下载您订阅付款的收据和发票",
-            "invoice_number": "发票 #{number}",
-            "status": {
-                "paid": "已支付",
-                "pending": "待处理",
-                "failed": "失败"
-            },
-            "download_pdf": "下载 PDF",
-            "view_online": "在线查看",
-            "empty_title": "暂无发票",
-            "empty_description": "开始订阅后，您的账单记录和发票将显示在这里。",
-            "total_invoices": "发票总数",
-            "total_spent": "总支出",
-            "since": "自",
-            "help_title": "账单方面需要帮助？",
-            "help_description": "如果您对发票有疑问或需要账单方面的协助，我们的支持团队随时为您提供帮助。",
-            "contact_support": "联系支持"
-        },
-        "payment_methods": {
-            "breadcrumb": "支付方式",
-            "page_title": "支付方式",
-            "heading": "支付方式",
-            "subheading": "管理您的支付方式和账单信息",
-            "add_method": "添加支付方式",
-            "saved_title": "已保存的支付方式",
-            "saved_description": "管理您已保存的支付方式。您可以设置一个默认方式用于自动扣款。",
-            "default": "默认",
-            "expires": "有效期至 {date}",
-            "set_default": "设为默认",
-            "empty_title": "暂无支付方式",
-            "empty_description": "添加一种支付方式以管理您的订阅并进行付款。",
-            "add_first": "添加您的第一种支付方式",
-            "info_title": "账单信息",
-            "info_description": "更新您的账单地址和联系信息",
-            "not_set": "未设置",
-            "update_info": "更新账单信息",
-            "secure_title": "安全的支付处理",
-            "secure_description": "您的支付信息已加密，并由 Stripe 安全处理。我们绝不会在服务器上存储您完整的卡片信息。",
-            "updating": "更新中…",
-            "update_information": "更新信息",
-            "card_information": "卡片信息",
-            "remove_dialog": {
-                "title": "移除支付方式",
-                "description": "您确定要移除此支付方式吗？此操作无法撤销。",
-                "confirm": "是的，移除"
-            },
-            "fields": {
-                "name": "姓名",
-                "email": "电子邮箱",
-                "address": "地址",
-                "city_state_country": "城市、省/州及国家/地区",
-                "billing_address": "账单地址",
-                "line1": "地址第 1 行",
-                "line2": "地址第 2 行（可选）",
-                "city": "城市",
-                "state": "省/州",
-                "postal_code": "邮政编码",
-                "country": "国家/地区"
-            },
-            "placeholders": {
-                "name": "John Doe",
-                "email": "john{'@'}example.com",
-                "line1": "123 Main Street",
-                "line2": "公寓、套房等",
-                "city": "New York",
-                "state": "NY",
-                "postal_code": "10001",
-                "country": "选择国家/地区…"
-            },
-            "info_dialog": {
-                "title": "更新账单信息",
-                "description": "更新您用于开具发票和支付处理的账单地址和联系信息。"
-            },
-            "add_dialog": {
-                "description": "为您的账户添加新的支付方式。您的卡片信息安全且已加密。",
-                "success_title": "已添加支付方式！",
-                "success_description": "您的支付方式已成功添加到您的账户。",
-                "secure_note": "您的支付信息已加密，并由 Stripe 安全处理。我们绝不会存储您完整的卡片信息。"
-            },
-            "errors": {
-                "init_failed": "初始化支付系统失败",
-                "not_ready": "支付系统尚未就绪",
-                "add_failed": "添加支付方式时发生错误"
-            },
-            "toast": {
-                "added": "支付方式添加成功！",
-                "info_updated": "账单信息更新成功！",
-                "info_failed": "更新账单信息失败"
-            }
-        },
-        "plans": {
-            "breadcrumb": "选择套餐",
-            "page_title": "选择您的套餐",
-            "heading": "选择您的套餐",
-            "subheading": "选择最适合您需求的套餐。您可以随时更改或取消。",
-            "monthly": "按月",
-            "yearly": "按年",
-            "custom": "自定义",
-            "per_month": "/月",
-            "save_percent": "节省 {percent}%",
-            "billed_yearly": "按年计费 {amount}",
-            "features_included": "包含的功能：",
-            "everything_in": "{plan} 的全部功能 +",
-            "actions": {
-                "contact_sales": "联系销售",
-                "upgrade": "升级",
-                "upgrade_plan": "升级套餐",
-                "downgrade_to_free": "降级至免费版",
-                "downgrade_plan": "降级套餐",
-                "switch_plan": "切换套餐",
-                "select_plan": "选择套餐"
-            },
-            "discount": {
-                "banner": "限时优惠立减 {percent}%！",
-                "ends": "优惠将于 {date} 结束 — 不要错过！",
-                "limited": "所有付费套餐限时折扣！",
-                "off": "立减 {percent}%"
-            },
-            "most_popular": "最受欢迎",
-            "current_plan": "当前套餐",
-            "save_up_to_percent": "最高节省 {percent}%"
-        },
-        "addons": {
-            "title": "附加项",
-            "description": "在套餐基础上额外增加额度、智能体和域名",
-            "per_agent": " / 个智能体",
-            "per_domain": " / 个域名",
-            "per_member": " / 名成员",
-            "per_month": " / 月",
-            "requires_subscription": "额外智能体、自定义域名、去除品牌标识和成员席位需要有效的主订阅。",
-            "common": {
-                "none": "无",
-                "subscribe": "订阅",
-                "change": "更改",
-                "update_quantity": "更新数量",
-                "monthly_cost": "每月费用：",
-                "keep_subscription": "保留订阅",
-                "yes_cancel": "是的，取消",
-                "ends": "于 {date} 结束"
-            },
-            "auto_recharge": {
-                "title": "自动充值",
-                "on": "开启",
-                "off": "关闭",
-                "summary": "当余额低于 {threshold} 时自动购买 {amount} 额度。",
-                "manage": "管理",
-                "enable": "启用",
-                "dialog_title": "自动充值设置",
-                "dialog_description": "当您的剩余额度降至阈值或更低时，我们将自动从您的默认付款方式扣款并为您的余额充值。",
-                "enable_label": "启用自动充值",
-                "enable_hint": "额度不足时自动扣款",
-                "threshold_label": "阈值（额度）",
-                "threshold_hint": "当您的余额降至此数额或更低时触发充值。",
-                "amount_label": "充值金额（额度）",
-                "each_recharge": "每次充值：",
-                "charged_note": "触发时立即从您的默认付款方式扣款。",
-                "save": "保存设置"
-            },
-            "extra_credits": {
-                "title": "额外额度",
-                "summary": "一次性充值。每个套餐包增加 1,000 条消息，30 天后过期。",
-                "buy": "购买额度",
-                "dialog_title": "购买消息额度",
-                "dialog_description": "每个套餐包含 1,000 条消息，须在购买后一个月内使用完毕。",
-                "quantity_label": "数量（每个套餐包 1,000 条消息）",
-                "total_messages": "消息总数：",
-                "total_price": "总价：",
-                "purchase_for": "以 ${amount} 购买"
-            },
-            "extra_agents": {
-                "title": "额外智能体",
-                "summary": "在套餐限额之外添加更多 AI 智能体。",
-                "cancel_title": "取消额外智能体订阅？",
-                "cancel_description": "您的额外智能体配额将立即被移除，且不会再次扣费。",
-                "change_title": "更改额外智能体",
-                "subscribe_title": "订阅额外智能体",
-                "dialog_description": "在套餐基础上添加额外的 AI 智能体。按每个智能体每月 $5 计费。",
-                "quantity_label": "额外智能体数量"
-            },
-            "custom_domains": {
-                "title": "自定义域名",
-                "summary": "为 AI 智能体使用您自己的自定义域名。",
-                "cancel_title": "取消自定义域名订阅？",
-                "cancel_description": "您的自定义域名配额将立即被移除，且不会再次扣费。",
-                "change_title": "更改自定义域名",
-                "subscribe_title": "订阅自定义域名",
-                "dialog_description": "为 AI 智能体使用您自己的域名。按每个域名每月 $29 计费。",
-                "quantity_label": "域名数量"
-            },
-            "remove_branding": {
-                "title": "去除品牌标识",
-                "active": "已启用",
-                "summary": "在您的小组件和托管聊天中隐藏“Powered by Chatvia”标识。",
-                "cancel_title": "取消去除品牌标识订阅？",
-                "cancel_description": "“Powered by Chatvia”标识将立即重新显示在您的小组件和托管聊天中，且不会再次扣费。"
-            },
-            "members": {
-                "title": "成员",
-                "summary": "为您的工作区添加更多团队成员。",
-                "cancel_title": "取消成员订阅？",
-                "cancel_description": "您的额外成员席位将立即被移除，且不会再次扣费。",
-                "change_title": "更改成员",
-                "subscribe_title": "订阅成员",
-                "dialog_description": "为您的工作区添加额外的团队成员。按每名成员每月 $9 计费。",
-                "quantity_label": "成员数量"
-            }
-        },
-        "index": {
-            "page_title": "账单",
-            "heading": "账单",
-            "subheading": "管理您的订阅、账单信息和用量限额",
-            "stripe_notice": "支付安全处理由",
-            "status_label": "状态",
-            "trial_ends": "试用结束",
-            "next_billing": "下次扣费",
-            "access_ends": "访问权限结束",
-            "plan_features": "套餐功能",
-            "show_less": "收起",
-            "show_more": "再显示 {count} 项",
-            "per_year": "年",
-            "per_month": "月",
-            "status": {
-                "active": "有效",
-                "trial": "试用",
-                "cancelled": "已取消",
-                "incomplete": "未完成",
-                "past_due": "逾期"
-            },
-            "trial": {
-                "heading": "🎉 您正在免费试用！",
-                "ends_on": "您的 {plan} 试用将于以下日期结束",
-                "auto_start": "您的付费订阅将于 {date} 自动开始",
-                "badge": "试用中"
-            },
-            "upgrade": {
-                "heading": "升级到高级版",
-                "description": "使用高级 AI 模型、更高的消息限额及优先支持"
-            },
-            "current_plan": {
-                "title": "当前套餐",
-                "description": "您当前的订阅套餐及用量详情"
-            },
-            "pending_change": {
-                "heading": "套餐变更已排程",
-                "change_from": "您的套餐将从",
-                "to": "变更为",
-                "cycle_yearly": "（按年）",
-                "cycle_monthly": "（按月）",
-                "on_date": "于 {date}。",
-                "scheduled_for": "您有一项套餐变更已排程于 {date}。",
-                "access_note": "在此之前，您将继续享有当前套餐的功能。",
-                "cancel_schedule": "取消排程",
-                "cancel_dialog": {
-                    "title": "取消已排程的套餐变更",
-                    "description": "您确定要取消已排程的套餐变更吗？您将保留在当前套餐。",
-                    "confirm": "是的，取消排程",
-                    "cancel": "保留排程"
-                }
-            },
-            "cancelled": {
-                "title": "订阅已取消",
-                "description": "您的订阅将于 {date} 结束。您可以在此日期前随时恢复订阅。",
-                "resume": "恢复订阅"
-            },
-            "management": {
-                "title": "管理",
-                "manage_payment_methods": "管理付款方式",
-                "view_invoices": "查看发票",
-                "go_to_stripe": "前往 Stripe",
-                "change_plan": "更改套餐",
-                "cancel_subscription": "取消订阅"
-            },
-            "cancel_dialog": {
-                "title": "取消订阅",
-                "description": "您确定要取消订阅吗？在当前计费周期结束前，您将继续享有访问权限。",
-                "confirm": "是的，取消",
-                "cancel": "保留订阅"
-            },
-            "usage": {
-                "title": "用量",
-                "messages": "消息",
-                "pages": "页数",
-                "agents": "智能体",
-                "links": "链接",
-                "minutes": "分钟数",
-                "remaining": "剩余 {count}",
-                "load_error": "无法加载用量数据"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "入门版",
-                    "description": "适合刚起步的小型企业。"
-                },
-                "standard": {
-                    "name": "标准版",
-                    "description": "适合成长中的团队和企业。"
-                },
-                "pro": {
-                    "name": "专业版",
-                    "description": "适合需要全部功能的组织。"
-                },
-                "enterprise": {
-                    "name": "企业版",
-                    "description": "适合有安全、合规和规模需求的组织。"
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "每月 {count} 条消息 | 每月 {count} 条消息",
-            "messages_per_year": "每年 {count} 条消息 | 每年 {count} 条消息",
-            "messages_unlimited": "无限消息",
-            "messages_custom": "自定义消息量",
-            "agents": "{count} 个 AI 智能体 | {count} 个 AI 智能体",
-            "agents_unlimited": "无限 AI 智能体",
-            "pages": "{count} 页（PDF、Word、文本） | {count} 页（PDF、Word、文本）",
-            "pages_unlimited": "无限页数（PDF、Word、文本）",
-            "pages_custom": "自定义知识库",
-            "links": "{count} 个网站链接 | {count} 个网站链接",
-            "links_unlimited": "无限网站链接",
-            "links_custom": "自定义网站链接",
-            "minutes": "{count} 分钟音频/视频 | {count} 分钟音频/视频",
-            "minutes_unlimited": "无限音频/视频时长",
-            "minutes_custom": "自定义音频/视频",
-            "teams": "{count} 个团队 | {count} 个团队",
-            "teams_unlimited": "无限团队",
-            "members": "{count} 名成员（团队成员 + 访客） | {count} 名成员（团队成员 + 访客）",
-            "members_unlimited": "无限成员",
-            "retention": "{count} 天聊天记录 | {count} 天聊天记录",
-            "retention_unlimited": "无限聊天记录",
-            "retention_custom": "自定义数据保留期",
-            "sentiment": "情感分析",
-            "tone": "语气分析",
-            "topics": "主题分析",
-            "pulse": "会话脉搏",
-            "handoff": "转接人工",
-            "api": "API 访问",
-            "evals": "评估",
-            "guardrails": "防护规则",
-            "audit": "审计日志",
-            "branding": "白标（移除 {brand} 品牌标识）",
-            "network_access": "网络访问控制（IP 和地理位置）",
-            "siem_webhook": "SIEM Webhook（实时安全事件）",
-            "mcp": "MCP",
-            "function_calling": "函数调用",
-            "custom_domains": "{count} 个自定义域名 | {count} 个自定义域名",
-            "custom_domains_unlimited": "无限自定义域名",
-            "custom_domains_custom": "自定义域名",
-            "custom_integrations": "自定义集成",
-            "eu_data_residency": "欧盟数据驻留",
-            "sso_saml": "SSO / SAML",
-            "uptime_sla": "正常运行时间 SLA",
-            "dedicated_support": "专属支持",
-            "custom_contract": "自定义合同与 DPA"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "AI 智能体及活动概览",
         "create_agent": "创建智能体",
         "total_agents": "智能体总数",
-        "messages_this_cycle": "本周期消息数",
         "percent_used": "已使用 {percent}%",
         "total_conversations": "会话总数",
         "all_time_across_agents": "所有智能体的累计数据",
@@ -3110,97 +2658,8 @@
         "last_week": "上周",
         "last_month": "上个月",
         "messages_tooltip": "{n} 条消息 | {n} 条消息",
-        "messages_this_month": "本月消息数"
-    },
-    "support": {
-        "title": "支持",
-        "subtitle": "查看您的工单或创建新工单。",
-        "create_ticket": "创建新工单",
-        "your_tickets": "您的工单",
-        "your_tickets_description": "之前提交的工单",
-        "loading": "正在加载工单…",
-        "empty": "暂无工单。点击“创建新工单”即可开始。",
-        "th_id": "ID",
-        "th_type": "类型",
-        "th_status": "状态",
-        "th_priority": "优先级",
-        "th_created": "创建时间",
-        "th_message": "消息",
-        "th_replies": "回复",
-        "status_open": "待处理",
-        "status_in_progress": "处理中",
-        "status_resolved": "已解决",
-        "status_closed": "已关闭",
-        "priority_urgent": "紧急",
-        "priority_high": "高",
-        "priority_medium": "中",
-        "priority_low": "低",
-        "create_ticket_description": "选择类型并描述您的请求。",
-        "label_type": "类型",
-        "type_placeholder": "选择类型",
-        "type_feature": "请求新功能",
-        "type_bug": "报告缺陷",
-        "type_integration": "请求集成",
-        "type_add_model": "请求添加模型",
-        "type_refund": "退款请求",
-        "type_billing": "账单问题",
-        "type_other": "其他",
-        "label_priority": "优先级",
-        "priority_placeholder": "选择优先级",
-        "label_message": "消息",
-        "message_placeholder": "详细描述您的请求或问题…",
-        "cancel": "取消",
-        "submitting": "正在提交…",
-        "submit": "提交"
-    },
-    "ticket": {
-        "support": "支持",
-        "title": "工单 #{id}",
-        "created_at": "创建于 {date}",
-        "back_to_support": "返回支持",
-        "status_open": "待处理",
-        "status_in_progress": "处理中",
-        "status_resolved": "已解决",
-        "status_closed": "已关闭",
-        "priority_urgent": "紧急",
-        "priority_high": "高",
-        "priority_medium": "中",
-        "priority_low": "低",
-        "change_priority": "更改优先级",
-        "change_priority_title": "更改工单优先级",
-        "change_priority_description": "请仅在确实紧急时才更改优先级。滥用紧急优先级会拖慢所有人的响应速度。",
-        "label_priority": "优先级",
-        "priority_placeholder": "选择优先级",
-        "cancel": "取消",
-        "saving": "正在保存…",
-        "save": "保存",
-        "replies": "回复（{count}）",
-        "no_replies": "暂无回复。",
-        "role_staff": "客服",
-        "role_user": "用户",
-        "resolved_notice": "此工单已解决。如果问题仍然存在，请在支持页面创建新工单。",
-        "add_reply": "添加回复",
-        "reply_placeholder": "撰写你的回复…",
-        "sending": "正在发送…",
-        "send_reply": "发送回复"
-    },
-    "usage": {
-        "title": "用量",
-        "subtitle": "监控你在所有服务和功能上的当前用量。",
-        "plan_badge": "{plan} 套餐",
-        "label_messages": "消息",
-        "label_tokens": "Token 用量",
-        "label_pages": "页数",
-        "label_minutes": "分钟",
-        "label_links": "链接",
-        "label_agents": "智能体",
-        "label_teams": "团队",
-        "label_members": "成员",
-        "tokens_note": "本周期已消耗——仅供参考；你的套餐按消息计费。",
-        "of": "共 {limit}",
-        "remaining": "剩余 {count}",
-        "load_error": "无法加载用量数据。",
-        "no_limit": "无限制"
+        "messages_this_month": "本月消息数",
+        "messages_used_of_limit": "已使用 {used}/{limit}"
     },
     "analytics_chat": {
         "title": "查询你的数据",
@@ -3326,7 +2785,6 @@
             "description": "用于 {api_link} 的账户密钥——创建和管理智能体、知识、MCP 服务器和函数。",
             "api_link": "Chatvia API",
             "generate": "生成密钥",
-            "locked": "升级你的套餐以签发 API 密钥，并将 Chatvia 集成到你的应用中。",
             "empty_title": "暂无 API 密钥",
             "empty_description": "生成一个以开始使用 Chatvia API。",
             "never": "从不",
@@ -3535,14 +2993,6 @@
             "save_error": "无法保存你的安全设置",
             "cancel": "取消",
             "done": "完成",
-            "teaser": {
-                "title": "安全与合规",
-                "description": "将你的工作区锁定到受信任的网络，满足你的合规需求。Pro 套餐可用。",
-                "ip": "IP 允许列表 — 仅批准的地址可以登录",
-                "geo": "国家/地区规则 — 按国家/地区允许或阻止访问",
-                "more": "另含数据保留、SIEM Webhook、SSO / SCIM 等",
-                "cta": "升级到 Pro"
-            },
             "network": {
                 "title": "网络访问控制",
                 "help": "将仪表盘访问限制为受信任的 IP 地址和国家/地区。关闭时，任何拥有有效登录凭据的人都可以从任何地方登录。"
@@ -3578,7 +3028,7 @@
                 "title": "数据保留",
                 "help": "Chatvia 在自动删除前保留您数据的时长。出于合规考虑可缩短这些时长 — 留空某字段以使用默认值。",
                 "conversations": "会话历史（天）",
-                "conversations_help": "聊天历史将在此天数后被删除。您的套餐最多支持 {max}。",
+                "conversations_help": "聊天历史将在此天数后被删除。最多 {max} 天。",
                 "audit": "安全审计日志（天）",
                 "audit_help": "默认 {default} 天，最少 {floor}。",
                 "plan_default": "默认（{days} 天）"
@@ -3606,11 +3056,6 @@
             "user_agent": "用户代理",
             "metadata": "详情",
             "integrity": "已记录完整性哈希",
-            "teaser": {
-                "title": "安全审计日志",
-                "description": "查看每次登录、角色变更和安全设置更改 — 防篡改且可导出。Pro 套餐可用。",
-                "cta": "升级到 Pro"
-            },
             "table": {
                 "actor": "操作者",
                 "action": "操作",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "仪表盘",
             "agents": "智能体",
-            "usage": "用量",
             "ask_your_data": "询问您的数据",
-            "billing": "账单",
-            "support": "支持",
             "teams": "团队",
             "documentation": "文档",
             "api": "API",
-            "nav_menu_sr": "导航菜单",
-            "upgrade": "升级",
-            "subscribed": "您已订阅"
+            "nav_menu_sr": "导航菜单"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "知识来源、文档和上传的文件",
             "removes_team": "您的团队、访客、API 密钥和连接器",
             "agents_will_delete": "{count} 个智能体将被永久删除： | {count} 个智能体将被永久删除：",
-            "subscription_cancel": "您的有效订阅将被取消，不会再向您收费。",
             "email_confirmed": "邮箱已确认。这是最后一步——此后将无法恢复。",
             "delete_button": "永久删除我的账户",
             "final_dialog_title": "永久删除您的账户？",
             "final_dialog_description": "此操作将永久删除您的账户及其所有数据，且无法撤销。",
-            "final_dialog_subscription": "您的订阅也将被取消。",
             "final_confirm": "是的，删除全部",
             "check_email": "请查收邮件——我们已发送一个确认链接，用于完成账户删除。链接将在 30 分钟后失效。打开链接以继续。",
             "resend_link": "重新发送链接",
@@ -3906,7 +3344,6 @@
         "enable_feature": "启用 {title}",
         "enabling": "正在启用…",
         "enable_now": "立即启用",
-        "upgrade_now": "立即升级",
         "chat_title_fallback": "聊天",
         "more_options": "更多选项",
         "delete_confirmation_title": "删除确认",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "上传文件",
             "description_default": "添加要分析的文件",
-            "quota_label_default": "页",
             "file_count": "{current} / {max} 个文件",
-            "quota_limit_reached_alert": "您已达到 {quotaLabel} 上限 {quotaLimit} {quotaLabel}。请升级套餐以处理更多文档。",
             "drop_zone_file_limit_reached": "已达到文件数量上限",
-            "drop_zone_quota_limit_reached": "已达到 {quotaLabel} 上限",
             "drop_zone_select_files": "选择文件",
             "drop_zone_max_files_hint": "最多允许 {max} 个文件。请移除部分文件后再添加。",
-            "drop_zone_quota_exhausted_hint": "您已用完全部 {quotaLimit} {quotaLabel}。请升级套餐以继续。",
-            "drop_zone_unavailable": "无法上传",
             "drop_zone_default_hint": "拖放或点击以选择文件",
-            "total_quota": "共 {count} {label}",
-            "exceeds_quota": "超出配额 {amount} {quotaLabel}",
             "clear_failed": "清除失败项",
             "clear_all": "全部清除",
             "badge_analyzed": "已分析",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "从你的 Amplitude 项目查询产品分析数据——事件、图表和群组。"
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "欢迎使用 Chatvia",
-            "intro": "让我们创建您的第一个 AI 智能体。只需一分钟。",
-            "what_title": "什么是智能体？",
-            "what_body": "智能体是用您自己的内容训练的 AI 助手。它会在您的网站、聊天挂件和消息应用中回答客户的问题。",
-            "how_title": "它是如何运作的？",
-            "how_body": "首先创建一个智能体并为其命名。然后用您的文件、网站和文本训练它，让它能够回答问题。",
-            "start": "创建我的第一个智能体",
-            "video_caption": "观看运作方式"
         }
     }
 }

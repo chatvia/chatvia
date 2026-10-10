@@ -3,16 +3,11 @@
         "header": {
             "dashboard": "Kojelauta",
             "agents": "Agentit",
-            "usage": "Käyttö",
             "ask_your_data": "Kysy tiedoistasi",
-            "billing": "Laskutus",
-            "support": "Tuki",
             "teams": "Tiimit",
             "documentation": "Dokumentaatio",
             "api": "API",
-            "nav_menu_sr": "Navigointivalikko",
-            "upgrade": "Päivitä",
-            "subscribed": "Olet tilaaja"
+            "nav_menu_sr": "Navigointivalikko"
         }
     },
     "agents": {

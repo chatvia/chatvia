@@ -57,7 +57,7 @@ function amaEnableAnalytics(Agent $agent): void
 it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnalyzed', function (): void {
     Event::fake([MessageAnalyzed::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
 
@@ -80,7 +80,7 @@ it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnal
 it('skips assistant messages without calling the LLM', function (): void {
     Event::fake([MessageAnalyzed::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent, role: 'assistant');
 
@@ -97,7 +97,7 @@ it('skips assistant messages without calling the LLM', function (): void {
 it('is idempotent: skips a message that already has sentiment AND tone', function (): void {
     Event::fake([MessageAnalyzed::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
     $message->update([
@@ -118,7 +118,7 @@ it('saves nothing and rolls nothing up on a malformed analyzer response', functi
     // model had said so, and the idempotency guard would then block any retry.
     Event::fake([MessageAnalyzed::class]);
 
-    $agent = proPlanAgent();
+    $agent = Agent::factory()->create();
     amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
 

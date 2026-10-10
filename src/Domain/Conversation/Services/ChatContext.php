@@ -110,7 +110,7 @@ class ChatContext
     /**
      * Set by the input guardrail when the visitor's message must be refused. The
      * turn then routes to GuardBlockSource instead of the LLM — no model call,
-     * no message credit.
+     * and it does not count against the message limit.
      */
     public bool $guardBlocked = false;
 

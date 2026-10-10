@@ -9,7 +9,7 @@ use Domain\Analytics\Enums\AnalyticsPeriod;
 /**
  * What an account-analytics question asks about: a named period (or explicit
  * dates, which win when both are given) and optionally one agent. Null means
- * "the default": the current billing cycle and the whole account.
+ * "the default": this month and the whole account.
  */
 final readonly class AnalyticsFilterData
 {

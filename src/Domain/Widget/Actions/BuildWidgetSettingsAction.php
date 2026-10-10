@@ -5,7 +5,6 @@ namespace Domain\Widget\Actions;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AppearanceTextResolver;
 use Domain\Agent\ValueObjects\TranslatableText;
-use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
@@ -44,7 +43,7 @@ class BuildWidgetSettingsAction
     public function execute(Agent $agent, ?string $visitorLocale = null): WidgetSettingsData
     {
         // One round-trip for every settings group and the starters.
-        $agent->loadMissing(['starterSet', 'team.owner']);
+        $agent->loadMissing('starterSet');
         $agent->loadSettingsGroups(['widget', 'appearance', 'bar', 'surfaces']);
 
         $widget = $agent->settings('widget');
@@ -83,7 +82,7 @@ class BuildWidgetSettingsAction
             bar_placement: $bar['placement'] ?? null,
             composer_placeholder: $text['composer_placeholder'] ?? null,
             privacy_policy_url: $appearance['privacy_policy_url'] ?? null,
-            handoff_enabled: ($widget['handoff_enabled'] ?? true) && ($agent->team?->hasCapability(Capability::Handoff) ?? false),
+            handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
             // Chat uploads are PDFs, so they need an LLM that can read them.
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->documentLlm->isAvailable(),
             allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),

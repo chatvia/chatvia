@@ -9,6 +9,7 @@ import { useAgentConnectors } from '@/composables/agents/connectors/useAgentConn
 import { useConnectorText } from '@/composables/useConnectorText';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { connectorLogoUrl } from '@/lib/connectorLogo';
+import { edit as editConnectors } from '@/routes/integrations/connectors';
 import { LoaderCircle, Plug, Search } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
@@ -43,9 +44,7 @@ const alwaysLabel = (name: string): string => `${name} — ${t('agents.sources.c
                                 </CardTitle>
                                 <CardDescription>
                                     {{ t('agents.sources.connectors.description_prefix') }}
-                                    <a :href="route('integrations.connectors.edit')" class="underline">{{
-                                        t('agents.sources.connectors.settings_link')
-                                    }}</a
+                                    <a :href="editConnectors.url()" class="underline">{{ t('agents.sources.connectors.settings_link') }}</a
                                     >.
                                 </CardDescription>
                             </div>

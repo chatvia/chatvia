@@ -30,7 +30,7 @@ Exclude noisy pages (login screens, archive indexes, terms of service) — they 
 ## Limits and politeness
 
 - Max depth is capped (typically 3 levels deep).
-- Max pages per website is capped by plan (typically a few hundred).
+- One crawl finds up to 1,000 pages of a website.
 - The crawler honors `robots.txt` and uses a Chatvia user agent — so site owners can identify and rate-limit it.
 - Pages behind authentication are not crawled. For private content, use a [file source](/guide/sources/files) instead.
 
@@ -47,7 +47,7 @@ Many docs sites already emit a webhook on publish (e.g. from a CMS). Subscribe t
 
 ## Single-page apps
 
-For JS-rendered SPAs, Chatvia runs a headless browser so client-side content is captured. If a SPA isn't being indexed correctly, file a support ticket with the URL — the crawler may need a per-domain configuration.
+For JS-rendered SPAs, Chatvia runs a headless browser so client-side content is captured. If a SPA isn't being indexed correctly, the crawler may need a per-domain configuration.
 
 ## Metadata
 

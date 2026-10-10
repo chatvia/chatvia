@@ -1,8 +1,9 @@
 /**
  * The workspace security policy form: network access (IP allowlist + country
  * rule), data retention and the SIEM webhook, all saved together. Retention
- * days are edited as strings, where '' means "use the plan default".
+ * days are edited as strings, where '' means "use the default".
  */
+import { update as updateSecurityPolicy } from '@/routes/security';
 import { useForm } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -54,7 +55,7 @@ export function useSecurityPolicyForm(policy: SecurityPolicy) {
     }));
 
     const save = () => {
-        form.put(route('security.update'), {
+        form.put(updateSecurityPolicy.url(), {
             preserveScroll: true,
             onSuccess: () => toast.success(t('workspace.security.saved')),
             onError: () => toast.error(t('workspace.security.save_error')),

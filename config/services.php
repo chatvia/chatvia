@@ -214,6 +214,11 @@ return [
     // refuses to sign rather than silently reuse another key.
     'builtin_mcp' => [
         'secret' => env('BUILTIN_MCP_SECRET'),
+        // Where the app reaches its own /mcp/ routes, when that is not
+        // APP_URL. In Docker, APP_URL (for example http://localhost:8000)
+        // means something else inside a container; the image's compose file
+        // sets this to the web container. Empty uses APP_URL.
+        'internal_url' => env('BUILTIN_MCP_INTERNAL_URL'),
     ],
 
     'turnstile' => [

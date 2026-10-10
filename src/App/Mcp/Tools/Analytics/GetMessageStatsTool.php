@@ -19,8 +19,8 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 Message volume for a period: how many messages came in (from visitors) vs went
 out (AI replies), the combined total, the change vs the previous period, the
 average messages per conversation, and a per-day series. Answers "how many
-messages this cycle?", "incoming vs outgoing?", "are we up or down vs last
-cycle?". The per-day series is ideal to hand to a chart tool.
+messages this month?", "incoming vs outgoing?", "are we up or down vs last
+month?". The per-day series is ideal to hand to a chart tool.
 TXT)]
 #[IsReadOnly]
 #[IsIdempotent]

@@ -5,7 +5,6 @@ namespace Domain\Analytics\Actions\Analysis;
 use Domain\Analytics\Data\ConversationAnalysisData;
 use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Services\ConversationAnalyzer;
-use Domain\Billing\Enums\Capability;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
 use Domain\Llm\Usage\TokenUsageContext;
@@ -38,28 +37,25 @@ class AnalyzeMessageAction
         }
 
         // analyzeMessage() returns sentiment + tone in a single structured-output
-        // LLM call. A dimension is "wanted" only when the plan exposes it AND
-        // the agent hasn't switched it off (Setup → Settings). Skip the call
-        // entirely when neither is wanted.
+        // LLM call. A dimension is "wanted" unless the agent switched it off
+        // (Setup → Settings). Skip the call entirely when neither is wanted.
         $agent = $message->conversation?->agent;
-        $team = $agent?->team;
 
-        if (! $agent || ! $team) {
+        if (! $agent) {
             return;
         }
 
-        $wantSentiment = $team->hasCapability(Capability::Sentiment) && $agent->analyticsEnabled('sentiment');
-        $wantTone = $team->hasCapability(Capability::Tone) && $agent->analyticsEnabled('tone');
+        $wantSentiment = $agent->analyticsEnabled('sentiment');
+        $wantTone = $agent->analyticsEnabled('tone');
 
         if (! $wantSentiment && ! $wantTone) {
             return;
         }
 
-        // Attribute the tone/sentiment LLM call's tokens to the workspace (analytics).
+        // Attribute the tone/sentiment LLM call to the workspace in Spectra.
         $analysis = $this->usage->track(
             $agent->user_id,
             fn (): ?ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
-            'analysis',
         );
 
         if ($analysis === null) {

@@ -223,6 +223,20 @@ exactly two forms (`one | many`). Missing keys in other locales fall back to
 English. Server-side text (e-mails, flash messages) uses `__('English text')`
 and `lang/*.json` instead.
 
+### URLs in the frontend
+
+Frontend URLs come from Wayfinder: typed functions generated from the named
+Laravel routes into `resources/js/routes` (for example
+`import { store } from '@/routes/agents/forms'` and `store.url(agentId)`).
+The folder is gitignored. `npm run dev` and `npm run build` generate it, and
+`composer ci:check` does too; to generate it by hand, run:
+
+```bash
+php artisan wayfinder:generate --skip-actions
+```
+
+Keep route names stable: the frontend imports by name.
+
 ### TypeScript types from PHP
 
 DTOs and enums marked `#[TypeScript]` are turned into TypeScript types in

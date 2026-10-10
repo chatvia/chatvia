@@ -11,15 +11,12 @@ use App\Admin\Settings\SettingsStore;
 use App\Identity\Workspace\Models\User;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Field;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
@@ -100,16 +97,9 @@ class EditSetting extends EditRecord
         $store = app(SettingsStore::class);
         $callbackUrls = $group->callbackUrls();
 
-        $warning = $group->warning();
-
         return $schema
             ->columns(1)
             ->components([
-                Callout::make('Before you change this')
-                    ->description($warning)
-                    ->icon(Heroicon::OutlinedExclamationTriangle)
-                    ->warning()
-                    ->visible($warning !== null),
                 Section::make($group->hasSecrets() ? 'Credentials' : 'Options')
                     ->description($group->hasSecrets()
                         ? 'Encrypted before they are saved. Secrets are never shown again: leave one blank to keep it.'
@@ -178,8 +168,6 @@ class EditSetting extends EditRecord
         return match ($field->kind) {
             SettingFieldKind::Toggle => Toggle::make($name),
             SettingFieldKind::Integer => TextInput::make($name)->integer()->minValue($field->min)->maxValue($field->max)->required(),
-            SettingFieldKind::Select => Select::make($name)->options($field->options)->selectablePlaceholder(false)->required(),
-            SettingFieldKind::Date => DatePicker::make($name),
             default => TextInput::make($name),
         };
     }

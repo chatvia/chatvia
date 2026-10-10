@@ -10,7 +10,6 @@ const { t } = useI18n();
 
 interface Props {
     agents: { name: string }[];
-    hasSubscription: boolean;
     deletionConfirmed: boolean;
 }
 
@@ -29,7 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         <Head :title="t('account.delete.title')" />
 
         <AccountLayout>
-            <DeleteUser :agents="agents" :has-subscription="hasSubscription" :confirmed="deletionConfirmed" />
+            <DeleteUser :agents="agents" :confirmed="deletionConfirmed" />
         </AccountLayout>
     </AppLayout>
 </template>

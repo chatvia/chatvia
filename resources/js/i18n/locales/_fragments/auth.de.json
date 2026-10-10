@@ -20,8 +20,7 @@
             "send_link": "Anmeldelink senden",
             "sending_link": "Link wird gesendet...",
             "or_continue_with": "Oder weiter mit",
-            "no_account": "Noch kein Konto?",
-            "start_free_trial": "Kostenlos testen"
+            "no_account": "Noch kein Konto?"
         },
         "register": {
             "title": "Konto erstellen",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Wiederherstellungscode verwenden",
             "use_authenticator_code": "Authenticator-Code verwenden"
         },
-        "set_password": {
-            "title": "Passwort wählen",
-            "description": "Ihr Konto ist bereit. Wählen Sie ein Passwort, um die Einrichtung abzuschließen.",
-            "head": "Passwort wählen",
-            "email_label": "E-Mail-Adresse",
-            "password_label": "Passwort",
-            "password_placeholder": "Passwort",
-            "confirm_password_label": "Passwort bestätigen",
-            "confirm_password_placeholder": "Passwort bestätigen",
-            "set_password": "Passwort festlegen",
-            "setting_password": "Passwort wird festgelegt..."
-        },
         "login_member": {
             "description": "Melden Sie sich an, um auf diesen Chat-Bereich zuzugreifen",
             "head": "Mitglieder-Anmeldung",
@@ -168,16 +155,6 @@
             "or": "Oder",
             "social_email_note_prefix": "Stellen Sie sicher, dass Ihr Social-Media-Konto die Adresse",
             "social_email_note_suffix": "verwendet – sie muss mit dieser Einladung übereinstimmen."
-        },
-        "invitation_invalid": {
-            "title": "Einladung nicht verfügbar",
-            "description": "Diese Einladung kann nicht angenommen werden",
-            "head": "Einladung nicht verfügbar",
-            "card_title": "Einladung kann nicht angenommen werden",
-            "cannot_accept_prefix": "Die Einladung, beizutreten",
-            "cannot_accept_suffix": "kann derzeit nicht angenommen werden.",
-            "contact_owner": "Bitte wenden Sie sich an den Team-Inhaber, um dieses Problem zu lösen.",
-            "go_to_login": "Zur Anmeldung"
         },
         "invitation_expired": {
             "title": "Einladung abgelaufen",

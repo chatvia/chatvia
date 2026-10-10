@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { logs } from '@/routes/agents';
 import { router, usePage } from '@inertiajs/vue3';
 import { Activity, Info, MessageSquare, Phone, RefreshCcw, Search, Tag, Trash2, UserCheck, X } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
@@ -52,8 +53,8 @@ const canViewPulse = computed(() => hasPermission('agent.chat.pulse'));
 const canTakeover = computed(() => hasPermission('agent.chat.takeover'));
 const canDeleteConversation = computed(() => hasPermission('agent.chat.delete'));
 
-// Live chat needs the takeover permission and the handoff capability (one page
-// prop). It only works for widget conversations: a person can stream replies
+// Live chat needs the takeover permission and handoff switched on for the
+// agent (one page prop). It only works for widget conversations: a person can stream replies
 // into the embedded widget, but not into the hosted chat, the bar or Telegram.
 const handoffEnabled = computed(() => Boolean(page.props.handoffEnabled));
 const liveChatAvailable = computed(() => canTakeover.value && handoffEnabled.value && currentConversationData.value?.source === 'widget');
@@ -111,7 +112,7 @@ function onConversationDeleted() {
     messagesData.value = null;
     lead.value = null;
 
-    router.visit(route('agents.logs', { agent: agentId.value }), {
+    router.visit(logs.url(agentId.value), {
         preserveState: false,
         preserveScroll: false,
         replace: true,

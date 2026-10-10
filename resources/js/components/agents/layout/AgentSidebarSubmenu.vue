@@ -49,7 +49,7 @@ const { isActiveRoute } = useActiveRoute();
                     <AgentSidebarDropdownLink
                         v-for="subItem in item.subItems"
                         :key="subItem.id"
-                        :href="route(subItem.route, { agent: agentId })"
+                        :href="subItem.url(agentId)"
                         :icon="subItem.icon"
                         :label="subItem.label"
                     />
@@ -70,7 +70,7 @@ const { isActiveRoute } = useActiveRoute();
                 <AgentSidebarSubLink
                     v-for="subItem in item.subItems"
                     :key="subItem.id"
-                    :href="route(subItem.route, { agent: agentId })"
+                    :href="subItem.url(agentId)"
                     :icon="subItem.icon"
                     :label="subItem.label"
                     :active="isActiveRoute(subItem.route)"

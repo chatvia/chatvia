@@ -28,7 +28,6 @@ return [
     | - name: product name in the UI, emails, file names and outbound headers.
     | - website_url / docs_url / api_docs_url: links shown in the app.
     | - powered_by: the "Powered by …" credit under hosted chats and widgets.
-    | - onboarding_video_url: optional video on the first-run welcome screen.
     |
     */
 
@@ -42,25 +41,29 @@ return [
             'label' => env('BRAND_POWERED_BY_LABEL', 'Chatvia'),
             'url' => env('BRAND_POWERED_BY_URL'),
         ],
-        'onboarding_video_url' => env('BRAND_ONBOARDING_VIDEO_URL'),
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Founder welcome email
+    | Sign-up and message limits
     |--------------------------------------------------------------------------
     |
-    | An optional personal note sent to new trial sign-ups, signed by a real
-    | person. The email is the message Reply-To, so replies reach that inbox.
-    | It is sent only when `welcome_email` is on and both name and email are
-    | set.
+    | Set in the admin panel (Settings → Workspaces), not here. When the app
+    | boots, App\Admin\Settings\SettingsStore puts the saved values into
+    | these keys, or the panel's defaults while nothing is saved. The nulls in
+    | this file are only placeholders.
+    |
+    | `registration_enabled` opens the sign-up form at /register.
+    | `message_limits.new_workspace` is the monthly limit on agent replies a
+    | new workspace starts with (0 means no limit). A platform admin changes
+    | the limit of one workspace on its page in the admin panel.
     |
     */
 
-    'founder' => [
-        'welcome_email' => (bool) env('FOUNDER_WELCOME_ENABLED', false),
-        'name' => env('FOUNDER_NAME'),
-        'email' => env('FOUNDER_EMAIL'),
+    'registration_enabled' => null,
+
+    'message_limits' => [
+        'new_workspace' => null,
     ],
 
     /*
@@ -527,18 +530,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Data retention (Enterprise Security & Compliance)
+    | Data retention
     |--------------------------------------------------------------------------
     |
-    | The plan's capabilities->retentionDays is the conversation-history CEILING.
-    | An Enterprise workspace may SHORTEN it via
-    | WorkspaceSecurityPolicy.retention_conversations_days (never exceed the plan)
-    | but not below this floor; the daily app:prune-expired-conversations sweep
+    | `conversations_days` is how long conversations are kept. It is set in
+    | the admin panel (Settings → Workspaces); the null here is a placeholder.
+    | A workspace may SHORTEN it via
+    | WorkspaceSecurityPolicy.retention_conversations_days (never longer) but
+    | not below the floor; the daily app:prune-expired-conversations sweep
     | enforces the override. Audit-log retention lives under `security_audit`.
     |
     */
 
     'retention' => [
+        'conversations_days' => null,
         'conversations_floor_days' => (int) env('CONVERSATION_RETENTION_FLOOR_DAYS', 1),
     ],
 

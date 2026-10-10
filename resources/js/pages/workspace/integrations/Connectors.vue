@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { useConnectorText } from '@/composables/useConnectorText';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
+import { start as startConnectorOauth } from '@/routes/integrations/connectors/oauth';
 import { type BreadcrumbItem } from '@/types';
 import type { AgentMcpServer, Connector, ConnectorRow } from '@/types/connector';
 import { Head } from '@inertiajs/vue3';
@@ -96,7 +97,7 @@ async function startConnect(connector: Connector): Promise<void> {
             salesforceOpen.value = true;
             return;
         }
-        window.location.href = route('integrations.connectors.oauth.start', { slug: connector.slug });
+        window.location.href = startConnectorOauth.url(connector.slug);
         return;
     }
 

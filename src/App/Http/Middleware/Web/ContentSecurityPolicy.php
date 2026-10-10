@@ -21,8 +21,8 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * The policy is deliberately small. It has no script-src / style-src /
  * connect-src / font-src / frame-src: the app needs 'unsafe-inline' (Alpine,
- * AOS, Ziggy @routes, inline handlers), and adding a nonce would switch
- * 'unsafe-inline' off. So Stripe.js, the Reverb websocket, Turnstile,
+ * AOS, inline handlers), and adding a nonce would switch
+ * 'unsafe-inline' off. So the Reverb websocket, Turnstile,
  * Plausible and the asset CDN load without an allow-list (fonts are
  * self-hosted under /fonts, so 'self'). What is left are the directives that
  * don't fight asset loading.
@@ -34,12 +34,6 @@ class ContentSecurityPolicy
     public const MODE_REPORT_ONLY = 'report-only';
 
     public const MODE_ENFORCE = 'enforce';
-
-    /**
-     * The trial sign-up form POSTs to us and we redirect to Stripe Checkout.
-     * Browsers apply form-action to that redirect too.
-     */
-    private const string STRIPE_CHECKOUT_ORIGIN = 'https://checkout.stripe.com';
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -60,7 +54,7 @@ class ContentSecurityPolicy
             // The app origin is listed next to 'self' because the marketing
             // pages can be served from another host (e.g. www) than APP_URL,
             // which is where their forms post.
-            'form-action '.$this->sources(["'self'"], [config('app.url'), self::STRIPE_CHECKOUT_ORIGIN]),
+            'form-action '.$this->sources(["'self'"], [config('app.url')]),
         ];
 
         // The hosted-chat surface (the agent subdomains — every route is named

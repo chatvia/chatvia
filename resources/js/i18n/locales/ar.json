@@ -97,7 +97,6 @@
     },
     "chat": {
         "message_limit_reached": "لقد وصلت إلى الحد الأقصى للرسائل",
-        "upgrade_prompt": "يرجى ترقية باقتك للاستمرار في المحادثة",
         "regenerate_failed": "تعذر إعادة توليد الرد. يرجى المحاولة مرة أخرى.",
         "conversation_gone": "لم تعد هذه المحادثة موجودة.",
         "loading_conversation": "جارٍ تحميل المحادثة",
@@ -117,7 +116,8 @@
             "http_status": "أعاد الخادم الحالة {status}.",
             "interrupted": "انقطع الاتصال.",
             "malformed": "تلقّينا بيانات غير صالحة من الخادم."
-        }
+        },
+        "limit_resets_next_month": "يمكنك إرسال الرسائل مجددًا في الشهر القادم."
     },
     "messages": {
         "send": "إرسال",
@@ -140,11 +140,7 @@
         "edit_message": "تعديل الرسالة"
     },
     "errors": {
-        "subscription_expired": "انتهى الاشتراك",
-        "renew_subscription": "تجديد الاشتراك",
         "message_limit_reached": "تم الوصول إلى حد الرسائل",
-        "token_limit_reached": "تم بلوغ حدّ استخدام التوكنات",
-        "upgrade_plan": "ترقية الباقة",
         "model_unavailable": "النموذج غير متاح",
         "too_many_requests": "عدد الطلبات كبير جداً",
         "connection_lost": "فُقد الاتصال",
@@ -188,8 +184,7 @@
         "audit": {
             "title": "سجل التدقيق",
             "head_title": "التدقيق · {name}",
-            "description": "كل إجراء يقوم به هذا الوكيل عبر الأدوات والموصّلات — مسموح، معتمد، مرفوض، أو محدود المعدل — مع الوسائط والنتيجة ومن أطلقه.",
-            "locked_description": "سجل التدقيق متاح في خطة Pro. رقِّ خطتك لرؤية كل إجراء يقوم به هذا الوكيل عبر الأدوات والموصّلات."
+            "description": "كل إجراء يقوم به هذا الوكيل عبر الأدوات والموصّلات — مسموح، معتمد، مرفوض، أو محدود المعدل — مع الوسائط والنتيجة ومن أطلقه."
         },
         "channels": {
             "title": "القنوات",
@@ -230,7 +225,7 @@
                     "reply_streams_live": "— يتدفق الرد مباشرة"
                 },
                 "telegram": {
-                    "connected_description": "يمكن للأشخاص مراسلة بوتك على Telegram وسيرد وكيلك تلقائياً — تُطبَّق الفوترة والسجل وضوابط الأمان.",
+                    "connected_description": "يمكن للأشخاص مراسلة بوتك على Telegram وسيرد وكيلك تلقائياً — تُطبَّق حدود الرسائل والسجل وضوابط الأمان.",
                     "steps": {
                         "connect_1": "افتح {botfather} في Telegram",
                         "connect_2": "أرسل {command} واتبع التعليمات",
@@ -446,7 +441,6 @@
                 "select_topic": "اختر الموضوع",
                 "select_sentiment": "اختر المشاعر",
                 "select_tone": "اختر النبرة",
-                "upgrade_to_unlock": "ترقية للفتح",
                 "clear_all": "مسح الكل",
                 "close": "تطبيق الفلاتر"
             },
@@ -486,14 +480,12 @@
                 "page_url": "رابط الصفحة",
                 "referrer": "المُحيل",
                 "locale": "اللغة",
-                "upgrade_to_unlock": "ترقية للفتح",
                 "waiting": "بانتظار التحليل…",
                 "channel": "القناة"
             },
             "pulse": {
                 "title": "نبض المحادثة",
                 "select_conversation": "اختر محادثة لعرض النبض",
-                "locked_description": "رقِّ خطتك لفتح تحليلات نبض المحادثة.",
                 "refresh": "تحديث",
                 "no_messages_title": "لا توجد رسائل كافية بعد",
                 "no_messages_hint": "يتطلب النبض رسالة واحدة على الأقل من المستخدم لتحليل المشاعر والنبرة عبر الزمن.",
@@ -529,7 +521,6 @@
                 "trend_stable_label": "مستقر"
             },
             "handoff": {
-                "locked_description": "رقِّ خطتك لتولّي المحادثات المباشرة من سجل المحادثات.",
                 "visitor": "زائر",
                 "online": "متصل",
                 "offline": "غير متصل",
@@ -651,8 +642,7 @@
                 "pii": "معلومات تعريف شخصية",
                 "blocked_topic": "موضوع محظور",
                 "toxicity": "محتوى مسيء"
-            },
-            "locked_description": "ضوابط الأمان متاحة في خطتي Standard وPro. رقِّ خطتك للتحكم فيما يمكن لوكيلك مناقشته وكيفية التعامل مع المحتوى الحساس."
+            }
         },
         "persona": {
             "title": "الشخصية",
@@ -849,7 +839,6 @@
                     "run_deleted": "تم حذف التشغيل",
                     "history_cleared": "تم مسح سجل التشغيلات"
                 },
-                "locked_description": "التقييمات متاحة في خطتي Standard وPro. رقِّ خطتك لاختبار وتقييم إجابات هذا الوكيل قبل وصولها إلى العملاء.",
                 "cost_note": "تشغيل المجموعة يكلّف رسالة واحدة لكل حالة نشطة، لذا سيستهلك هذا التشغيل {count} رسالة. | تشغيل المجموعة يكلّف رسالة واحدة لكل حالة نشطة، لذا سيستهلك هذا التشغيل {count} رسالة."
             },
             "scorers": {
@@ -938,7 +927,6 @@
         "tone": {
             "title": "النبرة",
             "description": "تتبّع شعور الزوار بناءً على النبرة العاطفية لرسائلهم.",
-            "locked_description": "رقِّ خطتك لفتح تحليلات النبرة.",
             "disabled_title": "تحليل النبرة متوقف",
             "disabled_description": "فعّل تحليل النبرة لمعرفة شعور الزوار عبر المحادثات.",
             "blocked_reason": "فعّل تسجيل المحادثات أولاً — يتطلب تحليل النبرة رسائل محفوظة.",
@@ -963,7 +951,6 @@
         "sentiment": {
             "title": "المشاعر",
             "description": "تتبّع المشاعر الإيجابية والمحايدة والسلبية عبر رسائل الزوار.",
-            "locked_description": "رقِّ خطتك لفتح تحليلات المشاعر.",
             "disabled_title": "تحليل المشاعر متوقف",
             "disabled_description": "فعّل تحليل المشاعر لمعرفة شعور الزوار عبر المحادثات.",
             "blocked_reason": "فعّل تسجيل المحادثات أولاً — يتطلب تحليل المشاعر رسائل محفوظة.",
@@ -982,7 +969,6 @@
             "manage": {
                 "title": "إدارة المواضيع",
                 "description": "حدّد المواضيع التي يجب على وكيلك التعرّف عليها وتصنيفها في المحادثات.",
-                "locked_description": "رقِّ خطتك لإدارة مواضيع المحادثات.",
                 "search_placeholder": "البحث في المواضيع…",
                 "add_topic": "إضافة موضوع",
                 "empty": "لا توجد مواضيع بعد. أضف موضوعاً لمساعدة وكيلك في تصنيف المحادثات.",
@@ -1066,7 +1052,6 @@
                 "unlink_failed": "فشل إلغاء ربط {name}: {error}",
                 "deleted": "تم حذف {name}.",
                 "delete_failed": "فشل حذف {name}: {error}",
-                "usage_load_failed": "فشل تحميل بيانات الاستخدام.",
                 "summary_only_completed": "الملخص متاح فقط للملفات المكتملة.",
                 "summary_none": "لا يوجد ملخص متاح لهذا الملف.",
                 "summary_load_failed": "فشل تحميل ملخص الملف.",
@@ -1076,12 +1061,9 @@
                 "upload_title_audio": "رفع الملفات الصوتية",
                 "upload_title_video": "رفع ملفات الفيديو",
                 "upload_title_default": "رفع مستندات جديدة",
-                "quota_minutes": "دقائق",
-                "quota_pages": "صفحات",
                 "uploads_disabled": "رفع الملفات معطّل أثناء سير التدريب",
                 "ready_to_train": "جاهز للتدريب",
                 "uploaded_ready": "تم رفع {count} ملف وهو جاهز للتدريب | تم رفع {count} ملفات وهي جاهزة للتدريب",
-                "exceeds_quota": "يتجاوز الحصة",
                 "clear_all": "مسح الكل",
                 "training": "جارٍ التدريب...",
                 "train": "تدريب",
@@ -1290,9 +1272,6 @@
                     "trained": "مُدرَّب",
                     "failed": "فشل"
                 },
-                "limit_all_used": "لقد استخدمت جميع الروابط البالغة {limit} في باقتك. قم بالترقية لتدريب المزيد من الروابط.",
-                "limit_critical": "لقد استخدمت {used}/{limit} رابط ({percentage}٪). تبقّى {remaining} روابط فقط للتدريب. فكّر في ترقية باقتك.",
-                "limit_warning": "لقد استخدمت {used}/{limit} رابط ({percentage}٪). تبقّى {remaining} روابط للتدريب.",
                 "load_failed": "فشل تحميل مصادر الويب.",
                 "error_enter_url": "يُرجى إدخال رابط الموقع الإلكتروني.",
                 "error_invalid_url": "يُرجى إدخال صيغة رابط صحيحة (مثال: https://example.com).",
@@ -1326,12 +1305,6 @@
                 "cannot_delete_all_links": "لا يمكن حذف جميع الروابط. يجب أن يبقى رابط واحد على الأقل.",
                 "links_deleted": "تم حذف {count} رابط بنجاح. | تم حذف {count} روابط بنجاح.",
                 "links_delete_failed": "فشل حذف الروابط.",
-                "no_links_remaining": "لا توجد روابط متبقية",
-                "no_links_remaining_description": "يُرجى ترقية باقتك لتدريب المواقع الإلكترونية.",
-                "cannot_select": "لا يمكن تحديد الموقع الإلكتروني",
-                "cannot_select_description": "ستتجاوز {links} روابط حصتك بمقدار {exceedBy}. ألغِ تحديد مواقع أخرى أو قم بالترقية.",
-                "selected_count": "تم تحديد {selected} من {total} موقع إلكتروني",
-                "selected_skipped": "تم تخطّي {skipped} موقع إلكتروني للبقاء ضمن حد الروابط البالغ {remaining}.",
                 "training_start_failed": "فشل بدء التدريب لـ: {websites}",
                 "training_start_failed_all": "فشل بدء التدريب لأي مواقع إلكترونية.",
                 "dialog_links_load_failed": "فشل تحميل الروابط",
@@ -1344,10 +1317,6 @@
                 "crawler_title": "الزاحف",
                 "crawler_description": "اجلب الروابط من المواقع الإلكترونية للزحف إليها وتضمينها في قاعدة معرفة وكيلك.",
                 "settings": "الإعدادات",
-                "links_used": "{used} / {limit} رابط مُستخدَم",
-                "links_remaining": "{remaining} متبقٍ",
-                "upgrade_required": "الترقية مطلوبة لتدريب المزيد من الروابط",
-                "consider_upgrading": "فكّر في الترقية",
                 "fetching": "جارٍ الجلب...",
                 "fetch_links": "جلب الروابط",
                 "crawl_settings": "إعدادات الزحف",
@@ -1370,12 +1339,7 @@
                 "selected_with_links": "{count} محدد ({links} روابط)",
                 "no_websites_selected": "لم يتم تحديد مواقع إلكترونية",
                 "train": "تدريب",
-                "train_exceeds_quota": "تتجاوز الروابط المحددة ({selected}) حصتك المتبقية ({remaining})",
                 "links_badge": "{count} رابط",
-                "badge_upgrade_required": "الترقية مطلوبة",
-                "badge_exceeds_quota": "يتجاوز الحصة",
-                "no_links_remaining_plan": "لا توجد لديك روابط متبقية في باقتك. يُرجى الترقية لتدريب هذا الموقع الإلكتروني.",
-                "website_exceeds_remaining": "يحتوي هذا الموقع الإلكتروني على {links} روابط، مما سيتجاوز روابطك المتبقية البالغة {remaining}. ألغِ تحديد مواقع أخرى أولاً أو قم بترقية باقتك.",
                 "collapse_links": "طيّ الروابط المُكتشَفة",
                 "expand_links": "توسيع الروابط المُكتشَفة",
                 "discovered_links": "الروابط المُكتشَفة",
@@ -1525,14 +1489,8 @@
         },
         "create_modal": {
             "title": "إنشاء وكيل",
-            "limit_title": "تم الوصول إلى حد الوكلاء",
-            "limit_description": "لقد وصلت إلى الحد الأقصى لعدد الوكلاء.",
-            "upgrade_plan": "ترقية الخطة",
             "name_label": "اسم الوكيل",
-            "name_placeholder": "مثال: دعم العملاء",
-            "load_error": "تعذّر تحميل معلومات الاستخدام",
-            "limit_toast_title": "تم الوصول إلى حد الوكلاء",
-            "limit_toast_description": "لقد وصلت إلى الحد الأقصى لعدد الوكلاء."
+            "name_placeholder": "مثال: دعم العملاء"
         },
         "analytics": {
             "title": "إحصائيات الوكيل",
@@ -1731,11 +1689,6 @@
             "domain": {
                 "title": "نطاق مخصص",
                 "description": "قدّم الدردشة المستضافة لهذا الوكيل من نطاقك بدلاً من {target}.",
-                "no_quota_title": "النطاقات المخصصة غير مشمولة في خطتك الحالية",
-                "no_quota_description": "قم بالترقية إلى Pro أو اشترِ إضافة النطاق المخصص من {link} لإضافة اسم مضيف خاص بك.",
-                "billing": "الفوترة",
-                "quota": "استخدام {used} من {total} نطاق مخصص | استخدام {used} من {total} نطاقات مخصصة",
-                "add_more": "إضافة المزيد",
                 "step1": "الخطوة 1 — أضف سجل CNAME عند مزود DNS",
                 "type": "النوع",
                 "name": "الاسم",
@@ -1851,7 +1804,6 @@
         "topics_index": {
             "title": "المواضيع",
             "description": "تحليل مواضيع المحادثات واتجاهاتها",
-            "locked_description": "قم بترقية خطتك للوصول إلى تحليل المواضيع واكتشاف مواضيع المحادثات وتصنيفها تلقائياً.",
             "disabled_title": "تحليل المواضيع",
             "disabled_description": "فعّله لاكتشاف وتجميع ما يسأل عنه زوارك عبر المحادثات تلقائياً.",
             "blocked_reason": "سجل الدردشة معطّل، فلا يوجد ما يُحلَّل. فعّله في الإعداد → الإعدادات لبدء جمع المواضيع.",
@@ -2159,7 +2111,6 @@
             "sending_link": "جارٍ إرسال الرابط...",
             "or_continue_with": "أو تابع باستخدام",
             "no_account": "ليس لديك حساب؟",
-            "start_free_trial": "ابدأ الفترة التجريبية المجانية",
             "create_account": "إنشاء حساب"
         },
         "register": {
@@ -2233,18 +2184,6 @@
             "code_placeholder": "123456",
             "recovery_code_placeholder": "xxxxxxxx-xxxxxxxx"
         },
-        "set_password": {
-            "title": "اختر كلمة المرور",
-            "description": "حسابك جاهز. اختر كلمة مرور لإكمال إعداده.",
-            "head": "اختر كلمة المرور",
-            "email_label": "البريد الإلكتروني",
-            "password_label": "كلمة المرور",
-            "password_placeholder": "كلمة المرور",
-            "confirm_password_label": "تأكيد كلمة المرور",
-            "confirm_password_placeholder": "تأكيد كلمة المرور",
-            "set_password": "تعيين كلمة المرور",
-            "setting_password": "جارٍ تعيين كلمة المرور..."
-        },
         "login_member": {
             "description": "سجّل الدخول للوصول إلى مساحة المحادثة هذه",
             "head": "تسجيل دخول العضو",
@@ -2308,16 +2247,6 @@
             "social_email_note_prefix": "تأكّد من أن حسابك على وسائل التواصل يستخدم",
             "social_email_note_suffix": "— يجب أن يطابق هذه الدعوة."
         },
-        "invitation_invalid": {
-            "title": "الدعوة غير متاحة",
-            "description": "لا يمكن قبول هذه الدعوة",
-            "head": "الدعوة غير متاحة",
-            "card_title": "تعذّر قبول الدعوة",
-            "cannot_accept_prefix": "لا يمكن قبول دعوة الانضمام إلى",
-            "cannot_accept_suffix": "في الوقت الحالي.",
-            "contact_owner": "يرجى التواصل مع مالك الفريق لحل هذه المشكلة.",
-            "go_to_login": "الانتقال إلى تسجيل الدخول"
-        },
         "invitation_expired": {
             "title": "انتهت صلاحية الدعوة",
             "description": "لم تعد هذه الدعوة صالحة",
@@ -2325,386 +2254,6 @@
             "card_title": "انتهت صلاحية الدعوة",
             "contact_owner": "يرجى التواصل مع مالك الفريق لطلب دعوة جديدة.",
             "go_to_login": "الانتقال إلى تسجيل الدخول"
-        }
-    },
-    "billing": {
-        "common": {
-            "billing": "الفوترة",
-            "back_to_billing": "العودة إلى الفوترة",
-            "view_plans": "عرض الباقات",
-            "cancel": "إلغاء",
-            "processing": "جارٍ المعالجة...",
-            "not_available": "غير متاح"
-        },
-        "payment_success": {
-            "page_title": "تم الدفع بنجاح",
-            "heading": "تم استلام الدفعة",
-            "description": "شكرًا لك! تمت معالجة دفعتك بنجاح. نقوم الآن بإعداد اشتراكك.",
-            "redirecting_prefix": "إعادة التوجيه خلال",
-            "redirecting_suffix": "ثوانٍ...",
-            "go_to_billing": "الذهاب إلى الفوترة الآن"
-        },
-        "invoices": {
-            "breadcrumb": "الفواتير",
-            "page_title": "الفواتير",
-            "heading": "الفواتير",
-            "subheading": "اعرض وحمّل سجل الفوترة والفواتير الخاصة بك",
-            "history_title": "سجل الفوترة",
-            "history_description": "حمّل الإيصالات والفواتير لمدفوعات اشتراكك",
-            "invoice_number": "فاتورة رقم {number}",
-            "status": {
-                "paid": "مدفوعة",
-                "pending": "قيد الانتظار",
-                "failed": "فشلت"
-            },
-            "download_pdf": "تنزيل PDF",
-            "view_online": "عرض عبر الإنترنت",
-            "empty_title": "لا توجد فواتير بعد",
-            "empty_description": "سيظهر سجل الفوترة والفواتير هنا بمجرد بدء اشتراك.",
-            "total_invoices": "إجمالي الفواتير",
-            "total_spent": "إجمالي المصروف",
-            "since": "منذ",
-            "help_title": "هل تحتاج مساعدة بشأن الفوترة؟",
-            "help_description": "إذا كانت لديك أسئلة حول فواتيرك أو تحتاج إلى مساعدة في الفوترة، فإن فريق الدعم لدينا هنا لمساعدتك.",
-            "contact_support": "تواصل مع الدعم"
-        },
-        "payment_methods": {
-            "breadcrumb": "طرق الدفع",
-            "page_title": "طرق الدفع",
-            "heading": "طرق الدفع",
-            "subheading": "أدر طرق الدفع ومعلومات الفوترة الخاصة بك",
-            "add_method": "إضافة طريقة دفع",
-            "saved_title": "طرق الدفع المحفوظة",
-            "saved_description": "أدر طرق الدفع المحفوظة. يمكنك تعيين طريقة افتراضية للفوترة التلقائية.",
-            "default": "افتراضية",
-            "expires": "تنتهي في {date}",
-            "set_default": "تعيين كافتراضية",
-            "empty_title": "لا توجد طرق دفع",
-            "empty_description": "أضف طريقة دفع لإدارة اشتراكاتك وإجراء المدفوعات.",
-            "add_first": "أضف أول طريقة دفع لك",
-            "info_title": "معلومات الفوترة",
-            "info_description": "حدّث عنوان الفوترة ومعلومات التواصل الخاصة بك",
-            "not_set": "غير محدد",
-            "update_info": "تحديث معلومات الفوترة",
-            "secure_title": "معالجة دفع آمنة",
-            "secure_description": "معلومات الدفع الخاصة بك مشفّرة وتتم معالجتها بأمان عبر Stripe. لا نخزّن بيانات بطاقتك الكاملة على خوادمنا أبدًا.",
-            "updating": "جارٍ التحديث...",
-            "update_information": "تحديث المعلومات",
-            "card_information": "معلومات البطاقة",
-            "remove_dialog": {
-                "title": "إزالة طريقة الدفع",
-                "description": "هل أنت متأكد أنك تريد إزالة طريقة الدفع هذه؟ لا يمكن التراجع عن هذا الإجراء.",
-                "confirm": "نعم، إزالة"
-            },
-            "fields": {
-                "name": "الاسم",
-                "email": "البريد الإلكتروني",
-                "address": "العنوان",
-                "city_state_country": "المدينة والولاية والدولة",
-                "billing_address": "عنوان الفوترة",
-                "line1": "العنوان السطر 1",
-                "line2": "العنوان السطر 2 (اختياري)",
-                "city": "المدينة",
-                "state": "الولاية",
-                "postal_code": "الرمز البريدي",
-                "country": "الدولة"
-            },
-            "placeholders": {
-                "name": "محمد أحمد",
-                "email": "name{'@'}example.com",
-                "line1": "123 الشارع الرئيسي",
-                "line2": "شقة، جناح، إلخ.",
-                "city": "الرياض",
-                "state": "المنطقة",
-                "postal_code": "10001",
-                "country": "اختر الدولة..."
-            },
-            "info_dialog": {
-                "title": "تحديث معلومات الفوترة",
-                "description": "حدّث عنوان الفوترة ومعلومات التواصل الخاصة بك للفوترة ومعالجة المدفوعات."
-            },
-            "add_dialog": {
-                "description": "أضف طريقة دفع جديدة إلى حسابك. معلومات بطاقتك آمنة ومشفّرة.",
-                "success_title": "تمت إضافة طريقة الدفع!",
-                "success_description": "تمت إضافة طريقة الدفع الخاصة بك إلى حسابك بنجاح.",
-                "secure_note": "معلومات الدفع الخاصة بك مشفّرة وتتم معالجتها بأمان عبر Stripe. لا نخزّن بيانات بطاقتك الكاملة أبدًا."
-            },
-            "errors": {
-                "init_failed": "فشل في تهيئة نظام الدفع",
-                "not_ready": "نظام الدفع غير جاهز",
-                "add_failed": "حدث خطأ أثناء إضافة طريقة الدفع الخاصة بك"
-            },
-            "toast": {
-                "added": "تمت إضافة طريقة الدفع بنجاح!",
-                "info_updated": "تم تحديث معلومات الفوترة بنجاح!",
-                "info_failed": "فشل في تحديث معلومات الفوترة"
-            }
-        },
-        "plans": {
-            "breadcrumb": "اختيار الباقة",
-            "page_title": "اختر باقتك",
-            "heading": "اختر باقتك",
-            "subheading": "اختر الباقة المثالية لاحتياجاتك. يمكنك التغيير أو الإلغاء في أي وقت.",
-            "monthly": "شهري",
-            "yearly": "سنوي",
-            "custom": "مخصص",
-            "per_month": "/شهر",
-            "save_percent": "وفّر {percent}%",
-            "billed_yearly": "يُفوتر سنويًا بمبلغ {amount}",
-            "features_included": "الميزات المضمّنة:",
-            "everything_in": "كل ما في {plan} +",
-            "actions": {
-                "contact_sales": "تواصل مع المبيعات",
-                "upgrade": "ترقية",
-                "upgrade_plan": "ترقية الباقة",
-                "downgrade_to_free": "الرجوع إلى المجانية",
-                "downgrade_plan": "تخفيض الباقة",
-                "switch_plan": "تبديل الباقة",
-                "select_plan": "اختيار الباقة"
-            },
-            "discount": {
-                "banner": "خصم {percent}% — عرض لفترة محدودة!",
-                "ends": "ينتهي العرض في {date} - لا تفوّت الفرصة!",
-                "limited": "خصم لفترة محدودة على جميع الباقات المدفوعة!",
-                "off": "خصم {percent}%"
-            },
-            "most_popular": "الأكثر شيوعًا",
-            "current_plan": "الباقة الحالية",
-            "save_up_to_percent": "وفّر حتى {percent}%"
-        },
-        "addons": {
-            "title": "الإضافات",
-            "description": "أرصدة ووكلاء ونطاقات إضافية إلى جانب باقتك",
-            "per_agent": " / وكيل",
-            "per_domain": " / نطاق",
-            "per_member": " / عضو",
-            "per_month": " / شهر",
-            "requires_subscription": "تتطلب الوكلاء الإضافيون والنطاق المخصص وإزالة العلامة التجارية والأعضاء اشتراكًا رئيسيًا نشطًا.",
-            "common": {
-                "none": "لا شيء",
-                "subscribe": "اشتراك",
-                "change": "تغيير",
-                "update_quantity": "تحديث الكمية",
-                "monthly_cost": "التكلفة الشهرية:",
-                "keep_subscription": "الإبقاء على الاشتراك",
-                "yes_cancel": "نعم، إلغاء",
-                "ends": "ينتهي في {date}"
-            },
-            "auto_recharge": {
-                "title": "إعادة الشحن التلقائية",
-                "on": "مفعّل",
-                "off": "معطّل",
-                "summary": "شراء {amount} رصيد تلقائيًا عند انخفاض الرصيد دون {threshold}.",
-                "manage": "إدارة",
-                "enable": "تفعيل",
-                "dialog_title": "إعدادات إعادة الشحن التلقائية",
-                "dialog_description": "عندما ينخفض رصيدك المتبقي إلى الحد الأدنى أو أقل، سنقوم تلقائيًا بخصم المبلغ من طريقة الدفع الافتراضية وإعادة شحن رصيدك.",
-                "enable_label": "تفعيل إعادة الشحن التلقائية",
-                "enable_hint": "الخصم تلقائيًا عند انخفاض الرصيد",
-                "threshold_label": "حد الرصيد (رصيد)",
-                "threshold_hint": "يتم تشغيل إعادة الشحن عندما ينخفض رصيدك إلى هذا المقدار أو أقل.",
-                "amount_label": "كمية إعادة الشحن (رصيد)",
-                "each_recharge": "كل إعادة شحن:",
-                "charged_note": "يُخصم فورًا من طريقة الدفع الافتراضية عند التشغيل.",
-                "save": "حفظ الإعدادات"
-            },
-            "extra_credits": {
-                "title": "أرصدة إضافية",
-                "summary": "شحن لمرة واحدة. تضيف كل حزمة 1,000 رسالة تنتهي صلاحيتها بعد 30 يومًا.",
-                "buy": "شراء أرصدة",
-                "dialog_title": "شراء أرصدة الرسائل",
-                "dialog_description": "تتضمن كل حزمة 1,000 رسالة يجب استهلاكها خلال شهر واحد من الشراء.",
-                "quantity_label": "الكمية (1,000 رسالة لكل حزمة)",
-                "total_messages": "إجمالي الرسائل:",
-                "total_price": "السعر الإجمالي:",
-                "purchase_for": "اشترِ مقابل €{amount}"
-            },
-            "extra_agents": {
-                "title": "وكلاء إضافيون",
-                "summary": "أضف المزيد من وكلاء الذكاء الاصطناعي بما يتجاوز حد باقتك.",
-                "cancel_title": "إلغاء اشتراك الوكلاء الإضافيين؟",
-                "cancel_description": "ستتم إزالة حصة الوكلاء الإضافيين فورًا ولن تتم محاسبتك مرة أخرى.",
-                "change_title": "تغيير الوكلاء الإضافيين",
-                "subscribe_title": "الاشتراك في الوكلاء الإضافيين",
-                "dialog_description": "أضف وكلاء ذكاء اصطناعي إضافيين إلى جانب باقتك. تُفوتر شهريًا بسعر 5€ لكل وكيل.",
-                "quantity_label": "عدد الوكلاء الإضافيين"
-            },
-            "custom_domains": {
-                "title": "نطاق مخصص",
-                "summary": "استخدم نطاقك المخصص الخاص لوكلاء الذكاء الاصطناعي.",
-                "cancel_title": "إلغاء اشتراك النطاق المخصص؟",
-                "cancel_description": "ستتم إزالة حصة النطاق المخصص فورًا ولن تتم محاسبتك مرة أخرى.",
-                "change_title": "تغيير النطاقات المخصصة",
-                "subscribe_title": "الاشتراك في النطاق المخصص",
-                "dialog_description": "استخدم نطاقك الخاص لوكلاء الذكاء الاصطناعي. يُفوتر شهريًا بسعر 29€ لكل نطاق.",
-                "quantity_label": "عدد النطاقات"
-            },
-            "remove_branding": {
-                "title": "إزالة العلامة التجارية",
-                "active": "نشط",
-                "summary": "أخفِ شارة \"مدعوم من Chatvia\" عبر الأداة والدردشة المستضافة.",
-                "cancel_title": "إلغاء اشتراك إزالة العلامة التجارية؟",
-                "cancel_description": "ستظهر شارة \"مدعوم من Chatvia\" مرة أخرى على الأداة والدردشة المستضافة فورًا، ولن تتم محاسبتك مرة أخرى."
-            },
-            "members": {
-                "title": "الأعضاء",
-                "summary": "أضف المزيد من أعضاء الفريق إلى مساحة عملك.",
-                "cancel_title": "إلغاء اشتراك الأعضاء؟",
-                "cancel_description": "ستتم إزالة مقاعد الأعضاء الإضافية فورًا ولن تتم محاسبتك مرة أخرى.",
-                "change_title": "تغيير الأعضاء",
-                "subscribe_title": "الاشتراك في الأعضاء",
-                "dialog_description": "أضف أعضاء فريق إضافيين إلى مساحة عملك. تُفوتر شهريًا بسعر 9€ لكل عضو.",
-                "quantity_label": "عدد الأعضاء"
-            }
-        },
-        "index": {
-            "page_title": "الفوترة",
-            "heading": "الفوترة",
-            "subheading": "أدر اشتراكك ومعلومات الفوترة وحدود الاستخدام",
-            "stripe_notice": "تتم معالجة المدفوعات بأمان بواسطة",
-            "status_label": "الحالة",
-            "trial_ends": "تنتهي الفترة التجريبية",
-            "next_billing": "الفوترة التالية",
-            "access_ends": "ينتهي الوصول",
-            "plan_features": "ميزات الباقة",
-            "show_less": "عرض أقل",
-            "show_more": "عرض {count} إضافية",
-            "per_year": "سنة",
-            "per_month": "شهر",
-            "status": {
-                "active": "نشط",
-                "trial": "تجريبي",
-                "cancelled": "ملغى",
-                "incomplete": "غير مكتمل",
-                "past_due": "متأخر السداد"
-            },
-            "trial": {
-                "heading": "🎉 أنت في فترة تجريبية مجانية!",
-                "ends_on": "تنتهي فترتك التجريبية لباقة {plan} في",
-                "auto_start": "سيبدأ اشتراكك المدفوع تلقائيًا في {date}",
-                "badge": "الفترة التجريبية نشطة"
-            },
-            "upgrade": {
-                "heading": "الترقية إلى المميزة",
-                "description": "الوصول إلى نماذج ذكاء اصطناعي متقدمة وحدود رسائل أعلى ودعم ذي أولوية"
-            },
-            "current_plan": {
-                "title": "الباقة الحالية",
-                "description": "باقة اشتراكك النشطة وتفاصيل الاستخدام"
-            },
-            "pending_change": {
-                "heading": "تم جدولة تغيير الباقة",
-                "change_from": "ستتغير باقتك من",
-                "to": "إلى",
-                "cycle_yearly": "(سنوي)",
-                "cycle_monthly": "(شهري)",
-                "on_date": "في {date}.",
-                "scheduled_for": "لديك تغيير باقة مجدول في {date}.",
-                "access_note": "ستستمر في الوصول إلى ميزات باقتك الحالية حتى ذلك الحين.",
-                "cancel_schedule": "إلغاء الجدولة",
-                "cancel_dialog": {
-                    "title": "إلغاء تغيير الباقة المجدول",
-                    "description": "هل أنت متأكد أنك تريد إلغاء تغيير الباقة المجدول؟ ستبقى على باقتك الحالية.",
-                    "confirm": "نعم، إلغاء الجدولة",
-                    "cancel": "الإبقاء على الجدولة"
-                }
-            },
-            "cancelled": {
-                "title": "تم إلغاء الاشتراك",
-                "description": "سينتهي اشتراكك في {date}. يمكنك استئناف اشتراكك في أي وقت قبل هذا التاريخ.",
-                "resume": "استئناف الاشتراك"
-            },
-            "management": {
-                "title": "الإدارة",
-                "manage_payment_methods": "إدارة طرق الدفع",
-                "view_invoices": "عرض الفواتير",
-                "go_to_stripe": "الذهاب إلى Stripe",
-                "change_plan": "تغيير الباقة",
-                "cancel_subscription": "إلغاء الاشتراك"
-            },
-            "cancel_dialog": {
-                "title": "إلغاء الاشتراك",
-                "description": "هل أنت متأكد أنك تريد إلغاء اشتراكك؟ ستستمر في الوصول حتى نهاية فترة الفوترة الخاصة بك.",
-                "confirm": "نعم، إلغاء",
-                "cancel": "الإبقاء على الاشتراك"
-            },
-            "usage": {
-                "title": "الاستخدام",
-                "messages": "الرسائل",
-                "pages": "الصفحات",
-                "agents": "الوكلاء",
-                "links": "الروابط",
-                "minutes": "الدقائق",
-                "remaining": "{count} متبقٍ",
-                "load_error": "تعذّر تحميل بيانات الاستخدام"
-            }
-        },
-        "catalog": {
-            "packages": {
-                "starter": {
-                    "name": "الأساسية",
-                    "description": "للشركات الصغيرة التي تبدأ للتو."
-                },
-                "standard": {
-                    "name": "القياسية",
-                    "description": "للفرق والشركات المتنامية."
-                },
-                "pro": {
-                    "name": "الاحترافية",
-                    "description": "للمؤسسات التي تحتاج كل شيء."
-                },
-                "enterprise": {
-                    "name": "المؤسسات",
-                    "description": "للمؤسسات ذات متطلبات الأمان والامتثال والتوسّع."
-                }
-            }
-        },
-        "features": {
-            "messages_per_month": "رسالة واحدة شهريًا | {count} رسالة شهريًا",
-            "messages_per_year": "رسالة واحدة سنويًا | {count} رسالة سنويًا",
-            "messages_unlimited": "رسائل غير محدودة",
-            "messages_custom": "حجم رسائل مخصّص",
-            "agents": "وكيل ذكاء اصطناعي واحد | وكلاء الذكاء الاصطناعي: {count}",
-            "agents_unlimited": "وكلاء ذكاء اصطناعي غير محدودين",
-            "pages": "صفحة واحدة (PDF وWord ونص) | {count} صفحة (PDF وWord ونص)",
-            "pages_unlimited": "صفحات غير محدودة (PDF وWord ونص)",
-            "pages_custom": "قاعدة معرفة مخصّصة",
-            "links": "رابط موقع واحد | {count} رابط موقع",
-            "links_unlimited": "روابط مواقع غير محدودة",
-            "links_custom": "روابط مواقع مخصّصة",
-            "minutes": "دقيقة صوت/فيديو واحدة | {count} دقيقة صوت/فيديو",
-            "minutes_unlimited": "دقائق صوت/فيديو غير محدودة",
-            "minutes_custom": "صوت/فيديو مخصّص",
-            "teams": "فريق واحد | الفرق: {count}",
-            "teams_unlimited": "فرق غير محدودة",
-            "members": "عضو واحد (أعضاء الفريق + المحادثون) | الأعضاء: {count} (أعضاء الفريق + المحادثون)",
-            "members_unlimited": "أعضاء غير محدودين",
-            "retention": "يوم واحد من سجل المحادثات | {count} يومًا من سجل المحادثات",
-            "retention_unlimited": "سجل محادثات غير محدود",
-            "retention_custom": "احتفاظ مخصّص بالبيانات",
-            "sentiment": "تحليل المشاعر",
-            "tone": "تحليل النبرة",
-            "topics": "تحليل المواضيع",
-            "pulse": "نبض المحادثة",
-            "handoff": "التحويل إلى موظف",
-            "api": "الوصول إلى الـ API",
-            "evals": "التقييمات",
-            "guardrails": "الحواجز",
-            "audit": "سجل التدقيق",
-            "branding": "علامة بيضاء (إزالة علامة {brand})",
-            "network_access": "التحكم في الوصول عبر الشبكة (IP والموقع الجغرافي)",
-            "siem_webhook": "ويب هوك SIEM (أحداث أمنية لحظية)",
-            "mcp": "MCP",
-            "function_calling": "استدعاء الدوال",
-            "custom_domains": "نطاق مخصّص واحد | النطاقات المخصّصة: {count}",
-            "custom_domains_unlimited": "نطاقات مخصّصة غير محدودة",
-            "custom_domains_custom": "نطاقات مخصّصة",
-            "custom_integrations": "تكاملات مخصّصة",
-            "eu_data_residency": "استضافة البيانات في الاتحاد الأوروبي",
-            "sso_saml": "الدخول الموحّد SSO / SAML",
-            "uptime_sla": "اتفاقية مستوى خدمة للتوافر",
-            "dedicated_support": "دعم مخصّص",
-            "custom_contract": "عقد واتفاقية معالجة بيانات مخصّصان"
         }
     },
     "teams": {
@@ -3098,7 +2647,6 @@
         "subtitle": "نظرة عامة على وكلاء الذكاء الاصطناعي ونشاطك",
         "create_agent": "إنشاء وكيل",
         "total_agents": "إجمالي الوكلاء",
-        "messages_this_cycle": "الرسائل في هذه الدورة",
         "percent_used": "{percent}٪ مستخدَمة",
         "total_conversations": "إجمالي المحادثات",
         "all_time_across_agents": "الإجمالي عبر جميع الوكلاء",
@@ -3110,97 +2658,8 @@
         "last_week": "الأسبوع الماضي",
         "last_month": "الشهر الماضي",
         "messages_tooltip": "{n} رسالة | {n} رسائل",
-        "messages_this_month": "الرسائل في هذا الشهر"
-    },
-    "support": {
-        "title": "الدعم",
-        "subtitle": "اعرض تذاكرك أو أنشئ تذكرة جديدة.",
-        "create_ticket": "إنشاء تذكرة جديدة",
-        "your_tickets": "تذاكرك",
-        "your_tickets_description": "التذاكر المُرسَلة سابقًا",
-        "loading": "جارٍ تحميل التذاكر...",
-        "empty": "لا توجد تذاكر بعد. انقر على \"إنشاء تذكرة جديدة\" للبدء.",
-        "th_id": "المعرّف",
-        "th_type": "النوع",
-        "th_status": "الحالة",
-        "th_priority": "الأولوية",
-        "th_created": "تاريخ الإنشاء",
-        "th_message": "الرسالة",
-        "th_replies": "الردود",
-        "status_open": "مفتوحة",
-        "status_in_progress": "قيد المعالجة",
-        "status_resolved": "تم الحل",
-        "status_closed": "مغلقة",
-        "priority_urgent": "عاجلة",
-        "priority_high": "عالية",
-        "priority_medium": "متوسطة",
-        "priority_low": "منخفضة",
-        "create_ticket_description": "اختر نوعًا وصِف طلبك.",
-        "label_type": "النوع",
-        "type_placeholder": "اختر نوعًا",
-        "type_feature": "طلب ميزة",
-        "type_bug": "الإبلاغ عن خطأ",
-        "type_integration": "طلب تكامل",
-        "type_add_model": "طلب إضافة نموذج",
-        "type_refund": "طلب استرداد",
-        "type_billing": "مشكلة في الفوترة",
-        "type_other": "أخرى",
-        "label_priority": "الأولوية",
-        "priority_placeholder": "اختر الأولوية",
-        "label_message": "الرسالة",
-        "message_placeholder": "صِف طلبك أو مشكلتك بالتفصيل...",
-        "cancel": "إلغاء",
-        "submitting": "جارٍ الإرسال...",
-        "submit": "إرسال"
-    },
-    "ticket": {
-        "support": "الدعم",
-        "title": "التذكرة رقم {id}",
-        "created_at": "أُنشئت في {date}",
-        "back_to_support": "العودة إلى الدعم",
-        "status_open": "مفتوحة",
-        "status_in_progress": "قيد المعالجة",
-        "status_resolved": "تم الحل",
-        "status_closed": "مغلقة",
-        "priority_urgent": "عاجلة",
-        "priority_high": "عالية",
-        "priority_medium": "متوسطة",
-        "priority_low": "منخفضة",
-        "change_priority": "تغيير الأولوية",
-        "change_priority_title": "تغيير أولوية التذكرة",
-        "change_priority_description": "يرجى تغيير الأولوية فقط إذا كان الأمر عاجلاً حقًا. إساءة استخدام أولوية \"عاجلة\" قد تبطئ الردود على الجميع.",
-        "label_priority": "الأولوية",
-        "priority_placeholder": "اختر أولوية",
-        "cancel": "إلغاء",
-        "saving": "جارٍ الحفظ...",
-        "save": "حفظ",
-        "replies": "الردود ({count})",
-        "no_replies": "لا توجد ردود بعد.",
-        "role_staff": "فريق الدعم",
-        "role_user": "المستخدم",
-        "resolved_notice": "تم حل هذه التذكرة. إذا استمرت المشكلة، يرجى فتح تذكرة جديدة من صفحة الدعم.",
-        "add_reply": "إضافة رد",
-        "reply_placeholder": "اكتب ردك...",
-        "sending": "جارٍ الإرسال...",
-        "send_reply": "إرسال الرد"
-    },
-    "usage": {
-        "title": "الاستخدام",
-        "subtitle": "راقب استخدامك الحالي عبر جميع الخدمات والميزات.",
-        "plan_badge": "باقة {plan}",
-        "label_messages": "الرسائل",
-        "label_tokens": "الرموز",
-        "label_pages": "الصفحات",
-        "label_minutes": "الدقائق",
-        "label_links": "الروابط",
-        "label_agents": "الوكلاء",
-        "label_teams": "الفرق",
-        "label_members": "الأعضاء",
-        "tokens_note": "المُستهلَك في هذه الدورة — للاطلاع فقط؛ تُحتسب باقتك بعدد الرسائل.",
-        "of": "من {limit}",
-        "remaining": "{count} متبقٍ",
-        "load_error": "تعذّر تحميل بيانات الاستخدام.",
-        "no_limit": "بلا حد"
+        "messages_this_month": "الرسائل في هذا الشهر",
+        "messages_used_of_limit": "تم استخدام {used} من {limit}"
     },
     "analytics_chat": {
         "title": "اسأل عن بياناتك",
@@ -3326,7 +2785,6 @@
             "description": "مفاتيح حساب لـ {api_link} — أنشئ وأدِر الوكلاء والمعرفة وخوادم MCP والوظائف.",
             "api_link": "واجهة Chatvia API",
             "generate": "إنشاء مفتاح",
-            "locked": "قم بترقية خطتك لإصدار مفاتيح API ودمج Chatvia مع تطبيقاتك.",
             "empty_title": "لا توجد مفاتيح API بعد",
             "empty_description": "أنشئ واحداً للبدء في استخدام واجهة Chatvia API.",
             "never": "أبداً",
@@ -3535,14 +2993,6 @@
             "save_error": "تعذّر حفظ إعدادات الأمان",
             "cancel": "إلغاء",
             "done": "تم",
-            "teaser": {
-                "title": "الأمان والامتثال",
-                "description": "احصر مساحة عملك في الشبكات الموثوقة ولبِّ متطلبات الامتثال. متاح في الخطة الاحترافية.",
-                "ip": "قائمة IP المسموح بها — يمكن للعناوين المعتمدة فقط تسجيل الدخول",
-                "geo": "قواعد الدول — السماح أو الحظر حسب الدولة",
-                "more": "بالإضافة إلى الاحتفاظ بالبيانات وويب هوك SIEM وSSO / SCIM والمزيد",
-                "cta": "الترقية إلى الخطة الاحترافية"
-            },
             "network": {
                 "title": "التحكم في الوصول عبر الشبكة",
                 "help": "قيّد الوصول إلى لوحة التحكم بعناوين IP والدول الموثوقة. عند الإيقاف، يمكن لأي شخص لديه تسجيل دخول صالح الدخول من أي مكان."
@@ -3578,7 +3028,7 @@
                 "title": "الاحتفاظ بالبيانات",
                 "help": "المدة التي تحتفظ فيها Chatvia ببياناتك قبل حذفها تلقائياً. يمكنك تقصيرها للامتثال — اترك الحقل فارغاً لاستخدام الافتراضي.",
                 "conversations": "سجل المحادثات (أيام)",
-                "conversations_help": "يُحذف سجل المحادثات بعد هذا العدد من الأيام. حتى {max} في خطتك.",
+                "conversations_help": "يُحذف سجل المحادثات بعد هذا العدد من الأيام. بحد أقصى {max}.",
                 "audit": "سجل تدقيق الأمان (أيام)",
                 "audit_help": "الافتراضي {default} يوماً، الحد الأدنى {floor}.",
                 "plan_default": "الافتراضي ({days} يوماً)"
@@ -3606,11 +3056,6 @@
             "user_agent": "وكيل المستخدم",
             "metadata": "التفاصيل",
             "integrity": "تم تسجيل بصمة السلامة",
-            "teaser": {
-                "title": "سجل تدقيق الأمان",
-                "description": "اطّلع على كل تسجيل دخول وتغيير في الأدوار وإعدادات الأمان — مقاوم للتلاعب وقابل للتصدير. متاح في الخطة الاحترافية.",
-                "cta": "الترقية إلى الخطة الاحترافية"
-            },
             "table": {
                 "actor": "الفاعل",
                 "action": "الإجراء",
@@ -3631,16 +3076,11 @@
         "header": {
             "dashboard": "لوحة التحكم",
             "agents": "الوكلاء",
-            "usage": "الاستخدام",
             "ask_your_data": "اسأل بياناتك",
-            "billing": "الفوترة",
-            "support": "الدعم",
             "teams": "الفرق",
             "documentation": "التوثيق",
             "api": "واجهة API",
-            "nav_menu_sr": "قائمة التنقل",
-            "upgrade": "ترقية",
-            "subscribed": "أنت مشترك"
+            "nav_menu_sr": "قائمة التنقل"
         }
     },
     "nav": {
@@ -3791,12 +3231,10 @@
             "removes_knowledge": "مصادر المعرفة والمستندات والملفات المرفوعة",
             "removes_team": "فريقك والمحادثون ومفاتيح API والموصلات",
             "agents_will_delete": "سيُحذف وكيل واحد نهائياً: | سيُحذف {count} وكلاء نهائياً:",
-            "subscription_cancel": "سيُلغى اشتراكك النشط ولن تُحصَّل منك أي رسوم مجدداً.",
             "email_confirmed": "تم تأكيد البريد الإلكتروني. هذه خطوتك الأخيرة — لا رجوع بعدها.",
             "delete_button": "حذف حسابي نهائياً",
             "final_dialog_title": "حذف حسابك نهائياً؟",
             "final_dialog_description": "سيُحذف حسابك وجميع بياناته نهائياً، ولا يمكن التراجع عن ذلك.",
-            "final_dialog_subscription": "سيُلغى اشتراكك أيضاً.",
             "final_confirm": "نعم، احذف كل شيء",
             "check_email": "تحقق من بريدك — أرسلنا رابط تأكيد لإكمال حذف حسابك. ينتهي خلال 30 دقيقة. افتح الرابط للمتابعة.",
             "resend_link": "إعادة إرسال الرابط",
@@ -3906,7 +3344,6 @@
         "enable_feature": "تفعيل {title}",
         "enabling": "جارٍ التفعيل…",
         "enable_now": "فعّل الآن",
-        "upgrade_now": "ترقية الآن",
         "chat_title_fallback": "محادثة",
         "more_options": "المزيد من الخيارات",
         "delete_confirmation_title": "تأكيد الحذف",
@@ -3920,18 +3357,11 @@
         "file_uploader": {
             "title_default": "رفع الملفات",
             "description_default": "أضف ملفات للتحليل",
-            "quota_label_default": "صفحات",
             "file_count": "{current} / {max} ملفات",
-            "quota_limit_reached_alert": "لقد وصلت إلى حد {quotaLabel} البالغ {quotaLimit} {quotaLabel}. يرجى ترقية خطتك لمعالجة المزيد من المستندات.",
             "drop_zone_file_limit_reached": "تم الوصول إلى حد الملفات",
-            "drop_zone_quota_limit_reached": "تم الوصول إلى حد {quotaLabel}",
             "drop_zone_select_files": "اختر الملفات",
             "drop_zone_max_files_hint": "الحد الأقصى {max} ملفات. أزل بعض الملفات لإضافة المزيد.",
-            "drop_zone_quota_exhausted_hint": "لقد استخدمت كل {quotaLimit} {quotaLabel}. رقِّ خطتك للمتابعة.",
-            "drop_zone_unavailable": "الرفع غير متاح",
             "drop_zone_default_hint": "اسحب وأفلت أو انقر لاختيار الملفات",
-            "total_quota": "إجمالي {count} {label}",
-            "exceeds_quota": "يتجاوز الحصة بمقدار {amount} {quotaLabel}",
             "clear_failed": "مسح الفاشلة",
             "clear_all": "مسح الكل",
             "badge_analyzed": "تم التحليل",
@@ -4318,18 +3748,6 @@
                 "name": "Amplitude",
                 "description": "استعلم عن تحليلات المنتج — الأحداث والرسوم البيانية والمجموعات — من مشروع Amplitude الخاص بك."
             }
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "مرحبًا بك في Chatvia",
-            "intro": "لننشئ أول مساعد ذكي لك. لن يستغرق الأمر سوى دقيقة.",
-            "what_title": "ما هو المساعد؟",
-            "what_body": "المساعد هو مساعد ذكاء اصطناعي تُدرّبه على محتواك الخاص. يجيب على عملائك في موقعك، وأداة المحادثة، وتطبيقات المراسلة.",
-            "how_title": "كيف يعمل؟",
-            "how_body": "أولًا تنشئ مساعدًا وتمنحه اسمًا. ثم تُدرّبه على ملفاتك ومواقعك ونصوصك ليتمكن من الإجابة عن الأسئلة.",
-            "start": "أنشئ أول مساعد لي",
-            "video_caption": "شاهد كيف يعمل"
         }
     }
 }

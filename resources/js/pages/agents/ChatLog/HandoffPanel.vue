@@ -5,23 +5,18 @@
  * that streams the operator's messages into the visitor's widget.
  */
 import MessageCard from '@/components/chat/MessageCard.vue';
-import LockedFeature from '@/components/LockedFeature.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { Bot, Circle, LoaderCircle, MessageSquare, Phone, PhoneOff, Send, User } from 'lucide-vue-next';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
 
 const { t } = useI18n();
 
 const { currentConversationId, messages, handoff, fetchMessages, appendMessage, formatTimeAgo } = useChatLog();
-
-const { hasCapability } = useCapabilityGuard();
-const hasAccess = computed(() => hasCapability('handoff'));
 
 /** How long after the last keystroke the operator counts as "stopped typing". */
 const TYPING_IDLE_MS = 1000;
@@ -117,9 +112,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <LockedFeature v-if="!hasAccess" :description="t('agents.chatlog.handoff.locked_description')" />
-
-    <div v-else class="flex h-full flex-col">
+    <div class="flex h-full flex-col">
         <!-- Status Bar -->
         <div class="bg-muted/30 flex items-center justify-between gap-3 border-b px-4 py-3">
             <div class="flex items-center gap-3">

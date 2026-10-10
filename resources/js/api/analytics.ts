@@ -4,6 +4,11 @@
  * world map shows. Pages under resources/js/pages/agents (Analytics, Tone,
  * Sentiment, Topics) read through these functions instead of calling axios.
  */
+import analytics from '@/routes/agents/analytics';
+import sentiment from '@/routes/agents/sentiment';
+import settings from '@/routes/agents/settings';
+import tone from '@/routes/agents/tone';
+import countries from '@/routes/countries';
 import { get, post } from './http';
 
 /** The overview numbers of one agent (Domain\Agent\Data\Resources\Stats\StatsResourceData). */
@@ -53,25 +58,25 @@ export interface CountryName {
 
 /** The agent's overview numbers for the given date range. */
 export function fetchAgentStats(agentId: string, range: AgentStatsRange): Promise<AgentStats> {
-    return get<AgentStats>(route('agents.analytics.data', agentId), { params: range });
+    return get<AgentStats>(analytics.data.url(agentId), { params: range });
 }
 
 /** Switches one analytics feature on for the agent. */
 export function enableAnalyticsFeature(agentId: string, feature: AnalyticsFeature): Promise<void> {
-    return post(route('agents.settings.update', { agent: agentId, group: 'analytics' }), { [feature]: true });
+    return post(settings.update.url({ agent: agentId, group: 'analytics' }), { [feature]: true });
 }
 
 /** Visitor tone per day and in total. */
 export function fetchToneBreakdown(agentId: string): Promise<ToneBreakdown> {
-    return get<ToneBreakdown>(route('agents.tone.data', agentId));
+    return get<ToneBreakdown>(tone.data.url(agentId));
 }
 
 /** Visitor sentiment per day and in total. */
 export function fetchSentimentBreakdown(agentId: string): Promise<SentimentBreakdown> {
-    return get<SentimentBreakdown>(route('agents.sentiment.data', agentId));
+    return get<SentimentBreakdown>(sentiment.data.url(agentId));
 }
 
 /** Every country with its translated name, sorted by name. */
 export function fetchCountryNames(): Promise<CountryName[]> {
-    return get<CountryName[]>(route('countries.list'));
+    return get<CountryName[]>(countries.list.url());
 }

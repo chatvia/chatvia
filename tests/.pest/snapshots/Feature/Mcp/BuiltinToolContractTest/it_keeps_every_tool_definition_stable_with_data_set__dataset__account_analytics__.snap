@@ -2,19 +2,17 @@
     {
         "name": "get-account-overview-tool",
         "title": "Get Account Overview Tool",
-        "description": "A one-shot snapshot of the whole account for a period: total messages (incoming\n+ AI replies), conversations, unique visitors, leads captured, average response\ntime, thumbs up/down, tokens, and — for the current cycle — messages used vs the\nplan limit. Use this first when the user asks \"how's my account doing?\" or wants\nan overview, then drill in with the more specific tools.",
+        "description": "A one-shot snapshot of the whole account for a period: total messages (incoming\n+ AI replies), conversations, unique visitors, leads captured, average response\ntime, thumbs up/down, tokens, and — when the account has a monthly message\nlimit — this month's messages used vs that limit. Use this first when the user asks \"how's my account doing?\" or wants\nan overview, then drill in with the more specific tools.",
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -43,19 +41,17 @@
     {
         "name": "get-message-stats-tool",
         "title": "Get Message Stats Tool",
-        "description": "Message volume for a period: how many messages came in (from visitors) vs went\nout (AI replies), the combined total, the change vs the previous period, the\naverage messages per conversation, and a per-day series. Answers \"how many\nmessages this cycle?\", \"incoming vs outgoing?\", \"are we up or down vs last\ncycle?\". The per-day series is ideal to hand to a chart tool.",
+        "description": "Message volume for a period: how many messages came in (from visitors) vs went\nout (AI replies), the combined total, the change vs the previous period, the\naverage messages per conversation, and a per-day series. Answers \"how many\nmessages this month?\", \"incoming vs outgoing?\", \"are we up or down vs last\nmonth?\". The per-day series is ideal to hand to a chart tool.",
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -82,34 +78,19 @@
         }
     },
     {
-        "name": "get-billing-cycle-usage-tool",
-        "title": "Get Billing Cycle Usage Tool",
-        "description": "The current billing cycle's message allowance: when the cycle started and ends,\nhow many days are left, the plan's message limit, how many have been used and\nhow many remain, any overage, bonus/add-on messages, tokens consumed, and a\nsimple run-rate projection of where usage will land by the cycle end. Answers\n\"how many messages have I used / how many left?\", \"when does my cycle reset?\",\n\"am I going to run out?\". Billing is message-based; tokens are analytics only.",
-        "inputSchema": {
-            "type": "object",
-            "properties": []
-        },
-        "annotations": {
-            "readOnlyHint": true,
-            "idempotentHint": true
-        }
-    },
-    {
         "name": "get-conversation-stats-tool",
         "title": "Get Conversation Stats Tool",
-        "description": "Conversation-level stats for a period: how many conversations started, the\naverage length (messages per conversation), the average duration in seconds, and\nthe single busiest day. Answers \"how many conversations this cycle?\", \"how long\nis the average chat?\", \"which day was busiest?\".",
+        "description": "Conversation-level stats for a period: how many conversations started, the\naverage length (messages per conversation), the average duration in seconds, and\nthe single busiest day. Answers \"how many conversations this month?\", \"how long\nis the average chat?\", \"which day was busiest?\".",
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -142,15 +123,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -188,15 +167,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -229,15 +206,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -266,15 +241,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -312,15 +285,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -353,15 +324,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -394,15 +363,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -431,19 +398,17 @@
     {
         "name": "get-top-topics-tool",
         "title": "Get Top Topics Tool",
-        "description": "The topics visitors talk about most, for a period — each topic ranked by the\nnumber of conversations it appears in. Answers \"what are people asking about?\",\n\"top topics this cycle?\", \"what's trending?\". Great input for a bar chart of\ndemand by topic.",
+        "description": "The topics visitors talk about most, for a period — each topic ranked by the\nnumber of conversations it appears in. Answers \"what are people asking about?\",\n\"top topics this month?\", \"what's trending?\". Great input for a bar chart of\ndemand by topic.",
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -477,19 +442,17 @@
     {
         "name": "get-lead-stats-tool",
         "title": "Get Lead Stats Tool",
-        "description": "Leads captured for a period: the total, the breakdown by status (new, contacted,\nqualified, converted, lost), how many have been contacted, and the conversion\nrate (leads per 100 conversations). Answers \"how many leads this cycle?\", \"what's\nmy lead conversion rate?\", \"how many leads still need contacting?\".",
+        "description": "Leads captured for a period: the total, the breakdown by status (new, contacted,\nqualified, converted, lost), how many have been contacted, and the conversion\nrate (leads per 100 conversations). Answers \"how many leads this month?\", \"what's\nmy lead conversion rate?\", \"how many leads still need contacting?\".",
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -522,15 +485,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -559,19 +520,17 @@
     {
         "name": "get-token-usage-tool",
         "title": "Get Token Usage Tool",
-        "description": "Token consumption for a period: total tokens used, the prompt vs completion\nsplit, the average tokens per AI reply, and a per-day series. Answers \"how many\ntokens did I consume this cycle?\", \"what's my prompt vs completion split?\".\nTokens are reported for analytics only — billing is per message received, not\nper token.",
+        "description": "Token consumption for a period: total tokens used, the prompt vs completion\nsplit, the average tokens per AI reply, and a per-day series. Answers \"how many\ntokens did I consume this month?\", \"what's my prompt vs completion split?\".\nTokens are reported for analytics only; message limits count replies, not\ntokens.",
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],
@@ -604,15 +563,13 @@
         "inputSchema": {
             "properties": {
                 "period": {
-                    "description": "Time window. Defaults to \"current_cycle\" — the current billing cycle. Use \"previous_cycle\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
-                    "default": "current_cycle",
+                    "description": "Time window. Defaults to \"this_month\". Use \"last_month\" for the one before, or a rolling window like \"last_7_days\"/\"last_30_days\".",
+                    "default": "this_month",
                     "enum": [
-                        "current_cycle",
-                        "previous_cycle",
+                        "this_month",
                         "today",
                         "last_7_days",
                         "last_30_days",
-                        "this_month",
                         "last_month",
                         "all_time"
                     ],

@@ -10,13 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('llms', function (Blueprint $table) {
+        Schema::create('llms', function (Blueprint $table): void {
             $table->id();
 
             $table->string('internal_name')->unique();
             $table->string('external_name')->unique();
-
-            $table->unsignedInteger('credits');
 
             $table->string('descriptive_name');
             $table->text('description');
@@ -43,7 +41,7 @@ return new class extends Migration
             if (json_last_error() === JSON_ERROR_NONE) {
                 $dataToInsert = [];
 
-                collect($llms)->each(function ($llmData) use (&$dataToInsert) {
+                collect($llms)->each(function (array $llmData) use (&$dataToInsert): void {
                     $dataToInsert[] = [
                         'internal_name' => $llmData['internal_name'],
                         'external_name' => $llmData['external_name'],
@@ -54,7 +52,6 @@ return new class extends Migration
                         'features' => json_encode([]),
                         'location' => $llmData['location'],
                         'is_reasoning' => $llmData['reasoning'] ?? false,
-                        'credits' => $llmData['credits'] ?? 1,
                         'input_price_per_1m_tokens' => $llmData['input_price_per_1m_tokens'] ?? null,
                         'output_price_per_1m_tokens' => $llmData['output_price_per_1m_tokens'] ?? null,
                         'provider' => $llmData['provider'] ?? 'scaleway',

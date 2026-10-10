@@ -38,7 +38,7 @@ class GenerateConversationTitleController
 
         if ($conversation?->needsTitle()) {
             // The title is an LLM call: attribute its tokens to the workspace.
-            $usage->track($agent->user_id, fn () => $generateTitle->execute($scope), 'chat');
+            $usage->track($agent->user_id, fn () => $generateTitle->execute($scope));
             $conversation->refresh();
         }
 

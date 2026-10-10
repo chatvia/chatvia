@@ -4,6 +4,8 @@
  * detail sheet's access-controls save. Invites, grants, revokes, password
  * resets and deletes are Inertia visits, so they do not live here.
  */
+import { index as agentChatters } from '@/routes/agents/chatters';
+import chatters from '@/routes/people/chatters';
 import { get, patch } from './http';
 
 export type AgentChatterRow = Domain.Membership.Agent.Data.Resources.AgentChatterRowData;
@@ -29,24 +31,21 @@ function isEnveloped<T>(body: MaybeEnveloped<T>): body is { data: T } {
 
 /** Every chatter in the agent's workspace with a `has_access` flag for this agent, granted first. */
 export async function listAgentChatters(agentId: string): Promise<AgentChatterRow[]> {
-    const body = await get<RowsEnvelope<AgentChatterRow>>(route('agents.chatters.index', { agent: agentId }));
+    const body = await get<RowsEnvelope<AgentChatterRow>>(agentChatters.url(agentId));
 
     return body.data ?? [];
 }
 
 /** Every chatter in the signed-in user's workspace, with agent count and message usage. */
 export async function listWorkspaceChatters(): Promise<WorkspaceChatterRow[]> {
-    const body = await get<RowsEnvelope<WorkspaceChatterRow>>(route('people.chatters.index'));
+    const body = await get<RowsEnvelope<WorkspaceChatterRow>>(chatters.index.url());
 
     return body.data ?? [];
 }
 
 /** Saves a chatter's message limit and deactivation state and returns the refreshed row. */
 export async function updateChatterAccess(chatterId: string, payload: UpdateChatterAccessPayload): Promise<WorkspaceChatterRow> {
-    const body = await patch<MaybeEnveloped<WorkspaceChatterRow>, UpdateChatterAccessPayload>(
-        route('people.chatters.update', { chatter: chatterId }),
-        payload,
-    );
+    const body = await patch<MaybeEnveloped<WorkspaceChatterRow>, UpdateChatterAccessPayload>(chatters.update.url(chatterId), payload);
 
     // Tolerate either a bare row or a `{ data: row }` envelope.
     return isEnveloped(body) ? body.data : body;

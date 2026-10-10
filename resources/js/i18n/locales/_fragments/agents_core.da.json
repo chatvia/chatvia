@@ -161,7 +161,6 @@
                 "select_topic": "Vælg emne",
                 "select_sentiment": "Vælg stemning",
                 "select_tone": "Vælg tone",
-                "upgrade_to_unlock": "Opgrader for at låse op",
                 "clear_all": "Ryd alle",
                 "close": "Anvend filtre"
             },
@@ -201,13 +200,11 @@
                 "page_url": "Side-URL",
                 "referrer": "Henviser",
                 "locale": "Sprogindstilling",
-                "upgrade_to_unlock": "Opgrader for at låse op",
                 "waiting": "Venter på analyse…"
             },
             "pulse": {
                 "title": "Samtalepuls",
                 "select_conversation": "Vælg en samtale for at se puls",
-                "locked_description": "Opgrader din plan for at låse op for samtalepuls-analyser.",
                 "refresh": "Opdatér",
                 "no_messages_title": "Ikke nok beskeder endnu",
                 "no_messages_hint": "Puls kræver mindst én brugerbesked for at analysere stemning og tone over tid.",
@@ -242,7 +239,6 @@
                 "waiting": "Afventer…"
             },
             "handoff": {
-                "locked_description": "Opgrader din plan for at overtage live-samtaler fra chatlogen.",
                 "visitor": "Besøgende",
                 "online": "Online",
                 "offline": "Offline",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Tone",
             "description": "Spor, hvordan besøgende har det, baseret på den følelsesmæssige tone i deres beskeder.",
-            "locked_description": "Opgrader din plan for at låse op for toneanalyse.",
             "disabled_title": "Toneanalyse er slået fra",
             "disabled_description": "Aktivér toneanalyse for at se, hvordan besøgende har det på tværs af samtaler.",
             "blocked_reason": "Slå chatlog til først — toneanalyse kræver gemte beskeder.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Stemning",
             "description": "Spor positiv, neutral og negativ stemning på tværs af besøgendes beskeder.",
-            "locked_description": "Opgrader din plan for at låse op for stemningsanalyse.",
             "disabled_title": "Stemningsanalyse er slået fra",
             "disabled_description": "Aktivér stemningsanalyse for at se, hvordan besøgende har det på tværs af samtaler.",
             "blocked_reason": "Slå chatlog til først — stemningsanalyse kræver gemte beskeder.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Administrér emner",
                 "description": "Definer emner, som din agent skal genkende og klassificere i samtaler.",
-                "locked_description": "Opgrader din plan for at administrere samtalemner.",
                 "search_placeholder": "Søg efter emner…",
                 "add_topic": "Tilføj emne",
                 "empty": "Ingen emner endnu. Tilføj et for at hjælpe din agent med at klassificere samtaler.",

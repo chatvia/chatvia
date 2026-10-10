@@ -161,7 +161,6 @@
                 "select_topic": "Seleccionar tema",
                 "select_sentiment": "Seleccionar sentimiento",
                 "select_tone": "Seleccionar tono",
-                "upgrade_to_unlock": "Actualiza para desbloquear",
                 "clear_all": "Limpiar todo",
                 "close": "Aplicar filtros"
             },
@@ -201,13 +200,11 @@
                 "page_url": "URL de la página",
                 "referrer": "Referente",
                 "locale": "Configuración regional",
-                "upgrade_to_unlock": "Actualiza para desbloquear",
                 "waiting": "Esperando análisis…"
             },
             "pulse": {
                 "title": "Pulso de la conversación",
                 "select_conversation": "Selecciona una conversación para ver el pulso",
-                "locked_description": "Actualiza tu plan para desbloquear el análisis de pulso de conversaciones.",
                 "refresh": "Actualizar",
                 "no_messages_title": "Aún no hay suficientes mensajes",
                 "no_messages_hint": "El pulso necesita al menos un mensaje del usuario para analizar el sentimiento y el tono a lo largo del tiempo.",
@@ -242,7 +239,6 @@
                 "waiting": "Pendiente…"
             },
             "handoff": {
-                "locked_description": "Actualiza tu plan para tomar el control de conversaciones en vivo desde el registro de chat.",
                 "visitor": "Visitante",
                 "online": "En línea",
                 "offline": "Sin conexión",
@@ -503,7 +499,6 @@
         "tone": {
             "title": "Tono",
             "description": "Monitorea cómo se sienten los visitantes según el tono emocional de sus mensajes.",
-            "locked_description": "Actualiza tu plan para desbloquear el análisis de tono.",
             "disabled_title": "El análisis de tono está desactivado",
             "disabled_description": "Activa el análisis de tono para ver cómo se sienten los visitantes en las conversaciones.",
             "blocked_reason": "Activa primero el registro de chat — el análisis de tono requiere mensajes almacenados.",
@@ -528,7 +523,6 @@
         "sentiment": {
             "title": "Sentimiento",
             "description": "Monitorea el sentimiento positivo, neutro y negativo en los mensajes de los visitantes.",
-            "locked_description": "Actualiza tu plan para desbloquear el análisis de sentimiento.",
             "disabled_title": "El análisis de sentimiento está desactivado",
             "disabled_description": "Activa el análisis de sentimiento para ver cómo se sienten los visitantes en las conversaciones.",
             "blocked_reason": "Activa primero el registro de chat — el análisis de sentimiento requiere mensajes almacenados.",
@@ -547,7 +541,6 @@
             "manage": {
                 "title": "Gestionar temas",
                 "description": "Define los temas que tu agente debe reconocer y clasificar en las conversaciones.",
-                "locked_description": "Actualiza tu plan para gestionar los temas de conversación.",
                 "search_placeholder": "Buscar temas…",
                 "add_topic": "Agregar tema",
                 "empty": "Aún no hay temas. Agrega uno para ayudar a tu agente a clasificar las conversaciones.",

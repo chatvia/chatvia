@@ -86,13 +86,13 @@ class StreamRequestDataFactory
             conversationId: $threadId,
             // Only actual chatters carry a per-chatter limit. A protected widget
             // can resolve an owner/employee (e.g. previewing); never stamp them,
-            // or their billing user_credits would be mistaken for a chatter cap.
+            // or the workspace's own limit would be counted as a chatter's.
             chatterUserId: $chatter instanceof User && $chatter->isChatter() ? $chatter->id : null,
             chatterName: $chatter instanceof User && $chatter->isChatter() ? $chatter->name : null,
             chatterExternalId: $chatter instanceof User && $chatter->isChatter() ? $chatter->external_id : null,
             // The audit actor is whoever is signed in — any type (owner/teammate
             // previewing, or a chatter); unlike chatterUserId it is not gated to
-            // chatters and never affects billing.
+            // chatters and never affects message limits.
             actorUserId: $chatter?->id,
             actorName: $chatter?->name,
             saveUserMessageImmediately: true,

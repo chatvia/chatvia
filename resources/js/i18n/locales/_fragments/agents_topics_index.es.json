@@ -3,7 +3,6 @@
         "topics_index": {
             "title": "Temas",
             "description": "Analiza los temas y tendencias de las conversaciones",
-            "locked_description": "Mejora tu plan para acceder al análisis de temas y detectar y categorizar automáticamente los temas de las conversaciones.",
             "disabled_title": "Análisis de temas",
             "disabled_description": "Actívalo para detectar y agrupar automáticamente lo que tus visitantes preguntan en las conversaciones.",
             "blocked_reason": "El registro de chat está desactivado, por lo que no hay nada que analizar. Actívalo en Configuración → Ajustes para comenzar a recopilar temas.",

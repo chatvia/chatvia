@@ -46,7 +46,7 @@ it('packages user data into a zip and marks the export ready', function (): void
         ->toContain('agents.json')
         ->toContain('conversations.json')
         ->toContain('messages.json')
-        ->toContain('billing.json');
+        ->toContain('message-limit.json');
 
     Event::assertDispatched(DataExportReady::class);
 });

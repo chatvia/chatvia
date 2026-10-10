@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { manager } from '@/routes/agents';
 import type { SharedData } from '@/types';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { Bot, Loader2, Plus, Search } from 'lucide-vue-next';
@@ -61,7 +62,7 @@ const filteredAgents = computed(() => {
 });
 
 const openAgent = (agent: Agent) => {
-    router.visit(route('agents.manager', { agent: agent.external_id }));
+    router.visit(manager.url(agent.external_id));
 };
 </script>
 

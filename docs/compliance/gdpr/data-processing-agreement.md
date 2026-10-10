@@ -32,7 +32,7 @@ Chatvia shall comply with each of the following.
 
 3.1 Chatvia shall Process Personal Data **only on the Customer's documented instructions**, including with regard to international transfers, unless required to do so by Union or Member State law to which Chatvia is subject; in such a case Chatvia shall inform the Customer of that legal requirement before Processing, unless that law prohibits such information on important grounds of public interest.
 
-3.2 The Customer's documented instructions are constituted by: (i) the Principal Agreement; (ii) this DPA and its Annexes; and (iii) the configuration choices the Customer makes in the Chatvia application (widget deployment, knowledge-base uploads, retention plan, connector/OAuth authorisations, channel integrations). The technical scope of Customer instructions is enforced through role-based access controls, such that each workspace's data is logically isolated from other customers.
+3.2 The Customer's documented instructions are constituted by: (i) the Principal Agreement; (ii) this DPA and its Annexes; and (iii) the configuration choices the Customer makes in the Chatvia application (widget deployment, knowledge-base uploads, retention settings, connector/OAuth authorisations, channel integrations). The technical scope of Customer instructions is enforced through role-based access controls, such that each workspace's data is logically isolated from other customers.
 
 3.3 Chatvia shall **not** Process Personal Data for its own purposes. Chatvia shall not use Customer Personal Data, conversation transcripts, or Leads to train, fine-tune, or improve any general-purpose model. LLM inference is performed on open-weight models hosted within the EU by the inference sub-processor identified in Annex 3; chat content sent for inference is used solely to generate the response and is not retained for model training.
 
@@ -101,7 +101,7 @@ This DPA takes effect on the Effective Date and remains in force for the duratio
 | **Categories of Data Subjects** | The Customer's website visitors and end-users ("Visitors"); captured contacts ("Leads"); the Customer's own personnel/workspace users. |
 | **Categories of Personal Data** | Identifiers and contact details (name, email, phone) submitted by Visitors/Leads; free-text **conversation transcripts** (which may contain any Personal Data the Visitor types); content of **uploaded knowledge-base documents**; **vector embeddings** derived from the above; technical metadata (IP-derived country, timestamps, session identifiers); workspace-user account data. |
 | **Special-category data** | Not solicited. The Customer must not configure the service to collect Art. 9 data; any such data entered by a Visitor is Processed on the Customer's instruction and at the Customer's risk. |
-| **Retention** | Per the Customer's plan-based retention window (e.g. 90 / 180 / 366 days), enforced by automated deletion. |
+| **Retention** | Per the retention window set for the Customer's workspace (366 days by default; the Customer may choose fewer days), enforced by automated deletion. |
 
 ## Annex 2 — Technical and Organisational Measures (Art. 32)
 

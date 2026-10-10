@@ -51,6 +51,5 @@
              the URL (hideDefaultLocaleInURL=false), force `en` so route('home') and
              friends resolve to /en in the harness, matching production. A test that
              needs un-prefixed (first-visit) registration reboots with this cleared. -->
-        <env name="ROUTING_LOCALE" value="en"/>
     </php>
 </phpunit>

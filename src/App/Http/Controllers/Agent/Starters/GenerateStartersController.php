@@ -24,7 +24,6 @@ class GenerateStartersController
         $suggestions = app(TokenUsageContext::class)->track(
             $agent->user_id,
             fn (): array => $generator->generate($content, $request->desiredCount()),
-            'starters',
         );
 
         return response()->json(['suggestions' => $suggestions]);

@@ -25,7 +25,7 @@ trait ResolvesWorkspaceHierarchy
 {
     /**
      * Get the effective user (workspace owner if this is an employee/chatter,
-     * otherwise self). Used for resource access like quota, agents, credits, etc.
+     * otherwise self). Used for resource access like agents, settings, etc.
      */
     public function workspace(): self
     {

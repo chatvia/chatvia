@@ -6,7 +6,7 @@ A short tour of the objects your team will see across the dashboard and the API.
 
 Chatvia is built around three roles. Keep them straight and the rest of the product makes sense.
 
-- **Workspace** — the company account. One per customer. The workspace owns billing, secrets, agents, sources, functions, and connectors.
+- **Workspace** — the company account. One per customer. The workspace owns secrets, agents, sources, functions, and connectors. Every workspace can use every feature. A workspace can have a [monthly message limit](/guide/account/message-limits).
 - **Teammates** — the people inside the workspace who *manage* agents. They sign in to the dashboard. Each teammate has a role that grants access to specific agents and specific actions (read, write, delete). Invite them from **Settings → Members**.
 - **Chatters** — the end-users who *talk* to agents. They sign in at **/chat** and only see the agents they have been granted access to. Chatters never see the dashboard. Invite them workspace-wide from **Settings → Members**, or per-agent from each agent's **Members** tab.
 

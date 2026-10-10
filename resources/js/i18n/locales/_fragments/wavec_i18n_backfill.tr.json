@@ -103,9 +103,6 @@
     "dashboard": {
         "messages_this_month": "Bu Ayki Mesajlar"
     },
-    "usage": {
-        "no_limit": "Sınırsız"
-    },
     "workspace": {
         "prompts": {
             "sheet": {
@@ -142,18 +139,6 @@
         },
         "time_ago": {
             "just_now": "Az önce"
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Chatvia'ya hoş geldiniz",
-            "intro": "İlk AI asistanınızı oluşturalım. Yalnızca bir dakika sürer.",
-            "what_title": "Asistan nedir?",
-            "what_body": "Asistan, kendi içeriğinizle eğittiğiniz bir AI yardımcısıdır. Web sitenizde, sohbet widget'ınızda ve mesajlaşma uygulamalarında müşterilerinizin sorularını yanıtlar.",
-            "how_title": "Nasıl çalışır?",
-            "how_body": "Önce bir asistan oluşturup ona bir ad verirsiniz. Ardından soruları yanıtlayabilmesi için onu dosyalarınız, web siteleriniz ve metinlerinizle eğitirsiniz.",
-            "start": "İlk asistanımı oluştur",
-            "video_caption": "Nasıl çalıştığını izleyin"
         }
     }
 }

@@ -110,7 +110,6 @@
             "description": "Tilinavaimet {api_link}-rajapintaa varten — luo ja hallinnoi agentteja, tietokantoja, MCP-palvelimia ja funktioita.",
             "api_link": "Chatvia API",
             "generate": "Luo avain",
-            "locked": "Päivitä tilaukseasi luodaksesi API-avaimia ja integroidaksesi Chatvian sovelluksiisi.",
             "empty_title": "Ei vielä API-avaimia",
             "empty_description": "Luo avain aloittaaksesi Chatvia API:n käytön.",
             "never": "Ei koskaan",

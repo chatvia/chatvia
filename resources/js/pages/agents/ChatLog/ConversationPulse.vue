@@ -4,10 +4,8 @@
  * conversation — trend, resolution, start/end/peak mood, a sentiment line
  * chart and a per-message table. Loaded on demand when the tab opens.
  */
-import LockedFeature from '@/components/LockedFeature.vue';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import {
     CategoryScale,
     Chart as ChartJS,
@@ -44,14 +42,11 @@ const {
     getPulsePointColor,
 } = useChatLog();
 
-const { hasCapability } = useCapabilityGuard();
-const hasAccess = computed(() => hasCapability('pulse'));
-
 // Load pulse data when tab becomes active
 watch(
     () => activeTab.value,
     (newTab) => {
-        if (newTab === 'pulse' && currentConversationId.value && !pulseData.value && hasAccess.value) {
+        if (newTab === 'pulse' && currentConversationId.value && !pulseData.value) {
             fetchPulseData();
         }
     },
@@ -183,11 +178,8 @@ const pulseChartOptions = computed<ChartOptions<'line'>>(() => ({
 </script>
 
 <template>
-    <!-- Locked Feature -->
-    <LockedFeature v-if="!hasAccess" :description="t('agents.chatlog.pulse.locked_description')" />
-
     <!-- No Conversation Selected -->
-    <div v-else-if="!currentConversationId" class="text-muted-foreground flex flex-col items-center justify-center py-20">
+    <div v-if="!currentConversationId" class="text-muted-foreground flex flex-col items-center justify-center py-20">
         <Activity class="mb-3 h-10 w-10 opacity-30" />
         <p class="text-sm">{{ t('agents.chatlog.pulse.select_conversation') }}</p>
     </div>

@@ -2,16 +2,16 @@
     "content": [
         {
             "type": "text",
-            "text": "Most active this billing cycle: Ada Lovelace with 2 messages. 2 identified users in total, 3 new visitors."
+            "text": "Most active this month: Ada Lovelace with 2 messages. 2 identified users in total, 3 new visitors."
         }
     ],
     "isError": false,
     "structuredContent": {
         "period": {
-            "key": "current_cycle",
-            "label": "this billing cycle",
+            "key": "this_month",
+            "label": "this month",
             "start": "2026-06-01",
-            "end": "2026-07-01"
+            "end": "2026-06-15"
         },
         "top_users": [
             {

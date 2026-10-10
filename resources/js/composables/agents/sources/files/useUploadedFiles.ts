@@ -18,12 +18,7 @@ export interface UploaderHandle {
     removeFileById: (fileId: string) => void;
 }
 
-export function useUploadedFiles(
-    agentId: string,
-    sourceFiles: SourceFilesState,
-    refreshUsage: () => Promise<void>,
-    uploader: Ref<UploaderHandle | null>,
-) {
+export function useUploadedFiles(agentId: string, sourceFiles: SourceFilesState, uploader: Ref<UploaderHandle | null>) {
     const { t } = useI18n();
     const ensureCanDeleteSources = useSourceDeletePermission();
 
@@ -32,7 +27,6 @@ export function useUploadedFiles(
 
     const reload = async (): Promise<void> => {
         await sourceFiles.fetchFiles();
-        await refreshUsage();
     };
 
     /** Trains every uploaded file in one request; reloads either way, as some files may have started. */

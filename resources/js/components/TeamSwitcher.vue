@@ -14,6 +14,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/composables/useInitials';
+import { index as teamsIndex, switchMethod as switchTeamRoute } from '@/routes/teams';
 import type { Auth, SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { Check, ChevronsUpDown, Loader2, Plus, Settings } from 'lucide-vue-next';
@@ -59,8 +60,8 @@ const switchTeam = (team: SwitcherTeam) => {
     router.post(
         // Route binding is by external_id (see Team::getRouteKeyName) — keep
         // the in-memory id around for the currentTeam comparison above but
-        // hand Stripe-friendly UUIDs to Ziggy.
-        route('teams.switch', team.external_id),
+        // put the public UUID in the URL.
+        switchTeamRoute.url(team.external_id),
         {},
         {
             preserveState: false,
@@ -117,7 +118,7 @@ const openCreateDialog = () => {
                 <template v-if="!isEmployee">
                     <DropdownMenuSeparator />
                     <DropdownMenuItem as-child>
-                        <Link :href="route('teams.index')" class="cursor-pointer gap-2">
+                        <Link :href="teamsIndex.url()" class="cursor-pointer gap-2">
                             <Settings class="size-4" />
                             {{ t('team_switcher.manage_teams') }}
                         </Link>

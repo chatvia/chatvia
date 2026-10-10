@@ -9,8 +9,7 @@ use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
 
 /**
  * Tokens consumed: total, prompt vs completion, per AI reply, and per day.
- * Tokens live on each message event, by exact time, so a cycle that starts
- * mid-hour keeps its first partial hour.
+ * Tokens live on each message event, by exact time.
  */
 class TokenUsageQuery extends AccountAnalyticsQuery
 {

@@ -44,18 +44,46 @@ theme.
   DPA pages) was removed. `/` opens the login page, or the dashboard when
   signed in.
 
+### Billing removed, message limits added
+
+- Billing was removed from the whole product: Stripe and Laravel Cashier,
+  plans, message credits and top-ups, auto-recharge, add-ons, quotas, free
+  trials and the trial checkout, the password step for trial accounts, the
+  founder welcome e-mail, the billing settings and the plan and add-on pages
+  of the admin panel, and the Pennant feature flags. The `user_usages` token
+  counter and the "billing cycle" analytics periods were removed too. Removed
+  packages: `laravel/cashier`, `laravel/pennant` and `@stripe/stripe-js`.
+- Every workspace gets every feature: human handoff, sentiment, tone and
+  topics, pulse, evals, guardrails, the audit log, API access, the Security &
+  Compliance settings (network access rules, retention, security audit log),
+  the SIEM webhook, custom domains (no limit on how many) and turning off the
+  "Powered by" badge per agent.
+- New optional **monthly message limits**. A platform admin sets the limit of
+  a workspace in the admin panel (**Workspaces** → a workspace → **Set message
+  limit**). It counts every agent reply of the workspace: web chat, widget,
+  hosted chat, messaging channels and each eval case that produced an answer.
+  A guardrail refusal is not counted. A workspace sets the limit of a chatter
+  in the dashboard (**Chatters** → a chatter → **Limits**); it counts the
+  chatter's own messages. The count starts again on the first day of each
+  month. When a limit is reached, the chat ends with the error
+  `message_limit_reached` (or `chatter_message_limit_reached`), messaging
+  channels reply with a short "unavailable" message, and eval cases are
+  skipped.
+- The dashboard's **Messages This Month** card counts this month's agent
+  replies, and shows "X of LIMIT" when the workspace has a limit.
+- "Ask your data" and its account-analytics tools use `this_month` by
+  default. The overview tool reports `messages_used_this_month` and
+  `messages_limit_this_month` (`null` without a limit).
+- The account data export has `message-limit.json` instead of `billing.json`.
+
 ### Self-hosting
 
-- Billing is set up in the admin panel. **Settings → Billing** turns paid
-  plans on or off (off by default: no Stripe, every feature on, no quotas,
-  billing pages off), opens sign-up, and sets the trial, currency, discount
-  and conversation retention.
-- **Billing → Plans** and **Billing → Add-ons** manage what you sell: prices,
-  limits, features and highlights. Saving creates the products and prices in
-  Stripe; a new amount creates a new price and existing subscribers keep
-  theirs. **Check against Stripe** compares the saved prices with Stripe
-  without changing anything. Plan cards list their features from these
-  values, in every language.
+- A new **Settings → Workspaces** group in the admin panel, stored encrypted
+  like the other settings (not in `.env`): **Open sign-up** (opens
+  `/register`, on by default), **Monthly message limit of new workspaces**
+  (applied at sign-up; 0, the default, means no limit) and **Days to keep
+  conversations** (366 by default; a workspace can choose fewer days in its
+  security settings, never more).
 - AI services sit behind contracts with `auto` drivers: document reading
   (Mistral or local `pdftotext` + LibreOffice), text splitting (chunk.fit or
   local), reranking, speech to text and whole-PDF reading. Each one uses the
@@ -85,7 +113,7 @@ theme.
 - Every domain was refactored: DTOs instead of arrays, backed enums, events
   and manually registered listeners for side effects, thin controllers with
   form requests, and large services split into focused classes (the chat
-  turn, message storage, the Stripe webhook, the messaging channels).
+  turn, message storage, the messaging channels).
 - Helper functions that hid logic were replaced by request-scoped resolvers
   and constructor injection.
 - PHP 8.5 and `declare(strict_types=1)` across the codebase; every class has a
@@ -94,8 +122,7 @@ theme.
 - Bugs fixed along the way include: deleting the original PDF after
   summarising it, chunks left behind after a bulk URL delete, unlinking a
   shared knowledge file, cached tool lists after a connector or function was
-  deleted, renewals that read the plan from metadata instead of the price,
-  add-on quotas after a Checkout purchase, and several analytics queries.
+  deleted, and several analytics queries.
 
 ### Frontend
 

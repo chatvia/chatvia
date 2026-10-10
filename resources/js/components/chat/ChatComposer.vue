@@ -24,8 +24,8 @@ interface Props {
     uploadEndpoint?: string;
     /** Headers to send with the upload request (e.g. session/thread). */
     uploadHeaders?: Record<string, string>;
-    /** Builds the DELETE url for an attachment by id (Ziggy-resolved by the
-     *  parent). When unset, the X button just clears local state. */
+    /** Builds the DELETE url for an attachment by id (the parent supplies the
+     *  route). When unset, the X button just clears local state. */
     deleteEndpoint?: (id: string) => string;
     /** Accept attribute for the file picker; defaults to PDF only. */
     uploadAccept?: string;

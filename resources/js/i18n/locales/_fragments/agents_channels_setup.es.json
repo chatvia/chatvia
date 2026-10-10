@@ -33,7 +33,7 @@
                     "reply_streams_live": "— la respuesta se transmite en vivo"
                 },
                 "telegram": {
-                    "connected_description": "Las personas pueden enviarle mensajes a tu bot en Telegram y tu agente responde automáticamente — la facturación, el historial y las restricciones se aplican.",
+                    "connected_description": "Las personas pueden enviarle mensajes a tu bot en Telegram y tu agente responde automáticamente — se aplican los límites de mensajes, el historial y las restricciones.",
                     "steps": {
                         "connect_1": "Abre {botfather} en Telegram",
                         "connect_2": "Envía {command} y sigue las instrucciones",

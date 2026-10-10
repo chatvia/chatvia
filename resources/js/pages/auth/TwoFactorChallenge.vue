@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import { store as twoFactorLogin } from '@/routes/two-factor/login';
 import { Head, useForm } from '@inertiajs/vue3';
 import { KeyRound, LoaderCircle, ShieldCheck } from 'lucide-vue-next';
 import { nextTick, ref } from 'vue';
@@ -23,7 +24,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('two-factor.login.store'), {
+    form.post(twoFactorLogin.url(), {
         onFinish: () => form.reset(),
     });
 };

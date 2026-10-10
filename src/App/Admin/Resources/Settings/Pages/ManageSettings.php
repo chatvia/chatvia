@@ -39,7 +39,7 @@ class ManageSettings extends Page
 
     public function getSubheading(): string
     {
-        return 'OAuth apps, API keys and webhook secrets for the services the app uses, and the billing options.';
+        return 'OAuth apps, API keys and webhook secrets for the services the app uses, and the workspace options.';
     }
 
     /**

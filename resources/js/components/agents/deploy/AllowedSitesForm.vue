@@ -8,6 +8,7 @@
 import type { SurfaceSettings } from '@/components/agents/deploy/installSnippets';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { update as updateSettings } from '@/routes/agents/settings';
 import { useForm } from '@inertiajs/vue3';
 import { Globe, Save } from 'lucide-vue-next';
 import { computed } from 'vue';
@@ -41,7 +42,7 @@ const sitesText = computed({
 });
 
 function saveSites(): void {
-    sitesForm.post(route('agents.settings.update', { agent: props.agentId, group: 'widget' }), {
+    sitesForm.post(updateSettings.url({ agent: props.agentId, group: 'widget' }), {
         preserveScroll: true,
         onSuccess: () => toast.success(t('agents.deploy.sites_saved')),
         onError: () => toast.error(t('agents.deploy.sites_error')),

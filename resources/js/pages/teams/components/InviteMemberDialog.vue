@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { invite } from '@/routes/teams';
 import { roleBadgeVariant } from '../composables/roleBadgeVariant';
 
 type TeamData = Domain.Membership.Team.Data.Resources.Team.TeamData;
@@ -56,7 +57,7 @@ const inviteMember = () => {
         .transform((current) =>
             inviteType.value === 'existing' ? { user_id: current.user_id, role: current.role } : { email: current.email, role: current.role },
         )
-        .post(route('teams.invite', props.team.external_id), {
+        .post(invite.url(props.team.external_id), {
             onSuccess: () => {
                 isOpen.value = false;
                 inviteForm.reset();

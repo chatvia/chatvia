@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Settings\Account\ApiKeyController;
+use App\Http\Controllers\Settings\Chatter\ResetChatterPasswordController;
+use App\Http\Controllers\Settings\Chatter\SettingsChatterAgentController;
 use App\Http\Controllers\Settings\Chatter\SettingsChatterController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectController;
 use App\Http\Controllers\Settings\Connector\Catalog\ConnectorController;
@@ -121,16 +123,16 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     // `account.chatters.manage`.
     Route::middleware('team.permission:account.chatters.manage')->prefix('my/workspace/people')->name('people.')->group(function (): void {
         Route::get('chatters', [SettingsChatterController::class, 'index'])->name('chatters.index');
-        Route::post('chatters/invite', [SettingsChatterController::class, 'invite'])->name('chatters.invite');
+        Route::post('chatters/invite', [SettingsChatterController::class, 'store'])->name('chatters.invite');
         Route::patch('chatters/{chatter}', [SettingsChatterController::class, 'update'])->name('chatters.update');
-        Route::post('chatters/{chatter}/reset-password', [SettingsChatterController::class, 'resetPassword'])->name('chatters.reset-password');
+        Route::post('chatters/{chatter}/reset-password', ResetChatterPasswordController::class)->name('chatters.reset-password');
         Route::delete('chatters/{chatter}', [SettingsChatterController::class, 'destroy'])->name('chatters.destroy');
 
         // Per-chatter agent grants — same shape as the Connectors/Functions agent
         // toggles, consumed by useAgentAttachments('chatter').
-        Route::get('chatters/{chatter}/agents', [SettingsChatterController::class, 'listAgents'])->name('chatters.agents.index');
-        Route::post('chatters/{chatter}/agents/{agent}', [SettingsChatterController::class, 'attachAgent'])->name('chatters.agents.attach');
-        Route::delete('chatters/{chatter}/agents/{agent}', [SettingsChatterController::class, 'detachAgent'])->name('chatters.agents.detach');
+        Route::get('chatters/{chatter}/agents', [SettingsChatterAgentController::class, 'index'])->name('chatters.agents.index');
+        Route::post('chatters/{chatter}/agents/{agent}', [SettingsChatterAgentController::class, 'store'])->name('chatters.agents.attach');
+        Route::delete('chatters/{chatter}/agents/{agent}', [SettingsChatterAgentController::class, 'destroy'])->name('chatters.agents.detach');
     });
 
     // Governance — the tool-call audit log (Governed MCP Gateway). Read-only;
@@ -140,15 +142,13 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     });
 
     // Security & Compliance — workspace-wide network access control (IP
-    // allowlist + geo). Viewable by anyone with `account.security` (non-Enterprise
-    // sees an upsell teaser); saving additionally requires the `security`
-    // entitlement, so the gate can't be configured without an entitled plan.
+    // allowlist + geo), retention and the SIEM webhook, for anyone with
+    // `account.security`.
     Route::middleware('team.permission:account.security')->group(function (): void {
         Route::get('my/workspace/security', [SecurityPolicyController::class, 'edit'])->name('security.edit');
-        Route::put('my/workspace/security', [SecurityPolicyController::class, 'update'])
-            ->middleware('features:security')->name('security.update');
+        Route::put('my/workspace/security', [SecurityPolicyController::class, 'update'])->name('security.update');
 
-        // Read-only security audit log viewer (non-entitled sees the upsell).
+        // Read-only security audit log viewer.
         Route::get('my/workspace/security/audit', SecurityAuditController::class)->name('security.audit');
     });
 

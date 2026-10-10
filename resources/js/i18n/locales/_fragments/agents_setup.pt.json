@@ -136,11 +136,6 @@
             "domain": {
                 "title": "Domínio Personalizado",
                 "description": "Sirva o Chat Alojado deste agente a partir do seu próprio domínio em vez de {target}.",
-                "no_quota_title": "Os domínios personalizados não estão incluídos no seu plano atual",
-                "no_quota_description": "Faça upgrade para Pro ou subscreva o add-on de Domínio Personalizado em {link} para adicionar o seu próprio hostname.",
-                "billing": "Faturação",
-                "quota": "A utilizar {used} de {total} domínio personalizado | A utilizar {used} de {total} domínios personalizados",
-                "add_more": "Adicionar mais",
                 "step1": "Passo 1 — Adicione um registo CNAME no seu fornecedor de DNS",
                 "type": "Tipo",
                 "name": "Nome",

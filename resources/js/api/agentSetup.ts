@@ -6,6 +6,10 @@
  * The plain settings forms (colors, behaviour, languages, …) are Inertia form
  * visits and stay in the page; only the calls that need the JSON answer live here.
  */
+import appearanceRoutes from '@/routes/agents/appearance';
+import bubbleRoutes from '@/routes/agents/bubbles';
+import settingsRoutes from '@/routes/agents/settings';
+import starterRoutes from '@/routes/agents/starters';
 import { del, post, put } from './http';
 
 /** Text per field, per locale: `{ welcome_message: { de: '…', fr: '…' } }`. */
@@ -56,27 +60,27 @@ export type AppearanceImage = 'avatar' | 'logo';
  * Answers with the fresh AI translations and the stored manual edits.
  */
 export function saveAppearanceText(agentId: string, text: AppearanceText): Promise<{ translations: LocaleMap; overrides: LocaleMap }> {
-    return post<{ translations: LocaleMap; overrides: LocaleMap }>(route('agents.appearance.text', { agent: agentId }), text);
+    return post<{ translations: LocaleMap; overrides: LocaleMap }>(appearanceRoutes.text.url(agentId), text);
 }
 
 /** Saves the owner's manual per-language edits of the appearance text. */
 export function saveAppearanceOverrides(agentId: string, overrides: LocaleMap): Promise<{ overrides: LocaleMap }> {
-    return put<{ overrides: LocaleMap }>(route('agents.appearance.translations.update', { agent: agentId }), { overrides });
+    return put<{ overrides: LocaleMap }>(appearanceRoutes.translations.update.url(agentId), { overrides });
 }
 
 /** Replaces the agent's starters. Answers with the stored starters and their translations. */
 export function saveStarters(agentId: string, starters: StarterInput[]): Promise<{ starters: StarterItem[] }> {
-    return put<{ starters: StarterItem[] }>(route('agents.starters.update', { agent: agentId }), { starters });
+    return put<{ starters: StarterItem[] }>(starterRoutes.update.url(agentId), { starters });
 }
 
 /** Asks the AI for `count` starter ideas based on the agent's knowledge base. Nothing is saved. */
 export function generateStarters(agentId: string, count: number): Promise<{ suggestions: string[] }> {
-    return post<{ suggestions: string[] }>(route('agents.starters.generate', { agent: agentId }), { count });
+    return post<{ suggestions: string[] }>(starterRoutes.generate.url(agentId), { count });
 }
 
 /** Replaces the widget's chat bubbles. Answers with the stored bubbles and their translations. */
 export function saveBubbles(agentId: string, bubbles: BubbleInput[]): Promise<{ bubbles: BubbleItem[] }> {
-    return put<{ bubbles: BubbleItem[] }>(route('agents.bubbles.update', { agent: agentId }), { bubbles });
+    return put<{ bubbles: BubbleItem[] }>(bubbleRoutes.update.url(agentId), { bubbles });
 }
 
 /** Uploads a new avatar or logo image for the agent. */
@@ -84,10 +88,10 @@ export function uploadAppearanceImage(agentId: string, key: AppearanceImage, fil
     const data = new FormData();
     data.append(key, file);
 
-    return post(route('agents.settings.update', { agent: agentId, group: 'appearance' }), data);
+    return post(settingsRoutes.update.url({ agent: agentId, group: 'appearance' }), data);
 }
 
 /** Removes the agent's avatar or logo image. */
 export function deleteAppearanceImage(agentId: string, key: AppearanceImage): Promise<void> {
-    return del(route('agents.settings.delete', { agent: agentId, group: 'appearance' }), { data: { key } });
+    return del(settingsRoutes.delete.url({ agent: agentId, group: 'appearance' }), { data: { key } });
 }

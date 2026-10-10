@@ -2,7 +2,6 @@
 // Eval suite page for one agent: the list of test cases, the run history with
 // live progress, and the dialogs to add, edit and delete them. Viewing needs
 // `agent.evals.view`; changing anything needs `agent.evals.manage`.
-import LockedFeature from '@/components/LockedFeature.vue';
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -14,9 +13,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { useCapabilityGuard } from '@/composables/useCapabilityGuard';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { destroy as destroyCase } from '@/routes/agents/evals/cases';
+import { clear as clearRunHistory, destroy as destroyRun, show as showRun, store as storeRun } from '@/routes/agents/evals/runs';
 import { Head, router } from '@inertiajs/vue3';
 import { LoaderCircle, Play } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -42,9 +42,7 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 const { hasPermission } = useTeamPermissions();
-const { hasCapability } = useCapabilityGuard();
 
-const hasAccess = computed(() => hasCapability('evals'));
 const canManage = computed(() => hasPermission('agent.evals.manage'));
 
 const { runs, hasRunning } = useLiveEvalRuns(props.agent.external_id, () => props.runs);
@@ -80,7 +78,7 @@ const confirmDelete = (item: EvalCase) => {
 
 const deleteCase = () => {
     if (!deletingCase.value) return;
-    router.delete(route('agents.evals.cases.destroy', [props.agent.external_id, deletingCase.value.external_id]), {
+    router.delete(destroyCase.url({ agent: props.agent.external_id, case: deletingCase.value.external_id }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success(t('agents.evals.index.toasts.case_deleted'));
@@ -97,7 +95,7 @@ const runProcessing = ref(false);
 const triggerRun = () => {
     runProcessing.value = true;
     router.post(
-        route('agents.evals.runs.store', props.agent.external_id),
+        storeRun.url(props.agent.external_id),
         {},
         {
             preserveScroll: true,
@@ -113,7 +111,7 @@ const triggerRun = () => {
     );
 };
 
-const openRun = (externalId: string) => router.visit(route('agents.evals.runs.show', [props.agent.external_id, externalId]));
+const openRun = (externalId: string) => router.visit(showRun.url({ agent: props.agent.external_id, run: externalId }));
 
 // ---- Run delete / clear ----------------------------------------------------
 
@@ -127,7 +125,7 @@ const confirmDeleteRun = (run: EvalRun) => {
 
 const deleteRun = () => {
     if (!deletingRun.value) return;
-    router.delete(route('agents.evals.runs.destroy', [props.agent.external_id, deletingRun.value.external_id]), {
+    router.delete(destroyRun.url({ agent: props.agent.external_id, run: deletingRun.value.external_id }), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success(t('agents.evals.index.toasts.run_deleted'));
@@ -140,7 +138,7 @@ const deleteRun = () => {
 const isClearOpen = ref(false);
 
 const clearRuns = () => {
-    router.delete(route('agents.evals.runs.clear', props.agent.external_id), {
+    router.delete(clearRunHistory.url(props.agent.external_id), {
         preserveScroll: true,
         onSuccess: () => {
             toast.success(t('agents.evals.index.toasts.history_cleared'));
@@ -153,7 +151,7 @@ const clearRuns = () => {
 <template>
     <AgentLayout :agent="props.agent" :title="t('agents.evals.index.title')" :description="t('agents.evals.index.description')">
         <template #header-actions>
-            <Button v-if="canManage && hasAccess" :disabled="!canRun || runProcessing" @click="triggerRun">
+            <Button v-if="canManage" :disabled="!canRun || runProcessing" @click="triggerRun">
                 <LoaderCircle v-if="runProcessing || hasRunning" class="me-2 h-4 w-4 animate-spin" />
                 <Play v-else class="me-2 h-4 w-4" />
                 {{ t('agents.evals.index.run_suite') }}
@@ -162,9 +160,7 @@ const clearRuns = () => {
 
         <Head :title="t('agents.evals.index.head_title', { name: props.agent.name })" />
 
-        <LockedFeature v-if="!hasAccess" :description="t('agents.evals.index.locked_description')" />
-
-        <TooltipProvider v-else :delay-duration="200">
+        <TooltipProvider :delay-duration="200">
             <div class="flex justify-center">
                 <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl space-y-8">
                     <EvalCasesSection

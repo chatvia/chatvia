@@ -284,6 +284,35 @@ class McpClientTest extends TestCase
         $this->assertSame(3, $signed);
     }
 
+    public function test_first_party_server_is_sent_to_the_internal_url_with_a_valid_signature(): void
+    {
+        config(['services.builtin_mcp.internal_url' => 'http://app:8080']);
+        $this->fakeMcpServer();
+
+        app(McpClient::class)->callTool($this->internalServer('charts'), 'render-bar-chart', ['title' => 'x']);
+
+        Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'http://app:8080/mcp/charts'
+            && InternalMcpSignature::verify(
+                $request->header(InternalMcpSignature::TIMESTAMP_HEADER)[0] ?? null,
+                $request->header(InternalMcpSignature::SIGNATURE_HEADER)[0] ?? null,
+                $request->method(),
+                parse_url($request->url(), PHP_URL_PATH),
+                $request->body(),
+                InternalMcpSignature::identityHeadersFrom($request->headers()),
+            ));
+        Http::assertNotSent(fn (ClientRequest $request): bool => ! str_starts_with($request->url(), 'http://app:8080/'));
+    }
+
+    public function test_internal_url_never_redirects_a_third_party_server(): void
+    {
+        config(['services.builtin_mcp.internal_url' => 'http://app:8080']);
+        $this->fakeMcpServer();
+
+        app(McpClient::class)->callTool($this->server(), 'ping', []);
+
+        Http::assertNotSent(fn (ClientRequest $request): bool => str_starts_with($request->url(), 'http://app:8080'));
+    }
+
     public function test_custom_server_pointing_at_an_internal_url_is_not_signed(): void
     {
         $this->fakeMcpServer();

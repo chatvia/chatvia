@@ -20,8 +20,7 @@
             "send_link": "Enviar-me uma ligação de acesso",
             "sending_link": "A enviar ligação...",
             "or_continue_with": "Ou continuar com",
-            "no_account": "Não tem uma conta?",
-            "start_free_trial": "Iniciar avaliação gratuita"
+            "no_account": "Não tem uma conta?"
         },
         "register": {
             "title": "Criar uma conta",
@@ -94,18 +93,6 @@
             "use_recovery_code": "Utilizar um código de recuperação",
             "use_authenticator_code": "Utilizar um código de autenticador"
         },
-        "set_password": {
-            "title": "Escolha a sua palavra-passe",
-            "description": "A sua conta está pronta. Defina uma palavra-passe para concluir a configuração.",
-            "head": "Escolha a sua palavra-passe",
-            "email_label": "Endereço de e-mail",
-            "password_label": "Palavra-passe",
-            "password_placeholder": "Palavra-passe",
-            "confirm_password_label": "Confirmar palavra-passe",
-            "confirm_password_placeholder": "Confirmar palavra-passe",
-            "set_password": "Definir palavra-passe",
-            "setting_password": "A definir palavra-passe..."
-        },
         "login_member": {
             "description": "Inicie sessão para aceder a este espaço de trabalho de chat",
             "head": "Acesso de Membro",
@@ -168,16 +155,6 @@
             "or": "Ou",
             "social_email_note_prefix": "Certifique-se de que a sua conta social utiliza",
             "social_email_note_suffix": "— deve corresponder a este convite."
-        },
-        "invitation_invalid": {
-            "title": "Convite Indisponível",
-            "description": "Este convite não pode ser aceite",
-            "head": "Convite Indisponível",
-            "card_title": "Não é possível aceitar o convite",
-            "cannot_accept_prefix": "O convite para aderir a",
-            "cannot_accept_suffix": "não pode ser aceite neste momento.",
-            "contact_owner": "Por favor, contacte o proprietário da equipa para resolver este problema.",
-            "go_to_login": "Ir para o início de sessão"
         },
         "invitation_expired": {
             "title": "Convite Expirado",

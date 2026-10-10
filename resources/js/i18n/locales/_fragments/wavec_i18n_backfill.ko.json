@@ -103,9 +103,6 @@
     "dashboard": {
         "messages_this_month": "이번 달 메시지"
     },
-    "usage": {
-        "no_limit": "제한 없음"
-    },
     "workspace": {
         "prompts": {
             "sheet": {
@@ -142,18 +139,6 @@
         },
         "time_ago": {
             "just_now": "방금 전"
-        }
-    },
-    "onboarding": {
-        "welcome": {
-            "title": "Chatvia에 오신 것을 환영합니다",
-            "intro": "첫 번째 AI 에이전트를 만들어 보세요. 1분이면 충분합니다.",
-            "what_title": "에이전트란 무엇인가요?",
-            "what_body": "에이전트는 직접 준비한 콘텐츠로 학습시키는 AI 어시스턴트입니다. 웹사이트, 채팅 위젯, 메시징 앱에서 고객의 질문에 답변합니다.",
-            "how_title": "어떻게 작동하나요?",
-            "how_body": "먼저 에이전트를 만들고 이름을 지정합니다. 그런 다음 파일, 웹사이트, 텍스트로 학습시켜 질문에 답변할 수 있게 합니다.",
-            "start": "첫 번째 에이전트 만들기",
-            "video_caption": "작동 방식 보기"
         }
     }
 }

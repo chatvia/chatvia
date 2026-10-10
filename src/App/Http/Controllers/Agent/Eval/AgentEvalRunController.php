@@ -13,11 +13,10 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Eval runs: drill-down into one run (its summary + every per-case result) plus
- * the destructive history controls (delete one, clear all). Every action is
- * scoped to the agent so a run from another agent can't be touched by id; the
- * deletes are single Eloquent calls (eval_results cascade on the FK), so they
- * stay inline here per the trivial-write convention.
+ * Eval runs: drill-down into one run (its summary + every per-case result) and
+ * deleting it. Both are scoped to the agent so a run from another agent can't
+ * be touched by id; the delete is a single Eloquent call (eval_results cascade
+ * on the FK), so it stays inline per the trivial-write convention.
  */
 class AgentEvalRunController
 {
@@ -40,13 +39,6 @@ class AgentEvalRunController
         abort_if($run->agent_id !== $agent->id, 404);
 
         $run->delete();
-
-        return to_route('agents.evals', $agent);
-    }
-
-    public function clear(Request $request, Agent $agent): RedirectResponse
-    {
-        EvalRun::query()->forAgent($agent->id)->delete();
 
         return to_route('agents.evals', $agent);
     }

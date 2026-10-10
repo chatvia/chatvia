@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDateFormat } from '@/composables/useDateFormat';
 import AgentLayout from '@/layouts/AgentLayout.vue';
+import { index as formsIndex } from '@/routes/agents/forms';
+import { destroy as destroySubmissions, exportMethod as exportSubmissions } from '@/routes/agents/forms/submissions';
 import { Link, router } from '@inertiajs/vue3';
 import { ArrowLeft, Download, Search, Trash2 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
@@ -57,7 +59,7 @@ function when(s: Submission): string {
 }
 
 function exportCsv(): void {
-    window.location.href = route('agents.forms.submissions.export', { agent: props.agent.external_id, form: props.form.external_id });
+    window.location.href = exportSubmissions.url({ agent: props.agent.external_id, form: props.form.external_id });
 }
 
 // The row waiting for the delete confirmation, if any.
@@ -69,7 +71,7 @@ function confirmDelete(): void {
 }
 
 function remove(s: Submission): void {
-    router.delete(route('agents.forms.submissions.destroy', { agent: props.agent.external_id, form: props.form.external_id }), {
+    router.delete(destroySubmissions.url({ agent: props.agent.external_id, form: props.form.external_id }), {
         data: { external_ids: [s.external_id] },
         preserveScroll: true,
         onSuccess: () => toast.success(t('agents.submissions.deleted')),
@@ -81,7 +83,7 @@ function remove(s: Submission): void {
     <AgentLayout :agent="agent" :title="t('agents.submissions.page_title')">
         <div class="mx-auto w-full max-w-6xl space-y-4">
             <Link
-                :href="route('agents.forms.index', agent.external_id)"
+                :href="formsIndex.url(agent.external_id)"
                 class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm"
             >
                 <ArrowLeft class="h-4 w-4" /> {{ t('agents.submissions.back_to_forms') }}

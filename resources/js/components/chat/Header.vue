@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { updateTheme } from '@/composables/useAppearance';
+import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { safeStorage } from '@/lib/safeStorage';
 import type { ChatDefaultTheme } from '@/types/chat';
 import { useChatEventBus } from '@/utils/eventBus';
@@ -56,6 +57,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const bus = useChatEventBus();
+const { name: routeName, params: routeParams } = useCurrentRoute();
 
 const isChatExpanded = computed(() => bus.isChatExpanded.value);
 const isIncognitoMode = ref(false);
@@ -82,7 +84,7 @@ watch([() => props.enableThemeSwitcher, () => props.defaultTheme], ([enableSwitc
 });
 
 function confirmDelete() {
-    emit('deleteConversation', String(route().params.conversationId));
+    emit('deleteConversation', String(routeParams.value.conversationId));
     showDeleteDialog.value = false;
 }
 </script>
@@ -139,7 +141,7 @@ function confirmDelete() {
                             <TooltipTrigger as-child>
                                 <AlertDialogTrigger as-child>
                                     <Button
-                                        v-show="route().current() === 'chat.show'"
+                                        v-show="routeName === 'chat.show'"
                                         variant="ghost"
                                         size="icon"
                                         class="text-muted-foreground h-9 w-9 rounded-lg transition-colors hover:bg-red-500/10 hover:text-red-600"

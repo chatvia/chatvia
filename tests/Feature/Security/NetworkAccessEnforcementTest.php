@@ -29,11 +29,6 @@ use Illuminate\Support\Facades\Cache;
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
-
-    // `route('security.edit')` additionally checks the `security` entitlement
-    // for the page itself; the override flips it on so the only remaining
-    // failure surface is the network gate under test.
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update(['security_override' => true]);
 });
 
 it('forbids an authenticated workspace whose IP is outside the allowlist', function (): void {
@@ -75,7 +70,6 @@ it('bypasses the policy entirely for a platform admin', function (): void {
     $admin = User::factory()->admin()->create();
     app(TeamService::class)->createDefaultTeam($admin);
     WorkspaceSecurityPolicy::forWorkspace($admin->id)->update([
-        'security_override' => true,
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => ['10.0.0.0/8'],
         'geo_mode' => 'off',

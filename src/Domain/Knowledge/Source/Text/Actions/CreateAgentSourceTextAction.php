@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Source\Text\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
@@ -11,7 +10,6 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Support\Exceptions\DomainValidationException;
 use Throwable;
 
 /**
@@ -20,24 +18,17 @@ use Throwable;
  * The cleaned text is written to storage first; the row and the agent link are
  * created in one transaction, and the stored file is deleted again when that
  * fails. The text is keyed to the agent's owner (the workspace), and its size
- * in pages (~450 words each) counts against the page quota.
+ * is stored in pages (~450 words each).
  */
 class CreateAgentSourceTextAction
 {
-    /** Words per quota page. */
+    /** Words per page. */
     private const int WORDS_PER_PAGE = 450;
 
-    /**
-     * @throws DomainValidationException
-     */
-    public function execute(Agent $agent, User $user, string $rawContent): SourceText
+    public function execute(Agent $agent, string $rawContent): SourceText
     {
         $content = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
         $numberOfPages = (int) ceil(str_word_count($content) / self::WORDS_PER_PAGE);
-
-        if (! $user->consumption()->canUploadPages($numberOfPages)) {
-            throw new DomainValidationException('content', __('This document requires :pages pages.', ['pages' => $numberOfPages]));
-        }
 
         $filepath = KnowledgeStoragePath::forAgent($agent, 'train/text').'/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $content);

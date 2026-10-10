@@ -7,8 +7,8 @@ use Illuminate\Support\Carbon;
 /**
  * Per-user preferred date display format (Settings → Date & time).
  *
- * The enum value is the single source of truth: {@see phpFormat()} drives the
- * one server-side rendered date (trial banner), and the same keys are matched
+ * The enum value is the single source of truth: {@see phpFormat()} renders a
+ * date on the server, and the same keys are matched
  * by the frontend `useDateFormat` composable so the dashboard renders dates the
  * customer's way everywhere. Keep the two in lock-step when adding a case.
  */

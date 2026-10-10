@@ -49,18 +49,8 @@ it('pages the list with the requested page size', function (): void {
         ->and($page->perPage())->toBe(2);
 });
 
-it('hides sentiment and tone when the plan does not include them', function (): void {
+it('shows sentiment and tone', function (): void {
     $agent = Agent::factory()->create();
-    apiListedConversation($agent, ['sentiment' => 'negative', 'tone' => 'frustrated']);
-
-    $row = app(ListAgentConversationsAction::class)->execute($agent, perPage: 25)->items()[0];
-
-    expect($row->sentiment)->toBeNull()
-        ->and($row->tone)->toBeNull();
-});
-
-it('shows sentiment and tone on a plan that includes them', function (): void {
-    $agent = proPlanAgent();
     apiListedConversation($agent, ['sentiment' => 'negative', 'tone' => 'frustrated']);
 
     $row = app(ListAgentConversationsAction::class)->execute($agent, perPage: 25)->items()[0];

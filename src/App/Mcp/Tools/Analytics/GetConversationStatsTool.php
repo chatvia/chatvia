@@ -19,7 +19,7 @@ use Laravel\Mcp\Server\Tools\Annotations\IsReadOnly;
 #[Description(<<<'TXT'
 Conversation-level stats for a period: how many conversations started, the
 average length (messages per conversation), the average duration in seconds, and
-the single busiest day. Answers "how many conversations this cycle?", "how long
+the single busiest day. Answers "how many conversations this month?", "how long
 is the average chat?", "which day was busiest?".
 TXT)]
 #[IsReadOnly]

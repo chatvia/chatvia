@@ -98,7 +98,6 @@ it('flips the owning message artifact to submitted for reload state', function (
     $message = Message::create([
         'chat_conversation_id' => $this->conversation->id,
         'role' => 'assistant',
-        'message_credits' => 0,
         'content' => 'Here is a form',
         'metadata' => ['artifacts' => [
             ['kind' => 'form', 'data' => ['form_instance_id' => $submission->external_id, 'status' => 'pending']],

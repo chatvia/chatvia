@@ -2,20 +2,14 @@
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
-use App\Identity\Chatter\Exceptions\ChatterQuotaExceededException;
 use App\Identity\Workspace\Enums\UserSource;
 use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
-use Domain\Billing\Models\UserQuota;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->workspace()->create();
-    UserQuota::query()->updateOrCreate(
-        ['user_id' => $this->owner->id],
-        ['workspace_users_limit' => 5],
-    );
     $this->agent = createAgent($this->owner);
 });
 
@@ -51,19 +45,6 @@ it('creates a token-only chatter when no email is supplied', function (): void {
         ->and($chatter->password)->not->toBeEmpty();
 });
 
-it('throws ChatterQuotaExceededException when the workspace has hit its workspace_users_limit', function (): void {
-    UserQuota::query()->updateOrCreate(
-        ['user_id' => $this->owner->id],
-        ['workspace_users_limit' => 0],
-    );
-
-    app(CreateChatterAction::class)->execute(new CreateChatterData(
-        owner: $this->owner,
-        agents: $this->agent,
-        name: 'Overflow',
-    ));
-})->throws(ChatterQuotaExceededException::class);
-
 it('grants the chatter access to every agent supplied as a collection', function (): void {
     $second = createAgent($this->owner);
 
@@ -79,20 +60,4 @@ it('grants the chatter access to every agent supplied as a collection', function
         ->toHaveCount(2)
         ->toContain($this->agent->id)
         ->toContain($second->id);
-});
-
-it('counts the Members add-on seats in the limit it reports', function (): void {
-    UserQuota::query()->updateOrCreate(
-        ['user_id' => $this->owner->id],
-        ['workspace_users_limit' => 1, 'extra_members_limit' => 1],
-    );
-
-    foreach (['First', 'Second'] as $name) {
-        app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, $name));
-    }
-
-    expect(fn () => app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Third')))
-        ->toThrow(ChatterQuotaExceededException::class, 'workspace user limit (2)');
-
-    expect($this->owner->chatters()->count())->toBe(2);
 });

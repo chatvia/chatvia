@@ -14,8 +14,7 @@ use Support\Http\SafeUrl;
 /**
  * The write path of the Security settings page for the keystone
  * {@see WorkspaceSecurityPolicy}. It applies what the form owns — the network
- * rules and conversation/audit retention, plus the SIEM webhook when the plan
- * includes it — and keeps every other stored setting (leads/analytics/anonymise
+ * rules, conversation/audit retention and the SIEM webhook — and keeps every other stored setting (leads/analytics/anonymise
  * retention, the webhook event list, SCIM). It guards the SIEM webhook URL
  * against SSRF, saves, and emits one audit event per changed category
  * (network / retention / other) so each surfaces under its specific
@@ -46,31 +45,27 @@ class UpdateSecurityPolicyAction
      */
     public function execute(User $workspace, SecurityPolicyFormData $form, SecurityActorData $actor): WorkspaceSecurityPolicy
     {
-        $canUseWebhook = (bool) $workspace->capabilities->siemWebhook;
-
-        if ($canUseWebhook) {
-            $this->guardWebhookUrl($form->webhook_url);
-        }
+        $this->guardWebhookUrl($form->webhook_url);
 
         $policy = WorkspaceSecurityPolicy::forWorkspace($workspace->id);
         $original = $policy->getOriginal();
 
-        $policy->fill($this->attributes($form, $canUseWebhook));
+        $policy->fill($this->attributes($form));
         $changed = $policy->getDirty();
         $policy->save();
 
-        $this->emitAuditEvents($workspace, $actor, $original, $changed, $canUseWebhook && $form->rotatesWebhookSecret());
+        $this->emitAuditEvents($workspace, $actor, $original, $changed, $form->rotatesWebhookSecret());
 
         return $policy;
     }
 
     /**
-     * The policy columns the form may change. Without the SIEM capability the
-     * stored webhook settings are kept, so a request cannot enable or change it.
+     * The policy columns the form may change. The webhook secret changes only
+     * when a new one is given.
      *
      * @return array<string, mixed>
      */
-    private function attributes(SecurityPolicyFormData $form, bool $canUseWebhook): array
+    private function attributes(SecurityPolicyFormData $form): array
     {
         $attributes = [
             'retention_conversations_days' => $form->retention_conversations_days,
@@ -79,14 +74,9 @@ class UpdateSecurityPolicyAction
             'ip_allowlist' => $form->ip_allowlist,
             'geo_mode' => $form->geo_mode,
             'geo_countries' => $form->geo_countries,
+            'webhook_url' => $form->webhook_url,
+            'webhook_enabled' => $form->webhook_enabled,
         ];
-
-        if (! $canUseWebhook) {
-            return $attributes;
-        }
-
-        $attributes['webhook_url'] = $form->webhook_url;
-        $attributes['webhook_enabled'] = $form->webhook_enabled;
 
         if ($form->rotatesWebhookSecret()) {
             $attributes['webhook_secret'] = $form->webhook_secret;

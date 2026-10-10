@@ -12,9 +12,8 @@ use Domain\Membership\Team\Models\Team;
 use Illuminate\Support\Collection;
 
 /**
- * The Membership\Team entry points other contexts call (registration, billing
- * trial provisioning, the agent gate, the dashboard's shared props, seeders and
- * tests). Every method only delegates — the behaviour lives in
+ * The Membership\Team entry points other contexts call (registration, the
+ * agent gate, the dashboard's shared props, seeders and tests). Every method only delegates — the behaviour lives in
  * {@see CreateTeamAction}, {@see TeamAgentAccess} and {@see TeamRoleResolver}.
  * Code inside this context should use those classes directly.
  */

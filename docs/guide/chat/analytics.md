@@ -27,7 +27,7 @@ The headline numbers:
 - **Completion rate** — share of conversations that reached at least one assistant reply (vs. the chatter bouncing on the empty state).
 - **Handoff rate** — share that escalated to a teammate.
 
-Spikes are usually traffic — a new embed, a viral mention, a fresh rollout to your team. Dips can be a broken surface, a billing pause, or a model outage.
+Spikes are usually traffic — a new embed, a viral mention, a fresh rollout to your team. Dips can be a broken surface, a [message limit](/guide/account/message-limits) that was reached, or a model outage.
 
 ## Sentiment
 
@@ -79,7 +79,7 @@ Each view has an **Export** button that downloads the filtered data as CSV or JS
 
 ## How accurate are these classifications?
 
-Sentiment, tone, and topic classifications are done by an LLM running offline on each conversation after it ends. Accuracy is good but not perfect — expect ~85–90% agreement with a human reviewer. Don't make billing decisions off a single conversation; use the aggregated trends.
+Sentiment, tone, and topic classifications are done by an LLM running offline on each conversation after it ends. Accuracy is good but not perfect — expect ~85–90% agreement with a human reviewer. Don't make business decisions based on a single conversation; use the aggregated trends.
 
 ## Privacy
 

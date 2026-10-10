@@ -102,15 +102,23 @@ want.
 | vue-tsc | | `npm run typecheck` |
 | i18n | `npm run i18n:merge` | `npm run i18n:check` |
 
-The widget in `widget/` has its own tools and CI workflow:
+The widget in `shakomako/` has its own tools and CI workflow:
 
 ```bash
-cd widget
+cd shakomako
 npm ci
 npm run lint
 npm test
 npm run build
 ```
+
+`npm run shakomako:build` (from the project root) builds it and copies the
+result to `public/shakomako`, where the app serves it.
+
+The `shakomako/` folder is also published, with only its own history, as a
+separate read-only repository (`.github/workflows/shakomako-mirror.yml`), for
+people who want only the widget. Always change the widget here: pull requests
+on the read-only copy are closed automatically.
 
 ## Tests
 
@@ -186,6 +194,11 @@ npm run build
   forward.)
 - Some enum-like columns have Postgres `CHECK` constraints. A new value goes
   into the column's `enum()` list in its create migration.
+- An embedding column is `$table->embedding('name')`, never `halfvec()` or
+  `vector()` with a fixed size: it takes the install's `EMBEDDING_VECTOR_TYPE`
+  and `EMBEDDING_DIMENSIONS`. A query vector is cast with
+  `EmbeddingStorage::columnType()`, and a vchordrq index uses
+  `EmbeddingStorage::type()->operatorClass()`.
 - Key workspace data to the workspace **owner** (`$agent->user_id`,
   `$user->workspace()->id`), not to the teammate who is acting.
 

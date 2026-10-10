@@ -7,8 +7,8 @@
  * `@/routes` (`index.url(agentId)`), and return the typed response body. That keeps URLs, payload shapes and error handling in one
  * place and lets vue-tsc check what the pages use.
  *
- * axios already sends the XSRF token (read from the XSRF-TOKEN cookie) and an
- * `Accept: application/json` header for same-origin requests, so Laravel
+ * app.ts makes axios send the page's CSRF token (utils/csrf.ts), and axios sends
+ * an `Accept: application/json` header for same-origin requests, so Laravel
  * answers with JSON; these helpers only add typing and unwrap `response.data`.
  */
 import axios, { type AxiosRequestConfig, isAxiosError } from 'axios';

@@ -18,9 +18,9 @@ use Support\Http\WebhookSignature;
  * id + image index so only links the server minted are accepted.
  *
  * The signature covers ONLY the id + index (not the host), so the same link
- * stays valid no matter which surface — main app domain or an agent subdomain —
- * the image is rendered on, and it never expires (it is embedded in stored chat
- * history). Mirrors the constant-time HMAC pattern of {@see WebhookSignature}.
+ * stays valid on whichever host the image is rendered — the main app domain or
+ * an agent's custom domain — and it never expires (it is embedded in stored
+ * chat history). Mirrors the constant-time HMAC pattern of {@see WebhookSignature}.
  */
 final class ChunkImageLink
 {

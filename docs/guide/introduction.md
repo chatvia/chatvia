@@ -6,7 +6,7 @@ Your workspace uploads files, points at URLs, pastes text, or connect to MCP/Fun
 
 Every agent has three surfaces at once:
 
-- **Hosted Chat**: a standalone chat page at `{agent}.chatvia.ai`, or a custom domain via CNAME.
+- **Hosted Chat**: a standalone chat page at `chatvia.ai/chat/{agent}`, or a custom domain via CNAME.
 - **Widget**: an embeddable floating chat bubble that drops onto any host page with one `<script>` tag.
 - **Bar**: a search-style trigger that opens a full-screen chat modal inside your own app.
 

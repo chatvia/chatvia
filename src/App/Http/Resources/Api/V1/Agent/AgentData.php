@@ -55,9 +55,9 @@ class AgentData extends Data
          */
         public ?string $prompt_id,
         /**
-         * Subdomain the agent's chat is served from.
+         * The agent's chat address slug: its chat lives at `/chat/{slug}`.
          */
-        public ?string $sub_domain,
+        public ?string $slug,
         /**
          * Custom domain mapped to the agent's chat, if one is set.
          */
@@ -67,7 +67,7 @@ class AgentData extends Data
          */
         public string $url,
         /**
-         * A permanent chat URL that keeps working even if the subdomain changes.
+         * A permanent chat URL that keeps working even if the slug changes.
          */
         public string $permanent_url,
         /**
@@ -91,7 +91,7 @@ class AgentData extends Data
             source: $agent->source,
             system_instructions: $agent->system_instructions,
             prompt_id: $agent->agentPrompt?->external_id,
-            sub_domain: $agent->sub_domain,
+            slug: $agent->slug,
             domain: $agent->domain,
             url: $agent->url,
             permanent_url: $agent->permanent_url,

@@ -73,9 +73,9 @@
                 "description": "یک نام جدید برای عامل {name} وارد کنید.",
                 "name_label": "نام عامل",
                 "name_placeholder": "نام جدید عامل را وارد کنید",
-                "subdomain_label": "زیردامنه",
-                "subdomain_placeholder": "your-subdomain",
-                "subdomain_hint": "فقط حروف کوچک انگلیسی، اعداد و خط تیره مجاز است.",
+                "slug_label": "نشانی گفتگو",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "فقط حروف کوچک انگلیسی، اعداد و خط تیره مجاز است.",
                 "save": "ذخیره",
                 "updated_toast": "عامل با موفقیت به‌روزرسانی شد"
             },

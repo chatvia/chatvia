@@ -1,15 +1,16 @@
 <script setup lang="ts">
 /**
  * "My agents" dialog for a chatter who can use several agents. Lists them,
- * preselects the agent of the current subdomain and switches to the chosen one.
+ * preselects the agent of the current chat and opens the chosen one. One chat
+ * session serves every agent, so switching is a plain page load.
  */
 import { fetchChatterAgents } from '@/api/chat';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { switchMethod as switchAgent } from '@/routes/chat/agents';
+import { home as chatHome } from '@/routes/chat';
 import type { ChatterAgent } from '@/types/chat';
-import { useForm } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { Bot } from 'lucide-vue-next';
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -21,14 +22,8 @@ const { t } = useI18n();
 const agents = ref<ChatterAgent[]>([]);
 const selectedAgent = ref<ChatterAgent | null>(null);
 const isLoadingAgents = ref(false);
-const agentSwitchForm = useForm({});
-
-/** "translation" from "translation.example.com"; null on a bare domain. */
-function currentSubdomain(): string | null {
-    const parts = window.location.hostname.split('.');
-
-    return parts.length > 2 ? parts[0] : null;
-}
+const isSwitching = ref(false);
+const page = usePage();
 
 async function loadAgents() {
     if (isLoadingAgents.value) return;
@@ -38,8 +33,8 @@ async function loadAgents() {
         agents.value = await fetchChatterAgents();
 
         if (!selectedAgent.value && agents.value.length > 0) {
-            const subdomain = currentSubdomain();
-            const current = subdomain ? agents.value.find((agent) => agent.sub_domain === subdomain) : undefined;
+            const currentSlug = page.props.agentSlug;
+            const current = agents.value.find((agent) => agent.slug === currentSlug || agent.external_id === currentSlug);
             selectedAgent.value = current || agents.value[0];
         }
     } catch {
@@ -55,15 +50,10 @@ watch(open, (isOpen) => {
 });
 
 function switchToSelectedAgent() {
-    if (!selectedAgent.value || agentSwitchForm.processing) return;
+    if (!selectedAgent.value || isSwitching.value) return;
 
-    agentSwitchForm.post(switchAgent.url(selectedAgent.value.external_id), {
-        preserveState: true,
-        preserveScroll: true,
-        onSuccess: () => {
-            open.value = false;
-        },
-    });
+    isSwitching.value = true;
+    window.location.assign(chatHome.url({ agentSlug: selectedAgent.value.slug ?? selectedAgent.value.external_id }));
 }
 </script>
 
@@ -128,14 +118,8 @@ function switchToSelectedAgent() {
                 </div>
             </ScrollArea>
             <DialogFooter class="flex-col gap-2 sm:flex-row">
-                <Button @click="switchToSelectedAgent" :disabled="!selectedAgent || agentSwitchForm.processing" class="w-full sm:w-auto">
-                    <svg
-                        v-if="agentSwitchForm.processing"
-                        class="me-2 h-4 w-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
+                <Button @click="switchToSelectedAgent" :disabled="!selectedAgent || isSwitching" class="w-full sm:w-auto">
+                    <svg v-if="isSwitching" class="me-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path
                             class="opacity-75"
@@ -144,9 +128,7 @@ function switchToSelectedAgent() {
                         ></path>
                     </svg>
                     <Bot v-else class="me-2 h-4 w-4" />
-                    {{
-                        agentSwitchForm.processing ? t('sidebar.switching_agent') : t('sidebar.switch_to_agent', { name: selectedAgent?.name || '' })
-                    }}
+                    {{ isSwitching ? t('sidebar.switching_agent') : t('sidebar.switch_to_agent', { name: selectedAgent?.name || '' }) }}
                 </Button>
                 <Button variant="outline" @click="open = false" class="w-full sm:w-auto">{{ t('common.close') }}</Button>
             </DialogFooter>

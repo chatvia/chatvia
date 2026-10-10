@@ -25,15 +25,15 @@ updates:
           - minor
           - patch
 
-  # The embeddable widget has its own package.json and lockfile.
+  # The embeddable widget (Shakomako) has its own package.json and lockfile.
   - package-ecosystem: npm
-    directory: "/widget"
+    directory: "/shakomako"
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
     groups:
-      widget-npm-minor-and-patch:
+      shakomako-npm-minor-and-patch:
         update-types:
           - minor
           - patch

@@ -9,7 +9,7 @@ use Domain\Membership\Team\Services\TeamService;
 /**
  * CreateAgentAction wraps the agent insert + the topic attach in one
  * transaction and stamps the generated identity (external_id doubles as the
- * initial sub_domain, auth_secret gets the cvsk_ prefix). Agents are born
+ * initial slug, auth_secret gets the cvsk_ prefix). Agents are born
  * protected (is_public = false) — the messaging-channel surface relies on
  * that default.
  */
@@ -33,8 +33,8 @@ it('creates a protected agent with generated identity and attaches every topic',
         // Agents default to protected; channels enforce nothing downstream.
         ->and($agent->is_public)->toBeFalse()
         ->and($agent->external_id)->not->toBeEmpty()
-        // The generated external id doubles as the initial sub_domain.
-        ->and($agent->sub_domain)->toBe($agent->external_id)
+        // The generated external id doubles as the initial slug.
+        ->and($agent->slug)->toBe($agent->external_id)
         ->and($agent->auth_secret)->toStartWith('cvsk_')
         ->and(strlen((string) $agent->auth_secret))->toBe(61);
 

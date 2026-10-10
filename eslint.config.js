@@ -40,8 +40,8 @@ export default defineConfig(
             'docs/.vitepress/cache',
             'docs/.vitepress/dist',
             // The embeddable widget is a separate vanilla-JS package with its
-            // own package.json and eslint.config.js; lint it from widget/.
-            'widget',
+            // own package.json and eslint.config.js; lint it from shakomako/.
+            'shakomako',
             // Generated from PHP DTOs by `php artisan typescript:transform`.
             'resources/types/generated.d.ts',
             // Generated from the Laravel routes by `php artisan wayfinder:generate`.

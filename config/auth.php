@@ -45,6 +45,15 @@ return [
             'provider' => 'users',
         ],
 
+        // The hosted chat (/chat/{agent}). Its own sign-in on its own session
+        // cookie (session.chat), so signing in or out of a chat never touches
+        // the dashboard session, and the reverse. UseHostedChatSession makes
+        // it the default guard for /chat requests.
+        'chat' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+
         // Filament admin panel (/admin). Its own guard, so a sign-in through
         // the dashboard or hosted-chat login never opens the panel: staff
         // always pass the panel's own login with its MFA step.

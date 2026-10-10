@@ -31,7 +31,7 @@ function makeRoleAgent(User $user, string $name): Agent
         'team_id' => $user->primaryTeam()->id,
         'name' => $name,
         'external_id' => Str::random(14),
-        'sub_domain' => Str::random(14),
+        'slug' => Str::random(14),
         'is_public' => false,
         'source' => 'api',
     ]);

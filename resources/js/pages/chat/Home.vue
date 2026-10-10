@@ -78,7 +78,7 @@ const resolvedStarters = computed(() => resolveStarters(starters.value, normaliz
 // Uploads need an agent to scope them to; without one the composer hides the upload button.
 const uploadEndpoint = computed(() => (props.agent_id ? storeAttachment.url() : undefined));
 const uploadHeaders = computed(() => (props.agent_id ? { 'X-AGENT-ID': String(props.agent_id), 'X-CONVERSATION-ID': 'pending' } : undefined));
-const deleteEndpoint = computed(() => (props.agent_id ? (attachmentId: string) => deleteAttachment.url(attachmentId) : undefined));
+const deleteEndpoint = computed(() => (props.agent_id ? (attachmentId: string) => deleteAttachment.url({ attachment: attachmentId }) : undefined));
 
 onMounted(async () => {
     starters.value = await fetchStarters();

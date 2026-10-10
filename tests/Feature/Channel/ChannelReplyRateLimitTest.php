@@ -32,7 +32,7 @@ function rateLimitedChannelAgent(): Agent
         'llm_id' => Llm::factory()->create()->id,
         'name' => 'Channel Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => true,
     ]);

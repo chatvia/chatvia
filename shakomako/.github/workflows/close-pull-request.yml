@@ -1,0 +1,28 @@
+name: Close pull request
+
+# The standalone Shakomako repository is a read-only copy of the shakomako/
+# folder of Chatvia, published by Chatvia's shakomako-mirror workflow. Changes
+# are made in Chatvia, so a pull request here is closed with a pointer there.
+# GitHub only runs this file in the copy: inside Chatvia it sits in a
+# subfolder, where workflows are ignored.
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  close:
+    name: Point to Chatvia
+    runs-on: ubuntu-latest
+
+    steps:
+      # Runs no code from the pull request, so pull_request_target is safe.
+      - name: Close the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr close "$PR" --repo "$REPO" --comment "Thank you for your pull request. This repository is a read-only copy of the \`shakomako/\` folder of [Chatvia](https://github.com/chatvia/chatvia), and changes are made there. Please open your pull request in Chatvia."

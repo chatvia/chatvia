@@ -75,7 +75,7 @@ declare namespace Domain {
                         id: number;
                         external_id: string;
                         name: string;
-                        sub_domain: string | null;
+                        slug: string | null;
                         domain: string | null;
                         system_instructions: string | null;
                         prompt_id: string | null;
@@ -913,6 +913,13 @@ declare namespace Domain {
                     allow_file_uploads: boolean;
                     allow_voice_input: boolean;
                     max_files_per_chat: number;
+                    reverb: Domain.Widget.Data.Settings.WidgetSettingsReverbData;
+                };
+                export type WidgetSettingsReverbData = {
+                    key: string | null;
+                    host: string | null;
+                    port: number | null;
+                    scheme: string | null;
                 };
             }
         }

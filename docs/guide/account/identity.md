@@ -108,7 +108,7 @@ Two delivery surfaces:
 ```html
 <script
   id="chatbot-embed-script"
-  src="https://chatvia.ai/embed.js"
+  src="https://chatvia.ai/shakomako/embed.js"
   data-agent-id="YOUR_AGENT_ID"
   data-auth="THE_TOKEN_YOU_SIGNED"
   defer></script>
@@ -119,7 +119,7 @@ The widget reads `data-auth` on load, exchanges it for a session, and the chatte
 ### Hosted chat — `?token=`
 
 ```
-https://your-agent.chatvia.ai/?token=THE_TOKEN_YOU_SIGNED
+https://chatvia.ai/chat/YOUR_AGENT_ID?token=THE_TOKEN_YOU_SIGNED
 ```
 
 Redirect signed-in chatters from your app to this URL. Chatvia validates the token and establishes a session cookie. The `?token=` parameter is stripped from the URL on success.
@@ -151,7 +151,7 @@ A protected agent that receives a request without a valid token shows the sign-i
 
 ## Common mistakes
 
-- **Wrong audience.** `aud` must be the agent ID — the same value passed to the widget as `data-agent-id`. Not the name, not the subdomain.
+- **Wrong audience.** `aud` must be the agent ID — the same value passed to the widget as `data-agent-id`. Not the name, not the chat address.
 - **Wrong subject.** `sub` should resolve to a chatter granted access to the agent, the workspace owner, or a teammate. Add chatters from **Settings → Members** (workspace-wide) or from each agent's **Members** tab. See [Teams → roles](/guide/account/teams) for teammate roles.
 - **Algorithm confusion.** Use HS256. Chatvia rejects `none` and other algorithms.
 - **Clock skew.** Your server clock should be within a few seconds of UTC, or short-lived tokens may be rejected.

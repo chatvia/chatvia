@@ -29,7 +29,7 @@ it('builds the chat completion URL from the configured endpoint', function (): v
 it('sends embeddings to the configured endpoint', function (): void {
     Http::fake(['*' => Http::response(['data' => [['embedding' => array_fill(0, 1024, 0.1)]]])]);
 
-    (new Qwen3)->embed('hello');
+    app(Qwen3::class)->embed('hello');
 
     Http::assertSent(fn (Request $request): bool => str_starts_with($request->url(), 'https://api.scaleway.test/project-x/v1/'));
 });
@@ -55,7 +55,7 @@ it('sends the configured embedding and transcription models', function (): void 
         '*/audio/transcriptions' => Http::response(['text' => 'hi']),
     ]);
 
-    (new Qwen3)->embed('hello');
+    app(Qwen3::class)->embed('hello');
     app(ScalewayTranscriber::class)->transcribe(create_temp_file('clip.mp3', 'fake-audio'));
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/embeddings') && $request['model'] === 'embed-model-x');

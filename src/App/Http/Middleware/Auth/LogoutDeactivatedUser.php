@@ -26,13 +26,13 @@ class LogoutDeactivatedUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::guard('web')->user();
+        $user = Auth::guard()->user();
 
         if (! $user instanceof User || ! $user->isDeactivated()) {
             return $next($request);
         }
 
-        Auth::guard('web')->logout();
+        Auth::guard()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

@@ -16,7 +16,7 @@ beforeEach(function (): void {
     Bus::fake();
 
     $this->agent = Agent::factory()->create(['is_public' => true]);
-    $this->base = "https://{$this->agent->sub_domain}.chatvia.test/chat";
+    $this->base = "/chat/{$this->agent->slug}";
 });
 
 it('opens a conversation from the first message and lists it after it is named', function (): void {

@@ -18,35 +18,29 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Access control for the hosted chat (`chat` group). In order:
  *
- *  1. The agent must exist and its Hosted Chat surface must be on; otherwise
- *     the visitor sees the not-found page.
+ *  1. The agent's Hosted Chat surface must be on; otherwise the visitor sees
+ *     the not-found page (an unknown agent never gets here:
+ *     {@see ResolveHostedChatAgent} answers first).
  *  2. Puts the agent owner's id on the request (`agent_user_id`) for the
  *     message-capacity gate and the usage endpoint.
  *  3. A protected agent (`is_public = false`) needs a signed-in user: guests
- *     go to the chat login. On a public agent the login page sends people
- *     back to the chat home.
+ *     go to the chat login.
  *  4. A signed-in user on a protected agent must be allowed in:
  *     - on a conversation route (`{conversationId}`), they must own that
  *       conversation (the owner marker the chat memory stamps on create);
  *     - on any other route, they must have access to the agent itself.
- *     The web session is shared across agent subdomains, so without the
- *     second check a chatter granted agent A could open private agent B by
- *     changing the subdomain or the `?agent=` parameter.
+ *     One chat session serves every agent, so without the second check a
+ *     chatter granted agent A could open private agent B by changing the
+ *     `/chat/{agentSlug}` segment.
  *
- * Deactivated accounts are signed out earlier in the group by
+ * The login and appearance routes are outside this group. Deactivated
+ * accounts are signed out earlier in the group by
  * {@see LogoutDeactivatedUser}.
  */
 class EnsureChatIsAccessible
 {
-    /** Routes a guest may open on a protected agent, besides the login pages. */
-    private const array PUBLIC_ROUTES = ['chat.appearance'];
-
     public function handle(Request $request, Closure $next): Response|InertiaResponse
     {
-        if (! str_starts_with($request->path(), 'chat')) {
-            return to_route('chat.home');
-        }
-
         $agent = HostedChatAgent::from($request);
 
         // A disabled Hosted Chat surface looks as if the agent did not exist.
@@ -57,17 +51,11 @@ class EnsureChatIsAccessible
 
         $request->attributes->set('agent_user_id', $agent->user_id);
 
-        $routeName = (string) $request->route()?->getName();
-        $user = Auth::guard('web')->user();
-
+        $user = Auth::user();
         $isProtected = $agent->is_public === false;
 
-        if ($isProtected && $user === null && ! $this->isOpenToGuests($routeName)) {
+        if ($isProtected && $user === null) {
             return to_route('chat.login.show');
-        }
-
-        if ($agent->is_public && $routeName === 'chat.login.show') {
-            return to_route('chat.home');
         }
 
         if ($isProtected && $user instanceof User) {
@@ -75,11 +63,6 @@ class EnsureChatIsAccessible
         }
 
         return $next($request);
-    }
-
-    private function isOpenToGuests(string $routeName): bool
-    {
-        return str_starts_with($routeName, 'chat.login') || in_array($routeName, self::PUBLIC_ROUTES, true);
     }
 
     private function authorizeSignedInUser(Request $request, Agent $agent, User $user): void

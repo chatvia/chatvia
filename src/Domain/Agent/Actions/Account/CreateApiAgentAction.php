@@ -37,7 +37,7 @@ class CreateApiAgentAction
                 'user_id' => $owner->id,
                 'team_id' => $team->id,
                 'name' => $data->name,
-                'sub_domain' => $externalId,
+                'slug' => $externalId,
                 'external_id' => $externalId,
                 // A library prompt and a custom prompt are mutually exclusive.
                 'system_instructions' => $agentPromptId === null ? $data->system_instructions : null,

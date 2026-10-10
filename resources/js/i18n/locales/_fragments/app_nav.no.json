@@ -73,9 +73,9 @@
                 "description": "Skriv inn et nytt navn for agenten {name}.",
                 "name_label": "Agentnavn",
                 "name_placeholder": "Skriv inn nytt agentnavn",
-                "subdomain_label": "Underdomene",
-                "subdomain_placeholder": "ditt-underdomene",
-                "subdomain_hint": "Bare små bokstaver, tall og bindestreker er tillatt.",
+                "slug_label": "Chatadresse",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Bare små bokstaver, tall og bindestreker er tillatt.",
                 "save": "Lagre",
                 "updated_toast": "Agenten ble oppdatert"
             }

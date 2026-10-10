@@ -7,7 +7,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
 
 /**
- * Saves the dashboard's agent edit form: name, subdomain and persona. Only the
+ * Saves the dashboard's agent edit form: name, chat slug and persona. Only the
  * fields the request sent are written. The persona is either a library prompt
  * or custom instructions, never both: setting one clears the other. Returns a
  * fresh copy of the agent.
@@ -26,8 +26,8 @@ class UpdateAgentAction
             $attributes['name'] = $data->name;
         }
 
-        if ($data->sub_domain !== null) {
-            $attributes['sub_domain'] = $data->sub_domain;
+        if ($data->slug !== null) {
+            $attributes['slug'] = $data->slug;
         }
 
         // A saved library prompt and a custom system_instructions string are

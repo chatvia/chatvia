@@ -27,7 +27,7 @@ function registryCacheAgent(): Agent
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Registry Cache Agent',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => false,
         'source' => 'api',
     ]);

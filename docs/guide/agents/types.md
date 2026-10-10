@@ -12,8 +12,8 @@ You do not pick a surface upfront. A single agent serves all three at the same t
 
 A standalone chat page, ChatGPT-style: a sidebar with conversation history, a main thread, and an input box at the bottom.
 
-- Lives at `{agent}.chatvia.ai` — the subdomain is auto-generated when the agent is created.
-- Map a custom domain by pointing a CNAME at the agent's subdomain. Configure it under **Setup → Domain**.
+- Lives at `chatvia.ai/chat/{agent}` — the chat address is generated when the agent is created.
+- Map a custom domain by pointing it at the Chatvia server. Configure it under **Setup → Domain**.
 - Multiple conversations per chatter.
 - Conversation starters appear on the empty state.
 - Optionally protected — only signed-in chatters can access it.
@@ -53,7 +53,7 @@ This means a workspace can ship the same agent on a marketing site (Widget), ins
 
 ## What every agent has
 
-- A **name** and **subdomain**.
+- A **name** and **chat address**.
 - A **persona** (system instructions). See [Persona & instructions](/guide/agents/persona).
 - A **model** assignment. See [Model & generation](/guide/agents/models).
 - A **branding** configuration (colors, avatar, copy). See [Appearance & branding](/guide/agents/appearance).

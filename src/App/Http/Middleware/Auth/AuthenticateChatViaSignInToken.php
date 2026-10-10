@@ -14,9 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Logs an end-user into an agent's chat from a `?token=` sign-in link.
  *
- * Sits in the chat middleware group AFTER the agent is resolved from the
- * subdomain and BEFORE EnsureChatIsAccessible. A token that resolves to the
- * current agent signs its user in on the web guard, then a GET is redirected
+ * Sits in the chat middleware group (the agent is already resolved from the
+ * `/chat/{agentSlug}` path) and BEFORE EnsureChatIsAccessible. A token that
+ * resolves to the current agent signs its user in to the chat (the `chat`
+ * guard, never the dashboard), then a GET is redirected
  * to the same URL without the token (keeping it out of the browser history).
  * From there the visitor is an ordinary signed-in chat user.
  *
@@ -48,7 +49,7 @@ class AuthenticateChatViaSignInToken
         $user = $this->tokens->verify($token, $agent);
 
         if ($user instanceof User) {
-            Auth::guard('web')->login($user);
+            Auth::guard()->login($user);
         }
 
         if ($request->isMethod('GET')) {

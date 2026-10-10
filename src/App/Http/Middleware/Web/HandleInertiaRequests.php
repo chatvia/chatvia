@@ -3,8 +3,10 @@
 namespace App\Http\Middleware\Web;
 
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
+use Domain\Agent\Services\AgentUrlBuilder;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Inertia\Middleware;
 
 /**
@@ -60,8 +62,17 @@ class HandleInertiaRequests extends Middleware
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
 
-            'domain' => $request->domain(),
-            'subdomain' => $request->subdomain(),
+            // Where every agent's hosted chat lives (`{chatBaseUrl}/{slug}`),
+            // for the address fields of the agent settings.
+            'chatBaseUrl' => AgentUrlBuilder::chatBaseUrl(),
+            // On a hosted chat page: its `/chat/{agentSlug}` segment, so the
+            // frontend's route helpers fill it in (setUrlDefaults). Lazy: the
+            // chat's agent is resolved after this middleware runs.
+            'agentSlug' => fn (): ?string => URL::getDefaultParameters()['agentSlug'] ?? null,
+            // The session's CSRF token. Chat calls send it as X-CSRF-TOKEN: on
+            // a /chat page the browser holds two XSRF-TOKEN cookies (the
+            // dashboard's and the chat's), so reading the cookie is ambiguous.
+            'csrfToken' => csrf_token(...),
             'permissions' => $this->getTeamPermissions($request),
             'currentTeam' => $user ? $this->getCurrentTeam($request) : null,
             // Install-wide switches for unfinished features (`chatvia.features`).

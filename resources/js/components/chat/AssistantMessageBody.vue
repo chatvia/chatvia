@@ -37,7 +37,7 @@ import InlineFormBlock from './InlineFormBlock.vue';
  *
  * So we hard-restrict where rendered <img> may load from: same-origin, the
  * canonical app origin (chunk images are absolute to the main domain even on
- * an agent subdomain), and inline data: images (no network egress). Every other
+ * an agent's custom domain), and inline data: images (no network egress). Every other
  * src is dropped. Registered once at module load; applies to every
  * DOMPurify.sanitize() call in the app.
  */

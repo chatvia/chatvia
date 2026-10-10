@@ -73,9 +73,9 @@
                 "description": "Ange ett nytt namn för din agent {name}.",
                 "name_label": "Agentnamn",
                 "name_placeholder": "Ange nytt agentnamn",
-                "subdomain_label": "Underdomän",
-                "subdomain_placeholder": "din-underdomän",
-                "subdomain_hint": "Endast gemener, siffror och bindestreck är tillåtna.",
+                "slug_label": "Chattadress",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Endast gemener, siffror och bindestreck är tillåtna.",
                 "save": "Spara",
                 "updated_toast": "Agenten uppdaterades"
             }

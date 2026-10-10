@@ -19,11 +19,11 @@ If chat is a *feature* of your product (not just a help overlay), use a full-pag
 
 ### Option 1 — iframe the Hosted Chat surface
 
-Every agent has a Hosted Chat URL: `https://YOUR_AGENT.chatvia.ai`. It is one of the three surfaces of the agent (Hosted Chat, Widget, Bar). Iframe it into your app:
+Every agent has a Hosted Chat URL: `https://chatvia.ai/chat/YOUR_AGENT_ID`. It is one of the three surfaces of the agent (Hosted Chat, Widget, Bar). Iframe it into your app:
 
 ```html
 <iframe
-  src="https://YOUR_AGENT.chatvia.ai"
+  src="https://chatvia.ai/chat/YOUR_AGENT_ID"
   style="width:100%; height:100vh; border:0;"
   title="Chatvia chat"></iframe>
 ```
@@ -42,7 +42,7 @@ Drop the script tag on the host page:
 ```html
 <script
   id="chatbot-embed-script"
-  src="https://chatvia.ai/embed.js"
+  src="https://chatvia.ai/shakomako/embed.js"
   data-agent-id="YOUR_AGENT_ID"
   data-language="auto"
   defer></script>
@@ -68,7 +68,7 @@ A live preview is shown alongside the editor.
 
 For internal-tool use cases (teammates only, customers inside a logged-in app), turn the agent **protected** and sign chatters in:
 
-- Redirect them to `https://YOUR_AGENT.chatvia.ai/?token=<JWT>` from your own session-checking route.
+- Redirect them to `https://chatvia.ai/chat/YOUR_AGENT_ID?token=<JWT>` from your own session-checking route.
 - Or pass `data-auth="<JWT>"` to the embed script.
 
 Chatvia validates the JWT and serves the chat with the chatter's identity. See [Protected agents](/embed/protected) and [Identity verification](/guide/account/identity).
@@ -79,6 +79,6 @@ If your workspace has integrated SSO with your app, mint a Chatvia JWT immediate
 
 ## Custom domain (CNAME)
 
-By default the Hosted Chat surface lives on `*.chatvia.ai`. Every workspace can also host it on its own domain. Point a CNAME at the agent's subdomain (e.g. `chat.yourcompany.com → YOUR_AGENT.chatvia.ai`) and enter the domain under **Setup → Domain**. Then ask the person who runs your Chatvia server to add a TLS certificate for the domain. There is no limit on how many agents use a custom domain.
+By default the Hosted Chat surface lives at `chatvia.ai/chat/{agent}`. Every workspace can also host it on its own domain. Point a CNAME at the Chatvia server (e.g. `chat.yourcompany.com → chatvia.ai`) and enter the domain under **Setup → Domain**. The domain then opens that agent's chat. Then ask the person who runs your Chatvia server to add a TLS certificate for the domain. There is no limit on how many agents use a custom domain.
 
 This is purely cosmetic — the agent and all its settings stay the same.

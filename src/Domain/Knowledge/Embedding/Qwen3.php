@@ -82,9 +82,10 @@ class Qwen3 extends AbstractEmbeddingsProvider
         return $vector;
     }
 
-    public function getDimensions(): int
+    /** Qwen3-Embedding returns any size up to 4096 (Matryoshka). */
+    protected function supportsDimensions(int $dimensions): bool
     {
-        return 1024;
+        return $dimensions >= 32 && $dimensions <= 4096;
     }
 
     protected function getApiKey(): string

@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Events\MagicLinkRequested;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -8,10 +9,10 @@ use Illuminate\Support\Str;
 use PragmaRX\Google2FA\Google2FA;
 
 /**
- * A teammate or owner with two-factor authentication opens a protected agent's
- * hosted chat on the agent's own address and signs in with the emailed link.
- * The link and the two-factor challenge must both work on that address; the
- * redirect that keeps the dashboard off agent addresses must not swallow them.
+ * Signing in to a protected agent's hosted chat with the emailed link. The
+ * link signs in to the chat's own session, never the dashboard. A user with
+ * two-factor authentication passes the challenge first; the hand-off route
+ * then carries the sign-in into the chat.
  */
 beforeEach(function (): void {
     $this->secret = new Google2FA()->generateSecretKey();
@@ -20,19 +21,18 @@ beforeEach(function (): void {
         'two_factor_secret' => encrypt($this->secret),
         'two_factor_confirmed_at' => now(),
     ]);
-    // Hosts are lower-cased, so the subdomain must be too.
-    $this->agent = createAgent($this->owner, ['sub_domain' => Str::lower(Str::random(12))]);
-    $this->host = 'https://'.$this->agent->sub_domain.'.chatvia.test';
+    $this->agent = createAgent($this->owner, ['slug' => Str::lower(Str::random(12))]);
+    $this->chat = '/chat/'.$this->agent->slug;
 });
 
 /**
- * Requests a link on the agent's address and returns the emailed URL.
+ * Requests a link from the agent's chat and returns the emailed URL.
  */
-function requestHostedChatMagicLink(string $host, string $email): string
+function requestHostedChatMagicLink(string $chat, string $email): string
 {
     Event::fake([MagicLinkRequested::class]);
 
-    test()->post($host.'/chat/magic-link', ['email' => $email])->assertSessionHasNoErrors();
+    test()->post($chat.'/magic-link', ['email' => $email])->assertSessionHasNoErrors();
 
     $url = null;
     Event::assertDispatched(MagicLinkRequested::class, function (MagicLinkRequested $event) use (&$url): bool {
@@ -45,24 +45,58 @@ function requestHostedChatMagicLink(string $host, string $email): string
 }
 
 it('takes a 2FA user from the emailed link through the challenge into the hosted chat', function (): void {
-    $link = requestHostedChatMagicLink($this->host, 'owner-2fa@example.test');
+    $link = requestHostedChatMagicLink($this->chat, 'owner-2fa@example.test');
 
-    expect($link)->toStartWith($this->host.'/');
+    $this->get($link)->assertRedirect(route('two-factor.login'));
 
-    $this->get($link)->assertRedirect($this->host.'/two-factor-challenge');
+    expect(Auth::guard('web')->check())->toBeFalse()
+        ->and(Auth::guard('chat')->check())->toBeFalse();
 
-    expect(Auth::guard('web')->check())->toBeFalse();
-
-    $this->get($this->host.'/two-factor-challenge')->assertOk();
-
-    $this->post($this->host.'/two-factor-challenge', [
+    $this->post(route('two-factor.login.store'), [
         'code' => new Google2FA()->getCurrentOtp($this->secret),
-    ])->assertRedirect($this->host.'/chat');
+    ])->assertRedirect('/chat-handoff/'.$this->agent->slug);
 
-    expect(Auth::guard('web')->id())->toBe($this->owner->id);
+    $location = $this->get('/chat-handoff/'.$this->agent->slug)->assertRedirect()->headers->get('Location');
+
+    expect($location)->toContain($this->chat.'?auth_token=');
+
+    $this->get($location)->assertRedirect($this->chat);
+
+    expect(Auth::guard('chat')->id())->toBe($this->owner->id);
 });
 
-it('still sends other pages on the agent address to the hosted chat', function (): void {
-    $this->get($this->host.'/login')->assertRedirect($this->host.'/chat');
-    $this->get($this->host.'/forgot-password')->assertRedirect($this->host.'/chat');
+it('sends a user without 2FA straight into the chat, without a dashboard session', function (): void {
+    $chatter = User::factory()->chatter($this->owner)->create(['email' => 'chatter@example.test']);
+    $chatter->accessibleAgents()->attach($this->agent);
+
+    $link = requestHostedChatMagicLink($this->chat, 'chatter@example.test');
+
+    $location = $this->get($link)->assertRedirect()->headers->get('Location');
+
+    expect($location)->toContain($this->chat.'?auth_token=')
+        ->and(Auth::guard('web')->check())->toBeFalse();
+
+    $this->get($location)->assertRedirect($this->chat);
+
+    expect(Auth::guard('chat')->id())->toBe($chatter->id)
+        ->and($chatter->type)->toBe(UserType::Chatter);
+});
+
+it('ends a chatter\'s dashboard session at the hand-off', function (): void {
+    $chatter = User::factory()->chatter($this->owner)->create();
+    $chatter->accessibleAgents()->attach($this->agent);
+
+    $this->actingAs($chatter)
+        ->get('/chat-handoff/'.$this->agent->slug)
+        ->assertRedirect();
+
+    expect(Auth::guard('web')->check())->toBeFalse();
+});
+
+it('refuses the hand-off to an agent the user cannot use', function (): void {
+    $stranger = User::factory()->create();
+
+    $this->actingAs($stranger)
+        ->get('/chat-handoff/'.$this->agent->slug)
+        ->assertForbidden();
 });

@@ -17,6 +17,6 @@ export function chatPages(embedded: boolean): ChatPages {
 
     return {
         home: () => pages.home.url(),
-        show: (conversationId, options) => pages.show.url(conversationId, options),
+        show: (conversationId, options) => pages.show.url({ conversationId }, options),
     };
 }

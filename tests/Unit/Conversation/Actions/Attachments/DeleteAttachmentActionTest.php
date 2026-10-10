@@ -32,7 +32,7 @@ function buildAttachment(?int $messageId = null): Attachment
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'is_public' => true,
     ]);
     $session = Session::create(['agent_id' => $agent->id]);

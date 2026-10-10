@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Schema\Grammars\PostgresGrammar;
@@ -11,7 +12,8 @@ use Illuminate\Support\ServiceProvider;
 
 /**
  * Teaches the schema builder about the Postgres extensions the knowledge base
- * needs (the `bm25vector` column type from VectorChord-BM25) and keeps
+ * needs (the `bm25vector` column type from VectorChord-BM25, and `embedding`
+ * columns with the install's vector type and size) and keeps
  * `db:wipe` / `migrate:fresh` working while the pg_tokenizer extension owns its
  * own tables.
  */
@@ -24,6 +26,14 @@ class DatabaseServiceProvider extends ServiceProvider
         PostgresGrammar::macro('typeBm25vector', fn (): string => 'bm25_catalog.bm25vector');
 
         Blueprint::macro('bm25vector', fn (string $column) => $this->addColumn('bm25vector', $column));
+
+        // An embedding column with the install's vector type and size
+        // (EmbeddingStorage). Both types are pgvector's `vector` / `halfvec`.
+        Blueprint::macro('embedding', function (string $column) {
+            $storage = app(EmbeddingStorage::class);
+
+            return $this->addColumn($storage->type()->value, $column, ['dimensions' => $storage->dimensions()]);
+        });
 
         $this->dropTokenizerExtensionBeforeWipe();
     }

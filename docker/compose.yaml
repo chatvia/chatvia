@@ -19,7 +19,7 @@
 name: chatvia-stack
 
 x-app: &app
-  image: ${CHATVIA_IMAGE:-ghcr.io/ahmadmayahi/chatvia}:${CHATVIA_VERSION:-latest}
+  image: ${CHATVIA_IMAGE:-ghcr.io/chatvia/chatvia}:${CHATVIA_VERSION:-latest}
   restart: unless-stopped
   # Any app setting from the project's .env.example can go in this .env file.
   env_file:
@@ -89,6 +89,11 @@ services:
     <<: *app
     command: ["chatvia-migrate"]
     restart: "no"
+    # Also from the shell, so an installer can pass the first admin's
+    # password for one start without writing it to .env. A value in .env
+    # still works: Compose reads .env for ${...} too.
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy

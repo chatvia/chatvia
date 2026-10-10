@@ -84,7 +84,7 @@ it('deletes a prompt and detaches it from agents', function (): void {
         'team_id' => $this->user->primaryTeam()->id,
         'name' => 'Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::random(14),
+        'slug' => Str::random(14),
         'agent_prompt_id' => $prompt->id,
         'is_public' => false,
         'source' => 'dashboard',

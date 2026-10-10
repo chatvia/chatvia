@@ -3,13 +3,15 @@
 namespace Domain\Knowledge\Retrieval\Queries;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Illuminate\Support\Facades\DB;
 
 /**
  * The SQL of the knowledge-base search: four ranked channels over an agent's
  * chunks — dense vector, dense vector on the generated questions, BM25, and
- * BM25 on the questions — fused with Reciprocal Rank Fusion (k = 60).
+ * BM25 on the questions — fused with Reciprocal Rank Fusion (k = 60). With
+ * `chatvia.vector.search.hybrid` off, only the two vector channels run.
  *
  * Each channel is a self-contained subquery `FROM chunks c` with the agent's
  * sources inlined as an `EXISTS (...)` filter, so vchordrq's `prefilter` mode
@@ -27,11 +29,12 @@ use Illuminate\Support\Facades\DB;
  */
 final class HybridChunkSearch
 {
-    /** Stored embedding size (pgvector halfvec). */
-    private const int DIMENSIONS = 1024;
-
     /** Each channel returns this many times the final limit before fusion. */
     private const int CANDIDATES_PER_RESULT = 3;
+
+    public function __construct(
+        private readonly EmbeddingStorage $storage,
+    ) {}
 
     /**
      * @param  string  $queryVector  the query embedding as a pgvector literal (`[0.1,0.2,…]`)
@@ -42,19 +45,20 @@ final class HybridChunkSearch
         $agentId = $agent->id;
         $workspaceId = (int) $agent->user_id;
         $candidateLimit = $limit * self::CANDIDATES_PER_RESULT;
+        $channels = $this->channels();
 
         // Bindings follow each channel's textual `?` order: the ranking
-        // expression, the tenant filter, the agent id in EXISTS and the
-        // channel limit; the final LIMIT comes last.
-        $bindings = [
-            $queryVector, $workspaceId, $agentId, $candidateLimit,
-            $queryVector, $workspaceId, $agentId, $candidateLimit,
-            $query, $workspaceId, $agentId, $candidateLimit,
-            $query, $workspaceId, $agentId, $candidateLimit,
-            $limit,
-        ];
+        // expression (query vector or text), the tenant filter, the agent id
+        // in EXISTS and the channel limit; the final LIMIT comes last.
+        $bindings = [];
 
-        return array_map(RetrievedChunkData::fromRow(...), DB::select($this->sql(), $bindings));
+        foreach ($channels as $channel) {
+            array_push($bindings, $channel['keyword'] ? $query : $queryVector, $workspaceId, $agentId, $candidateLimit);
+        }
+
+        $bindings[] = $limit;
+
+        return array_map(RetrievedChunkData::fromRow(...), DB::select($this->sql($channels), $bindings));
     }
 
     /**
@@ -81,27 +85,52 @@ final class HybridChunkSearch
         DB::statement("SET LOCAL vchordrq.epsilon = {$epsilon}");
     }
 
-    private function sql(): string
+    /**
+     * The ranked channels to run: always the two vector channels, plus the
+     * two BM25 (keyword) channels when hybrid search is on.
+     *
+     * @return list<array{name: string, sql: string, keyword: bool}>
+     */
+    private function channels(): array
     {
-        $dims = self::DIMENSIONS;
+        $cast = $this->storage->columnType();
 
-        $channels = implode(",\n", [
-            $this->channel('vector_ranked', 'vector', "c.embedding <-> ?::halfvec({$dims})"),
-            $this->channel('question_ranked', 'question', "c.questions_embedding <-> ?::halfvec({$dims})", 'c.questions_embedding IS NOT NULL'),
-            $this->channel('bm25_ranked', 'bm25', $this->bm25Distance('c.embedding_bm25', 'chunks_embedding_bm25')),
-            $this->channel('question_bm25_ranked', 'question_bm25', $this->bm25Distance('c.questions_embedding_bm25', 'chunks_questions_embedding_bm25'), 'c.questions_embedding_bm25 IS NOT NULL'),
-        ]);
+        $channels = [
+            ['name' => 'vector_ranked', 'keyword' => false,
+                'sql' => $this->channel('vector_ranked', 'vector', "c.embedding <-> ?::{$cast}")],
+            ['name' => 'question_ranked', 'keyword' => false,
+                'sql' => $this->channel('question_ranked', 'question', "c.questions_embedding <-> ?::{$cast}", 'c.questions_embedding IS NOT NULL')],
+        ];
+
+        // Unset (no admin setting applied yet) means on, the default.
+        if (! (bool) (config('chatvia.vector.search.hybrid') ?? true)) {
+            return $channels;
+        }
+
+        return [
+            ...$channels,
+            ['name' => 'bm25_ranked', 'keyword' => true,
+                'sql' => $this->channel('bm25_ranked', 'bm25', $this->bm25Distance('c.embedding_bm25', 'chunks_embedding_bm25'))],
+            ['name' => 'question_bm25_ranked', 'keyword' => true,
+                'sql' => $this->channel('question_bm25_ranked', 'question_bm25', $this->bm25Distance('c.questions_embedding_bm25', 'chunks_questions_embedding_bm25'), 'c.questions_embedding_bm25 IS NOT NULL')],
+        ];
+    }
+
+    /**
+     * @param  list<array{name: string, sql: string, keyword: bool}>  $channels
+     */
+    private function sql(array $channels): string
+    {
+        $definitions = implode(",\n", array_column($channels, 'sql'));
+        $combined = implode("\n    UNION ALL\n", array_map(
+            fn (array $channel): string => "    SELECT id, rank, search_type FROM {$channel['name']}",
+            $channels,
+        ));
 
         return <<<SQL
-WITH {$channels},
+WITH {$definitions},
 combined_results AS (
-    SELECT id, rank, search_type FROM vector_ranked
-    UNION ALL
-    SELECT id, rank, search_type FROM question_ranked
-    UNION ALL
-    SELECT id, rank, search_type FROM bm25_ranked
-    UNION ALL
-    SELECT id, rank, search_type FROM question_bm25_ranked
+{$combined}
 ),
 rrf_scores AS (
     SELECT id,

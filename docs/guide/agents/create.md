@@ -15,8 +15,8 @@ You'll be asked for:
 
 ![SCREENSHOT — create agent modal](/screenshots/agent-create-modal.png)
 
-::: tip Renaming and subdomain
-A slug is auto-generated from the name — no need to pick one in the modal. Rename it later in **Setup → Domain**, or attach a custom domain via CNAME.
+::: tip Renaming and chat address
+A chat address is generated for you — no need to pick one in the modal. Change it later on the **Persona** page, or attach a custom domain under **Setup → Domain**.
 :::
 
 ## What happens after creation

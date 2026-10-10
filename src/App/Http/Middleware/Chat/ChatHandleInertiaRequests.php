@@ -8,9 +8,9 @@ use Inertia\Middleware;
 
 /**
  * Inertia root for the hosted chat (`chat` group): the props every chat page
- * shares — product branding, the signed-in user, the current route, the
- * agent subdomain and the per-chat upload limit. The dashboard has its own
- * root middleware ({@see HandleInertiaRequests}).
+ * shares — product branding, the signed-in user, the current route and the
+ * per-chat upload limit. The dashboard has its own root middleware
+ * ({@see HandleInertiaRequests}), which also runs on chat pages.
  */
 class ChatHandleInertiaRequests extends Middleware
 {
@@ -45,8 +45,6 @@ class ChatHandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
-            'domain' => $request->domain(),
-            'subdomain' => $request->subdomain(),
             // Per-chat upload ceiling (config: agent.files.upload.max_files).
             // The composer gates the paperclip on this; the server enforces
             // the same value via MaxConversationAttachments so a frontend

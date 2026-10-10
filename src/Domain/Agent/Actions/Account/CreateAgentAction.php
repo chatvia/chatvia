@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
  * Creates a new agent from the dashboard. The agent always belongs to the
  * workspace owner, also when a teammate creates it, so it stays with the
  * workspace if that teammate is removed. It starts private, gets a random
- * external id (also used as its first subdomain) and its own signing secret,
+ * external id (also used as its first chat slug) and its own signing secret,
  * and is linked to every topic so conversation tagging works from the start.
  */
 class CreateAgentAction
@@ -28,7 +28,7 @@ class CreateAgentAction
                 'user_id' => $agentOwnerId,
                 'team_id' => $data->team->id,
                 'name' => $data->name,
-                'sub_domain' => $externalId,
+                'slug' => $externalId,
                 'is_public' => false,
                 'external_id' => $externalId,
                 'auth_secret' => Agent::generateAuthSecret(),

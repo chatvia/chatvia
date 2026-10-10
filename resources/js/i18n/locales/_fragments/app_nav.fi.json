@@ -73,9 +73,9 @@
                 "description": "Anna uusi nimi agentillesi {name}.",
                 "name_label": "Agentin nimi",
                 "name_placeholder": "Kirjoita uusi agentin nimi",
-                "subdomain_label": "Aliverkkotunnus",
-                "subdomain_placeholder": "aliverkkotunnuksesi",
-                "subdomain_hint": "Vain pienet kirjaimet, numerot ja väliviivoitetut merkit sallittu.",
+                "slug_label": "Chatin osoite",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Vain pienet kirjaimet, numerot ja väliviivoitetut merkit sallittu.",
                 "save": "Tallenna",
                 "updated_toast": "Agentti päivitetty onnistuneesti"
             },

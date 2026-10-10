@@ -12,7 +12,7 @@ In the dashboard, open the agent and go to **Setup → (preview: Widget) → Emb
 ```html
 <script
   id="chatbot-embed-script"
-  src="https://chatvia.ai/embed.js"
+  src="https://chatvia.ai/shakomako/embed.js"
   data-agent-id="YOUR_AGENT_ID"
   data-language="auto"
   defer></script>

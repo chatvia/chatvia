@@ -9,6 +9,7 @@ use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Enums\ToolSearchPool;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -43,15 +44,16 @@ use Illuminate\Support\Facades\Log;
  */
 class ToolHybridSearch
 {
-    /** vchordrq + BM25 indexes were built against this dim. */
-    private const int EMBEDDING_DIMS = 1024;
-
     /**
      * RRF constant. 60 is the de-facto default (Cormack et al.) — it
      * smooths per-channel rank differences without letting any single
      * top hit dominate the fusion.
      */
     private const int RRF_K = 60;
+
+    public function __construct(
+        private readonly EmbeddingStorage $storage,
+    ) {}
 
     /**
      * @param  array<int, float>  $queryVector
@@ -159,7 +161,8 @@ class ToolHybridSearch
 
     private function sql(): string
     {
-        $dims = self::EMBEDDING_DIMS;
+        // The query vector takes the stored embeddings' type and size.
+        $cast = $this->storage->columnType();
         $rrfK = self::RRF_K;
 
         return <<<SQL
@@ -185,11 +188,11 @@ reachable_preset AS (
 ),
 preset_vector AS (
     SELECT 'mcp_preset' AS kind, ct.id,
-           ROW_NUMBER() OVER (ORDER BY ct.embedding <-> ?::vector({$dims})) AS rank
+           ROW_NUMBER() OVER (ORDER BY ct.embedding <-> ?::{$cast}) AS rank
     FROM connector_tools ct
     WHERE ct.embedding IS NOT NULL
       AND ct.id IN (SELECT connector_tool_id FROM reachable_preset)
-    ORDER BY ct.embedding <-> ?::vector({$dims})
+    ORDER BY ct.embedding <-> ?::{$cast}
     LIMIT ?
 ),
 preset_bm25 AS (
@@ -208,7 +211,7 @@ preset_bm25 AS (
 ),
 custom_vector AS (
     SELECT 'mcp_custom' AS kind, t.id,
-           ROW_NUMBER() OVER (ORDER BY t.embedding <-> ?::vector({$dims})) AS rank
+           ROW_NUMBER() OVER (ORDER BY t.embedding <-> ?::{$cast}) AS rank
     FROM mcp_tools t
     INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
     LEFT JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
@@ -218,7 +221,7 @@ custom_vector AS (
       AND t.embedding IS NOT NULL
       AND ams.agent_id IS NOT NULL
       AND ams.always_available = false
-    ORDER BY t.embedding <-> ?::vector({$dims})
+    ORDER BY t.embedding <-> ?::{$cast}
     LIMIT ?
 ),
 custom_bm25 AS (
@@ -243,12 +246,12 @@ custom_bm25 AS (
 ),
 fn_vector AS (
     SELECT 'fn' AS kind, f.id,
-           ROW_NUMBER() OVER (ORDER BY f.embedding <-> ?::vector({$dims})) AS rank
+           ROW_NUMBER() OVER (ORDER BY f.embedding <-> ?::{$cast}) AS rank
     FROM functions f
     INNER JOIN agent_function af ON af.function_id = f.id AND af.agent_id = ?
     WHERE f.is_enabled = true
       AND f.embedding IS NOT NULL
-    ORDER BY f.embedding <-> ?::vector({$dims})
+    ORDER BY f.embedding <-> ?::{$cast}
     LIMIT ?
 ),
 fn_bm25 AS (

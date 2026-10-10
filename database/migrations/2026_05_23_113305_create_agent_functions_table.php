@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Embedding columns use the install's vector type and size (EmbeddingStorage).
+        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
         Schema::create('functions', function (Blueprint $table) {
             $table->id();
@@ -38,7 +41,7 @@ return new class extends Migration
 
             $table->boolean('is_enabled')->default(true);
 
-            $table->vector('embedding', 1024)->nullable();
+            $table->embedding('embedding')->nullable();
             $table->bm25vector('embedding_bm25')->nullable();
 
             $table->timestamp('last_invoked_at')->nullable();
@@ -52,7 +55,7 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX functions_embedding_bm25 ON functions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
 
-        DB::statement('CREATE INDEX functions_embedding_vchordrq ON functions USING vchordrq (embedding vector_l2_ops)');
+        DB::statement("CREATE INDEX functions_embedding_vchordrq ON functions USING vchordrq (embedding {$ops})");
 
         Schema::create('agent_function', function (Blueprint $table) {
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();

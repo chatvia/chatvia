@@ -6,15 +6,14 @@ use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureTeamPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
-use App\Http\Middleware\Auth\AuthenticateChatter;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
-use App\Http\Middleware\Auth\RedirectIfChatterAuthenticated;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use App\Http\Middleware\Chat\EnsureChatIsAccessible;
-use App\Http\Middleware\Chat\RedirectToAgent;
-use App\Http\Middleware\Chat\ResolveAgentFromSubdomain;
+use App\Http\Middleware\Chat\RedirectCustomDomainToChat;
+use App\Http\Middleware\Chat\ResolveHostedChatAgent;
+use App\Http\Middleware\Chat\UseHostedChatSession;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
@@ -24,6 +23,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Spatie\LaravelFlare\Facades\Flare;
@@ -59,8 +59,12 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Before the `web` group starts the session: /chat requests get the
+        // hosted chat's own session cookie and `chat` guard.
+        $middleware->prepend(UseHostedChatSession::class);
+
         $middleware->web(append: [
-            RedirectToAgent::class,
+            RedirectCustomDomainToChat::class,
             HandleAppearance::class,
             SetLocale::class,
             EnsureWorkspaceNetworkAllowed::class,
@@ -71,10 +75,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        // RedirectToAgent is not listed here: chat routes already run it as
-        // part of the `web` group above.
+        // The agent itself is resolved before this group, by `chat.agent` on
+        // the /chat/{agentSlug} prefix (routes/chat.php).
         $middleware->group('chat', [
-            ResolveAgentFromSubdomain::class,
             AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
             LogoutDeactivatedUser::class,
@@ -83,8 +86,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'auth.chatter' => AuthenticateChatter::class,
-            'guest.chatter' => RedirectIfChatterAuthenticated::class,
+            'chat.agent' => ResolveHostedChatAgent::class,
             'can.access.agent' => EnsureUserCanAccessAgent::class,
             'api.owner' => EnsureApiWorkspaceOwner::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
@@ -92,10 +94,16 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'team.permission' => EnsureTeamPermission::class,
         ]);
 
+        // `guest` routes: a visitor already signed in on the chat's login page
+        // goes back to that chat; anywhere else to the dashboard.
+        $middleware->redirectUsersTo(fn (Request $request): string => $request->is('chat/*')
+            ? route('chat.home')
+            : route('dashboard'));
+
         // Exempt only endpoints that the session cookie doesn't authenticate:
         // the embeddable widget (token auth). The hosted chat (/chat/*) is
         // cookie-authenticated, so it keeps CSRF protection: its frontend sends
-        // the XSRF-TOKEN cookie back as the X-XSRF-TOKEN header.
+        // the page's token as the X-CSRF-TOKEN header (resources/js/utils/csrf.ts).
         $middleware->preventRequestForgery(except: [
             '/widget/*',
         ]);

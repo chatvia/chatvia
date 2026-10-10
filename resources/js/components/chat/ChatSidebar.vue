@@ -115,7 +115,7 @@ function newConversation() {
 
 function goToConversation(id: string | number) {
     closeDrawerOnMobile();
-    router.visit(chat.show.url(String(id)));
+    router.visit(chat.show.url({ conversationId: String(id) }));
 }
 
 async function deleteConversation(id: string | number) {

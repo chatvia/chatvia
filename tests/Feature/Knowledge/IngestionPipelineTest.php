@@ -267,3 +267,21 @@ it('retrieves ingested chunks for the owning agent only via hybrid search', func
 
     expect(collect($otherResults)->pluck('chunkable_id')->map(fn ($id): int => (int) $id)->unique()->all())->toBe([$otherSource->id]);
 });
+
+it('searches by meaning only when hybrid search is turned off', function (): void {
+    $owner = ingestionPipelineOwner();
+    $agent = createAgent($owner);
+    $source = ingestionPipelineSeedChunk($owner, $agent, ingestionPipelineText());
+
+    $hybrid = app(KnowledgeBase::class)->search($agent, 'What is the refund policy?');
+
+    config(['chatvia.vector.search.hybrid' => false]);
+    $meaningOnly = app(KnowledgeBase::class)->search($agent, 'What is the refund policy?');
+
+    // The keyword channels found the chunk in hybrid mode; without them the
+    // vector channels alone still find it.
+    expect(collect($hybrid)->pluck('search_type')->implode('+'))->toContain('bm25')
+        ->and($meaningOnly)->not->toBeEmpty()
+        ->and((int) $meaningOnly[0]->chunkable_id)->toBe($source->id)
+        ->and(collect($meaningOnly)->pluck('search_type')->implode('+'))->not->toContain('bm25');
+});

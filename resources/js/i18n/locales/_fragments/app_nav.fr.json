@@ -73,9 +73,9 @@
                 "description": "Saisissez un nouveau nom pour votre agent {name}.",
                 "name_label": "Nom de l'agent",
                 "name_placeholder": "Saisissez le nouveau nom de l'agent",
-                "subdomain_label": "Sous-domaine",
-                "subdomain_placeholder": "votre-sous-domaine",
-                "subdomain_hint": "Seuls les lettres minuscules, les chiffres et les tirets sont autorisés.",
+                "slug_label": "Adresse du chat",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Seuls les lettres minuscules, les chiffres et les tirets sont autorisés.",
                 "save": "Enregistrer",
                 "updated_toast": "Agent mis à jour avec succès"
             }

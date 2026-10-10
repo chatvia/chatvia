@@ -14,14 +14,14 @@ beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
     $this->agent->update(['is_public' => true]);
     $this->agent->setSetting('allow_file_uploads', true, 'appearance');
-    $this->host = $this->agent->sub_domain.'.chatvia.test';
+    $this->chat = '/chat/'.$this->agent->slug;
 
 });
 
 it('offers uploads when the owner allows them and a PDF-reading LLM is set up', function (): void {
     app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderEnum::MISTRAL));
 
-    $this->get('https://'.$this->host.'/chat')
+    $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page
             ->component('chat/Home')
             ->where('allowFileUploads', true));
@@ -30,7 +30,7 @@ it('offers uploads when the owner allows them and a PDF-reading LLM is set up', 
 it('hides uploads when no LLM can read PDF files', function (): void {
     app()->instance(DocumentLlm::class, new DocumentLlm(null));
 
-    $this->get('https://'.$this->host.'/chat')
+    $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page
             ->component('chat/Home')
             ->where('allowFileUploads', false));
@@ -40,7 +40,7 @@ it('hides uploads when the owner turned them off', function (): void {
     app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderEnum::MISTRAL));
     $this->agent->setSetting('allow_file_uploads', false, 'appearance');
 
-    $this->get('https://'.$this->host.'/chat')
+    $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page
             ->component('chat/Home')
             ->where('allowFileUploads', false));

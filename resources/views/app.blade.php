@@ -6,8 +6,9 @@
 
         {{-- Canonical app origin. The assistant-message renderer uses this to
              allow-list <img> hosts (chunk images live on the main domain even
-             when the hosted chat runs on an agent subdomain) and strip every
-             other image src, neutralising prompt-injection exfiltration pixels. --}}
+             when the hosted chat runs on an agent's custom domain) and strip
+             every other image src, neutralising prompt-injection exfiltration
+             pixels. --}}
         <meta name="app-url" content="{{ config('app.url') }}">
 
         {{-- Public Reverb app key, for builds without VITE_REVERB_APP_KEY

@@ -122,7 +122,7 @@ it('builds the delete confirmation on AlertDialog', function () use ($frontendSo
 });
 
 it('only puts attributes the embed script reads into the Command Bar snippet', function () use ($frontendSource): void {
-    // widget/src/embed.js never reads data-trigger / data-placement; the bar
+    // shakomako/src/embed.js never reads data-trigger / data-placement; the bar
     // takes both from the agent's saved settings. Every install snippet the
     // Deploy page shows is built in installSnippets.ts.
     $source = $frontendSource('components/agents/deploy/installSnippets.ts');

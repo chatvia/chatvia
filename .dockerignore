@@ -22,10 +22,12 @@
 !routes/
 !src/
 !docker/app/
+!shakomako/
 
 # Build output and local data inside the folders above
 public/build
 public/hot
+public/shakomako
 public/storage
 public/js
 public/css
@@ -34,4 +36,8 @@ database/*.sqlite*
 resources/js/actions
 resources/js/routes
 resources/js/wayfinder
+shakomako/node_modules
+shakomako/dist
+shakomako/.env
+shakomako/bundle-analysis.html
 **/.DS_Store

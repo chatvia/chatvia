@@ -26,7 +26,7 @@ Templates apply to **any agent** — there is no agent type. The same template c
 | **Surface settings** | Position, size, language, domain whitelist, show-on-load delay (applied where each surface uses them). |
 | **Prompt reference** | Optional link to a saved [prompt](/guide/account/prompts) — the persona. |
 
-Anything **not** in a template stays per-agent: subdomain, sources, functions, MCP connectors, leads form, members.
+Anything **not** in a template stays per-agent: chat address, sources, functions, MCP connectors, leads form, members.
 
 ## Creating a template
 

@@ -98,7 +98,6 @@ return [
         'api_key' => null,
         'api_endpoint' => env('COHERE_API_ENDPOINT', 'https://api.cohere.com/v2'),
         'embedding_model' => env('COHERE_EMBEDDING_MODEL', 'embed-v4.0'),
-        'embedding_dimensions' => env('COHERE_EMBEDDING_DIMENSIONS', 1024),
         'rerank_model' => env('COHERE_RERANK_MODEL', 'rerank-v4.0-pro'),
     ],
 
@@ -106,7 +105,6 @@ return [
         'api_key' => null,
         'api_endpoint' => env('JINA_API_ENDPOINT', 'https://api.jina.ai/v1'),
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
-        'embedding_dimensions' => env('JINA_EMBEDDING_DIMENSIONS', 1024),
     ],
 
     'groq' => [

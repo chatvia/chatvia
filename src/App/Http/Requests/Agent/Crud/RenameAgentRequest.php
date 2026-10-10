@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests\Agent\Crud;
 
+use App\Http\Rules\AgentSlug;
 use Domain\Agent\Data\Account\RenameAgentData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
- * Validates a new name and subdomain for an agent. The name is unique per
- * workspace owner and the subdomain is unique across the platform, because it
- * becomes part of the agent's public chat URL.
+ * Validates a new name and chat-address slug for an agent. The name is unique
+ * per workspace owner and the slug is unique across the platform, because it
+ * becomes part of the agent's public chat URL (`/chat/{slug}`).
  */
 class RenameAgentRequest extends FormRequest
 {
@@ -41,11 +42,7 @@ class RenameAgentRequest extends FormRequest
                     ->ignore($agent->id)
                     ->where('user_id', $agent->user_id),
             ],
-            'sub_domain' => [
-                'required', 'string', 'min:3', 'max:63',
-                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('agents', 'sub_domain')->ignore($agent->id),
-            ],
+            'slug' => ['required', new AgentSlug($agent)],
         ];
     }
 
@@ -53,7 +50,7 @@ class RenameAgentRequest extends FormRequest
     {
         return new RenameAgentData(
             name: $this->string('name')->toString(),
-            sub_domain: $this->filled('sub_domain') ? $this->string('sub_domain')->toString() : null,
+            slug: $this->filled('slug') ? $this->string('slug')->toString() : null,
         );
     }
 }

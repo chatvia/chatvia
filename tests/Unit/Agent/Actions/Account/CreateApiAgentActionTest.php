@@ -44,8 +44,8 @@ it('creates an api-sourced agent owned by the resolved team and attaches every t
         ->and($agent->is_public)->toBeTrue()
         ->and($agent->metadata)->toBe(['campaign' => 'launch'])
         ->and($agent->external_id)->not->toBeEmpty()
-        // The generated external id doubles as the initial sub_domain.
-        ->and($agent->sub_domain)->toBe($agent->external_id);
+        // The generated external id doubles as the initial slug.
+        ->and($agent->slug)->toBe($agent->external_id);
 
     $attachedIds = $agent->topics()->pluck('topics.id');
 

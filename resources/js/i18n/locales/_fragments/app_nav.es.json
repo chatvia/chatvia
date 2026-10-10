@@ -73,9 +73,9 @@
                 "description": "Ingresa un nuevo nombre para tu agente {name}.",
                 "name_label": "Nombre del agente",
                 "name_placeholder": "Ingresa el nuevo nombre del agente",
-                "subdomain_label": "Subdominio",
-                "subdomain_placeholder": "tu-subdominio",
-                "subdomain_hint": "Solo se permiten letras minúsculas, números y guiones.",
+                "slug_label": "Dirección del chat",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Solo se permiten letras minúsculas, números y guiones.",
                 "save": "Guardar",
                 "updated_toast": "Agente actualizado correctamente"
             }

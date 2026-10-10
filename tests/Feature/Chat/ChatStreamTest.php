@@ -127,7 +127,7 @@ function publicStreamingAgent(): Agent
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Stream Bot',
         'external_id' => Str::random(14),
-        'sub_domain' => Str::lower(Str::random(12)),
+        'slug' => Str::lower(Str::random(12)),
         'system_instructions' => 'You are a helpful assistant.',
         'is_public' => true,
     ]);
@@ -141,7 +141,7 @@ it('returns a 200 SSE stream for an authorized chat turn', function (): void {
     $conversationId = (string) Str::uuid();
 
     $response = $this->post(
-        "https://chatvia.test/chat/stream/{$conversationId}?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/{$conversationId}",
         ['message' => 'Hi there'],
         ['Accept' => 'text/event-stream'],
     );
@@ -156,7 +156,7 @@ it('rejects a chat-stream request with no message (validation)', function (): vo
     $agent = publicStreamingAgent();
 
     $this->postJson(
-        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/".Str::uuid(),
         [],
     )->assertStatus(422)->assertJsonValidationErrors(['message']);
 });
@@ -172,7 +172,7 @@ it('dispatches a rate-limit event once the agent exceeds its per-minute cap', fu
     // bare POST exercises it — no need to consume the stream (which would fight
     // the streamer's own output buffering).
     $send = fn (): TestResponse => $this->post(
-        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/".Str::uuid(),
         ['message' => 'Hi there'],
         ['Accept' => 'text/event-stream'],
     );
@@ -194,7 +194,7 @@ it('emails the owner when a rate-limited agent has alerts enabled', function ():
     $agent->setSetting(key: 'notify_owner_on_rate_limit', value: true, group: 'security');
 
     $send = fn (): TestResponse => $this->post(
-        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/".Str::uuid(),
         ['message' => 'Hi there'],
         ['Accept' => 'text/event-stream'],
     );
@@ -215,7 +215,7 @@ it('does not email the owner when rate-limit alerts are disabled', function (): 
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
 
     $send = fn (): TestResponse => $this->post(
-        'https://chatvia.test/chat/stream/'.Str::uuid()."?agent={$agent->external_id}",
+        "/chat/{$agent->external_id}/stream/".Str::uuid(),
         ['message' => 'Hi there'],
         ['Accept' => 'text/event-stream'],
     );

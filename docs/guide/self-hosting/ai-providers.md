@@ -65,12 +65,20 @@ Chatvia turns every chunk of your content into a vector, so it can find the chun
 | Provider | Settings |
 | --- | --- |
 | `qwen` | Scaleway AI key, `SCALEWAYAI_EMBEDDING_MODEL` (default `qwen3-embedding-8b`) |
-| `cohere` | Cohere key, `COHERE_EMBEDDING_MODEL`, `COHERE_EMBEDDING_DIMENSIONS` |
-| `jina` | Jina key, `JINA_EMBEDDING_MODEL`, `JINA_EMBEDDING_DIMENSIONS` |
+| `cohere` | Cohere key, `COHERE_EMBEDDING_MODEL` (default `embed-v4.0`) |
+| `jina` | Jina key, `JINA_EMBEDDING_MODEL` (default `jina-embeddings-v3`) |
 | `mistral` | Mistral key, `MISTRAL_EMBEDDING_MODEL` (default `mistral-embed`) |
 
 ::: warning Vector size
-The database stores vectors with **1024 dimensions**. The embedding model must return exactly 1024 dimensions. If it does not, Chatvia stops with a clear error the first time it uses the provider, before anything is saved.
+The database stores vectors with the size set in `EMBEDDING_DIMENSIONS` when Chatvia was installed (default **1024**). The provider must be able to return that size:
+
+| Size | Providers |
+| --- | --- |
+| 1024 | All of them |
+| 256, 512 or 1536 | `qwen`, `cohere` (and `jina` for 256 and 512) |
+| Any other size up to 4096 | `qwen` (`jina` up to 1024) |
+
+If it cannot, Chatvia stops with a clear error the first time it uses the provider, before anything is saved. See [Embedding storage](./index.md#embedding-storage).
 :::
 
 ::: warning Changing the provider

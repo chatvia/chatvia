@@ -19,7 +19,7 @@ beforeEach(function (): void {});
 it('returns no results and creates no session for a visitor without one', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
 
-    $this->getJson("https://{$agent->sub_domain}.chatvia.test/chat/conversations/search?q=hello")
+    $this->getJson("/chat/{$agent->slug}/conversations/search?q=hello")
         ->assertOk()
         ->assertExactJson([]);
 
@@ -29,7 +29,7 @@ it('returns no results and creates no session for a visitor without one', functi
 it('finds a signed-in chatter\'s conversation by title in their existing session', function (): void {
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
-    $agent = createAgent($owner, ['is_public' => false, 'sub_domain' => Str::lower(Str::random(12))]);
+    $agent = createAgent($owner, ['is_public' => false, 'slug' => Str::lower(Str::random(12))]);
     $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($owner, $agent, 'Jane'));
 
     $session = Session::create(['agent_id' => $agent->id, 'user_id' => $chatter->id]);
@@ -41,8 +41,8 @@ it('finds a signed-in chatter\'s conversation by title in their existing session
         'source' => ConversationSource::HostedChat,
     ]);
 
-    $this->actingAs($chatter->fresh())
-        ->getJson("https://{$agent->sub_domain}.chatvia.test/chat/conversations/search?q=billing")
+    $this->actingAs($chatter->fresh(), 'chat')
+        ->getJson("/chat/{$agent->slug}/conversations/search?q=billing")
         ->assertOk()
         ->assertJsonPath('0.id', $conversation->external_id);
 

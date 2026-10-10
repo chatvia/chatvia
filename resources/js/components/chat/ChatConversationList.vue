@@ -123,7 +123,7 @@ function closeDeleteDialog() {
                                             ? 'text-foreground bg-sidebar-accent'
                                             : 'text-foreground/80 hover:bg-sidebar-accent/60',
                                     ]"
-                                    :href="showChat.url(chat.id)"
+                                    :href="showChat.url({ conversationId: chat.id })"
                                 >
                                     <span class="flex-1 truncate">{{ chat.title }}</span>
                                 </Link>

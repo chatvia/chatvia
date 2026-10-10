@@ -73,9 +73,9 @@
                 "description": "Wprowadź nową nazwę dla agenta {name}.",
                 "name_label": "Nazwa agenta",
                 "name_placeholder": "Wprowadź nową nazwę agenta",
-                "subdomain_label": "Subdomena",
-                "subdomain_placeholder": "twoja-subdomena",
-                "subdomain_hint": "Dozwolone są tylko małe litery, cyfry i myślniki.",
+                "slug_label": "Adres czatu",
+                "slug_placeholder": "my-agent",
+                "slug_hint": "Dozwolone są tylko małe litery, cyfry i myślniki.",
                 "save": "Zapisz",
                 "updated_toast": "Agent został pomyślnie zaktualizowany"
             },

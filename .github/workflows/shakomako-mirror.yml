@@ -1,0 +1,130 @@
+name: Shakomako mirror
+
+# Publishes the shakomako/ folder to its own read-only repository, so people
+# can clone the widget on its own. This repository stays the only place to
+# change the widget. The mirror gets the folder's own history: every push to
+# main, and every release tag under the same name. Pull requests opened on the
+# mirror are closed with a pointer back here
+# (shakomako/.github/workflows/close-pull-request.yml).
+#
+# It pushes as a GitHub App, so each run gets a token that lives for this job
+# only and can only write to the mirror. Off until it is set up, so forks skip
+# it. To turn it on:
+#   1. Create a GitHub App owned by the organisation, with no webhook and
+#      these repository permissions: Contents and Workflows "Read and write"
+#      (the mirror holds a workflow file). Install it on the mirror only.
+#   2. Store its private key here as the SHAKOMAKO_MIRROR_APP_PRIVATE_KEY
+#      secret, and its client ID as the SHAKOMAKO_MIRROR_APP_CLIENT_ID
+#      repository variable.
+#   3. Set the SHAKOMAKO_MIRROR repository variable to the mirror, for example
+#      chatvia/shakomako.
+#
+# The split always gives the same commits for the same history, so later
+# pushes fast-forward and a rejected push means the histories differ. After
+# this repository's history is replaced, run this workflow by hand on main
+# once, with "replace_history" on.
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      replace_history:
+        description: Force-push and replace the mirror's history. Only after this repository's history was replaced.
+        type: boolean
+        default: false
+
+# The push uses the app's token, not this one.
+permissions:
+  contents: read
+
+# Never stop a push half way; later runs wait for it.
+concurrency:
+  group: shakomako-mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Publish shakomako/
+    if: vars.SHAKOMAKO_MIRROR != ''
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Decide what to publish
+        id: target
+        env:
+          MIRROR: ${{ vars.SHAKOMAKO_MIRROR }}
+          CLIENT_ID: ${{ vars.SHAKOMAKO_MIRROR_APP_CLIENT_ID }}
+          HAS_PRIVATE_KEY: ${{ secrets.SHAKOMAKO_MIRROR_APP_PRIVATE_KEY != '' }}
+        run: |
+          if [ -z "$CLIENT_ID" ] || [ "$HAS_PRIVATE_KEY" != true ]; then
+            echo "::error::SHAKOMAKO_MIRROR is set, but the SHAKOMAKO_MIRROR_APP_CLIENT_ID variable or the SHAKOMAKO_MIRROR_APP_PRIVATE_KEY secret is missing."
+            exit 1
+          fi
+
+          # A tag goes out under its own name; a branch only from main, so a
+          # manual run on another branch cannot publish unmerged work.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            ref="refs/tags/$GITHUB_REF_NAME"
+          elif [ "$GITHUB_REF_NAME" = main ]; then
+            ref="refs/heads/main"
+          else
+            echo "::error::Run this workflow on main or on a release tag, not on $GITHUB_REF_NAME."
+            exit 1
+          fi
+
+          {
+            echo "ref=$ref"
+            echo "owner=${MIRROR%%/*}"
+            echo "name=${MIRROR#*/}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # The split replays every commit that touched the folder.
+          fetch-depth: 0
+          # Git would otherwise send this repository's token with the push,
+          # and the mirror would refuse it.
+          persist-credentials: false
+
+      - name: Split the folder's history
+        id: split
+        run: |
+          sha=$(git subtree split --prefix=shakomako HEAD)
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Get a token for the mirror
+        id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.SHAKOMAKO_MIRROR_APP_CLIENT_ID }}
+          private-key: ${{ secrets.SHAKOMAKO_MIRROR_APP_PRIVATE_KEY }}
+          owner: ${{ steps.target.outputs.owner }}
+          repositories: ${{ steps.target.outputs.name }}
+          permission-contents: write
+          # GitHub refuses a push that adds or changes a workflow file
+          # without this.
+          permission-workflows: write
+
+      - name: Push to the mirror
+        env:
+          TOKEN: ${{ steps.token.outputs.token }}
+          MIRROR: ${{ vars.SHAKOMAKO_MIRROR }}
+          REF: ${{ steps.target.outputs.ref }}
+          SHA: ${{ steps.split.outputs.sha }}
+          REPLACE_HISTORY: ${{ inputs.replace_history }}
+        run: |
+          # The token goes in a header, never in the URL or on the command line.
+          export GIT_CONFIG_COUNT=1
+          export GIT_CONFIG_KEY_0="http.https://github.com/.extraheader"
+          export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$TOKEN" | base64 -w0)"
+
+          args=()
+          if [ "$REPLACE_HISTORY" = true ]; then
+            args+=(--force)
+          fi
+
+          git push "${args[@]}" "https://github.com/$MIRROR.git" "$SHA:$REF"

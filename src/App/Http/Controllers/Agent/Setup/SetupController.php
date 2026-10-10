@@ -91,10 +91,11 @@ class SetupController
 
             'availableLanguages' => config('chatvia.languages'),
 
-            // Custom domain (Hosted Chat only) — current value + CNAME target.
+            // Custom domain (Hosted Chat only) — current value + CNAME target:
+            // the app's own host, which serves every chat.
             'domain' => [
                 'value' => $agent->domain,
-                'cname_target' => (string) parse_url($agent->permanent_url, PHP_URL_HOST),
+                'cname_target' => (string) parse_url((string) config('app.url'), PHP_URL_HOST),
             ],
         ]);
     }

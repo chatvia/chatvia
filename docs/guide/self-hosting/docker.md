@@ -5,16 +5,49 @@ scheduler and the WebSocket server. The compose file adds PostgreSQL (with
 the search extensions) and Redis. You need Docker with Docker Compose 2.24 or
 newer.
 
-The image is published at `ghcr.io/ahmadmayahi/chatvia`, with one tag per
+The image is published at `ghcr.io/chatvia/chatvia`, with one tag per
 release (for example `1.4.2`, `1.4`, `1` and `latest`).
 
-## Start
+The image also serves the chat widget, at `/shakomako/embed.js`. The embed
+snippets in the dashboard point there, so the widget needs no extra setup.
+
+## Install with one command
+
+On Linux or macOS, the installer does everything for you:
+
+```bash
+curl -fsSL https://chatvia.ai/install.sh | bash
+```
+
+It:
+
+1. checks that Docker is installed and running, and offers to install it
+   (on Linux with Docker's official script, on macOS with Homebrew);
+2. asks for the admin e-mail and password, the port and the address;
+3. offers **Recommended settings** or **Custom**, where you choose how the
+   search data is stored ([embedding storage](./index.md#embedding-storage),
+   which can never change later);
+4. writes `compose.yaml` and `.env` into `~/chatvia`, starts Chatvia and shows
+   where to sign in.
+
+Your password is passed to the first start only and is never written to a
+file. The questions run once: run the installer again in the same folder to
+upgrade. For an install without questions, pass the settings as options:
+
+```bash
+curl -fsSL https://chatvia.ai/install.sh | bash -s -- --yes --email you@example.com
+```
+
+`--help` lists every option. `--dry-run` shows what would happen without
+changing anything.
+
+## Start by hand
 
 Download the compose file into an empty folder and start it:
 
 ```bash
 mkdir chatvia && cd chatvia
-curl -fsSLO https://raw.githubusercontent.com/ahmadmayahi/chatvia/main/docker/compose.yaml
+curl -fsSLO https://raw.githubusercontent.com/chatvia/chatvia/main/docker/compose.yaml
 docker compose up -d
 ```
 
@@ -52,7 +85,7 @@ Sign in with `admin@example.com` and that password, then:
 ## Settings
 
 Put your settings in a `.env` file next to `compose.yaml`. The file
-[`docker/.env.example`](https://github.com/ahmadmayahi/chatvia/blob/main/docker/.env.example)
+[`docker/.env.example`](https://github.com/chatvia/chatvia/blob/main/docker/.env.example)
 lists the common ones. Every setting from the project's `.env.example` works
 too. API keys are not set in this file: enter them in the admin panel.
 
@@ -102,9 +135,9 @@ TRUSTED_PROXIES=172.16.0.0/12
 `TRUSTED_PROXIES` is the address range your proxy connects from. The value
 above covers the default Docker networks.
 
-Every agent's hosted chat lives on a subdomain (`{agent}.chat.example.com`).
-Add a wildcard DNS record and a certificate that covers it. See
-[Hosted chat addresses](./index.md#hosted-chat-addresses).
+Every agent's hosted chat lives under the same domain, at
+`https://chat.example.com/chat/{agent}`, so one DNS record and one certificate
+are enough. See [Hosted chat addresses](./index.md#hosted-chat-addresses).
 
 ## Upgrade
 
@@ -142,7 +175,5 @@ See the logs of all services with `docker compose logs -f`.
 
 ## Not in the image
 
-- **The chat widget.** It is a separate project in the `widget/` folder. See
-  [The chat widget](./index.md#the-chat-widget).
 - **Chrome.** Exporting a chat as a PDF needs it, so that export does not work
   in the image.

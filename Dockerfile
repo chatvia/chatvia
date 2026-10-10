@@ -62,7 +62,10 @@ RUN set -eux; \
 
 #-------------------------------------------------------------------------------
 # Frontend assets. Built without any VITE_* settings: the browser then takes
-# the WebSocket address and key from the page (see resources/js/app.ts).
+# the WebSocket address and key from the page (see resources/js/app.ts). The
+# chat widget (shakomako/) is built the same way: it finds its server from the
+# address its embed.js loads from, and gets the WebSocket settings from the
+# widget API (see shakomako/src/endpoints.js).
 #-------------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS assets
 
@@ -71,6 +74,10 @@ COPY package.json package-lock.json ./
 # --ignore-scripts skips the postinstall Chrome download; the build needs no
 # install scripts.
 RUN npm ci --ignore-scripts --no-audit --no-fund
+# The widget is its own package with its own lockfile. --ignore-scripts also
+# skips its husky git-hook setup.
+COPY shakomako/package.json shakomako/package-lock.json ./shakomako/
+RUN npm ci --prefix shakomako --ignore-scripts --no-audit --no-fund
 
 COPY . .
 # Tailwind reads the pagination views from vendor/ (resources/css/app.css).
@@ -78,6 +85,8 @@ COPY --from=vendor /app/vendor ./vendor
 COPY --from=routes /app/resources/js/routes ./resources/js/routes
 COPY --from=routes /app/resources/js/wayfinder ./resources/js/wayfinder
 RUN WAYFINDER_GENERATE=false npm run build
+# Into public/shakomako.
+RUN npm run shakomako:build
 
 #-------------------------------------------------------------------------------
 # The application.
@@ -118,6 +127,7 @@ COPY --chmod=755 docker/app/bin/ /usr/local/bin/
 COPY --chmod=755 docker/app/entrypoint.d/ /etc/entrypoint.d/
 COPY docker/app/nginx/ /etc/chatvia/nginx/
 COPY docker/app/nginx/security.conf /etc/nginx/server-opts.d/security.conf
+COPY docker/app/nginx/shakomako.conf /etc/nginx/server-opts.d/shakomako.conf
 
 # The app lives in /var/www/chatvia. The base image's scripts, its artisan
 # helper and nginx follow these two settings.
@@ -128,13 +138,14 @@ ENV APP_BASE_DIR=/var/www/chatvia \
 # volume in compose).
 RUN install -d -o www-data -g www-data -m 0755 /var/www/chatvia /var/lib/chatvia \
     && rmdir /var/www/html \
-    && chown www-data:www-data /etc/nginx/server-opts.d/security.conf
+    && chown www-data:www-data /etc/nginx/server-opts.d/security.conf /etc/nginx/server-opts.d/shakomako.conf
 
 WORKDIR /var/www/chatvia
 
 COPY --chown=www-data:www-data --from=vendor /app/vendor ./vendor
 COPY --chown=www-data:www-data . .
 COPY --chown=www-data:www-data --from=assets /app/public/build ./public/build
+COPY --chown=www-data:www-data --from=assets /app/public/shakomako ./public/shakomako
 # Production defaults. Real environment variables always win over this file.
 COPY --chown=www-data:www-data docker/app/production.env ./.env
 

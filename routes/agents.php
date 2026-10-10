@@ -78,6 +78,7 @@ use App\Http\Controllers\Agent\Setup\SetupController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentTemperatureController;
+use App\Http\Controllers\Agent\Slug\GenerateAgentSlugController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAlwaysAvailableController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAttachController;
@@ -119,7 +120,6 @@ use App\Http\Controllers\Agent\Source\Youtube\AgentYoutubeController;
 use App\Http\Controllers\Agent\Source\Youtube\RetrainAgentYoutubeController;
 use App\Http\Controllers\Agent\Starters\AgentStarterController;
 use App\Http\Controllers\Agent\Starters\GenerateStartersController;
-use App\Http\Controllers\Agent\SubDomain\AgentsGenerateRandomSubDomainController;
 use App\Http\Controllers\Agent\Topic\AgentTopicController as TopicsResourceController;
 use App\Http\Controllers\Agent\Widget\AgentBubbleController;
 use App\Http\Controllers\Agent\Widget\WidgetPreviewController;
@@ -411,7 +411,6 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard'])->prefix('my/')->
             ->middleware('agent.permission:agent.setup')->name('temperature.update');
 
         // Custom domain (Hosted Chat) — pass an empty value to clear.
-        // Quota gating happens in the controller.
         Route::patch('domain', UpdateAgentDomainController::class)
             ->middleware('agent.permission:agent.setup')->name('domain.update');
 
@@ -477,5 +476,5 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard'])->prefix('my/')->
 
     Route::post('agents/knowledge/files/analyze', AgentKnowledgeFilesAnalyzeController::class)->name('agents.knowledge.files.analyze');
 
-    Route::get('generate-random-subdomain', AgentsGenerateRandomSubDomainController::class)->name('generate-random-subdomain');
+    Route::get('generate-agent-slug', GenerateAgentSlugController::class)->name('generate-agent-slug');
 });

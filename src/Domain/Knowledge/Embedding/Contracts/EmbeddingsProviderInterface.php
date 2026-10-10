@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Embedding\Contracts;
 
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+
 /**
  * Turns text into vectors for semantic search. The provider is chosen from
  * config (`chatvia.ai.models.embedding`). Reranking is a separate contract
@@ -11,12 +13,6 @@ namespace Domain\Knowledge\Embedding\Contracts;
  */
 interface EmbeddingsProviderInterface
 {
-    /**
-     * Vector size the database stores (halfvec(1024) / vector(1024) columns).
-     * A provider must return vectors of exactly this size.
-     */
-    public const int STORED_DIMENSIONS = 1024;
-
     /**
      * Generate embeddings for a single text, treating it as a document
      * (content to be indexed and later retrieved).
@@ -47,7 +43,8 @@ interface EmbeddingsProviderInterface
     public function embedQuery(string $text, bool $returnAsText = false): string|array;
 
     /**
-     * Get the embedding dimensions for this provider.
+     * The size of the vectors this provider returns. It must equal the size
+     * the database stores ({@see EmbeddingStorage}).
      *
      * @return int The number of dimensions
      */

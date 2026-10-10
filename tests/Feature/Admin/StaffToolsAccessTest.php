@@ -6,13 +6,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 /*
- * Horizon, Telescope, Pulse and Spectra open only for staff signed in to the
+ * Horizon and Spectra open only for staff signed in to the
  * admin panel (its own `admin` guard, with two-factor set up). A dashboard
  * session on the shared `web` guard is not enough, because the dashboard and
  * hosted-chat logins have no two-factor step for admins.
  */
 
-const STAFF_TOOL_GATES = ['viewHorizon', 'viewTelescope', 'viewPulse', 'viewSpectra'];
+const STAFF_TOOL_GATES = ['viewHorizon', 'viewSpectra'];
 
 function staffAdmin(bool $withTwoFactor = true): User
 {

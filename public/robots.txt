@@ -7,7 +7,5 @@ Disallow: /register
 Disallow: /billing
 Disallow: /settings
 Disallow: /_debugbar
-Disallow: /telescope
 Disallow: /horizon
-Disallow: /pulse
 Disallow: /cdn-cgi/

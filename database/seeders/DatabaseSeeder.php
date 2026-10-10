@@ -8,8 +8,6 @@ use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
-use Laravel\Pulse\Facades\Pulse;
-use Laravel\Telescope\Telescope;
 
 /**
  * `php artisan db:seed`. Reference data (the LLM catalogue) is seeded
@@ -23,16 +21,7 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // Pulse and Telescope capture per-query backtraces and the demo
-        // seeders fire tens of thousands of small writes — without disabling
-        // them, the seed run OOMs around 130MB. Safe to leave on for normal
-        // requests; this is seed-only.
-        if (class_exists(Pulse::class)) {
-            Pulse::stopRecording();
-        }
-        if (class_exists(Telescope::class)) {
-            Telescope::stopRecording();
-        }
+        // The demo seeders write tens of thousands of rows.
         ini_set('memory_limit', '1G');
 
         // Reference data every install needs (the chat UI, analytics and

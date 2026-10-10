@@ -7,8 +7,6 @@ use MagicLink\MagicLink;
 
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
 
-Schedule::command('telescope:prune --hours=24')->dailyAt('00:00');
-
 Schedule::command('app:prune-expired-data-exports')->dailyAt('00:15');
 
 // Daily cleanup of visitor-uploaded chat attachments: files whose

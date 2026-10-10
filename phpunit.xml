@@ -42,10 +42,8 @@
         <env name="DB_USERNAME" value="chatvia"/>
         <env name="DB_PASSWORD" value="password"/>
         <env name="MAIL_MAILER" value="array"/>
-        <env name="PULSE_ENABLED" value="false"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
-        <env name="TELESCOPE_ENABLED" value="false"/>
         <!-- laravel-localization registers the landing routes once per boot under
              the locale this env names. Now that the default locale is explicit in
              the URL (hideDefaultLocaleInURL=false), force `en` so route('home') and

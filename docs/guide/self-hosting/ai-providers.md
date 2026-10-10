@@ -14,7 +14,7 @@ You do not need an account with every service. Most steps have a built-in option
 | Search vectors (embeddings) | `AI_EMBEDDING_PROVIDER` | `qwen`, `cohere`, `jina`, `mistral` | — (default `qwen`) |
 | Ranking search results | `AI_RERANKER` | `qwen`, `cohere`, `none` | The reranker of your embedding provider (`qwen` or `cohere`), else `none` |
 | Reading documents | `AI_DOCUMENT_PARSER` | `mistral`, `local` | `mistral` when a Mistral API key is set, else `local` |
-| Splitting text into chunks | `AI_TEXT_SPLITTER` | `chunkfit`, `local` | `chunkfit` when a chunk.fit API key is set, else `local` |
+| Splitting text into chunks | `AI_TEXT_SPLITTER` | `chunkfit`, `local` | `chunkfit` when a chunk.fit API key is set or `CHUNK_FIT_BASE_URL` points to your own chunker, else `local`. The Docker stack always uses its own chunker. |
 | Speech to text | `AI_TRANSCRIBER` | `scaleway`, `none` | `scaleway` when a Scaleway AI API key is set, else `none` |
 | Reading whole PDF files | `AI_DOCUMENT_LLM` | `mistral`, `none` | `mistral` when a Mistral API key is set, else `none` |
 
@@ -110,7 +110,7 @@ Text files, Markdown and ebooks (EPUB, FB2) do not use this step. Chatvia reads 
 
 Text files, ebooks and web pages are split into chunks before they are saved.
 
-- **`chunkfit`** uses the hosted chunk.fit service. It splits by section title. Settings: the chunk.fit key (admin panel, **Settings → Knowledge**), `CHUNK_FIT_BASE_URL`.
+- **`chunkfit`** splits by section title, with chunk.fit's open-source [chunker](https://github.com/chatvia/chunker). Point `CHUNK_FIT_BASE_URL` to your own chunker (no API key), or use the hosted chunk.fit service with its key (admin panel, **Settings → Knowledge**). The key is only ever sent to the hosted service. The Docker stack runs its own chunker and uses it automatically.
 - **`local`** is built in and needs no extra software. It keeps whole paragraphs together, in chunks of about 400 tokens. You can change the size in `config/chatvia.php` under `ai.local_splitter`.
 
 ## Speech to text

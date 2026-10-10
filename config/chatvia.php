@@ -248,7 +248,9 @@ return [
         //   mistral (hosted OCR, also reads images) | local (pdftotext +
         //   LibreOffice, text only). auto = mistral when MISTRAL_API_KEY is set.
         // - text_splitter: splits text files, ebooks and web pages into chunks.
-        //   chunkfit (hosted) | local. auto = chunkfit when CHUNK_FIT_API_KEY is set.
+        //   chunkfit | local. auto = chunkfit when the hosted chunk.fit has its
+        //   API key, or CHUNK_FIT_BASE_URL points to a self-hosted chunker
+        //   (github.com/chatvia/chunker, no key; the Docker stack runs one).
         // - reranker: scores search results and tools against the question.
         //   qwen | cohere | none. auto = the embedding provider's own reranker
         //   (qwen → qwen, cohere → cohere, jina and mistral → none).

@@ -253,19 +253,6 @@ return [
             'timeout' => 120, // 2 minute for text/markdown
             'nice' => 0,
         ],
-        'monitor' => [
-            'connection' => 'redis',
-            'queue' => ['telescope', 'pulse'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 128,
-            'tries' => 1,
-            'timeout' => 60,
-            'nice' => 0,
-        ],
         'exports' => [
             'connection' => 'redis-long',
             'queue' => ['exports'],
@@ -300,11 +287,6 @@ return [
             ],
             'ingestion-light' => [
                 'maxProcesses' => 50, // Most for fast text/markdown
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
-            ],
-            'monitor' => [
-                'maxProcesses' => 10,
                 'balanceMaxShift' => 1,
                 'balanceCooldown' => 3,
             ],

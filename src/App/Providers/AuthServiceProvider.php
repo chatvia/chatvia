@@ -17,9 +17,8 @@ use Laravel\Sanctum\Sanctum;
  *
  *  - `access-agent`: may the user work on an agent from the dashboard
  *    ({@see AgentAccessPolicy::canManage()}).
- *  - `viewPulse` / `viewSpectra` (and Horizon and Telescope in their own
- *    providers): the staff tools, open only to an admin signed in to the
- *    admin panel ({@see StaffToolsAccess}).
+ *  - `viewSpectra` (and Horizon in its own provider): the staff tools, open
+ *    only to an admin signed in to the admin panel ({@see StaffToolsAccess}).
  *  - API tokens of a deactivated account stop working.
  */
 class AuthServiceProvider extends ServiceProvider
@@ -57,9 +56,7 @@ class AuthServiceProvider extends ServiceProvider
 
         // The web-guard user is ignored on purpose: staff tools need the admin
         // panel's own session.
-        foreach (['viewPulse', 'viewSpectra'] as $ability) {
-            Gate::define($ability, fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
-        }
+        Gate::define('viewSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
     }
 
     /**

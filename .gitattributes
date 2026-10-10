@@ -14,12 +14,6 @@
 # these paths is really gone, so keep its list in sync when you add one here.
 # ------------------------------------------------------------------------------
 
-# Production infrastructure and deployment
-/server export-ignore
-/server.sh export-ignore
-/postgresql.conf export-ignore
-/Caddyfile export-ignore
-
 # Private maintainer documents and the export tooling itself
 /internal export-ignore
 /scripts/export-public.sh export-ignore

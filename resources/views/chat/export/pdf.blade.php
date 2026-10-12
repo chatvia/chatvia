@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Conversation Export</title>
     <style>
-        {{-- The PDF is rendered by a headless browser on the server, so the
-             font is embedded instead of fetched from a font CDN. --}}
+        {{-- The PDF is laid out by WeasyPrint on the server, so the font is
+             embedded instead of fetched from a font CDN. --}}
         @font-face {
             font-family: 'Inter';
             font-style: normal;
@@ -261,15 +261,12 @@
         <!-- ChatMessage Content -->
         <div class="messages">
             <div class="message-content no-break">
+                {{-- Each message arrives as HTML from the controller. --}}
                 @foreach ($messages as $message)
-                    @php
-                        $html = app(\Spatie\LaravelMarkdown\MarkdownRenderer::class)->toHtml($message['content']);
-                    @endphp
-
-                    {!! $html !!}
+                    {!! $message['html'] !!}
 
                     <!-- Strategic page break for very long content -->
-                    @if(strlen(strip_tags($html)) > 5000)
+                    @if(strlen(strip_tags($message['html'])) > 5000)
                         @pageBreak
                     @endif
 

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 /**
  * The embed-origin allow-list is the customer's own `sites` plus install-wide
  * hosts from config: the APP_URL host (dashboard playground, hosted chat) and
- * any extra WIDGET_ALWAYS_ALLOWED_ORIGINS. No vendor domain may be built in,
+ * the extra hosts set in the admin panel. No vendor domain may be built in,
  * or every self-hosted install would accept embeds from that domain.
  */
 
@@ -99,13 +99,22 @@ it('allows localhost only in the local environment', function (): void {
 });
 
 it('defaults to the install\'s own APP_URL host and nothing else', function (): void {
-    expect(alwaysAllowedOriginsFor(['APP_URL' => 'https://chat.acme.example', 'WIDGET_ALWAYS_ALLOWED_ORIGINS' => '']))
+    expect(alwaysAllowedOriginsFor(['APP_URL' => 'https://chat.acme.example']))
         ->toBe(['chat.acme.example']);
 });
 
-it('adds the extra hosts from WIDGET_ALWAYS_ALLOWED_ORIGINS to the APP_URL host', function (): void {
-    expect(alwaysAllowedOriginsFor(['APP_URL' => 'https://chatvia.ai', 'WIDGET_ALWAYS_ALLOWED_ORIGINS' => ' Partner.example , ,chatvia.ai']))
-        ->toBe(['chatvia.ai', 'partner.example']);
+it('adds the extra hosts set in the admin panel to the APP_URL host', function (): void {
+    config([
+        'chatvia.widget.always_allowed_origins' => ['chatvia.ai'],
+        'chatvia.widget.extra_allowed_origins' => ' Partner.example , ,chatvia.ai',
+    ]);
+    $agent = agentWithSites([]);
+
+    $verification = app(WidgetVerification::class);
+
+    expect($verification->isRequestFromAllowedSite($agent, originRequest('https://chatvia.ai')))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, originRequest('https://partner.example')))->toBeTrue()
+        ->and($verification->isRequestFromAllowedSite($agent, originRequest('https://evil.example')))->toBeFalse();
 });
 
 it('lets the widget load on the APP_URL host with the default config', function (): void {

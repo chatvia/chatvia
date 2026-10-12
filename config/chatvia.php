@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Domain\Conversation\Services\ConversationRetention;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,7 +24,8 @@ return [
     |
     | Everything that names or links to the product, so a self-hosted install
     | can show its own name and links instead of Chatvia's. Leave a URL empty
-    | to hide the link that uses it.
+    | to hide the link that uses it. Set in the admin panel (Settings → Brand);
+    | the values here are the defaults while nothing is saved there.
     |
     | - name: product name in the UI, emails, file names and outbound headers.
     | - website_url / docs_url / api_docs_url: links shown in the app.
@@ -48,10 +50,8 @@ return [
     | Sign-up and message limits
     |--------------------------------------------------------------------------
     |
-    | Set in the admin panel (Settings → Workspaces), not here. When the app
-    | boots, App\Admin\Settings\SettingsStore puts the saved values into
-    | these keys, or the panel's defaults while nothing is saved. The nulls in
-    | this file are only placeholders.
+    | Set in the admin panel (Settings → Workspaces). The values here are the
+    | defaults while nothing is saved there.
     |
     | `registration_enabled` opens the sign-up form at /register.
     | `message_limits.new_workspace` is the monthly limit on agent replies a
@@ -60,10 +60,10 @@ return [
     |
     */
 
-    'registration_enabled' => null,
+    'registration_enabled' => true,
 
     'message_limits' => [
-        'new_workspace' => null,
+        'new_workspace' => 0,
     ],
 
     /*
@@ -245,8 +245,8 @@ return [
         // See docs/guide/self-hosting/ai-providers.md.
         //
         // - document_parser: reads PDFs, office files and images.
-        //   mistral (hosted OCR, also reads images) | local (pdftotext +
-        //   LibreOffice, text only). auto = mistral when MISTRAL_API_KEY is set.
+        //   mistral (hosted OCR, also reads images) | local (pdftotext, pandoc
+        //   and catdoc, text only). auto = mistral when MISTRAL_API_KEY is set.
         // - text_splitter: splits text files, ebooks and web pages into chunks.
         //   chunkfit | local. auto = chunkfit when the hosted chunk.fit has its
         //   API key, or CHUNK_FIT_BASE_URL points to a self-hosted chunker
@@ -271,6 +271,12 @@ return [
             'chunk_tokens' => 400,
             'overlap_tokens' => 0,
         ],
+
+        // The tokenizer (a tiktoken encoding) every token count uses: chunk
+        // sizes, the stored size of each chunk, estimates. Set in the admin
+        // panel (Settings → Chunking). The chunker counts when it can; the
+        // built-in tokenizer is the fallback.
+        'tokenizer' => 'cl100k_base',
 
         // https://www.scaleway.com/en/docs/generative-apis/reference-content/supported-models/
         'models' => [
@@ -388,9 +394,9 @@ return [
 
             // Knowledge search combines meaning (vector) and keyword (BM25)
             // search; off means meaning only. Set in the admin panel
-            // (Settings → Knowledge → Knowledge search), on by default. Keyword
-            // data is always stored, so it can change at any time.
-            'hybrid' => null,
+            // (Settings → Knowledge), on by default. Keyword data is always
+            // stored, so it can change at any time.
+            'hybrid' => true,
 
             // Rerank is the relevance gate: chunks scoring below
             // relevance_threshold are dropped. Turning this off means every query
@@ -559,8 +565,8 @@ return [
     | Data retention
     |--------------------------------------------------------------------------
     |
-    | `conversations_days` is how long conversations are kept. It is set in
-    | the admin panel (Settings → Workspaces); the null here is a placeholder.
+    | `conversations_days` is how long conversations are kept. Both values are
+    | set in the admin panel (Settings → Workspaces); these are the defaults.
     | A workspace may SHORTEN it via
     | WorkspaceSecurityPolicy.retention_conversations_days (never longer) but
     | not below the floor; the daily app:prune-expired-conversations sweep
@@ -569,7 +575,7 @@ return [
     */
 
     'retention' => [
-        'conversations_days' => null,
+        'conversations_days' => ConversationRetention::DEFAULT_DAYS,
         'conversations_floor_days' => (int) env('CONVERSATION_RETENTION_FLOOR_DAYS', 1),
     ],
 
@@ -702,17 +708,14 @@ return [
 
         // Hosts every agent's widget may load on, on top of each agent's own
         // allowed sites. Always this install's own host (from APP_URL), where
-        // the dashboard playground and hosted chat embed the widget, plus any
-        // extra hosts in WIDGET_ALWAYS_ALLOWED_ORIGINS (comma-separated, e.g.
-        // "example.com,app.example.com"; empty by default), so an install
-        // never trusts an outside domain unless told to.
-        'always_allowed_origins' => array_values(array_unique(array_filter(array_map(
-            static fn (string $host): string => strtolower(trim($host)),
-            [
-                (string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST),
-                ...explode(',', (string) env('WIDGET_ALWAYS_ALLOWED_ORIGINS', '')),
-            ],
-        )))),
+        // the dashboard playground and hosted chat embed the widget, plus the
+        // extra hosts set in the admin panel (Settings → Platform), a
+        // comma-separated list such as "example.com,app.example.com", empty by
+        // default. An install never trusts an outside domain unless told to.
+        'always_allowed_origins' => array_values(array_filter([
+            strtolower((string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST)),
+        ])),
+        'extra_allowed_origins' => env('WIDGET_ALWAYS_ALLOWED_ORIGINS', ''),
 
         // Global per-agent ceilings for the LLM-cost widget stream, keyed on the
         // server-resolved agent so a client cannot multiply its budget (and burn

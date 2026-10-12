@@ -17,7 +17,9 @@ return [
     | Keys set to null here (OAuth apps, API keys, webhook secrets) are managed
     | in the admin panel under Settings. They are stored encrypted in the
     | database and put into this config when the app boots
-    | (App\Admin\Settings\SettingsStore). Do not read them from .env.
+    | (App\Admin\Settings\SettingsConfig). Do not read them from .env. The
+    | addresses and models below can be changed there too; the values here are
+    | the defaults while nothing is saved.
     |
     */
 
@@ -132,14 +134,11 @@ return [
     ],
 
     'bin' => [
-        'node' => env('NODE_BIN_PATH'),
-        'npm' => env('NPM_BIN_PATH'),
-        'nvm_include_path' => env('NVM_INCLUDE_PATH'),
-        'chrome' => env('CHROME_EXECUTABLE_PATH'),
         // Bare names are looked up on the PATH of the process that runs them
         // (usually the queue worker). Set an absolute path when the binary
         // lives somewhere that PATH doesn't cover.
-        'libreoffice' => env('LIBREOFFICE_BIN_PATH', 'soffice'),
+        'catdoc' => env('CATDOC_BIN_PATH', 'catdoc'),
+        'catppt' => env('CATPPT_BIN_PATH', 'catppt'),
         'pandoc' => env('PANDOC_BIN_PATH', 'pandoc'),
         'pdfinfo' => env('PDFINFO_BIN_PATH', 'pdfinfo'),
         'pdftotext' => env('PDFTOTEXT_BIN_PATH', 'pdftotext'),
@@ -231,19 +230,33 @@ return [
         'script_url' => env('PLAUSIBLE_SCRIPT_URL', 'https://plausible.io/js/script.js'),
     ],
 
+    // The chunker (github.com/chatvia/chunker): the hosted chunk.fit or your
+    // own, at the root of its address (it serves /v1/chunk). The strategy and
+    // its options are set in the admin panel (Settings → Chunking); these
+    // are the defaults. A null option is not sent, so the chunker uses its own
+    // default. The recursive splitter with Markdown separators keeps sections
+    // of web pages and ebooks together and joins small ones, in chunks of
+    // about the size the built-in splitter makes.
     'chunkfit' => [
         'api_key' => null,
-        'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit/api/v1'),
+        'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit'),
         'timeout' => (int) env('CHUNK_FIT_TIMEOUT', 120),
-
-        // Unstructured `chunk_by_title` knobs (all in CHARACTERS). Sections are
-        // combined up to `combine_text_under_n_chars` and capped at
-        // `max_characters` — tuned (~250-350 token chunks) to avoid the
-        // many-tiny-chunks problem of raw Markdown-header splitting.
-        'by_title' => [
-            'max_characters' => (int) env('CHUNK_FIT_MAX_CHARACTERS', 2000),
-            'new_after_n_chars' => (int) env('CHUNK_FIT_NEW_AFTER_N_CHARS', 1500),
-            'combine_text_under_n_chars' => (int) env('CHUNK_FIT_COMBINE_UNDER_N_CHARS', 1000),
+        'strategy' => 'langchain.recursive',
+        'options' => [
+            'chunk_size' => 400,
+            'chunk_overlap' => 0,
+            'length_unit' => 'tokens',
+            'language' => 'markdown',
+            'separators' => null,
+            'separator' => null,
+            'max_header_level' => null,
+            'strip_headers' => null,
+            'buffer_size' => null,
+            'breakpoint_percentile_threshold' => null,
+            'min_sentences_per_chunk' => null,
+            'min_characters_per_chunk' => null,
+            'threshold' => null,
+            'similarity_window' => null,
         ],
     ],
 ];

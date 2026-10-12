@@ -4,7 +4,8 @@ namespace Domain\Knowledge\Document\Concerns;
 
 use App\Identity\Workspace\Models\User;
 use Closure;
-use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Document\Conversion\OfficePdf;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -83,20 +84,21 @@ trait HasStorageFile
     /**
      * Run $callback with the Storage path of a PDF version of this file.
      *
-     * A stored PDF is passed as-is and is never deleted. Anything else is
-     * converted with LibreOffice into a temporary PDF under the owner's
+     * A stored PDF is passed as-is and is never deleted. Anything else becomes
+     * a temporary PDF of its text ({@see OfficePdf}) under the owner's
      * `users/{external_id}/tmp/` folder (so a workspace delete also wipes it);
      * that copy and every local conversion file are deleted after the callback.
-     * `parser_filepath` (e.g. a media transcript) is converted when present,
-     * because it holds the readable text.
+     * `parser_filepath` is used when present, because it holds the readable
+     * text: a media transcript, or the parsed pages (JSON) of a document or
+     * image.
      *
      * @template TReturn
      *
-     * @param  LibreOffice  $office  Converts a non-PDF file.
+     * @param  OfficePdf  $pdf  Makes the PDF of a non-PDF file.
      * @param  Closure(string): TReturn  $callback
      * @return TReturn
      */
-    public function withPdf(LibreOffice $office, Closure $callback): mixed
+    public function withPdf(OfficePdf $pdf, Closure $callback): mixed
     {
         if (strtolower(pathinfo((string) $this->filepath, PATHINFO_EXTENSION)) === 'pdf') {
             return $callback($this->storedPath('filepath'));
@@ -107,11 +109,11 @@ trait HasStorageFile
         // attribute — under `Model::shouldBeStrict()` `$this->parser_filepath`
         // would throw MissingAttributeException instead of falling back.
         $field = ($this->getAttributes()['parser_filepath'] ?? null) ? 'parser_filepath' : 'filepath';
+        $extension = strtolower(pathinfo((string) ($this->getAttributes()[$field] ?? ''), PATHINFO_EXTENSION));
 
-        $localPdf = $this->withLocalFile(
-            fn (File $file): string => $office->toPdf($file->getPathname()),
-            $field,
-        );
+        $localPdf = $extension === 'json'
+            ? $pdf->fromPages(PageData::fromJson($this->readContents($field))->pluck('content')->all())
+            : $this->withLocalFile(fn (File $file): string => $pdf->toPdf($file->getPathname(), $extension), $field);
 
         // Looked up by key because not every model sharing this trait has a
         // user() relation.

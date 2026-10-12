@@ -217,13 +217,13 @@ other connector (`config/connectors.php`).
 
 Chatvia has no landing, pricing, blog or legal pages. `/` (route `home`,
 `HomeController`) sends guests to the login form and signed-in users to their
-dashboard. Link your own website with `BRAND_WEBSITE_URL`.
+dashboard. Link your own website in the admin panel (**Settings → Brand**).
 
 ### Other App folders
 
 | Folder | Holds |
 |---|---|
-| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Settings for third-party credentials live in `App\Admin\Settings`. |
+| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
 | `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
@@ -284,7 +284,7 @@ The knowledge base behind the agents' answers (RAG).
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
 | `Knowledge\Embedding` | Embedding providers (`Qwen3`, `Cohere`, `Jina`, `Mistral`) and rerankers (`Qwen3Reranker`, `CohereReranker`, `NullReranker`). |
 | `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + BM25 in one SQL query), `KnowledgeBase` (embed, search, rerank), scoring and retrieval stats. |
-| `Knowledge\Document` | File conversion tools (`LibreOffice`, `Pandoc`, `PdfInfo`) and `HasStorageFile` for models whose file is in storage. |
+| `Knowledge\Document` | File conversion tools (`OfficeText`, `OfficePdf`, `Pandoc`, `CatDoc`, `PdfInfo`) and `HasStorageFile` for models whose file is in storage. |
 
 ### Integration
 
@@ -528,7 +528,7 @@ Ask: is this something the app **does**, or something the app **uses**?
 
 - **Does** → an Action (`CreateAgentAction`, `SubmitFormAction`).
 - **Uses** → a Service: an adapter for an outside system (LLM providers,
-  embeddings, MCP client, LibreOffice) or a stateless utility (`Chunker`,
+  embeddings, MCP client, pandoc) or a stateless utility (`Chunker`,
   `RetrievalScoring`). A service may have several methods that share
   configuration.
 
@@ -663,25 +663,55 @@ have an `auto` value: use the hosted service when its API key is set, otherwise
 a local implementation or "off". A self-hosted install can run without most
 accounts.
 
-| Step | Contract | Drivers | Setting |
+| Step | Contract | Drivers | Config key (Settings → AI) |
 |---|---|---|---|
-| Chat answers | `LlmProviderInterface` | `scaleway`, `mistral`, `openrouter`, `groq` | `LLM_PROVIDER` |
-| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `cohere`, `jina`, `mistral` (must return 1024 dimensions) | `AI_EMBEDDING_PROVIDER` |
-| Reranking | `Reranker` | `qwen`, `cohere`, `none` | `AI_RERANKER` |
-| Reading documents | `DocumentParser` | `mistral`, `local` (pdftotext + LibreOffice) | `AI_DOCUMENT_PARSER` |
-| Splitting text | `TextSplitter` | `chunkfit`, `local` | `AI_TEXT_SPLITTER` |
-| Speech to text | `Transcriber` | `scaleway`, `none` | `AI_TRANSCRIBER` |
-| Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `AI_DOCUMENT_LLM` |
+| Chat answers | `LlmProviderInterface` | `scaleway`, `mistral`, `openrouter`, `groq` | `chatvia.ai.provider` |
+| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `cohere`, `jina`, `mistral` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
+| Reranking | `Reranker` | `qwen`, `cohere`, `none` | `chatvia.ai.reranker` |
+| Reading documents | `DocumentParser` | `mistral`, `local` (pdftotext, pandoc, PhpSpreadsheet, catdoc) | `chatvia.ai.document_parser` |
+| Splitting text | `TextSplitter` | `chunkfit`, `local` | `chatvia.ai.text_splitter` |
+| Speech to text | `Transcriber` | `scaleway`, `none` | `chatvia.ai.transcriber` |
+| Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
 | Files | Laravel disks `private`, `public`, `assets` | local, S3-compatible, Bunny CDN (falls back to local) | `FILESYSTEM_*_DRIVER`, `SCALEWAY_BUCKET`, `BUNNYCDN_STORAGE_ZONE` |
 
-API keys and OAuth apps for outside services (AI providers, Firecrawl,
-chunk.fit, social sign-in, Meta, connectors, Resend, Turnstile, IP2Location)
-and the workspace options (open sign-up, the message limit of new workspaces,
-days to keep conversations) are entered in the admin panel under
-**Settings**. They
-are stored encrypted and put into the same config keys when the app boots,
-before the providers boot (`App\Admin\Settings\SettingsStore`). The `.env`
-file chooses drivers, endpoints and models.
+Everything an admin may want to change lives in the admin panel under
+**Settings**, not in `.env`: API keys and OAuth apps, the AI services, models
+and endpoints, e-mail, brand, default language, CSP, the widget, retention and
+limits. `.env` keeps only what the app needs before it can reach or decrypt
+the database (APP_KEY, DB, Redis, drivers, Reverb, `VITE_*`), storage, the
+embedding storage, and program paths (`*_BIN_PATH`: editable from the web
+they would let a stolen admin login run commands on the server).
+
+How it works:
+
+- **Storage.** spatie/laravel-settings: one class per Settings page in
+  `App\Admin\Settings` (listed in `config/settings.php`), one row per property
+  in the `settings` table, created by the settings migrations in
+  `database/settings`. Secrets carry `#[ShouldBeEncrypted]` and are encrypted
+  with APP_KEY.
+- **Reading.** Code reads `config()`, never a settings class (Domain may not
+  import `App`, and Socialite or the mailer read config anyway). Each property
+  names its config key with `#[ConfigKey]`. `SettingsConfig` copies the saved
+  values into config in `AdminSettingsServiceProvider::boot()` (first app
+  provider), again before every queued job, and after every save. A blank
+  property keeps the config/*.php value, which `.env` may still preset.
+- **Caching.** Settings are cached (secrets stay encrypted in the cache); a
+  save updates the cache, `migrate` clears it.
+- **Admin UI.** `Settings` opens on an overview of tiles (one per page,
+  grouped). Each page (`AdminSettingsPage`) shows a tile per `SettingsCard`
+  (a service or a group of options) with its status; a tile opens the card's
+  own page (`?card=`), with its fields and Save.
+- **Adding an option.** Add a nullable property with `#[ConfigKey]` to the
+  right class, a line to its settings migration, and a field to its card.
+  Give the config key a default in config/*.php.
+- **Chunking.** The chunker (github.com/chatvia/chunker) is called on
+  `POST /v1/chunk` with the strategy and only that strategy's options
+  (`ChunkerStrategy`, `ChunkerConfigData`). Token counts go through
+  `TokenCounter`: the chunker's `POST /v1/tokens` with the tokenizer set in
+  Settings → Chunking (`chatvia.ai.tokenizer`), and the built-in `TikToken`
+  (same tokenizer) when the chunker cannot count.
+- **Command line.** `php artisan app:settings` lists the values (never
+  secrets), `php artisan app:setting group.property value` sets one.
 
 Switches for a self-hosted install:
 
@@ -690,7 +720,7 @@ Switches for a self-hosted install:
 | Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
-| `BRAND_*` | Product name, links and the "Powered by" line. |
+| Brand (admin panel, **Settings → Brand**) | Product name, links and the "Powered by" line. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: `docs/guide/self-hosting/`.
@@ -806,7 +836,7 @@ folder also works on its own.
   same server), and the WebSocket (Reverb) settings from the widget settings
   response (`chatvia.widget.reverb`).
 - The app points to `embed.js` with `chatvia.widget.script_url_embed`: the copy
-  in `public/shakomako`, unless `WIDGET_SCRIPT_URL` names another one.
+  in `public/shakomako`, unless the admin panel (**Settings → Platform**) names another one.
 - `.github/workflows/shakomako-mirror.yml` publishes the folder, with only its
   own history, to a separate read-only repository (every push to `main` and
   every `v*` tag). The copy closes pull requests with a pointer back here

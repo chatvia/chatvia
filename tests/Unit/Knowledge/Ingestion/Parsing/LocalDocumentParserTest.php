@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Document\Conversion\OfficeText;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
@@ -8,7 +8,7 @@ use Symfony\Component\Process\ExecutableFinder;
 
 /**
  * The local document parser reads documents on the server with poppler's
- * pdftotext (office files go through LibreOffice first), so an install
+ * pdftotext (office files are read by OfficeText), so an install
  * without an OCR service can still ingest PDFs. The PDF tests need the
  * pdftotext binary and skip cleanly when it is not installed.
  */
@@ -87,26 +87,32 @@ it('reads each PDF page into its own PageData', function (): void {
     @unlink($path);
 });
 
-it('turns office files into a PDF with LibreOffice first and removes that PDF afterwards', function (): void {
-    if (! ldpPdftotextAvailable()) {
-        $this->markTestSkipped('pdftotext is not installed.');
-    }
-
-    $converted = ldpPdf(['Converted from Word.']);
+it('reads office files through OfficeText, one PageData per page', function (): void {
     $docx = create_temp_file('policy.docx', 'not really a docx');
 
-    $this->mock(LibreOffice::class, function ($mock) use ($docx, $converted): void {
-        $mock->shouldReceive('supportsFormat')->with('docx')->andReturnTrue();
-        $mock->shouldReceive('toPdf')->once()->with($docx)->andReturn($converted);
+    $this->mock(OfficeText::class, function ($mock) use ($docx): void {
+        $mock->shouldReceive('supports')->with('docx')->andReturnTrue();
+        $mock->shouldReceive('pages')->once()->with($docx, 'docx')->andReturn(['First page.', 'Second page.']);
     });
 
     $pages = app(LocalDocumentParser::class)->parse($docx, 'users/ws/agents/agent/tmp');
 
-    expect($pages)->toHaveCount(1)
-        ->and($pages[0]->content)->toBe('Converted from Word.')
-        ->and(file_exists($converted))->toBeFalse();
+    expect($pages)->toHaveCount(2)
+        ->and($pages[0]->content)->toBe('First page.')
+        ->and($pages[1]->pageNumber)->toBe(2);
 
     @unlink($docx);
+});
+
+it('reads a plain-text file without any outside program', function (): void {
+    $txt = create_temp_file('notes.txt', "Opening hours.\n\nMonday to Friday.");
+
+    $pages = app(LocalDocumentParser::class)->parse($txt, 'users/ws/agents/agent/tmp');
+
+    expect($pages)->toHaveCount(1)
+        ->and($pages[0]->content)->toBe("Opening hours.\n\nMonday to Friday.");
+
+    @unlink($txt);
 });
 
 it('explains that images need an OCR service', function (): void {
@@ -118,7 +124,7 @@ it('explains that images need an OCR service', function (): void {
     @unlink($image);
 });
 
-it('rejects a format LibreOffice cannot open', function (): void {
+it('rejects a format it cannot read', function (): void {
     $file = create_temp_file('archive.xyz', 'bytes');
 
     expect(fn () => app(LocalDocumentParser::class)->parse($file, 'users/ws/agents/agent/tmp'))

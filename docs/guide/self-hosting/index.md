@@ -29,17 +29,19 @@ you use:
 
 | Program | Used for |
 | --- | --- |
-| LibreOffice (`soffice`) | Word, PowerPoint and Excel files |
 | poppler (`pdfinfo`, `pdftotext`) | PDF files |
-| pandoc | EPUB and FB2 e-books |
+| pandoc | Word (`.docx`), ODT, RTF, EPUB and FB2 files |
+| catdoc (`catdoc`, `catppt`) | Old Word (`.doc`) and PowerPoint (`.ppt`) files |
 | ffmpeg (`ffmpeg`, `ffprobe`) | Audio and video files |
-| Chrome (headless) | Exporting a chat as PDF. `npm ci` downloads one. |
+| WeasyPrint (`weasyprint`) | Exporting a chat as PDF, and summaries of office files |
 | `pg_dump` | The built-in database backup |
 
 The programs must be on the `PATH` of the queue worker, because files are
-processed in background jobs. If a program is somewhere else, set its path in
-`.env` (`LIBREOFFICE_BIN_PATH`, `PDFTOTEXT_BIN_PATH`, `PDFINFO_BIN_PATH`,
-`PANDOC_BIN_PATH`, `FFMPEG_BIN_PATH`, `FFPROBE_PATH`, `CHROME_EXECUTABLE_PATH`).
+processed in background jobs (WeasyPrint: also the web server). PowerPoint
+(`.pptx`) and Excel (`.xlsx`) files are read by Chatvia itself. If a program is
+somewhere else, set its path in `.env` (`PDFTOTEXT_BIN_PATH`,
+`PDFINFO_BIN_PATH`, `PANDOC_BIN_PATH`, `CATDOC_BIN_PATH`, `CATPPT_BIN_PATH`,
+`FFMPEG_BIN_PATH`, `FFPROBE_PATH`, `WEASYPRINT_BIN_PATH`).
 
 ### Accounts with outside services
 
@@ -108,10 +110,6 @@ DB_PASSWORD=a-strong-password
 REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=a-strong-password
 
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.example.com
-MAIL_FROM_ADDRESS=chat@example.com
-
 REVERB_APP_ID=a-random-value
 REVERB_APP_KEY=a-random-value
 REVERB_APP_SECRET=a-random-value
@@ -132,16 +130,13 @@ You can make random values with `openssl rand -hex 32`. See
 [Embedding storage](#embedding-storage).
 :::
 
-E-mail must work before other people use the server. People who sign up must
-confirm their e-mail address, and invitations and sign-in links are sent by
-e-mail.
-
-::: info API keys are not in `.env`
-API keys and OAuth apps for outside services (AI providers, Firecrawl,
-chunk.fit, social sign-in, Messenger/Instagram/WhatsApp, connectors,
-Resend, Turnstile, IP2Location) are entered in the admin panel, under
-**Settings**. They are stored encrypted in the database. `.env` only chooses
-which service to use, its address and its models.
+::: info Most settings are not in `.env`
+`.env` only holds what Chatvia needs to start: the address, the database,
+Redis, the WebSocket server and a few secrets. Everything else is set in the
+admin panel, under **Settings** (step 6): API keys and OAuth apps, the AI
+services and models, e-mail, your brand, the default language, security
+headers, the chat widget, retention and limits. Secrets are stored encrypted
+in the database.
 :::
 
 ### 3. Build the frontend
@@ -175,14 +170,25 @@ The command asks for a password, so it does not end up in your shell history.
 The new account is an admin with its own workspace and team, so it can sign in
 to the dashboard (`/login`) and start building agents.
 
-### 6. Add your API keys
+### 6. Set up the admin panel
 
 1. Open the admin panel at `/admin` and sign in with the admin account.
 2. Set up two-factor authentication with an authenticator app. In
    production, the admin panel requires it.
-3. Go to **Settings → AI providers** and enter the key of your chat and
-   embedding provider. Add other keys (for example **Settings → Knowledge** for
-   website import) when you need them.
+3. Go to **Settings → AI** and enter the key of your chat and embedding
+   provider. Add other keys (for example **Settings → Knowledge** for website
+   import) when you need them.
+4. Go to **Settings → Email** and set up how Chatvia sends e-mail. Use
+   **Send a test email** to check it. E-mail must work before other people use
+   the server: people who sign up must confirm their e-mail address, and
+   invitations and sign-in links are sent by e-mail.
+5. Look through the other Settings pages, for example **Brand** for your own
+   name and links.
+
+A change in the admin panel applies right away, also to the queue workers. You
+can also set values from the command line: `php artisan app:settings` lists
+them, and `php artisan app:setting <key> <value>` sets one (an API key is read
+from standard input when you leave the value out).
 
 ### 7. Add the built-in tools
 
@@ -219,40 +225,57 @@ php artisan event:cache
 php artisan view:cache
 ```
 
-Run `config:cache` again every time you change `.env`.
+Run `config:cache` again every time you change `.env`. Changes in the admin
+panel need no cache step.
 
 ## Configuration overview
 
-`.env.example` groups the settings into sections. The table shows what each
-section is for.
+Most settings are in the admin panel, under **Settings**. It opens on an overview of all topics; each topic shows a tile per service or group of options, and a tile opens its own page:
+
+| Page | What it sets |
+| --- | --- |
+| Sign-in | The OAuth apps behind "Sign in with Google, Microsoft, GitHub, Slack". |
+| Channels | The Meta apps for Messenger, Instagram and WhatsApp. |
+| AI | Which service does each AI step, the models, and each provider's key and address. See [AI providers](./ai-providers.md). |
+| Knowledge | How agents search, optional AI steps during ingestion, and website import (Firecrawl). |
+| Chunking | How text is split into chunks (the chunker and its strategy, or the built-in splitter), and the tokenizer. |
+| Connectors | The OAuth apps of the connectors that need one. |
+| Email | How e-mail is sent (SMTP or Resend) and the sender. |
+| Brand | Your product name and links (see [Your brand](#your-brand)). |
+| Workspaces | Sign-up, message limits and how long conversations are kept (see [Workspaces and sign-up](#workspaces-and-sign-up)). |
+| Platform | Default language, content security policy, the chat widget, Plausible, IP2Location, the built-in tools, Horizon alerts. |
+| Retention & limits | How long the logs are kept, the tool rate limit, the guardrails switch. |
+
+A field you leave empty uses its default. The default can also come from
+`.env`: the Docker image uses this to point Chatvia to its own chunker.
+
+`.env.example` holds the rest, grouped into sections:
 
 | Section | What it sets |
 | --- | --- |
 | App | Name, URL, environment, logging. |
-| Brand | Your product name and links (see [Your brand](#your-brand)). |
 | Database | PostgreSQL connection. Analytics and the AI request log can move to their own databases. |
 | Redis, cache, sessions and queues | Redis connection. Keep `SESSION_DRIVER=database` and `QUEUE_CONNECTION=redis`. |
-| Mail | How e-mail is sent. |
+| Mail (local development) | Sends mail to Mailpit on your own computer. |
 | Broadcasting / Reverb | The WebSocket server. |
 | Storage | Where files are kept (see [Files and storage](#files-and-storage)). |
-| Workspaces | Nothing: sign-up, message limits and how long conversations are kept are set in the admin panel (see [Workspaces and sign-up](#workspaces-and-sign-up)). |
-| AI providers | Which service does each AI step. See [AI providers](./ai-providers.md). |
-| Binaries | Paths to LibreOffice, poppler, pandoc, ffmpeg and Chrome. |
-| Security | Built-in tool secret, trusted proxies, cookies, content security policy, rate limits. |
-| Channels, Connectors, Social login | Only addresses and versions. The keys are in the admin panel. |
-| Observability | Error reports, Horizon alerts, the AI request log. |
-| Advanced tuning | Search, tools, retention and audit settings. The defaults are fine for most installs. |
+| AI providers | The embedding storage (see [Embedding storage](#embedding-storage)), and chunker and Firecrawl timings. |
+| Binaries | Paths to poppler, pandoc, catdoc, ffmpeg and WeasyPrint. |
+| Security | Built-in tool secret, trusted proxies, cookies. |
+| Observability | Error reports, the AI request log. |
+| Advanced tuning | Tool routing, search internals and audit sizes. The defaults are fine for most installs. |
 
 ### Workspaces and sign-up
 
-Sign-up, message limits and how long conversations are kept are not set in
-`.env`. Set them in the admin panel, under **Settings → Workspaces**:
+Sign-up, message limits and how long conversations are kept are set in the
+admin panel, under **Settings → Workspaces**:
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| Open sign-up | On | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (the `MAIL_*` settings) must work. Turn it off after you have created your accounts. You can still invite teammates. |
+| Open sign-up | On | Opens the sign-up page at `/register`. People who sign up must confirm their e-mail address before they can use the app, so e-mail sending (**Settings → Email**) must work. Turn it off after you have created your accounts. You can still invite teammates. |
 | Monthly message limit of new workspaces | `0` | How many agent replies a new workspace can get each month. It is applied when someone signs up. `0` means no limit. |
 | Days to keep conversations | `366` | Older conversations are deleted. A workspace can choose fewer days in its security settings, but never more. |
+| Fewest days a workspace may choose | `1` | The lowest number of days a workspace can keep conversations. |
 
 A change applies from the next request. Every workspace can use every
 feature.
@@ -270,13 +293,14 @@ counted and what happens when a limit is reached.
 
 ### Your brand
 
-Chatvia can show your own name and links instead of its own:
+Chatvia can show your own name and links instead of its own. Set them in the
+admin panel, under **Settings → Brand**:
 
-| Setting | What it changes |
+| Option | What it changes |
 | --- | --- |
-| `BRAND_NAME` | Product name in the app, e-mails and file names. The default is `APP_NAME`. |
-| `BRAND_WEBSITE_URL`, `BRAND_DOCS_URL`, `BRAND_API_DOCS_URL` | Links shown in the app. Leave one empty to hide that link. |
-| `BRAND_POWERED_BY_ENABLED`, `BRAND_POWERED_BY_LABEL`, `BRAND_POWERED_BY_URL` | The "Powered by ..." line under hosted chats and widgets. Each agent can also hide it. |
+| Product name | The name in the app, e-mails and file names. The default is `APP_NAME`. |
+| Website, Documentation, API documentation | Links shown in the app. Leave one empty to hide that link. |
+| Powered by | The "Powered by ..." line under hosted chats and widgets. Each agent can also hide it. |
 
 ### Embedding storage
 
@@ -296,7 +320,7 @@ someone changed them after install. Run it after every upgrade (the Docker
 image does).
 
 Keyword search is different: it is a switch in the admin panel (**Settings →
-Knowledge → Knowledge search**) that you can change at any time. When it is
+Knowledge → Search**) that you can change at any time. When it is
 on (the default), agents search by keywords as well as by meaning.
 
 ### Files and storage
@@ -369,8 +393,8 @@ The built widget needs no settings of its own:
   Reverb.
 
 The embed snippets in the dashboard point to `{APP_URL}/shakomako/embed.js`.
-To serve the widget from somewhere else, for example a CDN, set
-`WIDGET_SCRIPT_URL`.
+To serve the widget from somewhere else, for example a CDN, set **Widget
+script address** in the admin panel (**Settings → Platform**).
 
 Other websites load these files, and the loader reads `version.json` with a
 browser request, so nginx must allow any origin for `/shakomako/`. A release
@@ -398,7 +422,8 @@ location = /shakomako/version.json {
 ```
 
 Each agent has a list of websites where its widget may load. To allow a host
-for every agent, add it to `WIDGET_ALWAYS_ALLOWED_ORIGINS`.
+for every agent, add it to **Sites every widget may load on** in the admin
+panel (**Settings → Platform**).
 
 ### Security settings
 
@@ -412,7 +437,7 @@ Before you open the install to other people, check these settings:
 | `TRUSTED_PROXIES` | The IP addresses or ranges of your load balancer or CDN. Without it, every visitor has the proxy's IP address and rate limits stop working. |
 | `BUILTIN_MCP_SECRET` | A long random value. The built-in tools stop working while it is empty. |
 | `REVERB_APP_SECRET` | A long random value. |
-| `CSP_MODE` | Starts as `report-only`. Switch to `enforce` when the reports are clean. |
+| Content Security Policy (admin panel, **Settings → Platform**) | Starts as "Report only". Switch to "Enforce" when the reports are clean. |
 | `DB_SSLMODE` | `require` or `verify-full` when the database is on another server. |
 | Open sign-up (admin panel, **Settings → Workspaces**) | Off once your accounts exist, unless you want open sign-up. |
 

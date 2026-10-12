@@ -10,11 +10,9 @@ use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ChatExportFormat;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Str;
-use Spatie\Browsershot\Browsershot;
-use Spatie\LaravelMarkdown\MarkdownRenderer;
+use League\CommonMark\ConverterInterface;
 use Spatie\LaravelPdf\Facades\Pdf;
 use Spatie\LaravelPdf\PdfBuilder;
-use Support\Browsershot\BrowsershotConfigurator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
@@ -29,8 +27,7 @@ readonly class ChatExportController
     public function __construct(
         private ChatMemory $memory,
         private HostedChatSession $session,
-        private BrowsershotConfigurator $browsershotConfig,
-        private MarkdownRenderer $markdown,
+        private ConverterInterface $markdown,
     ) {}
 
     public function __invoke(
@@ -46,7 +43,7 @@ readonly class ChatExportController
         return match ($request->exportFormat()) {
             ChatExportFormat::Pdf => $this->toPdf($messages, $filename),
             ChatExportFormat::Markdown => $this->download($messages, static fn (array $message): string => $message['content'], $filename.'.md'),
-            ChatExportFormat::Text => $this->download($messages, fn (array $message): string => strip_tags($this->markdown->toHtml($message['content'])), $filename.'.txt'),
+            ChatExportFormat::Text => $this->download($messages, fn (array $message): string => strip_tags($this->html($message)), $filename.'.txt'),
         };
     }
 
@@ -73,9 +70,26 @@ readonly class ChatExportController
      */
     private function toPdf(array $messages, string $filename): PdfBuilder
     {
-        return Pdf::withBrowsershot(fn (Browsershot $browsershot): Browsershot => $this->browsershotConfig->configure($browsershot))
-            ->view('chat.export.pdf', ['messages' => $messages])
+        $rendered = array_map(fn (array $message): array => [
+            'role' => $message['role'],
+            'html' => $this->html($message),
+        ], $messages);
+
+        // Laid out by WeasyPrint (config/laravel-pdf.php), which may load only
+        // data: URLs, so a link in a message cannot make the server fetch it.
+        return Pdf::view('chat.export.pdf', ['messages' => $rendered])
             ->download($filename.'.pdf');
+    }
+
+    /**
+     * A message's Markdown as HTML (raw HTML in it is stripped by the converter
+     * settings, config/markdown.php).
+     *
+     * @param  array<string, mixed>  $message
+     */
+    private function html(array $message): string
+    {
+        return $this->markdown->convert((string) $message['content'])->getContent();
     }
 
     /**

@@ -8,15 +8,17 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Thin wrapper over the `pandoc` binary, used to extract text from the
- * structured-text ebook formats the document parsers can't read (EPUB, FictionBook).
+ * Thin wrapper over the `pandoc` binary, used to extract text from structured
+ * documents: the ebook formats (EPUB, FictionBook) and the word-processor
+ * formats {@see OfficeText} reads with it (DOCX, ODT, RTF).
  *
  * These are already text, so there's nothing to OCR: `toMarkdown()` feeds the
- * direct-chunk ingestion pipeline (titles preserved for the text splitter) and
- * `toText()` feeds FileAnalyzer's word-count page estimate. We never produce a
- * PDF — there's no LaTeX/PDF engine installed. The reader is passed explicitly
- * via `--from` because the uploaded temp file carries no extension for Pandoc
- * to infer the input format from.
+ * direct-chunk ingestion pipeline (titles preserved for the text splitter),
+ * `toText()` feeds FileAnalyzer's word-count page estimate, and
+ * `toGithubMarkdown()` gives office documents Markdown with pipe tables. We
+ * never produce a PDF — there's no LaTeX/PDF engine installed. The reader is
+ * passed explicitly via `--from` because the uploaded temp file carries no
+ * extension for Pandoc to infer the input format from.
  */
 class Pandoc
 {
@@ -28,6 +30,9 @@ class Pandoc
     private const array READERS = [
         'epub' => 'epub',
         'fb2' => 'fb2',
+        'docx' => 'docx',
+        'odt' => 'odt',
+        'rtf' => 'rtf',
     ];
 
     public function __construct()
@@ -43,6 +48,17 @@ class Pandoc
     public function toMarkdown(string $path, string $extension): string
     {
         return $this->convert($path, $extension, 'markdown');
+    }
+
+    /** GitHub-flavoured Markdown: tables as pipe tables, no Pandoc-only syntax. */
+    public function toGithubMarkdown(string $path, string $extension): string
+    {
+        return $this->convert($path, $extension, 'gfm');
+    }
+
+    public function supports(string $extension): bool
+    {
+        return $this->readerFor($extension) !== null;
     }
 
     private function convert(string $path, string $extension, string $to): string

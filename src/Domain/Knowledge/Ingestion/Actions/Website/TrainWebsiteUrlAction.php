@@ -8,6 +8,7 @@ use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
+use Domain\Knowledge\Ingestion\Services\TokenCounter;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
@@ -15,7 +16,6 @@ use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Firecrawl;
-use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +40,7 @@ class TrainWebsiteUrlAction
         private readonly Firecrawl $firecrawl,
         private readonly TextSplitter $splitter,
         private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly TokenCounter $tokens,
     ) {}
 
     public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent): void
@@ -175,7 +176,7 @@ class TrainWebsiteUrlAction
                 'summary' => null,
                 'chunked_using_model' => $this->splitter->name(),
                 'cost_in_micro_cents' => 0,
-                'tokens' => TikToken::countTokens($part),
+                'tokens' => $this->tokens->count($part),
                 'embedding' => $vector,
                 'embedding_bm25' => Bm25Tokenizer::expression($part),
                 'metadata' => [],

@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Parsing;
 
-use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Document\Conversion\OfficeText;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
@@ -14,12 +14,12 @@ use InvalidArgumentException;
 
 /**
  * Document parser that runs on the server with no outside service. PDFs are
- * read with poppler's `pdftotext`; office files are first turned into a PDF
- * with LibreOffice (the same tool the app uses to count their pages), so page
- * numbers match what the owner is billed for.
+ * read with poppler's `pdftotext`; office and plain-text files are read by
+ * {@see OfficeText} (pandoc, PhpSpreadsheet, catdoc), which also gives their
+ * pages — the same count the upload check uses.
  *
  * It only reads the text layer: it cannot read scanned pages or images, and it
- * does not pull out the images and tables inside a document.
+ * does not pull out the images inside a document.
  */
 class LocalDocumentParser implements DocumentParser
 {
@@ -29,7 +29,7 @@ class LocalDocumentParser implements DocumentParser
     private const int TIMEOUT_SECONDS = 600;
 
     public function __construct(
-        private readonly LibreOffice $libreOffice,
+        private readonly OfficeText $officeText,
     ) {}
 
     public function parse(string $filePath, string $storageDirectory): Collection
@@ -48,17 +48,11 @@ class LocalDocumentParser implements DocumentParser
             return $this->pages($this->pdfText($filePath));
         }
 
-        if (! $this->libreOffice->supportsFormat($extension)) {
+        if (! $this->officeText->supports($extension)) {
             throw DocumentParsingException::unsupportedFormat($extension);
         }
 
-        $pdfPath = $this->libreOffice->toPdf($filePath);
-
-        try {
-            return $this->pages($this->pdfText($pdfPath));
-        } finally {
-            @unlink($pdfPath);
-        }
+        return $this->pageData($this->officeText->pages($filePath, $extension));
     }
 
     public function name(): string
@@ -96,6 +90,15 @@ class LocalDocumentParser implements DocumentParser
             array_pop($pages);
         }
 
+        return $this->pageData($pages);
+    }
+
+    /**
+     * @param  array<int, string>  $pages
+     * @return Collection<int, PageData>
+     */
+    private function pageData(array $pages): Collection
+    {
         return collect($pages)
             ->values()
             ->map(function (string $page, int $index): PageData {

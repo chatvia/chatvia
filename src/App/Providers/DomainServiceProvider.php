@@ -54,10 +54,8 @@ use Domain\Integration\Tool\Dispatch\RoutingToolDispatcher;
 use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
-use Domain\Knowledge\Embedding\Jina;
-use Domain\Knowledge\Embedding\Mistral;
-use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\CohereReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
@@ -166,12 +164,9 @@ class DomainServiceProvider extends ServiceProvider
         ));
 
         $this->app->bind(function ($app): EmbeddingsProviderInterface {
-            $provider = match (config('chatvia.ai.models.embedding', 'mistral')) {
-                'jina' => $app->make(Jina::class),
-                'qwen' => $app->make(Qwen3::class),
-                'mistral' => $app->make(Mistral::class),
-                default => $app->make(Cohere::class),
-            };
+            $provider = $app->make(
+                EmbeddingProvider::tryFrom((string) config('chatvia.ai.models.embedding'))?->providerClass() ?? Cohere::class,
+            );
 
             // The vector columns have a fixed size: fail here with a clear
             // message instead of on the first insert or search.

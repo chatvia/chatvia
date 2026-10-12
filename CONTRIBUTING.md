@@ -31,8 +31,12 @@ composer dev                  # app server, queue worker, logs and Vite
 ```
 
 You need PHP 8.5, Composer 2 and Node 22. The system tools listed in the
-README (LibreOffice, pandoc, poppler, ffmpeg) are only needed for the features
-that use them.
+README (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) are only needed for the
+features that use them.
+
+With only Docker on your machine, use Laravel Sail instead: it runs the app,
+the queue worker, the scheduler and Reverb in containers, with every system
+tool installed. See [Develop with Laravel Sail](README.md#develop-with-laravel-sail).
 
 ## Making a change
 

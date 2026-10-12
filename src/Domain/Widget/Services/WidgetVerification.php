@@ -115,8 +115,9 @@ class WidgetVerification
     /**
      * Hosts every agent's widget may load on, on top of the customer's own
      * list: the install's own APP_URL host (where the dashboard playground and
-     * the hosted chat embed the widget) plus the extra hosts in
-     * `chatvia.widget.always_allowed_origins`. No vendor domain is built in, so
+     * the hosted chat embed the widget, `chatvia.widget.always_allowed_origins`)
+     * plus the extra hosts set in the admin panel
+     * (`chatvia.widget.extra_allowed_origins`). No vendor domain is built in, so
      * a self-hosted install never trusts someone else's domain. `localhost` is
      * added only in the local environment: in production a faked
      * `Origin: localhost` would otherwise pass every allow-list.
@@ -125,16 +126,18 @@ class WidgetVerification
      */
     private function alwaysAllowedHosts(): array
     {
-        $configured = config('chatvia.widget.always_allowed_origins', []);
+        $configured = [];
 
-        if (is_string($configured)) {
-            $configured = explode(',', $configured);
+        foreach (['always_allowed_origins', 'extra_allowed_origins'] as $key) {
+            $value = config("chatvia.widget.{$key}", []);
+
+            array_push($configured, ...(is_string($value) ? explode(',', $value) : (array) $value));
         }
 
-        $hosts = array_values(array_filter(array_map(
+        $hosts = array_values(array_unique(array_filter(array_map(
             static fn (mixed $host): string => strtolower(trim((string) $host)),
-            (array) $configured,
-        )));
+            $configured,
+        ))));
 
         if (app()->environment('local')) {
             $hosts[] = 'localhost';

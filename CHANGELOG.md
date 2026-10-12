@@ -20,8 +20,8 @@ theme.
   server-side request forgery, CSRF protection on the hosted chat, rate limits
   on public endpoints, and secrets in logs. Each fix has a regression test.
   Self-hosters should update to this version.
-- A content security policy, set with `CSP_MODE` (`off`, `report-only` or
-  `enforce`; the default is `report-only`).
+- A content security policy, set in the admin panel (**Settings → Platform**:
+  off, report only or enforce; the default is report only).
 - Chat lookups (stream, feedback, rename) are scoped to the caller's own
   session, and malformed widget requests are answered with a client error
   instead of a server error.
@@ -33,11 +33,11 @@ theme.
   issue templates and a pull request template.
 - New `ARCHITECTURE.md`: how the code is organised, the conventions and the
   glossary. The README was rewritten for new contributors and self-hosters.
-- The product name and links come from configuration (`BRAND_*`). There
+- The product name and links come from the admin panel (**Settings → Brand**). There
   are no hard-coded links, personal e-mail addresses or vendor account ids
   any more.
 - Fonts are served by the app itself. Page-view analytics (Plausible) only
-  load when `PLAUSIBLE_DOMAIN` is set.
+  load when a Plausible domain is set (**Settings → Platform**).
 - Seeders and factories no longer depend on a personal account, and demo data
   is never created in production.
 - The public website (landing, pricing, blog, changelog, contact, legal and
@@ -78,17 +78,45 @@ theme.
 
 ### Self-hosting
 
-- A new **Settings → Workspaces** group in the admin panel, stored encrypted
-  like the other settings (not in `.env`): **Open sign-up** (opens
+- Almost every setting moved from `.env` to the admin panel, under
+  **Settings**, so an install can be set up without editing files. One page
+  per topic: Sign-in, Channels, AI, Knowledge, Connectors, Email, Brand,
+  Workspaces, Platform, and Retention & limits. This covers API keys and
+  OAuth apps, the AI services, models and addresses, e-mail (SMTP or Resend,
+  with a test e-mail button), brand, default language, the content security
+  policy, the chat widget, Plausible, Horizon alerts, log retention and the
+  tool rate limit. Secrets are encrypted and never sent back to the browser.
+  A blank field keeps its default, which `.env` can still preset. `.env`
+  keeps only what the app needs to start, plus storage and program paths.
+- Settings opens on an overview of tiles, one per topic; each topic shows a
+  tile per service or group of options, and a tile opens its own page.
+- A **Settings → Chunking** page: the splitter (the chunker or the built-in
+  one), the chunker's address and key, the library and strategy (LangChain,
+  LlamaIndex, Chonkie: recursive, sentences, fixed tokens, Markdown headings,
+  semantic, ...) with only that strategy's options, and a **Try it** preview
+  that splits a sample before you save. The chunker client moved to the
+  chunker's new API (`/v1/chunk`, `/v1/engines`, `/v1/tokens`).
+- The **tokenizer** is a setting. Token counts come from the chunker with that
+  tokenizer, and from Chatvia's own tokenizer when the chunker cannot count.
+- `php artisan app:settings` lists the admin-panel settings (never secrets);
+  `php artisan app:setting group.property value` sets one, for installers
+  and scripts. An API key is read from standard input when the value is left
+  out.
+- The embedding provider and its model are locked in the admin panel once a
+  source is trained, and a provider that cannot return the stored vector size
+  is refused.
+- A **Settings → Workspaces** page in the admin panel: **Open sign-up** (opens
   `/register`, on by default), **Monthly message limit of new workspaces**
   (applied at sign-up; 0, the default, means no limit) and **Days to keep
   conversations** (366 by default; a workspace can choose fewer days in its
   security settings, never more).
 - AI services sit behind contracts with `auto` drivers: document reading
-  (Mistral or local `pdftotext` + LibreOffice), text splitting (chunk.fit or
-  local), reranking, speech to text and whole-PDF reading. Each one uses the
+  (Mistral, or local: `pdftotext`, pandoc and catdoc, with no office suite),
+  text splitting (chunk.fit or local), reranking, speech to text and
+  whole-PDF reading. Each one uses the
   hosted service when its API key is set and a local or "off" option when it
-  is not. Endpoints and models are set in `.env`.
+  is not. Services, endpoints and models are set in the admin panel
+  (**Settings → AI**).
 - Chatvia stops with a clear error when the embedding model does not return
   1024 dimensions.
 - API keys and OAuth apps for outside services are managed in the admin panel

@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Source\File\Services;
 
-use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Document\Conversion\OfficeText;
 use Domain\Knowledge\Document\Conversion\Pandoc;
 use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Ingestion\Services\Media\AudioDurationExtractor;
@@ -18,7 +18,8 @@ use Throwable;
  * true page count only during ingestion, so this is a pre-flight estimate:
  *
  *   - PDF            → pdfinfo (exact)
- *   - Office/text    → LibreOffice → PDF → pdfinfo (exact)
+ *   - Office/text    → OfficeText pages (slides and sheets exact; other
+ *                      formats estimated, one page per ~3000 characters)
  *   - Images         → 1 page
  *   - Ebooks (Pandoc) → extract text, ~500 words per page (estimate)
  *   - Audio/Video    → duration in minutes
@@ -35,7 +36,7 @@ class FileAnalyzer
         private readonly AudioDurationExtractor $audioDuration,
         private readonly PdfInfo $pdfInfo,
         private readonly Pandoc $pandoc,
-        private readonly LibreOffice $libreOffice,
+        private readonly OfficeText $officeText,
     ) {}
 
     /**
@@ -60,42 +61,23 @@ class FileAnalyzer
     }
 
     /**
-     * Render the file to PDF and count its pages exactly.
+     * Count the pages OfficeText reads from the file.
      */
     private function analyzeOfficeFile(string $path, string $extension): FileAnalysisData
     {
-        // LibreOffice picks its import filter from the extension, so a path
-        // without one (a raw upload) makes it silently produce nothing (exit 0,
-        // no PDF). Such a file is copied to one that keeps the real extension.
-        $input = pathinfo($path, PATHINFO_EXTENSION) === $extension
-            ? $path
-            : create_temp_file("source.{$extension}", File::get($path));
-        $pdf = null;
-
         try {
-            $pdf = $this->libreOffice->toPdf($input);
-
-            return $this->pdfInfo->getInfo($pdf);
+            return new FileAnalysisData(length: count($this->officeText->pages($path, $extension)));
         } catch (Throwable $e) {
-            // Only a pre-flight quota estimate — ingestion reports the true page
-            // count later. LibreOffice can fail on an individual file (corrupt,
-            // password-protected, no output), which must not fail the upload, so
-            // fall back to a rough size-based estimate.
-            Log::warning('FileAnalyzer: LibreOffice page count failed, using size estimate', [
+            // Only a pre-flight estimate — ingestion reports the true page
+            // count later. A file can fail to read (corrupt, password-
+            // protected), which must not fail the upload, so fall back to a
+            // rough size-based estimate.
+            Log::warning('FileAnalyzer: reading the office file failed, using size estimate', [
                 'extension' => $extension,
                 'exception' => $e->getMessage(),
             ]);
 
             return new FileAnalysisData(length: $this->estimatePagesFromSize($path));
-        } finally {
-            // Both are throw-away copies; the uploaded file itself is kept.
-            if ($input !== $path) {
-                @unlink($input);
-            }
-
-            if ($pdf !== null) {
-                @unlink($pdf);
-            }
         }
     }
 

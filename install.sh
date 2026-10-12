@@ -33,233 +33,634 @@
 # stops half way runs nothing.
 
 set -euo pipefail
+# For *([0-9;]) and +([ /]): stripping color codes, deleting a word.
+shopt -s extglob
 
 readonly CHATVIA_REPO_RAW="https://raw.githubusercontent.com/chatvia/chatvia"
 readonly CHATVIA_DOCS="https://docs.chatvia.ai/guide/self-hosting/docker"
-readonly COMPOSE_PROJECT="chatvia-stack"
+readonly COMPOSE_PROJECT="chatvia"
 readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly DEFAULT_CHUNKER_IMAGE="ghcr.io/chatvia/chunker"
+readonly MIN_PASSWORD=12
 
 #------------------------------------------------------------------------------
 # Output
+#
+# One line runs down the left and joins every question and step: ◆ is the
+# open question, ◇ a finished question or task, ▲ a warning, ■ a failure.
+# Everything sits two columns in, under the logo.
 #------------------------------------------------------------------------------
 
 setup_output() {
-    if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-dumb}" != dumb ]; then
+    FANCY=0
+    if [ -t 1 ] && [ "${TERM:-dumb}" != dumb ]; then FANCY=1; fi
+
+    if [ "$FANCY" = 1 ] && [ -z "${NO_COLOR:-}" ]; then
         C_RESET=$'\033[0m' C_BOLD=$'\033[1m' C_DIM=$'\033[2m'
-        C_ACCENT=$'\033[38;5;99m' C_GREEN=$'\033[32m' C_RED=$'\033[31m' C_YELLOW=$'\033[33m'
-        HIDE_CURSOR=$'\033[?25l' SHOW_CURSOR=$'\033[?25h' CLEAR_LINE=$'\r\033[2K'
-        FANCY=1
+        C_ACCENT=$'\033[38;5;99m' C_GRAY=$'\033[90m' C_GREEN=$'\033[32m' C_RED=$'\033[31m' C_YELLOW=$'\033[33m'
+        C_BADGE=$'\033[1;38;5;231;48;5;99m'
     else
-        C_RESET='' C_BOLD='' C_DIM='' C_ACCENT='' C_GREEN='' C_RED='' C_YELLOW=''
-        HIDE_CURSOR='' SHOW_CURSOR='' CLEAR_LINE=''
-        FANCY=0
+        C_RESET='' C_BOLD='' C_DIM='' C_ACCENT='' C_GRAY='' C_GREEN='' C_RED='' C_YELLOW='' C_BADGE=''
+    fi
+    # Questions hide the real cursor and draw their own, even without color.
+    if [ "$FANCY" = 1 ]; then
+        HIDE_CURSOR=$'\033[?25l' SHOW_CURSOR=$'\033[?25h' C_INVERSE=$'\033[7m' C_NO_INVERSE=$'\033[27m'
+    else
+        HIDE_CURSOR='' SHOW_CURSOR='' C_INVERSE='' C_NO_INVERSE=''
     fi
 
     case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
         *UTF-8* | *utf-8* | *UTF8* | *utf8*)
-            SYM_OK='✓' SYM_FAIL='✗' SYM_WARN='!' SYM_ARROW='›' SYM_DOT='•'
-            SPINNER=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏') RULE='─' UNICODE=1
+            S_BAR='│' S_START='┌' S_END='└' S_LINE='─' S_JOIN='├' S_TOP_RIGHT='╮' S_BOTTOM_RIGHT='╯'
+            S_ACTIVE='◆' S_DONE='◇' S_WARN='▲' S_FAIL='■' S_INFO='●'
+            S_ON='●' S_OFF='○' S_MASK='▪' S_OK='✓' S_ARROW='→' S_UP='↑'
+            S_UP_DOWN='↑/↓' S_LEFT_RIGHT='←/→'
+            SPINNER=('◒' '◐' '◓' '◑') UNICODE=1
             ;;
         *)
-            SYM_OK='+' SYM_FAIL='x' SYM_WARN='!' SYM_ARROW='>' SYM_DOT='*'
-            SPINNER=('|' '/' '-' '\') RULE='-' UNICODE=0
+            S_BAR='|' S_START='+' S_END='+' S_LINE='-' S_JOIN='+' S_TOP_RIGHT='+' S_BOTTOM_RIGHT='+'
+            S_ACTIVE='*' S_DONE='o' S_WARN='!' S_FAIL='x' S_INFO='*'
+            S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_ARROW='->' S_UP='^'
+            S_UP_DOWN='up/down' S_LEFT_RIGHT='left/right'
+            SPINNER=('|' '/' '-' '\') UNICODE=0
             ;;
     esac
+
+    BAR=$C_GRAY$S_BAR$C_RESET
+    START=$C_GRAY$S_START$C_RESET
+    END=$C_GRAY$S_END$C_RESET
+    ACTIVE=$C_ACCENT$S_ACTIVE$C_RESET
+    ACTIVE_BAR=$C_ACCENT$S_BAR$C_RESET
+    ACTIVE_END=$C_ACCENT$S_END$C_RESET
+    DONE=$C_GREEN$S_DONE$C_RESET
+    SKIP=$C_GRAY$S_DONE$C_RESET
+    WARN=$C_YELLOW$S_WARN$C_RESET
+    WARN_BAR=$C_YELLOW$S_BAR$C_RESET
+    WARN_END=$C_YELLOW$S_END$C_RESET
+    FAIL=$C_RED$S_FAIL$C_RESET
+    INFO=$C_ACCENT$S_INFO$C_RESET
+    LAST_BLOCK=other FRAME_ROWS=0 COLS=80
 }
 
 bold() { printf '%s%s%s' "$C_BOLD" "$*" "$C_RESET"; }
 dim() { printf '%s%s%s' "$C_DIM" "$*" "$C_RESET"; }
 accent() { printf '%s%s%s' "$C_ACCENT" "$*" "$C_RESET"; }
 
+# Blocks are parted by an empty stretch of the line; finished tasks in a row
+# stack without one.
+block() {
+    if [ "$1" != task ] || [ "$LAST_BLOCK" != task ]; then
+        printf '  %s\n' "$BAR"
+    fi
+    LAST_BLOCK=$1
+}
+
 say() { printf '%s\n' "$*"; }
-info() { printf '  %s\n' "$*"; }
-ok() { printf '  %s%s%s %s\n' "$C_GREEN" "$SYM_OK" "$C_RESET" "$*"; }
-warn() { printf '  %s%s%s %s\n' "$C_YELLOW" "$SYM_WARN" "$C_RESET" "$*"; }
-fail() { printf '  %s%s%s %s\n' "$C_RED" "$SYM_FAIL" "$C_RESET" "$*" >&2; }
+info() {
+    printf '  %s  %s\n' "$BAR" "$*"
+    LAST_BLOCK=text
+}
+ok() {
+    block task
+    printf '  %s  %s\n' "$DONE" "$*"
+}
+warn() {
+    block warn
+    printf '  %s  %s\n' "$WARN" "$*"
+}
+fail() {
+    block fail >&2
+    printf '  %s  %s\n' "$FAIL" "$*" >&2
+}
+# section "Title" [note]: a heading on the line, for the lines under it.
+section() {
+    block section
+    printf '  %s  %s\n' "$INFO" "$C_BOLD$1$C_RESET${2:+  $C_DIM$2$C_RESET}"
+}
 
 die() {
     fail "$1"
     shift
     local line
     for line in "$@"; do
-        printf '    %s\n' "$line" >&2
+        printf '  %s  %s\n' "$BAR" "$line" >&2
     done
+    printf '  %s\n\n' "$END" >&2
     exit 1
 }
 
-rule() {
-    local width=58 line='' i
-    for ((i = 0; i < width; i++)); do line="$line$RULE"; done
-    printf '  %s\n' "$(dim "$line")"
+intro() {
+    printf '\n  %s  %s\n' "$START" "$C_BADGE $1 $C_RESET"
+    LAST_BLOCK=other
 }
 
-step() {
-    printf '\n  %s %s\n' "$(accent "[$1/$STEPS]")" "$(bold "$2")"
+outro() {
+    printf '  %s\n  %s  %s\n\n' "$BAR" "$END" "$*"
 }
 
+# Prints stdin on the line, dimmed: log lines.
+quote() {
+    local line
+    while IFS= read -r line; do
+        printf '  %s  %s\n' "$BAR" "$C_DIM$line$C_RESET"
+    done
+}
+
+# repeat_to VAR TEXT COUNT
+repeat_to() {
+    local out='' i
+    for ((i = 0; i < $3; i++)); do out=$out$2; done
+    printf -v "$1" '%s' "$out"
+}
+
+# duration_to VAR SECONDS: 42s, or 3m 05s.
+duration_to() {
+    if [ "$2" -lt 60 ]; then
+        printf -v "$1" '%ds' "$2"
+    else
+        printf -v "$1" '%dm %02ds' $(($2 / 60)) $(($2 % 60))
+    fi
+}
+
+# kv_to VAR LABEL VALUE: a "label  value" row for a box.
+kv_to() {
+    printf -v "$1" '%s%-16s%s%s' "$C_DIM" "$2" "$C_RESET" "$3"
+}
+
+# COLS: the terminal's width, to know when a line wraps.
+terminal_width() {
+    local size
+    size=$(stty size 2>/dev/null </dev/tty) || size=''
+    COLS=${size#* }
+    case $COLS in '' | *[!0-9]* | 0) COLS=80 ;; esac
+}
+
+# note "Title" LINE...: a box on the line, for the settings and the result.
+# Too wide for the terminal, it prints the same lines without the box.
+note() {
+    local title=$1
+    shift
+    local width=0 line plain fill
+    for line in "$@"; do
+        plain=${line//$'\033'\[*([0-9;])m/}
+        if [ "${#plain}" -gt "$width" ]; then width=${#plain}; fi
+    done
+    plain=${title//$'\033'\[*([0-9;])m/}
+    if [ "$((${#plain} + 2))" -gt "$width" ]; then width=$((${#plain} + 2)); fi
+    width=$((width + 2))
+
+    terminal_width
+    block note
+    if [ "$((width + 6))" -gt "$COLS" ]; then
+        printf '  %s  %s\n' "$DONE" "$title"
+        for line in "$@"; do printf '  %s  %s\n' "$BAR" "$line"; done
+        return
+    fi
+    repeat_to fill "$S_LINE" $((width - ${#plain} - 1))
+    printf '  %s  %s %s\n' "$DONE" "$title" "$C_GRAY$fill$S_TOP_RIGHT$C_RESET"
+    for line in '' "$@" ''; do
+        plain=${line//$'\033'\[*([0-9;])m/}
+        repeat_to fill ' ' $((width - ${#plain}))
+        printf '  %s  %s%s%s\n' "$BAR" "$line" "$fill" "$BAR"
+    done
+    repeat_to fill "$S_LINE" $((width + 2))
+    printf '  %s\n' "$C_GRAY$S_JOIN$fill$S_BOTTOM_RIGHT$C_RESET"
+}
+
+# The app's logo (resources/js/components/AppLogoIcon.vue) in half blocks,
+# two square pixels per character, with the name beside the dot. It keeps the
+# terminal's text color, as the logo follows the theme in the app.
 banner() {
+    local name tagline
+    name=$(bold 'Chatvia')
+    tagline=$(dim 'AI agents on your own server')
     say ''
     if [ "$UNICODE" = 1 ]; then
-        printf '  %s\n' "$(accent '┌─┐┬ ┬┌─┐┌┬┐┬  ┬┬┌─┐')"
-        printf '  %s\n' "$(accent '│  ├─┤├─┤ │ └┐┌┘│├─┤')"
-        printf '  %s\n' "$(accent '└─┘┴ ┴┴ ┴ ┴  └┘ ┴┴ ┴')"
+        printf '  %s\n' '    ▄▄██████▄▄' '  ▄████████████' ' ▄███▀      ▀██'
+        printf '  %s    %s\n' ' ████           ▄██▄' "$name"
+        printf '  %s    %s\n' ' ████           ▀██▀' "$tagline"
+        printf '  %s\n' ' ▀███▄      ▄██' '  █████████████' ' ██████████▀▀▀' '██▀▀'
     else
-        printf '  %s\n' "$(accent 'C H A T V I A')"
-    fi
-    printf '  %s\n' "$(dim 'AI agents on your own server')"
-    if [ "$DRY_RUN" = 1 ]; then
-        printf '  %s\n' "$(accent 'Dry run: nothing will be changed.')"
+        printf '  %s\n' "$name" "$tagline"
     fi
 }
 
 #------------------------------------------------------------------------------
 # Questions (read from the terminal: stdin is this script when piped)
+#
+# An open question is drawn again after every key, over its last version.
+# Once answered it shrinks to the question and the answer.
 #------------------------------------------------------------------------------
+
+# While a question is open, keys arrive one by one and are not echoed.
+keys_on() {
+    stty -echo -icanon min 1 time 0 2>/dev/null </dev/tty || true
+    printf '%s' "$HIDE_CURSOR"
+}
+
+keys_off() {
+    if [ -n "${TTY_STATE:-}" ]; then stty "$TTY_STATE" 2>/dev/null </dev/tty || true; fi
+    printf '%s' "${SHOW_CURSOR:-}"
+}
 
 # The terminal closed (for example Ctrl-D): stop instead of asking forever.
 no_input() {
-    printf '%s\n' "${SHOW_CURSOR:-}"
+    keys_off
+    printf '\n'
     die 'Stopped: no answer.' 'Nothing was changed.'
 }
 
-# Rewrites the question line(s) above as one answered line.
-answered() {
-    local lines=$1 label=$2 value=$3 i
-    if [ "$FANCY" = 1 ]; then
-        for ((i = 0; i < lines; i++)); do printf '\033[1A\033[2K'; done
-    fi
-    printf '  %s%s%s %s %s\n' "$C_GREEN" "$SYM_OK" "$C_RESET" "$label" "$(accent "$value")"
+# Reads one key into KEY: enter, up, down, left, right, tab, backspace,
+# clear (Ctrl-U), word (Ctrl-W), eof (Ctrl-D), other, or char with the
+# character in CHAR.
+read_key() {
+    local key rest=''
+    CHAR=''
+    IFS= read -rsn1 key </dev/tty || no_input
+    case $key in
+        '') KEY=enter ;;
+        $'\033')
+            IFS= read -rsn2 -t 1 rest </dev/tty || true
+            case $rest in
+                '[A' | OA) KEY=up ;;
+                '[B' | OB) KEY=down ;;
+                '[C' | OC) KEY=right ;;
+                '[D' | OD) KEY=left ;;
+                *) KEY=other ;;
+            esac
+            ;;
+        $'\177' | $'\010') KEY=backspace ;;
+        $'\t') KEY=tab ;;
+        $'\025') KEY=clear ;;
+        $'\027') KEY=word ;;
+        $'\004') KEY=eof ;;
+        *)
+            if [[ $key == [[:print:]] ]]; then KEY=char CHAR=$key; else KEY=other; fi
+            ;;
+    esac
 }
 
-# ask VAR "Question" "default" [validator]: a line of text.
-ask() {
-    local var=$1 label=$2 default=${3:-} validator=${4:-} answer hint=''
-    [ -n "$default" ] && hint=" $(dim "($default)")"
-    while true; do
-        printf '  %s %s%s %s ' "$(accent "$SYM_ARROW")" "$(bold "$label")" "$hint" "$(dim ':')"
-        IFS= read -r answer </dev/tty || no_input
-        answer=${answer:-$default}
-        if [ -n "$validator" ] && ! "$validator" "$answer"; then
-            continue
-        fi
-        break
+# draw LINE...: shows the open question over its last version. A line wider
+# than the terminal wraps, so it counts as more rows.
+draw() {
+    local line plain rows=0
+    if [ "$FRAME_ROWS" -gt 0 ]; then printf '\033[%dA' "$FRAME_ROWS"; fi
+    printf '\r\033[J'
+    for line in "$@"; do
+        printf '%s\n' "$line"
+        plain=${line//$'\033'\[*([0-9;])m/}
+        rows=$((rows + 1 + (${#plain} > 0 ? (${#plain} - 1) / COLS : 0)))
     done
-    answered 1 "$label" "$answer"
+    FRAME_ROWS=$rows
+}
+
+# answer_drawn "Question" "Answer": the closed question.
+answer_drawn() {
+    draw "  $DONE  $1" "  $BAR  $C_DIM$2$C_RESET"
+    FRAME_ROWS=0
+    LAST_BLOCK=answer
+    keys_off
+}
+
+# ask VAR "Question" [--default TEXT] [--placeholder TEXT] [--hint TEXT]
+#     [--check FN] [--status FN] [--complete FN]
+#   --default      the answer when Enter is pressed on an empty line
+#   --placeholder  an example, shown greyed out; not an answer
+#   --check FN     runs on Enter; returns 1 with the reason in INVALID
+#   --status FN    runs after every key; puts a short note in STATUS
+#   --complete FN  runs on Tab; puts the result in COMPLETED, the other
+#                  matches in CHOICES
+ask() {
+    local var=$1 label=$2
+    shift 2
+    local default='' placeholder='' hint='' check='' status='' complete=''
+    while [ $# -ge 2 ]; do
+        case $1 in
+            --default) default=$2 ;;
+            --placeholder) placeholder=$2 ;;
+            --hint) hint=$2 ;;
+            --check) check=$2 ;;
+            --status) status=$2 ;;
+            --complete) complete=$2 ;;
+        esac
+        shift 2
+    done
+
+    local value='' answer='' error='' shown input help sym rail foot
+    local lines
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        printf '  %s  %s\n' "$ACTIVE" "$label"
+        if [ -n "$hint" ]; then printf '  %s  %s\n' "$BAR" "$hint"; fi
+        while true; do
+            printf '  %s  %s' "$BAR" "${default:+($default) }"
+            IFS= read -r answer </dev/tty || no_input
+            answer=${answer:-$default}
+            INVALID='Type an answer first.'
+            if [ -n "$answer" ] && { [ -z "$check" ] || "$check" "$answer"; }; then break; fi
+            printf '  %s  %s\n' "$WARN" "$INVALID"
+        done
+        printf -v "$var" '%s' "$answer"
+        return
+    fi
+
+    terminal_width
+    keys_on
+    CHOICES=''
+    while true; do
+        STATUS=''
+        if [ -n "$status" ]; then "$status" "${value:-$default}" || true; fi
+
+        shown=${default:-$placeholder}
+        if [ -n "$value" ]; then
+            input="$value$C_INVERSE $C_NO_INVERSE"
+        elif [ -n "$shown" ]; then
+            input="$C_INVERSE${shown:0:1}$C_NO_INVERSE$C_DIM${shown:1}$C_RESET"
+        else
+            input="$C_INVERSE $C_NO_INVERSE"
+        fi
+        if [ -n "$STATUS" ]; then input="$input  $STATUS"; fi
+
+        if [ -n "$error" ]; then
+            sym=$WARN rail=$WARN_BAR foot="$WARN_END  $C_YELLOW$error$C_RESET"
+        else
+            help=''
+            if [ -z "$value" ] && [ -n "$default" ]; then
+                help='Enter to use it, Tab to change it'
+            elif [ -n "$value" ] && [ -n "$complete" ]; then
+                help='Tab to complete'
+            fi
+            sym=$ACTIVE rail=$ACTIVE_BAR foot="$ACTIVE_END${help:+  $C_DIM$help$C_RESET}"
+        fi
+
+        lines=("  $sym  $C_BOLD$label$C_RESET")
+        if [ -n "$hint" ]; then lines+=("  $rail  $C_DIM$hint$C_RESET"); fi
+        lines+=("  $rail  $input")
+        if [ -n "$CHOICES" ]; then lines+=("  $rail  $C_DIM$CHOICES$C_RESET"); fi
+        lines+=("  $foot")
+        draw "${lines[@]}"
+
+        read_key
+        CHOICES=''
+        case $KEY in
+            enter)
+                answer=${value:-$default}
+                INVALID=''
+                if [ -z "$answer" ]; then
+                    error='Type an answer first.'
+                elif [ -z "$check" ] || "$check" "$answer"; then
+                    break
+                else
+                    error=$INVALID
+                fi
+                ;;
+            char) value=$value$CHAR error='' ;;
+            backspace) value=${value%?} error='' ;;
+            clear) value='' error='' ;;
+            word)
+                value=${value%%+([ /])}
+                value=${value%"${value##*[ /]}"}
+                error=''
+                ;;
+            tab)
+                if [ -z "$value" ] && [ -n "$default" ]; then
+                    value=$default
+                elif [ -n "$complete" ]; then
+                    "$complete" "$value" || true
+                    value=$COMPLETED
+                fi
+                error=''
+                ;;
+            eof) if [ -z "$value" ]; then no_input; fi ;;
+        esac
+    done
+
+    answer_drawn "$label" "$answer"
     printf -v "$var" '%s' "$answer"
 }
 
 # ask_secret VAR "Question": a hidden password, typed twice.
 ask_secret() {
-    local var=$1 label=$2 first second
+    local var=$1 label=$2 first='' second='' again=0 error='' sym rail foot mask count
+    local lines
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        printf '  %s  %s\n' "$ACTIVE" "$label"
+        while true; do
+            printf '  %s  At least %d characters (hidden): ' "$BAR" "$MIN_PASSWORD"
+            IFS= read -rs first </dev/tty || no_input
+            printf '\n'
+            if [ "${#first}" -lt "$MIN_PASSWORD" ]; then
+                printf '  %s  Use at least %d characters.\n' "$WARN" "$MIN_PASSWORD"
+                continue
+            fi
+            printf '  %s  Type it again: ' "$BAR"
+            IFS= read -rs second </dev/tty || no_input
+            printf '\n'
+            if [ "$first" = "$second" ]; then break; fi
+            printf '  %s  %s\n' "$WARN" 'The two passwords are different. Try again.'
+        done
+        printf -v "$var" '%s' "$first"
+        return
+    fi
+
+    terminal_width
+    keys_on
     while true; do
-        printf '  %s %s %s ' "$(accent "$SYM_ARROW")" "$(bold "$label")" "$(dim '(hidden, at least 12 characters):')"
-        IFS= read -rs first </dev/tty || no_input
-        printf '\n'
-        if [ "${#first}" -lt 12 ]; then
-            warn 'Use at least 12 characters.'
-            continue
+        if [ -n "$error" ]; then
+            sym=$WARN rail=$WARN_BAR foot="$WARN_END  $C_YELLOW$error$C_RESET"
+        else
+            sym=$ACTIVE rail=$ACTIVE_BAR foot="$ACTIVE_END  ${C_DIM}Enter to continue$C_RESET"
         fi
-        printf '  %s %s %s ' "$(accent "$SYM_ARROW")" "$(bold 'Type it again')" "$(dim ':')"
-        IFS= read -rs second </dev/tty || no_input
-        printf '\n'
-        if [ "$first" != "$second" ]; then
-            warn 'The two passwords are different. Try again.'
-            continue
+        if [ "${#first}" -ge "$MIN_PASSWORD" ]; then
+            count="$C_GREEN$S_OK$C_RESET"
+        else
+            count="$C_DIM${#first}/$MIN_PASSWORD$C_RESET"
         fi
-        break
+
+        lines=("  $sym  $C_BOLD$label$C_RESET" "  $rail  ${C_DIM}At least $MIN_PASSWORD characters, typed twice.$C_RESET")
+        repeat_to mask "$S_MASK" "${#first}"
+        if [ "$again" = 0 ]; then
+            lines+=("  $rail  $mask$C_INVERSE $C_NO_INVERSE  $count")
+        else
+            lines+=("  $rail  $mask  $count")
+            repeat_to mask "$S_MASK" "${#second}"
+            lines+=("  $rail  $mask$C_INVERSE $C_NO_INVERSE  ${C_DIM}again$C_RESET")
+        fi
+        lines+=("  $foot")
+        draw "${lines[@]}"
+
+        read_key
+        case $KEY in
+            char)
+                if [ "$again" = 0 ]; then first=$first$CHAR; else second=$second$CHAR; fi
+                error=''
+                ;;
+            backspace)
+                if [ "$again" = 0 ]; then
+                    first=${first%?}
+                elif [ -z "$second" ]; then
+                    again=0
+                else
+                    second=${second%?}
+                fi
+                error=''
+                ;;
+            clear) if [ "$again" = 0 ]; then first=''; else second=''; fi ;;
+            enter)
+                if [ "$again" = 0 ]; then
+                    if [ "${#first}" -lt "$MIN_PASSWORD" ]; then
+                        error="Use at least $MIN_PASSWORD characters."
+                    else
+                        again=1 error=''
+                    fi
+                elif [ "$first" = "$second" ]; then
+                    break
+                else
+                    error='The two passwords are different. Type them again.'
+                    first='' second='' again=0
+                fi
+                ;;
+            eof) no_input ;;
+        esac
     done
-    answered 2 "$label" "$(dim '(hidden)')"
+
+    answer_drawn "$label" 'set (hidden)'
     printf -v "$var" '%s' "$first"
 }
 
-# choose "Question" "Option" ...: arrow keys (or j/k, or a number) and Enter.
-# Sets CHOICE to the index of the picked option.
+# choose "Question" "Option  — note" ...: arrow keys (or j/k, or a number)
+# and Enter. Sets CHOICE to the index of the picked option. The note is
+# shown next to the selected option only.
 choose() {
     local label=$1
     shift
-    local count=$# selected=0 key rest i
+    local count=$# selected=0 i name note lines
     local options=("$@")
+    block question
 
     if [ "$FANCY" = 0 ]; then
-        printf '  %s\n' "$(bold "$label")"
-        for ((i = 0; i < count; i++)); do printf '    %d) %s\n' "$((i + 1))" "${options[i]}"; done
+        printf '  %s  %s\n' "$ACTIVE" "$label"
+        for ((i = 0; i < count; i++)); do printf '  %s  %d) %s\n' "$BAR" "$((i + 1))" "${options[i]}"; done
         while true; do
-            printf '  Number (1-%d, Enter for 1): ' "$count"
-            IFS= read -r key </dev/tty || no_input
-            key=${key:-1}
-            if [[ $key =~ ^[0-9]+$ ]] && [ "$key" -ge 1 ] && [ "$key" -le "$count" ]; then
-                CHOICE=$((key - 1))
+            printf '  %s  Number (1-%d, Enter for 1): ' "$BAR" "$count"
+            IFS= read -r name </dev/tty || no_input
+            name=${name:-1}
+            if [[ $name =~ ^[0-9]+$ ]] && [ "$name" -ge 1 ] && [ "$name" -le "$count" ]; then
+                CHOICE=$((name - 1))
                 return
             fi
         done
     fi
 
-    printf '  %s %s %s\n' "$(accent "$SYM_ARROW")" "$(bold "$label")" "$(dim '(↑/↓, Enter)')"
-    printf '%s' "$HIDE_CURSOR"
+    terminal_width
+    keys_on
     while true; do
+        lines=("  $ACTIVE  $C_BOLD$label$C_RESET")
         for ((i = 0; i < count; i++)); do
+            name=${options[i]%%  —*}
+            note=''
+            if [[ ${options[i]} == *'  — '* ]]; then note=${options[i]#*  — }; fi
             if [ "$i" -eq "$selected" ]; then
-                printf '\033[2K    %s %s\n' "$(accent "$SYM_DOT")" "$(bold "${options[i]}")"
+                lines+=("  $ACTIVE_BAR  $C_GREEN$S_ON$C_RESET $name${note:+  $C_DIM$note$C_RESET}")
             else
-                printf '\033[2K      %s\n' "$(dim "${options[i]}")"
+                lines+=("  $ACTIVE_BAR  $C_DIM$S_OFF $name$C_RESET")
             fi
         done
+        lines+=("  $ACTIVE_END  ${C_DIM}$S_UP_DOWN to move, Enter to choose$C_RESET")
+        draw "${lines[@]}"
 
-        IFS= read -rsn1 key </dev/tty || no_input
-        if [ "$key" = $'\033' ]; then
-            IFS= read -rsn2 -t 1 rest </dev/tty || rest=''
-            case $rest in
-                '[A') selected=$(((selected + count - 1) % count)) ;;
-                '[B') selected=$(((selected + 1) % count)) ;;
-            esac
-        elif [ -z "$key" ]; then
-            break
-        elif [ "$key" = k ]; then
-            selected=$(((selected + count - 1) % count))
-        elif [ "$key" = j ]; then
-            selected=$(((selected + 1) % count))
-        elif [[ $key =~ ^[1-9]$ ]] && [ "$key" -le "$count" ]; then
-            selected=$((key - 1))
-        fi
-        printf '\033[%dA' "$count"
+        read_key
+        case $KEY in
+            up | left) selected=$(((selected + count - 1) % count)) ;;
+            down | right | tab) selected=$(((selected + 1) % count)) ;;
+            enter) break ;;
+            char)
+                case $CHAR in
+                    k) selected=$(((selected + count - 1) % count)) ;;
+                    j) selected=$(((selected + 1) % count)) ;;
+                    [1-9]) if [ "$CHAR" -le "$count" ]; then selected=$((CHAR - 1)); fi ;;
+                esac
+                ;;
+            eof) no_input ;;
+        esac
     done
-    printf '%s' "$SHOW_CURSOR"
 
-    for ((i = 0; i < count; i++)); do printf '\033[2K\n'; done
-    printf '\033[%dA' "$count"
-    answered 1 "$label" "${options[selected]%%  —*}"
+    answer_drawn "$label" "${options[selected]%%  —*}"
     CHOICE=$selected
 }
 
-# confirm "Question" [default y|n]: returns 0 for yes.
+# confirm "Question" [default y|n]: returns 0 for yes. Arrow keys and Enter,
+# or y / n.
 confirm() {
-    local label=$1 default=${2:-y} key hint
-    if [ "$default" = y ]; then hint='Y/n'; else hint='y/N'; fi
-    printf '  %s %s %s ' "$(accent "$SYM_ARROW")" "$(bold "$label")" "$(dim "($hint)")"
-    IFS= read -r key </dev/tty || no_input
-    key=${key:-$default}
-    case $key in
-        y | Y | yes | YES | Yes) return 0 ;;
-        *) return 1 ;;
-    esac
+    local label=$1 yes=1 key options
+    if [ "${2:-y}" = n ]; then yes=0; fi
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        if [ "$yes" = 1 ]; then options='Y/n'; else options='y/N'; fi
+        printf '  %s  %s (%s) ' "$ACTIVE" "$label" "$options"
+        IFS= read -r key </dev/tty || no_input
+        case $key in
+            y | Y | yes | YES | Yes) return 0 ;;
+            n | N | no | NO | No) return 1 ;;
+            *) [ "$yes" = 1 ] ;;
+        esac
+        return
+    fi
+
+    terminal_width
+    keys_on
+    while true; do
+        if [ "$yes" = 1 ]; then
+            options="$C_GREEN$S_ON$C_RESET Yes $C_DIM/ $S_OFF No$C_RESET"
+        else
+            options="$C_DIM$S_OFF Yes /$C_RESET $C_GREEN$S_ON$C_RESET No"
+        fi
+        draw "  $ACTIVE  $C_BOLD$label$C_RESET" "  $ACTIVE_BAR  $options" \
+            "  $ACTIVE_END  ${C_DIM}$S_LEFT_RIGHT or y/n, Enter to choose$C_RESET"
+
+        read_key
+        case $KEY in
+            left | right | up | down | tab) yes=$((1 - yes)) ;;
+            enter) break ;;
+            char)
+                case $CHAR in
+                    y | Y) yes=1 && break ;;
+                    n | N) yes=0 && break ;;
+                    h) yes=1 ;;
+                    l) yes=0 ;;
+                esac
+                ;;
+            eof) no_input ;;
+        esac
+    done
+
+    if [ "$yes" = 1 ]; then answer_drawn "$label" 'Yes'; else answer_drawn "$label" 'No'; fi
+    [ "$yes" = 1 ]
 }
+
+#------------------------------------------------------------------------------
+# Answer checks: return 1 with the reason in INVALID
+#------------------------------------------------------------------------------
 
 valid_email() {
     if [[ $1 =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then return 0; fi
-    warn 'That does not look like an e-mail address.'
+    INVALID='That does not look like an e-mail address.'
     return 1
 }
 
 valid_port() {
-    if ! [[ $1 =~ ^[0-9]+$ ]] || [ "$1" -lt 1 ] || [ "$1" -gt 65535 ]; then
-        warn 'Use a number from 1 to 65535.'
+    if ! [[ $1 =~ ^[0-9]{1,5}$ ]] || [ "$1" -lt 1 ] || [ "$1" -gt 65535 ]; then
+        INVALID='Use a number from 1 to 65535.'
         return 1
     fi
     if port_in_use "$1"; then
-        warn "Port $1 is already in use on this machine. Choose another one."
+        INVALID="Port $1 is already in use on this machine. Choose another one."
         return 1
     fi
     return 0
@@ -267,16 +668,109 @@ valid_port() {
 
 valid_url() {
     if [[ $1 =~ ^https?://[^/[:space:]]+$ ]]; then return 0; fi
-    warn 'Use a full address without a path, like https://chat.example.com'
+    INVALID='Use a full address without a path, like https://chat.example.com'
     return 1
 }
 
-valid_folder() {
-    if [ -z "$1" ]; then
-        warn 'Enter a folder.'
+# What a folder holds, in STATE: new, empty, used (other files), installed
+# (Chatvia, by this installer or by hand), unfinished (an install that
+# stopped half way), foreign (another project's compose.yaml or .env), file.
+folder_state() {
+    local dir=$1
+    if [ -e "$dir" ] && [ ! -d "$dir" ]; then
+        STATE=file
+    elif [ -f "$dir/.env" ] && grep -q '^# Chatvia settings, written by the installer' "$dir/.env" 2>/dev/null; then
+        # This installer marks .env when it finishes.
+        if grep -q '^# Install finished on' "$dir/.env"; then STATE=installed; else STATE=unfinished; fi
+    elif [ -f "$dir/compose.yaml" ] && grep -q 'chatvia/chatvia' "$dir/compose.yaml" 2>/dev/null; then
+        STATE=installed
+    elif [ -f "$dir/compose.yaml" ] || [ -f "$dir/.env" ]; then
+        STATE=foreign
+    elif [ -d "$dir" ] && [ -n "$(ls -A "$dir" 2>/dev/null)" ]; then
+        STATE=used
+    elif [ -d "$dir" ]; then
+        STATE=empty
+    else
+        STATE=new
+    fi
+}
+
+check_folder() {
+    local dir probe
+    dir=$(resolve_dir "$1")
+    folder_state "$dir"
+    case $STATE in
+        file)
+            INVALID='That is a file. Choose a folder.'
+            return 1
+            ;;
+        foreign)
+            INVALID="Another project's compose.yaml or .env is in this folder. Choose another one."
+            return 1
+            ;;
+    esac
+    probe=$dir
+    while [ ! -e "$probe" ]; do probe=$(dirname "$probe"); done
+    if [ ! -w "$probe" ]; then
+        INVALID="You cannot write to $(pretty_path "$probe"). Choose another folder."
         return 1
     fi
     return 0
+}
+
+# The note next to the folder while it is typed.
+folder_status() {
+    folder_state "$(resolve_dir "$1")"
+    case $STATE in
+        new) STATUS="${C_DIM}new folder$C_RESET" ;;
+        empty) STATUS="${C_DIM}empty folder$C_RESET" ;;
+        used) STATUS="${C_DIM}has other files$C_RESET" ;;
+        installed) STATUS="$C_ACCENT$S_ARROW Chatvia is here: upgrade it$C_RESET" ;;
+        unfinished) STATUS="$C_ACCENT$S_ARROW unfinished install: finish it$C_RESET" ;;
+        foreign) STATUS="${C_YELLOW}another project is here$C_RESET" ;;
+        file) STATUS="${C_YELLOW}this is a file$C_RESET" ;;
+    esac
+}
+
+# Tab in the folder question: completes the folder name, like a shell.
+complete_folder() {
+    local typed=$1 base m common name count
+    local matches=()
+    COMPLETED=$typed
+    base=$(expand_home "$typed")
+    for m in "$base"*/; do
+        if [ -d "$m" ]; then matches+=("$m"); fi
+    done
+    count=${#matches[@]}
+    [ "$count" -gt 0 ] || return 0
+
+    common=${matches[0]}
+    for m in "${matches[@]}"; do
+        while [ -n "$common" ] && [ "${m#"$common"}" = "$m" ]; do common=${common%?}; done
+    done
+    if [ "$count" -gt 1 ]; then
+        for m in "${matches[@]:0:6}"; do
+            name=${m%/}
+            CHOICES="$CHOICES${name##*/}/  "
+        done
+        if [ "$count" -gt 6 ]; then CHOICES="$CHOICES+$((count - 6)) more"; fi
+    fi
+    case $typed in
+        "~" | "~/"*) COMPLETED="~${common#"$HOME"}" ;;
+        *) COMPLETED=$common ;;
+    esac
+}
+
+# The note next to the port while it is typed. Only the quick check: the
+# full one runs on Enter.
+port_status() {
+    if [[ $1 =~ ^[0-9]{1,5}$ ]] && [ "$1" -ge 1 ] && [ "$1" -le 65535 ]; then
+        if (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; then
+            STATUS="${C_YELLOW}in use$C_RESET"
+        else
+            STATUS="$C_GREEN$S_OK free$C_RESET"
+        fi
+    fi
 }
 
 #------------------------------------------------------------------------------
@@ -317,6 +811,19 @@ expand_home() {
     esac
 }
 
+# A typed folder as a full path: ~ expanded, relative to here, no trailing /.
+resolve_dir() {
+    local dir
+    dir=$(expand_home "$1")
+    case $dir in
+        /*) ;;
+        . | ./) dir=$PWD ;;
+        *) dir="$PWD/${dir#./}" ;;
+    esac
+    while [ "${#dir}" -gt 1 ] && [ "${dir%/}" != "$dir" ]; do dir=${dir%/}; done
+    printf '%s' "$dir"
+}
+
 version_at_least() {
     # version_at_least HAVE NEED: compares dotted numbers.
     local have=$1 need=$2 h n i
@@ -343,16 +850,18 @@ compose() {
     docker_cmd compose --project-directory "$INSTALL_DIR" -f "$INSTALL_DIR/compose.yaml" "$@"
 }
 
-# run_step "Message" command...: runs it with a spinner, output to the log.
+# run_step "Message" command...: runs it with a spinner; its output goes to
+# the log, and the end of the log shows when it fails.
 run_step() {
     local message=$1
     shift
+    block task
     if [ "$DRY_RUN" = 1 ]; then
-        printf '  %s %s %s\n' "$(dim "$SYM_DOT")" "$message" "$(dim '(dry run)')"
+        printf '  %s  %s %s\n' "$SKIP" "$message" "$(dim '(dry run)')"
         return 0
     fi
 
-    local start=$SECONDS frame=0 status=0 pid
+    local start=$SECONDS frame=0 status=0 pid took
     printf '\n== %s\n' "$message" >>"$LOG"
     "$@" >>"$LOG" 2>&1 &
     pid=$!
@@ -360,24 +869,27 @@ run_step() {
     if [ "$FANCY" = 1 ]; then
         printf '%s' "$HIDE_CURSOR"
         while kill -0 "$pid" 2>/dev/null; do
-            printf '%s  %s %s %s' "$CLEAR_LINE" "$(accent "${SPINNER[frame % ${#SPINNER[@]}]}")" "$message" "$(dim "$((SECONDS - start))s")"
+            duration_to took $((SECONDS - start))
+            printf '\r\033[2K  %s  %s  %s' "$C_ACCENT${SPINNER[frame % ${#SPINNER[@]}]}$C_RESET" "$message" "$C_DIM$took$C_RESET"
             frame=$((frame + 1))
             sleep 0.1
         done
-        printf '%s' "$SHOW_CURSOR"
+        printf '\r\033[2K%s' "$SHOW_CURSOR"
+    else
+        printf '  %s  %s\n' "$ACTIVE" "$message"
     fi
 
     wait "$pid" || status=$?
-    printf '%s' "$CLEAR_LINE"
+    duration_to took $((SECONDS - start))
     if [ "$status" -eq 0 ]; then
-        ok "$message $(dim "$((SECONDS - start))s")"
+        printf '  %s  %s  %s\n' "$DONE" "$message" "$C_DIM$took$C_RESET"
         return 0
     fi
 
-    fail "$message"
-    say ''
-    tail -n 25 "$LOG" | sed 's/^/    /' >&2
-    say ''
+    printf '  %s  %s\n' "$FAIL" "$message" >&2
+    printf '  %s\n' "$BAR" >&2
+    tail -n 25 "$LOG" | quote >&2
+    printf '  %s\n' "$BAR" >&2
     info "Full log: $LOG"
     return "$status"
 }
@@ -483,8 +995,6 @@ start_docker() {
 }
 
 check_docker() {
-    step 1 'Docker'
-
     if ! command -v docker >/dev/null 2>&1; then
         if [ "$OS" = macos ]; then install_docker_macos; else install_docker_linux; fi
         if [ "$DRY_RUN" = 1 ] && ! command -v docker >/dev/null 2>&1; then
@@ -589,8 +1099,8 @@ write_env() {
         umask 077
         cat >"$INSTALL_DIR/.env" <<EOF
 # Chatvia settings, written by the installer on $(date '+%Y-%m-%d').
-# Every setting of the project's .env.example works here. API keys are not
-# set here: enter them in the admin panel, under Settings.
+# Only what Chatvia needs to start. Email, API keys, the AI services and the
+# other options are set in the admin panel, under Settings.
 # More: $CHATVIA_DOCS#settings
 
 # How the database stores embeddings. Chosen at install: they can NEVER
@@ -653,13 +1163,11 @@ remove_setup_container() {
 }
 
 setup_failed() {
-    say ''
     if [ "$DRY_RUN" = 0 ]; then
-        info "$(bold 'Database setup log:')"
-        compose logs --no-color --tail 30 migrate 2>&1 | sed 's/^/    /' >&2 || true
-        say ''
+        section 'Database setup log'
+        compose logs --no-color --tail 30 migrate 2>&1 | quote >&2 || true
     fi
-    die "$1" "More: cd $INSTALL_DIR && docker compose logs migrate"
+    die "$1" "More: cd $(pretty_path "$INSTALL_DIR") && docker compose logs migrate"
 }
 
 check_existing_data() {
@@ -676,23 +1184,18 @@ check_existing_data() {
 }
 
 do_install() {
-    STEPS=4
     check_docker
     if command -v docker >/dev/null 2>&1; then check_existing_data; fi
     require_local_image
 
-    step 2 'Your Chatvia'
     collect_settings
 
-    step 3 'Check'
     show_summary
     if [ "$INTERACTIVE" = 1 ] && ! confirm 'Install Chatvia with these settings?' y; then
-        say ''
-        info 'Nothing was changed.'
+        outro 'Nothing was changed.'
         exit 0
     fi
 
-    step 4 'Install'
     if [ "$DRY_RUN" = 0 ]; then
         mkdir -p "$INSTALL_DIR"
         LOG="$INSTALL_DIR/install.log"
@@ -701,9 +1204,10 @@ do_install() {
     run_step 'Downloading compose.yaml' download_compose
     if [ "$DRY_RUN" = 0 ]; then
         write_env
-        ok "Settings saved $(dim "($(pretty_path "$INSTALL_DIR")/.env)")"
+        ok "Settings saved $(dim "$(pretty_path "$INSTALL_DIR")/.env")"
     else
-        printf '  %s %s %s\n' "$(dim "$SYM_DOT")" "Saving the settings to $(pretty_path "$INSTALL_DIR")/.env" "$(dim '(dry run)')"
+        block task
+        printf '  %s  %s %s\n' "$SKIP" "Saving the settings to $(pretty_path "$INSTALL_DIR")/.env" "$(dim '(dry run)')"
     fi
     get_image 'Downloading Chatvia (a few minutes the first time)'
     start_and_finish
@@ -718,9 +1222,7 @@ start_and_finish() {
     read_setup_result
     remove_setup_container
     if ! run_step 'Waiting for the web app' wait_until 180 app_is_up; then
-        say ''
         info "The admin account is ready: $(bold "$ADMIN_EMAIL"), password $(admin_password_text)"
-        say ''
         die 'The web app did not answer within 3 minutes.' \
             "See why: cd $(pretty_path "$INSTALL_DIR") && docker compose ps && docker compose logs app" \
             'Then run this installer again to finish.'
@@ -731,14 +1233,15 @@ start_and_finish() {
 }
 
 do_resume() {
-    STEPS=2
-    say ''
     warn "An earlier install in $(bold "$(pretty_path "$INSTALL_DIR")") did not finish."
     if [ "$INTERACTIVE" = 1 ]; then
         choose 'What do you want to do?' \
             'Finish it  — start Chatvia again with the saved settings' \
             'Nothing, exit'
-        [ "$CHOICE" = 0 ] || exit 0
+        if [ "$CHOICE" != 0 ]; then
+            outro 'Nothing was changed.'
+            exit 0
+        fi
     fi
 
     check_docker
@@ -750,14 +1253,13 @@ do_resume() {
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
     CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
 
-    step 2 'Install'
     # Used only when the earlier attempt did not make the admin account yet.
     ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
     if [ -z "$ADMIN_PASS" ] && [ "$INTERACTIVE" = 1 ]; then
         choose 'Admin password (used if the account does not exist yet)' \
             'Create a strong one for me  — shown once at the end' \
             'I will type my own'
-        [ "$CHOICE" = 1 ] && ask_secret ADMIN_PASS 'Admin password'
+        if [ "$CHOICE" = 1 ]; then ask_secret ADMIN_PASS 'Your password'; fi
     fi
     if [ -z "$ADMIN_PASS" ]; then
         ADMIN_PASS=$(random_password)
@@ -779,16 +1281,16 @@ collect_settings() {
     if [ "$INTERACTIVE" = 0 ]; then
         ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
         [ -n "$ADMIN_EMAIL" ] || die 'Set the admin e-mail: --email you@example.com (or CHATVIA_ADMIN_EMAIL).'
-        valid_email "$ADMIN_EMAIL" || exit 1
+        valid_email "$ADMIN_EMAIL" || die "$INVALID"
         ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
         if [ -z "$ADMIN_PASS" ]; then
             ADMIN_PASS=$(random_password)
             PASSWORD_GENERATED=1
         fi
         APP_PORT=$default_port
-        valid_port "$APP_PORT" || exit 1
+        valid_port "$APP_PORT" || die "$INVALID"
         APP_URL=${CHATVIA_URL:-http://localhost:$APP_PORT}
-        valid_url "$APP_URL" || exit 1
+        valid_url "$APP_URL" || die "$INVALID"
         EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
         EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
         case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
@@ -797,7 +1299,9 @@ collect_settings() {
         return
     fi
 
-    ask ADMIN_EMAIL 'Admin e-mail' "${CHATVIA_ADMIN_EMAIL:-}" valid_email
+    ask ADMIN_EMAIL 'Admin e-mail' --default "${CHATVIA_ADMIN_EMAIL:-}" \
+        --placeholder 'you@example.com' --hint 'The first admin account signs in with it.' \
+        --check valid_email
 
     choose 'Admin password' \
         'Create a strong one for me  — shown once at the end' \
@@ -806,10 +1310,11 @@ collect_settings() {
         ADMIN_PASS=$(random_password)
         PASSWORD_GENERATED=1
     else
-        ask_secret ADMIN_PASS 'Admin password'
+        ask_secret ADMIN_PASS 'Your password'
     fi
 
-    ask APP_PORT 'Port on this computer' "$default_port" valid_port
+    ask APP_PORT 'Port on this computer' --default "$default_port" \
+        --check valid_port --status port_status
 
     choose 'Where will people open Chatvia?' \
         "On this computer only  — http://localhost:$APP_PORT" \
@@ -817,7 +1322,8 @@ collect_settings() {
     if [ "$CHOICE" = 0 ]; then
         APP_URL="http://localhost:$APP_PORT"
     else
-        ask APP_URL 'Address' "${CHATVIA_URL:-https://chat.example.com}" valid_url
+        ask APP_URL 'Address' --default "${CHATVIA_URL:-}" --placeholder 'https://chat.example.com' \
+            --hint 'The full address people open, without a path.' --check valid_url
     fi
 
     choose 'Setup' \
@@ -829,10 +1335,9 @@ collect_settings() {
         return
     fi
 
-    say ''
-    warn "$(bold 'These two settings are permanent.') They decide how the search data"
-    info '  of your knowledge is stored and can never be changed after the install.'
-    say ''
+    warn "$(bold 'These two settings are permanent.')"
+    info 'They decide how the search data of your knowledge is stored,'
+    info 'and can never be changed after the install.'
     choose 'Vector type' \
         'halfvec  — half the space, almost the same search quality (recommended)' \
         'vector  — full precision, twice the space'
@@ -841,7 +1346,7 @@ collect_settings() {
     choose 'Vector size (dimensions)' \
         '1024  — works with every AI provider (recommended)' \
         '512  — smaller and faster, a little less precise (Qwen3, Cohere, Jina)' \
-        '768  — (Qwen3, Jina)' \
+        '768  — Qwen3, Jina' \
         '1536  — more detail, more space (Qwen3, Cohere)' \
         '2048  — the most detail, the most space (Qwen3 only)'
     case $CHOICE in
@@ -852,60 +1357,83 @@ collect_settings() {
         *) EMBEDDING_DIMENSIONS=2048 ;;
     esac
 
-    ask CHATVIA_VERSION 'Chatvia version' "$CHATVIA_VERSION"
+    ask CHATVIA_VERSION 'Chatvia version' --default "$CHATVIA_VERSION" \
+        --hint 'latest, or a version number like 1.2.0'
 }
 
 show_summary() {
-    local password='the one you typed'
-    [ "$PASSWORD_GENERATED" = 1 ] && password='a new random one (shown at the end)'
-    rule
-    printf '  %-18s %s\n' 'Folder' "$(bold "$(pretty_path "$INSTALL_DIR")")"
-    printf '  %-18s %s\n' 'Admin e-mail' "$(bold "$ADMIN_EMAIL")"
-    printf '  %-18s %s\n' 'Admin password' "$(bold "$password")"
-    printf '  %-18s %s\n' 'Address' "$(bold "$APP_URL")"
-    printf '  %-18s %s\n' 'Port' "$(bold "$APP_PORT")"
-    printf '  %-18s %s %s\n' 'Search storage' "$(bold "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions")" "$(dim '(permanent)')"
-    printf '  %-18s %s\n' 'Image' "$(bold "$(image_ref)")$( [ "$NO_PULL" = 1 ] && dim ' (already on this machine)')"
-    rule
+    local password='the one you typed' image folder email address port storage image_row
+    if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
+    image=$(image_ref)
+    if [ "$NO_PULL" = 1 ]; then image="$image $(dim '(on this machine)')"; fi
+
+    kv_to folder 'Folder' "$(pretty_path "$INSTALL_DIR")"
+    kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
+    kv_to password 'Admin password' "$password"
+    kv_to address 'Address' "$APP_URL"
+    kv_to port 'Port' "$APP_PORT"
+    kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
+    kv_to image_row 'Image' "$image"
+    note 'Check your settings' "$folder" "$email" "$password" "$address" "$port" "$storage" "$image_row"
+}
+
+# Opens the app in the browser, when this machine has one.
+offer_browser() {
+    [ "$INTERACTIVE" = 1 ] && [ "$DRY_RUN" = 0 ] || return 0
+    local opener=''
+    if [ "$OS" = macos ]; then
+        opener=open
+    elif command -v xdg-open >/dev/null 2>&1 && [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]; then
+        opener=xdg-open
+    fi
+    [ -n "$opener" ] || return 0
+    if confirm 'Open Chatvia in your browser?' y; then
+        "$opener" "$APP_URL" >/dev/null 2>&1 || true
+    fi
 }
 
 show_finish() {
-    local folder in_dir
+    local folder title open admin email password saved='' n=1
     folder=$(pretty_path "$INSTALL_DIR")
-    in_dir="cd $folder &&"
-    say ''
-    rule
     if [ "$DRY_RUN" = 1 ]; then
-        printf '  %s %s\n' "$(accent "$SYM_DOT")" "$(bold 'Dry run done. A real install ends like this:')"
+        title='Dry run done. A real install ends like this:'
     else
-        printf '  %s%s%s %s\n' "$C_GREEN" "$SYM_OK" "$C_RESET" "$(bold 'Chatvia is running')"
+        title=$(bold 'Chatvia is running')
     fi
-    rule
-    say ''
-    printf '  %-17s %s\n' 'Open the app' "$(accent "$APP_URL")"
-    printf '  %-17s %s\n' 'Admin panel' "$(accent "$APP_URL/admin")"
-    printf '  %-17s %s\n' 'Admin e-mail' "$(bold "$ADMIN_EMAIL")"
-    printf '  %-17s %s\n' 'Admin password' "$(admin_password_text)"
+
+    kv_to open 'Open the app' "$(accent "$APP_URL")"
+    kv_to admin 'Admin panel' "$(accent "$APP_URL/admin")"
+    kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
+    if [ "$ADMIN_CREATED" = 0 ]; then
+        kv_to password 'Admin password' 'unchanged: made by an earlier attempt'
+    elif [ "$PASSWORD_GENERATED" = 1 ]; then
+        kv_to password 'Admin password' "$(bold "$ADMIN_PASS")"
+        kv_to saved '' "$(accent "$S_UP save it now, it is shown only once")"
+    else
+        kv_to password 'Admin password' 'the one you typed'
+    fi
+    note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
+
+    section 'Next steps'
     if [ "$APP_URL" != "http://localhost:$APP_PORT" ]; then
-        say ''
-        info "$(dim "Point your proxy at http://localhost:$APP_PORT and set TRUSTED_PROXIES in .env (see the docs).")"
+        info "$n. Point your proxy at http://localhost:$APP_PORT and set TRUSTED_PROXIES"
+        info '   in .env (see the guide).'
+        n=$((n + 1))
     fi
-    say ''
-    printf '  %s\n' "$(bold 'Next steps')"
-    info "1. Sign in to the admin panel and set up two-factor authentication."
-    info "2. Settings $SYM_ARROW AI providers: enter the API key of your chat and"
-    info "   embedding provider."
-    info "3. Add the built-in tools (charts, forms, weather, web search):"
-    info "   $(dim "$in_dir docker compose exec app php artisan app:sync-builtin-mcp")"
-    say ''
-    printf '  %s %s\n' "$(bold 'Everyday commands')" "$(dim "(in $folder)")"
+    info "$n. Sign in to the admin panel and set up two-factor authentication."
+    info "$((n + 1)). Settings $S_ARROW AI: enter the API key of your chat and embedding"
+    info "   provider. Settings $S_ARROW Email: set up how Chatvia sends email."
+    info "$((n + 2)). Add the built-in tools (charts, forms, weather, web search):"
+    info "   $(dim "cd $folder && docker compose exec app php artisan app:sync-builtin-mcp")"
+
+    section 'Everyday commands' "in $folder"
     info "docker compose logs -f     $(dim 'follow the logs')"
     info "docker compose down        $(dim 'stop (your data is kept)')"
     info "docker compose up -d       $(dim 'start again')"
     info "Run this installer again   $(dim 'upgrade')"
-    say ''
-    info "$(dim "Guide: $CHATVIA_DOCS")"
-    say ''
+
+    offer_browser
+    outro "$(dim "Guide: $CHATVIA_DOCS")"
 }
 
 #------------------------------------------------------------------------------
@@ -917,20 +1445,20 @@ env_value() {
 }
 
 do_upgrade() {
-    STEPS=2
-    say ''
-    ok "Chatvia is already installed in $(bold "$(pretty_path "$INSTALL_DIR")")."
+    ok "Chatvia is installed in $(bold "$(pretty_path "$INSTALL_DIR")")"
     info "$(dim 'The first-install questions only run once. Your data and settings are kept.')"
 
     if [ "$UPGRADE" = 0 ]; then
         if [ "$INTERACTIVE" = 0 ]; then
             die 'Pass --upgrade to upgrade it without questions.'
         fi
-        say ''
         choose 'What do you want to do?' \
             'Upgrade to the newest version  — keeps your data' \
             'Nothing, exit'
-        [ "$CHOICE" = 0 ] || exit 0
+        if [ "$CHOICE" != 0 ]; then
+            outro 'Nothing was changed.'
+            exit 0
+        fi
     fi
 
     check_docker
@@ -943,7 +1471,6 @@ do_upgrade() {
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
     CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
 
-    step 2 'Upgrade'
     if [ "$DRY_RUN" = 0 ]; then
         LOG="$INSTALL_DIR/install.log"
         printf '\n== Upgrade %s\n' "$(date)" >>"$LOG"
@@ -958,11 +1485,10 @@ do_upgrade() {
     fi
     remove_setup_container
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
-        die 'The web app did not answer within 3 minutes.' "See why: cd $INSTALL_DIR && docker compose logs app"
+        die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && docker compose logs app"
 
-    say ''
-    ok "$(bold 'Chatvia is up to date.') Open $(accent "$APP_URL")"
-    say ''
+    ok "$(bold 'Chatvia is up to date.')"
+    outro "Open $(accent "$APP_URL")"
 }
 
 #------------------------------------------------------------------------------
@@ -997,23 +1523,19 @@ parse_args() {
 }
 
 cleanup() {
-    local status=$?
-    printf '%s' "${SHOW_CURSOR:-}"
-    [ -n "${WORK_DIR:-}" ] && rm -rf "$WORK_DIR"
-    if [ "$status" -ne 0 ] && [ "$status" -ne 130 ]; then
-        say ''
-    fi
+    keys_off
+    if [ -n "${WORK_DIR:-}" ]; then rm -rf "$WORK_DIR"; fi
 }
 
 interrupted() {
-    printf '%s\n\n' "${SHOW_CURSOR:-}"
-    info 'Stopped.'
+    keys_off
+    printf '\n  %s  %s\n\n' "$END" 'Stopped.'
     exit 130
 }
 
 main() {
-    YES=0 UPGRADE=0 DRY_RUN=0 PASSWORD_GENERATED=0 ADMIN_CREATED=1 USE_SUDO=0 STEPS=4
-    ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL=''
+    YES=0 UPGRADE=0 DRY_RUN=0 PASSWORD_GENERATED=0 ADMIN_CREATED=1 USE_SUDO=0
+    ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL='' TTY_STATE=''
     EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-}
@@ -1035,6 +1557,10 @@ main() {
         die 'This installer asks a few questions, but there is no terminal to ask them in.' \
             'Run it in a terminal, or pass --yes with the settings (see --help).'
     fi
+    if [ "$INTERACTIVE" = 1 ]; then
+        # Restored on exit, even after Ctrl-C in the middle of a question.
+        TTY_STATE=$(stty -g 2>/dev/null </dev/tty) || TTY_STATE=''
+    fi
 
     case "$(uname -s)" in
         Darwin) OS=macos ;;
@@ -1044,29 +1570,23 @@ main() {
     esac
 
     banner
+    intro 'Setup'
+    if [ "$DRY_RUN" = 1 ]; then info "$(accent 'Dry run: nothing will be changed.')"; fi
 
-    INSTALL_DIR=$(expand_home "${CHATVIA_DIR:-$HOME/chatvia}")
-    if [ "$INTERACTIVE" = 1 ] && [ -z "${CHATVIA_DIR:-}" ] && [ ! -f "$INSTALL_DIR/compose.yaml" ]; then
-        say ''
-        ask INSTALL_DIR 'Install folder' "$INSTALL_DIR" valid_folder
-        INSTALL_DIR=$(expand_home "$INSTALL_DIR")
+    INSTALL_DIR=${CHATVIA_DIR:-$HOME/chatvia}
+    if [ "$INTERACTIVE" = 1 ] && [ -z "${CHATVIA_DIR:-}" ]; then
+        ask INSTALL_DIR 'Install folder' --default "$(pretty_path "$INSTALL_DIR")" \
+            --hint 'Holds compose.yaml and .env. Docker keeps your data.' \
+            --check check_folder --status folder_status --complete complete_folder
     fi
-    case $INSTALL_DIR in /*) ;; *) INSTALL_DIR="$PWD/$INSTALL_DIR" ;; esac
+    INSTALL_DIR=$(resolve_dir "$INSTALL_DIR")
+    check_folder "$INSTALL_DIR" || die "$INVALID"
 
-    if [ -f "$INSTALL_DIR/compose.yaml" ] || [ -f "$INSTALL_DIR/.env" ]; then
-        # This installer marks .env when it finishes. Its .env without the
-        # mark means an attempt stopped half way; any other .env is an
-        # install made by hand.
-        if grep -q '^# Chatvia settings, written by the installer' "$INSTALL_DIR/.env" 2>/dev/null &&
-            ! grep -q '^# Install finished on' "$INSTALL_DIR/.env"; then
-            do_resume
-        else
-            do_upgrade
-        fi
-        return
-    fi
-
-    do_install
+    case $STATE in
+        unfinished) do_resume ;;
+        installed) do_upgrade ;;
+        *) do_install ;;
+    esac
 }
 
 main "$@"

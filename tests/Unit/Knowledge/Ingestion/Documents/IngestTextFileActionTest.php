@@ -27,7 +27,7 @@ function itfFakeChunkFit(array $chunks): ChunkFitClient
     {
         public function __construct(private readonly array $chunks) {}
 
-        public function splitByTitle(string $text): array
+        public function split(string $text): array
         {
             return $this->chunks;
         }

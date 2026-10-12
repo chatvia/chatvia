@@ -159,7 +159,7 @@ class SourceFile extends Model implements ChunkableContract
     /**
      * EPUB / FictionBook are structured text, not scanned documents — Pandoc
      * extracts their markdown directly, so they ride the direct-chunk text
-     * pipeline (no document parser, no LibreOffice, no PDF).
+     * pipeline (no document parser, no PDF).
      */
     public function isEbook(): bool
     {

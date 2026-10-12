@@ -55,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->discoverClusters(in: app_path('Admin/Clusters'), for: 'App\Admin\Clusters')
             ->discoverResources(in: app_path('Admin/Resources'), for: 'App\Admin\Resources')
             ->discoverPages(in: app_path('Admin/Pages'), for: 'App\Admin\Pages')
             ->pages([

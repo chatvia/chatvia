@@ -100,8 +100,9 @@ return [
      *
      *   image  → the document parser (needs an OCR parser such as `mistral`;
      *            the `local` parser cannot read images); counts as 1 page.
-     *   office → the document parser (chatvia.ai.document_parser); page count via LibreOffice → PDF →
-     *            pdfinfo (exact). .txt/.md sit here for page counting but are
+     *   office → the document parser (chatvia.ai.document_parser); pages
+     *            from OfficeText (slides and sheets exact, other formats
+     *            estimated). .txt/.md sit here for page counting but are
      *            chunked directly (FileAnalyzer skips the OCR step for them).
      *   pandoc → structured-text ebooks (EPUB, FictionBook). No OCR and no PDF
      *            engine is installed — Pandoc extracts their text for direct

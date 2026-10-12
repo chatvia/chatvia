@@ -8,9 +8,8 @@ use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
 
 /**
- * Text splitter backed by the hosted chunk.fit service. It splits by section
- * title and merges small neighbouring sections, which suits Markdown from web
- * pages and ebooks.
+ * Text splitter backed by the chunker (chunk.fit or self-hosted), with the
+ * strategy and options set in the admin panel (Settings → Chunking).
  */
 class ChunkFitTextSplitter implements TextSplitter
 {
@@ -20,7 +19,7 @@ class ChunkFitTextSplitter implements TextSplitter
 
     public function split(string $text): array
     {
-        return $this->client->splitByTitle($text);
+        return $this->client->split($text);
     }
 
     public function name(): string

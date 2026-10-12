@@ -32,6 +32,7 @@ with open-weight models.
 - [Requirements](#requirements)
 - [Getting started](#getting-started)
 - [Running the app](#running-the-app)
+- [Develop with Laravel Sail](#develop-with-laravel-sail)
 - [Tests and checks](#tests-and-checks)
 - [The chat widget](#the-chat-widget)
 - [Documentation site](#documentation-site)
@@ -124,27 +125,27 @@ explains how to work on it.
 - **Redis** 7 or newer
 - **System tools** for some file types. You only need the ones for the
   features you use:
-  - [LibreOffice](https://www.libreoffice.org/) (`soffice`): Word, PowerPoint and Excel files
-  - [pandoc](https://pandoc.org/): EPUB and other e-book formats
+  - [pandoc](https://pandoc.org/): Word (`.docx`), ODT, RTF, EPUB and FB2 files
+  - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): old Word (`.doc`)
+    and PowerPoint (`.ppt`) files. PowerPoint (`.pptx`) and Excel (`.xlsx`) files need no extra program.
   - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files
   - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): audio and video
-  - Chrome (headless) for PDF export of chats. `npm install` downloads one
-    through Puppeteer.
+  - [WeasyPrint](https://weasyprint.org/) (`weasyprint`): exporting a chat as PDF, and summaries
+    of office files
 
-  If a tool is not at the default path in `config/services.php`, set its path
-  in `.env`: `LIBREOFFICE_BIN_PATH`, `PANDOC_BIN_PATH`, `PDFINFO_BIN_PATH`,
+  If a tool is not on the `PATH`, set its path in `.env`:
+  `PANDOC_BIN_PATH`, `CATDOC_BIN_PATH`, `CATPPT_BIN_PATH`, `PDFINFO_BIN_PATH`,
   `PDFTOTEXT_BIN_PATH`, `FFMPEG_BIN_PATH`, `FFPROBE_PATH`,
-  `CHROME_EXECUTABLE_PATH` (and `NODE_BIN_PATH` / `NPM_BIN_PATH` for
-  Puppeteer).
+  `WEASYPRINT_BIN_PATH`.
 
 **External AI services.** Chatvia calls AI models through OpenAI-compatible
 APIs. You need a chat provider and an embedding provider. The default
 configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
 and others) for chat, embeddings and reranking. The chat provider can be
-changed with `LLM_PROVIDER` (`scaleway`, `mistral`, `groq` or `openrouter`).
-Reading documents and splitting text run on your server unless you add a
-Mistral or chunk.fit key. Website import uses Firecrawl. API keys are entered
-in the admin panel (**Settings**), not in `.env`; see
+changed to Mistral, Groq or OpenRouter. Reading documents and splitting text
+run on your server unless you add a Mistral or chunk.fit key. Website import
+uses Firecrawl. The services, their API keys and models are chosen in the
+admin panel (**Settings → AI**), not in `.env`; see
 [AI providers](docs/guide/self-hosting/ai-providers.md).
 
 ## Getting started
@@ -152,7 +153,8 @@ in the admin panel (**Settings**), not in `.env`; see
 ### 1. Start PostgreSQL, Redis and Mailpit with Docker
 
 The repository has a `docker-compose.yml` for the services the app needs. The
-app itself runs on your machine.
+app itself runs on your machine. To run the app in Docker as well, skip to
+[Develop with Laravel Sail](#develop-with-laravel-sail).
 
 ```bash
 docker compose up -d
@@ -203,7 +205,7 @@ git clone <repository-url> chatvia
 cd chatvia
 
 composer install
-npm ci                       # also downloads headless Chrome for PDF export
+npm ci
 
 cp .env.example .env
 php artisan key:generate
@@ -251,7 +253,7 @@ list of AI models and, outside production, create a demo admin account
 ### 5. Add your API keys
 
 Sign in to the admin panel at `/admin` with the demo admin account and open
-**Settings → AI providers**. Enter the key of your chat and embedding provider
+**Settings → AI**. Enter the key of your chat and embedding provider
 (with the defaults, one Scaleway key covers both). Then add the built-in tools
 (charts, forms, weather, currency, web search) to the tool catalog:
 
@@ -283,6 +285,110 @@ site, point the channel's webhook at the tunnel URL, and keep Horizon running,
 because replies are sent from queued jobs. Messaging channels only work with
 public agents.
 
+## Develop with Laravel Sail
+
+[Laravel Sail](https://laravel.com/docs/sail) runs everything in Docker: the
+app, Horizon, the scheduler and Reverb, next to the PostgreSQL, Redis and
+Mailpit services above. You only need Docker. The image has every system tool
+(pandoc, catdoc, poppler, ffmpeg, WeasyPrint) installed.
+
+Sail is for development only. It uses `docker-compose.yml` (project
+`chatvia-dev`) and `docker/sail/Dockerfile`; the production image, its compose
+file and CI do not use either.
+
+1. Install the PHP packages. With PHP on your machine, run `composer install`.
+   Without it, use Composer's Docker image:
+
+   ```bash
+   docker run --rm -v "$(pwd):/app" -w /app composer:2 install --ignore-platform-reqs --no-scripts
+   ```
+
+2. Create `.env` and turn Sail on:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   In `.env`, uncomment `COMPOSE_PROFILES=sail` and `APP_PORT=8000`. The
+   `postgres` container creates its database, user and password from
+   `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` the first time it starts.
+
+3. Start the containers. The first start builds the image, which takes a few
+   minutes:
+
+   ```bash
+   vendor/bin/sail up -d
+   ```
+
+4. Set up the app inside the containers:
+
+   ```bash
+   vendor/bin/sail composer install
+   vendor/bin/sail artisan key:generate
+   vendor/bin/sail npm ci
+   vendor/bin/sail artisan migrate --seed
+   vendor/bin/sail artisan storage:link
+   ```
+
+   Set `BUILTIN_MCP_SECRET` in `.env`, run `vendor/bin/sail restart`, then
+   add your API keys as in [step 5](#5-add-your-api-keys), with
+   `vendor/bin/sail artisan app:sync-builtin-mcp`.
+
+5. Start Vite and open <http://localhost:8000>:
+
+   ```bash
+   vendor/bin/sail npm run dev
+   ```
+
+| Container | What it runs | On your machine |
+|---|---|---|
+| `laravel.test` | the web server, and Vite when you start it | <http://localhost:8000>, Vite on port 5173 |
+| `horizon` | queued jobs | |
+| `scheduler` | scheduled tasks | |
+| `reverb` | WebSockets | `ws://localhost:8080` |
+| `postgres`, `redis`, `mailpit` | as above | as above |
+
+### Where the settings live
+
+**In `.env`.** You set these:
+
+- The database: `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD`. The
+  `postgres` container creates this database and user the first time it
+  starts. If you change them later, the existing database keeps the old values;
+  `vendor/bin/sail down -v` deletes all data, so the next start creates them
+  again. The tests expect the defaults (`chatvia` / `password`, see
+  `phpunit.xml`).
+- Sail and the ports on your machine: `COMPOSE_PROFILES`, `APP_PORT`,
+  `FORWARD_REVERB_PORT`, `VITE_PORT` and the `FORWARD_*_PORT` settings of the
+  services.
+- Everything else, as without Sail (`APP_KEY`, `BUILTIN_MCP_SECRET` and so on).
+
+**In `docker-compose.yml`.** These are set for you. Do not copy them into
+`.env`:
+
+- How the containers find each other: `DB_HOST=postgres`, `REDIS_HOST=redis`,
+  `MAIL_HOST=mailpit`, `REVERB_HOST=reverb` and
+  `BUILTIN_MCP_INTERNAL_URL=http://laravel.test`.
+- The addresses your browser uses: `APP_URL` (`http://localhost:` and
+  `APP_PORT`) and the Reverb address (`localhost:` and `FORWARD_REVERB_PORT`).
+
+Inside the containers, these values win over `.env`. So one `.env` works with
+Sail and without it: `.env` keeps `DB_HOST=127.0.0.1` for when the app runs on
+your machine. After you change `.env`, run `vendor/bin/sail restart`.
+
+### Good to know
+
+- Horizon loads the code once. After you change code that runs in a queued
+  job, run `vendor/bin/sail restart horizon`.
+- `node_modules` is shared with your machine, and some packages are built for
+  one system. After `sail npm ci`, run `npm ci` again before you use
+  `npm run dev` outside Sail.
+- Do not run Horizon or Reverb on your machine at the same time: two workers
+  would take jobs from the same Redis. If port 8080 or 5173 is in use (for
+  example by Herd's Reverb), set `FORWARD_REVERB_PORT` or `VITE_PORT`.
+- Tests: `vendor/bin/sail artisan test --compact`. Stop everything with
+  `vendor/bin/sail down` (your data is kept).
+
 ## Tests and checks
 
 ```bash
@@ -296,6 +402,9 @@ composer ci:check                              # every CI gate (see below)
   see `phpunit.xml`). The Docker setup creates this database for you. On the
   first run, the suite installs the extensions, migrates and seeds it; when
   migrations change, it rebuilds the schema by itself.
+- Run the suite in one process, as `composer test` does. With `--parallel`,
+  every process builds its own test database at the same time, and PostgreSQL
+  runs out of locks (`max_locks_per_transaction`).
 - `composer ci:check` runs, without changing any file: `composer validate`,
   `composer audit`, `npm audit` (production dependencies), Pint, Rector,
   PHPStan, Prettier, ESLint, `vue-tsc`, the i18n check and the test suite. CI
@@ -344,7 +453,7 @@ Docker. In short:
   only the list of AI models, no demo data), create the first admin with
   `php artisan admin:create-user <email> <name>`, add your API keys in the
   admin panel, then run `php artisan app:sync-builtin-mcp`.
-- Set up a working mailer (`MAIL_*`). People who sign up at `/register` must
+- Set up e-mail in the admin panel (**Settings → Email**). People who sign up at `/register` must
   confirm their e-mail address before they can use the app, and invitations
   and sign-in links also go out by e-mail.
 - Cache the configuration with `php artisan config:cache`, `event:cache` and

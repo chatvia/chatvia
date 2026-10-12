@@ -17,7 +17,7 @@
 # This file is for running Chatvia. To work on the code, use the
 # docker-compose.yml in the project root (database, Redis and Mailpit only).
 
-name: chatvia-stack
+name: chatvia
 
 x-app: &app
   image: ${CHATVIA_IMAGE:-ghcr.io/chatvia/chatvia}:${CHATVIA_VERSION:-latest}

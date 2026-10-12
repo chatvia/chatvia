@@ -2,14 +2,14 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
-use Domain\Knowledge\Document\Conversion\LibreOffice;
+use Domain\Knowledge\Document\Conversion\OfficePdf;
 use Illuminate\Database\Eloquent\Attributes\Unguarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * HasStorageFile copies stored files to local temp files for tools that need a
- * path (OCR, Pandoc, LibreOffice). It must read the field it was asked for,
+ * path (OCR, Pandoc, OfficePdf). It must read the field it was asked for,
  * leave no temp files behind, and never delete a stored original.
  */
 function storageFileModel(array $attributes): Model
@@ -85,8 +85,9 @@ it('hands a stored PDF to withPdf as-is and never deletes it', function (): void
     Storage::put('users/u/report.pdf', '%PDF-1.7');
     $model = storageFileModel(['id' => 1, 'user_id' => 1, 'filepath' => 'users/u/report.pdf']);
 
-    $office = Mockery::mock(LibreOffice::class);
+    $office = Mockery::mock(OfficePdf::class);
     $office->shouldNotReceive('toPdf');
+    $office->shouldNotReceive('fromPages');
 
     $seen = $model->withPdf($office, fn (string $path): string => $path);
 
@@ -102,8 +103,9 @@ it('converts other files to a temporary PDF and cleans up every copy afterwards'
     $converted = sys_get_temp_dir().'/converted_'.uniqid().'.pdf';
     $inputSeen = null;
 
-    $office = Mockery::mock(LibreOffice::class);
-    $office->shouldReceive('toPdf')->once()->andReturnUsing(function (string $input) use ($converted, &$inputSeen): string {
+    $office = Mockery::mock(OfficePdf::class);
+    $office->shouldReceive('toPdf')->once()->andReturnUsing(function (string $input, string $extension) use ($converted, &$inputSeen): string {
+        expect($extension)->toBe('docx');
         $inputSeen = $input;
         file_put_contents($converted, '%PDF-converted');
 
@@ -122,4 +124,28 @@ it('converts other files to a temporary PDF and cleans up every copy afterwards'
         ->and(file_exists((string) $inputSeen))->toBeFalse();
     Storage::assertMissing($pdfPath);
     Storage::assertExists('users/u/notes.docx');
+});
+
+it('makes the PDF from the parsed pages, not the raw JSON, when a source has them', function (): void {
+    $owner = User::factory()->create();
+    Storage::put('users/u/scan.png', 'png-bytes');
+    Storage::put('users/u/pages.json', json_encode([
+        ['pageNumber' => 1, 'content' => 'First page text.', 'checksum' => 'a'],
+        ['pageNumber' => 2, 'content' => 'Second page text.', 'checksum' => 'b'],
+    ]));
+    $model = storageFileModel(['id' => 1, 'user_id' => $owner->id, 'filepath' => 'users/u/scan.png', 'parser_filepath' => 'users/u/pages.json']);
+
+    $converted = sys_get_temp_dir().'/converted_'.uniqid().'.pdf';
+
+    $office = Mockery::mock(OfficePdf::class);
+    $office->shouldNotReceive('toPdf');
+    $office->shouldReceive('fromPages')->once()->with(['First page text.', 'Second page text.'])->andReturnUsing(function () use ($converted): string {
+        file_put_contents($converted, '%PDF-pages');
+
+        return $converted;
+    });
+
+    $model->withPdf($office, fn (string $path): string => $path);
+
+    expect(file_exists($converted))->toBeFalse();
 });

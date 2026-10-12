@@ -44,10 +44,10 @@ it('names itself "local"', function (): void {
     expect((new LocalTextSplitter)->name())->toBe('local');
 });
 
-it('delegates the hosted splitter to chunk.fit title splitting', function (): void {
+it('delegates the chunker splitter to the chunker client', function (): void {
     $client = new class extends ChunkFitClient
     {
-        public function splitByTitle(string $text): array
+        public function split(string $text): array
         {
             return ['# A', 'B'];
         }

@@ -2,21 +2,34 @@
 
 namespace Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit;
 
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkerChunkData;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkerConfigData;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkerServerData;
 use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\Exceptions\ChunkFitException;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * HTTP client for the chunk.fit text splitter (`services.chunkfit`): either
- * the hosted service at chunk.fit, which needs an API key, or a self-hosted
- * chunker (github.com/chatvia/chunker, which the Docker stack runs), which
- * takes no key. Used through ChunkFitTextSplitter.
+ * HTTP client for the chunker (github.com/chatvia/chunker, `services.chunkfit`):
+ * either the hosted service at chunk.fit, which needs an API key, or a
+ * self-hosted chunker (the Docker stack runs one), which takes no key. The
+ * strategy and its options are set in the admin panel (Settings → Chunking).
+ * Used through ChunkFitTextSplitter, and by that page for its preview and to
+ * ask the server what it can run.
  */
 class ChunkFitClient
 {
     /** Host of the hosted service, the only one that receives the API key. */
     private const string HOSTED_HOST = 'chunk.fit';
+
+    /** How long to wait for the quick calls: what the server runs, token counts. */
+    private const int SERVER_TIMEOUT_SECONDS = 5;
+
+    /** The most texts the chunker counts in one request. */
+    private const int TOKEN_BATCH = 2048;
 
     /**
      * Whether it can be used: the hosted service needs its API key, a
@@ -28,48 +41,127 @@ class ChunkFitClient
     }
 
     /**
-     * Chunk document text by section/title via chunk.fit's Unstructured
-     * `chunk_by_title` strategy.
+     * Split text with the strategy set in the admin panel.
      *
-     * Unlike the raw Markdown header splitter (which starts a new chunk at every
-     * heading and never merges, shredding clause-heavy pages into dozens of
-     * sub-100-token fragments), this partitions the text into title-led sections
-     * and then COMBINES small adjacent sections up to `combine_text_under_n_chars`
-     * while capping size at `max_characters`. The result is a small set of
-     * coherent, evenly-sized, fragment-free chunks — empirically the best fit for
-     * the FireCrawl Markdown output across home/marketing and clause-heavy
-     * (terms/refund/pricing) pages alike.
-     *
-     * NOTE: all size knobs are measured in CHARACTERS.
-     *
-     * @return string[] the ordered chunks
+     * @return list<string> the ordered chunks
      *
      * @throws ChunkFitException
      */
-    public function splitByTitle(string $text): array
+    public function split(string $text): array
     {
-        if (trim($text) === '') {
-            return [];
-        }
-
-        $response = $this->request(
-            endpoint: '/unstructured/splitters/text',
-            body: [
-                'text' => $text,
-                'config' => [
-                    'max_characters' => $this->maxCharacters(),
-                    'new_after_n_chars' => $this->newAfterNChars(),
-                    'combine_text_under_n_chars' => $this->combineUnderNChars(),
-                    'overlap' => 0,
-                ],
-            ],
-        );
-
-        return $this->extractChunks($response);
+        return $this->chunk($text, ChunkerConfigData::fromConfig())
+            ->map(fn (ChunkerChunkData $chunk): string => $chunk->text)
+            ->values()
+            ->all();
     }
 
-    /** @param  array<string, mixed>  $body  the JSON request body */
-    private function request(string $endpoint, array $body): Response
+    /**
+     * Split text with the given strategy (POST /v1/chunk).
+     *
+     * @return Collection<int, ChunkerChunkData> the ordered, non-empty chunks
+     *
+     * @throws ChunkFitException
+     */
+    public function chunk(string $text, ChunkerConfigData $config): Collection
+    {
+        if (trim($text) === '') {
+            return collect();
+        }
+
+        try {
+            $response = $this->http($this->timeoutSeconds())
+                ->retry(2, 250, throw: false)
+                ->post('/v1/chunk', [
+                    'text' => $text,
+                    'chunker' => $config->toChunker(),
+                    'encoding' => $config->encoding,
+                ]);
+        } catch (ChunkFitException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            throw new ChunkFitException('Failed to reach the chunker: '.$e->getMessage(), $e->getCode(), previous: $e);
+        }
+
+        $this->ensureSuccessful($response);
+
+        return $this->chunks($response);
+    }
+
+    /**
+     * Count the tokens of each text with the given tokenizer (POST
+     * /v1/tokens), in one request per batch.
+     *
+     * @param  list<string>  $texts
+     * @return list<int> in the order of $texts
+     *
+     * @throws ChunkFitException also when the server cannot count (an older
+     *                           chunker answers 404)
+     */
+    public function countTokens(array $texts, string $encoding): array
+    {
+        $counts = [];
+
+        foreach (array_chunk($texts, self::TOKEN_BATCH) as $batch) {
+            try {
+                $response = $this->http(self::SERVER_TIMEOUT_SECONDS)->post('/v1/tokens', ['input' => $batch, 'encoding' => $encoding]);
+            } catch (ChunkFitException $e) {
+                throw $e;
+            } catch (Throwable $e) {
+                throw new ChunkFitException('Failed to reach the chunker: '.$e->getMessage(), $e->getCode(), previous: $e);
+            }
+
+            $this->ensureSuccessful($response);
+
+            $data = $response->json('data');
+            $byIndex = collect(is_array($data) ? $data : [])
+                ->filter(fn (mixed $item): bool => is_array($item) && is_int($item['index'] ?? null) && is_int($item['tokens'] ?? null))
+                ->mapWithKeys(fn (array $item): array => [$item['index'] => $item['tokens']]);
+
+            foreach (array_keys($batch) as $index) {
+                if (! $byIndex->has($index)) {
+                    throw new ChunkFitException('The chunker did not count every text.');
+                }
+
+                $counts[] = (int) $byIndex->get($index);
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * The strategies the server runs and whether it can embed (GET
+     * /v1/engines). Never throws: an unreachable server is reported in the
+     * result.
+     */
+    public function server(): ChunkerServerData
+    {
+        try {
+            $response = $this->http(self::SERVER_TIMEOUT_SECONDS)->get('/v1/engines');
+            $this->ensureSuccessful($response);
+        } catch (Throwable $e) {
+            return ChunkerServerData::unreachable($e->getMessage());
+        }
+
+        $chunkers = $response->json('chunkers');
+        $strategies = collect(is_array($chunkers) ? $chunkers : [])
+            ->filter(fn (mixed $chunker): bool => is_array($chunker) && is_string($chunker['engine'] ?? null) && is_string($chunker['strategy'] ?? null))
+            ->map(fn (array $chunker): string => "{$chunker['engine']}.{$chunker['strategy']}")
+            ->values()
+            ->all();
+
+        return new ChunkerServerData(
+            strategies: $strategies,
+            encodings: array_values(array_filter((array) $response->json('encodings'), is_string(...))),
+            embeddingsConfigured: $response->json('embeddings.configured') === true,
+            embeddingsModel: is_string($response->json('embeddings.model')) ? $response->json('embeddings.model') : null,
+        );
+    }
+
+    /**
+     * @throws ChunkFitException when the hosted service has no API key
+     */
+    private function http(int $timeoutSeconds): PendingRequest
     {
         $headers = ['Accept' => 'application/json'];
 
@@ -80,58 +172,73 @@ class ChunkFitClient
 
             if ($apiKey === null || $apiKey === '') {
                 throw new ChunkFitException(
-                    'chunk.fit is not configured: add its API key in the admin panel (Settings → Knowledge), or set CHUNK_FIT_BASE_URL to your own chunker.',
+                    'chunk.fit is not configured: add its API key in the admin panel (Settings → Chunking), or point the chunker address to your own chunker.',
                 );
             }
 
             $headers['Authorization'] = 'Bearer '.$apiKey;
         }
 
-        try {
-            $response = Http::baseUrl($this->baseUrl())
-                ->timeout($this->timeoutSeconds())
-                ->retry(2, 250, throw: false)
-                ->withHeaders($headers)
-                ->asJson()
-                ->post($endpoint, $body);
-        } catch (Throwable $e) {
-            throw new ChunkFitException('Failed to reach chunk.fit: '.$e->getMessage(), $e->getCode(), previous: $e);
-        }
-
-        if ($response->failed()) {
-            throw new ChunkFitException(sprintf(
-                'chunk.fit returned %d: %s',
-                $response->status(),
-                $this->summarizeError($response),
-            ));
-        }
-
-        return $response;
+        return Http::baseUrl($this->baseUrl())
+            ->timeout($timeoutSeconds)
+            ->withHeaders($headers)
+            ->asJson();
     }
 
     /**
-     * @return string[]
+     * @throws ChunkFitException
      */
-    private function extractChunks(Response $response): array
+    private function ensureSuccessful(Response $response): void
+    {
+        if ($response->failed()) {
+            throw new ChunkFitException(sprintf(
+                'The chunker returned %d: %s',
+                $response->status(),
+                $this->summarizeError($response),
+            ), $response->status());
+        }
+    }
+
+    /**
+     * @return Collection<int, ChunkerChunkData>
+     *
+     * @throws ChunkFitException
+     */
+    private function chunks(Response $response): Collection
     {
         $chunks = $response->json('chunks');
 
         if (! is_array($chunks)) {
-            throw new ChunkFitException('chunk.fit response missing "chunks" array.');
+            throw new ChunkFitException('The chunker response has no "chunks" list.');
         }
 
-        return array_values(array_filter(
-            array_map(fn ($chunk): ?string => is_string($chunk) ? trim($chunk) : null, $chunks),
-            fn (?string $chunk): bool => $chunk !== null && $chunk !== '',
-        ));
+        return collect($chunks)
+            ->filter(fn (mixed $chunk): bool => is_array($chunk) && is_string($chunk['text'] ?? null) && trim($chunk['text']) !== '')
+            ->map(fn (array $chunk): ChunkerChunkData => new ChunkerChunkData(
+                text: trim($chunk['text']),
+                tokenCount: (int) ($chunk['token_count'] ?? 0),
+            ))
+            ->values();
     }
 
+    /**
+     * The chunker explains a refused request in `detail`: a message, or a list
+     * of validation errors with the field (`loc`) and the reason (`msg`).
+     */
     private function summarizeError(Response $response): string
     {
-        $body = $response->json();
+        $detail = $response->json('detail');
 
-        if (is_array($body) && isset($body['detail'])) {
-            return is_string($body['detail']) ? $body['detail'] : json_encode($body['detail']);
+        if (is_string($detail)) {
+            return $detail;
+        }
+
+        if (is_array($detail)) {
+            return collect($detail)
+                ->map(fn (mixed $error): string => is_array($error)
+                    ? trim(implode('.', array_slice((array) ($error['loc'] ?? []), 1)).': '.($error['msg'] ?? ''), ': ')
+                    : (string) json_encode($error))
+                ->implode('; ');
         }
 
         return mb_substr((string) $response->body(), 0, 500);
@@ -156,21 +263,6 @@ class ChunkFitClient
 
     private function timeoutSeconds(): int
     {
-        return (int) config('services.chunkfit.timeout', 30);
-    }
-
-    private function maxCharacters(): int
-    {
-        return (int) config('services.chunkfit.by_title.max_characters', 2000);
-    }
-
-    private function newAfterNChars(): int
-    {
-        return (int) config('services.chunkfit.by_title.new_after_n_chars', 1500);
-    }
-
-    private function combineUnderNChars(): int
-    {
-        return (int) config('services.chunkfit.by_title.combine_text_under_n_chars', 1000);
+        return (int) config('services.chunkfit.timeout', 120);
     }
 }

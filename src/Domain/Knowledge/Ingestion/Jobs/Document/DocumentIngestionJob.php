@@ -19,7 +19,7 @@ use Throwable;
 /**
  * Parses an uploaded document and starts its chunk batch. See
  * {@see IngestDocumentAction}. Word files run on their own queue because
- * LibreOffice conversion is slower; the other formats share the OCR queue.
+ * reading them takes longer; the other formats share the OCR queue.
  */
 class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {

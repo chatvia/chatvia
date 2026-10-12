@@ -71,8 +71,7 @@ FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS assets
 
 WORKDIR /app
 COPY package.json package-lock.json ./
-# --ignore-scripts skips the postinstall Chrome download; the build needs no
-# install scripts.
+# The build needs no install scripts.
 RUN npm ci --ignore-scripts --no-audit --no-fund
 # The widget is its own package with its own lockfile. --ignore-scripts also
 # skips its husky git-hook setup.
@@ -95,8 +94,12 @@ FROM php AS app
 
 # - postgresql-client-18: pg_dump for the scheduled backup must match the
 #   PostgreSQL 18 server, so it comes from the PostgreSQL apt repository.
-# - LibreOffice (Word, PowerPoint, Excel), poppler (PDF), pandoc (EPUB, FB2)
-#   and ffmpeg (audio, video): file sources are read with them.
+# - poppler (PDF), pandoc (Word, ODT, RTF, EPUB, FB2), catdoc (old .doc and
+#   .ppt) and ffmpeg (audio, video): file sources are read with them. PPTX
+#   and XLSX are read in PHP.
+# - Python and Pango for WeasyPrint (installed below), which makes the PDF
+#   when a visitor exports a chat. The Noto fonts (incl. CJK) give it every
+#   script the dashboard languages use.
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends ca-certificates curl gnupg; \
@@ -109,17 +112,29 @@ RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         postgresql-client-18 \
-        libreoffice-writer-nogui \
-        libreoffice-calc-nogui \
-        libreoffice-impress-nogui \
         poppler-utils \
         pandoc \
+        catdoc \
         ffmpeg \
+        python3 \
+        python3-venv \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libharfbuzz-subset0 \
         fonts-dejavu-core \
-        fonts-noto-core; \
+        fonts-noto-core \
+        fonts-noto-cjk; \
     apt-get purge -y gnupg; \
     apt-get autoremove -y; \
     rm -rf /var/lib/apt/lists/*
+
+# WeasyPrint from PyPI in its own virtualenv: Debian's package pulls in numpy,
+# scipy and sympy (about 200 MB more) that PDF export never uses.
+ARG WEASYPRINT_VERSION=70.0
+RUN python3 -m venv /opt/weasyprint \
+    && /opt/weasyprint/bin/pip install --no-cache-dir "weasyprint==${WEASYPRINT_VERSION}" \
+    && ln -s /opt/weasyprint/bin/weasyprint /usr/local/bin/weasyprint \
+    && weasyprint --version
 
 # Container scripts: the entrypoint wrapper, the one-shot commands, a start-up
 # hook and nginx settings.

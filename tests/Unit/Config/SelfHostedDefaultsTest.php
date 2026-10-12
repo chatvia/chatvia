@@ -135,7 +135,8 @@ it('adds extra passkey origins and skips the www variant for local hosts', funct
 
 it('resolves helper binaries from PATH by default', function (): void {
     $bin = configFileWith('services.php', [
-        'LIBREOFFICE_BIN_PATH' => null,
+        'CATDOC_BIN_PATH' => null,
+        'CATPPT_BIN_PATH' => null,
         'PANDOC_BIN_PATH' => null,
         'PDFINFO_BIN_PATH' => null,
         'FFMPEG_BIN_PATH' => null,
@@ -143,7 +144,8 @@ it('resolves helper binaries from PATH by default', function (): void {
     ])['bin'];
 
     expect($bin)->toMatchArray([
-        'libreoffice' => 'soffice',
+        'catdoc' => 'catdoc',
+        'catppt' => 'catppt',
         'pandoc' => 'pandoc',
         'pdfinfo' => 'pdfinfo',
         'ffmpeg' => 'ffmpeg',

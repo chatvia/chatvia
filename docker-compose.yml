@@ -1,18 +1,125 @@
-# Local development services for Chatvia: PostgreSQL (with the vector and BM25
-# search extensions), Redis and Mailpit. The Laravel app, queue worker, Reverb
-# and Vite run on your machine; see README.md.
+# Local development for Chatvia. Two ways to use it (see README.md):
 #
-#   docker compose up -d      start the services
-#   docker compose ps         show their health
-#   docker compose down       stop them (data is kept)
-#   docker compose down -v    stop them and delete all data
+# 1. Services only: PostgreSQL (with the vector and BM25 search extensions),
+#    Redis and Mailpit. The Laravel app, queue worker, Reverb and Vite run on
+#    your machine (Herd, Valet or `composer dev`).
+#
+#      docker compose up -d      start the services
+#      docker compose ps         show their health
+#      docker compose down       stop them (data is kept)
+#      docker compose down -v    stop them and delete all data
+#
+# 2. Everything in Docker with Laravel Sail: add COMPOSE_PROFILES=sail to .env.
+#    The "sail" profile adds the app, Horizon, the scheduler and Reverb.
+#
+#      vendor/bin/sail up -d     start everything
+#      vendor/bin/sail npm run dev
 #
 # Each host port can be changed in your shell or in .env, for example
 # FORWARD_DB_PORT=5433 when port 5432 is already in use.
+#
+# Named chatvia-dev so it never mixes with a Docker install of Chatvia
+# (docker/compose.yaml, named chatvia) on the same machine. Nothing here is
+# used by the production image or by CI.
 
-name: chatvia
+name: chatvia-dev
+
+# The Sail containers: one image, one command each. The database name, user
+# and password come from .env. The addresses below point at the other
+# containers and win over .env, so the same .env works with and without Sail.
+x-sail-app: &sail-app
+  build:
+    context: ./docker/sail
+    additional_contexts:
+      sail: service:sail-runtime
+  image: chatvia-dev/sail:8.5
+  profiles: [sail]
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  volumes:
+    - ".:/var/www/html"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  restart: unless-stopped
+
+x-sail-environment: &sail-environment
+  WWWUSER: "${WWWUSER:-1000}"
+  LARAVEL_SAIL: 1
+  XDEBUG_MODE: "${SAIL_XDEBUG_MODE:-off}"
+  XDEBUG_CONFIG: "${SAIL_XDEBUG_CONFIG:-client_host=host.docker.internal}"
+  IGNITION_LOCAL_SITES_PATH: "${PWD}"
+  APP_URL: "http://localhost:${APP_PORT:-8000}"
+  DB_HOST: postgres
+  DB_PORT: 5432
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  MAIL_HOST: mailpit
+  MAIL_PORT: 1025
+  # The built-in MCP servers are called over HTTP; inside a container,
+  # localhost is that container, not the web server.
+  BUILTIN_MCP_INTERNAL_URL: http://laravel.test
+  # The app sends broadcasts to the reverb container; the browser connects to
+  # the port published on your machine.
+  REVERB_HOST: reverb
+  REVERB_PORT: 8080
+  REVERB_SCHEME: http
+  VITE_REVERB_HOST: localhost
+  VITE_REVERB_PORT: "${FORWARD_REVERB_PORT:-8080}"
+  VITE_REVERB_SCHEME: http
 
 services:
+  # Sail's PHP 8.5 runtime, built unchanged from vendor/laravel/sail. It only
+  # exists as the base of docker/sail/Dockerfile, so it runs no container.
+  sail-runtime:
+    build:
+      context: ./vendor/laravel/sail/runtimes/8.5
+      args:
+        WWWGROUP: "${WWWGROUP:-1000}"
+    image: chatvia-dev/sail-runtime:8.5
+    profiles: [sail]
+    scale: 0
+
+  # The web app: http://localhost:8000. `sail npm run dev` runs Vite in here.
+  laravel.test:
+    <<: *sail-app
+    environment:
+      <<: *sail-environment
+      # --no-reload: without it, `artisan serve` drops the environment above
+      # and reads .env alone. Restart the container after changing .env.
+      SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan serve --host=0.0.0.0 --port=80 --no-reload"
+      # Several workers, so a streaming chat reply does not block other
+      # requests.
+      PHP_CLI_SERVER_WORKERS: 4
+    ports:
+      - "${APP_PORT:-8000}:80"
+      - "${VITE_PORT:-5173}:${VITE_PORT:-5173}"
+
+  # Queue worker. It loads the code once: after changing code that runs in a
+  # job, run `sail restart horizon`.
+  horizon:
+    <<: *sail-app
+    environment:
+      <<: *sail-environment
+      SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan horizon"
+
+  scheduler:
+    <<: *sail-app
+    environment:
+      <<: *sail-environment
+      SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan schedule:work"
+
+  # WebSocket server: ws://localhost:8080.
+  reverb:
+    <<: *sail-app
+    environment:
+      <<: *sail-environment
+      SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan reverb:start --host=0.0.0.0 --port=8080"
+    ports:
+      - "${FORWARD_REVERB_PORT:-8080}:8080"
+
   postgres:
     # PostgreSQL 18 with pgvector, VectorChord (vchord), VectorChord-bm25 and
     # pg_tokenizer. Same image and tag as CI (.github/workflows/tests.yml); keep
@@ -20,11 +127,14 @@ services:
     # pinned. The image's default command preloads the extensions, so do not
     # override `command`.
     image: tensorchord/vchord-suite:pg18-20260501
+    # The database, user and password come from .env. Postgres reads them
+    # only when it creates an empty volume; after that, changing .env does
+    # not change them. The tests (phpunit.xml, .env.testing) expect the
+    # defaults: user chatvia, password password.
     environment:
-      POSTGRES_DB: chatvia
-      POSTGRES_USER: chatvia
-      # Development only. phpunit.xml and .env.testing use the same values.
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: "${DB_DATABASE:-chatvia}"
+      POSTGRES_USER: "${DB_USERNAME:-chatvia}"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:-password}"
       TZ: UTC
     ports:
       - "${FORWARD_DB_PORT:-5432}:5432"
@@ -35,7 +145,7 @@ services:
       - ./docker/postgres/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql:ro
     shm_size: 256mb
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chatvia -d chatvia"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 10s
       timeout: 5s
       retries: 5

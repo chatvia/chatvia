@@ -360,7 +360,8 @@ return [
         'priority' => 110,
         // Zapier's MCP server appears to support OAuth dynamic client registration.
         // If first-connect fails with "client registration unsupported", register an
-        // OAuth app at https://mcp.zapier.com and add ZAPIER_OAUTH_CLIENT_* env vars.
+        // OAuth app at https://mcp.zapier.com and add a Zapier entry to the
+        // Connectors settings (App\Admin\Settings\ConnectorSettings).
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.zapier.com/api/mcp/mcp',
     ],
@@ -452,8 +453,8 @@ return [
         'priority' => 55,
         // Box's hosted MCP server (https://mcp.box.com) does not support Dynamic
         // Client Registration. Create a Box MCP server entry in the Box Admin
-        // Console (Integrations) to get a Client ID / Secret, then set the env
-        // vars below. Callback URL: APP_URL + '/connectors/oauth/callback'.
+        // Console (Integrations) to get a Client ID / Secret, then enter them in the admin
+        // panel (Settings → Connectors). Callback URL: APP_URL + '/connectors/oauth/callback'.
         'auth_strategy' => 'oauth',
         'mcp_url' => 'https://mcp.box.com',
         'oauth_client_id' => null,

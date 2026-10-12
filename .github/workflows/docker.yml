@@ -48,8 +48,8 @@ jobs:
         uses: actions/checkout@v4
 
       # arm64 is built through emulation. Only the PHP extensions and system
-      # packages are slow there, and those layers come from the cache after the
-      # first build.
+      # packages are slow there, and those layers come from the build cache
+      # after the first build.
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -83,8 +83,12 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # The build cache lives in the registry, as the `buildcache` tag.
+          # The Actions cache would not help: a tag run can only read caches
+          # of its own tag and of the default branch, so every release would
+          # start empty.
+          cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
 
   chunker:
     name: Build and push the chunker
@@ -124,8 +128,8 @@ jobs:
           flavor: |
             latest=auto
 
-      # Its own cache scope: the two builds would otherwise keep replacing
-      # each other's cache.
+      # Build cache in the registry too, next to the chunker image (see the
+      # app image above).
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
@@ -134,5 +138,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=chunker
-          cache-to: type=gha,mode=max,scope=chunker
+          cache-from: type=registry,ref=${{ env.CHUNKER_IMAGE }}:buildcache
+          cache-to: type=registry,ref=${{ env.CHUNKER_IMAGE }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true

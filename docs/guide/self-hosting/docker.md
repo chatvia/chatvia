@@ -31,18 +31,22 @@ curl -fsSL https://chatvia.ai/install.sh | bash
 
 It:
 
-1. checks that Docker is installed and running, and offers to install it
+1. asks for the install folder (`~/chatvia` by default). It holds only
+   `compose.yaml` and `.env`: Docker keeps your data. If Chatvia is already in
+   that folder, the installer offers to upgrade it;
+2. checks that Docker is installed and running, and offers to install it
    (on Linux with Docker's official script, on macOS with Homebrew);
-2. asks for the admin e-mail and password, the port and the address;
-3. offers **Recommended settings** or **Custom**, where you choose how the
+3. asks for the admin e-mail and password, the port and the address;
+4. offers **Recommended settings** or **Custom**, where you choose how the
    search data is stored ([embedding storage](./index.md#embedding-storage),
    which can never change later);
-4. writes `compose.yaml` and `.env` into `~/chatvia`, starts Chatvia and shows
-   where to sign in.
+5. shows your settings to check, then writes `compose.yaml` and `.env` into
+   the folder, starts Chatvia and shows where to sign in.
 
 Your password is passed to the first start only and is never written to a
-file. The questions run once: run the installer again in the same folder to
-upgrade. For an install without questions, pass the settings as options:
+file. The setup questions run once: run the installer again and pick the same
+folder to upgrade. For an install without questions, pass the settings as
+options (`--dir` sets the folder):
 
 ```bash
 curl -fsSL https://chatvia.ai/install.sh | bash -s -- --yes --email you@example.com
@@ -83,9 +87,12 @@ docker compose logs migrate
 Sign in with `admin@example.com` and that password, then:
 
 1. Open the admin panel at `/admin` and set up two-factor authentication.
-2. Go to **Settings → AI providers** and enter the API key of your chat and
-   embedding provider. See [AI providers](./ai-providers.md).
-3. Add the built-in tools (charts, forms, weather, currency, web search) to
+2. Go to **Settings → AI** and enter the API key of your chat and embedding
+   provider. See [AI providers](./ai-providers.md).
+3. Go to **Settings → Email** and set up your SMTP server or Resend. Until
+   then, e-mails are only written to the logs, and nobody can confirm a
+   sign-up or accept an invitation.
+4. Add the built-in tools (charts, forms, weather, currency, web search) to
    the tool catalog. This needs the embedding key from step 2:
 
    ```bash
@@ -96,8 +103,9 @@ Sign in with `admin@example.com` and that password, then:
 
 Put your settings in a `.env` file next to `compose.yaml`. The file
 [`docker/.env.example`](https://github.com/chatvia/chatvia/blob/main/docker/.env.example)
-lists the common ones. Every setting from the project's `.env.example` works
-too. API keys are not set in this file: enter them in the admin panel.
+lists them. It only holds what Chatvia needs to start. E-mail, API keys, the
+AI services, your brand and the other options are set in the admin panel,
+under **Settings**.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
@@ -109,7 +117,6 @@ too. API keys are not set in this file: enter them in the admin panel.
 | `ADMIN_EMAIL`, `ADMIN_NAME` | `admin@example.com`, `Admin` | First start only. |
 | `ADMIN_PASSWORD` | random | First start only. Remove it from `.env` afterwards. |
 | `APP_KEY` | random | Your own app key instead of a random one. |
-| `MAIL_*` | write to the logs | Your SMTP server. Needed for sign-up, invitations and password resets. |
 | `CHUNKER_WORKERS` | `2` | Worker processes of the chunker. Each one uses about 200 MB. |
 
 "First start only" settings are read when the database is created. Changing
@@ -184,7 +191,8 @@ docker compose exec app php artisan admin:create-user you@example.com "Your Name
 
 See the logs of all services with `docker compose logs -f`.
 
-## Not in the image
+## What the image includes
 
-- **Chrome.** Exporting a chat as a PDF needs it, so that export does not work
-  in the image.
+The programs that read file sources (poppler, pandoc, catdoc, ffmpeg),
+WeasyPrint for exporting a chat as PDF and for summaries of office files, and fonts for every language the
+dashboard offers.

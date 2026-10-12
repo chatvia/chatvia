@@ -18,7 +18,7 @@ beforeEach(function (): void {
 });
 
 it('splits the workspace agents for an MCP server', function (): void {
-    $server = $this->owner->mcpServers()->create(['name' => 'CRM', 'slug' => 'crm', 'url' => 'https://crm.example.test/mcp', 'auth_type' => 'none']);
+    $server = $this->owner->workspace()->mcpServers()->create(['name' => 'CRM', 'slug' => 'crm', 'url' => 'https://crm.example.test/mcp', 'auth_type' => 'none']);
     $this->support->attachConnector($server);
 
     $result = app(ListToolAgentAssignmentAction::class)->execute($this->owner, $server);
@@ -29,7 +29,7 @@ it('splits the workspace agents for an MCP server', function (): void {
 
 it('splits the workspace agents for a webhook function, also for a teammate', function (): void {
     $function = AgentFunction::query()->create([
-        'user_id' => $this->owner->id,
+        'workspace_id' => $this->owner->workspace()->id,
         'internal_name' => 'lookup',
         'description' => 'd',
         'parameters_schema' => ['type' => 'object', 'properties' => []],

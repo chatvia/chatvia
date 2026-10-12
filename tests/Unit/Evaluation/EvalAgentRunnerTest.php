@@ -8,8 +8,8 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Services\EvalAgentRunner;
-use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 use Spectra\Facades\Spectra;
@@ -91,7 +91,7 @@ function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null): EvalAgentRunne
         })();
     });
 
-    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviderInterface::class));
+    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class));
 }
 
 it('captures the answer without persisting a chat message or charging a credit', function (): void {
@@ -209,7 +209,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
         },
     );
 
-    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviderInterface::class));
+    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviders::class));
     $result = $evalRunner->run($agent, 'Please email support.');
 
     expect($captureFlag)->toBeTrue()

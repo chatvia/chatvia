@@ -21,7 +21,7 @@ beforeEach(function (): void {
 
     $this->agent = Agent::factory()->create();
     $server = AgentMcpServer::create([
-        'user_id' => $this->agent->user_id,
+        'workspace_id' => $this->agent->workspace_id,
         'name' => 'CRM',
         'slug' => 'crm',
         'url' => 'https://crm.example.test/mcp',

@@ -48,7 +48,7 @@ class UploadKnowledgeSourceFileAction
                 $analysis = $this->analyzer->analyze($upload->path, $upload->extension());
 
                 $sourceFile = SourceFile::create([
-                    'user_id' => $agent->user_id,
+                    'workspace_id' => $agent->workspace_id,
                     'filename' => $upload->originalName,
                     'filetype' => $upload->category(),
                     'filepath' => $path,

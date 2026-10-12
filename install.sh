@@ -5,8 +5,10 @@
 #   curl -fsSL https://chatvia.ai/install.sh | bash
 #
 # It checks Docker (and offers to install it), asks a few questions, writes
-# compose.yaml and .env into the install folder, starts Chatvia and prints
-# where to sign in. Run it again in the same folder to upgrade.
+# compose.yaml, .env and the `manage` tool into the install folder, saves
+# PostgreSQL's settings to postgres/postgresql.conf there, starts Chatvia and
+# prints where to sign in. Run it again in the same folder (or ./manage
+# upgrade) to upgrade.
 #
 # Options (each also works as an environment variable):
 #   --dir PATH          install folder               CHATVIA_DIR (~/chatvia)
@@ -26,7 +28,9 @@
 #   CHATVIA_EMBEDDING_TYPE        halfvec (default) or vector
 #   CHATVIA_EMBEDDING_DIMENSIONS  1024 (default)
 #   CHATVIA_COMPOSE_URL           where to download compose.yaml from
+#   CHATVIA_MANAGE_URL            where to download the manage tool from
 #   CHUNKER_IMAGE                 chunker image name (ghcr.io/chatvia/chunker)
+#   CHUNKER_VERSION               chunker image version (latest)
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -37,7 +41,7 @@ set -euo pipefail
 shopt -s extglob
 
 readonly CHATVIA_REPO_RAW="https://raw.githubusercontent.com/chatvia/chatvia"
-readonly CHATVIA_DOCS="https://docs.chatvia.ai/guide/self-hosting/docker"
+readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/self-hosting/docker"
 readonly COMPOSE_PROJECT="chatvia"
 readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
@@ -846,8 +850,12 @@ docker_cmd() {
     fi
 }
 
+# With compose.override.yaml (the PostgreSQL settings file, and the owner's
+# own changes) when it is there, like a plain `docker compose` in the folder.
 compose() {
-    docker_cmd compose --project-directory "$INSTALL_DIR" -f "$INSTALL_DIR/compose.yaml" "$@"
+    local files=(-f "$INSTALL_DIR/compose.yaml")
+    if [ -f "$INSTALL_DIR/compose.override.yaml" ]; then files+=(-f "$INSTALL_DIR/compose.override.yaml"); fi
+    docker_cmd compose --project-directory "$INSTALL_DIR" "${files[@]}" "$@"
 }
 
 # run_step "Message" command...: runs it with a spinner; its output goes to
@@ -1041,7 +1049,7 @@ image_ref() {
 }
 
 chunker_ref() {
-    printf '%s:%s' "${CHUNKER_IMAGE:-$DEFAULT_CHUNKER_IMAGE}" "$CHATVIA_VERSION"
+    printf '%s:%s' "${CHUNKER_IMAGE:-$DEFAULT_CHUNKER_IMAGE}" "${CHUNKER_VERSION:-latest}"
 }
 
 # With --no-pull the image must already be here; checked before anything
@@ -1053,7 +1061,7 @@ require_local_image() {
     for ref in "$(image_ref)" "$(chunker_ref)"; do
         if ! docker_cmd image inspect "$ref" >/dev/null 2>&1; then
             die "The image $ref is not on this machine." \
-                'Build it first (docker build -t NAME:VERSION ., and docker/chunker for the chunker), or run without --no-pull.'
+                'Build it first (docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t NAME:VERSION ., and docker pull the chunker), or run without --no-pull.'
         fi
     done
 }
@@ -1077,6 +1085,44 @@ compose_url() {
     fi
 }
 
+manage_url() {
+    if [ -n "${CHATVIA_MANAGE_URL:-}" ]; then
+        printf '%s' "$CHATVIA_MANAGE_URL"
+    else
+        printf '%s' "$(compose_url | sed 's|/compose\.yaml$|/manage|')"
+    fi
+}
+
+# The management tool (start, stop, backup, restore, ...), from the same
+# version as compose.yaml. Replaced with mv, so a running ./manage (which
+# runs this installer to upgrade) keeps reading its old copy.
+download_manage() {
+    local target="$WORK_DIR/manage" first=''
+    curl -fsSL "$(manage_url)" -o "$target" || return
+    IFS= read -r first <"$target" || true
+    if [ "$first" != '#!/usr/bin/env bash' ]; then
+        echo "The downloaded file is not the manage tool: $(manage_url)" >&2
+        return 1
+    fi
+    chmod 755 "$target"
+    mv "$target" "$INSTALL_DIR/manage"
+}
+
+# One step in run_step, so each part is checked: set -e is off there.
+download_files() {
+    download_compose && download_manage
+}
+
+# postgres/postgresql.conf: PostgreSQL's settings, taken out of its
+# container once so they can be changed (./manage postgres apply), with
+# compose.override.yaml to mount it. Runs before the first full start.
+export_postgres_settings() {
+    [ -f "$INSTALL_DIR/postgres/postgresql.conf" ] && return 0
+    run_step 'Saving the PostgreSQL settings to postgres/postgresql.conf' \
+        "$INSTALL_DIR/manage" postgres export --if-missing --yes ||
+        die 'The PostgreSQL settings were not saved.' "See why: $LOG"
+}
+
 download_compose() {
     local target="$WORK_DIR/compose.yaml"
     curl -fsSL "$(compose_url)" -o "$target"
@@ -1094,6 +1140,7 @@ write_env() {
     local secure='' image_line=''
     [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
     [ -n "$CHUNKER_IMAGE" ] && image_line="${image_line}CHUNKER_IMAGE=$CHUNKER_IMAGE"$'\n'
+    [ -n "$CHUNKER_VERSION" ] && image_line="${image_line}CHUNKER_VERSION=$CHUNKER_VERSION"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
     (
         umask 077
@@ -1167,7 +1214,7 @@ setup_failed() {
         section 'Database setup log'
         compose logs --no-color --tail 30 migrate 2>&1 | quote >&2 || true
     fi
-    die "$1" "More: cd $(pretty_path "$INSTALL_DIR") && docker compose logs migrate"
+    die "$1" "More: cd $(pretty_path "$INSTALL_DIR") && ./manage logs migrate"
 }
 
 check_existing_data() {
@@ -1201,7 +1248,7 @@ do_install() {
         LOG="$INSTALL_DIR/install.log"
         : >"$LOG"
     fi
-    run_step 'Downloading compose.yaml' download_compose
+    run_step 'Downloading compose.yaml and the manage tool' download_files
     if [ "$DRY_RUN" = 0 ]; then
         write_env
         ok "Settings saved $(dim "$(pretty_path "$INSTALL_DIR")/.env")"
@@ -1216,6 +1263,7 @@ do_install() {
 # The part of an install after the settings are written; also used to
 # finish an install that stopped half way.
 start_and_finish() {
+    export_postgres_settings
     if ! run_step 'Setting up the database and the admin account, then starting' start_chatvia; then
         setup_failed 'Chatvia did not start.'
     fi
@@ -1224,7 +1272,7 @@ start_and_finish() {
     if ! run_step 'Waiting for the web app' wait_until 180 app_is_up; then
         info "The admin account is ready: $(bold "$ADMIN_EMAIL"), password $(admin_password_text)"
         die 'The web app did not answer within 3 minutes.' \
-            "See why: cd $(pretty_path "$INSTALL_DIR") && docker compose ps && docker compose logs app" \
+            "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage status && ./manage logs app" \
             'Then run this installer again to finish.'
     fi
     mark_finished
@@ -1252,6 +1300,7 @@ do_resume() {
     APP_PORT=${APP_PORT:-8000} APP_URL=${APP_URL:-http://localhost:${APP_PORT:-8000}} CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
     CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
+    CHUNKER_VERSION=${CHUNKER_VERSION:-$(env_value CHUNKER_VERSION)}
 
     # Used only when the earlier attempt did not make the admin account yet.
     ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
@@ -1270,6 +1319,7 @@ do_resume() {
         printf '\n== Finish the install %s\n' "$(date)" >>"$LOG"
     fi
     [ -f "$INSTALL_DIR/compose.yaml" ] || run_step 'Downloading compose.yaml' download_compose
+    [ -f "$INSTALL_DIR/manage" ] || run_step 'Downloading the manage tool' download_manage
     get_image 'Downloading Chatvia'
     start_and_finish
 }
@@ -1377,7 +1427,8 @@ show_summary() {
     note 'Check your settings' "$folder" "$email" "$password" "$address" "$port" "$storage" "$image_row"
 }
 
-# Opens the app in the browser, when this machine has one.
+# Opens the admin panel in the browser, when this machine has one: its
+# setup asks for the AI provider, search and email.
 offer_browser() {
     [ "$INTERACTIVE" = 1 ] && [ "$DRY_RUN" = 0 ] || return 0
     local opener=''
@@ -1387,8 +1438,8 @@ offer_browser() {
         opener=xdg-open
     fi
     [ -n "$opener" ] || return 0
-    if confirm 'Open Chatvia in your browser?' y; then
-        "$opener" "$APP_URL" >/dev/null 2>&1 || true
+    if confirm 'Open the admin panel in your browser to finish the setup?' y; then
+        "$opener" "$APP_URL/admin" >/dev/null 2>&1 || true
     fi
 }
 
@@ -1421,16 +1472,20 @@ show_finish() {
         n=$((n + 1))
     fi
     info "$n. Sign in to the admin panel and set up two-factor authentication."
-    info "$((n + 1)). Settings $S_ARROW AI: enter the API key of your chat and embedding"
-    info "   provider. Settings $S_ARROW Email: set up how Chatvia sends email."
+    info "$((n + 1)). Follow the short setup there: your AI provider and its API key,"
+    info "   search, and (optional) email."
     info "$((n + 2)). Add the built-in tools (charts, forms, weather, web search):"
-    info "   $(dim "cd $folder && docker compose exec app php artisan app:sync-builtin-mcp")"
+    info "   $(dim "cd $folder && ./manage sync-tools")"
 
     section 'Everyday commands' "in $folder"
-    info "docker compose logs -f     $(dim 'follow the logs')"
-    info "docker compose down        $(dim 'stop (your data is kept)')"
-    info "docker compose up -d       $(dim 'start again')"
-    info "Run this installer again   $(dim 'upgrade')"
+    info "./manage status          $(dim 'is everything running?')"
+    info "./manage logs            $(dim 'follow the logs')"
+    info "./manage stop            $(dim 'stop (your data is kept)')"
+    info "./manage start           $(dim 'start again')"
+    info "./manage backup          $(dim 'back up the database and the app key')"
+    info "./manage upgrade         $(dim 'upgrade to the newest version')"
+    info "./manage postgres edit   $(dim 'tune PostgreSQL (postgres/postgresql.conf)')"
+    info "./manage                 $(dim 'every command')"
 
     offer_browser
     outro "$(dim "Guide: $CHATVIA_DOCS")"
@@ -1470,6 +1525,7 @@ do_upgrade() {
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
     CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
+    CHUNKER_VERSION=${CHUNKER_VERSION:-$(env_value CHUNKER_VERSION)}
 
     if [ "$DRY_RUN" = 0 ]; then
         LOG="$INSTALL_DIR/install.log"
@@ -1478,14 +1534,15 @@ do_upgrade() {
     if [ "$CHATVIA_VERSION" != latest ]; then
         warn "This install stays on version $CHATVIA_VERSION (CHATVIA_VERSION in .env)."
     fi
-    run_step 'Updating compose.yaml' download_compose
+    run_step 'Updating compose.yaml and the manage tool' download_files
     get_image 'Downloading the new version'
+    export_postgres_settings
     if ! run_step 'Updating the database, then restarting' compose up -d; then
         setup_failed 'The upgrade did not finish.'
     fi
     remove_setup_container
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
-        die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && docker compose logs app"
+        die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs app"
 
     ok "$(bold 'Chatvia is up to date.')"
     outro "Open $(accent "$APP_URL")"
@@ -1540,6 +1597,7 @@ main() {
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-}
     CHUNKER_IMAGE=${CHUNKER_IMAGE:-}
+    CHUNKER_VERSION=${CHUNKER_VERSION:-}
     NO_PULL=${CHATVIA_NO_PULL:-0}
 
     setup_output
@@ -1576,7 +1634,7 @@ main() {
     INSTALL_DIR=${CHATVIA_DIR:-$HOME/chatvia}
     if [ "$INTERACTIVE" = 1 ] && [ -z "${CHATVIA_DIR:-}" ]; then
         ask INSTALL_DIR 'Install folder' --default "$(pretty_path "$INSTALL_DIR")" \
-            --hint 'Holds compose.yaml and .env. Docker keeps your data.' \
+            --hint 'Holds compose.yaml, .env and the manage tool. Docker keeps your data.' \
             --check check_folder --status folder_status --complete complete_folder
     fi
     INSTALL_DIR=$(resolve_dir "$INSTALL_DIR")

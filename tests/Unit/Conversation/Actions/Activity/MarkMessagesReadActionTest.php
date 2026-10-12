@@ -26,9 +26,10 @@ beforeEach(function (): void {
 function readReceiptConversation(): array
 {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::Widget,
@@ -40,7 +41,7 @@ function readReceiptConversation(): array
     foreach ([MessageRole::User, MessageRole::Operator, MessageRole::User, MessageRole::Operator] as $role) {
         $id = (string) Str::uuid();
         $memory->appendMessage(new MessageData(id: $id, role: $role, content: 'Hi', type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
-        Message::create(['external_id' => $id, 'chat_conversation_id' => $conversation->id, 'role' => $role, 'content' => 'Hi']);
+        Message::create(['external_id' => $id, 'workspace_id' => $conversation->workspace_id, 'chat_conversation_id' => $conversation->id, 'role' => $role, 'content' => 'Hi']);
         $ids[$role->value][] = $id;
     }
 

@@ -7,35 +7,11 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Chat completions through OpenRouter, which also reports the exact cost of
- * each generation. Models without a client of their own are reached through
- * it.
+ * Chat completions through OpenRouter: models from many providers with one
+ * key. OpenRouter also reports the exact cost of each generation.
  */
 class OpenRouter extends AbstractLlmProvider
 {
-    /**
-     * Get the headers for API requests.
-     *
-     * @return array<string, string> The headers array
-     */
-    public function headers(): array
-    {
-        return [
-            'Authorization' => 'Bearer '.$this->getApiKey(),
-            'Content-Type' => 'application/json',
-        ];
-    }
-
-    /**
-     * Get the completion endpoint URL.
-     *
-     * @return string The completion endpoint
-     */
-    public function getCompletionEndpoint(): string
-    {
-        return config('services.openrouter.completion_endpoint');
-    }
-
     /**
      * Ask OpenRouter to route streamed chat to the fastest upstream host.
      *
@@ -87,25 +63,5 @@ class OpenRouter extends AbstractLlmProvider
     public function supportsCostTracking(): bool
     {
         return true;
-    }
-
-    /**
-     * Get the API key for OpenRouter.
-     *
-     * @return string The API key
-     */
-    public function getApiKey(): string
-    {
-        return config('services.openrouter.api_key');
-    }
-
-    /**
-     * Get the base URL for OpenRouter.
-     *
-     * @return string The base URL
-     */
-    public function getBaseUrl(): string
-    {
-        return config('services.openrouter.base_url', 'https://openrouter.ai/api/v1');
     }
 }

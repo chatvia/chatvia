@@ -12,7 +12,7 @@ use Spatie\LaravelData\Optional;
 it('changes only the fields that were sent', function (): void {
     $agent = Agent::factory()->create(['name' => 'Old', 'is_public' => false, 'system_instructions' => 'Be brief.']);
 
-    $updated = app(UpdateApiAgentAction::class)->execute($agent->user, $agent, new UpdateApiAgentData(
+    $updated = app(UpdateApiAgentAction::class)->execute($agent->workspace, $agent, new UpdateApiAgentData(
         name: 'New',
         system_instructions: Optional::create(),
         prompt_id: Optional::create(),
@@ -28,7 +28,7 @@ it('changes only the fields that were sent', function (): void {
 it('sets custom instructions and clears the library prompt', function (): void {
     $agent = Agent::factory()->create(['system_instructions' => null]);
 
-    $updated = app(UpdateApiAgentAction::class)->execute($agent->user, $agent, new UpdateApiAgentData(
+    $updated = app(UpdateApiAgentAction::class)->execute($agent->workspace, $agent, new UpdateApiAgentData(
         name: Optional::create(),
         system_instructions: 'Answer in German.',
         prompt_id: Optional::create(),

@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
@@ -12,7 +11,7 @@ beforeEach(function (): void {
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
     $this->granted = makeTeamAgent($this->owner, 'Granted', $this->team);
     $this->other = makeTeamAgent($this->owner, 'Other', $this->team);
-    $this->member = User::factory()->create(['type' => UserType::Employee, 'workspace_id' => $this->owner->id]);
+    $this->member = User::factory()->employee($this->owner)->create();
 });
 
 function joinWithRole(object $test, bool $allAgents, array $agentIds = []): void

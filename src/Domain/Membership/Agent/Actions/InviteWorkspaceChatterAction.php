@@ -2,8 +2,7 @@
 
 namespace Domain\Membership\Agent\Actions;
 
-use App\Identity\Workspace\Enums\UserType;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Membership\Agent\Data\AgentChatterInvitationData;
 use Domain\Membership\Agent\Data\InviteAgentChatterData;
 use Domain\Membership\Agent\Data\InviteWorkspaceChatterData;
@@ -45,10 +44,10 @@ class InviteWorkspaceChatterAction
             $rest = $agents->slice(1);
 
             if ($rest->isNotEmpty()) {
-                /** @var User $chatter */
-                $chatter = User::query()
-                    ->where('email', $data->email)
-                    ->where('type', UserType::Chatter)
+                /** @var Chatter $chatter */
+                $chatter = Chatter::query()
+                    ->where('workspace_id', $agents->first()->workspace_id)
+                    ->whereRaw('lower(email) = ?', [strtolower(trim($data->email))])
                     ->firstOrFail();
 
                 foreach ($rest as $agent) {

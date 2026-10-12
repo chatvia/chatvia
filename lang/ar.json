@@ -166,6 +166,7 @@
     "Location": "الموقع",
     "Message": "الرسالة",
     "This website has already been added to this agent.": "تمت إضافة هذا الموقع إلى هذا الوكيل بالفعل.",
+    "This text is already in your knowledge base.": "هذا النص موجود بالفعل في قاعدة المعرفة الخاصة بك.",
     "This URL is not allowed.": "عنوان URL هذا غير مسموح به.",
     "Failed to fetch the website. Please check the URL and try again.": "تعذر جلب الموقع. يرجى التحقق من عنوان URL والمحاولة مرة أخرى.",
     "This URL is not allowed: :reason": "عنوان URL هذا غير مسموح به: :reason",
@@ -231,10 +232,7 @@
     "Team updated successfully.": "تم تحديث الفريق بنجاح.",
     "The provided password is incorrect.": "كلمة المرور المقدمة غير صحيحة.",
     "The role ':role' does not exist for this team.": "الدور ':role' غير موجود في هذا الفريق.",
-    "This account is a chat user and cannot join a team.": "هذا الحساب مستخدم دردشة ولا يمكنه الانضمام إلى فريق.",
     "This agent is public — anyone with the link can chat with it. No invitation is needed.": "هذا الوكيل عام — يمكن لأي شخص لديه الرابط الدردشة معه. لا حاجة إلى دعوة.",
-    "This email already belongs to a different kind of account and cannot be invited as a chat member.": "ينتمي هذا البريد الإلكتروني إلى نوع آخر من الحسابات ولا يمكن دعوته كعضو دردشة.",
-    "This email is already used by a chatter under a different workspace.": "يستخدم هذا البريد الإلكتروني مستخدم دردشة في مساحة عمل أخرى.",
     "This invitation has already been used. Sign in with your existing credentials instead.": "تم استخدام هذه الدعوة من قبل. سجّل الدخول ببيانات الاعتماد الحالية بدلًا من ذلك.",
     "This invitation has expired.": "انتهت صلاحية هذه الدعوة.",
     "This invitation has expired. Ask the agent owner to send a new one.": "انتهت صلاحية هذه الدعوة. اطلب من مالك الوكيل إرسال دعوة جديدة.",
@@ -262,8 +260,12 @@
     "This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.": "ستؤدي قائمة عناوين IP المسموح بها هذه إلى منعك من الوصول — عنوانك الحالي (:ip) ليس ضمنها. أضفه أولًا.",
     "This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.": "ستؤدي قاعدة الدول هذه إلى منعك من الوصول — موقعك الحالي (:country) ضمن الدول المحظورة. أزله أو غيّر القاعدة أولًا.",
     "This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.": "ستؤدي قاعدة الدول هذه إلى منعك من الوصول — موقعك الحالي (:country) ليس ضمن الدول المسموح بها. أضفه أو غيّر القاعدة أولًا.",
-    "This form is for chat members only. Team members can open this chat from the dashboard.": "هذا النموذج مخصص لأعضاء الدردشة فقط. يمكن لأعضاء الفريق فتح هذه الدردشة من لوحة التحكم.",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "لا يمكن إلغاء ربط ملف إلا إذا كان وكلاء آخرون يستخدمونه أيضًا. احذفه بدلًا من ذلك.",
     "This agent has reached its monthly message limit. Please try again next month.": "وصل هذا الوكيل إلى حد الرسائل الشهري. يرجى المحاولة مرة أخرى في الشهر القادم.",
-    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "وصلت مساحة العمل هذه إلى حد الرسائل الشهري. كل حالة تقييم تُحتسب رسالة واحدة."
+    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "وصلت مساحة العمل هذه إلى حد الرسائل الشهري. كل حالة تقييم تُحتسب رسالة واحدة.",
+    "Pick one of the available models.": "اختر أحد النماذج المتاحة.",
+    "Complete the security check.": "أكمل التحقق الأمني.",
+    "This account has been deactivated.": "تم إلغاء تفعيل هذا الحساب.",
+    "This email already has an account in another workspace. Ask for an invitation to a different email.": "هذا البريد الإلكتروني لديه حساب بالفعل في مساحة عمل أخرى. اطلب دعوة إلى بريد إلكتروني مختلف.",
+    "A chatter with this email already exists in your workspace.": "يوجد بالفعل مستخدم دردشة بهذا البريد الإلكتروني في مساحة عملك."
 }

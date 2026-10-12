@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 function lookupServer(Agent $agent, bool $attached = true, bool $enabled = true): AgentMcpServer
 {
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'Stripe',
         'slug' => 'stripe',
         'url' => 'https://mcp.example.test/stripe',
@@ -55,7 +55,7 @@ it('only returns a server for dispatch when it is enabled and attached to the ag
     lookupServer($agent, attached: false);
 
     expect(app(McpServerLookup::class)->attachedToAgent($agent, 'stripe'))->toBeNull()
-        ->and(app(McpServerLookup::class)->forWorkspace((int) $agent->user_id, 'stripe'))->not->toBeNull();
+        ->and(app(McpServerLookup::class)->forWorkspace((int) $agent->workspace_id, 'stripe'))->not->toBeNull();
 
     $other = Agent::factory()->create();
     lookupServer($other, enabled: false);

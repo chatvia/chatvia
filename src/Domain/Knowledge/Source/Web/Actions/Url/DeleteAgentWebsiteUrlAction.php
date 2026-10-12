@@ -20,16 +20,13 @@ class DeleteAgentWebsiteUrlAction
             $chunkIds = $link->chunks()->pluck('chunks.id');
 
             ChunkReference::query()
-                ->whereIn('referenceable_type', AgentWebsiteUrl::referenceTypes())
+                ->where('referenceable_type', $link->getMorphClass())
                 ->where('referenceable_id', $link->id)
                 ->delete();
 
             // Chunks are shared by checksum across a website's pages; keep any
             // chunk another URL still points at.
-            Chunk::query()
-                ->whereIn('id', $chunkIds)
-                ->whereDoesntHave('references')
-                ->delete();
+            Chunk::query()->whereIn('id', $chunkIds)->unreferenced()->delete();
 
             $link->delete();
         });

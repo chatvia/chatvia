@@ -80,6 +80,7 @@ abstract class ChannelConversationResolver
         // Conversation that no channel row points at.
         return DB::transaction(function () use ($agent, $name, $context, $source, $identity): Model {
             $session = Session::create([
+                'workspace_id' => $agent->workspace_id,
                 'agent_id' => $agent->id,
                 'user_id' => null,
                 'name' => $name,

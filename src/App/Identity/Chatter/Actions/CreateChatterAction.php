@@ -3,35 +3,45 @@
 namespace App\Identity\Chatter\Actions;
 
 use App\Identity\Chatter\Data\CreateChatterData;
-use App\Identity\Workspace\Enums\UserSource;
-use App\Identity\Workspace\Enums\UserType;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Enums\ChatterSource;
+use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Support\Exceptions\DomainValidationException;
 
 /**
- * Creates a chatter (`type=chatter`, `source=api`) under a workspace and grants
- * it access to one or more of the workspace's agents through the `agent_user`
- * pivot. Without that grant the chatter could not sign in to any agent.
+ * Creates a chatter (`source=api`) in a workspace and grants it access to one
+ * or more of the workspace's agents through the `agent_chatter` pivot. Without
+ * that grant the chatter could not sign in to any agent.
+ *
+ * An email may be used once per workspace (compared without case); the same
+ * email in another workspace, or on a staff account, is a different person.
  */
 class CreateChatterAction
 {
-    public function execute(CreateChatterData $data): User
+    /**
+     * @throws DomainValidationException when the workspace already has a chatter with this email
+     */
+    public function execute(CreateChatterData $data): Chatter
     {
-        return DB::transaction(function () use ($data): User {
-            /** @var User $chatter */
-            $chatter = User::query()->create([
+        $email = $data->email !== null ? strtolower(trim($data->email)) : null;
+
+        if ($email !== null && $data->workspace->chatters()->whereRaw('lower(email) = ?', [$email])->exists()) {
+            throw new DomainValidationException('email', __('A chatter with this email already exists in your workspace.'));
+        }
+
+        return DB::transaction(function () use ($data, $email): Chatter {
+            /** @var Chatter $chatter */
+            $chatter = Chatter::query()->create([
+                'workspace_id' => $data->workspace->id,
                 'name' => $data->name,
-                'email' => $data->email,
-                'password' => Hash::make($data->password ?? Str::random(64)),
-                'type' => UserType::Chatter,
-                'source' => UserSource::Api,
-                'workspace_id' => $data->owner->id,
+                'email' => $email,
+                'password' => $data->password !== null ? Hash::make($data->password) : null,
+                'source' => ChatterSource::Api,
                 'email_verified_at' => now(),
             ]);
 
-            $chatter->accessibleAgents()->attach($data->agentIds());
+            $chatter->agents()->attach($data->agentIds(), ['workspace_id' => $chatter->workspace_id]);
 
             return $chatter;
         });

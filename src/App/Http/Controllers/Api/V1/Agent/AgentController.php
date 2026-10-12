@@ -61,9 +61,8 @@ class AgentController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->workspace();
 
-        return ['data' => AgentData::fromModel($createAgent->execute($owner, $request->toData()))];
+        return ['data' => AgentData::fromModel($createAgent->execute($user->workspace(), $request->toData()))];
     }
 
     /**
@@ -87,16 +86,18 @@ class AgentController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->workspace();
 
-        return ['data' => AgentData::fromModel($updateAgent->execute($owner, $agent, $request->toData()))];
+        return ['data' => AgentData::fromModel($updateAgent->execute($user->workspace(), $agent, $request->toData()))];
     }
 
     /**
      * Delete agent
      *
-     * Also deletes all conversations, sources, MCPs, and functions attached to
-     * the agent.
+     * The agent is gone at once: its chat address, custom domain and API
+     * routes stop working right away. Its conversations, the knowledge
+     * sources no other agent uses and its uploaded files are then removed in
+     * the background. Account-level MCP servers and functions stay; only
+     * their link to this agent is removed.
      */
     public function destroy(Agent $agent, DeleteAgentAction $deleteAgent): JsonResponse
     {

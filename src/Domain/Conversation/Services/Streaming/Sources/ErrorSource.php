@@ -25,7 +25,7 @@ class ErrorSource
      */
     public function events(ErrorCode $code, string $message, ?string $assistantMessageId = null): Generator
     {
-        $id = $assistantMessageId ?? (string) Str::uuid();
+        $id = $assistantMessageId ?? (string) Str::uuid7();
 
         yield StreamEvent::start($id, [
             'assistant_message_id' => $id,

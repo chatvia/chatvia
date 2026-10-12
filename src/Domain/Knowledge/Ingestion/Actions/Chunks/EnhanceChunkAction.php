@@ -2,27 +2,25 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
+use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageVisualsData;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Knowledge\Ingestion\Services\Enhancement\PageVisualsDescriber;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 
 /**
- * Upgrades a plain chunk into a "contextual" one, for every source type.
+ * Turns a page into a "contextual" chunk before it is stored, for every
+ * source type, so the chunk row is written once.
  *
  * The chunker LLM writes a summary of the page (using the neighbouring pages as
  * context) and the questions the page answers. Following Anthropic's
- * contextual-retrieval recipe the summary is prepended to the chunk text before
- * it is embedded again, which measurably improves recall; the questions get
- * their own dense and BM25 embeddings for question-to-question matching.
- * Document pages also get prose descriptions of their images and tables (see
+ * contextual-retrieval recipe the summary is prepended to the chunk text that
+ * is embedded, which measurably improves recall; the questions get their own
+ * dense and BM25 embeddings for question-to-question matching. Document pages
+ * also get prose descriptions of their images and tables (see
  * {@see PageVisualsDescriber}), which join the embedded text and the metadata.
- *
- * Runs at most once per chunk: an enhanced chunk is skipped, so a retried job
- * does not pay for the LLM calls twice.
+ * The embeddings themselves are made by the caller, in one batch.
  */
 class EnhanceChunkAction
 {
@@ -30,17 +28,10 @@ class EnhanceChunkAction
         private readonly Chunker $chunker,
         private readonly PageVisualsDescriber $visuals,
         private readonly CostCalculator $costCalculator,
-        private readonly EmbeddingsProviderInterface $embeddings,
     ) {}
 
-    public function execute(EnhanceChunkData $data): void
+    public function execute(EnhanceChunkData $data): EnhancedChunkData
     {
-        $chunk = $data->chunk;
-
-        if ($chunk->is_enhanced) {
-            return;
-        }
-
         $visuals = $data->imageDirectory !== null
             ? $this->visuals->describe($data->page, $data->imageDirectory)
             : null;
@@ -50,19 +41,13 @@ class EnhanceChunkAction
         $embeddingText = $this->contextualize($enhancement->summary, $data->page->content, $visuals);
         $questions = implode("\n", $enhancement->questions);
 
-        $chunk->update([
-            'embedding' => $this->embeddings->embed($embeddingText),
-            'embedding_bm25' => Bm25Tokenizer::expression($embeddingText),
-            'questions' => $questions !== '' ? $questions : null,
-            'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
-            'questions_embedding_bm25' => $questions !== '' ? Bm25Tokenizer::expression($questions) : null,
-            'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
-                $enhancement->cost + $this->embeddingCost($embeddingText) + $this->embeddingCost($questions),
-            ),
-            'summary' => $enhancement->summary,
-            'is_enhanced' => true,
-            ...($visuals instanceof PageVisualsData ? ['metadata' => $visuals->toMetadata()] : []),
-        ]);
+        return new EnhancedChunkData(
+            embeddingText: $embeddingText,
+            summary: $enhancement->summary,
+            questions: $questions !== '' ? $questions : null,
+            metadata: $visuals?->toMetadata(),
+            costInCents: $enhancement->cost + $this->embeddingCost($embeddingText) + $this->embeddingCost($questions),
+        );
     }
 
     /**

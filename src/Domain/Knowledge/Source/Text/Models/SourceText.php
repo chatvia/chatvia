@@ -23,7 +23,7 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string|null $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification
  * @property string $filepath
@@ -69,7 +69,7 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceText whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceText whereTookInSeconds($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceText whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceText whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceText whereWorkspaceId($value)
  *
  * @mixin \Eloquent
  */
@@ -94,9 +94,13 @@ class SourceText extends Model implements ChunkableContract
         ];
     }
 
+    /**
+     * Clears the text's chunks, the summary chunk (index 0) included, so the
+     * next ingestion builds them all again, and marks it to be ingested.
+     */
     public function retrain(): void
     {
-        $this->chunks()->delete();
+        $this->deleteChunks();
 
         $this->update([
             'language' => null,

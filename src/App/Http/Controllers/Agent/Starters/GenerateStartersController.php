@@ -19,10 +19,10 @@ class GenerateStartersController
 {
     public function __invoke(GenerateStartersRequest $request, Agent $agent, StarterGenerator $generator): JsonResponse
     {
-        $content = Chunk::query()->contentSampleForAgent($agent->id);
+        $content = Chunk::query()->contentSampleForAgent($agent);
 
         $suggestions = app(TokenUsageContext::class)->track(
-            $agent->user_id,
+            $agent->workspace_id,
             fn (): array => $generator->generate($content, $request->desiredCount()),
         );
 

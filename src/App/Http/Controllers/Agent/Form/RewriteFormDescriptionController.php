@@ -19,7 +19,7 @@ class RewriteFormDescriptionController
     public function __invoke(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $rewrite, TokenUsageContext $usage): JsonResponse
     {
         $instructions = $usage->track(
-            $agent->user_id,
+            $agent->workspace_id,
             fn (): string => $rewrite->execute($request->toData()),
         );
 

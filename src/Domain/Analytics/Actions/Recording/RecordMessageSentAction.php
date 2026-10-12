@@ -16,8 +16,9 @@ use Illuminate\Database\Connection;
  *     nothing and stops here),
  *  2. the per-conversation metrics (start/end, first visitor and first AI
  *     message, message count, duration),
- *  3. the per-agent hourly rollup (messages, tokens, response time, and
- *     `conversations_started` exactly once per conversation),
+ *  3. the per-agent hourly rollup (messages, prompt/completion/total tokens,
+ *     response time, and `conversations_started` exactly once per
+ *     conversation),
  *  4. the first time this visitor session was seen.
  *
  * Unknown country / model values are stored as configured sentinels in the
@@ -56,7 +57,7 @@ class RecordMessageSentAction
         return $db->table('analytics_events')->insertOrIgnore([
             'agent_id' => $message->agentId,
             'workspace_id' => $message->workspaceId,
-            'chatter_user_id' => $message->chatterUserId,
+            'chatter_id' => $message->chatterId,
             'event_type' => AnalyticsEventType::MessageSent->value,
             'role' => $message->role,
             'llm_external_name' => $message->llmExternalName,
@@ -134,17 +135,21 @@ class RecordMessageSentAction
                 agent_id, workspace_id, bucket_hour, country_code, llm_external_name,
                 conversations_started,
                 user_messages, assistant_messages,
-                total_tokens, response_ms_sum, response_ms_count
+                prompt_tokens, completion_tokens, total_tokens,
+                response_ms_sum, response_ms_count
             ) VALUES (
                 ?, ?, date_trunc('hour', ?::timestamptz), ?, ?,
                 ?,
                 ?, ?,
-                ?, ?, ?
+                ?, ?, ?,
+                ?, ?
             )
             ON CONFLICT (agent_id, bucket_hour, country_code, llm_external_name) DO UPDATE SET
                 conversations_started = analytics_agent_hourly_rollups.conversations_started + EXCLUDED.conversations_started,
                 user_messages         = analytics_agent_hourly_rollups.user_messages         + EXCLUDED.user_messages,
                 assistant_messages    = analytics_agent_hourly_rollups.assistant_messages    + EXCLUDED.assistant_messages,
+                prompt_tokens         = analytics_agent_hourly_rollups.prompt_tokens         + EXCLUDED.prompt_tokens,
+                completion_tokens     = analytics_agent_hourly_rollups.completion_tokens     + EXCLUDED.completion_tokens,
                 total_tokens          = analytics_agent_hourly_rollups.total_tokens          + EXCLUDED.total_tokens,
                 response_ms_sum       = analytics_agent_hourly_rollups.response_ms_sum       + EXCLUDED.response_ms_sum,
                 response_ms_count     = analytics_agent_hourly_rollups.response_ms_count     + EXCLUDED.response_ms_count
@@ -157,6 +162,8 @@ class RecordMessageSentAction
             $startsConversation ? 1 : 0,
             $message->isFromVisitor() ? 1 : 0,
             $message->isFromAssistant() ? 1 : 0,
+            (int) $message->promptTokens,
+            (int) $message->completionTokens,
             $message->totalTokens(),
             $hasResponseTime ? (int) $message->responseTimeMs : 0,
             $hasResponseTime ? 1 : 0,

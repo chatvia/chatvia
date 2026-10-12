@@ -3,17 +3,15 @@
 namespace Domain\Conversation\Actions\Retention;
 
 use Domain\Conversation\Models\Attachment;
-use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Deletes chat attachments that no longer belong to a live conversation, and
- * their stored files with them. A file lives exactly as long as its
- * conversation: one in a conversation past its retention horizon (or already
- * deleted) goes, and an upload that never joined a conversation goes after
- * `$orphanDays`. Rows are deleted one by one through the model, so its delete
- * hook removes the stored object — no row is ever left pointing at a deleted
- * file.
+ * Deletes uploads that never joined a conversation, and their stored files
+ * with them, once they are `$orphanDays` old. The files of a conversation go
+ * with the conversation: its delete hook removes them when it is deleted (the
+ * retention sweep deletes it at its horizon), and the trash purge removes any
+ * a bulk delete left behind. Rows are deleted one by one through the model,
+ * so its delete hook removes the stored object — no row is ever left pointing
+ * at a deleted file. chat_attachments_orphan_idx finds them.
  */
 class PruneExpiredAttachmentsAction
 {
@@ -25,17 +23,8 @@ class PruneExpiredAttachmentsAction
         $deleted = 0;
 
         Attachment::query()
-            ->where(function (Builder $query) use ($orphanDays): void {
-                $query
-                    ->where(fn (Builder $orphans) => $orphans
-                        ->whereNull('chat_conversation_id')
-                        ->where('created_at', '<', now()->subDays($orphanDays)))
-                    ->orWhereHas('conversation', fn (ConversationQueryBuilder $conversation) => $conversation
-                        ->withTrashed()
-                        ->where(fn (Builder $gone) => $gone
-                            ->whereNotNull('deleted_at')
-                            ->orWhere('expires_at', '<', now())));
-            })
+            ->whereNull('chat_conversation_id')
+            ->where('created_at', '<', now()->subDays($orphanDays))
             ->orderBy('id')
             ->chunkById($chunk, function ($attachments) use (&$deleted): void {
                 foreach ($attachments as $attachment) {

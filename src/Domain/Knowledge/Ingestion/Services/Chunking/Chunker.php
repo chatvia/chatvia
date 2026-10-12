@@ -8,13 +8,15 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatUsageData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\LlmRole;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
 use Domain\Llm\Services\TikToken;
 
 /**
- * Asks the chunker LLM (`chatvia.ai.models.chunker`) for a summary of one page
+ * Asks the Smart model (LlmRole::Smart) for a summary of one page
  * and the questions it answers, with the neighbouring pages as context. The
  * reply must follow a strict JSON schema. The summary is later prepended to the
  * chunk before embedding ("contextual retrieval"); the questions get their own
@@ -25,6 +27,7 @@ class Chunker
     public function __construct(
         private readonly StructuredCompletion $completion,
         private readonly CostCalculator $costCalculator,
+        private readonly ModelRoles $models,
     ) {}
 
     /**
@@ -40,8 +43,10 @@ class Chunker
             'next_page' => $nextPage?->content,
         ]);
 
+        $model = $this->models->model(LlmRole::Smart);
+
         $reply = $this->completion->send(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.chunker'),
+            model: $model,
             messages: [
                 ChatMessageData::system($systemPrompt),
                 ChatMessageData::user($userPrompt),
@@ -65,8 +70,9 @@ class Chunker
             questions: array_values(array_filter((array) ($data['questions'] ?? []), is_string(...))),
             cost: $this->costCalculator->costInCentsFromUsage(
                 usage: $usage,
-                pricePerInputMilToken: (float) config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
-                pricePerOutputMilToken: (float) config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
+                // The model's catalog prices when the admin set them.
+                pricePerInputMilToken: (float) ($model->input_price_per_1m_tokens ?? config('chatvia.ai.pricing.chunker_input_per_million_tokens')),
+                pricePerOutputMilToken: (float) ($model->output_price_per_1m_tokens ?? config('chatvia.ai.pricing.chunker_output_per_million_tokens')),
             ),
         );
     }

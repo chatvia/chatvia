@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Tool\Actions\Embedding\EmbedAgentFunctionAction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 function embedTestFunction(): AgentFunction
 {
     $function = new AgentFunction;
-    $function->user_id = User::factory()->create()->id;
+    $function->workspace_id = Workspace::factory()->create()->id;
     $function->internal_name = 'lookup_order';
     $function->display_name = 'Order lookup';
     $function->description = 'Look up an order by id';

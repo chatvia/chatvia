@@ -7,8 +7,8 @@ namespace App\Http\Chat;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Sessions\StartChatSessionAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Services\Memory\ChatSessions;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 /**
@@ -19,8 +19,8 @@ use Illuminate\Support\Facades\Session;
  * session with the agent instead of getting a new one.
  *
  * This is the HTTP side of the domain's visitor sessions: it reads the browser
- * session and the chat guard, and hands the domain plain ids
- * ({@see ChatScopeData}).
+ * session and the signed-in viewer ({@see HostedChatViewer}), and hands the
+ * domain plain ids and a typed viewer ({@see ChatScopeData}).
  */
 final readonly class HostedChatSession
 {
@@ -35,7 +35,7 @@ final readonly class HostedChatSession
     /** The visitor's session with the agent, started when they have none. */
     public function findOrStart(Agent $agent): string
     {
-        $sessionId = $this->find($agent) ?? $this->startSession->execute($agent, $this->viewerId());
+        $sessionId = $this->find($agent) ?? $this->startSession->execute($agent, HostedChatViewer::data());
 
         Session::put(self::SESSION_KEY.$agent->id, $sessionId);
 
@@ -54,9 +54,9 @@ final readonly class HostedChatSession
             return $remembered;
         }
 
-        $viewerId = $this->viewerId();
+        $viewer = HostedChatViewer::data();
 
-        return $viewerId !== null ? $this->sessions->latestFor($agent, $viewerId) : null;
+        return $viewer instanceof ChatViewerData ? $this->sessions->latestFor($agent, $viewer) : null;
     }
 
     /**
@@ -65,14 +65,6 @@ final readonly class HostedChatSession
      */
     public function scope(Agent $agent, ?string $conversationId = null): ChatScopeData
     {
-        return new ChatScopeData($agent, $this->findOrStart($agent), $conversationId, $this->viewerId());
-    }
-
-    /** The user signed in to the chat (any type), or null for a guest. */
-    public function viewerId(): ?int
-    {
-        $id = Auth::guard()->id();
-
-        return $id !== null ? (int) $id : null;
+        return new ChatScopeData($agent, $this->findOrStart($agent), $conversationId, HostedChatViewer::data());
     }
 }

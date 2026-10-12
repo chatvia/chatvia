@@ -1,8 +1,10 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\Services\WidgetVerification;
@@ -77,23 +79,45 @@ it('returns null for a thread the visitor cleared, like the widget\'s other look
 });
 
 it('on a protected agent, only finds the signed-in chatter\'s own conversation', function (): void {
-    $owner = User::factory()->create();
-    $other = User::factory()->create();
-    $conversation = sessionScopedConversation(['user_id' => $owner->id]);
+    $agent = Agent::factory()->create();
+    $owner = Chatter::factory()->ofWorkspace($agent->workspace)->create();
+    $other = Chatter::factory()->ofWorkspace($agent->workspace)->create();
+    $conversation = sessionScopedConversation(['agent_id' => $agent->id, 'chatter_id' => $owner->id]);
     $session = $conversation->session;
 
-    $find = fn (?User $chatter): ?Conversation => app(FindWidgetConversationAction::class)->execute(
+    $find = fn (ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(
         $conversation->external_id,
         $session->external_id,
         $session->agent,
-        $chatter,
+        $viewer,
+    );
+    $verify = fn (ChatViewerData $viewer): ?Conversation => app(WidgetVerification::class)
+        ->verifyConversationId($conversation->external_id, $session->agent, $viewer);
+
+    // Another chatter replaying the owner's session and conversation ids, and
+    // a staff account whose id happens to equal the owner's.
+    expect($find(ChatViewerData::chatter($other->id)))->toBeNull()
+        ->and($find(ChatViewerData::staff($owner->id)))->toBeNull()
+        ->and($find(ChatViewerData::chatter($owner->id))?->id)->toBe($conversation->id)
+        ->and($verify(ChatViewerData::chatter($other->id)))->toBeNull()
+        ->and($verify(ChatViewerData::staff($owner->id)))->toBeNull()
+        ->and($verify(ChatViewerData::chatter($owner->id))?->id)->toBe($conversation->id);
+});
+
+it('on a protected agent, finds a staff member\'s conversation for that staff member only', function (): void {
+    $staff = User::factory()->create();
+    $conversation = sessionScopedConversation(['user_id' => $staff->id]);
+    $session = $conversation->session;
+
+    $find = fn (ChatViewerData $viewer): ?Conversation => app(FindWidgetConversationAction::class)->execute(
+        $conversation->external_id,
+        $session->external_id,
+        $session->agent,
+        $viewer,
     );
 
-    // Another chatter replaying the owner's session and conversation ids.
-    expect($find($other))->toBeNull()
-        ->and($find($owner)?->id)->toBe($conversation->id)
-        ->and(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $session->agent, $other))->toBeNull()
-        ->and(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $session->agent, $owner)?->id)->toBe($conversation->id);
+    expect($find(ChatViewerData::staff($staff->id))?->id)->toBe($conversation->id)
+        ->and($find(ChatViewerData::chatter($staff->id)))->toBeNull();
 });
 
 it('returns null for ids that are not UUIDs instead of querying', function (string $conversationId, string $sessionId): void {

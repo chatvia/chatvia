@@ -17,7 +17,7 @@ function promptApiHeaders(string $token): array
 }
 
 it('creates an agent attached to a library prompt via prompt_id', function (): void {
-    $prompt = $this->user->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
+    $prompt = $this->user->workspace()->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
 
     $this->withHeaders(promptApiHeaders($this->token))
         ->postJson('/api/v1/agents', [
@@ -49,7 +49,7 @@ it('creates an agent with custom system_instructions', function (): void {
 });
 
 it('rejects sending both prompt_id and system_instructions', function (): void {
-    $prompt = $this->user->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
+    $prompt = $this->user->workspace()->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
 
     $this->withHeaders(promptApiHeaders($this->token))
         ->postJson('/api/v1/agents', [
@@ -74,10 +74,10 @@ it('rejects an unknown prompt_id', function (): void {
 });
 
 it('swaps an agent between a library prompt and a custom prompt on update', function (): void {
-    $prompt = $this->user->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
+    $prompt = $this->user->workspace()->prompts()->create(['name' => 'Persona', 'prompt' => 'Be helpful.']);
 
     $agent = Agent::create([
-        'user_id' => $this->user->id,
+        'workspace_id' => $this->user->workspace()->id,
         'team_id' => $this->user->primaryTeam()->id,
         'name' => 'Bot',
         'external_id' => Str::random(14),

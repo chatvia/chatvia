@@ -90,7 +90,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     private function findAttachedFunction(Agent $agent, string $name): ?AgentFunction
     {
         return AgentFunction::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('internal_name', $name)
             ->where('is_enabled', true)
             ->whereHas('agents', fn (Builder $agents): Builder => $agents->whereKey($agent->id))
@@ -253,7 +253,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
         // Durable per-day rollup so usage insights survive function deletion.
         FunctionInvoked::dispatch(
             $agent->id,
-            (int) $agent->user_id,
+            (int) $agent->workspace_id,
             $function->id,
             (string) ($function->display_name ?: $function->internal_name),
             $function->description,

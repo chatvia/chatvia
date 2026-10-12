@@ -124,7 +124,7 @@ class SubmitFormAction
 
         FormSubmitted::dispatch(new CapturedSubmissionData(
             agentId: $agent->id,
-            workspaceId: $agent->user_id,
+            workspaceId: $agent->workspace_id,
             submissionId: $claimed->id,
             formSlug: $definition->slug,
             formType: $definition->form_type,

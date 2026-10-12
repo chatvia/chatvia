@@ -38,7 +38,7 @@ function evalCaseFor(Agent $agent, bool $active): EvalCase
     return EvalCase::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'case',
         'input' => 'ping',
         'scorer_type' => 'contains',
@@ -85,7 +85,7 @@ it('refuses to start a suite when the workspace reached its monthly message limi
 
     evalCaseFor($agent, active: true);
     MessageLimit::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'monthly_limit' => 5,
         'messages_used' => 5,
         'period_starts_at' => now()->startOfMonth(),

@@ -2,7 +2,9 @@
 
 namespace App\Http\Middleware\Chat;
 
+use App\Http\Chat\HostedChatViewer;
 use App\Http\Middleware\Web\HandleInertiaRequests;
+use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -23,7 +25,7 @@ class ChatHandleInertiaRequests extends Middleware
     #[\Override]
     public function share(Request $request): array
     {
-        $user = $request->user();
+        $account = HostedChatViewer::account();
 
         return [
             ...parent::share($request),
@@ -32,8 +34,10 @@ class ChatHandleInertiaRequests extends Middleware
             // "Powered by" credit under the hosted chat.
             'brand' => config('chatvia.brand'),
             'auth' => [
-                'user' => $user,
-                'is_chatter' => $user?->isChatter() ?? false,
+                'user' => $account,
+                // Staff (a dashboard preview) chat too, but their profile is
+                // edited on the dashboard, not here.
+                'is_chatter' => $account instanceof Chatter,
             ],
             // The matched route's name and raw parameters, for active-state
             // checks (useCurrentRoute); URLs themselves come from Wayfinder.

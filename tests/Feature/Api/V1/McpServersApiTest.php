@@ -22,7 +22,7 @@ function mcpHeaders(string $token): array
 function makeCustomMcpServer(User $owner, array $overrides = []): AgentMcpServer
 {
     return AgentMcpServer::create(array_merge([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'connector_slug' => null,
         'name' => 'Custom Server',
         'slug' => Str::random(10),

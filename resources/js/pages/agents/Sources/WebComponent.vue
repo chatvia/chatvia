@@ -3,11 +3,12 @@
  * Website sources of an agent. A website goes through four stages, each with
  * its own card: crawling (pages are being discovered) → ready for training
  * (pick websites and train them) → training → trained.
- * Status changes arrive live over Reverb.
+ * Status changes arrive live over Reverb; the websites load one page at a time.
  */
 import AttachWebsiteDialog from '@/components/common/AttachWebsiteDialog.vue';
 import InfoBanner from '@/components/common/InfoBanner.vue';
 import DeleteSourceDialog from '@/components/agents/sources/DeleteSourceDialog.vue';
+import LoadMoreButton from '@/components/agents/sources/LoadMoreButton.vue';
 import CrawledWebsitesCard from '@/components/agents/sources/web/CrawledWebsitesCard.vue';
 import CrawlingWebsitesCard from '@/components/agents/sources/web/CrawlingWebsitesCard.vue';
 import TrainedWebsitesCard from '@/components/agents/sources/web/TrainedWebsitesCard.vue';
@@ -37,7 +38,18 @@ const linksDialog = useWebsiteLinksDialog(agentId, sources);
 const deletion = useWebsiteDeletion(agentId, sources, training);
 useWebsiteLiveUpdates(agentId, { sources, links, training, linksDialog });
 
-const { crawlingSources, crawledSources, trainingSources, completedSources, isLoadingSources, isInitialLoad, fetchWebSources } = sources;
+const {
+    crawlingSources,
+    crawledSources,
+    trainingSources,
+    completedSources,
+    isLoadingSources,
+    isInitialLoad,
+    hasMoreWebSources,
+    isLoadingMoreWebSources,
+    fetchWebSources,
+    loadMoreWebSources,
+} = sources;
 const { isDialogOpen: isDeleteDialogOpen, target: websiteToDelete, description: deleteDescription, isUnlinking, isDeleting } = deletion;
 
 const isAttachDialogOpen = ref(false);
@@ -86,6 +98,8 @@ onMounted(reload);
                 @view-links="linksDialog.open"
                 @delete="deletion.confirm"
             />
+
+            <LoadMoreButton v-if="hasMoreWebSources && !isInitialLoad" :is-loading="isLoadingMoreWebSources" @click="loadMoreWebSources" />
 
             <DeleteSourceDialog
                 v-if="websiteToDelete"

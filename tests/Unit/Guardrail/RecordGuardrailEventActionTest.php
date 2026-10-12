@@ -16,7 +16,7 @@ function guardEvent(Agent $agent, string $sample, array $overrides = []): Guardr
     return new GuardrailTriggered(
         agentId: $overrides['agentId'] ?? $agent->id,
         agentName: $agent->name,
-        workspaceId: (int) $agent->user_id,
+        workspaceId: (int) $agent->workspace_id,
         userId: $overrides['userId'] ?? null,
         userName: $overrides['userName'] ?? null,
         conversationExternalId: (string) Str::uuid7(),

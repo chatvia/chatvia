@@ -29,8 +29,8 @@ class AgentFileFactory extends Factory
     public function definition(): array
     {
         return [
-            // Each file gets its own owner so tests never depend on seeded users.
-            'user_id' => User::factory(),
+            // Each file gets its own workspace so tests never depend on seeded users.
+            'workspace_id' => fn (): int => User::factory()->create()->workspace()->id,
             'filename' => fake()->word().'.txt',
             'filetype' => 'pdf',
             'filepath' => 'test/files/'.fake()->uuid().'.txt',

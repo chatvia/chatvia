@@ -40,12 +40,12 @@ it('stores an uploaded document for the workspace and attaches it to the agent',
 
     $file = app(UploadKnowledgeSourceFileAction::class)->execute($agent, $upload);
 
-    expect($file->user_id)->toBe($agent->user_id)
+    expect($file->workspace_id)->toBe($agent->workspace_id)
         ->and($file->filename)->toBe('cover.png')
         ->and($file->filetype)->toBe('image')
         ->and($file->status)->toBe(SourceStatus::Uploaded)
         ->and($file->length)->toBe(1)
-        ->and($file->filepath)->toStartWith('users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/files/')
+        ->and($file->filepath)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/files/')
         ->and($agent->files()->whereKey($file->id)->exists())->toBeTrue();
 
     Storage::assertExists($file->filepath);
@@ -57,15 +57,15 @@ it('refuses a file type the knowledge base cannot read', function (): void {
     expect(fn () => app(UploadKnowledgeSourceFileAction::class)->execute($agent, fsaUpload('tool.exe', 'MZ', 'application/x-msdownload')))
         ->toThrow(UnsupportedSourceFileException::class);
 
-    expect(SourceFile::query()->where('user_id', $agent->user_id)->exists())->toBeFalse();
+    expect(SourceFile::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
 });
 
 it('starts training every uploaded file of the agent', function (): void {
     Bus::fake();
 
     $agent = Agent::factory()->create();
-    $uploaded = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'filename' => 'a.pdf', 'mime_type' => 'application/pdf']);
-    $trained = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingested']);
+    $uploaded = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'filename' => 'a.pdf', 'mime_type' => 'application/pdf']);
+    $trained = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingested']);
     $agent->files()->attach([$uploaded->id, $trained->id]);
 
     app(ProcessAgentUploadedFilesAction::class)->execute($agent);
@@ -78,8 +78,8 @@ it('starts training every uploaded file of the agent', function (): void {
 
 it('discards the uploaded files with their stored objects and agent links', function (): void {
     $agent = Agent::factory()->create();
-    $uploaded = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
-    $trained = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingested']);
+    $uploaded = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    $trained = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingested']);
     $agent->files()->attach([$uploaded->id, $trained->id]);
     Storage::put($uploaded->filepath, 'bytes');
 
@@ -94,7 +94,7 @@ it('discards the uploaded files with their stored objects and agent links', func
 
 it('deletes a file and cancels nothing when it is not being ingested', function (): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingested']);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingested']);
     $agent->files()->attach($file->id);
 
     app(DeleteSourceFileFromAgentAction::class)->execute($agent, $file);

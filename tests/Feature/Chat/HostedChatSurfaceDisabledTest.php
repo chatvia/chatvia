@@ -16,7 +16,7 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($owner);
 
     $this->agent = Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Public Agent',
         'external_id' => Str::random(14),

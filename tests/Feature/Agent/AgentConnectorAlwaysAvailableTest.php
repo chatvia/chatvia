@@ -20,7 +20,7 @@ beforeEach(function (): void {
     $this->user = workspaceOwnerWithTeam();
     $this->agent = makeTeamAgent($this->user, 'Tutor Bot');
 
-    $this->server = $this->user->mcpServers()->create([
+    $this->server = $this->user->workspace()->mcpServers()->create([
         'name' => 'Hejly AI Tutor',
         'slug' => 'hejly-tutor',
         'url' => 'https://hejly.test/mcp/tutor',

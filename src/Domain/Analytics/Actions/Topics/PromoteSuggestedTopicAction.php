@@ -4,6 +4,7 @@ namespace Domain\Analytics\Actions\Topics;
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\ConversationTopicAssigned;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
@@ -34,7 +35,9 @@ class PromoteSuggestedTopicAction
 
             $rows = ConversationTopic::query()
                 ->where('suggested_label', $label)
-                ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
+                // Every conversation of the agent, not only the suggestion
+                // window: the topic analytics cover any range, all time too.
+                ->whereIn('chat_conversation_id', Conversation::query()->select('id')->where('agent_id', $agent->id))
                 ->with('conversation:id,created_at')
                 ->get();
 
@@ -65,7 +68,7 @@ class PromoteSuggestedTopicAction
 
         // After commit: roll the now-committed topic into the daily analytics.
         foreach ($occurredAt as $createdAt) {
-            ConversationTopicAssigned::dispatch($agent->id, $agent->user_id, $topic->id, $createdAt);
+            ConversationTopicAssigned::dispatch($agent->id, $agent->workspace_id, $topic->id, $createdAt);
         }
 
         return $topic;

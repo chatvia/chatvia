@@ -30,15 +30,15 @@ class AddCustomConnectorAction
     {
         // An MCP server is a workspace resource: own it by the workspace, not
         // the acting teammate, whose deletion would orphan it.
-        $owner = $data->user->workspace();
+        $workspace = $data->user->workspace();
         $usesToken = $data->auth_strategy === ConnectorAuthStrategy::Token;
 
         $server = AgentMcpServer::create([
-            'user_id' => $owner->id,
+            'workspace_id' => $workspace->id,
             'category' => McpServerCategory::Custom,
             'connector_slug' => null,
             'name' => $data->name,
-            'slug' => AgentMcpServer::uniqueSlugFor($owner, $data->name),
+            'slug' => AgentMcpServer::uniqueSlugFor($workspace, $data->name),
             'url' => $data->url,
             'transport' => McpTransport::StreamableHttp,
             'auth_type' => $usesToken ? McpAuthType::Bearer : McpAuthType::None,

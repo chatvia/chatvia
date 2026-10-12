@@ -11,12 +11,12 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Support\Http\SafeUrl;
 
-it('stamps the agent and owner identity headers on the webhook request', function (): void {
+it('stamps the agent and workspace identity headers on the webhook request', function (): void {
     $user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($user);
 
     $agent = Agent::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Support Agent',
         'external_id' => Str::random(14),
@@ -26,7 +26,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
     ]);
 
     $function = new AgentFunction;
-    $function->user_id = $user->id;
+    $function->workspace_id = $user->workspace()->id;
     $function->internal_name = 'lookup_order';
     $function->description = 'Look up an order by id';
     $function->parameters_schema = ['type' => 'object', 'properties' => []];
@@ -44,7 +44,7 @@ it('stamps the agent and owner identity headers on the webhook request', functio
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://hooks.example.test/fn'
         && $request->header('X-Chatvia-Agent-Id') === [$agent->external_id]
-        && $request->header('X-Chatvia-User-Id') === [$user->external_id]);
+        && $request->header('X-Chatvia-Workspace-Id') === [$user->workspace()->external_id]);
 });
 
 /**
@@ -57,7 +57,7 @@ function htdFunction(string $method = 'POST', string $authType = 'none', ?array 
     app(TeamService::class)->createDefaultTeam($user);
 
     $agent = Agent::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Support Agent',
         'external_id' => Str::random(14),
@@ -67,7 +67,7 @@ function htdFunction(string $method = 'POST', string $authType = 'none', ?array 
     ]);
 
     $function = new AgentFunction;
-    $function->user_id = $user->id;
+    $function->workspace_id = $user->workspace()->id;
     $function->internal_name = 'lookup_order';
     $function->description = 'Look up an order by id';
     $function->parameters_schema = ['type' => 'object', 'properties' => []];

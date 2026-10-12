@@ -26,17 +26,16 @@ class CreateAgentFunctionAction
     public function execute(User $user, FunctionDefinitionData $data): AgentFunction
     {
         // A webhook tool is a workspace resource — own it by the workspace, not
-        // the acting teammate, whose deletion (functions.user_id cascades)
-        // would otherwise take the tool down with them.
-        $owner = $user->workspace();
+        // the acting teammate.
+        $workspace = $user->workspace();
         $name = (string) $data->internal_name;
 
-        $this->ensureNameAvailable($owner->id, $name);
+        $this->ensureNameAvailable($workspace->id, $name);
 
         $method = $data->webhook_method instanceof Optional ? FunctionWebhookMethod::Post : $data->webhook_method;
         $authType = $data->auth_type instanceof Optional ? FunctionAuthType::None : $data->auth_type;
 
-        return $this->guardUniqueName(fn (): AgentFunction => $owner->functions()->create([
+        return $this->guardUniqueName(fn (): AgentFunction => $workspace->functions()->create([
             'internal_name' => $name,
             'display_name' => $data->display_name instanceof Optional ? null : $data->display_name,
             'description' => (string) $data->description,

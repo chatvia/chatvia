@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Actions\Account;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Data\Account\CreateApiAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
@@ -24,17 +24,17 @@ class CreateApiAgentAction
         private readonly ResolveAgentPromptIdAction $resolvePromptId,
     ) {}
 
-    public function execute(User $owner, CreateApiAgentData $data): Agent
+    public function execute(Workspace $workspace, CreateApiAgentData $data): Agent
     {
-        $team = $this->resolveTeam->execute($owner, $data->team_id);
-        $agentPromptId = $this->resolvePromptId->execute($owner, $data->prompt_id);
+        $team = $this->resolveTeam->execute($workspace, $data->team_id);
+        $agentPromptId = $this->resolvePromptId->execute($workspace, $data->prompt_id);
 
-        return DB::transaction(function () use ($data, $owner, $team, $agentPromptId): Agent {
+        return DB::transaction(function () use ($data, $workspace, $team, $agentPromptId): Agent {
             $externalId = AgentService::generateRandomExternalId();
 
             /** @var Agent $agent */
             $agent = Agent::create([
-                'user_id' => $owner->id,
+                'workspace_id' => $workspace->id,
                 'team_id' => $team->id,
                 'name' => $data->name,
                 'slug' => $externalId,
@@ -47,7 +47,8 @@ class CreateApiAgentAction
                 'source' => CreatedVia::Api,
             ]);
 
-            $agent->topics()->attach(Topic::pluck('id'));
+            // System topics and this workspace's own, never another workspace's.
+            $agent->topics()->attach(Topic::forWorkspace($workspace)->pluck('id'));
 
             return $agent;
         });

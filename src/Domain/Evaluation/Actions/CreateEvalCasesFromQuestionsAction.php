@@ -71,7 +71,7 @@ class CreateEvalCasesFromQuestionsAction
                 $created->push(EvalCase::create([
                     'agent_id' => $agent->id,
                     'agent_name' => $agent->name,
-                    'workspace_id' => $agent->user_id,
+                    'workspace_id' => $agent->workspace_id,
                     'name' => $item->question,
                     'input' => $item->question,
                     'scorer_type' => ScorerType::LlmJudge->value,
@@ -101,7 +101,7 @@ class CreateEvalCasesFromQuestionsAction
 
         return Chunk::query()
             ->whereIn('id', $ids)
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->whereExists(function ($query) use ($agent): void {
                 $query->select(DB::raw(1))
                     ->from('agent_sources as s')

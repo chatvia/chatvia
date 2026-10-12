@@ -51,7 +51,7 @@ class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shou
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->sourceFile->user_id;
+        return $this->sourceFile->workspace_id;
     }
 
     public function uniqueId(): string

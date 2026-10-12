@@ -2,11 +2,11 @@
 
 namespace Domain\Widget\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Services\UserAgentParser;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
@@ -37,18 +37,18 @@ class InitializeWidgetSessionAction
         private readonly StartConversationAction $startConversation,
     ) {}
 
-    public function execute(Agent $agent, WidgetSessionInitData $data, ?User $authUser = null): WidgetSessionInitResultData
+    public function execute(Agent $agent, WidgetSessionInitData $data, ?ChatViewerData $viewer = null): WidgetSessionInitResultData
     {
-        return DB::transaction(fn (): WidgetSessionInitResultData => $this->initialize($agent, $data, $authUser));
+        return DB::transaction(fn (): WidgetSessionInitResultData => $this->initialize($agent, $data, $viewer));
     }
 
-    private function initialize(Agent $agent, WidgetSessionInitData $data, ?User $authUser): WidgetSessionInitResultData
+    private function initialize(Agent $agent, WidgetSessionInitData $data, ?ChatViewerData $viewer): WidgetSessionInitResultData
     {
-        $session = $this->resumeSession($agent, $data, $authUser);
+        $session = $this->resumeSession($agent, $data, $viewer);
         $isNewSession = ! $session instanceof Session;
-        $session ??= $this->startSession($agent, $data, $authUser);
+        $session ??= $this->startSession($agent, $data, $viewer);
 
-        $conversationId = $this->resumeConversation($agent, $session, $data, $authUser)?->external_id;
+        $conversationId = $this->resumeConversation($agent, $session, $data, $viewer)?->external_id;
         $isNewConversation = $conversationId === null;
         $conversationId ??= $this->startConversation->execute(
             new ChatScopeData($agent, $session->external_id),
@@ -68,28 +68,30 @@ class InitializeWidgetSessionAction
      * on a protected agent, to this chatter). A session id from another agent
      * or another chatter is ignored, so a fresh session is started instead.
      */
-    private function resumeSession(Agent $agent, WidgetSessionInitData $data, ?User $authUser): ?Session
+    private function resumeSession(Agent $agent, WidgetSessionInitData $data, ?ChatViewerData $viewer): ?Session
     {
         if (! $data->existingSessionId) {
             return null;
         }
 
-        $session = $this->widgetVerification->verifySessionExternalId($data->existingSessionId, $agent, $authUser);
+        $session = $this->widgetVerification->verifySessionExternalId($data->existingSessionId, $agent, $viewer);
         $session?->update(['last_activity_at' => now()]);
 
         return $session;
     }
 
-    private function startSession(Agent $agent, WidgetSessionInitData $data, ?User $authUser): Session
+    private function startSession(Agent $agent, WidgetSessionInitData $data, ?ChatViewerData $viewer): Session
     {
         $userAgent = $this->userAgentParser->detect($data->userAgent);
 
         return Session::create([
+            'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
-            // Bound to the signed-in chatter on a protected agent (null for an
-            // anonymous visitor), so later reads and deletes can be scoped to
-            // the owning user instead of trusting the session id alone.
-            'user_id' => $authUser?->id,
+            // Bound to the signed-in chatter (or staff preview) on a protected
+            // agent (null for an anonymous visitor), so later reads and deletes
+            // can be scoped to the owner instead of trusting the session id.
+            'user_id' => $viewer instanceof ChatViewerData && ! $viewer->isChatter() ? $viewer->id : null,
+            'chatter_id' => $viewer?->isChatter() ? $viewer->id : null,
             'ip_address' => $data->ipAddress,
             'user_agent' => $data->userAgent,
             'device_type' => $userAgent->deviceType,
@@ -115,13 +117,13 @@ class InitializeWidgetSessionAction
      * session is not adopted instead: a conversation id alone must not grant
      * access to every other conversation of that session.
      */
-    private function resumeConversation(Agent $agent, Session $session, WidgetSessionInitData $data, ?User $authUser): ?Conversation
+    private function resumeConversation(Agent $agent, Session $session, WidgetSessionInitData $data, ?ChatViewerData $viewer): ?Conversation
     {
         if (! $data->existingConversationId) {
             return null;
         }
 
-        $conversation = $this->widgetVerification->verifyConversationId($data->existingConversationId, $agent, $authUser);
+        $conversation = $this->widgetVerification->verifyConversationId($data->existingConversationId, $agent, $viewer);
 
         if ($conversation?->chat_session_id !== $session->id) {
             return null;

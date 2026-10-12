@@ -14,8 +14,11 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
+            // The person whose turn tripped the guard: a staff account or a
+            // chatter (at most one). The name stays after either is deleted.
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('chatter_id')->nullable()->constrained()->nullOnDelete();
             $table->string('user_name')->nullable();
 
             $table->uuid('conversation_external_id')->nullable();
@@ -35,6 +38,7 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
 
             $table->index('user_id');
+            $table->index('chatter_id');
             $table->index(['workspace_id', 'created_at']);
             $table->index(['agent_id', 'id']);
 

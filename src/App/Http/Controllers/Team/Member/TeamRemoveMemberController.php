@@ -16,7 +16,7 @@ class TeamRemoveMemberController
     public function __invoke(Request $request, Team $team, User $member): RedirectResponse
     {
         abort_if($request->user()->cannot('removeTeamMember', $team), 403, __('Only the team owner can remove members.'));
-        abort_if($team->user_id === $member->id, 403, __('Cannot remove the team owner.'));
+        abort_if($member->ownsTeam($team), 403, __('Cannot remove the team owner.'));
 
         $team->removeMember($member);
 

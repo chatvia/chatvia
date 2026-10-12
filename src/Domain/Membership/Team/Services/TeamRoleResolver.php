@@ -79,7 +79,7 @@ class TeamRoleResolver
         $allPermissions = $this->catalog->codes();
         $permissions = [];
 
-        foreach (DB::table('teams')->where('user_id', $user->id)->pluck('id') as $teamId) {
+        foreach ($user->ownedTeams()->pluck('id') as $teamId) {
             $permissions[(int) $teamId] = $allPermissions;
         }
 

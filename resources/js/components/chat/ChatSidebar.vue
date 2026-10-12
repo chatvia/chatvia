@@ -63,6 +63,8 @@ const isMobileDevice = useIsMobile();
 const { conversations, isLoading: isLoadingConversations, search, rename, remove, removeAll } = useChatConversations();
 
 const currentUser = computed(() => page.props.auth?.user ?? null);
+// Staff who open the chat from the dashboard edit their profile there.
+const isChatter = computed(() => page.props.auth?.is_chatter === true);
 const searchDialogOpen = ref(false);
 const profileDialogOpen = ref(false);
 const agentsDialogOpen = ref(false);
@@ -266,7 +268,7 @@ function logout() {
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" side="top" class="w-56">
-                        <DropdownMenuItem class="cursor-pointer" @click="profileDialogOpen = true">
+                        <DropdownMenuItem v-if="isChatter" class="cursor-pointer" @click="profileDialogOpen = true">
                             <User class="me-2 h-4 w-4" />
                             <span>{{ t('sidebar.profile') }}</span>
                         </DropdownMenuItem>

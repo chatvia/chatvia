@@ -9,30 +9,26 @@ use Domain\Membership\Team\Models\Team;
 use Illuminate\Support\Collection;
 
 /**
- * Answers "which agents may this teammate reach in this team?". Platform
- * admins reach every agent; the team owner reaches every agent of their own
+ * Answers "which agents may this teammate reach in this team?". The team
+ * owner reaches every agent of their own
  * workspace (never another workspace's); anyone else reaches the agents of the
  * team their team role grants — all of them when the role is the owner role or
  * holds the all-agents meta-permission, otherwise the agents on the role's
  * `agent_role` pivot. This matches App\Identity\Workspace\Services\AgentAccessPolicy,
  * which calls it for teammates.
  *
- * Chatters never come through here: their access is the `agent_user` grant,
- * resolved on the User model. The role lookup goes through the User's
+ * Chatters never come through here: their access is the `agent_chatter` grant,
+ * resolved on the Chatter model. The role lookup goes through the User's
  * memoised `teamRole()`, so checking many agents costs one role query.
  */
 class TeamAgentAccess
 {
     public function canAccess(User $user, Team $team, Agent $agent): bool
     {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
         // The owner reaches every agent of their own workspace — and only
         // those: owning a team says nothing about another workspace's agents.
         if ($user->ownsTeam($team)) {
-            return $agent->user_id === $user->workspace()->id;
+            return $agent->workspace_id === $user->workspace()->id;
         }
 
         if ($agent->team_id !== $team->id) {

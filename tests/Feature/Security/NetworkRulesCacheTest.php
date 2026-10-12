@@ -21,7 +21,7 @@ it('caches the network rules between requests', function (): void {
         ->get(route('security.edit'))
         ->assertOk();
 
-    expect(Cache::has(WorkspaceSecurityPolicy::networkRulesCacheKey($this->owner->id)))->toBeTrue();
+    expect(Cache::has(WorkspaceSecurityPolicy::networkRulesCacheKey($this->owner->workspace()->id)))->toBeTrue();
 });
 
 it('applies a new allowlist on the next request after the policy is saved', function (): void {
@@ -30,7 +30,7 @@ it('applies a new allowlist on the next request after the policy is saved', func
         ->get(route('security.edit'))
         ->assertOk();
 
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => ['203.0.113.0/24'],
         'geo_mode' => 'off',

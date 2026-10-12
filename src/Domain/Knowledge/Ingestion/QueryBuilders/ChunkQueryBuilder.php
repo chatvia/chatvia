@@ -2,16 +2,19 @@
 
 namespace Domain\Knowledge\Ingestion\QueryBuilders;
 
+use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Queries over knowledge chunks: agent scoping and the question/content
- * samples used by the Setup and Evals pages. The knowledge-base search itself
- * lives in {@see HybridChunkSearch}.
+ * Queries over knowledge chunks: agent and source scoping, website chunks no
+ * page links to any more, and the question/content samples used by the Setup
+ * and Evals pages. The knowledge-base search itself lives in
+ * {@see HybridChunkSearch}.
  *
  * @template TModel of Chunk
  *
@@ -31,19 +34,53 @@ class ChunkQueryBuilder extends Builder
     /**
      * Only the chunks of sources the agent uses (its `agent_sources` rows).
      * Chunks belong to sources, not agents, so this is how agent scoping works
-     * everywhere; the hybrid search inlines the same filter in its SQL.
+     * everywhere; the hybrid search inlines the same filter in its SQL. The
+     * workspace filter keeps the lookup on the workspace's own chunks.
      *
      * @return self<TModel>
      */
-    public function forAgent(int $agentId): self
+    public function forAgent(Agent $agent): self
     {
-        return $this->whereExists(function (QueryBuilder $query) use ($agentId): void {
-            $query->select(DB::raw(1))
-                ->from('agent_sources as s')
-                ->whereColumn('s.sourceable_id', 'chunks.chunkable_id')
-                ->whereColumn('s.sourceable_type', 'chunks.chunkable_type')
-                ->where('s.agent_id', $agentId);
-        });
+        return $this
+            ->where('chunks.workspace_id', $agent->workspace_id)
+            ->whereExists(function (QueryBuilder $query) use ($agent): void {
+                $query->select(DB::raw(1))
+                    ->from('agent_sources as s')
+                    ->whereColumn('s.sourceable_id', 'chunks.chunkable_id')
+                    ->whereColumn('s.sourceable_type', 'chunks.chunkable_type')
+                    ->where('s.agent_id', $agent->id);
+            });
+    }
+
+    /**
+     * Every chunk of one source, its summary chunk (index 0) included.
+     *
+     * @return self<TModel>
+     */
+    public function ofSource(Model $source): self
+    {
+        return $this
+            ->where('chunks.chunkable_type', $source->getMorphClass())
+            ->where('chunks.chunkable_id', $source->getKey());
+    }
+
+    /**
+     * Page chunks that no `chunk_references` row points at any more. Website
+     * chunks are shared by the pages that produced them, so a chunk is only
+     * dead once its last page is gone. The summary chunk (index 0) never has
+     * references and is kept.
+     *
+     * @return self<TModel>
+     */
+    public function unreferenced(): self
+    {
+        return $this
+            ->whereNot('chunks.chunk_index', 0)
+            ->whereNotExists(function (QueryBuilder $query): void {
+                $query->select(DB::raw(1))
+                    ->from('chunk_references as r')
+                    ->whereColumn('r.chunk_id', 'chunks.id');
+            });
     }
 
     /**
@@ -65,11 +102,11 @@ class ChunkQueryBuilder extends Builder
      *
      * @return array<int, string>
      */
-    public function questionsForAgent(int $agentId, int $limit = 60): array
+    public function questionsForAgent(Agent $agent, int $limit = 60): array
     {
         $blocks = $this->getModel()->newQuery()
             ->withQuestions()
-            ->forAgent($agentId)
+            ->forAgent($agent)
             ->limit(self::QUESTION_CHUNKS_SCANNED)
             ->pluck('questions');
 
@@ -94,11 +131,11 @@ class ChunkQueryBuilder extends Builder
      *
      * @return list<array{chunk_id: int, question: string, source_type: string}>
      */
-    public function questionCandidatesForAgent(int $agentId, int $limit = 200): array
+    public function questionCandidatesForAgent(Agent $agent, int $limit = 200): array
     {
         $rows = $this->getModel()->newQuery()
             ->withQuestions()
-            ->forAgent($agentId)
+            ->forAgent($agent)
             ->limit(self::QUESTION_CHUNKS_SCANNED)
             ->get(['id', 'questions', 'chunkable_type']);
 
@@ -131,9 +168,9 @@ class ChunkQueryBuilder extends Builder
      * Whether the agent has any ingested knowledge-base content (chunks). Gates
      * the Setup → Starters "Generate with AI" button.
      */
-    public function hasContentForAgent(int $agentId): bool
+    public function hasContentForAgent(Agent $agent): bool
     {
-        return $this->getModel()->newQuery()->forAgent($agentId)->exists();
+        return $this->getModel()->newQuery()->forAgent($agent)->exists();
     }
 
     /**
@@ -143,10 +180,10 @@ class ChunkQueryBuilder extends Builder
      *
      * @return array<int, string>
      */
-    public function contentSampleForAgent(int $agentId, int $limit = 30): array
+    public function contentSampleForAgent(Agent $agent, int $limit = 30): array
     {
         return $this->getModel()->newQuery()
-            ->forAgent($agentId)
+            ->forAgent($agent)
             ->limit($limit)
             ->get(['summary', 'chunk'])
             ->map(fn ($row): string => trim((string) ($row->summary ?: $row->chunk)))

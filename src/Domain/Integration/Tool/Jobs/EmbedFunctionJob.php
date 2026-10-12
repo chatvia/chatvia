@@ -30,7 +30,7 @@ class EmbedFunctionJob implements AttributesTokenUsage, ShouldQueue
 
     public function tokenWorkspaceId(): ?int
     {
-        $userId = AgentFunction::query()->whereKey($this->functionId)->value('user_id');
+        $userId = AgentFunction::query()->whereKey($this->functionId)->value('workspace_id');
 
         return $userId !== null ? (int) $userId : null;
     }

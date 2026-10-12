@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Chat;
 
 use App\Identity\Chatter\Data\UpdateChatterProfileData;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -11,9 +11,12 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class UpdateChatterProfileRequest extends FormRequest
 {
+    /**
+     * Only a chatter edits a profile here; staff edit theirs on the dashboard.
+     */
     public function authorize(): bool
     {
-        return true;
+        return $this->user() instanceof Chatter;
     }
 
     /**
@@ -23,9 +26,10 @@ class UpdateChatterProfileRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            // Changing the password requires proving the current one (validated
-            // against the authenticated web guard), matching the workspace flow.
-            'current_password' => ['required_with:password', 'current_password:web'],
+            // Changing the password requires proving the current one, checked
+            // against the hosted chat's own `chat` guard: on /chat requests the
+            // dashboard's `web` guard has no signed-in user.
+            'current_password' => ['required_with:password', 'current_password:chat'],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:4096'],
         ];
@@ -33,7 +37,7 @@ class UpdateChatterProfileRequest extends FormRequest
 
     public function toData(): UpdateChatterProfileData
     {
-        /** @var User $user */
+        /** @var Chatter $user */
         $user = $this->user();
 
         return new UpdateChatterProfileData(

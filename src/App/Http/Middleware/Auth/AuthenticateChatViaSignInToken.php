@@ -3,12 +3,11 @@
 namespace App\Http\Middleware\Auth;
 
 use App\Http\Chat\HostedChatAgent;
-use App\Identity\Workspace\Models\User;
+use App\Http\Chat\HostedChatViewer;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -16,8 +15,8 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Sits in the chat middleware group (the agent is already resolved from the
  * `/chat/{agentSlug}` path) and BEFORE EnsureChatIsAccessible. A token that
- * resolves to the current agent signs its user in to the chat (the `chat`
- * guard, never the dashboard), then a GET is redirected
+ * resolves to the current agent signs its chatter or staff account in to the
+ * chat ({@see HostedChatViewer}, never the dashboard), then a GET is redirected
  * to the same URL without the token (keeping it out of the browser history).
  * From there the visitor is an ordinary signed-in chat user.
  *
@@ -46,10 +45,10 @@ class AuthenticateChatViaSignInToken
             return $next($request);
         }
 
-        $user = $this->tokens->verify($token, $agent);
+        $account = $this->tokens->verify($token, $agent);
 
-        if ($user instanceof User) {
-            Auth::guard()->login($user);
+        if ($account !== null) {
+            HostedChatViewer::signIn($account);
         }
 
         if ($request->isMethod('GET')) {

@@ -30,7 +30,7 @@ function agedConversation(Agent $agent, int $daysIdle): Conversation
 
 it('prunes conversations idle past a workspace retention override', function (): void {
     $agent = Agent::factory()->create();
-    WorkspaceSecurityPolicy::forWorkspace($agent->user_id)->update(['retention_conversations_days' => 5]);
+    WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 5]);
 
     $old = agedConversation($agent, daysIdle: 30);
     $recent = agedConversation($agent, daysIdle: 1);
@@ -44,7 +44,7 @@ it('prunes conversations idle past a workspace retention override', function ():
 it('clamps a stale over-plan override down to the current plan ceiling', function (): void {
     $agent = Agent::factory()->create();
     // A stale override left from a higher plan — far above any current ceiling.
-    WorkspaceSecurityPolicy::forWorkspace($agent->user_id)->update(['retention_conversations_days' => 9999]);
+    WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 9999]);
 
     // Idle 400 days exceeds every plan ceiling but is well under the stale 9999.
     $conversation = agedConversation($agent, daysIdle: 400);

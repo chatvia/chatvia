@@ -24,7 +24,7 @@ function uafBuildFunction(array $overrides = []): array
     $owner = User::factory()->create();
 
     $function = new AgentFunction;
-    $function->user_id = $owner->id;
+    $function->workspace_id = $owner->workspace()->id;
     $function->external_id = (string) Str::uuid();
     $function->internal_name = 'write_thing';
     $function->display_name = 'Write Thing';

@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import TurnstileWidget from '@/components/auth/TurnstileWidget.vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useBotCheck } from '@/composables/useBotCheck';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { email as sendResetLink } from '@/routes/password';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Mail } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -18,12 +21,19 @@ defineProps<{
     status?: string;
 }>();
 
+const { siteKey: botCheckKey } = useBotCheck('password_reset');
+const botCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
 const form = useForm({
     email: '',
+    'cf-turnstile-response': '',
 });
 
+// A Turnstile token counts once, so every submit needs a new one.
 const submit = () => {
-    form.post(sendResetLink.url());
+    form.post(sendResetLink.url(), {
+        onFinish: () => botCheck.value?.reset(),
+    });
 };
 </script>
 
@@ -65,6 +75,11 @@ const submit = () => {
                         />
                     </div>
                     <InputError :message="form.errors.email" />
+                </div>
+
+                <div v-if="botCheckKey" class="space-y-2">
+                    <TurnstileWidget ref="botCheck" v-model="form['cf-turnstile-response']" :site-key="botCheckKey" />
+                    <InputError :message="form.errors['cf-turnstile-response']" />
                 </div>
 
                 <!-- Send Reset Link Button -->

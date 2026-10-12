@@ -39,7 +39,7 @@ it('creates and attaches the website, then starts the crawl', function (): void 
     );
 
     expect($website->url)->toBe('https://docs.example.test/start')
-        ->and($website->user_id)->toBe($agent->user_id)
+        ->and($website->workspace_id)->toBe($agent->workspace_id)
         ->and($agent->websites()->whereKey($website->id)->exists())->toBeTrue();
 
     Bus::assertDispatched(WebsiteCrawlerJob::class);
@@ -61,7 +61,7 @@ it('rejects a redirect into a private address outside local and testing', functi
         new CrawlerData(url: 'http://93.184.215.14/start'),
     ))->toThrow(DomainValidationException::class);
 
-    expect(SourceWebsite::query()->where('user_id', $agent->user_id)->exists())->toBeFalse();
+    expect(SourceWebsite::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
     Bus::assertNotDispatched(WebsiteCrawlerJob::class);
 });
 

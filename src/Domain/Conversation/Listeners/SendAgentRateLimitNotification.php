@@ -18,7 +18,7 @@ class SendAgentRateLimitNotification
 {
     public function handle(AgentRateLimitExceeded $event): void
     {
-        $owner = $event->agent->user;
+        $owner = $event->agent->workspace->owner;
 
         if ($owner === null) {
             return;

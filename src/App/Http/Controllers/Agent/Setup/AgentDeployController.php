@@ -24,7 +24,7 @@ class AgentDeployController
             // Private agents embed with a server-minted JWT — the snippets show a
             // `data-auth` placeholder and a "make it public" nudge.
             'authToken' => $agent->is_public ? null : $authTokenService->generateToken($agent, $request->user()),
-            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
+            'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),
             // The Widget/Bar snippets reflect the surface's configured behaviour
             // (theme/language, trigger/placement) so the copied code matches Setup.
             'widgetSettings' => $agent->settings('widget'),

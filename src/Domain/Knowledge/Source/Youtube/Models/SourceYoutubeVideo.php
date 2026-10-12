@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Source\Youtube\Models;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
@@ -22,7 +22,7 @@ use Support\Concerns\HasExternalId;
  * the feature is behind the `youtube_sources` flag and rows stay pending.
  *
  * @property int $id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification
  * @property string $url
@@ -49,7 +49,7 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, Chunk> $chunks
  * @property-read int|null $chunks_count
  * @property-read Chunk|null $summary
- * @property-read User $user
+ * @property-read Workspace $workspace
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo newQuery()
@@ -76,7 +76,7 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo whereTookInSeconds($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo whereUrl($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceYoutubeVideo whereWorkspaceId($value)
  *
  * @mixin \Eloquent
  */
@@ -104,10 +104,10 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             ->using(AgentSource::class);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function user(): BelongsTo
+    /** @return BelongsTo<Workspace, $this> */
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     public function retrain(): void

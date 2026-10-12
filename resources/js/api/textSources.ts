@@ -5,6 +5,7 @@
  */
 import text from '@/routes/agents/sources/text';
 import { del, get, post } from './http';
+import type { LengthAwarePage } from './pagination';
 
 /** A text's training status (the server's SourceStatus values a text can have). */
 export type TextSourceStatus = 'pending' | 'ingesting' | 'ingested' | 'failed';
@@ -16,7 +17,6 @@ export interface TextSource {
     status: TextSourceStatus;
     created_at: string;
     updated_at: string;
-    word_count: number;
     /** Training progress, 0-100. */
     progress: number;
     /** How many agents use this text; above one it is shared. */
@@ -30,8 +30,9 @@ export interface TextSourceDetail {
     content: string;
 }
 
-export function fetchTextSources(agentId: string): Promise<TextSource[]> {
-    return get<TextSource[]>(text.index.url(agentId));
+/** One page (50 texts, newest first) of the agent's texts. */
+export function fetchTextSources(agentId: string, page: number): Promise<LengthAwarePage<TextSource>> {
+    return get<LengthAwarePage<TextSource>>(text.index.url(agentId), { params: { page } });
 }
 
 export function fetchTextSource(agentId: string, id: number): Promise<TextSourceDetail> {

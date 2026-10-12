@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "This month: 8 messages (4 in, 4 AI) across 3 conversations from 3 visitors, 2 leads captured. Avg response 1,475ms. Feedback: 2👍 / 1👎."
+            "text": "This month: 18 messages (9 in, 9 AI) across 3 conversations from 3 visitors, 2 leads captured. Avg response 1,475ms. Feedback: 2👍 / 1👎."
         }
     ],
     "isError": false,
@@ -13,9 +13,9 @@
             "start": "2026-06-01",
             "end": "2026-06-15"
         },
-        "incoming_messages": 4,
-        "ai_messages": 4,
-        "total_messages": 8,
+        "incoming_messages": 9,
+        "ai_messages": 9,
+        "total_messages": 18,
         "conversations": 3,
         "unique_visitors": 3,
         "leads": 2,

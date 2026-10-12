@@ -45,7 +45,7 @@ describe('POST /api/v1/agents', function (): void {
 
     it('creates an agent in a specific team via team_id', function (): void {
         $team = app(CreateTeamAction::class)->execute(
-            new CreateTeamData(owner: $this->user, name: 'Side Team'),
+            new CreateTeamData(workspace: $this->user->workspace(), name: 'Side Team'),
         );
 
         $this->withHeaders(authHeaders($this->token))
@@ -101,7 +101,7 @@ describe('POST /api/v1/agents', function (): void {
 describe('GET /api/v1/agents', function (): void {
 
     it('lists agents across all teams and nests the team object', function (): void {
-        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Team B'));
+        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->user->workspace(), name: 'Team B'));
         createAgentForUser($this->user, 'In Primary');
         createAgentInTeam($this->user, $teamB->id, 'In B');
 
@@ -116,7 +116,7 @@ describe('GET /api/v1/agents', function (): void {
     });
 
     it('filters agents by team_id', function (): void {
-        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(owner: $this->user, name: 'Team B'));
+        $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->user->workspace(), name: 'Team B'));
         createAgentForUser($this->user, 'In Primary');
         createAgentInTeam($this->user, $teamB->id, 'In B');
 
@@ -145,13 +145,13 @@ describe('PATCH /api/v1/agents/{agent}', function (): void {
             ->assertJsonPath('data.is_public', true);
     });
 
-    it('forbids reaching an agent owned by another account', function (): void {
+    it('hides an agent owned by another account', function (): void {
         $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgentForUser($otherUser);
 
         $this->withHeaders(authHeaders($this->token))
             ->patchJson("/api/v1/agents/{$otherAgent->external_id}", ['name' => 'evil'])
-            ->assertForbidden();
+            ->assertNotFound();
     });
 });
 
@@ -167,13 +167,13 @@ describe('DELETE /api/v1/agents/{agent}', function (): void {
         expect(Agent::whereKey($agent->id)->exists())->toBeFalse();
     });
 
-    it('forbids deleting another account’s agent', function (): void {
+    it('hides another account’s agent from delete', function (): void {
         $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgentForUser($otherUser);
 
         $this->withHeaders(authHeaders($this->token))
             ->deleteJson("/api/v1/agents/{$otherAgent->external_id}")
-            ->assertForbidden();
+            ->assertNotFound();
 
         expect(Agent::whereKey($otherAgent->id)->exists())->toBeTrue();
     });
@@ -183,7 +183,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
 
     it('lists only custom (non-connector) MCPs at the account level', function (): void {
         AgentMcpServer::create([
-            'user_id' => $this->user->id,
+            'workspace_id' => $this->user->workspace()->id,
             'name' => 'Custom one',
             'slug' => 'custom_one',
             'url' => 'https://example.com/mcp',
@@ -193,7 +193,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
         ]);
 
         AgentMcpServer::create([
-            'user_id' => $this->user->id,
+            'workspace_id' => $this->user->workspace()->id,
             'name' => 'Built-in Slack',
             'slug' => 'slack',
             'url' => 'https://slack.example.com',
@@ -213,7 +213,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
         $agent = createAgentForUser($this->user);
 
         $mcp = AgentMcpServer::create([
-            'user_id' => $this->user->id,
+            'workspace_id' => $this->user->workspace()->id,
             'name' => 'Linear',
             'slug' => 'linear',
             'url' => 'https://mcp.linear.app',
@@ -248,7 +248,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
         // A catalog-backed server (connector_slug set). The attach endpoint
         // accepts any server connected to the account, not only custom ones.
         $mcp = AgentMcpServer::create([
-            'user_id' => $this->user->id,
+            'workspace_id' => $this->user->workspace()->id,
             'name' => 'Weather',
             'slug' => 'weather',
             'url' => 'https://chatvia.test/mcp/weather',
@@ -275,7 +275,7 @@ describe('Account-level MCPs', function (): void {
         $headers = authHeaders($this->token);
 
         $mcp = AgentMcpServer::create([
-            'user_id' => $this->user->id,
+            'workspace_id' => $this->user->workspace()->id,
             'name' => 'Linear',
             'slug' => 'linear',
             'url' => 'https://mcp.linear.app',
@@ -335,7 +335,7 @@ describe('POST /api/v1/chatters/sign', function (): void {
 
     it('returns a ready-to-open url for a chatter', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
 
         $response = $this->withHeaders(authHeaders($this->token))
             ->postJson('/api/v1/chatters/sign', [
@@ -368,7 +368,7 @@ describe('POST /api/v1/chatters/sign', function (): void {
 
     it('rejects ttl_seconds beyond the max', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
 
         $this->withHeaders(authHeaders($this->token))
             ->postJson('/api/v1/chatters/sign', [
@@ -394,7 +394,7 @@ describe('AgentSignInTokenService', function (): void {
 
     it('issues a token resolving to the agent + user, multi-use until expiry', function (): void {
         $agent = createAgentForUser($this->user);
-        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $agent, 'Jane'));
+        $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
         $service = app(AgentSignInTokenService::class);
 
         $token = $service->issue($endUser, $agent)['token'];
@@ -423,7 +423,7 @@ function createAgentForUser(User $user, string $name = 'Test Agent'): Agent
 function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent'): Agent
 {
     return Agent::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $teamId,
         'name' => $name,
         'external_id' => Str::random(14),

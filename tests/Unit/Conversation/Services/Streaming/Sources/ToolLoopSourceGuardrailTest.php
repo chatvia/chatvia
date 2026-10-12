@@ -26,6 +26,7 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -172,7 +173,7 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
 
     $events = match ($source) {
         'pdf' => new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
-        default => new LlmSource(app(LlmProviderInterface::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']]),
+        default => new LlmSource(app(LlmProviders::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']]),
     };
 
     return [$events, $replyRecorder, $recorder];

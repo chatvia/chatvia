@@ -3,9 +3,10 @@
 namespace Domain\Analytics\Queries\Agent;
 
 /**
- * All-time message counts (visitor messages + AI replies) for a set of
- * agents, in one grouped query over the hourly rollup — so the totals survive
- * retention pruning of the raw chat rows.
+ * All-time message counts (visitor messages + AI replies) for a set of a
+ * workspace's agents, in one grouped query over the hourly rollup — so the
+ * totals survive retention pruning of the raw chat rows. Cached briefly per
+ * set of agents: the agents list asks on every visit.
  */
 class AgentMessageTotalsQuery extends AgentAnalyticsQuery
 {
@@ -13,12 +14,23 @@ class AgentMessageTotalsQuery extends AgentAnalyticsQuery
      * @param  list<int>  $agentIds
      * @return array<int, int> agent id → messages; agents without any are left out
      */
-    public function get(array $agentIds): array
+    public function get(int $workspaceId, array $agentIds): array
     {
         if ($agentIds === []) {
             return [];
         }
 
+        sort($agentIds);
+
+        return $this->cachedForWorkspace($workspaceId, 'agent-messages:'.md5(implode(',', $agentIds)), 'lifetime', fn (): array => $this->compute($agentIds));
+    }
+
+    /**
+     * @param  list<int>  $agentIds
+     * @return array<int, int>
+     */
+    private function compute(array $agentIds): array
+    {
         return $this->analytics()
             ->table('analytics_agent_hourly_rollups')
             ->whereIn('agent_id', $agentIds)

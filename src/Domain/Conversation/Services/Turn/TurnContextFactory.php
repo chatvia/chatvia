@@ -64,7 +64,7 @@ class TurnContextFactory
             payload: $turn,
             llmMessages: $history,
             userMessageId: $turn->external_message_id,
-            assistantMessageId: Str::uuid()->toString(),
+            assistantMessageId: Str::uuid7()->toString(),
             queryLanguage: $rewritten->language,
         );
 
@@ -96,7 +96,7 @@ class TurnContextFactory
             message: new StreamRequestMessageData(model: $model, message: $saved->userMessage),
             externalSessionId: $saved->externalSessionId,
             conversationId: $checkpoint->conversation_external_id,
-            chatterUserId: $saved->chatterUserId,
+            chatterId: $saved->chatterId,
             chatterName: $saved->chatterName,
             actorUserId: $saved->actorUserId,
             actorName: $saved->actorName,
@@ -153,12 +153,12 @@ class TurnContextFactory
         return new UserTurnData(
             external_session_id: $data->externalSessionId,
             external_conversation_id: $data->conversationId,
-            external_message_id: Str::uuid()->toString(),
+            external_message_id: Str::uuid7()->toString(),
             model: $data->message->model->external_name,
             message: $storedMessage,
             sent_at: $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
             message_for_llm: $piiRedacted ? $storedMessage : $rewritten->query,
-            user_id: $data->chatterUserId,
+            chatter_id: $data->chatterId,
             language: $rewritten->language,
             ip_address: $data->ipAddress,
             country: $data->country,

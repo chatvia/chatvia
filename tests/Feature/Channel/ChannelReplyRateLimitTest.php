@@ -27,7 +27,7 @@ function rateLimitedChannelAgent(): Agent
     app(TeamService::class)->createDefaultTeam($owner);
 
     $agent = Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'llm_id' => Llm::factory()->create()->id,
         'name' => 'Channel Bot',

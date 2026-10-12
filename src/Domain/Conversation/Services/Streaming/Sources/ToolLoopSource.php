@@ -48,8 +48,8 @@ abstract class ToolLoopSource
         protected readonly TokenUsageContext $tokenUsage,
     ) {}
 
-    /** The provider the tool loop streams the completion from. */
-    abstract protected function provider(): LlmProviderInterface;
+    /** The provider the tool loop streams this turn's completion from. */
+    abstract protected function provider(ChatContext $context): LlmProviderInterface;
 
     /** The provider-side model name for this turn. */
     abstract protected function modelName(ChatContext $context): string;
@@ -207,7 +207,7 @@ abstract class ToolLoopSource
     {
         $paused = yield from $this->runner->run(
             context: $context,
-            provider: $this->provider(),
+            provider: $this->provider($context),
             modelName: $this->modelName($context),
             providerSlug: $this->providerSlug($context),
             llmMessages: $llmMessages,
@@ -309,7 +309,7 @@ abstract class ToolLoopSource
         // The output check runs outside the context-build tracking scope, so
         // it opens its own to attribute its tokens to the workspace.
         $guard = $this->tokenUsage->track(
-            $context->requestData->agent->user_id,
+            $context->requestData->agent->workspace_id,
             fn (): GuardResultData => $this->guardrails->inspectOutput($context->requestData->agent, $original),
         );
 

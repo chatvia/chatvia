@@ -166,6 +166,7 @@
     "Location": "مکان",
     "Message": "پیام",
     "This website has already been added to this agent.": "این وب‌سایت قبلاً به این عامل اضافه شده است.",
+    "This text is already in your knowledge base.": "این متن از قبل در پایگاه دانش شما وجود دارد.",
     "This URL is not allowed.": "این نشانی مجاز نیست.",
     "Failed to fetch the website. Please check the URL and try again.": "دریافت وب‌سایت ناموفق بود. لطفاً نشانی را بررسی کنید و دوباره تلاش کنید.",
     "This URL is not allowed: :reason": "این نشانی مجاز نیست: :reason",
@@ -231,10 +232,7 @@
     "Team updated successfully.": "تیم با موفقیت به‌روز شد.",
     "The provided password is incorrect.": "رمز عبور واردشده نادرست است.",
     "The role ':role' does not exist for this team.": "نقش ':role' در این تیم وجود ندارد.",
-    "This account is a chat user and cannot join a team.": "این حساب کاربر گفتگو است و نمی‌تواند به تیم بپیوندد.",
     "This agent is public — anyone with the link can chat with it. No invitation is needed.": "این عامل عمومی است — هر کسی که پیوند را دارد می‌تواند با آن گفتگو کند. نیازی به دعوت نیست.",
-    "This email already belongs to a different kind of account and cannot be invited as a chat member.": "این ایمیل متعلق به نوع دیگری از حساب است و نمی‌توان آن را به‌عنوان عضو گفتگو دعوت کرد.",
-    "This email is already used by a chatter under a different workspace.": "این ایمیل قبلاً توسط کاربر گفتگوی فضای کاری دیگری استفاده شده است.",
     "This invitation has already been used. Sign in with your existing credentials instead.": "این دعوت قبلاً استفاده شده است. به‌جای آن با اطلاعات ورود فعلی خود وارد شوید.",
     "This invitation has expired.": "این دعوت منقضی شده است.",
     "This invitation has expired. Ask the agent owner to send a new one.": "این دعوت منقضی شده است. از مالک عامل بخواهید دعوت جدیدی بفرستد.",
@@ -262,8 +260,12 @@
     "This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.": "این فهرست IPهای مجاز دسترسی شما را قطع می‌کند — نشانی فعلی شما (:ip) در آن نیست. ابتدا آن را اضافه کنید.",
     "This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.": "این قانون کشورها دسترسی شما را قطع می‌کند — موقعیت فعلی شما (:country) در میان کشورهای مسدود است. ابتدا آن را حذف کنید یا قانون را تغییر دهید.",
     "This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.": "این قانون کشورها دسترسی شما را قطع می‌کند — موقعیت فعلی شما (:country) در میان کشورهای مجاز نیست. ابتدا آن را اضافه کنید یا قانون را تغییر دهید.",
-    "This form is for chat members only. Team members can open this chat from the dashboard.": "این فرم فقط برای اعضای گفتگو است. اعضای تیم می‌توانند این گفتگو را از داشبورد باز کنند.",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "فقط فایلی را می‌توان جدا کرد که عامل‌های دیگر هم از آن استفاده می‌کنند. به‌جای آن، فایل را حذف کنید.",
     "This agent has reached its monthly message limit. Please try again next month.": "این عامل به سقف ماهانه پیام‌های خود رسیده است. لطفاً ماه آینده دوباره تلاش کنید.",
-    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "این فضای کاری به سقف ماهانه پیام‌های خود رسیده است. هر مورد ارزیابی یک پیام حساب می‌شود."
+    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "این فضای کاری به سقف ماهانه پیام‌های خود رسیده است. هر مورد ارزیابی یک پیام حساب می‌شود.",
+    "Pick one of the available models.": "یکی از مدل‌های موجود را انتخاب کنید.",
+    "Complete the security check.": "بررسی امنیتی را کامل کنید.",
+    "This account has been deactivated.": "این حساب غیرفعال شده است.",
+    "This email already has an account in another workspace. Ask for an invitation to a different email.": "این ایمیل از قبل در فضای کاری دیگری حساب دارد. برای ایمیل دیگری دعوت‌نامه بخواهید.",
+    "A chatter with this email already exists in your workspace.": "در فضای کاری شما از قبل یک کاربر گفتگو با این ایمیل وجود دارد."
 }

@@ -19,7 +19,7 @@ beforeEach(function (): void {
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 
     // The workspace-level forms server already exists, so enabling is a pure attach.
-    $this->user->mcpServers()->create([
+    $this->user->workspace()->mcpServers()->create([
         'connector_slug' => FormDefinition::CAPABILITY_SLUG,
         'category' => 'builtin',
         'name' => 'Forms',

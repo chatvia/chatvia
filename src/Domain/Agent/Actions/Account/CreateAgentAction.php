@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\DB;
  * workspace owner, also when a teammate creates it, so it stays with the
  * workspace if that teammate is removed. It starts private, gets a random
  * external id (also used as its first chat slug) and its own signing secret,
- * and is linked to every topic so conversation tagging works from the start.
+ * and is linked to every topic its workspace can use (the system topics and
+ * the workspace's own) so conversation tagging works from the start — never to
+ * another workspace's custom topics.
  */
 class CreateAgentAction
 {
@@ -21,11 +23,11 @@ class CreateAgentAction
     {
         return DB::transaction(function () use ($data): Agent {
             $externalId = AgentService::generateRandomExternalId();
-            $agentOwnerId = $data->user->belongsToWorkspace() ? $data->user->workspace_id : $data->user->id;
+            $workspace = $data->user->workspace();
 
             /** @var Agent $agent */
             $agent = Agent::create([
-                'user_id' => $agentOwnerId,
+                'workspace_id' => $workspace->id,
                 'team_id' => $data->team->id,
                 'name' => $data->name,
                 'slug' => $externalId,
@@ -34,7 +36,7 @@ class CreateAgentAction
                 'auth_secret' => Agent::generateAuthSecret(),
             ]);
 
-            $agent->topics()->attach(Topic::pluck('id'));
+            $agent->topics()->attach(Topic::forWorkspace($workspace)->pluck('id'));
 
             return $agent;
         });

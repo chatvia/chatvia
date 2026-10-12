@@ -30,11 +30,12 @@ it('finds a signed-in chatter\'s conversation by title in their existing session
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
     $agent = createAgent($owner, ['is_public' => false, 'slug' => Str::lower(Str::random(12))]);
-    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($owner, $agent, 'Jane'));
+    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($owner->workspace(), $agent, 'Jane'));
 
-    $session = Session::create(['agent_id' => $agent->id, 'user_id' => $chatter->id]);
+    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'title' => 'Billing question',
         'is_visible' => true,

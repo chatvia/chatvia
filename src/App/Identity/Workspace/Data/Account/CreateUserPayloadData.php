@@ -24,7 +24,7 @@ class CreateUserPayloadData extends Data
          */
         public array $agent_ids,
         /**
-         * The user's login email. Must be globally unique.
+         * The user's login email. Must be unique among your chatters.
          */
         public ?string $email = null,
         /**
@@ -42,7 +42,10 @@ class CreateUserPayloadData extends Data
             'name' => ['required', 'string', 'max:255'],
             'agent_ids' => ['required', 'array', 'min:1'],
             'agent_ids.*' => ['required', 'string'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            // Unique among the caller's own chatters only (checked when the
+            // chatter is created), so the answer never tells whether an email
+            // is used anywhere else.
+            'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string', 'min:8', 'max:255'],
         ];
     }

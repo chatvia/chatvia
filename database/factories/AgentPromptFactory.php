@@ -20,7 +20,7 @@ class AgentPromptFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'workspace_id' => fn (): int => User::factory()->create()->workspace()->id,
             'name' => ucfirst(fake()->unique()->words(2, true)),
             'prompt' => fake()->paragraphs(2, true),
         ];

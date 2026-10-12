@@ -35,15 +35,15 @@ class AgentChatterController
     public function index(Request $request, Agent $agent): Response|array
     {
         if ($request->wantsJson()) {
-            $agent->loadMissing('user');
-            $workspace = $agent->user;
+            $agent->loadMissing('workspace');
+            $workspace = $agent->workspace;
 
             // All chatters owned by the workspace, alphabetised. We don't
             // track when the pivot row was attached — the convention in this
             // project is no timestamps on pivot tables — so the rows just
             // carry a boolean `has_access` for this agent.
             $chatters = $workspace->chatters()->orderBy('name')->get();
-            $grantedIds = $agent->chatters()->pluck('users.id')->all();
+            $grantedIds = $agent->chatters()->pluck('chatters.id')->all();
             $grantedSet = array_flip($grantedIds);
 
             // Outstanding invitations for this agent, keyed by lower-cased
@@ -110,7 +110,7 @@ class AgentChatterController
         string $chatter,
         RevokeAgentMembershipAction $revoke,
     ): RedirectResponse {
-        $member = $agent->chatters()->where('users.external_id', $chatter)->firstOrFail();
+        $member = $agent->chatters()->where('chatters.external_id', $chatter)->firstOrFail();
 
         $revoke->execute($agent, $member);
 

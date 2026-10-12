@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Connecting a token / no-auth catalog connector: one server per connector
- * per workspace, owned by the workspace owner, and a failed catalog sync
+ * per workspace, owned by the workspace, and a failed catalog sync
  * leaves the workspace exactly as it was.
  */
 function tokenConnectorFor(string $slug): ConnectorData
@@ -25,7 +25,7 @@ function tokenConnectorFor(string $slug): ConnectorData
     return $connector;
 }
 
-it('connects a token connector under the workspace owner and reports its tools', function (): void {
+it('connects a token connector under the workspace and reports its tools', function (): void {
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')
@@ -38,7 +38,7 @@ it('connects a token connector under the workspace owner and reports its tools',
     ));
 
     expect($result->tools_count)->toBe(2)
-        ->and($result->server->user_id)->toBe($owner->id)
+        ->and($result->server->workspace_id)->toBe($owner->workspace()->id)
         ->and($result->server->connector_slug)->toBe('weather')
         ->and($result->server->auth_type)->toBe(McpAuthType::Bearer)
         ->and($result->server->auth_value)->toBe('tok-123')
@@ -70,7 +70,7 @@ it('removes a first connect whose catalog sync fails, with a message the user ca
         token: 'bad-token',
     )))->toThrow(McpException::class, 'The server rejected the token (401 Unauthorized).');
 
-    expect($owner->mcpServers()->count())->toBe(0);
+    expect($owner->workspace()->mcpServers()->count())->toBe(0);
 });
 
 it('restores the previous token when a token swap fails', function (): void {
@@ -85,6 +85,6 @@ it('restores the previous token when a token swap fails', function (): void {
     expect(fn () => app(ConnectTokenConnectorAction::class)->execute(new ConnectTokenConnectorData($owner, tokenConnectorFor('weather'), 'new-token')))
         ->toThrow(McpException::class, 'Could not reach the MCP server.');
 
-    $server = $owner->mcpServers()->sole();
+    $server = $owner->workspace()->mcpServers()->sole();
     expect($server->auth_value)->toBe('good-token');
 });

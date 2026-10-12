@@ -30,7 +30,7 @@ class Summarizer
     public function summarize(string $documentUrl): ChatResponseData
     {
         return $this->chat->using($this->documentLlm->provider())->send(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.summary'),
+            model: $this->documentLlm->model((string) config('chatvia.ai.models.summary')),
             messages: [
                 ChatMessageData::userWithAttachment(prompt('summarization/system'), [
                     'type' => 'document_url',

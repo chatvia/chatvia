@@ -7,48 +7,19 @@ use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 use Inertia\ResponseFactory;
 use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
 
-/**
- * HTTP-level safety net for the "From knowledge" eval flow: the bulk-create
- * route is gated by `agent.evals.manage`, the picker candidates ship only on
- * an Inertia partial reload (optional prop), and a happy-path POST persists
- * one case per picked question.
- *
- * REQUIRES the migrated + SEEDED test DB (pgvector + bm25 extensions, demo
- * user for AgentFileFactory).
- */
-function evalKnowledgeTeammate(User $owner, array $permissions): User
-{
-    $team = $owner->primaryTeam();
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(8),
-        permissions: $permissions,
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    return $member;
-}
-
 function evalKnowledgeChunkFor(Agent $agent, string $text, ?string $questions = null): Chunk
 {
-    $source = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $source->agents()->attach($agent->id);
 
     return Chunk::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'chunkable_type' => $source->getMorphClass(),
         'chunkable_id' => $source->getKey(),
         'chunk_index' => 1,
@@ -70,8 +41,8 @@ beforeEach(function (): void {
 });
 
 it('gates the bulk-create route by agent.evals.manage', function (): void {
-    $blocked = evalKnowledgeTeammate($this->owner, []);
-    $allowed = evalKnowledgeTeammate($this->owner, ['agent.evals.manage']);
+    $blocked = teammateWithPermissions($this->owner, []);
+    $allowed = teammateWithPermissions($this->owner, ['agent.evals.manage']);
 
     $this->actingAs($blocked)
         ->postJson(route('agents.evals.cases.from-knowledge', $this->agent), [])
@@ -121,7 +92,7 @@ it('omits knowledgeQuestions on first load and serves it on a partial reload wit
     EvalCase::create([
         'agent_id' => $this->agent->id,
         'agent_name' => $this->agent->name,
-        'workspace_id' => $this->agent->user_id,
+        'workspace_id' => $this->agent->workspace_id,
         'name' => 'existing',
         'input' => 'what is a?',
         'scorer_type' => 'contains',

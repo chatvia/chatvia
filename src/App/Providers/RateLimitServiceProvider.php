@@ -6,6 +6,7 @@ use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -84,7 +85,10 @@ class RateLimitServiceProvider extends ServiceProvider
         // Hosted-chat LLM-cost endpoints (stream, transcription, regenerate,
         // attachment upload). Keyed by the authenticated chatter, IP fallback.
         RateLimiter::for('chat-stream', function (Request $request) {
-            $key = $request->user()?->getAuthIdentifier() ?: $request->ip();
+            // Chatters and staff have separate id sequences, so the key
+            // carries the account kind (`chatter:5` / `user:5`).
+            $account = $request->user();
+            $key = $account instanceof Model ? $account->getMorphClass().':'.$account->getKey() : $request->ip();
 
             return Limit::perMinute(30)->by('chat-stream|'.$key);
         });

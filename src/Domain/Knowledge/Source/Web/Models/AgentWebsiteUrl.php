@@ -22,13 +22,9 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $source_website_id
  * @property string $url
- * @property string|null $text
  * @property string|null $checksum
  * @property SourceStatus $status
- * @property string|null $internal_ingestion_job_id
- * @property string|null $internal_chunking_batch_id
  * @property string|null $failure_reason
- * @property int $retrieval_count
  * @property Carbon|null $crawled_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -44,12 +40,8 @@ use Illuminate\Support\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereFailureReason($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereInternalChunkingBatchId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereInternalIngestionJobId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereRetrievalCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereSourceWebsiteId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereText($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentWebsiteUrl whereUrl($value)
  *
@@ -65,18 +57,6 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
         return $this->belongsTo(SourceWebsite::class, 'source_website_id');
     }
 
-    /**
-     * Values `chunk_references.referenceable_type` can hold for a URL: the
-     * morph alias, plus the class name, which a queue worker still running
-     * older code may write until it restarts.
-     *
-     * @return list<string>
-     */
-    public static function referenceTypes(): array
-    {
-        return [(new self)->getMorphClass(), self::class];
-    }
-
     /** @return HasManyThrough<Chunk, ChunkReference, $this> */
     public function chunks(): HasManyThrough
     {
@@ -87,7 +67,7 @@ class AgentWebsiteUrl extends Model implements ChunkableContract
             'id',               // Foreign key on Chunk
             'id',               // Local key on Link
             'chunk_id'          // Local key on ChunkReference pointing to Chunk
-        )->whereIn('chunk_references.referenceable_type', AgentWebsiteUrl::referenceTypes());
+        )->where('chunk_references.referenceable_type', $this->getMorphClass());
     }
 
     protected function casts(): array

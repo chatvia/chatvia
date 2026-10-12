@@ -20,7 +20,7 @@ e-mail. This page is about a server that other people use.
 | Composer | 2 | Installs the PHP packages. |
 | Node.js and npm | 22 | Builds the frontend and the chat widget. |
 | PostgreSQL | 18 | With the `vchord`, `vchord_bm25`, `pg_tokenizer` and `vector` (pgvector) extensions. See [The database](#the-database). |
-| Redis | 7 or newer | Queues, cache, rate limits and the live chat history. |
+| Redis | 7 or newer | Queues, cache, rate limits, the live chat history and sign-in sessions. |
 | A process manager | | Supervisor or systemd, to keep the queue workers and the WebSocket server running. |
 | cron | | Runs the scheduler every minute. |
 
@@ -175,13 +175,17 @@ to the dashboard (`/login`) and start building agents.
 1. Open the admin panel at `/admin` and sign in with the admin account.
 2. Set up two-factor authentication with an authenticator app. In
    production, the admin panel requires it.
-3. Go to **Settings → AI** and enter the key of your chat and embedding
-   provider. Add other keys (for example **Settings → Knowledge** for website
+3. Follow the setup that opens next: pick your AI provider, paste its API
+   key and pick the model your agents answer with (the list comes from the
+   provider); pick the search service (embeddings) and its key; and set up
+   how Chatvia sends e-mail, or leave that for later. Every page of the admin
+   panel leads to the setup until it is done or skipped. You can run it again
+   from **Settings** (**Run the setup again**).
+4. Check e-mail in **Settings → Email** with **Send a test email**. E-mail
+   must work before other people use the server: people who sign up must
+   confirm their e-mail address, and invitations and sign-in links are sent
+   by e-mail. Add other keys (for example **Settings → Knowledge** for website
    import) when you need them.
-4. Go to **Settings → Email** and set up how Chatvia sends e-mail. Use
-   **Send a test email** to check it. E-mail must work before other people use
-   the server: people who sign up must confirm their e-mail address, and
-   invitations and sign-in links are sent by e-mail.
 5. Look through the other Settings pages, for example **Brand** for your own
    name and links.
 
@@ -213,6 +217,9 @@ Chatvia needs three long-running processes next to the web server:
 Keep `horizon` and `reverb:start` running with Supervisor or systemd, and
 restart them when they stop.
 
+With more than one app server, you can run the scheduler on each of them:
+every task runs on one server only, as long as all servers use the same Redis.
+
 Your web server must pass WebSocket connections for the `REVERB_HOST` and
 `REVERB_PORT` to the Reverb server (`REVERB_SERVER_HOST` and
 `REVERB_SERVER_PORT`, port 8080 by default).
@@ -240,11 +247,13 @@ Most settings are in the admin panel, under **Settings**. It opens on an overvie
 | Knowledge | How agents search, optional AI steps during ingestion, and website import (Firecrawl). |
 | Chunking | How text is split into chunks (the chunker and its strategy, or the built-in splitter), and the tokenizer. |
 | Connectors | The OAuth apps of the connectors that need one. |
-| Email | How e-mail is sent (SMTP or Resend) and the sender. |
+| Email | How e-mail is sent and the sender. Pick the provider (SMTP, Amazon SES, Mailgun, Postmark, Resend, Cloudflare Email, sendmail, or the log), then fill in its settings. **Send a test email** checks them. |
 | Brand | Your product name and links (see [Your brand](#your-brand)). |
 | Workspaces | Sign-up, message limits and how long conversations are kept (see [Workspaces and sign-up](#workspaces-and-sign-up)). |
-| Platform | Default language, content security policy, the chat widget, Plausible, IP2Location, the built-in tools, Horizon alerts. |
+| Platform | Default language, the chat widget, Plausible, IP2Location, the built-in tools, Horizon alerts. |
 | Retention & limits | How long the logs are kept, the tool rate limit, the guardrails switch. |
+| Storage | Where files are kept: this server or S3-compatible storage (see [Files and storage](#files-and-storage)). |
+| Security | The Cloudflare Turnstile bot check and the forms it protects (sign-up, sign-in, password reset), the Content Security Policy, and the security audit log. |
 
 A field you leave empty uses its default. The default can also come from
 `.env`: the Docker image uses this to point Chatvia to its own chunker.
@@ -255,7 +264,7 @@ A field you leave empty uses its default. The default can also come from
 | --- | --- |
 | App | Name, URL, environment, logging. |
 | Database | PostgreSQL connection. Analytics and the AI request log can move to their own databases. |
-| Redis, cache, sessions and queues | Redis connection. Keep `SESSION_DRIVER=database` and `QUEUE_CONNECTION=redis`. |
+| Redis, cache, sessions and queues | Redis connection. The cache, the chat history and the sign-in sessions each use their own Redis database. Keep `SESSION_DRIVER=redis` and `QUEUE_CONNECTION=redis`. |
 | Mail (local development) | Sends mail to Mailpit on your own computer. |
 | Broadcasting / Reverb | The WebSocket server. |
 | Storage | Where files are kept (see [Files and storage](#files-and-storage)). |
@@ -336,13 +345,19 @@ Chatvia uses three storage disks:
 With no storage settings, all three use the local disk under `storage/app`.
 Run `php artisan storage:link` once so public files load at `/storage`.
 
-To use object storage instead, set the `SCALEWAY_*` settings. The names start
-with `SCALEWAY_`, but any S3-compatible service works. When `SCALEWAY_BUCKET`
-is set, the `private` disk uses that bucket and the `public` disk uses
-`SCALEWAY_BUCKET_PUBLIC`. The `assets` disk uses Bunny CDN when
-`BUNNYCDN_STORAGE_ZONE` is set. To choose a driver yourself, set
-`FILESYSTEM_PRIVATE_DRIVER`, `FILESYSTEM_PUBLIC_DRIVER` (`local` or `s3`) or
-`FILESYSTEM_ASSETS_DRIVER` (`local` or `bunnycdn`).
+To keep the `private` and `public` disks in object storage, open
+**Settings → Storage** in the admin panel and pick **S3-compatible storage**:
+AWS S3, Scaleway Object Storage, Cloudflare R2, MinIO, or any other service
+with the S3 API. Enter the endpoint, region, access key, a private bucket and a
+public bucket (and, if you like, the address public files are served from,
+such as a CDN). **Test the connection** writes, reads and deletes a small file
+in each bucket. Switching moves no files: switch before people add files, or
+copy them to the new place first.
+
+The `SCALEWAY_*` and `FILESYSTEM_PRIVATE_DRIVER` settings in `.env` still work
+as defaults while nothing is saved in the admin panel. The `assets` disk uses
+Bunny CDN when `BUNNYCDN_STORAGE_ZONE` is set (or `FILESYSTEM_ASSETS_DRIVER` is
+`bunnycdn`).
 
 ::: warning Backups
 The scheduler runs `php artisan app:backup-database` twice a day. It saves a
@@ -375,10 +390,12 @@ The domain then shows only that agent's chat.
 ### The chat widget
 
 The widget that customers put on their own websites is called Shakomako. Its
-code is in the `shakomako/` folder. Build it into `public/shakomako`:
+code is in its own repository,
+[chatvia/shakomako](https://github.com/chatvia/shakomako). This command
+downloads the newest widget release and builds it into `public/shakomako`. It
+needs git:
 
 ```bash
-npm ci --prefix shakomako
 npm run shakomako:build
 ```
 
@@ -437,9 +454,10 @@ Before you open the install to other people, check these settings:
 | `TRUSTED_PROXIES` | The IP addresses or ranges of your load balancer or CDN. Without it, every visitor has the proxy's IP address and rate limits stop working. |
 | `BUILTIN_MCP_SECRET` | A long random value. The built-in tools stop working while it is empty. |
 | `REVERB_APP_SECRET` | A long random value. |
-| Content Security Policy (admin panel, **Settings → Platform**) | Starts as "Report only". Switch to "Enforce" when the reports are clean. |
+| Content Security Policy (admin panel, **Settings → Security**) | Starts as "Report only". Switch to "Enforce" when the reports are clean. |
 | `DB_SSLMODE` | `require` or `verify-full` when the database is on another server. |
 | Open sign-up (admin panel, **Settings → Workspaces**) | Off once your accounts exist, unless you want open sign-up. |
+| Bot check (admin panel, **Settings → Security**) | Cloudflare Turnstile keys, when sign-up is open or the install is public. |
 
 Chat answers stream as server-sent events. Chatvia sends the header
 `X-Accel-Buffering: no`; make sure no proxy between the app and the browser
@@ -464,7 +482,6 @@ composer install --no-dev --optimize-autoloader
 npm ci
 npm run i18n:merge
 npm run build
-npm ci --prefix shakomako
 npm run shakomako:build
 
 php artisan migrate --force

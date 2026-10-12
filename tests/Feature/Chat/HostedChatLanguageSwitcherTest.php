@@ -34,7 +34,7 @@ it('hides the switcher when the owner turns it off', function (): void {
 });
 
 it('persists the owner toggle through the settings endpoint', function (): void {
-    $this->actingAs($this->agent->user)
+    $this->actingAs($this->agent->workspace->owner)
         ->post(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'embed']), [
             'show_language_switcher' => false,
         ])

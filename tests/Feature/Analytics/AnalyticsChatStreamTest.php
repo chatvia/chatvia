@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Analytics\Services\Chat\AnalyticsChatRunner;
@@ -18,11 +17,11 @@ function fakeChatProvider(string $sse): void
     $mock = Mockery::mock(LlmProviderInterface::class);
     $mock->shouldReceive('stream')->andReturn(new Psr7Response(200, [], $sse));
 
-    app()->instance(LlmProviderInterface::class, $mock);
+    bindFakeLlmProvider($mock);
 }
 
 it('streams the answer through the runner and persists nothing', function (): void {
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
+    $workspace = User::factory()->create()->workspace();
 
     fakeChatProvider(
         'data: {"choices":[{"delta":{"content":"You received 15 messages this cycle."}}]}'."\n\n".
@@ -55,7 +54,7 @@ it('streams the answer through the runner and persists nothing', function (): vo
 });
 
 it('serves a 200 SSE stream to the workspace owner', function (): void {
-    $owner = User::factory()->create(['type' => UserType::Workspace, 'email_verified_at' => now()]);
+    $owner = User::factory()->create(['email_verified_at' => now()]);
     fakeChatProvider("data: [DONE]\n\n");
 
     $response = $this->actingAs($owner)->post(
@@ -69,12 +68,8 @@ it('serves a 200 SSE stream to the workspace owner', function (): void {
 });
 
 it('forbids non-owner team members', function (): void {
-    $owner = User::factory()->create(['type' => UserType::Workspace, 'email_verified_at' => now()]);
-    $employee = User::factory()->create([
-        'type' => UserType::Employee,
-        'workspace_id' => $owner->id,
-        'email_verified_at' => now(),
-    ]);
+    $owner = User::factory()->create(['email_verified_at' => now()]);
+    $employee = User::factory()->employee($owner)->create(['email_verified_at' => now()]);
 
     $this->actingAs($employee)
         ->post(route('analytics.chat.stream'), ['message' => 'hi'])

@@ -1,9 +1,11 @@
 /**
- * The agent's text list on the Text sources page: loads it, reads one text in
- * full for the edit form, and keeps each row's status and training progress up
- * to date from the two text ingestion broadcasts.
+ * The agent's text list on the Text sources page: loads it one page at a time
+ * ("Load more"), reads one text in full for the edit form, and keeps each
+ * row's status and training progress up to date from the two text ingestion
+ * broadcasts.
  */
 import { fetchTextSource, fetchTextSources, type TextSource, type TextSourceStatus } from '@/api/textSources';
+import { usePagedSourceList } from '@/composables/agents/sources/usePagedSourceList';
 import { useEcho } from '@laravel/echo-vue';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -18,7 +20,7 @@ interface TextStatusChangedEvent {
     status: TextSourceStatus;
 }
 
-/** `.TextIngestionProgressed` on `agents.{id}.texts.progress`, after each new chunk. */
+/** `.TextIngestionProgressed` on `agents.{id}.texts.progress`, after each chunk job. */
 interface TextProgressEvent {
     text_id: number;
     /** 0-100 */
@@ -28,18 +30,25 @@ interface TextProgressEvent {
 export function useTextSources(agentId: string) {
     const { t } = useI18n();
 
-    const entries = ref<TextSource[]>([]);
+    const list = usePagedSourceList<TextSource>((page) => fetchTextSources(agentId, page));
+    const entries = list.items;
     const isLoading = ref(false);
 
+    /** Loads the first page again. A failure keeps the list as it is. */
     async function fetchEntries(): Promise<void> {
         isLoading.value = true;
         try {
-            entries.value = await fetchTextSources(agentId);
+            await list.reload();
         } catch (error) {
             console.error('Failed to fetch text entries:', error);
         } finally {
             isLoading.value = false;
         }
+    }
+
+    /** Adds the next page. A failure keeps the list as it is. */
+    async function loadMore(): Promise<void> {
+        await list.loadMore().catch((error: unknown) => console.error('Failed to fetch text entries:', error));
     }
 
     /** The full text of an entry, or null when it could not be loaded (the user gets a toast). */
@@ -126,5 +135,14 @@ export function useTextSources(agentId: string) {
         onProgress(event);
     });
 
-    return { entries, isLoading, fetchEntries, fetchContent };
+    return {
+        entries,
+        total: list.total,
+        hasMore: list.hasMore,
+        isLoadingMore: list.isLoadingMore,
+        isLoading,
+        fetchEntries,
+        loadMore,
+        fetchContent,
+    };
 }

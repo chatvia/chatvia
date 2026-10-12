@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Domain\Llm\Providers\Adapters;
+
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Providers\OpenRouter;
+
+/**
+ * OpenRouter: models from many companies with one key. Its list says the
+ * most of any provider: names, context, prices (per token), what each model
+ * takes in and puts out, and whether it calls tools.
+ */
+final class OpenRouterAdapter extends OpenAiCompatibleAdapter
+{
+    public function kind(): LlmProviderEnum
+    {
+        return LlmProviderEnum::OPENROUTER;
+    }
+
+    public function label(): string
+    {
+        return 'OpenRouter';
+    }
+
+    public function description(): string
+    {
+        return 'Hundreds of models from many companies with one key. A good start.';
+    }
+
+    public function defaultBaseUrl(): string
+    {
+        return 'https://openrouter.ai/api/v1';
+    }
+
+    public function keysUrl(): string
+    {
+        return 'https://openrouter.ai/settings/keys';
+    }
+
+    public function client(LlmProvider $provider): LlmProviderInterface
+    {
+        return new OpenRouter($provider, $this->baseUrl($provider));
+    }
+
+    protected function isChatModel(array $row): bool
+    {
+        $outputs = $row['architecture']['output_modalities'] ?? null;
+
+        return is_array($outputs) ? in_array('text', $outputs, true) : parent::isChatModel($row);
+    }
+
+    protected function toModel(array $row): RemoteModelData
+    {
+        $model = parent::toModel($row);
+        $inputs = $row['architecture']['input_modalities'] ?? null;
+        $parameters = $row['supported_parameters'] ?? null;
+
+        return new RemoteModelData(
+            id: $model->id,
+            name: $model->name,
+            contextWindow: $model->contextWindow,
+            inputPricePerMillion: $this->perMillion($row['pricing']['prompt'] ?? null),
+            outputPricePerMillion: $this->perMillion($row['pricing']['completion'] ?? null),
+            features: array_filter([
+                'vision' => is_array($inputs) ? in_array('image', $inputs, true) : null,
+                'function_calling' => is_array($parameters) ? in_array('tools', $parameters, true) : null,
+            ], is_bool(...)),
+        );
+    }
+
+    /** OpenRouter's price per token (a string), per million tokens. */
+    private function perMillion(mixed $perToken): ?float
+    {
+        return is_numeric($perToken) && (float) $perToken >= 0 ? round((float) $perToken * 1_000_000, 4) : null;
+    }
+}

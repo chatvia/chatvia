@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * The website lifecycle: discover (or rediscover) the pages, train them in a
@@ -40,7 +41,7 @@ beforeEach(function (): void {
 function wsaWebsite(Agent $agent, string $status = 'ingested', array $options = [], string $url = 'https://docs.example.test'): SourceWebsite
 {
     $website = SourceWebsite::query()->create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'url' => $url,
         'status' => $status,
         'options' => $options,
@@ -53,7 +54,7 @@ function wsaWebsite(Agent $agent, string $status = 'ingested', array $options = 
 function wsaChunk(SourceWebsite $website, string $text, array $urls): Chunk
 {
     $chunk = Chunk::query()->create([
-        'user_id' => $website->user_id,
+        'workspace_id' => $website->workspace_id,
         'chunkable_type' => $website->getMorphClass(),
         'chunkable_id' => $website->id,
         'chunk_index' => 1,
@@ -90,6 +91,43 @@ it('discovers the pages with FireCrawl and keeps the ones the path filters allow
         ->and($website->fresh()->internal_ingestion_job_id)->toBe('job-1');
 
     Event::assertDispatched(WebsiteCrawlStarted::class);
+});
+
+it('re-crawls in place: gone pages leave with the chunks only they used, found pages train again', function (): void {
+    config(['services.firecrawl.endpoint' => 'https://firecrawl.test/v2', 'services.firecrawl.key' => 'fc-test']);
+    Http::fake(['https://firecrawl.test/v2/map' => Http::response(['links' => [
+        'https://docs.example.test/kept',
+        'https://docs.example.test/new-a',
+        'https://docs.example.test/new-b',
+    ]])]);
+
+    $agent = Agent::factory()->create();
+    $website = wsaWebsite($agent, 'crawling');
+    $kept = $website->urls()->create(['url' => 'https://docs.example.test/kept', 'status' => 'ingested', 'checksum' => 'kept-checksum']);
+    $gone = $website->urls()->create(['url' => 'https://docs.example.test/gone', 'status' => 'ingested']);
+
+    $onlyGone = wsaChunk($website, 'Only on the gone page.', [$gone]);
+    $shared = wsaChunk($website, 'On both pages.', [$gone, $kept]);
+    $summary = wsaChunk($website, 'Summary of the website.', []);
+    $summary->update(['chunk_index' => 0]);
+
+    app(CrawlWebsiteAction::class)->execute($website, new CrawlerData(url: 'https://docs.example.test'), $agent);
+
+    $urls = $website->urls()->orderBy('url')->get();
+
+    expect($urls->pluck('url')->all())->toBe([
+        'https://docs.example.test/kept',
+        'https://docs.example.test/new-a',
+        'https://docs.example.test/new-b',
+    ])
+        ->and($urls->every(fn ($url): bool => $url->status === SourceStatus::Pending && $url->created_at !== null))->toBeTrue()
+        ->and($kept->fresh()->checksum)->toBe('kept-checksum')
+        ->and($gone->fresh())->toBeNull()
+        ->and(Chunk::query()->find($onlyGone->id))->toBeNull()
+        ->and(Chunk::query()->find($shared->id))->not->toBeNull()
+        ->and(Chunk::query()->find($summary->id))->not->toBeNull()
+        ->and(ChunkReference::query()->where('referenceable_id', $gone->id)->exists())->toBeFalse()
+        ->and($kept->chunks()->pluck('chunks.id')->all())->toBe([$shared->id]);
 });
 
 it('rediscovers a website with the path filters it was added with', function (): void {
@@ -150,6 +188,34 @@ it('finishes a website: ingested, text file saved, URL placeholders taken off th
 
     Bus::assertDispatched(SummaryIngestionJob::class);
     Event::assertDispatched(WebsiteIngestionProgressed::class);
+});
+
+it('writes a large website document in chunk_index order, batch after batch', function (): void {
+    Storage::fake();
+
+    $agent = Agent::factory()->create();
+    $website = wsaWebsite($agent, 'ingesting');
+    $vector = '['.implode(',', array_fill(0, 1024, 0.1)).']';
+
+    // Stored in reverse, so insertion order differs from page order.
+    Chunk::query()->insert(collect(range(501, 1))->map(fn (int $i): array => [
+        'external_id' => (string) Str::uuid7(),
+        'workspace_id' => $website->workspace_id,
+        'chunkable_type' => $website->getMorphClass(),
+        'chunkable_id' => $website->id,
+        'chunk_index' => $i,
+        'chunk' => "Part {$i}",
+        'tokens' => 2,
+        'embedding' => $vector,
+        'embedding_bm25' => Bm25Tokenizer::expression("Part {$i}"),
+        'checksum' => "part-{$i}",
+        'cost_in_micro_cents' => 0,
+    ])->all());
+
+    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
+
+    expect(Storage::get($website->fresh()->filepath))
+        ->toBe(collect(range(1, 501))->map(fn (int $i): string => "Part {$i}")->implode("\n\n"));
 });
 
 it('retrains one URL', function (): void {

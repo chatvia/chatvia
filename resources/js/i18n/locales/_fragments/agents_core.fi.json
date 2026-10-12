@@ -131,7 +131,7 @@
                 "expires_in_days": "Vanhenee {count} päivän kuluttua | Vanhenee {count} päivän kuluttua",
                 "expires_in_one_month": "Vanhenee 1 kuukauden kuluttua",
                 "expires_in_months": "Vanhenee {count} kuukauden kuluttua | Vanhenee {count} kuukauden kuluttua",
-                "conversations_count": "{count} keskustelu | {count} keskustelua"
+                "load_more": "Lataa lisää"
             },
             "pagination": {
                 "prev": "Edellinen",

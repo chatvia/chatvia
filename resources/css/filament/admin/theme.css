@@ -1,0 +1,1601 @@
+/*
+ * The admin panel's theme: Filament restyled to match the Chatvia dashboard.
+ * The palette is the dashboard's black-and-white "ink" on neutral greys, with
+ * Inter, soft cards and pill-shaped buttons. The panel's primary colours come
+ * from App\Admin\PanelColors; this file sets the rest.
+ *
+ * The rules below are not in a cascade layer on purpose: Filament's own
+ * styles are layered, so these win without matching the specificity of each
+ * Filament selector. They only change colour, shape, spacing and type, never
+ * `display` or `position`, so Filament's show/hide classes keep working.
+ */
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../src/App/Admin/**/*';
+@source '../../../../resources/views/filament/**/*';
+
+/* -------------------------------------------------------------------------
+ * Tokens
+ * ---------------------------------------------------------------------- */
+
+:root {
+    --cv-canvas: oklch(0.975 0 0);
+    --cv-surface: oklch(1 0 0);
+    --cv-card: oklch(1 0 0);
+    --cv-popover: oklch(1 0 0);
+    --cv-muted: oklch(0.985 0 0);
+    --cv-hover: oklch(0.967 0 0);
+    --cv-chip: oklch(0.97 0 0);
+    --cv-field: oklch(1 0 0);
+
+    --cv-border: oklch(0.935 0 0);
+    --cv-border-strong: oklch(0.87 0 0);
+    --cv-input: oklch(0.905 0 0);
+
+    --cv-text: oklch(0.145 0 0);
+    --cv-text-muted: oklch(0.556 0 0);
+    --cv-text-subtle: oklch(0.65 0 0);
+    --cv-nav-text: oklch(0.371 0 0);
+
+    --cv-ink: oklch(0.205 0 0);
+    --cv-ink-hover: oklch(0.3 0 0);
+    --cv-on-ink: oklch(0.985 0 0);
+
+    --cv-focus-border: oklch(0.556 0 0);
+    --cv-focus-halo: oklch(0.205 0 0 / 0.08);
+    --cv-focus-ring: oklch(0.205 0 0 / 0.55);
+
+    --cv-shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.04);
+    --cv-shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.05), 0 1px 2px -1px oklch(0 0 0 / 0.04);
+    --cv-shadow-md: 0 6px 16px -6px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.05);
+    --cv-shadow-lg: 0 16px 40px -12px oklch(0 0 0 / 0.18), 0 4px 12px -4px oklch(0 0 0 / 0.06);
+    --cv-shadow-button: inset 0 1px 0 0 oklch(1 0 0 / 0.12), 0 1px 2px 0 oklch(0 0 0 / 0.16);
+
+    --cv-radius-pill: 9999px;
+    --cv-radius-item: 0.5rem;
+    --cv-radius-control: 0.625rem;
+    --cv-radius-card: 0.875rem;
+    --cv-radius-panel: 1rem;
+    --cv-radius-dialog: 1.25rem;
+}
+
+.dark {
+    --cv-canvas: oklch(0.145 0 0);
+    --cv-surface: oklch(0.17 0 0);
+    --cv-card: oklch(0.205 0 0);
+    --cv-popover: oklch(0.205 0 0);
+    --cv-muted: oklch(1 0 0 / 0.025);
+    --cv-hover: oklch(1 0 0 / 0.06);
+    --cv-chip: oklch(1 0 0 / 0.06);
+    --cv-field: oklch(1 0 0 / 0.03);
+
+    --cv-border: oklch(1 0 0 / 0.08);
+    --cv-border-strong: oklch(1 0 0 / 0.16);
+    --cv-input: oklch(1 0 0 / 0.12);
+
+    --cv-text: oklch(0.985 0 0);
+    --cv-text-muted: oklch(0.708 0 0);
+    --cv-text-subtle: oklch(0.556 0 0);
+    --cv-nav-text: oklch(0.87 0 0);
+
+    --cv-ink: oklch(0.985 0 0);
+    --cv-ink-hover: oklch(0.87 0 0);
+    --cv-on-ink: oklch(0.145 0 0);
+
+    --cv-focus-border: oklch(0.708 0 0);
+    --cv-focus-halo: oklch(1 0 0 / 0.1);
+    --cv-focus-ring: oklch(1 0 0 / 0.6);
+
+    --cv-shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+    --cv-shadow-sm: 0 1px 3px 0 oklch(0 0 0 / 0.35);
+    --cv-shadow-md: 0 8px 20px -8px oklch(0 0 0 / 0.6);
+    --cv-shadow-lg: 0 20px 48px -12px oklch(0 0 0 / 0.7), 0 0 0 1px oklch(1 0 0 / 0.04);
+    --cv-shadow-button: 0 1px 2px 0 oklch(0 0 0 / 0.4);
+}
+
+/* Filament sets these on :root from the panel; a narrower sidebar and the
+   ink loading bar suit the inset layout. */
+html.fi:root {
+    --sidebar-width: 16.5rem;
+    --livewire-progress-bar-color: var(--cv-ink);
+}
+
+/* -------------------------------------------------------------------------
+ * Base
+ * ---------------------------------------------------------------------- */
+
+.fi-body {
+    background-color: var(--cv-surface);
+    color: var(--cv-text);
+    font-feature-settings: 'cv11';
+    text-rendering: optimizeLegibility;
+}
+
+::selection {
+    background-color: oklch(0.205 0 0 / 0.12);
+}
+
+.dark ::selection {
+    background-color: oklch(1 0 0 / 0.2);
+}
+
+/* -------------------------------------------------------------------------
+ * Layout: a sidebar on a grey canvas, the page in a white panel beside it
+ * ---------------------------------------------------------------------- */
+
+@media (min-width: 64rem) {
+    .fi-body.fi-body-has-navigation:not(.fi-body-has-top-navigation) {
+        background-color: var(--cv-canvas);
+
+        & .fi-main-ctn {
+            min-height: calc(100dvh - 1rem);
+            margin-block: 0.5rem;
+            margin-inline-end: 0.5rem;
+            border-radius: var(--cv-radius-panel);
+            background-color: var(--cv-surface);
+            box-shadow:
+                0 0 0 1px var(--cv-border),
+                var(--cv-shadow-sm);
+        }
+    }
+}
+
+.fi-layout-sidebar-toggle-btn-ctn {
+    padding: 1rem 1rem 0;
+}
+
+/* Sidebar */
+
+.fi-sidebar {
+    background-color: var(--cv-canvas);
+}
+
+.fi-sidebar.fi-sidebar-open {
+    box-shadow: var(--cv-shadow-lg);
+}
+
+@media (min-width: 64rem) {
+    .fi-sidebar.fi-sidebar-open {
+        box-shadow: none;
+    }
+}
+
+.fi-sidebar-header {
+    height: 4.25rem;
+    padding-inline: 1.25rem;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.fi-sidebar-header .fi-logo {
+    margin-inline-start: 0;
+}
+
+.fi-sidebar-header-controls::after {
+    content: none;
+}
+
+.fi-sidebar .fi-global-search-ctn {
+    margin: 0 0.75rem;
+}
+
+.fi-sidebar-nav {
+    padding: 1rem 0.75rem 1.5rem;
+    row-gap: 1.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--cv-border-strong) transparent;
+}
+
+.fi-sidebar-nav-groups {
+    margin-inline: 0;
+    row-gap: 1.5rem;
+}
+
+.fi-sidebar-group {
+    row-gap: 0.125rem;
+}
+
+.fi-sidebar-group-btn {
+    padding: 0 0.625rem 0.25rem;
+}
+
+.fi-sidebar-group-label {
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    color: var(--cv-text-subtle);
+}
+
+.fi-sidebar-group-items,
+.fi-sidebar-sub-group-items {
+    row-gap: 0.125rem;
+}
+
+.fi-sidebar-item-btn,
+.fi-sidebar-group-dropdown-trigger-btn,
+.fi-sidebar-database-notifications-btn {
+    gap: 0.625rem;
+    padding: 0.4375rem 0.625rem;
+    border-radius: var(--cv-radius-control);
+    transition:
+        background-color 150ms ease,
+        box-shadow 150ms ease,
+        color 150ms ease;
+}
+
+.fi-sidebar-item-btn > .fi-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--cv-text-subtle);
+    transition: color 150ms ease;
+}
+
+.fi-sidebar-item-label,
+.fi-sidebar-database-notifications-btn-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cv-nav-text);
+}
+
+.fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover,
+.fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:focus-visible,
+.fi-sidebar-group-dropdown-trigger-btn:hover,
+.fi-sidebar-database-notifications-btn:hover {
+    background-color: oklch(0 0 0 / 0.045);
+
+    & > .fi-icon {
+        color: var(--cv-text);
+    }
+}
+
+.dark .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:hover,
+.dark .fi-sidebar-item.fi-sidebar-item-has-url > .fi-sidebar-item-btn:focus-visible,
+.dark .fi-sidebar-group-dropdown-trigger-btn:hover,
+.dark .fi-sidebar-database-notifications-btn:hover {
+    background-color: oklch(1 0 0 / 0.05);
+}
+
+/* The current page is a raised white chip on the grey canvas. */
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+
+    & > .fi-icon,
+    & > .fi-sidebar-item-label {
+        color: var(--cv-text);
+    }
+
+    & > .fi-sidebar-item-grouped-border > .fi-sidebar-item-grouped-border-part {
+        background-color: var(--cv-ink);
+    }
+}
+
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn,
+.dark .fi-sidebar-item.fi-active > .fi-sidebar-item-btn:hover {
+    background-color: oklch(1 0 0 / 0.08);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.06);
+}
+
+.fi-sidebar-item-grouped-border-part-not-first,
+.fi-sidebar-item-grouped-border-part-not-last {
+    background-color: var(--cv-border-strong);
+}
+
+.fi-sidebar-footer {
+    margin: 0 0.75rem 0.75rem;
+    padding-top: 0;
+    border-top: 0;
+}
+
+/* The signed-in admin, as a card at the foot of the sidebar. */
+.fi-sidebar .fi-user-menu-trigger {
+    padding: 0.5rem 0.625rem 0.5rem 0.5rem;
+    border-radius: 0.75rem;
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+    transition: box-shadow 150ms ease;
+
+    &:hover,
+    &:focus-visible {
+        box-shadow:
+            0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-sm);
+    }
+
+    & .fi-user-menu-trigger-text {
+        overflow: hidden;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--cv-text);
+    }
+}
+
+.dark .fi-sidebar .fi-user-menu-trigger {
+    background-color: oklch(1 0 0 / 0.05);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+/* -------------------------------------------------------------------------
+ * Page header
+ * ---------------------------------------------------------------------- */
+
+.fi-page-header-main-ctn {
+    padding-block: 2rem 2.25rem;
+}
+
+.fi-header-heading {
+    font-size: 1.625rem;
+    line-height: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--cv-text);
+}
+
+@media (min-width: 40rem) {
+    .fi-header-heading {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+    }
+}
+
+.fi-header-subheading {
+    margin-top: 0.375rem;
+    font-size: 0.9375rem;
+    line-height: 1.5rem;
+    color: var(--cv-text-muted);
+}
+
+.fi-breadcrumbs ol li {
+    font-size: 0.8125rem;
+    color: var(--cv-text-subtle);
+
+    & a:hover {
+        color: var(--cv-text);
+    }
+}
+
+/* -------------------------------------------------------------------------
+ * Buttons and links
+ * ---------------------------------------------------------------------- */
+
+.fi-btn {
+    padding-inline: 1rem;
+    border-radius: var(--cv-radius-pill);
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    transition:
+        background-color 150ms ease,
+        color 150ms ease,
+        box-shadow 150ms ease,
+        transform 100ms ease;
+
+    &.fi-size-xs {
+        padding-inline: 0.625rem;
+    }
+
+    &.fi-size-sm {
+        padding-inline: 0.875rem;
+    }
+
+    &.fi-size-lg {
+        padding-inline: 1.25rem;
+    }
+
+    &.fi-size-xl {
+        padding-inline: 1.5rem;
+    }
+
+    &:not(.fi-disabled):not([disabled]):active {
+        transform: scale(0.98);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+.fi-input-wrp-actions .fi-btn.fi-size-sm {
+    padding-inline: 0.625rem;
+}
+
+/* Grey (secondary) buttons: white, a hairline border and a soft shadow. */
+.fi-btn:not(.fi-color):not(.fi-outlined):not(label):not(.fi-btn-group > *) {
+    background-color: var(--cv-card);
+    color: var(--cv-text);
+    box-shadow:
+        0 0 0 1px var(--cv-input),
+        var(--cv-shadow-xs);
+
+    &:not(.fi-disabled):not([disabled]):hover {
+        background-color: var(--cv-muted);
+        box-shadow:
+            0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-xs);
+    }
+
+    & > .fi-icon {
+        color: var(--cv-text-muted);
+    }
+}
+
+.dark .fi-btn:not(.fi-color):not(.fi-outlined):not(label):not(.fi-btn-group > *) {
+    background-color: oklch(1 0 0 / 0.05);
+    box-shadow: inset 0 0 0 1px var(--cv-input);
+
+    &:not(.fi-disabled):not([disabled]):hover {
+        background-color: oklch(1 0 0 / 0.09);
+    }
+}
+
+/* Primary buttons are ink: black in light mode, white in dark mode. */
+.fi-btn.fi-color-primary:not(.fi-outlined) {
+    --bg: var(--cv-ink);
+    --dark-bg: var(--cv-ink);
+    --hover-bg: var(--cv-ink-hover);
+    --dark-hover-bg: var(--cv-ink-hover);
+    --text: var(--cv-on-ink);
+    --dark-text: var(--cv-on-ink);
+    --hover-text: var(--cv-on-ink);
+    --dark-hover-text: var(--cv-on-ink);
+}
+
+.fi-btn.fi-color:not(.fi-outlined):not(label):not(.fi-btn-group > *) {
+    box-shadow: var(--cv-shadow-button);
+}
+
+.fi-btn.fi-outlined.fi-color-primary {
+    --text: var(--cv-ink);
+    --dark-text: var(--cv-ink);
+}
+
+.fi-btn-group {
+    border-radius: var(--cv-radius-pill);
+    box-shadow:
+        0 0 0 1px var(--cv-input),
+        var(--cv-shadow-xs);
+
+    & > .fi-btn {
+        border-radius: 0;
+
+        &:nth-child(1 of .fi-btn) {
+            border-start-start-radius: var(--cv-radius-pill);
+            border-end-start-radius: var(--cv-radius-pill);
+        }
+
+        &:nth-last-child(1 of .fi-btn) {
+            border-start-end-radius: var(--cv-radius-pill);
+            border-end-end-radius: var(--cv-radius-pill);
+        }
+    }
+}
+
+.fi-icon-btn {
+    border-radius: var(--cv-radius-pill);
+    transition:
+        background-color 150ms ease,
+        color 150ms ease;
+
+    &:not(.fi-disabled):not([disabled]):hover {
+        background-color: var(--cv-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 1px;
+    }
+
+    &.fi-color-primary {
+        --text: var(--cv-ink);
+        --dark-text: var(--cv-ink);
+        --hover-text: var(--cv-ink);
+        --dark-hover-text: var(--cv-ink);
+    }
+}
+
+.fi-link {
+    text-underline-offset: 3px;
+
+    &.fi-color-primary {
+        --text: var(--cv-ink);
+        --dark-text: var(--cv-ink);
+    }
+}
+
+/* -------------------------------------------------------------------------
+ * Form fields
+ * ---------------------------------------------------------------------- */
+
+.fi-input-wrp {
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-field);
+    box-shadow:
+        0 0 0 1px var(--cv-input),
+        var(--cv-shadow-xs);
+    transition:
+        box-shadow 150ms ease,
+        background-color 150ms ease;
+
+    &:not(.fi-disabled):not(.fi-invalid):hover {
+        box-shadow:
+            0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-xs);
+    }
+
+    &:not(.fi-disabled):not(:has(.fi-ac-action:focus)):focus-within {
+        box-shadow:
+            0 0 0 1px var(--cv-focus-border),
+            0 0 0 4px var(--cv-focus-halo);
+    }
+
+    &.fi-invalid {
+        box-shadow:
+            0 0 0 1px var(--danger-500),
+            var(--cv-shadow-xs);
+
+        &:not(.fi-disabled):focus-within {
+            box-shadow:
+                0 0 0 1px var(--danger-600),
+                0 0 0 4px color-mix(in oklab, var(--danger-500) 15%, transparent);
+        }
+    }
+
+    &.fi-disabled {
+        background-color: var(--cv-muted);
+        box-shadow: 0 0 0 1px var(--cv-border);
+    }
+
+    & .fi-input-wrp-prefix:not(.fi-inline),
+    & .fi-input-wrp-suffix:not(.fi-inline) {
+        border-color: var(--cv-border);
+    }
+}
+
+.dark .fi-input-wrp {
+    box-shadow: inset 0 0 0 1px var(--cv-input);
+}
+
+input.fi-input::placeholder,
+textarea.fi-input::placeholder {
+    color: var(--cv-text-subtle);
+}
+
+.fi-fo-field-label-content {
+    font-weight: 500;
+    color: var(--cv-text);
+}
+
+.fi-fo-field-wrp-helper-text,
+.fi-fo-field-wrp-hint {
+    color: var(--cv-text-muted);
+}
+
+input[type='checkbox'].fi-checkbox-input {
+    border-radius: 0.3125rem;
+    transition:
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+
+    &:not(:checked):not(:indeterminate):not(.fi-invalid) {
+        box-shadow:
+            inset 0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-xs);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
+    box-shadow:
+        inset 0 0 0 1px var(--cv-border-strong),
+        var(--cv-shadow-xs);
+}
+
+.fi-toggle {
+    box-shadow: inset 0 1px 2px oklch(0 0 0 / 0.06);
+
+    &.fi-toggle-off:not(.fi-color) {
+        background-color: oklch(0.9 0 0);
+    }
+
+    & > :first-child {
+        box-shadow:
+            0 1px 2px oklch(0 0 0 / 0.18),
+            0 0 0 0.5px oklch(0 0 0 / 0.04);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+.dark .fi-toggle.fi-toggle-off:not(.fi-color) {
+    background-color: oklch(1 0 0 / 0.15);
+}
+
+/* -------------------------------------------------------------------------
+ * Cards: sections, callouts, empty states, fieldsets
+ * ---------------------------------------------------------------------- */
+
+.fi-section:not(.fi-section-not-contained):not(.fi-aside),
+.fi-section:not(.fi-section-not-contained).fi-aside > .fi-section-content-ctn,
+.fi-sc-tabs.fi-contained,
+.fi-sc-wizard.fi-contained,
+.fi-sc-wizard:not(.fi-contained) .fi-sc-wizard-header {
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+}
+
+.fi-section:not(.fi-section-not-contained).fi-compact:not(.fi-aside),
+.fi-section:not(.fi-section-not-contained).fi-compact.fi-aside > .fi-section-content-ctn {
+    border-radius: 0.75rem;
+}
+
+.fi-section:not(.fi-section-not-contained).fi-secondary:not(.fi-aside),
+.fi-section:not(.fi-section-not-contained).fi-secondary.fi-aside > .fi-section-content-ctn {
+    background-color: var(--cv-muted);
+    box-shadow: 0 0 0 1px var(--cv-border);
+}
+
+.dark .fi-section:not(.fi-section-not-contained):not(.fi-aside),
+.dark .fi-section:not(.fi-section-not-contained).fi-aside > .fi-section-content-ctn,
+.dark .fi-sc-tabs.fi-contained,
+.dark .fi-sc-wizard.fi-contained,
+.dark .fi-sc-wizard:not(.fi-contained) .fi-sc-wizard-header {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.fi-section .fi-section-header-heading {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--cv-text);
+}
+
+.fi-section .fi-section-header-description {
+    color: var(--cv-text-muted);
+}
+
+/* A section's icon sits in a small rounded tile beside its heading. */
+.fi-section:not(.fi-compact) > .fi-section-header > .fi-icon {
+    box-sizing: content-box;
+    margin-top: 0;
+    padding: 0.4375rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+
+    &:not(.fi-color) {
+        color: var(--cv-nav-text);
+    }
+}
+
+.fi-section:not(.fi-compact) > .fi-section-header:has(> .fi-icon) .fi-section-header-text-ctn {
+    align-self: center;
+}
+
+.fi-callout {
+    border-radius: var(--cv-radius-card);
+
+    &:not(.fi-color) {
+        background-color: var(--cv-card);
+        box-shadow:
+            0 0 0 1px var(--cv-border),
+            var(--cv-shadow-xs);
+    }
+}
+
+.fi-empty-state:not(.fi-empty-state-not-contained) {
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+}
+
+.fi-empty-state .fi-empty-state-icon-bg:not(.fi-color),
+.fi-ta-empty-state .fi-ta-empty-state-icon-bg {
+    border-radius: 0.875rem;
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.fi-empty-state .fi-empty-state-heading {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.fi-fieldset:not(.fi-fieldset-not-contained) {
+    border-color: var(--cv-border);
+    border-radius: var(--cv-radius-card);
+}
+
+/* -------------------------------------------------------------------------
+ * Tables
+ * ---------------------------------------------------------------------- */
+
+.fi-ta-ctn {
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+}
+
+.dark .fi-ta-ctn {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.fi-ta-ctn .fi-ta-header-heading {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.fi-ta-table > thead > tr {
+    background-color: var(--cv-muted);
+}
+
+.fi-ta-header-cell {
+    padding-block: 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--cv-text-muted);
+}
+
+.fi-ta-row {
+    transition: background-color 120ms ease;
+}
+
+.fi-ta-ctn .fi-ta-header,
+.fi-ta-ctn .fi-ta-header-toolbar {
+    border-color: var(--cv-border);
+}
+
+.fi-pagination .fi-pagination-items {
+    border-radius: var(--cv-radius-pill);
+    box-shadow:
+        0 0 0 1px var(--cv-input),
+        var(--cv-shadow-xs);
+}
+
+.fi-pagination .fi-pagination-item {
+    &:first-of-type .fi-pagination-item-btn {
+        border-start-start-radius: var(--cv-radius-pill);
+        border-end-start-radius: var(--cv-radius-pill);
+    }
+
+    &:last-of-type .fi-pagination-item-btn {
+        border-start-end-radius: var(--cv-radius-pill);
+        border-end-end-radius: var(--cv-radius-pill);
+    }
+
+    &.fi-active .fi-pagination-item-btn {
+        background-color: var(--cv-hover);
+    }
+
+    &.fi-active .fi-pagination-item-label {
+        font-weight: 600;
+        color: var(--cv-text);
+    }
+}
+
+.fi-pagination .fi-pagination-overview {
+    font-weight: 400;
+    color: var(--cv-text-muted);
+}
+
+/* -------------------------------------------------------------------------
+ * Tabs: a segmented control
+ * ---------------------------------------------------------------------- */
+
+.fi-tabs {
+    gap: 0.25rem;
+}
+
+.fi-tabs:not(.fi-contained) {
+    padding: 0.25rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-hover);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.fi-tabs.fi-vertical:not(.fi-contained) {
+    border-radius: var(--cv-radius-card);
+}
+
+.fi-tabs.fi-contained {
+    border-color: var(--cv-border);
+}
+
+.fi-tabs-item {
+    padding: 0.375rem 0.875rem;
+    border-radius: var(--cv-radius-pill);
+    transition:
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+
+    &:hover,
+    &:focus-visible {
+        background-color: transparent;
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 1px;
+    }
+
+    & .fi-tabs-item-label {
+        color: var(--cv-text-muted);
+    }
+
+    &:hover .fi-tabs-item-label {
+        color: var(--cv-text);
+    }
+
+    &.fi-active {
+        background-color: var(--cv-card);
+        box-shadow:
+            0 0 0 1px oklch(0 0 0 / 0.04),
+            0 1px 3px oklch(0 0 0 / 0.1);
+
+        & .fi-tabs-item-label,
+        & > .fi-icon {
+            color: var(--cv-text);
+        }
+    }
+}
+
+.fi-tabs.fi-contained .fi-tabs-item.fi-active {
+    background-color: var(--cv-hover);
+    box-shadow: none;
+}
+
+.fi-tabs.fi-vertical .fi-tabs-item {
+    border-radius: var(--cv-radius-control);
+}
+
+.dark .fi-tabs-item.fi-active {
+    background-color: oklch(1 0 0 / 0.1);
+    box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.06);
+}
+
+/* -------------------------------------------------------------------------
+ * Badges
+ * ---------------------------------------------------------------------- */
+
+.fi-badge {
+    padding-inline: 0.5rem;
+    border-radius: var(--cv-radius-pill);
+
+    &.fi-size-sm {
+        padding-inline: 0.4375rem;
+    }
+
+    &.fi-size-xs {
+        padding-inline: 0.25rem;
+    }
+
+    &:not(.fi-color) {
+        background-color: var(--cv-hover);
+        color: var(--cv-nav-text);
+    }
+}
+
+/* -------------------------------------------------------------------------
+ * Dropdowns, search results, tooltips
+ * ---------------------------------------------------------------------- */
+
+.fi-dropdown-panel,
+.fi-global-search-results-ctn {
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-popover);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-lg);
+}
+
+.fi-dropdown-panel:not(.fi-scrollable),
+.fi-global-search-results-ctn {
+    overflow: hidden;
+}
+
+.fi-dropdown-list {
+    padding: 0.3125rem;
+}
+
+.fi-dropdown-list-item {
+    padding: 0.4375rem 0.625rem;
+    border-radius: var(--cv-radius-item);
+
+    &:not(.fi-disabled):not([disabled]):not(.fi-color):hover,
+    &:not(.fi-disabled):not([disabled]):not(.fi-color):focus-visible {
+        background-color: var(--cv-hover);
+    }
+}
+
+.fi-dropdown-header {
+    padding: 0.75rem 0.875rem;
+}
+
+.fi-global-search-result-group-header {
+    background-color: var(--cv-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--cv-text-muted);
+}
+
+.fi-theme-switcher-btn {
+    border-radius: var(--cv-radius-item);
+
+    &.fi-active {
+        background-color: var(--cv-hover);
+        color: var(--cv-text);
+    }
+}
+
+.tippy-box {
+    border-radius: var(--cv-radius-item);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+}
+
+.tippy-content {
+    padding: 0.25rem 0.625rem;
+}
+
+.tippy-box[data-theme~='light'] {
+    --tippy-background-color: oklch(0.205 0 0);
+    --tippy-box-shadow: 0 6px 16px -6px oklch(0 0 0 / 0.35);
+    color: oklch(0.985 0 0);
+}
+
+.tippy-box[data-theme~='dark'] {
+    --tippy-background-color: oklch(0.985 0 0);
+    color: oklch(0.145 0 0);
+    box-shadow: 0 6px 16px -6px oklch(0 0 0 / 0.6);
+}
+
+/* -------------------------------------------------------------------------
+ * Modals and notifications
+ * ---------------------------------------------------------------------- */
+
+.fi-modal > .fi-modal-close-overlay {
+    background-color: oklch(0.145 0 0 / 0.4);
+    backdrop-filter: blur(4px);
+}
+
+.dark .fi-modal > .fi-modal-close-overlay {
+    background-color: oklch(0 0 0 / 0.6);
+}
+
+.fi-modal > .fi-modal-window-ctn > .fi-modal-window {
+    background-color: var(--cv-popover);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        0 24px 64px -16px oklch(0 0 0 / 0.3);
+}
+
+.fi-modal:not(.fi-modal-slide-over):not(.fi-width-screen) > .fi-modal-window-ctn > .fi-modal-window {
+    border-radius: var(--cv-radius-dialog);
+}
+
+.fi-modal .fi-modal-heading {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.fi-modal .fi-modal-description {
+    color: var(--cv-text-muted);
+}
+
+/* Toasts are white cards: the icon carries the colour. */
+.fi-no-notification:not(.fi-inline) {
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-popover);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-lg);
+}
+
+.fi-no-notification .fi-no-notification-body {
+    color: var(--cv-text-muted);
+}
+
+/* -------------------------------------------------------------------------
+ * Wizard
+ * ---------------------------------------------------------------------- */
+
+.fi-sc-wizard .fi-sc-wizard-header {
+    border-color: var(--cv-border);
+}
+
+.fi-sc-wizard .fi-sc-wizard-header-step-separator {
+    color: var(--cv-border);
+}
+
+.fi-sc-wizard .fi-sc-wizard-header-step .fi-sc-wizard-header-step-btn .fi-sc-wizard-header-step-icon-ctn {
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.fi-sc-wizard .fi-sc-wizard-header-step:not(.fi-completed):not(.fi-active) .fi-sc-wizard-header-step-icon-ctn {
+    border-color: var(--cv-border-strong);
+}
+
+.fi-sc-wizard .fi-sc-wizard-header-step.fi-active .fi-sc-wizard-header-step-label {
+    font-weight: 600;
+    color: var(--cv-text);
+}
+
+/* -------------------------------------------------------------------------
+ * Widgets
+ * ---------------------------------------------------------------------- */
+
+.fi-wi-stats-overview-stat {
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+
+    & .fi-wi-stats-overview-stat-label {
+        font-size: 0.8125rem;
+        color: var(--cv-text-muted);
+    }
+
+    & .fi-wi-stats-overview-stat-value {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+        letter-spacing: -0.03em;
+        color: var(--cv-text);
+    }
+
+    & .fi-wi-stats-overview-stat-chart {
+        border-end-start-radius: var(--cv-radius-card);
+        border-end-end-radius: var(--cv-radius-card);
+    }
+}
+
+.dark .fi-wi-stats-overview-stat {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.fi-avatar {
+    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.05);
+}
+
+/* The initials avatar is an ink circle; a ring keeps it visible on dark cards. */
+.dark .fi-avatar {
+    box-shadow: 0 0 0 1px oklch(1 0 0 / 0.18);
+}
+
+/* -------------------------------------------------------------------------
+ * Simple pages: sign-in, two-factor, the setup
+ * ---------------------------------------------------------------------- */
+
+/* A dot grid that fades out towards the edges, behind the card. */
+.fi-simple-layout {
+    background-color: var(--cv-canvas);
+    background-image:
+        radial-gradient(ellipse 75% 70% at 50% 45%, transparent 25%, var(--cv-canvas) 90%),
+        radial-gradient(circle at center, oklch(0 0 0 / 0.13) 1px, transparent 1.5px);
+    background-size:
+        100% 100%,
+        22px 22px;
+    background-attachment: fixed;
+}
+
+.dark .fi-simple-layout {
+    background-image:
+        radial-gradient(ellipse 75% 70% at 50% 45%, transparent 25%, var(--cv-canvas) 90%),
+        radial-gradient(circle at center, oklch(1 0 0 / 0.1) 1px, transparent 1.5px);
+}
+
+.fi-simple-main {
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        0 24px 56px -20px oklch(0 0 0 / 0.16),
+        0 2px 6px -2px oklch(0 0 0 / 0.05);
+}
+
+@media (min-width: 40rem) {
+    .fi-simple-main {
+        border-radius: 1.5rem;
+    }
+}
+
+.dark .fi-simple-main {
+    box-shadow:
+        inset 0 0 0 1px var(--cv-border),
+        0 24px 56px -20px oklch(0 0 0 / 0.8);
+}
+
+.fi-simple-header .fi-logo {
+    margin-bottom: 1.5rem;
+}
+
+.fi-simple-header-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--cv-text);
+}
+
+.fi-simple-header-subheading {
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    color: var(--cv-text-muted);
+}
+
+/* -------------------------------------------------------------------------
+ * Chatvia views: the logo and the setup mark
+ * ---------------------------------------------------------------------- */
+
+.cv-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.cv-brand__mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 0.5rem;
+    background-color: var(--cv-ink);
+    color: var(--cv-on-ink);
+    box-shadow: var(--cv-shadow-button);
+
+    & svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+.cv-brand__name {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--cv-text);
+}
+
+.cv-brand__tag {
+    padding: 0.1875rem 0.4375rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-card);
+    box-shadow: inset 0 0 0 1px var(--cv-border-strong);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--cv-text-muted);
+}
+
+.cv-setup-mark {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.75rem;
+
+    & span {
+        display: grid;
+        place-items: center;
+        width: 4rem;
+        height: 4rem;
+        border-radius: 1.125rem;
+        background-color: var(--cv-ink);
+        color: var(--cv-on-ink);
+        box-shadow:
+            inset 0 1px 0 0 oklch(1 0 0 / 0.14),
+            0 12px 28px -10px oklch(0 0 0 / 0.45);
+    }
+
+    & svg {
+        width: 2.625rem;
+        height: 2.625rem;
+    }
+}
+
+/* -------------------------------------------------------------------------
+ * Chatvia views: the Settings overview tiles
+ * ---------------------------------------------------------------------- */
+
+.cv-settings {
+    display: grid;
+    gap: 2.25rem;
+}
+
+.cv-settings__heading {
+    margin: 0 0 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cv-text-subtle);
+}
+
+.cv-settings__grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+}
+
+.cv-tile {
+    display: grid;
+    grid-template-areas:
+        'icon status'
+        'title title'
+        'description description';
+    grid-template-columns: auto 1fr;
+    align-content: start;
+    padding: 1.25rem 1.25rem 1.375rem;
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    color: inherit;
+    text-decoration: none;
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+    transition:
+        box-shadow 180ms ease,
+        transform 180ms ease;
+
+    &:hover {
+        box-shadow:
+            0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-md);
+        transform: translateY(-2px);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+.dark .cv-tile {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+
+    &:hover {
+        box-shadow:
+            inset 0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-md);
+    }
+}
+
+.cv-tile__icon {
+    display: grid;
+    grid-area: icon;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    color: var(--cv-nav-text);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    transition:
+        background-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms ease;
+
+    & svg {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+.cv-tile:hover .cv-tile__icon {
+    background-color: var(--cv-ink);
+    color: var(--cv-on-ink);
+    box-shadow: var(--cv-shadow-button);
+}
+
+.cv-tile__title {
+    grid-area: title;
+    margin-top: 1rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.375rem;
+    color: var(--cv-text);
+}
+
+.cv-tile__description {
+    grid-area: description;
+    margin-top: 0.25rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--cv-text-muted);
+    text-wrap: pretty;
+}
+
+.cv-tile__status {
+    display: inline-flex;
+    grid-area: status;
+    align-items: center;
+    align-self: center;
+    justify-self: end;
+    gap: 0.375rem;
+    padding: 0.1875rem 0.5625rem 0.1875rem 0.5rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-hover);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.125rem;
+    white-space: nowrap;
+    color: var(--cv-text-muted);
+
+    &::before {
+        width: 0.375rem;
+        height: 0.375rem;
+        border-radius: var(--cv-radius-pill);
+        background-color: var(--cv-text-subtle);
+        content: '';
+    }
+}
+
+.cv-tile__status--success {
+    background-color: color-mix(in oklab, var(--success-500) 12%, transparent);
+    color: var(--success-700);
+
+    &::before {
+        background-color: var(--success-500);
+    }
+}
+
+.cv-tile__status--warning {
+    background-color: color-mix(in oklab, var(--warning-500) 14%, transparent);
+    color: var(--warning-700);
+
+    &::before {
+        background-color: var(--warning-500);
+    }
+}
+
+.cv-tile__status--primary {
+    background-color: var(--cv-hover);
+    color: var(--cv-text);
+
+    &::before {
+        background-color: var(--cv-ink);
+    }
+}
+
+.dark .cv-tile__status--success {
+    color: var(--success-400);
+}
+
+.dark .cv-tile__status--warning {
+    color: var(--warning-400);
+}
+
+/* -------------------------------------------------------------------------
+ * Chatvia views: a Settings page (its cards and outline)
+ * ---------------------------------------------------------------------- */
+
+.cv-settings-card {
+    scroll-margin-top: 1.5rem;
+
+    /* A long status (an error, a summary) wraps beside the title instead of squeezing it. */
+    & .fi-section-header-text-ctn {
+        flex: 1 1 14rem;
+        min-width: 0;
+    }
+
+    & .fi-section-header-after-ctn {
+        flex: 0 1 auto;
+        max-width: min(50%, 24rem);
+    }
+
+    & .fi-section-header-after-ctn .fi-sc-text:not(.fi-badge) {
+        display: -webkit-box;
+        overflow: hidden;
+        text-align: end;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+}
+
+/* Phones: the status and the console link get their own line below the title. */
+@media (max-width: 39.99rem) {
+    .cv-settings-card {
+        & .fi-section-header {
+            flex-wrap: wrap;
+        }
+
+        & .fi-section-header-after-ctn {
+            order: 1;
+            flex-basis: 100%;
+            max-width: none;
+            padding-inline-start: 3.125rem;
+        }
+
+        & .fi-section-header-after-ctn .fi-sc {
+            justify-content: flex-start;
+        }
+
+        & .fi-section-header-after-ctn .fi-sc-text:not(.fi-badge) {
+            text-align: start;
+        }
+    }
+}
+
+.cv-outline {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.cv-outline__heading {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cv-text-subtle);
+}
+
+/* Narrow screens: a row of pills above the sections. */
+.cv-outline__list {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0 0 0.25rem;
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: thin;
+}
+
+.cv-outline__link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-card);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--cv-text-muted);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    transition:
+        color 150ms ease,
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+
+    &:hover {
+        color: var(--cv-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+.cv-outline__link--active {
+    color: var(--cv-text);
+    box-shadow: inset 0 0 0 1px var(--cv-ink);
+}
+
+.cv-outline__dot {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-border-strong);
+}
+
+.cv-outline__dot--success {
+    background-color: var(--success-500);
+}
+
+.cv-outline__dot--warning {
+    background-color: var(--warning-500);
+}
+
+.cv-outline__dot--primary {
+    background-color: var(--cv-ink);
+}
+
+.cv-outline__dot--options {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1.5px var(--cv-border-strong);
+}
+
+.cv-outline__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cv-outline__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--cv-text-subtle);
+
+    & button {
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        color: var(--cv-text-muted);
+        cursor: pointer;
+    }
+
+    & button:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        color: var(--cv-text);
+    }
+}
+
+.cv-outline__save {
+    display: none;
+}
+
+/* Wide screens: a list beside the sections that stays in view. */
+@media (min-width: 80rem) {
+    .cv-outline {
+        position: sticky;
+        top: 1.5rem;
+    }
+
+    .cv-outline__list {
+        flex-direction: column;
+        gap: 0.125rem;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .cv-outline__link {
+        padding: 0.4375rem 0.625rem;
+        border-radius: var(--cv-radius-item);
+        background: none;
+        white-space: normal;
+        box-shadow: none;
+
+        &:hover {
+            background-color: var(--cv-muted);
+        }
+    }
+
+    .cv-outline__link--active,
+    .cv-outline__link--active:hover {
+        background-color: var(--cv-hover);
+        font-weight: 500;
+        box-shadow: none;
+    }
+
+    .cv-outline__actions {
+        padding-inline-start: 0.625rem;
+    }
+
+    .cv-outline__save {
+        display: inline-grid;
+        justify-self: start;
+        margin-top: 0.25rem;
+    }
+}

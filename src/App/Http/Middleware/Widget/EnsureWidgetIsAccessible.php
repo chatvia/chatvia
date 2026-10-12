@@ -9,6 +9,7 @@ use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Context;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -47,6 +48,9 @@ class EnsureWidgetIsAccessible
         if (! $agent instanceof Agent) {
             return response()->json(['error' => 'Could not verify the agent'], Response::HTTP_FORBIDDEN);
         }
+
+        // Jobs this request queues carry the agent's workspace.
+        Context::addHidden('workspace_id', $agent->workspace_id);
 
         $resolved = $this->resolveSignedInUser($request, $agent);
 

@@ -18,7 +18,7 @@ trait ResolvesAccountAgent
     {
         /** @var User $user */
         $user = $request->user();
-        $agent = $user->agents->firstWhere('external_id', $externalId);
+        $agent = $user->workspace()->agents()->where('external_id', $externalId)->first();
 
         abort_if($agent === null, 404);
 

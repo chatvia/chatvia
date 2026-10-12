@@ -12,9 +12,9 @@ use Illuminate\Auth\Access\Response;
  * Who may manage agents from the dashboard and the public API.
  *
  * Viewing, updating and deleting an agent follow the one dashboard access rule
- * ({@see AgentAccessPolicy::canManage()}, also the `access-agent` Gate): staff
- * reach every agent, a workspace owner their own, a teammate the agents their
- * team role reaches, a chatter none. The finer per-feature team permissions
+ * ({@see AgentAccessPolicy::canManage()}, also the `access-agent` Gate): a
+ * workspace owner (platform staff included) reaches their own agents, a
+ * teammate the agents their team role reaches, a chatter none. The finer per-feature team permissions
  * (`agent.setup`, `agent.delete`, …) are route middleware on top.
  *
  * Creating an agent places it in a team, so only that team's owner may.
@@ -27,7 +27,7 @@ class AgentPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return false;
     }
 
     public function view(User $user, Agent $agent): bool

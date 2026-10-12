@@ -2,7 +2,7 @@
 
 namespace Domain\Analytics\Services;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Analytics\Data\Account\AnalyticsFilterData;
 use Domain\Analytics\Data\Account\AnalyticsScopeData;
 
@@ -16,7 +16,7 @@ class AnalyticsScopeResolver
 {
     public function __construct(private readonly AnalyticsPeriodResolver $periods) {}
 
-    public function resolve(User $workspace, AnalyticsFilterData $filter): AnalyticsScopeData
+    public function resolve(Workspace $workspace, AnalyticsFilterData $filter): AnalyticsScopeData
     {
         $period = $this->periods->resolve($filter);
 

@@ -65,6 +65,7 @@ it('erases the visitor\'s conversation on delete', function (): void {
     $conversation = Conversation::query()->firstWhere('external_id', $id);
     $message = Message::create([
         'external_id' => (string) Str::uuid(),
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
         'content' => 'My card number is 4242',

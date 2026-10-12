@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,11 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('chunks', function (Blueprint $table) {
+        Schema::create('chunks', function (Blueprint $table): void {
             $table->id();
 
             $table->uuid('external_id')->default(DB::raw('uuidv7()'))->unique();
-            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id')->index()->constrained()->cascadeOnDelete();
 
             $table->string('chunkable_type');
             $table->unsignedBigInteger('chunkable_id');
@@ -50,8 +49,6 @@ return new class extends Migration
 
         $this->createVectorChordIndex('chunks_embedding_vchordrq_optimized', 'embedding');
         $this->createVectorChordIndex('chunks_questions_embedding_vchordrq', 'questions_embedding');
-
-        DB::statement('CREATE INDEX chunks_metadata_gin_idx ON chunks USING GIN (metadata)');
 
         DB::statement(<<<'SQL'
 ALTER TABLE chunks SET (

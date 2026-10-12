@@ -38,14 +38,13 @@ class MessageQueryBuilder extends Builder
     }
 
     /**
-     * Restrict to messages whose content matches $term, ranked by BM25 relevance.
+     * Restrict to messages whose content matches $term, most relevant first.
      *
-     * Matching is a word-level lexical filter on the plaintext content:
-     * the llmlingua2 tokenizer emits shared subword units, so the bm25 operator
-     * alone scores unrelated text weakly-negative (noise) and can't tell a real
-     * hit from none. Ranking, however, is BM25 over content_bm25 — `<&>` returns
-     * the negative score, so ascending order is most-relevant-first, tokenized
-     * with the same llmlingua2 model used at write time (see Message::booted).
+     * Matching is a word-level filter on the plaintext content (any word of
+     * the term, case-insensitive). The matches are ranked by Postgres
+     * full-text rank over the words, computed for the matched rows only: the
+     * search always runs inside one visitor's own conversations, so a stored
+     * search vector (and its write cost on every message) is not needed.
      *
      * Scope (conversation / agent / workspace) and ->limit() at the call site.
      *
@@ -62,7 +61,10 @@ class MessageQueryBuilder extends Builder
             return $this->whereRaw('1 = 0');
         }
 
-        $bm25 = "content_bm25 <&> bm25_catalog.to_bm25query('chat_messages_content_bm25', tokenizer_catalog.tokenize(?, 'llmlingua2'))";
+        // 'simple' keeps every language's words as they are (no stemming);
+        // the web-search syntax never fails on stray quotes or operators.
+        $rank = "ts_rank(to_tsvector('simple', coalesce(content, '')), websearch_to_tsquery('simple', ?)) DESC";
+        $query = $words->implode(' or ');
 
         return $this
             ->where(function (Builder $query) use ($words): void {
@@ -70,7 +72,8 @@ class MessageQueryBuilder extends Builder
                     $query->orWhere('content', 'ILIKE', '%'.$this->escapeLike($word).'%');
                 }
             })
-            ->orderByRaw($bm25, [$term]);
+            ->orderByRaw($rank, [$query])
+            ->orderByDesc('created_at');
     }
 
     /** Escape LIKE/ILIKE wildcards so user input is matched literally. */

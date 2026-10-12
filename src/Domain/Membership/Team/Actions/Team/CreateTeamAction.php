@@ -24,7 +24,7 @@ class CreateTeamAction
         return DB::transaction(function () use ($data): Team {
             $team = Team::create([
                 'name' => $data->name,
-                'user_id' => $data->owner->id,
+                'workspace_id' => $data->workspace->id,
             ]);
 
             $this->createDefaultRoles->execute($team);

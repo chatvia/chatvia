@@ -58,6 +58,9 @@
         "spatie/laravel-typescript-transformer": "^3.3",
         "spatie/typescript-transformer": "^3.3",
         "spectra-php/laravel-spectra": "^1.2.0",
+        "symfony/http-client": "^8.1",
+        "symfony/mailgun-mailer": "^8.1",
+        "symfony/postmark-mailer": "^8.1",
         "yethee/tiktoken": "^1.1"
     },
     "require-dev": {

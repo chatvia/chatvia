@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
@@ -16,12 +16,13 @@ use Illuminate\Support\Facades\Notification;
  * InviteWorkspaceChatterAction is the workspace-page entry point: it provisions
  * one chatter and grants several agents at once, reusing InviteAgentChatterAction
  * (first agent) + GrantAgentMembershipAction (the rest). These tests pin the
- * multi-agent grant and that a single invitation is minted.
+ * multi-agent grant, that a single invitation is minted, and that an email
+ * known in another workspace becomes a separate chatter of this one.
  */
 function workspaceWithAgents(int $count = 2): array
 {
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
-    $agents = Agent::factory()->count($count)->create(['user_id' => $workspace->id]);
+    $workspace = User::factory()->create();
+    $agents = Agent::factory()->count($count)->create(['workspace_id' => $workspace->workspace()->id]);
 
     return [$workspace, $agents];
 }
@@ -35,11 +36,10 @@ it('provisions the chatter and grants every selected agent', function (): void {
         agents: $agents,
     ));
 
-    $chatter = User::query()->where('email', 'new@example.com')->first();
+    $chatter = $workspace->workspace()->chatters()->where('email', 'new@example.com')->first();
 
-    expect($chatter)->not->toBeNull()
-        ->and($chatter->type)->toBe(UserType::Chatter)
-        ->and($chatter->workspace_id)->toBe($workspace->id)
+    expect($chatter)->toBeInstanceOf(Chatter::class)
+        ->and($chatter->workspace_id)->toBe($workspace->workspace()->id)
         ->and($chatter->email_verified_at)->toBeNull()
         ->and($invitation->email)->toBe('new@example.com');
 
@@ -59,20 +59,54 @@ it('grants the selected agents to an existing chatter under the same workspace',
     Event::fake([AgentChatterInvited::class]);
     [$workspace, $agents] = workspaceWithAgents(2);
 
-    $existing = User::factory()->create([
-        'type' => UserType::Chatter,
-        'email' => 'member@example.com',
-        'workspace_id' => $workspace->id,
-    ]);
+    $existing = Chatter::factory()->ofWorkspace($workspace)->create(['email' => 'member@example.com']);
 
     app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
         email: 'member@example.com',
         agents: $agents,
     ));
 
-    expect(User::query()->where('email', 'member@example.com')->count())->toBe(1)
+    expect($workspace->workspace()->chatters()->where('email', 'member@example.com')->count())->toBe(1)
         ->and($agents[0]->chatters()->whereKey($existing->id)->exists())->toBeTrue()
         ->and($agents[1]->chatters()->whereKey($existing->id)->exists())->toBeTrue();
+});
+
+it('creates a separate chatter when the email is a chatter of another workspace', function (): void {
+    Event::fake([AgentChatterInvited::class]);
+    [$workspace, $agents] = workspaceWithAgents(2);
+
+    [, $otherAgents] = workspaceWithAgents(1);
+    $foreign = Chatter::factory()->grantedTo($otherAgents->first())->create(['email' => 'shared@example.com']);
+
+    $invitation = app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
+        email: 'shared@example.com',
+        agents: $agents,
+    ));
+
+    $chatter = $workspace->workspace()->chatters()->where('email', 'shared@example.com')->sole();
+
+    expect($invitation->email)->toBe('shared@example.com')
+        ->and($chatter->id)->not->toBe($foreign->id)
+        ->and($agents[0]->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
+        ->and($agents[1]->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
+        // The other workspace's chatter keeps only its own grant.
+        ->and($foreign->fresh()->agents()->pluck('agents.id')->all())->toBe([$otherAgents->first()->id]);
+});
+
+it('creates a chatter for the email of a staff account', function (): void {
+    Event::fake([AgentChatterInvited::class]);
+    [$workspace, $agents] = workspaceWithAgents(2);
+    User::factory()->employee($workspace)->create(['email' => 'teammate@example.com']);
+
+    app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
+        email: 'teammate@example.com',
+        agents: $agents,
+    ));
+
+    $chatter = $workspace->workspace()->chatters()->where('email', 'teammate@example.com')->sole();
+
+    expect($agents[0]->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
+        ->and($agents[1]->chatters()->whereKey($chatter->id)->exists())->toBeTrue();
 });
 
 it('sends the invitation email with the token link once the transaction commits', function (): void {

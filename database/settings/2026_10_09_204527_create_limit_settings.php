@@ -20,6 +20,7 @@ return new class extends SettingsMigration
             $group->add('guardrail_retention_days');
             $group->add('security_audit_retention_days');
             $group->add('security_audit_retention_floor_days');
+            $group->add('spectra_retention_days');
         });
     }
 

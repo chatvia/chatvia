@@ -30,7 +30,7 @@ class TeamController
     public function index(Request $request): array
     {
         $teams = $request->user()->workspace()
-            ->ownedTeams()
+            ->teams()
             ->with(['agents', 'roles.permissions', 'roles.agents'])
             ->latest()
             ->get();
@@ -45,10 +45,10 @@ class TeamController
      */
     public function store(Request $request, TeamPayloadData $payload, CreateTeamAction $action): array
     {
-        $owner = $request->user()->workspace();
+        $workspace = $request->user()->workspace();
 
         return ['data' => TeamData::fromModel($action->execute(
-            new CreateTeamData(owner: $owner, name: $payload->name),
+            new CreateTeamData(workspace: $workspace, name: $payload->name),
         ))];
     }
 

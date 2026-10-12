@@ -40,7 +40,7 @@ readonly class MarkReadController
 
         // Without this check anyone with a conversation id could mark another
         // visitor's messages as read.
-        if (! $findConversation->execute((string) $conversationId, $sessionId, $agent, $this->widgetUser($request)) instanceof Conversation) {
+        if (! $findConversation->execute((string) $conversationId, $sessionId, $agent, $this->widgetViewer($request)) instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 

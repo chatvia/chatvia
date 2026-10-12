@@ -166,6 +166,7 @@
     "Location": "Lieu",
     "Message": "Message",
     "This website has already been added to this agent.": "Ce site web a déjà été ajouté à cet agent.",
+    "This text is already in your knowledge base.": "Ce texte est déjà dans votre base de connaissances.",
     "This URL is not allowed.": "Cette URL n'est pas autorisée.",
     "Failed to fetch the website. Please check the URL and try again.": "Impossible de récupérer le site web. Vérifiez l'URL et réessayez.",
     "This URL is not allowed: :reason": "Cette URL n'est pas autorisée : :reason",
@@ -231,10 +232,7 @@
     "Team updated successfully.": "Équipe mise à jour.",
     "The provided password is incorrect.": "Le mot de passe fourni est incorrect.",
     "The role ':role' does not exist for this team.": "Le rôle ':role' n'existe pas dans cette équipe.",
-    "This account is a chat user and cannot join a team.": "Ce compte est un utilisateur de chat et ne peut pas rejoindre une équipe.",
     "This agent is public — anyone with the link can chat with it. No invitation is needed.": "Cet agent est public : toute personne disposant du lien peut discuter avec lui. Aucune invitation n'est nécessaire.",
-    "This email already belongs to a different kind of account and cannot be invited as a chat member.": "Cette adresse e-mail appartient à un autre type de compte et ne peut pas être invitée comme membre du chat.",
-    "This email is already used by a chatter under a different workspace.": "Cette adresse e-mail est déjà utilisée par un utilisateur de chat d'un autre espace de travail.",
     "This invitation has already been used. Sign in with your existing credentials instead.": "Cette invitation a déjà été utilisée. Connectez-vous plutôt avec vos identifiants existants.",
     "This invitation has expired.": "Cette invitation a expiré.",
     "This invitation has expired. Ask the agent owner to send a new one.": "Cette invitation a expiré. Demandez au propriétaire de l'agent d'en envoyer une nouvelle.",
@@ -262,8 +260,12 @@
     "This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.": "Cette liste d'IP autorisées vous bloquerait l'accès — votre adresse actuelle (:ip) n'y figure pas. Ajoutez-la d'abord.",
     "This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.": "Cette règle de pays vous bloquerait l'accès — votre emplacement actuel (:country) fait partie des pays bloqués. Retirez-le ou changez la règle d'abord.",
     "This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.": "Cette règle de pays vous bloquerait l'accès — votre emplacement actuel (:country) ne fait pas partie des pays autorisés. Ajoutez-le ou changez la règle d'abord.",
-    "This form is for chat members only. Team members can open this chat from the dashboard.": "Ce formulaire est réservé aux membres du chat. Les membres de l'équipe peuvent ouvrir ce chat depuis le tableau de bord.",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "Seul un fichier que d'autres agents utilisent aussi peut être dissocié. Supprimez-le plutôt.",
     "This agent has reached its monthly message limit. Please try again next month.": "Cet agent a atteint sa limite mensuelle de messages. Veuillez réessayer le mois prochain.",
-    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "Cet espace de travail a atteint sa limite mensuelle de messages. Chaque cas d'évaluation compte comme un message."
+    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "Cet espace de travail a atteint sa limite mensuelle de messages. Chaque cas d'évaluation compte comme un message.",
+    "Pick one of the available models.": "Choisissez l’un des modèles disponibles.",
+    "Complete the security check.": "Effectuez la vérification de sécurité.",
+    "This account has been deactivated.": "Ce compte a été désactivé.",
+    "This email already has an account in another workspace. Ask for an invitation to a different email.": "Cette adresse e-mail a déjà un compte dans un autre espace de travail. Demandez une invitation à une autre adresse e-mail.",
+    "A chatter with this email already exists in your workspace.": "Un utilisateur du chat avec cette adresse e-mail existe déjà dans votre espace de travail."
 }

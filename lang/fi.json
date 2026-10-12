@@ -166,6 +166,7 @@
     "Location": "Sijainti",
     "Message": "Viesti",
     "This website has already been added to this agent.": "Tämä verkkosivusto on jo lisätty tälle agentille.",
+    "This text is already in your knowledge base.": "Tämä teksti on jo tietopohjassasi.",
     "This URL is not allowed.": "Tämä URL-osoite ei ole sallittu.",
     "Failed to fetch the website. Please check the URL and try again.": "Verkkosivuston hakeminen epäonnistui. Tarkista URL-osoite ja yritä uudelleen.",
     "This URL is not allowed: :reason": "Tämä URL-osoite ei ole sallittu: :reason",
@@ -231,10 +232,7 @@
     "Team updated successfully.": "Tiimi päivitettiin.",
     "The provided password is incorrect.": "Annettu salasana on virheellinen.",
     "The role ':role' does not exist for this team.": "Roolia ':role' ei ole tässä tiimissä.",
-    "This account is a chat user and cannot join a team.": "Tämä tili on chat-käyttäjä eikä voi liittyä tiimiin.",
     "This agent is public — anyone with the link can chat with it. No invitation is needed.": "Tämä agentti on julkinen — kuka tahansa linkin saanut voi keskustella sen kanssa. Kutsua ei tarvita.",
-    "This email already belongs to a different kind of account and cannot be invited as a chat member.": "Tämä sähköposti kuuluu toisenlaiselle tilille, eikä sitä voi kutsua chat-jäseneksi.",
-    "This email is already used by a chatter under a different workspace.": "Tätä sähköpostia käyttää jo toisen työtilan chat-käyttäjä.",
     "This invitation has already been used. Sign in with your existing credentials instead.": "Tätä kutsua on jo käytetty. Kirjaudu sisään nykyisillä tunnuksillasi.",
     "This invitation has expired.": "Tämä kutsu on vanhentunut.",
     "This invitation has expired. Ask the agent owner to send a new one.": "Tämä kutsu on vanhentunut. Pyydä agentin omistajaa lähettämään uusi.",
@@ -262,8 +260,12 @@
     "This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.": "Tämä IP-sallittujen luettelo lukitsisi sinut ulos — nykyinen osoitteesi (:ip) ei ole siinä. Lisää se ensin.",
     "This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.": "Tämä maasääntö lukitsisi sinut ulos — nykyinen sijaintisi (:country) on estettyjen maiden joukossa. Poista se tai vaihda sääntöä ensin.",
     "This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.": "Tämä maasääntö lukitsisi sinut ulos — nykyinen sijaintisi (:country) ei ole sallittujen maiden joukossa. Lisää se tai vaihda sääntöä ensin.",
-    "This form is for chat members only. Team members can open this chat from the dashboard.": "Tämä lomake on vain keskustelun jäsenille. Tiimin jäsenet voivat avata tämän keskustelun hallintapaneelista.",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "Vain tiedoston, jota myös muut agentit käyttävät, voi irrottaa. Poista tiedosto sen sijaan.",
     "This agent has reached its monthly message limit. Please try again next month.": "Tämä agentti on saavuttanut kuukausittaisen viestirajansa. Yritä uudelleen ensi kuussa.",
-    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "Tämä työtila on saavuttanut kuukausittaisen viestirajansa. Jokainen arviointitapaus lasketaan yhdeksi viestiksi."
+    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "Tämä työtila on saavuttanut kuukausittaisen viestirajansa. Jokainen arviointitapaus lasketaan yhdeksi viestiksi.",
+    "Pick one of the available models.": "Valitse jokin käytettävissä olevista malleista.",
+    "Complete the security check.": "Suorita turvatarkistus.",
+    "This account has been deactivated.": "Tämä tili on poistettu käytöstä.",
+    "This email already has an account in another workspace. Ask for an invitation to a different email.": "Tällä sähköpostiosoitteella on jo tili toisessa työtilassa. Pyydä kutsu toiseen sähköpostiosoitteeseen.",
+    "A chatter with this email already exists in your workspace.": "Työtilassasi on jo keskustelija tällä sähköpostiosoitteella."
 }

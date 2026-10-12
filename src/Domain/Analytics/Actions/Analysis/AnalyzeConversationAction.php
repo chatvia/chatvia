@@ -72,7 +72,7 @@ class AnalyzeConversationAction
         // Dispatch after commit so a rolled-back transaction never enqueues a
         // rollup increment for a topic row that didn't actually persist.
         foreach ($newlyAssignedTopicIds as $topicId) {
-            ConversationTopicAssigned::dispatch($agent->id, $agent->user_id, $topicId, $conversation->created_at);
+            ConversationTopicAssigned::dispatch($agent->id, $agent->workspace_id, $topicId, $conversation->created_at);
         }
     }
 

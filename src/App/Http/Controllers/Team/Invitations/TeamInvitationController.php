@@ -30,7 +30,7 @@ class TeamInvitationController
         $owner = $team->owner;
         $role = $invitation->role;
 
-        $existingUser = User::where('email', $invitation->email)->first();
+        $existingUser = $invitation->existingAccount();
 
         return Inertia::render('auth/AcceptInvitation', [
             'invitation' => [
@@ -53,7 +53,7 @@ class TeamInvitationController
                 'code' => $role->code,
                 'name' => $role->name,
             ],
-            'userExists' => $existingUser !== null,
+            'userExists' => $existingUser instanceof User,
         ]);
     }
 }

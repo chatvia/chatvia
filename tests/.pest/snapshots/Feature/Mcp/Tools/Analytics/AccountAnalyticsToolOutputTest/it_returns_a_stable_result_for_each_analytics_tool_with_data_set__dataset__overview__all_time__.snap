@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "All time: 10 messages (5 in, 5 AI) across 4 conversations from 4 visitors, 3 leads captured. Avg response 1,480ms. Feedback: 2👍 / 1👎."
+            "text": "All time: 20 messages (10 in, 10 AI) across 4 conversations from 4 visitors, 3 leads captured. Avg response 1,480ms. Feedback: 2👍 / 1👎."
         }
     ],
     "isError": false,
@@ -13,9 +13,9 @@
             "start": "2020-01-01",
             "end": "2026-06-15"
         },
-        "incoming_messages": 5,
-        "ai_messages": 5,
-        "total_messages": 10,
+        "incoming_messages": 10,
+        "ai_messages": 10,
+        "total_messages": 20,
         "conversations": 4,
         "unique_visitors": 4,
         "leads": 3,

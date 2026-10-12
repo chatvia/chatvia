@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 it('answers with the unavailable reply when the workspace reached its monthly limit', function (): void {
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id, 'is_public' => true]);
     MessageLimit::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'monthly_limit' => 1,
         'messages_used' => 1,
         'period_starts_at' => now()->startOfMonth(),

@@ -20,7 +20,7 @@ class WidgetPreviewController
     public function __invoke(Request $request, Agent $agent, AgentSignInTokenService $signInTokens): View
     {
         return view('widget.preview', [
-            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
+            'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),
             'agentId' => $agent->external_id,
             'authToken' => $this->previewToken('widget', $agent, $request->user(), $signInTokens),
             'language' => $request->query('language', 'auto'),

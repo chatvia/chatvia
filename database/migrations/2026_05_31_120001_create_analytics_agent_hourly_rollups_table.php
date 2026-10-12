@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -25,6 +26,8 @@ return new class extends Migration
             $table->unsignedInteger('conversations_started')->default(0);
             $table->unsignedInteger('user_messages')->default(0);
             $table->unsignedInteger('assistant_messages')->default(0);
+            $table->unsignedBigInteger('prompt_tokens')->default(0);
+            $table->unsignedBigInteger('completion_tokens')->default(0);
             $table->unsignedBigInteger('total_tokens')->default(0);
 
             $table->unsignedBigInteger('response_ms_sum')->default(0);
@@ -33,6 +36,11 @@ return new class extends Migration
             $table->primary(['agent_id', 'bucket_hour', 'country_code', 'llm_external_name']);
             $table->index(['workspace_id', 'bucket_hour']);
         });
+
+        // Every reply updates its hour's row: free space on each page lets
+        // Postgres rewrite it in place. BRIN serves install-wide time ranges.
+        DB::connection($this->getConnection())->statement('ALTER TABLE analytics_agent_hourly_rollups SET (fillfactor = 80)');
+        DB::connection($this->getConnection())->statement('CREATE INDEX analytics_hourly_bucket_brin ON analytics_agent_hourly_rollups USING brin (bucket_hour)');
     }
 
     public function down(): void

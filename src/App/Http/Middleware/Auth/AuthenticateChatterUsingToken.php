@@ -3,19 +3,19 @@
 namespace App\Http\Middleware\Auth;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Http\Chat\HostedChatViewer;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Signs a user in to an agent's hosted chat from a `?auth_token=` URL.
  *
  * Consumes a one-time token minted by ChatterAuthTokenService for this agent:
- * a token that resolves signs its user in on the chat guard (never the
- * dashboard) and is used up at once — strictly single-use, unlike the
+ * a token that resolves signs its chatter or staff account in to the chat
+ * ({@see HostedChatViewer}, never the dashboard) and is used up at once — strictly single-use, unlike the
  * multi-use `?token=` sign-in-link flow handled by
  * AuthenticateChatViaSignInToken, which runs right after this middleware in
  * the chat group.
@@ -45,10 +45,10 @@ class AuthenticateChatterUsingToken
         // An invalid, expired, used or foreign token is a no-op here: the
         // chat's access rules then send a still-anonymous visitor to login.
         if ($agent instanceof Agent) {
-            $userId = $this->authTokenService->consume($request->string('auth_token')->toString(), $agent);
+            $account = $this->authTokenService->consume($request->string('auth_token')->toString(), $agent);
 
-            if ($userId !== null) {
-                Auth::guard()->loginUsingId($userId);
+            if ($account !== null) {
+                HostedChatViewer::signIn($account);
             }
         }
 

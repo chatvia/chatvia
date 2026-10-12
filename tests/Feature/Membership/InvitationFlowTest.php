@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
@@ -11,8 +11,11 @@ use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Notifications\TeamInvitationNotification;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 
 /*
  * HTTP-level coverage for the two invitation flows and their side effects:
@@ -23,7 +26,9 @@ use Illuminate\Support\Facades\Notification;
  *                            invitee on demand.
  *   agents.chatters.store   — InviteAgentChatterAction's row + chatter + pivot +
  *                            AgentChatterInvited, and the
- *                            SendAgentChatterInvitationEmail listener end to end.
+ *                            SendAgentChatterInvitationEmail listener end to end;
+ *                            an email known in another workspace becomes a
+ *                            separate chatter and the answer never says so.
  *   teams.cancel-invitation — owner deletes the row; non-owner is forbidden;
  *                            an invitation of another team 404s (scoped lookup).
  */
@@ -55,6 +60,14 @@ function invitationFlowSupportRole(Team $team): void
     ));
 }
 
+/**
+ * The signed accept URL from an invitation email.
+ */
+function invitationFlowAcceptUrl(int $invitationId): string
+{
+    return URL::signedRoute('teams.invitation.accept', ['invitation' => $invitationId]);
+}
+
 beforeEach(function (): void {
     $this->owner = invitationFlowOwner();
     $this->team = $this->owner->primaryTeam();
@@ -63,6 +76,33 @@ beforeEach(function (): void {
 describe('teams.invite', function (): void {
     beforeEach(function (): void {
         invitationFlowSupportRole($this->team);
+    });
+
+    it('answers another workspace\'s teammate id exactly like an unknown id', function (): void {
+        $foreign = User::factory()->employee(User::factory()->create())->create();
+
+        $errorFor = function (int $userId): string {
+            $this->actingAs($this->owner)
+                ->from('/')
+                ->post(route('teams.invite', $this->team), ['user_id' => $userId, 'role' => 'support'])
+                ->assertSessionHasErrors('user_id');
+
+            return session('errors')->first('user_id');
+        };
+
+        expect($errorFor($foreign->id))->toBe($errorFor(999_999_999))
+            ->and($this->team->members()->whereKey($foreign->id)->exists())->toBeFalse();
+    });
+
+    it('adds a teammate of the same workspace by id', function (): void {
+        $teammate = User::factory()->employee($this->owner)->create();
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->post(route('teams.invite', $this->team), ['user_id' => $teammate->id, 'role' => 'support'])
+            ->assertSessionHasNoErrors();
+
+        expect($this->team->members()->whereKey($teammate->id)->exists())->toBeTrue();
     });
 
     it('persists the invitation and dispatches TeamInvitationCreated', function (): void {
@@ -87,6 +127,23 @@ describe('teams.invite', function (): void {
             fn (TeamInvitationCreated $event): bool => $event->email === 'invitee@example.com'
                 && $event->invitation->is($invitation),
         );
+    });
+
+    it('invites the email of a workspace chatter like any other email: a chatter is not a staff account', function (): void {
+        Event::fake([TeamInvitationCreated::class]);
+        Chatter::factory()->ofWorkspace($this->owner)->create(['email' => 'chatter@example.com']);
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->post(route('teams.invite', $this->team), [
+                'email' => 'chatter@example.com',
+                'role' => 'support',
+            ])
+            ->assertRedirect('/')
+            ->assertSessionHasNoErrors();
+
+        expect($this->team->invitations()->where('email', 'chatter@example.com')->exists())->toBeTrue();
+        Event::assertDispatched(TeamInvitationCreated::class);
     });
 
     it('emails the invitee through the registered listener', function (): void {
@@ -159,11 +216,13 @@ describe('agents.chatters.store', function (): void {
 
         // The action provisions the chatter account and the agent grant in the
         // same transaction — without the pivot row the accept link is useless.
-        $chatter = User::query()->where('email', 'chatter@example.com')->sole();
+        $chatter = $this->owner->workspace()->chatters()->where('email', 'chatter@example.com')->sole();
 
-        expect($chatter->type)->toBe(UserType::Chatter)
-            ->and($chatter->workspace_id)->toBe($this->owner->id)
-            ->and($this->agent->chatters()->whereKey($chatter->id)->exists())->toBeTrue();
+        expect($chatter)->toBeInstanceOf(Chatter::class)
+            ->and($chatter->workspace_id)->toBe($this->owner->workspace()->id)
+            ->and($chatter->email_verified_at)->toBeNull()
+            ->and($this->agent->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
+            ->and(User::query()->where('email', 'chatter@example.com')->exists())->toBeFalse();
 
         Event::assertDispatched(
             AgentChatterInvited::class,
@@ -190,6 +249,57 @@ describe('agents.chatters.store', function (): void {
             fn ($notification, array $channels, object $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'chatter@example.com',
         );
     });
+
+    it('invites an email used in another workspace as a separate chatter, answering exactly as for a new email', function (): void {
+        Event::fake([AgentChatterInvited::class]);
+
+        $otherOwner = invitationFlowOwner();
+        $foreign = Chatter::factory()->grantedTo(createAgent($otherOwner))->create(['email' => 'shared@example.com']);
+        User::factory()->employee($otherOwner)->create(['email' => 'staff-elsewhere@example.com']);
+
+        $flashFor = function (string $email): array {
+            $this->actingAs($this->owner)
+                ->from('/')
+                ->post(route('agents.chatters.store', $this->agent), ['email' => $email])
+                ->assertRedirect('/')
+                ->assertSessionHasNoErrors()
+                ->assertSessionHas('invitation');
+
+            return session('invitation');
+        };
+
+        $known = $flashFor('shared@example.com');
+        $staff = $flashFor('staff-elsewhere@example.com');
+        $unknown = $flashFor('brand-new@example.com');
+
+        expect(array_keys($known))->toBe(array_keys($unknown))
+            ->and(array_keys($staff))->toBe(array_keys($unknown))
+            ->and($known['email'])->toBe('shared@example.com');
+
+        // Two chatters with the same email, one per workspace.
+        $local = $this->owner->workspace()->chatters()->where('email', 'shared@example.com')->sole();
+
+        expect($local->id)->not->toBe($foreign->id)
+            ->and($this->agent->chatters()->whereKey($local->id)->exists())->toBeTrue()
+            ->and($this->agent->chatters()->whereKey($foreign->id)->exists())->toBeFalse()
+            ->and($this->owner->workspace()->chatters()->where('email', 'staff-elsewhere@example.com')->exists())->toBeTrue();
+    });
+
+    it('invites the email of a teammate of the same workspace as a chatter', function (): void {
+        Event::fake([AgentChatterInvited::class]);
+        $teammate = User::factory()->employee($this->owner)->create(['email' => 'teammate@example.com']);
+
+        $this->actingAs($this->owner)
+            ->from('/')
+            ->post(route('agents.chatters.store', $this->agent), ['email' => 'teammate@example.com'])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $chatter = $this->owner->workspace()->chatters()->where('email', 'teammate@example.com')->sole();
+
+        expect($this->agent->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
+            ->and($teammate->fresh()->isTeammate())->toBeTrue();
+    });
 });
 
 describe('teams.cancel-invitation', function (): void {
@@ -212,13 +322,13 @@ describe('teams.cancel-invitation', function (): void {
         expect($this->team->invitations()->whereKey($this->invitation->id)->exists())->toBeFalse();
     });
 
-    it('forbids a non-owner and keeps the row', function (): void {
+    it('hides the invitation from another workspace and keeps the row', function (): void {
         $outsider = invitationFlowOwner();
 
         $this->actingAs($outsider)
             ->from('/')
             ->delete(route('teams.cancel-invitation', [$this->team, $this->invitation->id]))
-            ->assertForbidden();
+            ->assertNotFound();
 
         expect($this->team->invitations()->whereKey($this->invitation->id)->exists())->toBeTrue();
     });
@@ -238,5 +348,42 @@ describe('teams.cancel-invitation', function (): void {
             ->assertNotFound();
 
         expect($foreign->fresh())->not->toBeNull();
+    });
+});
+
+describe('teams.invitation.accept', function (): void {
+    beforeEach(function (): void {
+        invitationFlowSupportRole($this->team);
+        $this->role = $this->team->invitableRoles()->first();
+    });
+
+    it('sends an existing teammate with two-factor to the challenge instead of signing them in', function (): void {
+        $teammate = User::factory()->employee($this->owner)->create([
+            'email' => 'twofa@example.com',
+            'password' => Hash::make('correct-horse-battery'),
+            'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
+            'two_factor_confirmed_at' => now(),
+        ]);
+        $invitation = $this->team->invitations()->create(['email' => 'twofa@example.com', 'role_id' => $this->role->id]);
+
+        $this->post(invitationFlowAcceptUrl($invitation->id), ['password' => 'correct-horse-battery'])
+            ->assertRedirect(route('two-factor.login'));
+
+        expect(Auth::guard('web')->check())->toBeFalse()
+            ->and(session('login.id'))->toBe($teammate->id);
+    });
+
+    it('signs a new teammate straight in', function (): void {
+        $invitation = $this->team->invitations()->create(['email' => 'new@example.com', 'role_id' => $this->role->id]);
+
+        $this->post(invitationFlowAcceptUrl($invitation->id), [
+            'name' => 'New Person',
+            'password' => 'a-strong-Password-123!',
+            'password_confirmation' => 'a-strong-Password-123!',
+            'policy' => '1',
+            'terms' => '1',
+        ])->assertRedirect(route('dashboard'));
+
+        expect(Auth::guard('web')->user()?->email)->toBe('new@example.com');
     });
 });

@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('workspace_security_policies', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete()->unique();
+            // unique() must come before constrained(): after it, Laravel applies it
+            // to the foreign key definition and silently drops it.
+            $table->foreignId('workspace_id')->unique()->constrained()->cascadeOnDelete();
 
             $table->unsignedInteger('retention_conversations_days')->nullable();
             $table->unsignedInteger('retention_leads_days')->nullable();

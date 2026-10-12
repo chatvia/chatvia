@@ -11,7 +11,7 @@ use Illuminate\Http\Response;
 
 /**
  * Revoke a chatter's access to one or more of your agents by removing their
- * `agent_user` grants. The chatter account itself is untouched — to delete the
+ * `agent_chatter` grants. The chatter account itself is untouched — to delete the
  * chatter entirely use `DELETE /api/v1/chatters/{chatter}`.
  */
 #[Group('Chatters', weight: 90)]
@@ -30,17 +30,17 @@ class RevokeChatterAgentsController
     {
         /** @var User $account */
         $account = $request->user();
-        $owner = $account->workspace();
+        $workspace = $account->workspace();
 
         // Scope to the caller's workspace — an unknown or foreign chatter 404s.
-        $target = $owner->chatters()->where('external_id', $chatter)->firstOrFail();
+        $target = $workspace->chatters()->where('external_id', $chatter)->firstOrFail();
 
         // The same ownership guard as creating a chatter: a foreign or unknown
         // agent id fails loudly instead of silently doing nothing.
-        $agents = $this->workspaceAgentsOrFail($owner, $payload->agent_ids);
+        $agents = $this->workspaceAgentsOrFail($workspace, $payload->agent_ids);
 
         // A single pivot detach — no Action needed.
-        $target->accessibleAgents()->detach($agents->modelKeys());
+        $target->agents()->detach($agents->modelKeys());
 
         return response()->noContent();
     }

@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -10,10 +9,10 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('agents', function (Blueprint $table) {
+        Schema::create('agents', function (Blueprint $table): void {
             $table->id();
             $table->string('external_id', 20)->unique();
-            $table->foreignIdFor(User::class)->index()->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
             $table->foreignIdFor(Team::class)->index()->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('slug')->nullable()->unique();
@@ -29,6 +28,14 @@ return new class extends Migration
             $table->text('auth_secret')->nullable();
 
             $table->timestamps();
+            // Set the moment an agent is deleted: it disappears at once while a
+            // queued job removes its chats and sources in small batches.
+            $table->softDeletes();
+
+            // Lets chat rows point at (workspace_id, agent_id) together, so the
+            // database refuses a row whose agent is in another workspace. Also
+            // serves lookups by workspace.
+            $table->unique(['workspace_id', 'id']);
         });
     }
 

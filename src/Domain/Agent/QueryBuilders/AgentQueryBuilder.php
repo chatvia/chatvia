@@ -18,16 +18,18 @@ use Illuminate\Support\Facades\DB;
 class AgentQueryBuilder extends Builder
 {
     /**
-     * Add total members count as a subquery select.
+     * Add total members count as a subquery select: the workspace's teammates
+     * plus its chatters (who live in their own table).
      *
      * @return self<TModel>
      */
     public function withTotalMembers(): self
     {
         return $this->addSelect([
-            'total_members' => DB::table('users')
-                ->whereColumn('users.workspace_id', 'agents.user_id')
-                ->selectRaw('count(*)'),
+            'total_members' => DB::query()->selectRaw(
+                '(select count(*) from workspace_user where workspace_user.workspace_id = agents.workspace_id)'
+                .' + (select count(*) from chatters where chatters.workspace_id = agents.workspace_id)'
+            ),
         ]);
     }
 }

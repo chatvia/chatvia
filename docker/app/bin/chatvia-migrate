@@ -7,7 +7,8 @@
 #   2. run the migrations (the first one installs the search extensions)
 #   3. check the embedding storage settings still match the database
 #   4. load the AI model list (reference data, never demo data)
-#   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, once
+#   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
+#      install has no admin yet
 #   6. add the built-in tools to the tool catalog (needs an embedding API key)
 set -eu
 
@@ -42,8 +43,6 @@ php artisan migrate --force --no-interaction
 # settings that would break every search.
 php artisan app:check-embedding-storage --no-interaction
 
-php artisan db:seed --class='Database\Seeders\LlmSeeder' --force --no-interaction
-
 admin_email="${ADMIN_EMAIL:-admin@example.com}"
 admin_password="${ADMIN_PASSWORD:-}"
 generated_password=false
@@ -52,7 +51,7 @@ if [ -z "$admin_password" ]; then
     generated_password=true
 fi
 
-output=$(php artisan admin:create-user "$admin_email" "${ADMIN_NAME:-Admin}" "$admin_password" --if-missing --no-interaction)
+output=$(php artisan admin:create-user "$admin_email" "${ADMIN_NAME:-Admin}" "$admin_password" --if-no-admin --if-missing --no-interaction)
 echo "$output"
 
 if [ "$generated_password" = true ] && echo "$output" | grep -q 'created successfully'; then

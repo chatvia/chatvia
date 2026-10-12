@@ -3,7 +3,6 @@
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -13,56 +12,34 @@ return new class extends Migration
         Schema::create('llms', function (Blueprint $table): void {
             $table->id();
 
-            $table->string('internal_name')->unique();
+            $table->foreignId('llm_provider_id')->constrained('llm_providers')->cascadeOnDelete();
+
+            // The model's id at its provider (sent in every call), and the
+            // stable alias agents, settings and analytics refer to it by.
+            $table->string('internal_name');
             $table->string('external_name')->unique();
 
             $table->string('descriptive_name');
-            $table->text('description');
-            $table->string('icon');
+            $table->text('description')->nullable();
+            $table->string('icon')->nullable();
 
-            $table->unsignedInteger('context_window');
-            $table->jsonb('features');
-            $table->enum('location', ['us', 'eu', 'cn']);
+            // Null when the provider does not say.
+            $table->unsignedInteger('context_window')->nullable();
+            $table->jsonb('features')->default('{}');
+            $table->enum('location', ['us', 'eu', 'cn'])->nullable();
             $table->boolean('is_reasoning')->default(false);
 
             $table->decimal('input_price_per_1m_tokens', 10, 4)->nullable();
             $table->decimal('output_price_per_1m_tokens', 10, 4)->nullable();
 
-            $table->enum('provider', ['scaleway', 'openai', 'anthropic', 'mistral', 'google', 'openrouter', 'groq'])->index();
+            // A disabled model is hidden from the pickers; the agents that
+            // already use it keep it.
+            $table->boolean('is_enabled')->default(true);
 
             $table->timestamps();
+
+            $table->unique(['llm_provider_id', 'internal_name']);
         });
-
-        $jsonPath = database_path('data/llms.json');
-
-        if (file_exists($jsonPath)) {
-            $llms = json_decode(file_get_contents($jsonPath), true);
-
-            if (json_last_error() === JSON_ERROR_NONE) {
-                $dataToInsert = [];
-
-                collect($llms)->each(function (array $llmData) use (&$dataToInsert): void {
-                    $dataToInsert[] = [
-                        'internal_name' => $llmData['internal_name'],
-                        'external_name' => $llmData['external_name'],
-                        'descriptive_name' => $llmData['descriptive_name'],
-                        'description' => $llmData['description'],
-                        'icon' => $llmData['icon'],
-                        'context_window' => $llmData['context_window'],
-                        'features' => json_encode([]),
-                        'location' => $llmData['location'],
-                        'is_reasoning' => $llmData['reasoning'] ?? false,
-                        'input_price_per_1m_tokens' => $llmData['input_price_per_1m_tokens'] ?? null,
-                        'output_price_per_1m_tokens' => $llmData['output_price_per_1m_tokens'] ?? null,
-                        'provider' => $llmData['provider'] ?? 'scaleway',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                });
-
-                DB::table('llms')->insert($dataToInsert);
-            }
-        }
 
         Llm::flushCatalogCache();
     }

@@ -14,7 +14,7 @@ beforeEach(function (): void {
 
     // Pre-provision the account-level Charts row so enabling is a pure attach
     // (no remote tools/list during the test).
-    $this->charts = $this->user->mcpServers()->create([
+    $this->charts = $this->user->workspace()->mcpServers()->create([
         'connector_slug' => 'charts',
         'category' => 'builtin',
         'name' => 'Interactive charts',

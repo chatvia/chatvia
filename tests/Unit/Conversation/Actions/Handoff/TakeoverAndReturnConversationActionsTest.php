@@ -46,7 +46,7 @@ beforeEach(function (): void {
 
 it('TakeoverConversationAction transitions pending → human and broadcasts admin identity', function (): void {
     $conversation = freshHandoffConversation('pending');
-    $admin = $conversation->session->agent->user; // workspace owner — passes access-agent Gate
+    $admin = $conversation->session->agent->workspace->owner; // workspace owner — passes access-agent Gate
 
     $result = app(TakeoverConversationAction::class)->execute($conversation, $admin);
 
@@ -64,9 +64,9 @@ it('TakeoverConversationAction transitions pending → human and broadcasts admi
 it('TakeoverConversationAction returns false when the conversation is already with a different admin', function (): void {
     // Seed an existing human handoff under a different real user. The
     // canBeTakenOverBy guard refuses unless the caller is that same user.
-    $incumbent = Agent::factory()->create()->user;
+    $incumbent = Agent::factory()->create()->workspace->owner;
     $conversation = freshHandoffConversation('human', handoffUserId: $incumbent->id);
-    $usurper = Agent::factory()->create()->user; // a different workspace user
+    $usurper = Agent::factory()->create()->workspace->owner; // a different workspace user
 
     $result = app(TakeoverConversationAction::class)->execute($conversation, $usurper);
 
@@ -78,7 +78,7 @@ it('TakeoverConversationAction returns false when the conversation is already wi
 
 it('ReturnConversationToAiAction returns the conversation to AI and broadcasts "returned"', function (): void {
     $conversation = freshHandoffConversation('pending');
-    $admin = $conversation->session->agent->user;
+    $admin = $conversation->session->agent->workspace->owner;
 
     // First take it over so isHeldBy passes (requires isHandedOff()).
     app(TakeoverConversationAction::class)->execute($conversation, $admin);
@@ -99,9 +99,9 @@ it('ReturnConversationToAiAction returns the conversation to AI and broadcasts "
 });
 
 it('ReturnConversationToAiAction returns false when the caller is not the current handoff user', function (): void {
-    $owner = Agent::factory()->create()->user;
+    $owner = Agent::factory()->create()->workspace->owner;
     $conversation = freshHandoffConversation('human', handoffUserId: $owner->id);
-    $intruder = Agent::factory()->create()->user;
+    $intruder = Agent::factory()->create()->workspace->owner;
 
     $result = app(ReturnConversationToAiAction::class)->execute($conversation, $intruder);
 

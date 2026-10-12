@@ -4,7 +4,9 @@ namespace Domain\Knowledge\Ingestion\Services\Clients;
 
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
-use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Services\ProviderAdapters;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -18,9 +20,19 @@ use InvalidArgumentException;
  */
 class MistralOcr
 {
-    public function __construct(
-        public Mistral $mistral
-    ) {}
+    private readonly LlmProviderInterface $mistral;
+
+    private readonly string $baseUrl;
+
+    public function __construct(ProviderAdapters $adapters)
+    {
+        // The Mistral service of Settings → AI, not a catalog provider.
+        $adapter = $adapters->for(LlmProviderEnum::MISTRAL);
+        $connection = $adapter->fromSettings();
+
+        $this->mistral = $adapter->client($connection);
+        $this->baseUrl = $adapter->baseUrl($connection);
+    }
 
     /**
      * OCR a PDF or office file that Mistral can fetch from the URL.
@@ -52,7 +64,7 @@ class MistralOcr
         $response = $this->mistral
             ->client()
             ->timeout(3600)
-            ->post(rtrim($this->mistral->getBaseUrl(), '/').'/ocr', [
+            ->post($this->baseUrl.'/ocr', [
                 'model' => (string) config('services.mistral.ocr_model'),
                 'document' => $document,
                 'table_format' => 'markdown',

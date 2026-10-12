@@ -15,7 +15,7 @@ use Throwable;
 
 /**
  * Puts the values saved in the admin panel into config, so the code that
- * reads `config('services.google.client_id')`, `config('chatvia.ai.provider')`
+ * reads `config('services.google.client_id')`, `config('chatvia.ai.reranker')`
  * and the like (our own code, Socialite, the mailer) gets them with no change.
  *
  * Each settings property names the config key it fills ({@see ConfigKey}). A
@@ -77,6 +77,9 @@ final class SettingsConfig
         if ($this->container instanceof Application && is_string($values['app.locale'] ?? null)) {
             $this->container->setLocale($values['app.locale']);
         }
+
+        // A disk's config is a whole array that depends on the storage chosen.
+        $this->container->make(StorageDisks::class)->apply();
 
         if ($this->appliedHash !== null) {
             $this->forgetResolvedClients();

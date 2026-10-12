@@ -106,23 +106,30 @@ want.
 | vue-tsc | | `npm run typecheck` |
 | i18n | `npm run i18n:merge` | `npm run i18n:check` |
 
-The widget in `shakomako/` has its own tools and CI workflow:
+### The widget
+
+The embeddable widget, Shakomako, lives in its own repository,
+[chatvia/shakomako](https://github.com/chatvia/shakomako), with its own tools
+and CI. Change the widget there.
+
+`npm run shakomako:build` builds the newest widget release (the highest
+`vX.Y.Z` tag of its repository) into `public/shakomako`, where the app serves
+it. The release workflow passes the same release to the Docker image build.
+`npm run -s shakomako:version` prints it, and `SHAKOMAKO_VERSION=vX.Y.Z` builds
+a chosen one instead.
+
+To work on the widget and the app together, clone the widget next to this
+repository and build your checkout instead:
 
 ```bash
-cd shakomako
-npm ci
-npm run lint
-npm test
-npm run build
+SHAKOMAKO_PATH=../shakomako npm run shakomako:build
 ```
 
-`npm run shakomako:build` (from the project root) builds it and copies the
-result to `public/shakomako`, where the app serves it.
-
-The `shakomako/` folder is also published, with only its own history, as a
-separate read-only repository (`.github/workflows/shakomako-mirror.yml`), for
-people who want only the widget. Always change the widget here: pull requests
-on the read-only copy are closed automatically.
+To ship a widget change, tag a release in the widget repository (see its
+`VERSIONING.md`). The next build takes it; nothing changes here. When the
+change also needs a server change (the `/widget` API, the `WidgetHeaders`
+names, the widget settings response), merge the server change here first,
+then tag the widget release: every build takes the newest release.
 
 ## Tests
 
@@ -203,8 +210,8 @@ on the read-only copy are closed automatically.
   and `EMBEDDING_DIMENSIONS`. A query vector is cast with
   `EmbeddingStorage::columnType()`, and a vchordrq index uses
   `EmbeddingStorage::type()->operatorClass()`.
-- Key workspace data to the workspace **owner** (`$agent->user_id`,
-  `$user->workspace()->id`), not to the teammate who is acting.
+- Key workspace data to the **workspace** (`$agent->workspace_id`,
+  `$user->workspace()->id`), not to the person who is acting.
 
 ### Frontend (Vue 3 + TypeScript)
 

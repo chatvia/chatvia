@@ -9,6 +9,7 @@ use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Data\Api\SignInLinkPayloadData;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Mint a sign-in link that logs one of your end-users (chatters) into one of
@@ -38,15 +39,15 @@ class ChatterSignInLinkController
 
         /** @var User $account */
         $account = $request->user();
-        $owner = $account->workspace();
+        $workspace = $account->workspace();
 
-        // `users()` is a BelongsToMany on User → related model is User by
-        // construction, but the relation's static type erases to Model. The
-        // `@var` brings the concrete type back so the `issue()` call below
-        // accepts it.
-        /** @var User $user */
-        $user = $owner->external_id === $payload->user_id ? $owner :
-            $owner->users()->where('external_id', $payload->user_id)->firstOrFail();
+        // The link may sign in a chatter of this workspace or one of its staff
+        // (owner or teammate). Ids outside this workspace (or not ids at all)
+        // are 404s.
+        abort_unless(Str::isUuid($payload->user_id), 404);
+
+        $user = $workspace->chatters()->where('external_id', $payload->user_id)->first()
+            ?? $workspace->members()->where('users.external_id', $payload->user_id)->firstOrFail();
 
         $result = $this->tokens->issue(
             user: $user,

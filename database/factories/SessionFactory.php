@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Session;
@@ -28,7 +29,10 @@ class SessionFactory extends Factory
     {
         return [
             'agent_id' => Agent::factory(),
+            // The agent's workspace; chat rows always carry it.
+            'workspace_id' => fn (array $attributes): int => (int) Agent::query()->whereKey($attributes['agent_id'])->value('workspace_id'),
             'user_id' => null,
+            'chatter_id' => null,
             'ip_address' => fake()->ipv4(),
             'country_id' => fake()->optional(0.8)->randomElement(
                 Country::pluck('id')->toArray() ?: [null]
@@ -38,12 +42,23 @@ class SessionFactory extends Factory
     }
 
     /**
-     * Indicate that the session is for a user.
+     * Indicate that the session is for a staff account (a dashboard preview).
      */
     public function forUser(): static
     {
         return $this->state(fn (array $attributes): array => [
             'user_id' => User::factory(),
+        ]);
+    }
+
+    /**
+     * Indicate that the session is for a chatter of the agent's workspace.
+     */
+    public function forChatter(?Chatter $chatter = null): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'chatter_id' => fn (array $attributes): int => $chatter?->id
+                ?? Chatter::factory()->create(['workspace_id' => $attributes['workspace_id']])->id,
         ]);
     }
 
@@ -68,12 +83,13 @@ class SessionFactory extends Factory
     }
 
     /**
-     * Indicate that the session is anonymous (no user).
+     * Indicate that the session is anonymous (no user, no chatter).
      */
     public function anonymous(): static
     {
         return $this->state(fn (array $attributes): array => [
             'user_id' => null,
+            'chatter_id' => null,
         ]);
     }
 }

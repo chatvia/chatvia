@@ -4,27 +4,28 @@ declare(strict_types=1);
 
 namespace App\Admin;
 
+use App\Admin\Pages\Setup;
 use App\Identity\Workspace\Models\User;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
-use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /**
- * Internal staff panel. Access is gated to UserType::Admin via
+ * Internal staff panel. Access is gated to platform staff (`is_admin`) via
  * {@see User::canAccessPanel()}.
  *
  * The panel signs in on its own `admin` guard, not the shared `web` guard. A
@@ -35,6 +36,10 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * Two-factor auth (app authenticator + recovery codes) is required: an admin
  * without it is sent to the set-up page on first sign-in and can't use the
  * panel until it is done.
+ *
+ * A new install then opens on its setup ({@see Setup}): every page leads
+ * there until the AI model, search and email are set up, or skipped
+ * ({@see RequireSetup}).
  */
 class AdminPanelProvider extends PanelProvider
 {
@@ -45,6 +50,11 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName(config('chatvia.brand.name').' Admin')
+            ->brandLogo(fn () => view('filament.brand'))
+            ->brandLogoHeight('2rem')
+            ->favicon(asset('images/favicons/favicon.svg'))
+            // The setup shows the mark alone, large, instead of the logo.
+            ->renderHook(PanelsRenderHook::SIMPLE_PAGE_START, fn () => view('filament.setup-logo'), scopes: Setup::class)
             ->authGuard('admin')
             ->login()
             ->profile()
@@ -52,19 +62,18 @@ class AdminPanelProvider extends PanelProvider
                 AppAuthentication::make()
                     ->recoverable(),
             ], isRequired: App::isProduction())
-            ->colors([
-                'primary' => Color::Amber,
-            ])
+            // The look of the Chatvia dashboard: its colours, its own copy of
+            // Inter and the theme's styles. No top bar: search and the user
+            // menu sit in the sidebar, beside the page.
+            ->colors(PanelColors::all())
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->font('Inter', url: asset('fonts/inter/inter.css'), provider: LocalFontProvider::class)
+            ->defaultAvatarProvider(InitialsAvatarProvider::class)
+            ->topbar(false)
             ->discoverClusters(in: app_path('Admin/Clusters'), for: 'App\Admin\Clusters')
             ->discoverResources(in: app_path('Admin/Resources'), for: 'App\Admin\Resources')
             ->discoverPages(in: app_path('Admin/Pages'), for: 'App\Admin\Pages')
-            ->pages([
-                Dashboard::class,
-            ])
             ->discoverWidgets(in: app_path('Admin/Widgets'), for: 'App\Admin\Widgets')
-            ->widgets([
-                AccountWidget::class,
-            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -78,6 +87,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+                RequireSetup::class,
+            ])
+            ->authenticatedRoutes(function (Panel $panel): void {
+                // A simple (centered) page, so it is routed here rather than
+                // discovered. It saves API keys: two-factor first, as for
+                // every page of the panel.
+                Route::get('setup', Setup::class)
+                    ->middleware($panel->isMultiFactorAuthenticationRequired() ? [$panel->getMultiFactorAuthenticationRequiredMiddleware()] : [])
+                    ->name('setup');
+            });
     }
 }

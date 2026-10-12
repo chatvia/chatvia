@@ -103,6 +103,7 @@ return [
         'redis:ingestion.word' => 300,
         'redis:ingestion.website' => 300,
         'redis:ingestion.youtube' => 300,
+        'redis:ingestion.chunks' => 300,
         'redis:ingestion.text' => 60,
         'redis:ingestion.markdown' => 60,
         'redis:exports' => 600,
@@ -229,7 +230,7 @@ return [
         ],
         'ingestion-medium' => [
             'connection' => 'redis-long',
-            'queue' => ['ingestion.pdf', 'ingestion.word', 'ingestion.website', 'ingestion.youtube'],
+            'queue' => ['ingestion.pdf', 'ingestion.word', 'ingestion.website', 'ingestion.youtube', 'ingestion.chunks'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'maxProcesses' => 1,

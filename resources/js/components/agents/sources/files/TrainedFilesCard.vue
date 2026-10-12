@@ -2,9 +2,11 @@
 /**
  * "Trained knowledge base": the agent's files that are training, trained or
  * failed, with a button to reuse a file another agent already trained. More
- * than five rows scroll inside a fixed-height area.
+ * than five rows scroll inside a fixed-height area; further pages load with
+ * "Load more".
  */
 import type { SourceFile } from '@/api/fileSources';
+import LoadMoreButton from '@/components/agents/sources/LoadMoreButton.vue';
 import TrainedFileRow from '@/components/agents/sources/files/TrainedFileRow.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +16,10 @@ import { useI18n } from 'vue-i18n';
 
 defineProps<{
     files: SourceFile[];
+    /** How many such files the agent has, loaded or not. */
+    total: number;
+    hasMore: boolean;
+    isLoadingMore: boolean;
     /** True only during the very first load, before any list arrived. */
     isLoading: boolean;
     isBusy: boolean;
@@ -21,6 +27,7 @@ defineProps<{
 
 const emit = defineEmits<{
     attach: [];
+    loadMore: [];
     summary: [file: SourceFile];
     remove: [file: SourceFile];
 }>();
@@ -38,7 +45,7 @@ const { t } = useI18n();
                         {{ t('agents.sources.files.trained_title') }}
                     </CardTitle>
                     <CardDescription>
-                        {{ t('agents.sources.files.trained_description', files.length) }}
+                        {{ t('agents.sources.files.trained_description', total) }}
                     </CardDescription>
                 </div>
                 <Button variant="outline" size="sm" :disabled="isBusy" @click="emit('attach')">
@@ -68,6 +75,7 @@ const { t } = useI18n();
                         />
                     </div>
                 </component>
+                <LoadMoreButton v-if="hasMore && !isLoading" :is-loading="isLoadingMore" @click="emit('loadMore')" />
             </div>
         </CardContent>
     </Card>

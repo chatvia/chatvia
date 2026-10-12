@@ -2,9 +2,11 @@
 
 namespace Domain\Conversation\Models;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\SessionFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Listeners\LocateSession;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -22,13 +24,16 @@ use Support\Localization\Country\Models\Country;
  * (not the browser-bound WidgetSession). It holds what the chat log and
  * analytics show about the visitor: contact details when given, device and
  * browser, the page they came from, and a location that is filled in later
- * by {@see LocateSession}. A signed-in
- * chatter's session also links to their user.
+ * by {@see LocateSession}. A signed-in chatter's session links to the
+ * chatter (`chatter_id`); a staff account's (a dashboard preview) to the user
+ * (`user_id`); never both.
  *
  * @property int $id
  * @property string $external_id
+ * @property int $workspace_id
  * @property int|null $agent_id
  * @property int|null $user_id
+ * @property int|null $chatter_id
  * @property int|null $country_id
  * @property string|null $name
  * @property string|null $email
@@ -47,6 +52,7 @@ use Support\Localization\Country\Models\Country;
  * @property string|null $page_url
  * @property string|null $locale
  * @property Carbon|null $last_activity_at
+ * @property Carbon|null $anonymized_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Agent|null $agent
@@ -54,6 +60,7 @@ use Support\Localization\Country\Models\Country;
  * @property-read int|null $conversations_count
  * @property-read Country|null $country
  * @property-read User|null $user
+ * @property-read Chatter|null $chatter
  *
  * @method static \Database\Factories\SessionFactory factory($count = null, $state = [])
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Session newModelQuery()
@@ -97,6 +104,7 @@ class Session extends Model
     {
         return [
             'last_activity_at' => 'datetime',
+            'anonymized_at' => 'datetime',
             'is_proxy' => 'boolean',
         ];
     }
@@ -115,10 +123,34 @@ class Session extends Model
         return $this->belongsTo(Agent::class);
     }
 
-    /** @return BelongsTo<User, $this> */
+    /**
+     * The staff account chatting (a dashboard preview), if any.
+     *
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The chatter chatting, if any.
+     *
+     * @return BelongsTo<Chatter, $this>
+     */
+    public function chatter(): BelongsTo
+    {
+        return $this->belongsTo(Chatter::class);
+    }
+
+    /** The signed-in person on this session (chatter or staff), or null for a visitor. */
+    public function viewer(): ?ChatViewerData
+    {
+        return match (true) {
+            $this->chatter_id !== null => ChatViewerData::chatter($this->chatter_id),
+            $this->user_id !== null => ChatViewerData::staff($this->user_id),
+            default => null,
+        };
     }
 
     /** @return BelongsTo<Country, $this> */

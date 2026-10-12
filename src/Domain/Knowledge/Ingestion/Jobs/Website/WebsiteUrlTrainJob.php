@@ -6,6 +6,7 @@ use DateTimeInterface;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
+use Domain\Knowledge\Ingestion\Services\BatchProgress;
 use Domain\Knowledge\Source\Web\Middleware\ThrottleFirecrawl;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Llm\Usage\AttributesTokenUsage;
@@ -75,12 +76,12 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->agent->user_id;
+        return $this->agent->workspace_id;
     }
 
     public function handle(TrainWebsiteUrlAction $action): void
     {
-        $action->execute($this->websiteUrl, $this->agent);
+        $action->execute($this->websiteUrl, $this->agent, BatchProgress::afterCurrentJob($this->batch()));
     }
 
     public function failed(Throwable $e): void

@@ -25,7 +25,7 @@ beforeEach(function (): void {
 
     // Pre-provision the account-level forms row so enabling is a pure attach
     // (no remote tools/list during the test).
-    $this->user->mcpServers()->create([
+    $this->user->workspace()->mcpServers()->create([
         'connector_slug' => 'forms',
         'category' => 'builtin',
         'name' => 'Forms',

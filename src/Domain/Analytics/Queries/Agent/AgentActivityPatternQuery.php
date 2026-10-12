@@ -17,13 +17,13 @@ class AgentActivityPatternQuery extends AgentAnalyticsQuery
      */
     public function byHour(Agent $agent): array
     {
-        return $this->hourlyRollups($agent)
+        return $this->cached($agent, 'conversations-by-hour', 'lifetime', fn (): array => $this->hourlyRollups($agent)
             ->selectRaw('EXTRACT(HOUR FROM bucket_hour)::int as hour, SUM(conversations_started) as conversation_count')
             ->groupBy('hour')
             ->orderBy('hour')
             ->get()
             ->map(static fn (object $row): HourCountData => new HourCountData((int) $row->hour, (int) $row->conversation_count))
-            ->all();
+            ->all());
     }
 
     /**
@@ -31,12 +31,12 @@ class AgentActivityPatternQuery extends AgentAnalyticsQuery
      */
     public function byWeekday(Agent $agent): array
     {
-        return $this->hourlyRollups($agent)
+        return $this->cached($agent, 'conversations-by-weekday', 'lifetime', fn (): array => $this->hourlyRollups($agent)
             ->selectRaw('EXTRACT(DOW FROM bucket_hour)::int as day_of_week, SUM(conversations_started) as conversation_count')
             ->groupBy('day_of_week')
             ->orderBy('day_of_week')
             ->get()
             ->map(static fn (object $row): WeekdayCountData => new WeekdayCountData((int) $row->day_of_week, (int) $row->conversation_count))
-            ->all();
+            ->all());
     }
 }

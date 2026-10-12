@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Ingestion\Models;
 
+use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\QueryBuilders\ChunkQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
@@ -23,7 +24,7 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string|null $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string $chunkable_type
  * @property int $chunkable_id
  * @property int $chunk_index
@@ -46,7 +47,9 @@ use Support\Concerns\HasExternalId;
  * @property-read Collection<int, ChunkReference> $references
  * @property-read int|null $references_count
  *
- * @method static ChunkQueryBuilder<static>|Chunk forAgent(int $agentId)
+ * @method static ChunkQueryBuilder<static>|Chunk forAgent(Agent $agent)
+ * @method static ChunkQueryBuilder<static>|Chunk ofSource(Model $source)
+ * @method static ChunkQueryBuilder<static>|Chunk unreferenced()
  * @method static ChunkQueryBuilder<static>|Chunk withQuestions()
  * @method static ChunkQueryBuilder<static>|Chunk newModelQuery()
  * @method static ChunkQueryBuilder<static>|Chunk newQuery()
@@ -70,7 +73,7 @@ use Support\Concerns\HasExternalId;
  * @method static ChunkQueryBuilder<static>|Chunk whereTokens($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereType($value)
  * @method static ChunkQueryBuilder<static>|Chunk whereUpdatedAt($value)
- * @method static ChunkQueryBuilder<static>|Chunk whereUserId($value)
+ * @method static ChunkQueryBuilder<static>|Chunk whereWorkspaceId($value)
  *
  * @mixin \Eloquent
  */

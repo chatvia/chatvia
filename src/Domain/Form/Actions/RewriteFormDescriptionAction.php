@@ -5,8 +5,10 @@ namespace Domain\Form\Actions;
 use Domain\Form\Data\RewriteFormDescriptionData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\LlmRole;
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Domain\Llm\Services\LlmChat;
+use Domain\Llm\Services\ModelRoles;
 use Illuminate\Support\Str;
 
 /**
@@ -17,7 +19,10 @@ use Illuminate\Support\Str;
  */
 class RewriteFormDescriptionAction
 {
-    public function __construct(private readonly LlmChat $chat) {}
+    public function __construct(
+        private readonly LlmChat $chat,
+        private readonly ModelRoles $models,
+    ) {}
 
     public function execute(RewriteFormDescriptionData $data): string
     {
@@ -28,7 +33,7 @@ class RewriteFormDescriptionAction
         ])->implode("\n");
 
         $content = $this->chat->send(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.form_description'),
+            model: $this->models->model(LlmRole::Fast),
             messages: [
                 ChatMessageData::system(prompt('forms/rewrite-description')),
                 ChatMessageData::user($context),

@@ -23,9 +23,10 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Bot');
 
-    $session = Session::create(['agent_id' => $this->agent->id, 'user_id' => null]);
+    $session = Session::create(['workspace_id' => $this->agent->workspace_id, 'agent_id' => $this->agent->id, 'user_id' => null]);
     $this->conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $this->agent->workspace_id,
         'agent_id' => $this->agent->id,
         'source' => ConversationSource::HostedChat,
         'title' => 'Test',
@@ -96,6 +97,7 @@ it('rejects an expired form as expired', function (): void {
 it('flips the owning message artifact to submitted for reload state', function (): void {
     $submission = pendingFormSubmission($this);
     $message = Message::create([
+        'workspace_id' => $this->conversation->workspace_id,
         'chat_conversation_id' => $this->conversation->id,
         'role' => 'assistant',
         'content' => 'Here is a form',

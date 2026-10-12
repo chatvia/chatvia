@@ -17,7 +17,7 @@ class AgentFunctionPolicy
 {
     public function view(User $user, AgentFunction $function): bool
     {
-        return $function->user_id === $user->workspace()->id;
+        return $function->workspace_id === $user->workspace()->id;
     }
 
     public function update(User $user, AgentFunction $function): bool

@@ -16,16 +16,20 @@ use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\LocalTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
-use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Exceptions\LlmProviderUnavailableException;
+use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
-use Domain\Llm\Providers\Groq;
+use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Providers\OpenAiCompatible;
 use Domain\Llm\Providers\OpenRouter;
 use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\LlmProviders;
+use Domain\Llm\Services\ProviderAdapters;
 
 /**
  * Each AI step is bound from config('chatvia.ai.*') in DomainServiceProvider.
@@ -64,7 +68,6 @@ it('keeps the hosted services when their keys are set, as in production', functi
         'services.mistral.api_key' => 'mistral-key',
         'services.chunkfit.api_key' => 'chunkfit-key',
         'services.scalewayai.api_key' => 'scaleway-key',
-        'chatvia.ai.provider' => 'scaleway',
     ]);
 
     $documentLlm = app(DocumentLlm::class);
@@ -76,14 +79,13 @@ it('keeps the hosted services when their keys are set, as in production', functi
         ->and(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class)
         ->and(app(Reranker::class))->toBeInstanceOf(Qwen3Reranker::class)
         ->and(app(EmbeddingsProviderInterface::class))->toBeInstanceOf(Qwen3::class)
-        ->and(app(LlmProviderInterface::class))->toBeInstanceOf(Scaleway::class)
         ->and($documentLlm->isAvailable())->toBeTrue()
         ->and($documentLlm->provider())->toBeInstanceOf(Mistral::class)
         ->and($documentLlm->slug())->toBe('mistral');
 });
 
 it('uses a self-hosted chunker without an API key', function (): void {
-    config(['services.chunkfit.base_url' => 'http://chunker:8000/api/v1']);
+    config(['services.chunkfit.base_url' => 'http://chunker:8000']);
 
     expect(app(TextSplitter::class))->toBeInstanceOf(ChunkFitTextSplitter::class);
 });
@@ -136,27 +138,34 @@ it('refuses a document LLM provider that cannot read PDF documents', function ()
     expect(fn () => app(DocumentLlm::class))->toThrow(InvalidArgumentException::class, 'Use auto, mistral, none');
 });
 
-it('maps every chat provider slug to its client and falls back to OpenRouter', function (?string $slug, string $class): void {
-    config(['chatvia.ai.provider' => $slug]);
-
-    expect(app(LlmProviderInterface::class))->toBeInstanceOf($class);
+it('builds the client of each provider kind', function (LlmProviderEnum $kind, string $class): void {
+    expect(app(LlmProviders::class)->forProvider(LlmProvider::factory()->kind($kind)->make()))->toBeInstanceOf($class);
 })->with([
-    'scaleway' => ['scaleway', Scaleway::class],
-    'mistral' => ['mistral', Mistral::class],
-    'groq' => ['groq', Groq::class],
-    'openrouter' => ['openrouter', OpenRouter::class],
-    'no client of its own' => ['openai', OpenRouter::class],
-    'unknown' => ['something-else', OpenRouter::class],
-    'unset' => [null, OpenRouter::class],
+    'scaleway' => [LlmProviderEnum::SCALEWAY, Scaleway::class],
+    'mistral' => [LlmProviderEnum::MISTRAL, Mistral::class],
+    'openrouter' => [LlmProviderEnum::OPENROUTER, OpenRouter::class],
+    'openai' => [LlmProviderEnum::OPENAI, OpenAiCompatible::class],
+    'gemini' => [LlmProviderEnum::GOOGLE, OpenAiCompatible::class],
+    'groq' => [LlmProviderEnum::GROQ, OpenAiCompatible::class],
+    'custom server' => [LlmProviderEnum::CUSTOM, OpenAiCompatible::class],
 ]);
 
-it('uses one provider vocabulary for chat routing and the LLM catalog', function (): void {
-    $routable = array_filter(LlmProviderEnum::cases(), fn (LlmProviderEnum $p): bool => $p->providerClass() !== null);
+it('refuses a provider kind it has no client for, or one that is off', function (LlmProvider $provider): void {
+    expect(fn () => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
+})->with([
+    'no client yet' => fn () => LlmProvider::factory()->kind(LlmProviderEnum::ANTHROPIC)->make(),
+    'turned off' => fn () => LlmProvider::factory()->disabled()->make(),
+]);
 
-    expect(array_map(fn (LlmProviderEnum $p): string => $p->value, array_values($routable)))
-        ->toBe(['scaleway', 'mistral', 'openrouter', 'groq'])
-        ->and(LlmProviderEnum::MISTRAL->readsDocuments())->toBeTrue()
-        ->and(LlmProviderEnum::SCALEWAY->readsDocuments())->toBeFalse();
+it('stores every provider kind, and only Mistral reads PDF documents', function (): void {
+    foreach (LlmProviderEnum::cases() as $kind) {
+        expect(LlmProvider::factory()->kind($kind)->create()->fresh()->kind)->toBe($kind);
+    }
+
+    $readers = array_filter(app(ProviderAdapters::class)->all(), fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments());
+
+    expect(array_map(fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(), array_values($readers)))
+        ->toBe([LlmProviderEnum::MISTRAL]);
 });
 
 it('fails fast when the embedding provider cannot return the size the database stores', function (string $provider, int $stored): void {

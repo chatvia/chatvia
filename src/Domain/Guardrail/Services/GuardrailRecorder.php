@@ -30,7 +30,7 @@ class GuardrailRecorder
             GuardrailTriggered::dispatch(
                 $agent->id,
                 $agent->name,
-                (int) $agent->user_id,
+                (int) $agent->workspace_id,
                 $rd->actorUserId,
                 $rd->actorName,
                 $rd->conversationId,
@@ -42,6 +42,7 @@ class GuardrailRecorder
                 $verdict->severity?->value,
                 $verdict->detail,
                 $sample,
+                $rd->chatterId,
             );
         }
     }

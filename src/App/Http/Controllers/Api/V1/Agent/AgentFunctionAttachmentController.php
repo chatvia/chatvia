@@ -54,7 +54,7 @@ class AgentFunctionAttachmentController
     private function resolveFunction(Agent $agent, string $externalId): AgentFunction
     {
         return AgentFunction::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('external_id', $externalId)
             ->firstOrFail();
     }

@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Memory;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Session;
 
 /**
@@ -21,10 +22,10 @@ class ChatSessions
     }
 
     /** The user's most recent session with the agent, or null when they have none. */
-    public function latestFor(Agent $agent, int $userId): ?string
+    public function latestFor(Agent $agent, ChatViewerData $viewer): ?string
     {
         return Session::query()
-            ->where('user_id', $userId)
+            ->where($viewer->sessionColumn(), $viewer->id)
             ->where('agent_id', $agent->id)
             ->latest('id')
             ->value('external_id');

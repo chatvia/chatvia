@@ -24,7 +24,7 @@ class PendingHandoffsQuery
     {
         return Conversation::query()
             ->forAgent($agent->id)
-            ->with(['session.user', 'lead', 'lastMessage'])
+            ->with(['session.user', 'session.chatter', 'lead', 'lastMessage'])
             ->where('handoff_status', HandoffStatus::Pending)
             ->where('is_visible', true)
             ->orderByDesc('updated_at')

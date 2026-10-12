@@ -18,11 +18,11 @@ use Illuminate\Support\Facades\DB;
  * can serve the ORDER BY from the vector/BM25 index. A shared candidate CTE
  * would hide the indexes and leave recall to a brute-force scan.
  *
- * Every channel also carries the scalar `c.user_id = ?` tenant filter: the
+ * Every channel also carries the scalar `c.workspace_id = ?` tenant filter: the
  * EXISTS alone is a correlated subplan the prefilter re-probes per visited
  * row, so without it the scan cost (and, once the probed lists run dry, the
  * recall) grows with ALL platform data instead of the workspace's own.
- * `user_id` is btree-indexed, which also gives small tenants a cheap path.
+ * `workspace_id` is btree-indexed, which also gives small tenants a cheap path.
  *
  * Retrieval quality is measured by an evaluation harness: any change to this
  * SQL changes search results and must be measured first.
@@ -43,7 +43,7 @@ final readonly class HybridChunkSearch
     public function search(Agent $agent, string $query, string $queryVector, int $limit = 4): array
     {
         $agentId = $agent->id;
-        $workspaceId = (int) $agent->user_id;
+        $workspaceId = (int) $agent->workspace_id;
         $candidateLimit = $limit * self::CANDIDATES_PER_RESULT;
         $channels = $this->channels();
 
@@ -165,7 +165,7 @@ SQL;
     FROM (
         SELECT c.id, {$distance} AS dist
         FROM chunks c
-        WHERE c.user_id = ?{$required}
+        WHERE c.workspace_id = ?{$required}
           AND EXISTS (
               SELECT 1 FROM agent_sources s
               WHERE s.agent_id = ?

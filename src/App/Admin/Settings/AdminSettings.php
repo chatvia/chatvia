@@ -46,6 +46,20 @@ abstract class AdminSettings extends Settings
             ->all();
     }
 
+    /** The property that fills a config key, or null when none does. */
+    public static function propertyFor(string $configKey): ?string
+    {
+        foreach (static::configKeys() as $property => $keys) {
+            foreach ($keys as $key) {
+                if ($key->key === $configKey) {
+                    return $property;
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * The properties that are stored encrypted and never sent to the browser.
      *

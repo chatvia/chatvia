@@ -40,7 +40,7 @@ class SettingsChatterController
         if ($request->wantsJson()) {
             $chatters = $request->user()->workspace()
                 ->chatters()
-                ->withCount('accessibleAgents')
+                ->withCount('agents')
                 ->with('messageLimit')
                 ->orderBy('name')
                 ->get();
@@ -100,7 +100,7 @@ class SettingsChatterController
         $update->execute($request->toData($member));
 
         return WorkspaceChatterRowData::fromModel(
-            $member->loadCount('accessibleAgents')->load('messageLimit'),
+            $member->loadCount('agents')->load('messageLimit'),
         );
     }
 

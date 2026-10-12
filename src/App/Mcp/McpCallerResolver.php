@@ -2,11 +2,11 @@
 
 namespace App\Mcp;
 
-use App\Identity\Workspace\Enums\UserType;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
  * Turns the identity of a signed internal MCP request into a
@@ -60,18 +60,23 @@ final class McpCallerResolver
             ->first();
     }
 
-    private function workspace(Request $request): ?User
+    /**
+     * The workspace named by the workspace header, only on the analytics
+     * servers and only when no agent is calling (an agent's tool calls carry
+     * the workspace id too, but never act in workspace mode).
+     */
+    private function workspace(Request $request): ?Workspace
     {
         $externalId = $this->header($request, self::WORKSPACE_HEADER);
 
-        if ($externalId === null || ! $this->acceptsWorkspaceCaller($request)) {
+        if ($externalId === null
+            || $this->header($request, self::AGENT_HEADER) !== null
+            || ! $this->acceptsWorkspaceCaller($request)
+            || ! Str::isUuid($externalId)) {
             return null;
         }
 
-        return User::query()
-            ->where('external_id', $externalId)
-            ->whereIn('type', UserType::workspaceTypes())
-            ->first();
+        return Workspace::query()->where('external_id', $externalId)->first();
     }
 
     /**

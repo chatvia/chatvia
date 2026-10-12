@@ -13,11 +13,21 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Models\Llm;
+use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\LlmProviders;
+use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
+use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\RefreshTestDatabases;
+use Tests\Support\FakeLlmProviders;
 use Tests\TestCase;
 
 pest()
@@ -68,8 +78,8 @@ function something(): void
 }
 
 /**
- * Create a minimal, fully-owned agent for unit tests, ensuring the owner has a
- * primary team. Pass any column override via `$overrides`.
+ * Create a minimal agent in the user's workspace for unit tests, ensuring the
+ * user has a primary team. Pass any column override via `$overrides`.
  *
  * @param  array<string, mixed>  $overrides
  */
@@ -78,7 +88,7 @@ function createAgent(User $user, array $overrides = []): Agent
     $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
 
     return Agent::create(array_merge([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $team->id,
         'name' => 'Bot',
         'external_id' => Str::random(20),
@@ -93,7 +103,7 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
     $team ??= $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
 
     return Agent::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $team->id,
         'name' => $name,
         'external_id' => Str::random(14),
@@ -104,19 +114,73 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
 }
 
 /**
+ * A teammate of the owner's workspace on $team (the owner's primary team when
+ * omitted), under a new role granting exactly $permissions. Their current team
+ * is that team, so the permission helpers resolve it.
+ *
+ * @param  list<string>  $permissions
+ * @param  list<string>  $agentExternalIds  the agents the role reaches when not $allAgents
+ */
+function teammateWithPermissions(User $owner, array $permissions, ?Team $team = null, bool $allAgents = true, array $agentExternalIds = []): User
+{
+    $team ??= $owner->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($owner);
+
+    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
+        team: $team,
+        name: 'Role-'.Str::random(10),
+        permissions: $permissions,
+        allAgents: $allAgents,
+        agentExternalIds: $agentExternalIds,
+    ));
+
+    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
+    $team->members()->attach($member->id, ['role_id' => $role->id]);
+
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    return $member;
+}
+
+/**
+ * Every call to any model goes to this fake client.
+ */
+function bindFakeLlmProvider(LlmProviderInterface $provider): void
+{
+    app()->instance(LlmProviders::class, new FakeLlmProviders($provider));
+}
+
+/**
+ * A catalog model on a new provider (an OpenAI-compatible test server unless
+ * a kind is given).
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function testLlm(string $internalName = 'test-model', LlmProviderEnum $kind = LlmProviderEnum::CUSTOM, array $attributes = []): Llm
+{
+    return Llm::factory()
+        ->for(LlmProvider::factory()->kind($kind), 'provider')
+        ->create(['internal_name' => $internalName, ...$attributes]);
+}
+
+/**
  * Stub the LLM provider's chat-completion HTTP call so analysis tests get a
  * deterministic assistant message instead of hitting a real model.
  */
 function fakeLlmCompletion(string $content): void
 {
-    // The LLM provider builds an Authorization header from its (typed string)
-    // API key before the request is made, so give it a value even though the
-    // HTTP call itself is faked.
-    config(['services.scalewayai.api_key' => 'test-key']);
-
     Http::fake([
         '*' => Http::response([
             'choices' => [['message' => ['content' => $content]]],
         ]),
     ]);
+}
+
+/**
+ * An id that is free in both `users` and `chatters`, so a test can create a
+ * staff account and a chatter with the same id and prove the two never mix.
+ * Taking the next value of both sequences means neither table can hold it.
+ */
+function sharedStaffAndChatterId(): int
+{
+    return (int) DB::scalar("select greatest(nextval(pg_get_serial_sequence('users', 'id')), nextval(pg_get_serial_sequence('chatters', 'id')))");
 }

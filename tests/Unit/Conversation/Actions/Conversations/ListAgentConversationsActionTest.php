@@ -8,8 +8,7 @@ use Domain\Conversation\Models\Session;
 
 /**
  * The API conversation list shows only the agent's visible conversations,
- * newest activity first, and hides sentiment/tone unless the workspace's plan
- * includes them.
+ * newest activity first, paged with a cursor.
  */
 function apiListedConversation(Agent $agent, array $attributes = []): Conversation
 {
@@ -31,29 +30,58 @@ it('lists only the agent\'s visible conversations, latest activity first', funct
 
     $page = app(ListAgentConversationsAction::class)->execute($agent, perPage: 25);
 
-    expect($page->total())->toBe(2)
-        ->and(collect($page->items())->map(fn (ConversationSummaryData $row): string => $row->id)->all())
-        ->toBe([$newer->external_id, $older->external_id]);
+    expect($page->data->map(fn (ConversationSummaryData $row): string => $row->id)->all())
+        ->toBe([$newer->external_id, $older->external_id])
+        ->and($page->next_cursor)->toBeNull();
 });
 
-it('pages the list with the requested page size', function (): void {
+it('walks the list page by page with the cursor, without skipping or repeating a row', function (): void {
     $agent = Agent::factory()->create();
-    foreach (range(1, 3) as $i) {
-        apiListedConversation($agent);
-    }
+    // Two rows share an updated_at, so the id has to break the tie.
+    $sameTime = now()->subHour()->startOfSecond();
+    $expected = collect([
+        apiListedConversation($agent, ['updated_at' => now()->subMinute()]),
+        apiListedConversation($agent, ['updated_at' => $sameTime]),
+        apiListedConversation($agent, ['updated_at' => $sameTime]),
+        apiListedConversation($agent, ['updated_at' => now()->subDay()]),
+        apiListedConversation($agent, ['updated_at' => now()->subDays(2)]),
+    ])->sortBy([['updated_at', 'desc'], ['id', 'desc']])->pluck('external_id')->values()->all();
 
-    $page = app(ListAgentConversationsAction::class)->execute($agent, perPage: 2);
+    $list = app(ListAgentConversationsAction::class);
+    $first = $list->execute($agent, perPage: 2);
+    $second = $list->execute($agent, perPage: 2, cursor: $first->next_cursor);
+    $third = $list->execute($agent, perPage: 2, cursor: $second->next_cursor);
 
-    expect($page->total())->toBe(3)
-        ->and($page->items())->toHaveCount(2)
-        ->and($page->perPage())->toBe(2);
+    $seen = collect([$first, $second, $third])
+        ->flatMap(fn ($page) => $page->data->map(fn (ConversationSummaryData $row): string => $row->id))
+        ->all();
+
+    expect($first->data)->toHaveCount(2)
+        ->and($first->next_cursor)->toBeString()
+        ->and($third->data)->toHaveCount(1)
+        ->and($third->next_cursor)->toBeNull()
+        ->and($seen)->toBe($expected);
 });
+
+it('starts again at the first page for a cursor it did not hand out', function (string $cursor): void {
+    $agent = Agent::factory()->create();
+    $newest = apiListedConversation($agent, ['updated_at' => now()]);
+    apiListedConversation($agent, ['updated_at' => now()->subDay()]);
+
+    $page = app(ListAgentConversationsAction::class)->execute($agent, perPage: 1, cursor: $cursor);
+
+    expect($page->data->first()->id)->toBe($newest->external_id);
+})->with([
+    'garbage' => 'not-a-cursor',
+    'missing id' => base64_encode(json_encode(['updated_at' => '2026-01-01 00:00:00', '_pointsToNextItems' => true])),
+    'bad timestamp' => base64_encode(json_encode(['updated_at' => '2026-13-45 99:00:00', 'id' => 1, '_pointsToNextItems' => true])),
+]);
 
 it('shows sentiment and tone', function (): void {
     $agent = Agent::factory()->create();
     apiListedConversation($agent, ['sentiment' => 'negative', 'tone' => 'frustrated']);
 
-    $row = app(ListAgentConversationsAction::class)->execute($agent, perPage: 25)->items()[0];
+    $row = app(ListAgentConversationsAction::class)->execute($agent, perPage: 25)->data->first();
 
     expect($row->sentiment)->toBe('negative')
         ->and($row->tone)->toBe('frustrated');

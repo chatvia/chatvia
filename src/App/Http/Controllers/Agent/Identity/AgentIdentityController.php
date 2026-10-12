@@ -23,7 +23,7 @@ class AgentIdentityController
         return Inertia::render('agents/security/Identity', [
             'agent' => AgentResourceData::fromModel($agent),
             'auth_secret' => $agent->ensureAuthSecret(),
-            'embed_script_url' => config('chatvia.widget.script_url_embed'),
+            'embed_script_url' => url(config('chatvia.widget.script_url_embed')),
         ]);
     }
 }

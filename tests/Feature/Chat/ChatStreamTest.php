@@ -80,7 +80,7 @@ function bindFakeStreamingLlm(string ...$tokens): void
         }
     };
 
-    app()->instance(LlmProviderInterface::class, $fake);
+    bindFakeLlmProvider($fake);
 
     // The RAG query-embedding runs while building the turn, so fake it too —
     // otherwise the test env has no embedding API key and the request 500s.
@@ -123,7 +123,7 @@ function publicStreamingAgent(): Agent
     app(TeamService::class)->createDefaultTeam($owner);
 
     return Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Stream Bot',
         'external_id' => Str::random(14),
@@ -203,7 +203,7 @@ it('emails the owner when a rate-limited agent has alerts enabled', function ():
     $send();
 
     Notification::assertSentTo(
-        $agent->user,
+        $agent->workspace->owner,
         AgentRateLimitNotification::class,
     );
 });

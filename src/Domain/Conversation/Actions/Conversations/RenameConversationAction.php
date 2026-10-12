@@ -10,7 +10,8 @@ use InvalidArgumentException;
 /**
  * Renames a conversation and makes it visible in the visitor's list — in the
  * live memory and in the database, so a later rebuild of the list from the
- * database does not reset the sidebar to "New Chat".
+ * database does not reset the sidebar to "New Chat". A conversation that was
+ * hidden also gets the full retention window.
  */
 class RenameConversationAction
 {
@@ -30,10 +31,16 @@ class RenameConversationAction
 
         // Update the loaded model, not the query builder: only the model
         // applies the encrypted cast on `title`.
-        Conversation::query()
+        $conversation = Conversation::query()
             ->inSession($scope->sessionId, $scope->agent->id)
             ->where('external_id', $conversationId)
-            ->first()
-            ?->update(['title' => $cleanTitle, 'is_visible' => true]);
+            ->first();
+
+        // A hidden conversation that becomes visible also gets the full
+        // retention window; a visible one keeps its horizon.
+        $conversation?->update([
+            'title' => $cleanTitle,
+            ...($conversation->is_visible ? [] : Conversation::visibleAttributes()),
+        ]);
     }
 }

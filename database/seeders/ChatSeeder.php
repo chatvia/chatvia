@@ -264,7 +264,7 @@ class ChatSeeder extends Seeder
         }
 
         // Get agents for this user
-        $agents = Agent::where('user_id', $user->id)->get();
+        $agents = Agent::where('workspace_id', $user->workspace()->id)->get();
 
         if ($agents->isEmpty()) {
             $this->command->warn('No agents found for demo user.');
@@ -323,6 +323,7 @@ class ChatSeeder extends Seeder
                 $sessionsCreated++;
 
                 $conversation = Conversation::create([
+                    'workspace_id' => $agent->workspace_id,
                     'chat_session_id' => $session->id,
                     'agent_id' => $agent->id,
                     'source' => ConversationSource::cases()[array_rand(ConversationSource::cases())],
@@ -352,6 +353,7 @@ class ChatSeeder extends Seeder
                     $responseMs = $isAssistant ? fake()->numberBetween(500, 3000) : null;
 
                     $message = Message::create([
+                        'workspace_id' => $conversation->workspace_id,
                         'chat_conversation_id' => $conversation->id,
                         'content' => str_replace('\\n', "\n", $messageData['content']),
                         'role' => $messageData['role'],
@@ -375,8 +377,8 @@ class ChatSeeder extends Seeder
 
                     $messageSent->execute(MessageSentRecordData::fromEvent(new MessageSent(
                         agentId: $agent->id,
-                        workspaceId: $agent->user_id,
-                        chatterUserId: $session->user_id,
+                        workspaceId: $agent->workspace_id,
+                        chatterId: $session->chatter_id,
                         conversationExternalId: (string) $conversation->external_id,
                         messageExternalId: (string) $message->external_id,
                         sessionExternalId: (string) $session->external_id,
@@ -393,8 +395,8 @@ class ChatSeeder extends Seeder
                     if (! empty($messageData['feedback'])) {
                         $feedbackGiven->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
                             agentId: $agent->id,
-                            workspaceId: $agent->user_id,
-                            chatterUserId: $session->user_id,
+                            workspaceId: $agent->workspace_id,
+                            chatterId: $session->chatter_id,
                             conversationExternalId: (string) $conversation->external_id,
                             messageExternalId: (string) $message->external_id,
                             feedback: $messageData['feedback'],
@@ -447,6 +449,7 @@ class ChatSeeder extends Seeder
         ];
 
         $sessionData = [
+            'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
             'ip_address' => fake()->ipv4(),
             'user_agent' => fake()->userAgent(),

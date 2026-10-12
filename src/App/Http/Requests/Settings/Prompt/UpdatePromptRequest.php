@@ -2,16 +2,16 @@
 
 namespace App\Http\Requests\Settings\Prompt;
 
+use App\Http\Rules\WorkspaceRule;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Prompt\Data\UpdatePromptData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
- * Validates an edit of a saved prompt in the workspace Library. Authorization
- * fails (403) unless the prompt in the route belongs to the caller's workspace;
- * the name stays unique within the workspace.
+ * Validates an edit of a saved prompt in the workspace Library. A prompt that
+ * is not the caller's workspace's answers 404, as if it did not exist; the
+ * name stays unique within the workspace.
  */
 class UpdatePromptRequest extends FormRequest
 {
@@ -19,7 +19,9 @@ class UpdatePromptRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->prompt() instanceof AgentPrompt;
+        abort_unless($this->prompt() instanceof AgentPrompt, 404);
+
+        return true;
     }
 
     /**
@@ -32,8 +34,7 @@ class UpdatePromptRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('agent_prompts', 'name')
-                    ->where('user_id', $this->user()->workspace()->id)
+                WorkspaceRule::unique('agent_prompts', $this->user()->workspace(), 'name')
                     ->ignore($this->route('external_id'), 'external_id'),
             ],
             'prompt' => ['required', 'string', 'max:10000'],

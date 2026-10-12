@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Actions\Catalog\SyncBuiltinConnectorsAction;
 use Domain\Integration\Mcp\Contracts\BuiltinToolDefinitions;
@@ -59,8 +59,8 @@ it('catalogs global builtins with a global row and capability servers without on
     expect(array_map(fn (SyncedBuiltinConnectorData $c): array => [$c->slug, $c->offeredAs, $c->toolsCount], $result->connectors))
         ->toBe([['charts', 'builtin', 1], ['forms', SyncedBuiltinConnectorData::CAPABILITY, 2]]);
 
-    expect(AgentMcpServer::query()->whereNull('user_id')->pluck('slug')->all())->toBe(['charts'])
-        ->and(AgentMcpServer::query()->whereNull('user_id')->sole()->url)->toEndWith('/mcp/charts');
+    expect(AgentMcpServer::query()->whereNull('workspace_id')->pluck('slug')->all())->toBe(['charts'])
+        ->and(AgentMcpServer::query()->whereNull('workspace_id')->sole()->url)->toEndWith('/mcp/charts');
 
     Queue::assertPushed(EmbedConnectorToolsJob::class, 2);
 });
@@ -74,7 +74,7 @@ it('seeds a builtin write tool as Allow, the same as a workspace connect does', 
 
 it('carries new tools to every workspace server of a builtin and drops every cached pool', function (): void {
     $workspaceForms = AgentMcpServer::create([
-        'user_id' => User::factory()->create()->id,
+        'workspace_id' => Workspace::factory()->create()->id,
         'connector_slug' => 'forms',
         'name' => 'Forms',
         'slug' => 'forms',

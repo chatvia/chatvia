@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings\Function;
 
+use App\Http\Rules\WorkspaceRule;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
@@ -23,9 +24,12 @@ class UpdateAgentFunctionRequest extends FormRequest
 {
     private ?AgentFunction $function = null;
 
+    /** A function of another workspace does not exist for the caller: 404. */
     public function authorize(): bool
     {
-        return $this->findFunction() instanceof AgentFunction;
+        abort_unless($this->findFunction() instanceof AgentFunction, 404);
+
+        return true;
     }
 
     /**
@@ -39,8 +43,7 @@ class UpdateAgentFunctionRequest extends FormRequest
                 'string',
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
-                Rule::unique('functions', 'internal_name')
-                    ->where('user_id', $this->user()->workspace()->id)
+                WorkspaceRule::unique('functions', $this->user()->workspace(), 'internal_name')
                     ->ignore($this->route('external_id'), 'external_id'),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
@@ -102,7 +105,7 @@ class UpdateAgentFunctionRequest extends FormRequest
     }
 
     /**
-     * The function being edited. Authorization already 403s when it isn't one
+     * The function being edited. Authorization already 404s when it isn't one
      * of the workspace's functions.
      */
     public function function(): AgentFunction

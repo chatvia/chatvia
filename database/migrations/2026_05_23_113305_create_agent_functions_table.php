@@ -1,8 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -13,13 +11,12 @@ return new class extends Migration
     public function up(): void
     {
         // Embedding columns use the install's vector type and size (EmbeddingStorage).
-        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
-        Schema::create('functions', function (Blueprint $table) {
+        Schema::create('functions', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
 
             $table->string('internal_name', 64);
             $table->string('display_name')->nullable();
@@ -50,20 +47,22 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['user_id', 'internal_name']);
+            $table->unique(['workspace_id', 'internal_name']);
         });
 
         DB::statement('CREATE INDEX functions_embedding_bm25 ON functions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
 
-        DB::statement("CREATE INDEX functions_embedding_vchordrq ON functions USING vchordrq (embedding {$ops})");
+        // No vector index: an agent reaches a few dozen functions at most, so its
+        // search ranks them by exact distance (an approximate index over every
+        // workspace's rows would only add work and miss some).
 
-        Schema::create('agent_function', function (Blueprint $table) {
+        Schema::create('agent_function', function (Blueprint $table): void {
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->foreignId('function_id')
                 ->constrained('functions')
                 ->cascadeOnDelete();
 
-            $table->unsignedInteger('invocation_count')->default(0);
+            $table->unsignedBigInteger('invocation_count')->default(0);
             $table->timestamp('last_invoked_at')->nullable();
 
             $table->primary(['agent_id', 'function_id']);

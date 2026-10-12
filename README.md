@@ -105,8 +105,9 @@ The PHP code is split into three namespaces:
   State changes go through Actions that take DTOs.
 - `src/Support/` (`Support\`): small shared helpers.
 
-The frontend lives in `resources/js/`, the embeddable widget in `shakomako/`, and
-the user documentation in `docs/`. [ARCHITECTURE.md](ARCHITECTURE.md) explains
+The frontend lives in `resources/js/`, the user documentation in `docs/`, and
+the embeddable widget in its own repository,
+[chatvia/shakomako](https://github.com/chatvia/shakomako). [ARCHITECTURE.md](ARCHITECTURE.md) explains
 how the code is organised and the conventions; [CONTRIBUTING.md](CONTRIBUTING.md)
 explains how to work on it.
 
@@ -116,7 +117,8 @@ explains how to work on it.
   `openssl` and `pdo` (required by `composer.json`), plus `pdo_pgsql`, `redis`,
   `mbstring`, `curl`, `zip`, `gd`, `exif` and `pcntl`.
 - **Composer 2**
-- **Node.js 22** and npm
+- **Node.js 22.18** or newer, npm and **git** (to download and build the chat
+  widget)
 - **PostgreSQL 18** with the [VectorChord](https://github.com/tensorchord/VectorChord) (`vchord`),
   [VectorChord-bm25](https://github.com/tensorchord/VectorChord-bm25) (`vchord_bm25`)
   and [pg_tokenizer](https://github.com/tensorchord/pg_tokenizer.rs) (`pg_tokenizer`)
@@ -206,10 +208,14 @@ cd chatvia
 
 composer install
 npm ci
+npm run shakomako:build
 
 cp .env.example .env
 php artisan key:generate
 ```
+
+`npm run shakomako:build` downloads and builds the chat widget into
+`public/shakomako`; see [The chat widget](#the-chat-widget).
 
 ### 3. Configure `.env`
 
@@ -226,16 +232,31 @@ DB_PASSWORD=password
 
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
+CACHE_STORE=redis
 QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
 
 MAIL_MAILER=smtp
 MAIL_HOST=127.0.0.1
 MAIL_PORT=1025
 ```
 
+Redis keeps the queues, the cache, the chat memory and the sign-in sessions.
+Each one has its own Redis database (`REDIS_DB`, `REDIS_CACHE_DB`,
+`REDIS_CHAT_DB` and `REDIS_SESSION_DB`), so clearing the cache does not sign
+anyone out.
+
 Then set `BUILTIN_MCP_SECRET` to a long random string (the built-in tools need
-it). Sign-up, the message limit of new workspaces and how long conversations
-are kept are set later in the admin panel (**Settings → Workspaces**), not in
+it).
+
+**Before the first migration**, decide how the database stores embeddings:
+`EMBEDDING_VECTOR_TYPE` (`halfvec`, the default, or `vector`) and
+`EMBEDDING_DIMENSIONS` (default `1024`). The tables are created with these
+values, so you cannot change them later. The app stops with an error when they
+no longer match the database (`php artisan app:check-embedding-storage`).
+
+Sign-up, the message limit of new workspaces and how long conversations are
+kept are set later in the admin panel (**Settings → Workspaces**), not in
 `.env`.
 
 ### 4. Create the database schema and demo data
@@ -326,6 +347,7 @@ file and CI do not use either.
    vendor/bin/sail composer install
    vendor/bin/sail artisan key:generate
    vendor/bin/sail npm ci
+   vendor/bin/sail npm run shakomako:build
    vendor/bin/sail artisan migrate --seed
    vendor/bin/sail artisan storage:link
    ```
@@ -413,17 +435,105 @@ composer ci:check                              # every CI gate (see below)
 
 ## The chat widget
 
-The embeddable widget (chat bubble and command bar) is called Shakomako. It is
-a separate frontend package in [`shakomako/`](shakomako/README.md), with its
-own `package.json`, tests and build, so it also works as a project on its own.
-The app serves a built copy from `public/shakomako`:
+The embeddable widget (chat bubble and command bar) is called Shakomako. It
+lives in its own repository,
+[chatvia/shakomako](https://github.com/chatvia/shakomako). The app serves a
+built copy from `public/shakomako`. That folder is in `.gitignore`, so a fresh
+clone has no widget: build it once after you clone, and again when the widget
+has a new release.
+
+### Build the widget
 
 ```bash
-npm ci --prefix shakomako   # once
-npm run shakomako:build     # builds the widget into public/shakomako
+npm run shakomako:build
 ```
 
-See [shakomako/README.md](shakomako/README.md).
+This command needs git and Node. It:
+
+1. finds the newest release of the widget: the highest `vX.Y.Z` tag in its
+   repository;
+2. downloads that release into `node_modules/.cache/shakomako/<version>`. It
+   does this only once per release;
+3. installs the widget's packages and builds it;
+4. replaces `public/shakomako` with the new build.
+
+The version is not written anywhere in this repository. To download a release
+again, delete `node_modules/.cache/shakomako`.
+
+### Which release is built
+
+The build always uses a release tag, never unfinished work:
+
+- Only full releases count (`v3.1.0`). Pre-release tags (`v3.1.0-beta.1`) and
+  commits on the widget's `main` branch are never built.
+- Tags are compared as numbers, so `v3.10.0` is newer than `v3.9.0`.
+
+To see which release the build would use, or to build a chosen one (for
+example to skip a broken release):
+
+```bash
+npm run -s shakomako:version
+```
+
+```bash
+SHAKOMAKO_VERSION=v3.0.0 npm run shakomako:build
+```
+
+**Docker.** The `Dockerfile` has no default widget version, so you pass it in
+when you build the image. The release workflow (`.github/workflows/docker.yml`)
+does this for every Chatvia release, and shows the version in the job summary.
+To build the image yourself:
+
+```bash
+docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t chatvia .
+```
+
+Without the version, the build stops with an error. The image cannot find the
+newest release by itself: Docker would reuse that step from its cache and keep
+an old widget.
+
+### Try widget changes that have no release yet
+
+Clone the widget next to this repository and build your own copy:
+
+```bash
+git clone https://github.com/chatvia/shakomako.git ../shakomako
+```
+
+```bash
+SHAKOMAKO_PATH=../shakomako npm run shakomako:build
+```
+
+Run the second command again after each change to the widget. It installs the
+widget's packages only when its `node_modules` folder is missing, so run
+`npm ci` in the widget folder when its packages change. The build reads the
+widget's `.env` file, and those values end up in the built files. The command
+shows a warning when that file exists. A copy for a server needs a build
+without it.
+
+### Ship a widget change
+
+1. When the widget change also needs a server change (the `/widget` API, the
+   `WidgetHeaders` names or the widget settings response), merge the server
+   change here **first**. Every build takes the newest widget release, so the
+   server must be ready before the release exists.
+2. In the widget repository, tag a release: `npm version X.Y.Z`, then
+   `git push --follow-tags` (see its `VERSIONING.md`).
+3. Run `npm run shakomako:build` to use it on your machine. The next Chatvia
+   release image takes it by itself.
+
+### Serve the widget
+
+- The embed snippets in the dashboard point to
+  `{APP_URL}/shakomako/embed.js`. To serve the widget from another place, for
+  example a CDN, set **Widget script address** in the admin panel
+  (**Settings → Platform**).
+- Other websites load these files, so the web server must allow any origin
+  for `/shakomako/`. The Docker image does this for you; for nginx without
+  Docker, see the [self-hosting guide](docs/guide/self-hosting/index.md).
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to work on the widget and the app
+together.
 
 ## Documentation site
 
@@ -456,15 +566,21 @@ Docker. In short:
 - Set up e-mail in the admin panel (**Settings → Email**). People who sign up at `/register` must
   confirm their e-mail address before they can use the app, and invitations
   and sign-in links also go out by e-mail.
-- Cache the configuration with `php artisan config:cache`, `event:cache` and
-  `view:cache`. Do not run `route:cache`: the app's addresses start with the
-  language (`/en/…`), and the route cache cannot store that.
+- Cache the configuration, events, routes and views with
+  `php artisan config:cache`, `event:cache`, `route:cache` and `view:cache`.
+  Run them again after each deploy and after each change to `.env`.
 - Keep `php artisan horizon` and `php artisan reverb:start` running under a
   process manager (for example Supervisor or systemd), and run
-  `php artisan schedule:run` every minute from cron.
-- Build the widget with `npm ci --prefix shakomako && npm run shakomako:build`.
+  `php artisan schedule:run` every minute from cron. With more than one app
+  server, you can run the scheduler on each of them: each task runs on one
+  server only, as long as all servers use the same Redis.
+- Redis also keeps the sign-in sessions. If Redis loses its data, everyone has
+  to sign in again.
+- Build the widget with `npm run shakomako:build`.
   Other sites load it, so nginx must allow any origin for `/shakomako/` (see
-  the self-hosting guide).
+  [The chat widget](#the-chat-widget)).
+- How long the logs are kept (tool calls, guardrails, security events and AI
+  calls) is set in the admin panel (**Settings → Retention & limits**).
 - Go through the security settings in `.env.example` and set each one for
   your environment.
 

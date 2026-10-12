@@ -29,12 +29,7 @@ trait Chunkable
      */
     public static function bootChunkable(): void
     {
-        static::deleting(function ($model): void {
-            Chunk::query()
-                ->where('chunkable_type', $model->getMorphClass())
-                ->where('chunkable_id', $model->getKey())
-                ->delete();
-        });
+        static::deleting(fn (self $model) => $model->deleteChunks());
     }
 
     /**
@@ -55,6 +50,12 @@ trait Chunkable
         return $this->morphToMany(Agent::class, 'sourceable', 'agent_sources');
     }
 
+    /**
+     * The source's ingestion progress (0-100) for a list page. While it is
+     * processing, the stored chunks are compared with the expected count; the
+     * caller loads that count with `loadCount('chunks')` for the rows that
+     * are processing (the live progress comes from the job batch instead).
+     */
     public function ingestionProgress(): int
     {
         if ($this->status === SourceStatus::Completed) {
@@ -66,10 +67,7 @@ trait Chunkable
         }
 
         $totalChunks = $this->expected_chunks ?? 0;
-
-        // Prefer `withCount('chunks')` from the caller (avoids N COUNT
-        // queries on list pages); fall back to a per-row count if absent.
-        $importedChunks = $this->chunks_count ?? $this->chunks()->count();
+        $importedChunks = $this->chunks_count ?? 0;
 
         $progress = (int) round($totalChunks > 0 ? ($importedChunks / $totalChunks) * 100 : 0);
 
@@ -80,6 +78,12 @@ trait Chunkable
         // to "Training in progress" on the next read that still sees Processing.
         // Cap at 99 so 100% unambiguously means "done".
         return min($progress, 99);
+    }
+
+    /** Deletes every chunk of this source, the summary chunk (index 0) included. */
+    public function deleteChunks(): void
+    {
+        Chunk::query()->ofSource($this)->delete();
     }
 
     /** @return MorphOne<Chunk, $this> */
@@ -99,8 +103,8 @@ trait Chunkable
      */
     public function images(): array
     {
-        // `@>` containment can use the GIN index on chunks.metadata; a
-        // `jsonb_typeof(metadata->'images')` test could not.
+        // Only this source's chunks are scanned (chunks_page_idx), so the
+        // containment test needs no index of its own.
         return $this->chunks()
             ->where('metadata', '@>', '{"images": {}}')
             ->selectRaw("metadata->'images' AS images")

@@ -23,7 +23,7 @@ function registryCacheAgent(): Agent
     app(TeamService::class)->createDefaultTeam($user);
 
     return Agent::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Registry Cache Agent',
         'external_id' => Str::random(14),
@@ -46,7 +46,7 @@ it('reflects a connector attach and detach immediately despite the warm pool cac
     $agent = registryCacheAgent();
 
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'Cache Test Server',
         'slug' => 'cachetest',
         'url' => 'https://mcp.example.test',
@@ -80,7 +80,7 @@ it('reflects a function attach and detach immediately despite the warm pool cach
     $agent = registryCacheAgent();
 
     $function = new AgentFunction;
-    $function->user_id = $agent->user_id;
+    $function->workspace_id = $agent->workspace_id;
     $function->internal_name = 'cache_write_thing';
     $function->description = 'Writes a thing';
     $function->parameters_schema = ['type' => 'object', 'properties' => []];
@@ -107,7 +107,7 @@ it('drops the cached pool when an attached connector is deleted', function (): v
     $agent = registryCacheAgent();
 
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'Doomed Server',
         'slug' => 'doomed',
         'url' => 'https://mcp.example.test',
@@ -137,10 +137,10 @@ it('drops the cached pool when an attached connector is deleted', function (): v
 
 it('drops the cached pool when an attached function is deleted from Settings', function (): void {
     $agent = registryCacheAgent();
-    $owner = $agent->user;
+    $owner = $agent->workspace->owner;
 
     $function = new AgentFunction;
-    $function->user_id = $agent->user_id;
+    $function->workspace_id = $agent->workspace_id;
     $function->internal_name = 'doomed_fn';
     $function->description = 'Goes away';
     $function->parameters_schema = ['type' => 'object', 'properties' => []];

@@ -20,10 +20,10 @@ class DeleteAccountAction
         private readonly DeactivateAccountAction $deactivate,
     ) {}
 
-    public function execute(User $workspace): void
+    public function execute(User $owner): void
     {
-        $this->deactivate->execute($workspace, 'Account deletion in progress');
+        $this->deactivate->execute($owner, 'Account deletion in progress');
 
-        DeleteWorkspaceJob::dispatch($workspace->id);
+        DeleteWorkspaceJob::dispatch($owner->id);
     }
 }

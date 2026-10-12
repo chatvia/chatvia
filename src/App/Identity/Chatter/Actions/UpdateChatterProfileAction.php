@@ -3,7 +3,6 @@
 namespace App\Identity\Chatter\Actions;
 
 use App\Identity\Chatter\Data\UpdateChatterProfileData;
-use App\Identity\Workspace\Services\PasswordAuthenticator;
 use App\Identity\Workspace\Services\ProfilePhotoStorage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +15,6 @@ use Illuminate\Validation\ValidationException;
 class UpdateChatterProfileAction
 {
     public function __construct(
-        private readonly PasswordAuthenticator $authenticator,
         private readonly ProfilePhotoStorage $photos,
     ) {}
 
@@ -27,8 +25,10 @@ class UpdateChatterProfileAction
     {
         $user = $data->user;
 
+        // Checked against this chatter's own hash, never by an email lookup
+        // that could find a different account.
         if ($data->currentPassword) {
-            if (! $this->authenticator->validateCredentials($user->email, $data->currentPassword)) {
+            if (! Hash::check($data->currentPassword, $user->password)) {
                 throw ValidationException::withMessages([
                     'current_password' => __('auth.failed'),
                 ]);

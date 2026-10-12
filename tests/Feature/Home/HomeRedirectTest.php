@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Route;
 
@@ -21,8 +21,16 @@ it('sends a signed-in workspace user from / to the dashboard', function (): void
         ->assertRedirect(route('dashboard'));
 });
 
-it('does not loop a signed-in chatter between / and the dashboard', function (): void {
-    $this->actingAs(User::factory()->create(['type' => UserType::Chatter]))
+it('sends a chatter signed in to a chat from / to the login page', function (): void {
+    // A chatter's sign-in lives on the chat's own guard; `/` reads the
+    // dashboard's, where chatters never exist.
+    $this->actingAs(Chatter::factory()->create(), 'chat')
+        ->get('/')
+        ->assertRedirect(route('login'));
+});
+
+it('stops a deactivated user at / instead of sending them to the dashboard', function (): void {
+    $this->actingAs(User::factory()->create(['deactivated_at' => now()]))
         ->get('/')
         ->assertForbidden();
 });

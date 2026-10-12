@@ -1,7 +1,9 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -28,7 +30,7 @@ function messageAgent(bool $isPublic = true): Agent
     $owner->refresh();
 
     return Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Msg Bot',
         'external_id' => Str::random(14),
@@ -37,11 +39,17 @@ function messageAgent(bool $isPublic = true): Agent
     ]);
 }
 
-function messageConversation(Agent $agent, ?User $user = null): Conversation
+function messageConversation(Agent $agent, Chatter|User|null $viewer = null): Conversation
 {
-    $session = Session::create(['agent_id' => $agent->id, 'user_id' => $user?->id]);
+    $session = Session::create([
+        'workspace_id' => $agent->workspace_id,
+        'agent_id' => $agent->id,
+        'chatter_id' => $viewer instanceof Chatter ? $viewer->id : null,
+        'user_id' => $viewer instanceof User ? $viewer->id : null,
+    ]);
 
     return Conversation::create([
+        'workspace_id' => $session->workspace_id,
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'source' => 'hosted_chat',
@@ -73,6 +81,7 @@ it('deletes a sent-message attachment on a public agent and wipes the S3 object'
     $agent = messageAgent();
     $conversation = messageConversation($agent);
     $message = Message::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
         'content' => 'see attached',
@@ -95,6 +104,7 @@ it('refuses when the URL conversation id does not match the attachment row', fun
     $conversation = messageConversation($agent);
     $otherConversation = messageConversation($agent);
     $message = Message::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
         'content' => '...',
@@ -112,12 +122,13 @@ it('refuses when the URL conversation id does not match the attachment row', fun
 
 it('refuses on a private agent when the requester does not own the conversation', function (): void {
     $agent = messageAgent(isPublic: false);
-    $owner = User::factory()->create();
-    $intruder = User::factory()->create();
+    $owner = Chatter::factory()->grantedTo($agent)->create();
+    $intruder = Chatter::factory()->grantedTo($agent)->create();
 
     $conversation = messageConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
     $message = Message::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
         'content' => '...',
@@ -134,11 +145,12 @@ it('refuses on a private agent when the requester does not own the conversation'
 
 it('lets the rightful owner delete on a private agent', function (): void {
     $agent = messageAgent(isPublic: false);
-    $owner = User::factory()->create();
+    $owner = Chatter::factory()->grantedTo($agent)->create();
 
     $conversation = messageConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
     $message = Message::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
         'content' => '...',
@@ -152,6 +164,28 @@ it('lets the rightful owner delete on a private agent', function (): void {
     $response->assertNoContent();
     expect(Attachment::find($attachment->id))->toBeNull();
     Storage::disk('public')->assertMissing($attachment->filepath);
+});
+
+it('lets a staff member delete on a private agent they opened from the dashboard', function (): void {
+    $agent = messageAgent(isPublic: false);
+    $staff = $agent->workspace->owner;
+
+    $conversation = messageConversation($agent, $staff);
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::staff($staff->id), $agent->workspaceExternalId());
+    $message = Message::create([
+        'workspace_id' => $conversation->workspace_id,
+        'chat_conversation_id' => $conversation->id,
+        'role' => 'user',
+        'content' => '...',
+    ]);
+    $attachment = messageAttachment($agent, $conversation, $message);
+
+    $response = $this->actingAs($staff, 'chat_staff')->delete(
+        "/chat/{$agent->external_id}/conversations/{$conversation->external_id}/attachments/{$attachment->external_id}",
+    );
+
+    $response->assertNoContent();
+    expect(Attachment::find($attachment->id))->toBeNull();
 });
 
 it('returns 404 for a non-existent attachment external_id', function (): void {

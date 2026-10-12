@@ -44,6 +44,6 @@ class AgentSourceAnalyzeFileAction
     {
         $checksum = md5_file($uploadedFile->getPathname());
 
-        return $user->sourceFiles()->where('checksum', $checksum)->exists();
+        return $user->workspace()->sourceFiles()->where('checksum', $checksum)->exists();
     }
 }

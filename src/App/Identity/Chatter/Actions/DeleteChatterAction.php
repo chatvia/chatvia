@@ -2,12 +2,14 @@
 
 namespace App\Identity\Chatter\Actions;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
-use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormSubmission;
+use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
@@ -17,12 +19,12 @@ use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
- * Permanently delete a chat member. Cascading FKs handle every artefact tied
- * to them — `agent_user` grants, `user_socials` identities, any open
- * `agent_chatter_invitations` row, plus their chat sessions on the cascade chain.
- * Workspace owners / employees / admins are explicitly out of scope and
- * should be rejected before this Action is called. The captured leads and the
- * account row go in one transaction; files and cache are cleaned around it.
+ * Permanently delete a chatter. Cascading FKs handle every artefact tied to
+ * them — `agent_chatter` grants, their message limit, reset tokens, plus their
+ * chat sessions on the cascade chain. Their open invitations are keyed by
+ * email, not by the chatter, so they are deleted here. The captured leads,
+ * the invitations and the chatter row go in one transaction; files and cache
+ * are cleaned around it.
  *
  * Two artefacts the FK cascade can't reach are cleaned explicitly, because the
  * cascade drops rows WITHOUT firing Eloquent events: attachment files on S3
@@ -36,13 +38,13 @@ use Throwable;
  */
 class DeleteChatterAction
 {
-    public function execute(User $chatter): void
+    public function execute(Chatter $chatter): void
     {
         // Eager-load now so the external ids survive the cascade for the
         // post-delete cache flush; withTrashed so a soft-deleted conversation's
         // ownership marker is swept too.
         $sessions = Session::query()
-            ->where('user_id', $chatter->id)
+            ->where('chatter_id', $chatter->id)
             ->with(['conversations' => fn ($query) => $query->withTrashed()])
             ->get();
 
@@ -55,13 +57,14 @@ class DeleteChatterAction
         // never fires the S3-wiping observer) and captured leads (chat_conversation_id
         // is SET NULL, so a lead would otherwise outlive the chatter and keep its PII).
         // Capture the external id before the row is gone — the chatter's avatar
-        // lives on the assets disk at users/{external_id}/profile-photos/….
+        // lives on the assets disk at chatters/{external_id}/profile-photos/….
         $chatterExternalId = $chatter->external_id;
 
         $this->wipeAttachmentFiles($conversationIds);
 
         DB::transaction(function () use ($chatter, $conversationIds): void {
             $this->deleteLeads($conversationIds);
+            $this->deleteInvitations($chatter);
 
             $chatter->delete();
         });
@@ -79,7 +82,7 @@ class DeleteChatterAction
     private function wipeAvatar(string $externalId): void
     {
         try {
-            Storage::disk('assets')->deleteDirectory('users/'.$externalId);
+            Storage::disk('assets')->deleteDirectory('chatters/'.$externalId);
         } catch (Throwable $e) {
             Log::warning('Chatter deletion: failed to wipe avatar tree on the assets disk.', [
                 'external_id' => $externalId,
@@ -104,7 +107,7 @@ class DeleteChatterAction
     }
 
     /**
-     * Delete leads captured from this chatter's conversations. `leads.chat_conversation_id`
+     * Delete leads captured from this chatter's conversations. `form_submissions.chat_conversation_id`
      * is SET NULL, so without this a lead — which holds the chatter's own PII
      * (name / email / phone, encrypted) — would outlive the chatter it came from.
      * Bulk delete is safe: Lead has only a `saving` hook, no `deleting` side effect.
@@ -118,6 +121,22 @@ class DeleteChatterAction
         }
 
         FormSubmission::query()->whereIn('chat_conversation_id', $conversationIds)->delete();
+    }
+
+    /**
+     * Open invitations of this chatter's email to the workspace's agents. They
+     * hold the email (PII) and would otherwise outlive the chatter.
+     */
+    private function deleteInvitations(Chatter $chatter): void
+    {
+        if ($chatter->email === null) {
+            return;
+        }
+
+        AgentChatterInvitation::query()
+            ->whereIn('agent_id', Agent::query()->where('workspace_id', $chatter->workspace_id)->select('id'))
+            ->whereRaw('lower(email) = ?', [strtolower($chatter->email)])
+            ->delete();
     }
 
     /**

@@ -7,9 +7,11 @@ namespace App\Admin\Settings;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
- * Which AI service handles each step (chat, embeddings, reranking, document
- * reading, speech to text), the models of the internal tasks, and the key,
- * address and models of each AI provider. Text splitting is in
+ * Which AI service handles each step (embeddings, reranking, document
+ * reading, speech to text), the catalog model behind each of the app's own
+ * jobs (LlmRole), and the key, address and models of the services that are
+ * not chat providers. Chat providers and their models are rows
+ * (`llm_providers`, `llms`), not settings. Text splitting is in
  * {@see ChunkingSettings}. The services are picked in
  * App\Providers\DomainServiceProvider from `chatvia.ai.*`.
  *
@@ -18,9 +20,6 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  */
 class AiSettings extends AdminSettings
 {
-    #[ConfigKey('chatvia.ai.provider')]
-    public ?string $llm_provider = null;
-
     #[ConfigKey('chatvia.ai.models.embedding')]
     public ?string $embedding_provider = null;
 
@@ -38,6 +37,15 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.agent.default_model')]
     public ?string $default_agent_model = null;
+
+    #[ConfigKey('chatvia.ai.roles.fast')]
+    public ?string $fast_model = null;
+
+    #[ConfigKey('chatvia.ai.roles.smart')]
+    public ?string $smart_model = null;
+
+    #[ConfigKey('chatvia.ai.roles.vision')]
+    public ?string $vision_model = null;
 
     #[ConfigKey('chatvia.agent.history_messages')]
     public ?int $history_messages = null;
@@ -77,24 +85,6 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('services.mistral.embedding_model')]
     public ?string $mistral_embedding_model = null;
-
-    #[ConfigKey('services.openrouter.api_key'), ShouldBeEncrypted]
-    public ?string $openrouter_api_key = null;
-
-    #[ConfigKey('services.openrouter.base_url')]
-    public ?string $openrouter_base_url = null;
-
-    #[ConfigKey('services.openrouter.completion_endpoint')]
-    public ?string $openrouter_completion_endpoint = null;
-
-    #[ConfigKey('services.groq.api_key'), ShouldBeEncrypted]
-    public ?string $groq_api_key = null;
-
-    #[ConfigKey('services.groq.base_url')]
-    public ?string $groq_base_url = null;
-
-    #[ConfigKey('services.groq.completion_endpoint')]
-    public ?string $groq_completion_endpoint = null;
 
     #[ConfigKey('services.cohere.api_key'), ShouldBeEncrypted]
     public ?string $cohere_api_key = null;

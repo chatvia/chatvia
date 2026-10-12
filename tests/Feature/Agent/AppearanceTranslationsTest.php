@@ -11,7 +11,7 @@ use Domain\Widget\Actions\BuildWidgetSettingsAction;
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
-    $this->owner = $this->agent->user;
+    $this->owner = $this->agent->workspace->owner;
 });
 
 it('saves the base text and returns the AI translations', function (): void {

@@ -33,7 +33,7 @@ class ContentAnalyzer
     public function analyze(string $documentUrl): AnalyzedDocumentData
     {
         $reply = $this->completion->using($this->documentLlm->provider())->send(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.analysis'),
+            model: $this->documentLlm->model((string) config('chatvia.ai.models.analysis')),
             messages: [
                 ChatMessageData::userWithAttachment(prompt('summarization/system'), [
                     'type' => 'document_url',

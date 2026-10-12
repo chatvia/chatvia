@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
+use Tests\Support\FakeLlmProviders;
 
 /**
  * LlmSource is the SSE-turn orchestrator: it owns the envelope (start/sources/done),
@@ -161,7 +162,7 @@ function makeChatContext(Agent $agent, Llm $llm): ChatContext
 function makeLlmSource(ToolLoopRunner $runner): LlmSource
 {
     return new LlmSource(
-        llmProvider: noopLlmProvider(),
+        providers: new FakeLlmProviders(noopLlmProvider()),
         replyRecorder: noopReplyRecorder(),
         dedupe: new RequestDedupeStore,
         toolSelector: noopToolSelector(),

@@ -16,7 +16,7 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
 
-    $this->server = $this->owner->mcpServers()->create([
+    $this->server = $this->owner->workspace()->mcpServers()->create([
         'name' => 'CRM',
         'slug' => 'crm',
         'url' => 'https://crm.example.test/mcp',
@@ -51,7 +51,7 @@ it('sets one tool\'s permission and echoes the change', function (): void {
 });
 
 it('answers 404 for a tool of another connector', function (): void {
-    $other = $this->owner->mcpServers()->create([
+    $other = $this->owner->workspace()->mcpServers()->create([
         'name' => 'Other',
         'slug' => 'other',
         'url' => 'https://other.example.test/mcp',

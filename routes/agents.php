@@ -127,7 +127,7 @@ use App\Http\Controllers\Countries\CountriesListController;
 use App\Http\Middleware\Access\EnsureFeatureFlagIsOn;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified', 'can.access.dashboard'])->prefix('my/')->group(function (): void {
+Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'])->prefix('my/')->group(function (): void {
     Route::get('agents', [AgentController::class, 'index'])->name('agents.index');
     Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
 

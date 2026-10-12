@@ -74,7 +74,7 @@ const activeItemStyles = computed(
     () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''),
 );
 
-const isEmployee = computed(() => auth.value.user.type === 'employee');
+const isTeammate = computed(() => auth.value.is_workspace_owner !== true);
 
 const { isOwner } = useTeamPermissions();
 
@@ -94,7 +94,7 @@ const mainNavItems = computed<NavItem[]>(() => {
 
     // "Ask your data" is owner-only — it exposes whole-account numbers
     // (including identified users) and is gated server-side to the owner.
-    if (!isEmployee.value && isOwner.value) {
+    if (!isTeammate.value && isOwner.value) {
         items.push({
             title: t('app.header.ask_your_data'),
             href: askYourData.url(),

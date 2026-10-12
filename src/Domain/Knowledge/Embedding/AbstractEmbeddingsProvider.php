@@ -32,6 +32,12 @@ abstract class AbstractEmbeddingsProvider implements EmbeddingsProviderInterface
         return $this->supportsDimensions($stored) ? $stored : static::DEFAULT_DIMENSIONS;
     }
 
+    /** Whether the model can return vectors of the size the database stores. */
+    public function fitsStorage(): bool
+    {
+        return $this->supportsDimensions($this->storage->dimensions());
+    }
+
     /** Whether the model can return vectors of this size. */
     abstract protected function supportsDimensions(int $dimensions): bool;
 

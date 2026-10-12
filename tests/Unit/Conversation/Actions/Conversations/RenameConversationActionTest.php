@@ -41,6 +41,25 @@ it('renames the conversation in the memory and the database, without quotes', fu
         ->and($stored->is_visible)->toBeTrue();
 });
 
+it('gives a hidden conversation the full retention window when a rename makes it visible', function (): void {
+    config(['chatvia.retention.conversations_days' => 90]);
+    $scope = renameScope();
+
+    app(RenameConversationAction::class)->execute($scope, 'Order status');
+
+    expect(Conversation::query()->firstWhere('external_id', $scope->conversationId)->expires_at->isSameDay(now()->addDays(90)))->toBeTrue();
+});
+
+it('keeps the horizon of a conversation that is already visible', function (): void {
+    $scope = renameScope();
+    $horizon = now()->addDays(5)->startOfSecond();
+    Conversation::query()->where('external_id', $scope->conversationId)->update(['is_visible' => true, 'expires_at' => $horizon]);
+
+    app(RenameConversationAction::class)->execute($scope, 'Order status');
+
+    expect(Conversation::query()->firstWhere('external_id', $scope->conversationId)->expires_at->equalTo($horizon))->toBeTrue();
+});
+
 it('does not rename a conversation of another session', function (): void {
     $victim = renameScope();
     $attacker = renameScope();

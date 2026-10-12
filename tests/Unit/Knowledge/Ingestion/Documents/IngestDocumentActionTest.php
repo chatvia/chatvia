@@ -121,5 +121,6 @@ it('reads the document with the configured parser and records the parser name', 
         ->and($fresh->parser_filepath)->not->toBeNull();
 
     Storage::assertExists($fresh->parser_filepath);
-    Bus::assertBatched(fn ($batch): bool => $batch->jobs->count() === 2);
+    // Plain pages share one chunk job.
+    Bus::assertBatched(fn ($batch): bool => $batch->jobs->count() === 1 && count($batch->jobs->first()->group->pages) === 2);
 });

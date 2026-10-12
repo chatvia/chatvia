@@ -22,7 +22,7 @@ class CreateAgentTopicAction
         // so scope uniqueness and ownership to the agent's owner — not the
         // acting employee, whose deletion would otherwise cascade the topic away.
         $exists = Topic::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('topic', $topic)
             ->exists();
 
@@ -32,7 +32,7 @@ class CreateAgentTopicAction
 
         return DB::transaction(function () use ($agent, $topic, $description): Topic {
             $newTopic = Topic::create([
-                'user_id' => $agent->user_id,
+                'workspace_id' => $agent->workspace_id,
                 'topic' => $topic,
                 'description' => $description,
             ]);

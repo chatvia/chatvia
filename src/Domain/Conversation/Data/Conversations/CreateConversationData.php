@@ -27,8 +27,8 @@ class CreateConversationData extends Data
         public ?string $pageUrl = null,
         public ?string $locale = null,
         public array $attachmentIds = [],
-        // The signed-in chatter, or null for owner/teammate senders. Stamps
-        // the session's user (per-chatter limit and analytics).
-        public ?int $chatterUserId = null,
+        // The signed-in chatter (chatters.id), or null for staff senders.
+        // Stamps the session's chatter (per-chatter limit and analytics).
+        public ?int $chatterId = null,
     ) {}
 }

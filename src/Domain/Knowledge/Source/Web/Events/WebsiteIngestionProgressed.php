@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Web\Events;
 
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -14,7 +15,8 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Pushes a website's training progress (0-100) to the agent's Web sources page
- * while its URLs are scraped and chunked.
+ * while its URLs are scraped and chunked. The page jobs send the batch's
+ * progress, capped at 99; 100 means the website is ingested.
  */
 class WebsiteIngestionProgressed implements ShouldBroadcastNow
 {
@@ -22,7 +24,9 @@ class WebsiteIngestionProgressed implements ShouldBroadcastNow
 
     public function __construct(
         public SourceWebsite $website,
-        public string $agentExternalId
+        public string $agentExternalId,
+        /** The job batch's progress; null for the final event, sent once the source is ingested. */
+        public ?int $progress = null,
     ) {}
 
     public function broadcastOn(): array
@@ -42,7 +46,16 @@ class WebsiteIngestionProgressed implements ShouldBroadcastNow
     {
         return [
             'website_id' => $this->website->id,
-            'progress' => $this->website->ingestionProgress(),
+            'progress' => $this->progress(),
         ];
+    }
+
+    private function progress(): int
+    {
+        if ($this->website->status === SourceStatus::Completed || $this->progress === null) {
+            return $this->website->ingestionProgress();
+        }
+
+        return min($this->progress, 99);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -69,6 +70,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'agent' => Agent::class,
             'user' => User::class,
+            'chatter' => Chatter::class,
             'source_file' => SourceFile::class,
             'source_website' => SourceWebsite::class,
             'source_text' => SourceText::class,

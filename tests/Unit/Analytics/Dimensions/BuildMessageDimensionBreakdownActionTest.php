@@ -16,7 +16,7 @@ function seedDimensionDaily(string $table, int $agentId, string $column, string 
 {
     DB::connection(config('chatvia.analytics.connection'))->table($table)->insert([
         'agent_id' => $agentId,
-        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('user_id'),
+        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('workspace_id'),
         'bucket_day' => $day,
         $column => $value,
         'message_count' => $count,
@@ -29,7 +29,7 @@ function seedUserMessageTotal(int $agentId, string $day, int $count): void
     // day is enough for the read action's SUM(user_messages) by date.
     DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => $agentId,
-        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('user_id'),
+        'workspace_id' => DB::table('agents')->where('id', $agentId)->value('workspace_id'),
         'bucket_hour' => $day.' 10:00:00+00',
         'country_code' => '--',
         'llm_external_name' => '',

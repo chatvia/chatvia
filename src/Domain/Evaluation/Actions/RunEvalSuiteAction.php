@@ -43,7 +43,7 @@ class RunEvalSuiteAction
         $run = EvalRun::create([
             'agent_id' => $agent->id,
             'agent_name' => $agent->name,
-            'workspace_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'status' => EvalRunStatus::Running,
             'total_cases' => $cases->count(),
             // Set explicitly so the freshly-created in-memory model (which Eloquent
@@ -96,7 +96,7 @@ class RunEvalSuiteAction
      */
     private function ensureWorkspaceMaySendMessages(Agent $agent): void
     {
-        if (! $this->allowance->canSend($agent->user_id)) {
+        if (! $this->allowance->canSend($agent->workspace_id)) {
             throw new DomainValidationException('run', __('This workspace has reached its monthly message limit. Every eval case counts as one message.'));
         }
     }

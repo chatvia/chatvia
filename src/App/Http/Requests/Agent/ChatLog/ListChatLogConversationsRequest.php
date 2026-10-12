@@ -6,7 +6,7 @@ use Domain\Agent\Data\ChatLog\ChatLogFiltersData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * The page and filters of the chat-log list. The values are matched against
+ * The cursor and filters of the chat-log list. The values are matched against
  * known options by the conversation query, so any string is accepted here.
  * Authorization is the route's `agent.permission:agent.chat.view` middleware.
  */
@@ -28,7 +28,7 @@ class ListChatLogConversationsRequest extends FormRequest
     public function toData(): ChatLogFiltersData
     {
         return new ChatLogFiltersData(
-            page: $this->integer('page', 1),
+            cursor: $this->queryString('cursor'),
             topic: $this->queryString('topic'),
             sentiment: $this->queryString('sentiment'),
             tone: $this->queryString('tone'),

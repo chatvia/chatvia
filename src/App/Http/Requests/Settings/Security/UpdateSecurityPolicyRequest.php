@@ -16,7 +16,7 @@ use Support\Localization\Country\Models\Country;
 
 /**
  * Write path for the workspace security policy: the network-access gate (IP
- * allowlist + geo), conversation/audit retention and the SIEM webhook. The
+ * allowlist + geo), the retention windows and the SIEM webhook. The
  * `account.security` team permission is enforced on the route ({@see routes/workspace.php}); here we validate the
  * input and guard against self-lockout. Which stored settings the form may
  * change is decided by UpdateSecurityPolicyAction.
@@ -36,7 +36,10 @@ class UpdateSecurityPolicyRequest extends FormRequest
     {
         $this->merge([
             'retention_conversations_days' => $this->blankToNull($this->input('retention_conversations_days')),
+            'retention_leads_days' => $this->blankToNull($this->input('retention_leads_days')),
             'retention_audit_days' => $this->blankToNull($this->input('retention_audit_days')),
+            'retention_analytics_days' => $this->blankToNull($this->input('retention_analytics_days')),
+            'anonymize_after_days' => $this->blankToNull($this->input('anonymize_after_days')),
             'webhook_url' => $this->blankToNull($this->input('webhook_url')),
             'webhook_secret' => $this->blankToNull($this->input('webhook_secret')),
         ]);
@@ -53,6 +56,11 @@ class UpdateSecurityPolicyRequest extends FormRequest
         $conversationsFloor = (int) config('chatvia.retention.conversations_floor_days', 1);
         $auditFloor = (int) config('chatvia.security_audit.retention_floor_days', 30);
         $auditDefault = (int) config('chatvia.security_audit.retention_days', 365);
+        $maxDays = (int) config('chatvia.retention.max_days', 3650);
+        $leadsFloor = (int) config('chatvia.retention.leads_floor_days', 1);
+        $analyticsFloor = (int) config('chatvia.retention.analytics_floor_days', 30);
+        $anonymizeFloor = (int) config('chatvia.retention.anonymize_floor_days', 1);
+        $anonymizeCeiling = $this->anonymizeCeiling($conversationsCeiling, $anonymizeFloor);
 
         return [
             'ip_allowlist_mode' => ['required', 'string', Rule::in(IpAllowlistMode::selectable())],
@@ -63,6 +71,9 @@ class UpdateSecurityPolicyRequest extends FormRequest
             'geo_countries.*' => ['string', 'size:2'],
             'retention_conversations_days' => ['nullable', 'integer', "min:{$conversationsFloor}", "max:{$conversationsCeiling}"],
             'retention_audit_days' => ['nullable', 'integer', "min:{$auditFloor}", "max:{$auditDefault}"],
+            'retention_leads_days' => ['nullable', 'integer', "min:{$leadsFloor}", "max:{$maxDays}"],
+            'retention_analytics_days' => ['nullable', 'integer', "min:{$analyticsFloor}", "max:{$maxDays}"],
+            'anonymize_after_days' => ['nullable', 'integer', "min:{$anonymizeFloor}", "max:{$anonymizeCeiling}"],
             // SIEM webhook. The deep SSRF check (DNS → internal IP) lives in the
             // Action; the controller maps its exception to a 422.
             'webhook_url' => ['nullable', 'string', 'url:https', 'max:2048'],
@@ -131,7 +142,10 @@ class UpdateSecurityPolicyRequest extends FormRequest
     {
         return new SecurityPolicyFormData(
             retention_conversations_days: $this->nullableInt('retention_conversations_days'),
+            retention_leads_days: $this->nullableInt('retention_leads_days'),
             retention_audit_days: $this->nullableInt('retention_audit_days'),
+            retention_analytics_days: $this->nullableInt('retention_analytics_days'),
+            anonymize_after_days: $this->nullableInt('anonymize_after_days'),
             ip_allowlist_mode: IpAllowlistMode::from((string) $this->input('ip_allowlist_mode')),
             ip_allowlist: $this->cleanList('ip_allowlist'),
             geo_mode: GeoMode::from((string) $this->input('geo_mode')),
@@ -180,6 +194,18 @@ class UpdateSecurityPolicyRequest extends FormRequest
         $country = Country::query()->where('code', strtolower($code))->first(['code', 'name']);
 
         return $country?->localizedName() ?? strtoupper($code);
+    }
+
+    /**
+     * Visitor details may not be kept longer than the chats themselves: the
+     * conversation retention sent with this form, else the install's.
+     */
+    private function anonymizeCeiling(int $conversationsCeiling, int $anonymizeFloor): int
+    {
+        $conversationsDays = $this->input('retention_conversations_days');
+        $effective = is_numeric($conversationsDays) ? min((int) $conversationsDays, $conversationsCeiling) : $conversationsCeiling;
+
+        return max($anonymizeFloor, $effective);
     }
 
     private function hasStoredWebhookSecret(): bool

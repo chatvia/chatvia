@@ -2,9 +2,7 @@
 
 namespace Domain\Membership\Agent\Actions;
 
-use App\Identity\Workspace\Enums\UserType;
-use App\Identity\Workspace\Models\User;
-use App\Identity\Workspace\Models\UserSocial;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Data\AcceptAgentInvitationData;
 use Domain\Membership\Agent\Enums\InvitationCredentialKind;
@@ -15,9 +13,9 @@ use Illuminate\Support\Facades\Hash;
 
 /**
  * Finalize an agent-chatter invitation. The chatter row is already in the DB
- * (provisioned by {@see InviteAgentChatterAction}) with a random password and
- * `email_verified_at = null`; this action turns them from "pending" into
- * "active" once they pick a credential.
+ * (provisioned by {@see InviteAgentChatterAction}) without a password and
+ * with `email_verified_at = null`; this action turns them from "pending" into
+ * "active" once they prove the email.
  *
  * The invitation row is locked, checked (still there, not expired) and deleted
  * inside the same transaction as the account update, so a link can be used
@@ -25,12 +23,14 @@ use Illuminate\Support\Facades\Hash;
  *
  * Two paths (discriminated on {@see AcceptAgentInvitationData::$kind}):
  *   - Password — set their real password from the form.
- *   - Social   — link an OAuth identity (UserSocial). The provider email
+ *   - Social   — the OAuth provider vouches for the email instead. Its email
  *                must match the invited email so a forwarded link can't be
- *                redirected to a different account.
+ *                redirected to a different account. Nothing is linked: the
+ *                hosted chat has no social sign-in, so later sign-ins use the
+ *                emailed sign-in link.
  *
  * Both paths mark `email_verified_at = now()` (the invite link in their
- * inbox is the proof of email ownership) and confirm the `agent_user` grant
+ * inbox is the proof of email ownership) and confirm the `agent_chatter` grant
  * exists. We reject replays: once verified, the link can't be re-used to
  * silently reset the password — the user must go through normal login.
  *
@@ -38,7 +38,7 @@ use Illuminate\Support\Facades\Hash;
  */
 class AcceptAgentInvitationAction
 {
-    public function execute(AcceptAgentInvitationData $data): User
+    public function execute(AcceptAgentInvitationData $data): Chatter
     {
         $invitedEmail = $data->invitation->email;
 
@@ -55,7 +55,7 @@ class AcceptAgentInvitationAction
             }
         }
 
-        return DB::transaction(function () use ($data): User {
+        return DB::transaction(function () use ($data): Chatter {
             $invitation = $this->lockValidInvitation($data->invitation);
 
             $chatter = $this->resolveInvitedChatter($invitation->agent, $invitation->email);
@@ -70,13 +70,6 @@ class AcceptAgentInvitationAction
             }
 
             $chatter->forceFill($fields)->save();
-
-            if ($data->kind === InvitationCredentialKind::Social) {
-                UserSocial::query()->updateOrCreate(
-                    ['user_id' => $chatter->id, 'provider' => $data->socialProvider],
-                    ['provider_id' => (string) $data->socialProviderId],
-                );
-            }
 
             // Single use: the link stops working in the same commit that
             // activates the account.
@@ -117,13 +110,11 @@ class AcceptAgentInvitationAction
         return $invitation;
     }
 
-    private function resolveInvitedChatter(Agent $agent, string $email): User
+    private function resolveInvitedChatter(Agent $agent, string $email): Chatter
     {
-        /** @var User|null $chatter */
-        $chatter = User::query()
-            ->where('email', strtolower(trim($email)))
-            ->where('type', UserType::Chatter)
-            ->where('workspace_id', $agent->user_id)
+        $chatter = Chatter::query()
+            ->whereRaw('lower(email) = ?', [strtolower(trim($email))])
+            ->where('workspace_id', $agent->workspace_id)
             ->first();
 
         if ($chatter === null) {

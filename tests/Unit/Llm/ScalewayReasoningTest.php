@@ -1,6 +1,9 @@
 <?php
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -12,23 +15,25 @@ use Illuminate\Support\Facades\Http;
  * goes through the fakeable Http client, so it exercises the shared
  * disableScalewayReasoning() helper that stream() also uses.
  */
-beforeEach(function (): void {
-    config(['services.scalewayai.api_key' => 'test-key']);
-    config(['chatvia.ai.provider' => 'scaleway']);
+function reasoningClient(LlmProviderEnum $kind = LlmProviderEnum::SCALEWAY): LlmProviderInterface
+{
+    return app(LlmProviders::class)->forProvider(LlmProvider::factory()->kind($kind)->make());
+}
 
+beforeEach(function (): void {
     Http::fake(['*' => Http::response([
         'choices' => [['message' => ['content' => 'hi']]],
     ])]);
 });
 
 it('defaults reasoning_effort to none for Scaleway', function (): void {
-    app(LlmProviderInterface::class)->completion(['model' => 'qwen3.6-35b-a3b', 'messages' => []]);
+    reasoningClient()->completion(['model' => 'qwen3.6-35b-a3b', 'messages' => []]);
 
     Http::assertSent(fn ($request): bool => ($request->data()['reasoning_effort'] ?? null) === 'none');
 });
 
 it('preserves an explicit reasoning_effort set by the caller', function (): void {
-    app(LlmProviderInterface::class)->completion([
+    reasoningClient()->completion([
         'model' => 'qwen3.6-35b-a3b',
         'messages' => [],
         'reasoning_effort' => 'high',
@@ -40,7 +45,7 @@ it('preserves an explicit reasoning_effort set by the caller', function (): void
 it('never sends reasoning_effort to non-qwen Scaleway models', function (string $model): void {
     // These instruct models 400 on an unknown reasoning_effort field
     // (regression that hit the analytics job in prod).
-    app(LlmProviderInterface::class)->completion(['model' => $model, 'messages' => []]);
+    reasoningClient()->completion(['model' => $model, 'messages' => []]);
 
     Http::assertSent(fn ($request): bool => ! array_key_exists('reasoning_effort', $request->data()));
 })->with([
@@ -49,10 +54,7 @@ it('never sends reasoning_effort to non-qwen Scaleway models', function (string 
 ]);
 
 it('leaves non-Scaleway providers untouched', function (): void {
-    config(['chatvia.ai.provider' => 'mistral']);
-    config(['services.mistral.api_key' => 'test-key']);
-
-    app(LlmProviderInterface::class)->completion(['model' => 'mistral-small', 'messages' => []]);
+    reasoningClient(LlmProviderEnum::MISTRAL)->completion(['model' => 'mistral-small', 'messages' => []]);
 
     Http::assertSent(fn ($request): bool => ! array_key_exists('reasoning_effort', $request->data()));
 });

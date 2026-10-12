@@ -58,9 +58,10 @@ it('overwrites a form artifact status with the live submission status on reload'
     $user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($user);
     $agent = makeTeamAgent($user, 'Bot');
-    $session = Session::create(['agent_id' => $agent->id, 'user_id' => null]);
+    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => null]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'source' => ConversationSource::HostedChat,
         'title' => 't',

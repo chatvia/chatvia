@@ -19,7 +19,7 @@ class DeleteAccountRequest extends FormRequest
         /** @var User|null $user */
         $user = $this->user();
 
-        return $user !== null && $user->isWorkspace();
+        return $user !== null && $user->isWorkspaceOwner();
     }
 
     /**

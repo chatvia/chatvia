@@ -24,7 +24,7 @@ trait GuardsFunctionDefinition
     private function ensureNameAvailable(int $ownerId, string $internalName, ?int $exceptFunctionId = null): void
     {
         $taken = AgentFunction::query()
-            ->where('user_id', $ownerId)
+            ->where('workspace_id', $ownerId)
             ->where('internal_name', $internalName)
             ->when($exceptFunctionId !== null, fn ($query) => $query->whereKeyNot($exceptFunctionId))
             ->exists();

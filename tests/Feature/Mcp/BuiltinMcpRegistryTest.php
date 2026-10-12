@@ -76,7 +76,7 @@ function signedInternalMcpHeaders(string $path, array $payload, array $identity)
 function attachCharts(Agent $agent): AgentMcpServer
 {
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'category' => McpServerCategory::Builtin,
         'connector_slug' => 'charts',
         'name' => 'Interactive charts',
@@ -107,12 +107,12 @@ it('catalogs the built-in servers as global rows and indexes their tools', funct
 
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
-    $globals = AgentMcpServer::query()->whereNull('user_id')->get();
+    $globals = AgentMcpServer::query()->whereNull('workspace_id')->get();
     expect($globals)->toHaveCount(2);
 
     $analytics = $globals->firstWhere('slug', 'account-analytics');
     expect($analytics->category)->toBe(McpServerCategory::Analytics)
-        ->and($analytics->user_id)->toBeNull()
+        ->and($analytics->workspace_id)->toBeNull()
         ->and($analytics->connectorTools()->count())->toBe(15);
 
     $charts = $globals->firstWhere('slug', 'charts');
@@ -131,7 +131,7 @@ it('is idempotent — re-running keeps two global rows', function (): void {
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
-    expect(AgentMcpServer::query()->whereNull('user_id')->count())->toBe(2);
+    expect(AgentMcpServer::query()->whereNull('workspace_id')->count())->toBe(2);
 })->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
 
 it('routes a question to the relevant global tools + a name→url map', function (): void {
@@ -214,7 +214,7 @@ it('still authorizes the analytics chat (workspace mode) on the charts route', f
 
     // The owner "Ask your data" chat reaches /mcp/charts via a signed workspace
     // id, NOT the removed global-builtin carve-out — this must keep working.
-    $workspace = Agent::factory()->create()->user;
+    $workspace = Agent::factory()->create()->workspace;
     $call = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => 'render-bar-chart', 'arguments' => (object) []]];
     $headers = signedInternalMcpHeaders('/mcp/charts', $call, ['X-Chatvia-Workspace-Id' => $workspace->external_id]);
 

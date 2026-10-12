@@ -32,9 +32,7 @@ class AcceptInvitationRequest extends FormRequest
             return [];
         }
 
-        $existingUser = User::where('email', $invitation->email)->first();
-
-        if ($existingUser) {
+        if ($invitation->existingAccount() instanceof User) {
             return [
                 'password' => ['required', 'string'],
             ];

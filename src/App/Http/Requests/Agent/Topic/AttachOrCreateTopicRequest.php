@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Agent\Topic;
 
+use App\Http\Rules\WorkspaceRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -26,7 +27,7 @@ class AttachOrCreateTopicRequest extends FormRequest
     {
         if ($this->has('topic_id')) {
             return [
-                'topic_id' => ['required', 'integer', 'exists:topics,id'],
+                'topic_id' => ['required', 'integer', WorkspaceRule::existsOrBuiltIn('topics', $this->user()->workspace())],
             ];
         }
 

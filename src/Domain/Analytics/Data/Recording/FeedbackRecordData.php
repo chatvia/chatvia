@@ -15,7 +15,7 @@ class FeedbackRecordData extends Data
     public function __construct(
         public int $agentId,
         public int $workspaceId,
-        public ?int $chatterUserId,
+        public ?int $chatterId,
         public string $conversationExternalId,
         public string $messageExternalId,
         public ?string $feedback,
@@ -29,7 +29,7 @@ class FeedbackRecordData extends Data
         return new self(
             agentId: $event->agentId,
             workspaceId: $event->workspaceId,
-            chatterUserId: $event->chatterUserId,
+            chatterId: $event->chatterId,
             conversationExternalId: $event->conversationExternalId,
             messageExternalId: $event->messageExternalId,
             feedback: $event->feedback,

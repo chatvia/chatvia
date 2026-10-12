@@ -16,7 +16,7 @@ class MessageSentRecordData extends Data
     public function __construct(
         public int $agentId,
         public int $workspaceId,
-        public ?int $chatterUserId,
+        public ?int $chatterId,
         public string $conversationExternalId,
         public string $messageExternalId,
         public string $sessionExternalId,
@@ -34,7 +34,7 @@ class MessageSentRecordData extends Data
         return new self(
             agentId: $event->agentId,
             workspaceId: $event->workspaceId,
-            chatterUserId: $event->chatterUserId,
+            chatterId: $event->chatterId,
             conversationExternalId: $event->conversationExternalId,
             messageExternalId: $event->messageExternalId,
             sessionExternalId: $event->sessionExternalId,

@@ -4,7 +4,6 @@ namespace Domain\Agent\Data\Resources\Sources;
 
 use Carbon\CarbonInterface;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -42,14 +41,5 @@ class SourceFileDataResource extends Data
             agents_count: $file->agents_count ?? 0,
             created_at: $file->created_at,
         );
-    }
-
-    /**
-     * @param  Collection<int, SourceFile>  $files
-     * @return \Illuminate\Support\Collection<int, self>
-     */
-    public static function fromFiles(Collection $files): \Illuminate\Support\Collection
-    {
-        return $files->map(fn (SourceFile $file): self => self::fromFile($file));
     }
 }

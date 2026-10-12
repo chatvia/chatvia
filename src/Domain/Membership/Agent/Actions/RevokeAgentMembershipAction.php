@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Domain\Membership\Agent\Actions;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 
 /**
- * Revoke a chatter's access to an agent by removing the `agent_user` pivot row.
+ * Revoke a chatter's access to an agent by removing the `agent_chatter` pivot row.
  * The chatter account itself is untouched. Idempotent — detaching a row that
  * isn't there is a no-op.
  *
@@ -17,7 +17,7 @@ use Domain\Agent\Models\Agent;
  */
 class RevokeAgentMembershipAction
 {
-    public function execute(Agent $agent, User $chatter): void
+    public function execute(Agent $agent, Chatter $chatter): void
     {
         $agent->chatters()->detach($chatter->id);
     }

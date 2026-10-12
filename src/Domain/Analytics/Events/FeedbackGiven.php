@@ -20,10 +20,10 @@ class FeedbackGiven
     public function __construct(
         public readonly int $agentId,
         // The workspace owner this event belongs to (denormalized from
-        // agent.user_id; survives agent deletion).
+        // agent.workspace_id; survives agent deletion).
         public readonly int $workspaceId,
         // The chatter (end-user) who reacted, or null for anonymous visitors.
-        public readonly ?int $chatterUserId,
+        public readonly ?int $chatterId,
         public readonly string $conversationExternalId,
         public readonly string $messageExternalId,
         public readonly ?string $feedback,

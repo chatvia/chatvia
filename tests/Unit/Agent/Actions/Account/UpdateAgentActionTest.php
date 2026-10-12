@@ -17,7 +17,7 @@ function makeOwnedPrompt(User $user, string $name = 'My Prompt'): AgentPrompt
     /** @var AgentPrompt $prompt */
     $prompt = AgentPrompt::create([
         'external_id' => (string) Str::uuid(),
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'name' => $name,
         'prompt' => 'You are a helpful assistant.',
     ]);
@@ -29,7 +29,7 @@ function dataFor(Agent $agent, array $overrides = []): UpdateAgentData
 {
     return new UpdateAgentData(...array_merge([
         'agent' => $agent,
-        'actor' => $agent->user,
+        'actor' => $agent->workspace->owner,
         'name' => null,
         'slug' => null,
         'changePrompt' => false,
@@ -49,7 +49,7 @@ it('updates name when name is supplied', function (): void {
 
 it('switching to a library prompt clears system_instructions', function (): void {
     $agent = Agent::factory()->create(['system_instructions' => 'Old custom text']);
-    $prompt = makeOwnedPrompt($agent->user);
+    $prompt = makeOwnedPrompt($agent->workspace->owner);
 
     $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, [
         'changePrompt' => true,
@@ -62,7 +62,7 @@ it('switching to a library prompt clears system_instructions', function (): void
 
 it('switching to custom system_instructions clears agent_prompt_id', function (): void {
     $agent = Agent::factory()->create();
-    $prompt = makeOwnedPrompt($agent->user);
+    $prompt = makeOwnedPrompt($agent->workspace->owner);
     $agent->update(['agent_prompt_id' => $prompt->id]);
 
     $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, [
@@ -76,7 +76,7 @@ it('switching to custom system_instructions clears agent_prompt_id', function ()
 
 it('clearing the library prompt by sending null clears both prompt and instructions', function (): void {
     $agent = Agent::factory()->create();
-    $prompt = makeOwnedPrompt($agent->user);
+    $prompt = makeOwnedPrompt($agent->workspace->owner);
     $agent->update(['agent_prompt_id' => $prompt->id]);
 
     $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, [

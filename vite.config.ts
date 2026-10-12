@@ -105,7 +105,9 @@ export default defineConfig({
         typescriptTransformPlugin(),
         wayfinderPlugin(),
         laravel({
-            input: ['resources/js/app.ts'],
+            // The admin panel's Filament theme is its own entry: the panel
+            // loads it instead of Filament's prebuilt stylesheet.
+            input: ['resources/js/app.ts', 'resources/css/filament/admin/theme.css'],
             refresh: true,
         }),
         inertia(),

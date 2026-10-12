@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent\Source\Web;
 
+use App\Http\Rules\WorkspaceRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -23,7 +24,7 @@ class LinkSourceWebsiteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'website_id' => ['required', 'exists:source_websites,id'],
+            'website_id' => ['required', WorkspaceRule::exists('source_websites', $this->user()->workspace())],
         ];
     }
 }

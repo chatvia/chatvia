@@ -11,8 +11,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * A chat attachment lives as long as its conversation. The sweep deletes the
- * row and its stored file together, so no row ever points at a deleted file.
+ * The attachment sweep removes uploads that never joined a conversation; a
+ * conversation's files go with the conversation (see
+ * PruneRetentionActionsTest). The row and its stored file are deleted
+ * together, so no row ever points at a deleted file.
  */
 beforeEach(function (): void {
     config(['cache.stores.chat' => ['driver' => 'array']]);
@@ -60,24 +62,11 @@ it('keeps the files of a live conversation however old they are', function (): v
     Storage::disk(Attachment::DISK)->assertExists($upload->filepath);
 });
 
-it('deletes the row and the file of a conversation past its retention', function (): void {
-    $upload = storedUpload(prunedConversation(['expires_at' => now()->subDay()]));
+it('leaves the files of an expired conversation to the conversation prune', function (): void {
+    $upload = storedUpload(prunedConversation(['expires_at' => now()->subDay()]), daysOld: 400);
 
-    expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(1)
-        ->and(Attachment::query()->find($upload->id))->toBeNull();
-    Storage::disk(Attachment::DISK)->assertMissing($upload->filepath);
-});
-
-it('deletes the files of an already deleted conversation', function (): void {
-    $conversation = prunedConversation();
-    $upload = storedUpload($conversation);
-    // A bulk soft-delete skips the model hook that would have removed it.
-    Conversation::query()->whereKey($conversation->id)->update(['deleted_at' => now()]);
-
-    app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100);
-
-    expect(Attachment::query()->find($upload->id))->toBeNull();
-    Storage::disk(Attachment::DISK)->assertMissing($upload->filepath);
+    expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(0)
+        ->and(Attachment::query()->find($upload->id))->not->toBeNull();
 });
 
 it('deletes an upload that never joined a conversation only after the orphan window', function (): void {
@@ -89,8 +78,16 @@ it('deletes an upload that never joined a conversation only after the orphan win
         ->and(Attachment::query()->find($stale->id))->toBeNull();
 });
 
+it('deletes stale uploads in chunks', function (): void {
+    $stale = collect(range(1, 3))->map(fn (): Attachment => storedUpload(null, daysOld: 31));
+
+    expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 1))->toBeGreaterThanOrEqual(3)
+        ->and(Attachment::query()->whereKey($stale->pluck('id'))->exists())->toBeFalse();
+    $stale->each(fn (Attachment $upload) => Storage::disk(Attachment::DISK)->assertMissing($upload->filepath));
+});
+
 it('runs from the scheduled command', function (): void {
-    $upload = storedUpload(prunedConversation(['expires_at' => now()->subDay()]));
+    $upload = storedUpload(null, daysOld: 31);
 
     $this->artisan('app:prune-chat-attachments')->assertSuccessful();
 

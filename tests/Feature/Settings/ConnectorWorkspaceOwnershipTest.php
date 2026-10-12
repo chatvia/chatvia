@@ -33,7 +33,7 @@ beforeEach(function (): void {
 
 function ownerConnector(User $owner, string $slug = 'crm'): AgentMcpServer
 {
-    return $owner->mcpServers()->create([
+    return $owner->workspace()->mcpServers()->create([
         'name' => 'CRM',
         'slug' => $slug,
         'url' => 'https://crm.example.test/mcp',

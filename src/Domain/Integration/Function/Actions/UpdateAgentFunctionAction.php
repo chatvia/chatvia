@@ -44,7 +44,7 @@ class UpdateAgentFunctionAction
         }
 
         if (! $data->internal_name instanceof Optional) {
-            $this->ensureNameAvailable($function->user_id, $data->internal_name, $function->id);
+            $this->ensureNameAvailable($function->workspace_id, $data->internal_name, $function->id);
         }
 
         if (! $data->auth_type instanceof Optional) {

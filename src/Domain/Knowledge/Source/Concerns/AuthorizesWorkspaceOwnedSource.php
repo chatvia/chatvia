@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * texts, websites).
  *
  * Tenant isolation: a source may only be seen or changed by the workspace that
- * owns it, or by a platform admin. `workspace()` resolves the parent account,
+ * owns it — platform admins included. `workspace()` resolves the parent account,
  * so teammates of the owning workspace are allowed too. Without this check any
  * signed-in user could read another tenant's training content by id.
  */
@@ -18,12 +18,12 @@ trait AuthorizesWorkspaceOwnedSource
 {
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return false;
     }
 
     public function view(User $user, Model $source): bool
     {
-        return $user->isAdmin() || $user->workspace()->id === $source->getAttribute('user_id');
+        return $user->workspace()->id === $source->getAttribute('workspace_id');
     }
 
     public function create(User $user): bool

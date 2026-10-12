@@ -25,7 +25,7 @@ use Throwable;
  * that group. An uploaded image is resized to 128px high, stored as a PNG on
  * the public `assets` disk under the owner's prefix, and read back as its URL.
  *
- * The using model must provide `getUserExternalId()` and an `external_id`.
+ * The using model must provide `storageRoot()` and an `external_id`.
  */
 trait HasSettings
 {
@@ -116,13 +116,14 @@ trait HasSettings
             $value = json_encode($value, JSON_THROW_ON_ERROR);
         }
 
-        $this->modelSettings()->updateOrCreate([
-            'key' => $key,
+        // One INSERT … ON CONFLICT on the (model, group, key) unique key: two
+        // saves at once cannot both insert, and there is no read first.
+        $this->modelSettings()->upsert([
             'group' => $group,
-        ], [
+            'key' => $key,
             'value' => $value,
             'data_type' => $dataType,
-        ]);
+        ], ['model_type', 'model_id', 'group', 'key'], ['value', 'data_type']);
 
         // Invalidate the per-instance cache for this group.
         unset($this->resolvedSettingsCache[$group]);
@@ -199,7 +200,7 @@ trait HasSettings
         $data = Image::decodeBinary($image->getContent())->scale(height: 128)->encode(new PngEncoder)->toString();
         $file = new File(create_temp_file($image->getFilename(), $data));
 
-        $uploadedPath = $disk->putFile('users/'.$this->getUserExternalId().'/settings/'.$group.'/'.$this->external_id, $file);
+        $uploadedPath = $disk->putFile($this->storageRoot().'/settings/'.$group.'/'.$this->external_id, $file);
 
         // putFile returns false on failure when a disk doesn't throw — never
         // overwrite the saved value with a non-path. (The assets disk has

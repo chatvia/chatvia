@@ -2,7 +2,7 @@
 
 namespace Domain\Analytics\Services\Chat;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Mcp\Data\McpToolResultData;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -38,7 +38,7 @@ class AnalyticsToolDispatcher
     /**
      * @param  array<string, mixed>  $arguments
      */
-    public function dispatch(User $workspace, string $toolName, string $url, array $arguments): ToolDispatchResult
+    public function dispatch(Workspace $workspace, string $toolName, string $url, array $arguments): ToolDispatchResult
     {
         try {
             $result = $this->client->callTool($this->serverFor($url), $toolName, $arguments, [

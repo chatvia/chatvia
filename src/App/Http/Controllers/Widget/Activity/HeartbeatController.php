@@ -8,12 +8,14 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * Periodic "still here" ping from an open widget. Moves the conversation's
- * last-activity time forward so it counts as live in the operator inbox.
+ * last-activity time forward so it counts as live in the operator inbox. A
+ * hidden (never used) conversation is not stamped.
  */
 readonly class HeartbeatController
 {
@@ -37,13 +39,23 @@ readonly class HeartbeatController
 
         // The conversation must belong to this session and agent, or anyone
         // with a guessed id could move another visitor's activity time.
-        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $agent, $this->widgetUser($request));
+        $conversation = $findConversation->execute((string) $conversationId, $sessionId, $agent, $this->widgetViewer($request));
 
         if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        Conversation::query()->whereKey($conversation->getKey())->update(['last_activity_at' => now()]);
+        // A base-query update, so `updated_at` (the chat log's sort key) is
+        // not touched. Only a visible conversation counts as live, and the
+        // stamp moves at most once a minute: every open widget pings.
+        Conversation::query()
+            ->whereKey($conversation->getKey())
+            ->where('is_visible', true)
+            ->where(fn (Builder $query) => $query
+                ->whereNull('last_activity_at')
+                ->orWhere('last_activity_at', '<', now()->subMinute()))
+            ->toBase()
+            ->update(['last_activity_at' => now()]);
 
         return new WidgetAckData;
     }

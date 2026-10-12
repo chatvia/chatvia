@@ -6,6 +6,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -35,6 +37,7 @@ class ConnectorClassifier
 {
     public function __construct(
         private readonly StructuredCompletion $completion,
+        private readonly ModelRoles $models,
     ) {}
 
     /**
@@ -105,7 +108,7 @@ class ConnectorClassifier
         ];
 
         return new ChatRequestData(
-            model: (string) config('chatvia.ai.models.connector_router', config('chatvia.ai.models.guardrail')),
+            model: $this->models->model(LlmRole::Fast),
             messages: [
                 ChatMessageData::system($this->systemPrompt()),
                 ChatMessageData::user($this->userPrompt($userMessage, $connectors)),

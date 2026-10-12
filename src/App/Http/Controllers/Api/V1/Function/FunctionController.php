@@ -30,9 +30,9 @@ class FunctionController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->workspace();
+        $workspace = $user->workspace();
 
-        return ['data' => $owner->functions()->latest()->get()
+        return ['data' => $workspace->functions()->latest()->get()
             ->map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f))->all()];
     }
 

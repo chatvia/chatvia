@@ -7,11 +7,14 @@ use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;
 use Domain\Analytics\Data\ConversationAnalysisData;
 use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
+use Domain\Analytics\Queries\Topics\SuggestedTopicsQuery;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
@@ -30,8 +33,12 @@ use Illuminate\Support\Collection;
  */
 class ConversationAnalyzer
 {
+    /** Most pending suggestion labels shown to the model. */
+    private const int MAX_PENDING_LABELS = 50;
+
     public function __construct(
         private readonly StructuredCompletion $completion,
+        private readonly ModelRoles $models,
     ) {}
 
     public function analyze(string $transcript, Agent $agent): ?ConversationAnalysisData
@@ -40,7 +47,7 @@ class ConversationAnalyzer
         $topics = $agent->topics()->get();
 
         $data = $this->ask(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.topic'),
+            model: $this->models->model(LlmRole::Fast),
             messages: [
                 ChatMessageData::system($this->conversationPrompt($topics, $this->pendingLabels($agent))),
                 ChatMessageData::user($transcript),
@@ -71,7 +78,7 @@ class ConversationAnalyzer
     public function analyzeMessage(string $text): ?ConversationAnalysisData
     {
         $data = $this->ask(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.tone'),
+            model: $this->models->model(LlmRole::Fast),
             messages: [
                 ChatMessageData::system(trim(prompt('analytics/message-analysis'))),
                 ChatMessageData::user($text),
@@ -269,6 +276,9 @@ class ConversationAnalyzer
     /**
      * Distinct emergent labels already pending for this agent — fed back to the
      * model so it reuses an existing label instead of coining a near-duplicate.
+     * Only the {@see self::MAX_PENDING_LABELS} most frequent of the suggestion
+     * window count: the list goes into every analysis prompt, and labels are
+     * free text, so their number has no natural limit.
      *
      * @return list<string>
      */
@@ -276,8 +286,11 @@ class ConversationAnalyzer
     {
         return ConversationTopic::query()
             ->whereNotNull('suggested_label')
-            ->whereHas('conversation.session', fn ($query) => $query->where('agent_id', $agent->id))
-            ->distinct()
+            ->whereIn('chat_conversation_id', SuggestedTopicsQuery::recentConversationIds($agent))
+            ->groupBy('suggested_label')
+            ->orderByRaw('count(*) desc')
+            ->orderBy('suggested_label')
+            ->limit(self::MAX_PENDING_LABELS)
             ->pluck('suggested_label')
             ->all();
     }

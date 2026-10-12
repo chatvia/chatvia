@@ -1,23 +1,78 @@
 <?php
 
-use Database\Factories\AgentFileFactory;
 use Domain\Agent\Actions\Account\DeleteAgentAction;
+use Domain\Agent\Jobs\PurgeAgentJob;
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Conversation\Models\Session;
-use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
- * Deleting an agent removes its rows in one transaction and wipes its storage
- * subtree once they are gone; another agent's data is untouched.
+ * Deleting an agent hides it at once (soft delete), frees its slug and custom
+ * domain, silences its messaging channels and queues the purge of its data.
  */
-it('deletes the agent, its sessions and its storage subtree', function (): void {
+it('hides the agent at once and queues its purge on the exports queue', function (): void {
+    Bus::fake([PurgeAgentJob::class]);
+
+    $agent = Agent::factory()->create(['domain' => 'help.example.test']);
+    $session = Session::factory()->create(['agent_id' => $agent->id]);
+
+    app(DeleteAgentAction::class)->execute($agent);
+
+    $trashed = Agent::withTrashed()->find($agent->id);
+
+    expect(Agent::find($agent->id))->toBeNull()
+        ->and($trashed->trashed())->toBeTrue()
+        ->and($trashed->slug)->toBeNull()
+        ->and($trashed->domain)->toBeNull()
+        ->and($trashed->external_id)->toBe($agent->external_id)
+        // The data waits for the purge.
+        ->and(Session::find($session->id))->not->toBeNull();
+
+    Bus::assertDispatched(PurgeAgentJob::class, fn (PurgeAgentJob $job): bool => $job->agentId === $agent->id && $job->queue === 'exports');
+});
+
+it('frees the slug and the custom domain for another agent at once', function (): void {
+    Bus::fake([PurgeAgentJob::class]);
+
+    $agent = Agent::factory()->create(['domain' => 'help.example.test']);
+    $slug = $agent->slug;
+
+    app(DeleteAgentAction::class)->execute($agent);
+
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+    $other->update(['slug' => $slug, 'domain' => 'help.example.test']);
+
+    expect($other->fresh()->slug)->toBe($slug)
+        ->and($other->fresh()->domain)->toBe('help.example.test');
+});
+
+it('switches off the agent messaging channels', function (): void {
+    Bus::fake([PurgeAgentJob::class]);
+
+    $agent = Agent::factory()->create();
+    $bot = AgentTelegramBot::create([
+        'agent_id' => $agent->id,
+        'bot_token' => '123:token',
+        'bot_username' => 'demo_bot',
+        'webhook_secret' => Str::random(48),
+        'enabled' => true,
+    ]);
+
+    app(DeleteAgentAction::class)->execute($agent);
+
+    expect($bot->fresh()->enabled)->toBeFalse();
+});
+
+it('removes the agent with its data and storage once the purge has run', function (): void {
     Storage::fake();
     Storage::fake('public');
 
     $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['user_id' => $agent->user_id]);
-    $prefix = 'users/'.$agent->workspaceExternalId().'/agents/';
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+    $prefix = 'workspaces/'.$agent->workspaceExternalId().'/agents/';
 
     Session::factory()->create(['agent_id' => $agent->id]);
     $kept = Session::factory()->create(['agent_id' => $other->id]);
@@ -25,9 +80,10 @@ it('deletes the agent, its sessions and its storage subtree', function (): void 
     Storage::disk('public')->put($prefix.$agent->external_id.'/attachments/a.png', 'x');
     Storage::put($prefix.$other->external_id.'/train/file.txt', 'x');
 
+    // The queue runs synchronously in tests, so the purge follows the delete.
     app(DeleteAgentAction::class)->execute($agent);
 
-    expect(Agent::find($agent->id))->toBeNull()
+    expect(Agent::withTrashed()->find($agent->id))->toBeNull()
         ->and(Session::query()->where('agent_id', $agent->id)->exists())->toBeFalse()
         ->and(Session::find($kept->id))->not->toBeNull();
 
@@ -36,35 +92,21 @@ it('deletes the agent, its sessions and its storage subtree', function (): void 
     Storage::assertExists($prefix.$other->external_id.'/train/file.txt');
 });
 
-it('keeps the database rows when the delete fails part-way', function (): void {
-    Storage::fake();
+it('keeps the agent as it was and queues nothing when the delete fails', function (): void {
+    Bus::fake([PurgeAgentJob::class]);
 
-    $agent = Agent::factory()->create();
-    Session::factory()->create(['agent_id' => $agent->id]);
+    $agent = Agent::factory()->create(['domain' => 'help.example.test']);
+    $slug = $agent->slug;
 
-    // Make the final row delete fail after the sessions were deleted.
     Agent::deleting(static fn (): bool => throw new RuntimeException('boom'));
 
     expect(fn () => app(DeleteAgentAction::class)->execute($agent))->toThrow(RuntimeException::class);
 
-    expect(Agent::find($agent->id))->not->toBeNull()
-        ->and(Session::query()->where('agent_id', $agent->id)->exists())->toBeTrue();
-});
+    $fresh = Agent::find($agent->id);
 
-it('keeps the stored files of its sources when the delete fails part-way', function (): void {
-    Storage::fake();
+    expect($fresh)->not->toBeNull()
+        ->and($fresh->slug)->toBe($slug)
+        ->and($fresh->domain)->toBe('help.example.test');
 
-    $agent = Agent::factory()->create();
-    $path = 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/files/manual.pdf';
-    Storage::put($path, '%PDF-1.7');
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'filepath' => $path]);
-    $agent->files()->attach($file->id);
-
-    // The exclusive file is deleted first; the agent row then fails.
-    Agent::deleting(static fn (): bool => throw new RuntimeException('boom'));
-
-    expect(fn () => app(DeleteAgentAction::class)->execute($agent))->toThrow(RuntimeException::class);
-
-    expect(SourceFile::query()->find($file->id))->not->toBeNull();
-    Storage::assertExists($path);
+    Bus::assertNotDispatched(PurgeAgentJob::class);
 });

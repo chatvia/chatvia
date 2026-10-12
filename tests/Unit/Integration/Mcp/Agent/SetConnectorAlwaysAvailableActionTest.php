@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 function saaServer(Agent $agent, string $slug, bool $attach = true, bool $alwaysAvailable = false): AgentMcpServer
 {
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => ucfirst($slug),
         'slug' => $slug,
         'url' => "https://example.test/mcp/{$slug}",

@@ -5,8 +5,11 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
+use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Exceptions;
@@ -73,18 +76,18 @@ function kbFallbackProvider(bool $rerankThrows): void
 function kbFallbackAgentWithChunks(int $count): Agent
 {
     $agent = Agent::factory()->create();
-    $source = AgentFileFactory::new()->create();
+    $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->files()->attach($source->id);
 
-    $createChunk = app(CreateSourceChunkAction::class);
-
-    for ($i = 1; $i <= $count; $i++) {
-        $createChunk->execute($agent, $source, new PageData(
+    app(CreateSourceChunksAction::class)->execute(new ChunkPagesData(
+        source: $source,
+        group: new PageGroupData(array_map(fn (int $i): PageData => new PageData(
             pageNumber: $i,
             content: "Ocean fact number {$i}: the Pacific ocean is the largest ocean.",
             checksum: 'kb-fallback-'.$i.'-'.uniqid(),
-        ));
-    }
+        ), range(1, $count))),
+        enhancement: ChunkEnhancement::Off,
+    ));
 
     return $agent;
 }

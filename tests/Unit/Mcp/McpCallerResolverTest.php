@@ -1,7 +1,8 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use App\Mcp\McpCallerResolver;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
@@ -72,7 +73,7 @@ it('treats missing and empty headers as no caller', function (): void {
 });
 
 it('honours a workspace caller only on the analytics chat servers', function (string $path, bool $honoured): void {
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
+    $workspace = User::factory()->create()->workspace();
 
     $caller = app(McpCallerResolver::class)->resolve(mcpRequest($path, ['X-Chatvia-Workspace-Id' => $workspace->external_id]));
 
@@ -84,10 +85,17 @@ it('honours a workspace caller only on the analytics chat servers', function (st
     'forms' => ['/mcp/forms', false],
 ]);
 
-it('ignores a workspace id that names a chatter', function (): void {
-    $chatter = User::factory()->create(['type' => UserType::Chatter]);
+it('ignores a workspace id that names a chatter or a staff account', function (): void {
+    $chatter = Chatter::factory()->create();
+    $owner = User::factory()->create();
+    $teammate = User::factory()->employee($owner)->create();
 
-    $caller = app(McpCallerResolver::class)->resolve(mcpRequest('/mcp/account-analytics', ['X-Chatvia-Workspace-Id' => $chatter->external_id]));
+    $resolve = fn (string $externalId): ?Workspace => app(McpCallerResolver::class)
+        ->resolve(mcpRequest('/mcp/account-analytics', ['X-Chatvia-Workspace-Id' => $externalId]))
+        ->workspace;
 
-    expect($caller->workspace)->toBeNull();
+    expect($resolve($chatter->external_id))->toBeNull()
+        ->and($resolve($owner->external_id))->toBeNull()
+        ->and($resolve($teammate->external_id))->toBeNull()
+        ->and($resolve($owner->workspace()->external_id)?->is($owner->workspace()))->toBeTrue();
 });

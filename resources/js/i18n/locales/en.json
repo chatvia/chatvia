@@ -411,7 +411,8 @@
                 "expires_in_months": "Expires in {count} month | Expires in {count} months",
                 "conversations_count": "{count} conversation | {count} conversations",
                 "refresh_conversations": "Refresh conversations",
-                "remove_filter": "Remove filter"
+                "remove_filter": "Remove filter",
+                "load_more": "Load more"
             },
             "pagination": {
                 "prev": "Previous",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Remove from agent",
                 "used_in_agents": "(Used in {count} agents)",
                 "delete_from_knowledge_base": "Delete from knowledge base",
-                "agents_count": "{count} agents"
+                "agents_count": "{count} agents",
+                "load_more": "Load more"
             },
             "page_title": {
                 "sources": "Sources",
@@ -3031,7 +3033,15 @@
                 "conversations_help": "Chat history is deleted after this many days. Up to {max} days.",
                 "audit": "Security audit log (days)",
                 "audit_help": "Default {default} days, minimum {floor}.",
-                "plan_default": "Default ({days} days)"
+                "plan_default": "Default ({days} days)",
+                "leads": "Leads (days)",
+                "leads_help": "Delete leads older than this many days.",
+                "analytics": "Analytics (days)",
+                "analytics_help": "Delete analytics older than this many days. At least {floor} days.",
+                "anonymize": "Anonymize visitors after (days)",
+                "anonymize_help": "Clear visitor details from chats older than this many days — name, email, phone, IP address, full browser string, location and page links. Messages and device type are kept. Up to {max} days.",
+                "keep_forever": "Keep forever",
+                "never": "Never"
             },
             "siem": {
                 "title": "SIEM webhook",

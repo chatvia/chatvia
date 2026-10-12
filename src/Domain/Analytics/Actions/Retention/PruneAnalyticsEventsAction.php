@@ -16,6 +16,12 @@ use Domain\Analytics\Services\AnalyticsDatabase;
  */
 class PruneAnalyticsEventsAction
 {
+    /**
+     * How many days of raw events the daily prune keeps by default (about 13
+     * months, so year-over-year charts still have raw rows behind them).
+     */
+    public const int DEFAULT_RETENTION_DAYS = 395;
+
     private const int BATCH_SIZE = 50000;
 
     public function __construct(

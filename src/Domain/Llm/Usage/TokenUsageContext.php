@@ -2,22 +2,22 @@
 
 namespace Domain\Llm\Usage;
 
+use App\Identity\Workspace\Models\Workspace;
 use Closure;
 use Spectra\Facades\Spectra;
 use Throwable;
 
 /**
- * Request/job-scoped boundary that attributes AI usage to a workspace (User)
+ * Request/job-scoped boundary that attributes AI usage to a {@see Workspace}
  * in Spectra's request log.
  *
- * Spectra auto-attributes each intercepted AI request to `auth()->user()`, but
- * queued jobs and console commands have no auth user, so their embed / rerank
- * / OCR / transcription / analysis calls would be recorded UNATTRIBUTED. The
- * outermost {@see track()} scope therefore binds the workspace as Spectra's
- * global trackable via {@see Spectra::forUser()} and clears it on exit (so a
- * worker can't leak one job's workspace onto the next). In an HTTP request
- * with an authenticated user Spectra's auto-tracking still wins — see
- * RequestContext::captureContext() — so this only fills the no-auth gap.
+ * Queued jobs and console commands have no signed-in user, so their embed /
+ * rerank / OCR / transcription / analysis calls would be recorded
+ * UNATTRIBUTED. The outermost {@see track()} scope therefore binds the
+ * workspace as Spectra's global trackable and clears it on exit (so a worker
+ * can't leak one job's workspace onto the next). Spectra's own user
+ * auto-tracking is off (`spectra.tracking.auto_track_user`), so a signed-in
+ * teammate or chatter never takes the cost away from the workspace.
  *
  * Bound as a singleton (see DomainServiceProvider) so one chat turn / queued
  * job shares one scope. Scopes are a stack: nested track() calls share the
@@ -71,8 +71,7 @@ class TokenUsageContext
 
     /**
      * Bind the workspace as Spectra's global trackable so the AI requests made
-     * inside this scope are attributed to it. Spectra (>=1.2) resolves the id to
-     * the configured user model itself. It must never break the AI op.
+     * inside this scope are attributed to it. It must never break the AI op.
      */
     private function bindSpectraWorkspace(?int $workspaceId): void
     {
@@ -81,7 +80,11 @@ class TokenUsageContext
         }
 
         try {
-            Spectra::forUser($workspaceId);
+            $workspace = Workspace::query()->find($workspaceId);
+
+            if ($workspace instanceof Workspace) {
+                Spectra::forTrackable($workspace);
+            }
         } catch (Throwable) {
             // Observability attribution must never break the AI operation.
         }

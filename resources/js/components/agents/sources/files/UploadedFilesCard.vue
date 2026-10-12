@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /**
  * "Ready to train": files that were uploaded but not trained yet, with their
- * total pages / minutes, and the Clear all and Train buttons.
+ * total pages / minutes, and the Clear all and Train buttons (both act on
+ * every uploaded file, loaded or not). Further pages load with "Load more".
  */
 import type { SourceFile } from '@/api/fileSources';
+import LoadMoreButton from '@/components/agents/sources/LoadMoreButton.vue';
 import SourceActionButton from '@/components/agents/sources/SourceActionButton.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,12 +16,17 @@ import { useI18n } from 'vue-i18n';
 
 defineProps<{
     files: SourceFile[];
+    /** How many files wait for training, loaded or not. */
+    total: number;
+    hasMore: boolean;
+    isLoadingMore: boolean;
     totalPages: number;
     totalMinutes: number;
     isTraining: boolean;
 }>();
 
 const emit = defineEmits<{
+    loadMore: [];
     clearAll: [];
     train: [];
     remove: [file: SourceFile];
@@ -37,7 +44,7 @@ const { formatFileType, formatFileSize, formatFileLength } = useFileFormatting()
                     <div>
                         <CardTitle class="text-base">{{ t('agents.sources.files.ready_to_train') }}</CardTitle>
                         <CardDescription>
-                            {{ t('agents.sources.files.uploaded_ready', files.length) }}
+                            {{ t('agents.sources.files.uploaded_ready', total) }}
                             <span v-if="totalPages > 0" class="ms-1"> • {{ t('agents.sources.files.pages_count', totalPages) }} </span>
                             <span v-if="totalMinutes > 0" class="ms-1"> • {{ t('agents.sources.files.minutes_count', totalMinutes) }} </span>
                         </CardDescription>
@@ -89,6 +96,7 @@ const { formatFileType, formatFileSize, formatFileLength } = useFileFormatting()
                             @click="emit('remove', file)"
                         />
                     </div>
+                    <LoadMoreButton v-if="hasMore" :is-loading="isLoadingMore" @click="emit('loadMore')" />
                 </div>
             </CardContent>
         </Card>

@@ -166,6 +166,7 @@
     "Location": "Sted",
     "Message": "Melding",
     "This website has already been added to this agent.": "Dette nettstedet er allerede lagt til denne agenten.",
+    "This text is already in your knowledge base.": "Denne teksten finnes allerede i kunnskapsbasen din.",
     "This URL is not allowed.": "Denne URL-en er ikke tillatt.",
     "Failed to fetch the website. Please check the URL and try again.": "Kunne ikke hente nettstedet. Kontroller URL-en og prøv igjen.",
     "This URL is not allowed: :reason": "Denne URL-en er ikke tillatt: :reason",
@@ -231,10 +232,7 @@
     "Team updated successfully.": "Teamet er oppdatert.",
     "The provided password is incorrect.": "Passordet er feil.",
     "The role ':role' does not exist for this team.": "Rollen ':role' finnes ikke i dette teamet.",
-    "This account is a chat user and cannot join a team.": "Denne kontoen er en chatbruker og kan ikke bli med i et team.",
     "This agent is public — anyone with the link can chat with it. No invitation is needed.": "Denne agenten er offentlig — alle med lenken kan chatte med den. Det trengs ingen invitasjon.",
-    "This email already belongs to a different kind of account and cannot be invited as a chat member.": "Denne e-posten tilhører en annen type konto og kan ikke inviteres som chatmedlem.",
-    "This email is already used by a chatter under a different workspace.": "Denne e-posten brukes allerede av en chatter i et annet arbeidsområde.",
     "This invitation has already been used. Sign in with your existing credentials instead.": "Denne invitasjonen er allerede brukt. Logg inn med de eksisterende opplysningene dine i stedet.",
     "This invitation has expired.": "Denne invitasjonen har utløpt.",
     "This invitation has expired. Ask the agent owner to send a new one.": "Denne invitasjonen har utløpt. Be agentens eier om å sende en ny.",
@@ -262,8 +260,12 @@
     "This IP allowlist would lock you out — your current address (:ip) is not on it. Add it first.": "Denne IP-tillatelseslisten ville låst deg ute — den nåværende adressen din (:ip) er ikke på den. Legg den til først.",
     "This country rule would lock you out — your current location (:country) is in the blocked countries. Remove it, or switch the rule, first.": "Denne landregelen ville låst deg ute — den nåværende posisjonen din (:country) er blant de blokkerte landene. Fjern den, eller bytt regel, først.",
     "This country rule would lock you out — your current location (:country) is not in the allowed countries. Add it, or switch the rule, first.": "Denne landregelen ville låst deg ute — den nåværende posisjonen din (:country) er ikke blant de tillatte landene. Legg den til, eller bytt regel, først.",
-    "This form is for chat members only. Team members can open this chat from the dashboard.": "Dette skjemaet er kun for chatmedlemmer. Teammedlemmer kan åpne denne chatten fra dashbordet.",
     "Only a file that other agents also use can be unlinked. Delete it instead.": "Bare en fil som andre agenter også bruker, kan kobles fra. Slett den i stedet.",
     "This agent has reached its monthly message limit. Please try again next month.": "Denne agenten har nådd sin månedlige meldingsgrense. Prøv igjen neste måned.",
-    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "Dette arbeidsområdet har nådd sin månedlige meldingsgrense. Hvert evalueringstilfelle teller som én melding."
+    "This workspace has reached its monthly message limit. Every eval case counts as one message.": "Dette arbeidsområdet har nådd sin månedlige meldingsgrense. Hvert evalueringstilfelle teller som én melding.",
+    "Pick one of the available models.": "Velg en av de tilgjengelige modellene.",
+    "Complete the security check.": "Fullfør sikkerhetssjekken.",
+    "This account has been deactivated.": "Denne kontoen er deaktivert.",
+    "This email already has an account in another workspace. Ask for an invitation to a different email.": "Denne e-postadressen har allerede en konto i et annet arbeidsområde. Be om en invitasjon til en annen e-postadresse.",
+    "A chatter with this email already exists in your workspace.": "Det finnes allerede en chattebruker med denne e-postadressen i arbeidsområdet ditt."
 }

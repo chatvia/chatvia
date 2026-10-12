@@ -1,7 +1,7 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Enums\SocialProvider;
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\UserSocial;
 use Carbon\CarbonInterface;
@@ -16,39 +16,34 @@ use Illuminate\Support\Str;
 
 /**
  * AcceptAgentInvitationAction is the account-binding step at the end of an
- * agent-invitation flow. The five security guards exercised below are the
+ * agent-invitation flow. The security guards exercised below are the
  * load-bearing ones: a regression on any of them turns the email link into
  * an account-takeover vector.
  *  - Replay: a verified chatter cannot have their password silently reset
  *    via the same invite link.
- *  - Cross-workspace: a chatter owned by a different workspace cannot be
- *    claimed even if their email matches.
- *  - Revoked grant: a chatter whose agent_user pivot was already revoked
+ *  - Cross-workspace: only the chatter of the agent's own workspace is
+ *    activated; a chatter of another workspace with the same email is a
+ *    different person and is never touched.
+ *  - Revoked grant: a chatter whose agent_chatter grant was already revoked
  *    cannot reactivate via this path.
  *  - Forwarded-link hijack (social): the OAuth account's email must match
  *    the invited email (hash_equals).
  *  - Happy paths: password sets a real password + verifies email; social
- *    creates a UserSocial row + verifies email without writing password.
+ *    verifies email without writing a password or linking a social account.
  *  - Single use: the invitation row is checked (exists, not expired) and
  *    deleted inside the same transaction as the account update.
  */
 function aaiAgentAndChatter(string $email = 'invited@example.com'): array
 {
-    $workspace = User::factory()->create([
-        'type' => UserType::Workspace,
-        'email' => 'owner@example.com',
-    ]);
-    $agent = Agent::factory()->create(['user_id' => $workspace->id]);
+    $workspace = User::factory()->create();
+    $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
 
-    $chatter = User::factory()->create([
-        'type' => UserType::Chatter,
-        'workspace_id' => $workspace->id,
+    $chatter = Chatter::factory()->grantedTo($agent)->create([
         'email' => $email,
         'email_verified_at' => null,
+        'password' => null,
         'name' => 'Pending',
     ]);
-
-    $agent->chatters()->attach($chatter->id);
 
     return [$agent, $chatter];
 }
@@ -74,13 +69,14 @@ it('finalises the invitation on the password path: sets password, verifies email
     ));
 
     $chatter->refresh();
-    expect($returned->id)->toBe($chatter->id)
+    expect($returned)->toBeInstanceOf(Chatter::class)
+        ->and($returned->id)->toBe($chatter->id)
         ->and($chatter->name)->toBe('Real Name')
         ->and($chatter->email_verified_at)->not->toBeNull()
         ->and(Hash::check('a-real-password-1234', $chatter->password))->toBeTrue();
 });
 
-it('finalises the invitation on the social path: creates UserSocial, verifies email, does NOT touch password', function (): void {
+it('finalises the invitation on the social path: verifies email, does NOT touch password or link a social account', function (): void {
     [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
     $originalPassword = $chatter->password;
 
@@ -96,18 +92,28 @@ it('finalises the invitation on the social path: creates UserSocial, verifies em
     $chatter->refresh();
     expect($chatter->name)->toBe('Social Name')
         ->and($chatter->email_verified_at)->not->toBeNull()
-        ->and($chatter->password)->toBe($originalPassword);
+        ->and($chatter->password)->toBe($originalPassword)
+        // Chatters are not staff users, so nothing is written to user_socials.
+        ->and(UserSocial::query()->where('provider_id', 'goog-123')->exists())->toBeFalse();
+});
 
-    $social = UserSocial::query()
-        ->where('user_id', $chatter->id)
-        ->where('provider', SocialProvider::Google)
-        ->first();
-    expect($social)->not->toBeNull()
-        ->and($social->provider_id)->toBe('goog-123');
+it('accepts the social path when the OAuth email differs only in case', function (): void {
+    [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
+
+    app(AcceptAgentInvitationAction::class)->execute(new AcceptAgentInvitationData(
+        invitation: aaiInvitation($agent, 'invited@example.com'),
+        name: 'Social Name',
+        kind: InvitationCredentialKind::Social,
+        socialEmail: 'Invited@Example.COM',
+        socialProvider: SocialProvider::Google,
+        socialProviderId: 'goog-123',
+    ));
+
+    expect($chatter->fresh()->email_verified_at)->not->toBeNull();
 });
 
 it('REJECTS the social path when the OAuth email does not match the invited email', function (): void {
-    [$agent] = aaiAgentAndChatter('invited@example.com');
+    [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
 
     expect(fn () => app(AcceptAgentInvitationAction::class)->execute(new AcceptAgentInvitationData(
         invitation: aaiInvitation($agent, 'invited@example.com'),
@@ -117,11 +123,13 @@ it('REJECTS the social path when the OAuth email does not match the invited emai
         socialProvider: SocialProvider::Google,
         socialProviderId: 'goog-999',
     )))->toThrow(AgentChatterInvitationRejectedException::class);
+
+    expect($chatter->fresh()->email_verified_at)->toBeNull();
 });
 
 it('REJECTS replays: an already-verified chatter cannot reuse the invite', function (): void {
     [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
-    $chatter->update(['email_verified_at' => now()]);
+    $chatter->update(['email_verified_at' => now(), 'password' => Hash::make('original-pass')]);
 
     expect(fn () => app(AcceptAgentInvitationAction::class)->execute(new AcceptAgentInvitationData(
         invitation: aaiInvitation($agent, 'invited@example.com'),
@@ -129,18 +137,19 @@ it('REJECTS replays: an already-verified chatter cannot reuse the invite', funct
         kind: InvitationCredentialKind::Password,
         password: 'new-password-xxxx',
     )))->toThrow(AgentChatterInvitationRejectedException::class);
+
+    expect(Hash::check('original-pass', $chatter->fresh()->password))->toBeTrue();
 });
 
-it('REJECTS a chatter from a different workspace even when the email matches', function (): void {
+it('REJECTS when only a chatter of another workspace has the invited email, and leaves that chatter alone', function (): void {
     [$agent] = aaiAgentAndChatter('invited@example.com');
 
     // Different workspace, same email, NOT attached to $agent.
-    $otherWorkspace = User::factory()->create(['type' => UserType::Workspace]);
-    User::factory()->create([
-        'type' => UserType::Chatter,
-        'workspace_id' => $otherWorkspace->id,
+    $otherWorkspace = User::factory()->create();
+    $foreign = Chatter::factory()->ofWorkspace($otherWorkspace)->create([
         'email' => 'foreign@example.com',
         'email_verified_at' => null,
+        'password' => null,
     ]);
 
     expect(fn () => app(AcceptAgentInvitationAction::class)->execute(new AcceptAgentInvitationData(
@@ -149,9 +158,37 @@ it('REJECTS a chatter from a different workspace even when the email matches', f
         kind: InvitationCredentialKind::Password,
         password: 'pw-1234-5678',
     )))->toThrow(AgentChatterInvitationRejectedException::class);
+
+    $foreign->refresh();
+    expect($foreign->email_verified_at)->toBeNull()
+        ->and($foreign->password)->toBeNull();
 });
 
-it('REJECTS when the agent_user pivot was revoked between invitation and accept', function (): void {
+it('activates only the chatter of the agent workspace when another workspace has the same email', function (): void {
+    [$agent, $chatter] = aaiAgentAndChatter('shared@example.com');
+
+    $otherAgent = Agent::factory()->forOwner(User::factory()->create())->create();
+    $twin = Chatter::factory()->grantedTo($otherAgent)->create([
+        'email' => 'shared@example.com',
+        'email_verified_at' => null,
+        'password' => null,
+    ]);
+
+    $returned = app(AcceptAgentInvitationAction::class)->execute(new AcceptAgentInvitationData(
+        invitation: aaiInvitation($agent, 'shared@example.com'),
+        name: 'Real Name',
+        kind: InvitationCredentialKind::Password,
+        password: 'a-real-password-1234',
+    ));
+
+    $twin->refresh();
+    expect($returned->id)->toBe($chatter->id)
+        ->and($chatter->fresh()->email_verified_at)->not->toBeNull()
+        ->and($twin->email_verified_at)->toBeNull()
+        ->and($twin->password)->toBeNull();
+});
+
+it('REJECTS when the agent_chatter grant was revoked between invitation and accept', function (): void {
     [$agent, $chatter] = aaiAgentAndChatter('invited@example.com');
     $agent->chatters()->detach($chatter->id);
 

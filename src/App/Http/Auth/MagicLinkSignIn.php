@@ -2,6 +2,7 @@
 
 namespace App\Http\Auth;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Sessions\SendMagicLinkAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
@@ -14,20 +15,27 @@ use MagicLink\Actions\ActionAbstract;
  * created by {@see SendMagicLinkAction}, stored serialized with the link, and
  * signs the user in through {@see TwoFactorAwareSignIn} so the two-factor
  * challenge still applies. A link sent from a hosted chat carries the agent
- * and signs in to that chat instead of the dashboard.
+ * and signs in to that chat instead of the dashboard; it names either a staff
+ * account (`userId`) or a chatter (`chatterId`), whose ids come from different
+ * tables.
  */
 class MagicLinkSignIn extends ActionAbstract
 {
     public function __construct(
-        public int $userId,
+        public ?int $userId,
         public string $redirectUrl,
         public bool $remember = false,
         public ?int $agentId = null,
+        public ?int $chatterId = null,
     ) {}
 
     public function run(): RedirectResponse
     {
-        $user = User::query()->find($this->userId);
+        if ($this->chatterId !== null) {
+            return $this->signInChatter();
+        }
+
+        $user = $this->userId !== null ? User::query()->find($this->userId) : null;
 
         if (! $user instanceof User) {
             return redirect()->route('login');
@@ -42,5 +50,18 @@ class MagicLinkSignIn extends ActionAbstract
         }
 
         return app(TwoFactorAwareSignIn::class)->respond($user, $this->redirectUrl, $this->remember);
+    }
+
+    /** A chatter's link always names their agent's chat; chatters have no dashboard. */
+    private function signInChatter(): RedirectResponse
+    {
+        $chatter = Chatter::query()->find($this->chatterId);
+        $agent = $this->agentId !== null ? Agent::query()->find($this->agentId) : null;
+
+        if (! $chatter instanceof Chatter || ! $agent instanceof Agent) {
+            return redirect()->route('login');
+        }
+
+        return app(TwoFactorAwareSignIn::class)->respondForChatter($chatter, $agent);
     }
 }

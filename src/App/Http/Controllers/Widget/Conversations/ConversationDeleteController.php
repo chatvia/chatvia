@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
 use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Widget\Data\Auth\WidgetAckData;
 use Domain\Widget\Services\WidgetVerification;
@@ -38,13 +38,13 @@ class ConversationDeleteController
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $widgetUser = $this->widgetUser($request);
+        $viewer = $this->widgetViewer($request);
         $conversationId = $this->widgetConversationId($request);
 
         // On a protected agent only the chatter who owns the session may clear
         // its threads — including "clear all" — so a replayed session id
         // cannot wipe another signed-in visitor's history.
-        if ($widgetUser instanceof User && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
+        if ($viewer instanceof ChatViewerData && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $viewer)) {
             return response()->json(['error' => 'Invalid session'], JsonResponse::HTTP_NOT_FOUND);
         }
 
@@ -59,7 +59,7 @@ class ConversationDeleteController
         // The conversation must belong to THIS agent (and, on a protected
         // agent, to the signed-in chatter), so faking X-AGENT-ID or
         // X-SESSION-ID cannot clear a conversation of another agent or chatter.
-        if (! $widgetVerification->verifyConversationId($conversationId, $agent, $widgetUser) instanceof Conversation) {
+        if (! $widgetVerification->verifyConversationId($conversationId, $agent, $viewer) instanceof Conversation) {
             return response()->json(['error' => 'Invalid thread'], JsonResponse::HTTP_NOT_FOUND);
         }
 

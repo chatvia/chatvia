@@ -9,10 +9,12 @@ return new class extends Migration
     public function up(): void
     {
 
-        Schema::create('teams', static function (Blueprint $table) {
+        Schema::create('teams', static function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
-            $table->unsignedBigInteger('user_id')->index();
+            // The workspace the team belongs to; the FK is added with the
+            // workspaces table (created after users).
+            $table->unsignedBigInteger('workspace_id')->index();
             $table->string('name');
             $table->timestamps();
         });

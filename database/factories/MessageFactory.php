@@ -30,6 +30,7 @@ class MessageFactory extends Factory
 
         return [
             'chat_conversation_id' => Conversation::factory(),
+            'workspace_id' => fn (array $attributes): int => (int) Conversation::query()->whereKey($attributes['chat_conversation_id'])->value('workspace_id'),
             'generation_id' => fake()->optional(0.5)->uuid(),
             'content' => fake()->paragraphs(random_int(1, 3), true),
             'metadata' => null,

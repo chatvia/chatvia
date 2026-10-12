@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Event;
 beforeEach(function (): void {
     config(['chatvia.siem.max_failures' => 3]);
     $this->workspace = User::factory()->create();
-    $this->policy = WorkspaceSecurityPolicy::forWorkspace($this->workspace->id);
+    $this->policy = WorkspaceSecurityPolicy::forWorkspace($this->workspace->workspace()->id);
     $this->policy->forceFill(['webhook_enabled' => true, 'webhook_failures' => 0])->save();
 });
 
 it('counts a failure and keeps the webhook on below the threshold', function (): void {
     Event::fake([SecurityEventOccurred::class]);
 
-    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->id);
+    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->workspace()->id);
 
     $this->policy->refresh();
     expect($this->policy->webhook_failures)->toBe(1)
@@ -29,8 +29,8 @@ it('switches the webhook off at the threshold and audits it once', function (): 
     Event::fake([SecurityEventOccurred::class]);
     $this->policy->forceFill(['webhook_failures' => 2])->save();
 
-    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->id);
-    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->id);
+    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->workspace()->id);
+    app(RecordSiemDeliveryFailureAction::class)->execute($this->workspace->workspace()->id);
 
     $this->policy->refresh();
     expect($this->policy->webhook_failures)->toBe(4)
@@ -40,7 +40,7 @@ it('switches the webhook off at the threshold and audits it once', function (): 
 });
 
 it('does nothing for a workspace without a policy', function (): void {
-    app(RecordSiemDeliveryFailureAction::class)->execute(User::factory()->create()->id);
+    app(RecordSiemDeliveryFailureAction::class)->execute(User::factory()->create()->workspace()->id);
 
     expect(WorkspaceSecurityPolicy::query()->count())->toBe(1);
 });

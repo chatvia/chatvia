@@ -2,21 +2,16 @@
 
 namespace App\Identity\Workspace\Models;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Concerns\HasTeams;
 use App\Identity\Workspace\Concerns\ResolvesTeamMembership;
 use App\Identity\Workspace\Concerns\ResolvesWorkspaceHierarchy;
 use App\Identity\Workspace\Enums\DateFormat;
-use App\Identity\Workspace\Enums\UserSource;
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Database\Factories\UserFactory;
 use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
-use Domain\Agent\Prompt\Models\AgentPrompt;
-use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Membership\Team\Models\Permission;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
@@ -36,7 +31,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\DatabaseNotificationCollection;
@@ -51,17 +45,19 @@ use Spatie\Permission\Traits\HasRoles;
 use Support\Concerns\HasExternalId;
 
 /**
- * An account: who someone is and what they belong to. One table holds four
- * kinds of account ({@see UserType}): platform admins, workspace owners (the
- * tenant that owns agents and settings), teammates (employees of a
- * workspace) and chatters (end-users of a workspace's agents).
+ * A staff account: who someone is and what they belong to. Every user belongs
+ * to exactly one {@see Workspace} (the tenant that owns agents and settings)
+ * through a {@see WorkspaceMembership}, as its owner or as a teammate; the
+ * `is_admin` flag also lets platform staff open the admin panel. A
+ * workspace's end-users are not users: they are {@see Chatter}s, in their own
+ * table.
  *
- * Everything account-wide resolves through {@see workspace()}: a teammate or
- * chatter reads the owner's settings and agents. The model keeps the
- * identity, casts and the knowledge/integration relations; the rest lives in
- * concern traits: {@see ResolvesWorkspaceHierarchy} (owner link, account type,
- * agent access; the rules in {@see AgentAccessPolicy}), {@see HasTeams} and
- * {@see ResolvesTeamMembership} (teams, team roles).
+ * Everything account-wide resolves through {@see workspace()}: owner and
+ * teammates read the same {@see Workspace}, which owns the agents, knowledge,
+ * tools and settings. The model keeps the identity and casts; the rest lives
+ * in concern traits: {@see ResolvesWorkspaceHierarchy} (workspace membership,
+ * role, admin flag, agent access; the rules in {@see AgentAccessPolicy}),
+ * {@see HasTeams} and {@see ResolvesTeamMembership} (teams, team roles).
  *
  * @property int $id
  * @property string $external_id
@@ -69,14 +65,11 @@ use Support\Concerns\HasExternalId;
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
- * @property UserType $type
- * @property UserSource $source
+ * @property bool $is_admin
  * @property string|null $remember_token
- * @property int|null $workspace_id
  * @property int|null $current_team_id
  * @property string|null $registered_ip
  * @property string|null $registered_country_code
- * @property string|null $domain
  * @property string|null $profile_image_path
  * @property string|null $deactivation_reason
  * @property string|null $deactivated_at
@@ -84,18 +77,9 @@ use Support\Concerns\HasExternalId;
  * @property Carbon|null $last_login_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Collection<int, Agent> $accessibleAgents
- * @property-read int|null $accessible_agents_count
- * @property-read Collection<int, Agent> $agents
- * @property-read int|null $agents_count
  * @property-read string|null $avatar
- * @property-read Collection<int, User> $chatters
- * @property-read int|null $chatters_count
  * @property-read Team|null $currentTeam
- * @property-read MessageLimit|null $messageLimit
- * @property-read Collection<int, User> $managedUsers
- * @property-read int|null $managed_users_count
- * @property-read User|null $parentWorkspace
+ * @property-read WorkspaceMembership|null $workspaceMembership
  * @property-read Collection<int, Team> $memberTeams
  * @property-read int|null $member_teams_count
  * @property-read Collection<int, ModelSetting> $modelSettings
@@ -122,19 +106,16 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereCurrentTeamId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDeactivatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDeactivationReason($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereDomain($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmail($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereEmailVerifiedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereLastLoginAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereWorkspaceId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRegisteredCountryCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRegisteredIp($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereSource($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutPermission($permissions)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|User withoutRole($roles, ?string $guard = null)
@@ -189,8 +170,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_login_at' => 'datetime',
-            'type' => UserType::class,
-            'source' => UserSource::class,
+            'is_admin' => 'boolean',
             'date_format' => DateFormat::class,
         ];
     }
@@ -211,97 +191,16 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * Account-level webhook-backed functions this customer owns. Each can be
-     * attached to any number of their agents via the `agent_function`
-     * pivot — see `Agent::functions()`.
-     *
-     * @return HasMany<AgentFunction, $this>
-     */
-    public function functions(): HasMany
-    {
-        return $this->hasMany(AgentFunction::class);
-    }
-
-    /**
-     * Account-level reusable prompts this customer owns (Settings → Prompts).
-     * Each can be attached to any number of their agents via
-     * `agents.agent_prompt_id` — see `Agent::agentPrompt()`.
-     *
-     * @return HasMany<AgentPrompt, $this>
-     */
-    public function prompts(): HasMany
-    {
-        return $this->hasMany(AgentPrompt::class);
-    }
-
-    /**
-     * Account-level MCP servers this customer owns. Each can be attached to
-     * any number of their agents via `agent_mcp_server`.
-     *
-     * @return HasMany<AgentMcpServer, $this>
-     */
-    public function mcpServers(): HasMany
-    {
-        return $this->hasMany(AgentMcpServer::class);
-    }
-
-    /**
-     * Account-scoped via workspace() — **lazy-only**. Eager-loading
-     * (`with('agents')` / `load('agents')`) builds the relation on a bare
-     * instance and returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.agents', 'agents'])`.
-     */
-    /**
-     * Declared on the resolved workspace (the account owner), not necessarily
-     * `$this` — hence `self` rather than `$this` as the declaring-model type.
-     *
-     * @return HasMany<Agent, self>
-     */
-    public function agents(): HasMany
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->hasMany(Agent::class);
-    }
-
-    /**
-     * Account-scoped via workspace() — **lazy-only**. Eager-loading
-     * (`with`/`load`) returns the wrong rows for an employee/chatter; eager-load
-     * through the workspace leg instead: `loadMissing(['parentWorkspace.sourceFiles', 'sourceFiles'])`.
-     *
-     * @return HasMany<SourceFile, self>
-     */
-    public function sourceFiles(): HasMany
-    {
-        $workspace = $this->workspace();
-
-        return $workspace->hasMany(SourceFile::class);
-    }
-
-    /**
-     * Org-wide security & compliance policy for this user's account — the
-     * workspace owner's `WorkspaceSecurityPolicy` row, created on first read so
-     * no caller (middleware, command, Action) ever sees null. Resolved through
-     * `workspace()` and memoized, so employees and chatters inherit the
-     * workspace answer through a single resolution path.
+     * The security & compliance policy of this user's workspace, created on
+     * first read so no caller (middleware, command, Action) ever sees null.
+     * Memoized per user, so owner and teammates resolve it the same way.
      */
     public function securityPolicy(): WorkspaceSecurityPolicy
     {
         return $this->remember(
             'securityPolicy',
-            fn (): WorkspaceSecurityPolicy => WorkspaceSecurityPolicy::forWorkspace($this->workspace()->id),
+            fn (): WorkspaceSecurityPolicy => $this->workspace()->securityPolicy(),
         );
-    }
-
-    /**
-     * This account's monthly message limit: on a workspace it counts agent
-     * replies, on a chatter the chatter's own messages. Null means no limit.
-     *
-     * @return HasOne<MessageLimit, $this>
-     */
-    public function messageLimit(): HasOne
-    {
-        return $this->hasOne(MessageLimit::class);
     }
 
     /**
@@ -325,18 +224,18 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
-     * External id used as the entity-first storage prefix
-     * (`users/{external_id}/…`). For a user the owner is itself.
+     * The entity-first storage prefix for this person's own files (profile
+     * photo, settings images, data exports): `users/{external_id}`.
      */
-    public function getUserExternalId(): string
+    public function storageRoot(): string
     {
-        return $this->external_id;
+        return 'users/'.$this->external_id;
     }
 
     /**
-     * Filament panel gate (FilamentUser contract). Only internal staff
-     * (UserType::Admin) may reach the admin panel; every other account type,
-     * and a deactivated admin, is rejected at the panel door.
+     * Filament panel gate (FilamentUser contract). Only platform staff
+     * (`is_admin`) may reach the admin panel; everyone else, and a
+     * deactivated admin, is rejected at the panel door.
      */
     public function canAccessPanel(Panel $panel): bool
     {

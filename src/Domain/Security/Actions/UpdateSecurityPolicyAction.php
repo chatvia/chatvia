@@ -2,7 +2,7 @@
 
 namespace Domain\Security\Actions;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Data\SecurityPolicyFormData;
 use Domain\Security\Enums\SecurityAuditAction;
@@ -14,8 +14,9 @@ use Support\Http\SafeUrl;
 /**
  * The write path of the Security settings page for the keystone
  * {@see WorkspaceSecurityPolicy}. It applies what the form owns — the network
- * rules, conversation/audit retention and the SIEM webhook — and keeps every other stored setting (leads/analytics/anonymise
- * retention, the webhook event list, SCIM). It guards the SIEM webhook URL
+ * rules, every retention window (conversations, leads, audit, analytics,
+ * anonymize) and the SIEM webhook — and keeps the other stored settings (the
+ * webhook event list, SCIM). It guards the SIEM webhook URL
  * against SSRF, saves, and emits one audit event per changed category
  * (network / retention / other) so each surfaces under its specific
  * {@see SecurityAuditAction} with a before/after diff.
@@ -43,7 +44,7 @@ class UpdateSecurityPolicyAction
     /**
      * @throws UnsafeWebhookUrlException when the webhook URL is not a public https URL
      */
-    public function execute(User $workspace, SecurityPolicyFormData $form, SecurityActorData $actor): WorkspaceSecurityPolicy
+    public function execute(Workspace $workspace, SecurityPolicyFormData $form, SecurityActorData $actor): WorkspaceSecurityPolicy
     {
         $this->guardWebhookUrl($form->webhook_url);
 
@@ -69,7 +70,10 @@ class UpdateSecurityPolicyAction
     {
         $attributes = [
             'retention_conversations_days' => $form->retention_conversations_days,
+            'retention_leads_days' => $form->retention_leads_days,
             'retention_audit_days' => $form->retention_audit_days,
+            'retention_analytics_days' => $form->retention_analytics_days,
+            'anonymize_after_days' => $form->anonymize_after_days,
             'ip_allowlist_mode' => $form->ip_allowlist_mode,
             'ip_allowlist' => $form->ip_allowlist,
             'geo_mode' => $form->geo_mode,
@@ -92,7 +96,7 @@ class UpdateSecurityPolicyAction
      * @param  array<string, mixed>  $original
      * @param  array<string, mixed>  $changed
      */
-    private function emitAuditEvents(User $workspace, SecurityActorData $actor, array $original, array $changed, bool $secretRotated): void
+    private function emitAuditEvents(Workspace $workspace, SecurityActorData $actor, array $original, array $changed, bool $secretRotated): void
     {
         $retentionDiff = $this->diffFor($original, $changed, self::RETENTION_FIELDS);
         if ($retentionDiff !== []) {
@@ -134,7 +138,7 @@ class UpdateSecurityPolicyAction
     /**
      * @param  array<string, mixed>  $metadata
      */
-    private function dispatch(User $workspace, SecurityActorData $actor, SecurityAuditAction $action, array $metadata): void
+    private function dispatch(Workspace $workspace, SecurityActorData $actor, SecurityAuditAction $action, array $metadata): void
     {
         event(SecurityEventOccurred::for(
             action: $action,

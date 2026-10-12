@@ -2,9 +2,9 @@
 
 namespace Domain\Widget\Services;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -52,12 +52,12 @@ class WidgetVerification
      * Resolve a chat session by its external id, scoped to the agent of the
      * request, so a session id from agent A can never be used on agent B.
      *
-     * On a PROTECTED agent pass the signed-in `$user` too, so the session must
-     * also belong to that chatter. Without it the session id would work like a
+     * On a PROTECTED agent pass the signed-in `$viewer` too, so the session must
+     * also belong to that chatter (or staff preview). Without it the session id would work like a
      * bearer token, and one chatter could read another's threads by replaying
      * their id.
      */
-    public function verifySessionExternalId(?string $sessionId, Agent $agent, ?User $user = null): ?Session
+    public function verifySessionExternalId(?string $sessionId, Agent $agent, ?ChatViewerData $viewer = null): ?Session
     {
         // External ids are UUIDs; anything else can never match (and would
         // make Postgres reject the query).
@@ -68,7 +68,7 @@ class WidgetVerification
         return Session::query()
             ->where('external_id', $sessionId)
             ->where('agent_id', $agent->id)
-            ->when($user instanceof User, fn (Builder $query) => $query->where('user_id', $user?->id))
+            ->when($viewer instanceof ChatViewerData, fn (Builder $query) => $query->where($viewer->sessionColumn(), $viewer->id))
             ->first();
     }
 
@@ -83,7 +83,7 @@ class WidgetVerification
      * The session-scoped endpoints apply the same rule through
      * {@see FindWidgetConversationAction}.
      */
-    public function verifyConversationId(?string $conversationId, Agent $agent, ?User $user = null): ?Conversation
+    public function verifyConversationId(?string $conversationId, Agent $agent, ?ChatViewerData $viewer = null): ?Conversation
     {
         if (! $conversationId || ! Str::isUuid($conversationId)) {
             return null;
@@ -91,7 +91,7 @@ class WidgetVerification
 
         return Conversation::query()
             ->where('external_id', $conversationId)
-            ->reachableByWidgetVisitor($agent->id, $user?->id)
+            ->reachableByWidgetVisitor($agent->id, $viewer)
             ->first();
     }
 

@@ -13,7 +13,8 @@
                 "remove_from_agent": "حذف از دستیار",
                 "used_in_agents": "(استفاده شده در {count} دستیار)",
                 "delete_from_knowledge_base": "حذف از پایگاه دانش",
-                "agents_count": "{count} دستیار"
+                "agents_count": "{count} دستیار",
+                "load_more": "بارگذاری بیشتر"
             },
             "page_title": {
                 "sources": "منابع",

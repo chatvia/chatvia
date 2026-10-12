@@ -7,8 +7,9 @@ use Domain\Agent\Models\Agent as AgentModel;
 /**
  * Stateless locator helpers for finding an {@see AgentModel} from a hosted
  * chat address (the `/chat/{agentSlug}` path segment or a custom domain) and
- * minting collision-free external ids. Named distinctly from the `Agent` model
- * so call sites never have to alias one of them away.
+ * minting collision-free external ids. A deleted agent is never found (the
+ * soft-delete scope), so its chat answers 404 at once. Named distinctly from
+ * the `Agent` model so call sites never have to alias one of them away.
  */
 class AgentLocator
 {
@@ -48,11 +49,15 @@ class AgentLocator
             ->first();
     }
 
+    /**
+     * A deleted agent keeps its external id until its purge, and the column is
+     * unique, so deleted agents count as taken.
+     */
     public static function generateRandomExternalId(int $len = 14): string
     {
         do {
             $externalId = substr(bin2hex(random_bytes((int) ceil($len / 2))), 0, $len);
-        } while (AgentModel::where('external_id', $externalId)->exists());
+        } while (AgentModel::withTrashed()->where('external_id', $externalId)->exists());
 
         return $externalId;
     }

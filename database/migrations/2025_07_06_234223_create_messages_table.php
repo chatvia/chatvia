@@ -16,12 +16,21 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // The chat tables carry their workspace on every row, and each key to a
+        // parent pairs it with the workspace: (workspace_id, agent_id) →
+        // agents, (workspace_id, chat_session_id) → chat_sessions and so on. A
+        // row that points at another workspace's agent, chatter, session or
+        // conversation is refused by the database, whatever the code does.
         Schema::create('chat_sessions', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignIdFor(Agent::class)->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Agent::class)->nullable();
+            // Who is chatting: a staff account (user_id) or a chatter
+            // (chatter_id), never both; neither for an anonymous visitor.
             $table->foreignIdFor(User::class)->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('chatter_id')->nullable();
             $table->foreignIdFor(Country::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('name')->nullable();
@@ -47,21 +56,28 @@ return new class extends Migration
             $table->string('locale', 10)->nullable();
 
             $table->timestamp('last_activity_at')->nullable();
+            // When the visitor's details above were cleared under the
+            // workspace's "anonymize after" setting; null until then.
+            $table->timestamp('anonymized_at')->nullable();
             $table->timestamps();
 
+            $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
+            $table->foreign(['workspace_id', 'chatter_id'])->references(['workspace_id', 'id'])->on('chatters')->cascadeOnDelete();
+            $table->unique(['workspace_id', 'id']);
+
             $table->index(['agent_id', 'created_at']);
-            $table->index(['agent_id', 'last_activity_at']);
-            $table->index(['user_id', 'created_at']);
             $table->index(['agent_id', 'country_id']);
         });
+
+        DB::statement('ALTER TABLE chat_sessions ADD CONSTRAINT chat_sessions_one_viewer CHECK (num_nonnulls(user_id, chatter_id) <= 1)');
 
         Schema::create('chat_conversations', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignId('chat_session_id')->constrained('chat_sessions')->cascadeOnDelete();
-
-            $table->foreignId('agent_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('workspace_id');
+            $table->foreignId('chat_session_id');
+            $table->foreignId('agent_id');
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram']);
@@ -76,7 +92,7 @@ return new class extends Migration
             // retrying at chatvia.analytics.analysis.max_attempts.
             $table->unsignedSmallInteger('analysis_attempts')->default(0);
 
-            $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->index()->constrained('users')->nullOnDelete();
+            $table->foreignIdFor(User::class, 'handoff_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->enum('handoff_status', ['ai', 'pending', 'human', 'returned'])->default('ai');
 
             $table->timestamp('handoff_at')->nullable();
@@ -89,8 +105,11 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
+            $table->foreign(['workspace_id', 'chat_session_id'])->references(['workspace_id', 'id'])->on('chat_sessions')->cascadeOnDelete();
+            $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
+            $table->unique(['workspace_id', 'id']);
+
             $table->index(['chat_session_id', 'created_at']);
-            $table->index(['chat_session_id', 'updated_at']);
 
             $table->index(['agent_id', 'created_at']);
         });
@@ -99,10 +118,11 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignId('chat_conversation_id')->constrained('chat_conversations')->cascadeOnDelete();
+            $table->foreignId('workspace_id');
+            $table->foreignId('chat_conversation_id');
 
             $table->foreignIdFor(Llm::class)->nullable()->index()->constrained()->nullOnDelete();
-            $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->index()->constrained()->nullOnDelete();
+            $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('generation_id')->nullable();
 
@@ -110,7 +130,6 @@ return new class extends Migration
 
             $table->text('content')->nullable();
 
-            $table->bm25vector('content_bm25')->nullable();
             $table->jsonb('metadata')->nullable();
 
             $table->enum('role', ['user', 'assistant', 'agent']);
@@ -134,6 +153,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->timestamp('read_at')->nullable();
+
+            $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
 
             $table->index(['chat_conversation_id', 'created_at']);
         });
@@ -162,39 +183,60 @@ return new class extends Migration
         $this->createPartialIndexes();
     }
 
+    /**
+     * Partial and special indexes. Columns that are mostly NULL get a partial
+     * index (`WHERE … IS NOT NULL`): the foreign-key checks and lookups by
+     * value still use it, and rows without a value cost no index write.
+     */
     private function createPartialIndexes(): void
     {
-        DB::statement("CREATE INDEX messages_assistant_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'assistant'");
-        DB::statement("CREATE INDEX messages_user_active_idx ON chat_messages (chat_conversation_id, created_at) WHERE role = 'user'");
-        DB::statement('CREATE INDEX messages_feedback_date_idx ON chat_messages (feedback, created_at) WHERE feedback IS NOT NULL');
+        DB::statement('CREATE INDEX chat_sessions_user_idx ON chat_sessions (user_id, created_at) WHERE user_id IS NOT NULL');
+        DB::statement('CREATE INDEX chat_sessions_chatter_idx ON chat_sessions (chatter_id, created_at) WHERE chatter_id IS NOT NULL');
+        // The daily anonymize pass: a workspace's sessions not yet cleared.
+        DB::statement('CREATE INDEX chat_sessions_to_anonymize_idx ON chat_sessions (workspace_id, created_at) WHERE anonymized_at IS NULL');
 
-        DB::statement('CREATE INDEX chat_messages_content_bm25 ON chat_messages USING bm25 (content_bm25 bm25_catalog.bm25_ops)');
+        DB::statement('CREATE INDEX messages_qa_idx ON chat_messages (agent_question_answer_id) WHERE agent_question_answer_id IS NOT NULL');
+        // The chat log's feedback filter: does a conversation have a rated message.
+        DB::statement('CREATE INDEX messages_feedback_idx ON chat_messages (chat_conversation_id, feedback) WHERE feedback IS NOT NULL');
 
-        DB::statement("CREATE INDEX conversations_handoff_pending_idx ON chat_conversations (created_at) WHERE handoff_status = 'pending'");
-        DB::statement("CREATE INDEX conversations_handoff_human_idx ON chat_conversations (last_activity_at) WHERE handoff_status = 'human'");
+        DB::statement('CREATE INDEX conversations_handoff_user_idx ON chat_conversations (handoff_user_id) WHERE handoff_user_id IS NOT NULL');
+        // An agent's waiting handoffs, newest activity first.
+        DB::statement("CREATE INDEX conversations_handoff_pending_idx ON chat_conversations (agent_id, updated_at) WHERE handoff_status = 'pending' AND deleted_at IS NULL");
 
-        DB::statement('CREATE INDEX conversations_visible_active_idx ON chat_conversations (chat_session_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
-
-        DB::statement('CREATE INDEX conversations_agent_visible_idx ON chat_conversations (agent_id, updated_at) WHERE is_visible = true AND deleted_at IS NULL');
+        // The chat log: an agent's visible conversations, keyset-paged by
+        // (updated_at, id).
+        DB::statement('CREATE INDEX conversations_agent_visible_idx ON chat_conversations (agent_id, updated_at, id) WHERE is_visible = true AND deleted_at IS NULL');
 
         DB::statement('CREATE INDEX conversations_expires_cleanup_idx ON chat_conversations (expires_at) WHERE expires_at IS NOT NULL AND deleted_at IS NULL');
+        // The trash purge, which finally removes soft-deleted conversations.
+        DB::statement('CREATE INDEX conversations_trashed_idx ON chat_conversations (deleted_at) WHERE deleted_at IS NOT NULL');
 
-        DB::statement('CREATE INDEX conversations_pending_analysis_idx ON chat_conversations (created_at) WHERE analyzed_at IS NULL AND deleted_at IS NULL');
+        // Hidden (never-used) conversations are not analysed.
+        DB::statement('CREATE INDEX conversations_pending_analysis_idx ON chat_conversations (created_at) WHERE analyzed_at IS NULL AND deleted_at IS NULL AND is_visible = true');
+
+        // Install-wide time ranges (the admin panel's platform analytics).
+        DB::statement('CREATE INDEX chat_conversations_created_brin ON chat_conversations USING brin (created_at)');
+
+        // The orphan-attachment prune: uploads never tied to a conversation.
+        DB::statement('CREATE INDEX chat_attachments_orphan_idx ON chat_attachments (created_at) WHERE chat_conversation_id IS NULL');
     }
 
     public function down(): void
     {
         $indexes = [
-            'messages_assistant_active_idx',
-            'messages_user_active_idx',
-            'messages_feedback_date_idx',
-            'chat_messages_content_bm25',
+            'chat_sessions_user_idx',
+            'chat_sessions_chatter_idx',
+            'chat_sessions_to_anonymize_idx',
+            'messages_qa_idx',
+            'messages_feedback_idx',
+            'conversations_handoff_user_idx',
             'conversations_handoff_pending_idx',
-            'conversations_handoff_human_idx',
-            'conversations_visible_active_idx',
             'conversations_agent_visible_idx',
             'conversations_expires_cleanup_idx',
+            'conversations_trashed_idx',
             'conversations_pending_analysis_idx',
+            'chat_conversations_created_brin',
+            'chat_attachments_orphan_idx',
         ];
 
         foreach ($indexes as $index) {

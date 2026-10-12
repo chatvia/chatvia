@@ -4,7 +4,6 @@ namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
-use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Knowledge\Ingestion\Services\TokenSplitter;
@@ -20,7 +19,7 @@ use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Ingest an audio or video file: compress the audio, transcribe it with the
- * configured Transcriber, then split the transcript and chunk each part in one
+ * configured Transcriber, then split the transcript and chunk the parts in one
  * batch.
  *
  * Transcription is the slow and paid step, so it is done once: the transcript
@@ -56,8 +55,7 @@ class IngestMediaAction
             throw new RuntimeException('The transcript is empty: there is nothing to chunk.');
         }
 
-        $jobs = collect($this->splitter->split($transcript))
-            ->map(fn (PageData $page): MediaChunkIngestionJob => new MediaChunkIngestionJob($agent, $sourceFile, $page));
+        $jobs = MediaChunkIngestionJob::forPages($agent, $sourceFile, collect($this->splitter->split($transcript)));
 
         $this->dispatchBatch->execute($sourceFile, $agent, $jobs);
 

@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Connector\Actions\Catalog\ListConnectorToolsAction;
 use Domain\Integration\Connector\Data\Catalog\ConnectorToolData;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
@@ -19,7 +19,7 @@ use Domain\Integration\Mcp\Models\McpTool;
 function toolListServer(bool $usesCentralCatalog, string $slug): AgentMcpServer
 {
     return AgentMcpServer::create([
-        'user_id' => User::factory()->create()->id,
+        'workspace_id' => Workspace::factory()->create()->id,
         'connector_slug' => $usesCentralCatalog ? $slug : null,
         'uses_central_catalog' => $usesCentralCatalog,
         'name' => ucfirst($slug),

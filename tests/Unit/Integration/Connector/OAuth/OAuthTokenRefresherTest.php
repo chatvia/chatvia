@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Http;
 function staleOAuthServerFor(User $owner): AgentMcpServer
 {
     return AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'name' => 'Fixture',
         'slug' => 'fixture',
         'url' => 'https://mcp.example.test/rpc',

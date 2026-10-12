@@ -15,8 +15,8 @@ it('matches conversations carrying the requested topic, multi-label aware', func
     $agent = Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
 
-    $billing = Topic::create(['user_id' => $agent->user_id, 'topic' => 'Billing', 'description' => 'x']);
-    $bug = Topic::create(['user_id' => $agent->user_id, 'topic' => 'Bug', 'description' => 'y']);
+    $billing = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Billing', 'description' => 'x']);
+    $bug = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Bug', 'description' => 'y']);
 
     $multi = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::Widget]);
     $multi->topics()->attach([$billing->id, $bug->id]);

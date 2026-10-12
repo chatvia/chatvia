@@ -18,7 +18,7 @@ beforeEach(fn () => Bus::fake());
 
 it('queues each file type on its own pipeline', function (string $filename, string $mimeType, string $jobClass): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'filename' => $filename, 'mime_type' => $mimeType]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'filename' => $filename, 'mime_type' => $mimeType]);
 
     app(StartFileIngestionAction::class)->execute($file, $agent);
 
@@ -34,7 +34,7 @@ it('queues each file type on its own pipeline', function (string $filename, stri
 
 it('leaves an ingested file alone', function (): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingested']);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingested']);
 
     app(StartFileIngestionAction::class)->execute($file, $agent);
 

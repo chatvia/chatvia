@@ -26,9 +26,9 @@ const { t } = useI18n();
 const page = usePage<SharedData>();
 const auth = computed(() => page.props.auth as Auth);
 const currentTeam = computed(() => page.props.currentTeam);
-// Teammates (employees) are blocked from the teams-management routes by the
-// backend `DenyIfEmployee` middleware, so they must not see Manage/Create here.
-const isEmployee = computed(() => auth.value.user.type === 'employee');
+// Teammates are blocked from the teams-management routes by the backend
+// `DenyIfTeammate` middleware, so they must not see Manage/Create here.
+const isTeammate = computed(() => auth.value.is_workspace_owner !== true);
 
 const isOpen = ref(false);
 const isCreateDialogOpen = ref(false);
@@ -115,7 +115,7 @@ const openCreateDialog = () => {
                         </div>
                     </template>
                 </div>
-                <template v-if="!isEmployee">
+                <template v-if="!isTeammate">
                     <DropdownMenuSeparator />
                     <DropdownMenuItem as-child>
                         <Link :href="teamsIndex.url()" class="cursor-pointer gap-2">

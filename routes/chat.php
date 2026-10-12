@@ -6,7 +6,9 @@ use App\Http\Controllers\Chat\Auth\ChatLogoutController;
 use App\Http\Controllers\Chat\Auth\ChatMagicLinkController;
 use App\Http\Controllers\Chat\Auth\ChatProfilePhotoDestroyController;
 use App\Http\Controllers\Chat\Auth\ChatProfileUpdateController;
+use App\Http\Controllers\Chat\Auth\ChatResetPasswordController;
 use App\Http\Controllers\Chat\Auth\ChatShowLoginController;
+use App\Http\Controllers\Chat\Auth\ChatShowResetPasswordController;
 use App\Http\Controllers\Chat\Auth\ChatterAgentController;
 use App\Http\Controllers\Chat\Conversations\ChatDeleteAllConversationsController;
 use App\Http\Controllers\Chat\Conversations\ConversationController;
@@ -55,7 +57,8 @@ Route::prefix('chat/{agentSlug}')
     ->group(function (): void {
         Route::get('appearance', ChatAppearanceController::class)->name('chat.appearance');
 
-        Route::middleware('guest')->group(function (): void {
+        // Signed-in chatters and staff both skip the sign-in pages.
+        Route::middleware('guest:chat,chat_staff')->group(function (): void {
             Route::get('login', ChatShowLoginController::class)->name('chat.login.show');
             Route::post('login', ChatLoginController::class)
                 ->middleware('throttle:5,1')
@@ -64,6 +67,12 @@ Route::prefix('chat/{agentSlug}')
             Route::post('magic-link', ChatMagicLinkController::class)
                 ->middleware('throttle:6,1')
                 ->name('chat.magic-link.send');
+
+            // A chatter's emailed password reset link lands here.
+            Route::get('reset-password/{token}', ChatShowResetPasswordController::class)->name('chat.password.reset');
+            Route::post('reset-password', ChatResetPasswordController::class)
+                ->middleware('throttle:6,1')
+                ->name('chat.password.update');
         });
 
         Route::middleware('chat')->group(function (): void {

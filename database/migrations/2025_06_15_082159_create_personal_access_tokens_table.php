@@ -20,7 +20,9 @@ return new class extends Migration
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
 
-            $table->index(['tokenable_type', 'tokenable_id', 'last_used_at']);
+            // Not on last_used_at: it is rewritten on every API request, and an
+            // index on it would turn each of those writes into an index update.
+            $table->index(['tokenable_type', 'tokenable_id']);
             $table->index('expires_at');
         });
     }

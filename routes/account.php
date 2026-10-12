@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 // Personal account area — the signed-in user's own profile, security and data.
 // Everything lives under `my/account/*` with `account.*` route names. Workspace
 // administration (integrations, people, governance) lives in routes/workspace.php.
-Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
+Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(function (): void {
     Route::redirect('my/account', '/my/account/profile');
 
     Route::prefix('my/account')->name('account.')->group(function (): void {

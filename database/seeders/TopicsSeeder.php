@@ -41,7 +41,7 @@ class TopicsSeeder extends Seeder
         $this->createDefaultTopics($user);
 
         // Get agents for this user
-        $agents = Agent::where('user_id', $user->id)->get();
+        $agents = Agent::where('workspace_id', $user->workspace()->id)->get();
 
         if ($agents->isEmpty()) {
             $this->command->warn('No agents found for demo user.');
@@ -50,7 +50,7 @@ class TopicsSeeder extends Seeder
         }
 
         // Get topics for this user
-        $topics = Topic::where('user_id', $user->id)->get();
+        $topics = Topic::where('workspace_id', $user->workspace()->id)->get();
 
         if ($topics->isEmpty()) {
             $this->command->warn('No topics found. Please check the topics table.');
@@ -148,7 +148,7 @@ class TopicsSeeder extends Seeder
         foreach ($topics as $topic) {
             Topic::firstOrCreate(
                 [
-                    'user_id' => $user->id,
+                    'workspace_id' => $user->workspace()->id,
                     'topic' => $topic['topic'],
                 ],
                 ['description' => $topic['description']]
@@ -164,7 +164,7 @@ class TopicsSeeder extends Seeder
     private function assignTopicsToConversations(User $user): void
     {
         // Get topics for mapping
-        $topics = Topic::where('user_id', $user->id)->pluck('id', 'topic')->toArray();
+        $topics = Topic::where('workspace_id', $user->workspace()->id)->pluck('id', 'topic')->toArray();
 
         // Map conversation titles to topics
         $titleToTopic = [
@@ -186,7 +186,7 @@ class TopicsSeeder extends Seeder
         $conversationsUpdated = 0;
 
         // Get all conversations for this user's agents
-        $agentIds = Agent::where('user_id', $user->id)->pluck('id');
+        $agentIds = Agent::where('workspace_id', $user->workspace()->id)->pluck('id');
         $conversations = Conversation::whereHas('session', function ($query) use ($agentIds): void {
             $query->whereIn('agent_id', $agentIds);
         })->whereDoesntHave('topics')->get();

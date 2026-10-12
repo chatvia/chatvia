@@ -5,7 +5,9 @@ namespace Domain\Llm\Operations\Query;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Query\RewrittenQueryData;
+use Domain\Llm\Enums\LlmRole;
 use Domain\Llm\Services\LlmChat;
+use Domain\Llm\Services\ModelRoles;
 use Throwable;
 
 /**
@@ -18,6 +20,7 @@ class QueryRewriter
 {
     public function __construct(
         private readonly LlmChat $chat,
+        private readonly ModelRoles $models,
     ) {}
 
     public function rewrite(string $userQuery, ?string $previousQuery = null): RewrittenQueryData
@@ -28,7 +31,7 @@ class QueryRewriter
 
         try {
             $reply = $this->chat->send(new ChatRequestData(
-                model: (string) config('chatvia.ai.query.rewriter.model'),
+                model: $this->models->model(LlmRole::Fast),
                 messages: [
                     ChatMessageData::system(prompt('knowledge/rewrite-query')),
                     ChatMessageData::user(prompt('knowledge/rewrite-query-user', [

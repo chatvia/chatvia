@@ -10,21 +10,20 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 
-it('creates a user and dispatches the Registered event', function (): void {
+it('creates a user who owns a new workspace and dispatches the Registered event', function (): void {
     Event::fake([Registered::class]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
         name: 'Ada Lovelace',
         email: 'ada@example.test',
         password: 'secret-password',
-        domain: 'example.test',
         registered_ip: '127.0.0.1',
     ));
 
     expect($user)->toBeInstanceOf(User::class)
         ->and($user->name)->toBe('Ada Lovelace')
         ->and($user->email)->toBe('ada@example.test')
-        ->and($user->domain)->toBe('example.test')
+        ->and($user->isWorkspaceOwner())->toBeTrue()
         ->and($user->registered_ip)->toBe('127.0.0.1')
         ->and(Hash::check('secret-password', $user->password))->toBeTrue();
 
@@ -38,7 +37,6 @@ it('creates the default team so the account is usable straight away', function (
         name: 'Grace Hopper',
         email: 'grace@example.test',
         password: 'compiler',
-        domain: 'example.test',
         registered_ip: '127.0.0.1',
     ));
 
@@ -56,11 +54,10 @@ it('gives a new workspace no message limit by default', function (): void {
         name: 'Edsger Dijkstra',
         email: 'edsger@example.test',
         password: 'shortest-path',
-        domain: 'example.test',
         registered_ip: '127.0.0.1',
     ));
 
-    expect($user->messageLimit()->exists())->toBeFalse();
+    expect($user->workspace()->messageLimit()->exists())->toBeFalse();
 });
 
 it('gives a new workspace the monthly message limit set in the admin panel', function (): void {
@@ -71,11 +68,10 @@ it('gives a new workspace the monthly message limit set in the admin panel', fun
         name: 'Barbara Liskov',
         email: 'barbara@example.test',
         password: 'substitution',
-        domain: 'example.test',
         registered_ip: '127.0.0.1',
     ));
 
-    $limit = $user->messageLimit()->sole();
+    $limit = $user->workspace()->messageLimit()->sole();
 
     expect($limit->monthly_limit)->toBe(500)
         ->and($limit->messages_used)->toBe(0)
@@ -89,7 +85,6 @@ it('hashes the password before storing it', function (): void {
         name: 'Linus',
         email: 'linus@example.test',
         password: 'PlainTextPassword',
-        domain: 'example.test',
         registered_ip: '127.0.0.1',
     ));
 
@@ -105,7 +100,6 @@ it('stores the country passed in the DTO without any outbound geo-IP call', func
         name: 'Ada',
         email: 'ada-country@example.test',
         password: 'secret-password',
-        domain: 'example.test',
         registered_ip: '203.0.113.7',
         registered_country_code: 'de',
     ));
@@ -125,7 +119,6 @@ it('dispatches Registered only after the transaction has committed', function ()
         name: 'Grace',
         email: 'grace-commit@example.test',
         password: 'secret-password',
-        domain: 'example.test',
         registered_ip: '127.0.0.1',
     ));
 

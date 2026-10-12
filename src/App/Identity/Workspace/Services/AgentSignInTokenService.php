@@ -2,6 +2,7 @@
 
 namespace App\Identity\Workspace\Services;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Firebase\JWT\JWT;
@@ -22,7 +23,7 @@ use Throwable;
  *
  *  1. **JWT (HS256)** — the default. Standard JSON Web Token with three
  *     registered claims plus one optional custom claim:
- *       - sub: the external user's external_id (who to log in)
+ *       - sub: the chatter's or staff account's external_id (who to log in)
  *       - aud: the agent's external_id (which agent the token is good for)
  *       - exp: absolute Unix expiry
  *       - ctx: optional context tag the dashboard preview uses to mark a token
@@ -83,7 +84,7 @@ class AgentSignInTokenService
      * @return array{token: string, expires_at: Carbon}
      */
     public function issue(
-        User $user,
+        Chatter|User $user,
         Agent $agent,
         int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
         ?string $ctx = null,
@@ -114,7 +115,7 @@ class AgentSignInTokenService
      * @return array{token: string, expires_at: Carbon}
      */
     public function issueHmac(
-        User $user,
+        Chatter|User $user,
         Agent $agent,
         int $ttlSeconds = self::DEFAULT_TTL_SECONDS,
     ): array {
@@ -132,15 +133,16 @@ class AgentSignInTokenService
     }
 
     /**
-     * Verify a credential against an agent and resolve it to the user it was
-     * minted for — the agent's owner, or a managed user with permission to
-     * reach the agent — or null when the signature, audience, expiry, or
-     * access check fails (or the account has no signing secret yet).
+     * Verify a credential against an agent and resolve it to the account it was
+     * minted for — a chatter of the agent's workspace granted the agent, the
+     * agent's owner, or a teammate with permission to reach the agent — or
+     * null when the signature, audience, expiry, or access check fails (or
+     * the account has no signing secret yet).
      *
      * Accepts both schemes: a JWT (default) or a compact HMAC credential
      * (prefix `cvh1.`). See the class docblock.
      */
-    public function verify(string $token, Agent $agent): ?User
+    public function verify(string $token, Agent $agent): Chatter|User|null
     {
         return $this->verifyWithClaims($token, $agent)['user'] ?? null;
     }
@@ -150,7 +152,7 @@ class AgentSignInTokenService
      * decoded custom claims (currently just `ctx`). Returns null on any of
      * the same failures verify() rejects on.
      *
-     * @return array{user: User, ctx: ?string}|null
+     * @return array{user: Chatter|User, ctx: ?string}|null
      */
     public function verifyWithClaims(string $token, Agent $agent): ?array
     {
@@ -259,33 +261,14 @@ class AgentSignInTokenService
 
     /**
      * Resolve an authenticated subject (`sub`) against the agent and apply
-     * the shared access checks — owner short-circuit, managed-user lookup,
-     * `canAccessAgent`, and deactivation gate. Shared by both schemes so
-     * authorization stays identical; only authentication differs.
+     * the shared access checks — workspace lookup, `canAccessAgent`, and
+     * deactivation gate. Shared by both schemes so authorization stays
+     * identical; only authentication differs.
      *
-     * @return array{user: User, ctx: ?string}|null
+     * @return array{user: Chatter|User, ctx: ?string}|null
      */
     private function resolveSubject(Agent $agent, string $sub, ?string $ctx): ?array
     {
-        $owner = $agent->user;
-
-        // The owner always has access to their own agent. (They are not part
-        // of their own users() set — their workspace_id is null — so match
-        // them explicitly.)
-        if (hash_equals($owner->external_id, $sub)) {
-            return ['user' => $owner, 'ctx' => $ctx];
-        }
-
-        // Any other subject must be a user this account manages AND hold
-        // permission to reach THIS specific agent. Access is role-based: a
-        // role grants either all agents or an explicit list
-        // (User::canAccessAgent → TeamService). Account membership alone is
-        // NOT sufficient.
-        //
-        // `users()` is a BelongsToMany on User → the related model is User
-        // by construction, but the relation's static type erases to
-        // `Model|null`. The `@var` brings the concrete type back so the
-        // `canAccessAgent()` call and array return both typecheck.
         // `external_id` is a Postgres uuid column, so a non-UUID `sub` (a
         // customer signing their own internal id like "2" instead of the
         // Chatvia external_id) would make the driver throw. Treat it as an
@@ -294,19 +277,27 @@ class AgentSignInTokenService
             return null;
         }
 
-        /** @var User|null $user */
-        $user = $owner->users()->where('external_id', $sub)->first();
+        // The subject is a chatter or a staff account (owner or teammate) of
+        // THIS workspace, and must hold access to THIS agent: a chatter through
+        // its agent grants, staff through ownership or their team role
+        // (User::canAccessAgent → TeamService). Membership alone is NOT
+        // sufficient.
+        $account = Chatter::query()
+            ->where('workspace_id', $agent->workspace_id)
+            ->where('external_id', $sub)
+            ->first()
+            ?? $agent->workspace->members()->where('users.external_id', $sub)->first();
 
-        if (! $user?->canAccessAgent($agent)) {
+        if (! $account?->canAccessAgent($agent)) {
             return null;
         }
 
         // A deactivated chatter/teammate loses access immediately — this gates
         // both the widget bootstrap exchange and the hosted-chat sign-in link.
-        if ($user->isDeactivated()) {
+        if ($account->isDeactivated()) {
             return null;
         }
 
-        return ['user' => $user, 'ctx' => $ctx];
+        return ['user' => $account, 'ctx' => $ctx];
     }
 }

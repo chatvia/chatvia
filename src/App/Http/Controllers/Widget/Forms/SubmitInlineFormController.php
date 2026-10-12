@@ -37,7 +37,7 @@ class SubmitInlineFormController
         $conversation = $verification->verifyConversationId(
             $formInstance->conversation?->external_id,
             $agent,
-            $this->widgetUser($request),
+            $this->widgetViewer($request),
         );
         abort_unless($conversation instanceof Conversation, JsonResponse::HTTP_FORBIDDEN);
 

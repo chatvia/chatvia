@@ -59,7 +59,7 @@ it('chunks the stored transcript, not the audio file, on a retry', function (): 
         $job = $batch->jobs->first();
 
         return $job instanceof MediaChunkIngestionJob
-            && str_contains($job->page->content, 'stored transcript')
-            && ! str_contains($job->page->content, 'ID3');
+            && str_contains($job->group->pages[0]->content, 'stored transcript')
+            && ! str_contains($job->group->pages[0]->content, 'ID3');
     });
 });

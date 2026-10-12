@@ -75,13 +75,13 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
-use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
-use Domain\Llm\Providers\OpenRouter;
+use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\ProviderAdapters;
 use Domain\Llm\Usage\TokenUsageContext;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
@@ -150,19 +150,15 @@ class DomainServiceProvider extends ServiceProvider
     }
 
     /**
-     * The LLM and embedding providers plus the services of each ingestion and
-     * retrieval step, picked from config('chatvia.ai.*'). `auto` uses a hosted
+     * The embedding provider plus the services of each ingestion and
+     * retrieval step, picked from config('chatvia.ai.*'). Chat models are not
+     * bound here: each call goes to its model's provider (LlmProviders). `auto` uses a hosted
      * service when its API key is set and a local or "off" implementation when
      * it is not, so a self-hosted install works without those accounts. All
      * are bound (not singletons) so they always match the current config.
      */
     private function registerAiServices(): void
     {
-        // Values without a client of their own fall back to OpenRouter.
-        $this->app->bind(fn ($app): LlmProviderInterface => $app->make(
-            LlmProviderEnum::tryFrom((string) config('chatvia.ai.provider'))?->providerClass() ?? OpenRouter::class,
-        ));
-
         $this->app->bind(function ($app): EmbeddingsProviderInterface {
             $provider = $app->make(
                 EmbeddingProvider::tryFrom((string) config('chatvia.ai.models.embedding'))?->providerClass() ?? Cohere::class,
@@ -208,22 +204,19 @@ class DomainServiceProvider extends ServiceProvider
             default => throw $this->unknownAiDriver('transcriber', ['scaleway', 'none']),
         });
 
-        $this->app->bind(function (): DocumentLlm {
+        $this->app->bind(function ($app): DocumentLlm {
             $driver = $this->aiDriver('document_llm', auto: filled(config('services.mistral.api_key')) ? 'mistral' : 'none');
 
             if ($driver === 'none') {
                 return new DocumentLlm(null);
             }
 
+            $adapters = $app->make(ProviderAdapters::class);
+            $readers = array_values(array_filter($adapters->all(), static fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments()));
             $provider = LlmProviderEnum::tryFrom($driver);
 
-            if ($provider === null || ! $provider->readsDocuments()) {
-                $readers = array_map(
-                    static fn (LlmProviderEnum $p): string => $p->value,
-                    array_filter(LlmProviderEnum::cases(), static fn (LlmProviderEnum $p): bool => $p->readsDocuments()),
-                );
-
-                throw $this->unknownAiDriver('document_llm', [...$readers, 'none']);
+            if (! in_array($provider, array_map(static fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(), $readers), true)) {
+                throw $this->unknownAiDriver('document_llm', [...array_map(static fn (ProviderAdapter $adapter): string => $adapter->kind()->value, $readers), 'none']);
             }
 
             return new DocumentLlm($provider);

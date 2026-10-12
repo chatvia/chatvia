@@ -2,8 +2,10 @@
 
 namespace App\Identity\Workspace\Services;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\ChatViewerKind;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -18,7 +20,8 @@ use Illuminate\Support\Str;
  * it once, on load, for one of these session tokens, then sends the session
  * token on every subsequent widget request. Decoupling the working credential
  * from the bootstrap token lets a long-open page outlive the bootstrap token's
- * brief expiry. Each token is bound to the (user, agent) it was minted for,
+ * brief expiry. Each token is bound to the (chatter or staff account, agent) it
+ * was minted for,
  * fingerprinted to the IP + User-Agent it was issued from, and is invalidated
  * only by its TTL.
  *
@@ -46,12 +49,14 @@ class WidgetAuthSessionService
      *                                      set by the dashboard Live Preview path.
      * @return array{token: string, expires_at: Carbon}
      */
-    public function issue(User $user, Agent $agent, Request $request, array $meta = []): array
+    public function issue(Chatter|User $user, Agent $agent, Request $request, array $meta = []): array
     {
         $token = Str::random(64);
         $expiresAt = Carbon::now()->addSeconds(self::TTL_SECONDS);
 
         Cache::put(self::PREFIX.$token, [
+            // Chatter and staff ids come from different tables: keep the kind.
+            'kind' => $user instanceof Chatter ? ChatViewerKind::Chatter->value : ChatViewerKind::Staff->value,
             'user_id' => $user->id,
             'agent_id' => $agent->id,
             'fingerprint' => $this->fingerprint($request),
@@ -72,7 +77,7 @@ class WidgetAuthSessionService
      * Access was checked at mint time; the token is then bound to (user, agent,
      * fingerprint) and good until its TTL.
      *
-     * @return array{user: User, meta: array<string, mixed>}|null
+     * @return array{user: Chatter|User, meta: array<string, mixed>}|null
      */
     public function resolveWithMeta(string $token, Agent $agent, Request $request): ?array
     {
@@ -94,7 +99,11 @@ class WidgetAuthSessionService
             return null;
         }
 
-        $user = User::query()->whereKey($payload['user_id'])->first();
+        $user = match (ChatViewerKind::tryFrom((string) ($payload['kind'] ?? ''))) {
+            ChatViewerKind::Chatter => Chatter::query()->whereKey($payload['user_id'])->where('workspace_id', $agent->workspace_id)->first(),
+            ChatViewerKind::Staff => User::query()->whereKey($payload['user_id'])->first(),
+            default => null,
+        };
 
         // A still-cached token must stop working the moment an admin deactivates
         // the chatter — checked per request here (not just at mint) so the
@@ -113,7 +122,7 @@ class WidgetAuthSessionService
      * Backwards-compatible shape — returns the user only. Use
      * {@see resolveWithMeta()} when you need the playground / context flags.
      */
-    public function resolve(string $token, Agent $agent, Request $request): ?User
+    public function resolve(string $token, Agent $agent, Request $request): Chatter|User|null
     {
         return $this->resolveWithMeta($token, $agent, $request)['user'] ?? null;
     }

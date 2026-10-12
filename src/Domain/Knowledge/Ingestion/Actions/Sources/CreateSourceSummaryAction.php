@@ -48,7 +48,7 @@ class CreateSourceSummaryAction
         $questions = implode("\n", $analyzed->analysis->questions);
 
         return Chunk::query()->create([
-            'user_id' => $source->user_id,
+            'workspace_id' => $source->workspace_id,
             'chunkable_type' => $source->getMorphClass(),
             'chunkable_id' => $source->id,
             'chunk_index' => 0,
@@ -57,7 +57,7 @@ class CreateSourceSummaryAction
             'questions' => $questions !== '' ? $questions : null,
             'questions_embedding' => $questions !== '' ? $this->embeddings->embed($questions, true) : null,
             'questions_embedding_bm25' => $questions !== '' ? Bm25Tokenizer::expression($questions) : null,
-            'chunked_using_model' => config('chatvia.ai.models.chunker'),
+            'chunked_using_model' => config('chatvia.ai.models.summary'),
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
                 $this->llmCost($analyzed, $summary) + $this->embeddingCost($plainSummary) + $this->embeddingCost($questions),
             ),

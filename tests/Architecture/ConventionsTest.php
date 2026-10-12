@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Rules\WorkspaceRule;
 use Domain\Widget\Services\WidgetVerification;
 
 /*
@@ -318,6 +319,44 @@ it('Conversation/Session external_id lookups go through WidgetVerification', fun
     expect($nowClean)->toBe([], implode("\n", [
         '',
         'Allowlisted file no longer has an inline external_id lookup — remove from EXTERNAL_ID_LOOKUP_ALLOWLIST:',
+        ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
+/**
+ * Form requests look ids and names up inside the caller's workspace with
+ * {@see WorkspaceRule}. A bare `exists:`/`unique:` rule, or a
+ * raw Rule::exists()/Rule::unique(), checks the whole table: another
+ * workspace's id passes validation and its names look taken. Listed here:
+ * values that are unique across the install, and rules scoped to a parent
+ * record the route already checks.
+ */
+const BARE_DATABASE_RULE_ALLOWLIST = [
+    'src/App/Http/Requests/Agent/Source/Web/BulkDestroyWebsiteLinksRequest.php', // URLs of the route's website
+    'src/App/Http/Requests/Agent/UpdateAgentDomainRequest.php', // a custom chat domain is install-wide
+    'src/App/Http/Requests/Auth/RegisterUserRequest.php', // an account email is install-wide
+    'src/App/Http/Requests/Settings/Account/ProfileUpdateRequest.php', // an account email is install-wide
+];
+
+it('form requests scope exists/unique rules to the workspace', function (): void {
+    $offenders = conventionOffenders(
+        conventionPhpFiles('src/App/Http/Requests'),
+        '/[\'"](?:exists|unique):|(?<![\w\\\\])Rule::(?:exists|unique)\(/',
+    );
+
+    $newOffenders = array_values(array_diff($offenders, BARE_DATABASE_RULE_ALLOWLIST));
+    expect($newOffenders)->toBe([], implode("\n", [
+        '',
+        'New bare exists/unique rule(s) — use WorkspaceRule::exists()/unique():',
+        ...array_map(fn (string $f): string => "  - {$f}", $newOffenders),
+        '',
+        'Or, for a value that is unique across the install, add to BARE_DATABASE_RULE_ALLOWLIST in this file.',
+    ]));
+
+    $nowClean = array_values(array_diff(BARE_DATABASE_RULE_ALLOWLIST, $offenders));
+    expect($nowClean)->toBe([], implode("\n", [
+        '',
+        'Allowlisted file no longer has a bare exists/unique rule — remove from BARE_DATABASE_RULE_ALLOWLIST:',
         ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
     ]));
 });

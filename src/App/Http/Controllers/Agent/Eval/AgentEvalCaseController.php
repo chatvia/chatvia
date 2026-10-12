@@ -23,7 +23,7 @@ class AgentEvalCaseController
         EvalCase::create([
             'agent_id' => $agent->id,
             'agent_name' => $agent->name,
-            'workspace_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'name' => $data->name,
             'input' => $data->input,
             'scorer_type' => $data->scorer_type->value,

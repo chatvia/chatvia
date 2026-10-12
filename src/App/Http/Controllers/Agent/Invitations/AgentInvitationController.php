@@ -21,7 +21,8 @@ class AgentInvitationController
             ->where('token', $token)
             ->first();
 
-        abort_if($invitation === null || $invitation->hasExpired(), 404);
+        // A deleted agent is hidden from the relation, so its invitations are gone too.
+        abort_if($invitation === null || $invitation->hasExpired() || $invitation->agent === null, 404);
 
         $agent = $invitation->agent;
 

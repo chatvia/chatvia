@@ -59,7 +59,7 @@ it('surfaces a preset catalog tool through the agent-attached server, compiled w
     $agent = Agent::factory()->create();
 
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'connector_slug' => 'leads',
         'uses_central_catalog' => true,
         'name' => 'Leads',
@@ -87,7 +87,7 @@ it('hides a catalog tool whose membership this workspace blocked', function (): 
     $agent = Agent::factory()->create();
 
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'connector_slug' => 'leads',
         'uses_central_catalog' => true,
         'name' => 'Leads',
@@ -109,7 +109,7 @@ it('excludes the tools of an always-on connector from recall — they ship on ev
 
     $make = function (string $slug, bool $alwaysAvailable) use ($agent): void {
         $server = AgentMcpServer::create([
-            'user_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'connector_slug' => $slug,
             'uses_central_catalog' => true,
             'name' => ucfirst($slug),

@@ -37,7 +37,7 @@ function heldConversation(): array
         'agent_id' => $agent->id,
         'source' => ConversationSource::Widget,
         'handoff_status' => HandoffStatus::Human,
-        'handoff_user_id' => $agent->user_id,
+        'handoff_user_id' => $agent->workspace->owner->id,
     ]);
 
     return [$agent, $session, $conversation];

@@ -116,10 +116,8 @@ declare namespace Domain {
                             tone: string | null;
                         };
                         export type ChatLogConversationsResourceData = {
-                            conversations: Illuminate.LengthAwarePaginatorInterface<
-                                number,
-                                Domain.Agent.Data.Resources.ChatLog.Conversations.ChatLogConversationData
-                            >;
+                            conversations: Domain.Agent.Data.Resources.ChatLog.Conversations.ChatLogConversationData[];
+                            next_cursor: string | null;
                             lead_conversation_ids: number[];
                         };
                     }
@@ -669,11 +667,11 @@ declare namespace Domain {
                 id: string;
                 internal_id: string;
                 name: string;
-                description: string;
-                icon: string;
-                context_window: number;
+                description: string | null;
+                icon: string | null;
+                context_window: number | null;
                 features: Record<string, boolean>;
-                location: string;
+                location: string | null;
                 is_reasoning: boolean;
                 is_selected: boolean;
             };

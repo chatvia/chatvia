@@ -11,7 +11,7 @@ use Domain\Integration\Mcp\Exceptions\McpException;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Adding a custom MCP server by URL: owned by the workspace owner, a slug
+ * Adding a custom MCP server by URL: owned by the workspace, a slug
  * that is free in the workspace, and nothing left behind when the first
  * catalog sync fails.
  */
@@ -26,15 +26,15 @@ function customConnectorData(User $user, ConnectorAuthStrategy $strategy, ?strin
     );
 }
 
-it('adds a token-auth custom server under the owner with a workspace-unique slug', function (): void {
+it('adds a token-auth custom server under the workspace with a workspace-unique slug', function (): void {
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
-    $owner->mcpServers()->create(['name' => 'My CRM', 'slug' => 'my_crm', 'url' => 'https://old.example.test/mcp', 'auth_type' => 'none']);
+    $owner->workspace()->mcpServers()->create(['name' => 'My CRM', 'slug' => 'my_crm', 'url' => 'https://old.example.test/mcp', 'auth_type' => 'none']);
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
 
     $result = app(AddCustomConnectorAction::class)->execute(customConnectorData($teammate, ConnectorAuthStrategy::Token, 'tok'));
 
-    expect($result->server->user_id)->toBe($owner->id)
+    expect($result->server->workspace_id)->toBe($owner->workspace()->id)
         ->and($result->server->category)->toBe(McpServerCategory::Custom)
         ->and($result->server->connector_slug)->toBeNull()
         ->and($result->server->slug)->toBe('my_crm_2')
@@ -60,5 +60,5 @@ it('removes the server again when its first catalog sync fails', function (): vo
     expect(fn () => app(AddCustomConnectorAction::class)->execute(customConnectorData($owner, ConnectorAuthStrategy::None)))
         ->toThrow(McpException::class);
 
-    expect($owner->mcpServers()->count())->toBe(0);
+    expect($owner->workspace()->mcpServers()->count())->toBe(0);
 });

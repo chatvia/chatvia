@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * Downloads a ready GDPR data export ZIP. Only the owner of the export may
@@ -17,9 +16,8 @@ class DownloadDataExportController
 {
     public function __invoke(DataExport $export): StreamedResponse
     {
-        if (Gate::denies('download', $export)) {
-            throw new AccessDeniedHttpException;
-        }
+        // Someone else's export is a 404; a not-ready one is a 403 (DataExportPolicy).
+        Gate::authorize('download', $export);
 
         $filename = Str::slug((string) config('chatvia.brand.name')).'-export-'.$export->user_id.'-'.$export->created_at->format('Ymd-His').'.zip';
 

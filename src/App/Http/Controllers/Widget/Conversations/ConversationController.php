@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Widget\Conversations;
 
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Widget\Actions\EnsureWidgetConversationAction;
 use Domain\Widget\Data\Conversation\WidgetConversationsResultData;
 use Domain\Widget\Queries\ListWidgetConversationsQuery;
@@ -34,11 +34,11 @@ class ConversationController
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $widgetUser = $this->widgetUser($request);
+        $viewer = $this->widgetViewer($request);
 
         // On a protected agent, only list a session that belongs to the
         // signed-in chatter: another chatter's replayed session id shows nothing.
-        if ($widgetUser instanceof User && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $widgetUser)) {
+        if ($viewer instanceof ChatViewerData && ! $widgetVerification->verifySessionExternalId($sessionId, $agent, $viewer)) {
             return new WidgetConversationsResultData(conversations: []);
         }
 

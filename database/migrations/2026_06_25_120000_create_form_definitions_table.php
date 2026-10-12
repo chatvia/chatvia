@@ -1,7 +1,6 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +11,6 @@ return new class extends Migration
     public function up(): void
     {
         // Embedding columns use the install's vector type and size (EmbeddingStorage).
-        $ops = app(EmbeddingStorage::class)->type()->operatorClass();
 
         Schema::create('form_definitions', function (Blueprint $table): void {
             $table->id();
@@ -46,7 +44,9 @@ return new class extends Migration
         });
 
         DB::statement('CREATE INDEX form_definitions_embedding_bm25 ON form_definitions USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
-        DB::statement("CREATE INDEX form_definitions_embedding_vchordrq ON form_definitions USING vchordrq (embedding {$ops})");
+        // No vector index: an agent reaches a few dozen forms at most, so its
+        // search ranks them by exact distance (an approximate index over every
+        // workspace's rows would only add work and miss some).
 
         Schema::create('form_submissions', function (Blueprint $table): void {
             $table->id();
@@ -54,10 +54,13 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
 
             $table->foreignId('form_definition_id')->constrained('form_definitions')->cascadeOnDelete();
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
-            $table->foreignId('chat_conversation_id')->nullable()->constrained('chat_conversations')->nullOnDelete();
+            // The workspace rides on the agent and conversation keys, so a lead
+            // can never point at another workspace's agent or conversation.
+            $table->foreignId('workspace_id');
+            $table->foreignIdFor(Agent::class);
+            $table->foreignId('chat_conversation_id')->nullable()->index();
 
-            $table->foreignId('chat_message_id')->nullable()->constrained('chat_messages')->nullOnDelete();
+            $table->foreignId('chat_message_id')->nullable()->index()->constrained('chat_messages')->nullOnDelete();
 
             $table->string('status')->default('pending');
 
@@ -74,10 +77,23 @@ return new class extends Migration
 
             $table->timestamps();
 
+            $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
+
             $table->index(['agent_id', 'created_at']);
 
             $table->index(['form_definition_id', 'values_checksum']);
         });
+
+        // Deleting the conversation keeps the lead and clears only its
+        // conversation link (Postgres can null one column of a composite key).
+        DB::statement('ALTER TABLE form_submissions ADD CONSTRAINT form_submissions_workspace_conversation_foreign FOREIGN KEY (workspace_id, chat_conversation_id) REFERENCES chat_conversations (workspace_id, id) ON DELETE SET NULL (chat_conversation_id)');
+
+        // The abandoned-form prune (every few minutes): pending rows past expiry.
+        DB::statement("CREATE INDEX form_submissions_pending_expiry_idx ON form_submissions (expires_at) WHERE status = 'pending'");
+        // A form's leads list and export, newest first.
+        DB::statement("CREATE INDEX form_submissions_submitted_idx ON form_submissions (form_definition_id, id) WHERE status = 'submitted'");
+        // The workspace lead-retention prune.
+        DB::statement("CREATE INDEX form_submissions_workspace_submitted_idx ON form_submissions (workspace_id, submitted_at) WHERE status = 'submitted'");
 
         Schema::dropIfExists('leads');
     }

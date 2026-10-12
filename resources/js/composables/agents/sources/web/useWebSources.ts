@@ -1,9 +1,11 @@
 /**
  * The agent's website sources and their split into the four stages the Web
- * page shows: being crawled, ready to train, training and trained. A refresh
- * keeps the links already loaded for each website.
+ * page shows: being crawled, ready to train, training and trained. The server
+ * sends them one page at a time ("Load more"); a refresh starts again from the
+ * first page and keeps the links already loaded for each website.
  */
 import { listWebsites, type WebsiteCrawlOptions, type WebsiteLinkStatus, type WebsiteRecord, type WebsiteStatus } from '@/api/webSources';
+import { usePagedSourceList } from '@/composables/agents/sources/usePagedSourceList';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { toast } from 'vue-sonner';
@@ -45,7 +47,12 @@ export function hostnameOf(url: string): string {
 export function useWebSources(agentId: string) {
     const { t } = useI18n();
 
-    const webSources = ref<WebSource[]>([]);
+    const list = usePagedSourceList<WebSource>(async (page) => {
+        const websites = await listWebsites(agentId, page);
+
+        return { ...websites, data: websites.data.map(toWebSource) };
+    });
+    const webSources = list.items;
     const isLoadingSources = ref(false);
     const isInitialLoad = ref(true);
 
@@ -73,8 +80,7 @@ export function useWebSources(agentId: string) {
         }
 
         try {
-            const websites = await listWebsites(agentId);
-            webSources.value = websites.map(toWebSource);
+            await list.reload();
         } catch {
             toast.error(t('agents.sources.web.load_failed'));
         } finally {
@@ -82,6 +88,15 @@ export function useWebSources(agentId: string) {
                 isLoadingSources.value = false;
             }
             isInitialLoad.value = false;
+        }
+    }
+
+    /** Adds the next page of websites. */
+    async function loadMoreWebSources(): Promise<void> {
+        try {
+            await list.loadMore();
+        } catch {
+            toast.error(t('agents.sources.web.load_failed'));
         }
     }
 
@@ -125,7 +140,10 @@ export function useWebSources(agentId: string) {
         crawledSources,
         trainingSources,
         completedSources,
+        hasMoreWebSources: list.hasMore,
+        isLoadingMoreWebSources: list.isLoadingMore,
         fetchWebSources,
+        loadMoreWebSources,
         findSource,
         updateSource,
         removeSource,

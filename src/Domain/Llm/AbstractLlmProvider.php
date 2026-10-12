@@ -3,6 +3,7 @@
 namespace Domain\Llm;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Models\LlmProvider;
 use GuzzleHttp\Client as GuzzleClient;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
@@ -12,11 +13,22 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Base for the OpenAI-compatible chat providers: streaming through Guzzle,
  * non-streaming through the Laravel HTTP client (with token usage tracking),
- * and hooks to adjust the request body per provider. New non-streaming callers
- * use LlmChat, which wraps completion() in typed request and response objects.
+ * and hooks to adjust the request body per provider. The key and extra
+ * headers come from the provider row an admin set up, the address from the
+ * provider's adapter. New
+ * non-streaming callers use LlmChat, which wraps completion() in typed
+ * request and response objects.
  */
 abstract class AbstractLlmProvider implements LlmProviderInterface
 {
+    /**
+     * @param  string  $baseUrl  the provider's API address, from its adapter
+     */
+    public function __construct(
+        protected readonly LlmProvider $connection,
+        protected readonly string $baseUrl,
+    ) {}
+
     /**
      * Stream a completion request using Guzzle.
      *
@@ -95,6 +107,28 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     }
 
     /**
+     * The bearer key (when there is one), JSON, and the provider's own extra
+     * headers, which win.
+     *
+     * @return array<string, string>
+     */
+    public function headers(): array
+    {
+        $key = $this->getApiKey();
+
+        return array_merge(
+            array_filter(['Authorization' => $key !== '' ? 'Bearer '.$key : null]),
+            ['Content-Type' => 'application/json'],
+            $this->connection->headers ?? [],
+        );
+    }
+
+    public function getCompletionEndpoint(): string
+    {
+        return $this->getBaseUrl().'/chat/completions';
+    }
+
+    /**
      * Default implementation: no cost tracking support.
      *
      * @param  string  $generationId  The generation ID
@@ -115,17 +149,15 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
         return false;
     }
 
-    /**
-     * Get the API key for the provider.
-     *
-     * @return string The API key
-     */
-    abstract public function getApiKey(): string;
+    /** The provider's API key, or an empty string when it has none. */
+    public function getApiKey(): string
+    {
+        return (string) $this->connection->api_key;
+    }
 
-    /**
-     * Get the base URL for the provider.
-     *
-     * @return string The base URL
-     */
-    abstract public function getBaseUrl(): string;
+    /** The provider's API address, without a trailing slash. */
+    public function getBaseUrl(): string
+    {
+        return $this->baseUrl;
+    }
 }

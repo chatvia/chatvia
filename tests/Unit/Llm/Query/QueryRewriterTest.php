@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Http;
 beforeEach(function (): void {
     config([
         'services.scalewayai.api_key' => 'test-key',
-        'chatvia.ai.provider' => 'scaleway',
         'chatvia.ai.query.rewriter.enabled' => true,
     ]);
 });

@@ -40,7 +40,7 @@ class SummaryIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shoul
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->source->user_id;
+        return $this->source->workspace_id;
     }
 
     public function handle(CreateSourceSummaryAction $action): void

@@ -2,29 +2,32 @@
 
 namespace App\Identity\Workspace\Models;
 
+use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * A monthly message limit on one account. On a workspace it counts every
- * agent reply of the workspace (a platform admin sets it); on a chatter it
- * counts the chatter's own messages (the workspace sets it). No row means no
- * limit.
+ * A monthly message limit on one account. On a workspace (`workspace_id`) it
+ * counts every agent reply of the workspace (a platform admin sets it); on a
+ * chatter (`chatter_id`) it counts the chatter's own messages (the
+ * workspace sets it). Exactly one of the two is set. No row means no limit.
  *
  * `messages_used` counts from `period_starts_at`, the first day of a month.
  * When a new month starts the count restarts on the next message, so no
  * scheduled job is needed.
  *
  * @property int $id
- * @property int $user_id
+ * @property int|null $workspace_id
+ * @property int|null $chatter_id
  * @property int $monthly_limit
  * @property int $messages_used
  * @property Carbon $period_starts_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $user
+ * @property-read Workspace|null $workspace
+ * @property-read Chatter|null $chatter
  */
 #[Guarded(['id'])]
 class MessageLimit extends Model
@@ -48,11 +51,24 @@ class MessageLimit extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * The workspace whose agent replies this limit counts, if it is a
+     * workspace's.
+     *
+     * @return BelongsTo<Workspace, $this>
      */
-    public function user(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
+    }
+
+    /**
+     * The chatter whose own messages this limit counts, if it is a chatter's.
+     *
+     * @return BelongsTo<Chatter, $this>
+     */
+    public function chatter(): BelongsTo
+    {
+        return $this->belongsTo(Chatter::class);
     }
 
     protected function casts(): array

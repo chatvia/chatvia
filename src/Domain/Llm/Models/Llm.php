@@ -3,28 +3,30 @@
 namespace Domain\Llm\Models;
 
 use Database\Factories\LlmFactory;
-use Domain\Llm\Enums\LlmProviderEnum;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
+ * @property int $llm_provider_id
  * @property string $internal_name
  * @property string $external_name
  * @property string $descriptive_name
- * @property string $description
- * @property string $icon
- * @property int $context_window
+ * @property string|null $description
+ * @property string|null $icon
+ * @property int|null $context_window
  * @property array<string, bool> $features
- * @property string $location
+ * @property string|null $location
  * @property bool $is_reasoning
  * @property numeric|null $input_price_per_1m_tokens
  * @property numeric|null $output_price_per_1m_tokens
- * @property LlmProviderEnum $provider
+ * @property bool $is_enabled
+ * @property-read LlmProvider $provider
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
@@ -44,7 +46,7 @@ use Illuminate\Support\Facades\Cache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInternalName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereOutputPricePer1mTokens($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereProvider($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLlmProviderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIsReasoning($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereUpdatedAt($value)
  *
@@ -54,8 +56,10 @@ use Illuminate\Support\Facades\Cache;
     'id',
 ])]
 /**
- * A model in the LLM catalog: its names, provider, context window, features
- * and token prices. Agents pick their chat model from it.
+ * A model in the LLM catalog: one model on one provider ({@see LlmProvider}),
+ * with its names, context window, features and token prices. An admin adds
+ * the models an install may use; agents and the app's own tasks pick theirs
+ * from it, and every call to a model goes to its provider.
  */
 class Llm extends Model
 {
@@ -70,14 +74,30 @@ class Llm extends Model
             'context_window' => 'integer',
             'input_price_per_1m_tokens' => 'decimal:4',
             'output_price_per_1m_tokens' => 'decimal:4',
-            'provider' => LlmProviderEnum::class,
+            'is_enabled' => 'boolean',
         ];
     }
 
     #[\Override]
     protected $attributes = [
         'is_reasoning' => false,
+        'is_enabled' => true,
+        'features' => '{}',
     ];
+
+    /**
+     * @return BelongsTo<LlmProvider, $this>
+     */
+    public function provider(): BelongsTo
+    {
+        return $this->belongsTo(LlmProvider::class, 'llm_provider_id');
+    }
+
+    /** Whether the model may be picked: it and its provider are enabled. */
+    public function isAvailable(): bool
+    {
+        return $this->is_enabled && $this->provider->is_enabled;
+    }
 
     /**
      * Cache the entire LLM catalog. A tiny static lookup table that's read on
@@ -93,7 +113,18 @@ class Llm extends Model
      */
     public static function catalog(): Collection
     {
-        return Cache::rememberForever('llms.catalog', fn () => self::query()->get());
+        return Cache::rememberForever('llms.catalog', fn () => self::query()->get()->load('provider')->sortBy('descriptive_name')->values());
+    }
+
+    /**
+     * The catalog models that may be picked, for agents and the app's own
+     * tasks.
+     *
+     * @return Collection<int, Llm>
+     */
+    public static function available(): Collection
+    {
+        return self::catalog()->filter(fn (Llm $llm): bool => $llm->isAvailable())->values();
     }
 
     public static function flushCatalogCache(): void

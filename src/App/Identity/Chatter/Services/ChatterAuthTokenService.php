@@ -2,16 +2,20 @@
 
 namespace App\Identity\Chatter\Services;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\ChatViewerKind;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 /**
- * One-time tokens that sign a user in to one agent's hosted chat
+ * One-time tokens that sign someone in to one agent's hosted chat
  * (`/chat/{agentSlug}?auth_token=…`). They carry a sign-in from outside the
- * chat session — a dashboard preview, an accepted invitation, an emailed
- * sign-in link — into the chat's own session.
+ * chat session — a dashboard preview (staff), an accepted invitation (a
+ * chatter), an emailed sign-in link — into the chat's own session. The token
+ * remembers whether it is for a chatter or a staff account, because their ids
+ * come from different tables.
  *
  * A token is cached under its own key prefix, so no other cached value (such
  * as a widget session) can ever be used as one. It works only for the agent it
@@ -21,15 +25,13 @@ class ChatterAuthTokenService
 {
     private const string PREFIX = 'chat-handoff:';
 
-    /**
-     * Mint and cache a token that signs $user in to $agent's chat.
-     */
-    public function generateToken(Agent $agent, User $user, int $ttlMinutes = 60): string
+    public function generateToken(Agent $agent, Chatter|User $account, int $ttlMinutes = 60): string
     {
         $token = Str::random(48);
 
         Cache::put(self::PREFIX.$token, [
-            'user_id' => $user->id,
+            'kind' => $account instanceof Chatter ? ChatViewerKind::Chatter->value : ChatViewerKind::Staff->value,
+            'id' => $account->id,
             'agent_id' => $agent->id,
         ], now()->addMinutes($ttlMinutes));
 
@@ -37,11 +39,11 @@ class ChatterAuthTokenService
     }
 
     /**
-     * Use up a token for $agent: returns the id of the user it signs in, or
-     * null when it is unknown, expired, already used or minted for another
-     * agent. A token presented for the wrong agent is used up too.
+     * Use up a token for $agent. Returns the account it was minted for, or
+     * null when the token is unknown, used, expired, for another agent, or its
+     * account is gone. A chatter must still belong to the agent's workspace.
      */
-    public function consume(string $token, Agent $agent): ?int
+    public function consume(string $token, Agent $agent): Chatter|User|null
     {
         if ($token === '') {
             return null;
@@ -53,6 +55,12 @@ class ChatterAuthTokenService
             return null;
         }
 
-        return (int) $data['user_id'];
+        $id = (int) ($data['id'] ?? 0);
+
+        return match (ChatViewerKind::tryFrom((string) ($data['kind'] ?? ''))) {
+            ChatViewerKind::Chatter => Chatter::query()->whereKey($id)->where('workspace_id', $agent->workspace_id)->first(),
+            ChatViewerKind::Staff => User::query()->find($id),
+            default => null,
+        };
     }
 }

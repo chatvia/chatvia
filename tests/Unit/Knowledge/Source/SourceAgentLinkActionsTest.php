@@ -13,7 +13,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
  */
 it('attaches a source once', function (): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
 
     $attach = app(AttachSourceToAgentAction::class);
 
@@ -24,8 +24,8 @@ it('attaches a source once', function (): void {
 
 it('detaches a source without deleting it', function (): void {
     $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['user_id' => $agent->user_id]);
-    $website = SourceWebsite::query()->create(['user_id' => $agent->user_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+    $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
     $agent->websites()->attach($website->id);
     $other->websites()->attach($website->id);
 

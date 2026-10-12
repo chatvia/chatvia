@@ -22,7 +22,7 @@ class AgentTrainedWebsiteController
         $websites = SourceWebsite::query()
             // Websites belong to the workspace (the agent's owner), not to the
             // teammate who is looking.
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('status', SourceStatus::Completed)
             ->whereDoesntHave('agents', fn ($query) => $query->where('agents.id', $agent->id))
             ->with(['agents' => fn ($query) => $query->select('agents.id', 'agents.name')->where('agents.id', '!=', $agent->id)])

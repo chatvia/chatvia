@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Actions\Messages;
 
 use App\Identity\Workspace\Actions\MessageLimits\RecordMessageUsageAction;
+use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\MessageRole;
@@ -26,6 +27,7 @@ class StoreUserMessageAction
     public function __construct(
         private readonly ChatLogWriter $chatLog,
         private readonly RecordMessageUsageAction $recordUsage,
+        private readonly MessageAllowance $allowance,
     ) {}
 
     public function execute(Agent $agent, UserTurnData $turn): Message
@@ -46,8 +48,8 @@ class StoreUserMessageAction
             // limit (the workspace's limit counts replies). Counted here, not
             // from chat_messages (retention prunes those), so the monthly
             // tally survives. A no-op for a chatter without a limit.
-            if ($session->user?->isChatter()) {
-                $this->recordUsage->execute($session->user->id);
+            if ($session->chatter_id !== null) {
+                $this->recordUsage->execute($this->allowance->limitForChatter($session->chatter_id));
             }
 
             return $message->setRelation('conversation', $conversation->setRelation('session', $session));
@@ -69,6 +71,7 @@ class StoreUserMessageAction
     {
         return [
             'external_id' => $turn->external_message_id,
+            'workspace_id' => $conversation->workspace_id,
             'chat_conversation_id' => $conversation->id,
             'content' => $turn->message,
             'role' => MessageRole::User,

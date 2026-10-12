@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Queue;
 
 function pendingAnalysisConversation(Agent $agent, array $attributes = []): Conversation
 {
-    $session = Session::create(['agent_id' => $agent->id]);
+    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
 
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'source' => 'widget',
+        'is_visible' => true,
     ]);
 
     $conversation->forceFill($attributes)->save();
@@ -52,4 +54,16 @@ it('stops queueing a conversation once its analysis attempts are used up', funct
 
     Queue::assertPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($retry));
     Queue::assertNotPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($exhausted));
+});
+
+it('skips hidden conversations, which were never used', function (): void {
+    Queue::fake();
+    config(['chatvia.analytics.analysis.scan_age_hours' => 6]);
+    $agent = Agent::factory()->create();
+
+    $hidden = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(7), 'is_visible' => false]);
+
+    app(QueuePendingConversationAnalysisAction::class)->execute();
+
+    Queue::assertNotPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($hidden));
 });

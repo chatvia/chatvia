@@ -6,6 +6,7 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\Audience\ChannelBreakdownData;
 use Domain\Analytics\Data\Account\Audience\ChannelShareData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
+use Domain\Conversation\Enums\ConversationSource;
 
 /**
  * Conversations per channel (Hosted Chat, Chat Widget, WhatsApp, …), busiest
@@ -13,18 +14,6 @@ use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
  */
 class ChannelBreakdownQuery extends AccountAnalyticsQuery
 {
-    private const array LABELS = [
-        'hosted_chat' => 'Hosted Chat',
-        'widget' => 'Chat Widget',
-        'bar' => 'Command Bar',
-        'telegram' => 'Telegram',
-        'slack' => 'Slack',
-        'messenger' => 'Messenger',
-        'whatsapp' => 'WhatsApp',
-        'msteams' => 'MS Teams',
-        'instagram' => 'Instagram',
-    ];
-
     public function get(AnalyticsScopeData $scope): ChannelBreakdownData
     {
         $rows = $this->liveConversations($scope)
@@ -40,7 +29,7 @@ class ChannelBreakdownQuery extends AccountAnalyticsQuery
             totalConversations: $total,
             channels: $rows->map(fn (object $row): ChannelShareData => new ChannelShareData(
                 source: $row->source,
-                label: self::LABELS[$row->source] ?? ucfirst((string) $row->source),
+                label: ConversationSource::tryFrom((string) $row->source)?->label() ?? ucfirst((string) $row->source),
                 conversations: (int) $row->conversations,
                 pct: $this->pct((int) $row->conversations, $total),
             ))->all(),

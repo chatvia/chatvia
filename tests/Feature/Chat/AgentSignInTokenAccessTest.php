@@ -21,7 +21,7 @@ beforeEach(function (): void {
     // The chatter signs in to the agent — CreateChatterAction provisions the
     // user and attaches the agent_user grant in one shot. Without that grant
     // canAccessAgent() would refuse and verify() would return null.
-    $this->endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+    $this->endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
 
     $this->service = app(AgentSignInTokenService::class);
     $this->middleware = app(AuthenticateChatViaSignInToken::class);
@@ -131,7 +131,7 @@ describe('compact HMAC credential (?token=cvh1.…)', function (): void {
 function makeSignInAgent(User $owner): Agent
 {
     return Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Private Agent',
         'external_id' => Str::random(14),

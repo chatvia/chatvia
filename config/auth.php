@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 
 return [
@@ -45,11 +46,19 @@ return [
             'provider' => 'users',
         ],
 
-        // The hosted chat (/chat/{agent}). Its own sign-in on its own session
-        // cookie (session.chat), so signing in or out of a chat never touches
-        // the dashboard session, and the reverse. UseHostedChatSession makes
-        // it the default guard for /chat requests.
+        // The hosted chat (/chat/{agent}) for chatters: a workspace's end-users,
+        // from their own table. Its own sign-in on its own session cookie
+        // (session.chat), so signing in or out of a chat never touches the
+        // dashboard session, and the reverse. UseHostedChatSession makes it
+        // the default guard for /chat requests.
         'chat' => [
+            'driver' => 'session',
+            'provider' => 'chatters',
+        ],
+        // The hosted chat for staff (owners, teammates, admins) who open an
+        // agent's chat from the dashboard. Same /chat cookie, staff accounts.
+        // ChatSignIn switches a /chat request to it when it is the one signed in.
+        'chat_staff' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
@@ -59,6 +68,13 @@ return [
         // always pass the panel's own login with its MFA step.
         'admin' => [
             'driver' => 'session',
+            'provider' => 'users',
+        ],
+        // Bearer tokens on the public API (`auth:sanctum`). Without a provider,
+        // Sanctum accepts a token from any model with HasApiTokens; pinning it
+        // to `users` means only an account's own API keys ever pass.
+        'sanctum' => [
+            'driver' => 'sanctum',
             'provider' => 'users',
         ],
     ],
@@ -84,6 +100,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+        'chatters' => [
+            'driver' => 'eloquent',
+            'model' => Chatter::class,
         ],
 
         // 'users' => [

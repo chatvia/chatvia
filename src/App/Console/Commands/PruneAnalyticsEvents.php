@@ -12,7 +12,7 @@ use Illuminate\Console\Command;
  * {@see PruneAnalyticsEventsAction}).
  */
 #[Description('Delete raw analytics_events older than the retention window. Rollups/metrics keep the aggregates; feedback rows are current-state and are kept.')]
-#[Signature('app:prune-analytics-events {--days=395 : Retention in days (default ~13 months so year-over-year charts keep raw backing)}')]
+#[Signature('app:prune-analytics-events {--days='.PruneAnalyticsEventsAction::DEFAULT_RETENTION_DAYS.' : Retention in days (default ~13 months so year-over-year charts keep raw backing)}')]
 class PruneAnalyticsEvents extends Command
 {
     public function handle(PruneAnalyticsEventsAction $prune): int

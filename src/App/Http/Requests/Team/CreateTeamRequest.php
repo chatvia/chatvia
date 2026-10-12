@@ -33,7 +33,7 @@ class CreateTeamRequest extends FormRequest
         $user = $this->user();
 
         return new CreateTeamData(
-            owner: $user,
+            workspace: $user->workspace(),
             name: $this->string('name')->toString(),
         );
     }

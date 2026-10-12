@@ -3,6 +3,7 @@
 namespace Domain\Integration\Mcp\Models;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
@@ -25,7 +26,7 @@ use Support\Concerns\HasExternalId;
 /**
  * An MCP server a workspace connected — a catalog connector (Notion, Stripe,
  * Charts, …) or a custom server added by URL. The row is owned by the
- * workspace owner (`user_id`) and agents opt in through the
+ * workspace (`workspace_id`) and agents opt in through the
  * `agent_mcp_server` pivot. Tool definitions live either in the shared
  * `connector_tools` catalog (canonical-URL connectors, see
  * `uses_central_catalog`) or in this server's own `mcp_tools` rows.
@@ -35,7 +36,7 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string $external_id
- * @property int|null $user_id
+ * @property int|null $workspace_id
  * @property McpServerCategory|null $category
  * @property string|null $connector_slug
  * @property bool $uses_central_catalog
@@ -63,7 +64,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $oauth_client_secret
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $user
+ * @property-read Workspace $workspace
  * @property-read Collection<int, Agent> $agents
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentMcpServer attachedToAgent(\Domain\Agent\Models\Agent $agent)
@@ -164,11 +165,11 @@ class AgentMcpServer extends Model implements AttachableToAgents
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Workspace, $this>
      */
-    public function user(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     /**
@@ -242,7 +243,7 @@ class AgentMcpServer extends Model implements AttachableToAgents
     protected function attachedToAgent(Builder $query, Agent $agent): void
     {
         $query
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->whereHas('agents', fn (Builder $agents): Builder => $agents->whereKey($agent->id));
     }
 
@@ -255,7 +256,7 @@ class AgentMcpServer extends Model implements AttachableToAgents
     #[Scope]
     protected function ownedBySameAccountAs(Builder $query, Agent $agent): void
     {
-        $query->where('user_id', $agent->user_id);
+        $query->where('workspace_id', $agent->workspace_id);
     }
 
     /**
@@ -282,12 +283,12 @@ class AgentMcpServer extends Model implements AttachableToAgents
     }
 
     /**
-     * A slug for a new server that no other server of this workspace owner
-     * uses yet: the name's slug, or the slug with `_2`, `_3`, … appended.
-     * Slugs are unique per owner, and the slug is the routing prefix of every
-     * tool name, so a clash would mix two servers' tools.
+     * A slug for a new server that no other server of this workspace uses
+     * yet: the name's slug, or the slug with `_2`, `_3`, … appended. Slugs are
+     * unique per workspace, and the slug is the routing prefix of every tool
+     * name, so a clash would mix two servers' tools.
      */
-    public static function uniqueSlugFor(User $owner, string $name): string
+    public static function uniqueSlugFor(Workspace $owner, string $name): string
     {
         $base = self::makeSlug($name);
         $slug = $base;

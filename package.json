@@ -14,7 +14,8 @@
     "docs:dev": "vitepress dev docs --port 4000",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs --port 4000",
-    "shakomako:build": "npm --prefix shakomako run build && rm -rf public/shakomako && cp -R shakomako/dist public/shakomako"
+    "shakomako:build": "node scripts/build-shakomako.mjs",
+    "shakomako:version": "node scripts/build-shakomako.mjs --print-version"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

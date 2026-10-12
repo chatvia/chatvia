@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Finishing a connector OAuth flow: the state is single-use and must belong
  * to the same user AND browser session; the server is saved under the
- * workspace owner; a failing catalog sync is kept on the row instead of
+ * workspace; a failing catalog sync is kept on the row instead of
  * undoing a connection that worked.
  */
 beforeEach(function (): void {
@@ -95,7 +95,7 @@ it('saves the tokens under the workspace owner and keeps a catalog failure on th
         new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: 'binding'),
     );
 
-    expect($server->user_id)->toBe($owner->id)
+    expect($server->workspace_id)->toBe($owner->workspace()->id)
         ->and($server->connector_slug)->toBe('notion')
         ->and($server->category)->toBe(McpServerCategory::Integration)
         ->and($server->auth_type)->toBe(McpAuthType::Bearer)

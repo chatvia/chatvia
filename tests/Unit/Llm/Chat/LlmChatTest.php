@@ -3,26 +3,53 @@
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
+use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Services\LlmChat;
 use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
- * The typed chat layer: a ChatRequestData becomes the provider's wire format,
- * and the provider's JSON becomes a ChatResponseData, so no caller parses
- * `choices.0.message` itself.
+ * The typed chat layer: a ChatRequestData becomes the provider's wire format
+ * and goes to the provider of its model, and the provider's JSON becomes a
+ * ChatResponseData, so no caller parses `choices.0.message` itself.
  */
-beforeEach(function (): void {
-    config(['services.scalewayai.api_key' => 'test-key', 'chatvia.ai.provider' => 'scaleway']);
+it('sends each request to the provider of its model, with its key', function (): void {
+    Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'ok']]]])]);
+
+    $groq = testLlm('llama-3.3-70b', LlmProviderEnum::GROQ);
+    $local = testLlm('qwen3:8b', LlmProviderEnum::CUSTOM);
+    $local->provider->update(['base_url' => 'http://ollama.test:11434/v1', 'api_key' => null]);
+
+    app(LlmChat::class)->send(new ChatRequestData($groq, [ChatMessageData::user('Hi')]));
+    app(LlmChat::class)->send(new ChatRequestData($local->fresh(), [ChatMessageData::user('Hi')]));
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.groq.com/openai/v1/chat/completions'
+        && $request['model'] === 'llama-3.3-70b'
+        && $request->header('Authorization') === ['Bearer test-key']);
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'http://ollama.test:11434/v1/chat/completions'
+        && $request['model'] === 'qwen3:8b'
+        && ! $request->hasHeader('Authorization'));
+});
+
+it('refuses a model whose provider is turned off', function (): void {
+    Http::fake();
+    $model = testLlm();
+    $model->provider->update(['is_enabled' => false]);
+
+    expect(fn () => app(LlmChat::class)->send(new ChatRequestData($model->fresh(), [ChatMessageData::user('Hi')])))
+        ->toThrow(LlmProviderUnavailableException::class);
+
+    Http::assertNothingSent();
 });
 
 it('sends only the options that are set', function (): void {
     Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'ok']]]])]);
 
     app(LlmChat::class)->send(new ChatRequestData(
-        model: 'mistral-small',
+        model: testLlm('mistral-small'),
         messages: [ChatMessageData::system('Be brief.'), ChatMessageData::user('Hi')],
         maxTokens: 10,
         responseSchema: new ResponseSchemaData('answer', ['type' => 'object']),
@@ -53,7 +80,7 @@ it('reads the content, tool calls, usage and finish reason of a reply', function
         'usage' => ['prompt_tokens' => 12, 'completion_tokens' => 3],
     ])]);
 
-    $reply = app(LlmChat::class)->send(new ChatRequestData('m', [ChatMessageData::user('Hi')]));
+    $reply = app(LlmChat::class)->send(new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')]));
 
     expect($reply->content)->toBe('Part one. Part two.')
         ->and($reply->toolCalls)->toHaveCount(1)
@@ -70,7 +97,7 @@ it('decodes a structured reply and fails loudly only when asked to', function ()
         ->push(['choices' => [['message' => ['content' => 'no json here']]]])]);
 
     $completion = app(StructuredCompletion::class);
-    $request = new ChatRequestData('m', [ChatMessageData::user('Hi')]);
+    $request = new ChatRequestData(testLlm(), [ChatMessageData::user('Hi')]);
 
     expect($completion->send($request)->data)->toBe(['ok' => true]);
 

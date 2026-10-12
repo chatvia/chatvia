@@ -4,13 +4,12 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
-use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -18,8 +17,9 @@ use Illuminate\Support\Facades\Http;
 /**
  * TrainWebsiteUrlAction turns one crawled page into chunks and links each
  * chunk to its URL in chunk_references. The link must use the morph alias
- * (the app reads that column through the enforced morph map), and a retrain
- * must not re-link or re-fetch chunks one by one.
+ * (the app reads that column through the enforced morph map), a retrain must
+ * not re-link or re-fetch chunks one by one, and a changed page leaves no
+ * chunk behind that no page uses.
  */
 function trainUrlFakes(array $chunks): void
 {
@@ -63,7 +63,7 @@ function trainUrlFixture(): array
     $agent = Agent::factory()->create();
 
     $website = SourceWebsite::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'url' => 'https://docs.example.test',
         'status' => 'ingesting',
     ]);
@@ -121,25 +121,77 @@ it('reuses existing chunks and links on a retrain without duplicating them', fun
         ->and(DB::table('chunk_references')->where('referenceable_id', $url->id)->count())->toBe(2);
 });
 
-it('dispatches one enhance job per chunk only when enhancement is on', function (): void {
-    config(['chatvia.ai.chunker.enhance' => true]);
+it('enhances the new parts before storing them when enhancement is on', function (): void {
+    config(['chatvia.ai.chunker.enhance' => true, 'services.scalewayai.api_key' => 'test-key']);
     trainUrlFakes(['First chunk of the page.', 'Second chunk of the page.']);
-    [$agent, , $url] = trainUrlFixture();
+    [$agent, $website, $url] = trainUrlFixture();
+    Http::fake([
+        'https://firecrawl.test/v2/scrape' => Http::response(['success' => true, 'data' => ['markdown' => 'Page text.', 'metadata' => []]]),
+        '*' => Http::response(['choices' => [['message' => ['content' => json_encode([
+            'summary' => 'About the product.',
+            'questions' => ['What does the product do?'],
+        ])]]], 'usage' => ['prompt_tokens' => 10, 'completion_tokens' => 5]]),
+    ]);
 
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
-    Bus::assertDispatchedTimes(WebsiteUrlEnhanceJob::class, 2);
+    $chunks = Chunk::query()->ofSource($website)->get();
+
+    expect($chunks)->toHaveCount(2)
+        ->and($chunks->every(fn (Chunk $chunk): bool => $chunk->is_enhanced && $chunk->summary === 'About the product.'))->toBeTrue();
 });
 
-it('still finds links stored with the class name by an older release', function (): void {
+it('keeps the index a shared part got when it was first stored', function (): void {
+    [$agent, $website, $url] = trainUrlFixture();
+    trainUrlFakes(['Intro of the first page.', 'Shared footer.']);
+    app(TrainWebsiteUrlAction::class)->execute($url, $agent);
+
+    $other = $website->urls()->create(['url' => 'https://docs.example.test/other']);
+    test()->mock(TextSplitter::class, function ($splitter): void {
+        $splitter->shouldReceive('split')->andReturn(['Shared footer.']);
+        $splitter->shouldReceive('name')->andReturn('chunkfit');
+    });
+
+    app(TrainWebsiteUrlAction::class)->execute($other, $agent);
+
+    $footer = Chunk::query()->ofSource($website)->where('checksum', hash('sha256', 'Shared footer.'))->sole();
+
+    expect($footer->chunk_index)->toBe(2)
+        ->and(DB::table('chunk_references')->where('chunk_id', $footer->id)->count())->toBe(2);
+});
+
+it('drops the parts a changed page no longer has and deletes the chunks no page uses', function (): void {
+    [$agent, $website, $url] = trainUrlFixture();
+    trainUrlFakes(['Old part.', 'Shared part.']);
+    app(TrainWebsiteUrlAction::class)->execute($url, $agent);
+
+    // Another page shares one part, so that chunk must survive.
+    $other = $website->urls()->create(['url' => 'https://docs.example.test/other']);
+    $shared = Chunk::query()->ofSource($website)->where('checksum', hash('sha256', 'Shared part.'))->sole();
+    DB::table('chunk_references')->insert(['chunk_id' => $shared->id, 'referenceable_type' => $other->getMorphClass(), 'referenceable_id' => $other->id]);
+    $old = Chunk::query()->ofSource($website)->where('checksum', hash('sha256', 'Old part.'))->sole();
+
+    // The page changed: it splits into other parts now.
+    test()->mock(TextSplitter::class, function ($splitter): void {
+        $splitter->shouldReceive('split')->andReturn(['Shared part.', 'New part.']);
+        $splitter->shouldReceive('name')->andReturn('chunkfit');
+    });
+    $url->update(['checksum' => null]);
+    Cache::flush();
+
+    app(TrainWebsiteUrlAction::class)->execute($url->fresh(), $agent);
+
+    expect(Chunk::query()->find($old->id))->toBeNull()
+        ->and(Chunk::query()->find($shared->id))->not->toBeNull()
+        ->and($url->chunks()->pluck('chunk')->sort()->values()->all())->toBe(['New part.', 'Shared part.'])
+        ->and($other->chunks()->pluck('chunk')->all())->toBe(['Shared part.']);
+});
+
+it('reports the website progress it is given', function (): void {
     trainUrlFakes(['Only chunk.']);
     [$agent, , $url] = trainUrlFixture();
 
-    app(TrainWebsiteUrlAction::class)->execute($url, $agent);
+    app(TrainWebsiteUrlAction::class)->execute($url, $agent, 50);
 
-    DB::table('chunk_references')
-        ->where('referenceable_id', $url->id)
-        ->update(['referenceable_type' => AgentWebsiteUrl::class]);
-
-    expect($url->chunks()->count())->toBe(1);
+    Event::assertDispatched(WebsiteIngestionProgressed::class, fn (WebsiteIngestionProgressed $event): bool => $event->broadcastWith()['progress'] === 50);
 });

@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import TurnstileWidget from '@/components/auth/TurnstileWidget.vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useBotCheck } from '@/composables/useBotCheck';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login } from '@/routes';
 import { store as storeRegistration } from '@/routes/register';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle, Lock, LockKeyhole, Mail, User } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -17,16 +20,24 @@ const { t } = useI18n();
 // Self-serve sign-up, open only when the install allows it (see
 // RegisteredUserController). Social buttons are left out on purpose: a social
 // sign-in only links to an account that already exists.
+const { siteKey: botCheckKey } = useBotCheck('sign_up');
+const botCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
 const form = useForm({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
+    'cf-turnstile-response': '',
 });
 
+// A Turnstile token counts once, so every submit needs a new one.
 const submit = () => {
     form.post(storeRegistration.url(), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
+        onFinish: () => {
+            form.reset('password', 'password_confirmation');
+            botCheck.value?.reset();
+        },
     });
 };
 </script>
@@ -126,6 +137,11 @@ const submit = () => {
                         />
                     </div>
                     <InputError :message="form.errors.password_confirmation" />
+                </div>
+
+                <div v-if="botCheckKey" class="space-y-2">
+                    <TurnstileWidget ref="botCheck" v-model="form['cf-turnstile-response']" :site-key="botCheckKey" />
+                    <InputError :message="form.errors['cf-turnstile-response']" />
                 </div>
 
                 <!-- Register Button -->

@@ -60,7 +60,7 @@ class FunctionController
 
         // Deleted through the model (not a mass delete) so the observer drops
         // the cached tool pool of every agent that used the function.
-        $user->workspace()->functions()->where('external_id', $external_id)->first()?->delete();
+        $user->workspace()->functions()->where('external_id', $external_id)->firstOrFail()->delete();
 
         return back();
     }

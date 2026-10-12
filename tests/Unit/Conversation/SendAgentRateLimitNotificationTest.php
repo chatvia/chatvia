@@ -17,7 +17,7 @@ it('emails the workspace owner when the agent trips its rate limit', function ()
         new AgentRateLimitExceeded($this->agent, 20),
     );
 
-    Notification::assertSentTo($this->agent->user, AgentRateLimitNotification::class);
+    Notification::assertSentTo($this->agent->workspace->owner, AgentRateLimitNotification::class);
 });
 
 it('throttles to a single email per hour per agent', function (): void {
@@ -30,5 +30,5 @@ it('throttles to a single email per hour per agent', function (): void {
     $listener->handle($event);
     $listener->handle($event);
 
-    Notification::assertSentToTimes($this->agent->user, AgentRateLimitNotification::class, 1);
+    Notification::assertSentToTimes($this->agent->workspace->owner, AgentRateLimitNotification::class, 1);
 });

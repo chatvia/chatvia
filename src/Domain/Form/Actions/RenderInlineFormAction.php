@@ -62,6 +62,7 @@ class RenderInlineFormAction
 
         $submission = FormSubmission::create([
             'form_definition_id' => $definition->id,
+            'workspace_id' => $agent->workspace_id,
             'agent_id' => $agent->id,
             'chat_conversation_id' => $conversation->id,
             'status' => FormSubmissionStatus::Pending,

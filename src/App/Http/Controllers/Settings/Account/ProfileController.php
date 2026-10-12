@@ -27,9 +27,9 @@ class ProfileController
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'dateFormats' => DateFormat::options(),
-            // Teammates (employees) belong to a workspace owner — surface who
-            // manages this account so they know it isn't a standalone workspace.
-            'managedBy' => $user->isEmployee() ? $user->parentWorkspace?->name : null,
+            // Teammates belong to someone else's workspace — surface which one,
+            // so they know it isn't a standalone workspace.
+            'managedBy' => $user->isTeammate() ? $user->workspace()->name : null,
         ]);
     }
 

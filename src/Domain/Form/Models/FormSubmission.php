@@ -29,6 +29,7 @@ use Support\Concerns\HasExternalId;
  * @property int $id
  * @property string $external_id
  * @property int $form_definition_id
+ * @property int $workspace_id
  * @property int $agent_id
  * @property int|null $chat_conversation_id
  * @property int|null $chat_message_id

@@ -86,7 +86,7 @@ it('names the download after the configured brand', function (): void {
     expect($disposition)->toContain('acme-chat-export-'.$this->user->id.'-');
 });
 
-it('forbids another user from downloading an export', function (): void {
+it('hides another user\'s export from a download', function (): void {
     Storage::fake('local');
     Storage::disk('local')->put('data-exports/other.zip', 'pretend-zip-bytes');
 
@@ -102,7 +102,7 @@ it('forbids another user from downloading an export', function (): void {
 
     $this->actingAs($this->user)
         ->get(route('account.data-export.download', $export))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('refuses to download an expired export', function (): void {

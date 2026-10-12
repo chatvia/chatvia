@@ -1,8 +1,9 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
 use App\Mcp\Servers\AccountAnalyticsServer;
@@ -50,17 +51,17 @@ pest()->beforeEach(function (): void {
     }
 });
 
-/** @return array{workspace: User, alpha: Agent, beta: Agent} */
+/** @return array{workspace: Workspace, alpha: Agent, beta: Agent} */
 function seedAnalyticsWorkspace(): array
 {
     test()->travelTo(CarbonImmutable::create(2026, 6, 15, 12, 30, 0));
 
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
-    $alpha = Agent::factory()->create(['user_id' => $workspace->id, 'name' => 'Alpha']);
-    $beta = Agent::factory()->create(['user_id' => $workspace->id, 'name' => 'Beta']);
+    $workspace = User::factory()->create()->workspace();
+    $alpha = Agent::factory()->create(['workspace_id' => $workspace->id, 'name' => 'Alpha']);
+    $beta = Agent::factory()->create(['workspace_id' => $workspace->id, 'name' => 'Beta']);
 
-    $other = User::factory()->create(['type' => UserType::Workspace]);
-    $noise = Agent::factory()->create(['user_id' => $other->id, 'name' => 'Noise']);
+    $other = User::factory()->create()->workspace();
+    $noise = Agent::factory()->create(['workspace_id' => $other->id, 'name' => 'Noise']);
 
     seedAnalyticsMessageLimit($workspace);
     seedAnalyticsEvents($workspace, $alpha, $beta, $other, $noise);
@@ -70,20 +71,21 @@ function seedAnalyticsWorkspace(): array
     return ['workspace' => $workspace, 'alpha' => $alpha, 'beta' => $beta];
 }
 
-function seedAnalyticsMessageLimit(User $workspace): void
+function seedAnalyticsMessageLimit(Workspace $workspace): void
 {
     MessageLimit::create([
-        'user_id' => $workspace->id,
+        'workspace_id' => $workspace->id,
         'monthly_limit' => 1000,
         'messages_used' => 420,
         'period_starts_at' => '2026-06-01 00:00:00',
     ]);
 }
 
-function seedAnalyticsEvents(User $workspace, Agent $alpha, Agent $beta, User $other, Agent $noise): void
+function seedAnalyticsEvents(Workspace $workspace, Agent $alpha, Agent $beta, Workspace $other, Agent $noise): void
 {
-    $chatterOne = User::factory()->create(['type' => UserType::Chatter, 'name' => 'Ada Lovelace', 'email' => 'ada@example.test']);
-    $chatterTwo = User::factory()->create(['type' => UserType::Chatter, 'name' => 'Grace Hopper', 'email' => 'grace@example.test']);
+    $chatterOne = Chatter::factory()->ofWorkspace($workspace)->create(['name' => 'Ada Lovelace', 'email' => 'ada@example.test']);
+    $chatterTwo = Chatter::factory()->ofWorkspace($workspace)->create(['name' => 'Grace Hopper', 'email' => 'grace@example.test']);
+    $noiseChatter = Chatter::factory()->ofWorkspace($other)->create(['name' => 'Noise Chatter']);
 
     $conversations = [
         'one' => '00000000-0000-4000-8000-000000000001',
@@ -96,7 +98,7 @@ function seedAnalyticsEvents(User $workspace, Agent $alpha, Agent $beta, User $o
     $event = fn (int $workspaceId, Agent $agent, string $type, string $conversation, string $at, array $extra = []): array => [
         'agent_id' => $agent->id,
         'workspace_id' => $workspaceId,
-        'chatter_user_id' => null,
+        'chatter_id' => null,
         'event_type' => $type,
         'role' => null,
         'feedback' => null,
@@ -112,7 +114,7 @@ function seedAnalyticsEvents(User $workspace, Agent $alpha, Agent $beta, User $o
         ...$extra,
     ];
 
-    $user = fn (?User $chatter): array => ['role' => 'user', 'chatter_user_id' => $chatter?->id];
+    $user = fn (?Chatter $chatter): array => ['role' => 'user', 'chatter_id' => $chatter?->id];
     $reply = fn (int $ms, int $prompt, int $completion): array => [
         'role' => 'assistant',
         'response_time_ms' => $ms,
@@ -135,7 +137,7 @@ function seedAnalyticsEvents(User $workspace, Agent $alpha, Agent $beta, User $o
         $event($workspace->id, $alpha, 'feedback_given', 'one', '2026-06-10 09:16:00', ['feedback' => 'positive']),
         $event($workspace->id, $beta, 'feedback_given', 'three', '2026-06-14 20:11:00', ['feedback' => 'negative']),
         $event($workspace->id, $beta, 'feedback_given', 'three', '2026-06-14 20:12:00', ['feedback' => 'positive']),
-        $event($other->id, $noise, 'message_sent', 'noise', '2026-06-11 11:00:00', $user($chatterTwo)),
+        $event($other->id, $noise, 'message_sent', 'noise', '2026-06-11 11:00:00', $user($noiseChatter)),
         $event($other->id, $noise, 'message_sent', 'noise', '2026-06-11 11:00:01', $reply(99, 999, 999)),
         $event($other->id, $noise, 'feedback_given', 'noise', '2026-06-11 11:01:00', ['feedback' => 'negative']),
     ]);
@@ -157,9 +159,11 @@ function seedAnalyticsEvents(User $workspace, Agent $alpha, Agent $beta, User $o
     ]);
 }
 
-function seedAnalyticsRollups(User $workspace, Agent $alpha, Agent $beta, User $other, Agent $noise): void
+function seedAnalyticsRollups(Workspace $workspace, Agent $alpha, Agent $beta, Workspace $other, Agent $noise): void
 {
-    $hour = fn (int $workspaceId, Agent $agent, string $bucket, string $country, int $conversations, int $user, int $assistant): array => [
+    // Tokens and reply times match the replies seeded in analytics_events for
+    // the same hour; the hours with no events behind them used no tokens.
+    $hour = fn (int $workspaceId, Agent $agent, string $bucket, string $country, int $conversations, int $user, int $assistant, array $usage = []): array => [
         'agent_id' => $agent->id,
         'workspace_id' => $workspaceId,
         'bucket_hour' => $bucket,
@@ -168,19 +172,21 @@ function seedAnalyticsRollups(User $workspace, Agent $alpha, Agent $beta, User $
         'conversations_started' => $conversations,
         'user_messages' => $user,
         'assistant_messages' => $assistant,
-        'total_tokens' => 0,
-        'response_ms_sum' => 0,
-        'response_ms_count' => 0,
+        'prompt_tokens' => $usage['prompt'] ?? 0,
+        'completion_tokens' => $usage['completion'] ?? 0,
+        'total_tokens' => ($usage['prompt'] ?? 0) + ($usage['completion'] ?? 0),
+        'response_ms_sum' => $usage['response_ms'] ?? 0,
+        'response_ms_count' => $usage['replies'] ?? 0,
     ];
 
     seededAnalyticsDb()->table('analytics_agent_hourly_rollups')->insert([
-        $hour($workspace->id, $alpha, '2026-06-10 09:00:00', 'NO', 1, 2, 2),
-        $hour($workspace->id, $alpha, '2026-06-12 14:00:00', 'DE', 2, 1, 1),
-        $hour($workspace->id, $beta, '2026-06-14 20:00:00', 'US', 2, 1, 1),
+        $hour($workspace->id, $alpha, '2026-06-10 09:00:00', 'NO', 1, 2, 2, ['prompt' => 180, 'completion' => 90, 'response_ms' => 2100, 'replies' => 2]),
+        $hour($workspace->id, $alpha, '2026-06-12 14:00:00', 'DE', 2, 1, 1, ['prompt' => 120, 'completion' => 80, 'response_ms' => 800, 'replies' => 1]),
+        $hour($workspace->id, $beta, '2026-06-14 20:00:00', 'US', 2, 1, 1, ['prompt' => 60, 'completion' => 30, 'response_ms' => 3000, 'replies' => 1]),
         $hour($workspace->id, $beta, '2026-06-14 21:00:00', '--', 3, 1, 1),
         $hour($workspace->id, $beta, '2026-06-08 09:00:00', 'DE', 2, 4, 4),
-        $hour($workspace->id, $beta, '2026-05-20 10:00:00', 'NO', 1, 1, 1),
-        $hour($other->id, $noise, '2026-06-11 11:00:00', 'US', 40, 40, 40),
+        $hour($workspace->id, $beta, '2026-05-20 10:00:00', 'NO', 1, 1, 1, ['prompt' => 10, 'completion' => 10, 'response_ms' => 1500, 'replies' => 1]),
+        $hour($other->id, $noise, '2026-06-11 11:00:00', 'US', 40, 40, 40, ['prompt' => 999, 'completion' => 999, 'response_ms' => 99, 'replies' => 1]),
     ]);
 
     $day = fn (int $workspaceId, Agent $agent, string $bucket, array $columns): array => [
@@ -246,6 +252,7 @@ function seedAnalyticsChats(Agent $alpha, Agent $beta, Agent $noise): void
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'source' => $source,
+        'is_visible' => true,
         'created_at' => $at,
         ...$extra,
     ]);
@@ -259,6 +266,8 @@ function seedAnalyticsChats(Agent $alpha, Agent $beta, Agent $noise): void
     $conversation($android, ConversationSource::Widget, '2026-06-14 20:20:00', ['deleted_at' => '2026-06-14 21:00:00']);
     $conversation($android, ConversationSource::Widget, '2026-05-21 08:00:00', ['handoff_status' => 'pending']);
     $noiseConversation = $conversation($noiseSession, ConversationSource::Slack, '2026-06-11 11:00:00', ['handoff_status' => 'pending']);
+    // Opened but never used: not a conversation in any count.
+    $conversation($secondPhone, ConversationSource::HostedChat, '2026-06-13 09:00:00', ['is_visible' => false, 'handoff_status' => 'pending']);
 
     $reply = fn (Conversation $conversation, ?bool $found, ?float $confidence, string $at): Message => Message::factory()->create([
         'chat_conversation_id' => $conversation->id,
@@ -292,10 +301,10 @@ function seededAnalyticsDb(): Connection
  * Act as the owner-facing analytics chat for this workspace (or for nobody),
  * resolved from the signed identity header exactly as the middleware does.
  */
-function analyticsCaller(?User $workspace): void
+function analyticsCaller(?Workspace $workspace): void
 {
     $request = Request::create('/mcp/account-analytics', 'POST');
-    if ($workspace instanceof User) {
+    if ($workspace instanceof Workspace) {
         $request->headers->set('X-Chatvia-Workspace-Id', $workspace->external_id);
     }
 

@@ -8,8 +8,14 @@ use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Services\MessageAllowance;
 
 /**
- * Counts one message against an account's monthly limit, restarting the count
- * when a new month has begun. Does nothing for an account without a limit.
+ * Counts one message against a monthly limit (a workspace's or a chatter's,
+ * looked up by the caller through {@see MessageAllowance}), restarting the
+ * count when a new month has begun. Does nothing without a limit.
+ *
+ * The count and the month rollover are one UPDATE … RETURNING: the database
+ * decides from the stored period, so two replies at once never both restart
+ * the month or lose a count, and the returned values tell whether this
+ * message reached the limit.
  */
 class RecordMessageUsageAction
 {
@@ -17,24 +23,35 @@ class RecordMessageUsageAction
         private readonly MessageAllowance $allowance,
     ) {}
 
-    public function execute(int $userId): void
+    public function execute(?MessageLimit $limit): void
     {
-        $limit = $this->allowance->limitFor($userId);
-
         if (! $limit instanceof MessageLimit) {
             return;
         }
 
-        if ($limit->isCurrentPeriod()) {
-            $limit->increment('messages_used');
-        } else {
-            $limit->update(['period_starts_at' => now()->startOfMonth(), 'messages_used' => 1]);
+        $now = now();
+        $monthStart = $now->copy()->startOfMonth();
+
+        $row = $limit->getConnection()->selectOne(<<<'SQL'
+            UPDATE message_limits SET
+                messages_used = CASE WHEN period_starts_at >= ? THEN messages_used + 1 ELSE 1 END,
+                period_starts_at = GREATEST(period_starts_at, ?),
+                updated_at = ?
+            WHERE id = ?
+            RETURNING messages_used, monthly_limit, period_starts_at, updated_at
+        SQL, [$monthStart, $monthStart, $now, $limit->id]);
+
+        // The limit was removed in the meantime: nothing left to count.
+        if ($row === null) {
+            return;
         }
+
+        $limit->forceFill((array) $row)->syncOriginal();
 
         // Below the limit the cached "may send" stays; the message that
         // reaches it drops the cache so the next turn is refused.
         if ($limit->reached()) {
-            $this->allowance->forget($userId);
+            $this->allowance->forgetLimit($limit);
         }
     }
 }

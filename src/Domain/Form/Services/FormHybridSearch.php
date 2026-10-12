@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,9 +27,6 @@ use Throwable;
  */
 class FormHybridSearch
 {
-    /** vchordrq + BM25 indexes were built against this dim. */
-    private const int EMBEDDING_DIMS = 1024;
-
     /**
      * RRF constant. 60 is the de-facto default (Cormack et al.) — it smooths
      * per-channel rank differences without letting any single top hit dominate.
@@ -40,6 +38,7 @@ class FormHybridSearch
 
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,
+        private readonly EmbeddingStorage $storage,
     ) {}
 
     /**
@@ -100,18 +99,20 @@ class FormHybridSearch
 
         $vectorString = '['.implode(',', $queryVector).']';
         $candidateLimit = max($limit * 3, $limit);
-        $dims = self::EMBEDDING_DIMS;
+        // The install's column type (e.g. halfvec(1024)), so the query vector
+        // compares with the stored ones whatever size the install chose.
+        $cast = $this->storage->columnType();
         $rrfK = self::RRF_K;
 
         $sql = <<<SQL
 WITH form_vector AS (
     SELECT fd.id,
-           ROW_NUMBER() OVER (ORDER BY fd.embedding <-> ?::vector({$dims})) AS rank
+           ROW_NUMBER() OVER (ORDER BY fd.embedding <-> ?::{$cast}) AS rank
     FROM form_definitions fd
     WHERE fd.agent_id = ?
       AND fd.is_active = true
       AND fd.embedding IS NOT NULL
-    ORDER BY fd.embedding <-> ?::vector({$dims})
+    ORDER BY fd.embedding <-> ?::{$cast}
     LIMIT ?
 ),
 form_bm25 AS (

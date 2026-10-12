@@ -11,7 +11,9 @@ use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\LimitSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\SecuritySettings;
 use App\Admin\Settings\SignInSettings;
+use App\Admin\Settings\StorageSettings;
 use App\Admin\Settings\WorkspaceSettings;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeInterfaceCast;
 use Spatie\LaravelSettings\SettingsCasts\DateTimeZoneCast;
@@ -44,6 +46,8 @@ return [
         WorkspaceSettings::class,
         PlatformSettings::class,
         LimitSettings::class,
+        StorageSettings::class,
+        SecuritySettings::class,
     ],
 
     'setting_class_path' => app_path('Admin/Settings'),

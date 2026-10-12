@@ -13,12 +13,12 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
     $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
-    $this->workspace = User::factory()->workspace()->create();
+    $this->workspace = User::factory()->create()->workspace();
 });
 
 it('shows the workspace page with its message limit', function (): void {
     MessageLimit::create([
-        'user_id' => $this->workspace->id,
+        'workspace_id' => $this->workspace->id,
         'monthly_limit' => 750,
         'messages_used' => 40,
         'period_starts_at' => now()->startOfMonth(),
@@ -37,12 +37,12 @@ it('sets a monthly message limit', function (): void {
         ->callAction('messageLimit', data: ['monthly_limit' => 500])
         ->assertHasNoActionErrors();
 
-    expect(MessageLimit::query()->where('user_id', $this->workspace->id)->value('monthly_limit'))->toBe(500);
+    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->value('monthly_limit'))->toBe(500);
 });
 
 it('removes the limit when the field is left empty', function (): void {
     MessageLimit::create([
-        'user_id' => $this->workspace->id,
+        'workspace_id' => $this->workspace->id,
         'monthly_limit' => 100,
         'messages_used' => 0,
         'period_starts_at' => now()->startOfMonth(),
@@ -53,7 +53,7 @@ it('removes the limit when the field is left empty', function (): void {
         ->callAction('messageLimit', data: ['monthly_limit' => null])
         ->assertHasNoActionErrors();
 
-    expect(MessageLimit::query()->where('user_id', $this->workspace->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
 });
 
 it('rejects a limit below one', function (): void {
@@ -62,5 +62,5 @@ it('rejects a limit below one', function (): void {
         ->callAction('messageLimit', data: ['monthly_limit' => 0])
         ->assertHasActionErrors(['monthly_limit']);
 
-    expect(MessageLimit::query()->where('user_id', $this->workspace->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
 });

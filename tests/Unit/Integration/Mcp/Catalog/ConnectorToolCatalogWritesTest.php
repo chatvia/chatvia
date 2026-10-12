@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Mcp\Actions\Catalog\ReconcileToolMembershipsAction;
 use Domain\Integration\Mcp\Actions\Catalog\UpsertConnectorToolsAction;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
@@ -60,7 +60,7 @@ it('clears the embedding only when the description changes', function (): void {
 
 it('adds and drops memberships to match the catalog, keeping the workspace choice', function (): void {
     $server = AgentMcpServer::create([
-        'user_id' => User::factory()->create()->id,
+        'workspace_id' => Workspace::factory()->create()->id,
         'connector_slug' => 'weather',
         'name' => 'Weather',
         'slug' => 'weather',

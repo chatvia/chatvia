@@ -67,7 +67,7 @@ class StartAgentWebsiteCrawlAction
                 'url' => $data->url,
                 // Knowledge belongs to the workspace, not whoever crawled it — key to
                 // the agent's owner so an employee's deletion can't cascade it away.
-                'user_id' => $agent->user_id,
+                'workspace_id' => $agent->workspace_id,
                 'status' => SourceStatus::Crawling,
                 'options' => $data->exclude('url')->toArray(),
             ]);

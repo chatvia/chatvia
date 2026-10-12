@@ -24,8 +24,8 @@ use Domain\Integration\Tool\Data\ToolName;
  * kill-switch (`agent.tools.approval_enabled`) short-circuits everything.
  *
  * Resolution mirrors the dispatchers so the policy gates exactly the calls the
- * dispatcher would run: MCP by `(user_id, slug)` + `(mcp_server_id, name)`,
- * functions by `(user_id, internal_name)`.
+ * dispatcher would run: MCP by `(workspace_id, slug)` + `(mcp_server_id, name)`,
+ * functions by `(workspace_id, internal_name)`.
  */
 class ToolApprovalPolicy
 {
@@ -74,7 +74,7 @@ class ToolApprovalPolicy
             return false;
         }
 
-        $server = $this->servers->forWorkspace((int) $agent->user_id, $slug);
+        $server = $this->servers->forWorkspace((int) $agent->workspace_id, $slug);
 
         if (! $server instanceof AgentMcpServer) {
             return false;
@@ -93,7 +93,7 @@ class ToolApprovalPolicy
     private function functionRequiresApproval(Agent $agent, ToolName $tool): bool
     {
         $function = AgentFunction::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('internal_name', $tool->value)
             ->first();
 

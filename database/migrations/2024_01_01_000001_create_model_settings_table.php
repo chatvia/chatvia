@@ -13,13 +13,14 @@ return new class extends Migration
 
             $table->string('model_type');
             $table->unsignedBigInteger('model_id');
-            $table->string('group')->index();
+            $table->string('group');
             $table->string('key');
             $table->text('value');
             $table->string('data_type');
             $table->timestamps();
 
-            $table->index(['model_type', 'model_id', 'group']);
+            // One value per model, group and key: saves are upserts on it.
+            $table->unique(['model_type', 'model_id', 'group', 'key']);
             $table->index(['group', 'key']);
         });
     }

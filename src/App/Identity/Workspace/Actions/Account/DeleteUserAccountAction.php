@@ -2,8 +2,10 @@
 
 namespace App\Identity\Workspace\Actions\Account;
 
+use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\User;
-use Domain\Conversation\Models\Attachment;
+use App\Identity\Workspace\Models\Workspace;
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -12,82 +14,92 @@ use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
- * Tear down a whole workspace: the owner, their employees + chatters, their
- * teams, and (by FK cascade) every agent, conversation, knowledge source,
- * message limit, etc. that hangs off them.
+ * Tear down a whole workspace, given its owner: every staff account (owner and
+ * teammates), then the workspace row, whose FK cascade removes its teams,
+ * chatters and every agent, knowledge source, message limit, etc. that hangs
+ * off it.
+ *
+ * The unbounded tables go first, in small batches outside any transaction: chunks, conversations (their messages and attachment rows go
+ * by cascade), chat sessions and leads. The final transaction then only
+ * touches small tables.
  *
  * What the FK cascade can't do, handled explicitly here:
- *  - Attachment files on S3 — the cascade drops the rows but never fires the
- *    Eloquent `deleting` event that wipes the object ({@see self::deleteAttachmentFiles()}).
+ *  - Files: the workspace's storage tree (knowledge files, chat attachments
+ *    under `workspaces/{external_id}/agents/…/attachments`, settings images),
+ *    each member's own tree and the chatters' photos are wiped by prefix.
  *  - The workspace's Redis chat memory — cache, not DB ({@see self::flushChatMemoryCache()}).
- *  - Captured leads — `leads.agent_id` / `chat_conversation_id` only SET NULL on
- *    the cascade, so the rows (which hold visitor PII) would survive; deleted by agent.
+ *  - `model_settings` rows of its agents and members (polymorphic, no FK).
  *  - Sanctum tokens (`personal_access_tokens`, polymorphic — no FK) and HTTP
  *    `sessions` rows (no FK) for the owner and every sub-user.
  *
- * Only a workspace owner reaches here. Employees and chatters can't own teams,
- * so the teardown never recurses through sub-user-owned teams.
+ * Only a workspace owner reaches here. Each step deletes only what is left, so
+ * {@see DeleteWorkspaceJob} can retry it safely.
  */
 class DeleteUserAccountAction
 {
+    /**
+     * @param  int  $conversationBatch  conversations per DELETE; each one cascades all its messages
+     * @param  int  $rowBatch  chunks, sessions or leads per DELETE
+     */
+    public function __construct(
+        private readonly int $conversationBatch = 500,
+        private readonly int $rowBatch = 5000,
+    ) {}
+
     public function execute(User $user): void
     {
-        // Wipe attachment files through Eloquent BEFORE the raw chat_messages
-        // delete and the final user cascade. Both remove chat_attachments rows
-        // by FK cascade (chat_message_id and chat_conversation_id are
-        // cascadeOnDelete) WITHOUT firing the Attachment `deleting` observer —
-        // so the S3 objects would leak. Deleting the models here fires the
-        // observer ({@see Attachment::booted}) and wipes the files first.
-        $this->deleteAttachmentFiles($user);
+        $workspace = $user->workspace();
 
-        // Pre-delete the unbounded children (chunks carry 2 vchordrq + 2 bm25 + GIN
-        // indexes each) in batches outside the final transaction; the FK cascade
-        // then only handles the bounded remainder.
-        $this->batchDelete(
-            'DELETE FROM chunks WHERE id IN (SELECT id FROM chunks WHERE user_id = ? LIMIT 10000)',
-            [$user->id],
+        // Pre-delete the unbounded children in batches outside the final
+        // transaction; the FK cascade then only handles the bounded remainder.
+        // Chunks carry vector and BM25 index entries each, so they go first.
+        $this->deleteInBatches(
+            "DELETE FROM chunks WHERE id IN (SELECT id FROM chunks WHERE workspace_id = ? LIMIT {$this->rowBatch})",
+            $workspace,
         );
 
-        $this->batchDelete(
-            'DELETE FROM chat_messages WHERE id IN (
-                SELECT m.id FROM chat_messages m
-                JOIN chat_conversations c ON c.id = m.chat_conversation_id
-                JOIN agents a ON a.id = c.agent_id
-                WHERE a.user_id = ?
-                LIMIT 10000
-            )',
-            [$user->id],
+        // Both chat tables are unique on (workspace_id, id), so each batch
+        // reads the next ids straight from that index.
+        $this->deleteInBatches(
+            "DELETE FROM chat_conversations WHERE id IN (SELECT id FROM chat_conversations WHERE workspace_id = ? ORDER BY id LIMIT {$this->conversationBatch})",
+            $workspace,
+        );
+        $this->deleteInBatches(
+            "DELETE FROM chat_sessions WHERE id IN (SELECT id FROM chat_sessions WHERE workspace_id = ? ORDER BY id LIMIT {$this->rowBatch})",
+            $workspace,
         );
 
-        // Leads hold the visitor's PII and only SET NULL on the agents →
-        // conversations cascade, so delete the workspace's leads (keyed by its
-        // agents) before the owner — and their agents — are torn down.
-        DB::table('form_submissions')
-            ->whereIn('agent_id', fn ($query) => $query->select('id')->from('agents')->where('user_id', $user->id))
-            ->delete();
+        // Leads hold the visitor's PII. They would go with the agents anyway,
+        // but in one statement; found by agent, which is indexed.
+        $this->deleteInBatches(
+            "DELETE FROM form_submissions WHERE id IN (SELECT id FROM form_submissions WHERE agent_id IN (SELECT id FROM agents WHERE workspace_id = ?) LIMIT {$this->rowBatch})",
+            $workspace,
+        );
 
-        // Capture every external id in this workspace BEFORE the teardown so the
-        // storage trees can be wiped once the rows are gone. Everything a user
-        // owns lives under users/{external_id}/ (knowledge, audio, attachments,
-        // profile photo), so the teardown is a handful of prefix wipes.
-        $storageExternalIds = $user->users()->pluck('external_id')
-            ->push($user->external_id)
-            ->filter()
-            ->all();
+        // Capture every external id BEFORE the teardown so the storage trees
+        // can be wiped once the rows are gone: the workspace's data lives under
+        // workspaces/{external_id}/ (knowledge, audio, attachments, settings
+        // images), each member's own files under users/{external_id}/ (profile
+        // photo, data exports), each chatter's photo under chatters/….
+        $workspaceExternalId = $workspace->external_id;
+        $memberExternalIds = $workspace->members()->pluck('users.external_id')->filter()->all();
+        $chatterExternalIds = $workspace->chatters()->pluck('external_id')->all();
 
-        DB::transaction(function () use ($user): void {
-            $ownedTeamIds = $user->ownedTeams()->pluck('id')->all();
+        DB::transaction(function () use ($workspace): void {
+            $teamIds = $workspace->teams()->pluck('id')->all();
 
-            // Employees + chatters belonging to this workspace, plus the owner.
-            $subUserIds = $user->users()->pluck('id')->all();
-            $allUserIds = [...$subUserIds, $user->id];
+            // Every staff account of the workspace, owner included. Chatters
+            // go with the workspace by FK cascade.
+            $allUserIds = $workspace->members()->pluck('users.id')->all();
+
+            $this->deleteModelSettings($workspace, $allUserIds);
 
             // Clear team membership first: team_user.team_id, .user_id and
             // .role_id are all RESTRICT, so the pivot blocks both deleting the
             // workspace's users and the owned-team cascade (team → roles would
             // trip team_user.role_id) until these rows are gone.
             DB::table('team_user')
-                ->whereIn('team_id', $ownedTeamIds)
+                ->whereIn('team_id', $teamIds)
                 ->orWhereIn('user_id', $allUserIds)
                 ->delete();
 
@@ -95,47 +107,62 @@ class DeleteUserAccountAction
             // Sanctum tokens are polymorphic (no FK) and the sessions table
             // carries no FK to users either.
             DB::table('personal_access_tokens')
-                ->where('tokenable_type', $user->getMorphClass())
+                ->where('tokenable_type', (new User)->getMorphClass())
                 ->whereIn('tokenable_id', $allUserIds)
                 ->delete();
             DB::table('sessions')->whereIn('user_id', $allUserIds)->delete();
 
-            // Workspace sub-users — their owned data cascades on delete. Model
-            // delete (not a bulk query) so the HasRoles cleanup and other model
-            // events fire.
-            $user->users()->get()->each(fn ($subUser) => $subUser->delete());
+            // The staff accounts — model delete (not a bulk query) so the
+            // HasRoles cleanup and other model events fire.
+            User::query()->whereKey($allUserIds)->get()->each(fn (User $member) => $member->delete());
 
-            // Finally the owner; every remaining reference cascades or nulls out.
-            $user->delete();
+            // Finally the workspace; every remaining reference cascades.
+            $workspace->delete();
         });
 
-        $this->wipeWorkspaceStorage($storageExternalIds);
-        $this->flushChatMemoryCache($user);
+        $this->wipeWorkspaceStorage($workspaceExternalId, $memberExternalIds);
+        $this->wipeChatterAvatars($chatterExternalIds);
+        $this->flushChatMemoryCache($workspaceExternalId);
     }
 
     /**
-     * Wipe every conversation-bound attachment's S3 object by deleting the
-     * models through Eloquent (firing {@see Attachment::booted}'s `deleting`
-     * hook). Runs before the chat_messages batch-delete and the user cascade,
-     * both of which would otherwise drop the rows via FK cascade without ever
-     * touching S3. chunkById is delete-safe (it pages by `id > lastId`, so
-     * removing the current page never skips rows). Orphan composer uploads
-     * (no conversation, keyed only by agent path) aren't chat memory and are
-     * left to the daily orphan-object prune.
+     * Chatters keep only their profile photo in storage, on the assets disk.
+     * Best-effort, like the workspace storage wipe.
+     *
+     * @param  array<int, string>  $externalIds
      */
-    private function deleteAttachmentFiles(User $user): void
+    private function wipeChatterAvatars(array $externalIds): void
     {
-        Attachment::query()
-            ->whereExists(function ($query) use ($user): void {
-                $query->selectRaw('1')
-                    ->from('chat_conversations as c')
-                    ->join('agents as a', 'a.id', '=', 'c.agent_id')
-                    ->whereColumn('c.id', 'chat_attachments.chat_conversation_id')
-                    ->where('a.user_id', $user->id);
-            })
-            ->chunkById(500, static function ($attachments): void {
-                $attachments->each(static fn (Attachment $attachment) => $attachment->delete());
-            });
+        foreach ($externalIds as $externalId) {
+            try {
+                Storage::disk('assets')->deleteDirectory('chatters/'.$externalId);
+            } catch (Throwable $e) {
+                Log::warning('Account deletion: failed to wipe a chatter avatar tree.', [
+                    'external_id' => $externalId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Settings rows are polymorphic (no foreign key), so nothing cascades
+     * them: the agents' rows (deleted agents waiting for their purge
+     * included, hence the plain table) and the members' own.
+     *
+     * @param  list<int>  $userIds
+     */
+    private function deleteModelSettings(Workspace $workspace, array $userIds): void
+    {
+        DB::table('model_settings')
+            ->where('model_type', (new Agent)->getMorphClass())
+            ->whereIn('model_id', fn ($query) => $query->select('id')->from('agents')->where('workspace_id', $workspace->id))
+            ->delete();
+
+        DB::table('model_settings')
+            ->where('model_type', (new User)->getMorphClass())
+            ->whereIn('model_id', $userIds)
+            ->delete();
     }
 
     /**
@@ -147,39 +174,42 @@ class DeleteUserAccountAction
      * fail because the cache store is briefly unreachable — log and carry on,
      * mirroring how the S3 step tolerates downstream failures.
      */
-    private function flushChatMemoryCache(User $user): void
+    private function flushChatMemoryCache(string $workspaceExternalId): void
     {
         try {
-            Cache::driver('chat')->tags(ChatCache::workspaceTag($user->external_id))->flush();
+            Cache::driver('chat')->tags(ChatCache::workspaceTag($workspaceExternalId))->flush();
         } catch (Throwable $e) {
             Log::warning('Account deletion: failed to flush workspace chat memory cache.', [
-                'workspace_id' => $user->id,
+                'workspace' => $workspaceExternalId,
                 'error' => $e->getMessage(),
             ]);
         }
     }
 
     /**
-     * Wipe each user's entity-first storage tree (`users/{external_id}/…`) on
-     * every bucket: the default disk (knowledge files, audio, websites, text,
-     * chunk images), the public disk (chat attachments), and the assets disk
+     * Wipe the workspace's storage tree (`workspaces/{external_id}/…`) and each
+     * member's own tree (`users/{external_id}/…`) on every bucket: the default
+     * disk (knowledge files, audio, websites, text, chunk images, data
+     * exports), the public disk (chat attachments), and the assets disk
      * (profile photos + widget brand assets). The FK cascade drops the rows
      * without firing the per-file Eloquent observers, so without this the
      * objects would leak. Best-effort — a teardown must not fail because remote
      * storage is briefly unreachable.
      *
-     * @param  array<int, string>  $externalIds
+     * @param  array<int, string>  $memberExternalIds
      */
-    private function wipeWorkspaceStorage(array $externalIds): void
+    private function wipeWorkspaceStorage(string $workspaceExternalId, array $memberExternalIds): void
     {
-        foreach ($externalIds as $externalId) {
+        $prefixes = ['workspaces/'.$workspaceExternalId, ...array_map(fn (string $id): string => 'users/'.$id, $memberExternalIds)];
+
+        foreach ($prefixes as $prefix) {
             try {
-                Storage::deleteDirectory('users/'.$externalId);
-                Storage::disk('public')->deleteDirectory('users/'.$externalId);
-                Storage::disk('assets')->deleteDirectory('users/'.$externalId);
+                Storage::deleteDirectory($prefix);
+                Storage::disk('public')->deleteDirectory($prefix);
+                Storage::disk('assets')->deleteDirectory($prefix);
             } catch (Throwable $e) {
                 Log::warning('Account deletion: failed to wipe workspace storage tree.', [
-                    'external_id' => $externalId,
+                    'prefix' => $prefix,
                     'error' => $e->getMessage(),
                 ]);
             }
@@ -187,14 +217,14 @@ class DeleteUserAccountAction
     }
 
     /**
-     * Loop a bounded DELETE until it stops matching rows.
-     *
-     * @param  list<int>  $bindings
+     * Loop a bounded DELETE of the workspace's rows until it stops matching.
+     * Each DELETE runs on its own (no surrounding transaction), so locks and
+     * the cascade's work stay small.
      */
-    private function batchDelete(string $sql, array $bindings): void
+    private function deleteInBatches(string $sql, Workspace $workspace): void
     {
         do {
-            $deleted = DB::affectingStatement($sql, $bindings);
+            $deleted = DB::affectingStatement($sql, [$workspace->id]);
         } while ($deleted > 0);
     }
 }

@@ -3,7 +3,6 @@
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,20 +13,14 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(SourceWebsite::class)->constrained()->cascadeOnDelete();
             $table->text('url');
-            $table->text('text')->nullable();
             $table->string('checksum')->nullable();
-            $table->enum('status', ['pending', 'ingesting', 'ingested', 'failed'])->index()->default('pending');
-            $table->string('internal_ingestion_job_id')->unique()->nullable();
-            $table->string('internal_chunking_batch_id')->unique()->nullable();
+            $table->enum('status', ['pending', 'ingesting', 'ingested', 'failed'])->default('pending');
             $table->text('failure_reason')->nullable();
-            $table->unsignedInteger('retrieval_count')->default(0);
             $table->timestamp('crawled_at')->nullable();
             $table->timestamps();
 
             $table->index(['source_website_id', 'status']);
         });
-
-        DB::statement('CREATE INDEX source_website_urls_url_trgm_idx ON source_website_urls USING gin (url gin_trgm_ops)');
     }
 
     public function down(): void

@@ -28,7 +28,8 @@ final readonly class ToolCallCompleted
         public int $agentId,
         public string $agentName,
         public int $workspaceId,
-        // Actor (a chatter). Null = anonymous visitor.
+        // Actor: a staff account (userId) or a chatter (chatterId), at most
+        // one; both null for an anonymous visitor.
         public ?int $userId,
         public ?string $userName,
         // Correlation.
@@ -49,6 +50,7 @@ final readonly class ToolCallCompleted
         public ?int $latencyMs,
         public bool $gated,
         public string $approvalOutcome,     // a ToolCallOutcome value
-        public ?string $decidedAt = null,   // set when a gated call was resolved
+        public ?string $decidedAt = null,
+        public ?int $chatterId = null,   // set when a gated call was resolved
     ) {}
 }

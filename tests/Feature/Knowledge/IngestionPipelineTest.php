@@ -5,10 +5,12 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
+use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
-use Domain\Knowledge\Ingestion\Jobs\Text\TextEnhanceChunkJob;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
@@ -28,13 +30,13 @@ use Illuminate\Support\Str;
  *   POST agents.sources.text.store
  *     → CreateAgentSourceTextAction (storage write, pivot attach)
  *     → TextIngestionJob → IngestTextAction → Bus::batch(TextChunkIngestionJob)
- *     → CreateSourceChunkAction → Chunk rows (plaintext, morph-aliased)
+ *     → CreateSourceChunksAction → Chunk rows (plaintext, morph-aliased)
  *     → KnowledgeBase::search (4-channel hybrid RRF over pgvector + bm25)
  *
  * The embeddings provider is faked at the container boundary (house style — no
- * external call); the LLM-bound jobs (SummaryIngestionJob, TextEnhanceChunkJob)
- * are the only queue entries faked in the deep test, so the chunking batch runs
- * for real on the sync queue.
+ * external call); the summary job is the only queue entry faked in the deep
+ * test and text enhancement is off there, so the chunking batch runs for real
+ * on the sync queue without a model call.
  *
  * REQUIRES the migrated + seeded Postgres test DB (pgvector + bm25 + tokenizer
  * extensions): chunks.embedding is vector(1024) and the retrieval test executes
@@ -115,8 +117,8 @@ function ingestionPipelineText(): string
 function ingestionPipelineSeedChunk(User $owner, Agent $agent, string $content): SourceText
 {
     $source = SourceText::create([
-        'user_id' => $owner->id,
-        'filepath' => 'users/'.$owner->external_id.'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
+        'workspace_id' => $owner->workspace()->id,
+        'filepath' => $agent->storageRoot().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
         'excerpt' => Str::limit($content, 200),
         'length' => 1,
         'checksum' => md5($content),
@@ -124,10 +126,10 @@ function ingestionPipelineSeedChunk(User $owner, Agent $agent, string $content):
 
     $agent->texts()->attach($source->id);
 
-    app(CreateSourceChunkAction::class)->execute($agent, $source, new PageData(
-        pageNumber: 1,
-        content: $content,
-        checksum: hash('xxh128', $content),
+    app(CreateSourceChunksAction::class)->execute(new ChunkPagesData(
+        source: $source,
+        group: new PageGroupData([new PageData(pageNumber: 1, content: $content, checksum: hash('xxh128', $content))]),
+        enhancement: ChunkEnhancement::Off,
     ));
 
     return $source;
@@ -149,7 +151,7 @@ it('creates an owned text source, stores the content, attaches it to the agent a
         ->postJson(route('agents.sources.text.store', $agent), ['content' => $content])
         ->assertOk();
 
-    $source = SourceText::query()->where('user_id', $owner->id)->sole();
+    $source = SourceText::query()->where('workspace_id', $owner->workspace()->id)->sole();
 
     expect($source->checksum)->toBe(md5($content))
         ->and($source->status)->toBe(SourceStatus::Pending)
@@ -170,7 +172,7 @@ it('creates an owned text source, stores the content, attaches it to the agent a
     Bus::assertDispatched(TextIngestionJob::class, fn (TextIngestionJob $job): bool => $job->sourceText->is($source) && $job->agent->is($agent));
 });
 
-it('rejects a workspace that does not own the agent and creates nothing', function (): void {
+it('hides the agent from a workspace that does not own it and creates nothing', function (): void {
     Bus::fake([TextIngestionJob::class]);
 
     $owner = ingestionPipelineOwner();
@@ -179,9 +181,9 @@ it('rejects a workspace that does not own the agent and creates nothing', functi
 
     $this->actingAs($stranger)
         ->postJson(route('agents.sources.text.store', $agent), ['content' => ingestionPipelineText()])
-        ->assertForbidden();
+        ->assertNotFound();
 
-    expect(SourceText::query()->whereIn('user_id', [$owner->id, $stranger->id])->count())->toBe(0);
+    expect(SourceText::query()->whereIn('workspace_id', [$owner->workspace()->id, $stranger->workspace()->id])->count())->toBe(0);
     Bus::assertNotDispatched(TextIngestionJob::class);
 });
 
@@ -194,10 +196,11 @@ it('rejects an unauthenticated upload', function (): void {
 });
 
 it('ingests an uploaded text into plaintext chunks stored under the source_text morph alias', function (): void {
-    // Fake ONLY the LLM-bound enrichment jobs; TextIngestionJob and the
-    // chunking batch run for real on the sync queue, driving the full
-    // upload → split → embed → chunk-row path.
-    Queue::fake([SummaryIngestionJob::class, TextEnhanceChunkJob::class]);
+    // Fake ONLY the LLM-bound summary job and turn text enhancement off;
+    // TextIngestionJob and the chunking batch run for real on the sync
+    // queue, driving the full upload → split → embed → chunk-row path.
+    Queue::fake([SummaryIngestionJob::class]);
+    config(['chatvia.ai.chunker.enhance_text' => false]);
 
     $owner = ingestionPipelineOwner();
     $agent = createAgent($owner);
@@ -206,7 +209,7 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
         ->postJson(route('agents.sources.text.store', $agent), ['content' => ingestionPipelineText()])
         ->assertOk();
 
-    $source = SourceText::query()->where('user_id', $owner->id)->sole();
+    $source = SourceText::query()->where('workspace_id', $owner->workspace()->id)->sole();
 
     // The batch completed inline: terminal status + bookkeeping written. The
     // batch id sits in the same column for every source type.
@@ -221,7 +224,7 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
 
     expect($chunks)->toHaveCount($source->expected_chunks)
         ->and($chunks->first()->chunkable_type)->toBe((new SourceText)->getMorphClass())
-        ->and($chunks->first()->user_id)->toBe($owner->id)
+        ->and($chunks->first()->workspace_id)->toBe($owner->workspace()->id)
         ->and($chunks->first()->chunk)->toContain('refund') // decrypted via the model cast
         ->and($chunks->first()->checksum)->not->toBe('');
 
@@ -235,9 +238,9 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
     $rawChunk = DB::table('chunks')->where('id', $chunks->first()->id)->value('chunk');
     expect($rawChunk)->toContain('refund');
 
-    // The enrichment legs were handed to the queue, one enhance per chunk.
+    // The summary was handed to the queue; with enhancement off no chunk is enhanced.
     Queue::assertPushed(SummaryIngestionJob::class, 1);
-    Queue::assertPushed(TextEnhanceChunkJob::class, $chunks->count());
+    expect($chunks->contains('is_enhanced', true))->toBeFalse();
 });
 
 it('retrieves ingested chunks for the owning agent only via hybrid search', function (): void {

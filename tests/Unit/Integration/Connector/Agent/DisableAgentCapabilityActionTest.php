@@ -11,7 +11,7 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 
-    $server = $this->user->mcpServers()->create([
+    $server = $this->user->workspace()->mcpServers()->create([
         'connector_slug' => 'forms',
         'category' => 'builtin',
         'name' => 'Forms',
@@ -36,5 +36,5 @@ it('leaves the account-level server rows intact (detaches the pivot only)', func
     $forms = app(ConnectorCatalog::class)->capabilities()->get('forms');
     app(DisableAgentCapabilityAction::class)->execute($this->agent, $forms);
 
-    expect(AgentMcpServer::query()->where('connector_slug', 'forms')->where('user_id', $this->user->id)->exists())->toBeTrue();
+    expect(AgentMcpServer::query()->where('connector_slug', 'forms')->where('workspace_id', $this->user->workspace()->id)->exists())->toBeTrue();
 });

@@ -2,7 +2,7 @@
 
 namespace Domain\Knowledge\Source\File\Models;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
@@ -33,7 +33,7 @@ use Support\MimeType;
  *
  * @property int $id
  * @property string|null $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification
  * @property string $filename
@@ -64,7 +64,7 @@ use Support\MimeType;
  * @property-read int|null $chunks_count
  * @property-read Chunk|null $summary
  * @property-read mixed $url
- * @property-read User $user
+ * @property-read Workspace $workspace
  *
  * @method static SourceFileQueryBuilder<static>|SourceFile audio()
  * @method static SourceFileQueryBuilder<static>|SourceFile ingested()
@@ -99,7 +99,7 @@ use Support\MimeType;
  * @method static SourceFileQueryBuilder<static>|SourceFile whereStatus($value)
  * @method static SourceFileQueryBuilder<static>|SourceFile whereTookInSeconds($value)
  * @method static SourceFileQueryBuilder<static>|SourceFile whereUpdatedAt($value)
- * @method static SourceFileQueryBuilder<static>|SourceFile whereUserId($value)
+ * @method static SourceFileQueryBuilder<static>|SourceFile whereWorkspaceId($value)
  * @method static SourceFileQueryBuilder<static>|SourceFile word()
  *
  * @mixin \Eloquent
@@ -176,10 +176,10 @@ class SourceFile extends Model implements ChunkableContract
         return MimeType::isVideo($this->mime_type);
     }
 
-    /** @return BelongsTo<User, $this> */
-    public function user(): BelongsTo
+    /** @return BelongsTo<Workspace, $this> */
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     protected function casts(): array

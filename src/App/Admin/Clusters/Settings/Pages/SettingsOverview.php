@@ -8,6 +8,7 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\StaffToolsAccess;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -62,6 +63,21 @@ class SettingsOverview extends Page
     public function getSubNavigation(): array
     {
         return [];
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('setup')
+                ->label('Run the setup again')
+                ->icon(Heroicon::OutlinedRocketLaunch)
+                ->color('gray')
+                ->url(route('filament.admin.setup'))
+                ->visible(fn (): bool => app(StaffToolsAccess::class)->allows()),
+        ];
     }
 
     #[\Override]

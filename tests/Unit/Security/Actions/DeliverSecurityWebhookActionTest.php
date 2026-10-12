@@ -28,7 +28,7 @@ function siemEvent(int $workspaceId): SecurityEventOccurred
 
 function enableSiem(User $workspace, array $overrides = []): WorkspaceSecurityPolicy
 {
-    $policy = WorkspaceSecurityPolicy::forWorkspace($workspace->id);
+    $policy = WorkspaceSecurityPolicy::forWorkspace($workspace->workspace()->id);
     $policy->update(array_merge([
         'webhook_enabled' => true,
         'webhook_url' => 'https://siem.example.com/ingest',
@@ -43,7 +43,7 @@ it('delivers a signed POST and resets the failure counter', function (): void {
     $workspace = User::factory()->create();
     $policy = enableSiem($workspace, ['webhook_failures' => 4]);
 
-    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id));
+    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://siem.example.com/ingest'
         && str_starts_with($request->header('X-Chatvia-Signature')[0], 'sha256='));
@@ -57,7 +57,7 @@ it('signs the exact body it sends with the shared webhook signature', function (
     $workspace = User::factory()->create();
     enableSiem($workspace);
 
-    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id));
+    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
 
     Http::assertSent(fn ($request): bool => $request->header('X-Chatvia-Signature')[0] === 'sha256='.WebhookSignature::sign($request->body(), 'shh-secret')
         && $request->header('X-Chatvia-Event')[0] === SecurityAuditAction::PolicyChanged->value);
@@ -71,7 +71,7 @@ it('re-checks the stored URL at send time and refuses an internal target', funct
     $workspace = User::factory()->create();
     $policy = enableSiem($workspace, ['webhook_url' => 'http://169.254.169.254/latest/meta-data', 'webhook_failures' => 1]);
 
-    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id)))
+    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id)))
         ->toThrow(UnsafeUrlException::class);
 
     Http::assertNothingSent();
@@ -84,7 +84,7 @@ it('treats a redirect as a failed delivery so the queue retries', function (): v
     $workspace = User::factory()->create();
     enableSiem($workspace);
 
-    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id)))
+    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id)))
         ->toThrow(RequestException::class);
 
     Http::assertSentCount(1);
@@ -95,7 +95,7 @@ it('does not deliver when the webhook is disabled', function (): void {
     $workspace = User::factory()->create();
     enableSiem($workspace, ['webhook_enabled' => false]);
 
-    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id));
+    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
 
     Http::assertNothingSent();
 });
@@ -105,7 +105,7 @@ it('respects the per-event allowlist', function (): void {
     $workspace = User::factory()->create();
     enableSiem($workspace, ['webhook_events' => [SecurityAuditAction::PolicyRetentionChanged->value]]);
 
-    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id)); // PolicyChanged — not allowlisted
+    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id)); // PolicyChanged — not allowlisted
 
     Http::assertNothingSent();
 });
@@ -115,7 +115,7 @@ it('throws on a non-2xx response so the queue retries', function (): void {
     $workspace = User::factory()->create();
     enableSiem($workspace);
 
-    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->id)))
+    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id)))
         ->toThrow(RequestException::class);
 });
 
@@ -124,7 +124,7 @@ it('auto-disables the webhook once consecutive failures hit the threshold', func
     $workspace = User::factory()->create();
     $policy = enableSiem($workspace, ['webhook_failures' => 2]);
 
-    app(SendSecurityEventToSiem::class)->failed(siemEvent($workspace->id), new RuntimeException('boom'));
+    app(SendSecurityEventToSiem::class)->failed(siemEvent($workspace->workspace()->id), new RuntimeException('boom'));
 
     $policy->refresh();
     expect($policy->webhook_failures)->toBe(3)

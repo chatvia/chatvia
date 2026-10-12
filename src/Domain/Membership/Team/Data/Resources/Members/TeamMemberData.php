@@ -39,7 +39,7 @@ class TeamMemberData extends Data
             email: $user->email,
             role: $role->code ?? Role::OWNER_CODE,
             role_name: $role->name ?? 'Owner',
-            is_owner: $team->user_id === $user->id,
+            is_owner: $user->ownsTeam($team),
             joined_at: null, // The membership pivot table has no timestamps.
         );
     }

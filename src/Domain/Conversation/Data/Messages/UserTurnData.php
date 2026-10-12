@@ -28,7 +28,8 @@ class UserTurnData extends Data
         public string $message,
         public Carbon $sent_at,
         public ?string $message_for_llm = null,
-        public ?int $user_id = null,
+        // The signed-in chatter sending the turn (chatters.id), or null.
+        public ?int $chatter_id = null,
         public ?string $language = null,
         public ?string $ip_address = null,
         // Lowercase ISO-3166 alpha-2, resolved at request time (CF-aware). Carried

@@ -27,9 +27,9 @@ class McpServerController
     {
         /** @var User $user */
         $user = $request->user();
-        $owner = $user->workspace();
+        $workspace = $user->workspace();
 
-        $servers = $owner->mcpServers()
+        $servers = $workspace->mcpServers()
             ->custom()
             ->latest()
             ->get();

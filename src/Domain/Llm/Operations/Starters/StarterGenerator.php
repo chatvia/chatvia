@@ -4,6 +4,8 @@ namespace Domain\Llm\Operations\Starters;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
 use Illuminate\Support\Collection;
 
@@ -20,6 +22,7 @@ class StarterGenerator
 
     public function __construct(
         private readonly StructuredCompletion $completion,
+        private readonly ModelRoles $models,
     ) {}
 
     /**
@@ -35,7 +38,7 @@ class StarterGenerator
         }
 
         $reply = $this->completion->send(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.starters'),
+            model: $this->models->model(LlmRole::Fast),
             messages: [
                 ChatMessageData::system(prompt('starters/generate', ['count' => $count])),
                 ChatMessageData::user(prompt('starters/content', [

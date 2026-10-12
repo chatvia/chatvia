@@ -6,6 +6,8 @@ namespace Domain\Llm\Operations\Translate;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
 
 /**
@@ -20,6 +22,7 @@ class TextTranslator
 {
     public function __construct(
         private readonly StructuredCompletion $completion,
+        private readonly ModelRoles $models,
     ) {}
 
     /**
@@ -34,7 +37,7 @@ class TextTranslator
         }
 
         $reply = $this->completion->send(new ChatRequestData(
-            model: (string) config('chatvia.ai.models.translator'),
+            model: $this->models->model(LlmRole::Fast),
             messages: [
                 ChatMessageData::system(prompt('translate/strings')),
                 ChatMessageData::user(json_encode(

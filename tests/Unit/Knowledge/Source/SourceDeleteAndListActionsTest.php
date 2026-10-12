@@ -20,7 +20,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 function sdlChunk(SourceText|SourceWebsite $source, int $index): Chunk
 {
     return Chunk::query()->create([
-        'user_id' => $source->user_id,
+        'workspace_id' => $source->workspace_id,
         'chunkable_type' => $source->getMorphClass(),
         'chunkable_id' => $source->id,
         'chunk_index' => $index,
@@ -36,7 +36,7 @@ function sdlChunk(SourceText|SourceWebsite $source, int $index): Chunk
 it('deletes a text with its chunks, summary included', function (): void {
     $agent = Agent::factory()->create();
     $text = SourceText::query()->create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'filepath' => 'users/x/agents/y/train/text/a.txt',
         'excerpt' => 'excerpt',
         'length' => 1,
@@ -56,7 +56,7 @@ it('deletes a text with its chunks, summary included', function (): void {
 
 it('deletes a website with its chunks and agent links', function (): void {
     $agent = Agent::factory()->create();
-    $website = SourceWebsite::query()->create(['user_id' => $agent->user_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
+    $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
     $agent->websites()->attach($website->id);
     sdlChunk($website, 1);
 
@@ -69,11 +69,11 @@ it('deletes a website with its chunks and agent links', function (): void {
 
 it('lists the workspace files with the agent that uses each', function (): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingested']);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingested']);
     $agent->files()->attach($file->id);
     AgentFileFactory::new()->create(); // another workspace's file
 
-    $rows = app(ListUserKnowledgeFilesAction::class)->execute($agent->user);
+    $rows = app(ListUserKnowledgeFilesAction::class)->execute($agent->workspace->owner);
 
     expect($rows)->toHaveCount(1)
         ->and($rows[0]->id)->toBe($file->id)

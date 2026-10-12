@@ -2,6 +2,7 @@
 
 namespace Domain\Membership\Team\Models;
 
+use App\Identity\Workspace\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +48,17 @@ class Invitation extends Model
     public function hasExpired(): bool
     {
         return $this->created_at->copy()->addDays(self::TTL_DAYS)->isPast();
+    }
+
+    /**
+     * The account that already uses the invited email, if any. Emails are
+     * compared without case, the way sign-in compares them.
+     */
+    public function existingAccount(): ?User
+    {
+        return User::query()
+            ->whereRaw('lower(email) = ?', [strtolower($this->email)])
+            ->first();
     }
 
     /**

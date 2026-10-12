@@ -17,7 +17,7 @@ function approvalServer(?string $url = null, string $slug = 'seeding'): AgentMcp
     // connector_slug null → skip the catalog-preset description backfill so the
     // test focuses purely on the tool-seeding behaviour.
     return AgentMcpServer::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'connector_slug' => null,
         'name' => 'Seeding Server',
         'slug' => $slug,

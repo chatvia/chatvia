@@ -2,7 +2,7 @@
 
 namespace Domain\Agent\Actions\Account;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Data\Account\UpdateApiAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Actions\ResolveAgentPromptIdAction;
@@ -19,7 +19,7 @@ class UpdateApiAgentAction
         private readonly ResolveAgentPromptIdAction $resolvePromptId,
     ) {}
 
-    public function execute(User $owner, Agent $agent, UpdateApiAgentData $data): Agent
+    public function execute(Workspace $workspace, Agent $agent, UpdateApiAgentData $data): Agent
     {
         $attributes = [];
 
@@ -36,7 +36,7 @@ class UpdateApiAgentAction
         }
 
         if (! $data->prompt_id instanceof Optional) {
-            $attributes['agent_prompt_id'] = $this->resolvePromptId->execute($owner, $data->prompt_id);
+            $attributes['agent_prompt_id'] = $this->resolvePromptId->execute($workspace, $data->prompt_id);
             $attributes['system_instructions'] = null;
         } elseif (! $data->system_instructions instanceof Optional) {
             $attributes['system_instructions'] = $data->system_instructions;

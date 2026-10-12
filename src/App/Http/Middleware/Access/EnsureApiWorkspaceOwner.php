@@ -26,7 +26,7 @@ class EnsureApiWorkspaceOwner
         }
 
         // isWorkspace() is true for workspace owners and admins only.
-        abort_unless($user->isWorkspace(), Response::HTTP_FORBIDDEN, __('This action requires workspace owner access.'));
+        abort_unless($user->isWorkspaceOwner(), Response::HTTP_FORBIDDEN, __('This action requires workspace owner access.'));
 
         return $next($request);
     }

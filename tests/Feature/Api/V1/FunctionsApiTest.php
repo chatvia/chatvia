@@ -20,7 +20,7 @@ function functionHeaders(string $token): array
 
 function makeApiFunction(User $owner, array $overrides = []): AgentFunction
 {
-    return $owner->functions()->create(array_merge([
+    return $owner->workspace()->functions()->create(array_merge([
         'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => ['order_id' => ['type' => 'string']]],
@@ -116,7 +116,7 @@ describe('POST /api/v1/functions', function (): void {
             ->assertUnprocessable()
             ->assertJsonValidationErrors('parameters_schema');
 
-        expect($this->user->functions()->count())->toBe(0);
+        expect($this->user->workspace()->functions()->count())->toBe(0);
     });
 });
 

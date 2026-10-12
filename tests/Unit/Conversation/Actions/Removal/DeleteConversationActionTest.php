@@ -13,13 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Erasing a conversation must erase every copy of the message text. Besides
- * `content`, each message keeps a BM25 token vector of its text
- * (`content_bm25`) for search. The erase paths use bulk updates, which skip
- * the Message::saving hook that normally keeps the two in sync — so they must
- * clear `content_bm25` themselves.
- *
- * REQUIRES the migrated test DB (vchord_bm25 / tokenizer extensions).
+ * Erasing a conversation erases the message text at once (bulk updates); the
+ * rows themselves go later with the trash purge.
  */
 beforeEach(function (): void {
     config(['cache.stores.chat' => ['driver' => 'array']]);
@@ -31,10 +26,11 @@ beforeEach(function (): void {
 function erasureSetup(): array
 {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
 
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
@@ -44,6 +40,7 @@ function erasureSetup(): array
 
     $message = Message::create([
         'external_id' => (string) Str::uuid(),
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => MessageRole::User,
         'content' => 'My card number is 4242 4242 4242 4242',
@@ -59,29 +56,26 @@ function erasureScope(ChatSession $session, Agent $agent, ?string $conversationI
 
 function erasureRow(Message $message): object
 {
-    return DB::table('chat_messages')->where('id', $message->id)->first(['content', 'content_bm25']);
+    return DB::table('chat_messages')->where('id', $message->id)->first(['content']);
 }
 
-it('clears the BM25 copy of the text when one conversation is erased', function (): void {
+it('erases the text when one conversation is erased', function (): void {
     [$agent, $session, $conversation, $message] = erasureSetup();
-    expect(erasureRow($message)->content_bm25)->not->toBeNull();
+    expect(erasureRow($message)->content)->not->toBeNull();
 
     app(DeleteConversationAction::class)->execute(erasureScope($session, $agent, $conversation->external_id), 'admin');
 
     $row = erasureRow($message);
     expect($row->content)->toBeNull()
-        ->and($row->content_bm25)->toBeNull()
         ->and(Conversation::withTrashed()->find($conversation->id)->trashed())->toBeTrue();
 });
 
-it('clears the BM25 copy of the text when every conversation of a session is erased', function (): void {
+it('erases the text when every conversation of a session is erased', function (): void {
     [$agent, $session, , $message] = erasureSetup();
 
     app(DeleteSessionConversationsAction::class)->execute(erasureScope($session, $agent), 'user');
 
-    $row = erasureRow($message);
-    expect($row->content)->toBeNull()
-        ->and($row->content_bm25)->toBeNull();
+    expect(erasureRow($message)->content)->toBeNull();
 });
 
 it('treats erasing an already-deleted conversation as a no-op', function (): void {

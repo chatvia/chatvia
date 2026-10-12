@@ -3,10 +3,8 @@
 namespace App\Identity\Workspace\Actions\Account;
 
 use App\Identity\Workspace\Data\Account\CreateAdminUserData;
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Exceptions\EmailAlreadyTakenException;
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,7 +17,7 @@ use Illuminate\Support\Facades\Hash;
 class CreateAdminUserAction
 {
     public function __construct(
-        private readonly TeamService $teams,
+        private readonly CreateWorkspaceAction $createWorkspace,
     ) {}
 
     /**
@@ -27,7 +25,7 @@ class CreateAdminUserAction
      */
     public function execute(CreateAdminUserData $data): User
     {
-        if (User::query()->where('email', $data->email)->exists()) {
+        if (User::query()->whereRaw('lower(email) = ?', [strtolower($data->email)])->exists()) {
             throw EmailAlreadyTakenException::for($data->email);
         }
 
@@ -38,11 +36,10 @@ class CreateAdminUserAction
                 'email' => $data->email,
                 'password' => Hash::make($data->password),
                 'email_verified_at' => now(),
-                'type' => UserType::Admin,
+                'is_admin' => true,
             ]);
 
-            $this->teams->createDefaultTeam($admin);
-            $admin->bootstrapCurrentTeam();
+            $this->createWorkspace->execute($admin);
 
             return $admin;
         });

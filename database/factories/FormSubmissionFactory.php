@@ -27,7 +27,9 @@ class FormSubmissionFactory extends Factory
     {
         return [
             'form_definition_id' => FormDefinition::factory(),
-            'agent_id' => Agent::inRandomOrder()->first()?->id ?? Agent::factory(),
+            // The form's own agent and its workspace.
+            'agent_id' => fn (array $attributes): int => (int) FormDefinition::query()->whereKey($attributes['form_definition_id'])->value('agent_id'),
+            'workspace_id' => fn (array $attributes): int => (int) Agent::query()->whereKey($attributes['agent_id'])->value('workspace_id'),
             'chat_conversation_id' => null,
             'status' => FormSubmissionStatus::Pending,
             'values' => null,

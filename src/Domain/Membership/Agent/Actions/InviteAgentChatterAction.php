@@ -2,9 +2,8 @@
 
 namespace Domain\Membership\Agent\Actions;
 
-use App\Identity\Workspace\Enums\UserSource;
-use App\Identity\Workspace\Enums\UserType;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Enums\ChatterSource;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Membership\Agent\Data\AgentChatterInvitationData;
 use Domain\Membership\Agent\Data\InviteAgentChatterData;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
@@ -12,16 +11,15 @@ use Domain\Membership\Agent\Exceptions\AgentChatterInvitationRejectedException;
 use Domain\Membership\Agent\Models\AgentChatterInvitation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
  * Provision a chatter for an agent in one step:
  *
- *   1. Find-or-create the chatter `User` row (type=chatter, random password,
+ *   1. Find-or-create the workspace's chatter with that email (no password,
  *      `email_verified_at` left null until they accept).
- *   2. Attach them to this agent via the `agent_user` pivot — without it
- *      `User::canAccessAgent()` rejects them, so the sign-in link is useless.
+ *   2. Attach them to this agent via the `agent_chatter` pivot — without it
+ *      `Chatter::canAccessAgent()` rejects them, so the sign-in link is useless.
  *   3. Insert a `agent_chatter_invitations` row carrying a random `token` + expiry,
  *      then fire {@see AgentChatterInvited}; its queued listener emails the
  *      recipient the accept link once the transaction commits. The row is
@@ -31,9 +29,10 @@ use Illuminate\Support\Str;
  * row and mints a fresh token, so a forwarded old link can't be replayed.
  *
  * Rejects a public agent (anyone with the link can chat, so there is nothing
- * to invite to), emails owned by a non-chatter (workspace owner, employee,
- * admin) and emails owned by a chatter under a different workspace — the
- * chatter email column is globally unique.
+ * to invite to). The email is only ever looked up inside this workspace's
+ * chatters: chatter emails are unique per workspace, so a staff account or a
+ * chatter of another workspace with the same email is a different person to
+ * this workspace, and the answer never reveals that they exist.
  *
  * @throws AgentChatterInvitationRejectedException
  */
@@ -53,41 +52,20 @@ class InviteAgentChatterAction
 
         /** @var AgentChatterInvitation $invitation */
         $invitation = DB::transaction(function () use ($agent, $email): AgentChatterInvitation {
-            $owner = $agent->user;
-
-            /** @var User|null $existing */
-            $existing = User::query()->where('email', $email)->first();
-
-            if ($existing !== null) {
-                if ($existing->type !== UserType::Chatter) {
-                    throw new AgentChatterInvitationRejectedException(
-                        'email',
-                        __('This email already belongs to a different kind of account and cannot be invited as a chat member.'),
-                    );
-                }
-
-                if ($existing->workspace_id !== $owner->id) {
-                    throw new AgentChatterInvitationRejectedException(
-                        'email',
-                        __('This email is already used by a chatter under a different workspace.'),
-                    );
-                }
-
-                $chatter = $existing;
-            } else {
-                $chatter = User::create([
+            $chatter = Chatter::query()
+                ->where('workspace_id', $agent->workspace_id)
+                ->whereRaw('lower(email) = ?', [$email])
+                ->first()
+                ?? Chatter::query()->create([
+                    'workspace_id' => $agent->workspace_id,
                     'name' => $this->derivedNameFromEmail($email),
                     'email' => $email,
-                    'password' => Hash::make(Str::random(64)),
-                    'type' => UserType::Chatter,
-                    'source' => UserSource::Dashboard,
-                    'workspace_id' => $owner->id,
+                    'source' => ChatterSource::Dashboard,
                     'email_verified_at' => null,
                 ]);
-            }
 
             if (! $agent->chatters()->whereKey($chatter->id)->exists()) {
-                $agent->chatters()->attach($chatter->id);
+                $agent->chatters()->attach($chatter->id, ['workspace_id' => $agent->workspace_id]);
             }
 
             AgentChatterInvitation::query()

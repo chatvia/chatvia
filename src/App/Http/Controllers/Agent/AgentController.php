@@ -49,7 +49,7 @@ class AgentController
             ->latest()
             ->get();
 
-        return AgentResourceData::listWithStats($agents, $messageTotals->get($agents->modelKeys()));
+        return AgentResourceData::listWithStats($agents, $messageTotals->get($team->workspace_id, $agents->modelKeys()));
     }
 
     public function store(CreateAgentRequest $request, CreateAgentAction $createAgent): RedirectResponse

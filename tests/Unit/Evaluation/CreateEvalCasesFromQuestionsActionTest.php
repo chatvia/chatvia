@@ -23,7 +23,7 @@ use Support\Exceptions\DomainValidationException;
  * rejected before anything is written, and duplicate questions (existing case
  * inputs or repeats within one payload) are skipped silently.
  *
- * REQUIRES the migrated test DB like CreateSourceChunkActionTest: chunks uses
+ * REQUIRES the migrated test DB like CreateSourceChunksActionTest: chunks uses
  * pgvector halfvec(1024) + bm25vector.
  */
 function knowledgeEvalAgent(): Agent
@@ -39,14 +39,14 @@ function knowledgeEvalAgent(): Agent
 function knowledgeEvalChunk(Agent $agent, string $text, bool $attach = true): Chunk
 {
     /** @var SourceFile $source */
-    $source = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
 
     if ($attach) {
         $source->agents()->attach($agent->id);
     }
 
     return Chunk::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'chunkable_type' => $source->getMorphClass(),
         'chunkable_id' => $source->getKey(),
         'chunk_index' => 1,
@@ -88,7 +88,7 @@ it('creates an llm_judge case from a chunk question with the chunk text as refer
 
     expect($case->agent_id)->toBe($agent->id)
         ->and($case->agent_name)->toBe($agent->name)
-        ->and($case->workspace_id)->toBe($agent->user_id)
+        ->and($case->workspace_id)->toBe($agent->workspace_id)
         ->and($case->name)->toBe('What is the refund policy?')
         ->and($case->input)->toBe('What is the refund policy?')
         ->and($case->scorer_type)->toBe(ScorerType::LlmJudge)
@@ -135,7 +135,7 @@ it('skips questions already present as a case input and intra-payload duplicates
     EvalCase::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'existing',
         'input' => 'WHAT IS THE REFUND POLICY?',
         'scorer_type' => 'contains',

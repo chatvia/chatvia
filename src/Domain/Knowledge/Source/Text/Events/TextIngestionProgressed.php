@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Text\Events;
 
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -14,7 +15,8 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Pushes a text source's ingestion progress (0-100) to the agent's Text
- * sources page after each new chunk.
+ * sources page after each chunk job. The jobs send the batch's progress,
+ * capped at 99; 100 means the text is ingested.
  */
 class TextIngestionProgressed implements ShouldBroadcastNow
 {
@@ -23,6 +25,8 @@ class TextIngestionProgressed implements ShouldBroadcastNow
     public function __construct(
         public SourceText $sourceText,
         public string $agentExternalId,
+        /** The job batch's progress; null for the final event, sent once the source is ingested. */
+        public ?int $progress = null,
     ) {}
 
     public function broadcastOn(): array
@@ -42,7 +46,16 @@ class TextIngestionProgressed implements ShouldBroadcastNow
     {
         return [
             'text_id' => $this->sourceText->id,
-            'progress' => $this->sourceText->ingestionProgress(),
+            'progress' => $this->progress(),
         ];
+    }
+
+    private function progress(): int
+    {
+        if ($this->sourceText->status === SourceStatus::Completed || $this->progress === null) {
+            return $this->sourceText->ingestionProgress();
+        }
+
+        return min($this->progress, 99);
     }
 }

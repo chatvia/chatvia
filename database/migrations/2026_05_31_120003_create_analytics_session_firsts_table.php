@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -23,6 +24,9 @@ return new class extends Migration
             $table->index(['agent_id', 'first_seen_at']);
             $table->index(['workspace_id', 'first_seen_at']);
         });
+
+        // Install-wide time ranges (the admin panel's platform analytics).
+        DB::connection($this->getConnection())->statement('CREATE INDEX analytics_session_firsts_seen_brin ON analytics_session_firsts USING brin (first_seen_at)');
     }
 
     public function down(): void

@@ -12,7 +12,7 @@ use Inertia\Testing\AssertableInertia as Assert;
  */
 it('shares the current route with dashboard pages', function (): void {
     $user = User::factory()->create();
-    $agent = Agent::factory()->create(['user_id' => $user->id]);
+    $agent = Agent::factory()->create(['workspace_id' => $user->workspace()->id]);
 
     $this->actingAs($user)
         ->get(route('agents.forms.index', $agent))

@@ -3,14 +3,15 @@
 namespace App\Http\Middleware\Chat;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Http\Chat\HostedChatViewer;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,9 +22,10 @@ use Symfony\Component\HttpFoundation\Response;
  *  1. The agent's Hosted Chat surface must be on; otherwise the visitor sees
  *     the not-found page (an unknown agent never gets here:
  *     {@see ResolveHostedChatAgent} answers first).
- *  2. Puts the agent owner's id on the request (`agent_user_id`) for the
+ *  2. Puts the agent's workspace id on the request (`agent_workspace_id`) for the
  *     message-capacity gate and the usage endpoint.
- *  3. A protected agent (`is_public = false`) needs a signed-in user: guests
+ *  3. A protected agent (`is_public = false`) needs a signed-in chatter or
+ *     staff account ({@see HostedChatViewer}): guests
  *     go to the chat login.
  *  4. A signed-in user on a protected agent must be allowed in:
  *     - on a conversation route (`{conversationId}`), they must own that
@@ -49,32 +51,32 @@ class EnsureChatIsAccessible
             return Inertia::render('agents/chat/AgentNotFound');
         }
 
-        $request->attributes->set('agent_user_id', $agent->user_id);
+        $request->attributes->set('agent_workspace_id', $agent->workspace_id);
 
-        $user = Auth::user();
+        $account = HostedChatViewer::account();
         $isProtected = $agent->is_public === false;
 
-        if ($isProtected && $user === null) {
+        if ($isProtected && $account === null) {
             return to_route('chat.login.show');
         }
 
-        if ($isProtected && $user instanceof User) {
-            $this->authorizeSignedInUser($request, $agent, $user);
+        if ($isProtected && $account !== null) {
+            $this->authorizeSignedInAccount($request, $agent, $account);
         }
 
         return $next($request);
     }
 
-    private function authorizeSignedInUser(Request $request, Agent $agent, User $user): void
+    private function authorizeSignedInAccount(Request $request, Agent $agent, Chatter|User $account): void
     {
         $conversationId = $request->route('conversationId');
 
         if (! blank($conversationId)) {
-            abort_unless(ChatCache::isOwnedBy($conversationId, $user->id, $agent->workspaceExternalId()), Response::HTTP_FORBIDDEN);
+            abort_unless(ChatCache::isOwnedBy($conversationId, HostedChatViewer::data(), $agent->workspaceExternalId()), Response::HTTP_FORBIDDEN);
 
             return;
         }
 
-        abort_unless($user->canAccessAgent($agent), Response::HTTP_FORBIDDEN, __('You do not have access to this agent.'));
+        abort_unless($account->canAccessAgent($agent), Response::HTTP_FORBIDDEN, __('You do not have access to this agent.'));
     }
 }

@@ -36,7 +36,7 @@ it('round-trips the agent owner (not just chatters)', function (): void {
 });
 
 it('round-trips a chatter', function (): void {
-    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
 
     $session = $this->service->issue($chatter, $this->agent, $this->request);
 

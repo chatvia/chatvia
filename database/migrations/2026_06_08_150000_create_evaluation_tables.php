@@ -14,7 +14,7 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->text('input');
             $table->enum('scorer_type', ['contains', 'regex', 'exact', 'json_schema', 'llm_judge', 'tool_call']);
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->uuid('external_id')->unique();
             $table->foreignId('agent_id')->nullable()->constrained()->nullOnDelete();
             $table->string('agent_name');
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['running', 'completed', 'failed'])->default('running');
             $table->unsignedInteger('total_cases')->default(0);
             $table->unsignedInteger('passed_count')->default(0);

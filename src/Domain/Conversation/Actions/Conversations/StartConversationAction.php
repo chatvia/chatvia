@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
  * created at once (so the widget can subscribe to it and read its handoff
  * state before the first message), the viewer is recorded as its owner, and
  * it joins the session's cached list — hidden until it is named or used.
+ * While hidden it expires after {@see Conversation::HIDDEN_LIFETIME_DAYS}.
  */
 class StartConversationAction
 {
@@ -40,23 +41,24 @@ class StartConversationAction
             $session = Session::firstOrCreate([
                 'external_id' => $scope->sessionId,
                 'agent_id' => $scope->agent->id,
-            ]);
+            ], ['workspace_id' => $scope->agent->workspace_id]);
 
             return Conversation::create([
+                'workspace_id' => $scope->agent->workspace_id,
                 'chat_session_id' => $session->id,
                 'agent_id' => $scope->agent->id,
                 'source' => $source,
                 'title' => $title,
-                // Stamped now so the daily prune can sweep the row and the
-                // chat log can show "Expires on …". A later plan change does
-                // not extend it: retention pricing looks forward only.
-                'expires_at' => now()->addDays($scope->agent->messageRetentionInDays()),
+                // Hidden until it is used, so it gets a short life: most are
+                // never used, and the daily prune sweeps them. The first
+                // message gives it the full window (ChatLogWriter).
+                'expires_at' => now()->addDays(Conversation::HIDDEN_LIFETIME_DAYS),
             ]);
         });
 
-        // Lets the hosted chat confirm that the signed-in chatter owns this
+        // Lets the hosted chat confirm that the signed-in viewer owns this
         // conversation without a database join (see ChatCache::rememberOwner).
-        ChatCache::rememberOwner($conversation->external_id, $scope->viewerId, $agent->workspaceExternalId());
+        ChatCache::rememberOwner($conversation->external_id, $scope->viewer, $agent->workspaceExternalId());
 
         $memory->saveConversations([
             ...$conversations,

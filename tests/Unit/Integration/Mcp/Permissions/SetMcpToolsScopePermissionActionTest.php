@@ -23,7 +23,7 @@ function smtsCustomServer(): AgentMcpServer
     $owner = User::factory()->create();
 
     return AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'name' => 'Custom Server',
         'slug' => 'custom',
         'url' => 'https://mcp.example.test',
@@ -90,7 +90,7 @@ it('does not touch tools belonging to a different server', function (): void {
 it('flips the memberships for a preset connector scope', function (): void {
     $owner = User::factory()->create();
     $server = AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'connector_slug' => 'leads',
         'uses_central_catalog' => true,
         'name' => 'Leads',

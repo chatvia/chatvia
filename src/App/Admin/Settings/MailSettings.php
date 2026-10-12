@@ -7,8 +7,8 @@ namespace App\Admin\Settings;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
- * How the app sends email: the mailer (SMTP, Resend, or the log while
- * nothing is set up), the SMTP server and the sender address.
+ * How the app sends email: the provider ({@see MailProvider}, the log while
+ * nothing is set up), that provider's server or keys, and the sender.
  */
 class MailSettings extends AdminSettings
 {
@@ -32,6 +32,33 @@ class MailSettings extends AdminSettings
 
     #[ConfigKey('services.resend.key'), ShouldBeEncrypted]
     public ?string $resend_api_key = null;
+
+    #[ConfigKey('services.ses.key')]
+    public ?string $ses_key = null;
+
+    #[ConfigKey('services.ses.secret'), ShouldBeEncrypted]
+    public ?string $ses_secret = null;
+
+    #[ConfigKey('services.ses.region')]
+    public ?string $ses_region = null;
+
+    #[ConfigKey('services.mailgun.domain')]
+    public ?string $mailgun_domain = null;
+
+    #[ConfigKey('services.mailgun.secret'), ShouldBeEncrypted]
+    public ?string $mailgun_secret = null;
+
+    #[ConfigKey('services.mailgun.endpoint')]
+    public ?string $mailgun_endpoint = null;
+
+    #[ConfigKey('services.postmark.token'), ShouldBeEncrypted]
+    public ?string $postmark_token = null;
+
+    #[ConfigKey('services.cloudflare.account_id')]
+    public ?string $cloudflare_account_id = null;
+
+    #[ConfigKey('services.cloudflare.token'), ShouldBeEncrypted]
+    public ?string $cloudflare_token = null;
 
     #[ConfigKey('mail.from.address')]
     public ?string $from_address = null;

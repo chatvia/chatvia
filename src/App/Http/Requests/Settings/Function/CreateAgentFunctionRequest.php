@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings\Function;
 
+use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
@@ -34,8 +35,7 @@ class CreateAgentFunctionRequest extends FormRequest
                 'string',
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
-                Rule::unique('functions', 'internal_name')
-                    ->where('user_id', $this->user()->workspace()->id),
+                WorkspaceRule::unique('functions', $this->user()->workspace(), 'internal_name'),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],

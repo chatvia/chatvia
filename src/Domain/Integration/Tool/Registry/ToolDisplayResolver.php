@@ -31,7 +31,7 @@ class ToolDisplayResolver
     private function resolveMcp(Agent $agent, ToolName $tool): ToolDisplayData
     {
         $slug = $tool->serverSlug ?? '';
-        $server = $this->servers->forWorkspace((int) $agent->user_id, $slug);
+        $server = $this->servers->forWorkspace((int) $agent->workspace_id, $slug);
 
         $connectorSlug = $server?->getAttribute('connector_slug');
         $preset = is_string($connectorSlug) ? Config::get('connectors.'.$connectorSlug) : null;
@@ -58,10 +58,10 @@ class ToolDisplayResolver
 
     private function resolveFunction(Agent $agent, ToolName $tool): ToolDisplayData
     {
-        // Functions are unique per (user_id, name); surface the friendly
+        // Functions are unique per (workspace_id, name); surface the friendly
         // display_name as the user-facing label when set, else the raw name.
         $displayName = AgentFunction::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('internal_name', $tool->value)
             ->value('display_name');
 

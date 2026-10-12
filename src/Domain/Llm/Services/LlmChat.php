@@ -13,23 +13,26 @@ use Domain\Llm\Data\Chat\ChatResponseData;
  * {@see LlmProviderInterface}, so the provider's own payload rules and token
  * usage tracking still apply.
  *
- * It sends to the configured chat provider; `using()` returns a copy bound to
- * another provider, such as the document-reading LLM.
+ * It sends to the provider of the request's model; `using()` returns a copy
+ * bound to one provider instead, such as the document-reading LLM.
  */
 final readonly class LlmChat
 {
     public function __construct(
-        private LlmProviderInterface $provider,
+        private LlmProviders $providers,
+        private ?LlmProviderInterface $provider = null,
     ) {}
 
     public function using(LlmProviderInterface $provider): self
     {
-        return new self($provider);
+        return new self($this->providers, $provider);
     }
 
     public function send(ChatRequestData $request): ChatResponseData
     {
-        $response = $this->provider->completion($request->toPayload())->throw();
+        $provider = $this->provider ?? $this->providers->for($request->model);
+
+        $response = $provider->completion($request->toPayload())->throw();
 
         return ChatResponseData::fromResponse((array) $response->json());
     }

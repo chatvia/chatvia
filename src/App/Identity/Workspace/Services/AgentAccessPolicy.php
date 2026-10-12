@@ -2,6 +2,7 @@
 
 namespace App\Identity\Workspace\Services;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Policies\AgentPolicy;
@@ -10,7 +11,8 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Collection;
 
 /**
- * The one rule for who may use an agent. It answers two questions:
+ * The one rule for which agents a staff account may use. It answers two
+ * questions:
  *
  *  - {@see canManage()}: may the user work on the agent from the dashboard —
  *    settings, conversations, live events, taking over a chat? This is the
@@ -22,15 +24,21 @@ use Illuminate\Support\Collection;
  *
  *  | Account                 | manage                     | chat                    |
  *  |-------------------------|----------------------------|-------------------------|
- *  | Admin (platform staff)  | every agent                | every agent             |
+ *  | Admin (platform staff)  | own agents only            | own agents only         |
  *  | Workspace owner         | own agents only            | own agents only         |
  *  | Teammate (employee)     | agents of their team that  | same as manage          |
  *  |                         | their team role reaches    |                         |
- *  | Chatter                 | never                      | agents granted to them  |
+ *
+ * Chatters are not staff: they reach only the agents granted to them
+ * ({@see Chatter::canAccessAgent()}) and never manage any.
  *
  * A teammate's team is their current team, or their first team when none is
  * selected yet. The agent must belong to that team: owning a team says nothing
  * about agents of another workspace.
+ *
+ * Platform staff get no reach into other workspaces here: the dashboard and
+ * the API sign in without the admin panel's MFA, so cross-workspace access
+ * stays inside the Filament panel on the `admin` guard.
  */
 final readonly class AgentAccessPolicy
 {
@@ -41,19 +49,14 @@ final readonly class AgentAccessPolicy
     public function canManage(User $user, Agent $agent): bool
     {
         return match (true) {
-            $user->isAdmin() => true,
-            $user->isWorkspace() => $agent->user_id === $user->id,
-            $user->isEmployee() => $this->teammateReaches($user, $agent),
+            $user->isWorkspaceOwner() => $agent->workspace_id === $user->workspace()->id,
+            $user->isTeammate() => $this->teammateReaches($user, $agent),
             default => false,
         };
     }
 
     public function canChat(User $user, Agent $agent): bool
     {
-        if ($user->isChatter()) {
-            return $user->accessibleAgents()->whereKey($agent->id)->exists();
-        }
-
         return $this->canManage($user, $agent);
     }
 
@@ -67,17 +70,13 @@ final readonly class AgentAccessPolicy
      */
     public function chattableAgents(User $user): Collection
     {
-        if ($user->isChatter()) {
-            return $user->accessibleAgents()->get()->toBase();
-        }
-
-        if ($user->isWorkspace()) {
-            return $user->agents()->get()->toBase();
+        if ($user->isWorkspaceOwner()) {
+            return $user->workspace()->agents()->get()->toBase();
         }
 
         $team = $this->teamOf($user);
 
-        return $user->isEmployee() && $team instanceof Team
+        return $user->isTeammate() && $team instanceof Team
             ? $this->teams->accessibleAgents($user, $team)->toBase()
             : collect();
     }

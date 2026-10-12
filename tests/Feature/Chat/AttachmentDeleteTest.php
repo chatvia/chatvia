@@ -2,8 +2,10 @@
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -27,7 +29,7 @@ function attachmentDeleteAgent(bool $isPublic = true): Agent
     $owner->refresh();
 
     return Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Attachment Bot',
         'external_id' => Str::random(14),
@@ -41,7 +43,7 @@ function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $
 {
     $convPart = $conversation instanceof Conversation ? $conversation->external_id : 'pending';
     $uuid = (string) Str::uuid();
-    $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $convPart, $uuid);
+    $filepath = sprintf('workspaces/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $convPart, $uuid);
 
     Storage::disk('public')->put($filepath, 'fake pdf bytes');
 
@@ -55,14 +57,16 @@ function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $
     ]);
 }
 
-function makeConversation(Agent $agent, ?User $user = null): Conversation
+function makeConversation(Agent $agent, ?Chatter $chatter = null): Conversation
 {
     $session = Session::create([
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
-        'user_id' => $user?->id,
+        'chatter_id' => $chatter?->id,
     ]);
 
     return Conversation::create([
+        'workspace_id' => $session->workspace_id,
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'source' => 'hosted_chat',
@@ -108,6 +112,7 @@ it('refuses to delete an attachment already bound to a sent message (composer-on
     $agent = attachmentDeleteAgent();
     $conversation = makeConversation($agent);
     $message = Message::create([
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => 'user',
         'content' => 'see attached',
@@ -157,19 +162,19 @@ it('refuses to delete a conversation-bound attachment whose conversation belongs
 
 it('refuses to delete on a private agent when the auth user does not own the conversation', function (): void {
     $agent = attachmentDeleteAgent(isPublic: false);
-    $owner = User::factory()->create();
+    $owner = Chatter::factory()->grantedTo($agent)->create();
 
-    // The intruder IS a legitimate chatter of this agent (agent_user grant),
+    // The intruder IS a legitimate chatter of this agent (agent_chatter grant),
     // so EnsureChatIsAccessible's membership gate lets them through — the
     // per-conversation ownership check in DeleteAttachmentRequest is what
     // must refuse them.
-    // refresh(): CreateChatterAction returns the in-memory User::create()
-    // instance, which lacks DB-defaulted columns (current_team_id) that the
-    // Inertia share reads under strict mode.
-    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->user, $agent, 'Intruder'))->refresh();
+    // refresh(): CreateChatterAction returns the in-memory Chatter::create()
+    // instance, which lacks the columns it did not set (locale, avatar path…)
+    // that the chat reads under strict mode.
+    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Intruder'))->refresh();
 
     $conversation = makeConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
 
     $attachment = makeAttachment($agent, $conversation);
 
@@ -188,10 +193,10 @@ it('lets the rightful owner delete on a private agent', function (): void {
     // This route carries no {conversationId}, so EnsureChatIsAccessible
     // gates it on agent membership (canAccessAgent) — the owner must be a
     // provisioned chatter of the agent, not a bare factory user.
-    $owner = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->user, $agent, 'Owner'))->refresh();
+    $owner = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Owner'))->refresh();
 
     $conversation = makeConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
 
     $attachment = makeAttachment($agent, $conversation);
 

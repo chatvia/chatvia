@@ -2,7 +2,7 @@
 
 namespace Domain\Integration\Function\Models;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
@@ -32,7 +32,7 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string $internal_name
  * @property string|null $display_name
  * @property string $description
@@ -54,7 +54,7 @@ use Support\Concerns\HasExternalId;
  * @property int $invocation_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $user
+ * @property-read Workspace $workspace
  * @property-read Collection<int, Agent> $agents
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static>|AgentFunction newModelQuery()
@@ -121,11 +121,11 @@ class AgentFunction extends Model implements AttachableToAgents
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Workspace, $this>
      */
-    public function user(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     /**

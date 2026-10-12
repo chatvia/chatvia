@@ -131,7 +131,7 @@
                 "expires_in_days": "Vence en {count} día | Vence en {count} días",
                 "expires_in_one_month": "Vence en 1 mes",
                 "expires_in_months": "Vence en {count} mes | Vence en {count} meses",
-                "conversations_count": "{count} conversación | {count} conversaciones"
+                "load_more": "Cargar más"
             },
             "pagination": {
                 "prev": "Anterior",

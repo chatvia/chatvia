@@ -4,12 +4,12 @@ use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Pest\Expectation;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Middleware access gates: small classes that decide pass/deny based on the
@@ -52,7 +52,7 @@ function mwRequestForAgent(User $user, Agent $agent): Request
 
 it('EnsureUserCanAccessAgent passes for the workspace owner accessing their own agent', function (): void {
     $agent = Agent::factory()->create();
-    $owner = $agent->user;
+    $owner = $agent->workspace->owner;
 
     // `Gate::authorize()` resolves the actor via Auth::user(), not the request,
     // so we have to actually log the user in for the policy lookup to find them.
@@ -65,14 +65,14 @@ it('EnsureUserCanAccessAgent passes for the workspace owner accessing their own 
         ->and($response->getContent())->toBe('ok');
 });
 
-it('EnsureUserCanAccessAgent throws AuthorizationException for an unrelated workspace user', function (): void {
+it('EnsureUserCanAccessAgent answers 404 for a user of another workspace', function (): void {
     $agent = Agent::factory()->create();
-    $intruder = Agent::factory()->create()->user; // different workspace owner
+    $intruder = Agent::factory()->create()->workspace->owner; // different workspace owner
     $this->actingAs($intruder);
 
     expect(fn () => app(EnsureUserCanAccessAgent::class)
         ->handle(mwRequestForAgent($intruder, $agent), mwPassThrough()))
-        ->toThrow(AuthorizationException::class);
+        ->toThrow(NotFoundHttpException::class);
 });
 
 /*

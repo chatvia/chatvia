@@ -17,7 +17,7 @@ function approvalAgent(): array
     app(TeamService::class)->createDefaultTeam($user);
 
     $agent = Agent::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'team_id' => $user->primaryTeam()->id,
         'name' => 'Approval Agent',
         'external_id' => Str::random(14),
@@ -32,7 +32,7 @@ function approvalAgent(): array
 function makeMcpTool(User $user, McpToolPermission $permission): string
 {
     $server = AgentMcpServer::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'name' => 'Test Server',
         'slug' => 'test',
         'url' => 'https://mcp.example.test',
@@ -56,7 +56,7 @@ function makeMcpTool(User $user, McpToolPermission $permission): string
 function makeApprovalFunction(User $user, bool $requiresApproval): AgentFunction
 {
     $function = new AgentFunction;
-    $function->user_id = $user->id;
+    $function->workspace_id = $user->workspace()->id;
     $function->internal_name = 'write_thing';
     $function->description = 'Writes a thing';
     $function->parameters_schema = ['type' => 'object', 'properties' => []];
@@ -87,7 +87,7 @@ it('auto-runs an MCP tool whose permission is Allow', function (): void {
 it('gates an unknown MCP tool (stale catalog is treated as risky)', function (): void {
     [$user, $agent] = approvalAgent();
     AgentMcpServer::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'name' => 'Test Server',
         'slug' => 'test',
         'url' => 'https://mcp.example.test',
@@ -105,7 +105,7 @@ it('runs a builtin capability tool directly, never gating it', function (): void
     // A builtin server (slug 'forms') whose tool is seeded as Approval — the
     // first-party builtin carve-out must still auto-run it.
     $server = AgentMcpServer::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'category' => 'builtin',
         'connector_slug' => 'forms',
         'name' => 'Forms',

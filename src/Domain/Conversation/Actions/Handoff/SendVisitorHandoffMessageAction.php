@@ -47,7 +47,7 @@ class SendVisitorHandoffMessageAction
             return null;
         }
 
-        $messageId = (string) Str::uuid();
+        $messageId = (string) Str::uuid7();
 
         $this->addMessage->execute(
             new ChatScopeData($agent, $session->external_id, $conversation->external_id),

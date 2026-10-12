@@ -3,6 +3,7 @@
 namespace App\Identity\Workspace\Actions\Sessions;
 
 use App\Http\Auth\MagicLinkSignIn;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Data\Sessions\SendMagicLinkData;
 use App\Identity\Workspace\Events\MagicLinkRequested;
 use App\Identity\Workspace\Models\User;
@@ -11,7 +12,9 @@ use MagicLink\MagicLink;
 
 /**
  * Issue a single-use magic sign-in link and email it to the address. A link
- * scoped to an agent signs in to that agent's hosted chat, not the dashboard.
+ * scoped to an agent signs in to that agent's hosted chat, not the dashboard:
+ * first as a chatter of the agent's workspace with that email, otherwise as a
+ * staff account that can reach the agent (whose link still runs two-factor).
  *
  * Silently no-ops when no matching user exists, when the account is
  * deactivated, or (when scoped to an agent) when the user can't access that
@@ -28,26 +31,38 @@ class SendMagicLinkAction
     {
         $email = strtolower(trim($data->email));
 
-        $user = User::query()->where('email', $email)->first();
+        $account = $agent instanceof Agent
+            ? $this->chatterFor($agent, $email) ?? User::query()->whereRaw('lower(email) = ?', [$email])->first()
+            : User::query()->whereRaw('lower(email) = ?', [$email])->first();
 
-        if ($user === null || $user->isDeactivated()) {
+        if ($account === null || $account->isDeactivated()) {
             return;
         }
 
-        if ($agent instanceof Agent && ! $user->canAccessAgent($agent)) {
+        if ($agent instanceof Agent && ! $account->canAccessAgent($agent)) {
             return;
         }
 
         $magicLink = MagicLink::create(
             action: new MagicLinkSignIn(
-                userId: $user->id,
+                userId: $account instanceof User ? $account->id : null,
                 redirectUrl: $redirectUrl,
                 agentId: $agent?->id,
+                chatterId: $account instanceof Chatter ? $account->id : null,
             ),
             lifetime: self::LIFETIME_MINUTES,
             numMaxVisits: 1,
         );
 
         MagicLinkRequested::dispatch($email, $magicLink->url, $agent?->name);
+    }
+
+    /** A chatter of the agent's workspace with this email, if any. */
+    private function chatterFor(Agent $agent, string $email): ?Chatter
+    {
+        return Chatter::query()
+            ->where('workspace_id', $agent->workspace_id)
+            ->whereRaw('lower(email) = ?', [$email])
+            ->first();
     }
 }

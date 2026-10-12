@@ -16,8 +16,8 @@ use Illuminate\Support\Collection;
  * Search the current chat session's conversations from the sidebar palette.
  *
  * Matches on both the conversation title (encrypted at rest, so compared in
- * memory after the model decrypts it) and the message content (BM25 over
- * content_bm25 — see MessageQueryBuilder::searchContent). Title hits lead,
+ * memory after the model decrypts it) and the message content (a word match
+ * ranked by full-text rank — see MessageQueryBuilder::searchContent). Title hits lead,
  * then content hits. Returns the same {id, title, timestamp} shape as the
  * conversations index so the search dialog renders the results directly.
  */

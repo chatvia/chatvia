@@ -27,19 +27,23 @@ class ConversationFactory extends Factory
     public function definition(): array
     {
         return [
-            'chat_session_id' => Session::factory(),
+            // A session of the given agent when one is named, so the two agree.
+            'chat_session_id' => fn (array $attributes): int => Session::factory()
+                ->create(isset($attributes['agent_id']) ? ['agent_id' => $attributes['agent_id']] : [])
+                ->id,
             'source' => fake()->randomElement(ConversationSource::cases()),
             'title' => fake()->optional(0.7)->sentence(3),
         ];
     }
 
-    /** Default agent_id from the session (denormalized, NOT NULL). */
+    /** Default agent_id and workspace_id from the session (denormalized, NOT NULL). */
     public function configure(): static
     {
         return $this->afterMaking(function (Conversation $conversation): void {
-            $conversation->agent_id ??= Session::query()
-                ->whereKey($conversation->chat_session_id)
-                ->value('agent_id');
+            $session = Session::query()->select(['agent_id', 'workspace_id'])->findOrFail($conversation->chat_session_id);
+
+            $conversation->agent_id ??= $session->agent_id;
+            $conversation->workspace_id ??= $session->workspace_id;
         });
     }
 

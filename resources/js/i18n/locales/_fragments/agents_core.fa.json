@@ -131,7 +131,7 @@
                 "expires_in_days": "در {count} روز منقضی می‌شود | در {count} روز منقضی می‌شود",
                 "expires_in_one_month": "در ۱ ماه منقضی می‌شود",
                 "expires_in_months": "در {count} ماه منقضی می‌شود | در {count} ماه منقضی می‌شود",
-                "conversations_count": "{count} مکالمه | {count} مکالمه"
+                "load_more": "بارگذاری بیشتر"
             },
             "pagination": {
                 "prev": "قبلی",

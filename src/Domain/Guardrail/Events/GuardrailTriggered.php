@@ -35,5 +35,8 @@ class GuardrailTriggered
         public readonly ?string $severity,
         public readonly array $detail,
         public readonly string $sample,
+        // The chatter whose turn tripped the guard; `userId` is set instead
+        // for a staff account. Both null for an anonymous visitor.
+        public readonly ?int $chatterId = null,
     ) {}
 }

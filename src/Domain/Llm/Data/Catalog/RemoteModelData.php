@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Domain\Llm\Data\Catalog;
+
+use Spatie\LaravelData\Data;
+
+/**
+ * One chat model as a provider lists it (`GET /models`), with what the
+ * provider says about it. Anything it does not say is null.
+ */
+final class RemoteModelData extends Data
+{
+    /**
+     * @param  array<string, bool>  $features  `vision`, `function_calling`, when the provider says
+     */
+    public function __construct(
+        public string $id,
+        public string $name,
+        public ?int $contextWindow = null,
+        public ?float $inputPricePerMillion = null,
+        public ?float $outputPricePerMillion = null,
+        public array $features = [],
+    ) {}
+}

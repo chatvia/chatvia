@@ -38,7 +38,7 @@ function presetServer(string $connectorSlug, string $url, McpServerCategory $cat
     $user = User::factory()->create();
 
     return AgentMcpServer::create([
-        'user_id' => $user->id,
+        'workspace_id' => $user->workspace()->id,
         'connector_slug' => $connectorSlug,
         'category' => $category,
         'name' => ucfirst($connectorSlug),

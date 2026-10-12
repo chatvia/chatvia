@@ -15,7 +15,7 @@ class AnalyticsChatStreamRequest extends FormRequest
     {
         // Owner-only: the analytics chat exposes whole-account numbers (incl.
         // identified users), so it's gated to the workspace owner.
-        return $this->user()?->isWorkspace() === true;
+        return $this->user()?->isWorkspaceOwner() === true;
     }
 
     /**

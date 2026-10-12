@@ -80,7 +80,7 @@ class PromptController
 
         // Library prompt delete. Agents referencing it have agent_prompt_id
         // nulled by the FK (nullOnDelete), falling back to their own instructions.
-        $user->workspace()->prompts()->where('external_id', $external_id)->delete();
+        $user->workspace()->prompts()->where('external_id', $external_id)->firstOrFail()->delete();
 
         return back();
     }

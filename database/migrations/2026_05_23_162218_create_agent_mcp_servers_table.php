@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,11 +11,13 @@ return new class extends Migration
     public function up(): void
     {
 
-        Schema::create('mcp_servers', function (Blueprint $table) {
+        Schema::create('mcp_servers', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
+            // Null for a global built-in server. A workspace's own servers go
+            // with the workspace.
+            $table->foreignId('workspace_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->enum('category', ['custom', 'integration', 'builtin', 'analytics'])->nullable()->index();
 
@@ -55,18 +56,18 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->unique(['user_id', 'slug']);
+            $table->unique(['workspace_id', 'slug']);
         });
 
-        DB::statement('CREATE UNIQUE INDEX mcp_servers_global_slug_unique ON mcp_servers (slug) WHERE user_id IS NULL');
+        DB::statement('CREATE UNIQUE INDEX mcp_servers_global_slug_unique ON mcp_servers (slug) WHERE workspace_id IS NULL');
 
-        Schema::create('agent_mcp_server', function (Blueprint $table) {
+        Schema::create('agent_mcp_server', function (Blueprint $table): void {
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->foreignId('mcp_server_id')
                 ->constrained('mcp_servers')
                 ->cascadeOnDelete();
 
-            $table->unsignedInteger('invocation_count')->default(0);
+            $table->unsignedBigInteger('invocation_count')->default(0);
             $table->timestamp('last_invoked_at')->nullable();
             // Per-agent "always on": the connector's tools ship on every turn
             // instead of only when the relevance router picks them.

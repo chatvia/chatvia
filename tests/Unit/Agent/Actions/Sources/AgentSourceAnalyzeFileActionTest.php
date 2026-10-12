@@ -29,9 +29,9 @@ it('describes a new file', function (): void {
 it('refuses a file the workspace already uploaded', function (): void {
     analyzerReturningPages(1);
     $user = User::factory()->workspace()->create();
-    $agent = Agent::factory()->create(['user_id' => $user->id]);
+    $agent = Agent::factory()->create(['workspace_id' => $user->workspace()->id]);
     $file = UploadedFile::fake()->createWithContent('notes.txt', 'Same content');
-    AgentFileFactory::new()->create(['user_id' => $user->id, 'checksum' => md5('Same content')]);
+    AgentFileFactory::new()->create(['workspace_id' => $user->workspace()->id, 'checksum' => md5('Same content')]);
 
     app(AgentSourceAnalyzeFileAction::class)->execute($file, $user, $agent);
 })->throws(DomainValidationException::class, 'You have already uploaded this file.');

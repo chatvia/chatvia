@@ -67,8 +67,8 @@ class TeamShowController
             ->map(fn (Invitation $invitation): TeamInvitationData => TeamInvitationData::fromModel($invitation));
 
         $currentMemberIds = $allMembers->pluck('id')->toArray();
-        $managedUsers = $user->managedUsers()
-            ->whereNotIn('id', $currentMemberIds)
+        $managedUsers = $user->workspace()->teammates()
+            ->whereNotIn('users.id', $currentMemberIds)
             ->get()
             ->map(fn (User $managedUser): ManagedUserData => ManagedUserData::fromModel($managedUser));
 

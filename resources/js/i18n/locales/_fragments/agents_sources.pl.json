@@ -13,7 +13,8 @@
                 "remove_from_agent": "Usuń z agenta",
                 "used_in_agents": "(Używane w {count} agentach)",
                 "delete_from_knowledge_base": "Usuń z bazy wiedzy",
-                "agents_count": "{count} agentów"
+                "agents_count": "{count} agentów",
+                "load_more": "Załaduj więcej"
             },
             "page_title": {
                 "sources": "Źródła",

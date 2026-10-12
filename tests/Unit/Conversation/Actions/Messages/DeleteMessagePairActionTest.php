@@ -38,9 +38,10 @@ function pairId(string $name): string
 function messagePairConversation(): array
 {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
@@ -67,7 +68,7 @@ it('removes the message and the one before it from the history', function (): vo
 it('deletes the files uploaded with the removed messages', function (): void {
     [$scope, $conversation] = messagePairConversation();
 
-    $question = Message::create(['external_id' => pairId('q2'), 'chat_conversation_id' => $conversation->id, 'role' => MessageRole::User, 'content' => 'text q2']);
+    $question = Message::create(['external_id' => pairId('q2'), 'workspace_id' => $conversation->workspace_id, 'chat_conversation_id' => $conversation->id, 'role' => MessageRole::User, 'content' => 'text q2']);
     Storage::disk(Attachment::DISK)->put('users/x/attachments/doc.pdf', 'pdf');
     $upload = Attachment::create([
         'chat_conversation_id' => $conversation->id,

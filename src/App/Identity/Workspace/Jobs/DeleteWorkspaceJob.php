@@ -9,8 +9,9 @@ use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Off-request workspace teardown — a mature workspace deletes millions of
- * chunk/message rows, far past any HTTP timeout. The account is deactivated
- * before dispatch so the user can't re-enter mid-teardown.
+ * chunk/message rows, far past any HTTP timeout. Runs on the long-running
+ * `exports` queue. The account is deactivated before dispatch so the user
+ * can't re-enter mid-teardown.
  */
 class DeleteWorkspaceJob implements ShouldQueue
 {
@@ -27,9 +28,13 @@ class DeleteWorkspaceJob implements ShouldQueue
      */
     public array $backoff = [60, 600];
 
-    public int $timeout = 3600;
+    /** Below the `redis-long` connection's `retry_after`, so no second worker picks it up mid-run. */
+    public int $timeout = 1800;
 
-    public function __construct(public int $userId) {}
+    public function __construct(public int $userId)
+    {
+        $this->onQueue('exports');
+    }
 
     public function handle(DeleteUserAccountAction $deleteAccount): void
     {

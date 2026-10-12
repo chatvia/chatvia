@@ -9,7 +9,7 @@ use Spatie\LaravelData\Data;
  * Which visitor session an operation acts on — and, when set, which of its
  * conversations — plus who is looking at it.
  *
- * `viewerId` is the signed-in web user on the hosted chat (any user type), or
+ * `viewer` is the signed-in chatter or staff account on the hosted chat, or
  * null for anonymous visitors, the widget and the messaging channels. The
  * cached conversation list is stamped with it, and conversation ownership
  * markers are keyed by it, so it must be resolved by the HTTP layer and passed
@@ -21,12 +21,12 @@ class ChatScopeData extends Data
         public Agent $agent,
         public string $sessionId,
         public ?string $conversationId = null,
-        public ?int $viewerId = null,
+        public ?ChatViewerData $viewer = null,
     ) {}
 
     /** The same session and viewer, narrowed to one conversation. */
     public function forConversation(string $conversationId): self
     {
-        return new self($this->agent, $this->sessionId, $conversationId, $this->viewerId);
+        return new self($this->agent, $this->sessionId, $conversationId, $this->viewer);
     }
 }

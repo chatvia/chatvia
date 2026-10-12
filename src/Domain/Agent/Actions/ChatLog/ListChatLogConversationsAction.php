@@ -13,9 +13,10 @@ use Illuminate\Support\Collection;
 
 /**
  * One page of an agent's chat log, newest activity first, narrowed by the
- * dashboard's filters. Each row carries its first message as an excerpt, and
- * the page lists which of its conversations captured a lead (a submitted
- * form).
+ * dashboard's filters. Keyset-paged: the dashboard's "Load more" sends back the
+ * page's `next_cursor`, so there is no total count and no OFFSET scan. Each
+ * row carries its first message as an excerpt, and the page lists which of its
+ * conversations captured a lead (a submitted form).
  */
 class ListChatLogConversationsAction
 {
@@ -37,19 +38,22 @@ class ListChatLogConversationsAction
             ->filterBySource($filters->source)
             ->filterByOnlineStatus($filters->onlineOnly)
             ->withCount('messages')
-            ->orderByLatestActivity()
-            ->paginate(self::PER_PAGE, pageName: 'conversations', page: $filters->page);
+            ->latestActivityPage(self::PER_PAGE, $filters->cursor);
 
-        $conversationIds = $page->pluck('id');
+        /** @var Collection<int, Conversation> $conversations */
+        $conversations = collect($page->items());
+        $conversationIds = $conversations->pluck('id');
         $excerpts = Message::query()->firstExcerptsForConversations($conversationIds);
 
-        $page->through(fn (Conversation $conversation): ChatLogConversationData => ChatLogConversationData::fromConversation(
-            $conversation,
-            $excerpts->get($conversation->id),
-        ));
-
         return new ChatLogConversationsResourceData(
-            conversations: $page,
+            conversations: $conversations
+                ->map(fn (Conversation $conversation): ChatLogConversationData => ChatLogConversationData::fromConversation(
+                    $conversation,
+                    $excerpts->get($conversation->id),
+                ))
+                ->values(),
+            // Read from the models: the cursor holds their (updated_at, id).
+            next_cursor: $page->nextCursor()?->encode(),
             lead_conversation_ids: $this->leadConversationIds($agent, $conversationIds),
         );
     }

@@ -2,14 +2,18 @@
 
 namespace App\Http\Requests\Agent\Crud;
 
+use Closure;
 use Domain\Agent\Data\Settings\UpdateAgentLlmData;
+use Domain\Agent\Models\Agent;
+use Domain\Llm\Models\Llm;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Validates the agent's model choice and its sampling settings (temperature,
- * top-k, top-p, presence and frequency penalty). The model must exist in the
- * `llms` catalog. Agent access and the `agent.setup` permission are checked by
- * the route middleware.
+ * top-k, top-p, presence and frequency penalty). The model must be one that
+ * may be picked (it and its provider are on), or the agent's current one.
+ * Agent access and the `agent.setup` permission are checked by the route
+ * middleware.
  */
 class UpdateAgentLlmRequest extends FormRequest
 {
@@ -19,12 +23,21 @@ class UpdateAgentLlmRequest extends FormRequest
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public function rules(): array
     {
+        /** @var Agent $agent */
+        $agent = $this->route('agent');
+
         return [
-            'model_external_name' => ['required', 'string', 'exists:llms,external_name'],
+            'model_external_name' => ['required', 'string', function (string $attribute, mixed $value, Closure $fail) use ($agent): void {
+                $model = Llm::catalog()->firstWhere('external_name', $value);
+
+                if (! $model instanceof Llm || (! $model->isAvailable() && $model->id !== $agent->llm_id)) {
+                    $fail(__('Pick one of the available models.'));
+                }
+            }],
             'temperature' => ['required', 'numeric', 'min:0', 'max:2'],
             'top_k' => ['required', 'integer', 'min:0', 'max:100'],
             'top_p' => ['required', 'numeric', 'min:0', 'max:1'],

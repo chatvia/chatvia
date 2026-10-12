@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Auth\BotCheck;
+use App\Http\Auth\BotCheckForm;
 use App\Identity\Workspace\Data\Account\RegisterUserData;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
@@ -28,7 +30,16 @@ class RegisterUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            ...app(BotCheck::class)->rules(BotCheckForm::SignUp),
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return app(BotCheck::class)->messages();
     }
 
     public function toData(): RegisterUserData
@@ -37,7 +48,6 @@ class RegisterUserRequest extends FormRequest
             name: $this->string('name')->toString(),
             email: $this->string('email')->toString(),
             password: $this->string('password')->toString(),
-            domain: $this->host(),
             registered_ip: $this->ip() ?? '',
             registered_country_code: $this->country(),
         );

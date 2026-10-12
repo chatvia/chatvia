@@ -12,15 +12,15 @@ use Support\Exceptions\DomainValidationException;
 
 /**
  * Reusable prompts belong to the workspace (CreatePromptAction stores them on
- * the workspace owner). Every other read/write must use the same key, or a
+ * the acting user's workspace). Every other read/write must use the same key, or a
  * teammate can create a prompt they can then never edit or attach.
  */
-function workspacePrompt(User $workspace, string $name = 'Persona'): AgentPrompt
+function workspacePrompt(User $owner, string $name = 'Persona'): AgentPrompt
 {
-    return $workspace->prompts()->create(['name' => $name, 'prompt' => 'Be helpful.']);
+    return $owner->workspace()->prompts()->create(['name' => $name, 'prompt' => 'Be helpful.']);
 }
 
-it('stores a prompt a teammate creates on the workspace owner', function (): void {
+it('stores a prompt a teammate creates on the shared workspace', function (): void {
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
 
@@ -30,7 +30,7 @@ it('stores a prompt a teammate creates on the workspace owner', function (): voi
         prompt: 'Be kind.',
     ));
 
-    expect($prompt->user_id)->toBe($owner->id);
+    expect($prompt->workspace_id)->toBe($owner->workspace()->id);
 });
 
 it('lets a teammate update a prompt owned by their workspace', function (): void {
@@ -46,7 +46,7 @@ it('lets a teammate update a prompt owned by their workspace', function (): void
 
     expect($updated->is($prompt))->toBeTrue()
         ->and($prompt->fresh()->name)->toBe('Renamed')
-        ->and($prompt->fresh()->user_id)->toBe($owner->id);
+        ->and($prompt->fresh()->workspace_id)->toBe($owner->workspace()->id);
 });
 
 it('does not let a user update another workspace\'s prompt', function (): void {
@@ -66,14 +66,14 @@ it('resolves a workspace prompt id for the owner and for a teammate', function (
 
     $resolver = app(ResolveAgentPromptIdAction::class);
 
-    expect($resolver->execute($owner, $prompt->external_id))->toBe($prompt->id)
-        ->and($resolver->execute($teammate, $prompt->external_id))->toBe($prompt->id)
-        ->and($resolver->execute($teammate, null))->toBeNull();
+    expect($resolver->execute($owner->workspace(), $prompt->external_id))->toBe($prompt->id)
+        ->and($resolver->execute($teammate->workspace(), $prompt->external_id))->toBe($prompt->id)
+        ->and($resolver->execute($teammate->workspace(), null))->toBeNull();
 });
 
 it('refuses to resolve a prompt from another workspace', function (): void {
     $prompt = workspacePrompt(User::factory()->create());
 
-    expect(fn () => app(ResolveAgentPromptIdAction::class)->execute(User::factory()->create(), $prompt->external_id))
+    expect(fn () => app(ResolveAgentPromptIdAction::class)->execute(User::factory()->create()->workspace(), $prompt->external_id))
         ->toThrow(DomainValidationException::class);
 });

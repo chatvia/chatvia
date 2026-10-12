@@ -18,7 +18,7 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 function accountConnectorServer(User $owner, ?string $connectorSlug, string $slug): AgentMcpServer
 {
     return AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'connector_slug' => $connectorSlug,
         'name' => ucfirst($slug),
         'slug' => $slug,

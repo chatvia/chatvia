@@ -8,19 +8,17 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * Install-wide options that fit nowhere else: the default language, the
- * security headers, the chat widget, page-view analytics, visitor location,
- * the services behind the built-in tools, and where Horizon sends alerts.
+ * chat widget, page-view analytics, visitor location,
+ * the services behind the built-in tools, where Horizon sends alerts, and
+ * when the admin setup of the install was completed.
  */
 class PlatformSettings extends AdminSettings
 {
+    #[ConfigKey('chatvia.admin.setup_completed_at')]
+    public ?string $setup_completed_at = null;
+
     #[ConfigKey('app.locale')]
     public ?string $default_locale = null;
-
-    #[ConfigKey('chatvia.security.csp')]
-    public ?string $csp_mode = null;
-
-    #[ConfigKey('chatvia.security.csp_report_uri')]
-    public ?string $csp_report_uri = null;
 
     #[ConfigKey('chatvia.widget.extra_allowed_origins')]
     public ?string $widget_allowed_origins = null;

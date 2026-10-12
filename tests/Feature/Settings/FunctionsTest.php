@@ -14,7 +14,7 @@ beforeEach(function (): void {
 
 function makeFunction(User $user, array $overrides = []): AgentFunction
 {
-    return $user->functions()->create(array_merge([
+    return $user->workspace()->functions()->create(array_merge([
         'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => ['order_id' => ['type' => 'string']]],
@@ -110,13 +110,13 @@ it('rejects a duplicate name from another function', function (): void {
         ->assertSessionHasErrors('internal_name');
 });
 
-it('cannot update a function owned by another user', function (): void {
+it('hides a function of another workspace from an update', function (): void {
     $other = User::factory()->create();
     $fn = makeFunction($other);
 
     $this->actingAs($this->user)
         ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload())
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('toggles the enabled flag', function (): void {
@@ -137,7 +137,7 @@ it('rejects a parameters schema that is not an object schema on create', functio
         ]))
         ->assertSessionHasErrors('parameters_schema');
 
-    expect($this->user->functions()->count())->toBe(0);
+    expect($this->user->workspace()->functions()->count())->toBe(0);
 });
 
 it('creates a function with a well-formed object schema', function (): void {
@@ -152,7 +152,7 @@ it('creates a function with a well-formed object schema', function (): void {
         ]))
         ->assertSessionHasNoErrors();
 
-    expect($this->user->functions()->where('internal_name', 'new_fn')->exists())->toBeTrue();
+    expect($this->user->workspace()->functions()->where('internal_name', 'new_fn')->exists())->toBeTrue();
 });
 
 it('rejects an edited schema with an invalid property name', function (): void {

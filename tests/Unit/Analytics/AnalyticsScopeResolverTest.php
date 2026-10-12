@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use Carbon\CarbonImmutable;
 use Domain\Agent\Models\Agent;
@@ -16,9 +15,9 @@ use Domain\Analytics\Services\AnalyticsScopeResolver;
 beforeEach(function (): void {
     $this->travelTo(CarbonImmutable::create(2026, 6, 15, 12, 0, 0));
 
-    $this->workspace = User::factory()->create(['type' => UserType::Workspace]);
-    $this->alpha = Agent::factory()->create(['user_id' => $this->workspace->id]);
-    $this->beta = Agent::factory()->create(['user_id' => $this->workspace->id]);
+    $this->workspace = User::factory()->create()->workspace();
+    $this->alpha = Agent::factory()->create(['workspace_id' => $this->workspace->id]);
+    $this->beta = Agent::factory()->create(['workspace_id' => $this->workspace->id]);
 });
 
 it('covers the whole account by default, over this month', function (): void {

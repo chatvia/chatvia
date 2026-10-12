@@ -7,6 +7,7 @@
 import trainedWebsites from '@/routes/agents/sources/trained-websites';
 import websites from '@/routes/agents/sources/websites';
 import { del, get, post } from './http';
+import type { LengthAwarePage } from './pagination';
 
 /** Lifecycle of a website: discovery (pending → crawling → crawled), then training (ingesting → ingested). */
 export type WebsiteStatus = 'pending' | 'crawling' | 'crawled' | 'ingesting' | 'ingested' | 'failed';
@@ -56,8 +57,9 @@ export interface WebsiteLinkPage {
     last_page?: number;
 }
 
-export function listWebsites(agentId: string): Promise<WebsiteRecord[]> {
-    return get<WebsiteRecord[]>(websites.index.url(agentId));
+/** One page (50 websites, newest first) of the agent's websites. */
+export function listWebsites(agentId: string, page: number): Promise<LengthAwarePage<WebsiteRecord>> {
+    return get<LengthAwarePage<WebsiteRecord>>(websites.index.url(agentId), { params: { page } });
 }
 
 /** A page of a website's links, optionally filtered by a URL search. */

@@ -31,6 +31,7 @@ class RecordToolCallAuditAction
             'agent_name' => $event->agentName,
             'workspace_id' => $event->workspaceId,
             'user_id' => $event->userId,
+            'chatter_id' => $event->chatterId,
             'user_name' => $event->userName,
             'conversation_external_id' => $event->conversationExternalId,
             'trace_id' => $event->traceId,

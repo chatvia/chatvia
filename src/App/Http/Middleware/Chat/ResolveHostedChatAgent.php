@@ -9,6 +9,7 @@ use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentLocator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -39,6 +40,8 @@ final class ResolveHostedChatAgent
         }
 
         HostedChatAgent::remember($request, $agent);
+        // Jobs this request queues carry the agent's workspace.
+        Context::addHidden('workspace_id', $agent->workspace_id);
         URL::defaults(['agentSlug' => $slug]);
         $request->route()?->forgetParameter('agentSlug');
 

@@ -7,7 +7,7 @@ beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
-    $this->function = $this->user->functions()->create([
+    $this->function = $this->user->workspace()->functions()->create([
         'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => []],
@@ -78,7 +78,7 @@ it('lists and attaches agents from another team in the same account', function (
 
 it('cannot manage agents for a function owned by someone else', function (): void {
     $other = User::factory()->create();
-    $foreign = $other->functions()->create([
+    $foreign = $other->workspace()->functions()->create([
         'internal_name' => 'foreign_fn',
         'description' => 'x',
         'parameters_schema' => ['type' => 'object'],

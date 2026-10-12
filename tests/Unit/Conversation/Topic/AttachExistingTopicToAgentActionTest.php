@@ -22,7 +22,7 @@ it('attaches a system topic to the agent', function (): void {
 it('attaches a workspace topic to the agent', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
-    $topic = Topic::create(['topic' => 'Refunds', 'description' => '', 'user_id' => $owner->id]);
+    $topic = Topic::create(['topic' => 'Refunds', 'description' => '', 'workspace_id' => $owner->workspace()->id]);
 
     app(AttachExistingTopicToAgentAction::class)->execute($agent, $topic);
 

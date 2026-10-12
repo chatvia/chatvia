@@ -411,7 +411,8 @@
                 "expires_in_months": "Vanhenee {count} kuukauden kuluttua | Vanhenee {count} kuukauden kuluttua",
                 "conversations_count": "{count} keskustelu | {count} keskustelua",
                 "refresh_conversations": "Päivitä keskustelut",
-                "remove_filter": "Poista suodatin"
+                "remove_filter": "Poista suodatin",
+                "load_more": "Lataa lisää"
             },
             "pagination": {
                 "prev": "Edellinen",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Poista agentilta",
                 "used_in_agents": "(Käytössä {count} agentissa)",
                 "delete_from_knowledge_base": "Poista tietokannasta",
-                "agents_count": "{count} agenttia"
+                "agents_count": "{count} agenttia",
+                "load_more": "Lataa lisää"
             },
             "page_title": {
                 "sources": "Lähteet",

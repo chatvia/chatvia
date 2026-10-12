@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
+use Tests\Support\FakeLlmProviders;
 
 /**
  * Writing an assistant reply to the chat log: its usage is settled first
@@ -81,7 +82,7 @@ function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmP
 
 function storeAssistantAction(LlmProviderInterface $provider): StoreAssistantMessageAction
 {
-    return new StoreAssistantMessageAction($provider, app(ChatLogWriter::class));
+    return new StoreAssistantMessageAction(new FakeLlmProviders($provider), app(ChatLogWriter::class));
 }
 
 /** A stored visitor message, so the reply has its session and conversation. */

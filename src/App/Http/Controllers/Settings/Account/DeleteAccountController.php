@@ -35,10 +35,10 @@ class DeleteAccountController
         /** @var User $user */
         $user = $request->user();
 
-        abort_unless($user->isWorkspace(), 403);
+        abort_unless($user->isWorkspaceOwner(), 403);
 
         return Inertia::render('account/DeleteAccount', [
-            'agents' => $user->agents()
+            'agents' => $user->workspace()->agents()
                 ->orderBy('name')
                 ->get(['name'])
                 ->map(fn (Agent $agent): array => ['name' => $agent->name])
@@ -57,7 +57,7 @@ class DeleteAccountController
         /** @var User $user */
         $user = $request->user();
 
-        abort_unless($user->isWorkspace(), 403);
+        abort_unless($user->isWorkspaceOwner(), 403);
 
         if (! $this->confirmationIsFresh($request)) {
             return back()->withErrors([

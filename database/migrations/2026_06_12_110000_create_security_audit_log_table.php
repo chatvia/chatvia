@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('security_audit_log', function (Blueprint $table): void {
             $table->id();
 
-            $table->foreignId('workspace_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
 
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('user_name')->nullable();

@@ -15,11 +15,13 @@ use Domain\Membership\Team\Services\TeamService;
  * role; the user's team is their current team, or their first team when none
  * is selected yet.
  *
- *  - Platform admins hold every permission.
  *  - A team owner holds every permission in their team — but on an agent only
  *    when that agent belongs to their team, never another workspace's agent.
  *  - Everyone else needs the named permission on their team; for an agent
  *    they also need access to that agent.
+ *
+ * Platform admins follow the same rules on their own workspace: the dashboard
+ * and the API never grant them another workspace's permissions.
  *
  * Routes declare the requirement with the `team.permission:<name>` and
  * `agent.permission:<name>` middleware, which ask this class.
@@ -33,10 +35,6 @@ final readonly class TeamPermissionPolicy
     /** Whether the user holds a team-level (not agent-scoped) permission. */
     public function allows(User $user, string $permission): bool
     {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
         $team = $this->teamOf($user);
 
         if (! $team instanceof Team) {
@@ -49,10 +47,6 @@ final readonly class TeamPermissionPolicy
     /** Whether the user holds a permission on one agent. */
     public function allowsOnAgent(User $user, Agent $agent, string $permission): bool
     {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
         $team = $this->teamOf($user);
 
         if (! $team instanceof Team || ! $this->teams->canAccessAgent($user, $team, $agent)) {

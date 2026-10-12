@@ -10,9 +10,11 @@ use Spatie\LaravelData\Data;
 
 /**
  * What the Security settings form submits: the network rules (IP allowlist and
- * country rule), conversation and audit retention, and the SIEM webhook.
- * Everything else on the policy keeps its stored value; the webhook fields
- * apply only when the workspace's plan includes the SIEM webhook.
+ * country rule), the retention windows (conversations, leads, audit, analytics
+ * and "anonymize visitors after"), and the SIEM webhook. Everything else on
+ * the policy (the webhook event list, SCIM) keeps its stored value. A null
+ * retention window means "use the default" (or, for leads, analytics and
+ * anonymize, "never").
  *
  * `webhook_secret` is write-only: a value rotates the stored secret, null
  * leaves it untouched.
@@ -25,7 +27,10 @@ class SecurityPolicyFormData extends Data
      */
     public function __construct(
         public ?int $retention_conversations_days = null,
+        public ?int $retention_leads_days = null,
         public ?int $retention_audit_days = null,
+        public ?int $retention_analytics_days = null,
+        public ?int $anonymize_after_days = null,
         public IpAllowlistMode $ip_allowlist_mode = IpAllowlistMode::Off,
         public array $ip_allowlist = [],
         public GeoMode $geo_mode = GeoMode::Off,

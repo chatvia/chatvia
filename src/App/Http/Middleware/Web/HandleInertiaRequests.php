@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Web;
 
+use App\Http\Auth\BotCheck;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
 use Domain\Agent\Services\AgentUrlBuilder;
 use Domain\Membership\Team\Services\TeamService;
@@ -35,8 +36,14 @@ class HandleInertiaRequests extends Middleware
             // Product name and links (config/chatvia.php `brand`). A self-hosted
             // install sets its own; an empty URL hides the link that uses it.
             'brand' => config('chatvia.brand'),
+            // The Cloudflare Turnstile bot check of the public forms (Settings →
+            // Security): its site key and the forms it protects, or null.
+            'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),
             'auth' => [
                 'user' => $user,
+                // Owner-only areas (workspace, teams) are hidden from teammates;
+                // the routes enforce the same rule (DenyIfTeammate).
+                'is_workspace_owner' => $user?->isWorkspaceOwner() ?? false,
             ],
             // The matched route's name and raw parameters, for active-state
             // checks (useCurrentRoute); URLs themselves come from Wayfinder.

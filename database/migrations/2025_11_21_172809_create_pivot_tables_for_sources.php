@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('agent_sources', function (Blueprint $table) {
             $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
             $table->numericMorphs('sourceable');
-            $table->unsignedInteger('retrieval_count')->default(0);
+            $table->unsignedBigInteger('retrieval_count')->default(0);
             $table->timestamp('last_retrieved_at')->nullable();
 
             $table->primary(['agent_id', 'sourceable_id', 'sourceable_type'], 'agent_sources_pkey');

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 // Chatter sign-in for a protected agent's hosted chat: password or magic
-// link, plus social sign-in. Uses the agent's colour theme so the page
+// link (the magic link also covers a forgotten password). Uses the agent's colour theme so the page
 // matches the chat the chatter is trying to reach.
-import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -182,19 +181,6 @@ onMounted(() => {
                     </form>
                 </TabsContent>
             </Tabs>
-
-            <!-- Divider -->
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <span class="w-full border-t"></span>
-                </div>
-                <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.login_member.or') }}</span>
-                </div>
-            </div>
-
-            <!-- Social Login Buttons (reusable component shared with the main Login page) -->
-            <SocialLoginButtons />
         </div>
     </AuthBase>
 </template>

@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "This month: 8 messages total — 4 incoming, 4 AI replies. up 300% vs the prior period."
+            "text": "This month: 18 messages total — 9 incoming, 9 AI replies. up 800% vs the prior period."
         }
     ],
     "isError": false,
@@ -13,13 +13,17 @@
             "start": "2026-06-01",
             "end": "2026-06-15"
         },
-        "incoming_messages": 4,
-        "ai_messages": 4,
-        "total_messages": 8,
+        "incoming_messages": 9,
+        "ai_messages": 9,
+        "total_messages": 18,
         "previous_total": 2,
-        "change_pct": 300,
+        "change_pct": 800,
         "avg_messages_per_conversation": 2.7,
         "daily": [
+            {
+                "date": "2026-06-08",
+                "messages": 8
+            },
             {
                 "date": "2026-06-10",
                 "messages": 4
@@ -30,7 +34,7 @@
             },
             {
                 "date": "2026-06-14",
-                "messages": 2
+                "messages": 4
             }
         ],
         "echarts_option": {
@@ -51,6 +55,7 @@
             "xAxis": {
                 "type": "category",
                 "data": [
+                    "2026-06-08",
                     "2026-06-10",
                     "2026-06-12",
                     "2026-06-14"
@@ -65,9 +70,10 @@
                     "type": "line",
                     "name": "Messages",
                     "data": [
+                        8,
                         4,
                         2,
-                        2
+                        4
                     ]
                 }
             ],

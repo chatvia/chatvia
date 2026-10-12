@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentSlugGenerator;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Services\LlmChat;
+use Domain\Llm\Services\ModelRoles;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Response;
 
@@ -27,7 +28,7 @@ function agentSlugGenerator(array|Throwable $replies): AgentSlugGenerator
         ));
     }
 
-    return new AgentSlugGenerator(new LlmChat($provider));
+    return new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(ModelRoles::class));
 }
 
 it('lowercases before stripping, so capital letters are kept', function (): void {

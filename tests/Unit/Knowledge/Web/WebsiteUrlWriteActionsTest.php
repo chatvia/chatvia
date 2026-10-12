@@ -13,6 +13,8 @@ use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 
@@ -23,7 +25,7 @@ use Illuminate\Support\Facades\Http;
 function writeActionsWebsite(Agent $agent): SourceWebsite
 {
     $website = SourceWebsite::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'url' => 'https://docs.example.test',
         'status' => 'crawling',
     ]);
@@ -35,7 +37,7 @@ function writeActionsWebsite(Agent $agent): SourceWebsite
 function writeActionsChunk(SourceWebsite $website, string $text): Chunk
 {
     return Chunk::query()->create([
-        'user_id' => $website->user_id,
+        'workspace_id' => $website->workspace_id,
         'chunkable_type' => $website->getMorphClass(),
         'chunkable_id' => $website->id,
         'chunk_index' => 1,
@@ -83,8 +85,11 @@ it('keeps the previous URL list when saving the new one fails', function (): voi
     $website = writeActionsWebsite($agent);
     $website->urls()->create(['url' => 'https://docs.example.test/old']);
 
-    AgentWebsiteUrl::creating(function (): void {
-        throw new RuntimeException('database unavailable');
+    // Fails right after the new rows are written, inside the transaction.
+    DB::listen(function (QueryExecuted $query): void {
+        if (str_starts_with($query->sql, 'insert into "source_website_urls"')) {
+            throw new RuntimeException('database unavailable');
+        }
     });
 
     config(['services.firecrawl.endpoint' => 'https://firecrawl.test/v2', 'services.firecrawl.key' => 'fc-test']);
@@ -114,7 +119,7 @@ it('rolls back the YouTube video row when attaching it fails', function (): void
         'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     ))->toThrow(RuntimeException::class);
 
-    expect(SourceYoutubeVideo::query()->where('user_id', $agent->user_id)->exists())->toBeFalse();
+    expect(SourceYoutubeVideo::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
 });
 
 it('adds and attaches a YouTube video', function (): void {
@@ -123,5 +128,5 @@ it('adds and attaches a YouTube video', function (): void {
     $video = app(AddAgentYoutubeVideoAction::class)->execute($agent, 'https://youtu.be/dQw4w9WgXcQ');
 
     expect($agent->youtubeVideos()->whereKey($video->id)->exists())->toBeTrue()
-        ->and($video->user_id)->toBe($agent->user_id);
+        ->and($video->workspace_id)->toBe($agent->workspace_id);
 });

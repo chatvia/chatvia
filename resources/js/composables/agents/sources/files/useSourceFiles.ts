@@ -1,62 +1,97 @@
 /**
- * The agent's files of one kind, split into "uploaded" (waiting for training)
- * and the rest (training, trained or failed). A reload never moves a file the
- * page already saw finish back to "training".
+ * The agent's files of one kind, as two lists the server sends one page at a
+ * time: "uploaded" (waiting for training) and the rest (training, trained or
+ * failed). A reload never moves a file the page already saw finish back to
+ * "training".
  */
 import { listSourceFiles, type SourceFile } from '@/api/fileSources';
+import { usePagedSourceList } from '@/composables/agents/sources/usePagedSourceList';
 import { computed, ref } from 'vue';
 
 export function useSourceFiles(agentId: string, fileType?: string) {
-    const files = ref<SourceFile[]>([]);
-    const isLoading = ref(false);
+    const uploaded = usePagedSourceList<SourceFile>((page) => listSourceFiles(agentId, 'uploaded', page, fileType));
+    const trained = usePagedSourceList<SourceFile>((page) => listSourceFiles(agentId, 'trained', page, fileType));
     const isInitialLoad = ref(true);
 
-    const uploadedFiles = computed(() => files.value.filter((file) => file.status === 'uploaded'));
-    const processedFiles = computed(() => files.value.filter((file) => file.status !== 'uploaded'));
+    const uploadedFiles = uploaded.items;
+    const processedFiles = trained.items;
+    const isLoading = computed(() => uploaded.isLoading.value || trained.isLoading.value);
 
     async function fetchFiles(): Promise<void> {
-        isLoading.value = true;
+        // A reload can race ahead of the training batch's final commit and
+        // still report a just-finished file as 'ingesting' (at 99 %). Keep
+        // every file this page already knows is 'ingested'.
+        const ingestedIds = new Set(processedFiles.value.filter((file) => file.status === 'ingested').map((file) => file.id));
 
         try {
-            const fresh = await listSourceFiles(agentId, fileType);
+            await Promise.all([uploaded.reload(), trained.reload()]);
 
-            // A reload can race ahead of the training batch's final commit and
-            // still report a just-finished file as 'ingesting' (at 99 %). Keep
-            // every file this page already knows is 'ingested'.
-            const ingestedIds = new Set(files.value.filter((file) => file.status === 'ingested').map((file) => file.id));
-
-            files.value = fresh.map((file) =>
+            processedFiles.value = processedFiles.value.map((file) =>
                 file.status === 'ingesting' && ingestedIds.has(file.id) ? { ...file, status: 'ingested', progress: 100 } : file,
             );
         } catch {
-            // The list keeps its last state; the next reload or broadcast fixes it.
+            // The lists keep their last state; the next reload or broadcast fixes them.
         } finally {
-            isLoading.value = false;
             isInitialLoad.value = false;
         }
     }
 
+    /** Reloads only the files waiting for training (a new upload lands there). */
+    async function fetchUploadedFiles(): Promise<void> {
+        await uploaded.reload().catch(() => undefined);
+    }
+
+    /** Adds the next page of uploaded files. A failure keeps the list as it is. */
+    async function loadMoreUploaded(): Promise<void> {
+        await uploaded.loadMore().catch(() => undefined);
+    }
+
+    /** Adds the next page of trained files. A failure keeps the list as it is. */
+    async function loadMoreTrained(): Promise<void> {
+        await trained.loadMore().catch(() => undefined);
+    }
+
     function removeFile(fileId: number): void {
-        files.value = files.value.filter((file) => file.id !== fileId);
+        uploaded.remove(fileId);
+        trained.remove(fileId);
     }
 
     /** Drops the uploaded (untrained) files from the list after they were deleted on the server. */
     function removeUploadedFiles(): void {
-        files.value = processedFiles.value;
+        uploaded.clear();
     }
 
     /** Applies a training-progress broadcast to a file. */
     function setProgress(fileId: number, progress: number): void {
-        files.value = files.value.map((file) =>
+        processedFiles.value = processedFiles.value.map((file) =>
             file.id === fileId ? { ...file, progress, status: progress >= 100 ? 'ingested' : 'ingesting' } : file,
         );
     }
 
     function findFile(fileId: number): SourceFile | undefined {
-        return files.value.find((file) => file.id === fileId);
+        return processedFiles.value.find((file) => file.id === fileId) ?? uploadedFiles.value.find((file) => file.id === fileId);
     }
 
-    return { files, uploadedFiles, processedFiles, isLoading, isInitialLoad, fetchFiles, removeFile, removeUploadedFiles, setProgress, findFile };
+    return {
+        uploadedFiles,
+        processedFiles,
+        uploadedTotal: uploaded.total,
+        processedTotal: trained.total,
+        hasMoreUploaded: uploaded.hasMore,
+        hasMoreProcessed: trained.hasMore,
+        isLoadingMoreUploaded: uploaded.isLoadingMore,
+        isLoadingMoreProcessed: trained.isLoadingMore,
+        isLoading,
+        isInitialLoad,
+        fetchFiles,
+        fetchUploadedFiles,
+        loadMoreUploaded,
+        loadMoreTrained,
+        removeFile,
+        removeUploadedFiles,
+        setProgress,
+        findFile,
+    };
 }
 
 export type SourceFilesState = ReturnType<typeof useSourceFiles>;

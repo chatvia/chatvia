@@ -15,7 +15,7 @@ it('attaches a YouTube video to an agent via the polymorphic agent_sources table
 
     /** @var SourceYoutubeVideo $video */
     $video = SourceYoutubeVideo::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'url' => 'https://www.youtube.com/watch?v=test',
         'length' => 1,
         'status' => 'pending',
@@ -32,7 +32,7 @@ it('detaches a YouTube video from an agent (used by the observer on delete)', fu
 
     /** @var SourceYoutubeVideo $video */
     $video = SourceYoutubeVideo::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'url' => 'https://www.youtube.com/watch?v=detach',
         'length' => 1,
         'status' => 'pending',

@@ -11,7 +11,7 @@ use Domain\Conversation\Services\ConversationRetention;
 | Single home for Chatvia's app-specific configuration. Each top-level key
 | below is a bounded area (agent, ai, vector, analytics, sse, hmac, widget),
 | kept in one file so there's one place to look. Reference values with the
-| `chatvia.` prefix, e.g. config('chatvia.ai.provider'),
+| `chatvia.` prefix, e.g. config('chatvia.ai.reranker'),
 | config('chatvia.vector.search.mode').
 |
 */
@@ -64,6 +64,52 @@ return [
 
     'message_limits' => [
         'new_workspace' => 0,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | File storage
+    |--------------------------------------------------------------------------
+    |
+    | Where the `private` disk (knowledge files, backups) and the `public` disk
+    | (chat attachments, chunk images) keep their files: on this server, or in
+    | S3-compatible object storage (AWS S3, Scaleway, Cloudflare R2, MinIO,
+    | ...). Set in the admin panel (Settings → Storage); the values below are
+    | the defaults while nothing is saved there, so an install configured in
+    | .env keeps working. App\Admin\Settings\StorageDisks builds the two
+    | disks from this.
+    |
+    */
+
+    'storage' => [
+        'driver' => env('FILESYSTEM_PRIVATE_DRIVER', filled(env('SCALEWAY_BUCKET')) ? 's3' : 'local'),
+        's3' => [
+            'key' => env('SCALEWAY_ACCESS_KEY_ID'),
+            'secret' => env('SCALEWAY_SECRET_ACCESS_KEY'),
+            'region' => env('SCALEWAY_DEFAULT_REGION'),
+            'endpoint' => env('SCALEWAY_ENDPOINT'),
+            'use_path_style_endpoint' => (bool) env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
+            'private_bucket' => env('SCALEWAY_BUCKET'),
+            'private_url' => env('SCALEWAY_URL'),
+            'public_bucket' => env('SCALEWAY_BUCKET_PUBLIC'),
+            'public_url' => env('SCALEWAY_PUBLIC_URL'),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Admin setup
+    |--------------------------------------------------------------------------
+    |
+    | When the first admin finished (or skipped) the setup of a new install:
+    | the AI provider and model, search, and email. Until then every admin
+    | panel page leads to the setup. Saved by the admin panel
+    | (PlatformSettings), never set in .env.
+    |
+    */
+
+    'admin' => [
+        'setup_completed_at' => null,
     ],
 
     /*
@@ -195,7 +241,7 @@ return [
 
                 // EXPERIMENTAL (off by default). A small "middle model" connector
                 // router: after the relevance gate, a cheap structured LLM call
-                // (config('chatvia.ai.models.connector_router')) picks which
+                // (the Fast model, Settings → AI) picks which
                 // connector(s) the turn is about, and write tools from connectors
                 // it didn't pick are dropped. A reasoning model can separate
                 // "ticket → support" from "issue → tracker" where the embedding
@@ -210,12 +256,11 @@ return [
             ],
         ],
 
-        // The LLM (matched by `llms.internal_name`) that new agents are seeded
-        // with — AgentObserver wires it up on `created`. Hardcoded here for now;
-        // a per-user/team override can land later without changing the observer.
-        // If the configured name doesn't match any catalog row, the observer
-        // falls back to the first available LLM.
-        'default_model' => env('AGENT_DEFAULT_MODEL', 'qwen3.6-35b-a3b'),
+        // The chat model (LlmRole::Chat): the catalog model, by its alias
+        // (`llms.external_name`), that new agents start with and the
+        // analytics assistant uses. Set in the admin panel (Settings → AI).
+        // Unset, or not usable, means the first usable model of the catalog.
+        'default_model' => null,
 
         // How many recent conversation messages (user + assistant turns) to
         // replay into the LLM context on each turn. Caps the history window so
@@ -235,9 +280,15 @@ return [
     */
 
     'ai' => [
-        // Where chat calls go: scaleway, mistral, openrouter or groq
-        // (LlmProviderEnum). Any other value falls back to openrouter.
-        'provider' => env('LLM_PROVIDER', 'scaleway'),
+        // The catalog models (aliases, `llms.external_name`) behind the app's
+        // own LLM calls, picked in the admin panel (Settings → AI). A role
+        // that is unset uses the chat model (chatvia.agent.default_model).
+        // Every call goes to its model's provider. See LlmRole.
+        'roles' => [
+            'fast' => null,
+            'smart' => null,
+            'vision' => null,
+        ],
 
         // Which service handles each ingestion and retrieval step. `auto` picks
         // the hosted service when its API key is set, and the local tool (or
@@ -278,57 +329,25 @@ return [
         // built-in tokenizer is the fallback.
         'tokenizer' => 'cl100k_base',
 
-        // https://www.scaleway.com/en/docs/generative-apis/reference-content/supported-models/
         'models' => [
-            'vision' => 'gemma-3-27b-it',
             // Embedding provider: qwen (Qwen3 on Scaleway), cohere, jina or
             // mistral. The database stores 1024-dimension vectors, so the
             // provider must return exactly 1024 dimensions.
             'embedding' => env('AI_EMBEDDING_PROVIDER', 'qwen'),
 
-            // Read whole PDF documents through the document_llm above.
+            // Read whole PDF documents through the document_llm above. These
+            // are model names of that provider, not catalog models.
             'summary' => env('AI_SUMMARY_MODEL', 'mistral-large-latest'),
             'analysis' => env('AI_ANALYSIS_MODEL', 'mistral-large-latest'),
             // Answers questions about PDF files attached to a chat. Needs both
             // PDF reading and function calling so tools still work in PDF chats.
             'document_chat' => env('AI_DOCUMENT_CHAT_MODEL', env('MISTRAL_QA_MODEL', 'mistral-medium-latest')),
-
-            'tables' => 'mistral-small-3.2-24b-instruct-2506',
-            'chunker' => 'llama-3.1-70b-instruct',
-            'title' => 'mistral-small-3.2-24b-instruct-2506',
-            // Suggests a chat-address slug for an agent (the "generate" button).
-            'agent_slug' => 'mistral-small-3.2-24b-instruct-2506',
-            'form_description' => 'mistral-small-3.2-24b-instruct-2506',
-            'tone' => 'mistral-small-3.2-24b-instruct-2506',
-            'topic' => 'mistral-small-3.2-24b-instruct-2506',
-            // LLM-as-judge for agent evals. Open-weight + reliable for the
-            // constrained pass/fail scoring we ask of it; swap to a Qwen3
-            // instruct model here without touching code.
-            'judge' => 'mistral-small-3.2-24b-instruct-2506',
-
-            // Open-weight moderation/guard classifier: ONE structured call returns
-            // the prompt-injection / off-topic / toxicity verdicts for a message.
-            // PII detection is regex (free), not this model.
-            'guardrail' => 'mistral-small-3.2-24b-instruct-2506',
-
-            // Small "middle model" that routes a turn to the relevant connector(s)
-            // for the experimental tool connector_classifier (off by default).
-            'connector_router' => 'mistral-small-3.2-24b-instruct-2506',
-
-            // Localizes the agent's three appearance strings (chat title /
-            // welcome message / composer placeholder) into every supported
-            // language in one structured-JSON call when the owner saves them.
-            'translator' => 'mistral-small-3.2-24b-instruct-2506',
-
-            // Suggests conversation starters from a sample of the agent's
-            // knowledge-base content (Setup → Starters → "Generate with AI").
-            'starters' => 'mistral-small-3.2-24b-instruct-2506',
         ],
 
         'query' => [
             'rewriter' => [
+                // Uses the Fast model.
                 'enabled' => env('QUERY_REWRITER_ENABLED', false),
-                'model' => 'gemma-3-27b-it',
             ],
         ],
 
@@ -577,6 +596,34 @@ return [
     'retention' => [
         'conversations_days' => ConversationRetention::DEFAULT_DAYS,
         'conversations_floor_days' => (int) env('CONVERSATION_RETENTION_FLOOR_DAYS', 1),
+
+        // Optional windows a workspace sets in Settings → Security; nothing is
+        // deleted while one is blank. Daily jobs enforce them:
+        // app:prune-leads, app:prune-workspace-analytics and
+        // app:anonymize-chat-sessions. Analytics keep at least a month so the
+        // charts stay useful. "Anonymize after" may not be longer than the
+        // conversation retention (the chats are gone by then).
+        'leads_floor_days' => 1,
+        'analytics_floor_days' => 30,
+        'anonymize_floor_days' => 1,
+        // The longest leads or analytics window a workspace may set (ten years).
+        'max_days' => 3650,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Spectra (AI call log)
+    |--------------------------------------------------------------------------
+    |
+    | Spectra stores every AI call (request, response, tokens, cost) in its own
+    | database. The daily `spectra:prune` run removes calls older than
+    | `retention_days`. Set in the admin panel (Settings → Retention & limits);
+    | this is the default.
+    |
+    */
+
+    'spectra' => [
+        'retention_days' => 30,
     ],
 
     /*
@@ -689,11 +736,13 @@ return [
     */
 
     'widget' => [
-        // The widget's embed.js. By default the copy this server builds from
-        // shakomako/ into public/shakomako (`npm run shakomako:build`). Set
-        // WIDGET_SCRIPT_URL to load it from elsewhere, e.g. the widget dev
-        // server (http://localhost:3000/dist/embed.js) or a CDN.
-        'script_url_embed' => env('WIDGET_SCRIPT_URL') ?: rtrim((string) env('APP_URL', 'http://localhost'), '/').'/shakomako/embed.js',
+        // The widget's embed.js: a path on this server or a full address. By
+        // default the copy this server builds into public/shakomako
+        // (`npm run shakomako:build`). The admin panel (Settings → Platform)
+        // can point it elsewhere, e.g. the widget dev server
+        // (http://localhost:3000/dist/embed.js) or a CDN. Read it through
+        // url(), which turns a path into a full address.
+        'script_url_embed' => '/shakomako/embed.js',
 
         // Public address of the Reverb (WebSocket) server for live-agent
         // handoff, sent to the widget with its settings, so a widget build
@@ -743,6 +792,15 @@ return [
     'security' => [
         'csp' => env('CSP_MODE', 'report-only'),
         'csp_report_uri' => env('CSP_REPORT_URI'),
+
+        // Which public forms ask for the Cloudflare Turnstile bot check once
+        // its keys (services.turnstile) are saved. Set in the admin panel
+        // (Settings → Security). See App\Http\Auth\BotCheck.
+        'turnstile' => [
+            'sign_up' => true,
+            'sign_in' => false,
+            'password_reset' => true,
+        ],
     ],
 
     /*

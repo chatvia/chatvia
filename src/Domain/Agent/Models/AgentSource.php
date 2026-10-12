@@ -57,8 +57,12 @@ class AgentSource extends MorphPivot
 
     /**
      * Ids of `sourceable_id` rows of `$type` attached only to `$agentId` — i.e.
-     * sources this agent owns exclusively. The agent-deleting cleanup uses this
-     * to know which sources to fully delete vs. just detach.
+     * sources this agent owns exclusively. The agent purge uses this to know
+     * which sources to fully delete vs. just detach.
+     *
+     * Another agent that is itself deleted (waiting for its own purge) does
+     * not count: otherwise two agents deleted together would each keep the
+     * source they shared for the other, and it would outlive both.
      *
      * `$type` accepts a model FQCN or a morph alias; the column always stores
      * the enforced morph alias, so an FQCN is resolved before comparing.
@@ -76,9 +80,11 @@ class AgentSource extends MorphPivot
             ->whereNotExists(function ($q) use ($type, $agentId): void {
                 $q->select(DB::raw(1))
                     ->from('agent_sources as b')
+                    ->join('agents as other', 'other.id', '=', 'b.agent_id')
                     ->whereColumn('b.sourceable_id', 'a.sourceable_id')
                     ->where('b.sourceable_type', $type)
-                    ->where('b.agent_id', '!=', $agentId);
+                    ->where('b.agent_id', '!=', $agentId)
+                    ->whereNull('other.deleted_at');
             })
             ->pluck('a.sourceable_id');
     }

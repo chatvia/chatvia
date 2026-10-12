@@ -136,7 +136,7 @@ function toolLoopBindLlm(string ...$sseBodies): void
         }
     };
 
-    app()->instance(LlmProviderInterface::class, $fake);
+    bindFakeLlmProvider($fake);
 
     app()->instance(EmbeddingsProviderInterface::class, new class implements EmbeddingsProviderInterface
     {
@@ -202,7 +202,7 @@ function toolLoopAgent(): Agent
     app(TeamService::class)->createDefaultTeam($owner);
 
     return Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Tool Bot',
         'external_id' => Str::random(14),
@@ -220,7 +220,7 @@ function toolLoopAgent(): Agent
 function toolLoopWebhookFunction(Agent $agent): AgentFunction
 {
     $function = AgentFunction::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'internal_name' => 'get_order_status',
         'display_name' => 'Order status',
         'description' => 'Look up the current status of a customer order by its id.',

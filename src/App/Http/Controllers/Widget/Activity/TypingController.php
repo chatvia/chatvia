@@ -30,7 +30,7 @@ class TypingController
             $request->string('conversation_id')->toString(),
             (string) $this->widgetSessionId($request),
             $agent,
-            $this->widgetUser($request),
+            $this->widgetViewer($request),
         );
 
         if (! $conversation instanceof Conversation) {

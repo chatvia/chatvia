@@ -2,6 +2,7 @@
 
 namespace App\Identity\Workspace\Services;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -22,11 +23,11 @@ class ProfilePhotoStorage
     private const int QUALITY = 82;
 
     /**
-     * Crop to a centered square, downscale, re-encode, and store the photo,
-     * replacing the user's existing one. Returns the stored path to persist
-     * on the user.
+     * Crop to a centered square, downscale, re-encode, and store the photo of
+     * a staff account (`users/…`) or a chatter (`chatters/…`), replacing their
+     * existing one. Returns the stored path to persist on the account.
      */
-    public function store(User $user, UploadedFile $photo): string
+    public function store(Chatter|User $user, UploadedFile $photo): string
     {
         $disk = Storage::disk(User::PROFILE_IMAGE_DISK);
 
@@ -38,7 +39,8 @@ class ProfilePhotoStorage
             ->cover(self::SIZE, self::SIZE)
             ->encode(new JpegEncoder(quality: self::QUALITY));
 
-        $path = 'users/'.$user->external_id.'/profile-photos/'.Str::uuid().'.jpg';
+        $root = $user instanceof Chatter ? 'chatters/' : 'users/';
+        $path = $root.$user->external_id.'/profile-photos/'.Str::uuid().'.jpg';
 
         $disk->put($path, (string) $encoded, ['visibility' => 'public']);
 

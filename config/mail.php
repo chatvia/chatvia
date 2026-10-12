@@ -57,6 +57,20 @@ return [
             'transport' => 'resend',
         ],
 
+        // Their keys are in services.mailgun, services.postmark and
+        // services.cloudflare (set in the admin panel, Settings → Email).
+        'mailgun' => [
+            'transport' => 'mailgun',
+        ],
+
+        'postmark' => [
+            'transport' => 'postmark',
+        ],
+
+        'cloudflare' => [
+            'transport' => 'cloudflare',
+        ],
+
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),

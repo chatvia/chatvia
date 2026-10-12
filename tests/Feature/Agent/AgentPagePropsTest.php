@@ -11,7 +11,7 @@ beforeEach(function (): void {
     // Agent::factory()->create() gives the owner an active subscription so the agent route
     // group's subscription gate lets the request reach the controller.
     $this->agent = Agent::factory()->create();
-    $this->owner = $this->agent->user;
+    $this->owner = $this->agent->workspace->owner;
 });
 
 it('sends the agent as resource data, not the raw model', function (string $routeName): void {
@@ -21,7 +21,7 @@ it('sends the agent as resource data, not the raw model', function (string $rout
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('agent.external_id', $this->agent->external_id)
             ->where('agent.is_public', $this->agent->is_public)
-            ->missing('agent.user_id')
+            ->missing('agent.workspace_id')
             ->missing('agent.team_id')
             ->missing('agent.metadata')
             ->missing('agent.auth_secret')

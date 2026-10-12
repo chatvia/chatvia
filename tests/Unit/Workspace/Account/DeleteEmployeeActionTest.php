@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * DeleteEmployeeAction: removes one teammate and what the FK graph cannot
+ * reach (tokens, HTTP sessions, team membership), keeps the workspace
+ * resources the teammate created (they are keyed to the workspace), and
+ * leaves the owner, other teammates and the workspace's chatters (a separate
+ * table) alone.
+ */
+
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeleteEmployeeAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
@@ -47,28 +56,29 @@ it('deletes the Sanctum tokens, HTTP sessions and team membership the FK graph c
         ->and(DB::table('team_user')->where('user_id', $employee->id)->exists())->toBeFalse();
 });
 
-it('reassigns workspace resources the employee authored to the owner instead of cascading them away', function (): void {
+it('keeps workspace resources the employee created instead of cascading them away', function (): void {
     $owner = User::factory()->create();
     $employee = User::factory()->employee($owner)->create();
 
-    // A prompt created the old (mis-keyed) way: owned by the employee.
-    $prompt = $employee->prompts()->create(['name' => 'Shared prompt', 'prompt' => 'Hello']);
+    // Created by the employee, but keyed to the shared workspace.
+    $prompt = $employee->workspace()->prompts()->create(['name' => 'Shared prompt', 'prompt' => 'Hello']);
 
     app(DeleteEmployeeAction::class)->execute($employee);
 
     expect(AgentPrompt::whereKey($prompt->id)->exists())->toBeTrue()
-        ->and(AgentPrompt::whereKey($prompt->id)->value('user_id'))->toBe($owner->id);
+        ->and(AgentPrompt::whereKey($prompt->id)->value('workspace_id'))->toBe($owner->workspace()->id);
 });
 
 it('detaches the employee from conversations they handled without deleting the conversation', function (): void {
     $owner = User::factory()->create();
     $employee = User::factory()->employee($owner)->create();
-    $chatter = User::factory()->chatter($owner)->create();
-    $agent = Agent::factory()->create(['user_id' => $owner->id]);
+    $chatter = Chatter::factory()->ofWorkspace($owner)->create();
+    $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
 
-    $session = ChatSession::create(['agent_id' => $agent->id, 'user_id' => $chatter->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'source' => ConversationSource::HostedChat,
         'title' => 'Handled by employee',
@@ -80,5 +90,24 @@ it('detaches the employee from conversations they handled without deleting the c
     app(DeleteEmployeeAction::class)->execute($employee);
 
     expect(DB::table('chat_conversations')->where('id', $conversation->id)->exists())->toBeTrue()
-        ->and(DB::table('chat_conversations')->where('id', $conversation->id)->value('handoff_user_id'))->toBeNull();
+        ->and(DB::table('chat_conversations')->where('id', $conversation->id)->value('handoff_user_id'))->toBeNull()
+        ->and(ChatSession::whereKey($session->id)->exists())->toBeTrue();
+});
+
+it('leaves the workspace chatters and their sessions alone, even one whose id equals the employee id', function (): void {
+    $owner = User::factory()->create();
+    $employee = User::factory()->employee($owner)->create();
+    // Chatter and staff ids come from different tables and can be equal.
+    $twin = Chatter::factory()->ofWorkspace($owner)->create(['id' => $employee->id]);
+    $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
+
+    $chatterSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $twin->id]);
+    $staffSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $employee->id]);
+
+    app(DeleteEmployeeAction::class)->execute($employee);
+
+    expect(User::whereKey($employee->id)->exists())->toBeFalse()
+        ->and(Chatter::whereKey($twin->id)->exists())->toBeTrue()
+        ->and(ChatSession::whereKey($chatterSession->id)->exists())->toBeTrue()
+        ->and(ChatSession::whereKey($staffSession->id)->exists())->toBeFalse();
 });

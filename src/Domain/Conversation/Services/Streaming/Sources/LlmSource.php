@@ -11,18 +11,19 @@ use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 
 /**
- * The default chat turn: streams the agent's configured model through the
- * shared tool loop. The envelope (start, errors, guardrails, persist, resume)
+ * The default chat turn: streams the agent's configured model, through its
+ * provider, in the shared tool loop. The envelope (start, errors, guardrails, persist, resume)
  * lives in {@see ToolLoopSource}.
  */
 class LlmSource extends ToolLoopSource
 {
     public function __construct(
-        private readonly LlmProviderInterface $llmProvider,
+        private readonly LlmProviders $providers,
         AssistantReplyRecorder $replyRecorder,
         RequestDedupeStore $dedupe,
         ToolSelector $toolSelector,
@@ -45,9 +46,9 @@ class LlmSource extends ToolLoopSource
         yield from $this->streamTurn($context, $llmMessages);
     }
 
-    protected function provider(): LlmProviderInterface
+    protected function provider(ChatContext $context): LlmProviderInterface
     {
-        return $this->llmProvider;
+        return $this->providers->for($context->requestData->message->model);
     }
 
     protected function modelName(ChatContext $context): string
@@ -57,7 +58,7 @@ class LlmSource extends ToolLoopSource
 
     protected function providerSlug(ChatContext $context): string
     {
-        return $context->requestData->message->model->provider->value;
+        return $context->requestData->message->model->provider->kind->value;
     }
 
     protected function logLabel(): string

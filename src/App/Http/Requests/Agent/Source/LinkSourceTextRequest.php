@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent\Source;
 
+use App\Http\Rules\WorkspaceRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -23,7 +24,7 @@ class LinkSourceTextRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'text_id' => ['required', 'exists:source_texts,id'],
+            'text_id' => ['required', WorkspaceRule::exists('source_texts', $this->user()->workspace())],
         ];
     }
 }

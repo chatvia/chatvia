@@ -4,6 +4,7 @@ namespace Domain\Conversation\Services\Memory;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Memory\ConversationData;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Models\Conversation;
@@ -33,12 +34,13 @@ class ChatMemory
 
     /**
      * Bind the memory to a visitor session (and optionally one of its
-     * conversations). `$viewerId` is the signed-in hosted-chat user, or null
-     * for anonymous visitors, the widget and the messaging channels.
+     * conversations). `$viewer` is the signed-in hosted-chat chatter or staff
+     * account, or null for anonymous visitors, the widget and the messaging
+     * channels.
      */
-    public function withContext(Agent $agent, string $externalSessionId, ?string $conversationId = null, ?int $viewerId = null): self
+    public function withContext(Agent $agent, string $externalSessionId, ?string $conversationId = null, ?ChatViewerData $viewer = null): self
     {
-        return $this->withScope(new ChatScopeData($agent, $externalSessionId, $conversationId, $viewerId));
+        return $this->withScope(new ChatScopeData($agent, $externalSessionId, $conversationId, $viewer));
     }
 
     public function withScope(ChatScopeData $scope): self
@@ -56,7 +58,7 @@ class ChatMemory
     public function setConversationId(?string $conversationId = null): self
     {
         $scope = $this->scope();
-        $this->scope = new ChatScopeData($scope->agent, $scope->sessionId, $conversationId, $scope->viewerId);
+        $this->scope = new ChatScopeData($scope->agent, $scope->sessionId, $conversationId, $scope->viewer);
 
         return $this;
     }
@@ -127,8 +129,8 @@ class ChatMemory
         // reattach, an evicted entry, or one stamped for another chatter —
         // rebuild from chat_conversations so every change sees the full list.
         // Writing back (even when empty) avoids a repeat query on every read.
-        $stampedFor = $cached['user_id'] ?? null;
-        $viewerMatches = empty($stampedFor) || $this->scope()->viewerId === $stampedFor;
+        $stampedFor = $cached['viewer'] ?? null;
+        $viewerMatches = empty($stampedFor) || $this->scope()->viewer?->key() === $stampedFor;
 
         if ($viewerMatches && $this->cache()->has($this->scope()->sessionId)) {
             return $cached['conversations'] ?? [];
@@ -148,7 +150,7 @@ class ChatMemory
     public function saveConversations(array $conversations): void
     {
         $this->cache()->put($this->scope()->sessionId, [
-            'user_id' => $this->scope()->viewerId,
+            'viewer' => $this->scope()->viewer?->key(),
             'conversations' => $conversations,
         ]);
     }
@@ -344,7 +346,7 @@ class ChatMemory
         );
 
         $this->cache()->put($sessionId, [
-            'user_id' => $cached['user_id'] ?? null,
+            'viewer' => $cached['viewer'] ?? null,
             'conversations' => $conversations,
         ]);
     }

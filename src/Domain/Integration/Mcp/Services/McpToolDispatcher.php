@@ -165,7 +165,7 @@ class McpToolDispatcher implements ToolDispatcherInterface
     {
         McpToolInvoked::dispatch(
             $agent->id,
-            (int) $agent->user_id,
+            (int) $agent->workspace_id,
             (int) $server->id,
             (string) $server->slug,
             $toolName,

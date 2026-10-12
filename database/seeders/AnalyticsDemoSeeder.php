@@ -178,8 +178,8 @@ class AnalyticsDemoSeeder extends Seeder
 
                     $messageSent->execute(MessageSentRecordData::fromEvent(new MessageSent(
                         agentId: $agent->id,
-                        workspaceId: $agent->user_id,
-                        chatterUserId: null,
+                        workspaceId: $agent->workspace_id,
+                        chatterId: null,
                         conversationExternalId: $convId,
                         messageExternalId: $msgId,
                         sessionExternalId: $sessionId,
@@ -199,7 +199,7 @@ class AnalyticsDemoSeeder extends Seeder
                     if ($isUser && random_int(1, 100) <= 85) {
                         $messageAnalyzed->execute(MessageAnalysisRecordData::fromEvent(new MessageAnalyzed(
                             agentId: $agent->id,
-                            workspaceId: $agent->user_id,
+                            workspaceId: $agent->workspace_id,
                             sentiment: (string) $this->weightedPick(self::SENTIMENT_WEIGHTS),
                             tone: (string) $this->weightedPick(self::TONE_WEIGHTS),
                             occurredAt: $cursor,
@@ -211,8 +211,8 @@ class AnalyticsDemoSeeder extends Seeder
                         $feedback = random_int(1, 100) <= 70 ? 'positive' : 'negative';
                         $feedbackGiven->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
                             agentId: $agent->id,
-                            workspaceId: $agent->user_id,
-                            chatterUserId: null,
+                            workspaceId: $agent->workspace_id,
+                            chatterId: null,
                             conversationExternalId: $convId,
                             messageExternalId: $msgId,
                             feedback: $feedback,

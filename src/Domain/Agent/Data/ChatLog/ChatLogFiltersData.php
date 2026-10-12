@@ -7,13 +7,14 @@ namespace Domain\Agent\Data\ChatLog;
 use Spatie\LaravelData\Data;
 
 /**
- * The chat-log list's page and filters, as the dashboard sends them. Every
- * filter is optional; an empty one doesn't narrow the list.
+ * The chat-log list's cursor and filters, as the dashboard sends them. Every
+ * filter is optional; an empty one doesn't narrow the list. No cursor means
+ * the first page.
  */
 class ChatLogFiltersData extends Data
 {
     public function __construct(
-        public int $page = 1,
+        public ?string $cursor = null,
         public ?string $topic = null,
         public ?string $sentiment = null,
         public ?string $tone = null,

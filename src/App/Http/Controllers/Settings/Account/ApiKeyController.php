@@ -53,6 +53,9 @@ class ApiKeyController
         /** @var User $user */
         $user = $request->user();
 
+        // Only the caller's own keys exist for them.
+        abort_unless($user->tokens()->whereKey($tokenId)->exists(), 404);
+
         $deleteApiKey->execute($user, $tokenId);
 
         return back();

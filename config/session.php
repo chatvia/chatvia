@@ -10,15 +10,18 @@ return [
     |--------------------------------------------------------------------------
     |
     | This option determines the default session driver that is utilized for
-    | incoming requests. Laravel supports a variety of storage options to
-    | persist session data. Database storage is a great default choice.
+    | incoming requests. Chatvia keeps sessions in Redis (its own database,
+    | see the `session` connection in config/database.php): every request
+    | rewrites the session, which Redis does without growing a table. A
+    | deleted account is signed out on its next request, because its session
+    | names a user that no longer exists.
     |
     | Supported: "file", "cookie", "database", "apc",
     |            "memcached", "redis", "dynamodb", "array"
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    'driver' => env('SESSION_DRIVER', 'redis'),
 
     /*
     |--------------------------------------------------------------------------
@@ -73,7 +76,7 @@ return [
     |
     */
 
-    'connection' => env('SESSION_CONNECTION'),
+    'connection' => env('SESSION_CONNECTION', env('SESSION_DRIVER', 'redis') === 'redis' ? 'session' : null),
 
     /*
     |--------------------------------------------------------------------------
@@ -233,6 +236,9 @@ return [
             Str::slug(env('APP_NAME', 'laravel'), '_').'_chat_session'
         ),
         'path' => '/chat',
+        // Its own sessions table: on /chat, `user_id` can be a chatter or a
+        // staff account, so these rows never mix with the dashboard's.
+        'table' => 'chat_web_sessions',
     ],
 
 ];

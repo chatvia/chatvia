@@ -21,7 +21,7 @@ class BarPreviewController
     public function __invoke(Request $request, Agent $agent, AgentSignInTokenService $signInTokens): View
     {
         return view('bar.preview', [
-            'embedScriptUrl' => config('chatvia.widget.script_url_embed'),
+            'embedScriptUrl' => url(config('chatvia.widget.script_url_embed')),
             'agentId' => $agent->external_id,
             'agentName' => $agent->name,
             'authToken' => $this->previewToken('bar', $agent, $request->user(), $signInTokens),

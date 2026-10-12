@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\File\Events;
 
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Broadcasting\InteractsWithBroadcasting;
 use Illuminate\Broadcasting\InteractsWithSockets;
@@ -13,10 +14,9 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * Pushes a file's ingestion progress (0-100) to the agent's Files page. Per-
- * chunk events can stay below 100 (duplicate or blank pages create no chunk),
- * so the batch's completion step always sends a final one after the status
- * flips to ingested.
+ * Pushes a file's ingestion progress (0-100) to the agent's Files page. The
+ * chunk jobs send the batch's progress, capped at 99; only the batch's
+ * completion step, after the status flips to ingested, sends 100.
  */
 class FileIngestionProgressed implements ShouldBroadcastNow
 {
@@ -25,6 +25,8 @@ class FileIngestionProgressed implements ShouldBroadcastNow
     public function __construct(
         public SourceFile $sourceFile,
         public string $agentExternalId,
+        /** The job batch's progress; null for the final event, sent once the source is ingested. */
+        public ?int $progress = null,
     ) {}
 
     public function broadcastOn(): array
@@ -44,7 +46,16 @@ class FileIngestionProgressed implements ShouldBroadcastNow
     {
         return [
             'file_id' => $this->sourceFile->id,
-            'progress' => $this->sourceFile->ingestionProgress(),
+            'progress' => $this->progress(),
         ];
+    }
+
+    private function progress(): int
+    {
+        if ($this->sourceFile->status === SourceStatus::Completed || $this->progress === null) {
+            return $this->sourceFile->ingestionProgress();
+        }
+
+        return min($this->progress, 99);
     }
 }

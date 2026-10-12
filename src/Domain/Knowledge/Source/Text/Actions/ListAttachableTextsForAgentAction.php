@@ -27,7 +27,7 @@ class ListAttachableTextsForAgentAction
 
         return SourceText::query()
             // Texts belong to the workspace owner, not to the teammate viewing them.
-            ->where('user_id', $user->workspace()->id)
+            ->where('workspace_id', $user->workspace()->id)
             ->where('status', SourceStatus::Completed)
             ->whereNotIn('id', $currentIds)
             ->with(['agents' => fn ($q) => $q->select('agents.id', 'agents.name')])

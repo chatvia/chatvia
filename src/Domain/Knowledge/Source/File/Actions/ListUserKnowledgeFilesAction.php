@@ -25,9 +25,11 @@ class ListUserKnowledgeFilesAction
         $workspaceId = $user->workspace()->id;
         // Used both as the whereHas filter (a query builder) and as the eager
         // load constraint (the relation).
-        $workspaceAgents = fn (Builder|MorphToMany $agents) => $agents->where('agents.user_id', $workspaceId);
+        $workspaceAgents = fn (Builder|MorphToMany $agents) => $agents->where('agents.workspace_id', $workspaceId);
 
         return SourceFile::query()
+            // Files are keyed to the workspace: the lookup starts from its own rows.
+            ->where('source_files.workspace_id', $workspaceId)
             ->whereHas('agents', $workspaceAgents)
             ->with(['agents' => $workspaceAgents])
             ->get()

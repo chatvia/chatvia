@@ -51,7 +51,7 @@ class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQ
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->sourceFile->user_id;
+        return $this->sourceFile->workspace_id;
     }
 
     public function uniqueId(): string

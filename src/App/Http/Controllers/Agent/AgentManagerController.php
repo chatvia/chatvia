@@ -50,7 +50,7 @@ class AgentManagerController
         $user = $request->user();
         $team = $user->currentOrPrimaryTeam();
 
-        if ($user->isWorkspace() || ($team !== null && $user->ownsTeam($team))) {
+        if ($user->isWorkspaceOwner() || ($team !== null && $user->ownsTeam($team))) {
             return redirect()->route('agents.playground', ['agent' => $agent]);
         }
 

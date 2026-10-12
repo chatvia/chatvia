@@ -160,16 +160,44 @@ it('needs a session to request a human', function (): void {
         ->assertJson(['error' => 'Missing session']);
 });
 
-it('moves the conversation activity time forward on a heartbeat', function (): void {
-    $boot = bootWidget($this->agent);
-    Conversation::query()->where('external_id', $boot['conversation_id'])->update(['last_activity_at' => now()->subHour()]);
-
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+/** Sends one widget heartbeat for the booted conversation. */
+function sendHeartbeat(Agent $agent, array $boot): void
+{
+    test()->withHeaders(widgetHeaders($agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/heartbeat', ['conversation_id' => $boot['conversation_id']])
         ->assertSuccessful();
+}
 
-    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->value('last_activity_at'))
-        ->toBeGreaterThan(now()->subMinute());
+it('moves the activity time of a visible conversation forward on a heartbeat, leaving updated_at alone', function (): void {
+    $boot = bootWidget($this->agent);
+    $updatedAt = now()->subHours(2)->startOfSecond();
+    Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()
+        ->update(['is_visible' => true, 'last_activity_at' => now()->subHour(), 'updated_at' => $updatedAt]);
+
+    sendHeartbeat($this->agent, $boot);
+
+    $conversation = Conversation::query()->where('external_id', $boot['conversation_id'])->firstOrFail();
+    expect($conversation->last_activity_at)->toBeGreaterThan(now()->subMinute())
+        ->and($conversation->updated_at->equalTo($updatedAt))->toBeTrue();
+});
+
+it('does not stamp a hidden conversation on a heartbeat', function (): void {
+    $boot = bootWidget($this->agent);
+
+    sendHeartbeat($this->agent, $boot);
+
+    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->value('last_activity_at'))->toBeNull();
+});
+
+it('stamps the activity time at most once a minute', function (): void {
+    $boot = bootWidget($this->agent);
+    $recent = now()->subSeconds(20)->startOfSecond();
+    Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()
+        ->update(['is_visible' => true, 'last_activity_at' => $recent]);
+
+    sendHeartbeat($this->agent, $boot);
+
+    expect(Conversation::query()->where('external_id', $boot['conversation_id'])->firstOrFail()->last_activity_at->equalTo($recent))->toBeTrue();
 });
 
 it('rejects feedback that names no message', function (): void {

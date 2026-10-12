@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Queue;
 function customServer(): AgentMcpServer
 {
     return AgentMcpServer::create([
-        'user_id' => User::factory()->create()->id,
+        'workspace_id' => User::factory()->create()->workspace()->id,
         'connector_slug' => null,
         'name' => 'Hejly AI Tutor',
         'description' => 'Language tutor',
@@ -80,7 +80,7 @@ it('re-indexes a tool whose description changed and leaves untouched ones indexe
 });
 
 it('busts every attached agent\'s cached tool pool so the next turn sees the fresh tools', function (): void {
-    $agent = createAgent($this->server->user);
+    $agent = createAgent($this->server->workspace->owner);
     $agent->attachConnector($this->server);
 
     advertise([['ask-tutor', 'ask']]);

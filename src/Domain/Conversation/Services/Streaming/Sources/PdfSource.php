@@ -84,7 +84,7 @@ class PdfSource extends ToolLoopSource
         yield from $this->streamTurn($context, $this->withDocumentUrls($llmMessages, $documentUrls));
     }
 
-    protected function provider(): LlmProviderInterface
+    protected function provider(ChatContext $context): LlmProviderInterface
     {
         return $this->documentLlm->provider();
     }

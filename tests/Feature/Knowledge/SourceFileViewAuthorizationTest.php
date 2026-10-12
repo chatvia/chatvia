@@ -15,7 +15,7 @@ function ownedSourceFile(User $owner): SourceFile
 {
     // Created directly (not via AgentFileFactory) so the owner is explicit.
     $file = SourceFile::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'external_id' => (string) Str::uuid(),
         'filename' => 'doc.txt',
         'filetype' => 'pdf',
@@ -53,12 +53,12 @@ it('serves the file to a teammate of the owning workspace', function (): void {
         ->assertOk();
 });
 
-it('serves the file to a platform admin', function (): void {
+it('returns 404 to a platform admin of another workspace', function (): void {
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)
         ->get(route('external.source.files.view', ['type' => 'file', 'externalId' => $this->file->external_id]))
-        ->assertOk();
+        ->assertNotFound();
 });
 
 it('returns 404 — not 403 — for another workspace', function (): void {

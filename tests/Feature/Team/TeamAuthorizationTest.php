@@ -9,8 +9,9 @@ use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 
 /*
- * Pins the team-management AUTHORIZATION outcome — owner allowed, non-owner
- * forbidden — across the three enforcement styles these controllers use:
+ * Pins the team-management AUTHORIZATION outcome — owner allowed, an outsider
+ * (another workspace) answered 404 by the `workspace.scope` route guard
+ * before any of the three enforcement styles these controllers use:
  *   1. FormRequest::authorize()       (teams.update)
  *   2. inline abort(403)              (teams.remove-member)
  *   3. inline back()->withErrors()    (teams.destroy)
@@ -32,7 +33,7 @@ describe('teams.update (FormRequest::authorize)', function (): void {
         $this->actingAs($this->outsider)
             ->from('/')
             ->put(route('teams.update', $this->owner->primaryTeam()), ['name' => 'Hijacked'])
-            ->assertForbidden();
+            ->assertNotFound();
     });
 
     it('lets the owner rename their team', function (): void {
@@ -55,11 +56,11 @@ describe('teams.remove-member (inline abort 403)', function (): void {
         $this->actingAs($this->outsider)
             ->from('/')
             ->delete(route('teams.remove-member', [$this->owner->primaryTeam(), $member]))
-            ->assertForbidden();
+            ->assertNotFound();
     });
 
     it('lets the owner through the ownership gate', function (): void {
-        $member = User::factory()->create();
+        $member = User::factory()->employee($this->owner)->create();
 
         $this->actingAs($this->owner)
             ->from('/')
@@ -72,20 +73,20 @@ describe('teams.remove-member (inline abort 403)', function (): void {
 describe('teams.destroy (inline back()->withErrors)', function (): void {
     it('forbids a non-owner and leaves the team intact', function (): void {
         $team = app(CreateTeamAction::class)->execute(
-            new CreateTeamData(owner: $this->owner, name: 'Deletable'),
+            new CreateTeamData(workspace: $this->owner->workspace(), name: 'Deletable'),
         );
 
         $this->actingAs($this->outsider)
             ->from('/')
             ->delete(route('teams.destroy', $team))
-            ->assertSessionHasErrors('team');
+            ->assertNotFound();
 
         expect($team->fresh())->not->toBeNull();
     });
 
     it('lets the owner delete a non-primary, agentless team', function (): void {
         $team = app(CreateTeamAction::class)->execute(
-            new CreateTeamData(owner: $this->owner, name: 'Deletable'),
+            new CreateTeamData(workspace: $this->owner->workspace(), name: 'Deletable'),
         );
 
         $this->actingAs($this->owner)
@@ -106,7 +107,7 @@ describe('teams.invite (FormRequest::authorize, permission-aware)', function ():
                 'email' => 'newbie@example.com',
                 'role' => 'admin',
             ])
-            ->assertForbidden();
+            ->assertNotFound();
     });
 
     it('lets the owner through the invite gate', function (): void {
@@ -143,7 +144,7 @@ describe('teams.resend-invitation (inline abort 403)', function (): void {
         $this->actingAs($this->outsider)
             ->from('/')
             ->post(route('teams.resend-invitation', [$team, $invitation->id]))
-            ->assertForbidden();
+            ->assertNotFound();
     });
 
     it('lets the owner through the resend gate', function (): void {

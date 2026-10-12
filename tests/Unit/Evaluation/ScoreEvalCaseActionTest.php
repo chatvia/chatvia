@@ -35,7 +35,7 @@ function scoringFixtures(string $value = 'paris'): array
     $run = EvalRun::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'status' => EvalRunStatus::Running,
         'total_cases' => 1,
         'started_at' => now(),
@@ -44,7 +44,7 @@ function scoringFixtures(string $value = 'paris'): array
     $case = EvalCase::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'capital',
         'input' => 'Capital of France?',
         'scorer_type' => 'contains',
@@ -94,7 +94,7 @@ it('scores a tool_call case from the captured (never executed) tool call', funct
     $run = EvalRun::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'status' => EvalRunStatus::Running,
         'total_cases' => 1,
         'started_at' => now(),
@@ -103,7 +103,7 @@ it('scores a tool_call case from the captured (never executed) tool call', funct
     $case = EvalCase::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'emails support',
         'input' => 'Email the support team.',
         'scorer_type' => 'tool_call',
@@ -169,7 +169,7 @@ it('records a failing result (not an exception) when the agent run errored', fun
 
 it('counts one message against the workspace limit for a case that produced an answer', function (): void {
     [$run, $case] = scoringFixtures();
-    app(SetMessageLimitAction::class)->execute($run->agent->user, 10);
+    app(SetMessageLimitAction::class)->execute($run->agent->workspace, 10);
 
     app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
         answer: 'The capital is Paris.',
@@ -182,12 +182,12 @@ it('counts one message against the workspace limit for a case that produced an a
 
     app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect(MessageLimit::query()->where('user_id', $run->agent->user_id)->value('messages_used'))->toBe(1);
+    expect(MessageLimit::query()->where('workspace_id', $run->agent->workspace_id)->value('messages_used'))->toBe(1);
 });
 
 it('does not count a message when the agent run errored (no answer produced)', function (): void {
     [$run, $case] = scoringFixtures();
-    app(SetMessageLimitAction::class)->execute($run->agent->user, 10);
+    app(SetMessageLimitAction::class)->execute($run->agent->workspace, 10);
 
     app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
         answer: '',
@@ -201,13 +201,13 @@ it('does not count a message when the agent run errored (no answer produced)', f
 
     app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect(MessageLimit::query()->where('user_id', $run->agent->user_id)->value('messages_used'))->toBe(0);
+    expect(MessageLimit::query()->where('workspace_id', $run->agent->workspace_id)->value('messages_used'))->toBe(0);
 });
 
 it('skips the LLM call when the workspace has reached its monthly message limit', function (): void {
     [$run, $case] = scoringFixtures();
     MessageLimit::create([
-        'user_id' => $run->agent->user_id,
+        'workspace_id' => $run->agent->workspace_id,
         'monthly_limit' => 1,
         'messages_used' => 1,
         'period_starts_at' => now()->startOfMonth(),

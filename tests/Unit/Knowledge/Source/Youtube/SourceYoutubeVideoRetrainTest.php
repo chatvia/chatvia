@@ -15,7 +15,7 @@ use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 function retrainTestVideo(Agent $agent): SourceYoutubeVideo
 {
     return SourceYoutubeVideo::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'url' => 'https://www.youtube.com/watch?v='.uniqid(),
         'length' => 1,
         'status' => SourceStatus::Completed->value,
@@ -46,7 +46,7 @@ it('deletes the video when the deleting agent is its only user', function (): vo
 
 it('only detaches when another agent still uses the video', function (): void {
     $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['user_id' => $agent->user_id]);
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
     $video = retrainTestVideo($agent);
     $video->agents()->attach([$agent->id, $other->id]);
 

@@ -50,7 +50,7 @@ beforeEach(function (): void {
 
 it('EndHandoffChatAction transitions human → ai and broadcasts user_ended', function (): void {
     $agent = Agent::factory()->create();
-    $handoffAdmin = Agent::factory()->create()->user; // a real user for the FK
+    $handoffAdmin = Agent::factory()->create()->workspace->owner; // a real user for the FK
     $conversation = newHandoffSession($agent, 'human', handoffUserId: $handoffAdmin->id);
 
     $result = app(EndHandoffChatAction::class)->execute($conversation);

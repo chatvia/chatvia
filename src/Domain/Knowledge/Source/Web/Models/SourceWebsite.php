@@ -25,7 +25,7 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string|null $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string|null $language
  * @property string|null $document_classification
  * @property string $url
@@ -74,7 +74,7 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceWebsite whereTookInSeconds($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceWebsite whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceWebsite whereUrl($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceWebsite whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|SourceWebsite whereWorkspaceId($value)
  *
  * @mixin \Eloquent
  */

@@ -10,6 +10,11 @@
 #
 # Then open http://localhost:8000.
 #
+# The installer (install.sh) also puts `manage` next to this file, for the
+# everyday work: ./manage start, stop, backup, restore and more (./manage
+# help). Your own changes go in compose.override.yaml, which upgrades never
+# replace; the installer keeps PostgreSQL's settings file there.
+#
 # Settings go in a .env file next to this file (see .env.example). Values like
 # the database name and password, and the first admin, are only read on the
 # first start. Everything else applies on the next `docker compose up -d`.
@@ -141,14 +146,15 @@ services:
       test: ["CMD", "healthcheck-reverb"]
       start_period: 30s
 
-  # The text splitter (github.com/chatvia/chunker, built from
-  # docker/chunker). Only the app's containers reach it, on this network, and
-  # it takes no API key. Its health check is in its image.
+  # The text splitter: the image github.com/chatvia/chunker publishes. It has
+  # its own versions, so it follows CHUNKER_VERSION, not CHATVIA_VERSION. Only
+  # the app's containers reach it, on this network, and it takes no API key
+  # (API_KEY stays unset). Its health check is in its image.
   chunker:
-    image: ${CHUNKER_IMAGE:-ghcr.io/chatvia/chunker}:${CHATVIA_VERSION:-latest}
+    image: ${CHUNKER_IMAGE:-ghcr.io/chatvia/chunker}:${CHUNKER_VERSION:-latest}
     restart: unless-stopped
     environment:
-      WEB_CONCURRENCY: ${CHUNKER_WORKERS:-2}
+      WORKERS: ${CHUNKER_WORKERS:-2}
 
 volumes:
   storage:

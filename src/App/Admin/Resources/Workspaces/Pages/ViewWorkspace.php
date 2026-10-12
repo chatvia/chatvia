@@ -6,7 +6,7 @@ namespace App\Admin\Resources\Workspaces\Pages;
 
 use App\Admin\Resources\Workspaces\WorkspaceResource;
 use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -28,7 +28,7 @@ class ViewWorkspace extends ViewRecord
             Action::make('messageLimit')
                 ->label('Set message limit')
                 ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
-                ->fillForm(fn (User $record): array => ['monthly_limit' => $record->messageLimit?->monthly_limit])
+                ->fillForm(fn (Workspace $record): array => ['monthly_limit' => $record->messageLimit?->monthly_limit])
                 ->schema([
                     TextInput::make('monthly_limit')
                         ->label('Agent replies per month')
@@ -36,7 +36,7 @@ class ViewWorkspace extends ViewRecord
                         ->minValue(1)
                         ->helperText('Leave empty for no limit. The count of this month is kept.'),
                 ])
-                ->action(function (User $record, array $data, SetMessageLimitAction $setLimit): void {
+                ->action(function (Workspace $record, array $data, SetMessageLimitAction $setLimit): void {
                     $limit = filled($data['monthly_limit'] ?? null) ? (int) $data['monthly_limit'] : null;
 
                     $setLimit->execute($record, $limit);

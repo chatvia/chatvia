@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
@@ -11,7 +11,7 @@ use Tests\Support\FakeEmbeddingsProvider;
 function embedTestServer(string $slug): AgentMcpServer
 {
     return AgentMcpServer::create([
-        'user_id' => User::factory()->create()->id,
+        'workspace_id' => Workspace::factory()->create()->id,
         'name' => 'Acme CRM',
         'description' => 'Customer records',
         'slug' => $slug,

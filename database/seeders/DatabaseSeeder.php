@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Admin\Settings\PlatformSettings;
+use App\Identity\Workspace\Actions\Account\CreateWorkspaceAction;
 use App\Identity\Workspace\Models\User;
 use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
@@ -10,10 +11,11 @@ use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
 
 /**
- * `php artisan db:seed`. Reference data (the LLM catalogue) is seeded
- * everywhere. The demo part — an admin account, three agents, fake chats and
- * analytics — runs only outside production; the admin login comes from
- * SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD (chatvia.seed).
+ * `php artisan db:seed`, for a local or staging database only: a starter LLM
+ * catalog, an admin account, three agents, fake chats and analytics, with
+ * the admin setup marked as done. Nothing runs in production, where the
+ * admin setup in the panel adds the AI provider and model. The admin login
+ * comes from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD (chatvia.seed).
  */
 class DatabaseSeeder extends Seeder
 {
@@ -24,21 +26,25 @@ class DatabaseSeeder extends Seeder
         // The demo seeders write tens of thousands of rows.
         ini_set('memory_limit', '1G');
 
-        // Reference data every install needs (the chat UI, analytics and
-        // agent setup read the LLM catalogue).
-        $this->call(LlmSeeder::class);
-
-        // Everything below is demo data with a well-known login.
+        // Everything here is demo data with a well-known login.
         if ($this->skipInProduction()) {
             return;
         }
+
+        // A starter catalog, so the demo agents have a model, and no admin
+        // setup to go through.
+        $this->call(LlmSeeder::class);
+
+        $platform = app(PlatformSettings::class);
+        $platform->setup_completed_at ??= now()->toIso8601String();
+        $platform->save();
 
         // Create the main demo user
         $user = User::firstOrCreate(
             ['email' => (string) config('chatvia.seed.admin_email')],
             [
                 'name' => 'Demo Admin',
-                'type' => UserType::Admin,
+                'is_admin' => true,
                 'password' => bcrypt((string) config('chatvia.seed.admin_password')),
                 'email_verified_at' => now(),
             ]
@@ -46,16 +52,19 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info("Demo user: {$user->email}");
 
-        // Get or create primary team
-        $team = $user->primaryTeam();
-        if (! $team) {
-            $team = app(TeamService::class)->createDefaultTeam($user);
-            $this->command->info("Created default team: {$team->name}");
+        // The demo admin owns a workspace like any account; creating it also
+        // creates the default team.
+        if (! $user->workspaceMembership()->exists()) {
+            app(CreateWorkspaceAction::class)->execute($user);
+            $this->command->info('Created the demo workspace');
         }
+
+        $workspace = $user->workspace();
+        $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
 
         if (! Agent::where('external_id', 'e8c75295bf6572')->exists()) {
             Agent::factory()->create([
-                'user_id' => $user->id,
+                'workspace_id' => $workspace->id,
                 'team_id' => $team->id,
                 'name' => 'Knowledge Base',
                 'slug' => 'knowledge',
@@ -68,7 +77,7 @@ class DatabaseSeeder extends Seeder
 
         if (! Agent::where('external_id', '407f7fdfa1cf18')->exists()) {
             Agent::factory()->create([
-                'user_id' => $user->id,
+                'workspace_id' => $workspace->id,
                 'team_id' => $team->id,
                 'name' => 'Customer Support',
                 'slug' => 'support',
@@ -81,7 +90,7 @@ class DatabaseSeeder extends Seeder
 
         if (! Agent::where('external_id', 'demo_sales_agent')->exists()) {
             Agent::factory()->create([
-                'user_id' => $user->id,
+                'workspace_id' => $workspace->id,
                 'team_id' => $team->id,
                 'name' => 'Sales Assistant',
                 'slug' => 'sales',

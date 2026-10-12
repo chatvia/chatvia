@@ -2,109 +2,76 @@
 
 namespace App\Identity\Workspace\Concerns;
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
+use App\Identity\Workspace\Models\WorkspaceMembership;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Domain\Agent\Models\Agent;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
+use LogicException;
 
 /**
- * Where a {@see User} sits in its workspace and what it may reach: the owner
- * link (`workspace_id`) and the accounts under an owner, the account-type
- * checks ({@see UserType}), the deactivation switch, and the agent-access
- * shortcuts (rules in {@see AgentAccessPolicy}).
+ * Where a {@see User} sits in its workspace and what it may reach: the
+ * workspace membership (`workspace_user`) and its role, the platform-admin
+ * flag, the deactivation switch, and the agent-access shortcuts (rules in
+ * {@see AgentAccessPolicy}).
  *
- * {@see workspace()} is the single resolution path for account-wide data: it
- * returns the owner for a teammate or chatter and the account itself
- * otherwise, so workspace data is always keyed to the owner.
+ * {@see Workspace()} is the single resolution path for account-wide data:
+ * every staff account (owner or teammate) belongs to exactly one workspace,
+ * and workspace data is keyed to it. Chatters are not users: they live in
+ * their own table ({@see Chatter}).
  */
 trait ResolvesWorkspaceHierarchy
 {
     /**
-     * Get the effective user (workspace owner if this is an employee/chatter,
-     * otherwise self). Used for resource access like agents, settings, etc.
-     */
-    public function workspace(): self
-    {
-        return $this->parentWorkspace ?? $this;
-    }
-
-    /**
-     * The workspace owner this employee/chatter belongs to.
+     * The account's place in its workspace.
      *
-     * @return BelongsTo<User, $this>
+     * @return HasOne<WorkspaceMembership, $this>
      */
-    public function parentWorkspace(): BelongsTo
+    public function workspaceMembership(): HasOne
     {
-        return $this->belongsTo(User::class, 'workspace_id');
+        return $this->hasOne(WorkspaceMembership::class);
     }
 
     /**
-     * Check whether this user belongs to a workspace (employee / chatter).
-     * Workspace owners and admins return false.
+     * The workspace this account belongs to. Every staff account has one;
+     * the owner's and the teammates' data are all keyed to it.
      */
-    public function belongsToWorkspace(): bool
+    public function workspace(): Workspace
     {
-        return $this->workspace_id !== null;
+        return $this->remember('workspace', fn (): Workspace => $this->workspaceMembership?->workspace
+            ?? throw new LogicException("User {$this->id} belongs to no workspace."));
     }
 
-    /**
-     * Employees (collaborators) this user manages.
-     *
-     * @return HasMany<User, $this>
-     */
-    public function managedUsers(): HasMany
+    public function workspaceRole(): ?WorkspaceRole
     {
-        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Employee);
+        return $this->workspaceMembership?->role;
     }
 
-    /**
-     * Chatters this user has provisioned (via the API).
-     *
-     * @return HasMany<User, $this>
-     */
-    public function chatters(): HasMany
+    /** Whether the account owns its workspace (every permission, billing, deletion). */
+    public function isWorkspaceOwner(): bool
     {
-        return $this->hasMany(User::class, 'workspace_id')->where('type', UserType::Chatter);
+        return $this->workspaceRole() === WorkspaceRole::Owner;
     }
 
-    /**
-     * Every account (teammate or chatter) that belongs to this workspace.
-     *
-     * @return HasMany<User, $this>
-     */
-    public function users(): HasMany
+    /** Whether the account is a teammate: a member of a workspace it does not own. */
+    public function isTeammate(): bool
     {
-        return $this->hasMany(User::class, 'workspace_id');
+        return $this->workspaceRole() === WorkspaceRole::Member;
     }
 
+    /** Platform staff: may open the admin panel (on its own guard, with MFA). */
     public function isAdmin(): bool
     {
-        return $this->type === UserType::Admin;
-    }
-
-    public function isWorkspace(): bool
-    {
-        return in_array($this->type, UserType::workspaceTypes(), true);
-    }
-
-    public function isEmployee(): bool
-    {
-        return $this->type === UserType::Employee;
-    }
-
-    public function isChatter(): bool
-    {
-        return $this->type === UserType::Chatter;
+        return (bool) $this->is_admin;
     }
 
     /**
-     * Whether the account has been switched off by a workspace admin. A
-     * deactivated chatter is rejected by both widget and hosted-chat auth, so
-     * the off-switch takes effect on their next request.
+     * Whether the account has been switched off. A deactivated teammate is
+     * rejected by the dashboard and the hosted chat on their next request.
      */
     public function isDeactivated(): bool
     {
@@ -112,25 +79,12 @@ trait ResolvesWorkspaceHierarchy
     }
 
     /**
-     * Whether this user may open the control panel. Chatters and deactivated
-     * accounts are blocked — active admins, workspace owners, and employees all
-     * reach the dashboard.
+     * Whether this user may open the control panel: every active staff
+     * account does.
      */
     public function canAccessDashboard(): bool
     {
-        return $this->type !== UserType::Chatter && ! $this->isDeactivated();
-    }
-
-    /**
-     * Agents a chatter has been explicitly granted access to (via the
-     * `agent_user` pivot). Empty for non-chatter types; their agent reach is
-     * still resolved through teams + roles via {@see AgentAccessPolicy}.
-     *
-     * @return BelongsToMany<Agent, $this>
-     */
-    public function accessibleAgents(): BelongsToMany
-    {
-        return $this->belongsToMany(Agent::class, 'agent_user');
+        return ! $this->isDeactivated();
     }
 
     /**

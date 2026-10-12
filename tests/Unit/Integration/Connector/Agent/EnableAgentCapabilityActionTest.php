@@ -17,7 +17,7 @@ beforeEach(function (): void {
 });
 
 it('attaches an already-provisioned capability without re-provisioning', function (): void {
-    $server = $this->user->mcpServers()->create([
+    $server = $this->user->workspace()->mcpServers()->create([
         'connector_slug' => 'charts',
         'category' => 'builtin',
         'name' => 'Interactive charts',
@@ -44,7 +44,7 @@ it('provisions the capability on first enable, then attaches it', function (): v
     // connects the capability. The persisted row carries a null connector_slug
     // so that query can't match it; the stubbed connect action hands it back
     // as the freshly connected server (keeps the test offline).
-    $provisioned = $this->user->mcpServers()->create([
+    $provisioned = $this->user->workspace()->mcpServers()->create([
         'connector_slug' => null,
         'category' => 'builtin',
         'name' => 'Interactive charts',

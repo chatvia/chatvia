@@ -2,8 +2,9 @@
 
 namespace App\Identity\Workspace\Actions\MessageLimits;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\MessageAllowance;
 
 /**
@@ -17,12 +18,17 @@ class SetMessageLimitAction
         private readonly MessageAllowance $allowance,
     ) {}
 
-    public function execute(User $user, ?int $monthlyLimit): void
+    /**
+     * @param  Workspace|Chatter  $owner  a workspace or a chatter
+     */
+    public function execute(Chatter|Workspace $owner, ?int $monthlyLimit): void
     {
+        $column = $owner instanceof Chatter ? 'chatter_id' : 'workspace_id';
+
         if ($monthlyLimit === null) {
-            MessageLimit::query()->where('user_id', $user->id)->delete();
+            MessageLimit::query()->where($column, $owner->id)->delete();
         } else {
-            $limit = MessageLimit::query()->firstOrNew(['user_id' => $user->id]);
+            $limit = MessageLimit::query()->firstOrNew([$column => $owner->id]);
 
             if (! $limit->exists || ! $limit->isCurrentPeriod()) {
                 $limit->period_starts_at = now()->startOfMonth();
@@ -33,6 +39,8 @@ class SetMessageLimitAction
             $limit->save();
         }
 
-        $this->allowance->forget($user->id);
+        $owner instanceof Chatter
+            ? $this->allowance->forgetChatter($owner->id)
+            : $this->allowance->forget($owner->id);
     }
 }

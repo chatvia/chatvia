@@ -6,16 +6,17 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Chunker::enhancePage() asks the LLM for a page summary + questions. Its
- * cost must come from the provider's reported token usage, and the raw model
- * output (derived from customer content) must not be written to the logs.
+ * Chunker::enhancePage() asks the Smart model for a page summary + questions.
+ * Its cost must come from the provider's reported token usage, priced with
+ * the model's catalog prices (or the configured ones when it has none), and
+ * the raw model output (derived from customer content) must not be written to
+ * the logs.
  */
 beforeEach(function (): void {
     config([
-        'services.scalewayai.api_key' => 'test-key',
-        'chatvia.ai.provider' => 'scaleway',
         'chatvia.ai.pricing.chunker_input_per_million_tokens' => 1.0,
         'chatvia.ai.pricing.chunker_output_per_million_tokens' => 2.0,
+        'chatvia.ai.roles.smart' => testLlm('smart-model')->external_name,
     ]);
 });
 
@@ -50,6 +51,25 @@ it('prices the call from the provider usage tokens', function (): void {
     // 10,000 × 1.0 / 1M × 100 = 1.0 cent; 1,000 × 2.0 / 1M × 100 = 0.2 cents.
     expect($chunk->cost)->toEqualWithDelta(1.2, 1e-9)
         ->and($chunk->summary)->toBe('A page about oceans.');
+
+    Http::assertSent(fn ($request): bool => $request['model'] === 'smart-model');
+});
+
+it('prices the call with the model\'s catalog prices when it has them', function (): void {
+    config(['chatvia.ai.roles.smart' => testLlm('priced-model', attributes: [
+        'input_price_per_1m_tokens' => 3.0,
+        'output_price_per_1m_tokens' => 10.0,
+    ])->external_name]);
+
+    Http::fake(['*' => Http::response(chunkerResponse([
+        'prompt_tokens' => 10_000,
+        'completion_tokens' => 1_000,
+    ]))]);
+
+    $chunk = app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Oceans cover most of Earth.', checksum: 'c'));
+
+    // 10,000 × 3.0 / 1M × 100 = 3.0 cents; 1,000 × 10.0 / 1M × 100 = 1.0 cent.
+    expect($chunk->cost)->toEqualWithDelta(4.0, 1e-9);
 });
 
 it('estimates the cost when the provider reports no usage', function (): void {

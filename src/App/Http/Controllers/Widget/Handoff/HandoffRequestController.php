@@ -31,7 +31,7 @@ readonly class HandoffRequestController
             return response()->json(['error' => 'Missing session'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $conversation = $findConversation->execute($target->conversationId, $target->sessionId, $agent, $this->widgetUser($request));
+        $conversation = $findConversation->execute($target->conversationId, $target->sessionId, $agent, $this->widgetViewer($request));
 
         if (! $conversation instanceof Conversation) {
             return response()->json(['error' => 'Conversation not found'], JsonResponse::HTTP_NOT_FOUND);

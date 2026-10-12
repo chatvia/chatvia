@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Settings\Chatter;
 
 use App\Identity\Chatter\Data\UpdateChatterAccessData;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -33,7 +33,7 @@ class UpdateChatterRequest extends FormRequest
         ];
     }
 
-    public function toData(User $chatter): UpdateChatterAccessData
+    public function toData(Chatter $chatter): UpdateChatterAccessData
     {
         $limit = $this->input('messages_limit');
 

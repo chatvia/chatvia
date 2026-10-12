@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Agent\Source\File;
 
+use App\Http\Rules\WorkspaceRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -23,7 +24,7 @@ class LinkSourceFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file_id' => ['required', 'exists:source_files,id'],
+            'file_id' => ['required', WorkspaceRule::exists('source_files', $this->user()->workspace())],
         ];
     }
 }

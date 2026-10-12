@@ -26,7 +26,7 @@ class AgentTrainedFileController
         // Files belong to the workspace (the agent's owner), not to the
         // teammate who is looking.
         $files = SourceFile::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('status', SourceStatus::Completed)
             ->where('filetype', $request->fileType())
             ->whereDoesntHave('agents', fn ($query) => $query->where('agents.id', $agent->id))

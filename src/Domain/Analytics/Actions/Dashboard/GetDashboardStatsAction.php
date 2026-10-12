@@ -3,15 +3,18 @@
 namespace Domain\Analytics\Actions\Dashboard;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Carbon\Carbon;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Dashboard\AgentCountData;
 use Domain\Analytics\Data\Dashboard\DailyVolumeData;
+use Domain\Analytics\Data\Dashboard\DashboardActivityData;
 use Domain\Analytics\Data\Dashboard\DashboardStatsData;
 use Domain\Analytics\Data\Dashboard\KnowledgeSourcesStatsData;
 use Domain\Analytics\Data\Dashboard\MessagesPanelData;
 use Domain\Analytics\Data\Dashboard\MessagesTrendData;
 use Domain\Analytics\Data\Dashboard\TeamSizeData;
+use Domain\Analytics\Services\AnalyticsCache;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -24,34 +27,56 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Builds the dashboard home page for the viewer's workspace. Every number is
- * keyed to the workspace OWNER (agents and analytics rows are stamped with the
- * owner's id), so a teammate sees the same account-wide figures as the owner.
+ * keyed to the workspace (agents and analytics rows carry its id), so a
+ * teammate sees the same account-wide figures as the owner.
  *
- * Activity numbers read the analytics rollups. With a monthly message limit,
- * the message panel reads the limit's counter instead, so it matches what the
- * limit enforces — including eval cases, which never reach the analytics
- * tables.
+ * Activity numbers read the analytics rollups. They are sums over the
+ * workspace's whole history, so they come from the short-lived analytics
+ * cache ({@see AnalyticsCache}), keyed by the workspace and today's date. The
+ * agent count, the knowledge sources, the team size and the message limit's
+ * counter stay live: they change with what the viewer just did. With a
+ * monthly message limit, the message panel reads the limit's counter, so it
+ * matches what the limit enforces — including eval cases, which never reach
+ * the analytics tables.
  */
 class GetDashboardStatsAction
 {
     public function __construct(
         private readonly AnalyticsDatabase $analytics,
+        private readonly AnalyticsCache $cache,
     ) {}
 
     public function execute(User $user, ?Team $team): DashboardStatsData
     {
-        $owner = $user->workspace();
-        $agentIds = Agent::where('user_id', $owner->id)->pluck('id');
+        $workspace = $user->workspace();
+        $agentIds = Agent::where('workspace_id', $workspace->id)->pluck('id');
+
+        $activity = $this->cache->remember(
+            AnalyticsCache::workspaceKey($workspace->id, 'dashboard', 'to-'.now()->toDateString()),
+            fn (): DashboardActivityData => $this->activity($workspace->id),
+        );
 
         return new DashboardStatsData(
             agents: new AgentCountData(total: $agentIds->count()),
-            messages: $this->messagesPanel($owner, $team),
-            conversations: (int) $this->rollup()->where('workspace_id', $owner->id)->sum('conversations_started'),
-            active_sessions: $this->activeSessions($owner->id),
+            messages: $this->messagesPanel($workspace, $team, $activity),
+            conversations: $activity->conversations,
+            active_sessions: $activity->activeSessions,
             knowledge_sources: $this->knowledgeSources($agentIds),
             team: new TeamSizeData(members: $team instanceof Team ? $team->members()->count() : 0),
-            weekly_usage: $this->dailyReplies($owner->id, 7, 'D'),
-            monthly_usage: $this->dailyReplies($owner->id, 30, 'j'),
+            weekly_usage: $activity->weeklyUsage,
+            monthly_usage: $activity->monthlyUsage,
+        );
+    }
+
+    private function activity(int $workspaceId): DashboardActivityData
+    {
+        return new DashboardActivityData(
+            conversations: (int) $this->rollup()->where('workspace_id', $workspaceId)->sum('conversations_started'),
+            activeSessions: $this->activeSessions($workspaceId),
+            weeklyUsage: $this->dailyReplies($workspaceId, 7, 'D'),
+            monthlyUsage: $this->dailyReplies($workspaceId, 30, 'j'),
+            repliesThisMonth: $this->assistantMessagesBetween($workspaceId, now()->startOfMonth(), null),
+            repliesLastMonth: $this->assistantMessagesBetween($workspaceId, now()->subMonth()->startOfMonth(), now()->startOfMonth()),
         );
     }
 
@@ -73,16 +98,16 @@ class GetDashboardStatsAction
      * `total` is this month's count of the workspace's message limit when it
      * has one, otherwise this month's agent replies from the analytics rollup.
      */
-    private function messagesPanel(User $owner, ?Team $team): MessagesPanelData
+    private function messagesPanel(Workspace $workspace, ?Team $team, DashboardActivityData $activity): MessagesPanelData
     {
-        $limit = $owner->messageLimit;
-        $used = $limit?->usedThisMonth() ?? $this->assistantMessagesBetween($owner->id, now()->startOfMonth(), null);
+        $limit = $workspace->messageLimit;
+        $used = $limit?->usedThisMonth() ?? $activity->repliesThisMonth;
 
         return new MessagesPanelData(
             total: $used,
             limit: $limit?->monthly_limit,
             available: $limit === null ? null : max(0, $limit->monthly_limit - $used),
-            trend: $team instanceof Team ? $this->messagesTrend($owner->id) : MessagesTrendData::none(),
+            trend: $team instanceof Team ? $this->messagesTrend($activity) : MessagesTrendData::none(),
         );
     }
 
@@ -130,10 +155,10 @@ class GetDashboardStatsAction
             ->whereIn('agent_sources.agent_id', $agentIds);
     }
 
-    private function messagesTrend(int $workspaceId): MessagesTrendData
+    private function messagesTrend(DashboardActivityData $activity): MessagesTrendData
     {
-        $thisMonth = $this->assistantMessagesBetween($workspaceId, now()->startOfMonth(), null);
-        $lastMonth = $this->assistantMessagesBetween($workspaceId, now()->subMonth()->startOfMonth(), now()->startOfMonth());
+        $thisMonth = $activity->repliesThisMonth;
+        $lastMonth = $activity->repliesLastMonth;
 
         $percentChange = $lastMonth > 0
             ? round((($thisMonth - $lastMonth) / $lastMonth) * 100)

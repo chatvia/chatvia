@@ -411,7 +411,8 @@
                 "expires_in_months": "Udløber om {count} måned | Udløber om {count} måneder",
                 "conversations_count": "{count} samtale | {count} samtaler",
                 "refresh_conversations": "Opdater samtaler",
-                "remove_filter": "Fjern filter"
+                "remove_filter": "Fjern filter",
+                "load_more": "Indlæs flere"
             },
             "pagination": {
                 "prev": "Forrige",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Fjern fra agent",
                 "used_in_agents": "(Brugt i {count} agenter)",
                 "delete_from_knowledge_base": "Slet fra vidensbasen",
-                "agents_count": "{count} agenter"
+                "agents_count": "{count} agenter",
+                "load_more": "Indlæs flere"
             },
             "page_title": {
                 "sources": "Kilder",

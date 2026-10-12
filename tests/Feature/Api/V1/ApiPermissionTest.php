@@ -2,6 +2,7 @@
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
@@ -29,9 +30,11 @@ use Spatie\Permission\PermissionRegistrar;
 */
 
 beforeEach(function (): void {
-    // Deleting a chatter wipes its avatar tree on the public bucket; fake the
-    // disk so the delete tests stay hermetic and never reach real S3.
+    // Deleting a chatter wipes its avatar tree on the assets disk and its
+    // attachment files on the public bucket; fake both so the delete tests
+    // stay hermetic and never reach real S3.
     Storage::fake('public');
+    Storage::fake('assets');
 
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
@@ -86,7 +89,7 @@ function permMemberToken(User $owner, array $permissions, bool $allAgents = true
 function permMakeMcp(User $owner): AgentMcpServer
 {
     return AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'connector_slug' => null,
         'name' => 'Server '.Str::random(6),
         'slug' => Str::random(10),
@@ -176,41 +179,48 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
             ->assertForbidden();
     });
 
-    it('lets a member WITH account.chatters.manage create a chatter', function () use ($chatterBody): void {
+    it('lets a member WITH account.chatters.manage create a chatter, keyed to the owner workspace', function () use ($chatterBody): void {
         $token = permMemberToken($this->owner, ['account.chatters.manage']);
 
-        $this->withHeaders(permHeaders($token))
+        $id = $this->withHeaders(permHeaders($token))
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
-            ->assertOk();
+            ->assertOk()
+            ->json('data.id');
+
+        expect(Chatter::where('external_id', $id)->value('workspace_id'))->toBe($this->owner->workspace()->id);
     });
 
     it('forbids a member WITHOUT account.chatters.manage from deleting a chatter', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, []);
 
         $this->withHeaders(permHeaders($token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
             ->assertForbidden();
 
-        expect(User::whereKey($chatter->id)->exists())->toBeTrue();
+        expect(Chatter::whereKey($chatter->id)->exists())->toBeTrue();
     });
 
     it('lets a member WITH account.chatters.manage delete a chatter', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, ['account.chatters.manage']);
 
         $this->withHeaders(permHeaders($token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
             ->assertNoContent();
+
+        expect(Chatter::whereKey($chatter->id)->exists())->toBeFalse();
     });
 
     it('forbids a member WITHOUT account.chatters.manage from revoking agent access', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, []);
 
         $this->withHeaders(permHeaders($token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', ['agent_ids' => [$this->agent->external_id]])
             ->assertForbidden();
+
+        expect($chatter->canAccessAgent($this->agent))->toBeTrue();
     });
 });
 
@@ -366,13 +376,13 @@ describe('agent access isolation + tenancy', function (): void {
             ->getJson("/api/v1/agents/{$ungranted->external_id}")->assertForbidden();
     });
 
-    it('forbids reaching another workspace’s agent (owner token)', function (): void {
+    it('hides another workspace’s agent (owner token)', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgent($other);
 
         $this->withHeaders(permHeaders($this->ownerToken))
-            ->getJson("/api/v1/agents/{$otherAgent->external_id}")->assertForbidden();
+            ->getJson("/api/v1/agents/{$otherAgent->external_id}")->assertNotFound();
         $this->withHeaders(permHeaders($this->ownerToken))
-            ->patchJson("/api/v1/agents/{$otherAgent->external_id}", ['is_public' => true])->assertForbidden();
+            ->patchJson("/api/v1/agents/{$otherAgent->external_id}", ['is_public' => true])->assertNotFound();
     });
 });

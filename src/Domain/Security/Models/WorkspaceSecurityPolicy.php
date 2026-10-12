@@ -3,6 +3,7 @@
 namespace Domain\Security\Models;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Security\Enums\GeoMode;
 use Domain\Security\Enums\IpAllowlistMode;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -17,6 +18,11 @@ use Illuminate\Support\Facades\Cache;
  * controls, configurable retention, SIEM webhooks, and the SCIM toggle all
  * read from here. Resolve through {@see User::securityPolicy()} (memoized) or
  * {@see self::forWorkspace()} (firstOrCreate) so no caller ever hits null.
+ *
+ * The retention windows are in days; null means the install default (or, for
+ * leads, analytics and anonymize, never). Daily jobs enforce them: the
+ * conversation, audit-log, lead and analytics prunes, and the session
+ * anonymizer.
  *
  * @property int $id
  * @property int $workspace_id
@@ -38,7 +44,7 @@ use Illuminate\Support\Facades\Cache;
  * @property bool $scim_enabled
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $workspace
+ * @property-read Workspace $workspace
  */
 #[Guarded(['id'])]
 class WorkspaceSecurityPolicy extends Model
@@ -92,10 +98,10 @@ class WorkspaceSecurityPolicy extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Workspace, $this>
      */
     public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'workspace_id');
+        return $this->belongsTo(Workspace::class);
     }
 }

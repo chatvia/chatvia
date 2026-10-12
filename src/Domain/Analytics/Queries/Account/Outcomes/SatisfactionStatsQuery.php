@@ -6,7 +6,6 @@ use Domain\Analytics\Data\Account\AnalyticsScopeData;
 use Domain\Analytics\Data\Account\Outcomes\SatisfactionStatsData;
 use Domain\Analytics\Data\Account\Outcomes\SentimentSplitData;
 use Domain\Analytics\Queries\Account\AccountAnalyticsQuery;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Quality signals: thumbs up vs down, the sentiment split of messages, how
@@ -23,11 +22,9 @@ class SatisfactionStatsQuery extends AccountAnalyticsQuery
             ->selectRaw('sentiment, SUM(message_count) total')
             ->pluck('total', 'sentiment');
 
-        $answers = DB::table('chat_messages as m')
-            ->join('chat_conversations as c', 'm.chat_conversation_id', '=', 'c.id')
-            ->join('chat_sessions as s', 'c.chat_session_id', '=', 's.id')
-            ->whereIn('s.agent_id', $scope->agentIds)
-            ->whereNull('c.deleted_at')
+        $answers = $this->liveConversations($scope)
+            ->join('chat_messages as m', 'm.chat_conversation_id', '=', 'c.id')
+            ->where('m.workspace_id', $scope->workspace->id)
             ->where('m.role', 'assistant')
             ->whereBetween('m.created_at', [$scope->period->start, $scope->period->end])
             ->selectRaw('COUNT(*) total, COUNT(*) FILTER (WHERE m.has_llm_found_answer = false) not_found, AVG(m.confidence_score) avg_confidence')

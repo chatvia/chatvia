@@ -32,7 +32,7 @@ beforeEach(function (): void {
 });
 
 it('forbids an authenticated workspace whose IP is outside the allowlist', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => ['203.0.113.0/24'],
         'geo_mode' => 'off',
@@ -45,7 +45,7 @@ it('forbids an authenticated workspace whose IP is outside the allowlist', funct
 });
 
 it('lets the same workspace through from an allowlisted IP', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => ['203.0.113.0/24'],
         'geo_mode' => 'off',
@@ -57,19 +57,13 @@ it('lets the same workspace through from an allowlisted IP', function (): void {
         ->assertOk();
 });
 
-it('bypasses the policy entirely for a platform admin', function (): void {
-    // A locked-down policy that would 403 a normal workspace from this IP...
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
-        'ip_allowlist_mode' => 'dashboard',
-        'ip_allowlist' => ['10.0.0.0/8'], // excludes the request IP below
-        'geo_mode' => 'off',
-    ]);
-
-    // ...is ignored for staff so support can reach any account. Admins are a
-    // workspace type, so they satisfy the page's own gates too.
+it('enforces the own workspace policy on a platform admin like anyone else', function (): void {
+    // Admins only reach their own workspace on the dashboard, so its network
+    // rules apply to them too. Admins are a workspace type, so they pass the
+    // page's own gates and only the network rule can refuse them.
     $admin = User::factory()->admin()->create();
     app(TeamService::class)->createDefaultTeam($admin);
-    WorkspaceSecurityPolicy::forWorkspace($admin->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($admin->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => ['10.0.0.0/8'],
         'geo_mode' => 'off',
@@ -78,7 +72,7 @@ it('bypasses the policy entirely for a platform admin', function (): void {
     $this->actingAs($admin)
         ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
         ->get(route('security.edit'))
-        ->assertOk();
+        ->assertForbidden();
 });
 
 it('passes a workspace whose policy mode is off', function (): void {
@@ -98,7 +92,7 @@ it('passes a workspace that has no policy row at all', function (): void {
     $fresh = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($fresh);
 
-    expect(WorkspaceSecurityPolicy::query()->where('workspace_id', $fresh->id)->exists())->toBeFalse();
+    expect(WorkspaceSecurityPolicy::query()->where('workspace_id', $fresh->workspace()->id)->exists())->toBeFalse();
 
     $this->actingAs($fresh)
         ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
@@ -107,7 +101,7 @@ it('passes a workspace that has no policy row at all', function (): void {
 });
 
 it('forbids a request from a geo-denied country', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard', // mode must be on for the body to evaluate
         'ip_allowlist' => [],               // empty ⇒ no IP restriction; geo decides
         'geo_mode' => 'deny',
@@ -125,7 +119,7 @@ it('forbids a request from a geo-denied country', function (): void {
 });
 
 it('passes a request from a country not on the deny list', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => [],
         'geo_mode' => 'deny',
@@ -148,7 +142,7 @@ it('passes a request from a country not on the deny list', function (): void {
 */
 
 it('forbids a geo-allow policy from a country not on the allow list, with the IP allowlist off', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'off', // the exact UI scenario: only geo is configured
         'ip_allowlist' => [],
         'geo_mode' => 'allow',
@@ -164,7 +158,7 @@ it('forbids a geo-allow policy from a country not on the allow list, with the IP
 });
 
 it('passes a geo-allow policy from an allow-listed country, with the IP allowlist off', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'off',
         'ip_allowlist' => [],
         'geo_mode' => 'allow',
@@ -183,7 +177,7 @@ it('ignores a dormant IP allowlist when its mode is off and only geo is active',
     // A workspace that once configured IP rules, turned them OFF, then enabled
     // geo. The stale `ip_allowlist` must NOT be enforced — only geo decides — or
     // turning geo on would unexpectedly resurrect the old IP fence.
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'off',
         'ip_allowlist' => ['203.0.113.0/24'], // dormant: the request IP is outside it
         'geo_mode' => 'allow',
@@ -207,7 +201,7 @@ it('ignores a dormant IP allowlist when its mode is off and only geo is active',
 */
 
 it('trusts the Cloudflare visitor country over the connecting edge IP', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => [],
         'geo_mode' => 'deny',
@@ -226,7 +220,7 @@ it('trusts the Cloudflare visitor country over the connecting edge IP', function
 });
 
 it('blocks on the Cloudflare visitor country even when the edge IP is elsewhere', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => [],
         'geo_mode' => 'deny',
@@ -244,7 +238,7 @@ it('blocks on the Cloudflare visitor country even when the edge IP is elsewhere'
 });
 
 it('falls back to the IP geo lookup when CF-IPCountry is a non-country sentinel', function (): void {
-    WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->update([
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
         'ip_allowlist_mode' => 'dashboard',
         'ip_allowlist' => [],
         'geo_mode' => 'deny',

@@ -4,8 +4,11 @@ namespace Domain\Knowledge\Ingestion\Jobs\Text;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Chunks\IngestSourceChunkAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Chunking\SourceChunkData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
+use Domain\Knowledge\Ingestion\Services\BatchProgress;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Usage\AttributesTokenUsage;
 use Domain\Llm\Usage\TracksTokenUsage;
@@ -13,10 +16,14 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Collection;
+use Throwable;
 
 /**
- * Turns one part of a text source into a chunk. Runs inside the text's
- * ingestion batch; see {@see IngestSourceChunkAction}.
+ * Turns a group of parts of a text source into chunks (one part when the
+ * parts are enhanced). Runs inside the text's ingestion batch; see
+ * {@see IngestSourceChunkAction}. After its last failed try, the parts are
+ * stored without enhancement so they stay searchable.
  */
 class TextChunkIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
 {
@@ -24,38 +31,75 @@ class TextChunkIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Sho
 
     public bool $deleteWhenMissingModels = true;
 
-    public int $tries = 2;
+    public int $tries = 3;
+
+    /** @var array<int, int> */
+    public array $backoff = [10, 60, 300];
+
+    /** An enhanced part waits on a model call. */
+    public int $timeout = 800;
 
     public function __construct(
         public Agent $agent,
         public SourceText $sourceText,
-        public PageData $page,
-        public ?PageData $previousPage = null,
-        public ?PageData $nextPage = null,
-    ) {}
+        public PageGroupData $group,
+    ) {
+        // A long-running ingestion queue: a page group with enhancement can
+        // outlast the default queue's 90-second hand-over.
+        $this->onQueue('ingestion.chunks');
+    }
+
+    /**
+     * @param  Collection<int, PageData>  $pages
+     * @return Collection<int, self>
+     */
+    public static function forPages(Agent $agent, SourceText $sourceText, Collection $pages): Collection
+    {
+        return PageGroupData::split($pages, ChunkEnhancement::for($sourceText))
+            ->map(fn (PageGroupData $group): self => new self($agent, $sourceText, $group));
+    }
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->agent->user_id;
+        return $this->agent->workspace_id;
     }
 
     public function handle(IngestSourceChunkAction $action): void
     {
-        if ($this->batch()?->cancelled()) {
+        $batch = $this->batch();
+
+        if ($batch?->cancelled()) {
             return;
         }
 
         $action->execute(new SourceChunkData(
             agent: $this->agent,
             source: $this->sourceText,
-            page: $this->page,
-            previousPage: $this->previousPage,
-            nextPage: $this->nextPage,
+            group: $this->group,
+            progress: BatchProgress::afterCurrentJob($batch),
         ));
+    }
+
+    public function failed(Throwable $e): void
+    {
+        if (ChunkEnhancement::for($this->sourceText) === ChunkEnhancement::Off) {
+            return;
+        }
+
+        try {
+            app(IngestSourceChunkAction::class)->execute(new SourceChunkData(
+                agent: $this->agent,
+                source: $this->sourceText,
+                group: $this->group,
+                enhancement: ChunkEnhancement::Off,
+            ));
+        } catch (Throwable $fallback) {
+            report($fallback);
+        }
     }
 
     public function uniqueId(): string
     {
-        return 'agent:'.$this->agent->id.':sources:text:'.$this->sourceText->id.':page:'.$this->page->pageNumber;
+        return 'agent:'.$this->agent->id.':sources:text:'.$this->sourceText->id.':page:'.($this->group->pages[0]->pageNumber ?? 0);
     }
 }

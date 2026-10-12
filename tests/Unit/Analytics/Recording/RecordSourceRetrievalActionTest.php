@@ -38,3 +38,21 @@ it('does nothing for an empty source list', function (): void {
 
     expect(DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_source_daily')->where('agent_id', $agentId)->count())->toBe(0);
 });
+
+it('counts a source once per retrieval even when it is listed twice', function (): void {
+    $action = app(RecordSourceRetrievalAction::class);
+    $agentId = 940003;
+    $type = SourceFile::class;
+
+    $action->execute(SourceRetrievalRecordData::fromEvent(new SourceRetrieved($agentId, 500003, [
+        ['type' => $type, 'id' => 12],
+        ['type' => $type, 'id' => 5],
+        ['type' => $type, 'id' => 12],
+    ], Carbon::parse('2026-06-01 09:00'))));
+
+    $rollup = DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_source_daily')
+        ->where('agent_id', $agentId);
+
+    expect((int) (clone $rollup)->where('sourceable_id', 12)->value('retrieval_count'))->toBe(1)
+        ->and((int) (clone $rollup)->where('sourceable_id', 5)->value('retrieval_count'))->toBe(1);
+});

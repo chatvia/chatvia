@@ -30,9 +30,9 @@ class EnableAgentCapabilityAction
             ->where('connector_slug', $capability->slug)
             ->first();
 
-        // Connected under the agent's owner — the workspace the server belongs to.
+        // Connected in the agent's workspace, on behalf of its owner.
         $server ??= $this->connect->execute(new ConnectTokenConnectorData(
-            user: $agent->user,
+            user: $agent->workspace->owner ?? throw new \LogicException('A workspace always has an owner.'),
             connector: $capability,
         ))->server;
 

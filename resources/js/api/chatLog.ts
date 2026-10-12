@@ -33,9 +33,9 @@ export interface LaravelPage<T> {
     prev_page_url: string | null;
 }
 
-/** Query filters for the conversation list. Only set keys are sent. */
+/** Query filters for the conversation list. Only set keys are sent; no cursor means the first page. */
 export interface ChatLogConversationFilters {
-    page: number;
+    cursor?: string;
     topic?: string;
     sentiment?: string;
     tone?: string;
@@ -48,8 +48,10 @@ export interface ChatLogConversationFilters {
     end_date?: string;
 }
 
+/** One page of the conversation list; `next_cursor` loads the next one and is null on the last page. */
 export interface ChatLogConversationsPage {
-    conversations: LaravelPage<ChatLogConversation>;
+    conversations: ChatLogConversation[];
+    next_cursor: string | null;
     lead_conversation_ids: number[];
 }
 
@@ -104,11 +106,10 @@ export async function reviseAnswer(agentId: string, payload: ReviseAnswerPayload
 }
 
 /** Address of the chat log page, used to keep the browser URL in step with the selection. */
-export function chatLogUrl(agentId: string, conversationId: string | null, page: number): string {
+export function chatLogUrl(agentId: string, conversationId: string | null): string {
     return chatLogPage.url(agentId, {
         query: {
             conversation_id: conversationId || undefined,
-            conversations: page > 1 ? page : undefined,
         },
     });
 }

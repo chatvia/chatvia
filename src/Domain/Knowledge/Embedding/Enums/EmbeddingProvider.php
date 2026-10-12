@@ -33,6 +33,20 @@ enum EmbeddingProvider: string
     }
 
     /**
+     * The config key of its API key, so a chat provider of the same service
+     * (Scaleway for Qwen3, Mistral) can share it.
+     */
+    public function apiKeyConfig(): string
+    {
+        return match ($this) {
+            self::Qwen => 'services.scalewayai.api_key',
+            self::Cohere => 'services.cohere.api_key',
+            self::Jina => 'services.jina.api_key',
+            self::Mistral => 'services.mistral.api_key',
+        };
+    }
+
+    /**
      * @return class-string<AbstractEmbeddingsProvider>
      */
     public function providerClass(): string

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\Migrations\SettingsBlueprint;
 use Spatie\LaravelSettings\Migrations\SettingsMigration;
@@ -13,9 +15,8 @@ return new class extends SettingsMigration
     public function up(): void
     {
         $this->migrator->inGroup('platform', function (SettingsBlueprint $group): void {
+            $group->add('setup_completed_at');
             $group->add('default_locale');
-            $group->add('csp_mode');
-            $group->add('csp_report_uri');
             $group->add('widget_allowed_origins');
             $group->add('widget_script_url');
             $group->add('widget_stream_per_minute');

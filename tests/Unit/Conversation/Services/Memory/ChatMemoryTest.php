@@ -1,9 +1,11 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
@@ -27,6 +29,7 @@ beforeEach(function (): void {
 function chatMemoryConversation(ChatSession $session, string $title): Conversation
 {
     return Conversation::create([
+        'workspace_id' => $session->workspace_id,
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'external_id' => (string) Str::uuid(),
@@ -36,14 +39,14 @@ function chatMemoryConversation(ChatSession $session, string $title): Conversati
     ]);
 }
 
-function chatMemoryFor(Agent $agent, ChatSession $session, ?int $viewerId = null): ChatMemory
+function chatMemoryFor(Agent $agent, ChatSession $session, ?ChatViewerData $viewer = null): ChatMemory
 {
-    return app(ChatMemory::class)->withScope(new ChatScopeData($agent, $session->external_id, viewerId: $viewerId));
+    return app(ChatMemory::class)->withScope(new ChatScopeData($agent, $session->external_id, viewer: $viewer));
 }
 
 it('rebuilds the conversation list from the database when the cache is cold', function (): void {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     chatMemoryConversation($session, 'Welcome');
     chatMemoryConversation($session, 'Pricing question');
 
@@ -55,7 +58,7 @@ it('rebuilds the conversation list from the database when the cache is cold', fu
 
 it('writes the rebuilt list back to the cache', function (): void {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     chatMemoryConversation($session, 'Welcome');
 
     chatMemoryFor($agent, $session)->getConversationsForCurrentSession();
@@ -77,7 +80,7 @@ it('keeps the history when a conversation is started with a cold cache', functio
     // from the database first, the list would be overwritten with a single
     // entry and hide the older conversations.
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     chatMemoryConversation($session, 'Historical chat');
 
     Cache::driver('chat')
@@ -98,24 +101,56 @@ it('keeps the history when a conversation is started with a cold cache', functio
 
 it('rebuilds from the database when the cache was stamped for another viewer', function (): void {
     $agent = Agent::factory()->create();
-    $userA = User::factory()->chatter(User::factory()->workspace()->create())->create();
-    $userB = User::factory()->chatter(User::factory()->workspace()->create())->create();
-    $session = ChatSession::create(['agent_id' => $agent->id, 'user_id' => $userB->id]);
+    $chatterA = Chatter::factory()->grantedTo($agent)->create();
+    $chatterB = Chatter::factory()->grantedTo($agent)->create();
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatterB->id]);
     chatMemoryConversation($session, 'B-only chat');
 
     Cache::driver('chat')
         ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
-        ->forever($session->external_id, ['user_id' => $userA->id, 'conversations' => []]);
+        ->forever($session->external_id, ['viewer' => ChatViewerData::chatter($chatterA->id)->key(), 'conversations' => []]);
 
-    $list = chatMemoryFor($agent, $session, $userB->id)->visibleConversationsNewestFirst();
+    $list = chatMemoryFor($agent, $session, ChatViewerData::chatter($chatterB->id))->visibleConversationsNewestFirst();
 
     expect($list)->toHaveCount(1)
         ->and($list[0]['title'])->toBe('B-only chat');
 });
 
+it('rebuilds from the database when the cache was stamped for a staff account with the viewer\'s id', function (): void {
+    // A chatter and a staff account can share an id; the stamp carries the kind.
+    $agent = Agent::factory()->create();
+    $chatter = Chatter::factory()->grantedTo($agent)->create();
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
+    chatMemoryConversation($session, 'Chatter chat');
+
+    Cache::driver('chat')
+        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
+        ->forever($session->external_id, ['viewer' => ChatViewerData::staff($chatter->id)->key(), 'conversations' => []]);
+
+    $list = chatMemoryFor($agent, $session, ChatViewerData::chatter($chatter->id))->visibleConversationsNewestFirst();
+
+    expect($list)->toHaveCount(1)
+        ->and($list[0]['title'])->toBe('Chatter chat');
+});
+
+it('stamps the cached list with the viewer\'s kind and id', function (): void {
+    $agent = Agent::factory()->create();
+    $staff = User::factory()->create();
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $staff->id]);
+    chatMemoryConversation($session, 'Staff chat');
+
+    chatMemoryFor($agent, $session, ChatViewerData::staff($staff->id))->getConversationsForCurrentSession();
+
+    $raw = Cache::driver('chat')
+        ->tags(ChatCache::sessionTags($agent->workspaceExternalId(), $agent->external_id, $session->external_id))
+        ->get($session->external_id);
+
+    expect(CacheCipher::decrypt($raw)['viewer'] ?? null)->toBe('user:'.$staff->id);
+});
+
 it('makes a conversation visible when its first message is added', function (): void {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     $conversationId = app(StartConversationAction::class)->execute(
         new ChatScopeData($agent, $session->external_id),
         ConversationSource::Widget,
@@ -138,7 +173,7 @@ it('makes a conversation visible when its first message is added', function (): 
 
 it('keeps the private LLM text out of the history but feeds it to the LLM', function (): void {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     $memory = chatMemoryFor($agent, $session)->setConversationId((string) Str::uuid());
 
     $memory->appendMessage(new MessageData(

@@ -65,10 +65,10 @@ it('fails app:setting on an unknown key', function (): void {
 });
 
 it('lists the settings with app:settings without showing secrets', function (): void {
-    app(SetSettingAction::class)->execute('ai.groq_api_key', 'gsk-hidden-value');
+    app(SetSettingAction::class)->execute('ai.cohere_api_key', 'co-hidden-value');
 
     $this->artisan('app:settings', ['group' => 'ai'])
-        ->expectsOutputToContain('ai.groq_api_key')
-        ->doesntExpectOutputToContain('gsk-hidden-value')
+        ->expectsOutputToContain('ai.cohere_api_key')
+        ->doesntExpectOutputToContain('co-hidden-value')
         ->assertSuccessful();
 });

@@ -36,7 +36,7 @@ class UpdateAgentAction
         // landed and clear the other so the agent never carries both.
         if ($data->changePrompt) {
             $attributes['agent_prompt_id'] = $this->resolvePromptId->execute(
-                $data->actor,
+                $data->actor->workspace(),
                 $data->promptExternalId,
             );
             $attributes['system_instructions'] = null;

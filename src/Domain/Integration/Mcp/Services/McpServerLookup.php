@@ -35,7 +35,7 @@ class McpServerLookup
 
         if (! array_key_exists($key, $this->byWorkspace)) {
             $this->byWorkspace[$key] = AgentMcpServer::query()
-                ->where('user_id', $workspaceId)
+                ->where('workspace_id', $workspaceId)
                 ->where('slug', $slug)
                 ->first();
         }
@@ -52,7 +52,7 @@ class McpServerLookup
         $key = $agent->id.'|'.$slug;
 
         if (! array_key_exists($key, $this->attached)) {
-            $server = $this->forWorkspace((int) $agent->user_id, $slug);
+            $server = $this->forWorkspace((int) $agent->workspace_id, $slug);
 
             $this->attached[$key] = $server instanceof AgentMcpServer
                 && $server->is_enabled

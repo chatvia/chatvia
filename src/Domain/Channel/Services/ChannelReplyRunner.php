@@ -84,7 +84,7 @@ class ChannelReplyRunner
     private function refusal(Agent $agent): ?string
     {
         // Same monthly limit as the web chat, so every surface is treated alike.
-        if (! $this->allowance->canSend($agent->user_id)) {
+        if (! $this->allowance->canSend($agent->workspace_id)) {
             return 'Sorry — this assistant is unavailable right now. Please try again later.';
         }
 

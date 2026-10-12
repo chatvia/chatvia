@@ -43,6 +43,23 @@ return [
         'key' => null,
     ],
 
+    // Email providers, set in the admin panel (Settings → Email).
+    'mailgun' => [
+        'domain' => null,
+        'secret' => null,
+        'endpoint' => 'api.mailgun.net',
+        'scheme' => 'https',
+    ],
+
+    'postmark' => [
+        'token' => null,
+    ],
+
+    'cloudflare' => [
+        'account_id' => null,
+        'token' => null,
+    ],
+
     'slack' => [
         'client_id' => null,
         'client_secret' => null,
@@ -90,12 +107,6 @@ return [
         ],
     ],
 
-    'openrouter' => [
-        'api_key' => null,
-        'base_url' => env('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1'),
-        'completion_endpoint' => env('OPENROUTER_COMPLETION_ENDPOINT', 'https://openrouter.ai/api/v1/chat/completions'),
-    ],
-
     'cohere' => [
         'api_key' => null,
         'api_endpoint' => env('COHERE_API_ENDPOINT', 'https://api.cohere.com/v2'),
@@ -107,12 +118,6 @@ return [
         'api_key' => null,
         'api_endpoint' => env('JINA_API_ENDPOINT', 'https://api.jina.ai/v1'),
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
-    ],
-
-    'groq' => [
-        'api_key' => null,
-        'base_url' => env('GROQ_BASE_URL', 'https://api.groq.com/openai/v1'),
-        'completion_endpoint' => env('GROQ_COMPLETION_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'),
     ],
 
     'google' => [

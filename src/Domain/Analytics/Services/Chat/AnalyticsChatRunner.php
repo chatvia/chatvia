@@ -2,7 +2,7 @@
 
 namespace Domain\Analytics\Services\Chat;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Analytics\Data\Chat\AnalyticsChatTurnData;
 use Domain\Conversation\Data\Tooling\EmittedToolCallData;
@@ -12,8 +12,9 @@ use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
-use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Models\Llm;
+use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Services\LlmProviders;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use Illuminate\Support\Facades\Log;
@@ -38,7 +39,8 @@ class AnalyticsChatRunner
     private const int MAX_HISTORY = 20;
 
     public function __construct(
-        private readonly LlmProviderInterface $provider,
+        private readonly LlmProviders $providers,
+        private readonly ModelRoles $models,
         private readonly AnalyticsToolset $toolset,
         private readonly AnalyticsToolDispatcher $dispatcher,
         private readonly BuiltinToolRouter $router,
@@ -51,7 +53,7 @@ class AnalyticsChatRunner
      *
      * @return Generator<int, StreamEvent>
      */
-    public function events(User $workspace, AnalyticsChatRequestData $data): Generator
+    public function events(Workspace $workspace, AnalyticsChatRequestData $data): Generator
     {
         $assistantId = (string) Str::uuid();
 
@@ -80,18 +82,19 @@ class AnalyticsChatRunner
      *
      * @return Generator<int, StreamEvent>
      */
-    private function toolLoop(User $workspace, AnalyticsChatRequestData $data, string $assistantId): Generator
+    private function toolLoop(Workspace $workspace, AnalyticsChatRequestData $data, string $assistantId): Generator
     {
         ['definitions' => $tools, 'routes' => $routes] = $this->toolsFor($workspace, $data->message);
         $messages = $this->buildMessages($workspace, $data);
-        $modelName = $this->resolveModel();
+        $model = $this->models->model(LlmRole::Chat);
+        $provider = $this->providers->for($model);
         $maxIterations = (int) config('chatvia.agent.tools.max_iterations', 5);
 
         for ($iteration = 0; $iteration < $maxIterations; $iteration++) {
             $assistantText = '';
             $pending = [];
 
-            $response = $this->provider->stream($modelName, $messages, [
+            $response = $provider->stream($model->internal_name, $messages, [
                 'temperature' => 0.2,
                 'tools' => $tools,
                 'tool_choice' => 'auto',
@@ -125,7 +128,7 @@ class AnalyticsChatRunner
      *
      * @return array{definitions: array<int, array<string, mixed>>, routes: array<string, string>}
      */
-    private function toolsFor(User $workspace, string $question): array
+    private function toolsFor(Workspace $workspace, string $question): array
     {
         $routed = $this->usage->track(
             $workspace->id,
@@ -204,7 +207,7 @@ class AnalyticsChatRunner
      * @param  array<int, array<string, mixed>>  $messages
      * @return Generator<int, StreamEvent>
      */
-    private function runToolCall(User $workspace, array $routes, array &$messages, string $assistantId, EmittedToolCallData $call): Generator
+    private function runToolCall(Workspace $workspace, array $routes, array &$messages, string $assistantId, EmittedToolCallData $call): Generator
     {
         $url = $routes[$call->name] ?? null;
 
@@ -262,7 +265,7 @@ class AnalyticsChatRunner
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function buildMessages(User $workspace, AnalyticsChatRequestData $data): array
+    private function buildMessages(Workspace $workspace, AnalyticsChatRequestData $data): array
     {
         $messages = [['role' => 'system', 'content' => $this->systemPrompt($workspace)]];
 
@@ -282,20 +285,12 @@ class AnalyticsChatRunner
         return in_array($turn->role, ['user', 'assistant'], true) && $turn->content !== '';
     }
 
-    private function systemPrompt(User $workspace): string
+    private function systemPrompt(Workspace $workspace): string
     {
         return trim(prompt('analytics/chat-system', [
             'brand' => (string) config('chatvia.brand.name'),
             'workspace' => $workspace->name,
             'today' => now()->toFormattedDateString(),
         ]));
-    }
-
-    private function resolveModel(): string
-    {
-        $default = (string) config('chatvia.agent.default_model');
-        $llm = Llm::query()->where('external_name', $default)->first();
-
-        return $llm?->internal_name ?? $default;
     }
 }

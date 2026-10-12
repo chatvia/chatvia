@@ -2,12 +2,15 @@
 
 namespace App\Providers;
 
+use App\Http\Auth\BotCheck;
+use App\Http\Auth\BotCheckForm;
 use App\Identity\Workspace\Fortify\ResetUserPassword;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\PasswordAuthenticator;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -43,18 +46,23 @@ class FortifyServiceProvider extends ServiceProvider
      * 2FA challenge still kicks in for users that have it enabled — we just
      * return the user and let Fortify own the session login + redirect.
      *
-     * Chatters sign in on the hosted chat (/chat/login), never here, and a
-     * deactivated account can't sign in at all.
+     * Only staff accounts (`users`) can match here: chatters live in their
+     * own table and sign in on the hosted chat. A deactivated account can't
+     * sign in at all.
      */
     private function registerAuthCallback(): void
     {
         Fortify::authenticateUsing(function (Request $request): ?User {
+            // The bot check first, when sign-in has it (Settings → Security).
+            $botCheck = app(BotCheck::class);
+            Validator::make($request->all(), $botCheck->rules(BotCheckForm::SignIn), $botCheck->messages())->validate();
+
             $user = app(PasswordAuthenticator::class)->findUserByCredentials(
                 $request->string(Fortify::username())->toString(),
                 $request->string('password')->toString(),
             );
 
-            if ($user === null || $user->isChatter() || $user->isDeactivated()) {
+            if ($user === null || $user->isDeactivated()) {
                 return null;
             }
 
@@ -64,13 +72,12 @@ class FortifyServiceProvider extends ServiceProvider
 
     /**
      * A passkey proves who the user is, but the same account rules as the
-     * password login apply: no chatters, no deactivated accounts.
+     * password login apply: no deactivated accounts.
      */
     private function registerPasskeyLoginGate(): void
     {
         Passkeys::authorizeLoginUsing(
             fn (Request $request, PasskeyUser $user): bool => $user instanceof User
-                && ! $user->isChatter()
                 && ! $user->isDeactivated(),
         );
     }

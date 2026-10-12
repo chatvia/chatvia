@@ -8,6 +8,7 @@ import { uploadedFiles } from '@/routes/agents/sources';
 import files from '@/routes/agents/sources/files';
 import { isAxiosError } from 'axios';
 import { del, get, post } from './http';
+import type { LengthAwarePage } from './pagination';
 
 export type SourceFile = Domain.Agent.Data.Resources.Sources.SourceFileDataResource;
 
@@ -27,14 +28,17 @@ export function sourceFileUploadUrl(agentId: string): string {
     return files.upload.url(agentId);
 }
 
-/** The agent's files, optionally only one kind (`pdf`, `audio`, …). */
-export function listSourceFiles(agentId: string, fileType?: string): Promise<SourceFile[]> {
-    const params: Record<string, string> = {};
+/** Which files a list holds: those waiting to be trained, or the others (training, trained or failed). */
+export type SourceFileStage = 'uploaded' | 'trained';
+
+/** One page (50 files, newest first) of the agent's files at one stage, optionally only one kind (`pdf`, `audio`, …). */
+export function listSourceFiles(agentId: string, stage: SourceFileStage, page: number, fileType?: string): Promise<LengthAwarePage<SourceFile>> {
+    const params: Record<string, string | number> = { stage, page };
     if (fileType) {
         params.file_type = fileType;
     }
 
-    return get<SourceFile[]>(files.data.url(agentId), { params });
+    return get<LengthAwarePage<SourceFile>>(files.data.url(agentId), { params });
 }
 
 export function uploadSourceFile(agentId: string, file: File): Promise<void> {

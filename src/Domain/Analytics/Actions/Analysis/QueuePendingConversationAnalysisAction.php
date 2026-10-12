@@ -8,9 +8,11 @@ use Illuminate\Support\Collection;
 
 /**
  * Queues the end-of-life analysis ({@see AnalyzeConversationAction}) for every
- * conversation that is old enough (`chatvia.analytics.analysis.scan_age_hours`)
- * and not analysed yet. Idempotent: the job stamps analyzed_at, and a
- * conversation already analysed is skipped by the job itself.
+ * visible conversation that is old enough
+ * (`chatvia.analytics.analysis.scan_age_hours`) and not analysed yet. Hidden
+ * conversations were never used, so there is nothing to analyse. Idempotent:
+ * the job stamps analyzed_at, and a conversation already analysed is skipped
+ * by the job itself.
  *
  * A conversation whose analysis already ran `max_attempts` times without a
  * saved result is left alone, so one that always fails is not paid for every
@@ -31,6 +33,7 @@ class QueuePendingConversationAnalysisAction
         // duration of this run — chunkById paginates by id and won't loop. The
         // conversations_pending_analysis_idx partial index serves this predicate.
         Conversation::query()
+            ->where('is_visible', true)
             ->whereNull('analyzed_at')
             ->where('created_at', '<', $cutoff)
             ->where('analysis_attempts', '<', $maxAttempts)

@@ -38,7 +38,7 @@ class RecordFeedbackGivenAction
         // One row per message: a new reaction inserts, a switch updates in place.
         $this->analytics->connection()->statement(<<<'SQL'
             INSERT INTO analytics_events (
-                agent_id, workspace_id, chatter_user_id, event_type, feedback, llm_external_name, country_code,
+                agent_id, workspace_id, chatter_id, event_type, feedback, llm_external_name, country_code,
                 conversation_external_id, message_external_id, occurred_at
             ) VALUES (?, ?, ?, 'feedback_given', ?, ?, ?, ?, ?, ?)
             ON CONFLICT (message_external_id) WHERE event_type = 'feedback_given'
@@ -50,7 +50,7 @@ class RecordFeedbackGivenAction
         SQL, [
             $feedback->agentId,
             $feedback->workspaceId,
-            $feedback->chatterUserId,
+            $feedback->chatterId,
             $feedback->feedback,
             $feedback->llmExternalName,
             $feedback->countryCode,

@@ -9,7 +9,7 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Data\AgentRunResultData;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Spectra\Facades\Spectra;
@@ -45,7 +45,7 @@ class EvalAgentRunner
         private readonly ChatService $chatService,
         private readonly ToolLoopRunner $runner,
         private readonly ToolSelector $toolSelector,
-        private readonly LlmProviderInterface $provider,
+        private readonly LlmProviders $providers,
     ) {}
 
     public function run(Agent $agent, string $input): AgentRunResultData
@@ -91,9 +91,9 @@ class EvalAgentRunner
             iterator_to_array(
                 $this->runner->run(
                     context: $context,
-                    provider: $this->provider,
+                    provider: $this->providers->for($model),
                     modelName: $model->internal_name,
-                    providerSlug: $model->provider->value,
+                    providerSlug: $model->provider->kind->value,
                     llmMessages: $llmMessages,
                     toolDefinitions: $toolDefinitions,
                     extraSettings: $agent->llmSettings(),

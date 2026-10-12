@@ -30,7 +30,7 @@ class EmbedMcpToolsJob implements AttributesTokenUsage, ShouldQueue
 
     public function tokenWorkspaceId(): ?int
     {
-        $userId = AgentMcpServer::query()->whereKey($this->mcpServerId)->value('user_id');
+        $userId = AgentMcpServer::query()->whereKey($this->mcpServerId)->value('workspace_id');
 
         return $userId !== null ? (int) $userId : null;
     }

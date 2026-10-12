@@ -315,12 +315,13 @@ return [
         |--------------------------------------------------------------------------
         |
         | When enabled, Spectra will automatically associate AI requests with the
-        | currently authenticated user. This allows you to see which users are
-        | making requests and analyze per-user usage patterns.
+        | currently authenticated user. Chatvia attributes AI usage to the
+        | workspace instead (TokenUsageContext, AttributesSpectraTurn), so a
+        | signed-in teammate or chatter must not take the cost over.
         |
         */
 
-        'auto_track_user' => true,
+        'auto_track_user' => false,
 
         /*
         |--------------------------------------------------------------------------

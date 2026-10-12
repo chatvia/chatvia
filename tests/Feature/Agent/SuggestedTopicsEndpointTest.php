@@ -14,9 +14,10 @@ use Domain\Conversation\Topic\Models\ConversationTopic;
  */
 function suggestedTopicsConversation(Agent $agent, string $title): Conversation
 {
-    $session = Session::create(['agent_id' => $agent->id]);
+    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
 
     return Conversation::create([
+        'workspace_id' => $session->workspace_id,
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'source' => 'widget',
@@ -30,7 +31,7 @@ it('returns grouped suggestions with examples from a single batched query', func
 
     // Pro plan grants the `topics` capability the route is gated behind.
     $agent = Agent::factory()->create();
-    $owner = $agent->user;
+    $owner = $agent->workspace->owner;
 
     // "refunds" appears in 3 conversations (above threshold, examples capped
     // at 2); "shipping" in 1 (below threshold — dropped).
@@ -70,7 +71,7 @@ it('does not leak another agent\'s suggestions or examples', function (): void {
     config(['chatvia.analytics.analysis.min_occurrences' => 1]);
 
     $agent = Agent::factory()->create();
-    $owner = $agent->user;
+    $owner = $agent->workspace->owner;
 
     $other = User::factory()->create();
     $foreignAgent = createAgent($other);
@@ -86,4 +87,31 @@ it('does not leak another agent\'s suggestions or examples', function (): void {
         ->json('suggestions');
 
     expect($response)->toBe([]);
+});
+
+it('only counts conversations from the suggestion window', function (): void {
+    config(['chatvia.analytics.analysis.min_occurrences' => 2]);
+
+    $agent = Agent::factory()->create();
+    $owner = $agent->workspace->owner;
+
+    foreach (['Recent one', 'Recent two', 'Old one'] as $title) {
+        ConversationTopic::create([
+            'chat_conversation_id' => suggestedTopicsConversation($agent, $title)->id,
+            'suggested_label' => 'refunds',
+        ]);
+    }
+
+    // `title` is encrypted, so find the old row (the last one) by id.
+    Conversation::query()->where('agent_id', $agent->id)->orderByDesc('id')->limit(1)->first()
+        ?->forceFill(['created_at' => now()->subDays(91)])->saveQuietly();
+
+    $response = $this->actingAs($owner)
+        ->getJson(route('agents.topics.suggestions', $agent))
+        ->assertOk()
+        ->json('suggestions');
+
+    expect($response)->toHaveCount(1)
+        ->and($response[0]['count'])->toBe(2)
+        ->and(array_column($response[0]['examples'], 'title'))->toEqualCanonicalizing(['Recent one', 'Recent two']);
 });

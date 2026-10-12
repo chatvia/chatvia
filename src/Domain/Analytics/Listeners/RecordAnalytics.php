@@ -37,9 +37,19 @@ use Throwable;
  *
  * The handler method names are part of the queued job payload, so they must
  * not be renamed while jobs may still be waiting in the queue.
+ *
+ * A failed write is retried: every Record*Action is one statement or one
+ * transaction, so a failure leaves nothing behind, and the message write is
+ * idempotent on its event row. Retries ride out lock timeouts and deadlocks
+ * on the busy rollup rows instead of dropping the event.
  */
 class RecordAnalytics implements ShouldQueue
 {
+    public int $tries = 5;
+
+    /** @var list<int> */
+    public array $backoff = [5, 30, 120];
+
     public function __construct(
         private readonly RecordMessageSentAction $recordMessageSent,
         private readonly RecordFeedbackGivenAction $recordFeedbackGiven,

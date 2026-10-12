@@ -1,0 +1,110 @@
+<?php
+
+use App\Http\Auth\BotCheck;
+use App\Identity\Workspace\Models\User;
+use Inertia\Testing\AssertableInertia;
+use RyanChandler\LaravelCloudflareTurnstile\Facades\Turnstile;
+
+/**
+ * The bot check of the public forms: once Cloudflare Turnstile's keys are
+ * saved (Settings → Security), the forms switched on there need a passing
+ * Turnstile token, and the pages get the site key to render the widget.
+ * Without keys, no form asks for one.
+ */
+function turnstileOn(bool $signUp = true, bool $signIn = true, bool $passwordReset = true): void
+{
+    config([
+        'services.turnstile.key' => '1x00000000000000000000AA',
+        'services.turnstile.secret' => '1x0000000000000000000000000000000AA',
+        'chatvia.security.turnstile.sign_up' => $signUp,
+        'chatvia.security.turnstile.sign_in' => $signIn,
+        'chatvia.security.turnstile.password_reset' => $passwordReset,
+    ]);
+}
+
+it('asks no form for a token while Turnstile is not set up', function (): void {
+    config(['services.turnstile.key' => null, 'services.turnstile.secret' => null, 'chatvia.security.turnstile.sign_up' => true]);
+
+    $this->post(route('register.store'), [
+        'name' => 'Ada',
+        'email' => 'ada@example.com',
+        'password' => 'a-long-Password-123!',
+        'password_confirmation' => 'a-long-Password-123!',
+    ])->assertSessionHasNoErrors();
+
+    expect(User::query()->where('email', 'ada@example.com')->exists())->toBeTrue()
+        ->and(app(BotCheck::class)->forPages())->toBeNull();
+});
+
+it('refuses a sign-up without a passing token', function (): void {
+    turnstileOn();
+    Turnstile::fake();
+
+    $this->from(route('register'))->post(route('register.store'), [
+        'name' => 'Bot',
+        'email' => 'bot@example.com',
+        'password' => 'a-long-Password-123!',
+        'password_confirmation' => 'a-long-Password-123!',
+    ])->assertSessionHasErrors([BotCheck::FIELD => 'Complete the security check.']);
+
+    Turnstile::fake()->fail();
+
+    $this->post(route('register.store'), [
+        'name' => 'Bot',
+        'email' => 'bot@example.com',
+        'password' => 'a-long-Password-123!',
+        'password_confirmation' => 'a-long-Password-123!',
+        BotCheck::FIELD => Turnstile::dummy(),
+    ])->assertSessionHasErrors(BotCheck::FIELD);
+
+    expect(User::query()->where('email', 'bot@example.com')->exists())->toBeFalse();
+});
+
+it('lets a sign-up with a passing token through', function (): void {
+    turnstileOn();
+    Turnstile::fake();
+
+    $this->post(route('register.store'), [
+        'name' => 'Ada',
+        'email' => 'ada@example.com',
+        'password' => 'a-long-Password-123!',
+        'password_confirmation' => 'a-long-Password-123!',
+        BotCheck::FIELD => Turnstile::dummy(),
+    ])->assertSessionHasNoErrors();
+
+    expect(User::query()->where('email', 'ada@example.com')->exists())->toBeTrue();
+});
+
+it('checks sign-in, sign-in links and password reset when they are switched on', function (): void {
+    turnstileOn();
+    Turnstile::fake();
+    User::factory()->create(['email' => 'ada@example.com']);
+
+    $this->from(route('login'))->post(route('login'), ['email' => 'ada@example.com', 'password' => 'password'])
+        ->assertSessionHasErrors(BotCheck::FIELD);
+    $this->assertGuest();
+
+    $this->post(route('magic-link.send'), ['email' => 'ada@example.com'])->assertSessionHasErrors(BotCheck::FIELD);
+    $this->post(route('password.email'), ['email' => 'ada@example.com'])->assertSessionHasErrors(BotCheck::FIELD);
+
+    $this->post(route('login'), ['email' => 'ada@example.com', 'password' => 'password', BotCheck::FIELD => Turnstile::dummy()])
+        ->assertRedirect(route('dashboard'));
+    $this->assertAuthenticated();
+});
+
+it('leaves a form alone when its switch is off', function (): void {
+    turnstileOn(signIn: false);
+    $user = User::factory()->create(['email' => 'ada@example.com']);
+
+    $this->post(route('login'), ['email' => 'ada@example.com', 'password' => 'password'])
+        ->assertRedirect(route('dashboard'));
+    $this->assertAuthenticatedAs($user);
+});
+
+it('gives the pages the site key and the forms it protects', function (): void {
+    turnstileOn(signIn: false);
+
+    $this->get(route('login'))->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('turnstile.site_key', '1x00000000000000000000AA')
+        ->where('turnstile.forms', ['sign_up', 'password_reset']));
+});

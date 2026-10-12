@@ -8,7 +8,7 @@ use Domain\Agent\Models\Agent;
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
-    $this->owner = $this->agent->user;
+    $this->owner = $this->agent->workspace->owner;
 });
 
 it('returns 404 for a settings group without validation rules', function (): void {

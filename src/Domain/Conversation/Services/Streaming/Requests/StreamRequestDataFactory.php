@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Streaming\Requests;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
@@ -27,9 +28,11 @@ class StreamRequestDataFactory
         // queries mid-stream.
         $agent->loadMissing(['agentPrompt', 'llm']);
 
-        $chatter = $this->chatter($request);
-        // Any authenticated user (chatter, owner, or teammate) is the audit actor.
-        $actor = $request->user() instanceof User ? $request->user() : null;
+        // The hosted chat's viewer: a chatter, or staff opening the chat from
+        // the dashboard (UseSignedInChatGuard makes their guard the default).
+        $account = $request->user();
+        $chatter = $account instanceof Chatter ? $account : null;
+        $staff = $account instanceof User ? $account : null;
 
         return new StreamRequestData(
             agent: $agent,
@@ -41,15 +44,13 @@ class StreamRequestDataFactory
             ),
             externalSessionId: $externalSessionId,
             conversationId: $conversationId,
-            // The hosted /chat surface is reachable by chatters signed in via an
-            // agent sign-in link, not just workspace owners/employees. Stamp the
-            // chatter so their per-chatter limit applies here too; null for
-            // owner/employee senders.
-            chatterUserId: $chatter?->id,
+            // Stamp the chatter so their per-chatter limit applies; null for
+            // staff senders, who are recorded as the audit actor instead.
+            chatterId: $chatter?->id,
             chatterName: $chatter?->name,
             chatterExternalId: $chatter?->external_id,
-            actorUserId: $actor?->id,
-            actorName: $actor?->name,
+            actorUserId: $staff?->id,
+            actorName: $chatter?->name ?? $staff?->name,
             saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
             streamSources: false,
             ipAddress: $request->ip(),
@@ -71,7 +72,7 @@ class StreamRequestDataFactory
         string $sessionId,
         string $threadId,
         bool $isPlayground,
-        ?User $chatter = null,
+        Chatter|User|null $account = null,
     ): StreamRequestData {
         $agent->loadMissing(['agentPrompt', 'llm']);
 
@@ -84,17 +85,14 @@ class StreamRequestDataFactory
             ),
             externalSessionId: $sessionId,
             conversationId: $threadId,
-            // Only actual chatters carry a per-chatter limit. A protected widget
-            // can resolve an owner/employee (e.g. previewing); never stamp them,
-            // or the workspace's own limit would be counted as a chatter's.
-            chatterUserId: $chatter instanceof User && $chatter->isChatter() ? $chatter->id : null,
-            chatterName: $chatter instanceof User && $chatter->isChatter() ? $chatter->name : null,
-            chatterExternalId: $chatter instanceof User && $chatter->isChatter() ? $chatter->external_id : null,
-            // The audit actor is whoever is signed in — any type (owner/teammate
-            // previewing, or a chatter); unlike chatterUserId it is not gated to
-            // chatters and never affects message limits.
-            actorUserId: $chatter?->id,
-            actorName: $chatter?->name,
+            // Only chatters carry a per-chatter limit. A protected widget can
+            // resolve staff (a dashboard preview); they are the audit actor
+            // instead, so the workspace's own use never counts as a chatter's.
+            chatterId: $account instanceof Chatter ? $account->id : null,
+            chatterName: $account instanceof Chatter ? $account->name : null,
+            chatterExternalId: $account instanceof Chatter ? $account->external_id : null,
+            actorUserId: $account instanceof User ? $account->id : null,
+            actorName: $account?->name,
             saveUserMessageImmediately: true,
             streamSources: false,
             streamLanguage: false,
@@ -127,19 +125,6 @@ class StreamRequestDataFactory
         }
 
         return $llm;
-    }
-
-    /**
-     * The authenticated chatter (web guard) on the hosted /chat surface, or
-     * null when the sender is a workspace owner/employee. Only chatters carry a
-     * per-chatter message limit and get addressed by name, so non-chatter
-     * senders stay unstamped.
-     */
-    private function chatter(Request $request): ?User
-    {
-        $user = $request->user();
-
-        return $user instanceof User && $user->isChatter() ? $user : null;
     }
 
     private function referrer(Request $request): ?string

@@ -12,17 +12,11 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 
 /**
- * Install-wide options: default language, security headers, the chat widget,
+ * Install-wide options: default language, the chat widget,
  * page-view analytics, visitor location, the built-in tools and alerts.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
-    private const array CSP_MODES = [
-        'report-only' => 'Report only (browsers report, nothing is blocked)',
-        'enforce' => 'Enforce',
-        'off' => 'Off (no security headers)',
-    ];
-
     #[\Override]
     protected static string $settings = PlatformSettings::class;
 
@@ -40,7 +34,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, security headers, widget and analytics.';
+        return 'Language, widget, analytics and the built-in tools.';
     }
 
     public static function overviewGroup(): string
@@ -54,16 +48,11 @@ class ManagePlatformSettings extends AdminSettingsPage
             SettingsCard::make('language', 'Language', 'The language for people who have not chosen one, and for messaging channels.', Heroicon::OutlinedLanguage, fn (): array => [
                 $this->choice('default_locale', 'Default language', $this->languages()),
             ])->summary(fn (): string => $this->languages()[(string) $this->valueInUse('default_locale')] ?? $this->shown($this->valueInUse('default_locale'))),
-            SettingsCard::make('security', 'Security headers', 'The Content Security Policy of every page.', Heroicon::OutlinedShieldCheck, fn (): array => [
-                $this->choice('csp_mode', 'Content Security Policy', self::CSP_MODES,
-                    help: 'Enforce also sends X-Frame-Options and, over HTTPS, HSTS.'),
-                $this->url('csp_report_uri', 'Report address', help: 'Optional. Receives the reports of blocked content.'),
-            ])->summary(fn (): string => self::CSP_MODES[(string) $this->valueInUse('csp_mode')] ?? $this->shown($this->valueInUse('csp_mode'))),
             SettingsCard::make('widget', 'Chat widget', 'Where the widget may load, and how much it may be used.', Heroicon::OutlinedChatBubbleBottomCenterText, fn (): array => [
                 $this->text('widget_allowed_origins', 'Sites every widget may load on',
                     help: 'Comma-separated hosts, such as "example.com, app.example.com", on top of this install and each agent\'s own sites.'),
-                $this->url('widget_script_url', 'Widget script address',
-                    help: 'Load the widget script from a CDN instead of this server.'),
+                $this->urlOrPath('widget_script_url', 'Widget script address',
+                    help: 'The default is the copy this server builds. Enter a full address to load it from a CDN.'),
                 $this->integer('widget_stream_per_minute', 'Replies per agent per minute', min: 1),
                 $this->integer('widget_stream_per_hour', 'Replies per agent per hour', min: 1),
             ])->summary(fn (): string => $this->valueInUse('widget_stream_per_minute').' replies per agent per minute'),

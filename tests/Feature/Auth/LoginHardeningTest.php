@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Auth\MagicLinkSignIn;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Http\Request;
@@ -11,8 +12,8 @@ use Laravel\Passkeys\Passkeys;
 
 /**
  * Login-path rules that must hold on every way into the dashboard session:
- * deactivated accounts stay out, unknown emails cost the same as known ones,
- * and last_login_at reflects a real, completed sign-in.
+ * deactivated accounts stay out, chatters never get in, unknown emails cost
+ * the same as known ones, and last_login_at reflects a real, completed sign-in.
  */
 describe('deactivated accounts', function (): void {
     beforeEach(function (): void {
@@ -67,11 +68,21 @@ it('lets an active user sign in with a passkey', function (): void {
     expect(Passkeys::allowsLogin(Request::create('/'), $passkey))->toBeTrue();
 });
 
-it('does not let a chatter sign in with a passkey', function (): void {
-    $passkey = new Passkey;
-    $passkey->setRelation('user', User::factory()->chatter(User::factory()->workspace()->create())->create());
+it('does not open the dashboard with a chatter\'s password, even when a staff account shares the email', function (): void {
+    // Chatters are not staff accounts: the dashboard login only reads `users`,
+    // so a chatter's password never matches, whatever the email.
+    Chatter::factory()->create(['email' => 'shared@example.test', 'password' => Hash::make('chatter-pass')]);
+    $staff = User::factory()->create(['email' => 'shared@example.test', 'password' => Hash::make('staff-pass')]);
 
-    expect(Passkeys::allowsLogin(Request::create('/'), $passkey))->toBeFalse();
+    $this->post(route('login'), ['email' => 'shared@example.test', 'password' => 'chatter-pass'])
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
+
+    $this->post(route('login'), ['email' => 'shared@example.test', 'password' => 'staff-pass'])
+        ->assertRedirect(route('dashboard'));
+
+    expect(Auth::guard('web')->id())->toBe($staff->id);
 });
 
 it('computes a password hash on the dashboard login even when the email is unknown', function (): void {

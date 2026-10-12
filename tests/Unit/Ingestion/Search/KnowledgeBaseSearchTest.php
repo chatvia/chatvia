@@ -5,13 +5,17 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunkAction;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
+use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
+use Domain\Knowledge\Source\File\Models\SourceFile;
 
 /**
  * Integration coverage for the RAG retrieval pipeline that was the review's
- * #1 named gap: chunks ingested via CreateSourceChunkAction → searched via
+ * #1 named gap: chunks ingested via CreateSourceChunksAction → searched via
  * KnowledgeBase::search → ranked + confidence-scored result objects.
  *
  * The pure helpers (confidenceScore / stripXmlTags) are covered by
@@ -68,6 +72,16 @@ function knowledgeBaseEmbeddingFake(): void
     app()->instance(Reranker::class, new NullReranker);
 }
 
+/** Stores one page of a file as a plain chunk. */
+function knowledgeBaseChunk(SourceFile $source, PageData $page): void
+{
+    app(CreateSourceChunksAction::class)->execute(new ChunkPagesData(
+        source: $source,
+        group: new PageGroupData([$page]),
+        enhancement: ChunkEnhancement::Off,
+    ));
+}
+
 beforeEach(function (): void {
     knowledgeBaseEmbeddingFake();
 });
@@ -82,16 +96,15 @@ it('returns an empty array when the agent has no chunks', function (): void {
 
 it('returns ranked results scoped to the agent with confidence scores from RetrievalScoring', function (): void {
     $agent = Agent::factory()->create();
-    $source = AgentFileFactory::new()->create();
+    $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->files()->attach($source->id);
 
-    $createChunk = app(CreateSourceChunkAction::class);
-    $createChunk->execute($agent, $source, new PageData(
+    knowledgeBaseChunk($source, new PageData(
         pageNumber: 1,
         content: 'The mitochondria is the powerhouse of the cell.',
         checksum: 'kb-test-mito',
     ));
-    $createChunk->execute($agent, $source, new PageData(
+    knowledgeBaseChunk($source, new PageData(
         pageNumber: 2,
         content: 'Chloroplasts perform photosynthesis in plant cells.',
         checksum: 'kb-test-chloro',
@@ -109,18 +122,18 @@ it('returns ranked results scoped to the agent with confidence scores from Retri
 
 it('does not return another agent\'s chunks (tenancy boundary)', function (): void {
     $mine = Agent::factory()->create();
-    $mySource = AgentFileFactory::new()->create();
+    $mySource = AgentFileFactory::new()->create(['workspace_id' => $mine->workspace_id]);
     $mine->files()->attach($mySource->id);
-    app(CreateSourceChunkAction::class)->execute($mine, $mySource, new PageData(
+    knowledgeBaseChunk($mySource, new PageData(
         pageNumber: 1,
         content: 'My private content about quarterly forecasts.',
         checksum: 'kb-test-mine',
     ));
 
     $other = Agent::factory()->create();
-    $otherSource = AgentFileFactory::new()->create();
+    $otherSource = AgentFileFactory::new()->create(['workspace_id' => $other->workspace_id]);
     $other->files()->attach($otherSource->id);
-    app(CreateSourceChunkAction::class)->execute($other, $otherSource, new PageData(
+    knowledgeBaseChunk($otherSource, new PageData(
         pageNumber: 1,
         content: 'Other tenant secret roadmap details — leak guard.',
         checksum: 'kb-test-other',

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Data\Chat;
 
+use Domain\Llm\Models\Llm;
 use Spatie\LaravelData\Data;
 
 /**
- * One non-streaming chat-completion request: the model, the messages and the
- * few sampling options the app uses. Turned into the provider's wire format
- * only at the edge, by {@see self::toPayload()}.
+ * One non-streaming chat-completion request: the catalog model (whose
+ * provider it goes to), the messages and the few sampling options the app
+ * uses. Turned into the provider's wire format only at the edge, by
+ * {@see self::toPayload()}.
  */
 final class ChatRequestData extends Data
 {
@@ -17,7 +19,7 @@ final class ChatRequestData extends Data
      * @param  list<ChatMessageData>  $messages
      */
     public function __construct(
-        public string $model,
+        public Llm $model,
         public array $messages,
         public ?float $temperature = null,
         public ?int $maxTokens = null,
@@ -33,7 +35,7 @@ final class ChatRequestData extends Data
     public function toPayload(): array
     {
         $payload = [
-            'model' => $this->model,
+            'model' => $this->model->internal_name,
             'messages' => array_map(static fn (ChatMessageData $message): array => $message->toPayload(), $this->messages),
         ];
 

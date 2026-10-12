@@ -21,7 +21,7 @@ beforeEach(function (): void {
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
 
     $this->video = SourceYoutubeVideo::create([
-        'user_id' => $this->user->id,
+        'workspace_id' => $this->user->workspace()->id,
         'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         'length' => 0,
         'status' => SourceStatus::Pending->value,

@@ -1,17 +1,13 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Domain\Security\Enums\GeoMode;
 use Domain\Security\Enums\IpAllowlistMode;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia;
-use Spatie\Permission\PermissionRegistrar;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,26 +24,6 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->owner);
 });
 
-function securityTeammate(User $owner, array $permissions): User
-{
-    $team = $owner->primaryTeam();
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: $permissions,
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    return $member;
-}
-
 it('shows the security settings with the install retention as the ceiling', function (): void {
     config(['chatvia.retention.conversations_days' => 200]);
 
@@ -62,13 +38,13 @@ it('shows the security settings with the install retention as the ceiling', func
 });
 
 it('403s a teammate without account.security', function (): void {
-    $member = securityTeammate($this->owner, []);
+    $member = teammateWithPermissions($this->owner, []);
 
     $this->actingAs($member)->get(route('security.edit'))->assertForbidden();
 });
 
 it('allows a teammate with account.security', function (): void {
-    $member = securityTeammate($this->owner, ['account.security']);
+    $member = teammateWithPermissions($this->owner, ['account.security']);
 
     $this->actingAs($member)->get(route('security.edit'))->assertOk();
 });
@@ -83,7 +59,7 @@ it('persists network rules that keep the saver reachable', function (): void {
         ])
         ->assertSessionHasNoErrors();
 
-    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->id);
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
 
     expect($policy->ip_allowlist_mode)->toBe(IpAllowlistMode::Dashboard)
         ->and($policy->ip_allowlist)->toBe(['127.0.0.0/8', '203.0.113.0/24']);
@@ -99,7 +75,7 @@ it('rejects rules that would lock the saver out', function (): void {
         ])
         ->assertSessionHasErrors('ip_allowlist');
 
-    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->fresh()->ip_allowlist_mode)->toBe(IpAllowlistMode::Off);
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->fresh()->ip_allowlist_mode)->toBe(IpAllowlistMode::Off);
 });
 
 it('rejects a country rule that would lock the saver out — and never blames the IP', function (): void {
@@ -123,7 +99,7 @@ it('rejects a country rule that would lock the saver out — and never blames th
         ->and($message)->not->toContain('network');
 
     // Nothing persisted — the save was rejected.
-    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->fresh()->geo_mode)->toBe(GeoMode::Off);
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->fresh()->geo_mode)->toBe(GeoMode::Off);
 });
 
 it('rejects a country rule that would lock the saver out while the IP allowlist is off', function (): void {
@@ -140,7 +116,7 @@ it('rejects a country rule that would lock the saver out while the IP allowlist 
         ])
         ->assertSessionHasErrors('ip_allowlist');
 
-    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->id)->fresh()->geo_mode)->toBe(GeoMode::Off);
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->fresh()->geo_mode)->toBe(GeoMode::Off);
 });
 
 it('rejects an invalid IP / CIDR entry', function (): void {
@@ -166,7 +142,7 @@ it('persists conversation + audit retention overrides', function (): void {
         ])
         ->assertSessionHasNoErrors();
 
-    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->id);
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
 
     expect($policy->retention_conversations_days)->toBe(30)
         ->and($policy->retention_audit_days)->toBe(90);
@@ -213,7 +189,7 @@ it('lets a workspace save a SIEM webhook', function (): void {
         ])
         ->assertSessionHasNoErrors();
 
-    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->id);
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
 
     expect($policy->webhook_enabled)->toBeTrue()
         ->and($policy->webhook_url)->toBe('https://siem.example.com/ingest')
@@ -232,4 +208,127 @@ it('rejects an internal SIEM webhook URL (SSRF)', function (): void {
             'webhook_secret' => 'super-secret',
         ])
         ->assertSessionHasErrors('webhook_url');
+});
+
+/** A security form submission that changes only the given retention fields. */
+function retentionForm(array $retention): array
+{
+    return [
+        'ip_allowlist_mode' => 'off',
+        'ip_allowlist' => [],
+        'geo_mode' => 'off',
+        'geo_countries' => [],
+        ...$retention,
+    ];
+}
+
+it('passes the lead, analytics and anonymize bounds to the page', function (): void {
+    config([
+        'chatvia.retention.leads_floor_days' => 1,
+        'chatvia.retention.analytics_floor_days' => 30,
+        'chatvia.retention.anonymize_floor_days' => 1,
+        'chatvia.retention.max_days' => 3650,
+    ]);
+
+    $this->actingAs($this->owner)
+        ->get(route('security.edit'))
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->where('limits.leads_floor', 1)
+            ->where('limits.analytics_floor', 30)
+            ->where('limits.anonymize_floor', 1)
+            ->where('limits.max_days', 3650));
+});
+
+it('persists the lead, analytics and anonymize windows', function (): void {
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), retentionForm([
+            'retention_conversations_days' => 90,
+            'retention_leads_days' => 365,
+            'retention_analytics_days' => 180,
+            'anonymize_after_days' => 30,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
+
+    expect($policy->retention_leads_days)->toBe(365)
+        ->and($policy->retention_analytics_days)->toBe(180)
+        ->and($policy->anonymize_after_days)->toBe(30);
+});
+
+it('treats blank lead, analytics and anonymize windows as not set', function (): void {
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
+        'retention_leads_days' => 90,
+        'retention_analytics_days' => 90,
+        'anonymize_after_days' => 30,
+    ]);
+
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), retentionForm([
+            'retention_leads_days' => '',
+            'retention_analytics_days' => '',
+            'anonymize_after_days' => '',
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $policy = WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id);
+
+    expect($policy->retention_leads_days)->toBeNull()
+        ->and($policy->retention_analytics_days)->toBeNull()
+        ->and($policy->anonymize_after_days)->toBeNull();
+});
+
+it('rejects retention windows outside their floor and ceiling', function (string $field, int $days): void {
+    config([
+        'chatvia.retention.conversations_days' => 366,
+        'chatvia.retention.leads_floor_days' => 1,
+        'chatvia.retention.analytics_floor_days' => 30,
+        'chatvia.retention.anonymize_floor_days' => 1,
+        'chatvia.retention.max_days' => 3650,
+    ]);
+
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), retentionForm([$field => $days]))
+        ->assertSessionHasErrors($field);
+
+    expect(WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->fresh()->{$field})->toBeNull();
+})->with([
+    'leads below 1 day' => ['retention_leads_days', 0],
+    'leads above the maximum' => ['retention_leads_days', 3651],
+    'analytics below 30 days' => ['retention_analytics_days', 29],
+    'analytics above the maximum' => ['retention_analytics_days', 3651],
+    'anonymize below 1 day' => ['anonymize_after_days', 0],
+    'anonymize above the install conversation retention' => ['anonymize_after_days', 367],
+]);
+
+it('accepts the edge values of each window', function (): void {
+    config([
+        'chatvia.retention.conversations_days' => 366,
+        'chatvia.retention.analytics_floor_days' => 30,
+        'chatvia.retention.max_days' => 3650,
+    ]);
+
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), retentionForm([
+            'retention_leads_days' => 3650,
+            'retention_analytics_days' => 30,
+            'anonymize_after_days' => 366,
+        ]))
+        ->assertSessionHasNoErrors();
+});
+
+it('rejects anonymizing later than the conversation retention sent with it', function (): void {
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), retentionForm([
+            'retention_conversations_days' => 30,
+            'anonymize_after_days' => 31,
+        ]))
+        ->assertSessionHasErrors('anonymize_after_days');
+
+    $this->actingAs($this->owner)
+        ->put(route('security.update'), retentionForm([
+            'retention_conversations_days' => 30,
+            'anonymize_after_days' => 30,
+        ]))
+        ->assertSessionHasNoErrors();
 });

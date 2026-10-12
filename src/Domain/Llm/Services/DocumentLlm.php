@@ -5,14 +5,18 @@ namespace Domain\Llm\Services;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
+use Domain\Llm\Models\Llm;
+use Domain\Llm\Models\LlmProvider;
 
 /**
  * The LLM provider that can read a whole PDF passed by URL in a chat message
  * (a `document_url` message part). Document summaries, document analysis and
  * chat with PDF files use it.
  *
- * Built from config (`chatvia.ai.document_llm`). When no such provider is set
- * up, isAvailable() is false and those features switch off instead of failing.
+ * Built from config (`chatvia.ai.document_llm`), with the key and address of
+ * that service in Settings → AI rather than a catalog provider. When no such
+ * provider is set up, isAvailable() is false and those features switch off
+ * instead of failing.
  */
 final readonly class DocumentLlm
 {
@@ -30,9 +34,22 @@ final readonly class DocumentLlm
      */
     public function provider(): LlmProviderInterface
     {
-        $class = $this->provider?->providerClass() ?? throw new DocumentLlmUnavailableException;
+        return app(LlmProviders::class)->forProvider($this->connection());
+    }
 
-        return app($class);
+    /**
+     * A model of this provider by its name (`chatvia.ai.models.summary`, ...),
+     * for a request. It is not a catalog row.
+     *
+     * @throws DocumentLlmUnavailableException
+     */
+    public function model(string $name): Llm
+    {
+        return (new Llm([
+            'internal_name' => $name,
+            'external_name' => $name,
+            'descriptive_name' => $name,
+        ]))->setRelation('provider', $this->connection());
     }
 
     /**
@@ -43,5 +60,13 @@ final readonly class DocumentLlm
     public function slug(): string
     {
         return $this->provider?->value ?? throw new DocumentLlmUnavailableException;
+    }
+
+    /**
+     * @throws DocumentLlmUnavailableException
+     */
+    private function connection(): LlmProvider
+    {
+        return app(ProviderAdapters::class)->for($this->provider ?? throw new DocumentLlmUnavailableException)->fromSettings();
     }
 }

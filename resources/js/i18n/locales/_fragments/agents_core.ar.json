@@ -131,7 +131,7 @@
                 "expires_in_days": "تنتهي خلال {count} يوم | تنتهي خلال {count} أيام",
                 "expires_in_one_month": "تنتهي خلال شهر واحد",
                 "expires_in_months": "تنتهي خلال {count} شهر | تنتهي خلال {count} أشهر",
-                "conversations_count": "{count} محادثة | {count} محادثات"
+                "load_more": "تحميل المزيد"
             },
             "pagination": {
                 "prev": "السابق",

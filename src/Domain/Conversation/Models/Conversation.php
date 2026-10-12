@@ -3,12 +3,14 @@
 namespace Domain\Conversation\Models;
 
 use App\Identity\Workspace\Models\User;
+use Carbon\CarbonInterface;
 use Database\Factories\ConversationFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
+use Domain\Conversation\Services\ConversationRetention;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
@@ -41,6 +43,7 @@ use Support\Localization\Language\Models\Language;
  *
  * @property int $id
  * @property string $external_id
+ * @property int $workspace_id
  * @property int $chat_session_id
  * @property int $agent_id
  * @property int|null $language_id
@@ -115,6 +118,7 @@ use Support\Localization\Language\Models\Language;
  */
 #[Fillable([
     'external_id',
+    'workspace_id',
     'chat_session_id',
     'agent_id',
     'language_id',
@@ -147,6 +151,28 @@ class Conversation extends Model
 
     /** `deleted_by` value for an admin delete with no known acting user. */
     public const string DELETED_BY_ADMIN = 'admin';
+
+    /**
+     * Days a hidden conversation (started, never used) is kept. The widget
+     * starts one on every visit and most never get a message, so they go with
+     * the next daily prune instead of living a full retention window.
+     */
+    public const int HIDDEN_LIFETIME_DAYS = 1;
+
+    /**
+     * The changes that make a hidden conversation visible: it joins the
+     * visitor's list and the chat log, and is kept for the install's full
+     * retention window instead of the short life of an unused one.
+     *
+     * @return array{is_visible: true, expires_at: CarbonInterface}
+     */
+    public static function visibleAttributes(): array
+    {
+        return [
+            'is_visible' => true,
+            'expires_at' => now()->addDays(ConversationRetention::days()),
+        ];
+    }
 
     /**
      * True while the conversation still carries its placeholder title, i.e. it
@@ -335,7 +361,7 @@ class Conversation extends Model
             return $this->lead->name;
         }
 
-        return $this->session?->user?->name;
+        return $this->session?->chatter?->name ?? $this->session?->user?->name;
     }
 
     public function displayEmail(): ?string
@@ -344,7 +370,7 @@ class Conversation extends Model
             return $this->lead->email;
         }
 
-        return $this->session?->user?->email;
+        return $this->session?->chatter?->email ?? $this->session?->user?->email;
     }
 
     public function canBeTakenOverBy(User $admin): bool
@@ -389,7 +415,9 @@ class Conversation extends Model
      * used conversation from getting swept by the daily prune.
      *
      * Returns true when the row was updated, false when the current
-     * horizon is still far enough out to leave alone.
+     * horizon is still far enough out to leave alone. A hidden conversation
+     * gets its full window when its first message makes it visible
+     * ({@see visibleAttributes()}), before this runs for that message.
      */
     public function extendRetentionIfDueSoon(int $newRetentionDays, int $renewalThresholdDays = 3): bool
     {

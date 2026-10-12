@@ -11,8 +11,10 @@ use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
-use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Exceptions\LlmProviderUnavailableException;
+use Domain\Llm\Models\Llm;
 use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,7 +27,7 @@ use Illuminate\Support\Facades\DB;
 class StoreAssistantMessageAction
 {
     public function __construct(
-        private readonly LlmProviderInterface $llmProvider,
+        private readonly LlmProviders $providers,
         private readonly ChatLogWriter $chatLog,
     ) {}
 
@@ -66,9 +68,7 @@ class StoreAssistantMessageAction
             return new ReplyUsageData($turn->prompt_tokens, $turn->completion_tokens);
         }
 
-        $lookup = ($turn->generation_id && $this->llmProvider->supportsCostTracking())
-            ? $this->llmProvider->getGenerationCost($turn->generation_id)
-            : null;
+        $lookup = $turn->generation_id ? $this->generationLookup($turn->model, $turn->generation_id) : null;
 
         $costInDollars = $lookup['total_cost'] ?? null;
 
@@ -86,6 +86,7 @@ class StoreAssistantMessageAction
     {
         return [
             'external_id' => $turn->external_message_id,
+            'workspace_id' => $conversation->workspace_id,
             'chat_conversation_id' => $conversation->id,
             'content' => $turn->message,
             'role' => MessageRole::Assistant,
@@ -120,5 +121,28 @@ class StoreAssistantMessageAction
         }
 
         GenerateConversationTitleJob::dispatch($agent, $turn->external_session_id, $turn->external_conversation_id);
+    }
+
+    /**
+     * The provider's record of one generation (tokens and cost), when the
+     * reply's model has a provider that keeps one.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function generationLookup(string $model, string $generationId): ?array
+    {
+        $llm = Llm::catalog()->firstWhere('external_name', $model);
+
+        if (! $llm instanceof Llm) {
+            return null;
+        }
+
+        try {
+            $provider = $this->providers->for($llm);
+        } catch (LlmProviderUnavailableException) {
+            return null;
+        }
+
+        return $provider->supportsCostTracking() ? $provider->getGenerationCost($generationId) : null;
     }
 }

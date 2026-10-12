@@ -34,6 +34,6 @@ class GenerateConversationTitleJob implements AttributesTokenUsage, ShouldQueue
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->agent->user_id;
+        return $this->agent->workspace_id;
     }
 }

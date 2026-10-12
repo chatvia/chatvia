@@ -13,7 +13,7 @@ use Domain\Membership\Team\Services\TeamService;
  * protected (is_public = false) — the messaging-channel surface relies on
  * that default.
  */
-it('creates a protected agent with generated identity and attaches every topic', function (): void {
+it('creates a protected agent with generated identity and attaches the workspace topics', function (): void {
     $owner = User::factory()->create();
     $team = app(TeamService::class)->createDefaultTeam($owner);
 
@@ -28,7 +28,7 @@ it('creates a protected agent with generated identity and attaches every topic',
 
     expect($agent->exists)->toBeTrue()
         ->and($agent->name)->toBe('Support Bot')
-        ->and($agent->user_id)->toBe($owner->id)
+        ->and($agent->workspace_id)->toBe($owner->workspace()->id)
         ->and($agent->team_id)->toBe($team->id)
         // Agents default to protected; channels enforce nothing downstream.
         ->and($agent->is_public)->toBeFalse()
@@ -38,12 +38,12 @@ it('creates a protected agent with generated identity and attaches every topic',
         ->and($agent->auth_secret)->toStartWith('cvsk_')
         ->and(strlen((string) $agent->auth_secret))->toBe(61);
 
-    // Every topic in the catalog (seeded system topics included) is attached.
+    // Every topic the workspace can use (system topics included) is attached.
     $attachedIds = $agent->topics()->pluck('topics.id');
 
     expect($attachedIds)->toContain($topicA->id)
         ->and($attachedIds)->toContain($topicB->id)
-        ->and($attachedIds->count())->toBe(Topic::count());
+        ->and($attachedIds->count())->toBe(Topic::forWorkspace($owner->workspace())->count());
 });
 
 it('stamps the workspace owner as agent owner when an employee creates the agent', function (): void {
@@ -57,10 +57,11 @@ it('stamps the workspace owner as agent owner when an employee creates the agent
         name: 'Team Bot',
     ));
 
-    // agent.user_id keys every account-level stat (dashboard, analytics,
-    // quota), so it must resolve to the workspace owner, never the employee.
-    expect($agent->user_id)->toBe($owner->id)
-        ->and($agent->user_id)->not->toBe($employee->id);
+    // agent.workspace_id keys every account-level stat (dashboard, analytics,
+    // quota), so it must resolve to the owner's workspace, also when a
+    // teammate creates the agent.
+    expect($agent->workspace_id)->toBe($owner->workspace()->id)
+        ->and($employee->workspace()->is($owner->workspace()))->toBeTrue();
 });
 
 it('generates a distinct identity per agent', function (): void {
@@ -80,4 +81,24 @@ it('generates a distinct identity per agent', function (): void {
 
     expect($first->external_id)->not->toBe($second->external_id)
         ->and($first->auth_secret)->not->toBe($second->auth_secret);
+});
+
+it('attaches the workspace own topics but never another workspace custom topics', function (): void {
+    $owner = User::factory()->create();
+    $team = app(TeamService::class)->createDefaultTeam($owner);
+    $stranger = User::factory()->create();
+
+    $own = Topic::create(['topic' => 'Our refunds', 'description' => 'Own topic', 'workspace_id' => $owner->workspace()->id]);
+    $foreign = Topic::create(['topic' => 'Their secret', 'description' => 'Other workspace', 'workspace_id' => $stranger->workspace()->id]);
+
+    $agent = app(CreateAgentAction::class)->execute(new CreateAgentData(
+        user: $owner,
+        team: $team,
+        name: 'Support Bot',
+    ));
+
+    $attached = $agent->topics()->pluck('topics.id');
+
+    expect($attached)->toContain($own->id)
+        ->and($attached)->not->toContain($foreign->id);
 });

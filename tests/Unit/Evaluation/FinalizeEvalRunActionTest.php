@@ -19,7 +19,7 @@ function runningRun(Agent $agent, int $total = 0): EvalRun
     return EvalRun::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'status' => EvalRunStatus::Running,
         'total_cases' => $total,
         'started_at' => now(),

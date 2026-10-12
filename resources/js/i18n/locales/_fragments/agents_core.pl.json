@@ -131,7 +131,7 @@
                 "expires_in_days": "Wygasa za {count} dzień | Wygasa za {count} dni",
                 "expires_in_one_month": "Wygasa za 1 miesiąc",
                 "expires_in_months": "Wygasa za {count} miesiąc | Wygasa za {count} miesiące",
-                "conversations_count": "{count} rozmowa | {count} rozmowy"
+                "load_more": "Załaduj więcej"
             },
             "pagination": {
                 "prev": "Poprzednia",

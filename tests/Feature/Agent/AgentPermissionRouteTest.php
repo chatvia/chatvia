@@ -2,37 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Form\Models\FormDefinition;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
-
-/**
- * Pins the per-agent permission gate (the `agent.permission:<perm>` route
- * middleware) on the dashboard source routes.
- *
- * A teammate WITH agent access but WITHOUT the permission must get 403; the owner
- * and a teammate WITH the permission must pass. Both teammates share the same
- * (all-agents) access and differ only in the permission, so the 403-vs-pass
- * contrast isolates the permission gate — not agent access.
- */
-function teammateWithPermissions(User $owner, array $permissions): User
-{
-    $team = $owner->primaryTeam();
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(8),
-        permissions: $permissions,
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    return $member;
-}
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();

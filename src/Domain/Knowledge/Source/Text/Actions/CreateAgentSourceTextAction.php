@@ -7,9 +7,11 @@ use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Tidy\TextCleaner;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Support\Exceptions\DomainValidationException;
 use Throwable;
 
 /**
@@ -18,31 +20,40 @@ use Throwable;
  * The cleaned text is written to storage first; the row and the agent link are
  * created in one transaction, and the stored file is deleted again when that
  * fails. The text is keyed to the agent's owner (the workspace), and its size
- * is stored in pages (~450 words each).
+ * is stored in pages (~450 words each). A workspace holds each text once: the
+ * same content again is a validation error on `content`.
  */
 class CreateAgentSourceTextAction
 {
     /** Words per page. */
     private const int WORDS_PER_PAGE = 450;
 
+    /**
+     * @throws DomainValidationException when the workspace already has this text
+     */
     public function execute(Agent $agent, string $rawContent): SourceText
     {
         $content = Str::of(TextCleaner::clean($rawContent))->trim()->toString();
+        $checksum = md5($content);
         $numberOfPages = (int) ceil(str_word_count($content) / self::WORDS_PER_PAGE);
+
+        if (SourceText::query()->where('workspace_id', $agent->workspace_id)->where('checksum', $checksum)->exists()) {
+            throw self::duplicate();
+        }
 
         $filepath = KnowledgeStoragePath::forAgent($agent, 'train/text').'/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $content);
 
         try {
-            $sourceText = DB::transaction(function () use ($agent, $filepath, $content, $numberOfPages): SourceText {
+            $sourceText = DB::transaction(function () use ($agent, $filepath, $content, $checksum, $numberOfPages): SourceText {
                 $sourceText = SourceText::query()->create([
                     // Knowledge belongs to the workspace, not whoever uploaded it — key
                     // to the agent's owner so an employee's deletion can't cascade it away.
-                    'user_id' => $agent->user_id,
+                    'workspace_id' => $agent->workspace_id,
                     'filepath' => $filepath,
                     'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
                     'length' => $numberOfPages,
-                    'checksum' => md5($content),
+                    'checksum' => $checksum,
                 ]);
 
                 $agent->texts()->attach($sourceText->id);
@@ -53,11 +64,17 @@ class CreateAgentSourceTextAction
             // No row points at the file, so nothing else would ever delete it.
             Storage::delete($filepath);
 
-            throw $e;
+            // The same text saved at the same moment by another request.
+            throw $e instanceof UniqueConstraintViolationException ? self::duplicate() : $e;
         }
 
         TextIngestionJob::dispatch($sourceText, $agent);
 
         return $sourceText;
+    }
+
+    private static function duplicate(): DomainValidationException
+    {
+        return new DomainValidationException('content', __('This text is already in your knowledge base.'));
     }
 }

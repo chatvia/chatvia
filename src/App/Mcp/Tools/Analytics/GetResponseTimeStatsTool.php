@@ -36,16 +36,20 @@ class GetResponseTimeStatsTool extends AnalyticsTool
         $data = $this->responseTimes->get($scope);
         $period = $scope->period;
 
-        $summary = $data->avgMs === null
-            ? sprintf('No response-time data %s yet.', $period->label)
-            : sprintf(
+        // The average comes from the rollup; p95 and the slowest reply need
+        // the raw events, which a window older than their retention lacks.
+        $summary = match (true) {
+            $data->avgMs === null => sprintf('No response-time data %s yet.', $period->label),
+            $data->p95Ms === null => sprintf('Avg reply %s: %sms.', $period->label, number_format((float) $data->avgMs)),
+            default => sprintf(
                 'Avg reply %s: %sms (p95 %sms, slowest %sms)%s.',
                 $period->label,
                 number_format((float) $data->avgMs),
                 number_format((float) $data->p95Ms),
                 number_format((int) $data->maxMs),
                 $data->avgFirstResponseSeconds !== null ? ', first reply ~'.$data->avgFirstResponseSeconds.'s' : '',
-            );
+            ),
+        };
 
         return Response::make(Response::text($summary))->withStructuredContent([
             'period' => $this->periodPayload($period),

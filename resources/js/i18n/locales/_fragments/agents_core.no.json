@@ -131,7 +131,7 @@
                 "expires_in_days": "Utløper om {count} dag | Utløper om {count} dager",
                 "expires_in_one_month": "Utløper om 1 måned",
                 "expires_in_months": "Utløper om {count} måned | Utløper om {count} måneder",
-                "conversations_count": "{count} samtale | {count} samtaler"
+                "load_more": "Last inn flere"
             },
             "pagination": {
                 "prev": "Forrige",

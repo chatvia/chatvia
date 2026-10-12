@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Settings\Chatter;
 
 use App\Http\Controllers\Settings\Chatter\Concerns\ResolvesWorkspaceChatters;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Agent\Actions\GrantAgentMembershipAction;
 use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
@@ -61,7 +61,7 @@ class SettingsChatterAgentController
     /**
      * @return array{attached: list<array{id: string, name: string}>, available: list<array{id: string, name: string}>}
      */
-    private function agentsPayload(Request $request, User $member): array
+    private function agentsPayload(Request $request, Chatter $member): array
     {
         // Only protected agents can have members — public agents are open
         // to anyone so per-chatter grants are meaningless.
@@ -71,7 +71,7 @@ class SettingsChatterAgentController
             ->orderBy('agents.name')
             ->get(['agents.id', 'agents.external_id', 'agents.name']);
 
-        $attachedIds = array_flip($member->accessibleAgents()->pluck('agents.id')->all());
+        $attachedIds = array_flip($member->agents()->pluck('agents.id')->all());
 
         $attached = [];
         $available = [];

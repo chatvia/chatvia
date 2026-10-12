@@ -4,9 +4,10 @@ namespace Domain\Conversation\Services\Memory;
 
 use App\Identity\Chatter\Actions\DeleteChatterAction;
 use Carbon\CarbonInterface;
+use Domain\Agent\Actions\Account\PurgeAgentAction;
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Observers\AgentObserver;
 use Domain\Conversation\Actions\Sessions\StartChatSessionAction;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Illuminate\Cache\TaggedCache;
 use Illuminate\Support\Facades\Cache;
 
@@ -122,7 +123,7 @@ class ChatCache
      * {@see self::sessionTags()}), so deleting a single agent can drop its
      * entire Redis chat memory with one `tags(agentTag($id))->flush()` — the
      * same one-shot pattern workspace teardown uses, and what
-     * {@see AgentObserver} relies on instead of walking
+     * {@see PurgeAgentAction} relies on instead of walking
      * every session and conversation by hand.
      *
      * Keyed by the agent's `external_id` (uuid7), consistent with every other
@@ -161,21 +162,22 @@ class ChatCache
     }
 
     /**
-     * Cache key proving `$userId` owns `$conversationId`. The key itself
-     * encodes the (user, conversation) pair — a different user resolves
-     * to a different key, so a `has()` under the wrong user is a cache
-     * miss. Guests bucket under `user:guest` so an anonymous owner
-     * doesn't collide with a real user id.
+     * Cache key proving `$viewer` owns `$conversationId`. The key itself
+     * encodes the (viewer, conversation) pair — a different viewer resolves
+     * to a different key, so a `has()` under the wrong viewer is a cache
+     * miss. The viewer key carries its kind (`chatter:5` / `user:5`), so a
+     * chatter and a staff account with the same id never share a marker.
+     * Guests bucket under `guest`.
      */
-    public static function ownerKey(int|string|null $userId, string $conversationId): string
+    public static function ownerKey(?ChatViewerData $viewer, string $conversationId): string
     {
-        $user = $userId === null || $userId === '' ? 'guest' : $userId;
+        $owner = $viewer?->key() ?? 'guest';
 
-        return "user:{$user}:{$conversationId}";
+        return "owner:{$owner}:{$conversationId}";
     }
 
     /**
-     * Stamp an ownership marker for (user, conversation). Tagged with both
+     * Stamp an ownership marker for (viewer, conversation). Tagged with both
      * the per-conversation tag (so it gets swept by `flushConversation` when
      * the conversation is deleted) and the workspace tag (so account teardown
      * sweeps it too — see {@see self::workspaceTag()}). Stored `forever`
@@ -186,26 +188,26 @@ class ChatCache
      * workspace. `$workspaceExternalId` is the agent owner's external id
      * ({@see Agent::workspaceExternalId()}).
      */
-    public static function rememberOwner(string $conversationId, int|string|null $userId, string $workspaceExternalId): void
+    public static function rememberOwner(string $conversationId, ?ChatViewerData $viewer, string $workspaceExternalId): void
     {
         Cache::driver('chat')
             ->tags([self::conversationTag($conversationId), self::workspaceTag($workspaceExternalId)])
-            ->forever(self::ownerKey($userId, $conversationId), true);
+            ->forever(self::ownerKey($viewer, $conversationId), true);
     }
 
     /**
-     * True iff the ownership marker for (user, conversation) exists — i.e. the
-     * same user created it. Wrong user → different key → miss.
+     * True iff the ownership marker for (viewer, conversation) exists — i.e. the
+     * same viewer created it. Wrong viewer → different key → miss.
      * `$workspaceExternalId` must be the same agent-owner external id passed to
      * {@see self::rememberOwner()}; the tag set is part of the lookup
      * namespace, so a mismatch reads as a miss (→ a spurious 403 on protected
      * agents).
      */
-    public static function isOwnedBy(string $conversationId, int|string|null $userId, string $workspaceExternalId): bool
+    public static function isOwnedBy(string $conversationId, ?ChatViewerData $viewer, string $workspaceExternalId): bool
     {
         return Cache::driver('chat')
             ->tags([self::conversationTag($conversationId), self::workspaceTag($workspaceExternalId)])
-            ->has(self::ownerKey($userId, $conversationId));
+            ->has(self::ownerKey($viewer, $conversationId));
     }
 
     public function generateConversationKey(string $conversationId): string

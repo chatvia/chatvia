@@ -26,7 +26,7 @@ class HandoffSource
      */
     public function events(Conversation $conversation): Generator
     {
-        $id = (string) Str::uuid();
+        $id = (string) Str::uuid7();
 
         yield StreamEvent::start($id, [
             'assistant_message_id' => $id,

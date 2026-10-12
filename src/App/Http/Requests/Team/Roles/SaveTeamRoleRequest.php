@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Team\Roles;
 
+use App\Http\Rules\WorkspaceRule;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
@@ -30,7 +31,7 @@ class SaveTeamRoleRequest extends FormRequest
             'permissions.*' => ['string'],
             'all_agents' => ['boolean'],
             'agent_ids' => ['exclude_if:all_agents,true', 'required', 'array', 'min:1'],
-            'agent_ids.*' => ['string', 'exists:agents,external_id'],
+            'agent_ids.*' => ['string', WorkspaceRule::exists('agents', $this->user()->workspace(), 'external_id')],
         ];
     }
 

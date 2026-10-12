@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Ingestion\Data\Ocr;
 
-use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
 
@@ -45,16 +44,14 @@ final class PageData extends Data
         return collect($pages)->map(fn ($page): PageData => new PageData(...$page));
     }
 
-    /**
-     * A page standing for an existing chunk (website chunks are enhanced from
-     * the chunk itself).
-     */
-    public static function fromChunkModel(Chunk $chunk): self
+    /** The same page without its images, tables and links. */
+    public function withoutMedia(): self
     {
         return new self(
-            pageNumber: $chunk->chunk_index,
-            content: $chunk->chunk,
-            checksum: $chunk->checksum,
+            pageNumber: $this->pageNumber,
+            content: $this->content,
+            checksum: $this->checksum,
+            tokens: $this->tokens,
         );
     }
 }

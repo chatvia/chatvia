@@ -13,10 +13,9 @@ use Throwable;
  * — including the tool-loop iterations driven by ToolLoopRunner:
  *
  *   - trace_id  → groups the whole agentic chain as one logical operation.
- *   - trackable → the owning workspace, so anonymous-widget turns (no auth user)
- *     are still attributed. For an authenticated chatter Spectra's
- *     `auto_track_user` overrides this with the chatter in RequestContext, so it
- *     only fills the no-auth gap — same pattern as {@see TokenUsageContext}.
+ *   - trackable → the agent's workspace, for every turn: Spectra's user
+ *     auto-tracking is off, so a signed-in chatter or teammate never takes
+ *     the cost away from the workspace (same rule as {@see TokenUsageContext}).
  */
 trait AttributesSpectraTurn
 {
@@ -24,15 +23,8 @@ trait AttributesSpectraTurn
     {
         Spectra::withTraceId($context->assistantMessageId);
 
-        $workspaceId = $context->requestData->agent->user_id;
-
-        if ($workspaceId === null) {
-            return;
-        }
-
         try {
-            // Spectra (>=1.2) resolves the id to the configured user model.
-            Spectra::forUser($workspaceId);
+            Spectra::forTrackable($context->requestData->agent->workspace);
         } catch (Throwable $e) {
             // Attribution must never break the streamed turn — but a failure
             // means cost tracking is silently wrong, so make it visible.

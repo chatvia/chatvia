@@ -80,7 +80,7 @@ it('stores a completed answer and announces it', function (): void {
 
     app(AssistantReplyRecorder::class)->recordCompletedReply($context);
 
-    Event::assertDispatched(AssistantReplyCompleted::class, fn (AssistantReplyCompleted $event): bool => $event->workspaceId === $context->requestData->agent->user_id
+    Event::assertDispatched(AssistantReplyCompleted::class, fn (AssistantReplyCompleted $event): bool => $event->workspaceId === $context->requestData->agent->workspace_id
         && $event->assistantMessageId === $context->assistantMessageId);
 
     expect(recorderHistory($context)[0]['content'])->toBe('Here is the summary.')
@@ -89,11 +89,11 @@ it('stores a completed answer and announces it', function (): void {
 
 it('counts the reply against the workspace monthly message limit', function (): void {
     $context = recorderContext();
-    app(SetMessageLimitAction::class)->execute($context->requestData->agent->user, 10);
+    app(SetMessageLimitAction::class)->execute($context->requestData->agent->workspace, 10);
 
     app(AssistantReplyRecorder::class)->recordCompletedReply($context);
 
-    expect(MessageLimit::query()->where('user_id', $context->requestData->agent->user_id)->value('messages_used'))->toBe(1);
+    expect(MessageLimit::query()->where('workspace_id', $context->requestData->agent->workspace_id)->value('messages_used'))->toBe(1);
 });
 
 it('stores a refusal without counting it', function (): void {

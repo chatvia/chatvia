@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Chat\Usage;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Http\Request;
 
@@ -20,11 +20,11 @@ class MessagesUsage
      */
     public function __invoke(Request $request, MessageAllowance $allowance): array
     {
-        $user = $request->user();
-        $chatterMaySend = ! $user instanceof User || ! $user->isChatter() || $allowance->canSend($user->id);
+        $account = $request->user();
+        $chatterMaySend = ! $account instanceof Chatter || $allowance->canSendAsChatter($account->id);
 
         return [
-            'can_send_messages' => $chatterMaySend && $allowance->canSend((int) $request->attributes->get('agent_user_id')),
+            'can_send_messages' => $chatterMaySend && $allowance->canSend((int) $request->attributes->get('agent_workspace_id')),
         ];
     }
 }

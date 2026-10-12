@@ -29,14 +29,14 @@ class EmbedFormDefinitionJob implements AttributesTokenUsage, ShouldQueue
 
     public function tokenWorkspaceId(): ?int
     {
-        // Forms are agent-scoped (no own user_id); the workspace is the agent's
+        // Forms are agent-scoped (no own workspace_id); the workspace is the agent's
         // owner, so the embedding token cost lands on the right account.
         $agentId = FormDefinition::query()->whereKey($this->formId)->value('agent_id');
         if ($agentId === null) {
             return null;
         }
 
-        $userId = Agent::query()->whereKey($agentId)->value('user_id');
+        $userId = Agent::withTrashed()->whereKey($agentId)->value('workspace_id');
 
         return $userId !== null ? (int) $userId : null;
     }

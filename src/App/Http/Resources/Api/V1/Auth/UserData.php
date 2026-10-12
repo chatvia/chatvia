@@ -2,13 +2,14 @@
 
 namespace App\Http\Resources\Api\V1\Auth;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Carbon\CarbonInterface;
 use Spatie\LaravelData\Data;
 
 /**
- * An end-user created through the API. Pass `id` as `user_id` when minting a
- * sign-in link.
+ * A person as the API returns it: a chatter created through the API, or a
+ * teammate. Pass a chatter's `id` as `user_id` when minting a sign-in link.
  */
 class UserData extends Data
 {
@@ -27,7 +28,7 @@ class UserData extends Data
         public ?CarbonInterface $created_at,
     ) {}
 
-    public static function fromModel(User $user): self
+    public static function fromModel(Chatter|User $user): self
     {
         return new self(
             id: $user->external_id,

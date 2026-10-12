@@ -42,7 +42,7 @@ function auditEvent(array $overrides = []): ToolCallCompleted
 
 it('writes one agent_activity row with denormalized names, unprefixed tool, redacted args + raw hash', function (): void {
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->user_id]);
+    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
 
@@ -52,7 +52,7 @@ it('writes one agent_activity row with denormalized names, unprefixed tool, reda
         ->and($row->outcome)->toBe('auto')
         ->and((int) $row->agent_id)->toBe($agent->id)
         ->and($row->agent_name)->toBe($agent->name)
-        ->and((int) $row->workspace_id)->toBe((int) $agent->user_id)
+        ->and((int) $row->workspace_id)->toBe((int) $agent->workspace_id)
         ->and($row->user_name)->toBe('Jane')
         ->and($row->tool_name)->toBe('current-weather-tool')
         ->and($row->connector_slug)->toBe('weather')
@@ -65,7 +65,7 @@ it('writes one agent_activity row with denormalized names, unprefixed tool, reda
 
 it('marks an anonymous visitor (no user)', function (): void {
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->user_id, 'userId' => null, 'userName' => null]);
+    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'userId' => null, 'userName' => null]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
 
@@ -75,7 +75,7 @@ it('marks an anonymous visitor (no user)', function (): void {
 it('records decided_at for a gated approved call', function (): void {
     $agent = Agent::factory()->create();
     $event = auditEvent([
-        'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->user_id,
+        'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id,
         'approvalOutcome' => 'approved', 'gated' => true, 'decidedAt' => now()->toIso8601String(),
     ]);
 
@@ -90,7 +90,7 @@ it('records decided_at for a gated approved call', function (): void {
 it('caps an oversized result and flags truncation', function (): void {
     config(['chatvia.governance.max_result_bytes' => 10]);
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->user_id, 'resultText' => str_repeat('x', 50)]);
+    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'resultText' => str_repeat('x', 50)]);
 
     app(RecordToolCallAuditAction::class)->execute($event);
     $row = AgentActivity::query()->latest('id')->first();
@@ -104,7 +104,7 @@ it('stores every outcome the tool loop can report', function (ToolCallOutcome $o
     // list would make the queued listener fail and the audit row go missing.
     $agent = Agent::factory()->create();
     $event = auditEvent([
-        'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->user_id,
+        'agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id,
         'approvalOutcome' => $outcome->value, 'gated' => $outcome->wasGated(),
     ]);
 

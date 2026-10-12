@@ -18,7 +18,7 @@ class ListAgentFunctionsAction
     {
         // Functions belong to the workspace owner, who also owns the agent.
         $functions = AgentFunction::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->orderBy('internal_name')
             ->get();
 

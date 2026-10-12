@@ -10,7 +10,7 @@ it('creates the default team together with its roles', function (): void {
 
     $team = app(TeamService::class)->createDefaultTeam($user);
 
-    expect($team->user_id)->toBe($user->id)
+    expect($team->workspace_id)->toBe($user->workspace()->id)
         ->and($team->name)->toBe("Dana's Team")
         ->and($team->roles()->count())->toBe(count(config('team-permissions.roles')));
 });
@@ -24,5 +24,5 @@ it('leaves no role-less team behind when creating the roles fails', function ():
 
     expect(fn () => app(TeamService::class)->createDefaultTeam($user))->toThrow(RuntimeException::class, 'roles failed');
 
-    expect(Team::query()->where('user_id', $user->id)->exists())->toBeFalse();
+    expect(Team::query()->where('workspace_id', $user->workspace()->id)->exists())->toBeFalse();
 });

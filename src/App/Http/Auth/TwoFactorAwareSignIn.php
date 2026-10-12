@@ -2,6 +2,7 @@
 
 namespace App\Http\Auth;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Chatter\Services\ChatterAuthTokenService;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
@@ -19,8 +20,9 @@ use Illuminate\Http\RedirectResponse;
  *    the user is sent to the two-factor challenge.
  *  - Anyone else is signed in on the `web` guard and sent to the intended URL.
  *
- * A sign-in for a hosted chat ({@see respondForChat()}) never opens a
- * dashboard session: the chat has its own.
+ * A sign-in for a hosted chat ({@see respondForChat()} for staff,
+ * {@see respondForChatter()} for chatters) never opens a dashboard session:
+ * the chat has its own.
  */
 final readonly class TwoFactorAwareSignIn
 {
@@ -78,6 +80,24 @@ final readonly class TwoFactorAwareSignIn
         }
 
         $token = $this->chatTokens->generateToken($agent, $user, 5);
+
+        return redirect(route('chat.home', ['agentSlug' => $slug, 'auth_token' => $token], absolute: false));
+    }
+
+    /**
+     * A chatter's sign-in to $agent's hosted chat. Chatters have no two-factor
+     * step, so a one-time token takes them straight into the chat.
+     */
+    public function respondForChatter(Chatter $chatter, Agent $agent): RedirectResponse
+    {
+        $slug = $agent->slug ?? $agent->external_id;
+
+        if ($chatter->isDeactivated()) {
+            return redirect(route('chat.login.show', ['agentSlug' => $slug], absolute: false))
+                ->with('error', __('Your account has been deactivated.'));
+        }
+
+        $token = $this->chatTokens->generateToken($agent, $chatter, 5);
 
         return redirect(route('chat.home', ['agentSlug' => $slug, 'auth_token' => $token], absolute: false));
     }

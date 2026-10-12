@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Chatters\Concerns;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +20,7 @@ trait ResolvesWorkspaceAgents
      *
      * @throws ValidationException
      */
-    private function workspaceAgentsOrFail(User $workspace, array $externalIds): Collection
+    private function workspaceAgentsOrFail(Workspace $workspace, array $externalIds): Collection
     {
         /** @var Collection<int, Agent> $agents */
         $agents = $workspace->agents()->whereIn('external_id', $externalIds)->get();

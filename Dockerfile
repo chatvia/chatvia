@@ -10,11 +10,19 @@
 #   chatvia-setup                      one-shot: create the secrets of an install
 #   chatvia-migrate                    one-shot: migrate, seed, first admin
 #
-# Build:  docker build -t chatvia .
+# Build:  docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t chatvia .
 # The release workflow (.github/workflows/docker.yml) builds it for every v* tag.
 
 ARG PHP_IMAGE=serversideup/php:8.5-fpm-nginx-trixie-v5.0.0
 ARG NODE_IMAGE=node:22-trixie-slim
+# Shakomako, the chat widget, lives in its own repository;
+# `npm run shakomako:build` (scripts/build-shakomako.mjs) reads SHAKOMAKO_REPO
+# too. SHAKOMAKO_VERSION is the release to build and has no default:
+# `npm run -s shakomako:version` prints the newest release, and the release
+# workflow passes it in. The build cannot look up the newest release itself:
+# Docker would reuse that step from its cache and keep an old widget.
+ARG SHAKOMAKO_REPO=https://github.com/chatvia/shakomako.git
+ARG SHAKOMAKO_VERSION
 
 #-------------------------------------------------------------------------------
 # PHP packages. Plain PHP files, so this stage runs on the build machine's own
@@ -62,10 +70,7 @@ RUN set -eux; \
 
 #-------------------------------------------------------------------------------
 # Frontend assets. Built without any VITE_* settings: the browser then takes
-# the WebSocket address and key from the page (see resources/js/app.ts). The
-# chat widget (shakomako/) is built the same way: it finds its server from the
-# address its embed.js loads from, and gets the WebSocket settings from the
-# widget API (see shakomako/src/endpoints.js).
+# the WebSocket address and key from the page (see resources/js/app.ts).
 #-------------------------------------------------------------------------------
 FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS assets
 
@@ -73,10 +78,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 # The build needs no install scripts.
 RUN npm ci --ignore-scripts --no-audit --no-fund
-# The widget is its own package with its own lockfile. --ignore-scripts also
-# skips its husky git-hook setup.
-COPY shakomako/package.json shakomako/package-lock.json ./shakomako/
-RUN npm ci --prefix shakomako --ignore-scripts --no-audit --no-fund
 
 COPY . .
 # Tailwind reads the pagination views from vendor/ (resources/css/app.css).
@@ -84,8 +85,29 @@ COPY --from=vendor /app/vendor ./vendor
 COPY --from=routes /app/resources/js/routes ./resources/js/routes
 COPY --from=routes /app/resources/js/wayfinder ./resources/js/wayfinder
 RUN WAYFINDER_GENERATE=false npm run build
-# Into public/shakomako.
-RUN npm run shakomako:build
+
+#-------------------------------------------------------------------------------
+# The chat widget (Shakomako), the release in SHAKOMAKO_VERSION, from its own
+# repository. Only its build reaches the image, as public/shakomako. Built
+# without any settings too: it finds its server from the address its embed.js
+# loads from, and gets the WebSocket settings from the widget API.
+#-------------------------------------------------------------------------------
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS widget
+
+ARG SHAKOMAKO_REPO
+ARG SHAKOMAKO_VERSION
+
+# Without a release, the ADD below would build the widget's default branch.
+RUN test -n "$SHAKOMAKO_VERSION" || { \
+        echo 'Set the widget release: docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) ...' >&2; \
+        exit 1; \
+    }
+
+WORKDIR /shakomako
+ADD ${SHAKOMAKO_REPO}#${SHAKOMAKO_VERSION} ./
+# --ignore-scripts also skips its husky git-hook setup.
+RUN npm ci --ignore-scripts --no-audit --no-fund \
+    && npm run build
 
 #-------------------------------------------------------------------------------
 # The application.
@@ -160,7 +182,7 @@ WORKDIR /var/www/chatvia
 COPY --chown=www-data:www-data --from=vendor /app/vendor ./vendor
 COPY --chown=www-data:www-data . .
 COPY --chown=www-data:www-data --from=assets /app/public/build ./public/build
-COPY --chown=www-data:www-data --from=assets /app/public/shakomako ./public/shakomako
+COPY --chown=www-data:www-data --from=widget /shakomako/dist ./public/shakomako
 # Production defaults. Real environment variables always win over this file.
 COPY --chown=www-data:www-data docker/app/production.env ./.env
 

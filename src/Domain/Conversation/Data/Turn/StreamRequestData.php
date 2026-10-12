@@ -21,24 +21,26 @@ class StreamRequestData extends Data
         public StreamRequestMessageData $message,
         public string $externalSessionId,
         public string $conversationId,
-        // The authenticated Chatter (widget end-user) sending this turn, or null
-        // for anonymous visitors and dashboard/chat senders. Stamps Session.user_id,
-        // drives the per-chatter message limit, and records analytics chatter_user_id.
-        public ?int $chatterUserId = null,
-        // The signed-in chatter's display name (users.name), resolved up front so
+        // The signed-in chatter (chatters.id) sending this turn, or null for
+        // anonymous visitors and staff. Stamps Session.chatter_id, drives the
+        // per-chatter message limit, and records analytics chatter_id.
+        public ?int $chatterId = null,
+        // The signed-in chatter's display name, resolved up front so
         // buildSystemPrompt() can address them by name without a mid-stream query.
-        // Only set alongside chatterUserId; null for anonymous/owner/employee senders.
+        // Only set alongside chatterId; null for anonymous/staff senders.
         public ?string $chatterName = null,
-        // The signed-in chatter's opaque public id (users.external_id), stamped
+        // The signed-in chatter's opaque public id (chatters.external_id), stamped
         // on outbound tool calls as X-Chatvia-Chatter-Id so a customer's MCP or
         // webhook can tell WHICH end-user is talking — the same id they got from
         // POST /api/v1/chatters. Null for anonymous/owner/employee senders.
         public ?string $chatterExternalId = null,
-        // The authenticated user who caused this turn — ANY type (chatter, owner,
-        // teammate), or null for an anonymous visitor. Unlike chatterUserId this is
-        // not filtered to chatters and never affects message limits/prompts; it exists so
-        // the governance audit attributes the action to whoever is logged in.
+        // The staff account (users.id: owner, teammate, admin previewing) who
+        // caused this turn, or null for a chatter or an anonymous visitor. It
+        // never affects message limits or prompts; with chatterId it lets the
+        // governance audit attribute the action to whoever is signed in.
         public ?int $actorUserId = null,
+        // The display name of whoever is signed in (chatter or staff), for the
+        // audit trail; null for an anonymous visitor.
         public ?string $actorName = null,
         // In Chat, when the user creates a new conversation, their message will be saved with the conversation ID.
         public bool $saveUserMessageImmediately = false,

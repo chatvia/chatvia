@@ -1,0 +1,2285 @@
+#!/usr/bin/env bash
+#
+# Chatvia's management tool for an install made with Docker. The installer
+# puts it in the install folder, next to compose.yaml and .env:
+#
+#   ./manage                 list the commands
+#   ./manage start           start Chatvia
+#   ./manage backup          back up the database and the app key
+#   ./manage help backup     the options of one command
+#
+# It runs Docker Compose in its own folder, so it works from anywhere, and
+# with sudo when your user cannot reach Docker. Commands that ask questions
+# take --yes to use the defaults instead (for scripts and cron).
+#
+# Environment variables:
+#   CHATVIA_DIR             the install folder (default: this script's folder)
+#   CHATVIA_BACKUP_DIR      where backups go (default: backups/ in the folder)
+#   CHATVIA_INSTALLER_URL   where `upgrade` downloads the installer from
+#   NO_COLOR                plain output
+#
+# Everything runs inside main(), called on the last line, so a download that
+# stops half way runs nothing.
+#
+# Commands for the containers are in single quotes on purpose: their $VARS
+# belong to the container's shell.
+# shellcheck disable=SC2016
+
+set -euo pipefail
+# For *([0-9;]) and +([ /]): stripping color codes, deleting a word.
+shopt -s extglob
+
+readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/self-hosting/manage"
+readonly DEFAULT_INSTALLER_URL="https://chatvia.ai/install.sh"
+readonly MIN_PASSWORD=12
+
+# The long-running services, in the order `status` shows them; the first four
+# use the database.
+readonly SERVICES="app horizon scheduler reverb chunker postgres redis"
+readonly DATABASE_USERS="app horizon scheduler reverb"
+
+# Where PostgreSQL reads postgres/postgresql.conf inside its container.
+readonly PG_CONF_MOUNT="/etc/postgresql/chatvia"
+# Chatvia's search needs these PostgreSQL libraries loaded at start.
+readonly REQUIRED_LIBRARIES="vchord vchord_bm25 vector pg_tokenizer"
+
+#------------------------------------------------------------------------------
+# Output (the same look as install.sh)
+#
+# One line runs down the left and joins every question and step: ◆ is the
+# open question, ◇ a finished question or task, ▲ a warning, ■ a failure.
+#------------------------------------------------------------------------------
+
+setup_output() {
+    FANCY=0
+    if [ -t 1 ] && [ "${TERM:-dumb}" != dumb ]; then FANCY=1; fi
+
+    if [ "$FANCY" = 1 ] && [ -z "${NO_COLOR:-}" ]; then
+        C_RESET=$'\033[0m' C_BOLD=$'\033[1m' C_DIM=$'\033[2m'
+        C_ACCENT=$'\033[38;5;99m' C_GRAY=$'\033[90m' C_GREEN=$'\033[32m' C_RED=$'\033[31m' C_YELLOW=$'\033[33m'
+        C_BADGE=$'\033[1;38;5;231;48;5;99m'
+    else
+        C_RESET='' C_BOLD='' C_DIM='' C_ACCENT='' C_GRAY='' C_GREEN='' C_RED='' C_YELLOW='' C_BADGE=''
+    fi
+    # Questions hide the real cursor and draw their own, even without color.
+    if [ "$FANCY" = 1 ]; then
+        HIDE_CURSOR=$'\033[?25l' SHOW_CURSOR=$'\033[?25h' C_INVERSE=$'\033[7m' C_NO_INVERSE=$'\033[27m'
+    else
+        HIDE_CURSOR='' SHOW_CURSOR='' C_INVERSE='' C_NO_INVERSE=''
+    fi
+
+    case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
+        *UTF-8* | *utf-8* | *UTF8* | *utf8*)
+            S_BAR='│' S_START='┌' S_END='└' S_LINE='─' S_JOIN='├' S_TOP_RIGHT='╮' S_BOTTOM_RIGHT='╯'
+            S_ACTIVE='◆' S_DONE='◇' S_WARN='▲' S_FAIL='■' S_INFO='●'
+            S_ON='●' S_OFF='○' S_MASK='▪' S_OK='✓' S_UP='↑'
+            S_UP_DOWN='↑/↓' S_LEFT_RIGHT='←/→'
+            SPINNER=('◒' '◐' '◓' '◑') UNICODE=1
+            ;;
+        *)
+            S_BAR='|' S_START='+' S_END='+' S_LINE='-' S_JOIN='+' S_TOP_RIGHT='+' S_BOTTOM_RIGHT='+'
+            S_ACTIVE='*' S_DONE='o' S_WARN='!' S_FAIL='x' S_INFO='*'
+            S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_UP='^'
+            S_UP_DOWN='up/down' S_LEFT_RIGHT='left/right'
+            SPINNER=('|' '/' '-' '\') UNICODE=0
+            ;;
+    esac
+
+    BAR=$C_GRAY$S_BAR$C_RESET
+    START=$C_GRAY$S_START$C_RESET
+    END=$C_GRAY$S_END$C_RESET
+    ACTIVE=$C_ACCENT$S_ACTIVE$C_RESET
+    ACTIVE_BAR=$C_ACCENT$S_BAR$C_RESET
+    ACTIVE_END=$C_ACCENT$S_END$C_RESET
+    DONE=$C_GREEN$S_DONE$C_RESET
+    WARN=$C_YELLOW$S_WARN$C_RESET
+    WARN_BAR=$C_YELLOW$S_BAR$C_RESET
+    WARN_END=$C_YELLOW$S_END$C_RESET
+    FAIL=$C_RED$S_FAIL$C_RESET
+    INFO=$C_ACCENT$S_INFO$C_RESET
+    LAST_BLOCK=other FRAME_ROWS=0 COLS=80
+}
+
+bold() { printf '%s%s%s' "$C_BOLD" "$*" "$C_RESET"; }
+dim() { printf '%s%s%s' "$C_DIM" "$*" "$C_RESET"; }
+accent() { printf '%s%s%s' "$C_ACCENT" "$*" "$C_RESET"; }
+
+# Blocks are parted by an empty stretch of the line; finished tasks in a row
+# stack without one.
+block() {
+    if [ "$1" != task ] || [ "$LAST_BLOCK" != task ]; then
+        printf '  %s\n' "$BAR"
+    fi
+    LAST_BLOCK=$1
+}
+
+say() { printf '%s\n' "$*"; }
+info() {
+    printf '  %s  %s\n' "$BAR" "$*"
+    LAST_BLOCK=text
+}
+ok() {
+    block task
+    printf '  %s  %s\n' "$DONE" "$*"
+}
+warn() {
+    block warn
+    printf '  %s  %s\n' "$WARN" "$*"
+}
+fail() {
+    block fail >&2
+    printf '  %s  %s\n' "$FAIL" "$*" >&2
+}
+# section "Title" [note]: a heading on the line, for the lines under it.
+section() {
+    block section
+    printf '  %s  %s\n' "$INFO" "$C_BOLD$1$C_RESET${2:+  $C_DIM$2$C_RESET}"
+}
+
+die() {
+    fail "$1"
+    shift
+    local line
+    for line in "$@"; do
+        printf '  %s  %s\n' "$BAR" "$line" >&2
+    done
+    printf '  %s\n\n' "$END" >&2
+    exit 1
+}
+
+# intro "Title" [note]: the badge that opens a command's output.
+intro() {
+    printf '\n  %s  %s%s\n' "$START" "$C_BADGE $1 $C_RESET" "${2:+  $C_DIM$2$C_RESET}"
+    LAST_BLOCK=other
+}
+
+outro() {
+    printf '  %s\n  %s  %s\n\n' "$BAR" "$END" "$*"
+}
+
+# Prints stdin on the line, dimmed: log lines.
+quote() {
+    local line
+    while IFS= read -r line; do
+        printf '  %s  %s\n' "$BAR" "$C_DIM$line$C_RESET"
+    done
+}
+
+# repeat_to VAR TEXT COUNT
+repeat_to() {
+    local out='' i
+    for ((i = 0; i < $3; i++)); do out=$out$2; done
+    printf -v "$1" '%s' "$out"
+}
+
+# duration_to VAR SECONDS: 42s, or 3m 05s.
+duration_to() {
+    if [ "$2" -lt 60 ]; then
+        printf -v "$1" '%ds' "$2"
+    else
+        printf -v "$1" '%dm %02ds' $(($2 / 60)) $(($2 % 60))
+    fi
+}
+
+# kv_to VAR LABEL VALUE: a "label  value" row for a box.
+kv_to() {
+    printf -v "$1" '%s%-16s%s%s' "$C_DIM" "$2" "$C_RESET" "$3"
+}
+
+# COLS: the terminal's width, to know when a line wraps.
+terminal_width() {
+    local size
+    size=$(stty size 2>/dev/null </dev/tty) || size=''
+    COLS=${size#* }
+    case $COLS in '' | *[!0-9]* | 0) COLS=80 ;; esac
+}
+
+# note "Title" LINE...: a box on the line, for a summary or a result. Too
+# wide for the terminal, it prints the same lines without the box.
+note() {
+    local title=$1
+    shift
+    local width=0 line plain fill
+    for line in "$@"; do
+        plain=${line//$'\033'\[*([0-9;])m/}
+        if [ "${#plain}" -gt "$width" ]; then width=${#plain}; fi
+    done
+    plain=${title//$'\033'\[*([0-9;])m/}
+    if [ "$((${#plain} + 2))" -gt "$width" ]; then width=$((${#plain} + 2)); fi
+    width=$((width + 2))
+
+    terminal_width
+    block note
+    if [ "$FANCY" = 0 ] || [ "$((width + 6))" -gt "$COLS" ]; then
+        printf '  %s  %s\n' "$DONE" "$title"
+        for line in "$@"; do printf '  %s  %s\n' "$BAR" "$line"; done
+        return
+    fi
+    repeat_to fill "$S_LINE" $((width - ${#plain} - 1))
+    printf '  %s  %s %s\n' "$DONE" "$title" "$C_GRAY$fill$S_TOP_RIGHT$C_RESET"
+    for line in '' "$@" ''; do
+        plain=${line//$'\033'\[*([0-9;])m/}
+        repeat_to fill ' ' $((width - ${#plain}))
+        printf '  %s  %s%s%s\n' "$BAR" "$line" "$fill" "$BAR"
+    done
+    repeat_to fill "$S_LINE" $((width + 2))
+    printf '  %s\n' "$C_GRAY$S_JOIN$fill$S_BOTTOM_RIGHT$C_RESET"
+}
+
+# The app's logo in half blocks, for the command list.
+banner() {
+    local name tagline
+    name=$(bold 'Chatvia')
+    tagline=$(dim 'manage your install')
+    say ''
+    if [ "$UNICODE" = 1 ]; then
+        printf '  %s\n' '    ▄▄██████▄▄' '  ▄████████████' ' ▄███▀      ▀██'
+        printf '  %s    %s\n' ' ████           ▄██▄' "$name"
+        printf '  %s    %s\n' ' ████           ▀██▀' "$tagline"
+        printf '  %s\n' ' ▀███▄      ▄██' '  █████████████' ' ██████████▀▀▀' '██▀▀'
+    else
+        printf '  %s\n' "$name" "$tagline"
+    fi
+}
+
+#------------------------------------------------------------------------------
+# Questions (read from the terminal, like install.sh)
+#
+# An open question is drawn again after every key, over its last version.
+# Once answered it shrinks to the question and the answer.
+#------------------------------------------------------------------------------
+
+keys_on() {
+    stty -echo -icanon min 1 time 0 2>/dev/null </dev/tty || true
+    printf '%s' "$HIDE_CURSOR"
+}
+
+keys_off() {
+    if [ -n "${TTY_STATE:-}" ]; then stty "$TTY_STATE" 2>/dev/null </dev/tty || true; fi
+    printf '%s' "${SHOW_CURSOR:-}"
+}
+
+# The terminal closed (for example Ctrl-D): stop instead of asking forever.
+no_input() {
+    keys_off
+    printf '\n'
+    die 'Stopped: no answer.' 'Nothing was changed.'
+}
+
+# Reads one key into KEY: enter, up, down, left, right, tab, backspace,
+# clear (Ctrl-U), word (Ctrl-W), eof (Ctrl-D), other, or char with the
+# character in CHAR.
+read_key() {
+    local key rest=''
+    CHAR=''
+    IFS= read -rsn1 key </dev/tty || no_input
+    case $key in
+        '') KEY=enter ;;
+        $'\033')
+            IFS= read -rsn2 -t 1 rest </dev/tty || true
+            case $rest in
+                '[A' | OA) KEY=up ;;
+                '[B' | OB) KEY=down ;;
+                '[C' | OC) KEY=right ;;
+                '[D' | OD) KEY=left ;;
+                *) KEY=other ;;
+            esac
+            ;;
+        $'\177' | $'\010') KEY=backspace ;;
+        $'\t') KEY=tab ;;
+        $'\025') KEY=clear ;;
+        $'\027') KEY=word ;;
+        $'\004') KEY=eof ;;
+        *)
+            if [[ $key == [[:print:]] ]]; then KEY=char CHAR=$key; else KEY=other; fi
+            ;;
+    esac
+}
+
+# draw LINE...: shows the open question over its last version. A line wider
+# than the terminal wraps, so it counts as more rows.
+draw() {
+    local line plain rows=0
+    if [ "$FRAME_ROWS" -gt 0 ]; then printf '\033[%dA' "$FRAME_ROWS"; fi
+    printf '\r\033[J'
+    for line in "$@"; do
+        printf '%s\n' "$line"
+        plain=${line//$'\033'\[*([0-9;])m/}
+        rows=$((rows + 1 + (${#plain} > 0 ? (${#plain} - 1) / COLS : 0)))
+    done
+    FRAME_ROWS=$rows
+}
+
+# answer_drawn "Question" "Answer": the closed question.
+answer_drawn() {
+    draw "  $DONE  $1" "  $BAR  $C_DIM$2$C_RESET"
+    FRAME_ROWS=0
+    LAST_BLOCK=answer
+    keys_off
+}
+
+# ask VAR "Question" [--default TEXT] [--placeholder TEXT] [--hint TEXT]
+#     [--check FN]
+#   --default      the answer when Enter is pressed on an empty line
+#   --placeholder  an example, shown greyed out; not an answer
+#   --check FN     runs on Enter; returns 1 with the reason in INVALID
+ask() {
+    local var=$1 label=$2
+    shift 2
+    local default='' placeholder='' hint='' check=''
+    while [ $# -ge 2 ]; do
+        case $1 in
+            --default) default=$2 ;;
+            --placeholder) placeholder=$2 ;;
+            --hint) hint=$2 ;;
+            --check) check=$2 ;;
+        esac
+        shift 2
+    done
+
+    local value='' answer='' error='' shown input help sym rail foot
+    local lines
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        printf '  %s  %s\n' "$ACTIVE" "$label"
+        if [ -n "$hint" ]; then printf '  %s  %s\n' "$BAR" "$hint"; fi
+        while true; do
+            printf '  %s  %s' "$BAR" "${default:+($default) }"
+            IFS= read -r answer </dev/tty || no_input
+            answer=${answer:-$default}
+            INVALID='Type an answer first.'
+            if [ -n "$answer" ] && { [ -z "$check" ] || "$check" "$answer"; }; then break; fi
+            printf '  %s  %s\n' "$WARN" "$INVALID"
+        done
+        printf -v "$var" '%s' "$answer"
+        return
+    fi
+
+    terminal_width
+    keys_on
+    while true; do
+        shown=${default:-$placeholder}
+        if [ -n "$value" ]; then
+            input="$value$C_INVERSE $C_NO_INVERSE"
+        elif [ -n "$shown" ]; then
+            input="$C_INVERSE${shown:0:1}$C_NO_INVERSE$C_DIM${shown:1}$C_RESET"
+        else
+            input="$C_INVERSE $C_NO_INVERSE"
+        fi
+
+        if [ -n "$error" ]; then
+            sym=$WARN rail=$WARN_BAR foot="$WARN_END  $C_YELLOW$error$C_RESET"
+        else
+            help=''
+            if [ -z "$value" ] && [ -n "$default" ]; then help='Enter to use it, Tab to change it'; fi
+            sym=$ACTIVE rail=$ACTIVE_BAR foot="$ACTIVE_END${help:+  $C_DIM$help$C_RESET}"
+        fi
+
+        lines=("  $sym  $C_BOLD$label$C_RESET")
+        if [ -n "$hint" ]; then lines+=("  $rail  $C_DIM$hint$C_RESET"); fi
+        lines+=("  $rail  $input" "  $foot")
+        draw "${lines[@]}"
+
+        read_key
+        case $KEY in
+            enter)
+                answer=${value:-$default}
+                INVALID=''
+                if [ -z "$answer" ]; then
+                    error='Type an answer first.'
+                elif [ -z "$check" ] || "$check" "$answer"; then
+                    break
+                else
+                    error=$INVALID
+                fi
+                ;;
+            char) value=$value$CHAR error='' ;;
+            backspace) value=${value%?} error='' ;;
+            clear) value='' error='' ;;
+            word)
+                value=${value%%+([ /])}
+                value=${value%"${value##*[ /]}"}
+                error=''
+                ;;
+            tab)
+                if [ -z "$value" ] && [ -n "$default" ]; then value=$default; fi
+                error=''
+                ;;
+            eof) if [ -z "$value" ]; then no_input; fi ;;
+        esac
+    done
+
+    answer_drawn "$label" "$answer"
+    printf -v "$var" '%s' "$answer"
+}
+
+# ask_secret VAR "Question": a hidden password, typed twice.
+ask_secret() {
+    local var=$1 label=$2 first='' second='' again=0 error='' sym rail foot mask count
+    local lines
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        printf '  %s  %s\n' "$ACTIVE" "$label"
+        while true; do
+            printf '  %s  At least %d characters (hidden): ' "$BAR" "$MIN_PASSWORD"
+            IFS= read -rs first </dev/tty || no_input
+            printf '\n'
+            if [ "${#first}" -lt "$MIN_PASSWORD" ]; then
+                printf '  %s  Use at least %d characters.\n' "$WARN" "$MIN_PASSWORD"
+                continue
+            fi
+            printf '  %s  Type it again: ' "$BAR"
+            IFS= read -rs second </dev/tty || no_input
+            printf '\n'
+            if [ "$first" = "$second" ]; then break; fi
+            printf '  %s  %s\n' "$WARN" 'The two passwords are different. Try again.'
+        done
+        printf -v "$var" '%s' "$first"
+        return
+    fi
+
+    terminal_width
+    keys_on
+    while true; do
+        if [ -n "$error" ]; then
+            sym=$WARN rail=$WARN_BAR foot="$WARN_END  $C_YELLOW$error$C_RESET"
+        else
+            sym=$ACTIVE rail=$ACTIVE_BAR foot="$ACTIVE_END  ${C_DIM}Enter to continue$C_RESET"
+        fi
+        if [ "${#first}" -ge "$MIN_PASSWORD" ]; then
+            count="$C_GREEN$S_OK$C_RESET"
+        else
+            count="$C_DIM${#first}/$MIN_PASSWORD$C_RESET"
+        fi
+
+        lines=("  $sym  $C_BOLD$label$C_RESET" "  $rail  ${C_DIM}At least $MIN_PASSWORD characters, typed twice.$C_RESET")
+        repeat_to mask "$S_MASK" "${#first}"
+        if [ "$again" = 0 ]; then
+            lines+=("  $rail  $mask$C_INVERSE $C_NO_INVERSE  $count")
+        else
+            lines+=("  $rail  $mask  $count")
+            repeat_to mask "$S_MASK" "${#second}"
+            lines+=("  $rail  $mask$C_INVERSE $C_NO_INVERSE  ${C_DIM}again$C_RESET")
+        fi
+        lines+=("  $foot")
+        draw "${lines[@]}"
+
+        read_key
+        case $KEY in
+            char)
+                if [ "$again" = 0 ]; then first=$first$CHAR; else second=$second$CHAR; fi
+                error=''
+                ;;
+            backspace)
+                if [ "$again" = 0 ]; then
+                    first=${first%?}
+                elif [ -z "$second" ]; then
+                    again=0
+                else
+                    second=${second%?}
+                fi
+                error=''
+                ;;
+            clear) if [ "$again" = 0 ]; then first=''; else second=''; fi ;;
+            enter)
+                if [ "$again" = 0 ]; then
+                    if [ "${#first}" -lt "$MIN_PASSWORD" ]; then
+                        error="Use at least $MIN_PASSWORD characters."
+                    else
+                        again=1 error=''
+                    fi
+                elif [ "$first" = "$second" ]; then
+                    break
+                else
+                    error='The two passwords are different. Type them again.'
+                    first='' second='' again=0
+                fi
+                ;;
+            eof) no_input ;;
+        esac
+    done
+
+    answer_drawn "$label" 'set (hidden)'
+    printf -v "$var" '%s' "$first"
+}
+
+# choose "Question" "Option  — note" ...: arrow keys (or j/k, or a number)
+# and Enter. Sets CHOICE to the index of the picked option. The note is
+# shown next to the selected option only.
+choose() {
+    local label=$1
+    shift
+    local count=$# selected=0 i name note lines
+    local options=("$@")
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        printf '  %s  %s\n' "$ACTIVE" "$label"
+        for ((i = 0; i < count; i++)); do printf '  %s  %d) %s\n' "$BAR" "$((i + 1))" "${options[i]}"; done
+        while true; do
+            printf '  %s  Number (1-%d, Enter for 1): ' "$BAR" "$count"
+            IFS= read -r name </dev/tty || no_input
+            name=${name:-1}
+            if [[ $name =~ ^[0-9]+$ ]] && [ "$name" -ge 1 ] && [ "$name" -le "$count" ]; then
+                CHOICE=$((name - 1))
+                return
+            fi
+        done
+    fi
+
+    terminal_width
+    keys_on
+    while true; do
+        lines=("  $ACTIVE  $C_BOLD$label$C_RESET")
+        for ((i = 0; i < count; i++)); do
+            name=${options[i]%%  —*}
+            note=''
+            if [[ ${options[i]} == *'  — '* ]]; then note=${options[i]#*  — }; fi
+            if [ "$i" -eq "$selected" ]; then
+                lines+=("  $ACTIVE_BAR  $C_GREEN$S_ON$C_RESET $name${note:+  $C_DIM$note$C_RESET}")
+            else
+                lines+=("  $ACTIVE_BAR  $C_DIM$S_OFF $name$C_RESET")
+            fi
+        done
+        lines+=("  $ACTIVE_END  ${C_DIM}$S_UP_DOWN to move, Enter to choose$C_RESET")
+        draw "${lines[@]}"
+
+        read_key
+        case $KEY in
+            up | left) selected=$(((selected + count - 1) % count)) ;;
+            down | right | tab) selected=$(((selected + 1) % count)) ;;
+            enter) break ;;
+            char)
+                case $CHAR in
+                    k) selected=$(((selected + count - 1) % count)) ;;
+                    j) selected=$(((selected + 1) % count)) ;;
+                    [1-9]) if [ "$CHAR" -le "$count" ]; then selected=$((CHAR - 1)); fi ;;
+                esac
+                ;;
+            eof) no_input ;;
+        esac
+    done
+
+    answer_drawn "$label" "${options[selected]%%  —*}"
+    CHOICE=$selected
+}
+
+# confirm "Question" [default y|n]: returns 0 for yes. Arrow keys and Enter,
+# or y / n. Without questions (--yes, or no terminal) it takes the default.
+confirm() {
+    local label=$1 yes=1 key options
+    if [ "${2:-y}" = n ]; then yes=0; fi
+    if [ "$INTERACTIVE" = 0 ]; then
+        [ "$yes" = 1 ]
+        return
+    fi
+    block question
+
+    if [ "$FANCY" = 0 ]; then
+        if [ "$yes" = 1 ]; then options='Y/n'; else options='y/N'; fi
+        printf '  %s  %s (%s) ' "$ACTIVE" "$label" "$options"
+        IFS= read -r key </dev/tty || no_input
+        case $key in
+            y | Y | yes | YES | Yes) return 0 ;;
+            n | N | no | NO | No) return 1 ;;
+            *) [ "$yes" = 1 ] ;;
+        esac
+        return
+    fi
+
+    terminal_width
+    keys_on
+    while true; do
+        if [ "$yes" = 1 ]; then
+            options="$C_GREEN$S_ON$C_RESET Yes $C_DIM/ $S_OFF No$C_RESET"
+        else
+            options="$C_DIM$S_OFF Yes /$C_RESET $C_GREEN$S_ON$C_RESET No"
+        fi
+        draw "  $ACTIVE  $C_BOLD$label$C_RESET" "  $ACTIVE_BAR  $options" \
+            "  $ACTIVE_END  ${C_DIM}$S_LEFT_RIGHT or y/n, Enter to choose$C_RESET"
+
+        read_key
+        case $KEY in
+            left | right | up | down | tab) yes=$((1 - yes)) ;;
+            enter) break ;;
+            char)
+                case $CHAR in
+                    y | Y) yes=1 && break ;;
+                    n | N) yes=0 && break ;;
+                    h) yes=1 ;;
+                    l) yes=0 ;;
+                esac
+                ;;
+            eof) no_input ;;
+        esac
+    done
+
+    if [ "$yes" = 1 ]; then answer_drawn "$label" 'Yes'; else answer_drawn "$label" 'No'; fi
+    [ "$yes" = 1 ]
+}
+
+# Commands that cannot pick a safe default stop here without a terminal.
+need_terminal() {
+    if [ "$INTERACTIVE" = 0 ] && [ "$YES" = 0 ]; then
+        die "$1" 'Run it in a terminal, or pass --yes.'
+    fi
+}
+
+valid_email() {
+    if [[ $1 =~ ^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$ ]]; then return 0; fi
+    INVALID='That does not look like an e-mail address.'
+    return 1
+}
+
+valid_delete() {
+    if [ "$1" = delete ]; then return 0; fi
+    INVALID='Type the word delete, or press Ctrl-C to stop.'
+    return 1
+}
+
+#------------------------------------------------------------------------------
+# Helpers
+#------------------------------------------------------------------------------
+
+random_password() {
+    # 24 letters and digits; head reads a fixed amount, so no broken pipe.
+    head -c 64 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | cut -c1-24
+}
+
+# A path with the home folder shown as ~, for display.
+pretty_path() {
+    case $1 in
+        "$HOME") printf '~' ;;
+        "$HOME"/*) printf '~/%s' "${1#"$HOME"/}" ;;
+        *) printf '%s' "$1" ;;
+    esac
+}
+
+# human_size BYTES: 812 KB, 1.4 GB.
+human_size() {
+    awk -v b="$1" 'BEGIN {
+        split("B KB MB GB TB", unit, " "); i = 1
+        while (b >= 1024 && i < 5) { b /= 1024; i++ }
+        format = i == 1 ? "%d %s" : "%.1f %s"
+        printf format, b, unit[i]
+    }'
+}
+
+file_size() {
+    wc -c <"$1" | tr -d ' '
+}
+
+# The folder this script is in, following symlinks (a link in ~/bin works).
+script_dir() {
+    local source=${BASH_SOURCE[0]} dir
+    while [ -L "$source" ]; do
+        dir=$(cd -P "$(dirname "$source")" && pwd)
+        source=$(readlink "$source")
+        case $source in /*) ;; *) source="$dir/$source" ;; esac
+    done
+    cd -P "$(dirname "$source")" && pwd
+}
+
+env_value() {
+    [ -f "$DIR/.env" ] || return 0
+    sed -n "s/^$1=//p" "$DIR/.env" | tail -n 1
+}
+
+# set_env_value KEY VALUE: changes the line in .env, or adds it.
+set_env_value() {
+    local key=$1 value=$2 tmp
+    if [ ! -f "$DIR/.env" ]; then (umask 077 && : >"$DIR/.env"); fi
+    tmp=$(mktemp "$DIR/.env.XXXXXX")
+    awk -v key="$key" -v value="$value" '
+        index($0, key "=") == 1 { if (!done) print key "=" value; done = 1; next }
+        { print }
+        END { if (!done) print key "=" value }
+    ' "$DIR/.env" >"$tmp"
+    chmod 600 "$tmp"
+    mv "$tmp" "$DIR/.env"
+}
+
+wait_until() {
+    # wait_until SECONDS command...: retries every 2 seconds.
+    local limit=$1 waited=0
+    shift
+    until "$@" >/dev/null 2>&1; do
+        if [ "$waited" -ge "$limit" ]; then return 1; fi
+        sleep 2
+        waited=$((waited + 2))
+    done
+}
+
+# to_file FILE command...: the command's output into FILE.
+to_file() {
+    local out=$1
+    shift
+    "$@" >"$out"
+}
+
+# from_member ARCHIVE MEMBER command...: a file of a backup as the input.
+from_member() {
+    local archive=$1 member=$2
+    shift 2
+    tar -xOf "$archive" "$member" | "$@"
+}
+
+# from_text TEXT command...: TEXT as the input, never on a command line.
+from_text() {
+    local text=$1
+    shift
+    printf '%s\n' "$text" | "$@"
+}
+
+app_port() {
+    local port
+    port=$(env_value APP_PORT)
+    printf '%s' "${port:-8000}"
+}
+
+app_url() {
+    local url
+    url=$(env_value APP_URL)
+    printf '%s' "${url:-http://localhost:$(app_port)}"
+}
+
+app_is_up() {
+    curl -fsS -o /dev/null --max-time 5 "http://127.0.0.1:$(app_port)/up"
+}
+
+# run_step "Message" command...: runs it with a spinner; its output goes to
+# the log, and the end of the log shows when it fails. Called as
+# `run_step ... || die`, set -e is off inside the command (bash ignores it
+# left of ||), so a function run here checks each of its own steps.
+run_step() {
+    local message=$1
+    shift
+    block task
+
+    local start=$SECONDS frame=0 status=0 pid took
+    printf '\n== %s\n' "$message" >>"$LOG"
+    "$@" >>"$LOG" 2>&1 &
+    pid=$!
+
+    if [ "$FANCY" = 1 ]; then
+        printf '%s' "$HIDE_CURSOR"
+        while kill -0 "$pid" 2>/dev/null; do
+            duration_to took $((SECONDS - start))
+            printf '\r\033[2K  %s  %s  %s' "$C_ACCENT${SPINNER[frame % ${#SPINNER[@]}]}$C_RESET" "$message" "$C_DIM$took$C_RESET"
+            frame=$((frame + 1))
+            sleep 0.1
+        done
+        printf '\r\033[2K%s' "$SHOW_CURSOR"
+    else
+        printf '  %s  %s\n' "$ACTIVE" "$message"
+    fi
+
+    wait "$pid" || status=$?
+    duration_to took $((SECONDS - start))
+    if [ "$status" -eq 0 ]; then
+        printf '  %s  %s  %s\n' "$DONE" "$message" "$C_DIM$took$C_RESET"
+        return 0
+    fi
+
+    printf '  %s  %s\n' "$FAIL" "$message" >&2
+    printf '  %s\n' "$BAR" >&2
+    tail -n 25 "$LOG" | quote >&2
+    printf '  %s\n' "$BAR" >&2
+    info "Full log: $(pretty_path "$LOG")"
+    return "$status"
+}
+
+#------------------------------------------------------------------------------
+# Docker
+#------------------------------------------------------------------------------
+
+docker_cmd() {
+    if [ "$USE_SUDO" = 1 ]; then sudo docker "$@"; else docker "$@"; fi
+}
+
+# Compose in the install folder, with compose.override.yaml (your changes,
+# and the PostgreSQL settings file) when it is there, like a plain
+# `docker compose` in that folder.
+compose() {
+    local files=(-f "$DIR/compose.yaml")
+    if [ -f "$DIR/compose.override.yaml" ]; then files+=(-f "$DIR/compose.override.yaml"); fi
+    docker_cmd compose --project-directory "$DIR" "${files[@]}" "$@"
+}
+
+check_docker() {
+    if ! command -v docker >/dev/null 2>&1; then
+        die 'Docker is not installed.' 'Install it, or run the installer again: https://docs.docker.com/engine/install/'
+    fi
+
+    local output
+    if ! output=$(docker info 2>&1); then
+        if [ "$OS" = linux ] && [[ $output == *[Pp]ermission\ denied* ]]; then
+            USE_SUDO=1
+            if [ "$INTERACTIVE" = 1 ]; then
+                info "$(dim 'Your user cannot reach Docker, so Docker commands run with sudo.')"
+                sudo -v
+            elif ! sudo -n true 2>/dev/null; then
+                die 'Your user cannot reach Docker, and sudo needs a password.' \
+                    "Run this as root, or add your user to the docker group: sudo usermod -aG docker ${USER:-$(id -un)}"
+            fi
+        fi
+        if ! docker_cmd info >/dev/null 2>&1; then
+            if [ "$OS" = macos ]; then
+                die 'Docker is not running.' 'Start Docker Desktop (or OrbStack) and try again.'
+            fi
+            die 'Docker is not running.' 'Start it (for example: sudo systemctl start docker) and try again.'
+        fi
+    fi
+}
+
+# is_running SERVICE: its container is up.
+is_running() {
+    local id
+    id=$(compose ps -q --status running "$1" 2>/dev/null) || id=''
+    [ -n "$id" ]
+}
+
+valid_service() {
+    case " $SERVICES " in *" $1 "*) return 0 ;; esac
+    die "There is no service called $1." "The services: $SERVICES"
+}
+
+need_running() {
+    if ! is_running "$1"; then
+        die 'Chatvia is not running.' 'Start it first: ./manage start'
+    fi
+}
+
+# compose exec, with a terminal only when this script has one.
+exec_flags() {
+    if [ -t 0 ] && [ -t 1 ]; then EXEC_FLAGS=(); else EXEC_FLAGS=(-T); fi
+}
+
+#------------------------------------------------------------------------------
+# Lock: one command that changes things at a time (a backup from cron must
+# not run in the middle of a restore). A command started by another one, like
+# the installer that `upgrade` runs, shares its lock.
+#------------------------------------------------------------------------------
+
+lock() {
+    LOCK_DIR="$DIR/.manage.lock"
+    local holder
+    if mkdir "$LOCK_DIR" 2>/dev/null; then
+        printf '%s %s\n' "$$" "$COMMAND" >"$LOCK_DIR/pid"
+        LOCKED=1
+        export CHATVIA_MANAGE_LOCK=$$
+        return
+    fi
+    holder=$(cat "$LOCK_DIR/pid" 2>/dev/null) || holder=''
+    if [ -n "${CHATVIA_MANAGE_LOCK:-}" ] && [ "${holder%% *}" = "$CHATVIA_MANAGE_LOCK" ]; then
+        return
+    fi
+    if [ -n "$holder" ] && ! kill -0 "${holder%% *}" 2>/dev/null; then
+        # Left by a command that was killed.
+        rm -rf "$LOCK_DIR"
+        lock
+        return
+    fi
+    die "Another ./manage command is running (${holder#* }, process ${holder%% *})." \
+        'Wait for it to finish, then try again.'
+}
+
+unlock() {
+    if [ "${LOCKED:-0}" = 1 ]; then rm -rf "$LOCK_DIR"; fi
+    LOCKED=0
+}
+
+#------------------------------------------------------------------------------
+# PostgreSQL
+#------------------------------------------------------------------------------
+
+# psql_in DATABASE [psql options...]: psql in the database container, as the
+# database's owner, over its local socket. An empty DATABASE is Chatvia's.
+psql_in() {
+    local db=$1
+    shift
+    compose exec -T postgres sh -c \
+        'db=$1; shift; exec psql -X -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "${db:-$POSTGRES_DB}" "$@"' \
+        sh "$db" "$@"
+}
+
+sql_value() {
+    psql_in '' -At -c "$1"
+}
+
+postgres_is_ready() {
+    compose exec -T postgres sh -c 'pg_isready -q -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+}
+
+# Starts the database alone when it is not running; STARTED_POSTGRES says so.
+ensure_postgres() {
+    STARTED_POSTGRES=0
+    if is_running postgres && postgres_is_ready >/dev/null 2>&1; then return 0; fi
+    run_step 'Starting the database' compose up -d --wait postgres ||
+        die 'The database did not start.' 'See why: ./manage logs postgres'
+    STARTED_POSTGRES=1
+}
+
+# The newest migration the database has run.
+latest_migration_in() {
+    psql_in "$1" -At -c 'SELECT max(migration) FROM migrations'
+}
+
+# The newest migration this version of Chatvia knows.
+latest_migration_known() {
+    compose run --rm --no-deps -T --entrypoint sh app -c \
+        'ls /var/www/chatvia/database/migrations /var/www/chatvia/database/settings 2>/dev/null' |
+        sed -n 's/\.php$//p' | sort | tail -n 1
+}
+
+# How embeddings are stored, as "halfvec 1024": the type and size of the
+# vector columns (pgvector keeps the size as the type modifier).
+embedding_storage_in() {
+    psql_in "$1" -At -c "SELECT t.typname || ' ' || a.atttypmod
+        FROM pg_attribute a
+        JOIN pg_class c ON c.oid = a.attrelid
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        JOIN pg_type t ON t.oid = a.atttypid
+        WHERE t.typname IN ('vector', 'halfvec') AND c.relkind IN ('r', 'p')
+          AND n.nspname = 'public' AND a.attnum > 0 AND NOT a.attisdropped
+        LIMIT 1"
+}
+
+#------------------------------------------------------------------------------
+# Backups
+#
+# A backup is one .tar file in backups/ (only you can read it):
+#
+#   backup.env            when, which version, how embeddings are stored
+#   database.dump         pg_dump, custom format
+#   database-extras.sql   what pg_dump leaves out (see dump_extras)
+#   secrets.env           the app key and the other secrets of this install
+#   files.tar             the uploaded files (with --files)
+#------------------------------------------------------------------------------
+
+backup_dir() {
+    printf '%s' "${CHATVIA_BACKUP_DIR:-$DIR/backups}"
+}
+
+# The backups, oldest first (the names hold the time).
+list_backups() {
+    local dir file
+    dir=$(backup_dir)
+    for file in "$dir"/chatvia-*.tar; do
+        if [ -f "$file" ]; then printf '%s\n' "$file"; fi
+    done
+}
+
+dump_database() {
+    compose exec -T postgres sh -c 'exec pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc' >"$1" || return
+    # Reads the whole table of contents back: a cut-off dump fails here.
+    compose exec -T postgres pg_restore --list <"$1" >/dev/null
+}
+
+# SQL for what pg_dump leaves out, for a restore to run after the dump:
+#   - the database's own settings (ALTER DATABASE ... SET, made by a
+#     migration). pg_dump only keeps them with --create;
+#   - the tokenizers of the keyword search. pg_tokenizer keeps them in tables
+#     of its own, and pg_dump skips an extension's tables.
+# Restore runs it with psql -v dbname=<the new database>.
+dump_extras() {
+    local db=$1 table tables
+    printf -- '-- Written by ./manage on %s: what pg_dump leaves out.\n\n' "$(date '+%Y-%m-%d %H:%M:%S')"
+    psql_in "$db" -At <<'SQL' || return
+SELECT format('ALTER DATABASE :"dbname" SET %I = %s;', name,
+       CASE WHEN name IN ('search_path', 'temp_tablespaces', 'session_preload_libraries',
+                          'local_preload_libraries', 'shared_preload_libraries', 'unix_socket_directories')
+            THEN value ELSE quote_literal(value) END)
+FROM (SELECT split_part(setting, '=', 1) AS name, substr(setting, strpos(setting, '=') + 1) AS value
+      FROM pg_db_role_setting s, unnest(s.setconfig) AS setting
+      WHERE s.setrole = 0
+        AND s.setdatabase = (SELECT oid FROM pg_database WHERE datname = current_database())) AS settings;
+SQL
+    tables=$(psql_in "$db" -At -c "SELECT tablename FROM pg_tables WHERE schemaname = 'tokenizer_catalog' ORDER BY tablename") ||
+        return
+    for table in $tables; do
+        printf '\nCREATE TEMP TABLE "restore_%s" (LIKE tokenizer_catalog."%s");\nCOPY "restore_%s" FROM stdin;\n' "$table" "$table" "$table"
+        psql_in "$db" -c "COPY tokenizer_catalog.\"$table\" TO STDOUT" || return
+        printf '\\.\nINSERT INTO tokenizer_catalog."%s" SELECT * FROM "restore_%s" ON CONFLICT DO NOTHING;\n' "$table" "$table"
+    done
+}
+
+read_secrets() {
+    compose run --rm --no-deps -T --entrypoint cat setup /var/lib/chatvia/secrets.env
+}
+
+# Replaces the secrets with stdin.
+write_secrets() {
+    compose run --rm --no-deps -T --entrypoint sh setup -c \
+        'umask 077 && cat >/var/lib/chatvia/secrets.env.new && mv /var/lib/chatvia/secrets.env.new /var/lib/chatvia/secrets.env'
+}
+
+dump_files() {
+    compose run --rm --no-deps -T --entrypoint tar app -C /var/www/chatvia/storage -cf - app >"$1"
+}
+
+# Swaps storage/app for the files on stdin; the old files go only once the
+# new ones are all there.
+restore_files() {
+    compose run --rm --no-deps -T --entrypoint sh app -c '
+        set -e
+        cd /var/www/chatvia/storage
+        rm -rf app.restoring app.previous
+        mkdir app.restoring
+        tar -xf - -C app.restoring
+        if [ -d app ]; then mv app app.previous; fi
+        mv app.restoring/app app
+        rm -rf app.restoring app.previous'
+}
+
+write_backup_info() {
+    local file=$1 holds=$2 version storage migration
+    version=$(app_version)
+    storage=$(embedding_storage_in '') || storage=''
+    migration=$(latest_migration_in '') || migration=''
+    cat >"$file" <<EOF
+# Chatvia backup, made by ./manage on $(date '+%Y-%m-%d %H:%M:%S').
+FORMAT=1
+CREATED=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+VERSION=$version
+LATEST_MIGRATION=$migration
+EMBEDDING_STORAGE=$storage
+HOLDS=$holds
+EOF
+}
+
+# The running version: the version label of a published Chatvia image (an
+# image built by hand inherits its base image's label, so it shows its name
+# instead), else CHATVIA_VERSION.
+app_version() {
+    local id labels='' version
+    id=$(compose ps -q app 2>/dev/null | head -n 1) || id=''
+    if [ -n "$id" ]; then
+        labels=$(docker_cmd inspect --format \
+            '{{index .Config.Labels "org.opencontainers.image.source"}}|{{index .Config.Labels "org.opencontainers.image.version"}}|{{.Config.Image}}' \
+            "$id" 2>/dev/null) || labels=''
+    fi
+    case $labels in
+        *chatvia/chatvia*'|'?*'|'*)
+            version=${labels#*|}
+            printf '%s' "${version%%|*}"
+            ;;
+        ?*) printf '%s' "${labels##*|}" ;;
+        *)
+            version=$(env_value CHATVIA_VERSION)
+            printf '%s' "${version:-latest}"
+            ;;
+    esac
+}
+
+# backup_holds FILE: "database secrets files", from its backup.env.
+backup_value() {
+    tar -xOf "$1" backup.env 2>/dev/null | sed -n "s/^$2=//p" | tail -n 1
+}
+
+# do_backup FILES(0|1) SECRETS(0|1) [SUFFIX]: makes a backup; BACKUP_FILE is
+# its path.
+do_backup() {
+    local with_files=$1 with_secrets=$2 suffix=${3:-} dir name tmp holds='database' members
+    dir=$(backup_dir)
+    (umask 077 && mkdir -p "$dir")
+    chmod 700 "$dir" 2>/dev/null || true
+
+    name="chatvia-$(date '+%Y-%m-%d-%H%M%S')${suffix:+-$suffix}.tar"
+    while [ -e "$dir/$name" ]; do
+        sleep 1
+        name="chatvia-$(date '+%Y-%m-%d-%H%M%S')${suffix:+-$suffix}.tar"
+    done
+    tmp=$(cd "$dir" && umask 077 && mktemp -d .backup.XXXXXX)
+    tmp="$dir/$tmp"
+    TMP_BACKUP=$tmp
+
+    ensure_postgres
+    members='backup.env database-extras.sql'
+    run_step 'Backing up the database' dump_database "$tmp/database.dump" ||
+        die 'The database backup failed. Nothing was saved.'
+    run_step 'Saving the search tokenizers and the database settings' \
+        to_file "$tmp/database-extras.sql" dump_extras '' ||
+        die 'The backup failed. Nothing was saved.'
+    if [ "$with_secrets" = 1 ]; then
+        run_step 'Saving the app key and the other secrets' to_file "$tmp/secrets.env" read_secrets ||
+            die 'Could not read the secrets. Nothing was saved.'
+        holds="$holds secrets"
+        members="$members secrets.env"
+    fi
+    members="$members database.dump"
+    if [ "$with_files" = 1 ]; then
+        run_step 'Backing up the uploaded files' dump_files "$tmp/files.tar" ||
+            die 'The file backup failed. Nothing was saved.'
+        holds="$holds files"
+        members="$members files.tar"
+    fi
+    write_backup_info "$tmp/backup.env" "$holds"
+
+    TMP_PARTIAL="$dir/$name.partial"
+    # shellcheck disable=SC2086 # the member names have no spaces
+    (umask 077 && tar -cf "$TMP_PARTIAL" -C "$tmp" $members)
+    mv "$TMP_PARTIAL" "$dir/$name"
+    rm -rf "$tmp"
+    TMP_BACKUP='' TMP_PARTIAL=''
+    BACKUP_FILE="$dir/$name"
+    BACKUP_HOLDS=$holds
+}
+
+# prune_backups KEEP: deletes all but the newest KEEP regular backups (not
+# the ones made before a restore or an upgrade).
+prune_backups() {
+    local keep=$1 file count=0 total=0 removed=0
+    local regular=()
+    while IFS= read -r file; do
+        case ${file##*/} in
+            chatvia-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9].tar) regular+=("$file") ;;
+        esac
+    done < <(list_backups)
+    total=${#regular[@]}
+    for file in ${regular[@]+"${regular[@]}"}; do
+        count=$((count + 1))
+        if [ "$((total - count))" -ge "$keep" ]; then
+            rm -f "$file"
+            removed=$((removed + 1))
+        fi
+    done
+    if [ "$removed" -gt 0 ]; then ok "Deleted $removed older backup(s), kept the newest $keep"; fi
+}
+
+describe_holds() {
+    local text='the database'
+    case " $1 " in *' secrets '*) text="$text, the app key" ;; esac
+    case " $1 " in *' files '*) text="$text, the uploaded files" ;; esac
+    printf '%s' "$text"
+}
+
+#------------------------------------------------------------------------------
+# Commands
+#------------------------------------------------------------------------------
+
+cmd_start() {
+    no_options "$@"
+    intro 'Start' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans ||
+        start_failed
+    run_step 'Waiting for the web app' wait_until 180 app_is_up ||
+        die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
+    outro "Chatvia is running at $(accent "$(app_url)")"
+}
+
+start_failed() {
+    section 'Database setup log'
+    compose logs --no-color --tail 30 migrate 2>&1 | quote >&2 || true
+    die 'Chatvia did not start.' 'See why: ./manage status, then ./manage logs'
+}
+
+cmd_stop() {
+    no_options "$@"
+    intro 'Stop' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    run_step 'Stopping Chatvia' compose down || die 'Chatvia did not stop.'
+    outro "Stopped. Your data is kept. Start again: $(accent './manage start')"
+}
+
+cmd_restart() {
+    local service
+    for service in "$@"; do
+        case $service in -*) die "Unknown option: $service" 'See ./manage help restart' ;; esac
+        valid_service "$service"
+    done
+    intro 'Restart' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    if [ $# -gt 0 ]; then
+        # Recreated, so a changed .env or compose file applies too.
+        run_step "Restarting $*" compose up -d --no-deps --force-recreate "$@" || die "Could not restart $*."
+        outro 'Restarted.'
+        return
+    fi
+    run_step 'Stopping Chatvia' compose down || die 'Chatvia did not stop.'
+    run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans || start_failed
+    run_step 'Waiting for the web app' wait_until 180 app_is_up ||
+        die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
+    outro "Chatvia is running at $(accent "$(app_url)")"
+}
+
+cmd_status() {
+    no_options "$@"
+    intro 'Status' "$(pretty_path "$DIR")"
+    check_docker
+
+    local rows service state health line address version folder backups newest count=0 broken=''
+    local name_state name_health
+    rows=$(compose ps --all --format '{{.Service}}|{{.State}}|{{.Health}}' 2>/dev/null) || rows=''
+
+    if app_is_up; then
+        kv_to address 'Address' "$(accent "$(app_url)")  $C_GREEN$S_OK answering$C_RESET"
+    else
+        kv_to address 'Address' "$(app_url)  ${C_YELLOW}not answering$C_RESET"
+    fi
+    kv_to version 'Version' "$(app_version)"
+    kv_to folder 'Folder' "$(pretty_path "$DIR")"
+    newest=$(list_backups | tail -n 1)
+    count=$(list_backups | wc -l | tr -d ' ')
+    if [ "$count" -gt 0 ]; then
+        kv_to backups 'Backups' "$count, newest ${newest##*/}"
+    else
+        kv_to backups 'Backups' "${C_YELLOW}none yet$C_RESET  $(dim '(./manage backup)')"
+    fi
+    note "$(bold 'Chatvia')" "$address" "$version" "$folder" "$backups"
+
+    section 'Services'
+    for service in $SERVICES; do
+        state='' health=''
+        while IFS='|' read -r line name_state name_health; do
+            if [ "$line" = "$service" ]; then state=$name_state health=$name_health; fi
+        done <<<"$rows"
+        case $state:$health in
+            running:healthy | running:)
+                info "$C_GREEN$S_OK$C_RESET $(printf '%-10s' "$service") running${health:+, healthy}"
+                ;;
+            running:starting)
+                info "$C_YELLOW$S_OFF$C_RESET $(printf '%-10s' "$service") starting"
+                ;;
+            running:*)
+                info "$C_RED$S_FAIL$C_RESET $(printf '%-10s' "$service") ${C_RED}$health$C_RESET"
+                broken="$broken $service"
+                ;;
+            restarting:*)
+                info "$C_RED$S_FAIL$C_RESET $(printf '%-10s' "$service") ${C_RED}restarting again and again$C_RESET"
+                broken="$broken $service"
+                ;;
+            *)
+                info "$C_DIM$S_OFF $(printf '%-10s' "$service") stopped$C_RESET"
+                ;;
+        esac
+    done
+    if [ -n "$broken" ]; then
+        warn "See why: ./manage logs$broken"
+    fi
+    outro "$(dim "Commands: ./manage help")"
+}
+
+cmd_logs() {
+    check_docker
+    compose logs -f --tail 100 "$@"
+}
+
+cmd_backup() {
+    local with_files=0 with_secrets=1 keep=''
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --files) with_files=1 ;;
+            --no-secrets) with_secrets=0 ;;
+            --keep)
+                keep=${2:-}
+                [[ $keep =~ ^[1-9][0-9]*$ ]] || die '--keep needs a number of backups, like --keep 7.'
+                shift
+                ;;
+            --yes | -y) ;;
+            *) die "Unknown option: $1" 'See ./manage help backup' ;;
+        esac
+        shift
+    done
+
+    intro 'Backup' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    do_backup "$with_files" "$with_secrets"
+    # Left as it was found.
+    if [ "$STARTED_POSTGRES" = 1 ]; then compose stop postgres >>"$LOG" 2>&1 || true; fi
+    if [ -n "$keep" ]; then prune_backups "$keep"; fi
+
+    local file size holds
+    kv_to file 'File' "$(pretty_path "$BACKUP_FILE")"
+    kv_to size 'Size' "$(human_size "$(file_size "$BACKUP_FILE")")"
+    kv_to holds 'Holds' "$(describe_holds "$BACKUP_HOLDS")"
+    note "$(bold 'Backup saved')" "$file" "$size" "$holds"
+    if [ "$with_secrets" = 1 ]; then
+        info "$(dim 'It holds your app key, so keep it as private as your database.')"
+    fi
+    info "$(dim 'Copy it to another machine: a backup on the same disk does not survive the disk.')"
+    outro "Restore it with $(accent "./manage restore ${BACKUP_FILE##*/}")"
+}
+
+cmd_backups() {
+    no_options "$@"
+    intro 'Backups' "$(pretty_path "$(backup_dir)")"
+    local file total=0 count=0 size
+    while IFS= read -r file; do
+        size=$(file_size "$file")
+        total=$((total + size))
+        count=$((count + 1))
+        info "${file##*/}  $(dim "$(human_size "$size")")"
+    done < <(list_backups)
+    if [ "$count" = 0 ]; then
+        outro "No backups yet. Make one: $(accent './manage backup')"
+        return
+    fi
+    outro "$count backup(s), $(human_size "$total"). Restore one: $(accent './manage restore NAME')"
+}
+
+# resolve_backup NAME: a path, or a name in the backups folder.
+resolve_backup() {
+    if [ -f "$1" ]; then
+        printf '%s' "$1"
+    elif [ -f "$(backup_dir)/$1" ]; then
+        printf '%s' "$(backup_dir)/$1"
+    else
+        return 1
+    fi
+}
+
+cmd_restore() {
+    local file='' name='' safety=1 kind members magic holds created version
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --no-backup) safety=0 ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            -*) die "Unknown option: $1" 'See ./manage help restore' ;;
+            *) file=$1 name=$1 ;;
+        esac
+        shift
+    done
+
+    intro 'Restore' "$(pretty_path "$DIR")"
+    need_terminal 'A restore replaces all data, so it asks first.'
+    check_docker
+    lock
+
+    if [ -z "$file" ]; then
+        local backups=() options=() entry
+        while IFS= read -r entry; do backups=("$entry" ${backups[@]+"${backups[@]}"}); done < <(list_backups)
+        if [ "${#backups[@]}" = 0 ]; then
+            die "There are no backups in $(pretty_path "$(backup_dir)")." 'Name a backup file: ./manage restore FILE'
+        fi
+        if [ "$INTERACTIVE" = 0 ]; then
+            die 'Name the backup to restore: ./manage restore FILE --yes'
+        fi
+        for entry in "${backups[@]:0:9}"; do
+            options+=("${entry##*/}  — $(human_size "$(file_size "$entry")")")
+        done
+        choose 'Which backup?' "${options[@]}"
+        file=${backups[CHOICE]}
+    else
+        file=$(resolve_backup "$file") || die "There is no backup called $name." 'List them: ./manage backups'
+    fi
+
+    # A backup from ./manage, or a plain pg_dump file (custom format), like
+    # the ones the app makes on its own schedule.
+    magic=$(head -c 5 "$file" 2>/dev/null) || magic=''
+    members=$(tar -tf "$file" 2>/dev/null) || members=''
+    if [ "$magic" = PGDMP ]; then
+        kind=dump holds='database' created='' version=''
+    elif [[ $'\n'$members$'\n' == *$'\n'backup.env$'\n'* && $'\n'$members$'\n' == *$'\n'database.dump$'\n'* ]]; then
+        kind=full
+        holds=$(backup_value "$file" HOLDS)
+        created=$(backup_value "$file" CREATED)
+        created=${created%Z}
+        version=$(backup_value "$file" VERSION)
+    else
+        die "$(pretty_path "$file") is not a Chatvia backup." 'Use a file from ./manage backup, or a pg_dump file (custom format).'
+    fi
+
+    local row_file row_made row_holds row_now
+    kv_to row_file 'Backup' "${file##*/}  $(dim "$(human_size "$(file_size "$file")")")"
+    created=${created/T/ }
+    kv_to row_made 'Made' "${created:-unknown}${created:+ UTC}${version:+  $(dim "(version $version)")}"
+    kv_to row_holds 'Holds' "$(describe_holds "$holds")"
+    kv_to row_now 'Current data' "${C_YELLOW}replaced$C_RESET$(dim ', after a backup of it')"
+    if [ "$safety" = 0 ]; then kv_to row_now 'Current data' "${C_YELLOW}replaced, with no backup of it$C_RESET"; fi
+    note 'Restore this backup?' "$row_file" "$row_made" "$row_holds" "$row_now"
+    case " $holds " in
+        *' secrets '*) ;;
+        *) info "$(dim 'The backup has no app key: the current one is kept. Values encrypted with another key cannot be read.')" ;;
+    esac
+
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Replace all current data with this backup?' n; then
+        outro 'Nothing was changed.'
+        return
+    fi
+
+    if [ "$safety" = 1 ]; then
+        section 'Backup of the current data'
+        local files_too=0
+        case " $holds " in *' files '*) files_too=1 ;; esac
+        do_backup "$files_too" 1 before-restore
+        ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
+    fi
+
+    section 'Restore'
+    ensure_postgres
+    run_step 'Starting Redis' compose up -d --wait redis || die 'Redis did not start.'
+
+    local db restore_db extras="$WORK_DIR/database-extras.sql"
+    db=$(sql_value 'SELECT current_database()' 2>>"$LOG") ||
+        die 'Could not reach the database.' 'See why: ./manage logs postgres'
+    restore_db="${db}_restore"
+    RESTORE_DB=$restore_db
+
+    if [ "$kind" = full ]; then
+        tar -xOf "$file" database-extras.sql >"$extras" 2>/dev/null || : >"$extras"
+    fi
+    if [ ! -s "$extras" ]; then
+        # A plain dump: take them from the current database.
+        dump_extras '' >"$extras" || die 'Could not read the search tokenizers of the current database.'
+    fi
+    run_step 'Restoring the database next to the current one (Chatvia keeps running)' \
+        restore_database "$file" "$kind" "$restore_db" "$extras" ||
+        die 'The restore failed. Your current data was not touched.'
+
+    check_restored_version "$restore_db"
+    RESTORED_STORAGE=$(embedding_storage_in "$restore_db" 2>>"$LOG") || RESTORED_STORAGE=''
+
+    # shellcheck disable=SC2086 # a list of service names
+    run_step 'Stopping Chatvia' compose stop $DATABASE_USERS || die 'Chatvia did not stop.'
+    # From here on the restored database is the one to keep, even when the
+    # switch fails half way.
+    RESTORE_DB=''
+    run_step 'Switching to the restored database' swap_database "$db" "$restore_db" ||
+        die 'Could not switch to the restored database.' \
+            "The restored data is in the database $restore_db. Your data from before is in" \
+            "$(pretty_path "${BACKUP_FILE:-your backup}")."
+    use_restored_storage
+
+    case " $holds " in
+        *' files '*)
+            run_step 'Restoring the uploaded files' from_member "$file" files.tar restore_files ||
+                die 'The uploaded files were not restored.' "The database is restored. Try the files again, or restore $(pretty_path "${BACKUP_FILE:-the backup}")."
+            ;;
+    esac
+    case " $holds " in
+        *' secrets '*) restore_secrets "$file" ;;
+    esac
+
+    run_step 'Clearing the queues and caches' compose exec -T redis redis-cli FLUSHALL || true
+    run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans || start_failed
+    run_step 'Waiting for the web app' wait_until 180 app_is_up ||
+        die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
+
+    ok "$(bold 'Restored.')"
+    outro "Chatvia is running at $(accent "$(app_url)")"
+}
+
+# restore_database FILE KIND NEW_DB EXTRAS: restores into a new database, so
+# the current one stays as it is until the restore has worked.
+restore_database() {
+    local file=$1 kind=$2 new_db=$3 extras=$4
+    local owner
+    owner=$(sql_value 'SELECT current_user') || return
+    printf 'DROP DATABASE IF EXISTS :"db" WITH (FORCE);\nCREATE DATABASE :"db" OWNER :"owner";\n' |
+        psql_in postgres -v db="$new_db" -v owner="$owner" || return
+    if [ "$kind" = full ]; then
+        tar -xOf "$file" database.dump | restore_dump "$new_db" || return
+    else
+        restore_dump "$new_db" <"$file" || return
+    fi
+    psql_in "$new_db" -v dbname="$new_db" <"$extras"
+}
+
+restore_dump() {
+    compose exec -T postgres sh -c \
+        'exec pg_restore -U "$POSTGRES_USER" -d "$1" --no-owner --no-privileges --exit-on-error --single-transaction' \
+        sh "$1"
+}
+
+swap_database() {
+    printf 'DROP DATABASE :"db" WITH (FORCE);\nALTER DATABASE :"new_db" RENAME TO :"db";\n' |
+        psql_in postgres -v db="$1" -v new_db="$2"
+}
+
+drop_restore_database() {
+    printf 'DROP DATABASE IF EXISTS :"db" WITH (FORCE);\n' | psql_in postgres -v db="$1" >>"$LOG" 2>&1 || true
+}
+
+# A backup from a newer Chatvia has tables this version does not know.
+check_restored_version() {
+    local restored known
+    restored=$(latest_migration_in "$1" 2>>"$LOG") || restored=''
+    known=$(latest_migration_known 2>>"$LOG") || known=''
+    if [ -z "$restored" ] || [ -z "$known" ] || [[ ! $restored > $known ]]; then return 0; fi
+    warn 'This backup comes from a newer version of Chatvia than this one.'
+    info "$(dim "Upgrade first (./manage upgrade), then restore it.")"
+    if [ "$INTERACTIVE" = 0 ] || ! confirm 'Restore it anyway?' n; then
+        drop_restore_database "$1"
+        die 'Nothing was changed.'
+    fi
+}
+
+# The embedding settings in .env must match the restored tables, or the app
+# refuses to start (app:check-embedding-storage).
+use_restored_storage() {
+    local storage=$RESTORED_STORAGE type size current_type current_size
+    [ -n "$storage" ] || return 0
+    type=${storage% *} size=${storage#* }
+    current_type=$(env_value EMBEDDING_VECTOR_TYPE)
+    current_size=$(env_value EMBEDDING_DIMENSIONS)
+    if [ "$type" = "${current_type:-halfvec}" ] && [ "$size" = "${current_size:-1024}" ]; then return 0; fi
+    set_env_value EMBEDDING_VECTOR_TYPE "$type"
+    set_env_value EMBEDDING_DIMENSIONS "$size"
+    ok "Search storage set to $type, $size dimensions in .env $(dim '(as in the backup)')"
+}
+
+# Puts the backup's secrets in place, but keeps this install's database
+# password: PostgreSQL only reads it when it creates its data.
+restore_secrets() {
+    local file=$1 current new password_line
+    current=$(read_secrets 2>>"$LOG") || die 'Could not read the current secrets.'
+    new=$(tar -xOf "$file" secrets.env) || die 'Could not read the secrets in the backup.'
+    password_line=$(printf '%s\n' "$current" | sed -n 's/^DB_PASSWORD=/&/p' | tail -n 1)
+    new=$(printf '%s\n' "$new" | sed '/^DB_PASSWORD=/d')
+    if [ "$(printf '%s\n' "$current" | sed '/^DB_PASSWORD=/d')" = "$new" ]; then
+        ok 'The app key is the same as before'
+        return
+    fi
+    if [ -n "$password_line" ]; then
+        new=$(printf '%s\n# The database password of this install, kept by ./manage restore.\n%s' "$new" "$password_line")
+    fi
+    run_step 'Restoring the app key and the other secrets' from_text "$new" write_secrets ||
+        die 'The secrets were not restored.' 'The database is restored, but values encrypted with the old app key cannot be read yet.'
+}
+
+cmd_password() {
+    local email='' disable_2fa='' password generated=0
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --disable-2fa) disable_2fa=1 ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            -*) die "Unknown option: $1" 'See ./manage help password' ;;
+            *) email=$1 ;;
+        esac
+        shift
+    done
+
+    intro 'Password' "$(pretty_path "$DIR")"
+    check_docker
+    need_running app
+
+    if [ -z "$email" ]; then
+        if [ "$INTERACTIVE" = 0 ]; then die 'Name the account: ./manage password EMAIL --yes'; fi
+        ask email 'E-mail of the account' --default "$(env_value ADMIN_EMAIL)" \
+            --placeholder 'you@example.com' --check valid_email
+    fi
+    valid_email "$email" || die "$INVALID"
+
+    if [ "$INTERACTIVE" = 1 ]; then
+        choose 'New password' \
+            'Create a strong one for me  — shown once' \
+            'I will type my own'
+        if [ "$CHOICE" = 1 ]; then ask_secret password 'New password'; fi
+    fi
+    if [ -z "${password:-}" ]; then
+        password=$(random_password)
+        generated=1
+    fi
+    if [ -z "$disable_2fa" ]; then
+        disable_2fa=0
+        if confirm 'Also turn off two-factor sign-in (for a lost authenticator app)?' n; then disable_2fa=1; fi
+    fi
+
+    PASSWORD_INPUT=$password
+    run_step 'Setting the new password' set_password "$email" "$disable_2fa" ||
+        die 'The password was not changed.'
+
+    local row_email row_password row_saved='' row_2fa
+    kv_to row_email 'Account' "$email"
+    if [ "$generated" = 1 ]; then
+        kv_to row_password 'Password' "$(bold "$password")"
+        kv_to row_saved '' "$(accent "$S_UP save it now, it is shown only once")"
+    else
+        kv_to row_password 'Password' 'the one you typed'
+    fi
+    if [ "$disable_2fa" = 1 ]; then
+        kv_to row_2fa 'Two-factor' 'turned off: set it up again after you sign in'
+    else
+        kv_to row_2fa 'Two-factor' 'unchanged'
+    fi
+    note "$(bold 'New password set')" "$row_email" "$row_password" ${row_saved:+"$row_saved"} "$row_2fa"
+    outro "Sign in at $(accent "$(app_url)/login")"
+}
+
+# The password goes through stdin, never on a command line.
+set_password() {
+    local options=(--stdin --no-interaction)
+    if [ "$2" = 1 ]; then options+=(--disable-two-factor); fi
+    printf '%s\n' "$PASSWORD_INPUT" | compose exec -T app php artisan admin:reset-password "$1" "${options[@]}"
+}
+
+cmd_admin() {
+    local email='' name='' password generated=0
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --name)
+                name=${2:-}
+                [ -n "$name" ] || die '--name needs a name.'
+                shift
+                ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            -*) die "Unknown option: $1" 'See ./manage help admin' ;;
+            *) email=$1 ;;
+        esac
+        shift
+    done
+
+    intro 'New admin' "$(pretty_path "$DIR")"
+    check_docker
+    need_running app
+
+    if [ -z "$email" ]; then
+        if [ "$INTERACTIVE" = 0 ]; then die 'Name the e-mail: ./manage admin EMAIL --yes'; fi
+        ask email 'E-mail' --placeholder 'you@example.com' --hint 'The new admin signs in with it.' --check valid_email
+    fi
+    valid_email "$email" || die "$INVALID"
+    if [ -z "$name" ]; then
+        name=Admin
+        if [ "$INTERACTIVE" = 1 ]; then ask name 'Name' --default 'Admin'; fi
+    fi
+    if [ "$INTERACTIVE" = 1 ]; then
+        choose 'Password' \
+            'Create a strong one for me  — shown once' \
+            'I will type my own'
+        if [ "$CHOICE" = 1 ]; then ask_secret password 'Password'; fi
+    fi
+    if [ -z "${password:-}" ]; then
+        password=$(random_password)
+        generated=1
+    fi
+
+    PASSWORD_INPUT=$password
+    run_step 'Creating the admin account' create_admin "$email" "$name" ||
+        die 'The account was not created.'
+
+    local row_email row_password row_saved=''
+    kv_to row_email 'E-mail' "$email"
+    if [ "$generated" = 1 ]; then
+        kv_to row_password 'Password' "$(bold "$password")"
+        kv_to row_saved '' "$(accent "$S_UP save it now, it is shown only once")"
+    else
+        kv_to row_password 'Password' 'the one you typed'
+    fi
+    note "$(bold 'Admin account created')" "$row_email" "$row_password" ${row_saved:+"$row_saved"}
+    outro "Admin panel: $(accent "$(app_url)/admin")"
+}
+
+create_admin() {
+    printf '%s\n' "$PASSWORD_INPUT" | compose exec -T app php artisan admin:create-user "$1" "$2" --stdin --no-interaction
+}
+
+cmd_psql() {
+    check_docker
+    need_running postgres
+    exec_flags
+    compose exec ${EXEC_FLAGS[@]+"${EXEC_FLAGS[@]}"} postgres sh -c \
+        'exec psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"' sh "$@"
+}
+
+cmd_artisan() {
+    check_docker
+    need_running app
+    exec_flags
+    compose exec ${EXEC_FLAGS[@]+"${EXEC_FLAGS[@]}"} app php artisan "$@"
+}
+
+cmd_shell() {
+    no_options "$@"
+    check_docker
+    need_running app
+    exec_flags
+    compose exec ${EXEC_FLAGS[@]+"${EXEC_FLAGS[@]}"} app sh -c 'if command -v bash >/dev/null; then exec bash; fi; exec sh'
+}
+
+cmd_sync_tools() {
+    no_options "$@"
+    intro 'Built-in tools' "$(pretty_path "$DIR")"
+    check_docker
+    need_running app
+    run_step 'Adding the built-in tools to the tool catalog' \
+        compose exec -T app php artisan app:sync-builtin-mcp --no-interaction ||
+        die 'The built-in tools were not added.' \
+            'They need your embedding provider: add its API key in the admin panel' \
+            '(Settings → AI providers), then run this again.'
+    outro 'Charts, forms, weather, currency and web search are in the tool catalog.'
+}
+
+cmd_upgrade() {
+    local safety=1 installer_args=()
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --no-backup) safety=0 ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            *) installer_args+=("$1") ;;
+        esac
+        shift
+    done
+
+    intro 'Upgrade' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    if [ "$safety" = 1 ] && confirm 'Back up the database first?' y; then
+        do_backup 0 1 before-upgrade
+        ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
+    fi
+
+    local installer="$WORK_DIR/install.sh"
+    run_step 'Downloading the installer' curl -fsSL "${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_URL}" -o "$installer" ||
+        die 'Could not download the installer.' "From: ${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_URL}"
+    outro 'The installer takes over.'
+
+    installer_args=(--upgrade --dir "$DIR" ${installer_args[@]+"${installer_args[@]}"})
+    if [ "$INTERACTIVE" = 0 ]; then installer_args+=(--yes); fi
+    keys_off
+    bash "$installer" "${installer_args[@]}"
+}
+
+cmd_postgres() {
+    local action=${1:-}
+    if [ $# -gt 0 ]; then shift; fi
+    case $action in
+        edit) postgres_edit "$@" ;;
+        apply) postgres_apply "$@" ;;
+        export) postgres_export "$@" ;;
+        '' | help | -h | --help) command_help postgres ;;
+        *) die "Unknown: ./manage postgres $action" 'Use edit, apply or export.' ;;
+    esac
+}
+
+pg_conf() {
+    printf '%s' "$DIR/postgres/postgresql.conf"
+}
+
+postgres_export() {
+    local if_missing=0
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --if-missing) if_missing=1 ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            *) die "Unknown option: $1" 'See ./manage help postgres' ;;
+        esac
+        shift
+    done
+
+    intro 'PostgreSQL settings' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    if [ -f "$(pg_conf)" ]; then
+        if [ "$if_missing" = 1 ]; then
+            outro "$(pretty_path "$(pg_conf)") is already there."
+            return
+        fi
+        warn "$(pretty_path "$(pg_conf)") is already there."
+        info "$(dim 'Exporting again starts over from the default settings. Your file is kept as a copy.')"
+        if ! confirm 'Start over from the default settings?' n; then
+            outro 'Nothing was changed.'
+            return
+        fi
+    fi
+
+    ensure_postgres
+    run_step 'Exporting the settings from the database container' export_postgres_config ||
+        die 'The settings were not exported.'
+    ok "Saved $(dim "$(pretty_path "$(pg_conf)")")"
+    ensure_override
+    apply_postgres_settings
+    outro "Change it any time, then run $(accent './manage postgres apply')"
+}
+
+postgres_apply() {
+    no_options "$@"
+    intro 'PostgreSQL settings' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    [ -f "$(pg_conf)" ] || die "There is no $(pretty_path "$(pg_conf)") yet." 'Create it: ./manage postgres export'
+    ensure_override
+    apply_postgres_settings
+    outro 'Done.'
+}
+
+postgres_edit() {
+    no_options "$@"
+    intro 'PostgreSQL settings' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    if [ ! -f "$(pg_conf)" ]; then
+        ensure_postgres
+        run_step 'Exporting the settings from the database container' export_postgres_config ||
+            die 'The settings were not exported.'
+        ensure_override
+    fi
+
+    local editor=${VISUAL:-${EDITOR:-}} before after
+    if [ -z "$editor" ]; then
+        if command -v nano >/dev/null 2>&1; then editor='nano'; else editor='vi'; fi
+    fi
+    before=$(cksum <"$(pg_conf)")
+    info "$(dim "Opening $(pretty_path "$(pg_conf)") in $editor")"
+    keys_off
+    # Unquoted: the editor may come with options, like "code --wait".
+    # shellcheck disable=SC2086
+    $editor "$(pg_conf)" </dev/tty >/dev/tty
+    after=$(cksum <"$(pg_conf)")
+    if [ "$before" = "$after" ] && postgres_uses_file; then
+        outro 'No changes.'
+        return
+    fi
+    apply_postgres_settings
+    outro 'Done.'
+}
+
+# Writes postgres/postgresql.conf: the file PostgreSQL made when it created
+# its data, plus the settings the image passes on its command line (the
+# search libraries), so the file alone holds every setting.
+export_postgres_config() {
+    local dir="$DIR/postgres" conf tmp image words word next=0 names='' values=''
+    conf=$(pg_conf)
+    mkdir -p "$dir" && chmod 755 "$dir" || return
+    if [ -f "$conf" ]; then cp -p "$conf" "$conf.$(date '+%Y%m%d-%H%M%S').bak" || return; fi
+
+    # The image's command, one word per line: postgres -c name=value ...
+    image=$(docker_cmd inspect --format '{{.Config.Image}}' "$(compose ps -q postgres)") || return
+    words=$(docker_cmd image inspect --format '{{range .Config.Cmd}}{{println .}}{{end}}' "$image") || return
+    while IFS= read -r word; do
+        if [ "$next" = 1 ] && [[ $word == *=* ]]; then
+            names="$names${word%%=*}"$'\n'
+            values="$values${word#*=}"$'\n'
+        fi
+        next=0
+        if [ "$word" = -c ]; then next=1; fi
+    done <<<"$words"
+
+    tmp=$(mktemp "$dir/.postgresql.conf.XXXXXX") || return
+    {
+        cat <<HEADER
+# PostgreSQL settings of this Chatvia install, exported from the database
+# container on $(date '+%Y-%m-%d'). Change what you need, then run:
+#
+#   ./manage postgres apply
+#
+# It checks this file, reloads PostgreSQL, and restarts it when a changed
+# setting needs that (they say "change requires restart" below).
+#
+# Chatvia's search needs vchord, vchord_bm25, vector and pg_tokenizer in
+# shared_preload_libraries: add your own libraries after them.
+#
+# ./manage postgres export starts over from the defaults. Every setting:
+# https://www.postgresql.org/docs/current/runtime-config.html
+
+HEADER
+        # The lists go through the environment: awk -v takes no newlines.
+        compose exec -T postgres sh -c 'cat "$PGDATA/postgresql.conf"' |
+            NAMES=$names VALUES=$values awk '
+                BEGIN {
+                    n = split(ENVIRON["NAMES"], name, "\n")
+                    split(ENVIRON["VALUES"], value, "\n")
+                }
+                {
+                    for (i = 1; i < n; i++) {
+                        if (!done[i] && $0 ~ "^#?[ \t]*" name[i] "[ \t]*=") {
+                            print name[i] " = '\''" value[i] "'\''\t# set by Chatvia"
+                            done[i] = 1
+                            next
+                        }
+                    }
+                    print
+                }
+                END {
+                    for (i = 1; i < n; i++) {
+                        if (!done[i]) print name[i] " = '\''" value[i] "'\''\t# set by Chatvia"
+                    }
+                }'
+    } >"$tmp" || {
+        rm -f "$tmp"
+        return 1
+    }
+    # A cut-off copy has no "PostgreSQL configuration file" heading.
+    if ! grep -q 'PostgreSQL configuration file' "$tmp"; then
+        rm -f "$tmp"
+        echo 'The copy of postgresql.conf is incomplete.' >&2
+        return 1
+    fi
+    # PostgreSQL runs as another user in its container.
+    chmod 644 "$tmp" && mv "$tmp" "$conf"
+}
+
+# compose.override.yaml mounts postgres/ and points PostgreSQL at the file.
+ensure_override() {
+    local override="$DIR/compose.override.yaml"
+    if [ -f "$override" ]; then
+        if grep -q "config_file=$PG_CONF_MOUNT/postgresql.conf" "$override"; then return 0; fi
+        warn "$(pretty_path "$override") is yours, so it was not changed. Add this to it:"
+        override_snippet | quote
+        die 'Then run ./manage postgres apply.'
+    fi
+    {
+        cat <<'HEADER'
+# Your changes to compose.yaml. Docker Compose reads this file after it, and
+# upgrades never touch it, so changes here are kept. After a change, run:
+#
+#   ./manage restart
+
+services:
+HEADER
+        override_snippet
+    } >"$override"
+    ok "Saved $(dim "$(pretty_path "$override")")"
+}
+
+override_snippet() {
+    cat <<SNIPPET
+  # PostgreSQL reads its settings from postgres/postgresql.conf, next to this
+  # file. Change it, then run ./manage postgres apply.
+  postgres:
+    command: ["postgres", "-c", "config_file=$PG_CONF_MOUNT/postgresql.conf"]
+    volumes:
+      - ./postgres:$PG_CONF_MOUNT:ro
+    # More shared memory, for many parallel workers:
+    # shm_size: 1gb
+SNIPPET
+}
+
+# The running server reads our file.
+postgres_uses_file() {
+    [ "$(sql_value 'SHOW config_file' 2>/dev/null)" = "$PG_CONF_MOUNT/postgresql.conf" ]
+}
+
+# Checks the file with PostgreSQL itself, in a container of its own:
+# postgres -C reads the settings like a start does, and stops at the first
+# error, without touching the running server. OUTPUT holds its answer.
+check_postgres_config() {
+    OUTPUT=$(compose run --rm --no-deps -T --user postgres postgres \
+        postgres -c "config_file=$PG_CONF_MOUNT/postgresql.conf" -C shared_preload_libraries 2>&1)
+}
+
+# Applies postgres/postgresql.conf: checks it, then reloads PostgreSQL, or
+# restarts it when it does not read the file yet or a changed setting needs
+# a restart. An invalid file changes nothing.
+apply_postgres_settings() {
+    local libraries library missing='' pending
+    OUTPUT=''
+    if ! check_postgres_config; then
+        fail 'postgres/postgresql.conf has errors:'
+        printf '%s\n' "$OUTPUT" | sed -E -n 's/^.*(LOG|FATAL|HINT|DETAIL): +//p' | quote >&2
+        die 'Fix them, then run ./manage postgres apply. PostgreSQL still runs with its old settings.'
+    fi
+    libraries=,$(printf '%s\n' "$OUTPUT" | tail -n 1 | tr -d ' "'),
+    for library in $REQUIRED_LIBRARIES; do
+        case $libraries in *",$library,"*) ;; *) missing="$missing $library" ;; esac
+    done
+    if [ -n "$missing" ]; then
+        die "shared_preload_libraries misses what Chatvia's search needs:$missing" \
+            'Put them back, then run ./manage postgres apply. PostgreSQL still runs with its old settings.'
+    fi
+    ok 'The settings file is valid'
+
+    if ! is_running postgres; then
+        info "$(dim 'PostgreSQL is stopped: it reads the file when it starts.')"
+        return
+    fi
+    if ! postgres_uses_file; then
+        if is_running app; then info "$(dim 'Chatvia pauses for a few seconds while PostgreSQL restarts.')"; fi
+        run_step 'Restarting PostgreSQL with the settings file' compose up -d --no-deps --wait postgres ||
+            postgres_start_failed
+        postgres_uses_file || die 'PostgreSQL does not read postgres/postgresql.conf.' \
+            "Check $(pretty_path "$DIR/compose.override.yaml")."
+        ok 'Applied'
+        return
+    fi
+
+    run_step 'Reloading the settings' sql_value 'SELECT pg_reload_conf()' || die 'PostgreSQL did not reload.'
+    sleep 1
+    pending=$(sql_value "SELECT string_agg(name, ', ' ORDER BY name) FROM pg_settings WHERE pending_restart") || pending=''
+    if [ -z "$pending" ]; then
+        ok 'Applied, no restart needed'
+        return
+    fi
+    warn "These need a restart of PostgreSQL: $(bold "$pending")"
+    if ! confirm 'Restart PostgreSQL now? Chatvia pauses for a few seconds.' y; then
+        info "$(dim 'They apply on the next restart: ./manage restart postgres')"
+        return
+    fi
+    run_step 'Restarting PostgreSQL' compose restart postgres || postgres_start_failed
+    run_step 'Waiting for PostgreSQL' wait_until 120 postgres_is_ready || postgres_start_failed
+    ok 'Applied'
+}
+
+postgres_start_failed() {
+    section 'PostgreSQL log'
+    compose logs --no-color --tail 20 postgres 2>&1 | quote >&2 || true
+    die 'PostgreSQL did not start.' 'Fix postgres/postgresql.conf, then run ./manage postgres apply.'
+}
+
+cmd_uninstall() {
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            *) die "Unknown option: $1" 'See ./manage help uninstall' ;;
+        esac
+        shift
+    done
+
+    intro 'Uninstall' "$(pretty_path "$DIR")"
+    need_terminal 'Uninstalling deletes all data, so it asks first.'
+    check_docker
+    lock
+    warn "$(bold 'This deletes Chatvia and ALL its data:') the database, the uploaded files,"
+    info 'the app key, and the settings files in this folder.'
+    info "$(dim "Backups in $(pretty_path "$(backup_dir)") are kept.")"
+
+    if [ "$INTERACTIVE" = 1 ]; then
+        if confirm 'Make a backup first (database, app key and files)?' y; then
+            do_backup 1 1 before-uninstall
+            ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
+        fi
+        # shellcheck disable=SC2034 # set by ask
+        local typed
+        ask typed 'Type delete to remove everything' --check valid_delete
+    fi
+
+    run_step 'Removing the containers and all data' compose down --volumes --remove-orphans ||
+        die 'Could not remove everything.' 'See the log, then try again.'
+    local file
+    for file in compose.yaml compose.yaml.bak compose.override.yaml .env install.log; do
+        rm -f "${DIR:?}/$file"
+    done
+    rm -rf "${DIR:?}/postgres"
+    ok 'Removed the settings files'
+    rm -f "${DIR:?}/manage" "$LOG"
+    unlock
+    rmdir "$DIR" 2>/dev/null || true
+    outro 'Chatvia is uninstalled.'
+}
+
+no_options() {
+    local arg
+    for arg in "$@"; do
+        case $arg in
+            --yes | -y) ;;
+            *) die "Unknown option: $arg" "See ./manage help $COMMAND" ;;
+        esac
+    done
+}
+
+#------------------------------------------------------------------------------
+# Help
+#------------------------------------------------------------------------------
+
+usage() {
+    banner
+    intro 'Commands' "$(pretty_path "$DIR")"
+    help_section 'Run Chatvia'
+    help_row 'start' 'Start Chatvia'
+    help_row 'stop' 'Stop Chatvia (your data is kept)'
+    help_row 'restart [SERVICE]' 'Restart Chatvia, or one service'
+    help_row 'status' 'Show the services, the version and the address'
+    help_row 'logs [SERVICE]' 'Follow the logs (Ctrl-C to stop)'
+    help_row 'upgrade' 'Back up, then upgrade to the newest version'
+    help_section 'Backups'
+    help_row 'backup' 'Back up the database and the app key'
+    help_row 'backups' 'List the backups'
+    help_row 'restore [FILE]' 'Replace all data with a backup'
+    help_section 'Accounts'
+    help_row 'password [EMAIL]' 'Set a new password for an account'
+    help_row 'admin [EMAIL]' 'Create another admin account'
+    help_section 'PostgreSQL'
+    help_row 'postgres edit' 'Edit the settings, then apply them'
+    help_row 'postgres apply' 'Apply postgres/postgresql.conf after a change'
+    help_row 'postgres export' 'Start over from the default settings'
+    help_row 'psql' 'Open a PostgreSQL prompt'
+    help_section 'More'
+    help_row 'artisan ARGS' 'Run an Artisan command in the app'
+    help_row 'shell' 'Open a shell in the app container'
+    help_row 'sync-tools' 'Add the built-in tools to the tool catalog'
+    help_row 'uninstall' 'Delete Chatvia and all its data'
+    block text
+    info "$(dim './manage help COMMAND shows the options of a command.')"
+    outro "$(dim "Guide: $CHATVIA_DOCS")"
+}
+
+help_section() {
+    section "$1"
+}
+
+help_row() {
+    info "$(printf '%-20s' "$1")$(dim "$2")"
+}
+
+command_help() {
+    local name=$1
+    intro "./manage $name" "$(pretty_path "$DIR")"
+    case $name in
+        start) info 'Starts Chatvia. The database is updated first, then the app.' ;;
+        stop) info 'Stops every container. Your data stays in its Docker volumes.' ;;
+        restart)
+            info 'Without a service: stops and starts Chatvia, so changes to .env apply.'
+            info "With services: recreates only them. Services: $SERVICES"
+            ;;
+        status) info 'Shows whether the app answers, its version, and the health of each service.' ;;
+        logs)
+            info 'Follows the logs of all services, or of the ones you name.'
+            info "$(dim 'Other docker compose logs options work too, like --since 1h.')"
+            ;;
+        upgrade)
+            info 'Backs up the database, then runs the installer to upgrade this install.'
+            help_option '--no-backup' 'Skip the backup'
+            help_option '--yes' 'No questions'
+            help_option '--version VERSION' 'Upgrade to this version (passed to the installer)'
+            ;;
+        backup)
+            info "Saves a backup in $(pretty_path "$(backup_dir)"): the database, the search"
+            info 'tokenizers and settings that pg_dump misses, and the app key.'
+            help_option '--files' 'Also the uploaded files (when they are stored here, not in S3)'
+            help_option '--no-secrets' 'Leave out the app key (keep it somewhere else then)'
+            help_option '--keep N' 'Then delete all but the newest N backups'
+            info ''
+            info "$(dim 'Every night at 3, keeping a week:')"
+            info "$(dim "0 3 * * * $DIR/manage backup --keep 7")"
+            ;;
+        backups) info 'Lists the backups, oldest first.' ;;
+        restore)
+            info 'Replaces all data with a backup. Without FILE you choose one from the list.'
+            info 'It backs up the current data first, restores next to it, and only then'
+            info 'switches over: a failed restore leaves your data as it was.'
+            info "$(dim 'FILE can also be a plain pg_dump file (custom format).')"
+            help_option '--no-backup' 'Skip the backup of the current data'
+            help_option '--yes' 'No questions (FILE is needed then)'
+            ;;
+        password)
+            info 'Sets a new password for an account. The e-mail defaults to the first admin.'
+            help_option '--disable-2fa' 'Also turn off two-factor sign-in'
+            help_option '--yes' 'No questions: makes a random password'
+            ;;
+        admin)
+            info 'Creates another admin account, with its own workspace.'
+            help_option '--name NAME' 'The name (default: Admin)'
+            help_option '--yes' 'No questions: makes a random password'
+            ;;
+        postgres)
+            info "PostgreSQL reads its settings from $(pretty_path "$(pg_conf)")."
+            help_option 'edit' 'Open the file in your editor ($EDITOR), then apply it'
+            help_option 'apply' 'Check the file, reload it, and restart when needed'
+            help_option 'export' 'Write the file again from the default settings'
+            ;;
+        psql) info 'Opens psql on the Chatvia database. Arguments go to psql, like -c "SELECT 1".' ;;
+        artisan) info 'Runs php artisan in the app container, like ./manage artisan about.' ;;
+        shell) info 'Opens a shell in the app container.' ;;
+        sync-tools) info 'Adds the built-in tools (charts, forms, weather, ...) to the tool catalog.' ;;
+        uninstall)
+            info 'Deletes the containers, all data and the settings files. Backups are kept.'
+            info 'It offers a last backup first, and asks you to type delete.'
+            ;;
+        *) die "There is no command called $name." 'See ./manage help' ;;
+    esac
+    outro "$(dim "Guide: $CHATVIA_DOCS")"
+}
+
+help_option() {
+    info "  $(printf '%-20s' "$1")$(dim "$2")"
+}
+
+#------------------------------------------------------------------------------
+# Main
+#------------------------------------------------------------------------------
+
+cleanup() {
+    keys_off
+    if [ -n "${RESTORE_DB:-}" ]; then drop_restore_database "$RESTORE_DB"; fi
+    if [ -n "${TMP_BACKUP:-}" ]; then rm -rf "$TMP_BACKUP"; fi
+    if [ -n "${TMP_PARTIAL:-}" ]; then rm -f "$TMP_PARTIAL"; fi
+    if [ -n "${WORK_DIR:-}" ]; then rm -rf "$WORK_DIR"; fi
+    unlock
+}
+
+interrupted() {
+    keys_off
+    printf '\n  %s  %s\n\n' "$END" 'Stopped.'
+    exit 130
+}
+
+main() {
+    YES=0 USE_SUDO=0 LOCKED=0 TTY_STATE='' STARTED_POSTGRES=0 TMP_BACKUP='' TMP_PARTIAL='' RESTORE_DB=''
+    BACKUP_FILE='' BACKUP_HOLDS='' PASSWORD_INPUT='' RESTORED_STORAGE='' OUTPUT=''
+    setup_output
+
+    case "$(uname -s)" in
+        Darwin) OS=macos ;;
+        *) OS=linux ;;
+    esac
+
+    DIR=${CHATVIA_DIR:-$(script_dir)}
+    if [ ! -f "$DIR/compose.yaml" ]; then
+        die "There is no Chatvia install in $(pretty_path "$DIR") (no compose.yaml)." \
+            'Run this from the install folder, or set CHATVIA_DIR.'
+    fi
+
+    COMMAND=${1:-help}
+    if [ $# -gt 0 ]; then shift; fi
+    # --yes anywhere before a pass-through command's own arguments.
+    case $COMMAND in
+        --yes | -y)
+            YES=1
+            COMMAND=${1:-help}
+            if [ $# -gt 0 ]; then shift; fi
+            ;;
+    esac
+    case $COMMAND in
+        artisan | psql | logs) ;;
+        *)
+            local arg
+            for arg in "$@"; do
+                case $arg in
+                    --yes | -y) YES=1 ;;
+                    -h | --help) COMMAND="help $COMMAND" ;;
+                esac
+            done
+            ;;
+    esac
+
+    INTERACTIVE=1
+    if [ "$YES" = 1 ] || ! { : </dev/tty; } 2>/dev/null; then INTERACTIVE=0; fi
+    if [ "$INTERACTIVE" = 1 ]; then
+        TTY_STATE=$(stty -g 2>/dev/null </dev/tty) || TTY_STATE=''
+    fi
+
+    trap cleanup EXIT
+    trap interrupted INT TERM
+    WORK_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t chatvia-manage)
+    LOG="$DIR/manage.log"
+    if [ ! -f "$LOG" ]; then (umask 077 && : >"$LOG"); fi
+    # Keeps the log short: only the end of a large one.
+    if [ "$(file_size "$LOG")" -gt 1048576 ]; then
+        tail -n 2000 "$LOG" >"$WORK_DIR/log" && cat "$WORK_DIR/log" >"$LOG"
+    fi
+    printf '\n==== %s ./manage %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$COMMAND" >>"$LOG"
+
+    case $COMMAND in
+        help | -h | --help)
+            if [ $# -gt 0 ]; then command_help "$1"; else usage; fi
+            ;;
+        help\ *) command_help "${COMMAND#help }" ;;
+        start) cmd_start "$@" ;;
+        stop) cmd_stop "$@" ;;
+        restart) cmd_restart "$@" ;;
+        status) cmd_status "$@" ;;
+        logs) cmd_logs "$@" ;;
+        upgrade) cmd_upgrade "$@" ;;
+        backup) cmd_backup "$@" ;;
+        backups) cmd_backups "$@" ;;
+        restore) cmd_restore "$@" ;;
+        password) cmd_password "$@" ;;
+        admin) cmd_admin "$@" ;;
+        postgres) cmd_postgres "$@" ;;
+        psql) cmd_psql "$@" ;;
+        artisan) cmd_artisan "$@" ;;
+        shell) cmd_shell "$@" ;;
+        sync-tools) cmd_sync_tools "$@" ;;
+        uninstall) cmd_uninstall "$@" ;;
+        *) die "There is no command called $COMMAND." 'See ./manage help' ;;
+    esac
+}
+
+main "$@"

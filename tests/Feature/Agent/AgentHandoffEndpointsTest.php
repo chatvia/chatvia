@@ -100,7 +100,7 @@ it('refuses a reply from an operator who does not hold the conversation', functi
     Event::assertNotDispatched(MessagePosted::class);
 });
 
-it('refuses a conversation that belongs to another agent', function (): void {
+it('hides a conversation that belongs to another agent', function (): void {
     $otherAgent = makeTeamAgent($this->owner, 'Other Bot');
     $session = Session::factory()->create(['agent_id' => $otherAgent->id]);
     $foreign = Conversation::factory()->withoutTitle()->create([
@@ -112,7 +112,7 @@ it('refuses a conversation that belongs to another agent', function (): void {
 
     $this->actingAs($this->owner)
         ->postJson(handoffRoute('agents.handoff.takeover', $this, $foreign))
-        ->assertForbidden();
+        ->assertNotFound();
 
     $this->actingAs($this->owner)
         ->postJson(handoffRoute('agents.handoff.mark-read', $this, $foreign))

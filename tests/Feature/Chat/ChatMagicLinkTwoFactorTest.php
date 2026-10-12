@@ -1,6 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Events\MagicLinkRequested;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -10,9 +10,10 @@ use PragmaRX\Google2FA\Google2FA;
 
 /**
  * Signing in to a protected agent's hosted chat with the emailed link. The
- * link signs in to the chat's own session, never the dashboard. A user with
- * two-factor authentication passes the challenge first; the hand-off route
- * then carries the sign-in into the chat.
+ * link signs in to the chat's own session, never the dashboard: a chatter on
+ * the `chat` guard, staff on `chat_staff`. Staff with two-factor
+ * authentication pass the challenge first; the staff-only hand-off route then
+ * carries the sign-in into the chat.
  */
 beforeEach(function (): void {
     $this->secret = new Google2FA()->generateSecretKey();
@@ -62,12 +63,12 @@ it('takes a 2FA user from the emailed link through the challenge into the hosted
 
     $this->get($location)->assertRedirect($this->chat);
 
-    expect(Auth::guard('chat')->id())->toBe($this->owner->id);
+    expect(Auth::guard('chat_staff')->id())->toBe($this->owner->id)
+        ->and(Auth::guard('chat')->check())->toBeFalse();
 });
 
-it('sends a user without 2FA straight into the chat, without a dashboard session', function (): void {
-    $chatter = User::factory()->chatter($this->owner)->create(['email' => 'chatter@example.test']);
-    $chatter->accessibleAgents()->attach($this->agent);
+it('sends a chatter straight into the chat, without a dashboard session', function (): void {
+    $chatter = Chatter::factory()->grantedTo($this->agent)->create(['email' => 'chatter@example.test']);
 
     $link = requestHostedChatMagicLink($this->chat, 'chatter@example.test');
 
@@ -78,19 +79,18 @@ it('sends a user without 2FA straight into the chat, without a dashboard session
 
     $this->get($location)->assertRedirect($this->chat);
 
-    expect(Auth::guard('chat')->id())->toBe($chatter->id)
-        ->and($chatter->type)->toBe(UserType::Chatter);
+    expect(Auth::guard('chat')->user()?->is($chatter))->toBeTrue()
+        ->and(Auth::guard('chat_staff')->check())->toBeFalse();
 });
 
-it('ends a chatter\'s dashboard session at the hand-off', function (): void {
-    $chatter = User::factory()->chatter($this->owner)->create();
-    $chatter->accessibleAgents()->attach($this->agent);
-
-    $this->actingAs($chatter)
+it('keeps a staff member\'s dashboard session at the hand-off', function (): void {
+    $location = $this->actingAs($this->owner)
         ->get('/chat-handoff/'.$this->agent->slug)
-        ->assertRedirect();
+        ->assertRedirect()
+        ->headers->get('Location');
 
-    expect(Auth::guard('web')->check())->toBeFalse();
+    expect($location)->toContain($this->chat.'?auth_token=')
+        ->and(Auth::guard('web')->id())->toBe($this->owner->id);
 });
 
 it('refuses the hand-off to an agent the user cannot use', function (): void {

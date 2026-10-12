@@ -25,13 +25,13 @@ class UpdateTopicAction
         }
 
         // Key to the workspace owner — topics are created with the agent's
-        // user_id, never the acting teammate's.
-        if ($topic->user_id !== $agent->user_id) {
+        // workspace_id, never the acting teammate's.
+        if ($topic->workspace_id !== $agent->workspace_id) {
             throw new DomainValidationException('topic', 'You can only update your own topics');
         }
 
         $duplicate = Topic::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('topic', $newTopic)
             ->where('id', '!=', $topic->id)
             ->exists();

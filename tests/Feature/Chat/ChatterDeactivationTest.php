@@ -16,7 +16,7 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->owner);
 
     $this->agent = Agent::create([
-        'user_id' => $this->owner->id,
+        'workspace_id' => $this->owner->workspace()->id,
         'team_id' => $this->owner->primaryTeam()->id,
         'name' => 'Private Agent',
         'external_id' => Str::random(14),
@@ -25,7 +25,7 @@ beforeEach(function (): void {
     ]);
 
     // Provisions the chatter + the agent_user grant so the sign-in token resolves.
-    $this->chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner, $this->agent, 'Jane'));
+    $this->chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
     $this->chat = '/chat/'.$this->agent->slug;
 });
 

@@ -34,8 +34,8 @@ class AgentWebsiteLinkController
         ]);
 
         if ($request->filled('q')) {
-            // ilike: case-insensitive matches user expectation for URLs and
-            // is served by the gin_trgm_ops index on url.
+            // ilike: case-insensitive matches user expectation for URLs. A
+            // website has at most a few thousand URLs, so scanning them is cheap.
             $query->where('url', 'ilike', '%'.$request->input('q').'%');
         }
 

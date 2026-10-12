@@ -32,7 +32,7 @@ class InviteTeamMemberAction
         if ($data->userId) {
             $existingUser = User::findOrFail($data->userId);
 
-            if ($existingUser->workspace_id !== $data->inviter->id) {
+            if (! $existingUser->isTeammate() || $existingUser->workspace()->id !== $data->inviter->workspace()->id) {
                 throw new DomainValidationException('user_id', __('You can only add users you have invited.'));
             }
 

@@ -2,7 +2,9 @@
 
 namespace Domain\Agent\Models;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Database\Factories\AgentFactory;
 use Domain\Agent\Concerns\HasSettings;
 use Domain\Agent\Events\AgentToolsChanged;
@@ -39,6 +41,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\Cache;
@@ -52,15 +55,20 @@ use Support\MimeType;
  * and the surfaces it answers on — Hosted Chat, Chat Widget, Command Bar and
  * the messaging channels ({@see HasMessagingChannels}).
  *
- * Owned by the workspace (`user_id` is the workspace owner, never the teammate
- * who created it) and placed in one team. `external_id` is the stable public
+ * Owned by the workspace (`workspace_id`, never the teammate who created it)
+ * and placed in one team. `external_id` is the stable public
  * id (route key, permanent URL, storage prefix); `slug` is the friendly,
- * renameable Hosted Chat label. Lifecycle hooks live in {@see AgentObserver};
- * deleting an agent with its data goes through DeleteAgentAction.
+ * renameable Hosted Chat label. Lifecycle hooks live in {@see AgentObserver}.
+ *
+ * Deleting is soft ({@see SoftDeletes}): DeleteAgentAction hides the agent at
+ * once (route binding, the hosted chat, the widget and every list stop seeing
+ * it) and a queued purge removes its data in batches, then the row itself.
+ * Code that must still reach a deleted agent during that window (the purge,
+ * analytics attribution) asks for it with `withTrashed()`.
  *
  * @property int $id
  * @property string $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property int $team_id
  * @property string $name
  * @property string|null $slug
@@ -74,6 +82,7 @@ use Support\MimeType;
  * @property string|null $auth_secret
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
  * @property-read AgentPrompt|null $agentPrompt
  * @property-read Llm|null $llm
  * @property-read AgentSource|null $pivot
@@ -101,7 +110,7 @@ use Support\MimeType;
  * @property-read Collection<int, Topic> $topics
  * @property-read int|null $topics_count
  * @property-read string $url
- * @property-read User $user
+ * @property-read Workspace $workspace
  * @property-read Collection<int, SourceFile> $videoFiles
  * @property-read int|null $video_files_count
  * @property-read Collection<int, SourceWebsite> $websites
@@ -116,6 +125,7 @@ use Support\MimeType;
  * @method static Collection<int, static> get($columns = ['*'])
  * @method static AgentQueryBuilder<static>|Agent newModelQuery()
  * @method static AgentQueryBuilder<static>|Agent newQuery()
+ * @method static AgentQueryBuilder<static>|Agent onlyTrashed()
  * @method static AgentQueryBuilder<static>|Agent query()
  * @method static AgentQueryBuilder<static>|Agent whereCollectLeads($value)
  * @method static AgentQueryBuilder<static>|Agent whereCreatedAt($value)
@@ -130,8 +140,10 @@ use Support\MimeType;
  * @method static AgentQueryBuilder<static>|Agent whereSystemInstructions($value)
  * @method static AgentQueryBuilder<static>|Agent whereTeamId($value)
  * @method static AgentQueryBuilder<static>|Agent whereUpdatedAt($value)
- * @method static AgentQueryBuilder<static>|Agent whereUserId($value)
+ * @method static AgentQueryBuilder<static>|Agent whereWorkspaceId($value)
  * @method static AgentQueryBuilder<static>|Agent withTotalMembers()
+ * @method static AgentQueryBuilder<static>|Agent withTrashed(bool $withTrashed = true)
+ * @method static AgentQueryBuilder<static>|Agent withoutTrashed()
  *
  * @mixin \Eloquent
  */
@@ -153,6 +165,7 @@ class Agent extends Model
     use HasSettings {
         HasSettings::settings as protected baseSettings;
     }
+    use SoftDeletes;
 
     /** Per-instance memo for {@see self::workspaceExternalId()}. */
     protected ?string $resolvedWorkspaceExternalId = null;
@@ -251,11 +264,11 @@ class Agent extends Model
     }
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Workspace, $this>
      */
-    public function user(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     /**
@@ -279,15 +292,14 @@ class Agent extends Model
     }
 
     /**
-     * Chatters explicitly granted access to this agent via `agent_user`. Only
-     * `User`s with `type=chatter` should appear; access for workspace/employee
-     * users is resolved through teams + roles, not here.
+     * Chatters granted access to this agent via `agent_chatter`. Staff reach
+     * agents through teams and roles, not here.
      *
-     * @return BelongsToMany<User, $this>
+     * @return BelongsToMany<Chatter, $this>
      */
     public function chatters(): BelongsToMany
     {
-        return $this->belongsToMany(User::class, 'agent_user');
+        return $this->belongsToMany(Chatter::class, 'agent_chatter');
     }
 
     /**
@@ -379,7 +391,7 @@ class Agent extends Model
      */
     public function ownsFunction(AgentFunction $function): bool
     {
-        return $function->user_id === $this->user_id;
+        return $function->workspace_id === $this->workspace_id;
     }
 
     /**
@@ -622,18 +634,14 @@ class Agent extends Model
         return Attribute::get(fn (): string => AgentUrlBuilder::chatEmbedUrl($this));
     }
 
-    public function getUserId(): int
-    {
-        return $this->user_id;
-    }
-
     /**
-     * External id used as the entity-first storage prefix
-     * (`users/{external_id}/…`). For an agent the owner is its workspace.
+     * The entity-first storage prefix of the agent's workspace:
+     * `workspaces/{external_id}`. Agent files live under
+     * `{storageRoot}/agents/{agent external_id}`.
      */
-    public function getUserExternalId(): string
+    public function storageRoot(): string
     {
-        return $this->workspaceExternalId();
+        return 'workspaces/'.$this->workspaceExternalId();
     }
 
     /**
@@ -641,15 +649,15 @@ class Agent extends Model
      * cache tag so a whole workspace's Redis entries can be flushed at once
      * (see {@see ChatCache::workspaceTag()}).
      *
-     * Resolved with an explicit relation query rather than `$this->user->external_id`:
-     * the `user` relation is rarely eager-loaded on the chat path, and
+     * Resolved with an explicit relation query rather than `$this->workspace->external_id`:
+     * the `workspace` relation is rarely eager-loaded on the chat path, and
      * `Model::shouldBeStrict()` turns a lazy load into an exception outside
      * production. Memoized per instance because {@see ChatCache::tagsFor()}
      * calls this on every cache operation and must not re-query.
      */
     public function workspaceExternalId(): string
     {
-        return $this->resolvedWorkspaceExternalId ??= $this->user()->value('external_id');
+        return $this->resolvedWorkspaceExternalId ??= $this->workspace()->value('external_id');
     }
 
     /** @return MorphToMany<SourceFile, $this, AgentSource> */

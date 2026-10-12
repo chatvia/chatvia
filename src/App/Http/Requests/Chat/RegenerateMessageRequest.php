@@ -3,11 +3,12 @@
 namespace App\Http\Requests\Chat;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Http\Chat\HostedChatViewer;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Authorizes `chat.messages.regenerate`. EnsureChatIsAccessible only stamps
@@ -51,11 +52,13 @@ class RegenerateMessageRequest extends FormRequest
             abort(404, __('Conversation not found.'));
         }
 
-        // Mirrors EnsureChatIsAccessible's protected-agent gate: an
-        // authenticated chatter on a private agent must own the
+        // Mirrors EnsureChatIsAccessible's protected-agent gate: a signed-in
+        // chatter or staff account on a private agent must own the
         // conversation whose turn is being regenerated.
-        if ($agent->is_public === false && Auth::guard()->check()) {
-            return ChatCache::isOwnedBy($conversationId, Auth::id(), $agent->workspaceExternalId());
+        $viewer = HostedChatViewer::data();
+
+        if ($agent->is_public === false && $viewer instanceof ChatViewerData) {
+            return ChatCache::isOwnedBy($conversationId, $viewer, $agent->workspaceExternalId());
         }
 
         return true;

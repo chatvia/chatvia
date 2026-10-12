@@ -2,7 +2,10 @@
 
 namespace Domain\Membership\Team\Models;
 
+use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
+use App\Identity\Workspace\Models\WorkspaceMembership;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
@@ -11,17 +14,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Support\Carbon;
 use Support\Concerns\HasExternalId;
 
 /**
  * A team inside a workspace: a group of agents plus the teammates who work on
- * them. The owner (`user_id`) holds every permission without a pivot row;
+ * them. The workspace's owner holds every permission without a pivot row;
  * everyone else joins through `team_user` with exactly one {@see Role}.
  *
  * @property int $id
  * @property string $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string $name
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -31,7 +35,8 @@ use Support\Concerns\HasExternalId;
  * @property-read int|null $invitations_count
  * @property-read Collection<int, User> $members
  * @property-read int|null $members_count
- * @property-read User $owner
+ * @property-read User|null $owner
+ * @property-read Workspace $workspace
  * @property-read Collection<int, Role> $roles
  * @property-read int|null $roles_count
  *
@@ -42,13 +47,12 @@ use Support\Concerns\HasExternalId;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereUserId($value)
  *
  * @mixin \Eloquent
  */
 #[Fillable([
     'name',
-    'user_id',
+    'workspace_id',
 ])]
 #[RouteKey('external_id')]
 class Team extends Model
@@ -56,11 +60,22 @@ class Team extends Model
     use HasExternalId;
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Workspace, $this>
      */
-    public function owner(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(Workspace::class);
+    }
+
+    /**
+     * The owner of the team's workspace, who holds every team permission.
+     *
+     * @return HasOneThrough<User, WorkspaceMembership, $this>
+     */
+    public function owner(): HasOneThrough
+    {
+        return $this->hasOneThrough(User::class, WorkspaceMembership::class, 'workspace_id', 'id', 'workspace_id', 'user_id')
+            ->where('workspace_user.role', WorkspaceRole::Owner->value);
     }
 
     /**
@@ -108,12 +123,15 @@ class Team extends Model
     }
 
     /**
-     * Whether the owner or any member already uses this email address.
+     * Whether the owner or any member already uses this email address,
+     * compared without case.
      */
     public function hasUserWithEmail(string $email): bool
     {
-        return $this->owner->email === $email
-            || $this->members->contains(fn ($user): bool => $user->email === $email);
+        $email = strtolower($email);
+
+        return strtolower($this->owner->email) === $email
+            || $this->members->contains(fn ($user): bool => strtolower($user->email) === $email);
     }
 
     /**

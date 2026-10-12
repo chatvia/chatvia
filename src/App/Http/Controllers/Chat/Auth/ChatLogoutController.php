@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
+use App\Http\Chat\HostedChatViewer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
- * Signs the chatter out of the hosted chat.
+ * Signs the viewer (chatter or staff) out of the hosted chat.
  */
 class ChatLogoutController
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        Auth::guard()->logout();
+        HostedChatViewer::signOut();
 
         $request->session()->invalidate();
 

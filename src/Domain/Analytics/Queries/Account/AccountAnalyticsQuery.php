@@ -21,9 +21,10 @@ use Illuminate\Support\Facades\DB;
  * rows. A few slices with no rollup (channel, leads, handoff, device) read the
  * live main-DB tables, scoped to the workspace's agent ids.
  *
- * Counts that must respect a window's exact start read the granular event log
- * or per-conversation metrics, not the hour-bucketed rollup, which cannot
- * split an hour.
+ * Message counts, tokens and reply times read the hourly rollup, by whole
+ * hours (see ReadsHourlyRollups): raw events are pruned after about 13
+ * months, so they would undercount longer periods. Only percentiles and
+ * per-chatter figures read the raw events, within their retention.
  */
 abstract class AccountAnalyticsQuery
 {
@@ -96,14 +97,17 @@ abstract class AccountAnalyticsQuery
     }
 
     /**
-     * Live (not deleted) conversations of the scoped agents, aliased `c`,
-     * joined to their session `s`. Not bound to the window.
+     * Live conversations of the scoped agents, aliased `c`: visible (a hidden
+     * one was opened but never used) and not deleted. Read from the
+     * conversation row itself, which carries its workspace and agent, so no
+     * join to the sessions is needed. Not bound to the window.
      */
     protected function liveConversations(AnalyticsScopeData $scope): Builder
     {
         return DB::table('chat_conversations as c')
-            ->join('chat_sessions as s', 'c.chat_session_id', '=', 's.id')
-            ->whereIn('s.agent_id', $scope->agentIds)
+            ->where('c.workspace_id', $scope->workspace->id)
+            ->whereIn('c.agent_id', $scope->agentIds)
+            ->where('c.is_visible', true)
             ->whereNull('c.deleted_at');
     }
 

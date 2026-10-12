@@ -20,7 +20,7 @@ return new class extends Migration
 
             $table->unsignedBigInteger('workspace_id');
 
-            $table->unsignedBigInteger('chatter_user_id')->nullable();
+            $table->unsignedBigInteger('chatter_id')->nullable();
             $table->string('event_type', 40);
             $table->string('role', 20)->nullable();
             $table->string('feedback', 20)->nullable();
@@ -36,10 +36,10 @@ return new class extends Migration
             $table->timestamp('occurred_at');
             $table->timestamp('inserted_at')->useCurrent();
 
-            $table->index(['agent_id', 'occurred_at']);
+            // The largest table: every index costs a write per event, so only
+            // the ones the readers use (by agent or workspace, by event type).
             $table->index(['agent_id', 'event_type', 'occurred_at']);
-            $table->index(['workspace_id', 'occurred_at']);
-            $table->index(['chatter_user_id', 'occurred_at']);
+            $table->index(['workspace_id', 'event_type', 'occurred_at']);
         });
 
         DB::connection($this->getConnection())->statement(

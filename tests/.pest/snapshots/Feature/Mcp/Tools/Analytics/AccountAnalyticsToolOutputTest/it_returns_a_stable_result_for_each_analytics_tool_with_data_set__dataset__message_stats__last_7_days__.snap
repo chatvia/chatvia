@@ -2,7 +2,7 @@
     "content": [
         {
             "type": "text",
-            "text": "The last 7 days: 8 messages total — 4 incoming, 4 AI replies."
+            "text": "The last 7 days: 10 messages total — 5 incoming, 5 AI replies. up 25% vs the prior period."
         }
     ],
     "isError": false,
@@ -13,11 +13,11 @@
             "start": "2026-06-09",
             "end": "2026-06-15"
         },
-        "incoming_messages": 4,
-        "ai_messages": 4,
-        "total_messages": 8,
-        "previous_total": 0,
-        "change_pct": null,
+        "incoming_messages": 5,
+        "ai_messages": 5,
+        "total_messages": 10,
+        "previous_total": 8,
+        "change_pct": 25,
         "avg_messages_per_conversation": 2.7,
         "daily": [
             {
@@ -30,7 +30,7 @@
             },
             {
                 "date": "2026-06-14",
-                "messages": 2
+                "messages": 4
             }
         ],
         "echarts_option": {
@@ -67,7 +67,7 @@
                     "data": [
                         4,
                         2,
-                        2
+                        4
                     ]
                 }
             ],

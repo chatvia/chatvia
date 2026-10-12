@@ -18,6 +18,14 @@ class AgentCountryShareQuery extends AgentAnalyticsQuery
      */
     public function get(Agent $agent): array
     {
+        return $this->cached($agent, 'countries', 'lifetime', fn (): array => $this->compute($agent));
+    }
+
+    /**
+     * @return list<CountryShareData>
+     */
+    private function compute(Agent $agent): array
+    {
         $sentinel = config('chatvia.analytics.unknown_country_code');
 
         $rows = $this->hourlyRollups($agent)

@@ -35,7 +35,7 @@ class GovernanceAuditController
         $rows = $query->cursorPaginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
 
         $agents = Agent::query()
-            ->where('user_id', $workspaceId)
+            ->where('workspace_id', $workspaceId)
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (Agent $a): array => ['id' => $a->id, 'name' => $a->name])
@@ -79,7 +79,7 @@ class GovernanceAuditController
     private function connectorOptions(int $workspaceId): array
     {
         return AgentMcpServer::query()
-            ->where('user_id', $workspaceId)
+            ->where('workspace_id', $workspaceId)
             ->whereNotNull('connector_slug')
             ->select('connector_slug', 'name')
             ->orderBy('name')

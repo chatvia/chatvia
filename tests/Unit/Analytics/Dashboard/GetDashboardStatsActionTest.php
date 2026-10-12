@@ -22,7 +22,7 @@ function gdsRollup(Agent $agent, string $bucketHour, array $values = []): void
         ->table('analytics_agent_hourly_rollups')
         ->insert(array_merge([
             'agent_id' => $agent->id,
-            'workspace_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'bucket_hour' => $bucketHour,
             'country_code' => '--',
             'llm_external_name' => '',
@@ -35,7 +35,7 @@ function gdsEvent(Agent $agent, string $sessionExternalId, Carbon $occurredAt): 
         ->table('analytics_events')
         ->insert([
             'agent_id' => $agent->id,
-            'workspace_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'event_type' => 'message_sent',
             'session_external_id' => $sessionExternalId,
             'occurred_at' => $occurredAt,
@@ -55,7 +55,7 @@ it('aggregates agents, conversations, messages and sessions for the workspace ow
     // replies were eval cases, which count but never reach the analytics
     // rollup — to pin which source each panel reads.
     MessageLimit::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'monthly_limit' => 1000,
         'messages_used' => 11,
         'period_starts_at' => now()->startOfMonth(),

@@ -34,8 +34,10 @@ class AgentDailyCountsQuery extends AgentAnalyticsQuery
      */
     private function perDay(Agent $agent, string $column, Carbon $start, Carbon $end): array
     {
+        $range = $start->format('Y-m-d').'..'.$end->format('Y-m-d');
+
         // Half-open range on the raw column — a ::date predicate can't use the index.
-        return $this->hourlyRollups($agent)
+        return $this->cached($agent, $column.'-per-day', $range, fn (): array => $this->hourlyRollups($agent)
             ->where('bucket_hour', '>=', $start->copy()->startOfDay())
             ->where('bucket_hour', '<', $end->copy()->startOfDay()->addDay())
             ->selectRaw("bucket_hour::date::text as date, SUM({$column}) as count")
@@ -44,6 +46,6 @@ class AgentDailyCountsQuery extends AgentAnalyticsQuery
             ->get()
             ->map(static fn (object $row): DailyCountData => new DailyCountData((string) $row->date, (int) $row->count))
             ->values()
-            ->all();
+            ->all());
     }
 }

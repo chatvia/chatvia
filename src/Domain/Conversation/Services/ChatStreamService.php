@@ -160,13 +160,13 @@ readonly class ChatStreamService
      */
     private function refusal(StreamRequestData $data): ?Generator
     {
-        if (! $this->allowance->canSend($data->agent->user_id)) {
+        if (! $this->allowance->canSend($data->agent->workspace_id)) {
             return $this->errorSource->events(ErrorCode::MessageLimitReached, __('This agent has reached its monthly message limit. Please try again next month.'));
         }
 
         // The chatter's own monthly limit, on top of the workspace's. Only
         // signed-in chatters can have one.
-        if ($data->chatterUserId !== null && ! $this->allowance->canSend($data->chatterUserId)) {
+        if ($data->chatterId !== null && ! $this->allowance->canSendAsChatter($data->chatterId)) {
             return $this->errorSource->events(ErrorCode::ChatterMessageLimitReached, __('You have reached your monthly message limit.'));
         }
 
@@ -189,7 +189,7 @@ readonly class ChatStreamService
         // The query rewrite, the query embedding and the reranking call AI
         // models: attribute those requests to the workspace.
         $context = $this->usage->track(
-            $data->agent->user_id,
+            $data->agent->workspace_id,
             fn (): ChatContext => $this->chatService->enrichContextWithKnowledge($this->chatService->initializeChatContext($data)),
         );
 

@@ -3,11 +3,12 @@
 namespace App\Http\Requests\Chat;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Http\Chat\HostedChatViewer;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * Authorizes the composer-X delete on `chat.messages.attachments.delete`.
@@ -44,7 +45,7 @@ class DeleteAttachmentRequest extends FormRequest
         if ($attachment->chat_conversation_id === null) {
             return str_starts_with(
                 $attachment->filepath,
-                sprintf('users/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id)
+                sprintf('workspaces/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id)
             );
         }
 
@@ -53,11 +54,13 @@ class DeleteAttachmentRequest extends FormRequest
             return false;
         }
 
-        // Mirrors EnsureChatIsAccessible's protected-agent gate: an
-        // authenticated chatter on a private agent must own the
+        // Mirrors EnsureChatIsAccessible's protected-agent gate: a signed-in
+        // chatter or staff account on a private agent must own the
         // conversation that holds this attachment.
-        if ($agent->is_public === false && Auth::guard()->check()) {
-            return ChatCache::isOwnedBy($conversation->external_id, Auth::id(), $agent->workspaceExternalId());
+        $viewer = HostedChatViewer::data();
+
+        if ($agent->is_public === false && $viewer instanceof ChatViewerData) {
+            return ChatCache::isOwnedBy($conversation->external_id, $viewer, $agent->workspaceExternalId());
         }
 
         return true;

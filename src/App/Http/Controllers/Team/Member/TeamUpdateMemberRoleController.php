@@ -14,7 +14,7 @@ class TeamUpdateMemberRoleController
 {
     public function __invoke(UpdateMemberRoleRequest $request, Team $team, User $member): RedirectResponse
     {
-        abort_if($team->user_id === $member->id, 403, __("Cannot change the owner's role."));
+        abort_if($member->ownsTeam($team), 403, __("Cannot change the owner's role."));
 
         $data = $request->toData($team, $member);
 

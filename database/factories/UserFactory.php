@@ -2,16 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Identity\Workspace\Enums\UserSource;
-use App\Identity\Workspace\Enums\UserType;
+use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Builds a verified workspace owner (the account that owns agents and billing).
- * States turn it into a teammate or chatter. The email gets a random prefix
+ * Builds a verified staff account that owns a new workspace. States turn it
+ * into a teammate of another workspace or a platform admin (chatters have
+ * their own ChatterFactory). The email gets a random prefix
  * because tests run against a seeded database whose rows could collide with
  * plain fake addresses.
  *
@@ -28,8 +29,8 @@ class UserFactory extends Factory
     protected static ?string $password;
 
     /**
-     * Define the model's default state — a `workspace` user (account owner),
-     * registered via the dashboard.
+     * Define the model's default state: a verified staff account. The
+     * workspace membership is added after creating ({@see configure()}).
      *
      * @return array<string, mixed>
      */
@@ -44,19 +45,16 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'type' => UserType::Workspace,
-            'source' => UserSource::Dashboard,
+            'is_admin' => false,
             // Explicitly seed nullable columns so the model is queryable
             // under Model::preventAccessingMissingAttributes() without an
             // extra refresh() call in every test.
-            'workspace_id' => null,
             'current_team_id' => null,
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
             'registered_ip' => null,
             'registered_country_code' => null,
-            'domain' => null,
             'profile_image_path' => null,
             'deactivation_reason' => null,
             'deactivated_at' => null,
@@ -75,39 +73,49 @@ class UserFactory extends Factory
         ]);
     }
 
+    /**
+     * Every user belongs to a workspace: by default its own, as the owner.
+     * {@see employee()} plans a teammate membership instead (set while
+     * making, applied once the user row exists).
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user): void {
+            $planned = $user->relationLoaded('factoryWorkspace') ? $user->getRelation('factoryWorkspace') : null;
+            $user->unsetRelation('factoryWorkspace');
+
+            if ($planned instanceof Workspace) {
+                $planned->members()->attach($user->id, ['role' => WorkspaceRole::Member->value]);
+            } else {
+                Workspace::factory()->create(['name' => $user->name])
+                    ->members()->attach($user->id, ['role' => WorkspaceRole::Owner->value]);
+            }
+
+            $user->unsetRelation('workspaceMembership');
+        });
+    }
+
+    /** Platform staff: may open the admin panel. Owns a workspace like anyone. */
     public function admin(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'type' => UserType::Admin,
+            'is_admin' => true,
         ]);
     }
 
+    /** The owner of a new workspace (the default). */
     public function workspace(): static
     {
-        return $this->state(fn (array $attributes): array => [
-            'type' => UserType::Workspace,
-        ]);
-    }
-
-    public function employee(?User $workspace = null): static
-    {
-        return $this->state(fn (array $attributes): array => [
-            'type' => UserType::Employee,
-            'workspace_id' => $workspace?->id ?? User::factory()->workspace(),
-        ]);
+        return $this;
     }
 
     /**
-     * A chat consumer — type=chatter, source=api, no login email by default
-     * (matches how the public API provisions them).
+     * A teammate of the given owner's workspace (a new one when omitted).
      */
-    public function chatter(?User $workspace = null): static
+    public function employee(?User $owner = null): static
     {
-        return $this->state(fn (array $attributes): array => [
-            'type' => UserType::Chatter,
-            'source' => UserSource::Api,
-            'email' => null,
-            'workspace_id' => $workspace?->id ?? User::factory()->workspace(),
-        ]);
+        return $this->afterMaking(function (User $user) use ($owner): void {
+            $user->setRelation('factoryWorkspace', ($owner ?? User::factory()->create())->workspace());
+        });
     }
 }

@@ -3,6 +3,7 @@
 namespace Domain\Agent\Prompt\Models;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Database\Factories\AgentPromptFactory;
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -22,12 +23,12 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string $external_id
- * @property int $user_id
+ * @property int $workspace_id
  * @property string $name
  * @property string $prompt
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read User $user
+ * @property-read Workspace $workspace
  * @property-read Collection<int, Agent> $agents
  *
  * @mixin \Eloquent
@@ -40,11 +41,11 @@ class AgentPrompt extends Model
     use HasExternalId, HasFactory;
 
     /**
-     * @return BelongsTo<User, $this>
+     * @return BelongsTo<Workspace, $this>
      */
-    public function user(): BelongsTo
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     /**

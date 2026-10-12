@@ -23,7 +23,7 @@ function smtServerWithTool(McpToolPermission $startPermission = McpToolPermissio
 {
     $owner = User::factory()->create();
     $server = AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'name' => 'Test Server',
         'slug' => 'test',
         'url' => 'https://mcp.example.test',
@@ -88,7 +88,7 @@ function smtPresetServerWithTool(McpToolPermission $startPermission = McpToolPer
 {
     $owner = User::factory()->create();
     $server = AgentMcpServer::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'connector_slug' => 'leads',
         'uses_central_catalog' => true,
         'name' => 'Leads',

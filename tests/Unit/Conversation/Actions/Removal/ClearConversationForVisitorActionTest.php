@@ -39,6 +39,7 @@ function visitorClearSetup(): array
 
     $conversation = Conversation::factory()->withoutTitle()->create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'source' => ConversationSource::Widget,
         'is_visible' => true,
@@ -46,6 +47,7 @@ function visitorClearSetup(): array
 
     $message = Message::create([
         'external_id' => (string) Str::uuid(),
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => MessageRole::User,
         'content' => 'What are your opening hours?',
@@ -112,6 +114,7 @@ it('clears every conversation in the session without erasing any of them', funct
 
     $second = Conversation::factory()->withoutTitle()->create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'source' => ConversationSource::Widget,
         'is_visible' => true,

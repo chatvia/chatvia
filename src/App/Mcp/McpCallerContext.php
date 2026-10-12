@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Mcp;
 
 use App\Http\Middleware\Auth\VerifyInternalMcpRequest;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 
@@ -33,7 +33,7 @@ final readonly class McpCallerContext
         /** The signed-in chatter's public id, when one is talking. */
         public ?string $chatterExternalId = null,
         /** The workspace the owner-facing analytics chat acts for (workspace mode). */
-        public ?User $workspace = null,
+        public ?Workspace $workspace = null,
         /** The workspace's own third-party API key for this connector (bearer token). */
         public ?string $connectorApiKey = null,
     ) {}

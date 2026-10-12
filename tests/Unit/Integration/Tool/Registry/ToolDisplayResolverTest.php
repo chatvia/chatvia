@@ -15,7 +15,7 @@ use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 function displayServer(Agent $agent, string $slug, string $category): void
 {
     AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'connector_slug' => $slug,
         'category' => $category,
         'name' => ucfirst($slug),

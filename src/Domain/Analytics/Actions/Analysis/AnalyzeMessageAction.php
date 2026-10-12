@@ -24,7 +24,7 @@ class AnalyzeMessageAction
 
     public function execute(string $externalMessageId): void
     {
-        $message = Message::with('conversation.agent.user')
+        $message = Message::with('conversation.agent')
             ->where('external_id', $externalMessageId)
             ->first();
 
@@ -54,7 +54,7 @@ class AnalyzeMessageAction
 
         // Attribute the tone/sentiment LLM call to the workspace in Spectra.
         $analysis = $this->usage->track(
-            $agent->user_id,
+            $agent->workspace_id,
             fn (): ?ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
         );
 
@@ -73,7 +73,7 @@ class AnalyzeMessageAction
 
         MessageAnalyzed::dispatch(
             $agent->id,
-            $agent->user_id,
+            $agent->workspace_id,
             $wantSentiment ? $analysis->sentiment->value : null,
             $wantTone ? $analysis->tone->value : null,
             $message->created_at,

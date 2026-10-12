@@ -6,7 +6,6 @@ use Database\Factories\MessageFactory;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Concerns\CascadesAttachmentDeletes;
 use Domain\Conversation\QueryBuilders\MessageQueryBuilder;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -27,13 +26,13 @@ use Support\Concerns\HasExternalId;
  *
  * @property int $id
  * @property string $external_id
+ * @property int $workspace_id
  * @property int $chat_conversation_id
  * @property int|null $llm_id
  * @property int|null $agent_question_answer_id
  * @property string|null $generation_id
  * @property string|null $source
  * @property string|null $content
- * @property string|null $content_bm25
  * @property array<array-key, mixed>|null $metadata
  * @property MessageRole $role
  * @property float|null $confidence_score
@@ -88,6 +87,7 @@ use Support\Concerns\HasExternalId;
  */
 #[Fillable([
     'external_id',
+    'workspace_id',
     'chat_conversation_id',
     'llm_id',
     'agent_question_answer_id',
@@ -145,27 +145,6 @@ class Message extends Model
      */
     protected static function booted(): void
     {
-        // Keep the searchable BM25 vector in sync with `content` on every write
-        // path (the message store actions, handoff, factories, updates) — content_bm25
-        // is a pure function of content, so deriving it on the model avoids each
-        // caller having to remember. Tokenized DB-side with the same llmlingua2
-        // model the query side uses (see MessageQueryBuilder::searchContent).
-        static::saving(static function (Message $message): void {
-            if (! $message->isDirty('content')) {
-                return;
-            }
-
-            // setAttribute (not `->content_bm25 =`) so the raw tokenize()
-            // Expression goes through the attributes bag like Chunk's bm25
-            // columns do — the typed property only ever reads back a string.
-            $message->setAttribute(
-                'content_bm25',
-                ($message->content !== null && $message->content !== '')
-                    ? Bm25Tokenizer::expression($message->content)
-                    : null,
-            );
-        });
-
         static::deleting(static function (Message $message): void {
             $message->cascadeAttachmentDeletes();
         });

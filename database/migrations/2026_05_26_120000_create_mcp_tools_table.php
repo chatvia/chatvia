@@ -70,7 +70,9 @@ return new class extends Migration
 
         DB::statement('CREATE INDEX mcp_tools_embedding_bm25 ON mcp_tools USING bm25 (embedding_bm25 bm25_catalog.bm25_ops)');
 
-        DB::statement("CREATE INDEX mcp_tools_embedding_vchordrq ON mcp_tools USING vchordrq (embedding {$ops})");
+        // No vector index: an agent reaches a few dozen MCP tools at most, so its
+        // search ranks them by exact distance (an approximate index over every
+        // workspace's rows would only add work and miss some).
 
         Schema::create('mcp_server_tool', function (Blueprint $table) {
             $table->foreignId('mcp_server_id')
@@ -82,7 +84,7 @@ return new class extends Migration
 
             $table->enum('permission', ['allow', 'approval', 'blocked'])->default('approval');
 
-            $table->unsignedInteger('invocation_count')->default(0);
+            $table->unsignedBigInteger('invocation_count')->default(0);
             $table->timestamp('last_invoked_at')->nullable();
 
             $table->primary(['mcp_server_id', 'connector_tool_id']);

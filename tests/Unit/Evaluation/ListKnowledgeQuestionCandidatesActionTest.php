@@ -27,7 +27,7 @@ it('lists QA-pair questions, deduped, and flags ones already used as a case inpu
     EvalCase::create([
         'agent_id' => $agent->id,
         'agent_name' => $agent->name,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => 'existing',
         'input' => 'how long do refunds take?',
         'scorer_type' => 'contains',

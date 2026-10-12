@@ -13,8 +13,8 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
  */
 it('unlinks a shared file from this agent only and keeps the file', function (): void {
     $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['user_id' => $agent->user_id, 'team_id' => $agent->team_id]);
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id, 'team_id' => $agent->team_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->files()->attach($file->id);
     $other->files()->attach($file->id);
 
@@ -28,7 +28,7 @@ it('unlinks a shared file from this agent only and keeps the file', function ():
 
 it('refuses the last link of a file and changes nothing', function (): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $agent->files()->attach($file->id);
 
     $unlinked = app(UnlinkSourceFileFromAgentAction::class)->execute($agent, $file);
@@ -39,8 +39,8 @@ it('refuses the last link of a file and changes nothing', function (): void {
 
 it('refuses a file this agent does not use', function (): void {
     $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['user_id' => $agent->user_id, 'team_id' => $agent->team_id]);
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id, 'team_id' => $agent->team_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $other->files()->attach($file->id);
 
     $unlinked = app(UnlinkSourceFileFromAgentAction::class)->execute($agent, $file);

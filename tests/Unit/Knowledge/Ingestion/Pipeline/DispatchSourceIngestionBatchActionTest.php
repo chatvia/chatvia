@@ -18,20 +18,22 @@ use Illuminate\Support\Facades\Event;
 
 /**
  * The one batch pipeline shared by document, text-file, media and text
- * ingestion. Its completion step is the authoritative "done" signal: per-chunk
- * progress can stay below 100%, so without the final broadcast the sources
- * page would hang on "ingesting".
+ * ingestion: its chunk jobs store groups of pages (one page when enhanced),
+ * and its completion step is the authoritative "done" signal — the jobs'
+ * progress stays below 100%, so without the final broadcast the sources page
+ * would hang on "ingesting".
  */
 function dsibPages(int $count): Collection
 {
     return collect(range(1, $count))->map(fn (int $n): PageData => new PageData(pageNumber: $n, content: "Page {$n}", checksum: "c{$n}"));
 }
 
-it('marks the source as ingesting, queues the summary and stores the batch id', function (): void {
+it('marks the source as ingesting with its page count, queues the summary and stores the batch id', function (): void {
     Bus::fake();
+    config(['chatvia.ai.chunker.enhance' => false]);
 
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
 
     $jobs = DocumentChunkIngestionJob::forPages($agent, $file, dsibPages(3));
     $batch = app(DispatchSourceIngestionBatchAction::class)->execute($file, $agent, $jobs);
@@ -44,21 +46,58 @@ it('marks the source as ingesting, queues the summary and stores the batch id', 
         ->and($file->internal_chunking_batch_id)->toBe($batch->id);
 
     Bus::assertDispatched(SummaryIngestionJob::class);
-    Bus::assertBatched(fn (PendingBatch $pending): bool => $pending->jobs->count() === 3
+    Bus::assertBatched(fn (PendingBatch $pending): bool => $pending->jobs->count() === 1
         && $pending->allowsFailures()
         && str_contains((string) $pending->name, (string) $file->id));
 });
 
-it('gives each page job its neighbours as context', function (): void {
+it('stores plain pages 32 to a job, with text-only neighbours', function (): void {
+    config(['chatvia.ai.chunker.enhance' => false]);
+
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    $pages = dsibPages(70)->map(fn (PageData $page): PageData => new PageData($page->pageNumber, $page->content, $page->checksum, imagesBase64: ['image']));
 
-    $jobs = DocumentChunkIngestionJob::forPages($agent, $file, dsibPages(3));
+    $jobs = DocumentChunkIngestionJob::forPages($agent, $file, $pages);
 
-    expect($jobs[0]->previousPage)->toBeNull()
-        ->and($jobs[0]->nextPage->pageNumber)->toBe(2)
-        ->and($jobs[1]->previousPage->pageNumber)->toBe(1)
-        ->and($jobs[2]->nextPage)->toBeNull();
+    expect($jobs->map(fn (DocumentChunkIngestionJob $job): int => count($job->group->pages))->all())->toBe([32, 32, 6])
+        ->and($jobs[1]->group->previousPage->pageNumber)->toBe(32)
+        ->and($jobs[1]->group->nextPage->pageNumber)->toBe(65)
+        ->and($jobs[1]->group->pages[0]->imagesBase64)->toBe([])
+        ->and($jobs[1]->group->previousPage->imagesBase64)->toBe([]);
+});
+
+it('gives each enhanced page a job of its own, with its neighbours as context', function (): void {
+    config(['chatvia.ai.chunker.enhance' => true]);
+
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
+    $pages = dsibPages(3)->map(fn (PageData $page): PageData => new PageData($page->pageNumber, $page->content, $page->checksum, imagesBase64: ['image']));
+
+    $jobs = DocumentChunkIngestionJob::forPages($agent, $file, $pages);
+
+    expect($jobs)->toHaveCount(3)
+        ->and($jobs[0]->group->previousPage)->toBeNull()
+        ->and($jobs[0]->group->nextPage->pageNumber)->toBe(2)
+        ->and($jobs[1]->group->previousPage->pageNumber)->toBe(1)
+        ->and($jobs[2]->group->nextPage)->toBeNull()
+        // A document page's own images are described; its neighbours' are not.
+        ->and($jobs[1]->group->pages[0]->imagesBase64)->toBe(['image'])
+        ->and($jobs[1]->group->nextPage->imagesBase64)->toBe([]);
+});
+
+it('stores the pages without enhancement once a job has failed for good', function (): void {
+    config(['chatvia.ai.chunker.enhance' => true]);
+
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
+
+    $job = DocumentChunkIngestionJob::forPages($agent, $file, dsibPages(1))->first();
+    $job->failed(new RuntimeException('model unavailable'));
+
+    expect($file->chunks()->sole())
+        ->chunk->toBe('Page 1')
+        ->is_enhanced->toBeFalse();
 });
 
 it('completes the source straight away when there is nothing to chunk', function (): void {
@@ -66,7 +105,7 @@ it('completes the source straight away when there is nothing to chunk', function
     Event::fake([FileIngestionProgressed::class]);
 
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
 
     $batch = app(DispatchSourceIngestionBatchAction::class)->execute($file, $agent, collect());
 
@@ -84,7 +123,7 @@ it('completes the source and broadcasts the final progress when the batch finish
     Event::fake([FileIngestionProgressed::class]);
 
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id]);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
 
     app(DispatchSourceIngestionBatchAction::class)->execute($file, $agent, DocumentChunkIngestionJob::forPages($agent, $file, dsibPages(1)));
 
@@ -107,7 +146,7 @@ it('broadcasts a text source completion on the text channel', function (): void 
 
     $agent = Agent::factory()->create();
     $text = SourceText::query()->create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'filepath' => 'users/x/agents/y/train/text/a.txt',
         'excerpt' => 'excerpt',
         'length' => 1,

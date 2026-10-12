@@ -54,7 +54,7 @@ class AgentMcpAttachmentController
     private function resolveServer(Agent $agent, string $externalId): AgentMcpServer
     {
         return AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->where('external_id', $externalId)
             ->firstOrFail();
     }

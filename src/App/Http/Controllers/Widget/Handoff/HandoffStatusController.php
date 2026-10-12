@@ -32,7 +32,7 @@ readonly class HandoffStatusController
         }
 
         $conversationId = (string) $conversationId;
-        $conversation = $findConversation->execute($conversationId, $sessionId, $agent, $this->widgetUser($request));
+        $conversation = $findConversation->execute($conversationId, $sessionId, $agent, $this->widgetViewer($request));
 
         return $conversation instanceof Conversation
             ? WidgetHandoffStatusData::fromConversation($conversation, $conversationId)

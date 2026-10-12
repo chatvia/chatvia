@@ -32,7 +32,7 @@ interface OpenForm {
 
 const { t } = useI18n();
 
-const { entries, isLoading, fetchEntries, fetchContent } = useTextSources(props.agent.external_id);
+const { entries, total, hasMore, isLoadingMore, isLoading, fetchEntries, loadMore, fetchContent } = useTextSources(props.agent.external_id);
 const { isDialogOpen, target, isUnlinking, isDeleting, confirmRemove, unlink, remove } = useTextSourceRemoval(props.agent.external_id, fetchEntries);
 
 const openForm = ref<OpenForm | null>(null);
@@ -78,7 +78,16 @@ fetchEntries();
                 @cancel="closeForm"
             />
 
-            <TextEntryList v-if="!isLoading && entries.length > 0" :entries="entries" @edit="openEditForm" @remove="confirmRemove" />
+            <TextEntryList
+                v-if="!isLoading && entries.length > 0"
+                :entries="entries"
+                :total="total"
+                :has-more="hasMore"
+                :is-loading-more="isLoadingMore"
+                @load-more="loadMore"
+                @edit="openEditForm"
+                @remove="confirmRemove"
+            />
 
             <Card v-else-if="!isLoading && entries.length === 0 && !openForm">
                 <CardContent class="flex flex-col items-center justify-center py-12">

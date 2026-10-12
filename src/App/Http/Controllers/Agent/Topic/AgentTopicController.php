@@ -34,7 +34,7 @@ class AgentTopicController
                 // Topics belong to the workspace owner, so a teammate sees the
                 // same list as the owner.
                 $query = Topic::query()
-                    ->forUser($agent->user)
+                    ->forWorkspace($agent->workspace)
                     ->orderBy('topic');
 
                 if ($search) {
@@ -69,7 +69,7 @@ class AgentTopicController
             // body-supplied id can't reach another account's private topic.
             // Mirrors the same scope the attachable-topics listing in index() uses.
             $topic = Topic::query()
-                ->forUser($agent->user)
+                ->forWorkspace($agent->workspace)
                 ->findOrFail((int) $request->validated('topic_id'));
 
             $attach->execute($agent, $topic);

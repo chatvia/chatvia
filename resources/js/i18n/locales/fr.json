@@ -411,7 +411,8 @@
                 "expires_in_months": "Expire dans {count} mois | Expire dans {count} mois",
                 "conversations_count": "{count} conversation | {count} conversations",
                 "refresh_conversations": "Actualiser les conversations",
-                "remove_filter": "Retirer le filtre"
+                "remove_filter": "Retirer le filtre",
+                "load_more": "Charger plus"
             },
             "pagination": {
                 "prev": "Précédent",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Retirer de l'agent",
                 "used_in_agents": "(Utilisé dans {count} agents)",
                 "delete_from_knowledge_base": "Supprimer de la base de connaissances",
-                "agents_count": "{count} agents"
+                "agents_count": "{count} agents",
+                "load_more": "Charger plus"
             },
             "page_title": {
                 "sources": "Sources",

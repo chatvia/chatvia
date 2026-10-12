@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Identity\Workspace\Listeners;
 
 use App\Identity\Workspace\Actions\MessageLimits\RecordMessageUsageAction;
+use App\Identity\Workspace\Services\MessageAllowance;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 
 /**
@@ -16,10 +17,11 @@ class CountReplyAgainstMessageLimit
 {
     public function __construct(
         private readonly RecordMessageUsageAction $recordUsage,
+        private readonly MessageAllowance $allowance,
     ) {}
 
     public function handle(AssistantReplyCompleted $event): void
     {
-        $this->recordUsage->execute($event->workspaceId);
+        $this->recordUsage->execute($this->allowance->limitFor($event->workspaceId));
     }
 }

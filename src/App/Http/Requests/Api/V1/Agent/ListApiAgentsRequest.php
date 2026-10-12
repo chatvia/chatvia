@@ -49,7 +49,7 @@ class ListApiAgentsRequest extends FormRequest
                 $teamId = $this->query('team_id');
 
                 $this->team = is_string($teamId) && Str::isUuid($teamId)
-                    ? $user->workspace()->ownedTeams()->where('external_id', $teamId)->first()
+                    ? $user->workspace()->teams()->where('external_id', $teamId)->first()
                     : null;
 
                 if ($this->team === null) {

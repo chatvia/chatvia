@@ -23,7 +23,7 @@ class PruneExpiredConversations extends Command
             graceDays: max(0, (int) $this->option('grace-days')),
         );
 
-        $this->info("Pruned {$result->expired} expired + {$result->overridden} retention-override conversation(s); purged {$result->purged} past the grace window; removed {$result->orphanSessions} orphaned session(s).");
+        $this->info("Clamped {$result->clamped} horizon(s) to the current retention; pruned {$result->expired} expired + {$result->overridden} retention-override conversation(s); purged {$result->purged} past the grace window; removed {$result->orphanSessions} orphaned session(s).");
 
         return self::SUCCESS;
     }

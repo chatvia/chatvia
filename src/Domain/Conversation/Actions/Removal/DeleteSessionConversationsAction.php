@@ -56,7 +56,7 @@ class DeleteSessionConversationsAction
 
         Message::query()
             ->whereIn('chat_conversation_id', $conversationIds)
-            ->update(['content' => null, 'content_bm25' => null]);
+            ->update(['content' => null]);
 
         Conversation::query()
             ->whereIn('id', $conversationIds)

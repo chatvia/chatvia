@@ -3,13 +3,15 @@
 namespace App\Identity\Workspace\Concerns;
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * The teams a {@see User} owns or is a member of, and which one is current.
+ * The teams a {@see User} owns (as their workspace's owner) or is a member
+ * of, and which one is current.
  * {@see currentOrPrimaryTeam()} is the read path (no DB writes, safe at render
  * time); only {@see switchTeam()} and {@see bootstrapCurrentTeam()} persist
  * `current_team_id`. Team roles and permissions are in
@@ -30,21 +32,25 @@ trait HasTeams
     }
 
     /**
-     * Get all teams owned by the user.
+     * The teams of the user's workspace when they own it; none otherwise.
+     * Declared on the workspace (the teams belong to it), so read it through
+     * this method rather than eager-loading it.
      *
-     * @return HasMany<Team, $this>
+     * @return HasMany<Team, Workspace>
      */
     public function ownedTeams(): HasMany
     {
-        return $this->hasMany(Team::class, 'user_id');
+        $teams = $this->workspace()->teams();
+
+        return $this->isWorkspaceOwner() ? $teams : $teams->whereRaw('1 = 0');
     }
 
     /**
-     * Check if user owns a specific team.
+     * Whether the user owns the team: they own the workspace it belongs to.
      */
     public function ownsTeam(Team $team): bool
     {
-        return $team->user_id === $this->id;
+        return $this->isWorkspaceOwner() && $team->workspace_id === $this->workspace()->id;
     }
 
     /**

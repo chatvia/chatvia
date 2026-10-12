@@ -28,15 +28,16 @@ function buildAttachment(?int $messageId = null): Attachment
     $owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($owner);
     $agent = Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Bot',
         'external_id' => Str::random(14),
         'slug' => Str::lower(Str::random(12)),
         'is_public' => true,
     ]);
-    $session = Session::create(['agent_id' => $agent->id]);
+    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     $conversation = Conversation::create([
+        'workspace_id' => $session->workspace_id,
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'source' => 'hosted_chat',
@@ -69,6 +70,7 @@ it('deletes the row and wipes the S3 object when the attachment is composer-stag
 it('returns false and leaves the row intact when the attachment was bound between authorize and execute', function (): void {
     $attachment = buildAttachment();
     $message = Message::create([
+        'workspace_id' => $attachment->conversation->workspace_id,
         'chat_conversation_id' => $attachment->chat_conversation_id,
         'role' => 'user',
         'content' => 'sent before delete arrived',

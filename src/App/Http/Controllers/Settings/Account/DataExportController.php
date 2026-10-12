@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * The GDPR data export page: shows the current export, starts a new one and
@@ -75,9 +74,8 @@ class DataExportController
 
     public function destroy(DataExport $export, DeleteDataExportAction $deleteExport): RedirectResponse
     {
-        if (Gate::denies('delete', $export)) {
-            throw new AccessDeniedHttpException;
-        }
+        // Someone else's export is a 404; a not-ready one is a 403 (DataExportPolicy).
+        Gate::authorize('delete', $export);
 
         $deleteExport->execute($export);
 

@@ -38,7 +38,7 @@ class AgentAuditController
 
         // Filter options from the workspace's configured connectors.
         $connectors = AgentMcpServer::query()
-            ->where('user_id', $agent->user_id)
+            ->where('workspace_id', $agent->workspace_id)
             ->whereNotNull('connector_slug')
             ->select('connector_slug', 'name')
             ->orderBy('name')

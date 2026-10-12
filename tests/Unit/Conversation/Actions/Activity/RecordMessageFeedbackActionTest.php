@@ -23,9 +23,10 @@ beforeEach(function (): void {
 function feedbackScope(): ChatScopeData
 {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['agent_id' => $agent->id]);
+    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
     $conversation = Conversation::create([
         'chat_session_id' => $session->id,
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'external_id' => (string) Str::uuid(),
         'source' => ConversationSource::HostedChat,
@@ -38,6 +39,7 @@ function feedbackScope(): ChatScopeData
 function feedbackMessage(ChatScopeData $scope, string $externalId): Message
 {
     return Message::create([
+        'workspace_id' => $scope->agent->workspace_id,
         'external_id' => $externalId,
         'chat_conversation_id' => Conversation::query()->where('external_id', $scope->conversationId)->value('id'),
         'role' => MessageRole::Assistant,
@@ -84,6 +86,8 @@ it('still records the rating when the live memory is cold', function (): void {
     Event::assertDispatched(FeedbackGiven::class, fn (FeedbackGiven $event): bool => $event->feedback === 'negative'
         && $event->messageExternalId === $messageId
         && $event->conversationExternalId === $scope->conversationId
+        // Analytics rows are keyed by the agent's workspace.
+        && $event->workspaceId === $scope->agent->workspace_id
         // The model name lives only in the live memory.
         && $event->llmExternalName === null);
 });

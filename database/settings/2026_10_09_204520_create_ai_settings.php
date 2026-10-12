@@ -13,13 +13,15 @@ return new class extends SettingsMigration
     public function up(): void
     {
         $this->migrator->inGroup('ai', function (SettingsBlueprint $group): void {
-            $group->add('llm_provider');
             $group->add('embedding_provider');
             $group->add('reranker');
             $group->add('document_parser');
             $group->add('transcriber');
             $group->add('document_llm');
             $group->add('default_agent_model');
+            $group->add('fast_model');
+            $group->add('smart_model');
+            $group->add('vision_model');
             $group->add('history_messages');
             $group->add('summary_model');
             $group->add('analysis_model');
@@ -33,12 +35,6 @@ return new class extends SettingsMigration
             $group->add('mistral_base_url');
             $group->add('mistral_ocr_model');
             $group->add('mistral_embedding_model');
-            $group->addEncrypted('openrouter_api_key');
-            $group->add('openrouter_base_url');
-            $group->add('openrouter_completion_endpoint');
-            $group->addEncrypted('groq_api_key');
-            $group->add('groq_base_url');
-            $group->add('groq_completion_endpoint');
             $group->addEncrypted('cohere_api_key');
             $group->add('cohere_api_endpoint');
             $group->add('cohere_embedding_model');

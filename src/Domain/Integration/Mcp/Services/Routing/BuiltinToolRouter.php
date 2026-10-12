@@ -12,7 +12,7 @@ use Throwable;
 
 /**
  * Semantic tool routing for the agent-less "Ask your data" chat. The
- * GLOBAL (user_id IS NULL) counterpart of {@see ToolHybridSearch}:
+ * GLOBAL (workspace_id IS NULL) counterpart of {@see ToolHybridSearch}:
  * the same RRF over `mcp_tools` dense (`<->`) + BM25 (`<&>`) signals, but
  * scoped by `mcp_servers.category` instead of an agent pivot, and without the
  * `functions` channels (the analytics chat has no webhook tools).
@@ -111,7 +111,7 @@ SELECT ct.name, ct.description, ct.input_schema, s.url
 FROM connector_tools ct
 INNER JOIN mcp_server_tool mst ON mst.connector_tool_id = ct.id
 INNER JOIN mcp_servers s ON s.id = mst.mcp_server_id
-WHERE s.user_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
+WHERE s.workspace_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
   AND mst.permission != 'blocked' AND ct.embedding_bm25 IS NOT NULL
 ORDER BY ct.embedding_bm25 <&> bm25_catalog.to_bm25query(
     'connector_tools_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')
@@ -134,7 +134,7 @@ WITH scoped AS (
     FROM connector_tools ct
     INNER JOIN mcp_server_tool mst ON mst.connector_tool_id = ct.id
     INNER JOIN mcp_servers s ON s.id = mst.mcp_server_id
-    WHERE s.user_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
+    WHERE s.workspace_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
       AND mst.permission != 'blocked'
 ),
 vec AS (
@@ -193,7 +193,7 @@ SELECT ct.name, ct.description, ct.input_schema, s.url
 FROM connector_tools ct
 INNER JOIN mcp_server_tool mst ON mst.connector_tool_id = ct.id
 INNER JOIN mcp_servers s ON s.id = mst.mcp_server_id
-WHERE s.user_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
+WHERE s.workspace_id IS NULL AND s.is_enabled = true AND s.category IN ($placeholders)
   AND mst.permission != 'blocked'
 ORDER BY ct.name
 LIMIT ?

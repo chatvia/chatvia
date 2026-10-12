@@ -40,11 +40,9 @@ class DeleteConversationAction
                 return;
             }
 
-            // A bulk update skips the Message::saving hook, so the BM25 search
-            // copy is cleared here explicitly; otherwise it would outlive the text.
+            // Erase the text now: the row itself goes with the trash purge.
             $conversation->messages()->update([
                 'content' => null,
-                'content_bm25' => null,
             ]);
 
             if ($deletedBy) {

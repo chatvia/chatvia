@@ -2,74 +2,47 @@
 
 namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
 use Domain\Knowledge\Ingestion\Data\Chunking\SourceChunkData;
-use Domain\Knowledge\Ingestion\Jobs\Document\DocumentEnhanceChunkJob;
-use Domain\Knowledge\Ingestion\Jobs\Text\TextEnhanceChunkJob;
-use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Events\TextIngestionProgressed;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 
 /**
- * The body of every per-chunk ingestion job (document pages, media transcript
- * parts, text parts): creates the chunk, reports progress, and queues the
- * enhancement step when it is on.
+ * The body of every chunk job of a file or text source (document pages, media
+ * transcript parts, text parts): stores the job's pages as chunks, enhanced
+ * as the source's setting says (see {@see ChunkEnhancement}), and reports the
+ * source's progress to its page.
  *
- * Duplicate pages create no chunk, so they report no progress and are not
- * enhanced. Document pages are enhanced with their images and tables; other
- * chunks with their text only. Text sources follow
- * `chatvia.ai.chunker.enhance_text` (on by default, they are short); file
- * sources follow `chatvia.ai.chunker.enhance` (off by default).
+ * Progress comes from the job batch (jobs done / jobs in the batch), so it
+ * also moves for pages that were duplicates and made no chunk. The batch's
+ * completion step sends the final 100 %.
  */
 class IngestSourceChunkAction
 {
     public function __construct(
-        private readonly CreateSourceChunkAction $createChunk,
+        private readonly CreateSourceChunksAction $createChunks,
     ) {}
 
     public function execute(SourceChunkData $data): void
     {
-        $chunk = $this->createChunk->execute($data->agent, $data->source, $data->page);
+        $this->createChunks->execute(new ChunkPagesData(
+            source: $data->source,
+            group: $data->group,
+            enhancement: $data->enhancement ?? ChunkEnhancement::for($data->source),
+            imageDirectory: KnowledgeStoragePath::forAgent($data->agent),
+        ));
 
-        if (! $chunk instanceof Chunk) {
+        if ($data->progress === null) {
             return;
         }
 
-        $this->reportProgress($data);
-
-        if ($this->shouldEnhance($data)) {
-            $this->queueEnhancement($data, $chunk);
-        }
-    }
-
-    private function shouldEnhance(SourceChunkData $data): bool
-    {
-        $setting = $data->source instanceof SourceText ? 'enhance_text' : 'enhance';
-
-        return config("chatvia.ai.chunker.{$setting}") === true;
-    }
-
-    private function reportProgress(SourceChunkData $data): void
-    {
-        $source = $data->source->refresh();
-
         match (true) {
-            $source instanceof SourceFile => FileIngestionProgressed::dispatch($source, $data->agent->external_id),
-            $source instanceof SourceText => TextIngestionProgressed::dispatch($source, $data->agent->external_id),
+            $data->source instanceof SourceFile => FileIngestionProgressed::dispatch($data->source, $data->agent->external_id, $data->progress),
+            $data->source instanceof SourceText => TextIngestionProgressed::dispatch($data->source, $data->agent->external_id, $data->progress),
         };
-    }
-
-    private function queueEnhancement(SourceChunkData $data, Chunk $chunk): void
-    {
-        $isDocument = $data->source instanceof SourceFile
-            && ! $data->source->isAudioFile()
-            && ! $data->source->isVideoFile();
-
-        $job = $isDocument
-            ? new DocumentEnhanceChunkJob($data->agent, $data->source, $chunk, $data->page, $data->previousPage, $data->nextPage)
-            : new TextEnhanceChunkJob($data->agent, $data->source, $chunk, $data->page, $data->previousPage, $data->nextPage);
-
-        dispatch($job);
     }
 }

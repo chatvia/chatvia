@@ -15,13 +15,14 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Enforces a workspace's network-access policy (IP allowlist + geo) on the
  * authenticated dashboard. Appended to the `web` group, so it runs on every web
- * request but no-ops unless ALL of: there's an authenticated user, they aren't
- * platform staff, their workspace has a policy row, and at least one control
- * (IP allowlist or geo) is on.
+ * request but no-ops unless ALL of: there's an authenticated user, their
+ * workspace has a policy row, and at least one control (IP allowlist or geo)
+ * is on.
  *
  * Anti-lockout lives at the write boundary — the security-policy FormRequest
  * rejects rules that would block the saver — so a workspace can't fence itself
- * out via the UI. Platform admins always bypass so support can reach any account.
+ * out via the UI. Platform admins get no bypass: on the dashboard they only
+ * reach their own workspace, so its rules apply to them like anyone else.
  *
  * Scope: this guards the web/Inertia dashboard surface — full page loads,
  * Inertia partial reloads, and the dashboard broadcasting/auth endpoint (all in
@@ -37,7 +38,7 @@ class EnsureWorkspaceNetworkAllowed
     {
         $user = $request->user();
 
-        if (! $user instanceof User || $user->isAdmin()) {
+        if (! $user instanceof User) {
             return $next($request);
         }
 

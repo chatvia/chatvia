@@ -1,7 +1,7 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use App\Mcp\McpCallerContext;
 use App\Mcp\McpCallerResolver;
 use App\Mcp\Servers\AccountAnalyticsServer;
@@ -12,35 +12,20 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 /**
- * Seed `message_sent` rows in the granular event log (what the analytics tools
- * count, by exact occurred_at — not the hour-bucketed rollup).
+ * Seed messages in the per-agent hourly rollup (what the analytics tools sum
+ * for message counts), in the current hour.
  */
-function seedMessageEvents(int $workspaceId, int $userMessages, int $assistantMessages): void
+function seedMessageRollup(int $workspaceId, int $userMessages, int $assistantMessages): void
 {
-    $session = (string) Str::uuid();
-    $make = fn (string $role): array => [
+    DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => 1,
         'workspace_id' => $workspaceId,
-        'event_type' => 'message_sent',
-        'role' => $role,
-        'conversation_external_id' => (string) Str::uuid(),
-        'message_external_id' => (string) Str::uuid(),
-        'session_external_id' => $session,
-        'occurred_at' => now(),
-        'inserted_at' => now(),
-    ];
-
-    $rows = [];
-    for ($i = 0; $i < $userMessages; $i++) {
-        $rows[] = $make('user');
-    }
-    for ($i = 0; $i < $assistantMessages; $i++) {
-        $rows[] = $make('assistant');
-    }
-
-    if ($rows !== []) {
-        DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')->insert($rows);
-    }
+        'bucket_hour' => now()->startOfHour(),
+        'country_code' => '--',
+        'llm_external_name' => 'qwen3',
+        'user_messages' => $userMessages,
+        'assistant_messages' => $assistantMessages,
+    ]);
 }
 
 /**
@@ -66,10 +51,10 @@ function seedConversations(int $workspaceId, int $count): void
     }
 }
 
-function callAs(?User $workspace): void
+function callAs(?Workspace $workspace): void
 {
     $request = Request::create('/mcp/account-analytics', 'POST');
-    if ($workspace instanceof User) {
+    if ($workspace instanceof Workspace) {
         $request->headers->set('X-Chatvia-Workspace-Id', $workspace->external_id);
     }
 
@@ -77,9 +62,9 @@ function callAs(?User $workspace): void
 }
 
 it('reports account-overview numbers scoped to the workspace', function (): void {
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
+    $workspace = User::factory()->create()->workspace();
 
-    seedMessageEvents($workspace->id, 15, 12);
+    seedMessageRollup($workspace->id, 15, 12);
     seedConversations($workspace->id, 5);
 
     callAs($workspace);
@@ -95,10 +80,10 @@ it('reports account-overview numbers scoped to the workspace', function (): void
 });
 
 it('never leaks another workspace\'s numbers', function (): void {
-    $a = User::factory()->create(['type' => UserType::Workspace]);
-    $b = User::factory()->create(['type' => UserType::Workspace]);
+    $a = User::factory()->create()->workspace();
+    $b = User::factory()->create()->workspace();
 
-    seedMessageEvents($b->id, 99, 77);
+    seedMessageRollup($b->id, 99, 77);
     seedConversations($b->id, 42);
 
     callAs($a);

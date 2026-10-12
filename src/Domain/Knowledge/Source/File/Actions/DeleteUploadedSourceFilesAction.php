@@ -22,7 +22,7 @@ class DeleteUploadedSourceFilesAction
     {
         $files = $agent->files()
             ->where('source_files.status', SourceStatus::Uploaded)
-            ->where('source_files.user_id', $agent->user_id)
+            ->where('source_files.workspace_id', $agent->workspace_id)
             ->get();
 
         $files->each(fn (SourceFile $file) => $file->delete());

@@ -71,3 +71,18 @@ it('throws when the agent already has a topic with that name', function (): void
     expect(fn () => app(PromoteSuggestedTopicAction::class)->execute($agent, 'Billing'))
         ->toThrow(DomainValidationException::class);
 });
+
+it('promotes the label on old conversations too, not only on recent ones', function (): void {
+    Event::fake([ConversationTopicAssigned::class]);
+
+    $agent = Agent::factory()->create();
+    $old = suggestionConversation($agent, 'Shipping Delays');
+    $old->forceFill(['created_at' => now()->subDays(200)])->saveQuietly();
+
+    $topic = app(PromoteSuggestedTopicAction::class)->execute($agent, 'Shipping Delays');
+
+    expect(ConversationTopic::query()
+        ->where('chat_conversation_id', $old->id)
+        ->where('topic_id', $topic->id)
+        ->exists())->toBeTrue();
+});

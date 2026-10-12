@@ -30,7 +30,7 @@ class AssistantReplyRecorder
     {
         $request = $context->requestData;
 
-        AssistantReplyCompleted::dispatch($request->agent->user_id, $context->assistantMessageId);
+        AssistantReplyCompleted::dispatch($request->agent->workspace_id, $context->assistantMessageId);
 
         $this->store($context);
 

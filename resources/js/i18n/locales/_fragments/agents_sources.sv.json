@@ -13,7 +13,8 @@
                 "remove_from_agent": "Ta bort från agent",
                 "used_in_agents": "(Används i {count} agenter)",
                 "delete_from_knowledge_base": "Ta bort från kunskapsbasen",
-                "agents_count": "{count} agenter"
+                "agents_count": "{count} agenter",
+                "load_more": "Ladda fler"
             },
             "page_title": {
                 "sources": "Källor",

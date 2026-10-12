@@ -13,7 +13,10 @@ no process supervisor is needed inside the containers. See them with
 `docker compose ps`, and the logs of one with `docker compose logs horizon`.
 
 The chunker is only reachable inside the stack and needs no API key. The
-app uses it for every text it splits into chunks.
+app uses it for every text it splits into chunks. It has its own
+[releases](https://github.com/chatvia/chunker/releases), so its version is
+set apart from Chatvia's, with `CHUNKER_VERSION`. By default the stack uses
+its newest release.
 
 The image is published at `ghcr.io/chatvia/chatvia`, with one tag per
 release (for example `1.4.2`, `1.4`, `1` and `latest`).
@@ -87,13 +90,14 @@ docker compose logs migrate
 Sign in with `admin@example.com` and that password, then:
 
 1. Open the admin panel at `/admin` and set up two-factor authentication.
-2. Go to **Settings → AI** and enter the API key of your chat and embedding
-   provider. See [AI providers](./ai-providers.md).
-3. Go to **Settings → Email** and set up your SMTP server or Resend. Until
-   then, e-mails are only written to the logs, and nobody can confirm a
-   sign-up or accept an invitation.
-4. Add the built-in tools (charts, forms, weather, currency, web search) to
-   the tool catalog. This needs the embedding key from step 2:
+2. Follow the setup that opens next. It asks for three things: your AI
+   provider, its API key and the model your agents answer with; the search
+   service (embeddings) and its key; and, if you want, your email provider
+   (SMTP, Amazon SES, Mailgun, Postmark, Resend, ...). Until e-mail is set up, e-mails are only written to the logs, and
+   nobody can confirm a sign-up or accept an invitation. See
+   [AI providers](./ai-providers.md).
+3. Add the built-in tools (charts, forms, weather, currency, web search) to
+   the tool catalog. This needs the search key from step 2:
 
    ```bash
    docker compose exec app php artisan app:sync-builtin-mcp
@@ -117,6 +121,7 @@ under **Settings**.
 | `ADMIN_EMAIL`, `ADMIN_NAME` | `admin@example.com`, `Admin` | First start only. |
 | `ADMIN_PASSWORD` | random | First start only. Remove it from `.env` afterwards. |
 | `APP_KEY` | random | Your own app key instead of a random one. |
+| `CHUNKER_VERSION` | `latest` | The chunker image version. `latest` is its newest release. |
 | `CHUNKER_WORKERS` | `2` | Worker processes of the chunker. Each one uses about 200 MB. |
 
 "First start only" settings are read when the database is created. Changing
@@ -164,7 +169,8 @@ docker compose pull
 docker compose up -d
 ```
 
-The migrations run before the new version serves requests.
+The migrations run before the new version serves requests. `docker compose
+pull` also gets the newest chunker, unless `CHUNKER_VERSION` pins one.
 
 ## Back up
 

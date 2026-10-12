@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Llm\Usage\TokenUsageContext;
 use Spectra\Facades\Spectra;
 
@@ -52,7 +53,7 @@ it('reports the innermost workspace from current() and null after the scope clos
  */
 it('binds the workspace as the Spectra trackable inside the scope and clears it on exit', function (): void {
     Spectra::clearGlobals();
-    $ws = User::factory()->create();
+    $ws = Workspace::factory()->create();
 
     $inside = null;
 
@@ -60,7 +61,7 @@ it('binds the workspace as the Spectra trackable inside the scope and clears it 
         $inside = Spectra::startRequest('scaleway', 'qwen3-embedding-8b');
     });
 
-    expect($inside->trackableType)->toBe(User::class)
+    expect($inside->trackableType)->toBe(Workspace::class)
         ->and((int) $inside->trackableId)->toBe($ws->id);
 
     // Outermost scope closed → global cleared, so a fresh request is unbound.
@@ -69,7 +70,7 @@ it('binds the workspace as the Spectra trackable inside the scope and clears it 
 
 it('keeps the Spectra trackable bound across nested scopes until the outermost exits', function (): void {
     Spectra::clearGlobals();
-    $ws = User::factory()->create();
+    $ws = Workspace::factory()->create();
 
     $this->ctx->track($ws->id, function () use ($ws): void {
         $this->ctx->track($ws->id, fn (): null => null); // inner scope opens and closes
@@ -79,6 +80,25 @@ it('keeps the Spectra trackable bound across nested scopes until the outermost e
     });
 
     expect(Spectra::startRequest('scaleway', 'm')->trackableType)->toBeNull();
+});
+
+it('keeps the workspace as the trackable when a staff user is signed in', function (): void {
+    Spectra::clearGlobals();
+    $owner = User::factory()->create();
+    $this->actingAs($owner);
+
+    // Spectra's own user tracking is off, so the signed-in person never takes
+    // the cost away from the workspace, and nothing is attributed outside a scope.
+    expect(Spectra::startRequest('scaleway', 'm')->trackableType)->toBeNull();
+
+    $inside = null;
+
+    $this->ctx->track($owner->workspace()->id, function () use (&$inside): void {
+        $inside = Spectra::startRequest('scaleway', 'm');
+    });
+
+    expect($inside->trackableType)->toBe(Workspace::class)
+        ->and((int) $inside->trackableId)->toBe($owner->workspace()->id);
 });
 
 it('does not bind a Spectra trackable when the workspace is null', function (): void {

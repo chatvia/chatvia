@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Analytics\Data\Account;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Analytics\Services\Period;
 
 /**
@@ -25,7 +25,7 @@ final readonly class AnalyticsScopeData
      * @param  list<int>  $agentIds
      */
     public function __construct(
-        public User $workspace,
+        public Workspace $workspace,
         public Period $period,
         public ?int $agentId,
         public array $agentIds,

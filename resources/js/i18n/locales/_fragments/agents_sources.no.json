@@ -13,7 +13,8 @@
                 "remove_from_agent": "Fjern fra agent",
                 "used_in_agents": "(Brukt i {count} agenter)",
                 "delete_from_knowledge_base": "Slett fra kunnskapsbasen",
-                "agents_count": "{count} agenter"
+                "agents_count": "{count} agenter",
+                "load_more": "Last inn flere"
             },
             "page_title": {
                 "sources": "Kilder",

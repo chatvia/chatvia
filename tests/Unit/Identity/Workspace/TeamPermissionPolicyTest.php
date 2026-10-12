@@ -2,11 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\TeamPermissionPolicy;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 
 /*
  * What a team role lets a user do: the rule behind the `team.permission:*`
@@ -21,23 +18,6 @@ beforeEach(function (): void {
     $this->agent = createAgent($this->owner);
     $this->policy = app(TeamPermissionPolicy::class);
 });
-
-/** @param  list<string>  $permissions */
-function tppTeammate(User $owner, Team $team, array $permissions, bool $allAgents = true): User
-{
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(8),
-        permissions: $permissions,
-        allAgents: $allAgents,
-        agentExternalIds: [],
-    ));
-
-    $teammate = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($teammate->id, ['role_id' => $role->id]);
-
-    return $teammate->fresh();
-}
 
 it('grants a team owner every permission on their own agent', function (): void {
     expect($this->policy->allowsOnAgent($this->owner, $this->agent, 'agent.setup'))->toBeTrue()
@@ -56,14 +36,14 @@ it('denies a team owner any permission on another workspace agent', function ():
 });
 
 it('gives a teammate only the agent permissions their role grants', function (): void {
-    $teammate = tppTeammate($this->owner, $this->team, ['agent.setup']);
+    $teammate = teammateWithPermissions($this->owner, team: $this->team, permissions: ['agent.setup']);
 
     expect($this->policy->allowsOnAgent($teammate, $this->agent, 'agent.setup'))->toBeTrue()
         ->and($this->policy->allowsOnAgent($teammate, $this->agent, 'agent.delete'))->toBeFalse();
 });
 
 it('denies a teammate a granted permission on an agent their role does not reach', function (): void {
-    $teammate = tppTeammate($this->owner, $this->team, ['agent.setup'], allAgents: false);
+    $teammate = teammateWithPermissions($this->owner, team: $this->team, permissions: ['agent.setup'], allAgents: false);
 
     expect($this->policy->allowsOnAgent($teammate, $this->agent, 'agent.setup'))->toBeFalse();
 });
@@ -74,7 +54,7 @@ it('grants a team owner every team-level permission', function (): void {
 });
 
 it('gives a teammate only the team-level permissions their role grants', function (): void {
-    $teammate = tppTeammate($this->owner, $this->team, ['account.security']);
+    $teammate = teammateWithPermissions($this->owner, team: $this->team, permissions: ['account.security']);
 
     expect($this->policy->allows($teammate, 'account.security'))->toBeTrue()
         ->and($this->policy->allows($teammate, 'account.chatters.manage'))->toBeFalse();
@@ -87,9 +67,9 @@ it('denies every permission to a user without a team', function (): void {
         ->and($this->policy->allowsOnAgent($loner, $this->agent, 'agent.setup'))->toBeFalse();
 });
 
-it('grants platform staff every permission', function (): void {
+it('grants platform staff no permission in a workspace they are not part of', function (): void {
     $admin = User::factory()->admin()->create();
 
-    expect($this->policy->allows($admin, 'account.security'))->toBeTrue()
-        ->and($this->policy->allowsOnAgent($admin, $this->agent, 'agent.setup'))->toBeTrue();
+    expect($this->policy->allows($admin, 'account.security'))->toBeFalse()
+        ->and($this->policy->allowsOnAgent($admin, $this->agent, 'agent.setup'))->toBeFalse();
 });

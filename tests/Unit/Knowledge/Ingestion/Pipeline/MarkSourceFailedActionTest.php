@@ -25,7 +25,7 @@ beforeEach(function (): void {
 function msfText(Agent $agent): SourceText
 {
     return SourceText::query()->create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'filepath' => 'users/x/agents/y/train/text/a.txt',
         'excerpt' => 'excerpt',
         'length' => 1,
@@ -36,7 +36,7 @@ function msfText(Agent $agent): SourceText
 
 it('marks a file failed with the reason and reports the exception', function (): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingesting']);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingesting']);
 
     app(MarkSourceFailedAction::class)->execute($file, $agent, new RuntimeException('parser down'));
 
@@ -50,7 +50,7 @@ it('marks a file failed with the reason and reports the exception', function ():
 
 it('tells the Web page when a website or one of its URLs fails', function (): void {
     $agent = Agent::factory()->create();
-    $website = SourceWebsite::query()->create(['user_id' => $agent->user_id, 'url' => 'https://docs.example.test', 'status' => 'crawling']);
+    $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'crawling']);
     $url = $website->urls()->create(['url' => 'https://docs.example.test/a']);
 
     app(MarkSourceFailedAction::class)->execute($website, $agent, new RuntimeException('map failed'));

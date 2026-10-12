@@ -4,8 +4,7 @@ namespace App\Admin\Resources\Workspaces;
 
 use App\Admin\Resources\Workspaces\Pages\ListWorkspaces;
 use App\Admin\Resources\Workspaces\Pages\ViewWorkspace;
-use App\Identity\Workspace\Enums\UserType;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use BackedEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
@@ -19,15 +18,14 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Oversight of customer accounts — the `users` rows with `type = workspace`
- * (account owners who sign up and manage a team). Read-only apart from the
- * monthly message limit set on the view page. Staff-only; the panel itself is
- * gated to admins.
+ * Oversight of customer workspaces (the `workspaces` table) with their owner.
+ * Read-only apart from the monthly message limit set on the view page.
+ * Staff-only; the panel itself is gated to admins.
  */
 class WorkspaceResource extends Resource
 {
     #[\Override]
-    protected static ?string $model = User::class;
+    protected static ?string $model = Workspace::class;
 
     #[\Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
@@ -42,16 +40,14 @@ class WorkspaceResource extends Resource
     protected static ?string $pluralModelLabel = 'workspaces';
 
     /**
-     * Restrict every query (list + record binding) to workspace owners, and
-     * eager-load their members count and message limit so the columns cost
-     * no query per row.
+     * Eager-load the owner, the members count and the message limit so the
+     * columns cost no query per row.
      */
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('type', UserType::Workspace)
-            ->with('messageLimit')
-            ->withCount('users');
+            ->with(['owner', 'messageLimit'])
+            ->withCount('members');
     }
 
     public static function table(Table $table): Table
@@ -62,13 +58,13 @@ class WorkspaceResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
-                TextColumn::make('email')
-                    ->label('Email address')
+                TextColumn::make('owner.email')
+                    ->label('Owner email')
                     ->searchable(),
-                TextColumn::make('registered_country_code')
+                TextColumn::make('owner.registered_country_code')
                     ->label('Country')
                     ->placeholder('—'),
-                TextColumn::make('users_count')
+                TextColumn::make('members_count')
                     ->label('Members')
                     ->badge()
                     ->sortable(),
@@ -78,12 +74,11 @@ class WorkspaceResource extends Resource
                     ->placeholder('No limit'),
                 TextColumn::make('status')
                     ->badge()
-                    ->state(fn (User $record): string => $record->isDeactivated() ? 'Deactivated' : 'Active')
+                    ->state(fn (Workspace $record): string => $record->owner?->isDeactivated() ? 'Deactivated' : 'Active')
                     ->color(fn (string $state): string => $state === 'Active' ? 'success' : 'danger'),
-                TextColumn::make('last_login_at')
-                    ->label('Last login')
+                TextColumn::make('owner.last_login_at')
+                    ->label('Owner last login')
                     ->since()
-                    ->sortable()
                     ->placeholder('Never'),
                 TextColumn::make('created_at')
                     ->label('Joined')
@@ -97,8 +92,8 @@ class WorkspaceResource extends Resource
                     ->trueLabel('Deactivated only')
                     ->falseLabel('Active only')
                     ->queries(
-                        true: fn (Builder $query): Builder => $query->whereNotNull('deactivated_at'),
-                        false: fn (Builder $query): Builder => $query->whereNull('deactivated_at'),
+                        true: fn (Builder $query): Builder => $query->whereHas('owner', fn (Builder $owner): Builder => $owner->whereNotNull('deactivated_at')),
+                        false: fn (Builder $query): Builder => $query->whereHas('owner', fn (Builder $owner): Builder => $owner->whereNull('deactivated_at')),
                         blank: fn (Builder $query): Builder => $query,
                     ),
             ])
@@ -121,11 +116,9 @@ class WorkspaceResource extends Resource
                             ->placeholder('—'),
                         TextEntry::make('status')
                             ->badge()
-                            ->state(fn (User $record): string => $record->isDeactivated() ? 'Deactivated' : 'Active')
+                            ->state(fn (Workspace $record): string => $record->owner?->isDeactivated() ? 'Deactivated' : 'Active')
                             ->color(fn (string $state): string => $state === 'Active' ? 'success' : 'danger'),
                         TextEntry::make('deactivation_reason')
-                            ->placeholder('—'),
-                        TextEntry::make('domain')
                             ->placeholder('—'),
                         TextEntry::make('locale')
                             ->placeholder('—'),
@@ -133,20 +126,20 @@ class WorkspaceResource extends Resource
                 Section::make('Activity')
                     ->columns(2)
                     ->schema([
-                        TextEntry::make('last_login_at')
-                            ->label('Last login')
+                        TextEntry::make('owner.last_login_at')
+                            ->label('Owner last login')
                             ->dateTime()
                             ->placeholder('Never'),
                         TextEntry::make('created_at')
                             ->label('Joined')
                             ->dateTime(),
-                        TextEntry::make('registered_country_code')
+                        TextEntry::make('owner.registered_country_code')
                             ->label('Country')
                             ->placeholder('—'),
-                        TextEntry::make('registered_ip')
+                        TextEntry::make('owner.registered_ip')
                             ->label('Registered IP')
                             ->placeholder('—'),
-                        TextEntry::make('users_count')
+                        TextEntry::make('members_count')
                             ->label('Members'),
                     ]),
                 Section::make('Messages')
@@ -158,7 +151,7 @@ class WorkspaceResource extends Resource
                             ->placeholder('No limit'),
                         TextEntry::make('messages_used')
                             ->label('Used this month')
-                            ->state(fn (User $record): ?int => $record->messageLimit?->usedThisMonth())
+                            ->state(fn (Workspace $record): ?int => $record->messageLimit?->usedThisMonth())
                             ->numeric()
                             ->placeholder('Counted only while a limit is set'),
                     ]),

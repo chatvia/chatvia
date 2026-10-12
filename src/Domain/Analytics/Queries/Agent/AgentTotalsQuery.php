@@ -90,6 +90,11 @@ SQL;
 
     public function get(Agent $agent): AgentTotalsData
     {
+        return $this->cached($agent, 'totals', 'lifetime', fn (): AgentTotalsData => $this->compute($agent));
+    }
+
+    private function compute(Agent $agent): AgentTotalsData
+    {
         $row = $this->analytics()->selectOne(self::SQL, array_fill(0, 5, $agent->id));
 
         if ($row === null) {

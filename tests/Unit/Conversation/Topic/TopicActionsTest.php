@@ -8,19 +8,19 @@ use Domain\Conversation\Topic\Models\Topic;
 use Support\Exceptions\DomainValidationException;
 
 /**
- * Topics are a workspace resource: they are created under the workspace owner
- * (the agent's user) no matter which teammate creates them, so every check on
- * them must key to the agent's owner too — never the acting user. System
- * topics (no owner) are read-only and raise the dedicated exception the
+ * Topics are a workspace resource: they are created under the agent's
+ * workspace no matter which teammate creates them, so every check on them
+ * must key to the agent's workspace too — never the acting user. System
+ * topics (no workspace) are read-only and raise the dedicated exception the
  * controller maps to 403.
  */
-it('creates the topic under the workspace owner and attaches it to the agent', function (): void {
+it('creates the topic under the agent workspace and attaches it to the agent', function (): void {
     $owner = User::factory()->create();
     $agent = createAgent($owner);
 
     $topic = app(CreateAgentTopicAction::class)->execute($agent, 'Refunds', 'Refund questions');
 
-    expect($topic->user_id)->toBe($owner->id)
+    expect($topic->workspace_id)->toBe($owner->workspace()->id)
         ->and($agent->topics()->whereKey($topic->id)->exists())->toBeTrue();
 });
 
@@ -38,7 +38,7 @@ it('lets anyone managing the agent edit a workspace topic', function (): void {
     $topic = app(CreateAgentTopicAction::class)->execute($agent, 'Refunds', 'Old');
 
     // No acting user is involved: a teammate editing it goes through the
-    // same owner-keyed check as the owner.
+    // same workspace-keyed check as the owner.
     $updated = app(UpdateTopicAction::class)->execute($agent, $topic, 'Refund requests', 'New');
 
     expect($updated->fresh()->topic)->toBe('Refund requests')

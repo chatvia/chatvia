@@ -3,6 +3,7 @@
 // browser autofill), and social sign-in. Passkey autofill is armed on mount
 // and cancelled on leave so the browser prompt does not outlive the page.
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue';
+import TurnstileWidget from '@/components/auth/TurnstileWidget.vue';
 import InputError from '@/components/InputError.vue';
 import TextLink from '@/components/TextLink.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
@@ -11,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useBotCheck } from '@/composables/useBotCheck';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { dashboard, login, register } from '@/routes';
 import { send as sendMagicLink } from '@/routes/magic-link';
@@ -31,25 +33,36 @@ defineProps<{
 
 const mode = ref<'password' | 'magic-link'>('password');
 
+const { siteKey: botCheckKey } = useBotCheck('sign_in');
+const passwordBotCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+const magicLinkBotCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
 const passwordForm = useForm({
     email: '',
     password: '',
     remember: false,
+    'cf-turnstile-response': '',
 });
 
 const magicLinkForm = useForm({
     email: '',
+    'cf-turnstile-response': '',
 });
 
+// A Turnstile token counts once, so every submit needs a new one.
 const submitPassword = () => {
     passwordForm.post(login.url(), {
-        onFinish: () => passwordForm.reset('password'),
+        onFinish: () => {
+            passwordForm.reset('password');
+            passwordBotCheck.value?.reset();
+        },
     });
 };
 
 const submitMagicLink = () => {
     magicLinkForm.post(sendMagicLink.url(), {
         preserveScroll: true,
+        onFinish: () => magicLinkBotCheck.value?.reset(),
     });
 };
 
@@ -203,6 +216,11 @@ onBeforeUnmount(cancelPasskeys);
                             <Label for="remember" class="cursor-pointer text-sm font-medium"> {{ t('auth.login.remember_me') }} </Label>
                         </div>
 
+                        <div v-if="botCheckKey" class="space-y-2">
+                            <TurnstileWidget ref="passwordBotCheck" v-model="passwordForm['cf-turnstile-response']" :site-key="botCheckKey" />
+                            <InputError :message="passwordForm.errors['cf-turnstile-response']" />
+                        </div>
+
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="passwordForm.processing">
                             <LoaderCircle v-if="passwordForm.processing" class="me-2 h-5 w-5 animate-spin" />
                             <span v-if="!passwordForm.processing">{{ t('auth.login.sign_in') }}</span>
@@ -235,6 +253,11 @@ onBeforeUnmount(cancelPasskeys);
                                 />
                             </div>
                             <InputError :message="magicLinkForm.errors.email" />
+                        </div>
+
+                        <div v-if="botCheckKey" class="space-y-2">
+                            <TurnstileWidget ref="magicLinkBotCheck" v-model="magicLinkForm['cf-turnstile-response']" :site-key="botCheckKey" />
+                            <InputError :message="magicLinkForm.errors['cf-turnstile-response']" />
                         </div>
 
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="2" :disabled="magicLinkForm.processing">

@@ -27,6 +27,10 @@ class CreateTeamInvitationAction
      */
     public function execute(Team $team, string $email, string $roleCode): Invitation
     {
+        // Stored lower-case so the accept step and the `[team_id, email]`
+        // unique index see one spelling per address.
+        $email = strtolower(trim($email));
+
         if ($team->hasUserWithEmail($email)) {
             throw new DomainValidationException('email', __('This user already belongs to the team.'));
         }

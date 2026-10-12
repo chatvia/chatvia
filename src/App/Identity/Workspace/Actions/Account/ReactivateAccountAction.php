@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Workspace\Actions\Account;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReactivateAccountAction
 {
-    public function execute(User $user): void
+    public function execute(Chatter|User $user): void
     {
         DB::transaction(function () use ($user): void {
             $user->update([
@@ -22,13 +23,16 @@ class ReactivateAccountAction
                 'deactivation_reason' => null,
             ]);
 
-            if ($user->isWorkspace()) {
-                $user->users()
-                    ->whereNotNull('deactivated_at')
-                    ->update([
+            if ($user instanceof User && $user->isWorkspaceOwner()) {
+                $workspace = $user->workspace();
+                $teammates = User::query()->whereIn('id', $workspace->teammates()->select('users.id'));
+
+                foreach ([$teammates, $workspace->chatters()] as $accounts) {
+                    $accounts->whereNotNull('deactivated_at')->update([
                         'deactivated_at' => null,
                         'deactivation_reason' => null,
                     ]);
+                }
             }
         });
     }

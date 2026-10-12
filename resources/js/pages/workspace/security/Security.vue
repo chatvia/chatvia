@@ -65,7 +65,10 @@ const { form, save } = useSecurityPolicyForm(props.policy);
 
                 <RetentionCard
                     v-model:conversations-days="form.retention_conversations_days"
+                    v-model:leads-days="form.retention_leads_days"
                     v-model:audit-days="form.retention_audit_days"
+                    v-model:analytics-days="form.retention_analytics_days"
+                    v-model:anonymize-days="form.anonymize_after_days"
                     :can-manage="canManage"
                     :limits="props.limits"
                     :errors="form.errors"

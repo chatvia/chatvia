@@ -1,12 +1,11 @@
 name: Docker image
 
-# Builds the application image (Dockerfile) and the chunker image
-# (docker/chunker/Dockerfile, the stack's text splitter) for every version tag
-# and pushes them to the GitHub Container Registry, next to this repository.
-# The tag v1.4.2 publishes ghcr.io/<owner>/<repo>:1.4.2, :1.4, :1 and :latest,
-# and ghcr.io/<owner>/chunker with the same tags. A pre-release tag
-# (v1.5.0-rc.1) only publishes its own version. The images are built only
-# after the test suite passes.
+# Builds the application image (Dockerfile) for every version tag and pushes
+# it to the GitHub Container Registry, next to this repository. The tag v1.4.2
+# publishes ghcr.io/<owner>/<repo>:1.4.2, :1.4, :1 and :latest. A pre-release
+# tag (v1.5.0-rc.1) only publishes its own version. The image is built only
+# after the test suite passes. The stack's text splitter is not built here:
+# github.com/chatvia/chunker publishes its own image, ghcr.io/chatvia/chunker.
 #
 # No secrets to set up: the job signs in with the workflow's own GITHUB_TOKEN.
 # The first push from a private repository creates a private package; make it
@@ -27,7 +26,6 @@ concurrency:
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}
-  CHUNKER_IMAGE: ghcr.io/${{ github.repository_owner }}/chunker
 
 jobs:
   tests:
@@ -75,12 +73,23 @@ jobs:
           flavor: |
             latest=auto
 
+      # The image builds the newest release of the chat widget (the highest
+      # vX.Y.Z tag of its repository). The Dockerfile has no default for it.
+      - name: Find the widget release
+        id: widget
+        run: |
+          version=$(node scripts/build-shakomako.mjs --print-version)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Chat widget (Shakomako): $version" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            SHAKOMAKO_VERSION=${{ steps.widget.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # The build cache lives in the registry, as the `buildcache` tag.
@@ -89,54 +98,3 @@ jobs:
           # start empty.
           cache-from: type=registry,ref=${{ env.IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
-
-  chunker:
-    name: Build and push the chunker
-    needs: tests
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to the GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Image tags and labels
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.CHUNKER_IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}},enable=${{ !startsWith(github.ref_name, 'v0.') }}
-          flavor: |
-            latest=auto
-
-      # Build cache in the registry too, next to the chunker image (see the
-      # app image above).
-      - name: Build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: docker/chunker
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ env.CHUNKER_IMAGE }}:buildcache
-          cache-to: type=registry,ref=${{ env.CHUNKER_IMAGE }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true

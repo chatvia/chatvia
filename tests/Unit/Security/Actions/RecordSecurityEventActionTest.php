@@ -20,7 +20,7 @@ it('writes one row with denormalized causer, redacted metadata + raw hash', func
 
     $event = SecurityEventOccurred::for(
         action: SecurityAuditAction::ApiKeyCreated,
-        workspaceId: $user->id,
+        workspaceId: $user->workspace()->id,
         actor: SecurityActorData::forUser($user, '203.0.113.7', 'Mozilla/5.0'),
         targetType: 'api_token',
         targetId: 42,
@@ -31,7 +31,7 @@ it('writes one row with denormalized causer, redacted metadata + raw hash', func
     $row = app(RecordSecurityEventAction::class)->execute($event);
 
     expect($row)->toBeInstanceOf(SecurityAuditLog::class)
-        ->and((int) $row->workspace_id)->toBe($user->id)
+        ->and((int) $row->workspace_id)->toBe($user->workspace()->id)
         ->and((int) $row->user_id)->toBe($user->id)
         ->and($row->user_name)->toBe($user->name)
         ->and($row->user_email)->toBe($user->email)
@@ -53,7 +53,7 @@ it('caps oversized metadata and flags truncation, hashing the raw payload', func
 
     $event = SecurityEventOccurred::for(
         action: SecurityAuditAction::PolicyChanged,
-        workspaceId: $user->id,
+        workspaceId: $user->workspace()->id,
         actor: SecurityActorData::forUser($user),
         metadata: ['blob' => str_repeat('x', 200)],
     );
@@ -69,7 +69,7 @@ it('keeps the audit log insert-only (no updated_at)', function (): void {
 
     $row = app(RecordSecurityEventAction::class)->execute(SecurityEventOccurred::for(
         action: SecurityAuditAction::AuthLogin,
-        workspaceId: $user->id,
+        workspaceId: $user->workspace()->id,
         actor: SecurityActorData::forUser($user),
     ));
 

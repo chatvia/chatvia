@@ -13,7 +13,8 @@
                 "remove_from_agent": "إزالة من الوكيل",
                 "used_in_agents": "(مُستخدَم في {count} وكيل)",
                 "delete_from_knowledge_base": "حذف من قاعدة المعرفة",
-                "agents_count": "{count} وكيل"
+                "agents_count": "{count} وكيل",
+                "load_more": "تحميل المزيد"
             },
             "page_title": {
                 "sources": "المصادر",

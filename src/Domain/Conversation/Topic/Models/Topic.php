@@ -2,7 +2,7 @@
 
 namespace Domain\Conversation\Topic\Models;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
@@ -18,12 +18,12 @@ use Illuminate\Support\Carbon;
  * A subject a conversation can be about ("Billing", "Shipping", ...). The
  * conversation analysis tags each conversation with the topics of its agent
  * (see {@see ConversationTopic}), and the chat log and topic trends read those
- * tags. A topic without a `user_id` is a system topic shared by every
- * workspace and cannot be edited; one with a `user_id` belongs to that
+ * tags. A topic without a `workspace_id` is a system topic shared by every
+ * workspace and cannot be edited; one with a `workspace_id` belongs to that
  * workspace. Agents choose their topics through the `agent_topic` pivot.
  *
  * @property int $id
- * @property int|null $user_id
+ * @property int|null $workspace_id
  * @property string $topic
  * @property string $description
  * @property Carbon|null $created_at
@@ -32,9 +32,9 @@ use Illuminate\Support\Carbon;
  * @property-read int|null $agents_count
  * @property-read Collection<int, Conversation> $conversations
  * @property-read int|null $conversations_count
- * @property-read User|null $user
+ * @property-read Workspace|null $workspace
  *
- * @method static Builder<static>|Topic forUser(\App\Identity\Workspace\Models\User $user)
+ * @method static Builder<static>|Topic forWorkspace(\App\Identity\Workspace\Models\Workspace $workspace)
  * @method static Builder<static>|Topic newModelQuery()
  * @method static Builder<static>|Topic newQuery()
  * @method static Builder<static>|Topic query()
@@ -45,17 +45,17 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Topic whereId($value)
  * @method static Builder<static>|Topic whereTopic($value)
  * @method static Builder<static>|Topic whereUpdatedAt($value)
- * @method static Builder<static>|Topic whereUserId($value)
+ * @method static Builder<static>|Topic whereWorkspaceId($value)
  *
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
 class Topic extends Model
 {
-    /** @return BelongsTo<User, $this> */
-    public function user(): BelongsTo
+    /** @return BelongsTo<Workspace, $this> */
+    public function workspace(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Workspace::class);
     }
 
     /** @return BelongsToMany<Agent, $this> */
@@ -74,33 +74,37 @@ class Topic extends Model
     #[Scope]
     protected function system(Builder $query): void
     {
-        $query->whereNull('user_id');
+        $query->whereNull('workspace_id');
     }
 
     /** @param  Builder<self>  $query */
     #[Scope]
     protected function userDefined(Builder $query): void
     {
-        $query->whereNotNull('user_id');
+        $query->whereNotNull('workspace_id');
     }
 
-    /** @param  Builder<self>  $query */
+    /**
+     * The topics a workspace can use: the system topics and its own.
+     *
+     * @param  Builder<self>  $query
+     */
     #[Scope]
-    protected function forUser(Builder $query, User $user): void
+    protected function forWorkspace(Builder $query, Workspace $workspace): void
     {
-        $query->where(function ($q) use ($user): void {
-            $q->whereNull('user_id')
-                ->orWhere('user_id', $user->id);
+        $query->where(function ($q) use ($workspace): void {
+            $q->whereNull('workspace_id')
+                ->orWhere('workspace_id', $workspace->id);
         });
     }
 
     public function isSystem(): bool
     {
-        return $this->user_id === null;
+        return $this->workspace_id === null;
     }
 
     public function isUserDefined(): bool
     {
-        return $this->user_id !== null;
+        return $this->workspace_id !== null;
     }
 }

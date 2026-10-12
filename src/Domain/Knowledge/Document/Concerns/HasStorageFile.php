@@ -2,7 +2,6 @@
 
 namespace Domain\Knowledge\Document\Concerns;
 
-use App\Identity\Workspace\Models\User;
 use Closure;
 use Domain\Knowledge\Document\Conversion\OfficePdf;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
@@ -19,7 +18,6 @@ use Symfony\Component\HttpFoundation\File\File;
  * nothing behind.
  *
  * @property int $id
- * @property int $user_id
  * @property string|null $filepath
  * @property string|null $parser_filepath
  */
@@ -85,8 +83,9 @@ trait HasStorageFile
      * Run $callback with the Storage path of a PDF version of this file.
      *
      * A stored PDF is passed as-is and is never deleted. Anything else becomes
-     * a temporary PDF of its text ({@see OfficePdf}) under the owner's
-     * `users/{external_id}/tmp/` folder (so a workspace delete also wipes it);
+     * a temporary PDF of its text ({@see OfficePdf}) under the `tmp/` folder of
+     * the file's own storage root (e.g. `workspaces/{external_id}/tmp/`), so a
+     * workspace delete also wipes it;
      * that copy and every local conversion file are deleted after the callback.
      * `parser_filepath` is used when present, because it holds the readable
      * text: a media transcript, or the parsed pages (JSON) of a document or
@@ -115,10 +114,13 @@ trait HasStorageFile
             ? $pdf->fromPages(PageData::fromJson($this->readContents($field))->pluck('content')->all())
             : $this->withLocalFile(fn (File $file): string => $pdf->toPdf($file->getPathname(), $extension), $field);
 
-        // Looked up by key because not every model sharing this trait has a
-        // user() relation.
-        $ownerExternalId = User::query()->whereKey($this->user_id)->value('external_id');
-        $pdfPath = 'users/'.$ownerExternalId.'/tmp/'.Str::uuid()->toString().'.pdf';
+        // The temporary PDF goes under the same entity-first root as the file
+        // itself (`workspaces/{external_id}`), so deleting the workspace also
+        // removes a copy a crash left behind. Every model sharing this trait
+        // stores its file under that root, including chat attachments, which
+        // have no workspace column of their own.
+        $root = implode('/', array_slice(explode('/', (string) ($this->getAttributes()['filepath'] ?? '')), 0, 2));
+        $pdfPath = ($root !== '' ? $root : 'tmp').'/tmp/'.Str::uuid()->toString().'.pdf';
 
         try {
             Storage::put($pdfPath, (string) file_get_contents($localPdf));

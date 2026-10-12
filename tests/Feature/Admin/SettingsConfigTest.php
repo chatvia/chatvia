@@ -136,7 +136,7 @@ it('casts input to the property type and turns blank or invalid input into null'
     'float' => [KnowledgeSettings::class, 'relevance_threshold', '0.35', 0.35],
     'toggle off' => [KnowledgeSettings::class, 'hybrid_search', '0', false],
     'toggle on' => [KnowledgeSettings::class, 'hybrid_search', true, true],
-    'select' => [AiSettings::class, 'llm_provider', 'mistral', 'mistral'],
+    'select' => [AiSettings::class, 'reranker', 'cohere', 'cohere'],
 ]);
 
 it('lets the knowledge search toggle turn keyword search off', function (): void {

@@ -3,6 +3,7 @@
 use App\Admin\Clusters\Settings\Pages\ManageAiSettings;
 use App\Admin\Clusters\Settings\Pages\ManageChannelSettings;
 use App\Admin\Clusters\Settings\Pages\ManageMailSettings;
+use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
 use App\Admin\Clusters\Settings\Pages\ManageSignInSettings;
 use App\Admin\Clusters\Settings\Pages\ManageWorkspaceSettings;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
@@ -10,6 +11,7 @@ use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\ChannelSettings;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\WorkspaceSettings;
 use App\Identity\Workspace\Models\User;
@@ -67,7 +69,7 @@ it('shows every settings page, and the overview links to each one', function ():
         }
     }
 
-    expect(SettingsCluster::getClusteredComponents())->toHaveCount(12);
+    expect(SettingsCluster::getClusteredComponents())->toHaveCount(14);
 });
 
 it('shows a card for every service, with its status', function (): void {
@@ -163,6 +165,29 @@ it('validates the format of a field', function (): void {
     expect(storedSetting(ChannelSettings::class, 'whatsapp_register_pin'))->toBeNull();
 });
 
+it('takes a path on this server or a full address for the widget script', function (): void {
+    expect(config('chatvia.widget.script_url_embed'))->toBe('/shakomako/embed.js')
+        ->and(url(config('chatvia.widget.script_url_embed')))->toBe(url('/shakomako/embed.js'));
+
+    foreach (['/shakomako/next/embed.js', 'https://cdn.example.com/embed.js'] as $address) {
+        settingsPage($this->admin, ManagePlatformSettings::class)
+            ->fillForm(['widget_script_url' => $address])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        expect(storedSetting(PlatformSettings::class, 'widget_script_url'))->toBe($address);
+    }
+
+    expect(url(config('chatvia.widget.script_url_embed')))->toBe('https://cdn.example.com/embed.js');
+
+    foreach (['shakomako/embed.js', '//cdn.example.com/embed.js', 'javascript:alert(1)', 'ftp://cdn.example.com/embed.js'] as $address) {
+        settingsPage($this->admin, ManagePlatformSettings::class)
+            ->fillForm(['widget_script_url' => $address])
+            ->call('save')
+            ->assertHasFormErrors(['widget_script_url']);
+    }
+});
+
 it('shows the workspace values in use', function (): void {
     Livewire::actingAs($this->admin, 'admin')
         ->test(ManageWorkspaceSettings::class)
@@ -216,7 +241,7 @@ it('validates the workspace values', function (): void {
 
 it('refuses a choice that is not offered', function (): void {
     settingsPage($this->admin, ManageMailSettings::class)
-        ->fillForm(['mailer' => 'sendmail'])
+        ->fillForm(['mailer' => 'carrier-pigeon'])
         ->call('save')
         ->assertHasFormErrors(['mailer']);
 
@@ -237,9 +262,9 @@ it('refuses an embedding provider that cannot return the stored vector size', fu
 });
 
 it('locks the embedding provider and models once a source is trained', function (): void {
-    $source = AgentFileFactory::new()->create(['user_id' => $this->admin->id]);
+    $source = AgentFileFactory::new()->create(['workspace_id' => $this->admin->workspace()->id]);
     Chunk::create([
-        'user_id' => $this->admin->id,
+        'workspace_id' => $this->admin->workspace()->id,
         'chunkable_type' => $source->getMorphClass(),
         'chunkable_id' => $source->getKey(),
         'chunk_index' => 1,
@@ -256,6 +281,24 @@ it('locks the embedding provider and models once a source is trained', function 
     settingsPage($this->admin, ManageAiSettings::class)
         ->assertFormFieldDisabled('scaleway_embedding_model')
         ->assertFormFieldEnabled('scaleway_rerank_model');
+});
+
+it('picks the model of each job from the models that may be used', function (): void {
+    $fast = testLlm('fast-model');
+    $off = testLlm('off-model', attributes: ['is_enabled' => false]);
+
+    settingsPage($this->admin, ManageAiSettings::class)
+        ->fillForm(['fast_model' => $off->external_name])
+        ->call('save')
+        ->assertHasFormErrors(['fast_model']);
+
+    settingsPage($this->admin, ManageAiSettings::class)
+        ->fillForm(['fast_model' => $fast->external_name])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(storedSetting(AiSettings::class, 'fast_model'))->toBe($fast->external_name)
+        ->and(config('chatvia.ai.roles.fast'))->toBe($fast->external_name);
 });
 
 it('sends a test email with the saved settings', function (): void {

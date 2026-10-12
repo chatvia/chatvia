@@ -20,6 +20,15 @@ return new class extends SettingsMigration
             $group->add('smtp_username');
             $group->addEncrypted('smtp_password');
             $group->addEncrypted('resend_api_key');
+            $group->add('ses_key');
+            $group->addEncrypted('ses_secret');
+            $group->add('ses_region');
+            $group->add('mailgun_domain');
+            $group->addEncrypted('mailgun_secret');
+            $group->add('mailgun_endpoint');
+            $group->addEncrypted('postmark_token');
+            $group->add('cloudflare_account_id');
+            $group->addEncrypted('cloudflare_token');
             $group->add('from_address');
             $group->add('from_name');
         });

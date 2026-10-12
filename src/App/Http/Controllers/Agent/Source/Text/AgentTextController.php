@@ -5,27 +5,31 @@ namespace App\Http\Controllers\Agent\Source\Text;
 use App\Http\Requests\Agent\Source\Text\AgentSourceTextRequest;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * The agent's Text sources: the page, the list, and creating, editing and
- * deleting a text. Agent access is checked by the route middleware; the
- * `agent.sources.train.text` and `agent.sources.delete` permissions too.
+ * The agent's Text sources: the page, the list (newest first, one page at a
+ * time), and creating, editing and deleting a text. Agent access is checked by
+ * the route middleware; the `agent.sources.train.text` and
+ * `agent.sources.delete` permissions too.
  */
 class AgentTextController
 {
+    private const int PER_PAGE = 50;
+
     /**
-     * @return Response|Collection<int, SourceText>
+     * @return Response|LengthAwarePaginator<int, SourceText>
      */
-    public function index(Request $request, Agent $agent): Response|Collection
+    public function index(Request $request, Agent $agent): Response|LengthAwarePaginator
     {
         if ($request->wantsJson()) {
             return $this->textList($agent);
@@ -72,25 +76,27 @@ class AgentTextController
     }
 
     /**
-     * @return Collection<int, SourceText>
+     * The row's columns only: the text itself stays in storage.
+     *
+     * @return LengthAwarePaginator<int, SourceText>
      */
-    private function textList(Agent $agent): Collection
+    private function textList(Agent $agent): LengthAwarePaginator
     {
-        return $agent
+        // The relation's own query: paginating the relation would add `*`
+        // and the pivot columns back to the select.
+        $texts = $agent
             ->texts()
-            ->select('source_texts.id', 'source_texts.excerpt', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks', 'source_texts.filepath')
-            ->withCount(['agents', 'chunks'])
-            ->latest('source_texts.created_at')
-            ->get()
-            ->map(function (SourceText $text): SourceText {
-                // The content lives in storage, not the row: read it to count
-                // words, and keep the storage path on the server.
-                $content = Storage::exists($text->filepath) ? (string) Storage::get($text->filepath) : '';
+            ->getQuery()
+            ->select('source_texts.id', 'source_texts.excerpt', 'length', 'status', 'source_texts.created_at', 'source_texts.updated_at', 'expected_chunks')
+            ->withCount('agents')
+            ->orderByDesc('source_texts.id')
+            ->paginate(self::PER_PAGE);
 
-                return $text
-                    ->setAttribute('progress', $text->ingestionProgress())
-                    ->setAttribute('word_count', str_word_count($content))
-                    ->makeHidden('filepath');
-            });
+        // Only a text that is training shows progress, which needs its chunk count.
+        $texts->getCollection()
+            ->filter(fn (SourceText $text): bool => $text->status === SourceStatus::Processing)
+            ->loadCount('chunks');
+
+        return $texts->through(fn (SourceText $text): SourceText => $text->setAttribute('progress', $text->ingestionProgress()));
     }
 }

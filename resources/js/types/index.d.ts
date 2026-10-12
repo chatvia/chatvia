@@ -3,6 +3,12 @@ import type { LucideIcon } from 'lucide-vue-next';
 
 export interface Auth {
     user: User;
+    // Dashboard only: true for the owner of the signed-in user's workspace,
+    // false for a teammate. Owner-only areas are hidden from teammates.
+    is_workspace_owner?: boolean;
+    // Hosted chat only: true when the signed-in viewer is a chatter (a
+    // workspace end-user), false for staff opening the chat from the dashboard.
+    is_chatter?: boolean;
 }
 
 export interface BreadcrumbItem {
@@ -46,6 +52,9 @@ export interface Brand {
 export interface SharedData extends PageProps {
     name: string;
     brand?: Brand;
+    // The Cloudflare Turnstile bot check of the public forms (Settings →
+    // Security), or null while it is not set up. Read through useBotCheck().
+    turnstile: { site_key: string; forms: string[] } | null;
     quote: { message: string; author: string };
     auth: Auth;
     // The matched route's name and raw parameters, shared by the server for
@@ -103,10 +112,9 @@ export interface User {
     email_verified_at: string | null;
     created_at: string;
     updated_at: string;
-    // Mirrors App\Identity\Workspace\Enums\UserType. `workspace` = account owner,
-    // `employee` = invited teammate/collaborator, `chatter` = widget end-user,
-    // `admin` = internal Chatvia staff.
-    type: 'admin' | 'workspace' | 'employee' | 'chatter';
+    // Platform staff: may open the admin panel. Whether the user owns their
+    // workspace is `auth.is_workspace_owner`.
+    is_admin?: boolean;
     // Preferred date display format key — see App\Identity\Workspace\Enums\DateFormat and
     // the useDateFormat composable. Null/undefined falls back to ISO.
     date_format?: string | null;

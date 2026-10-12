@@ -1,7 +1,14 @@
 <?php
 
+/**
+ * The account API for chatters and teams: creating chatters (unique email per
+ * workspace, the same email allowed in another workspace or on a staff
+ * account), deleting them, revoking their agents, and managing teams.
+ */
+
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
@@ -11,9 +18,11 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
-    // Deleting a chatter wipes its avatar tree on the public bucket; fake the
-    // disk so the delete tests stay hermetic and never reach real S3.
+    // Deleting a chatter wipes its avatar tree on the assets disk and its
+    // attachment files on the public bucket; fake both so the delete tests
+    // stay hermetic and never reach real S3.
     Storage::fake('public');
+    Storage::fake('assets');
 
     $this->user = User::factory()->create();
     $this->agent = createAgent($this->user);
@@ -55,12 +64,62 @@ describe('POST /api/v1/chatters', function (): void {
         // id is the opaque external id (uuid), not a guessable integer.
         expect($body['id'])->toBeString()->not->toBe('1');
 
-        $created = User::where('external_id', $body['id'])->firstOrFail();
+        $created = Chatter::where('external_id', $body['id'])->firstOrFail();
 
-        expect($created->workspace_id)->toBe($this->user->id)
-            ->and($created->isChatter())->toBeTrue()
+        expect($created->workspace_id)->toBe($this->user->workspace()->id)
             ->and($created->email)->toBe('jane@example.test')
-            ->and($created->accessibleAgents()->whereKey($this->agent->id)->exists())->toBeTrue();
+            ->and($created->canAccessAgent($this->agent))->toBeTrue()
+            ->and(User::where('external_id', $body['id'])->exists())->toBeFalse();
+    });
+
+    it('rejects an email the workspace already uses for a chatter, without case', function (): void {
+        Chatter::factory()->ofWorkspace($this->user)->create(['email' => 'jane@example.test']);
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Jane again',
+                'agent_ids' => [$this->agent->external_id],
+                'email' => 'JANE@example.test',
+                'password' => 'super-secret-pw',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        expect($this->user->workspace()->chatters()->whereRaw('lower(email) = ?', ['jane@example.test'])->count())->toBe(1);
+    });
+
+    it('creates a chatter whose email is a chatter of another workspace, as a separate row', function (): void {
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $foreign = Chatter::factory()->grantedTo(createAgent($other))->create(['email' => 'jane@example.test']);
+
+        $body = $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Jane',
+                'agent_ids' => [$this->agent->external_id],
+                'email' => 'jane@example.test',
+                'password' => 'super-secret-pw',
+            ])
+            ->assertOk()
+            ->json('data');
+
+        $created = Chatter::where('external_id', $body['id'])->firstOrFail();
+
+        expect($created->id)->not->toBe($foreign->id)
+            ->and($created->workspace_id)->toBe($this->user->workspace()->id)
+            ->and($foreign->fresh()->workspace_id)->toBe($other->workspace()->id);
+    });
+
+    it('creates a chatter with the email of a staff account', function (): void {
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Me as a chatter',
+                'agent_ids' => [$this->agent->external_id],
+                'email' => $this->user->email,
+                'password' => 'super-secret-pw',
+            ])
+            ->assertOk();
+
+        expect($this->user->workspace()->chatters()->where('email', $this->user->email)->exists())->toBeTrue();
     });
 
     it('grants the chatter access to every agent supplied', function (): void {
@@ -76,9 +135,9 @@ describe('POST /api/v1/chatters', function (): void {
             ->assertOk()
             ->json('data');
 
-        $created = User::where('external_id', $body['id'])->firstOrFail();
+        $created = Chatter::where('external_id', $body['id'])->firstOrFail();
 
-        expect($created->accessibleAgents()->pluck('agents.id')->all())
+        expect($created->agents()->pluck('agents.id')->all())
             ->toHaveCount(2)
             ->toContain($this->agent->id)
             ->toContain($second->id);
@@ -137,31 +196,31 @@ describe('POST /api/v1/chatters', function (): void {
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_ids']);
 
-        expect(User::where('email', 'jane@example.test')->exists())->toBeFalse();
+        expect(Chatter::where('email', 'jane@example.test')->where('workspace_id', $this->user->workspace()->id)->exists())->toBeFalse();
     });
 });
 
 describe('DELETE /api/v1/chatters/{chatter}', function (): void {
 
     it('deletes a chatter in the workspace', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $this->agent, 'Jane'));
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $this->agent, 'Jane'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
             ->assertNoContent();
 
-        expect(User::whereKey($chatter->id)->exists())->toBeFalse();
+        expect(Chatter::whereKey($chatter->id)->exists())->toBeFalse();
     });
 
     it('404s for a chatter owned by another account and leaves it intact', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other, createAgent($other), 'Stranger'));
+        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other->workspace(), createAgent($other), 'Stranger'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$foreign->external_id)
             ->assertNotFound();
 
-        expect(User::whereKey($foreign->id)->exists())->toBeTrue();
+        expect(Chatter::whereKey($foreign->id)->exists())->toBeTrue();
     });
 });
 
@@ -170,7 +229,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
     it('revokes access to the named agents and keeps the rest', function (): void {
         $second = createAgent($this->user);
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData(
-            $this->user,
+            $this->user->workspace(),
             new Collection([$this->agent, $second]),
             'Jane',
         ));
@@ -181,11 +240,11 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
             ])
             ->assertNoContent();
 
-        expect($chatter->accessibleAgents()->pluck('agents.id')->all())->toEqual([$second->id]);
+        expect($chatter->agents()->pluck('agents.id')->all())->toEqual([$second->id]);
     });
 
     it('requires at least one agent id', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $this->agent, 'Jane'));
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $this->agent, 'Jane'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [])
@@ -194,7 +253,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
     });
 
     it('rejects an agent owned by another account and keeps the grant', function (): void {
-        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user, $this->agent, 'Jane'));
+        $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $this->agent, 'Jane'));
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $foreignAgent = createAgent($other);
 
@@ -205,18 +264,20 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_ids']);
 
-        expect($chatter->accessibleAgents()->whereKey($this->agent->id)->exists())->toBeTrue();
+        expect($chatter->agents()->whereKey($this->agent->id)->exists())->toBeTrue();
     });
 
     it('404s for a chatter owned by another account', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other, createAgent($other), 'Stranger'));
+        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other->workspace(), createAgent($other), 'Stranger'));
 
         $this->withHeaders(apiHeaders($this->token))
             ->deleteJson('/api/v1/chatters/'.$foreign->external_id.'/agents', [
                 'agent_ids' => [$this->agent->external_id],
             ])
             ->assertNotFound();
+
+        expect($foreign->agents()->count())->toBe(1);
     });
 });
 
@@ -233,7 +294,7 @@ describe('POST /api/v1/teams', function (): void {
         expect($body['id'])->toBeString();
 
         $team = Team::where('external_id', $body['id'])->firstOrFail();
-        expect($team->user_id)->toBe($this->user->id);
+        expect($team->workspace_id)->toBe($this->user->workspace()->id);
     });
 });
 
@@ -241,7 +302,7 @@ describe('PATCH /api/v1/teams/{team}', function (): void {
 
     it('renames an owned team by external id', function (): void {
         $team = app(CreateTeamAction::class)->execute(
-            new CreateTeamData(owner: $this->user, name: 'Old'),
+            new CreateTeamData(workspace: $this->user->workspace(), name: 'Old'),
         );
 
         $this->withHeaders(apiHeaders($this->token))
@@ -251,11 +312,11 @@ describe('PATCH /api/v1/teams/{team}', function (): void {
             ->assertJsonPath('data.name', 'New');
     });
 
-    it('forbids renaming another account’s team', function (): void {
+    it('hides another account’s team from a rename', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
 
         $this->withHeaders(apiHeaders($this->token))
             ->patchJson("/api/v1/teams/{$other->primaryTeam()->external_id}", ['name' => 'evil'])
-            ->assertForbidden();
+            ->assertNotFound();
     });
 });

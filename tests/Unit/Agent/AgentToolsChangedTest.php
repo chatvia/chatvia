@@ -15,7 +15,7 @@ it('announces a tool change when a function is attached or detached', function (
 
     $agent = Agent::factory()->create();
     $function = AgentFunction::query()->create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'internal_name' => 'fn',
         'description' => 'd',
         'parameters_schema' => ['type' => 'object', 'properties' => []],

@@ -68,7 +68,7 @@ class ToolSelector
             // chat-turn build scope has already closed. Open its own scope so the
             // embed's tokens are attributed to the workspace.
             $routed = $this->usage->track(
-                $agent->user_id,
+                $agent->workspace_id,
                 fn (): array => $this->router->route($userMessage, $agent),
             );
         } catch (Throwable $e) {

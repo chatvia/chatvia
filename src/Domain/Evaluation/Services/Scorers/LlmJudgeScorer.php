@@ -10,6 +10,8 @@ use Domain\Evaluation\Models\EvalCase;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
+use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
 use Throwable;
 
@@ -27,6 +29,7 @@ class LlmJudgeScorer implements ScorerInterface
 {
     public function __construct(
         private readonly StructuredCompletion $completion,
+        private readonly ModelRoles $models,
     ) {}
 
     public function score(EvalCase $case, AgentRunResultData $result): ScoreResultData
@@ -39,7 +42,7 @@ class LlmJudgeScorer implements ScorerInterface
 
         try {
             $data = $this->completion->send(new ChatRequestData(
-                model: (string) config('chatvia.ai.models.judge'),
+                model: $this->models->model(LlmRole::Fast),
                 messages: [
                     ChatMessageData::system(trim(prompt('evals/judge-system'))),
                     ChatMessageData::user($this->userPrompt($case, $criteria, $result->answer)),

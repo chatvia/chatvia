@@ -4,7 +4,12 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Domain\Analytics\Services\ConversationAnalyzer;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session;
+use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 
 /**
  * ConversationAnalyzer makes one LLM call and parses a JSON object into a
@@ -21,7 +26,7 @@ function agentWithTopics(array $names): array
 
     foreach ($names as $name) {
         $topic = Topic::create([
-            'user_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'topic' => $name,
             'description' => "About {$name}",
         ]);
@@ -80,3 +85,30 @@ it('returns null instead of a guessed result when the model output is not valid 
     'empty' => '',
     'cut off' => '{"sentiment": "neg',
 ]);
+
+it('shows the model the pending labels of recent conversations only', function (): void {
+    [$agent] = agentWithTopics([]);
+
+    $conversation = function (Agent $agent, string $label, int $daysAgo): void {
+        $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
+        $conversation = Conversation::create([
+            'workspace_id' => $agent->workspace_id,
+            'chat_session_id' => $session->id,
+            'agent_id' => $agent->id,
+            'source' => 'widget',
+        ]);
+        $conversation->forceFill(['created_at' => now()->subDays($daysAgo)])->saveQuietly();
+
+        ConversationTopic::create(['chat_conversation_id' => $conversation->id, 'suggested_label' => $label]);
+    };
+
+    $conversation($agent, 'Recent Theme', 3);
+    $conversation($agent, 'Old Theme', 120);
+
+    fakeLlmCompletion(json_encode(['topic_ids' => [], 'suggested_topics' => [], 'sentiment' => 'neutral', 'tone' => 'neutral', 'language' => 'en']));
+
+    app(ConversationAnalyzer::class)->analyze('User: hello', $agent);
+
+    Http::assertSent(fn (Request $request): bool => str_contains($request->body(), 'Recent Theme')
+        && ! str_contains($request->body(), 'Old Theme'));
+});

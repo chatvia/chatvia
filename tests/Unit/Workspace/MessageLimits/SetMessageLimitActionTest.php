@@ -1,26 +1,29 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Illuminate\Support\Carbon;
 
 /**
- * Setting a limit creates or updates the account's one row and keeps this
- * month's count; null removes the row (no limit). Every change drops the
- * cached "may send" answer, so it applies on the next turn.
+ * Setting a limit creates or updates the account's one row (a workspace's on
+ * `workspace_id`, a chatter's on `chatter_id`) and keeps this month's count; null
+ * removes the row (no limit). Every change drops that account's cached "may
+ * send" answer, so it applies on the next turn.
  */
 beforeEach(function (): void {
     $this->travelTo(Carbon::parse('2026-06-15 12:00:00'));
-    $this->workspace = User::factory()->workspace()->create();
+    $this->workspace = User::factory()->create()->workspace();
     $this->action = app(SetMessageLimitAction::class);
 });
 
 it('creates a limit that starts this month at zero', function (): void {
     $this->action->execute($this->workspace, 300);
 
-    $limit = MessageLimit::query()->where('user_id', $this->workspace->id)->sole();
+    $limit = MessageLimit::query()->where('workspace_id', $this->workspace->id)->sole();
 
     expect($limit->monthly_limit)->toBe(300)
         ->and($limit->messages_used)->toBe(0)
@@ -28,11 +31,11 @@ it('creates a limit that starts this month at zero', function (): void {
 });
 
 it('keeps what was used this month when the limit changes', function (): void {
-    MessageLimit::create(['user_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 120, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 120, 'period_starts_at' => '2026-06-01']);
 
     $this->action->execute($this->workspace, 100);
 
-    $limit = MessageLimit::query()->where('user_id', $this->workspace->id)->sole();
+    $limit = MessageLimit::query()->where('workspace_id', $this->workspace->id)->sole();
 
     expect($limit->monthly_limit)->toBe(100)
         ->and($limit->messages_used)->toBe(120)
@@ -40,11 +43,11 @@ it('keeps what was used this month when the limit changes', function (): void {
 });
 
 it('restarts the count when the stored month is over', function (): void {
-    MessageLimit::create(['user_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 280, 'period_starts_at' => '2026-05-01']);
+    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 280, 'period_starts_at' => '2026-05-01']);
 
     $this->action->execute($this->workspace, 500);
 
-    $limit = MessageLimit::query()->where('user_id', $this->workspace->id)->sole();
+    $limit = MessageLimit::query()->where('workspace_id', $this->workspace->id)->sole();
 
     expect($limit->messages_used)->toBe(0)
         ->and($limit->period_starts_at->toDateTimeString())->toBe('2026-06-01 00:00:00');
@@ -54,11 +57,11 @@ it('removes the limit when null is given', function (): void {
     $this->action->execute($this->workspace, 300);
     $this->action->execute($this->workspace, null);
 
-    expect(MessageLimit::query()->where('user_id', $this->workspace->id)->exists())->toBeFalse();
+    expect(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
 });
 
 it('applies a lower limit to the cached answer right away', function (): void {
-    MessageLimit::create(['user_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 50, 'period_starts_at' => '2026-06-01']);
+    MessageLimit::create(['workspace_id' => $this->workspace->id, 'monthly_limit' => 300, 'messages_used' => 50, 'period_starts_at' => '2026-06-01']);
     $allowance = app(MessageAllowance::class);
 
     expect($allowance->canSend($this->workspace->id))->toBeTrue();
@@ -66,4 +69,46 @@ it('applies a lower limit to the cached answer right away', function (): void {
     $this->action->execute($this->workspace, 50);
 
     expect($allowance->canSend($this->workspace->id))->toBeFalse();
+});
+
+it('sets a chatter limit on the chatter, not on a workspace', function (): void {
+    $chatter = Chatter::factory()->ofWorkspace($this->workspace)->create();
+
+    $this->action->execute($chatter, 40);
+
+    $limit = MessageLimit::query()->where('chatter_id', $chatter->id)->sole();
+
+    expect($limit->workspace_id)->toBeNull()
+        ->and($limit->monthly_limit)->toBe(40)
+        ->and($limit->chatter->is($chatter))->toBeTrue()
+        ->and(MessageLimit::query()->where('workspace_id', $this->workspace->id)->exists())->toBeFalse();
+});
+
+it('keeps a workspace limit and a chatter limit with the same id apart', function (): void {
+    $workspace = Workspace::factory()->create(['id' => 987_654_323]);
+    $chatter = Chatter::factory()->ofWorkspace($workspace)->create(['id' => $workspace->id]);
+
+    $this->action->execute($workspace, 1000);
+    $this->action->execute($chatter, 20);
+
+    expect(MessageLimit::query()->where('workspace_id', $workspace->id)->value('monthly_limit'))->toBe(1000)
+        ->and(MessageLimit::query()->where('chatter_id', $chatter->id)->value('monthly_limit'))->toBe(20);
+
+    // Removing the chatter's limit leaves the workspace's row alone.
+    $this->action->execute($chatter, null);
+
+    expect(MessageLimit::query()->where('chatter_id', $chatter->id)->exists())->toBeFalse()
+        ->and(MessageLimit::query()->where('workspace_id', $workspace->id)->value('monthly_limit'))->toBe(1000);
+});
+
+it('applies a lower chatter limit to the chatter right away', function (): void {
+    $chatter = Chatter::factory()->ofWorkspace($this->workspace)->create();
+    MessageLimit::create(['chatter_id' => $chatter->id, 'monthly_limit' => 30, 'messages_used' => 10, 'period_starts_at' => '2026-06-01']);
+    $allowance = app(MessageAllowance::class);
+
+    expect($allowance->canSendAsChatter($chatter->id))->toBeTrue();
+
+    $this->action->execute($chatter, 10);
+
+    expect($allowance->canSendAsChatter($chatter->id))->toBeFalse();
 });

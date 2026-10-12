@@ -3,7 +3,8 @@
  * File sources of an agent (all documents, or only one kind: PDF, Word,
  * Markdown, audio, video). Files are uploaded first, wait in "ready to train",
  * then train; training progress arrives live over Reverb. Audio and video are
- * measured in minutes, everything else in pages.
+ * measured in minutes, everything else in pages. Both lists load one page at
+ * a time.
  */
 import type { SourceFile } from '@/api/fileSources';
 import FileUploader from '@/components/FileUploader.vue';
@@ -37,7 +38,19 @@ const fileUploaderRef = ref<InstanceType<typeof FileUploader> | null>(null);
 const uploadingFiles = ref<UploadingFileData[]>([]);
 
 const sourceFiles = useSourceFiles(agentId, props.fileType);
-const { uploadedFiles, processedFiles, isLoading, isInitialLoad, fetchFiles } = sourceFiles;
+const {
+    uploadedFiles,
+    processedFiles,
+    uploadedTotal,
+    processedTotal,
+    hasMoreUploaded,
+    hasMoreProcessed,
+    isLoadingMoreUploaded,
+    isLoadingMoreProcessed,
+    isLoading,
+    isInitialLoad,
+    fetchFiles,
+} = sourceFiles;
 useFileIngestionProgress(agentId, sourceFiles);
 
 /** Minutes / pages of everything waiting for training: uploaded plus still uploading. */
@@ -54,7 +67,7 @@ const {
     description: uploadDescription,
 } = useFileUploadConfig(agentId, props.fileType, (file) => {
     fileUploaderRef.value?.removeFileById(file.id);
-    fetchFiles();
+    sourceFiles.fetchUploadedFiles();
 });
 
 const { isTraining, isClearDialogOpen, trainAll, confirmClearAll, clearAll } = useUploadedFiles(agentId, sourceFiles, fileUploaderRef);
@@ -92,9 +105,13 @@ defineExpose({ refreshFiles: fetchFiles });
             <UploadedFilesCard
                 v-if="uploadedFiles.length > 0"
                 :files="uploadedFiles"
+                :total="uploadedTotal"
+                :has-more="hasMoreUploaded"
+                :is-loading-more="isLoadingMoreUploaded"
                 :total-pages="pendingPages"
                 :total-minutes="pendingMinutes"
                 :is-training="isTraining"
+                @load-more="sourceFiles.loadMoreUploaded"
                 @clear-all="confirmClearAll"
                 @train="trainAll"
                 @remove="confirmUploadedRemoval"
@@ -102,9 +119,13 @@ defineExpose({ refreshFiles: fetchFiles });
 
             <TrainedFilesCard
                 :files="processedFiles"
+                :total="processedTotal"
+                :has-more="hasMoreProcessed"
+                :is-loading-more="isLoadingMoreProcessed"
                 :is-loading="isLoading && isInitialLoad"
                 :is-busy="isTraining"
                 @attach="isAttachDialogOpen = true"
+                @load-more="sourceFiles.loadMoreTrained"
                 @summary="summary.show"
                 @remove="deletion.confirm"
             />

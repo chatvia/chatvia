@@ -19,12 +19,12 @@ function analyticsDb()
     return DB::connection(config('chatvia.analytics.connection'));
 }
 
-function recordMessageSent(int $agentId, string $convId, string $msgId, string $sessionId): void
+function recordMessageSent(int $agentId, string $convId, string $msgId, string $sessionId, ?int $chatterId = null): void
 {
     app(RecordMessageSentAction::class)->execute(MessageSentRecordData::fromEvent(new MessageSent(
         agentId: $agentId,
         workspaceId: 710000,
-        chatterUserId: null,
+        chatterId: $chatterId,
         conversationExternalId: $convId,
         messageExternalId: $msgId,
         sessionExternalId: $sessionId,
@@ -62,5 +62,24 @@ it('records a redelivered message_sent exactly once across events, metrics and r
     expect($events->count())->toBe(1)
         ->and($metrics->message_count)->toBe(1)
         ->and((int) $rollup->assistant_messages)->toBe(1)
+        ->and((int) $rollup->prompt_tokens)->toBe(100)
+        ->and((int) $rollup->completion_tokens)->toBe(50)
         ->and((int) $rollup->total_tokens)->toBe(150);
+});
+
+it('stores the chatter a message was sent by, and none for an anonymous one', function (): void {
+    $convId = (string) Str::uuid();
+    $sessionId = (string) Str::uuid();
+    $chatterMsg = (string) Str::uuid();
+    $anonymousMsg = (string) Str::uuid();
+
+    recordMessageSent(960002, $convId, $chatterMsg, $sessionId, chatterId: 960102);
+    recordMessageSent(960002, $convId, $anonymousMsg, $sessionId);
+
+    $chatterOf = fn (string $msgId): mixed => analyticsDb()->table('analytics_events')
+        ->where('message_external_id', $msgId)
+        ->value('chatter_id');
+
+    expect($chatterOf($chatterMsg))->toBe(960102)
+        ->and($chatterOf($anonymousMsg))->toBeNull();
 });

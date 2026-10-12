@@ -1,15 +1,18 @@
 <?php
 
 use Domain\Knowledge\Embedding\Qwen3;
+use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
-use Domain\Llm\Providers\Scaleway;
+use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Every Scaleway Generative APIs call (chat, embeddings, transcription) must
- * use the configured `services.scalewayai.endpoint`, never a URL baked into
- * the code, so each install can point at its own project.
+ * Every Scaleway Generative APIs call must use a configured address, never a
+ * URL baked into the code, so each install can point at its own project: chat
+ * uses its provider's address, embeddings and transcription
+ * `services.scalewayai.endpoint`.
  */
 beforeEach(function (): void {
     config([
@@ -18,10 +21,12 @@ beforeEach(function (): void {
     ]);
 });
 
-it('builds the chat completion URL from the configured endpoint', function (): void {
+it('builds the chat completion URL from the provider\'s address', function (): void {
     Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'hi']]]])]);
 
-    app(Scaleway::class)->completion(['model' => 'mistral-small-3.2-24b-instruct-2506', 'messages' => []]);
+    $provider = LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(['base_url' => 'https://api.scaleway.test/project-x/v1/']);
+
+    app(ProviderAdapters::class)->for(LlmProviderEnum::SCALEWAY)->client($provider)->completion(['model' => 'mistral-small-3.2-24b-instruct-2506', 'messages' => []]);
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.scaleway.test/project-x/v1/chat/completions');
 });

@@ -2,7 +2,7 @@
 
 namespace App\Identity\Chatter\Data;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
@@ -32,7 +32,7 @@ class WorkspaceChatterRowData extends Data
         public ?string $deactivation_reason,
     ) {}
 
-    public static function fromModel(User $chatter): self
+    public static function fromModel(Chatter $chatter): self
     {
         // Eager-load `messageLimit`. The limit carries over to a new month;
         // the count shows 0 until the chatter's first message of that month.
@@ -44,7 +44,7 @@ class WorkspaceChatterRowData extends Data
             email: $chatter->email,
             avatar: $chatter->avatar,
             status: $chatter->email_verified_at !== null ? 'active' : 'pending',
-            agents_count: (int) ($chatter->accessible_agents_count ?? $chatter->accessibleAgents()->count()),
+            agents_count: (int) ($chatter->agents_count ?? $chatter->agents()->count()),
             created_at: ($chatter->created_at ?? now())->toIso8601String(),
             messages_limit: $limit?->monthly_limit,
             messages_used: $limit?->usedThisMonth() ?? 0,

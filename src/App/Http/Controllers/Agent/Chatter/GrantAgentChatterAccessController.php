@@ -17,7 +17,7 @@ class GrantAgentChatterAccessController
     {
         abort_if($agent->is_public, 422, __('Public agents do not use per-member grants.'));
 
-        $member = $agent->user
+        $member = $agent->workspace
             ->chatters()
             ->where('external_id', $chatter)
             ->firstOrFail();

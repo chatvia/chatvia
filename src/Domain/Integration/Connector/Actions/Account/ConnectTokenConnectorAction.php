@@ -31,12 +31,12 @@ class ConnectTokenConnectorAction
     {
         // A connector is a workspace resource: own it by the workspace, not the
         // acting teammate, whose deletion would orphan the server.
-        $owner = $data->user->workspace();
+        $workspace = $data->user->workspace();
         $connector = $data->connector;
         $noAuth = $connector->authStrategy === ConnectorAuthStrategy::None;
 
         $attributes = [
-            'user_id' => $owner->id,
+            'workspace_id' => $workspace->id,
             'category' => $connector->serverCategory(),
             'connector_slug' => $connector->slug,
             'name' => $connector->name,
@@ -51,7 +51,7 @@ class ConnectTokenConnectorAction
             'last_error' => null,
         ];
 
-        $existing = $owner->mcpServers()->where('connector_slug', $connector->slug)->first();
+        $existing = $workspace->mcpServers()->where('connector_slug', $connector->slug)->first();
         $previous = $existing?->getOriginal();
 
         $server = $existing ?? new AgentMcpServer;

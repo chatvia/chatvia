@@ -6,11 +6,7 @@ use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
-use Spatie\Permission\PermissionRegistrar;
 use Support\Exceptions\DomainValidationException;
 
 /**
@@ -24,32 +20,9 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->owner);
 });
 
-/**
- * @param  list<string>  $permissions
- */
-function functionsTeammate(User $owner, array $permissions): User
-{
-    $team = $owner->primaryTeam();
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: $permissions,
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    return $member;
-}
-
 function workspaceFunction(User $owner, array $overrides = []): AgentFunction
 {
-    return $owner->functions()->create(array_merge([
+    return $owner->workspace()->functions()->create(array_merge([
         'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => []],
@@ -76,7 +49,7 @@ describe('teammates work on the workspace owner\'s functions', function (): void
 
     it('lists, toggles and updates the owner\'s functions for a teammate with account.functions', function (): void {
         $fn = workspaceFunction($this->owner);
-        $member = functionsTeammate($this->owner, ['account.functions']);
+        $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         $this->actingAs($member)
             ->get(route('integrations.functions.edit'))
@@ -98,13 +71,13 @@ describe('teammates work on the workspace owner\'s functions', function (): void
     });
 
     it('creates a teammate\'s function under the owner', function (): void {
-        $member = functionsTeammate($this->owner, ['account.functions']);
+        $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         $this->actingAs($member)
             ->post(route('integrations.functions.store'), functionFormPayload(['internal_name' => 'team_fn']))
             ->assertRedirect();
 
-        expect(AgentFunction::where('internal_name', 'team_fn')->sole()->user_id)->toBe($this->owner->id);
+        expect(AgentFunction::where('internal_name', 'team_fn')->sole()->workspace_id)->toBe($this->owner->workspace()->id);
     });
 });
 
@@ -113,7 +86,7 @@ describe('function names are unique per workspace', function (): void {
     it('turns a teammate rename onto an existing name into a validation error', function (): void {
         workspaceFunction($this->owner, ['internal_name' => 'taken_name']);
         $fn = workspaceFunction($this->owner, ['internal_name' => 'other_name']);
-        $member = functionsTeammate($this->owner, ['account.functions']);
+        $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         $this->actingAs($member)
             ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), functionFormPayload([
@@ -126,7 +99,7 @@ describe('function names are unique per workspace', function (): void {
 
     it('rejects a duplicate in the create action itself', function (): void {
         workspaceFunction($this->owner, ['internal_name' => 'taken_name']);
-        $member = functionsTeammate($this->owner, ['account.functions']);
+        $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         expect(fn () => app(CreateAgentFunctionAction::class)->execute($member, new FunctionDefinitionData(
             internal_name: 'taken_name',

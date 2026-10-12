@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Chat\Auth;
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 /**
- * The agents a signed-in chatter may chat with, for the agent switcher.
+ * The agents the signed-in hosted-chat viewer may switch to: a chatter's
+ * granted agents, or the agents a staff account can reach.
  */
 class ChatterAgentController
 {
@@ -17,10 +19,15 @@ class ChatterAgentController
      */
     public function __invoke(Request $request): Collection
     {
-        /** @var User $user */
-        $user = $request->user();
+        $account = $request->user();
 
-        return $user->listAccessibleAgents()
+        $agents = match (true) {
+            $account instanceof Chatter => $account->agents()->get()->toBase(),
+            $account instanceof User => $account->listAccessibleAgents(),
+            default => collect(),
+        };
+
+        return $agents
             ->map(fn (Agent $agent): array => $agent->only(['id', 'external_id', 'name', 'slug']))
             ->values();
     }

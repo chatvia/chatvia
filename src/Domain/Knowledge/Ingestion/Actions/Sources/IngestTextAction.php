@@ -4,7 +4,6 @@ namespace Domain\Knowledge\Ingestion\Actions\Sources;
 
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
-use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Services\TokenSplitter;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -13,7 +12,7 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 
 /**
  * Ingest a text source: split the stored text into token-sized parts and chunk
- * each part in one batch. The Text sources page is told when ingestion starts
+ * the parts in one batch. The Text sources page is told when ingestion starts
  * and, by the batch's completion step, when it ends.
  */
 class IngestTextAction
@@ -30,8 +29,7 @@ class IngestTextAction
         $sourceText->update(['status' => SourceStatus::Processing]);
         TextIngestionStarted::dispatch($sourceText, $agent->external_id);
 
-        $jobs = collect($this->splitter->split($sourceText->readContents()))
-            ->map(fn (PageData $page): TextChunkIngestionJob => new TextChunkIngestionJob($agent, $sourceText, $page));
+        $jobs = TextChunkIngestionJob::forPages($agent, $sourceText, collect($this->splitter->split($sourceText->readContents())));
 
         $this->dispatchBatch->execute($sourceText, $agent, $jobs);
 

@@ -2,8 +2,10 @@
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
@@ -26,7 +28,7 @@ function regenerateAgent(bool $isPublic = true): Agent
     $owner->refresh();
 
     return Agent::create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'team_id' => $owner->primaryTeam()->id,
         'name' => 'Regenerate Bot',
         'external_id' => Str::random(14),
@@ -36,14 +38,16 @@ function regenerateAgent(bool $isPublic = true): Agent
     ]);
 }
 
-function regenerateConversation(Agent $agent, ?User $user = null): Conversation
+function regenerateConversation(Agent $agent, ?Chatter $chatter = null): Conversation
 {
     $session = Session::create([
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
-        'user_id' => $user?->id,
+        'chatter_id' => $chatter?->id,
     ]);
 
     return Conversation::create([
+        'workspace_id' => $session->workspace_id,
         'chat_session_id' => $session->id,
         'agent_id' => $session->agent_id,
         'source' => 'hosted_chat',
@@ -107,12 +111,12 @@ it('returns 403 on a private agent when the auth user does not own the conversat
     // Positive control: the conversation exists and belongs to the agent (so it
     // gets PAST the 404 "gone" branch); only the ownership gate refuses it.
     $agent = regenerateAgent(isPublic: false);
-    $owner = User::factory()->create();
+    $owner = Chatter::factory()->grantedTo($agent)->create();
 
-    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->user, $agent, 'Intruder'))->refresh();
+    $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Intruder'))->refresh();
 
     $conversation = regenerateConversation($agent, $owner);
-    ChatCache::rememberOwner($conversation->external_id, $owner->id, $agent->workspaceExternalId());
+    ChatCache::rememberOwner($conversation->external_id, ChatViewerData::chatter($owner->id), $agent->workspaceExternalId());
 
     $response = $this->actingAs($intruder, 'chat')->postJson(
         "/chat/{$agent->external_id}/messages/regenerate",

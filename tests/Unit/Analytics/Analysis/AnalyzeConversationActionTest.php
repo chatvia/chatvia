@@ -59,7 +59,7 @@ function attachTopics(Agent $agent, array $names): array
 
     foreach ($names as $name) {
         $topic = Topic::create([
-            'user_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'topic' => $name,
             'description' => "About {$name}",
         ]);

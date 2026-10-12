@@ -2,7 +2,8 @@
 /**
  * Conversation list of the chat log: online-only toggle, filter and refresh
  * buttons, removable chips for the active filters, the conversations (channel,
- * country, topics, age, retention) and paging.
+ * country, topics, age, retention) and a "Load more" button that appends the
+ * next page. A filter change reloads the list from the first page.
  */
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,8 +20,8 @@ const {
     conversations,
     currentConversationId,
     isLoadingConversations,
-    totalConversations,
-    currentConversationsPage,
+    isLoadingMoreConversations,
+    hasMoreConversations,
     hasActiveFilters,
     activeFilterCount,
     showFiltersDialog,
@@ -34,6 +35,7 @@ const {
     dateRange,
     onlineOnly,
     fetchConversations,
+    loadMoreConversations,
     selectConversation,
     formatTimeAgo,
     getFlagPath,
@@ -52,7 +54,7 @@ const {
 
 function toggleOnlineOnly() {
     onlineOnly.value = !onlineOnly.value;
-    fetchConversations(1);
+    void fetchConversations();
 }
 
 const MS_PER_DAY = 86_400_000;
@@ -76,7 +78,7 @@ const isRefreshingConversations = ref(false);
 async function refreshConversations() {
     isRefreshingConversations.value = true;
     try {
-        await fetchConversations(currentConversationsPage.value, true);
+        await fetchConversations(true);
     } finally {
         isRefreshingConversations.value = false;
     }
@@ -100,15 +102,15 @@ function clearFilter(filter: FilterChip) {
     } else {
         filterRefs[filter].value = 'all';
     }
-    void fetchConversations(1);
+    void fetchConversations();
 }
 </script>
 
 <template>
     <div class="bg-muted/30 flex h-full w-[300px] flex-shrink-0 flex-col border-e">
         <!-- Header Section -->
-        <div class="border-border/50 bg-muted/30 flex-shrink-0 border-b px-4 pt-4 pb-3">
-            <div class="mb-3 flex items-center justify-between">
+        <div class="border-border/50 bg-muted/30 flex flex-shrink-0 flex-col gap-3 border-b px-4 pt-4 pb-3">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-1">
                     <!-- Online Only Toggle -->
                     <TooltipProvider>
@@ -169,7 +171,7 @@ function clearFilter(filter: FilterChip) {
             </div>
 
             <!-- Active Filters Display -->
-            <div v-if="hasActiveFilters" class="mb-3 flex flex-wrap gap-1.5">
+            <div v-if="hasActiveFilters" class="flex flex-wrap gap-1.5">
                 <Badge v-if="dateRange" variant="secondary" class="flex items-center gap-1 px-2 py-1 text-xs">
                     <Calendar class="h-3 w-3" />
                     {{ formatDateRangeDisplay() }}
@@ -283,10 +285,6 @@ function clearFilter(filter: FilterChip) {
                     </button>
                 </Badge>
             </div>
-
-            <div class="text-muted-foreground flex items-center justify-between text-xs">
-                <span>{{ t('agents.chatlog.sidebar.conversations_count', { count: totalConversations }) }}</span>
-            </div>
         </div>
 
         <!-- Scrollable Conversations Area -->
@@ -298,7 +296,7 @@ function clearFilter(filter: FilterChip) {
 
             <!-- Conversations List -->
             <ul v-else class="space-y-0.5 p-2">
-                <li v-for="c in conversations?.data" :key="c.conversation_id">
+                <li v-for="c in conversations" :key="c.conversation_id">
                     <button
                         @click="selectConversation(c.conversation_id, c)"
                         class="group flex w-full cursor-pointer flex-col gap-1.5 rounded-lg px-3 py-2.5 text-start text-sm transition-all duration-200"
@@ -358,33 +356,12 @@ function clearFilter(filter: FilterChip) {
                     </button>
                 </li>
             </ul>
-        </div>
 
-        <!-- Pagination Controls -->
-        <div v-if="conversations && conversations.last_page > 1" class="border-border/50 bg-muted/30 flex-shrink-0 border-t p-3">
-            <div class="flex items-center justify-between gap-2">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    class="h-7 text-xs"
-                    :disabled="!conversations?.prev_page_url || isLoadingConversations"
-                    @click="fetchConversations(conversations.current_page - 1)"
-                >
-                    <LoaderCircle v-if="isLoadingConversations" class="me-1 h-3 w-3 animate-spin" />
-                    {{ t('agents.chatlog.pagination.prev') }}
-                </Button>
-                <span class="text-muted-foreground text-[10px] tabular-nums">
-                    {{ conversations?.current_page }} / {{ conversations?.last_page }}
-                </span>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    class="h-7 text-xs"
-                    :disabled="!conversations?.next_page_url || isLoadingConversations"
-                    @click="fetchConversations(conversations.current_page + 1)"
-                >
-                    <LoaderCircle v-if="isLoadingConversations" class="me-1 h-3 w-3 animate-spin" />
-                    {{ t('agents.chatlog.pagination.next') }}
+            <!-- Next page, appended to the list -->
+            <div v-if="!isLoadingConversations && hasMoreConversations" class="px-2 pb-3">
+                <Button variant="ghost" size="sm" class="h-8 w-full text-xs" :disabled="isLoadingMoreConversations" @click="loadMoreConversations">
+                    <LoaderCircle v-if="isLoadingMoreConversations" class="me-1 h-3 w-3 animate-spin" />
+                    {{ t('agents.chatlog.sidebar.load_more') }}
                 </Button>
             </div>
         </div>

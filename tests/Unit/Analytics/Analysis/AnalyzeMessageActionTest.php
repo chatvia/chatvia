@@ -37,6 +37,7 @@ function amaMakeMessage(Agent $agent, string $role = 'user'): Message
 
     return Message::create([
         'external_id' => (string) Str::uuid(),
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => $role,
         'content' => 'I am really frustrated with my invoice this month.',

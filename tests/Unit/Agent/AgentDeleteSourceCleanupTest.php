@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 function cleanupSourceText(Agent $agent): SourceText
 {
     return SourceText::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'filepath' => 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
         'excerpt' => 'cleanup',
         'length' => 1,
@@ -38,7 +38,7 @@ it('deletes exclusively-owned sources when the agent is deleted, keeps shared on
     Storage::fake();
 
     $agent = Agent::factory()->create();
-    $other = Agent::factory()->create(['user_id' => $agent->user_id]);
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
 
     $exclusive = cleanupSourceText($agent);
     $agent->texts()->attach($exclusive->id);

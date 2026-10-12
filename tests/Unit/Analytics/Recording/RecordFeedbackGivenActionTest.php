@@ -7,6 +7,11 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * Feedback is stored as current state: one analytics row per message, kept in
+ * step as a visitor switches or clears their reaction, carrying the chatter
+ * of the rated message's session (none for an anonymous or staff session).
+ */
 function feedbackRows(string $messageId)
 {
     return DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
@@ -14,12 +19,12 @@ function feedbackRows(string $messageId)
         ->where('message_external_id', $messageId);
 }
 
-function giveFeedback(int $agentId, string $convId, string $msgId, ?string $feedback): void
+function giveFeedback(int $agentId, string $convId, string $msgId, ?string $feedback, ?int $chatterId = null): void
 {
     app(RecordFeedbackGivenAction::class)->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
         agentId: $agentId,
         workspaceId: 700000,
-        chatterUserId: null,
+        chatterId: $chatterId,
         conversationExternalId: $convId,
         messageExternalId: $msgId,
         feedback: $feedback,
@@ -73,4 +78,16 @@ it('counts current feedback as a snapshot, not a lifetime tally', function (): v
 
     expect((clone $rows)->where('feedback', 'positive')->count())->toBe(1)
         ->and((clone $rows)->where('feedback', 'negative')->count())->toBe(1);
+});
+
+it('keeps the chatter of the rated message on the feedback row', function (): void {
+    $convId = (string) Str::uuid();
+    $chatterMsg = (string) Str::uuid();
+    $anonymousMsg = (string) Str::uuid();
+
+    giveFeedback(950004, $convId, $chatterMsg, 'positive', chatterId: 950104);
+    giveFeedback(950004, $convId, $anonymousMsg, 'negative');
+
+    expect(feedbackRows($chatterMsg)->value('chatter_id'))->toBe(950104)
+        ->and(feedbackRows($anonymousMsg)->value('chatter_id'))->toBeNull();
 });

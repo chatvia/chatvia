@@ -40,7 +40,7 @@ class SendHandoffAdminMessageAction
             return null;
         }
 
-        $messageId = Str::uuid()->toString();
+        $messageId = Str::uuid7()->toString();
 
         $message = DB::transaction(function () use ($data, $conversation, $session, $agent, $messageId): Message {
             $this->memory
@@ -57,6 +57,7 @@ class SendHandoffAdminMessageAction
             // the row up by this external_id, so a fresh id would never match.
             $message = Message::create([
                 'external_id' => $messageId,
+                'workspace_id' => $conversation->workspace_id,
                 'chat_conversation_id' => $conversation->id,
                 'content' => $data->content,
                 'role' => MessageRole::Operator,

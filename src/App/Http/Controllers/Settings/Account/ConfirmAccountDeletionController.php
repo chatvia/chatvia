@@ -20,7 +20,7 @@ class ConfirmAccountDeletionController
         /** @var User $user */
         $user = $request->user();
 
-        abort_unless($user->isWorkspace() && $user->id === $userId, 403);
+        abort_unless($user->isWorkspaceOwner() && $user->id === $userId, 403);
 
         $request->session()->put(DeleteAccountController::CONFIRMED_AT_KEY, now()->timestamp);
 

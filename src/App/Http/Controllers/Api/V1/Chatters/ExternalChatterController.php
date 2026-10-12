@@ -36,11 +36,11 @@ class ExternalChatterController
     {
         /** @var User $account */
         $account = $request->user();
-        $owner = $account->workspace();
+        $workspace = $account->workspace();
 
         $chatter = $createChatter->execute(new CreateChatterData(
-            owner: $owner,
-            agents: $this->workspaceAgentsOrFail($owner, $payload->agent_ids),
+            workspace: $workspace,
+            agents: $this->workspaceAgentsOrFail($workspace, $payload->agent_ids),
             name: $payload->name,
             email: $payload->email,
             password: $payload->password,

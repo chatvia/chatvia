@@ -23,7 +23,7 @@ beforeEach(function (): void {
 
 it('shows the audit log of the workspace', function (): void {
     SecurityAuditLog::create([
-        'workspace_id' => $this->owner->id,
+        'workspace_id' => $this->owner->workspace()->id,
         'action' => SecurityAuditAction::AuthLogin->value,
         'outcome' => 'success',
         'user_name' => 'Ahmad',
@@ -40,8 +40,8 @@ it('shows the audit log of the workspace', function (): void {
 });
 
 it('filters the audit log by category', function (): void {
-    SecurityAuditLog::create(['workspace_id' => $this->owner->id, 'action' => SecurityAuditAction::AuthLogin->value, 'outcome' => 'success']);
-    SecurityAuditLog::create(['workspace_id' => $this->owner->id, 'action' => SecurityAuditAction::PolicyChanged->value, 'outcome' => 'success']);
+    SecurityAuditLog::create(['workspace_id' => $this->owner->workspace()->id, 'action' => SecurityAuditAction::AuthLogin->value, 'outcome' => 'success']);
+    SecurityAuditLog::create(['workspace_id' => $this->owner->workspace()->id, 'action' => SecurityAuditAction::PolicyChanged->value, 'outcome' => 'success']);
 
     $this->actingAs($this->owner)
         ->get(route('security.audit', ['category' => 'auth']))

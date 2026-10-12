@@ -38,7 +38,7 @@ final readonly class AgentTextTranslator
         }
 
         $translated = $this->usage->track(
-            $agent->user_id,
+            $agent->workspace_id,
             fn (): array => $this->translator->translate(
                 array_map(static fn (TranslatableText $text): string => (string) $text->base, $texts),
                 $languages,

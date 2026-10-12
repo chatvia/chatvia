@@ -131,7 +131,7 @@
                 "expires_in_days": "Expira em {count} dia | Expira em {count} dias",
                 "expires_in_one_month": "Expira em 1 mês",
                 "expires_in_months": "Expira em {count} mês | Expira em {count} meses",
-                "conversations_count": "{count} conversa | {count} conversas"
+                "load_more": "Carregar mais"
             },
             "pagination": {
                 "prev": "Anterior",

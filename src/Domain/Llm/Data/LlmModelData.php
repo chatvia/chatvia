@@ -19,11 +19,11 @@ class LlmModelData extends Data
         public string $id, // gpt-4o-mini
         public string $internal_id, // openai/gpt-4o-mini
         public string $name, // GPT-4o Mini
-        public string $description,
-        public string $icon,
-        public int $context_window,
+        public ?string $description,
+        public ?string $icon,
+        public ?int $context_window,
         public array $features,
-        public string $location,
+        public ?string $location,
         public bool $is_reasoning,
         public bool $is_selected = true,
     ) {}

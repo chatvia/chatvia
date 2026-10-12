@@ -7,13 +7,9 @@ use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Mcp\Actions\Catalog\SyncMcpServerCatalogAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -25,7 +21,7 @@ beforeEach(function (): void {
  */
 function connectedMcpServerFor(User $user, ?string $connectorSlug = null): AgentMcpServer
 {
-    return $user->mcpServers()->create([
+    return $user->workspace()->mcpServers()->create([
         'name' => 'Weather',
         'slug' => 'weather',
         'connector_slug' => $connectorSlug,
@@ -54,31 +50,6 @@ function stashPendingOAuthState(string $state, User $starter, string $binding): 
     );
 
     cache()->put('oauth:mcp:state:'.$state, $pending->seal(), 600);
-}
-
-/**
- * A teammate of $owner holding exactly $permissions.
- *
- * @param  list<string>  $permissions
- */
-function oauthCallbackTeammate(User $owner, array $permissions): User
-{
-    $team = $owner->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($owner);
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: $permissions,
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    return $member;
 }
 
 it('completes the flow and redirects to the connector settings with a success flash', function (): void {
@@ -123,7 +94,7 @@ it('bounces gracefully with an error flash when the provider denies authorizatio
         ->assertSessionHas('error')
         ->assertSessionMissing('success');
 
-    expect($this->user->mcpServers()->count())->toBe(0);
+    expect($this->user->workspace()->mcpServers()->count())->toBe(0);
 });
 
 it('rejects a tampered or expired state without connecting anything', function (): void {
@@ -136,7 +107,7 @@ it('rejects a tampered or expired state without connecting anything', function (
         ->assertSessionHas('error')
         ->assertSessionMissing('success');
 
-    expect($this->user->mcpServers()->count())->toBe(0);
+    expect($this->user->workspace()->mcpServers()->count())->toBe(0);
 });
 
 it('refuses a state another user started — the victim\'s tokens never reach the attacker\'s workspace', function (): void {
@@ -155,7 +126,7 @@ it('refuses a state another user started — the victim\'s tokens never reach th
 
     // No code exchange happened and nothing was saved anywhere.
     Http::assertNothingSent();
-    expect(AgentMcpServer::query()->whereIn('user_id', [$attacker->id, $this->user->id])->count())->toBe(0);
+    expect(AgentMcpServer::query()->whereIn('workspace_id', [$attacker->workspace()->id, $this->user->workspace()->id])->count())->toBe(0);
 });
 
 it('refuses a state the same user started in a different browser session', function (): void {
@@ -170,12 +141,12 @@ it('refuses a state the same user started in a different browser session', funct
         ->assertSessionHas('error');
 
     Http::assertNothingSent();
-    expect($this->user->mcpServers()->count())->toBe(0);
+    expect($this->user->workspace()->mcpServers()->count())->toBe(0);
 });
 
-it('saves a connector a teammate connects under the workspace owner, visible to the whole team', function (): void {
+it('saves a connector a teammate connects under the workspace, visible to the whole team', function (): void {
     $owner = User::factory()->create();
-    $teammate = oauthCallbackTeammate($owner, ['account.connectors']);
+    $teammate = teammateWithPermissions($owner, ['account.connectors']);
 
     Http::fake([
         'auth.example.test/token' => Http::response([
@@ -195,10 +166,10 @@ it('saves a connector a teammate connects under the workspace owner, visible to 
         ->assertSessionHas('success');
 
     $server = AgentMcpServer::query()->where('connector_slug', 'notion')->sole();
-    expect($server->user_id)->toBe($owner->id)
+    expect($server->workspace_id)->toBe($owner->workspace()->id)
         ->and($server->auth_value)->toBe('fresh-access');
 
-    // The teammate's connector list (keyed to the owner) shows it.
+    // The teammate's connector list (keyed to the workspace) shows it.
     $this->actingAs($teammate)
         ->getJson(route('integrations.connectors.data'))
         ->assertOk()

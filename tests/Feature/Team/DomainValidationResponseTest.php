@@ -27,10 +27,10 @@ it('turns a domain rejection into a field error on a web form', function (): voi
 
 it('turns a domain rejection into a 422 with the same message for JSON callers', function (): void {
     $agent = Agent::factory()->create();
-    $topic = Topic::create(['user_id' => $agent->user_id, 'topic' => 'Billing', 'description' => 'x']);
+    $topic = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Billing', 'description' => 'x']);
     $agent->topics()->attach($topic->id);
 
-    $this->actingAs($agent->user)
+    $this->actingAs($agent->workspace->owner)
         ->postJson(route('agents.topics.store', $agent), ['topic_id' => $topic->id])
         ->assertUnprocessable()
         ->assertJsonPath('message', 'Topic already associated with this agent')

@@ -9,7 +9,7 @@ use Domain\Membership\Team\Services\TeamPermissionCatalog;
 
 it('gives a team the owner role with every permission code', function (): void {
     $owner = User::factory()->create();
-    $team = Team::create(['name' => 'Bare', 'user_id' => $owner->id]);
+    $team = Team::create(['name' => 'Bare', 'workspace_id' => $owner->workspace()->id]);
 
     app(CreateDefaultRolesAction::class)->execute($team);
 
@@ -24,7 +24,7 @@ it('gives a team the owner role with every permission code', function (): void {
 
 it('is idempotent', function (): void {
     $owner = User::factory()->create();
-    $team = Team::create(['name' => 'Bare', 'user_id' => $owner->id]);
+    $team = Team::create(['name' => 'Bare', 'workspace_id' => $owner->workspace()->id]);
 
     app(CreateDefaultRolesAction::class)->execute($team);
     app(CreateDefaultRolesAction::class)->execute($team);

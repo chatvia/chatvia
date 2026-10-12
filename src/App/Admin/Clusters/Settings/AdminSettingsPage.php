@@ -8,6 +8,7 @@ use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SettingStatus;
 use App\Admin\StaffToolsAccess;
+use Closure;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Field;
@@ -232,7 +233,7 @@ abstract class AdminSettingsPage extends Page
      */
     protected function visibleCards(): array
     {
-        return array_values(array_filter($this->cards(), fn (SettingsCard $card): bool => ! $card->visible instanceof \Closure || ($card->visible)()));
+        return array_values(array_filter($this->cards(), fn (SettingsCard $card): bool => ! $card->visible instanceof Closure || ($card->visible)()));
     }
 
     private function fillCards(): void
@@ -300,7 +301,7 @@ abstract class AdminSettingsPage extends Page
         $status = $this->statusOf($card);
 
         return match ($status) {
-            SettingStatus::Configured => [$card->summary instanceof \Closure ? ($card->summary)() : 'Ready to use', 'success'],
+            SettingStatus::Configured => [$card->summary instanceof Closure ? ($card->summary)() : 'Ready to use', 'success'],
             SettingStatus::Incomplete => [$this->summaryOf($card), 'warning'],
             SettingStatus::Missing => ['Not set up', 'gray'],
         };
@@ -349,7 +350,7 @@ abstract class AdminSettingsPage extends Page
 
     private function summaryOf(SettingsCard $card): string
     {
-        if ($card->summary instanceof \Closure) {
+        if ($card->summary instanceof Closure) {
             return ($card->summary)();
         }
 
@@ -523,6 +524,23 @@ abstract class AdminSettingsPage extends Page
     protected function url(string $property, string $label, ?string $help = null): TextInput
     {
         return $this->text($property, $label, $help)->url();
+    }
+
+    /**
+     * A full address, or a path on this server such as "/shakomako/embed.js"
+     * for a file this install serves itself. The code reads it through url().
+     */
+    protected function urlOrPath(string $property, string $label, ?string $help = null): TextInput
+    {
+        return $this->text($property, $label, $help)
+            ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
+                $isPath = is_string($value) && preg_match('#^/(?!/)\S*$#', $value) === 1;
+                $isUrl = is_string($value) && preg_match('#^https?://#i', $value) === 1 && filter_var($value, FILTER_VALIDATE_URL) !== false;
+
+                if (! $isPath && ! $isUrl) {
+                    $fail('Enter a path on this server that starts with "/", or a full address that starts with "https://".');
+                }
+            });
     }
 
     protected function email(string $property, string $label, ?string $help = null): TextInput

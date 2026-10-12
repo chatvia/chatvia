@@ -63,23 +63,23 @@ class CompleteConnectorOAuthAction
     }
 
     /**
-     * A connector is a workspace resource: it is keyed to the owner so every
+     * A connector is a workspace resource: it is keyed to the workspace so every
      * teammate and every agent of the workspace sees the same row. A repeat
      * connect updates the existing row.
      */
     private function saveServer(User $user, PendingOAuthState $pending, OAuthTokenSetData $tokens): AgentMcpServer
     {
-        $owner = $user->workspace();
+        $workspace = $user->workspace();
         $isCustom = $pending->connectorSlug === null;
 
         $server = $isCustom
-            ? $owner->mcpServers()->custom()->where('slug', $pending->customSlug)->first()
-            : $owner->mcpServers()->where('connector_slug', $pending->connectorSlug)->first();
+            ? $workspace->mcpServers()->custom()->where('slug', $pending->customSlug)->first()
+            : $workspace->mcpServers()->where('connector_slug', $pending->connectorSlug)->first();
 
         $server ??= new AgentMcpServer;
 
         $server->fill([
-            'user_id' => $owner->id,
+            'workspace_id' => $workspace->id,
             'category' => $isCustom ? McpServerCategory::Custom : McpServerCategory::Integration,
             'connector_slug' => $pending->connectorSlug,
             'name' => $isCustom ? (string) $pending->customName : $this->connectorName((string) $pending->connectorSlug),

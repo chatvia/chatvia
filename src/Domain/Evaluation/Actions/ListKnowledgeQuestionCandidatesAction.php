@@ -109,7 +109,7 @@ class ListKnowledgeQuestionCandidatesAction
     {
         $questions = [];
 
-        foreach (Chunk::query()->questionCandidatesForAgent($agent->id) as $mined) {
+        foreach (Chunk::query()->questionCandidatesForAgent($agent) as $mined) {
             $questions[] = [
                 EvalQuestionSource::Chunk,
                 (int) $mined['chunk_id'],

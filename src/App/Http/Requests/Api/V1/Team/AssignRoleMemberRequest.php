@@ -31,15 +31,14 @@ class AssignRoleMemberRequest extends FormRequest
     }
 
     /**
-     * The workspace user the body names; 404 when it is not one of the
-     * caller's own users, so the endpoint never confirms another workspace's ids.
+     * The teammate the body names; 404 when it is not a teammate of the
+     * caller's own workspace, so the endpoint never confirms another workspace's ids.
      */
     public function member(): User
     {
         /** @var User */
-        return User::query()
-            ->where('external_id', $this->string('user_id')->toString())
-            ->where('workspace_id', $this->user()->workspace()->id)
+        return $this->user()->workspace()->teammates()
+            ->where('users.external_id', $this->string('user_id')->toString())
             ->firstOrFail();
     }
 }

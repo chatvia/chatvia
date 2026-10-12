@@ -3,11 +3,8 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
-use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -18,7 +15,7 @@ beforeEach(function (): void {
 
 function makePrompt(User $user, array $overrides = []): AgentPrompt
 {
-    return $user->prompts()->create(array_merge([
+    return $user->workspace()->prompts()->create(array_merge([
         'name' => 'Support persona',
         'prompt' => 'You are a helpful support agent.',
     ], $overrides));
@@ -32,7 +29,7 @@ it('creates a prompt', function (): void {
         ])
         ->assertRedirect();
 
-    expect($this->user->prompts()->where('name', 'Sales persona')->exists())->toBeTrue();
+    expect($this->user->workspace()->prompts()->where('name', 'Sales persona')->exists())->toBeTrue();
 });
 
 it('validates required fields on create', function (): void {
@@ -64,7 +61,7 @@ it('updates a prompt', function (): void {
     expect($fresh->prompt)->toBe('New body');
 });
 
-it('cannot update a prompt owned by another user', function (): void {
+it('hides a prompt of another workspace from an update', function (): void {
     $other = User::factory()->create();
     $prompt = makePrompt($other);
 
@@ -73,14 +70,14 @@ it('cannot update a prompt owned by another user', function (): void {
             'name' => 'Hijack',
             'prompt' => 'x',
         ])
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 it('deletes a prompt and detaches it from agents', function (): void {
     $prompt = makePrompt($this->user);
 
     $agent = Agent::create([
-        'user_id' => $this->user->id,
+        'workspace_id' => $this->user->workspace()->id,
         'team_id' => $this->user->primaryTeam()->id,
         'name' => 'Bot',
         'external_id' => Str::random(14),
@@ -98,35 +95,9 @@ it('deletes a prompt and detaches it from agents', function (): void {
     expect($agent->fresh()->agent_prompt_id)->toBeNull();
 });
 
-/**
- * A teammate of $owner on the owner's primary team, under a role granting
- * exactly $permissions.
- *
- * @param  list<string>  $permissions
- */
-function promptsTeammate(User $owner, array $permissions): User
-{
-    $team = $owner->primaryTeam();
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: $permissions,
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    return $member;
-}
-
 describe('teammates share the workspace prompt library', function (): void {
     beforeEach(function (): void {
-        $this->teammate = promptsTeammate($this->user, ['account.prompts']);
+        $this->teammate = teammateWithPermissions($this->user, ['account.prompts']);
     });
 
     it('stores a teammate-created prompt under the workspace and lists it back to them', function (): void {
@@ -135,7 +106,7 @@ describe('teammates share the workspace prompt library', function (): void {
             ->assertRedirect();
 
         $prompt = AgentPrompt::query()->where('name', 'Team persona')->sole();
-        expect($prompt->user_id)->toBe($this->user->id);
+        expect($prompt->workspace_id)->toBe($this->user->workspace()->id);
 
         $this->actingAs($this->teammate)
             ->getJson(route('library.prompts.list'))
@@ -181,7 +152,7 @@ describe('teammates share the workspace prompt library', function (): void {
 
         $this->actingAs($this->teammate)
             ->delete(route('library.prompts.destroy', ['external_id' => $foreign->external_id]))
-            ->assertRedirect();
+            ->assertNotFound();
 
         expect(AgentPrompt::whereKey($foreign->id)->exists())->toBeTrue();
     });

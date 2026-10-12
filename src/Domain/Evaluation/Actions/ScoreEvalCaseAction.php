@@ -47,7 +47,7 @@ class ScoreEvalCaseAction
 
         // The monthly limit can be reached mid-suite, since each case counts
         // as one message, so re-check it before spending an LLM call.
-        if (! $this->allowance->canSend($agent->user_id)) {
+        if (! $this->allowance->canSend($agent->workspace_id)) {
             return $this->recordSkipped($run, $case);
         }
 
@@ -57,7 +57,7 @@ class ScoreEvalCaseAction
         // against the workspace's limit like a chat reply. An errored run
         // produced no answer, so it does not count.
         if (! $result->failed()) {
-            $this->recordUsage->execute($agent->user_id);
+            $this->recordUsage->execute($this->allowance->limitFor($agent->workspace_id));
         }
 
         $score = $result->failed()

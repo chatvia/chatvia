@@ -7,7 +7,7 @@ beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
-    $this->server = $this->user->mcpServers()->create([
+    $this->server = $this->user->workspace()->mcpServers()->create([
         'name' => 'Weather',
         'slug' => 'weather',
         'url' => 'https://mcp.example.com/weather',

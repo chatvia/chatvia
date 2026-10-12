@@ -3,10 +3,10 @@
 namespace App\Http\Requests\Agent\Crud;
 
 use App\Http\Rules\AgentSlug;
+use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Data\Account\RenameAgentData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 /**
  * Validates a new name and chat-address slug for an agent. The name is unique
@@ -38,9 +38,8 @@ class RenameAgentRequest extends FormRequest
                 // Scope uniqueness to the agent's OWNER (agents belong to the
                 // workspace owner), not the acting user — a teammate renaming on
                 // the owner's behalf must still collide-check against the owner.
-                Rule::unique('agents', 'name')
-                    ->ignore($agent->id)
-                    ->where('user_id', $agent->user_id),
+                WorkspaceRule::unique('agents', $agent->workspace_id, 'name')
+                    ->ignore($agent->id),
             ],
             'slug' => ['required', new AgentSlug($agent)],
         ];

@@ -411,7 +411,8 @@
                 "expires_in_months": "Läuft in {count} Monat ab | Läuft in {count} Monaten ab",
                 "conversations_count": "{count} Gespräch | {count} Gespräche",
                 "refresh_conversations": "Unterhaltungen aktualisieren",
-                "remove_filter": "Filter entfernen"
+                "remove_filter": "Filter entfernen",
+                "load_more": "Mehr laden"
             },
             "pagination": {
                 "prev": "Zurück",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Vom Agenten entfernen",
                 "used_in_agents": "(In {count} Agenten verwendet)",
                 "delete_from_knowledge_base": "Aus der Wissensdatenbank löschen",
-                "agents_count": "{count} Agenten"
+                "agents_count": "{count} Agenten",
+                "load_more": "Mehr laden"
             },
             "page_title": {
                 "sources": "Quellen",

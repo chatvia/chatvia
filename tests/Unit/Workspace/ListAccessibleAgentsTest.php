@@ -1,17 +1,20 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 
 /*
- * Pins User::listAccessibleAgents() — the agent set the chat switcher lists —
- * across the three account types. It is the plural companion to canAccessAgent()
- * and must stay in lock-step with it: chatters resolve through the `agent_user`
- * grants, workspace owners see the whole account, employees resolve through
- * their current team + role. The bug this guards against: the switcher used the
- * chatter-only `agent_user` relation for everyone, so employees saw "No agents".
+ * Pins User::listAccessibleAgents() — the agent set the chat switcher lists for
+ * a staff account. It is the plural companion to canAccessAgent() and must stay
+ * in lock-step with it: workspace owners see the whole account, employees
+ * resolve through their current team + role. Chatters are not users: their
+ * switcher lists their own `agent_chatter` grants, and those grants never leak
+ * into a staff account's list, even when the ids are equal. The bug this guards
+ * against: the switcher used the chatter-only grant relation for everyone, so
+ * employees saw "No agents".
  */
 
 beforeEach(function (): void {
@@ -42,13 +45,23 @@ it('lists only the granted agents for a chatter, never the rest of the account',
     $granted = makeTeamAgent($this->owner, 'Granted', $this->team);
     $other = makeTeamAgent($this->owner, 'Other', $this->team);
 
-    $chatter = User::factory()->chatter($this->owner)->create();
-    $chatter->accessibleAgents()->attach($granted->id);
+    $chatter = Chatter::factory()->grantedTo($granted)->create();
 
-    $ids = $chatter->listAccessibleAgents()->pluck('id')->all();
+    $ids = $chatter->agents()->pluck('agents.id')->all();
 
     expect($ids)->toBe([$granted->id])
         ->and($ids)->not->toContain($other->id);
+});
+
+it('never lists a chatter grant for a staff account with the same id', function (): void {
+    $granted = makeTeamAgent($this->owner, 'Granted', $this->team);
+
+    $employee = User::factory()->employee($this->owner)->create(['current_team_id' => null]);
+    // Chatter and staff ids come from different tables and can be equal.
+    Chatter::factory()->grantedTo($granted)->create(['id' => $employee->id]);
+
+    expect($employee->listAccessibleAgents()->all())->toBe([])
+        ->and($employee->canAccessAgent($granted))->toBeFalse();
 });
 
 it('lists all current-team agents for an employee whose role grants all agents', function (): void {

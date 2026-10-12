@@ -11,29 +11,6 @@ use Domain\Llm\AbstractLlmProvider;
 class Scaleway extends AbstractLlmProvider
 {
     /**
-     * Get the headers for API requests.
-     *
-     * @return array<string, string> The headers array
-     */
-    public function headers(): array
-    {
-        return [
-            'Authorization' => 'Bearer '.$this->getApiKey(),
-            'Content-Type' => 'application/json',
-        ];
-    }
-
-    /**
-     * Get the completion endpoint URL.
-     *
-     * @return string The completion endpoint
-     */
-    public function getCompletionEndpoint(): string
-    {
-        return $this->getBaseUrl().'/chat/completions';
-    }
-
-    /**
      * Scaleway's Qwen3 reasoning models (qwen3.*) think by default: that adds
      * several seconds before the first answer token plus a chunk of hidden
      * chain-of-thought. This pipeline is RAG — we want the grounded answer
@@ -64,29 +41,10 @@ class Scaleway extends AbstractLlmProvider
     }
 
     /**
-     * Get the API key for Scaleway.
-     *
-     * @return string The API key
-     */
-    public function getApiKey(): string
-    {
-        return config('services.scalewayai.api_key');
-    }
-
-    /**
-     * Get the base URL for Scaleway Generative APIs.
-     *
-     * @return string The base URL, without a trailing slash
-     */
-    public function getBaseUrl(): string
-    {
-        return self::baseUrl();
-    }
-
-    /**
-     * The configured Scaleway Generative APIs base URL. Shared by the chat
-     * provider, the Qwen3 embedding/rerank client and audio transcription so
-     * the project URL is set in one place (`services.scalewayai.endpoint`).
+     * The Scaleway address set in Settings → AI
+     * (`services.scalewayai.endpoint`), for the Qwen3 embedding and rerank
+     * clients and audio transcription. Chat calls use the address of their
+     * provider row instead.
      */
     public static function baseUrl(): string
     {

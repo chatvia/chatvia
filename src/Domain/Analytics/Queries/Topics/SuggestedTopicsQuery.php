@@ -5,6 +5,8 @@ namespace Domain\Analytics\Queries\Topics;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\Topics\SuggestedTopicData;
 use Domain\Analytics\Data\Topics\SuggestedTopicExampleData;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -17,11 +19,19 @@ use Support\Casts\EncryptedTolerant;
  * already one of the agent's topics; each carries up to
  * `chatvia.analytics.analysis.max_examples` example conversations, fetched in
  * one window-function query for all labels.
+ *
+ * Only the agent's conversations of the last {@see self::WINDOW_DAYS} days
+ * count ("recent conversations" in the UI). The filter goes through
+ * `chat_conversations (agent_id, created_at)`, so a busy agent never reads its
+ * whole history.
  */
 class SuggestedTopicsQuery
 {
     /** Label cardinality is unbounded, so the list is capped. */
     private const int MAX_SUGGESTIONS = 50;
+
+    /** How far back a conversation still counts towards a suggestion. */
+    public const int WINDOW_DAYS = 90;
 
     /**
      * @return Collection<int, SuggestedTopicData>
@@ -85,6 +95,7 @@ class SuggestedTopicsQuery
             ->fromSub($ranked, 'ranked')
             ->where('ranked.rn', '<=', $maxExamples)
             ->join('chat_conversations', 'chat_conversations.id', '=', 'ranked.chat_conversation_id')
+            ->orderBy('ranked.rn')
             ->get(['ranked.suggested_label', 'chat_conversations.external_id', 'chat_conversations.title']);
 
         $examples = [];
@@ -107,6 +118,20 @@ class SuggestedTopicsQuery
      */
     private function forAgentConversations(Builder $query, Agent $agent): Builder
     {
-        return $query->whereHas('conversation.session', fn (Builder $session) => $session->where('agent_id', $agent->id));
+        return $query->whereIn('chat_conversation_id', self::recentConversationIds($agent));
+    }
+
+    /**
+     * The ids of the agent's conversations inside the suggestion window, as a
+     * subquery.
+     *
+     * @return ConversationQueryBuilder<Conversation>
+     */
+    public static function recentConversationIds(Agent $agent): ConversationQueryBuilder
+    {
+        return Conversation::query()
+            ->select('id')
+            ->where('agent_id', $agent->id)
+            ->where('created_at', '>=', now()->subDays(self::WINDOW_DAYS));
     }
 }

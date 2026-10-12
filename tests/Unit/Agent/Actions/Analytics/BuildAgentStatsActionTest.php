@@ -21,7 +21,7 @@ function analyticsRollup(Agent $agent, string $hour, int $replies, int $conversa
 {
     DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => $agent->id,
-        'workspace_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'bucket_hour' => $hour,
         'country_code' => '--',
         'llm_external_name' => 'test-model',

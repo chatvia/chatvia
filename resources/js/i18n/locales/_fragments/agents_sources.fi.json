@@ -13,7 +13,8 @@
                 "remove_from_agent": "Poista agentilta",
                 "used_in_agents": "(Käytössä {count} agentissa)",
                 "delete_from_knowledge_base": "Poista tietokannasta",
-                "agents_count": "{count} agenttia"
+                "agents_count": "{count} agenttia",
+                "load_more": "Lataa lisää"
             },
             "page_title": {
                 "sources": "Lähteet",

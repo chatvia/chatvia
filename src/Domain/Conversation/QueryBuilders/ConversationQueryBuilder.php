@@ -2,10 +2,14 @@
 
 namespace Domain\Conversation\QueryBuilders;
 
+use DateTimeImmutable;
+use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Enums\ConfidenceBand;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\Cursor;
 
 /**
  * Query scopes for conversations: the chat-log filters and the lookups that
@@ -49,14 +53,14 @@ class ConversationQueryBuilder extends Builder
      *
      * @return self<TModel>
      */
-    public function reachableByWidgetVisitor(int $agentId, ?int $chatterId = null): self
+    public function reachableByWidgetVisitor(int $agentId, ?ChatViewerData $viewer = null): self
     {
         return $this->whereNull('cleared_at')
-            ->whereHas('session', static function (Builder $session) use ($agentId, $chatterId): void {
+            ->whereHas('session', static function (Builder $session) use ($agentId, $viewer): void {
                 $session->where('agent_id', $agentId);
 
-                if ($chatterId !== null) {
-                    $session->where('user_id', $chatterId);
+                if ($viewer instanceof ChatViewerData) {
+                    $session->where($viewer->sessionColumn(), $viewer->id);
                 }
             });
     }
@@ -150,15 +154,69 @@ class ConversationQueryBuilder extends Builder
         });
     }
 
-    /** @return self<TModel> */
+    /**
+     * Newest activity first. `id` breaks ties, so the order is total and a
+     * keyset page never skips or repeats a row.
+     *
+     * @return self<TModel>
+     */
     public function orderByLatestActivity(): self
     {
-        return $this->orderByDesc('updated_at');
+        return $this->orderByDesc('updated_at')->orderByDesc('id');
+    }
+
+    /**
+     * One keyset page, newest activity first. With the agent and visible
+     * filters, conversations_agent_visible_idx (agent_id, updated_at, id)
+     * serves both the order and the cursor bound, so a deep page costs the
+     * same as the first (no OFFSET, no COUNT). A cursor that is not one this
+     * list handed out starts again at the first page instead of failing.
+     *
+     * @return CursorPaginator<int, TModel>
+     */
+    public function latestActivityPage(int $perPage, ?string $cursor): CursorPaginator
+    {
+        $decoded = self::latestActivityCursor($cursor);
+
+        // The paginator's bound is `updated_at < ? OR (updated_at = ? AND
+        // id < ?)`, which the planner cannot turn into an index range; the
+        // redundant `updated_at <= ?` can, so a deep page does not walk the
+        // index from the top. An empty string, not null, means "first page":
+        // with null the paginator would read a `cursor` from the request.
+        return $this->orderByLatestActivity()
+            ->when($decoded, fn (self $query, Cursor $at): self => $query->where('updated_at', '<=', $at->parameter('updated_at')))
+            ->cursorPaginate($perPage, cursor: $decoded ?? '');
     }
 
     /** @return self<TModel> */
     public function onlyVisible(): self
     {
         return $this->where('is_visible', true);
+    }
+
+    /**
+     * The decoded "next page" cursor of {@see latestActivityPage()}, or null
+     * when it is missing or does not carry a valid `updated_at` and `id`.
+     */
+    private static function latestActivityCursor(?string $encoded): ?Cursor
+    {
+        $cursor = Cursor::fromEncoded($encoded);
+
+        if (! $cursor instanceof Cursor || ! $cursor->pointsToNextItems()) {
+            return null;
+        }
+
+        $parameters = $cursor->toArray();
+        $updatedAt = $parameters['updated_at'] ?? null;
+
+        return is_int($parameters['id'] ?? null) && is_string($updatedAt) && self::isTimestamp($updatedAt) ? $cursor : null;
+    }
+
+    /** True for a `Y-m-d H:i:s` string that names a real moment (no overflowing fields). */
+    private static function isTimestamp(string $value): bool
+    {
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
+
+        return $parsed instanceof DateTimeImmutable && $parsed->format('Y-m-d H:i:s') === $value;
     }
 }

@@ -43,7 +43,7 @@ class CreateConversationAction
         // The first-turn rewrite uses tokens: attribute them to the workspace,
         // as the streaming turn does for its own rewrite and search.
         $rewritten = $this->usage->track(
-            $agent->user_id,
+            $agent->workspace_id,
             fn (): RewrittenQueryData => $this->queryRewriter->rewrite($data->message),
         );
 
@@ -57,12 +57,12 @@ class CreateConversationAction
         $this->addMessage->execute($scope, new UserTurnData(
             external_session_id: $data->scope->sessionId,
             external_conversation_id: $conversationId,
-            external_message_id: Str::uuid()->toString(),
+            external_message_id: Str::uuid7()->toString(),
             model: $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
             message: $this->guardrails->redactPii($agent, $data->message),
             sent_at: now(),
             message_for_llm: $this->guardrails->redactPii($agent, $rewritten->query),
-            user_id: $data->chatterUserId,
+            chatter_id: $data->chatterId,
             language: $rewritten->language,
             ip_address: $data->ipAddress,
             user_agent: $data->userAgent,

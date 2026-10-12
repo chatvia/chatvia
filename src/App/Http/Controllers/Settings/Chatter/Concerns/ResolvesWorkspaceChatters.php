@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Settings\Chatter\Concerns;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 
@@ -13,9 +13,9 @@ use Illuminate\Http\Request;
  */
 trait ResolvesWorkspaceChatters
 {
-    private function findChatter(Request $request, string $externalId): User
+    private function findChatter(Request $request, string $externalId): Chatter
     {
-        /** @var User $member */
+        /** @var Chatter $member */
         $member = $request->user()->workspace()
             ->chatters()
             ->where('external_id', $externalId)

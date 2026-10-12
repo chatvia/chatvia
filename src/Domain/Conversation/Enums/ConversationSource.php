@@ -31,6 +31,24 @@ enum ConversationSource: string
     case Instagram = 'instagram';
 
     /**
+     * The channel's name as reports show it, e.g. "Chat Widget" or "WhatsApp".
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::HostedChat => 'Hosted Chat',
+            self::Widget => 'Chat Widget',
+            self::Bar => 'Command Bar',
+            self::Telegram => 'Telegram',
+            self::Slack => 'Slack',
+            self::Messenger => 'Messenger',
+            self::Whatsapp => 'WhatsApp',
+            self::MsTeams => 'MS Teams',
+            self::Instagram => 'Instagram',
+        };
+    }
+
+    /**
      * Web surfaces render rich inline artifacts (charts, forms); messaging
      * channels can only show text, so artifact-emitting tools fall back there.
      */

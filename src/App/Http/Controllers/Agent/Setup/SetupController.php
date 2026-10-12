@@ -44,7 +44,9 @@ class SetupController
 
         $selectedModel = $agent->llm?->external_name;
 
-        $catalog = Llm::catalog()->map(function (Llm $model) use ($selectedModel): LlmModelData {
+        // The models that may be picked, plus the agent's own even when it
+        // was turned off since.
+        $catalog = Llm::catalog()->filter(fn (Llm $model): bool => $model->isAvailable() || $model->external_name === $selectedModel)->map(function (Llm $model) use ($selectedModel): LlmModelData {
             $llm = LlmModelData::fromLlmModel($model);
             $llm->is_selected = $llm->id === $selectedModel;
 
@@ -62,7 +64,7 @@ class SetupController
             'bubbles' => $agent->normalizedBubbles(),
             // Whether the agent has ingested knowledge-base content. Gates the
             // Setup → Starters "Generate with AI" button (which scans the chunks).
-            'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent->id),
+            'hasKnowledgeBase' => Chunk::query()->hasContentForAgent($agent),
             'prompts' => $prompts,
             'hasPermission' => $permissions->allowsOnAgent($request->user(), $agent, 'agent.setup'),
 

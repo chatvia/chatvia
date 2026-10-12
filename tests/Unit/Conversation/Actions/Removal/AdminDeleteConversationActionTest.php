@@ -32,6 +32,7 @@ function adcaSetup(array $sessionAttrs = []): array
     $agent = createAgent($owner);
 
     $session = Session::factory()->create(array_merge([
+        'workspace_id' => $agent->workspace_id,
         'agent_id' => $agent->id,
         'last_activity_at' => now()->subDay(),
     ], $sessionAttrs));
@@ -52,6 +53,7 @@ it('soft-deletes the conversation, wipes message content, and stamps the actor i
 
     $message = Message::create([
         'external_id' => (string) Str::uuid(),
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => MessageRole::User,
         'content' => 'My card number is 4242...',
@@ -145,6 +147,7 @@ it('also clears the BM25 search copy of the erased text', function (): void {
 
     $message = Message::create([
         'external_id' => (string) Str::uuid(),
+        'workspace_id' => $conversation->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'role' => MessageRole::User,
         'content' => 'My card number is 4242...',
@@ -152,7 +155,7 @@ it('also clears the BM25 search copy of the erased text', function (): void {
 
     app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
 
-    expect(DB::table('chat_messages')->where('id', $message->id)->value('content_bm25'))->toBeNull();
+    expect(DB::table('chat_messages')->where('id', $message->id)->value('content'))->toBeNull();
 });
 
 it('does nothing when the conversation has no session any more', function (): void {

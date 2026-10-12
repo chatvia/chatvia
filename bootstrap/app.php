@@ -4,6 +4,7 @@ use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureTeamPermission;
+use App\Http\Middleware\Access\ScopeRequestToWorkspace;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
@@ -14,6 +15,7 @@ use App\Http\Middleware\Chat\EnsureChatIsAccessible;
 use App\Http\Middleware\Chat\RedirectCustomDomainToChat;
 use App\Http\Middleware\Chat\ResolveHostedChatAgent;
 use App\Http\Middleware\Chat\UseHostedChatSession;
+use App\Http\Middleware\Chat\UseSignedInChatGuard;
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
@@ -78,6 +80,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // The agent itself is resolved before this group, by `chat.agent` on
         // the /chat/{agentSlug} prefix (routes/chat.php).
         $middleware->group('chat', [
+            UseSignedInChatGuard::class,
             AuthenticateChatterUsingToken::class,
             AuthenticateChatViaSignInToken::class,
             LogoutDeactivatedUser::class,
@@ -88,6 +91,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'chat.agent' => ResolveHostedChatAgent::class,
             'can.access.agent' => EnsureUserCanAccessAgent::class,
+            'workspace.scope' => ScopeRequestToWorkspace::class,
             'api.owner' => EnsureApiWorkspaceOwner::class,
             'can.access.dashboard' => EnsureCanAccessDashboard::class,
             'agent.permission' => EnsureAgentPermission::class,

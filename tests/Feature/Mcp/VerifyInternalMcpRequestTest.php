@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Enums\UserType;
 use App\Identity\Workspace\Models\User;
 use App\Mcp\McpCallerContext;
 use Domain\Integration\Mcp\Services\InternalMcpSignature;
@@ -25,7 +24,7 @@ function internalSignedHeaders(string $path, array $payload, array $identity): a
 }
 
 beforeEach(function (): void {
-    $this->workspace = User::factory()->create();
+    $this->workspace = User::factory()->create()->workspace();
     $this->identity = ['X-Chatvia-Workspace-Id' => $this->workspace->external_id];
 });
 
@@ -48,7 +47,7 @@ it('rejects a signature replayed with another workspace id', function (): void {
     $call = internalToolCall();
     $headers = internalSignedHeaders('/mcp/account-analytics', $call, $this->identity);
 
-    $victim = User::factory()->create();
+    $victim = User::factory()->create()->workspace();
     $headers['X-Chatvia-Workspace-Id'] = $victim->external_id;
 
     $this->withHeaders($headers)->postJson('/mcp/account-analytics', $call)->assertStatus(401);
@@ -97,7 +96,7 @@ it('only accepts workspace mode on the analytics chat servers', function (): voi
 });
 
 it('hands an authorised tools/call its resolved caller', function (): void {
-    $workspace = User::factory()->create(['type' => UserType::Workspace]);
+    $workspace = User::factory()->create()->workspace();
     $identity = ['X-Chatvia-Workspace-Id' => $workspace->external_id];
     $call = internalToolCall('get-account-overview-tool');
 

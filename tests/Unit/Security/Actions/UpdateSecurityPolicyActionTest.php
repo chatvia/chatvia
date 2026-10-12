@@ -22,7 +22,7 @@ it('persists the form settings and encrypts the webhook secret', function (): vo
     $user = User::factory()->create();
 
     app(UpdateSecurityPolicyAction::class)->execute(
-        $user,
+        $user->workspace(),
         new SecurityPolicyFormData(
             retention_conversations_days: 60,
             retention_audit_days: 120,
@@ -37,9 +37,9 @@ it('persists the form settings and encrypts the webhook secret', function (): vo
         policyActor($user),
     );
 
-    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->id);
+    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
 
-    expect((int) $fresh->workspace_id)->toBe($user->id)
+    expect((int) $fresh->workspace_id)->toBe($user->workspace()->id)
         ->and($fresh->retention_conversations_days)->toBe(60)
         ->and($fresh->retention_audit_days)->toBe(120)
         ->and($fresh->ip_allowlist_mode)->toBe(IpAllowlistMode::Dashboard)
@@ -52,22 +52,63 @@ it('persists the form settings and encrypts the webhook secret', function (): vo
 
 it('keeps the settings the form does not own', function (): void {
     $user = User::factory()->create();
-    WorkspaceSecurityPolicy::forWorkspace($user->id)->update([
-        'retention_leads_days' => 90,
-        'anonymize_after_days' => 30,
+    WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update([
         'webhook_events' => ['auth.login'],
         'scim_enabled' => true,
     ]);
 
-    app(UpdateSecurityPolicyAction::class)->execute($user, new SecurityPolicyFormData(retention_audit_days: 200), policyActor($user));
+    app(UpdateSecurityPolicyAction::class)->execute($user->workspace(), new SecurityPolicyFormData(retention_audit_days: 200), policyActor($user));
 
-    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->id);
+    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
 
-    expect($fresh->retention_leads_days)->toBe(90)
-        ->and($fresh->anonymize_after_days)->toBe(30)
-        ->and($fresh->webhook_events)->toBe(['auth.login'])
+    expect($fresh->webhook_events)->toBe(['auth.login'])
         ->and($fresh->scim_enabled)->toBeTrue()
         ->and($fresh->retention_audit_days)->toBe(200);
+});
+
+it('saves the lead, analytics and anonymize windows with one retention audit event', function (): void {
+    $user = User::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update(['retention_leads_days' => 90]);
+    Event::fake([SecurityEventOccurred::class]);
+
+    app(UpdateSecurityPolicyAction::class)->execute(
+        $user->workspace(),
+        new SecurityPolicyFormData(retention_leads_days: 30, retention_analytics_days: 180, anonymize_after_days: 14),
+        policyActor($user),
+    );
+
+    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
+
+    expect($fresh->retention_leads_days)->toBe(30)
+        ->and($fresh->retention_analytics_days)->toBe(180)
+        ->and($fresh->anonymize_after_days)->toBe(14);
+
+    expect(Event::dispatched(SecurityEventOccurred::class, fn (SecurityEventOccurred $e): bool => $e->action === SecurityAuditAction::PolicyRetentionChanged->value))->toHaveCount(1);
+    Event::assertDispatched(SecurityEventOccurred::class, function (SecurityEventOccurred $e): bool {
+        $metadata = json_decode($e->metadata, true);
+
+        return $e->action === SecurityAuditAction::PolicyRetentionChanged->value
+            && $metadata['retention_leads_days'] === ['from' => 90, 'to' => 30]
+            && $metadata['retention_analytics_days'] === ['from' => null, 'to' => 180]
+            && $metadata['anonymize_after_days'] === ['from' => null, 'to' => 14];
+    });
+});
+
+it('clears a window when the form sends it blank', function (): void {
+    $user = User::factory()->create();
+    WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->update([
+        'retention_leads_days' => 90,
+        'retention_analytics_days' => 60,
+        'anonymize_after_days' => 30,
+    ]);
+
+    app(UpdateSecurityPolicyAction::class)->execute($user->workspace(), new SecurityPolicyFormData, policyActor($user));
+
+    $fresh = WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id);
+
+    expect($fresh->retention_leads_days)->toBeNull()
+        ->and($fresh->retention_analytics_days)->toBeNull()
+        ->and($fresh->anonymize_after_days)->toBeNull();
 });
 
 it('emits a category-specific audit event per changed group', function (): void {
@@ -75,7 +116,7 @@ it('emits a category-specific audit event per changed group', function (): void 
     $user = User::factory()->create();
 
     app(UpdateSecurityPolicyAction::class)->execute(
-        $user,
+        $user->workspace(),
         new SecurityPolicyFormData(
             retention_conversations_days: 30,
             ip_allowlist_mode: IpAllowlistMode::Dashboard,
@@ -94,7 +135,7 @@ it('never leaks the webhook secret into audit metadata, only a rotation flag', f
     $user = User::factory()->create();
 
     app(UpdateSecurityPolicyAction::class)->execute(
-        $user,
+        $user->workspace(),
         new SecurityPolicyFormData(webhook_secret: 'shh-secret'),
         policyActor($user),
     );
@@ -108,7 +149,7 @@ it('rejects a non-https webhook URL (SSRF guard)', function (): void {
     $user = User::factory()->create();
 
     expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
-        $user,
+        $user->workspace(),
         new SecurityPolicyFormData(webhook_url: 'http://hooks.example.com/siem'),
         policyActor($user),
     ))->toThrow(UnsafeWebhookUrlException::class);
@@ -119,12 +160,12 @@ it('rejects a webhook URL pointing at an internal address (SSRF guard)', functio
     $user = User::factory()->create();
 
     expect(fn () => app(UpdateSecurityPolicyAction::class)->execute(
-        $user,
+        $user->workspace(),
         new SecurityPolicyFormData(webhook_url: $url),
         policyActor($user),
     ))->toThrow(UnsafeWebhookUrlException::class);
 
-    expect(WorkspaceSecurityPolicy::forWorkspace($user->id)->webhook_url)->toBeNull();
+    expect(WorkspaceSecurityPolicy::forWorkspace($user->workspace()->id)->webhook_url)->toBeNull();
 })->with([
     'IPv4 loopback' => 'https://127.0.0.1/siem',
     'carrier-grade NAT' => 'https://100.64.0.1/siem',

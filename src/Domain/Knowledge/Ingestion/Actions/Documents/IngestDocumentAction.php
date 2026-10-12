@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Ingest a PDF, office file or image: read it into pages with the configured
- * DocumentParser, then chunk and embed each page in one batch.
+ * DocumentParser, then chunk and embed the pages in one batch.
  *
  * Parsing is the expensive step, so it is done once: the pages are cached by
  * the file's checksum (the same file uploaded twice is parsed once) and stored

@@ -1,7 +1,9 @@
 <?php
 
-use Domain\Llm\Providers\Groq;
+use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Mistral;
+use Domain\Llm\Providers\OpenAiCompatible;
 use Domain\Llm\Providers\OpenRouter;
 use Domain\Llm\Providers\Scaleway;
 use GuzzleHttp\Client;
@@ -17,14 +19,15 @@ use Illuminate\Support\Facades\Http;
  * fastest host on streams, Scaleway turns Qwen3 reasoning off. A provider
  * never receives another provider's fields.
  */
-beforeEach(function (): void {
-    config([
-        'services.mistral.api_key' => 'k',
-        'services.openrouter.api_key' => 'k',
-        'services.groq.api_key' => 'k',
-        'services.scalewayai.api_key' => 'k',
-    ]);
-});
+/**
+ * The client of the given class, for a test provider.
+ *
+ * @param  class-string<LlmProviderInterface>  $provider
+ */
+function hookClient(string $provider): LlmProviderInterface
+{
+    return new $provider(LlmProvider::factory()->make(), 'https://llm.test/v1');
+}
 
 /**
  * Stream one turn through the provider and return the JSON body it sent.
@@ -39,7 +42,7 @@ function hookStreamBody(string $provider): array
     $stack->push(Middleware::history($history));
     app()->instance(Client::class, new Client(['handler' => $stack]));
 
-    app($provider)->stream('qwen3-model', [['role' => 'user', 'content' => 'hi']], ['top_k' => 40]);
+    hookClient($provider)->stream('qwen3-model', [['role' => 'user', 'content' => 'hi']], ['top_k' => 40]);
 
     return json_decode((string) $history[0]['request']->getBody(), true);
 }
@@ -52,7 +55,7 @@ function hookCompletionBody(string $provider): array
 {
     Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'hi']]]])]);
 
-    app($provider)->completion(['model' => 'qwen3-model', 'messages' => [], 'top_k' => 40]);
+    hookClient($provider)->completion(['model' => 'qwen3-model', 'messages' => [], 'top_k' => 40]);
 
     $body = null;
     Http::assertSent(function ($request) use (&$body): bool {
@@ -85,10 +88,10 @@ it('leaves the other providers\' bodies alone', function (string $provider): voi
         ->and($body)->not->toHaveKey('reasoning_effort')
         ->and($body['stream_options'])->toBe(['include_usage' => true]);
 })->with([
-    'groq' => Groq::class,
+    'openai-compatible' => OpenAiCompatible::class,
     'openrouter' => OpenRouter::class,
 ]);
 
 it('asks every provider for token usage on streams', function (string $provider): void {
     expect(hookStreamBody($provider)['stream_options']['include_usage'] ?? null)->toBeTrue();
-})->with([Groq::class, Mistral::class, OpenRouter::class, Scaleway::class]);
+})->with([OpenAiCompatible::class, Mistral::class, OpenRouter::class, Scaleway::class]);

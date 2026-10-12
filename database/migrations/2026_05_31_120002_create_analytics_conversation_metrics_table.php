@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -28,6 +29,10 @@ return new class extends Migration
             $table->index(['agent_id', 'started_at']);
             $table->index(['workspace_id', 'started_at']);
         });
+
+        // Updated on every message of the conversation: leave room on each
+        // page so the update stays in place.
+        DB::connection($this->getConnection())->statement('ALTER TABLE analytics_conversation_metrics SET (fillfactor = 80)');
     }
 
     public function down(): void

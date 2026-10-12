@@ -26,7 +26,7 @@ class SessionInitController
         return $initialize->execute(
             $agent,
             $request->toData(),
-            $this->widgetUser($request),
+            $this->widgetViewer($request),
         );
     }
 }

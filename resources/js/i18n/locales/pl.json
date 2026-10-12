@@ -411,7 +411,8 @@
                 "expires_in_months": "Wygasa za {count} miesiąc | Wygasa za {count} miesiące",
                 "conversations_count": "{count} rozmowa | {count} rozmowy",
                 "refresh_conversations": "Odśwież rozmowy",
-                "remove_filter": "Usuń filtr"
+                "remove_filter": "Usuń filtr",
+                "load_more": "Załaduj więcej"
             },
             "pagination": {
                 "prev": "Poprzednia",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Usuń z agenta",
                 "used_in_agents": "(Używane w {count} agentach)",
                 "delete_from_knowledge_base": "Usuń z bazy wiedzy",
-                "agents_count": "{count} agentów"
+                "agents_count": "{count} agentów",
+                "load_more": "Załaduj więcej"
             },
             "page_title": {
                 "sources": "Źródła",

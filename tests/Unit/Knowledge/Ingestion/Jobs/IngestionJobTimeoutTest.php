@@ -16,7 +16,7 @@ use Illuminate\Queue\TimeoutExceededException;
  */
 it('marks the source file failed when a long ingestion job times out', function (string $jobClass, int $timeout): void {
     $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['user_id' => $agent->user_id, 'status' => 'ingesting']);
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'status' => 'ingesting']);
 
     $job = new $jobClass($file, $agent)->withFakeQueueInteractions();
 

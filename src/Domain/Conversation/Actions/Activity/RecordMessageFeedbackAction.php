@@ -102,7 +102,7 @@ class RecordMessageFeedbackAction
             ->join('agents as ag', 'ag.id', '=', 's.agent_id')
             ->leftJoin('countries as co', 'co.id', '=', 's.country_id')
             ->where('m.external_id', $messageExternalId)
-            ->select('s.agent_id', 'ag.user_id', 's.user_id as chatter_user_id', 'co.code as country_code')
+            ->select('s.agent_id', 'ag.workspace_id', 's.chatter_id', 'co.code as country_code')
             ->first();
 
         if ($dimensions === null) {
@@ -111,8 +111,8 @@ class RecordMessageFeedbackAction
 
         FeedbackGiven::dispatch(
             (int) $dimensions->agent_id,
-            (int) $dimensions->user_id,
-            $dimensions->chatter_user_id !== null ? (int) $dimensions->chatter_user_id : null,
+            (int) $dimensions->workspace_id,
+            $dimensions->chatter_id !== null ? (int) $dimensions->chatter_id : null,
             $conversationExternalId,
             $messageExternalId,
             $value,

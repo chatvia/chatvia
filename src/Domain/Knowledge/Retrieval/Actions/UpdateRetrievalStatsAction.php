@@ -55,8 +55,9 @@ class UpdateRetrievalStatsAction
         }
 
         // The workspace owner is denormalised onto the rollup so it survives
-        // agent deletion and is queryable for account-wide stats.
-        $workspaceId = (int) Agent::query()->whereKey($agentId)->value('user_id');
+        // agent deletion and is queryable for account-wide stats. A turn that
+        // ends just after its agent was deleted still counts for the workspace.
+        $workspaceId = (int) Agent::withTrashed()->whereKey($agentId)->value('workspace_id');
 
         SourceRetrieved::dispatch($agentId, $workspaceId, $retrieved, now());
     }

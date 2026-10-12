@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  * Two kinds of builtin are synced (config/mcp.php):
  *
  *  - GLOBAL builtins (`mcp.builtin`: account-analytics, charts) also get a
- *    global (user_id IS NULL) server row, so the owner "Ask your data" chat
+ *    global (workspace_id IS NULL) server row, so the owner "Ask your data" chat
  *    can route over them.
  *  - CAPABILITY servers (`mcp.capabilities`: forms) are per-agent opt-in and
  *    get no global row, which would leak their tools into that chat.
@@ -91,11 +91,11 @@ class SyncBuiltinConnectorsAction
     {
         $slug = (string) $entry['slug'];
 
-        $server = AgentMcpServer::query()->whereNull('user_id')->where('slug', $slug)->first()
+        $server = AgentMcpServer::query()->whereNull('workspace_id')->where('slug', $slug)->first()
             ?? new AgentMcpServer;
 
         $server->forceFill([
-            'user_id' => null,
+            'workspace_id' => null,
             'category' => $category,
             'connector_slug' => $slug,
             'uses_central_catalog' => true,

@@ -26,7 +26,7 @@ class AnalyzeConversationJob implements AttributesTokenUsage, ShouldQueue
 
     public function tokenWorkspaceId(): ?int
     {
-        return $this->conversation->agent?->user_id;
+        return $this->conversation->agent?->workspace_id;
     }
 
     public function handle(AnalyzeConversationAction $action): void

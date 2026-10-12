@@ -41,7 +41,9 @@ const agent = ref<ChatLogAgent | null>(null);
 const currentConversationId = ref<string | null>(null);
 // A full page from the server, or just `data` when live-chat messages arrive before any page loaded.
 const messagesData = ref<(Pick<LaravelPage<ChatLogMessage>, 'data'> & Partial<LaravelPage<ChatLogMessage>>) | null>(null);
-const conversations = ref<LaravelPage<ChatLogConversation> | null>(null);
+// The loaded conversations: the first page, plus every page "Load more" appended.
+const conversations = ref<ChatLogConversation[] | null>(null);
+const nextConversationsCursor = ref<string | null>(null);
 const conversationTitle = ref<string | null>(null);
 const leadConversationIds = ref<number[]>([]);
 const lead = ref<ChatLogLead | null>(null);
@@ -49,6 +51,10 @@ const currentConversationData = ref<ChatLogConversation | null>(null);
 const activeTab = ref<ChatLogTab>('chat');
 
 const isLoadingConversations = ref(false);
+const isLoadingMoreConversations = ref(false);
+// Bumped on every first-page load, so a "Load more" answer for an older list
+// (filters changed while it was in flight) is dropped instead of appended.
+let conversationsListVersion = 0;
 const isLoadingMessages = ref(false);
 
 let handoffInstance: ReturnType<typeof useHandoff> | null = null;
@@ -99,6 +105,10 @@ function resetForAgent(newAgent: ChatLogAgent | null, conversationId: string | n
 
     messagesData.value = null;
     conversations.value = null;
+    nextConversationsCursor.value = null;
+    // A load still in flight belongs to the previous agent and is dropped.
+    conversationsListVersion++;
+    isLoadingConversations.value = false;
     conversationTitle.value = null;
     leadConversationIds.value = [];
     lead.value = null;
@@ -115,8 +125,9 @@ function resetForAgent(newAgent: ChatLogAgent | null, conversationId: string | n
     pulseError.value = null;
 }
 
-function buildFilters(page: number): ChatLogConversationFilters {
-    const filters: ChatLogConversationFilters = { page };
+function buildFilters(cursor: string | null = null): ChatLogConversationFilters {
+    const filters: ChatLogConversationFilters = {};
+    if (cursor) filters.cursor = cursor;
     for (const [key, selected] of Object.entries(selectFilters)) {
         if (selected.value !== ALL) filters[key as keyof typeof selectFilters] = selected.value;
     }
@@ -180,8 +191,7 @@ export function useChatLog() {
 
     const agentId = (): string => agent.value?.external_id ?? '';
 
-    const totalConversations = computed(() => conversations.value?.total || 0);
-    const currentConversationsPage = computed(() => conversations.value?.current_page || 1);
+    const hasMoreConversations = computed(() => nextConversationsCursor.value !== null);
     const hasLeadForCurrentConversation = computed(() => !!lead.value);
     const totalMessages = computed(() => messagesData.value?.data?.length || 0);
 
@@ -201,15 +211,20 @@ export function useChatLog() {
     const hasActiveFilters = computed(() => activeFilterCount.value > 0);
 
     function syncCurrentConversationData() {
-        const found = conversations.value?.data?.find((conversation) => conversation.conversation_id === currentConversationId.value);
+        const found = conversations.value?.find((conversation) => conversation.conversation_id === currentConversationId.value);
         if (found) currentConversationData.value = { ...found };
     }
 
-    async function fetchConversations(pageNumber = 1, refreshCurrentConversation = false) {
+    /** Loads the first page with the current filters, replacing the list. */
+    async function fetchConversations(refreshCurrentConversation = false) {
+        const version = ++conversationsListVersion;
         isLoadingConversations.value = true;
         try {
-            const result = await fetchChatLogConversations(agentId(), buildFilters(pageNumber));
+            const result = await fetchChatLogConversations(agentId(), buildFilters());
+            if (version !== conversationsListVersion) return;
+
             conversations.value = result.conversations;
+            nextConversationsCursor.value = result.next_cursor;
             leadConversationIds.value = result.lead_conversation_ids;
 
             if (currentConversationId.value) syncCurrentConversationData();
@@ -219,13 +234,41 @@ export function useChatLog() {
                 if (activeTab.value === 'pulse') await fetchPulseData();
             }
 
-            if (pageNumber !== 1 || currentConversationId.value) {
-                window.history.pushState({}, '', chatLogUrl(agentId(), currentConversationId.value, pageNumber));
+            if (currentConversationId.value) {
+                window.history.pushState({}, '', chatLogUrl(agentId(), currentConversationId.value));
             }
         } catch {
-            // The list keeps its previous page; the refresh button retries.
+            // The list keeps what it had; the refresh button retries.
         } finally {
-            isLoadingConversations.value = false;
+            if (version === conversationsListVersion) isLoadingConversations.value = false;
+        }
+    }
+
+    /**
+     * Appends the next page ("Load more"). A conversation already in the list
+     * is skipped: a row whose activity moved between two loads can come back.
+     */
+    async function loadMoreConversations() {
+        const cursor = nextConversationsCursor.value;
+        if (!cursor || isLoadingMoreConversations.value) return;
+
+        const version = conversationsListVersion;
+        isLoadingMoreConversations.value = true;
+        try {
+            const result = await fetchChatLogConversations(agentId(), buildFilters(cursor));
+            if (version !== conversationsListVersion) return;
+
+            const loaded = new Set((conversations.value ?? []).map((conversation) => conversation.conversation_id));
+            conversations.value = [
+                ...(conversations.value ?? []),
+                ...result.conversations.filter((conversation) => !loaded.has(conversation.conversation_id)),
+            ];
+            nextConversationsCursor.value = result.next_cursor;
+            leadConversationIds.value = [...new Set([...leadConversationIds.value, ...result.lead_conversation_ids])];
+        } catch {
+            // The cursor is kept, so "Load more" can be tried again.
+        } finally {
+            isLoadingMoreConversations.value = false;
         }
     }
 
@@ -278,7 +321,7 @@ export function useChatLog() {
 
             if (currentConversationId.value) {
                 await fetchMessages(currentConversationId.value);
-                const found = conversations.value?.data?.find((conversation) => conversation.conversation_id === currentConversationId.value);
+                const found = conversations.value?.find((conversation) => conversation.conversation_id === currentConversationId.value);
                 currentConversationData.value = found ? { ...found } : null;
             }
         } catch {
@@ -327,12 +370,12 @@ export function useChatLog() {
 
     function clearAllFilters() {
         resetFilters();
-        void fetchConversations(1);
+        void fetchConversations();
     }
 
     function applyFilters() {
         showFiltersDialog.value = false;
-        void fetchConversations(1);
+        void fetchConversations();
     }
 
     function getTopicName(topicId: number): string {
@@ -368,6 +411,7 @@ export function useChatLog() {
         currentConversationData,
         activeTab,
         isLoadingConversations,
+        isLoadingMoreConversations,
         isLoadingMessages,
         topics,
         countries,
@@ -389,8 +433,7 @@ export function useChatLog() {
         handoff,
 
         // Computed
-        totalConversations,
-        currentConversationsPage,
+        hasMoreConversations,
         hasLeadForCurrentConversation,
         totalMessages,
         messages,
@@ -399,6 +442,7 @@ export function useChatLog() {
 
         // Actions
         fetchConversations,
+        loadMoreConversations,
         fetchMessages,
         fetchPulseData,
         fetchInitialData,

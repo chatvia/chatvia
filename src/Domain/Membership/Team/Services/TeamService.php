@@ -26,13 +26,14 @@ class TeamService
     ) {}
 
     /**
-     * Create the user's first team ("{name}'s Team") with its default roles.
+     * Create the first team ("{name}'s Team") of the owner's workspace, with
+     * its default roles.
      */
-    public function createDefaultTeam(User $user): Team
+    public function createDefaultTeam(User $owner): Team
     {
         return $this->createTeam->execute(new CreateTeamData(
-            owner: $user,
-            name: $user->name."'s Team",
+            workspace: $owner->workspace(),
+            name: $owner->name."'s Team",
         ));
     }
 

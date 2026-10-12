@@ -131,7 +131,7 @@
                 "expires_in_days": "Går ut om {count} dag | Går ut om {count} dagar",
                 "expires_in_one_month": "Går ut om 1 månad",
                 "expires_in_months": "Går ut om {count} månad | Går ut om {count} månader",
-                "conversations_count": "{count} konversation | {count} konversationer"
+                "load_more": "Läs in fler"
             },
             "pagination": {
                 "prev": "Föregående",

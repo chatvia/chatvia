@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Models\LlmProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * Builds a model row for the `llms` catalog. Names get a random numeric suffix
- * because `internal_name` and `external_name` are unique and the seeded catalog
- * uses the same base names.
+ * Builds a model row for the `llms` catalog, on a new test provider unless
+ * one is given (`->for($provider, 'provider')`). Names get a random numeric
+ * suffix because `external_name` is unique.
  *
  * @extends Factory<Llm>
  */
@@ -64,8 +64,16 @@ class LlmFactory extends Factory
             ],
             'location' => fake()->randomElement(['us', 'eu', 'cn']),
             'is_reasoning' => fake()->boolean(60),
-            'provider' => fake()->randomElement(LlmProviderEnum::cases()),
+            'is_enabled' => true,
+            'llm_provider_id' => LlmProvider::factory(),
         ];
+    }
+
+    public function disabled(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'is_enabled' => false,
+        ]);
     }
 
     /**

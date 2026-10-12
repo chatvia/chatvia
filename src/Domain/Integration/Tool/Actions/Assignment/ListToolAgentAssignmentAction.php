@@ -20,7 +20,7 @@ class ListToolAgentAssignmentAction
     {
         $attachedIds = $source->agents()->pluck('agents.id')->flip();
 
-        [$attached, $available] = $user->agents->partition(
+        [$attached, $available] = $user->workspace()->agents()->get()->partition(
             fn (Agent $agent): bool => $attachedIds->has($agent->id),
         );
 

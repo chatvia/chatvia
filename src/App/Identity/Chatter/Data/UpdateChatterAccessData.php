@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Identity\Chatter\Data;
 
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Spatie\LaravelData\Data;
 
 /**
@@ -15,7 +15,7 @@ use Spatie\LaravelData\Data;
 class UpdateChatterAccessData extends Data
 {
     public function __construct(
-        public User $chatter,
+        public Chatter $chatter,
         public ?int $messagesLimit,
         public bool $deactivated,
         public ?string $deactivationReason = null,

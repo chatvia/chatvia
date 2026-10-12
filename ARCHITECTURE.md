@@ -40,7 +40,7 @@ command bar, messaging apps and a REST API.
 | WebSockets | `php artisan reverb:start` | Live updates: ingestion progress, handoff messages, typing, eval progress. |
 | Scheduler | `php artisan schedule:run` (cron, every minute) | Pruning, analysis, usage caches, backups (see `routes/console.php`). |
 | PostgreSQL 18 | | All data, plus vector search (`vchord`, `pgvector`) and keyword search (`vchord_bm25`, `pg_tokenizer`). |
-| Redis | | Queues, cache, rate limits, the live chat memory. |
+| Redis | | Queues, cache, rate limits, the live chat memory, login sessions (their own database). |
 
 ### Repository map
 
@@ -57,7 +57,6 @@ command bar, messaging apps and a REST API.
 | `resources/views/` | Blade views: e-mails, PDF exports, the app shell. |
 | `resources/types/generated.d.ts` | TypeScript types generated from PHP classes. |
 | `lang/` | Server-side translations (e-mails, flash messages, validation). |
-| `shakomako/` | Shakomako, the embeddable chat widget: a separate JavaScript package, built into `public/shakomako`. |
 | `docs/` | The user documentation (VitePress). |
 | `tests/` | Pest tests: `Unit`, `Feature`, `Architecture`, `Eval`. |
 
@@ -103,7 +102,7 @@ locators there; use constructor injection instead.
 
 | Test | What it checks |
 |---|---|
-| `tests/Architecture/ConventionsTest.php` | Domain does not import `Illuminate\Http\Request` (except the two bridges); Domain imports from App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App; Actions use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions are scoped; every listener is registered in a service provider. |
+| `tests/Architecture/ConventionsTest.php` | Domain does not import `Illuminate\Http\Request` (except the two bridges); Domain imports from App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App; Actions use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions are scoped; form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is registered in a service provider. |
 | `tests/Architecture/ActionsHaveTestsTest.php` | Every Action has a test, or is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/ClassesHaveDocblocksTest.php` | Every class, interface, trait and enum under `src/` has a docblock with at least one sentence of prose, or its file is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/FrontendConventionsTest.php` | Frontend rules: no `hsl(var(--x))`, no third-party icon CDN or Google Fonts, no `console.log`, `safeStorage` on the boot and hosted-chat paths, one shared Echo connection, `AlertDialog` for delete confirmations. |
@@ -124,12 +123,25 @@ notifications and exceptions under `App\`, and Domain code may import it.
 
 | Sub-namespace | Holds |
 |---|---|
-| `App\Identity\Workspace` | The `User` model (all account types), sign-in flows, sessions and known devices, social accounts, data export, account deletion, monthly message limits (`MessageLimit`, `MessageAllowance`, `Actions/MessageLimits`), `AgentAccessPolicy`, `TeamPermissionPolicy`, widget sign-in tokens and widget session tokens. |
-| `App\Identity\Chatter` | Chatter accounts: create, update, delete, reset password, chatter auth tokens. |
+| `App\Identity\Workspace` | The `Workspace` model (the tenant) and its `workspace_user` membership (`WorkspaceMembership`, `WorkspaceRole`), the `User` model (staff accounts), sign-in flows, sessions and known devices, social accounts, data export, account deletion, monthly message limits (`MessageLimit`, `MessageAllowance`, `Actions/MessageLimits`), `AgentAccessPolicy`, `TeamPermissionPolicy`, widget sign-in tokens and widget session tokens. |
+| `App\Identity\Chatter` | The `Chatter` model and chatter accounts: create, update, delete, password login on the hosted chat, password reset (own tokens), chatter auth tokens. |
 | `App\Identity\ApiKey` | Creating and deleting API keys for the REST API. |
 
-All accounts are rows in `users`. The `type` column (`UserType`) says which
-kind: `admin`, `workspace`, `employee` (a teammate) or `chatter`.
+The tenant is a row in `workspaces`. Staff accounts are rows in `users`, and
+each belongs to exactly one workspace through `workspace_user`, with the role
+`owner` (one per workspace) or `member` (a teammate). Read it with
+`$user->workspace()`, `isWorkspaceOwner()` and `isTeammate()`. The
+`users.is_admin` flag marks platform staff, who may also open the admin panel;
+on the dashboard and the API an admin is only the owner of their own
+workspace. A workspace's end-users
+are **chatters**, in their own `chatters` table: each belongs to one
+workspace (`workspace_id`), and the email is unique per workspace,
+so the same person can be a chatter of several workspaces and a staff account
+at the same time. Chatters reach agents through the `agent_chatter` pivot.
+Their ids and staff ids come from different tables, so anything that stores a
+"who is chatting" id keeps the kind too: `chat_sessions` has `user_id` (staff)
+and `chatter_id`; caches and tokens use `ChatViewerData` (`chatter:5` /
+`user:5`).
 
 #### Message limits
 
@@ -164,8 +176,8 @@ tokens.
 | Folder | Holds |
 |---|---|
 | `Controllers/{Area}/` | Thin controllers, grouped by screen area (`Agent`, `Chat`, `Widget`, `Api/V1`, `Settings`, `Webhooks`, ...). |
-| `Requests/{Area}/` | Form requests with `rules()`, `authorize()` and `toData()`. |
-| `Middleware/{Access,Auth,Chat,Web,Widget}/` | Access checks (`can.access.agent`, `agent.permission:…`, `team.permission:…`), authentication, hosted-chat resolution, web concerns (CSP, locale, Inertia), widget origin and access checks. Aliases are registered in `bootstrap/app.php`. |
+| `Requests/{Area}/` | Form requests with `rules()`, `authorize()` and `toData()`. Database rules go through `Rules/WorkspaceRule`. |
+| `Middleware/{Access,Auth,Chat,Web,Widget}/` | Access checks (`workspace.scope`, `can.access.agent`, `agent.permission:…`, `team.permission:…`), authentication, hosted-chat resolution, web concerns (CSP, locale, Inertia), widget origin and access checks. Aliases are registered in `bootstrap/app.php`. |
 | `Resources/` | Response DTOs for the REST API (`Api/V1/...Data`) and handoff endpoints. |
 | `Responses/SseResponder.php` | The one place that owns the SSE transport: headers, flushing, sequence numbers, client disconnects. The domain only yields `StreamEvent` objects. |
 | `Rules/` | Validation rules that need the request or app state (PDF page limits, attachment limits, "an LLM that reads PDFs is set up"). |
@@ -186,8 +198,12 @@ external id for the permanent and embed addresses). `ResolveHostedChatAgent`
 `URL::defaults()` and drops it from the route parameters, so controllers keep
 their positional `{conversationId}`. The chat runs on its own session and sign-in:
 `UseHostedChatSession` (global middleware) gives `/chat/*` requests their own
-cookie (`session.chat`, path `/chat`) and the `chat` guard. Chat code uses the
-default guard, never `guard('web')`. Sign-ins that happen outside `/chat`
+cookie (`session.chat`, path `/chat`; table `chat_web_sessions` when an install
+keeps sessions in the database instead of Redis) and the `chat`
+guard (chatters). Staff who open a chat from the dashboard sign in on the
+`chat_staff` guard instead; `UseSignedInChatGuard` makes whichever guard holds
+the viewer the default, and `HostedChatViewer` reads, signs in and signs out
+the viewer. Chat code uses the default guard, never `guard('web')`. Sign-ins that happen outside `/chat`
 (magic links with two-factor, invitations, dashboard previews) reach the chat
 with a one-time, agent-bound `?auth_token=` (`ChatterAuthTokenService`). An
 agent's custom domain redirects to its chat (`RedirectCustomDomainToChat`).
@@ -223,7 +239,7 @@ dashboard. Link your own website in the admin panel (**Settings → Brand**).
 
 | Folder | Holds |
 |---|---|
-| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. |
+| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
 | `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
@@ -300,11 +316,24 @@ Tools that an agent can call.
 
 ### Llm
 
-Talking to language models. Provider clients (`Scaleway`, `Mistral`,
-`OpenRouter`, `Groq`) implement `LlmProviderInterface` (OpenAI-compatible).
+Talking to language models. An admin connects providers (`LlmProvider` rows,
+`llm_providers`: a kind from `LlmProviderEnum`, an address, an encrypted key
+and headers) and adds their models to the catalog (`Llm`, `llms`: one model
+on one provider, with an alias in `external_name` that agents and settings
+store). Each kind has one adapter (`Providers\Contracts\ProviderAdapter`,
+in `Providers\Adapters`, picked by `LlmProviderEnum::adapter()` through the
+`ProviderAdapters` registry) that owns everything about it: label, address,
+key, chat client, how its model list is read (with what it knows about models
+the list says little about), and the Settings → AI service its key also runs.
+Nothing outside an adapter branches on the kind; adding a provider is an enum
+case and an adapter class. Every call goes to its model's provider:
+`LlmProviders::for($model)` asks the adapter for the client (`Scaleway`,
+`Mistral`, `OpenRouter`, or `OpenAiCompatible`; all implement
+`LlmProviderInterface`). The app's own calls use a model per `LlmRole` (Chat,
+Fast, Smart, Vision), picked in Settings → AI and resolved by `ModelRoles`.
 Callers use typed helpers: `LlmChat` (one completion), `StructuredCompletion`
 and `LlmJson` (JSON answers), `DocumentLlm` (a model that reads whole PDF
-files). The `Llm` model is the model catalog agents pick from.
+files).
 
 Main parts: `Operations` (summaries, tables, vision, speech to text, titles,
 query rewriting, starters, translation, cost), `Usage` (`TokenUsageContext`
@@ -325,7 +354,7 @@ pipeline as the web chat. A channel either shows a typing indicator
 
 Access grants.
 
-- `Membership\Agent`: which chatters may use which agent (the `agent_user`
+- `Membership\Agent`: which chatters may use which agent (the `agent_chatter`
   pivot), chatter invitations (`AgentChatterInvitation`).
 - `Membership\Team`: teams, roles and permissions for teammates (`Team`,
   `Role`, `Permission` on spatie/laravel-permission, the `team_user` pivot),
@@ -594,9 +623,41 @@ the frontend. Do not rename or move them without a migration plan:
 
 ### Data ownership
 
-Key workspace data to the workspace **owner** (`$agent->user_id`,
-`$user->workspace()->id`), never to the teammate who is acting. Otherwise
-removing a teammate would delete workspace data.
+Key workspace data to the **workspace** (`workspace_id`: `$agent->workspace_id`,
+`$user->workspace()->id`), never to the person who is acting. Otherwise
+removing a teammate would delete workspace data. Storage follows the same
+rule: workspace files live under `workspaces/{external_id}/…` (an agent's
+under `workspaces/{external_id}/agents/{external_id}/…`), a person's own files
+under `users/{external_id}/…` and a chatter's photo under
+`chatters/{external_id}/…`, so deleting an entity is one prefix wipe.
+
+### Keeping workspaces apart
+
+Scoping is explicit (no global scopes), with layers that catch a missed check:
+
+- **Routes.** Every dashboard and API group has `workspace.scope`
+  (`ScopeRequestToWorkspace`). A record the route binds from the URL that
+  belongs to another workspace answers 404, the same as an id that does not
+  exist, so a guessed id never confirms a record. `can.access.agent` does the
+  same for the agent and for any record named next to it (it must be the
+  agent's, or its workspace's for shared sources and tools). A 403 is only for
+  a teammate whose role does not allow the action.
+- **Validation.** Form requests use `WorkspaceRule::exists()` /
+  `WorkspaceRule::unique()` (`App\Http\Rules`), so an id or a name of another
+  workspace is treated as unknown. A `ConventionsTest` ratchet refuses a bare
+  `exists:`/`unique:` rule outside a short list of install-wide values.
+- **Database.** `chat_sessions`, `chat_conversations`, `chat_messages`,
+  `form_submissions` and `agent_chatter` carry `workspace_id`, and each key to
+  a parent pairs it with the workspace (`(workspace_id, agent_id)` →
+  `agents(workspace_id, id)`, and so on). Postgres refuses a row that links
+  two workspaces. Writers copy `workspace_id` from the parent they already
+  hold.
+- **Jobs.** The dashboard, API, hosted chat and widget put the workspace id in
+  hidden `Context`, so queued jobs carry it.
+- **Tests.** `tests/Feature/Isolation/` walks the route table with two
+  workspaces and checks every agent and workspace route answers 404 for the
+  other workspace's records, and that the database refuses cross-workspace
+  rows.
 
 ### Database
 
@@ -623,9 +684,12 @@ Use these words in code, UI and docs. Do not invent synonyms.
 
 | Concept | Term | In code |
 |---|---|---|
-| Tenant / owner account | **Workspace** | `User` with `UserType::Workspace` (or `Admin`) |
-| Dashboard user invited into a workspace | **Teammate** | `User` with `UserType::Employee`; role in `team_user` |
-| End user who signs in to chat with an agent | **Chatter** | `User` with `UserType::Chatter` |
+| Tenant: owns agents, knowledge, tools and settings | **Workspace** | `App\Identity\Workspace\Models\Workspace` (`workspaces`) |
+| A staff account's place in its workspace | **Workspace membership** | `WorkspaceMembership` (`workspace_user`, `WorkspaceRole::Owner\|Member`) |
+| The staff account that owns a workspace | **Owner** | `User` with an `owner` membership |
+| Dashboard user invited into a workspace | **Teammate** | `User` with a `member` membership; role in `team_user` |
+| Platform staff | **Admin** | `User` with `is_admin`; admin panel only |
+| End user who signs in to chat with an agent | **Chatter** | `App\Identity\Chatter\Models\Chatter` (`chatters`, email unique per workspace) |
 | Anonymous person in the chat (not signed in) | **Visitor** | a `Session` without a `user_id` |
 | A visitor's identity with one agent, across conversations | **Session** | `Domain\Conversation\Models\Session` (`chat_sessions`) |
 | One persistent chat between an agent and a visitor or chatter | **Conversation** | `Domain\Conversation\Models\Conversation` |
@@ -634,7 +698,7 @@ Use these words in code, UI and docs. Do not invent synonyms.
 | The live chat history in the cache | **Chat memory** | `Domain\Conversation\Services\Memory\ChatMemory` |
 | Hosted-chat visitor session for the current request | **HostedChatSession** | `App\Http\Chat\HostedChatSession` |
 | Widget sign-in credential for a protected agent | **Widget session token** | `WidgetAuthSessionService`, sent as `X-AUTH-TOKEN` (not related to `Session`) |
-| Chatter's access to an agent | **AgentMembership** | the `agent_user` pivot (`GrantAgentMembershipAction`) |
+| Chatter's access to an agent | **AgentMembership** | the `agent_chatter` pivot (`GrantAgentMembershipAction`) |
 | Teammate's role in a team | **TeamMembership** | the `team_user` pivot with `role_id` |
 | A group of agents and teammates | **Team** | `Domain\Membership\Team\Models\Team` |
 | Training material attached to an agent | **Source** ("Knowledge base" in the UI) | `SourceFile`, `SourceWebsite`, `SourceText`, `AgentQuestionAnswer`, `SourceYoutubeVideo`; attached through `agent_sources` |
@@ -665,14 +729,14 @@ accounts.
 
 | Step | Contract | Drivers | Config key (Settings → AI) |
 |---|---|---|---|
-| Chat answers | `LlmProviderInterface` | `scaleway`, `mistral`, `openrouter`, `groq` | `chatvia.ai.provider` |
+| Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; roles `chatvia.agent.default_model`, `chatvia.ai.roles.*` |
 | Embeddings | `EmbeddingsProviderInterface` | `qwen`, `cohere`, `jina`, `mistral` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `qwen`, `cohere`, `none` | `chatvia.ai.reranker` |
 | Reading documents | `DocumentParser` | `mistral`, `local` (pdftotext, pandoc, PhpSpreadsheet, catdoc) | `chatvia.ai.document_parser` |
 | Splitting text | `TextSplitter` | `chunkfit`, `local` | `chatvia.ai.text_splitter` |
 | Speech to text | `Transcriber` | `scaleway`, `none` | `chatvia.ai.transcriber` |
 | Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
-| Files | Laravel disks `private`, `public`, `assets` | local, S3-compatible, Bunny CDN (falls back to local) | `FILESYSTEM_*_DRIVER`, `SCALEWAY_BUCKET`, `BUNNYCDN_STORAGE_ZONE` |
+| Files | Laravel disks `private`, `public`, `assets` | local or S3-compatible (`private`, `public`; built by `StorageDisks`), Bunny CDN or local (`assets`) | `chatvia.storage` (Settings → Storage; `SCALEWAY_*` in `.env` as defaults), `BUNNYCDN_STORAGE_ZONE` |
 
 Everything an admin may want to change lives in the admin panel under
 **Settings**, not in `.env`: API keys and OAuth apps, the AI services, models
@@ -818,32 +882,35 @@ responses with these types or a small local interface; do not use `any`.
 
 ## 10. The widget package
 
-`shakomako/` is Shakomako, the embeddable chat widget (chat bubble and command
-bar) that customers put on their own sites with one `<script>` tag. It is a
-separate vanilla JavaScript package with its own `package.json`, ESLint config,
-Vitest tests and Rollup build, and its own CI workflow
-(`.github/workflows/shakomako.yml`). It imports nothing from the app, so the
-folder also works on its own.
+Shakomako is the embeddable chat widget (chat bubble and command bar) that
+customers put on their own sites with one `<script>` tag. It is a
+TypeScript package in its own repository,
+[chatvia/shakomako](https://github.com/chatvia/shakomako), with its own
+ESLint config, Vitest tests, Rollup build and CI. It imports nothing from the
+app.
 
 - It talks to the `/widget/*` API (`routes/widget.php`) and streams answers
   over SSE. It sends the ids in the headers named in `Domain\Widget\WidgetHeaders`;
   those names are a contract on both sides.
 - The in-app chat (`resources/js`) serves the dashboard, the hosted chat page
   and the playground. The widget does not share code with it.
-- `npm run shakomako:build` builds it into `public/shakomako` (the Docker
-  image runs it). The build has no server settings: the widget
-  takes its API from the address its `embed.js` loads from (`/widget` on the
-  same server), and the WebSocket (Reverb) settings from the widget settings
-  response (`chatvia.widget.reverb`).
+- This repository builds its newest release: the highest `vX.Y.Z` tag
+  (pre-releases and untagged commits never). `scripts/build-shakomako.mjs`
+  finds it; `npm run shakomako:build` builds it into `public/shakomako`,
+  `SHAKOMAKO_VERSION` pins another release and `SHAKOMAKO_PATH` builds a local
+  checkout. The `Dockerfile` has no default for `SHAKOMAKO_VERSION`: the
+  release workflow passes the newest release in (`--print-version`), the
+  image's `widget` stage builds that tag, and only the build reaches the
+  image. A server change to the widget contract is merged before the widget
+  release that needs it.
+- The build has no server settings: the widget takes its API from the address
+  its `embed.js` loads from (`/widget` on the same server), and the WebSocket
+  (Reverb) settings from the widget settings response
+  (`chatvia.widget.reverb`).
 - The app points to `embed.js` with `chatvia.widget.script_url_embed`: the copy
   in `public/shakomako`, unless the admin panel (**Settings → Platform**) names another one.
-- `.github/workflows/shakomako-mirror.yml` publishes the folder, with only its
-  own history, to a separate read-only repository (every push to `main` and
-  every `v*` tag). The copy closes pull requests with a pointer back here
-  (`shakomako/.github/workflows/close-pull-request.yml`). This repository stays
-  the only place to change the widget.
 
-See [shakomako/README.md](shakomako/README.md) for building and embed options.
+See the widget's README for embed options.
 
 ---
 

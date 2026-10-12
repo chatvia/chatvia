@@ -15,6 +15,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Llm\Models\Llm;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
  * The steps every message written to the chat log shares: find or create the
@@ -36,20 +37,24 @@ class ChatLogWriter
      */
     public function session(Agent $agent, string $sessionExternalId, ?UserTurnData $userTurn = null): Session
     {
-        // Keyed on (external_id, agent_id) only — not user_id. The hosted chat
-        // creates the session row before it knows the chatter, so keying on
-        // user_id would never match that row and the chatter would never land
-        // on the session.
+        // Keyed on (external_id, agent_id) only — not chatter_id. The hosted
+        // chat creates the session row before it knows the chatter, so keying
+        // on chatter_id would never match that row and the chatter would never
+        // land on the session.
         $session = Session::firstOrCreate(
             ['external_id' => $sessionExternalId, 'agent_id' => $agent->id],
-            $userTurn instanceof UserTurnData ? $this->newSessionAttributes($userTurn) : [],
+            [
+                'workspace_id' => $agent->workspace_id,
+                ...($userTurn instanceof UserTurnData ? $this->newSessionAttributes($userTurn) : []),
+            ],
         );
 
         $updates = $this->activityStamp($session->last_activity_at);
 
-        // Only fills a missing chatter — never reassigns an existing owner.
-        if ($userTurn?->user_id !== null && $session->user_id === null) {
-            $updates['user_id'] = $userTurn->user_id;
+        // Only fills a missing chatter — never reassigns an existing owner, and
+        // never on a staff session (a session has at most one viewer).
+        if ($userTurn?->chatter_id !== null && $session->chatter_id === null && $session->user_id === null) {
+            $updates['chatter_id'] = $userTurn->chatter_id;
         }
 
         if ($updates !== []) {
@@ -67,10 +72,13 @@ class ChatLogWriter
      */
     public function conversation(Session $session, string $conversationExternalId, ?string $messageSource): Conversation
     {
+        $this->reviveExpiredEmptyConversation($session, $conversationExternalId);
+
         /** @var Conversation $conversation */
         $conversation = Conversation::firstOrCreate(
             ['external_id' => $conversationExternalId, 'chat_session_id' => $session->id],
             [
+                'workspace_id' => $session->workspace_id,
                 'agent_id' => $session->agent_id,
                 'source' => $messageSource === ConversationSource::Widget->value
                     ? ConversationSource::Widget
@@ -80,8 +88,10 @@ class ChatLogWriter
 
         $updates = $this->activityStamp($conversation->last_activity_at);
 
+        // The first message makes a hidden conversation visible and gives it
+        // the full retention window (it was started with a short one).
         if (! $conversation->is_visible) {
-            $updates['is_visible'] = true;
+            $updates = [...$updates, ...Conversation::visibleAttributes()];
         }
 
         if ($updates !== []) {
@@ -89,6 +99,31 @@ class ChatLogWriter
         }
 
         return $conversation;
+    }
+
+    /**
+     * A widget left open for over a day: its empty conversation expired (a
+     * hidden conversation lives one day) while the page kept its id. The
+     * visitor's first message brings it back instead of failing. A
+     * conversation someone deleted, or one that had messages, stays gone: the
+     * message is refused as not found rather than reusing its id.
+     */
+    private function reviveExpiredEmptyConversation(Session $session, string $conversationExternalId): void
+    {
+        $trashed = Conversation::onlyTrashed()
+            ->where('external_id', $conversationExternalId)
+            ->where('chat_session_id', $session->id)
+            ->first();
+
+        if (! $trashed instanceof Conversation) {
+            return;
+        }
+
+        if ($trashed->is_visible || $trashed->deleted_by !== null) {
+            throw (new ModelNotFoundException)->setModel(Conversation::class, [$conversationExternalId]);
+        }
+
+        $trashed->restore();
     }
 
     /** The catalog id of the model a message names, or null when unknown. */
@@ -106,8 +141,8 @@ class ChatLogWriter
     {
         MessageSent::dispatch(
             $agent->id,
-            $agent->user_id,
-            $session->user_id,
+            $agent->workspace_id,
+            $session->chatter_id,
             $turn->external_conversation_id,
             $turn->external_message_id,
             $turn->external_session_id,
@@ -129,7 +164,7 @@ class ChatLogWriter
         $device = $this->userAgents->detect($turn->user_agent);
 
         return [
-            'user_id' => $turn->user_id,
+            'chatter_id' => $turn->chatter_id,
             'ip_address' => $turn->ip_address,
             'user_agent' => $turn->user_agent,
             'device_type' => $device->deviceType,
@@ -142,8 +177,8 @@ class ChatLogWriter
     }
 
     /**
-     * `last_activity_at` is indexed, so every write is a non-HOT update. Bump
-     * it at most once a minute.
+     * Bump `last_activity_at` at most once a minute, so a quick exchange does
+     * not rewrite the session and conversation rows on every message.
      *
      * @return array<string, mixed>
      */

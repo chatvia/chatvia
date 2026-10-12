@@ -10,14 +10,14 @@ use Support\Exceptions\DomainValidationException;
 /**
  * The create/update Actions shared by the dashboard and the API: names
  * unique per workspace, approval derived from the verb, rows keyed to the
- * workspace owner, and a partial update only changes what it was given.
+ * workspace, and a partial update only changes what it was given.
  */
 function apiFunctionPayload(array $fields): FunctionDefinitionData
 {
     return FunctionDefinitionData::from($fields);
 }
 
-it('keys a function created for a teammate to the workspace owner, with approval from the verb', function (): void {
+it('keys a function created for a teammate to the workspace, with approval from the verb', function (): void {
     $owner = User::factory()->create();
     $member = User::factory()->employee($owner)->create();
 
@@ -29,7 +29,7 @@ it('keys a function created for a teammate to the workspace owner, with approval
         'webhook_method' => 'GET',
     ]));
 
-    expect($function->user_id)->toBe($owner->id)
+    expect($function->workspace_id)->toBe($owner->workspace()->id)
         ->and($function->requires_approval)->toBeFalse();
 });
 
@@ -58,7 +58,7 @@ it('rejects a duplicate name on create and on rename', function (): void {
 it('only tightens approval when the verb changes', function (): void {
     $owner = User::factory()->create();
     $function = AgentFunction::query()->create([
-        'user_id' => $owner->id,
+        'workspace_id' => $owner->workspace()->id,
         'internal_name' => 'fn',
         'description' => 'd',
         'parameters_schema' => ['type' => 'object', 'properties' => []],

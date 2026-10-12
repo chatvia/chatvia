@@ -43,13 +43,13 @@ use App\Http\Controllers\Team\Roles\TeamRoleStoreController;
 use App\Http\Controllers\Team\Roles\TeamRoleUpdateController;
 use App\Http\Controllers\Team\Switching\TeamListController;
 use App\Http\Controllers\Team\Switching\TeamSwitchController;
-use App\Http\Middleware\Auth\DenyIfEmployee;
+use App\Http\Middleware\Auth\DenyIfTeammate;
 use Illuminate\Support\Facades\Route;
 
 // Workspace administration — integrations, library, people, governance and
 // teams. Account-personal pages live in routes/account.php. Per-section access
 // is gated by the existing `account.*` team permissions.
-Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
+Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(function (): void {
     // Integrations — account-level Connectors, Functions and API keys. The
     // Connectors page is the same shape as the per-agent connectors page but at
     // the user level (featured catalog + custom MCP servers, OAuth/token flows).
@@ -159,7 +159,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
     Route::get('my/teams/list', TeamListController::class)->name('my.teams.list');
 
     // Teams management (denied for staff)
-    Route::middleware(DenyIfEmployee::class)->group(function (): void {
+    Route::middleware(DenyIfTeammate::class)->group(function (): void {
         Route::get('my/teams', TeamsHomeController::class)->name('teams.index');
         Route::post('my/teams', TeamsStoreController::class)->name('teams.store');
 
@@ -177,7 +177,7 @@ Route::middleware(['auth', 'can.access.dashboard'])->group(function (): void {
 
         // Permanently delete a teammate's account + all their data — distinct
         // from remove-member above, which only detaches the team pivot.
-        // Workspace-level (not team-scoped); DenyIfEmployee already limits it to owners.
+        // Workspace-level (not team-scoped); DenyIfTeammate already limits it to owners.
         Route::delete('my/workspace/teammates/{member}', RemoveTeammateFromWorkspaceController::class)->name('teammates.remove');
 
         // Team roles

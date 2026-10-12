@@ -132,7 +132,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
 
     foreach ($data['catalog'] as $slug => $connector) {
         $server = AgentMcpServer::create([
-            'user_id' => $agent->user_id,
+            'workspace_id' => $agent->workspace_id,
             'connector_slug' => $slug,
             'uses_central_catalog' => true,
             'name' => $connector['name'],

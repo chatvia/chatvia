@@ -30,7 +30,7 @@ class StoreApiAgentRequest extends FormRequest
         $teamId = $this->input('team_id');
 
         $team = is_string($teamId) && Str::isUuid($teamId)
-            ? $user->workspace()->ownedTeams()->where('external_id', $teamId)->first()
+            ? $user->workspace()->teams()->where('external_id', $teamId)->first()
             : null;
 
         return $team === null ? Response::allow() : Gate::inspect('create', [Agent::class, $team]);

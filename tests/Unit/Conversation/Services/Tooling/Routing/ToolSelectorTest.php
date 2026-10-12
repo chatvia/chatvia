@@ -25,7 +25,7 @@ function tsEntry(string $name): ToolEntry
 function tsAttach(Agent $agent, string $slug, bool $alwaysAvailable): AgentMcpServer
 {
     $server = AgentMcpServer::create([
-        'user_id' => $agent->user_id,
+        'workspace_id' => $agent->workspace_id,
         'name' => ucfirst($slug),
         'slug' => $slug,
         'url' => "https://example.test/mcp/{$slug}",

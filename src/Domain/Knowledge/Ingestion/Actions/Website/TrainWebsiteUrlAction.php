@@ -3,20 +3,20 @@
 namespace Domain\Knowledge\Ingestion\Actions\Website;
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlEnhanceJob;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
+use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
+use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
-use Domain\Knowledge\Ingestion\Services\TokenCounter;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Services\Firecrawl;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Support\Http\SafeUrl;
@@ -29,21 +29,22 @@ use Support\Http\SafeUrl;
  * that several pages share is stored and embedded once; `chunk_references`
  * link each chunk to every page that produced it. An unchanged page (same
  * checksum as last time) costs no embedding, and only parts the website does
- * not hold yet are embedded, in one batched request.
+ * not hold yet are enhanced and embedded (see {@see CreateSourceChunksAction}).
+ * When a page changed, its links to parts it no longer has are dropped, and
+ * those chunks are deleted once no page uses them.
  */
 class TrainWebsiteUrlAction
 {
-    /** Send a progress event after every this many chunks. */
-    private const int PROGRESS_EVENT_EVERY = 25;
-
     public function __construct(
         private readonly Firecrawl $firecrawl,
         private readonly TextSplitter $splitter,
-        private readonly EmbeddingsProviderInterface $embeddings,
-        private readonly TokenCounter $tokens,
+        private readonly CreateSourceChunksAction $createChunks,
     ) {}
 
-    public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent): void
+    /**
+     * @param  int|null  $progress  the website's progress (0-100) once this page is done, from the job batch
+     */
+    public function execute(AgentWebsiteUrl $websiteUrl, Agent $agent, ?int $progress = null): void
     {
         // FireCrawl fetches the page from its own servers, so there is no SSRF
         // surface here; obviously non-public targets are still refused before
@@ -52,9 +53,12 @@ class TrainWebsiteUrlAction
 
         $markdown = trim($this->firecrawl->scrape($websiteUrl->url)->markdown);
 
+        /** @var SourceWebsite $website */
+        $website = $websiteUrl->agentWebsite;
+
         // Nothing scrapable (empty page, blocked, JS-only with no content).
         if ($markdown === '') {
-            $this->finish($websiteUrl, $agent, ['crawled_at' => now()]);
+            $this->finish($websiteUrl, $website, $agent, $progress, ['crawled_at' => now()]);
 
             return;
         }
@@ -62,144 +66,77 @@ class TrainWebsiteUrlAction
         $checksum = hash('sha256', $markdown);
 
         if ($websiteUrl->checksum === $checksum) {
-            $this->finish($websiteUrl, $agent);
+            $this->finish($websiteUrl, $website, $agent, $progress);
 
             return;
         }
 
+        /** @var list<string> $parts */
         $parts = Cache::remember(
             'ingestion:website:chunks:'.$websiteUrl->id.':'.$checksum,
             now()->addDay(),
             fn (): array => $this->splitter->split($markdown),
         );
 
-        /** @var SourceWebsite $website */
-        $website = $websiteUrl->agentWebsite;
+        $pages = array_map(static fn (string $part, int $index): PageData => new PageData(
+            pageNumber: $index + 1,
+            content: $part,
+            checksum: hash('sha256', $part),
+        ), $parts, array_keys($parts));
 
-        $chunks = $this->storeChunks($website, $agent, $parts);
+        $this->createChunks->execute(new ChunkPagesData(
+            source: $website,
+            group: new PageGroupData($pages),
+            enhancement: ChunkEnhancement::for($website),
+            chunkedUsingModel: $this->splitter->name(),
+        ));
 
-        $this->linkChunks($websiteUrl, $chunks);
-
-        if (config('chatvia.ai.chunker.enhance') === true) {
-            $chunks->each(fn (Chunk $chunk) => WebsiteUrlEnhanceJob::dispatch($agent, $websiteUrl, $chunk));
-        }
+        $this->linkChunks($websiteUrl, $website, array_map(static fn (PageData $page): string => $page->checksum, $pages));
 
         $this->addExpectedChunks($website, count($parts));
 
-        $this->finish($websiteUrl, $agent, ['checksum' => $checksum, 'crawled_at' => now()]);
-
-        WebsiteIngestionProgressed::dispatch($website->refresh(), $agent->external_id);
+        $this->finish($websiteUrl, $website, $agent, $progress, ['checksum' => $checksum, 'crawled_at' => now()]);
     }
 
     /**
-     * Create the parts the website does not hold yet and renumber the ones it
-     * already has, so `chunk_index` follows this page's order.
+     * Link this page to the chunks of its parts and unlink it from the parts
+     * it no longer has, in one transaction. The primary key (chunk_id,
+     * referenceable_type, referenceable_id) makes a repeated link a no-op.
      *
-     * @param  list<string>  $parts
-     * @return Collection<int, Chunk> keyed by chunk id
-     */
-    private function storeChunks(SourceWebsite $website, Agent $agent, array $parts): Collection
-    {
-        $checksums = array_map(static fn (string $part): string => hash('sha256', $part), $parts);
-
-        $existing = Chunk::query()
-            ->where('chunkable_type', $website->getMorphClass())
-            ->where('chunkable_id', $website->id)
-            ->whereIn('checksum', $checksums)
-            ->get(['id', 'checksum', 'chunk_index'])
-            ->keyBy('checksum');
-
-        $vectors = $this->embedMissing($parts, $checksums, $existing);
-        $chunks = collect();
-
-        foreach ($parts as $index => $part) {
-            $chunkIndex = $index + 1;
-
-            /** @var Chunk|null $chunk */
-            $chunk = $existing->get($checksums[$index]);
-
-            if ($chunk !== null && $chunk->chunk_index !== $chunkIndex) {
-                $chunk->update(['chunk_index' => $chunkIndex]);
-            }
-
-            $chunk ??= $this->createChunk($website, $agent, $part, $checksums[$index], $chunkIndex, $vectors[$checksums[$index]]);
-
-            $chunks->put($chunk->id, $chunk);
-
-            if ($chunkIndex % self::PROGRESS_EVENT_EVERY === 0) {
-                WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
-            }
-        }
-
-        return $chunks;
-    }
-
-    /**
-     * Embed, in one request, the parts that have no chunk yet.
-     *
-     * @param  list<string>  $parts
      * @param  list<string>  $checksums
-     * @param  Collection<string, Chunk>  $existing
-     * @return array<string, string> checksum => vector literal
      */
-    private function embedMissing(array $parts, array $checksums, Collection $existing): array
+    private function linkChunks(AgentWebsiteUrl $websiteUrl, SourceWebsite $website, array $checksums): void
     {
-        $missing = array_values(array_filter(
-            $parts,
-            fn (int $index): bool => ! $existing->has($checksums[$index]),
-            ARRAY_FILTER_USE_KEY,
-        ));
+        $chunkIds = Chunk::query()->ofSource($website)->whereIn('checksum', $checksums)->pluck('id')->all();
+        $morphType = $websiteUrl->getMorphClass();
 
-        $vectors = [];
+        DB::transaction(function () use ($websiteUrl, $chunkIds, $morphType): void {
+            ChunkReference::query()->insertOrIgnore(array_map(
+                static fn (int $chunkId): array => [
+                    'chunk_id' => $chunkId,
+                    'referenceable_type' => $morphType,
+                    'referenceable_id' => $websiteUrl->id,
+                ],
+                $chunkIds,
+            ));
 
-        foreach ($this->embeddings->embedBatch($missing) as $i => $vector) {
-            $vectors[hash('sha256', $missing[$i])] = '['.implode(',', $vector).']';
-        }
+            $stale = ChunkReference::query()
+                ->where('referenceable_type', $morphType)
+                ->where('referenceable_id', $websiteUrl->id)
+                ->whereNotIn('chunk_id', $chunkIds);
 
-        return $vectors;
-    }
+            $staleChunkIds = (clone $stale)->pluck('chunk_id')->all();
 
-    private function createChunk(SourceWebsite $website, Agent $agent, string $part, string $checksum, int $chunkIndex, string $vector): Chunk
-    {
-        // createOrFirst: two pages of the same site can produce the same part
-        // at the same time.
-        return Chunk::query()->createOrFirst(
-            [
-                'chunkable_type' => $website->getMorphClass(),
-                'chunkable_id' => $website->id,
-                'checksum' => $checksum,
-            ],
-            [
-                'user_id' => $agent->user_id,
-                'chunk_index' => $chunkIndex,
-                'chunk' => $part,
-                'summary' => null,
-                'chunked_using_model' => $this->splitter->name(),
-                'cost_in_micro_cents' => 0,
-                'tokens' => $this->tokens->count($part),
-                'embedding' => $vector,
-                'embedding_bm25' => Bm25Tokenizer::expression($part),
-                'metadata' => [],
-            ],
-        );
-    }
+            if ($staleChunkIds === []) {
+                return;
+            }
 
-    /**
-     * Link every chunk to this page in one statement. The primary key
-     * (chunk_id, referenceable_type, referenceable_id) makes a repeat a no-op.
-     *
-     * @param  Collection<int, Chunk>  $chunks  keyed by chunk id
-     */
-    private function linkChunks(AgentWebsiteUrl $websiteUrl, Collection $chunks): void
-    {
-        ChunkReference::query()->insertOrIgnore(array_map(
-            static fn (int $chunkId): array => [
-                'chunk_id' => $chunkId,
-                'referenceable_type' => $websiteUrl->getMorphClass(),
-                'referenceable_id' => $websiteUrl->id,
-            ],
-            $chunks->keys()->all(),
-        ));
+            $stale->delete();
+
+            // Chunks are shared by checksum across a website's pages; keep any
+            // chunk another page still points at.
+            Chunk::query()->whereIn('id', $staleChunkIds)->unreferenced()->delete();
+        });
     }
 
     /**
@@ -218,14 +155,19 @@ class TrainWebsiteUrlAction
     }
 
     /**
-     * Mark the page as trained and tell its URL list.
+     * Mark the page as trained, tell its URL list, and send the website's
+     * progress.
      *
      * @param  array<string, mixed>  $attributes  extra columns to save with the status
      */
-    private function finish(AgentWebsiteUrl $websiteUrl, Agent $agent, array $attributes = []): void
+    private function finish(AgentWebsiteUrl $websiteUrl, SourceWebsite $website, Agent $agent, ?int $progress, array $attributes = []): void
     {
         $websiteUrl->update(['status' => SourceStatus::Completed, ...$attributes]);
 
         UrlIngestionStarted::dispatch($websiteUrl, $agent->external_id);
+
+        if ($progress !== null) {
+            WebsiteIngestionProgressed::dispatch($website, $agent->external_id, $progress);
+        }
     }
 }

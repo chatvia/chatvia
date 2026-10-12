@@ -411,7 +411,8 @@
                 "expires_in_months": "Går ut om {count} månad | Går ut om {count} månader",
                 "conversations_count": "{count} konversation | {count} konversationer",
                 "refresh_conversations": "Uppdatera konversationer",
-                "remove_filter": "Ta bort filter"
+                "remove_filter": "Ta bort filter",
+                "load_more": "Läs in fler"
             },
             "pagination": {
                 "prev": "Föregående",
@@ -1015,7 +1016,8 @@
                 "remove_from_agent": "Ta bort från agent",
                 "used_in_agents": "(Används i {count} agenter)",
                 "delete_from_knowledge_base": "Ta bort från kunskapsbasen",
-                "agents_count": "{count} agenter"
+                "agents_count": "{count} agenter",
+                "load_more": "Ladda fler"
             },
             "page_title": {
                 "sources": "Källor",

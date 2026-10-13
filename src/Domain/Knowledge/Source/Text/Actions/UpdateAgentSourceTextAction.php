@@ -20,9 +20,10 @@ use Throwable;
  * Nothing happens when the content did not change; content another text of
  * the workspace already has is a validation error on `content`.
  *
- * The new content is written to storage before the row points at it, and the
- * old file is removed only afterwards, so a failure never leaves the text
- * without content. The old chunks, the summary chunk included, are deleted in
+ * The new content is written to the source's storage folder
+ * ({@see KnowledgeStoragePath}) before the row points at it, and the old file
+ * is removed only afterwards, so a failure never leaves the text without
+ * content. The old chunks, the summary chunk included, are deleted in
  * the same transaction, so the summary is written again for the new content.
  */
 class UpdateAgentSourceTextAction
@@ -52,7 +53,7 @@ class UpdateAgentSourceTextAction
             ->exists();
 
         if ($duplicate) {
-            throw self::duplicate();
+            throw $this->duplicate();
         }
 
         $oldFilepath = $sourceText->filepath;
@@ -60,7 +61,7 @@ class UpdateAgentSourceTextAction
         // Write the new file first and remove the old one only after the row
         // points at the new file, so a failure never leaves the text without
         // its content.
-        $filepath = KnowledgeStoragePath::forAgent($agent, 'train/text').'/'.Str::uuid()->toString().'.txt';
+        $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $newContent);
 
         try {
@@ -79,7 +80,7 @@ class UpdateAgentSourceTextAction
             Storage::delete($filepath);
 
             // The same text saved at the same moment by another request.
-            throw $e instanceof UniqueConstraintViolationException ? self::duplicate() : $e;
+            throw $e instanceof UniqueConstraintViolationException ? $this->duplicate() : $e;
         }
 
         if ($oldFilepath !== $filepath) {
@@ -91,7 +92,7 @@ class UpdateAgentSourceTextAction
         return true;
     }
 
-    private static function duplicate(): DomainValidationException
+    private function duplicate(): DomainValidationException
     {
         return new DomainValidationException('content', __('This text is already in your knowledge base.'));
     }

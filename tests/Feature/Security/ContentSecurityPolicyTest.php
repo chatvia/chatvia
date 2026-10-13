@@ -3,10 +3,12 @@
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 // These tests pin the ContentSecurityPolicy middleware's header contract by
 // mounting it on probe routes. It is also registered globally in the `web`
-// group (bootstrap/app.php); CSP_MODE picks off / report-only / enforce.
+// group (bootstrap/app.php); Settings → Security (`chatvia.security.csp`)
+// picks off / report-only / enforce.
 beforeEach(function (): void {
     Route::middleware(ContentSecurityPolicy::class)
         ->get('/_csp-probe', fn (): ResponseFactory|\Illuminate\Http\Response => response('ok'))
@@ -102,6 +104,24 @@ describe('enforce mode', function (): void {
             ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
 
         expect($imgSrc)->toContain('https://files.example.org');
+    });
+
+    it('lets the chat load public files from an S3 bucket that has no public address set', function (): void {
+        config(['filesystems.disks.public' => [
+            'driver' => 's3',
+            'key' => 'key',
+            'secret' => 'secret',
+            'region' => 'fr-par',
+            'endpoint' => 'https://s3.fr-par.scw.cloud',
+            'bucket' => 'files-public',
+            'url' => null,
+        ]]);
+        Storage::forgetDisk('public');
+
+        $imgSrc = collect(explode('; ', (string) $this->get('/_csp-chat-probe')->headers->get('Content-Security-Policy')))
+            ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
+
+        expect($imgSrc)->toContain('s3.fr-par.scw.cloud');
     });
 
     it('adds the report-uri when one is configured', function (): void {

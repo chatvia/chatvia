@@ -17,11 +17,15 @@ interface DocumentParser
 {
     /**
      * @param  string  $filePath  Local path of the document; its extension names the format.
-     * @param  string  $storageDirectory  The owner's storage folder, for any short-lived copy the parser must upload.
+     * @param  string  $storageDirectory  The source's `tmp/` storage folder, for any short-lived copy the parser must upload.
      * @return Collection<int, PageData>
      */
     public function parse(string $filePath, string $storageDirectory): Collection;
 
-    /** Short name saved on the source as `parser` (for example "mistral-ocr" or "local"). */
+    /**
+     * Short name saved on the source as `parser` (the OCR model, such as
+     * "mistral-ocr-latest", or "local"), and part of the cache key of the
+     * parsed pages, so another reader or model reads the file again.
+     */
     public function name(): string;
 }

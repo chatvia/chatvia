@@ -184,6 +184,13 @@ trait HasSettings
     }
 
     /**
+     * The folder this model's own setting images go under, so deleting the
+     * model removes them with one prefix wipe (an agent's under its agent
+     * folder, a person's under theirs).
+     */
+    abstract public function settingsStorageRoot(): string;
+
+    /**
      * Mirror ProfilePhotoStorage: process and upload first, and only let the
      * new path reach the database once the upload succeeds — a failed upload
      * throws and leaves the existing image untouched. Brand assets (widget
@@ -200,7 +207,7 @@ trait HasSettings
         $data = Image::decodeBinary($image->getContent())->scale(height: 128)->encode(new PngEncoder)->toString();
         $file = new File(create_temp_file($image->getFilename(), $data));
 
-        $uploadedPath = $disk->putFile($this->storageRoot().'/settings/'.$group.'/'.$this->external_id, $file);
+        $uploadedPath = $disk->putFile($this->settingsStorageRoot().'/settings/'.$group, $file);
 
         // putFile returns false on failure when a disk doesn't throw — never
         // overwrite the saved value with a non-path. (The assets disk has

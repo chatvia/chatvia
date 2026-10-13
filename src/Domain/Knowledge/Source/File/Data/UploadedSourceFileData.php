@@ -6,7 +6,6 @@ namespace Domain\Knowledge\Source\File\Data;
 
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Spatie\LaravelData\Data;
-use Support\MimeType;
 
 /**
  * A file the owner uploaded as knowledge, described without the HTTP upload
@@ -33,12 +32,13 @@ final class UploadedSourceFileData extends Data
     }
 
     /**
-     * Whether the knowledge base can ingest it: a document format the document
-     * ingestion accepts (by extension) or audio or video (by content).
+     * Whether this install accepts it: a document type (by extension) or
+     * audio or video (by content) that an admin turned on.
      */
     public function isSupported(): bool
     {
-        return SourceFileTypes::isSupported($this->originalName) || $this->isMedia();
+        return SourceFileTypes::isSupported($this->originalName)
+            || SourceFileTypes::isSupportedMedia($this->mimeType);
     }
 
     /**
@@ -47,13 +47,8 @@ final class UploadedSourceFileData extends Data
      */
     public function category(): string
     {
-        return SourceFileTypes::isSupported($this->originalName)
+        return SourceFileTypes::isDocument($this->originalName)
             ? SourceFileTypes::category($this->originalName)
             : SourceFileTypes::categoryOfMimeType($this->mimeType);
-    }
-
-    private function isMedia(): bool
-    {
-        return MimeType::isAudio($this->mimeType) || MimeType::isVideo($this->mimeType);
     }
 }

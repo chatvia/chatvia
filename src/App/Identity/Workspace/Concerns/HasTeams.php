@@ -102,7 +102,7 @@ trait HasTeams
                 return $this->currentTeam;
             }
 
-            return $this->ownedTeams()->first() ?? $this->memberTeams()->first();
+            return $this->ownedTeams()->oldest('teams.id')->first() ?? $this->memberTeams()->oldest('teams.id')->first();
         });
     }
 

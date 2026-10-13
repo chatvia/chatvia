@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Actions\Retention;
 
 use Domain\Conversation\Models\AgentActivity;

@@ -5,7 +5,9 @@ use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
+use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Membership\Team\Services\TeamService;
@@ -45,11 +47,28 @@ it('replaces the file only after the row points at the new one', function (): vo
     $text->refresh();
 
     expect($changed)->toBeTrue()
+        ->and($oldPath)->toStartWith(KnowledgeStoragePath::forSource($text).'/')
         ->and($text->filepath)->not->toBe($oldPath)
+        ->and($text->filepath)->toStartWith(KnowledgeStoragePath::forSource($text).'/')
         ->and(Storage::get($text->filepath))->toBe('A new text about our product.')
-        ->and(Storage::exists($oldPath))->toBeFalse();
+        ->and(Storage::exists($oldPath))->toBeFalse()
+        ->and(Storage::allFiles())->toBe([$text->filepath]);
 
     Bus::assertDispatchedTimes(TextIngestionJob::class, 2);
+});
+
+it('stores the text in its own folder, outside the agent, and deleting the text removes the folder', function (): void {
+    $owner = textWriterOwner();
+    $agent = createAgent($owner);
+
+    $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
+
+    expect($text->filepath)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/sources/source_text/'.$text->external_id.'/');
+    Storage::assertExists($text->filepath);
+
+    app(DeleteAgentSourceTextAction::class)->execute($agent, $text);
+
+    expect(Storage::allFiles())->toBe([]);
 });
 
 it('keeps the old file and row when the update fails', function (): void {

@@ -25,13 +25,19 @@ class HandleWhatsappMessageJob implements ShouldQueue
     /** The turn bills the owner on execution — never retry it. */
     public int $tries = 1;
 
+    /** A reply may call the model and the tools several times. */
+    public int $timeout = 300;
+
     public function __construct(
         public readonly AgentWhatsappNumber $number,
         public readonly string $waId,
         public readonly string $text,
         public readonly string $messageId,
         public readonly ?string $name = null,
-    ) {}
+    ) {
+        // The chat queue: a reply never waits behind e-mails or embeddings.
+        $this->onQueue('messages');
+    }
 
     public function handle(HandleChannelMessageAction $action, WhatsappClient $client, WhatsappChatResolver $resolver): void
     {

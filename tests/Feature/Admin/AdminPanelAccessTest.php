@@ -8,11 +8,6 @@ use Filament\Facades\Filament;
  * by the dashboard login (/login) or the hosted-chat login lives on the `web`
  * guard and must never open /admin, so the panel's own login (and its optional
  * authenticator-app MFA) is always used.
- *
- * MFA is required only in production (AdminPanelProvider
- * `isRequired: App::isProduction()`); these tests run outside production, where
- * it is offered but optional. Staff tools (Horizon, Spectra)
- * always require MFA — see StaffToolsAccess.
  */
 beforeEach(function (): void {
     // fresh(): load every column, as a real request does (strict mode flags

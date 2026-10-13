@@ -40,9 +40,9 @@ function clearSearch() {
     search.value = '';
 }
 
-// Some assistant rows carry a retrieval confidence; without one the answer counts as fully confident.
-function getConfidenceScore(message: Message & { confidence_score?: number | null }): number {
-    return message.role === 'assistant' && message.confidence_score ? message.confidence_score : 1.0;
+// The confidence of the knowledge behind an answer; null when the answer used none.
+function getConfidenceScore(message: Message): number {
+    return message.confidence_score ?? 0;
 }
 
 function formatConfidenceScore(score: number): string {
@@ -145,7 +145,7 @@ function goToPage(offset: number) {
                             <span v-if="m.role === 'user' && (m.tone || m.sentiment)" class="text-muted-foreground/30">•</span>
 
                             <!-- Confidence (for assistant) -->
-                            <template v-if="m.role === 'assistant'">
+                            <template v-if="m.role === 'assistant' && m.confidence_score !== null">
                                 <span class="group relative cursor-help tabular-nums" :class="getConfidenceColor(getConfidenceScore(m))">
                                     {{ formatConfidenceScore(getConfidenceScore(m)) }}
                                     <span

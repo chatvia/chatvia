@@ -62,13 +62,13 @@ it('describes the images and tables of a document page and returns them as metad
         tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |", '  '],
     );
 
-    $enhanced = app(EnhanceChunkAction::class)->execute(new EnhanceChunkData(page: $page, imageDirectory: 'users/ws/agents/ag'));
+    $enhanced = app(EnhanceChunkAction::class)->execute(new EnhanceChunkData(page: $page, imageDirectory: 'workspaces/ws/sources/source_file/sf/images'));
 
     $metadata = $enhanced->metadata;
     $imagePath = array_key_first($metadata['images']);
 
     expect($metadata['images'][$imagePath])->toBe('A chart of ocean depths.')
-        ->and($imagePath)->toStartWith('users/ws/agents/ag/')
+        ->and($imagePath)->toStartWith('workspaces/ws/sources/source_file/sf/images/')
         ->and($metadata['tables']['markdown'])->toHaveCount(1)
         ->and($metadata['tables']['descriptions'])->toBe('One table of depths.')
         ->and($enhanced->embeddingText)->toContain('A chart of ocean depths.');

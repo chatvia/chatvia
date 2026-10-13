@@ -25,7 +25,7 @@ class AgentKnowledgeFileUploadController
     ): array {
         $data = $request->toData();
 
-        abort_unless($data->isSupported(), 422, __('File upload failed'));
+        abort_unless($data->isSupported(), 422, __('Unsupported file type.'));
 
         $info = $analyze->execute($request->file('file'), $request->user(), $agent);
         $file = $upload->execute($agent, $data);

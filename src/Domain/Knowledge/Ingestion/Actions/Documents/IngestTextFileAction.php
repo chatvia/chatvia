@@ -13,10 +13,11 @@ use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Ingest a text SourceFile by splitting its content directly with the
- * configured TextSplitter, bypassing the document parser — the text is already
- * chunk-ready, so OCR would only add cost and latency. Handles raw text (.txt,
+ * chunker, bypassing the document parser — the text is already chunk-ready,
+ * so OCR would only add cost and latency. Handles raw text (.txt,
  * .md/.markdown) read as-is and structured-text ebooks (.epub, .fb2) whose
- * markdown is extracted by Pandoc.
+ * Markdown is extracted by Pandoc; Markdown and ebooks are split as Markdown,
+ * .txt files as plain text.
  *
  * Each part becomes one PageData and rides the same DocumentChunkIngestionJob
  * batch as the document path, so embedding, enhancement, progress and
@@ -36,13 +37,7 @@ class IngestTextFileAction
             return;
         }
 
-        $pages = collect($this->splitter->split($this->text($sourceFile)))
-            ->values()
-            ->map(fn (string $part, int $index): PageData => new PageData(
-                pageNumber: $index + 1,
-                content: $part,
-                checksum: md5($part),
-            ));
+        $pages = collect(PageData::fromParts($this->splitter->split($this->text($sourceFile), $sourceFile->contentKind())));
 
         $sourceFile->update([
             'internal_ingestion_job_id' => $internalJobId,

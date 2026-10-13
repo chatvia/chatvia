@@ -1,60 +1,75 @@
 <?php
 
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
-use Domain\Knowledge\Ingestion\Services\Chunking\LocalTextSplitter;
-use Domain\Llm\Services\TikToken;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
+use Domain\Knowledge\Ingestion\Enums\ChunkSizeUnit;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
+use Domain\Knowledge\Ingestion\Enums\SplitStrategy;
+use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 
 /**
- * The local splitter needs no outside service; it packs paragraphs into
- * chunks of about `chatvia.ai.local_splitter.chunk_tokens` tokens. The hosted
- * splitter only adapts the chunk.fit client to the same contract.
+ * The built-in splitter is the only text splitter: it splits each kind of
+ * content with the strategy, unit, size and overlap set in config (Settings
+ * → Chunking), in-process.
  */
-it('returns no chunks for empty or blank text', function (): void {
-    expect((new LocalTextSplitter)->split(''))->toBe([])
-        ->and((new LocalTextSplitter)->split("  \n\n "))->toBe([]);
+beforeEach(function (): void {
+    config(['chatvia.ai.chunking' => [
+        'unit' => 'characters',
+        'size' => 60,
+        'overlap' => 0,
+        'strategies' => ['markdown' => null, 'text' => null, 'transcript' => null],
+    ]]);
 });
 
-it('keeps short text as one chunk', function (): void {
-    expect((new LocalTextSplitter)->split('Refunds take five days.'))->toBe(['Refunds take five days.']);
+it('splits each kind with the strategy set for it', function (): void {
+    $splitter = new BuiltinTextSplitter;
+    $markdown = "# Returns\n\nAny item within 30 days. Keep the receipt with you.";
+
+    // The Markdown strategy repeats the heading above every chunk of the section.
+    expect($splitter->split($markdown, ContentKind::Markdown))->toBe([
+        "# Returns\n\nAny item within 30 days.",
+        "# Returns\n\nKeep the receipt with you.",
+    ]);
+
+    config(['chatvia.ai.chunking.strategies.markdown' => 'recursive']);
+
+    expect($splitter->split($markdown, ContentKind::Markdown))->toBe([
+        '# Returns',
+        'Any item within 30 days. Keep the receipt with you.',
+    ]);
+
+    config(['chatvia.ai.chunking.strategies.text' => 'fixed', 'chatvia.ai.chunking.size' => 10]);
+
+    expect($splitter->split('abcdefghijklmnopqrstuvwxy', ContentKind::Text))->toBe(['abcdefghij', 'klmnopqrst', 'uvwxy']);
 });
 
-it('splits long text into ordered chunks within the configured size', function (): void {
-    config(['chatvia.ai.local_splitter.chunk_tokens' => 30, 'chatvia.ai.local_splitter.overlap_tokens' => 0]);
+it('splits transcripts into whole sentences by default', function (): void {
+    $transcript = 'Welcome to the show. Today we talk about tents. They keep you dry. Bring one on every trip.';
 
-    $paragraphs = [];
-    for ($i = 1; $i <= 8; $i++) {
-        $paragraphs[] = "Paragraph {$i} explains one part of the refund policy in a few plain words.";
-    }
-
-    $chunks = (new LocalTextSplitter)->split(implode("\n\n", $paragraphs));
-
-    expect(count($chunks))->toBeGreaterThan(1)
-        ->and($chunks)->each->not->toBe('');
-
-    foreach ($chunks as $chunk) {
-        expect(TikToken::countTokens($chunk))->toBeLessThanOrEqual(30);
-    }
-
-    // Every paragraph survives, in reading order.
-    expect(implode("\n\n", $chunks))->toBe(implode("\n\n", $paragraphs));
+    expect((new BuiltinTextSplitter)->split($transcript, ContentKind::Transcript))->toBe([
+        'Welcome to the show. Today we talk about tents.',
+        'They keep you dry. Bring one on every trip.',
+    ]);
 });
 
-it('names itself "local"', function (): void {
-    expect((new LocalTextSplitter)->name())->toBe('local');
+it('cleans invalid UTF-8 and returns nothing for blank text', function (): void {
+    $splitter = new BuiltinTextSplitter;
+
+    expect($splitter->split("Good text \xC3\x28 here.", ContentKind::Text))->toBe(['Good text ?( here.'])
+        ->and($splitter->split(" \n\n \t", ContentKind::Text))->toBe([]);
 });
 
-it('delegates the chunker splitter to the chunker client', function (): void {
-    $client = new class extends ChunkFitClient
-    {
-        public function split(string $text): array
-        {
-            return ['# A', 'B'];
-        }
-    };
+it('splits with an unsaved setup, such as the admin preview', function (): void {
+    $config = new ChunkingConfigData(
+        kind: ContentKind::Text,
+        strategy: SplitStrategy::Fixed,
+        unit: ChunkSizeUnit::Characters,
+        size: 4,
+        overlap: 1,
+    );
 
-    $splitter = new ChunkFitTextSplitter($client);
+    expect((new BuiltinTextSplitter)->splitWith('abcdefghij', $config))->toBe(['abcd', 'defg', 'ghij']);
+});
 
-    expect($splitter->split('# A'."\n\n".'B'))->toBe(['# A', 'B'])
-        ->and($splitter->name())->toBe('chunkfit');
+it('is named builtin', function (): void {
+    expect((new BuiltinTextSplitter)->name())->toBe('builtin');
 });

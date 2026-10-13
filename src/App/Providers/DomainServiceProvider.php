@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Admin\Settings\Listeners\ReembedToolsForNewEmbeddingModel;
 use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
 use App\Identity\Chatter\Listeners\SendChatterPasswordResetLink;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
@@ -62,13 +63,13 @@ use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
-use Domain\Knowledge\Ingestion\Services\Chunking\LocalTextSplitter;
+use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\File\Observers\SourceFileObserver;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Observers\AgentQuestionAnswerObserver;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Text\Observers\SourceTextObserver;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
@@ -78,11 +79,11 @@ use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Operations\Media\NullTranscriber;
+use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ProviderAdapters;
-use Domain\Llm\Usage\TokenUsageContext;
 use Domain\Membership\Agent\Events\AgentChatterInvited;
 use Domain\Membership\Agent\Listeners\SendAgentChatterInvitationEmail;
 use Domain\Membership\Team\Events\TeamInvitationCreated;
@@ -97,6 +98,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use InvalidArgumentException;
+use Spatie\LaravelSettings\Events\SavingSettings;
 
 /**
  * Domain wiring: observers, DI bindings against contracts (AI providers,
@@ -130,11 +132,6 @@ class DomainServiceProvider extends ServiceProvider
         // tool loop streams through — ToolLoopRunnerTest injects fake transformers
         // to drive canned tool-call streams without a live upstream.
         $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
-
-        // Per-request / per-job scope that attributes AI requests to a
-        // workspace. MUST be a singleton so every call within one chat turn or
-        // queued job sees the same scope.
-        $this->app->singleton(TokenUsageContext::class);
 
         $this->registerAiServices();
 
@@ -177,7 +174,7 @@ class DomainServiceProvider extends ServiceProvider
 
         $this->app->bind(fn ($app): Reranker => match ($this->aiDriver('reranker', auto: match (config('chatvia.ai.models.embedding', 'mistral')) {
             'qwen' => 'qwen',
-            'jina', 'mistral' => 'none',
+            'openai', 'google', 'mistral', 'jina' => 'none',
             default => 'cohere',
         })) {
             'qwen' => $app->make(Qwen3Reranker::class),
@@ -192,16 +189,17 @@ class DomainServiceProvider extends ServiceProvider
             default => throw $this->unknownAiDriver('document_parser', ['mistral', 'local']),
         });
 
-        $this->app->bind(fn ($app): TextSplitter => match ($this->aiDriver('text_splitter', auto: $app->make(ChunkFitClient::class)->isAvailable() ? 'chunkfit' : 'local')) {
-            'chunkfit' => $app->make(ChunkFitTextSplitter::class),
-            'local' => $app->make(LocalTextSplitter::class),
-            default => throw $this->unknownAiDriver('text_splitter', ['chunkfit', 'local']),
-        });
+        $this->app->bind(TextSplitter::class, BuiltinTextSplitter::class);
 
-        $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: filled(config('services.scalewayai.api_key')) ? 'scaleway' : 'none')) {
+        $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: match (true) {
+            filled(config('services.scalewayai.api_key')) => 'scaleway',
+            filled(config('services.openai.api_key')) => 'openai',
+            default => 'none',
+        })) {
             'scaleway' => $app->make(ScalewayTranscriber::class),
+            'openai' => $app->make(OpenAiTranscriber::class),
             'none' => $app->make(NullTranscriber::class),
-            default => throw $this->unknownAiDriver('transcriber', ['scaleway', 'none']),
+            default => throw $this->unknownAiDriver('transcriber', ['scaleway', 'openai', 'none']),
         });
 
         $this->app->bind(function ($app): DocumentLlm {
@@ -260,12 +258,16 @@ class DomainServiceProvider extends ServiceProvider
         SourceText::observe(SourceTextObserver::class);
         SourceWebsite::observe(SourceWebsiteObserver::class);
         SourceYoutubeVideo::observe(SourceYoutubeVideoObserver::class);
+        AgentQuestionAnswer::observe(AgentQuestionAnswerObserver::class);
     }
 
     private function registerEventListeners(): void
     {
         Event::listen(Login::class, RecordKnownDevice::class);
         Event::listen(Login::class, RecordLastLogin::class);
+
+        // A new embedding model (Settings → AI) needs every tool embedded again.
+        Event::listen(SavingSettings::class, ReembedToolsForNewEmbeddingModel::class);
 
         // Enterprise security audit log — one parametric event, persisted off
         // the request by a queued listener. The auth listeners run on the web

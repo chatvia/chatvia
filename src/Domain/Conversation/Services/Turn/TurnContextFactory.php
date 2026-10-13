@@ -42,11 +42,11 @@ class TurnContextFactory
         $scope = new ChatScopeData($data->agent, $data->externalSessionId, $data->conversationId);
         $memory = $this->memory->withScope($scope);
 
-        $rewritten = $this->queryRewriter->rewrite($data->message->message);
+        $history = $memory->getLlmMessages();
+
+        $rewritten = $this->queryRewriter->rewrite($data->message->message, $this->previousQuestion($history, $data));
         $guard = $this->inspectInput($data);
         $turn = $this->userTurn($data, $guard, $rewritten);
-
-        $history = $memory->getLlmMessages();
 
         // A follow-up message is recorded now. The first message of a new
         // conversation was already recorded when the conversation was created,
@@ -124,6 +124,29 @@ class TurnContextFactory
             assistantMessageId: $checkpoint->assistant_message_id,
             queryLanguage: $saved->queryLanguage,
         );
+    }
+
+    /**
+     * The visitor's last question before this one, as it was searched (the
+     * rewritten, redacted text), so the rewriter can complete a follow-up
+     * such as "and the price?". The first message of a new conversation is
+     * already in the history, and has no previous question.
+     *
+     * @param  list<array{role: string, content: mixed}>  $history
+     */
+    private function previousQuestion(array $history, StreamRequestData $data): ?string
+    {
+        if (! $data->saveUserMessageImmediately && count($history) <= 1) {
+            return null;
+        }
+
+        foreach (array_reverse($history) as $message) {
+            if ($message['role'] === MessageRole::User->value && is_string($message['content']) && trim($message['content']) !== '') {
+                return $message['content'];
+            }
+        }
+
+        return null;
     }
 
     /**

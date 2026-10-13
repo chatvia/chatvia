@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\RateLimiter;
 /**
  * Per-agent-per-tool call-rate guard over a fixed window (the window starts
  * with the first call and resets after `tool_rate_window_seconds`),
- * cache-backed via the framework {@see RateLimiter} (the codebase's chosen
- * mechanism — see AppServiceProvider::configureRateLimiters). Generous by
- * default so it stays invisible until a workspace tightens it; an exhausted
+ * cache-backed via the framework {@see RateLimiter}. The limit and window are
+ * Settings → Limits (`chatvia.governance.tool_rate_*`). Generous by default
+ * so it stays invisible until it is tightened; an exhausted
  * window makes {@see ToolAccessPolicy} return Deny, and the runner then
  * synthesizes a recoverable "rate-limited" tool result and records it in the
  * audit log.

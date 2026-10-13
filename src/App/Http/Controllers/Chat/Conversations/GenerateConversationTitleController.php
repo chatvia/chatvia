@@ -8,7 +8,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -25,7 +24,6 @@ class GenerateConversationTitleController
         ChatMemory $memory,
         HostedChatSession $session,
         GenerateConversationTitleAction $generateTitle,
-        TokenUsageContext $usage,
     ): JsonResponse {
         $scope = $session->scope($agent, $conversationId);
 
@@ -37,8 +35,7 @@ class GenerateConversationTitleController
             ->first();
 
         if ($conversation?->needsTitle()) {
-            // The title is an LLM call: attribute its tokens to the workspace.
-            $usage->track($agent->workspace_id, fn () => $generateTitle->execute($scope));
+            $generateTitle->execute($scope);
             $conversation->refresh();
         }
 

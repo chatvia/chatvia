@@ -12,7 +12,6 @@ use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
-use Spectra\Facades\Spectra;
 
 /**
  * The whole point of the eval runner is to exercise the agent's REAL pipeline
@@ -24,10 +23,6 @@ use Spectra\Facades\Spectra;
  * We fake the heavy collaborators (a real run would need a live LLM + embeddings)
  * and drive the orchestration body.
  */
-beforeEach(function (): void {
-    Spectra::fake();
-});
-
 /**
  * ChatService is a readonly class, so Mockery can't extend it — use a readonly
  * anonymous subclass double that builds a ChatContext from the request and
@@ -197,7 +192,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
 
     $runner = Mockery::mock(ToolLoopRunner::class);
     $runner->shouldReceive('run')->andReturnUsing(
-        function ($context, $provider, $modelName, $providerSlug, $llmMessages, $toolDefinitions, $extraSettings = [], $startIteration = 0, $captureToolCallsOnly = false) use (&$captureFlag): Generator {
+        function ($context, $provider, $modelName, $llmMessages, $toolDefinitions, $extraSettings = [], $startIteration = 0, $captureToolCallsOnly = false) use (&$captureFlag): Generator {
             $captureFlag = $captureToolCallsOnly;
             // What the runner records in capture mode: the intended call + its name.
             $context->capturedToolCalls[] = ['name' => 'send_email', 'arguments' => '{"to":"a@b.com"}'];

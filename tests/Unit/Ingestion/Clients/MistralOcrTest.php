@@ -84,7 +84,7 @@ it('maps an OCR page to PageData with stripped content, checksum, images, tables
     $page = $pages->first();
 
     expect($page)->toBeInstanceOf(PageData::class)
-        ->and($page->pageNumber)->toBe(1)
+        ->and($page->pageNumber)->toBe(2)
         ->and($page->content)->toContain('Title')
         ->and($page->content)->toContain('Body paragraph')
         ->and($page->content)->not->toContain('<')
@@ -95,19 +95,17 @@ it('maps an OCR page to PageData with stripped content, checksum, images, tables
         ->and($page->hyperlinks)->toBe(['https://docs.test/a', 'https://docs.test/b']);
 });
 
-it('normalises a zero-based page index to one-based pageNumber', function (): void {
+it('numbers pages from 1, one past Mistral\'s zero-based index', function (): void {
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
-            'index' => 0,
-            'markdown' => 'first page',
-            'images' => [],
-            'tables' => [],
-        ]), 200),
+        'api.mistral.ai/v1/ocr' => Http::response(['pages' => [
+            ['index' => 0, 'markdown' => 'first page', 'images' => [], 'tables' => []],
+            ['index' => 1, 'markdown' => 'second page', 'images' => [], 'tables' => []],
+        ]], 200),
     ]);
 
-    $page = app(MistralOcr::class)->fromUrl('https://files.test/x.pdf')->first();
+    $pages = app(MistralOcr::class)->fromUrl('https://files.test/x.pdf');
 
-    expect($page->pageNumber)->toBe(1);
+    expect($pages->map(fn (PageData $page): int => $page->pageNumber)->all())->toBe([1, 2]);
 });
 
 it('propagates upstream HTTP errors via ->throw()', function (): void {
@@ -133,7 +131,7 @@ it('omits hyperlinks when the upstream payload doesn\'t include them', function 
     $page = app(MistralOcr::class)->fromUrl('https://files.test/x.pdf')->first();
 
     expect($page->hyperlinks)->toBe([])
-        ->and($page->pageNumber)->toBe(2);
+        ->and($page->pageNumber)->toBe(3);
 });
 
 it('writes the temporary OCR copy under the owner prefix and deletes it after success', function (): void {

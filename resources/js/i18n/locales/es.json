@@ -1042,9 +1042,9 @@
                 "record_description": "Graba audio directamente desde tu micrófono para agregarlo a la base de conocimiento de tu agente"
             },
             "files": {
-                "uploader_description_audio": "Sube archivos de audio para transcripción. Formatos compatibles: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR y 3GP. Tamaño máximo: 200 MB.",
-                "uploader_description_video": "Sube archivos de video para transcripción. Formatos compatibles: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime y 3GPP. Tamaño máximo: 200 MB.",
-                "uploader_description_default": "Documentos: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Texto (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Imágenes: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Máx. 50 MB por archivo.",
+                "uploader_description_audio": "Sube archivos de audio para transcripción. Formatos compatibles: {formats}. Máx. {size} MB por archivo.",
+                "uploader_description_video": "Sube archivos de vídeo para transcripción. Formatos compatibles: {formats}. Máx. {size} MB por archivo.",
+                "uploader_description_default": "Formatos compatibles: {formats}. Máx. {size} MB por archivo.",
                 "type_unknown": "Desconocido",
                 "minutes_count": "{count} minuto | {count} minutos",
                 "pages_count": "{count} página | {count} páginas",
@@ -1105,7 +1105,8 @@
                 "summary_formatting": "Elementos de formato",
                 "summary_sensitive_title": "Información sensible detectada",
                 "summary_sensitive_description": "Este documento puede contener información sensible o confidencial.",
-                "summary_empty": "No hay datos de resumen disponibles para este archivo."
+                "summary_empty": "No hay datos de resumen disponibles para este archivo.",
+                "uploads_off": "El administrador ha desactivado la subida de estos tipos de archivo."
             },
             "text": {
                 "load_failed": "Error al cargar la entrada de texto",

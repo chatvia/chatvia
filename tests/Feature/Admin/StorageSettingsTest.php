@@ -19,7 +19,6 @@ use Livewire\Livewire;
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
-    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
     Filament::setCurrentPanel('admin');
 });
 
@@ -82,6 +81,25 @@ it('moves both disks to S3-compatible storage once it is saved, also for a proce
     app()->forgetScopedInstances();
 
     expect(app(StorageSettings::class)->s3_secret)->toBe('minio-secret');
+});
+
+it('keeps knowledge files on the private disk, so they follow the storage setting', function (): void {
+    expect(config('filesystems.default'))->toBe('private');
+});
+
+it('goes back to this server in a process that started on S3-compatible storage', function (): void {
+    $local = config('filesystems.disks.private');
+    config(['chatvia.storage.driver' => 's3', 'chatvia.storage.s3.private_bucket' => 'files', 'chatvia.storage.s3.public_bucket' => 'files-public']);
+
+    // A worker that booted while S3 was chosen.
+    $disks = new StorageDisks(app('config'), app());
+    $disks->apply();
+    expect(config('filesystems.disks.private.driver'))->toBe('s3');
+
+    config(['chatvia.storage.driver' => 'local']);
+    $disks->apply();
+
+    expect(config('filesystems.disks.private'))->toBe($local);
 });
 
 it('refuses S3-compatible storage without its buckets and keys', function (): void {

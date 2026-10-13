@@ -77,8 +77,9 @@ class ManageAiSettings extends AdminSettingsPage
                 $this->choice('transcriber', 'Speech to text', [
                     'auto' => 'Automatic',
                     'scaleway' => 'Scaleway AI (Whisper)',
+                    'openai' => 'OpenAI (Whisper)',
                     'none' => 'Off',
-                ], help: 'Voice input and audio sources.'),
+                ], help: 'Voice input, and audio and video sources. Automatic uses Scaleway AI when its key is set, else OpenAI.'),
                 $this->choice('document_llm', 'Whole-PDF reading', [
                     'auto' => 'Automatic',
                     'mistral' => 'Mistral',
@@ -126,6 +127,18 @@ class ManageAiSettings extends AdminSettingsPage
                 $this->url('jina_api_endpoint', 'Address'),
                 $this->embeddingModel('jina_embedding_model'),
             ])->required('jina_api_key'),
+            SettingsCard::make('openai', 'OpenAI', 'Embeddings and speech to text. Its chat models are added as a provider.', asset('images/llms/gpt.svg'), fn (): array => [
+                $this->secret('openai_api_key', 'API key'),
+                $this->url('openai_api_endpoint', 'Address'),
+                $this->embeddingModel('openai_embedding_model'),
+                $this->text('openai_transcription_model', 'Speech-to-text model',
+                    help: 'whisper-1, or gpt-4o-transcribe. Files up to 25 MB, about an hour and a half of audio.'),
+            ])->required('openai_api_key')->console('https://platform.openai.com/api-keys'),
+            SettingsCard::make('gemini', 'Google Gemini', 'Embeddings. Its chat models are added as a provider.', asset('images/llms/gemini.svg'), fn (): array => [
+                $this->secret('gemini_api_key', 'API key'),
+                $this->url('gemini_api_endpoint', 'Address'),
+                $this->embeddingModel('gemini_embedding_model'),
+            ])->required('gemini_api_key')->console('https://aistudio.google.com/apikey'),
         ];
     }
 

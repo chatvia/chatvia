@@ -98,7 +98,7 @@ function storageDisksWith(array $env): array
 {
     config(['chatvia.storage' => configFileWith('chatvia.php', [...noCloudStorageEnv(), ...$env])['storage']]);
 
-    return (new StorageDisks(app('config'), app()))->disks();
+    return new StorageDisks(app('config'), app())->disks();
 }
 
 it('keeps object storage and the CDN when their env is set', function (): void {

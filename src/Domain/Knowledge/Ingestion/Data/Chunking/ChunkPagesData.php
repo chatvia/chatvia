@@ -13,7 +13,7 @@ use Spatie\LaravelData\Data;
 /**
  * Pages of one source to store as chunks: how they are enhanced, the storage
  * folder for the images of document pages, and the splitter that cut them
- * (null when the parser or the token splitter made the pages).
+ * (null when the caller does not record one).
  */
 final class ChunkPagesData extends Data
 {

@@ -12,6 +12,7 @@ use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -19,8 +20,10 @@ use Throwable;
  * keyed to the agent's owner (the workspace), measured for the quota (pages or
  * minutes), and left in the "uploaded" state until the owner starts training.
  *
- * The stored object is written before the database rows; when the rows fail,
- * the object is deleted again so no orphan file stays in storage.
+ * The stored object is written before the database rows, into the source's own
+ * folder ({@see KnowledgeStoragePath}), so the source's external id is chosen
+ * first. When the rows fail, the object is deleted again so no orphan file
+ * stays in storage.
  */
 class UploadKnowledgeSourceFileAction
 {
@@ -40,15 +43,19 @@ class UploadKnowledgeSourceFileAction
             throw new UnsupportedSourceFileException;
         }
 
+        $sourceFile = new SourceFile([
+            'workspace_id' => $agent->workspace_id,
+            'external_id' => (string) Str::uuid7(),
+        ]);
+
         // Stored under a random name with the extension guessed from the content.
-        $path = Storage::putFile(KnowledgeStoragePath::forAgent($agent, 'files'), new File($upload->path));
+        $path = Storage::putFile(KnowledgeStoragePath::forSource($sourceFile), new File($upload->path));
 
         try {
-            return DB::transaction(function () use ($agent, $upload, $path, $status): SourceFile {
+            return DB::transaction(function () use ($sourceFile, $agent, $upload, $path, $status): SourceFile {
                 $analysis = $this->analyzer->analyze($upload->path, $upload->extension());
 
-                $sourceFile = SourceFile::create([
-                    'workspace_id' => $agent->workspace_id,
+                $sourceFile->fill([
                     'filename' => $upload->originalName,
                     'filetype' => $upload->category(),
                     'filepath' => $path,
@@ -58,7 +65,7 @@ class UploadKnowledgeSourceFileAction
                     'status' => $status,
                     'length' => $analysis->length,
                     'metadata' => $analysis->toArray(),
-                ]);
+                ])->save();
 
                 $sourceFile->agents()->attach($agent->id);
 

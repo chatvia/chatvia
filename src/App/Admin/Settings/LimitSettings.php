@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 /**
- * Advanced limits: how long the tool-call audit, the guardrail log, the
- * security log and the AI call log are kept, the per-tool rate limit, and the
- * guardrails master switch.
+ * Advanced limits: how long the tool-call audit, the guardrail log and the
+ * security log are kept, the per-tool rate limit, and the guardrails master
+ * switch.
  */
 class LimitSettings extends AdminSettings
 {
@@ -31,9 +31,6 @@ class LimitSettings extends AdminSettings
 
     #[ConfigKey('chatvia.security_audit.retention_floor_days')]
     public ?int $security_audit_retention_floor_days = null;
-
-    #[ConfigKey('chatvia.spectra.retention_days')]
-    public ?int $spectra_retention_days = null;
 
     public static function group(): string
     {

@@ -132,7 +132,7 @@
     "You've reached the limit of :max files for this chat.": "Olet saavuttanut tämän keskustelun :max tiedoston rajan.",
     "No file was uploaded.": "Tiedostoa ei ladattu.",
     "Only PDF files are supported right now.": "Vain PDF-tiedostoja tuetaan tällä hetkellä.",
-    "File is too large — the limit is 25 MB.": "Tiedosto on liian suuri — raja on 25 Mt.",
+    "File is too large — the limit is :size MB.": "Tiedosto on liian suuri — raja on :size Mt.",
     "Topic added successfully": "Aihe lisättiin",
     "Topic created successfully": "Aihe luotiin",
     "Topic not found for this agent": "Aihetta ei löytynyt tältä agentilta",

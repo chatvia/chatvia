@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useBrand } from '@/composables/useBrand';
 import AppLayout from '@/layouts/AppLayout.vue';
 import WorkspaceLayout from '@/layouts/workspace/Layout.vue';
 import { destroy as destroyApiKey, store as storeApiKey } from '@/routes/integrations/api-keys';
@@ -33,6 +34,7 @@ import { type BreadcrumbItem } from '@/types';
 import { AlertCircle, Check, Copy, KeyRound, Plus, Tag, Trash2 } from 'lucide-vue-next';
 
 const { t } = useI18n();
+const { apiDocsUrl } = useBrand();
 
 interface TokenRow {
     id: number;
@@ -133,7 +135,7 @@ const dismissDialog = () => {
                         <p class="text-muted-foreground mt-1 text-sm">
                             <i18n-t keypath="workspace.api_keys.description" tag="span">
                                 <template #api_link
-                                    ><a class="underline" href="/docs/api" target="_blank">{{ t('workspace.api_keys.api_link') }}</a></template
+                                    ><a class="underline" :href="apiDocsUrl()" target="_blank">{{ t('workspace.api_keys.api_link') }}</a></template
                                 >
                             </i18n-t>
                         </p>

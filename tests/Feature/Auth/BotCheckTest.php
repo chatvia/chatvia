@@ -2,6 +2,7 @@
 
 use App\Http\Auth\BotCheck;
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Models\Agent;
 use Inertia\Testing\AssertableInertia;
 use RyanChandler\LaravelCloudflareTurnstile\Facades\Turnstile;
 
@@ -104,7 +105,24 @@ it('leaves a form alone when its switch is off', function (): void {
 it('gives the pages the site key and the forms it protects', function (): void {
     turnstileOn(signIn: false);
 
-    $this->get(route('login'))->assertInertia(fn (AssertableInertia $page) => $page
+    $this->get(route('login'))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
         ->where('turnstile.site_key', '1x00000000000000000000AA')
         ->where('turnstile.forms', ['sign_up', 'password_reset']));
+});
+
+it('checks the hosted chat sign-in forms too, and gives the chat sign-in page the site key', function (): void {
+    turnstileOn();
+    Turnstile::fake();
+    $agent = Agent::factory()->create(['is_public' => false]);
+
+    $this->get("/chat/{$agent->slug}/login")->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+        ->component('auth/LoginChatter')
+        ->where('turnstile.site_key', '1x00000000000000000000AA'));
+
+    $this->post("/chat/{$agent->slug}/login", ['email' => 'ada@example.com', 'password' => 'password'])
+        ->assertSessionHasErrors(BotCheck::FIELD);
+    $this->post("/chat/{$agent->slug}/magic-link", ['email' => 'ada@example.com'])
+        ->assertSessionHasErrors(BotCheck::FIELD);
+    $this->post("/chat/{$agent->slug}/magic-link", ['email' => 'ada@example.com', BotCheck::FIELD => Turnstile::dummy()])
+        ->assertSessionHasNoErrors();
 });

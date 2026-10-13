@@ -4,12 +4,14 @@ namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
+use Domain\Conversation\Data\Messages\MessageSourceData;
 use Domain\Conversation\Data\Messages\ReplyUsageData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\MessageSource;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\Llm;
@@ -21,7 +23,7 @@ use Illuminate\Support\Facades\DB;
  * Writes one assistant reply to the chat log. It first settles the reply's
  * token usage (from the stream, or from the provider when the stream carried
  * none), then in one transaction stores the message under its session and
- * conversation. Once committed it announces the message to analytics and, on
+ * conversation, with the knowledge it was given. Once committed it announces the message to analytics and, on
  * the first reply, queues the conversation's title.
  */
 class StoreAssistantMessageAction
@@ -42,6 +44,8 @@ class StoreAssistantMessageAction
             $conversation = $this->chatLog->conversation($session, $turn->external_conversation_id, $turn->source);
 
             $message = Message::create($this->attributes($turn, $conversation, $usage));
+
+            $this->storeSources($message, $turn);
 
             return $message->setRelation('conversation', $conversation->setRelation('session', $session));
         });
@@ -105,6 +109,27 @@ class StoreAssistantMessageAction
             'created_at' => $turn->sent_at,
             'updated_at' => $turn->sent_at,
         ];
+    }
+
+    /** The knowledge the answer was given, in its order, under the message's workspace. */
+    private function storeSources(Message $message, AssistantTurnData $turn): void
+    {
+        if ($turn->sources === []) {
+            return;
+        }
+
+        MessageSource::query()->insert(array_map(static fn (MessageSourceData $source): array => [
+            'workspace_id' => $message->workspace_id,
+            'chat_message_id' => $message->id,
+            'rank' => $source->rank,
+            'chunk_id' => $source->chunk_id,
+            'sourceable_type' => $source->sourceable_type,
+            'sourceable_id' => $source->sourceable_id,
+            'score' => $source->score,
+            'label' => mb_substr($source->label, 0, 500),
+            'url' => $source->url !== null ? mb_substr($source->url, 0, 2048) : null,
+            'page' => $source->page,
+        ], $turn->sources));
     }
 
     /**

@@ -39,9 +39,9 @@
                 "record_description": "Spela in ljud direkt från din mikrofon och lägg till det i agentens kunskapsbas"
             },
             "files": {
-                "uploader_description_audio": "Ladda upp ljudfiler för transkribering. Format som stöds: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR och 3GP. Maximal filstorlek: 200 MB.",
-                "uploader_description_video": "Ladda upp videofiler för transkribering. Format som stöds: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime och 3GPP. Maximal filstorlek: 200 MB.",
-                "uploader_description_default": "Dokument: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Bilder: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max 50 MB per fil.",
+                "uploader_description_audio": "Ladda upp ljudfiler för transkribering. Format som stöds: {formats}. Max {size} MB per fil.",
+                "uploader_description_video": "Ladda upp videofiler för transkribering. Format som stöds: {formats}. Max {size} MB per fil.",
+                "uploader_description_default": "Format som stöds: {formats}. Max {size} MB per fil.",
                 "type_unknown": "Okänd",
                 "minutes_count": "{count} minut | {count} minuter",
                 "pages_count": "{count} sida | {count} sidor",
@@ -61,6 +61,7 @@
                 "upload_title_video": "Ladda upp videofiler",
                 "upload_title_default": "Ladda upp nya dokument",
                 "uploads_disabled": "Filuppladdningar är inaktiverade medan träning pågår",
+                "uploads_off": "Administratören har stängt av uppladdning av dessa filtyper.",
                 "ready_to_train": "Redo att träna",
                 "uploaded_ready": "{count} fil uppladdad och redo för träning | {count} filer uppladdade och redo för träning",
                 "clear_all": "Rensa alla",

@@ -5,15 +5,17 @@ namespace Domain\Conversation\Services\Turn;
 use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
-use Domain\Conversation\Enums\ConfidenceBand;
+use Domain\Conversation\Data\Messages\MessageSourceData;
+use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
 
 /**
  * Records the assistant's answer when a turn ends: adds it to the conversation
- * (live memory now, chat log through the queue) and, on the hosted chat,
- * remembers which sources it was answered from. A turn where a model really
+ * (live memory now, chat log through the queue) with the knowledge it was
+ * given, and, for a client that shows sources, remembers them in the live
+ * memory so they come back with the history. A turn where a model really
  * answered also announces {@see AssistantReplyCompleted}, which counts against
  * the workspace's message limit; a guardrail refusal is recorded for the
  * history only.
@@ -37,7 +39,7 @@ class AssistantReplyRecorder
         if ($request->streamSources) {
             $this->memory
                 ->withScope($this->scope($context))
-                ->storeSourcesForMessage($context->assistantMessageId, $context->sources->toArray());
+                ->storeSourcesForMessage($context->assistantMessageId, $context->sources->map(static fn (RetrievedSourceData $source): array => $source->forClient())->values()->all());
         }
     }
 
@@ -73,14 +75,17 @@ class AssistantReplyRecorder
             has_llm_found_answer: $this->foundAnswer($context),
             artifacts: $context->artifacts,
             tool_calls: $context->toolCallNames,
+            sources: $context->sources->values()->map(static fn (RetrievedSourceData $source, int $rank): MessageSourceData => MessageSourceData::fromRetrieved($source, $rank))->all(),
         ));
     }
 
     /**
-     * Whether the turn produced an answer, from deterministic retrieval
-     * signals — never the LLM's own claim.
+     * Whether the turn found an answer, from deterministic retrieval signals,
+     * never the LLM's own claim: a Q&A match, or knowledge that passed a
+     * relevance check. Knowledge used without any check says nothing (null);
+     * no knowledge at all means not found.
      */
-    private function foundAnswer(ChatContext $context): bool
+    private function foundAnswer(ChatContext $context): ?bool
     {
         if ($context->hasQaMatch()) {
             return true;
@@ -90,8 +95,7 @@ class AssistantReplyRecorder
             return false;
         }
 
-        return $context->confidenceScore !== null
-            && $context->confidenceScore >= ConfidenceBand::MEDIUM_FLOOR;
+        return $context->confidenceScore !== null ? true : null;
     }
 
     private function scope(ChatContext $context): ChatScopeData

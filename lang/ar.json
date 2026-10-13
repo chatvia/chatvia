@@ -132,7 +132,7 @@
     "You've reached the limit of :max files for this chat.": "وصلت إلى الحد الأقصى وهو :max ملفات لهذه الدردشة.",
     "No file was uploaded.": "لم يُرفع أي ملف.",
     "Only PDF files are supported right now.": "ملفات PDF فقط مدعومة حاليًا.",
-    "File is too large — the limit is 25 MB.": "الملف كبير جدًا — الحد الأقصى 25 ميغابايت.",
+    "File is too large — the limit is :size MB.": "الملف كبير جدًا — الحد الأقصى :size ميغابايت.",
     "Topic added successfully": "تمت إضافة الموضوع بنجاح",
     "Topic created successfully": "تم إنشاء الموضوع بنجاح",
     "Topic not found for this agent": "الموضوع غير موجود لهذا الوكيل",

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Conversation\Services\Tooling\Routing;
 
 use Domain\Agent\Models\Agent;
@@ -7,7 +9,6 @@ use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Routing\AlwaysAvailableToolResolver;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -34,7 +35,6 @@ class ToolSelector
         private readonly SemanticToolRouter $router,
         private readonly StickyToolResolver $sticky,
         private readonly SurfaceToolFilter $surfaceFilter,
-        private readonly TokenUsageContext $usage,
         private readonly AlwaysAvailableToolResolver $alwaysAvailable,
     ) {}
 
@@ -63,14 +63,7 @@ class ToolSelector
         }
 
         try {
-            // Tool routing embeds the user message (SemanticToolRouter::route →
-            // embedQuery) — and runs inside the streaming generator, after the
-            // chat-turn build scope has already closed. Open its own scope so the
-            // embed's tokens are attributed to the workspace.
-            $routed = $this->usage->track(
-                $agent->workspace_id,
-                fn (): array => $this->router->route($userMessage, $agent),
-            );
+            $routed = $this->router->route($userMessage, $agent);
         } catch (Throwable $e) {
             return $this->shipFullPool($agent, $conversationId, $e);
         }

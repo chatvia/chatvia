@@ -29,7 +29,7 @@ class ManageBrandSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
 
     #[\Override]
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 9;
 
     public static function description(): string
     {
@@ -44,11 +44,11 @@ class ManageBrandSettings extends AdminSettingsPage
     protected function cards(): array
     {
         return [
-            SettingsCard::make('name', 'Name and links', 'Shown in the app and in emails. Leave a link empty to hide it.', Heroicon::OutlinedSwatch, fn (): array => [
+            SettingsCard::make('name', 'Name and links', 'Shown in the app and in emails.', Heroicon::OutlinedSwatch, fn (): array => [
                 $this->text('name', 'Product name'),
-                $this->url('website_url', 'Website'),
-                $this->url('docs_url', 'Documentation'),
-                $this->url('api_docs_url', 'API documentation'),
+                $this->url('website_url', 'Website', help: 'The logo on the sign-in pages leads here. Leave empty to lead to the sign-in page.'),
+                $this->url('docs_url', 'Documentation', help: 'The Documentation link in the dashboard header. Leave empty to hide it.'),
+                $this->url('api_docs_url', 'API documentation', help: 'Leave empty to use the API reference this app serves at /docs/api.'),
             ])->summary(fn (): string => 'Name: '.$this->shown($this->valueInUse('name'))),
             SettingsCard::make('powered_by', 'Powered by', 'The credit under hosted chats and widgets. Each agent can also hide it.', Heroicon::OutlinedHeart, fn (): array => [
                 $this->toggle('powered_by_enabled', 'Show the credit'),

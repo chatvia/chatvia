@@ -18,11 +18,10 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
  * #1 named gap: chunks ingested via CreateSourceChunksAction → searched via
  * KnowledgeBase::search → ranked + confidence-scored result objects.
  *
- * The pure helpers (confidenceScore / stripXmlTags) are covered by
- * RetrievalScoringTest; THIS file exercises the live SQL: the four-channel
- * RRF (vector + question + bm25 + question_bm25), agent-scoping via
- * agent_sources EXISTS, and the processResults wrap that maps ranks to
- * confidence_score.
+ * The pure helper (plainText) is covered by RetrievalScoringTest; THIS file
+ * exercises the live SQL: the four-channel RRF (vector + question + bm25 +
+ * question_bm25), agent-scoping via agent_sources EXISTS, and the results'
+ * relevance (null without a relevance check).
  *
  * REQUIRES the migrated + seeded test DB with pgvector + bm25 + tokenizer
  * extensions installed (the canonical install_vectorchord_extensions migration).
@@ -113,11 +112,9 @@ it('returns ranked results scoped to the agent with confidence scores from Retri
     $results = app(KnowledgeBase::class)->search($agent, 'powerhouse mitochondria');
 
     expect($results)->not->toBe([])
-        ->and($results[0])->toHaveProperties(['id', 'chunk', 'chunkable_type', 'chunkable_id', 'confidence_score', 'search_type'])
-        // confidenceScore: top result → 0.99 (covered structurally by RetrievalScoringTest).
-        ->and($results[0]->confidence_score)->toBeFloat()
-        ->and($results[0]->confidence_score)->toBeGreaterThanOrEqual(0.5)
-        ->and($results[0]->confidence_score)->toBeLessThanOrEqual(0.99);
+        ->and($results[0])->toHaveProperties(['id', 'chunk', 'chunkable_type', 'chunkable_id', 'relevance', 'search_type'])
+        // The no-op reranker runs no relevance check.
+        ->and($results[0]->relevance)->toBeNull();
 });
 
 it('does not return another agent\'s chunks (tenancy boundary)', function (): void {

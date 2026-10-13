@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
@@ -15,7 +17,8 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
  * The body of every chunk job of a file or text source (document pages, media
  * transcript parts, text parts): stores the job's pages as chunks, enhanced
  * as the source's setting says (see {@see ChunkEnhancement}), and reports the
- * source's progress to its page.
+ * source's progress to its page. Images saved from document pages go in the
+ * source's own `images/` folder, so they are deleted with the source.
  *
  * Progress comes from the job batch (jobs done / jobs in the batch), so it
  * also moves for pages that were duplicates and made no chunk. The batch's
@@ -33,7 +36,7 @@ class IngestSourceChunkAction
             source: $data->source,
             group: $data->group,
             enhancement: $data->enhancement ?? ChunkEnhancement::for($data->source),
-            imageDirectory: KnowledgeStoragePath::forAgent($data->agent),
+            imageDirectory: KnowledgeStoragePath::forSource($data->source, 'images'),
         ));
 
         if ($data->progress === null) {

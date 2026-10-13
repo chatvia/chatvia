@@ -118,7 +118,7 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
         $maxBindings = max($maxBindings, count($query->bindings));
     });
 
-    (new BuildDataExportArchiveAction(batchSize: 2))->execute($export);
+    new BuildDataExportArchiveAction(batchSize: 2)->execute($export);
 
     $export->refresh();
     expect($export->status)->toBe(DataExportStatus::Ready);

@@ -7,7 +7,6 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Services\ContentAnalyzer;
-use Domain\Knowledge\Ingestion\Services\TokenCounter;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -16,6 +15,7 @@ use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Operations\Documents\Summarizer;
 use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\DocumentLlm;
+use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -32,7 +32,6 @@ class CreateSourceSummaryAction
         private readonly DocumentLlm $documentLlm,
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly OfficePdf $officePdf,
-        private readonly TokenCounter $tokens,
     ) {}
 
     public function execute(SourceFile|SourceText|SourceWebsite $source): ?Chunk
@@ -61,7 +60,7 @@ class CreateSourceSummaryAction
             'cost_in_micro_cents' => CostCalculator::centsToMicroCents(
                 $this->llmCost($analyzed, $summary) + $this->embeddingCost($plainSummary) + $this->embeddingCost($questions),
             ),
-            'tokens' => $this->tokens->count($summaryText),
+            'tokens' => TikToken::countTokens($summaryText),
             'embedding' => $this->embeddings->embed($plainSummary, true),
             'embedding_bm25' => Bm25Tokenizer::expression($plainSummary),
             'metadata' => $analyzed->analysis->metadata->toArray(),

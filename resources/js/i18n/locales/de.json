@@ -1042,9 +1042,9 @@
                 "record_description": "Nehmen Sie Audio direkt über Ihr Mikrofon auf, um es der Wissensdatenbank Ihres Agenten hinzuzufügen"
             },
             "files": {
-                "uploader_description_audio": "Laden Sie Audiodateien zur Transkription hoch. Unterstützte Formate: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR und 3GP. Maximale Dateigröße: 200 MB.",
-                "uploader_description_video": "Laden Sie Videodateien zur Transkription hoch. Unterstützte Formate: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime und 3GPP. Maximale Dateigröße: 200 MB.",
-                "uploader_description_default": "Dokumente: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Bilder: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max. 50 MB pro Datei.",
+                "uploader_description_audio": "Laden Sie Audiodateien zur Transkription hoch. Unterstützte Formate: {formats}. Max. {size} MB pro Datei.",
+                "uploader_description_video": "Laden Sie Videodateien zur Transkription hoch. Unterstützte Formate: {formats}. Max. {size} MB pro Datei.",
+                "uploader_description_default": "Unterstützte Formate: {formats}. Max. {size} MB pro Datei.",
                 "type_unknown": "Unbekannt",
                 "minutes_count": "{count} Minute | {count} Minuten",
                 "pages_count": "{count} Seite | {count} Seiten",
@@ -1105,7 +1105,8 @@
                 "summary_formatting": "Formatierungselemente",
                 "summary_sensitive_title": "Sensible Informationen erkannt",
                 "summary_sensitive_description": "Dieses Dokument enthält möglicherweise sensible oder vertrauliche Informationen.",
-                "summary_empty": "Für diese Datei sind keine Zusammenfassungsdaten verfügbar."
+                "summary_empty": "Für diese Datei sind keine Zusammenfassungsdaten verfügbar.",
+                "uploads_off": "Der Administrator hat das Hochladen dieser Dateitypen deaktiviert."
             },
             "text": {
                 "load_failed": "Texteintrag konnte nicht geladen werden",

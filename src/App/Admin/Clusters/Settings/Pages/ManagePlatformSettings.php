@@ -13,7 +13,8 @@ use Illuminate\Support\Arr;
 
 /**
  * Install-wide options: default language, the chat widget,
- * page-view analytics, visitor location, the built-in tools and alerts.
+ * page-view analytics, visitor location, the built-in tools, alerts and the
+ * number of queue workers.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -30,11 +31,11 @@ class ManagePlatformSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedServerStack;
 
     #[\Override]
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 11;
 
     public static function description(): string
     {
-        return 'Language, widget, analytics and the built-in tools.';
+        return 'Language, widget, analytics, the built-in tools and queue workers.';
     }
 
     public static function overviewGroup(): string
@@ -76,6 +77,15 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->email('horizon_notify_email', 'Alert email',
                     help: 'Gets an email when jobs wait too long in the queue. Applies after Horizon restarts.'),
             ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? 'To '.$this->valueInUse('horizon_notify_email') : 'No alerts'),
+            SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Applies when the app runs in production (APP_ENV=production, as in Docker), after Horizon restarts (with Docker: ./manage restart horizon).', Heroicon::OutlinedCpuChip, fn (): array => [
+                $this->integer('chat_workers', 'Chat', help: 'Replies on messaging channels, e-mails and other short jobs.', min: 2, max: 200),
+                $this->integer('ingestion_workers', 'Files and websites', help: 'Reading knowledge sources, then exports.', min: 1, max: 200),
+                $this->integer('analytics_workers', 'Analytics', help: 'Conversation analysis, evals and audit logs.', min: 1, max: 100),
+                $this->integer('media_workers', 'Audio and video', help: 'Transcribing recordings. Each one can take a long time.', min: 1, max: 50),
+            ])->summary(fn (): string => sprintf('Up to %d workers', array_sum(array_map(
+                fn (string $property): int => (int) $this->valueInUse($property),
+                ['chat_workers', 'ingestion_workers', 'analytics_workers', 'media_workers'],
+            )))),
         ];
     }
 

@@ -16,7 +16,6 @@ use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Services\DocumentLlm;
-use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
@@ -53,9 +52,8 @@ class PdfSource extends ToolLoopSource
         ToolLoopRunner $runner,
         GuardrailService $guardrails,
         GuardrailRecorder $guardrailRecorder,
-        TokenUsageContext $tokenUsage,
     ) {
-        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder, $tokenUsage);
+        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
     }
 
     /**
@@ -92,11 +90,6 @@ class PdfSource extends ToolLoopSource
     protected function modelName(ChatContext $context): string
     {
         return (string) config('chatvia.ai.models.document_chat');
-    }
-
-    protected function providerSlug(ChatContext $context): string
-    {
-        return $this->documentLlm->slug();
     }
 
     protected function logLabel(): string

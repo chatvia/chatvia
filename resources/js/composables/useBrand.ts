@@ -1,3 +1,4 @@
+import { ui as apiDocs } from '@/routes/scramble/docs';
 import type { Brand, SharedData } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { computed, type ComputedRef } from 'vue';
@@ -12,7 +13,7 @@ const urlOrNull = (value: string | null | undefined): string | null => (value &&
  * Every URL is either a non-empty string or null — render the link only when
  * it is not null.
  */
-export function useBrand(): { brand: ComputedRef<Brand> } {
+export function useBrand(): { brand: ComputedRef<Brand>; apiDocsUrl: (operation?: string) => string } {
     const page = usePage<SharedData>();
 
     const brand = computed<Brand>(() => {
@@ -32,5 +33,10 @@ export function useBrand(): { brand: ComputedRef<Brand> } {
         };
     });
 
-    return { brand };
+    // The API documentation: the brand's own page when set, else this app's
+    // built-in reference, opened at `operation` when one is given.
+    const apiDocsUrl = (operation?: string): string =>
+        brand.value.api_docs_url ?? (operation ? `${apiDocs.url()}#/operations/${operation}` : apiDocs.url());
+
+    return { brand, apiDocsUrl };
 }

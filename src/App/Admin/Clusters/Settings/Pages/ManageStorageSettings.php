@@ -44,7 +44,7 @@ class ManageStorageSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
 
     #[\Override]
-    protected static ?int $navigationSort = 12;
+    protected static ?int $navigationSort = 13;
 
     public static function description(): string
     {
@@ -80,12 +80,9 @@ class ManageStorageSettings extends AdminSettingsPage
                 ->label('Test the connection')
                 ->icon(Heroicon::OutlinedSignal)
                 ->color('gray')
-                ->visible(fn (): bool => $this->canEdit())
                 ->modalDescription('Writes a small file to the private and the public storage with the saved settings, reads it back and deletes it. Save your changes first.')
                 ->modalSubmitActionLabel('Test')
                 ->action(function (): void {
-                    abort_unless($this->canEdit(), 403);
-
                     $failures = array_filter(array_map($this->checkDisk(...), StorageDisks::DISKS));
 
                     if ($failures === []) {

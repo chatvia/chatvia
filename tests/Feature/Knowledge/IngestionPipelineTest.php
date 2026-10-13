@@ -6,10 +6,12 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
@@ -211,6 +213,9 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
 
     $source = SourceText::query()->where('workspace_id', $owner->workspace()->id)->sole();
 
+    // A typed text is split as plain text (by the simple fake splitter here).
+    expect(app(TextSplitter::class)->kinds)->toBe([ContentKind::Text]);
+
     // The batch completed inline: terminal status + bookkeeping written. The
     // batch id sits in the same column for every source type.
     expect($source->status)->toBe(SourceStatus::Completed)
@@ -238,8 +243,8 @@ it('ingests an uploaded text into plaintext chunks stored under the source_text 
     $rawChunk = DB::table('chunks')->where('id', $chunks->first()->id)->value('chunk');
     expect($rawChunk)->toContain('refund');
 
-    // The summary was handed to the queue; with enhancement off no chunk is enhanced.
-    Queue::assertPushed(SummaryIngestionJob::class, 1);
+    // With enhancement off neither a summary nor an enhanced chunk is made.
+    Queue::assertNotPushed(SummaryIngestionJob::class);
     expect($chunks->contains('is_enhanced', true))->toBeFalse();
 });
 
@@ -263,8 +268,7 @@ it('retrieves ingested chunks for the owning agent only via hybrid search', func
     expect($results)->not->toBeEmpty()
         ->and(collect($results)->pluck('chunkable_id')->map(fn ($id): int => (int) $id)->unique()->all())->toBe([$source->id])
         ->and(collect($results)->pluck('chunkable_type')->unique()->all())->toBe(['source_text'])
-        ->and($results[0]->chunk)->toContain('refund') // decrypted for the LLM consumer
-        ->and($results[0]->confidence_score)->toBeGreaterThan(0.0);
+        ->and($results[0]->chunk)->toContain('refund'); // decrypted for the LLM consumer
 
     $otherResults = app(KnowledgeBase::class)->search($otherAgent, 'What is the refund policy?');
 

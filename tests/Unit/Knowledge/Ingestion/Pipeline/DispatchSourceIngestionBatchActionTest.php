@@ -30,7 +30,7 @@ function dsibPages(int $count): Collection
 
 it('marks the source as ingesting with its page count, queues the summary and stores the batch id', function (): void {
     Bus::fake();
-    config(['chatvia.ai.chunker.enhance' => false]);
+    config(['chatvia.ai.chunker.enhance' => true]);
 
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
@@ -46,7 +46,8 @@ it('marks the source as ingesting with its page count, queues the summary and st
         ->and($file->internal_chunking_batch_id)->toBe($batch->id);
 
     Bus::assertDispatched(SummaryIngestionJob::class);
-    Bus::assertBatched(fn (PendingBatch $pending): bool => $pending->jobs->count() === 1
+    // Enhanced pages get a job each.
+    Bus::assertBatched(fn (PendingBatch $pending): bool => $pending->jobs->count() === 3
         && $pending->allowsFailures()
         && str_contains((string) $pending->name, (string) $file->id));
 });
@@ -158,4 +159,16 @@ it('broadcasts a text source completion on the text channel', function (): void 
 
     expect($text->fresh()->status)->toBe(SourceStatus::Completed);
     Event::assertDispatched(TextIngestionStarted::class, fn (TextIngestionStarted $event): bool => $event->broadcastWith()['status'] === 'ingested');
+});
+
+it('queues no summary while enhancement is off, so training makes no model calls', function (): void {
+    Bus::fake();
+    config(['chatvia.ai.chunker.enhance' => false]);
+
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+
+    app(DispatchSourceIngestionBatchAction::class)->execute($file, $agent, DocumentChunkIngestionJob::forPages($agent, $file, dsibPages(2)));
+
+    Bus::assertNotDispatched(SummaryIngestionJob::class);
 });

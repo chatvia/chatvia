@@ -353,7 +353,7 @@ it("answers 404 when a dashboard route pairs the caller's agent with another wor
     $leaks = isolationLeaks($this, isolationAgentRoutes(api: false), function (Route $route): ?array {
         $others = array_values(array_diff($route->parameterNames(), ['agent']));
 
-        if (count($others) !== 1 || ($record = isolationRecordOf($route, $others[0], $this->agentA)) === null) {
+        if (count($others) !== 1 || ! ($record = isolationRecordOf($route, $others[0], $this->agentA)) instanceof Model) {
             return null;
         }
 
@@ -369,7 +369,7 @@ it("answers 404 when an API route pairs the caller's agent with another workspac
     $leaks = isolationLeaks($this, isolationAgentRoutes(api: true), function (Route $route): ?array {
         $others = array_values(array_diff($route->parameterNames(), ['agent']));
 
-        if (count($others) !== 1 || ($record = isolationRecordOf($route, $others[0], $this->agentA)) === null) {
+        if (count($others) !== 1 || ! ($record = isolationRecordOf($route, $others[0], $this->agentA)) instanceof Model) {
             return null;
         }
 
@@ -385,7 +385,7 @@ it("answers 404 on every dashboard route for another workspace's record", functi
     $leaks = isolationLeaks($this, isolationWorkspaceRoutes(api: false), function (Route $route): ?array {
         $parameters = $route->parameterNames();
 
-        if (count($parameters) !== 1 || ($record = isolationWorkspaceRecordOf($route, $parameters[0], $this->ownerA, $this->agentA)) === null) {
+        if (count($parameters) !== 1 || ! ($record = isolationWorkspaceRecordOf($route, $parameters[0], $this->ownerA, $this->agentA)) instanceof Model) {
             return null;
         }
 
@@ -401,7 +401,7 @@ it("answers 404 on every API route for another workspace's record", function ():
     $leaks = isolationLeaks($this, isolationWorkspaceRoutes(api: true), function (Route $route): ?array {
         $parameters = $route->parameterNames();
 
-        if (count($parameters) !== 1 || ($record = isolationWorkspaceRecordOf($route, $parameters[0], $this->ownerA, $this->agentA)) === null) {
+        if (count($parameters) !== 1 || ! ($record = isolationWorkspaceRecordOf($route, $parameters[0], $this->ownerA, $this->agentA)) instanceof Model) {
             return null;
         }
 

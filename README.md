@@ -37,6 +37,7 @@ with open-weight models.
 - [The chat widget](#the-chat-widget)
 - [Documentation site](#documentation-site)
 - [Going to production](#going-to-production)
+- [Test the Docker install](#test-the-docker-install)
 - [Contributing, security and license](#contributing-security-and-license)
 
 ## Features
@@ -105,9 +106,9 @@ The PHP code is split into three namespaces:
   State changes go through Actions that take DTOs.
 - `src/Support/` (`Support\`): small shared helpers.
 
-The frontend lives in `resources/js/`, the user documentation in `docs/`, and
-the embeddable widget in its own repository,
-[chatvia/shakomako](https://github.com/chatvia/shakomako). [ARCHITECTURE.md](ARCHITECTURE.md) explains
+The frontend lives in `resources/js/`, and the embeddable widget in its own
+repository, [chatvia/shakomako](https://github.com/chatvia/shakomako). The
+user guide is at <https://chatvia.ai/docs/>. [ARCHITECTURE.md](ARCHITECTURE.md) explains
 how the code is organised and the conventions; [CONTRIBUTING.md](CONTRIBUTING.md)
 explains how to work on it.
 
@@ -144,11 +145,13 @@ explains how to work on it.
 APIs. You need a chat provider and an embedding provider. The default
 configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
 and others) for chat, embeddings and reranking. The chat provider can be
-changed to Mistral, Groq or OpenRouter. Reading documents and splitting text
-run on your server unless you add a Mistral or chunk.fit key. Website import
-uses Firecrawl. The services, their API keys and models are chosen in the
-admin panel (**Settings → AI**), not in `.env`; see
-[AI providers](docs/guide/self-hosting/ai-providers.md).
+changed to Mistral, Groq or OpenRouter. Reading documents runs on your server
+unless you add a Mistral key. Text is split into chunks inside Chatvia, by
+tokens or by characters (**Settings → Chunking**). Website import uses
+Firecrawl. The
+services, their API keys and models are chosen in the admin panel
+(**Settings → AI**), not in `.env`; see
+[AI providers](https://chatvia.ai/docs/guide/self-hosting/ai-providers).
 
 ## Getting started
 
@@ -160,7 +163,7 @@ app itself runs on your machine. To run the app in Docker as well, skip to
 
 ```bash
 docker compose up -d
-docker compose ps        # wait until all three services are "healthy"
+docker compose ps        # wait until the services are "healthy"
 ```
 
 | Service | Address | Notes |
@@ -219,8 +222,10 @@ php artisan key:generate
 
 ### 3. Configure `.env`
 
-`.env.example` lists the settings, each with a short comment. Its default
-values work with the Docker services above:
+`.env.example` lists what the app needs to start, each with a short comment.
+Everything else (API keys, AI services, mail, storage, brand) is set later in
+the admin panel, under **Settings**. The default values in `.env.example`
+work with the Docker services above:
 
 ```dotenv
 DB_CONNECTION=pgsql
@@ -240,6 +245,10 @@ MAIL_MAILER=smtp
 MAIL_HOST=127.0.0.1
 MAIL_PORT=1025
 ```
+
+The `MAIL_*` lines are only a preset for the Mailpit Docker service. The
+normal place for e-mail is the admin panel (**Settings → Email**); a value
+saved there wins over `.env`.
 
 Redis keeps the queues, the cache, the chat memory and the sign-in sessions.
 Each one has its own Redis database (`REDIS_DB`, `REDIS_CACHE_DB`,
@@ -530,19 +539,15 @@ without it.
   (**Settings → Platform**).
 - Other websites load these files, so the web server must allow any origin
   for `/shakomako/`. The Docker image does this for you; for nginx without
-  Docker, see the [self-hosting guide](docs/guide/self-hosting/index.md).
+  Docker, see the [self-hosting guide](https://chatvia.ai/docs/guide/self-hosting/).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to work on the widget and the app
 together.
 
 ## Documentation site
 
-The user guide is a [VitePress](https://vitepress.dev/) site in `docs/`:
-
-```bash
-npm run docs:dev      # http://localhost:4000
-npm run docs:build    # static site in docs/.vitepress/dist
-```
+The user guide is at <https://chatvia.ai/docs/>. It is not in this
+repository.
 
 ## Going to production
 
@@ -553,11 +558,15 @@ asks a few questions and starts everything:
 curl -fsSL https://chatvia.ai/install.sh | bash
 ```
 
-See [Run with Docker](docs/guide/self-hosting/docker.md). The
-[self-hosting guide](docs/guide/self-hosting/index.md) has the steps without
-Docker. In short:
+See [Run with Docker](https://chatvia.ai/docs/guide/self-hosting/docker).
+The
+[self-hosting guide](https://chatvia.ai/docs/guide/self-hosting/) has the
+steps without Docker. In short:
 
 - PHP-FPM behind nginx, with `APP_ENV=production` and `APP_DEBUG=false`.
+- `.env` only holds what the app needs to start (APP_KEY, the database,
+  Redis, Reverb and so on). Mail, storage, API keys and the AI services are
+  set in the admin panel, under **Settings**.
 - Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
 - Run `php artisan migrate --seed --force` (in production the seeders load
   only the list of AI models, no demo data), create the first admin with
@@ -566,6 +575,9 @@ Docker. In short:
 - Set up e-mail in the admin panel (**Settings → Email**). People who sign up at `/register` must
   confirm their e-mail address before they can use the app, and invitations
   and sign-in links also go out by e-mail.
+- Choose where files are kept in the admin panel (**Settings → Storage**):
+  this server or S3-compatible storage. Knowledge files, chat attachments and
+  backups follow it.
 - Cache the configuration, events, routes and views with
   `php artisan config:cache`, `event:cache`, `route:cache` and `view:cache`.
   Run them again after each deploy and after each change to `.env`.
@@ -579,10 +591,51 @@ Docker. In short:
 - Build the widget with `npm run shakomako:build`.
   Other sites load it, so nginx must allow any origin for `/shakomako/` (see
   [The chat widget](#the-chat-widget)).
-- How long the logs are kept (tool calls, guardrails, security events and AI
-  calls) is set in the admin panel (**Settings → Retention & limits**).
-- Go through the security settings in `.env.example` and set each one for
-  your environment.
+- How long the logs are kept (tool calls, guardrails and security events) is
+  set in the admin panel (**Settings → Retention & limits**).
+- Go through the security settings in `.env.example` (for example
+  `TRUSTED_PROXIES` and `SESSION_SECURE_COOKIE`) and set each one for your
+  environment. The content security policy and the sign-in bot check are in
+  the admin panel (**Settings → Security**).
+
+## Test the Docker install
+
+You can test the production image (`Dockerfile`) and the installer on your
+machine before you tag a release. Nothing is pushed to the registry. This is
+not Sail: it runs the same setup people get from `install.sh`, with the code
+built into the image.
+
+1. Build the image:
+
+   ```bash
+   docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t chatvia-local:dev .
+   ```
+
+2. Run the installer from this repository:
+
+   ```bash
+   CHATVIA_COMPOSE_URL="file://$PWD/docker/compose.yaml" CHATVIA_MANAGE_URL="file://$PWD/docker/manage" bash install.sh --no-pull --image chatvia-local --version dev --dir ~/chatvia-test
+   ```
+
+`--no-pull` uses the image on your machine. The two `CHATVIA_*_URL`
+variables make the installer use your copies of `docker/compose.yaml` and
+`docker/manage`. Without them, it downloads these files from GitHub, and you
+do not test your changes. Add `--dry-run` to see the questions and the output
+without starting anything.
+
+The test install is the Compose project `chatvia`. It shares no containers,
+data or ports with Sail (`chatvia-dev`), so both can run at the same time. It
+publishes only the app port: 8899, or the next free port.
+
+After a change:
+
+- **App code:** build the image again (step 1, same tag), then run
+  `docker compose up -d` in `~/chatvia-test`. Compose sees the new image and
+  restarts the containers.
+- **`install.sh`, `docker/compose.yaml` or `docker/manage`:** run step 3 again
+  in the same folder. This tests the upgrade.
+- **A fresh install:** run `docker compose down -v` in `~/chatvia-test` (this
+  deletes its data), delete the folder, then run step 3 again.
 
 ## Contributing, security and license
 

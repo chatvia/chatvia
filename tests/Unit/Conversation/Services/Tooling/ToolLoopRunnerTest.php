@@ -34,7 +34,6 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
-use Spectra\Facades\Spectra;
 
 /**
  * ToolLoopRunner is the provider-agnostic agentic loop: it streams a completion,
@@ -44,8 +43,7 @@ use Spectra\Facades\Spectra;
  * the user never approved, and a broken cap could loop the model unbounded.
  *
  * Its collaborators are all interfaces/overridable classes, so we fake them and
- * drive the real run()/applyPendingCalls() bodies. The Spectra cost tracker is
- * faked; the ToolApprovalStore is real so we can assert the checkpoint is
+ * drive the real run()/applyPendingCalls() bodies. The ToolApprovalStore is real so we can assert the checkpoint is
  * actually persisted.
  */
 
@@ -241,7 +239,6 @@ function tlrContext(Agent $agent, Llm $llm): ChatContext
 }
 
 beforeEach(function (): void {
-    Spectra::fake();
     config(['chatvia.agent.tools.max_iterations' => 5]);
 });
 
@@ -400,7 +397,7 @@ it('returns false and streams a final answer when the model emits no tool calls'
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'Hi']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: []);
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: []);
     $events = iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
@@ -429,7 +426,7 @@ it('dispatches an ungated tool call and continues to a final answer', function (
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'time?']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time'));
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('get_time'));
     iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
@@ -456,7 +453,7 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(true), new ToolApprovalStore);
 
     $llmMessages = [['role' => 'user', 'content' => 'delete me']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('delete_user'));
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('delete_user'));
     $events = iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
@@ -489,7 +486,7 @@ it('stops at the configured max_iterations cap instead of looping unbounded', fu
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'go']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('loop_tool'));
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('loop_tool'));
     iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
@@ -510,7 +507,7 @@ it('tells the transformer which tools were offered on the turn', function (): vo
     $runner = tlrRunner($transformer, tlrDispatcher(), tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'hi']];
-    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time', 'get_weather')), preserve_keys: false);
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('get_time', 'get_weather')), preserve_keys: false);
 
     expect($seen)->toBe(['get_time', 'get_weather']);
 });
@@ -534,7 +531,7 @@ it('refuses a call to a tool that was not offered, without dispatching or gating
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(true));
 
     $llmMessages = [['role' => 'user', 'content' => 'wipe it']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time'));
+    $generator = $runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('get_time'));
     iterator_to_array($generator, preserve_keys: false);
 
     expect($generator->getReturn())->toBeFalse()
@@ -574,7 +571,7 @@ it('audits an unoffered MCP-shaped call under its server and a shortened name', 
     $runner = tlrRunner($transformer, tlrDispatcher(), tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'go']];
-    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time')), preserve_keys: false);
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('get_time')), preserve_keys: false);
 
     // The audit row stores the name in varchar columns, so it is cut to the
     // same length the log and the model see.
@@ -599,7 +596,7 @@ it('refuses every tool call when no tools were offered', function (): void {
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'time?']];
-    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: []), preserve_keys: false);
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: []), preserve_keys: false);
 
     expect($dispatcher->calls)->toBe([]);
 });
@@ -619,7 +616,7 @@ it('runs the offered call and refuses the unoffered one in the same turn', funct
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'time?']];
-    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', 'openai', $llmMessages, toolDefinitions: tlrTools('get_time')), preserve_keys: false);
+    iterator_to_array($runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('get_time')), preserve_keys: false);
 
     expect(array_column($dispatcher->calls, 'name'))->toBe(['get_time']);
 

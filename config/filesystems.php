@@ -23,13 +23,13 @@ return [
     | Default Filesystem Disk
     |--------------------------------------------------------------------------
     |
-    | Here you may specify the default filesystem disk that should be used
-    | by the framework. The "local" disk, as well as a variety of cloud
-    | based disks are available to your application for file storage.
+    | The `private` disk: knowledge files and the other files that are not
+    | public. It follows Settings → Storage (this server, or the private
+    | bucket of an S3-compatible service; App\Admin\Settings\StorageDisks).
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => 'private',
 
     /*
     |--------------------------------------------------------------------------

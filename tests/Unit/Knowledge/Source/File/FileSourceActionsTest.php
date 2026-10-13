@@ -45,7 +45,7 @@ it('stores an uploaded document for the workspace and attaches it to the agent',
         ->and($file->filetype)->toBe('image')
         ->and($file->status)->toBe(SourceStatus::Uploaded)
         ->and($file->length)->toBe(1)
-        ->and($file->filepath)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/files/')
+        ->and($file->filepath)->toStartWith('workspaces/'.$agent->workspaceExternalId().'/sources/source_file/'.$file->external_id.'/')
         ->and($agent->files()->whereKey($file->id)->exists())->toBeTrue();
 
     Storage::assertExists($file->filepath);
@@ -58,6 +58,29 @@ it('refuses a file type the knowledge base cannot read', function (): void {
         ->toThrow(UnsupportedSourceFileException::class);
 
     expect(SourceFile::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
+});
+
+it('refuses a file type the admin turned off', function (): void {
+    config(['chatvia.knowledge.file_types' => ['pdf']]);
+    $agent = Agent::factory()->create();
+
+    expect(fn () => app(UploadKnowledgeSourceFileAction::class)->execute($agent, fsaUpload('notes.txt', 'Opening hours', 'text/plain')))
+        ->toThrow(UnsupportedSourceFileException::class);
+
+    expect(SourceFile::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
+});
+
+it('accepts audio only while the admin has audio on', function (): void {
+    // Audio needs a speech-to-text service.
+    config(['chatvia.ai.transcriber' => 'scaleway']);
+    $upload = fsaUpload('note.mp3', 'ID3', 'audio/mpeg');
+
+    expect($upload->isSupported())->toBeTrue()
+        ->and($upload->category())->toBe('audio');
+
+    config(['chatvia.knowledge.file_types' => ['pdf', 'video']]);
+
+    expect($upload->isSupported())->toBeFalse();
 });
 
 it('starts training every uploaded file of the agent', function (): void {

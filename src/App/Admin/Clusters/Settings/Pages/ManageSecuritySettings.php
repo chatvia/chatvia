@@ -43,7 +43,7 @@ class ManageSecuritySettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;
 
     #[\Override]
-    protected static ?int $navigationSort = 13;
+    protected static ?int $navigationSort = 14;
 
     public static function description(): string
     {

@@ -19,4 +19,13 @@ interface Transcriber
      * @throws TranscriptionNotConfiguredException When no speech-to-text service is set up.
      */
     public function transcribe(string $filePath): string;
+
+    /** Whether a speech-to-text service is set up (Settings → AI). */
+    public function isEnabled(): bool;
+
+    /**
+     * The model that transcribes, saved on a source as its `parser` and part
+     * of the cache key of a transcript, so a new model transcribes again.
+     */
+    public function name(): string;
 }

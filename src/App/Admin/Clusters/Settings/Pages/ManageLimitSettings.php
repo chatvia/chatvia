@@ -29,7 +29,7 @@ class ManageLimitSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedScale;
 
     #[\Override]
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 12;
 
     public static function description(): string
     {
@@ -61,10 +61,6 @@ class ManageLimitSettings extends AdminSettingsPage
                     help: 'A workspace may choose fewer days.', min: 1),
                 $this->integer('security_audit_retention_floor_days', 'Fewest days a workspace may choose', min: 1),
             ])->summary(fn (): string => 'Kept '.$this->valueInUse('security_audit_retention_days').' days'),
-            SettingsCard::make('ai_call_log', 'AI call log', 'Every AI call with its request, reply, tokens and cost, for the staff AI usage tools.', Heroicon::OutlinedCpuChip, fn (): array => [
-                $this->integer('spectra_retention_days', 'Days to keep the AI call log',
-                    help: 'Older calls are deleted once a day.', min: 1),
-            ])->summary(fn (): string => 'Kept '.$this->valueInUse('spectra_retention_days').' days'),
         ];
     }
 }

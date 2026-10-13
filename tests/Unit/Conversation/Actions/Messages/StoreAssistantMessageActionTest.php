@@ -5,11 +5,13 @@ use Domain\Analytics\Events\MessageSent;
 use Domain\Conversation\Actions\Messages\StoreAssistantMessageAction;
 use Domain\Conversation\Actions\Messages\StoreUserMessageAction;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
+use Domain\Conversation\Data\Messages\MessageSourceData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Jobs\GenerateConversationTitleJob;
 use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\MessageSource;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
@@ -216,6 +218,32 @@ it('keeps tool artifacts and tool names in the message metadata', function (): v
         'artifacts' => [['kind' => 'echarts_option', 'data' => ['series' => []]]],
         'tool_calls' => ['mcp__charts__render'],
     ]);
+});
+
+it('stores the knowledge the answer was given, in its order', function (): void {
+    $agent = Agent::factory()->create();
+    $llm = Llm::factory()->create();
+
+    $message = storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+        'sources' => [
+            new MessageSourceData(rank: 0, chunk_id: null, sourceable_type: 'source_website', sourceable_id: 7, score: 0.91, label: 'Returns', url: 'https://shop.test/returns'),
+            new MessageSourceData(rank: 1, chunk_id: null, sourceable_type: 'source_file', sourceable_id: 8, score: 0.42, label: 'manual.pdf', page: 3),
+        ],
+    ]));
+
+    expect($message->sources->map(fn (MessageSource $source): array => [$source->rank, $source->workspace_id, $source->label, $source->url, $source->page, $source->score])->all())->toBe([
+        [0, $agent->workspace_id, 'Returns', 'https://shop.test/returns', null, 0.91],
+        [1, $agent->workspace_id, 'manual.pdf', null, 3, 0.42],
+    ]);
+});
+
+it('stores no sources for an answer given no knowledge', function (): void {
+    $agent = Agent::factory()->create();
+    $llm = Llm::factory()->create();
+
+    $message = storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
+
+    expect($message->sources)->toBeEmpty();
 });
 
 it('queues the title after the first reply outside the hosted chat', function (): void {

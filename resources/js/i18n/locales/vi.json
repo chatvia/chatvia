@@ -1040,9 +1040,9 @@
                 "record_description": "Ghi âm trực tiếp từ micro của bạn để thêm vào cơ sở kiến thức của trợ lý AI"
             },
             "files": {
-                "uploader_description_audio": "Tải lên tệp âm thanh để chuyển thành văn bản. Định dạng hỗ trợ: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR và 3GP. Giới hạn kích thước tệp: 200 MB.",
-                "uploader_description_video": "Tải lên tệp video để chuyển thành văn bản. Định dạng hỗ trợ: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime và 3GPP. Giới hạn kích thước tệp: 200 MB.",
-                "uploader_description_default": "Tài liệu: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Văn bản (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Hình ảnh: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Tối đa 50 MB mỗi tệp.",
+                "uploader_description_audio": "Tải lên tệp âm thanh để chép lời. Định dạng được hỗ trợ: {formats}. Tối đa {size} MB mỗi tệp.",
+                "uploader_description_video": "Tải lên tệp video để chép lời. Định dạng được hỗ trợ: {formats}. Tối đa {size} MB mỗi tệp.",
+                "uploader_description_default": "Định dạng được hỗ trợ: {formats}. Tối đa {size} MB mỗi tệp.",
                 "type_unknown": "Không xác định",
                 "minutes_count": "{count} phút | {count} phút",
                 "pages_count": "{count} trang | {count} trang",
@@ -1062,6 +1062,7 @@
                 "upload_title_video": "Tải lên tệp video",
                 "upload_title_default": "Tải lên tài liệu mới",
                 "uploads_disabled": "Việc tải tệp lên bị tắt trong khi đang huấn luyện",
+                "uploads_off": "Quản trị viên đã tắt tải lên các loại tệp này.",
                 "ready_to_train": "Sẵn sàng huấn luyện",
                 "uploaded_ready": "{count} tệp đã tải lên và sẵn sàng huấn luyện | {count} tệp đã tải lên và sẵn sàng huấn luyện",
                 "clear_all": "Xóa tất cả",

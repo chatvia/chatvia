@@ -4,16 +4,17 @@ use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
+use Domain\Knowledge\Embedding\Gemini;
 use Domain\Knowledge\Embedding\Jina;
 use Domain\Knowledge\Embedding\Mistral as MistralEmbeddings;
+use Domain\Knowledge\Embedding\OpenAi;
 use Domain\Knowledge\Embedding\Qwen3;
 use Domain\Knowledge\Embedding\Rerank\CohereReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFitTextSplitter;
-use Domain\Knowledge\Ingestion\Services\Chunking\LocalTextSplitter;
+use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Llm\Contracts\Transcriber;
@@ -21,6 +22,7 @@ use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Operations\Media\NullTranscriber;
+use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\Mistral;
@@ -41,14 +43,14 @@ beforeEach(function (): void {
     // TestCase pins offline fakes; these tests check the real bindings.
     app()->forgetInstance(EmbeddingsProviderInterface::class);
     app()->forgetInstance(Reranker::class);
+    app()->forgetInstance(TextSplitter::class);
 
     config([
         'services.mistral.api_key' => null,
-        'services.chunkfit.api_key' => null,
         'services.scalewayai.api_key' => null,
         'services.cohere.api_key' => null,
+        'services.openai.api_key' => null,
         'chatvia.ai.document_parser' => 'auto',
-        'chatvia.ai.text_splitter' => 'auto',
         'chatvia.ai.reranker' => 'auto',
         'chatvia.ai.transcriber' => 'auto',
         'chatvia.ai.document_llm' => 'auto',
@@ -58,7 +60,6 @@ beforeEach(function (): void {
 
 it('uses only local or "off" services when no vendor key is set', function (): void {
     expect(app(DocumentParser::class))->toBeInstanceOf(LocalDocumentParser::class)
-        ->and(app(TextSplitter::class))->toBeInstanceOf(LocalTextSplitter::class)
         ->and(app(Transcriber::class))->toBeInstanceOf(NullTranscriber::class)
         ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
 });
@@ -66,16 +67,13 @@ it('uses only local or "off" services when no vendor key is set', function (): v
 it('keeps the hosted services when their keys are set, as in production', function (): void {
     config([
         'services.mistral.api_key' => 'mistral-key',
-        'services.chunkfit.api_key' => 'chunkfit-key',
         'services.scalewayai.api_key' => 'scaleway-key',
     ]);
 
     $documentLlm = app(DocumentLlm::class);
 
     expect(app(DocumentParser::class))->toBeInstanceOf(MistralDocumentParser::class)
-        ->and(app(DocumentParser::class)->name())->toBe('mistral-ocr')
-        ->and(app(TextSplitter::class))->toBeInstanceOf(ChunkFitTextSplitter::class)
-        ->and(app(TextSplitter::class)->name())->toBe('chunkfit')
+        ->and(app(DocumentParser::class)->name())->toBe(config('services.mistral.ocr_model'))
         ->and(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class)
         ->and(app(Reranker::class))->toBeInstanceOf(Qwen3Reranker::class)
         ->and(app(EmbeddingsProviderInterface::class))->toBeInstanceOf(Qwen3::class)
@@ -84,26 +82,22 @@ it('keeps the hosted services when their keys are set, as in production', functi
         ->and($documentLlm->slug())->toBe('mistral');
 });
 
-it('uses a self-hosted chunker without an API key', function (): void {
-    config(['services.chunkfit.base_url' => 'http://chunker:8000']);
-
-    expect(app(TextSplitter::class))->toBeInstanceOf(ChunkFitTextSplitter::class);
+it('always splits text with the built-in splitter, which needs no outside service', function (): void {
+    expect(app(TextSplitter::class))->toBeInstanceOf(BuiltinTextSplitter::class)
+        ->and(app(TextSplitter::class)->name())->toBe('builtin');
 });
 
 it('lets an explicit driver override auto', function (): void {
     config([
         'services.mistral.api_key' => 'mistral-key',
-        'services.chunkfit.api_key' => 'chunkfit-key',
         'services.scalewayai.api_key' => 'scaleway-key',
         'chatvia.ai.document_parser' => 'local',
-        'chatvia.ai.text_splitter' => 'local',
         'chatvia.ai.transcriber' => 'none',
         'chatvia.ai.reranker' => 'none',
         'chatvia.ai.document_llm' => 'none',
     ]);
 
     expect(app(DocumentParser::class))->toBeInstanceOf(LocalDocumentParser::class)
-        ->and(app(TextSplitter::class))->toBeInstanceOf(LocalTextSplitter::class)
         ->and(app(Transcriber::class))->toBeInstanceOf(NullTranscriber::class)
         ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class)
         ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
@@ -118,7 +112,23 @@ it('follows the embedding provider for the auto reranker', function (string $emb
     'cohere' => ['cohere', CohereReranker::class],
     'jina' => ['jina', NullReranker::class],
     'mistral' => ['mistral', NullReranker::class],
+    'openai' => ['openai', NullReranker::class],
+    'google' => ['google', NullReranker::class],
 ]);
+
+it('transcribes with OpenAI Whisper when chosen, or when only an OpenAI key is set', function (): void {
+    config(['services.openai.api_key' => 'openai-key']);
+
+    expect(app(Transcriber::class))->toBeInstanceOf(OpenAiTranscriber::class);
+
+    config(['services.scalewayai.api_key' => 'scaleway-key']);
+
+    expect(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class);
+
+    config(['chatvia.ai.transcriber' => 'openai']);
+
+    expect(app(Transcriber::class))->toBeInstanceOf(OpenAiTranscriber::class);
+});
 
 it('fails fast on an unknown driver name', function (string $key, string $contract): void {
     config(["chatvia.ai.{$key}" => 'llamaparse']);
@@ -126,7 +136,6 @@ it('fails fast on an unknown driver name', function (string $key, string $contra
     expect(fn () => app($contract))->toThrow(InvalidArgumentException::class, "chatvia.ai.{$key}");
 })->with([
     ['document_parser', DocumentParser::class],
-    ['text_splitter', TextSplitter::class],
     ['reranker', Reranker::class],
     ['transcriber', Transcriber::class],
     ['document_llm', DocumentLlm::class],
@@ -180,6 +189,8 @@ it('fails fast when the embedding provider cannot return the size the database s
     'mistral is fixed at 1024' => ['mistral', 1536],
     'jina stops at 1024' => ['jina', 2048],
     'cohere has fixed sizes' => ['cohere', 768],
+    'openai small stops at 1536' => ['openai', 2048],
+    'gemini starts at 128' => ['google', 64],
 ]);
 
 it('asks the embedding provider for the size the database stores', function (string $provider, string $class, int $stored): void {
@@ -197,4 +208,6 @@ it('asks the embedding provider for the size the database stores', function (str
     'jina 512' => ['jina', Jina::class, 512],
     'qwen 2048' => ['qwen', Qwen3::class, 2048],
     'mistral 1024' => ['mistral', MistralEmbeddings::class, 1024],
+    'openai 1536' => ['openai', OpenAi::class, 1536],
+    'gemini 768' => ['google', Gemini::class, 768],
 ]);

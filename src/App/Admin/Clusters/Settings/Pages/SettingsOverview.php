@@ -6,7 +6,6 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCluster;
-use App\Admin\StaffToolsAccess;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
@@ -75,26 +74,22 @@ class SettingsOverview extends Page
                 ->label('Run the setup again')
                 ->icon(Heroicon::OutlinedRocketLaunch)
                 ->color('gray')
-                ->url(route('filament.admin.setup'))
-                ->visible(fn (): bool => app(StaffToolsAccess::class)->allows()),
+                ->url(route('filament.admin.setup')),
         ];
     }
 
     #[\Override]
     public function content(Schema $schema): Schema
     {
-        $canManage = app(StaffToolsAccess::class)->allows();
-
         return $schema->components([
-            ...($canManage ? [] : [AdminSettingsPage::twoFactorRequired()]),
-            View::make('filament.settings.tiles')->viewData(fn (): array => ['groups' => $this->groups($canManage)]),
+            View::make('filament.settings.tiles')->viewData(fn (): array => ['groups' => $this->groups()]),
         ]);
     }
 
     /**
      * @return list<array{heading: string, tiles: list<array<string, mixed>>}>
      */
-    private function groups(bool $canManage): array
+    private function groups(): array
     {
         $pages = collect(SettingsCluster::getClusteredComponents())
             ->filter(fn (string $component): bool => is_subclass_of($component, AdminSettingsPage::class))
@@ -105,7 +100,7 @@ class SettingsOverview extends Page
                 'heading' => $heading,
                 'tiles' => $pages
                     ->filter(fn (string $page): bool => $page::overviewGroup() === $heading)
-                    ->map(fn (string $page): array => $this->tile($page, $canManage))
+                    ->map(fn (string $page): array => $this->tile($page))
                     ->values()
                     ->all(),
             ])
@@ -118,9 +113,9 @@ class SettingsOverview extends Page
      * @param  class-string<AdminSettingsPage>  $page
      * @return array<string, mixed>
      */
-    private function tile(string $page, bool $canManage): array
+    private function tile(string $page): array
     {
-        [$status, $tone] = $canManage ? app($page)->overviewStatus() : [null, 'gray'];
+        [$status, $tone] = app($page)->overviewStatus();
 
         return [
             'key' => $page::getSlug(),

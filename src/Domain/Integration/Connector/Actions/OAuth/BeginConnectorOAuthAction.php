@@ -59,7 +59,7 @@ class BeginConnectorOAuthAction
         ) {
             throw new ConnectorMisconfiguredException(
                 "{$connector->name} needs an OAuth App registered manually. ".
-                'Create one at the service and set the OAuth client_id + client_secret in the environment.'
+                'Create one at the service and set its client ID and secret in the admin panel (Settings → Connectors).'
             );
         }
     }

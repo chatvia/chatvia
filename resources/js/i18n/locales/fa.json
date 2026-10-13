@@ -1042,9 +1042,9 @@
                 "record_description": "صدا را مستقیماً از میکروفون ضبط کنید و به پایگاه دانش دستیار خود اضافه نمایید"
             },
             "files": {
-                "uploader_description_audio": "فایل‌های صوتی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی شده: MP3، M4A، WAV، OGG، WebM، FLAC، AAC، WMA، AMR و 3GP. حداکثر حجم فایل: ۲۰۰ مگابایت.",
-                "uploader_description_video": "فایل‌های ویدیویی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی شده: MP4، AVI، MOV، WMV، FLV، WebM، MKV، QuickTime و 3GPP. حداکثر حجم فایل: ۲۰۰ مگابایت.",
-                "uploader_description_default": "اسناد: PDF، Word (‎.docx، ‎.doc)، PowerPoint (‎.pptx، ‎.ppt)، Excel (‎.xlsx، ‎.csv)، متن (‎.txt)، Markdown (‎.md)، EPUB، RTF، ODT، XML/DocBook، BibTeX (‎.bib)، FictionBook (‎.fb2)، Jupyter (‎.ipynb)، JATS XML، LaTeX (‎.tex)، OPML، Troff (‎.1، ‎.man). تصاویر: JPEG، PNG، AVIF، TIFF، GIF، HEIC/HEIF، BMP، WebP. حداکثر ۵۰ مگابایت در هر فایل.",
+                "uploader_description_audio": "فایل‌های صوتی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی‌شده: {formats}. حداکثر {size} مگابایت برای هر فایل.",
+                "uploader_description_video": "فایل‌های ویدیویی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی‌شده: {formats}. حداکثر {size} مگابایت برای هر فایل.",
+                "uploader_description_default": "فرمت‌های پشتیبانی‌شده: {formats}. حداکثر {size} مگابایت برای هر فایل.",
                 "type_unknown": "ناشناخته",
                 "minutes_count": "{count} دقیقه",
                 "pages_count": "{count} صفحه",
@@ -1105,7 +1105,8 @@
                 "summary_formatting": "عناصر قالب‌بندی",
                 "summary_sensitive_title": "اطلاعات حساس شناسایی شد",
                 "summary_sensitive_description": "این سند ممکن است حاوی اطلاعات حساس یا محرمانه باشد.",
-                "summary_empty": "داده خلاصه‌ای برای این فایل موجود نیست."
+                "summary_empty": "داده خلاصه‌ای برای این فایل موجود نیست.",
+                "uploads_off": "مدیر سیستم آپلود این نوع فایل‌ها را غیرفعال کرده است."
             },
             "text": {
                 "load_failed": "بارگذاری متن ناموفق بود",

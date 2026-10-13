@@ -13,7 +13,7 @@ use Throwable;
 /**
  * Semantic tool routing for the agent-less "Ask your data" chat. The
  * GLOBAL (workspace_id IS NULL) counterpart of {@see ToolHybridSearch}:
- * the same RRF over `mcp_tools` dense (`<->`) + BM25 (`<&>`) signals, but
+ * the same RRF over `connector_tools` dense (`<->`) + BM25 (`<&>`) signals, but
  * scoped by `mcp_servers.category` instead of an agent pivot, and without the
  * `functions` channels (the analytics chat has no webhook tools).
  *

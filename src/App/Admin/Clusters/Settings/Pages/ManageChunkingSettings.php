@@ -9,19 +9,15 @@ use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\ChunkingSettings;
 use BackedEnum;
 use Closure;
-use Domain\Knowledge\Ingestion\Data\Chunking\ChunkerConfigData;
-use Domain\Knowledge\Ingestion\Data\Chunking\ChunkerServerData;
-use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
-use Domain\Knowledge\Ingestion\Enums\ChunkerOption;
-use Domain\Knowledge\Ingestion\Enums\ChunkerStrategy;
-use Domain\Knowledge\Ingestion\Services\Chunking\ChunkFit\ChunkFitClient;
-use Domain\Knowledge\Ingestion\Services\TokenCounter;
-use Domain\Knowledge\Ingestion\Services\TokenSplitter;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
+use Domain\Knowledge\Ingestion\Enums\ChunkSizeUnit;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
+use Domain\Knowledge\Ingestion\Enums\SplitStrategy;
+use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
+use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\CharacterMeasure;
+use Domain\Llm\Services\TikToken;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Field;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
@@ -33,48 +29,37 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\Size;
 use Filament\Support\Enums\TextSize;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
 /**
- * How text files, ebooks and web pages are split into chunks, as cards: the
- * splitter and tokenizer, the chunker server, the chunker's strategy and its
- * options (with a preview that splits a sample before anything is saved), and
- * the built-in splitter. The strategies and tokenizers come from what the
- * chunker server reports (GET /v1/engines, asked at most once a minute).
+ * How the text agents learn from is split into chunks, as cards: the chunk
+ * size and its unit (tokens or characters), how each kind of content is
+ * split (with a preview on a sample, before anything is saved), and, under
+ * Advanced, the strategy for each kind and the tokenizer.
  */
 class ManageChunkingSettings extends AdminSettingsPage
 {
     /** How many chunks the preview shows. */
     private const int PREVIEW_LIMIT = 12;
 
-    private const array SPLITTERS = ['auto' => 'Automatic', 'chunkfit' => 'Chunker', 'local' => 'Built-in'];
-
-    private const string SAMPLE = <<<'MD'
-        # Returns and refunds
-
-        You can return most items within 30 days of delivery. The item must be unused and in its original packaging. Gift cards and personalised items cannot be returned.
-
-        ## How to start a return
-
-        1. Sign in to your account and open **Orders**.
-        2. Choose the order and click **Return an item**.
-        3. Print the label and drop the parcel at any post office.
-
-        We email you when the parcel arrives. Most returns are checked within three working days.
-
-        ## Refunds
-
-        Refunds go back to the card you paid with. They take five to ten working days to show on your statement, depending on your bank. Shipping costs are refunded only when the item was faulty or we sent the wrong one.
-
-        ## Faulty items
-
-        If an item arrives damaged, send us a photo within 48 hours. We replace it for free, or refund it in full if it is out of stock.
-        MD;
+    /**
+     * The sample of each kind of content the preview offers, in resources/:
+     * the same fictional shop as a help centre in Markdown (about 2,000
+     * tokens), a typed policy text, and a video transcript.
+     */
+    private const array SAMPLES = [
+        'markdown' => 'chunking/markdown.md',
+        'text' => 'chunking/text.txt',
+        'transcript' => 'chunking/transcript.txt',
+    ];
 
     #[\Override]
     protected static string $settings = ChunkingSettings::class;
@@ -92,16 +77,16 @@ class ManageChunkingSettings extends AdminSettingsPage
     protected static ?int $navigationSort = 5;
 
     /**
-     * The last preview: the splitter used, the chunks (text and tokens) and
-     * any error.
+     * The last preview: the kind of content, the strategy, the unit, the
+     * chunks (text, tokens and characters) and any error.
      *
-     * @var array{splitter: string, strategy: string, chunks: list<array{text: string, tokens: int}>, error: ?string}|null
+     * @var array{kind: string, strategy: string, unit: string, chunks: list<array{text: string, tokens: int, characters: int}>, error: ?string}|null
      */
     public ?array $preview = null;
 
     public static function description(): string
     {
-        return 'How text is split into chunks, and the tokenizer.';
+        return 'How the text your agents learn from is split into chunks.';
     }
 
     public static function overviewGroup(): string
@@ -111,165 +96,101 @@ class ManageChunkingSettings extends AdminSettingsPage
 
     protected function showsValueInUse(string $property): bool
     {
-        return in_array($property, ['text_splitter', 'strategy', 'length_unit'], true);
+        return $property === 'chunk_unit';
     }
 
     protected function cards(): array
     {
-        $usesChunker = fn (): bool => $this->valueInUse('text_splitter') !== 'local';
-
         return [
-            SettingsCard::make('splitter', 'Splitter and tokenizer', 'What splits the text, and the tokenizer that counts every size.', Heroicon::OutlinedScissors, fn (): array => [
-                ToggleButtons::make('text_splitter')
-                    ->label('Split text with')
-                    ->options(self::SPLITTERS)
-                    ->icons(['auto' => Heroicon::OutlinedSparkles, 'chunkfit' => Heroicon::OutlinedCpuChip, 'local' => Heroicon::OutlinedCube])
-                    ->in(array_keys(self::SPLITTERS))
+            SettingsCard::make('size', 'Chunk size', 'How long a chunk may be, in tokens or characters.', Heroicon::OutlinedArrowsPointingIn, fn (): array => [
+                ToggleButtons::make('chunk_unit')
+                    ->label('Measure in')
+                    ->options(collect(ChunkSizeUnit::cases())->mapWithKeys(fn (ChunkSizeUnit $unit): array => [$unit->value => $unit->label()])->all())
+                    ->in(array_column(ChunkSizeUnit::cases(), 'value'))
                     ->inline()
                     ->live()
-                    ->helperText(fn (Get $get): string => match ($get('text_splitter')) {
-                        'chunkfit' => 'The chunker (github.com/chatvia/chunker): many strategies, from fixed token windows to semantic chunks.',
-                        'local' => 'Runs inside Chatvia with no other service: whole paragraphs, packed up to a number of tokens.',
-                        default => 'The chunker when it is set up, otherwise the built-in splitter.',
-                    }),
-                Select::make('tokenizer')
-                    ->label('Tokenizer')
-                    ->options(fn (): array => $this->tokenizers())
-                    ->in(fn (): array => array_keys($this->tokenizers()))
-                    ->placeholder(fn (): string => 'Default: '.$this->defaultValue('tokenizer'))
-                    ->helperText('Counts the tokens of chunk sizes and of every stored chunk. The chunker counts them; when it cannot, Chatvia\'s own tokenizer counts with the same one. cl100k_base suits most models.'),
-            ])->summary(fn (): string => sprintf(
-                '%s · %s',
-                self::SPLITTERS[(string) $this->valueInUse('text_splitter')] ?? 'Automatic',
-                $this->valueInUse('tokenizer'),
-            )),
-            SettingsCard::make('server', 'Chunker server', 'Where the chunker runs: the hosted chunk.fit or your own.', Heroicon::OutlinedServerStack, fn (): array => [
-                $this->url('chunker_url', 'Address',
-                    help: 'The hosted chunk.fit, or your own chunker, such as http://chunker:8000 in the Docker stack.'),
-                $this->secret('chunker_api_key', 'API key',
-                    help: 'Only for the hosted chunk.fit. It is never sent to another address.', required: false),
-            ])->console('https://chunk.fit')
-                ->summary(fn (): string => $this->serverStatus())
-                ->visible($usesChunker),
-            SettingsCard::make('strategy', 'Strategy', 'How the chunker decides where a chunk ends, its options, and a preview on your own text.', Heroicon::OutlinedSquares2x2, fn (): array => [
-                ...$this->strategyFields(),
+                    ->helperText('Tokens are how AI models read text, counted with the tokenizer under Advanced. Characters are easier to picture.'),
+                Grid::make(2)->schema([
+                    $this->sizeField('chunk_size', 'Chunk size', fn (ChunkSizeUnit $unit): int => $unit->minSize(), fn (ChunkSizeUnit $unit): int => $unit->maxSize())
+                        ->placeholder(fn (Get $get): string => (string) $this->unit($get)->defaultSize())
+                        ->helperText(fn (Get $get): string => $this->unit($get) === ChunkSizeUnit::Tokens
+                            ? 'The largest a chunk may be. 300 to 500 tokens suits most agents.'
+                            : 'The largest a chunk may be. 1,200 to 2,000 characters suits most agents.'),
+                    $this->sizeField('chunk_overlap', 'Overlap', fn (): int => 0, fn (ChunkSizeUnit $unit): int => $unit->maxOverlap())
+                        ->helperText('Repeated from the end of one chunk at the start of the next. Most text needs none.')
+                        ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                            if (is_numeric($value) && (int) $value >= $this->chunkSize($get)) {
+                                $fail('The overlap must be smaller than the chunk size.');
+                            }
+                        }),
+                ]),
+            ])->properties('chunk_unit', 'chunk_size', 'chunk_overlap')
+                ->summary(fn (): string => $this->sizeSummary()),
+            SettingsCard::make('content', 'How content is split', 'Each kind of content is split by its own structure. Try it on your own text.', Heroicon::OutlinedSquares2x2, fn (): array => [
+                Grid::make(['default' => 1, 'md' => 2])->schema([
+                    ...array_map($this->kindSection(...), ContentKind::cases()),
+                    Section::make('Documents')
+                        ->description('PDF, Word, slides, spreadsheets and images')
+                        ->compact()
+                        ->schema([
+                            Text::make('One chunk per page')->weight(FontWeight::Medium),
+                            Text::make('Each page is read on its own and is not split further.')->color('gray')->size(TextSize::Small),
+                        ]),
+                ]),
                 $this->previewSection(),
-            ])->properties('strategy', ...array_column(ChunkerOption::cases(), 'value'))
-                ->summary(fn (): string => $this->strategySummary())
-                ->visible($usesChunker),
-            SettingsCard::make('built_in', 'Built-in splitter', 'Packs whole paragraphs, and the sentences of very long ones, into chunks.', Heroicon::OutlinedCube, fn (): array => [
-                $this->integer('local_chunk_tokens', 'Chunk size', min: 50, max: 8000)->suffix('tokens'),
-                $this->integer('local_overlap_tokens', 'Overlap', min: 0, max: 2000)->suffix('tokens'),
-            ])->summary(fn (): string => sprintf('%s tokens, %s overlap', $this->valueInUse('local_chunk_tokens'), $this->valueInUse('local_overlap_tokens')))
-                ->visible(fn (): bool => $this->valueInUse('text_splitter') !== 'chunkfit'),
+            ])->properties()
+                ->summary(fn (): string => collect(ContentKind::cases())
+                    ->map(fn (ContentKind $kind): string => "{$kind->label()}: {$kind->strategy()->label()}")
+                    ->push('Documents: one chunk per page')
+                    ->join(' · ')),
+            SettingsCard::make('advanced', 'Advanced', 'The strategy for each kind of content, and the tokenizer. The defaults suit most agents.', Heroicon::OutlinedAdjustmentsHorizontal, fn (): array => [
+                ...array_map($this->strategyField(...), ContentKind::cases()),
+                $this->choice('tokenizer', 'Tokenizer', TikToken::ENCODINGS,
+                    help: 'Counts tokens: the chunk size when it is in tokens, and the size of every stored chunk. cl100k_base suits most models.'),
+            ])->collapsed(),
         ];
     }
-
-    // --- Strategy ------------------------------------------------------------
 
     /**
-     * @return list<Component>
+     * A size field whose limits and suffix follow the unit on the page.
+     *
+     * @param  Closure(ChunkSizeUnit): int  $min
+     * @param  Closure(ChunkSizeUnit): int  $max
      */
-    private function strategyFields(): array
+    private function sizeField(string $property, string $label, Closure $min, Closure $max): TextInput
     {
-        return [
-            ToggleButtons::make('engine')
-                ->label('Library')
-                ->options(collect(['langchain', 'llamaindex', 'chonkie'])->mapWithKeys(fn (string $engine): array => [$engine => ChunkerStrategy::engineLabel($engine)])->all())
-                ->inline()
-                ->live()
-                ->dehydrated(false)
-                ->afterStateHydrated(fn (ToggleButtons $component, Get $get): ToggleButtons => $component->state($this->strategyFrom($get)->engine()))
-                ->afterStateUpdated(function (Set $set, ?string $state): void {
-                    $strategies = ChunkerStrategy::forEngine((string) $state);
-                    $runnable = array_values(array_filter($strategies, fn (ChunkerStrategy $strategy): bool => $this->server()->cannotRun($strategy) === null));
-
-                    $set('strategy', ($runnable[0] ?? $strategies[0] ?? ChunkerStrategy::LangchainRecursive)->value);
-                }),
-            Radio::make('strategy')
-                ->label('Strategy')
-                ->options(fn (Get $get): array => collect($this->engineStrategies($get))->mapWithKeys(fn (ChunkerStrategy $strategy): array => [$strategy->value => $strategy->label()])->all())
-                ->descriptions(fn (Get $get): array => collect($this->engineStrategies($get))->mapWithKeys(fn (ChunkerStrategy $strategy): array => [
-                    $strategy->value => $strategy->description().(($reason = $this->server()->cannotRun($strategy)) !== null ? " {$reason}" : ''),
-                ])->all())
-                ->disableOptionWhen(fn (string $value): bool => ($strategy = ChunkerStrategy::tryFrom($value)) !== null && $this->server()->cannotRun($strategy) !== null)
-                ->in(array_column(ChunkerStrategy::cases(), 'value'))
-                ->live(),
-            Grid::make(2)->schema([
-                $this->option(ChunkerOption::ChunkSize, $this->integer('chunk_size', 'Chunk size', min: 1)
-                    ->suffix(fn (Get $get): string => $this->unit($get))
-                    ->helperText('The largest a chunk may be.')),
-                $this->option(ChunkerOption::ChunkOverlap, $this->integer('chunk_overlap', 'Overlap', min: 0)
-                    ->suffix(fn (Get $get): string => $this->unit($get))
-                    ->helperText('Repeated from the end of one chunk at the start of the next.')
-                    ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
-                        $size = $this->optionValue(ChunkerOption::ChunkSize, $get);
-
-                        if (is_numeric($value) && is_numeric($size) && (int) $value >= (int) $size) {
-                            $fail('The overlap must be smaller than the chunk size.');
-                        }
-                    })),
-                $this->option(ChunkerOption::LengthUnit, ToggleButtons::make('length_unit')
-                    ->label('Measure sizes in')
-                    ->options(['tokens' => 'Tokens', 'characters' => 'Characters'])
-                    ->in(['tokens', 'characters'])
-                    ->inline()
-                    ->live()),
-                $this->option(ChunkerOption::Language, $this->choice('language', 'Split by the structure of', ChunkerOption::LANGUAGES,
-                    help: 'Headings, blocks and code first, then paragraphs. Markdown suits web pages and ebooks.')
-                    ->searchable()),
-                $this->option(ChunkerOption::Separators, TagsInput::make('separators')
-                    ->label('Separators')
-                    ->helperText('Tried in this order when no structure is chosen. Type \n for a line break.')
-                    ->placeholder('Add a separator')
-                    ->reorderable()
-                    ->columnSpanFull()),
-                $this->option(ChunkerOption::Separator, $this->text('separator', 'Separator', help: 'Type \n for a line break.')),
-                $this->option(ChunkerOption::MaxHeaderLevel, $this->integer('max_header_level', 'Deepest heading level', help: 'Headings down to this level (1 = #, 6 = ######) start a new chunk.', min: 1, max: 6)),
-                $this->option(ChunkerOption::StripHeaders, $this->toggle('strip_headers', 'Remove headings from the chunk text',
-                    help: 'The headings are kept as information of the chunk either way.')),
-                $this->option(ChunkerOption::BufferSize, $this->integer('buffer_size', 'Sentences compared together',
-                    help: 'Neighbouring sentences grouped when the meaning is compared.', min: 0)),
-                $this->option(ChunkerOption::BreakpointPercentileThreshold, $this->integer('breakpoint_percentile_threshold', 'Break sensitivity', help: 'Percentile from 1 to 99. Higher makes fewer, longer chunks.', min: 1, max: 99)),
-                $this->option(ChunkerOption::Threshold, $this->decimal('threshold', 'Similarity threshold', help: 'From 0 to 1. Sentences stay together while their similarity is above it. Higher makes shorter chunks.', min: 0.01, max: 1)),
-                $this->option(ChunkerOption::SimilarityWindow, $this->integer('similarity_window', 'Similarity window',
-                    help: 'How many sentences are compared at a time.', min: 1)),
-                $this->option(ChunkerOption::MinSentencesPerChunk, $this->integer('min_sentences_per_chunk', 'Fewest sentences per chunk', min: 1)),
-                $this->option(ChunkerOption::MinCharactersPerChunk, $this->integer('min_characters_per_chunk', 'Fewest characters per chunk', min: 1)),
-                Text::make('This strategy has no options: it follows the Markdown headings of the text.')
-                    ->color('gray')
-                    ->visible(fn (Get $get): bool => $this->strategyFrom($get)->options() === [])
-                    ->columnSpanFull(),
-            ]),
-        ];
+        return $this->integer($property, $label)
+            ->minValue(fn (Get $get): int => $min($this->unit($get)))
+            ->maxValue(fn (Get $get): int => $max($this->unit($get)))
+            ->suffix(fn (Get $get): string => $this->unit($get)->suffix());
     }
 
-    private function strategySummary(): string
+    // --- Kinds of content ----------------------------------------------------
+
+    /** A kind of content, its sources and the strategy in use. */
+    private function kindSection(ContentKind $kind): Section
     {
-        $strategy = ChunkerStrategy::tryFrom((string) $this->valueInUse('strategy')) ?? ChunkerStrategy::LangchainRecursive;
-        $parts = ["{$strategy->label()} ({$this->engineName($strategy)})"];
+        $strategy = $kind->strategy();
 
-        if ($strategy->accepts(ChunkerOption::ChunkSize)) {
-            $size = $this->valueInUse('chunk_size') ?? $strategy->defaultFor(ChunkerOption::ChunkSize);
-            $unit = $strategy->accepts(ChunkerOption::LengthUnit) ? (string) ($this->valueInUse('length_unit') ?? 'tokens') : 'tokens';
-            $parts[] = filled($size) ? "{$size} {$unit}" : 'whole sections';
-        }
-
-        if ($strategy->accepts(ChunkerOption::ChunkOverlap)) {
-            $overlap = (int) ($this->valueInUse('chunk_overlap') ?? $strategy->defaultFor(ChunkerOption::ChunkOverlap));
-            $parts[] = $overlap === 0 ? 'no overlap' : "{$overlap} overlap";
-        }
-
-        if (($reason = $this->server()->cannotRun($strategy)) !== null) {
-            $parts[] = $reason;
-        }
-
-        return implode(' · ', $parts);
+        return Section::make($kind->label())
+            ->description($kind->sources())
+            ->compact()
+            ->schema([
+                Text::make($strategy->label())->weight(FontWeight::Medium),
+                Text::make($strategy->description())->color('gray')->size(TextSize::Small),
+            ]);
     }
 
-    private function engineName(ChunkerStrategy $strategy): string
+    /** The strategy for a kind: only the ones that suit it. */
+    private function strategyField(ContentKind $kind): Select
     {
-        return ChunkerStrategy::engineLabel($strategy->engine());
+        $property = "{$kind->value}_strategy";
+        $options = collect($kind->strategies())->mapWithKeys(fn (SplitStrategy $strategy): array => [$strategy->value => $strategy->label()])->all();
+
+        return $this->choice($property, $kind->label(), $options)
+            ->hint($kind->sources())
+            ->live()
+            ->helperText(fn (Get $get): string => $this->strategyFor($kind, $get)->description());
     }
 
     // --- Preview -------------------------------------------------------------
@@ -277,15 +198,23 @@ class ManageChunkingSettings extends AdminSettingsPage
     private function previewSection(): Section
     {
         return Section::make('Try it')
-            ->description('Splits a sample with the options above, before you save them. Nothing is stored.')
+            ->description('Splits a sample, or your own text, with the options on this page before you save them. Nothing is stored.')
             ->icon(Heroicon::OutlinedBeaker)
             ->compact()
             ->schema([
+                ToggleButtons::make('preview_kind')
+                    ->label('Split as')
+                    ->options(collect(ContentKind::cases())->mapWithKeys(fn (ContentKind $kind): array => [$kind->value => $kind->label()])->all())
+                    ->inline()
+                    ->live()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(fn (ToggleButtons $component, ?string $state): ToggleButtons => $component->state($state ?? ContentKind::Markdown->value))
+                    ->afterStateUpdated(fn (Get $get, Set $set, ?string $state) => $this->switchSample($get, $set, $state)),
                 Textarea::make('preview_text')
                     ->hiddenLabel()
-                    ->rows(8)
+                    ->rows(14)
                     ->dehydrated(false)
-                    ->afterStateHydrated(fn (Textarea $component, ?string $state): Textarea => $component->state(filled($state) ? $state : self::SAMPLE)),
+                    ->afterStateHydrated(fn (Textarea $component, ?string $state): Textarea => $component->state(filled($state) ? $state : $this->sample(ContentKind::Markdown))),
                 Actions::make([
                     Action::make('runPreview')
                         ->label('Split this text')
@@ -297,24 +226,63 @@ class ManageChunkingSettings extends AdminSettingsPage
     }
 
     /**
-     * Split the sample with the panel's (unsaved) options and the saved
-     * chunker server.
+     * A new kind to split as: show that kind's sample, unless the text box
+     * holds the admin's own text, and clear the result of the last preview.
      */
+    private function switchSample(Get $get, Set $set, ?string $state): void
+    {
+        $this->preview = null;
+
+        $text = self::normalized((string) $get('preview_text'));
+        $samples = array_map(fn (ContentKind $kind): string => self::normalized($this->sample($kind)), ContentKind::cases());
+
+        if ($text === '' || in_array($text, $samples, true)) {
+            $set('preview_text', $this->sample(ContentKind::tryFrom((string) $state) ?? ContentKind::Markdown));
+        }
+    }
+
+    private function sample(ContentKind $kind): string
+    {
+        return File::get(resource_path(self::SAMPLES[$kind->value]));
+    }
+
+    /** Text as the browser may send it back: other line endings, trimmed. */
+    private static function normalized(string $text): string
+    {
+        return trim(str_replace(["\r\n", "\r"], "\n", $text));
+    }
+
+    /** Split the sample with the page's (unsaved) unit, size, overlap, strategy and tokenizer. */
     private function runPreview(Get $get): void
     {
-        abort_unless($this->canEdit(), 403);
-
-        $strategy = $this->strategyFrom($get);
-        $splitter = $this->valueInUse('text_splitter') === 'local' || ! app(ChunkFitClient::class)->isAvailable() ? 'local' : 'chunkfit';
+        $kind = ContentKind::tryFrom((string) $get('preview_kind')) ?? ContentKind::Markdown;
+        $strategy = $this->strategyFor($kind, $get);
+        $unit = $this->unit($get);
 
         try {
-            $chunks = $splitter === 'local'
-                ? $this->localChunks((string) $get('preview_text'))
-                : $this->chunkerChunks((string) $get('preview_text'), $strategy, $get);
+            $config = new ChunkingConfigData(
+                kind: $kind,
+                strategy: $strategy,
+                unit: $unit,
+                size: $this->chunkSize($get),
+                overlap: $this->chunkOverlap($get),
+                encoding: $this->tokenizer($get),
+            );
 
-            $this->preview = ['splitter' => $splitter, 'strategy' => $strategy->label(), 'chunks' => $chunks, 'error' => null];
+            if ($config->overlap >= $config->size) {
+                throw new InvalidArgumentException('The overlap must be smaller than the chunk size.');
+            }
+
+            $characters = new CharacterMeasure;
+            $chunks = array_map(fn (string $chunk): array => [
+                'text' => $chunk,
+                'tokens' => TikToken::countTokens($chunk, $config->encoding),
+                'characters' => $characters->length($chunk),
+            ], app(BuiltinTextSplitter::class)->splitWith((string) $get('preview_text'), $config));
+
+            $this->preview = ['kind' => $kind->label(), 'strategy' => $strategy->label(), 'unit' => $unit->value, 'chunks' => $chunks, 'error' => null];
         } catch (Throwable $e) {
-            $this->preview = ['splitter' => $splitter, 'strategy' => $strategy->label(), 'chunks' => [], 'error' => $e->getMessage()];
+            $this->preview = ['kind' => $kind->label(), 'strategy' => $strategy->label(), 'unit' => $unit->value, 'chunks' => [], 'error' => $e->getMessage()];
         }
     }
 
@@ -342,24 +310,22 @@ class ManageChunkingSettings extends AdminSettingsPage
             return [Callout::make('No chunks: the text is empty.')->icon(Heroicon::OutlinedInformationCircle)->info()];
         }
 
-        $tokens = array_column($chunks, 'tokens');
+        $unit = ChunkSizeUnit::tryFrom($this->preview['unit']) ?? ChunkSizeUnit::Tokens;
+        $sizes = array_column($chunks, $unit === ChunkSizeUnit::Tokens ? 'tokens' : 'characters');
         $shown = array_slice($chunks, 0, self::PREVIEW_LIMIT);
 
         return [
-            Callout::make(sprintf(
-                '%d %s with the %s',
-                count($chunks),
-                Str::plural('chunk', count($chunks)),
-                $this->preview['splitter'] === 'local' ? 'built-in splitter' : $this->preview['strategy'].' strategy',
-            ))
-                ->description(sprintf('%d to %d tokens, %d on average.', min($tokens), max($tokens), (int) round(array_sum($tokens) / count($tokens))))
+            Callout::make(sprintf('%d %s, split as %s with %s', count($chunks), Str::plural('chunk', count($chunks)), $this->preview['kind'], $this->preview['strategy']))
+                ->description(sprintf('%d to %d %s, %d on average.', min($sizes), max($sizes), $unit->suffix(), (int) round(array_sum($sizes) / count($sizes))))
                 ->icon(Heroicon::OutlinedCheckCircle)
                 ->success(),
             Grid::make(['default' => 1, 'md' => 2])->schema(array_map(
                 fn (array $chunk, int $index): Section => Section::make('Chunk '.($index + 1))
+                    ->key("preview-chunk-{$index}")
                     ->compact()
-                    ->afterHeader([Text::make("{$chunk['tokens']} tokens")->badge()->color('gray')])
-                    ->schema([Text::make(Str::limit($chunk['text'], 500))->size(TextSize::Small)]),
+                    ->afterHeader([Text::make(sprintf('%d %s', $unit === ChunkSizeUnit::Tokens ? $chunk['tokens'] : $chunk['characters'], $unit->suffix()))->badge()->color('gray')])
+                    ->schema([Text::make(Str::limit($chunk['text'], 500))->size(TextSize::Small)])
+                    ->footer([$this->viewChunkAction($chunk, $index)]),
                 $shown,
                 array_keys($shown),
             )),
@@ -370,148 +336,65 @@ class ManageChunkingSettings extends AdminSettingsPage
     }
 
     /**
-     * @return list<array{text: string, tokens: int}>
-     */
-    private function chunkerChunks(string $text, ChunkerStrategy $strategy, Get $get): array
-    {
-        $size = $this->optionValue(ChunkerOption::ChunkSize, $get);
-        $overlap = $this->optionValue(ChunkerOption::ChunkOverlap, $get);
-
-        if ($strategy->accepts(ChunkerOption::ChunkOverlap) && is_numeric($size) && is_numeric($overlap) && $overlap >= $size) {
-            throw new InvalidArgumentException('The overlap must be smaller than the chunk size.');
-        }
-
-        $options = [];
-
-        foreach (ChunkerOption::cases() as $option) {
-            $options[$option->value] = $this->optionValue($option, $get);
-        }
-
-        $config = ChunkerConfigData::fromOptions($strategy, (string) $this->valueInUse('tokenizer'), $options);
-
-        return app(ChunkFitClient::class)
-            ->chunk($text, $config)
-            ->map(fn ($chunk): array => ['text' => $chunk->text, 'tokens' => $chunk->tokenCount])
-            ->all();
-    }
-
-    /**
-     * @return list<array{text: string, tokens: int}>
-     */
-    private function localChunks(string $text): array
-    {
-        $splitter = new TokenSplitter(
-            chunkSize: max((int) $this->valueInUse('local_chunk_tokens'), 1),
-            chunkOverlap: max((int) $this->valueInUse('local_overlap_tokens'), 0),
-        );
-
-        $texts = array_values(array_filter(
-            array_map(static fn (PageData $page): string => trim($page->content), $splitter->split($text)),
-            static fn (string $chunk): bool => $chunk !== '',
-        ));
-
-        $counts = app(TokenCounter::class)->countMany($texts);
-
-        return array_map(fn (string $chunk, int $tokens): array => ['text' => $chunk, 'tokens' => $tokens], $texts, $counts);
-    }
-
-    // --- Helpers -------------------------------------------------------------
-
-    /**
-     * Show an option's field only for the strategies that accept it, with the
-     * default that applies: Chatvia's, or else the chunker's own.
-     */
-    private function option(ChunkerOption $option, Field $field): Field
-    {
-        $field->visible(fn (Get $get): bool => $this->strategyFrom($get)->accepts($option));
-
-        if ($field instanceof TextInput || $field instanceof Select) {
-            $field->placeholder(function (Get $get) use ($option): ?string {
-                $default = $this->defaultValue($option->value) ?? $this->strategyFrom($get)->defaultFor($option);
-
-                return match (true) {
-                    $option === ChunkerOption::Language => 'Default: '.(ChunkerOption::LANGUAGES[(string) $default] ?? 'none, use the separators'),
-                    is_bool($default) => $default ? 'On' : 'Off',
-                    is_scalar($default) => (string) $default,
-                    default => null,
-                };
-            });
-        }
-
-        return $field;
-    }
-
-    /**
-     * The value an option has in the panel: the field, else Chatvia's
-     * default. Null means the chunker's own default.
-     */
-    private function optionValue(ChunkerOption $option, Get $get): mixed
-    {
-        return ChunkingSettings::cast($option->value, $get($option->value)) ?? $this->defaultValue($option->value);
-    }
-
-    private function strategyFrom(Get $get): ChunkerStrategy
-    {
-        return ChunkerStrategy::tryFrom((string) ($get('strategy') ?? $this->valueInUse('strategy'))) ?? ChunkerStrategy::LangchainRecursive;
-    }
-
-    /**
-     * @return list<ChunkerStrategy>
-     */
-    private function engineStrategies(Get $get): array
-    {
-        return ChunkerStrategy::forEngine((string) ($get('engine') ?? $this->strategyFrom($get)->engine()));
-    }
-
-    private function unit(Get $get): string
-    {
-        return $this->strategyFrom($get)->accepts(ChunkerOption::LengthUnit) && $this->optionValue(ChunkerOption::LengthUnit, $get) === 'characters'
-            ? 'characters'
-            : 'tokens';
-    }
-
-    /**
-     * The tokenizers the chunker reports, or the ones Chatvia knows while it
-     * cannot be asked.
+     * A link that opens the whole chunk in a modal: the card shows only its
+     * start, without its line breaks.
      *
-     * @return array<string, string>
+     * @param  array{text: string, tokens: int, characters: int}  $chunk
      */
-    private function tokenizers(): array
+    private function viewChunkAction(array $chunk, int $index): Action
     {
-        $names = $this->server()->encodings ?: array_keys(ChunkerOption::ENCODINGS);
-
-        return collect($names)->mapWithKeys(fn (string $name): array => [$name => ChunkerOption::ENCODINGS[$name] ?? $name])->all();
+        return Action::make('viewChunk')
+            ->label('View whole chunk')
+            ->icon(Heroicon::OutlinedArrowsPointingOut)
+            ->link()
+            ->size(Size::Small)
+            ->modalHeading('Chunk '.($index + 1))
+            ->modalDescription("{$chunk['tokens']} tokens, {$chunk['characters']} characters")
+            ->modalContent(view('filament.settings.chunk', ['text' => $chunk['text']]))
+            ->modalWidth(Width::ThreeExtraLarge)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close');
     }
 
-    /**
-     * What the saved chunker server can run, asked at most once a minute.
-     */
-    private function server(): ChunkerServerData
-    {
-        if ($this->valueInUse('text_splitter') === 'local' && ! app(ChunkFitClient::class)->isAvailable()) {
-            return ChunkerServerData::unreachable('The chunker is not set up.');
-        }
+    // --- Values on the page --------------------------------------------------
 
-        return Cache::remember($this->serverCacheKey(), 60, fn (): ChunkerServerData => app(ChunkFitClient::class)->server());
+    /** The strategy the page has for a kind: the field, else the default; only one that suits the kind. */
+    private function strategyFor(ContentKind $kind, Get $get): SplitStrategy
+    {
+        $property = "{$kind->value}_strategy";
+        $strategy = SplitStrategy::tryFrom((string) ($get($property) ?: $this->defaultValue($property)));
+
+        return $strategy instanceof SplitStrategy && $strategy->suits($kind) ? $strategy : $kind->defaultStrategy();
     }
 
-    private function serverCacheKey(): string
+    private function unit(Get $get): ChunkSizeUnit
     {
-        return 'admin:chunker-server:'.md5((string) config('services.chunkfit.base_url'));
+        return ChunkSizeUnit::tryFrom((string) ($get('chunk_unit') ?: $this->defaultValue('chunk_unit'))) ?? ChunkSizeUnit::Tokens;
     }
 
-    private function serverStatus(): string
+    /** The size on the page, else the default, else the unit's default. */
+    private function chunkSize(Get $get): int
     {
-        $server = $this->server();
+        $size = ChunkingSettings::cast('chunk_size', $get('chunk_size')) ?? $this->defaultValue('chunk_size');
 
-        if (! $server->isReachable()) {
-            return "Cannot reach the chunker: {$server->error}";
-        }
+        return is_numeric($size) && (int) $size > 0 ? (int) $size : $this->unit($get)->defaultSize();
+    }
 
-        return sprintf(
-            'Connected: %d strategies. Embeddings: %s.',
-            count($server->strategies),
-            $server->embeddingsConfigured ? ($server->embeddingsModel ?? 'set up') : 'not set up, so semantic strategies are off',
-        );
+    private function chunkOverlap(Get $get): int
+    {
+        return (int) (ChunkingSettings::cast('chunk_overlap', $get('chunk_overlap')) ?? $this->defaultValue('chunk_overlap'));
+    }
+
+    private function tokenizer(Get $get): string
+    {
+        return TikToken::encoding((string) ($get('tokenizer') ?: $this->defaultValue('tokenizer')));
+    }
+
+    private function sizeSummary(): string
+    {
+        $config = ChunkingConfigData::forKind(ContentKind::Text);
+        $suffix = $config->unit->suffix();
+
+        return sprintf('Up to %d %s · %s', $config->size, $suffix, $config->overlap === 0 ? 'no overlap' : "{$config->overlap} {$suffix} overlap");
     }
 }

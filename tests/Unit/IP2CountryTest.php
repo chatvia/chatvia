@@ -26,3 +26,11 @@ it('does not look up local, private or invalid addresses', function (string $ip)
     'empty' => '',
     'hostname' => 'localhost',
 ]);
+
+it('looks nothing up while no key is set up', function (): void {
+    config(['services.ip2location.key' => null]);
+
+    expect(app(IP2Country::class)->countryCode('8.8.8.8'))->toBeNull();
+
+    Http::assertNothingSent();
+});

@@ -461,7 +461,7 @@ TXT;
     {
         $name = basename(str_replace('\\', '/', $filename));
 
-        return $name === '' || $name === '.' || $name === '..' ? 'file' : $name;
+        return in_array($name, ['', '.', '..'], true) ? 'file' : $name;
     }
 
     /**

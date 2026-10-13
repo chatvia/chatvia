@@ -358,6 +358,7 @@ export function useChatLog() {
             artifacts: event.artifacts ?? null,
             source: null,
             read_at: null,
+            confidence_score: null,
         });
     }
 

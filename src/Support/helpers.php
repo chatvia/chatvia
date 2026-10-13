@@ -8,8 +8,10 @@
  */
 
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\File;
 use Support\MimeType;
+use Support\Prompt\PromptTemplate;
 
 if (! function_exists('create_temp_dir')) {
     /**
@@ -145,10 +147,29 @@ if (! function_exists('prompt')) {
      * `prompts::` view namespace. Pass variables as the second argument; use
      * {!! $var !!} in the prompt file so text isn't HTML-escaped.
      *
+     * A prompt an admin edited (Settings → Prompts, `chatvia.prompts`) is
+     * rendered instead of its file, but only when it keeps to the safe part of
+     * Blade ({@see PromptTemplate}); an edit that is unsafe or fails to render
+     * is reported and the file is used.
+     *
      * @param  array<string, mixed>  $data
      */
     function prompt(string $name, array $data = []): string
     {
+        $edited = ((array) config('chatvia.prompts'))[str_replace('.', '/', $name)] ?? null;
+
+        if (is_string($edited) && trim($edited) !== '') {
+            try {
+                if (! PromptTemplate::isSafe($edited)) {
+                    throw new RuntimeException("The edited prompt \"{$name}\" uses Blade that is not allowed; its file is used.");
+                }
+
+                return Blade::render($edited, $data, deleteCachedView: false);
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
         return view('prompts::'.str_replace('/', '.', $name), $data)->render();
     }
 }

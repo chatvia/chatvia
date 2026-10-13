@@ -95,18 +95,12 @@ return [
     |
     */
 
+    // Only the queues with a pool of their own: Horizon measures a shared
+    // pool (ingestion, media) under its joined queue names.
     'waits' => [
-        'redis:default' => 60,
-        'redis:ingestion.video' => 900,
-        'redis:ingestion.audio' => 900,
-        'redis:ingestion.pdf' => 300,
-        'redis:ingestion.word' => 300,
-        'redis:ingestion.website' => 300,
-        'redis:ingestion.youtube' => 300,
-        'redis:ingestion.chunks' => 300,
-        'redis:ingestion.text' => 60,
-        'redis:ingestion.markdown' => 60,
-        'redis:exports' => 600,
+        'redis:messages' => 30,
+        'redis:default' => 120,
+        'redis:analytics' => 900,
     ],
 
     /*
@@ -202,116 +196,109 @@ return [
     */
 
     'defaults' => [
-        'app' => [
+        // Messaging-channel replies and storing messages (`messages`), then
+        // e-mails, embeddings and other short jobs (`default`). A pool per
+        // queue, so a reply never waits behind the rest. A reply may call the
+        // model and the tools several times, hence the timeout (the `redis`
+        // connection's retry_after outlasts it).
+        'chat' => [
             'connection' => 'redis',
-            'queue' => ['default', 'messages', 'analytics'],
+            'queue' => ['messages', 'default'],
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
+            'minProcesses' => 1,
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => 300,
+            'nice' => 0,
+        ],
+        // Conversation analysis, evals and audit logs, with a cap of their
+        // own so a backlog never takes workers from the chat.
+        'analytics' => [
+            'connection' => 'redis',
+            'queue' => ['analytics'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'minProcesses' => 1,
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 60,
-            'nice' => 0,
+            'timeout' => 300,
+            'nice' => 5,
         ],
-        'ingestion-heavy' => [
+        // Reading files and websites, then exports and deletions. One pool
+        // takes the queues in this order (balance off), so a source that has
+        // started finishes first, and an idle server keeps one worker, not
+        // one per queue. Niced, so the web app stays quick while it works.
+        'ingestion' => [
             'connection' => 'redis-long',
-            'queue' => ['ingestion.video', 'ingestion.audio'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
+            'queue' => ['ingestion.chunks', 'ingestion.summary', 'ingestion.text', 'ingestion.pdf', 'ingestion.word', 'ingestion.website', 'exports'],
+            'balance' => false,
+            'minProcesses' => 1,
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
             'tries' => 3,
-            'timeout' => 900, // 15 minutes for video/audio processing
-            'nice' => 0,
+            'timeout' => 600,
+            'nice' => 10,
         ],
-        'ingestion-medium' => [
-            'connection' => 'redis-long',
-            'queue' => ['ingestion.pdf', 'ingestion.word', 'ingestion.website', 'ingestion.youtube', 'ingestion.chunks'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 256,
-            'tries' => 3,
-            'timeout' => 600, // 10 minutes for PDF/Word/Website
-            'nice' => 0,
-        ],
-        'ingestion-light' => [
-            'connection' => 'redis-long',
-            'queue' => ['ingestion.text', 'ingestion.markdown', 'ingestion.summary'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
-            'maxProcesses' => 1,
-            'maxTime' => 0,
-            'maxJobs' => 0,
-            'memory' => 128,
-            'tries' => 3,
-            'timeout' => 120, // 2 minute for text/markdown
-            'nice' => 0,
-        ],
-        'exports' => [
-            'connection' => 'redis-long',
-            'queue' => ['exports'],
-            'balance' => 'auto',
-            'autoScalingStrategy' => 'time',
+        // Transcribing audio and video can take hours: `redis-media`'s
+        // retry_after outlasts MediaIngestionJob's timeout.
+        'media' => [
+            'connection' => 'redis-media',
+            'queue' => ['ingestion.audio', 'ingestion.video'],
+            'balance' => false,
+            'minProcesses' => 1,
             'maxProcesses' => 1,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
-            'tries' => 1,
-            'timeout' => 1800,
-            'nice' => 0,
+            'tries' => 2,
+            'timeout' => 86000,
+            'nice' => 10,
         ],
     ],
 
+    /*
+    | The most workers each supervisor runs at once. Horizon starts a
+    | supervisor with half of it, keeps at least minProcesses per pool, and
+    | each worker is a PHP process of about 80 MB, so production fits a small
+    | server: 13 workers at most, 5 when idle. The admin panel raises them
+    | (Settings, Platform, Queue workers) after a restart of Horizon.
+    */
     'environments' => [
         'production' => [
-            'app' => [
-                'maxProcesses' => 50,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+            'chat' => [
+                'maxProcesses' => 6,
             ],
-            'ingestion-heavy' => [
-                'maxProcesses' => 50, // Limited for CPU-intensive video/audio
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+            'analytics' => [
+                'maxProcesses' => 2,
             ],
-            'ingestion-medium' => [
-                'maxProcesses' => 100, // More for PDF/Word/Website
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+            'ingestion' => [
+                'maxProcesses' => 4,
             ],
-            'ingestion-light' => [
-                'maxProcesses' => 50, // Most for fast text/markdown
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
-            ],
-            'exports' => [
-                'maxProcesses' => 5,
-                'balanceMaxShift' => 1,
-                'balanceCooldown' => 3,
+            'media' => [
+                'maxProcesses' => 1,
             ],
         ],
 
         'local' => [
-            'app' => [
+            'chat' => [
                 'maxProcesses' => 3,
             ],
-            'ingestion-heavy' => [
+            'analytics' => [
                 'maxProcesses' => 1,
             ],
-            'ingestion-medium' => [
-                'maxProcesses' => 2,
-            ],
-            'ingestion-light' => [
+            'ingestion' => [
                 'maxProcesses' => 3,
             ],
-            'exports' => [
+            'media' => [
                 'maxProcesses' => 1,
             ],
         ],

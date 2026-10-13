@@ -21,6 +21,9 @@ class SourceFileController
     /**
      * Add file source
      *
+     * Only the file types the administrator turned on are accepted. Any other
+     * file gets a 422 response.
+     *
      * @return JsonResponse|array{data: UploadedSourceFileData}
      */
     public function store(UploadSourceFileRequest $request, Agent $agent, UploadKnowledgeSourceFileAction $upload): JsonResponse|array

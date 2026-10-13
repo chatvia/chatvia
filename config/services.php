@@ -120,6 +120,22 @@ return [
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
     ],
 
+    // Embeddings and speech to text; OpenAI chat models are added as a provider.
+    'openai' => [
+        'api_key' => null,
+        'api_endpoint' => 'https://api.openai.com/v1',
+        'embedding_model' => 'text-embedding-3-small',
+        'transcription_model' => 'whisper-1',
+    ],
+
+    // Google Gemini embeddings (the Gemini API, not Vertex AI). Gemini chat
+    // models are added as a provider. `google` is the sign-in app.
+    'gemini' => [
+        'api_key' => null,
+        'api_endpoint' => 'https://generativelanguage.googleapis.com/v1beta',
+        'embedding_model' => 'gemini-embedding-001',
+    ],
+
     'google' => [
         'client_id' => null,
         'client_secret' => null,
@@ -233,35 +249,5 @@ return [
     'plausible' => [
         'domain' => env('PLAUSIBLE_DOMAIN'),
         'script_url' => env('PLAUSIBLE_SCRIPT_URL', 'https://plausible.io/js/script.js'),
-    ],
-
-    // The chunker (github.com/chatvia/chunker): the hosted chunk.fit or your
-    // own, at the root of its address (it serves /v1/chunk). The strategy and
-    // its options are set in the admin panel (Settings → Chunking); these
-    // are the defaults. A null option is not sent, so the chunker uses its own
-    // default. The recursive splitter with Markdown separators keeps sections
-    // of web pages and ebooks together and joins small ones, in chunks of
-    // about the size the built-in splitter makes.
-    'chunkfit' => [
-        'api_key' => null,
-        'base_url' => env('CHUNK_FIT_BASE_URL', 'https://chunk.fit'),
-        'timeout' => (int) env('CHUNK_FIT_TIMEOUT', 120),
-        'strategy' => 'langchain.recursive',
-        'options' => [
-            'chunk_size' => 400,
-            'chunk_overlap' => 0,
-            'length_unit' => 'tokens',
-            'language' => 'markdown',
-            'separators' => null,
-            'separator' => null,
-            'max_header_level' => null,
-            'strip_headers' => null,
-            'buffer_size' => null,
-            'breakpoint_percentile_threshold' => null,
-            'min_sentences_per_chunk' => null,
-            'min_characters_per_chunk' => null,
-            'threshold' => null,
-            'similarity_window' => null,
-        ],
     ],
 ];

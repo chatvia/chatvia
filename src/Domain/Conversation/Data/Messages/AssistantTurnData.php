@@ -11,8 +11,8 @@ use Spatie\LaravelData\Data;
 /**
  * One assistant reply as it is recorded at the end of a turn: the final text,
  * the usage and timing figures, how the answer was found (Q&A match,
- * knowledge confidence) and what tools ran. Stored by
- * {@see StoreAssistantMessageAction}.
+ * knowledge confidence, the knowledge it was given) and what tools ran.
+ * Stored by {@see StoreAssistantMessageAction}.
  *
  * Property names are snake_case because the object is queued inside
  * StoreMessageJob; renaming one would break jobs already in the queue.
@@ -22,6 +22,7 @@ class AssistantTurnData extends Data
     /**
      * @param  array<int, array{kind: string, data: mixed}>  $artifacts  Structured tool results (e.g. chart specs) saved in `chat_messages.metadata.artifacts` so the chat UI can render them again on reload.
      * @param  array<int, string>  $tool_calls  Names of the tools this turn ran, saved in `chat_messages.metadata.tool_calls` so follow-up turns keep those tools available.
+     * @param  array<int, MessageSourceData>  $sources  The knowledge the answer was given, best first, saved in `chat_message_sources`.
      */
     public function __construct(
         public string $external_session_id,
@@ -41,9 +42,12 @@ class AssistantTurnData extends Data
         public bool $is_response_from_qa = false,
         public ?int $agent_question_answer_id = null,
         public ?string $source = null,
-        public bool $has_llm_found_answer = true,
+        // Null when it cannot be told: knowledge was used but no relevance
+        // check ran.
+        public ?bool $has_llm_found_answer = true,
         public array $artifacts = [],
         public array $tool_calls = [],
+        public array $sources = [],
     ) {}
 
     /**

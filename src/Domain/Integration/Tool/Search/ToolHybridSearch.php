@@ -41,6 +41,12 @@ use Illuminate\Support\Facades\Log;
  *     `mcp_tools.permission` other than `blocked` + agent reachability.
  *   - Function rows require `functions.is_enabled` + an `agent_function` pivot
  *     row for this agent.
+ *
+ * `mcp_tools` and `functions` have no vector index: an agent reaches a few
+ * dozen of them, so `custom_scope` / `fn_scope` collect exactly those rows
+ * (starting from the agent's servers / pivot rows, MATERIALIZED so the planner
+ * keeps that order) and score both channels on them by exact distance. No
+ * other workspace's tools are read.
  */
 class ToolHybridSearch
 {
@@ -68,22 +74,24 @@ class ToolHybridSearch
 
         // No per-query vchordrq GUCs. prefilter is a database-wide default
         // (ALTER DATABASE ... SET vchordrq.prefilter = on, in the vchordrq
-        // install migration) — it pushes each channel's reachability filter
-        // (the hashed IN-probe against the materialized reachable_preset set,
-        // or the custom channels' WHERE) into the index scan, so the
-        // per-channel LIMIT returns the top-N *reachable* rows. probes stays
-        // at its empty default because the flat connector_tools/mcp_tools/
-        // functions indexes (no `lists`) require 0 probes. So this runs as a
-        // plain query with no wrapping transaction.
+        // install migration) — it pushes the preset channels' reachability
+        // filter (the hashed IN-probe against the materialized reachable_preset
+        // set) into the connector_tools index scan, so the per-channel LIMIT
+        // returns the top-N *reachable* rows. probes stays at its empty default
+        // because the flat connector_tools index (no `lists`) requires 0
+        // probes; the custom and function channels use no index at all. So
+        // this runs as a plain query with no wrapping transaction.
         $rows = DB::select($this->sql(), [
-            $agent->id,                                                 // reachable_servers
-            $vectorString, $vectorString, $candidateLimit,              // preset_vector
-            $userMessage, $candidateLimit,                              // preset_bm25
-            $vectorString, $agent->id, $vectorString, $candidateLimit,  // custom_vector
-            $userMessage, $agent->id, $candidateLimit,                  // custom_bm25
-            $vectorString, $agent->id, $vectorString, $candidateLimit,  // fn_vector
-            $userMessage, $agent->id, $candidateLimit,                  // fn_bm25
-            $limit,                                                      // final LIMIT
+            $agent->id,                                    // reachable_servers
+            $vectorString, $vectorString, $candidateLimit, // preset_vector
+            $userMessage, $candidateLimit,                 // preset_bm25
+            $vectorString, $userMessage,                   // custom_scope
+            $candidateLimit,                               // custom_vector
+            $candidateLimit,                               // custom_bm25
+            $vectorString, $userMessage, $agent->id,       // fn_scope
+            $candidateLimit,                               // fn_vector
+            $candidateLimit,                               // fn_bm25
+            $limit,                                        // final LIMIT
         ]);
         $elapsedMs = (microtime(true) - $startedAt) * 1000;
 
@@ -173,7 +181,7 @@ WITH reachable_servers AS (
     -- Always-on connectors are excluded: their tools ship on every turn
     -- anyway (AlwaysAvailableToolResolver), so searching for them would only
     -- burn candidate slots the routed tools need.
-    SELECT s.id, s.slug
+    SELECT s.id, s.slug, s.uses_central_catalog
     FROM mcp_servers s
     INNER JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
     WHERE s.is_enabled = true
@@ -209,64 +217,62 @@ preset_bm25 AS (
     ORDER BY rank
     LIMIT ?
 ),
-custom_vector AS (
-    SELECT 'mcp_custom' AS kind, t.id,
-           ROW_NUMBER() OVER (ORDER BY t.embedding <-> ?::{$cast}) AS rank
-    FROM mcp_tools t
-    INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
-    LEFT JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
-    WHERE s.is_enabled = true
-      AND s.uses_central_catalog = false
+custom_scope AS MATERIALIZED (
+    -- The per-server tools of the agent's own servers, scored exactly, with
+    -- what the result needs (so it never looks them up in the whole table).
+    -- A BM25 score of 0 means no shared term: not a keyword hit.
+    SELECT t.id, t.name, t.description, t.input_schema, t.scope, rs.slug AS server_slug,
+           t.embedding <-> q.vector AS vector_dist,
+           NULLIF(t.embedding_bm25 <&> q.terms, 0) AS bm25_dist
+    FROM (
+        SELECT ?::{$cast} AS vector,
+               bm25_catalog.to_bm25query('mcp_tools_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')) AS terms
+    ) q
+    CROSS JOIN reachable_servers rs
+    INNER JOIN mcp_tools t ON t.mcp_server_id = rs.id
+    WHERE rs.uses_central_catalog = false
       AND t.permission != 'blocked'
-      AND t.embedding IS NOT NULL
-      AND ams.agent_id IS NOT NULL
-      AND ams.always_available = false
-    ORDER BY t.embedding <-> ?::{$cast}
+),
+custom_vector AS (
+    SELECT 'mcp_custom' AS kind, id, ROW_NUMBER() OVER (ORDER BY vector_dist, id) AS rank
+    FROM custom_scope
+    WHERE vector_dist IS NOT NULL
+    ORDER BY vector_dist, id
     LIMIT ?
 ),
 custom_bm25 AS (
-    SELECT 'mcp_custom' AS kind, t.id,
-           ROW_NUMBER() OVER (
-               ORDER BY t.embedding_bm25 <&> bm25_catalog.to_bm25query(
-                   'mcp_tools_embedding_bm25',
-                   tokenizer_catalog.tokenize(?::text, 'llmlingua2')
-               )
-           ) AS rank
-    FROM mcp_tools t
-    INNER JOIN mcp_servers s ON s.id = t.mcp_server_id
-    LEFT JOIN agent_mcp_server ams ON ams.mcp_server_id = s.id AND ams.agent_id = ?
-    WHERE s.is_enabled = true
-      AND s.uses_central_catalog = false
-      AND t.permission != 'blocked'
-      AND t.embedding_bm25 IS NOT NULL
-      AND ams.agent_id IS NOT NULL
-      AND ams.always_available = false
-    ORDER BY rank
+    SELECT 'mcp_custom' AS kind, id, ROW_NUMBER() OVER (ORDER BY bm25_dist, id) AS rank
+    FROM custom_scope
+    WHERE bm25_dist IS NOT NULL
+    ORDER BY bm25_dist, id
     LIMIT ?
 ),
+fn_scope AS MATERIALIZED (
+    -- The enabled functions attached to the agent, scored exactly.
+    SELECT f.id, f.internal_name, f.description, f.parameters_schema, f.webhook_method,
+           f.embedding <-> q.vector AS vector_dist,
+           NULLIF(f.embedding_bm25 <&> q.terms, 0) AS bm25_dist
+    FROM (
+        SELECT ?::{$cast} AS vector,
+               bm25_catalog.to_bm25query('functions_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')) AS terms
+    ) q
+    CROSS JOIN agent_function af
+    INNER JOIN functions f ON f.id = af.function_id
+    WHERE af.agent_id = ?
+      AND f.is_enabled = true
+),
 fn_vector AS (
-    SELECT 'fn' AS kind, f.id,
-           ROW_NUMBER() OVER (ORDER BY f.embedding <-> ?::{$cast}) AS rank
-    FROM functions f
-    INNER JOIN agent_function af ON af.function_id = f.id AND af.agent_id = ?
-    WHERE f.is_enabled = true
-      AND f.embedding IS NOT NULL
-    ORDER BY f.embedding <-> ?::{$cast}
+    SELECT 'fn' AS kind, id, ROW_NUMBER() OVER (ORDER BY vector_dist, id) AS rank
+    FROM fn_scope
+    WHERE vector_dist IS NOT NULL
+    ORDER BY vector_dist, id
     LIMIT ?
 ),
 fn_bm25 AS (
-    SELECT 'fn' AS kind, f.id,
-           ROW_NUMBER() OVER (
-               ORDER BY f.embedding_bm25 <&> bm25_catalog.to_bm25query(
-                   'functions_embedding_bm25',
-                   tokenizer_catalog.tokenize(?::text, 'llmlingua2')
-               )
-           ) AS rank
-    FROM functions f
-    INNER JOIN agent_function af ON af.function_id = f.id AND af.agent_id = ?
-    WHERE f.is_enabled = true
-      AND f.embedding_bm25 IS NOT NULL
-    ORDER BY rank
+    SELECT 'fn' AS kind, id, ROW_NUMBER() OVER (ORDER BY bm25_dist, id) AS rank
+    FROM fn_scope
+    WHERE bm25_dist IS NOT NULL
+    ORDER BY bm25_dist, id
     LIMIT ?
 ),
 combined AS (
@@ -299,7 +305,7 @@ SELECT r.kind, r.id, r.score, r.src,
        t.description         AS custom_description,
        t.input_schema       AS custom_schema,
        t.scope              AS custom_scope,
-       cs.slug              AS custom_server_slug,
+       t.server_slug        AS custom_server_slug,
        f.internal_name      AS fn_name,
        f.description         AS fn_description,
        f.parameters_schema  AS fn_schema,
@@ -317,10 +323,9 @@ LEFT JOIN LATERAL (
     ORDER BY rs.slug
     LIMIT 1
 ) ps ON r.kind = 'mcp_preset'
-LEFT JOIN mcp_tools   t  ON r.kind = 'mcp_custom' AND t.id = r.id
-LEFT JOIN mcp_servers cs ON r.kind = 'mcp_custom' AND cs.id = t.mcp_server_id
-LEFT JOIN functions   f  ON r.kind = 'fn'         AND f.id = r.id
-ORDER BY r.score DESC
+LEFT JOIN custom_scope t ON r.kind = 'mcp_custom' AND t.id = r.id
+LEFT JOIN fn_scope     f ON r.kind = 'fn'         AND f.id = r.id
+ORDER BY r.score DESC, r.kind, r.id
 LIMIT ?
 SQL;
     }

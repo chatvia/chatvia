@@ -39,9 +39,9 @@
                 "record_description": "Optag lyd direkte fra din mikrofon og tilføj det til agentens vidensbase"
             },
             "files": {
-                "uploader_description_audio": "Upload lydfiler til transskription. Understøttede formater: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR og 3GP. Filstørrelsesgrænse: 200 MB.",
-                "uploader_description_video": "Upload videofiler til transskription. Understøttede formater: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime og 3GPP. Filstørrelsesgrænse: 200 MB.",
-                "uploader_description_default": "Dokumenter: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Tekst (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Billeder: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Maks. 50 MB pr. fil.",
+                "uploader_description_audio": "Upload lydfiler til transskription. Understøttede formater: {formats}. Maks. {size} MB pr. fil.",
+                "uploader_description_video": "Upload videofiler til transskription. Understøttede formater: {formats}. Maks. {size} MB pr. fil.",
+                "uploader_description_default": "Understøttede formater: {formats}. Maks. {size} MB pr. fil.",
                 "type_unknown": "Ukendt",
                 "minutes_count": "{count} minut | {count} minutter",
                 "pages_count": "{count} side | {count} sider",
@@ -61,6 +61,7 @@
                 "upload_title_video": "Upload videofiler",
                 "upload_title_default": "Upload nye dokumenter",
                 "uploads_disabled": "Filuploads er deaktiveret, mens træning er i gang",
+                "uploads_off": "Administratoren har slået upload af disse filtyper fra.",
                 "ready_to_train": "Klar til træning",
                 "uploaded_ready": "{count} fil uploadet og klar til træning | {count} filer uploadet og klar til træning",
                 "clear_all": "Ryd alle",

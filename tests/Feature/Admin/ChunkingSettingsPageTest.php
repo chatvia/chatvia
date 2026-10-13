@@ -3,41 +3,26 @@
 use App\Admin\Clusters\Settings\Pages\ManageChunkingSettings;
 use App\Admin\Settings\ChunkingSettings;
 use App\Identity\Workspace\Models\User;
-use Domain\Knowledge\Ingestion\Data\Chunking\ChunkerConfigData;
-use Domain\Knowledge\Ingestion\Enums\ChunkerOption;
-use Domain\Knowledge\Ingestion\Enums\ChunkerStrategy;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
+use Domain\Knowledge\Ingestion\Enums\ChunkSizeUnit;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
+use Domain\Knowledge\Ingestion\Enums\SplitStrategy;
 use Filament\Actions\Testing\TestAction;
-use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
 /**
- * The Chunking page of the admin panel: the splitter and tokenizer, the
- * chunker server, the chunker's strategy with only its own options, and a
- * preview that splits a sample with the unsaved options.
+ * The Chunking page of the admin panel: the chunk size and its unit, how
+ * each kind of content is split (with a preview of the unsaved options), and,
+ * under Advanced, the strategy for each kind and the tokenizer. Splitting
+ * runs in-process: the page calls no outside service.
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
-    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
 
-    config(['services.chunkfit.base_url' => 'http://chunker:8000', 'services.chunkfit.api_key' => null]);
-
-    Http::fake([
-        'chunker:8000/v1/engines' => Http::response([
-            'chunkers' => array_map(
-                fn (ChunkerStrategy $strategy): array => ['engine' => $strategy->engine(), 'strategy' => $strategy->strategy()],
-                ChunkerStrategy::cases(),
-            ),
-            'encodings' => array_keys(ChunkerOption::ENCODINGS),
-            'embeddings' => ['configured' => true, 'model' => 'qwen3-embedding-8b'],
-        ]),
-        'chunker:8000/v1/chunk' => Http::response(['chunks' => [
-            ['text' => 'Returns within 30 days.', 'token_count' => 6],
-            ['text' => 'Refunds take five days.', 'token_count' => 5],
-        ]]),
-        'chunker:8000/v1/tokens' => Http::response(['data' => [['index' => 0, 'tokens' => 7]]]),
-    ]);
+    Http::preventStrayRequests();
 });
 
 function chunkingSetting(string $property): mixed
@@ -57,102 +42,88 @@ function previewAction(): TestAction
     return TestAction::make('runPreview')->schemaComponent('preview-actions', schema: 'form');
 }
 
-it('shows a section for each part, with what is in use', function (): void {
+it('shows the chunk size, how each kind of content is split, and Advanced', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get(ManageChunkingSettings::getUrl())
         ->assertOk()
-        ->assertSeeInOrder(['Splitter and tokenizer', 'Automatic · cl100k_base', 'Chunker server', 'Connected: 12 strategies. Embeddings: qwen3-embedding-8b.', 'Strategy', 'Recursive (LangChain) · 400 tokens · no overlap']);
+        ->assertSeeInOrder([
+            'Chunk size', 'Up to 400 tokens · no overlap',
+            'How content is split',
+            'Markdown', 'Web pages, Markdown files and ebooks', 'One section per heading',
+            'Text', 'Typed texts and .txt files', 'Paragraphs, then sentences',
+            'Transcript', 'Audio and video transcripts', 'Whole sentences',
+            'Documents', 'One chunk per page',
+            'Try it',
+            'Advanced',
+        ])
+        ->assertDontSee('Chunker')
+        ->assertDontSee('github.com/chatvia/chunker');
 });
 
-it('shows the values in use and the options of the default strategy', function (): void {
-    chunkingPage($this->admin)
-        ->assertSchemaStateSet(['text_splitter' => 'auto', 'tokenizer' => null]);
+it('offers each kind only the strategies that suit it', function (): void {
+    $fields = chunkingPage($this->admin)->instance()->form->getFlatFields(withHidden: true);
 
-    chunkingPage($this->admin)
-        ->assertSchemaStateSet(['engine' => 'langchain', 'strategy' => 'langchain.recursive', 'length_unit' => 'tokens'])
-        ->assertFormFieldVisible('chunk_size')
-        ->assertFormFieldVisible('language')
-        ->assertFormFieldHidden('threshold');
+    $options = fn (string $field): array => array_keys($fields[$field]->getOptions());
+
+    expect($options('markdown_strategy'))->toBe(['markdown', 'recursive'])
+        ->and($options('text_strategy'))->toBe(['recursive', 'sentence', 'fixed'])
+        ->and($options('transcript_strategy'))->toBe(['sentence', 'recursive', 'fixed'])
+        ->and(array_keys($fields['tokenizer']->getOptions()))->toBe(['cl100k_base', 'o200k_base', 'p50k_base', 'r50k_base']);
 });
 
-it('shows only the options of the chosen strategy', function (): void {
+it('refuses a strategy that does not suit the kind of content', function (): void {
     chunkingPage($this->admin)
-        ->fillForm(['engine' => 'chonkie', 'strategy' => 'chonkie.semantic'])
-        ->assertFormFieldVisible('threshold')
-        ->assertFormFieldVisible('similarity_window')
-        ->assertFormFieldHidden('chunk_overlap')
-        ->assertFormFieldHidden('language');
-});
-
-it('picks the first strategy of a library when the library changes', function (): void {
-    chunkingPage($this->admin)
-        ->fillForm(['engine' => 'llamaindex'])
-        ->assertSchemaStateSet(['strategy' => 'llamaindex.sentence']);
-});
-
-it('hides the chunker sections when the built-in splitter is chosen', function (): void {
-    chunkingPage($this->admin)
-        ->fillForm(['text_splitter' => 'local'])
+        ->fillForm(['transcript_strategy' => 'markdown'])
         ->call('save')
-        ->assertHasNoFormErrors();
-
-    $this->actingAs($this->admin, 'admin')
-        ->get(ManageChunkingSettings::getUrl())
-        ->assertSee('Built-in splitter')
-        ->assertDontSee('chunking-strategy')
-        ->assertDontSee('chunking-server');
+        ->assertHasFormErrors(['transcript_strategy']);
 });
 
-it('saves the strategy, its options and the tokenizer, and they reach the chunker', function (): void {
-    chunkingPage($this->admin)
-        ->fillForm(['text_splitter' => 'chunkfit', 'tokenizer' => 'o200k_base'])
-        ->call('save')
-        ->assertHasNoFormErrors();
-
+it('saves the unit, the size, the strategies and the tokenizer, and the splitter uses them', function (): void {
     chunkingPage($this->admin)
         ->fillForm([
-            'engine' => 'chonkie',
-            'strategy' => 'chonkie.sentence',
-            'chunk_size' => 256,
-            'chunk_overlap' => 32,
-            'min_sentences_per_chunk' => 2,
+            'chunk_unit' => 'characters',
+            'chunk_size' => 1200,
+            'chunk_overlap' => 100,
+            'markdown_strategy' => 'recursive',
+            'transcript_strategy' => 'fixed',
+            'tokenizer' => 'o200k_base',
         ])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    $config = ChunkerConfigData::fromConfig();
+    $markdown = ChunkingConfigData::forKind(ContentKind::Markdown);
 
-    expect(chunkingSetting('strategy'))->toBe('chonkie.sentence')
-        ->and(chunkingSetting('chunk_size'))->toBe(256)
-        ->and(config('chatvia.ai.text_splitter'))->toBe('chunkfit')
-        ->and(config('chatvia.ai.tokenizer'))->toBe('o200k_base')
-        ->and($config->encoding)->toBe('o200k_base')
-        ->and($config->toChunker())->toBe([
-            'engine' => 'chonkie',
-            'strategy' => 'sentence',
-            'chunk_size' => 256,
-            'chunk_overlap' => 32,
-            'min_sentences_per_chunk' => 2,
-        ]);
+    expect(chunkingSetting('chunk_unit'))->toBe('characters')
+        ->and(chunkingSetting('chunk_size'))->toBe(1200)
+        ->and($markdown->unit)->toBe(ChunkSizeUnit::Characters)
+        ->and($markdown->size)->toBe(1200)
+        ->and($markdown->overlap)->toBe(100)
+        ->and($markdown->strategy)->toBe(SplitStrategy::Recursive)
+        ->and(ChunkingConfigData::forKind(ContentKind::Transcript)->strategy)->toBe(SplitStrategy::Fixed)
+        ->and(ChunkingConfigData::forKind(ContentKind::Text)->encoding)->toBe('o200k_base');
 });
 
-it('offers the tokenizers the chunker reports', function (): void {
-    // Another chunker: the fakes above answer for chunker:8000 (and any host ending so).
-    config(['services.chunkfit.base_url' => 'http://older.test']);
-    Http::fake(['older.test/v1/engines' => Http::response(['chunkers' => [], 'encodings' => ['o200k_base'], 'embeddings' => ['configured' => false]])]);
+it('limits the size by its unit', function (): void {
+    chunkingPage($this->admin)
+        ->fillForm(['chunk_unit' => 'tokens', 'chunk_size' => 9000])
+        ->call('save')
+        ->assertHasFormErrors(['chunk_size']);
 
     chunkingPage($this->admin)
-        ->fillForm(['tokenizer' => 'cl100k_base'])
+        ->fillForm(['chunk_unit' => 'characters', 'chunk_size' => 9000])
         ->call('save')
-        ->assertHasFormErrors(['tokenizer']);
+        ->assertHasNoFormErrors();
+
+    expect(chunkingSetting('chunk_size'))->toBe(9000);
 });
 
 it('keeps the defaults unsaved when they are not changed', function (): void {
     chunkingPage($this->admin)->call('save')->assertHasNoFormErrors();
 
-    expect(chunkingSetting('text_splitter'))->toBeNull()
-        ->and(chunkingSetting('strategy'))->toBeNull()
-        ->and(chunkingSetting('length_unit'))->toBeNull();
+    expect(chunkingSetting('chunk_unit'))->toBeNull()
+        ->and(chunkingSetting('chunk_size'))->toBeNull()
+        ->and(chunkingSetting('markdown_strategy'))->toBeNull()
+        ->and(chunkingSetting('tokenizer'))->toBeNull();
 });
 
 it('refuses an overlap that is not smaller than the chunk size', function (): void {
@@ -164,44 +135,81 @@ it('refuses an overlap that is not smaller than the chunk size', function (): vo
     expect(chunkingSetting('chunk_size'))->toBeNull();
 });
 
-it('previews the unsaved options with the chunker', function (): void {
+it('previews a kind of content with the unsaved options, in the unit on the page', function (): void {
     chunkingPage($this->admin)
         ->fillForm([
-            'engine' => 'llamaindex',
-            'strategy' => 'llamaindex.token',
-            'chunk_size' => 128,
+            'chunk_unit' => 'characters',
+            'chunk_size' => 30,
+            'transcript_strategy' => 'sentence',
+            'preview_kind' => 'transcript',
             'preview_text' => 'Returns within 30 days. Refunds take five days.',
         ])
         ->callAction(previewAction())
-        ->assertSee('2 chunks with the Fixed tokens strategy')
-        ->assertSee('5 to 6 tokens, 6 on average.')
+        ->assertSee('2 chunks, split as Transcript with Whole sentences')
+        ->assertSee('23 to 23 characters, 23 on average.')
         ->assertSee('Refunds take five days.');
 
-    Http::assertSent(fn (Request $request): bool => $request->url() === 'http://chunker:8000/v1/chunk'
-        && $request['text'] === 'Returns within 30 days. Refunds take five days.'
-        && $request['chunker'] === ['engine' => 'llamaindex', 'strategy' => 'token', 'chunk_size' => 128, 'chunk_overlap' => 0]);
-
     // A preview saves nothing.
-    expect(chunkingSetting('strategy'))->toBeNull();
+    expect(chunkingSetting('transcript_strategy'))->toBeNull()
+        ->and(chunkingSetting('chunk_unit'))->toBeNull();
 });
 
-it('previews with the built-in splitter when no chunker is set up', function (): void {
-    config(['services.chunkfit.base_url' => '']);
+it('opens the whole chunk in a modal from its card', function (): void {
+    $long = str_repeat('Refunds go back to the card you paid with. ', 20)."\n\nThe last line of the chunk.";
 
     chunkingPage($this->admin)
-        ->fillForm(['preview_text' => "First paragraph.\n\nSecond paragraph."])
+        ->fillForm(['chunk_size' => 1000, 'preview_kind' => 'text', 'preview_text' => $long])
         ->callAction(previewAction())
-        ->assertSee('1 chunk with the built-in splitter');
-
-    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/v1/chunk'));
+        // The card shows only the start of the chunk.
+        ->assertSee('View whole chunk')
+        ->assertDontSee('The last line of the chunk.')
+        ->mountAction(TestAction::make('viewChunk')->schemaComponent('preview-chunk-0', schema: 'form'))
+        ->assertMountedActionModalSee(['Chunk 1', mb_strlen($long).' characters', 'The last line of the chunk.']);
 });
 
-it('shows why the chunker refused a preview', function (): void {
-    config(['services.chunkfit.base_url' => 'http://refusing.test']);
-    Http::fake(['refusing.test/v1/chunk' => Http::response(['detail' => 'This strategy needs an embeddings model'], 503)]);
-
+it('previews the sample as Markdown, one section per heading, by default', function (): void {
     chunkingPage($this->admin)
+        ->callAction(previewAction())
+        ->assertSee('split as Markdown with One section per heading')
+        ->assertSee('tokens');
+});
+
+it('starts the preview with the sample help centre, split as Markdown', function (): void {
+    chunkingPage($this->admin)
+        ->assertSchemaStateSet([
+            'chunk_unit' => 'tokens',
+            'preview_kind' => 'markdown',
+            'preview_text' => File::get(resource_path('chunking/markdown.md')),
+        ]);
+});
+
+it('shows the sample of the kind to split as', function (): void {
+    chunkingPage($this->admin)
+        ->fillForm(['preview_kind' => 'transcript'])
+        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('chunking/transcript.txt'))])
+        ->fillForm(['preview_kind' => 'text'])
+        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('chunking/text.txt'))])
+        ->fillForm(['preview_kind' => 'markdown'])
+        ->assertSchemaStateSet(['preview_text' => File::get(resource_path('chunking/markdown.md'))]);
+});
+
+it('keeps the admin\'s own text when the kind changes, and clears the last result', function (): void {
+    $page = chunkingPage($this->admin)
+        ->fillForm(['preview_text' => 'My own text. It stays.'])
+        ->callAction(previewAction())
+        ->assertSee('1 chunk, split as Markdown');
+
+    $page->fillForm(['preview_kind' => 'transcript'])
+        ->assertSchemaStateSet(['preview_text' => 'My own text. It stays.'])
+        ->assertDontSee('1 chunk, split as');
+
+    expect($page->instance()->preview)->toBeNull();
+});
+
+it('shows why a preview failed', function (): void {
+    chunkingPage($this->admin)
+        ->fillForm(['chunk_size' => 0, 'chunk_overlap' => 500])
         ->callAction(previewAction())
         ->assertSee('The text could not be split')
-        ->assertSee('This strategy needs an embeddings model');
+        ->assertSee('The overlap must be smaller than the chunk size.');
 });

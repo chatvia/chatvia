@@ -10,16 +10,20 @@
 # prints where to sign in. Run it again in the same folder (or ./manage
 # upgrade) to upgrade.
 #
+# .env always names one exact version, like 1.4.2: the installer looks up
+# which release "latest" (or 1.4) is and saves that.
+#
 # Options (each also works as an environment variable):
 #   --dir PATH          install folder               CHATVIA_DIR (~/chatvia)
 #   --email EMAIL       first admin's e-mail         CHATVIA_ADMIN_EMAIL
 #   --port PORT         port on this machine         CHATVIA_PORT (8899, or the next free one)
 #   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
-#   --version VERSION   image version                CHATVIA_VERSION (latest)
+#   --version VERSION   latest, 1.4 or 1.4.2         CHATVIA_VERSION (latest: the newest)
 #   --image NAME        image name, without version  CHATVIA_IMAGE (ghcr.io/chatvia/chatvia)
 #   --no-pull           use the image already on this machine (a local build)
 #   --yes               no questions: use the options and the defaults
 #   --upgrade           upgrade an existing install without asking
+#   --no-start          upgrade: get the version ready, but start nothing
 #   --dry-run           show what would happen and change nothing
 #   -h, --help          show this help
 #
@@ -29,8 +33,6 @@
 #   CHATVIA_EMBEDDING_DIMENSIONS  1024 (default)
 #   CHATVIA_COMPOSE_URL           where to download compose.yaml from
 #   CHATVIA_MANAGE_URL            where to download the manage tool from
-#   CHUNKER_IMAGE                 chunker image name (ghcr.io/chatvia/chunker)
-#   CHUNKER_VERSION               chunker image version (latest)
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -46,7 +48,6 @@ readonly COMPOSE_PROJECT="chatvia"
 readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
-readonly DEFAULT_CHUNKER_IMAGE="ghcr.io/chatvia/chunker"
 readonly MIN_PASSWORD=12
 
 #------------------------------------------------------------------------------
@@ -828,6 +829,11 @@ resolve_dir() {
     printf '%s' "$dir"
 }
 
+# A release like 1.4.2 (or 1.5.0-rc.1), not a moving tag like latest or 1.4.
+is_exact_version() {
+    [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+}
+
 version_at_least() {
     # version_at_least HAVE NEED: compares dotted numbers.
     local have=$1 need=$2 h n i
@@ -1048,22 +1054,17 @@ image_ref() {
     printf '%s:%s' "${CHATVIA_IMAGE:-$DEFAULT_IMAGE}" "$CHATVIA_VERSION"
 }
 
-chunker_ref() {
-    printf '%s:%s' "${CHUNKER_IMAGE:-$DEFAULT_CHUNKER_IMAGE}" "${CHUNKER_VERSION:-latest}"
-}
-
 # With --no-pull the image must already be here; checked before anything
 # is written.
 require_local_image() {
     [ "$NO_PULL" = 1 ] || return 0
     [ "$DRY_RUN" = 0 ] || return 0
     local ref
-    for ref in "$(image_ref)" "$(chunker_ref)"; do
-        if ! docker_cmd image inspect "$ref" >/dev/null 2>&1; then
-            die "The image $ref is not on this machine." \
-                'Build it first (docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t NAME:VERSION ., and docker pull the chunker), or run without --no-pull.'
-        fi
-    done
+    ref=$(image_ref)
+    if ! docker_cmd image inspect "$ref" >/dev/null 2>&1; then
+        die "The image $ref is not on this machine." \
+            'Build it first (docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t NAME:VERSION .), or run without --no-pull.'
+    fi
 }
 
 # Downloads the image, unless --no-pull uses the one already here.
@@ -1072,13 +1073,46 @@ get_image() {
         run_step "$1" compose pull
         return
     fi
-    ok "Using the images on this machine $(dim "($(image_ref), $(chunker_ref))")"
+    ok "Using the image on this machine $(dim "($(image_ref))")"
+}
+
+# image_version REF: the release a Chatvia image on this machine was built
+# from, from its version label. A local build has no such label: it inherits
+# the label of its base image, whose source is not Chatvia.
+image_version() {
+    local labels version
+    labels=$(docker_cmd image inspect --format \
+        '{{index .Config.Labels "org.opencontainers.image.source"}}|{{index .Config.Labels "org.opencontainers.image.version"}}' \
+        "$1" 2>/dev/null) || return 1
+    version=${labels#*|}
+    case ${labels%%|*} in *chatvia*) ;; *) return 1 ;; esac
+    is_exact_version "$version" || return 1
+    printf '%s' "$version"
+}
+
+# Turns a moving tag (latest, 1, 1.4) into the release it points to now, so
+# .env, compose.yaml and the manage tool all name one version. It downloads
+# that image, so the pull afterwards has nothing left to do for it. A local
+# build (--no-pull) keeps its tag. APP_PULLED says the image is here now.
+resolve_version() {
+    APP_PULLED=0
+    if is_exact_version "$CHATVIA_VERSION" || [ "$NO_PULL" = 1 ] || [ "$DRY_RUN" = 1 ]; then return 0; fi
+    local ref version what="version $CHATVIA_VERSION"
+    ref=$(image_ref)
+    if [ "$CHATVIA_VERSION" = latest ]; then what='the newest version'; fi
+    run_step "Downloading $what of Chatvia" docker_cmd pull "$ref" ||
+        die "Could not download $ref." 'Check the version and the internet connection.'
+    version=$(image_version "$ref") ||
+        die "The image $ref does not say which version it is." 'Name the version instead, like --version 1.4.2.'
+    CHATVIA_VERSION=$version
+    APP_PULLED=1
+    ok "Chatvia $(bold "$version")"
 }
 
 compose_url() {
     if [ -n "${CHATVIA_COMPOSE_URL:-}" ]; then
         printf '%s' "$CHATVIA_COMPOSE_URL"
-    elif [[ $CHATVIA_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    elif is_exact_version "$CHATVIA_VERSION"; then
         printf '%s/v%s/docker/compose.yaml' "$CHATVIA_REPO_RAW" "$CHATVIA_VERSION"
     else
         printf '%s/main/docker/compose.yaml' "$CHATVIA_REPO_RAW"
@@ -1093,10 +1127,23 @@ manage_url() {
     fi
 }
 
+# The files are first downloaded into the work folder (fetch_*), and only
+# then put in the install folder (place_*), so an upgrade that fails half
+# way leaves the install as it was. Each one is a step in run_step, so it
+# checks its own commands: set -e is off there.
+
+fetch_compose() {
+    local target="$WORK_DIR/compose.yaml"
+    curl -fsSL "$(compose_url)" -o "$target" || return
+    if ! grep -q '^services:' "$target"; then
+        echo "The downloaded file is not a compose file: $(compose_url)" >&2
+        return 1
+    fi
+}
+
 # The management tool (start, stop, backup, restore, ...), from the same
-# version as compose.yaml. Replaced with mv, so a running ./manage (which
-# runs this installer to upgrade) keeps reading its old copy.
-download_manage() {
+# version as compose.yaml.
+fetch_manage() {
     local target="$WORK_DIR/manage" first=''
     curl -fsSL "$(manage_url)" -o "$target" || return
     IFS= read -r first <"$target" || true
@@ -1105,12 +1152,40 @@ download_manage() {
         return 1
     fi
     chmod 755 "$target"
-    mv "$target" "$INSTALL_DIR/manage"
 }
 
-# One step in run_step, so each part is checked: set -e is off there.
+# place_file NAME: copies it next to the old one, then renames it over it.
+# The rename makes a new file, so a running ./manage (which runs this
+# installer to upgrade) keeps reading its old copy.
+place_file() {
+    cp "$WORK_DIR/$1" "$INSTALL_DIR/.$1.new" && mv "$INSTALL_DIR/.$1.new" "$INSTALL_DIR/$1"
+}
+
+place_compose() {
+    if [ -f "$INSTALL_DIR/compose.yaml" ]; then
+        cp "$INSTALL_DIR/compose.yaml" "$INSTALL_DIR/compose.yaml.bak" || return
+    fi
+    place_file compose.yaml
+}
+
+fetch_files() {
+    fetch_compose && fetch_manage
+}
+
+place_files() {
+    place_compose && place_file manage
+}
+
+download_compose() {
+    fetch_compose && place_compose
+}
+
+download_manage() {
+    fetch_manage && place_file manage
+}
+
 download_files() {
-    download_compose && download_manage
+    fetch_files && place_files
 }
 
 # postgres/postgresql.conf: PostgreSQL's settings, taken out of its
@@ -1123,24 +1198,9 @@ export_postgres_settings() {
         die 'The PostgreSQL settings were not saved.' "See why: $LOG"
 }
 
-download_compose() {
-    local target="$WORK_DIR/compose.yaml"
-    curl -fsSL "$(compose_url)" -o "$target"
-    if ! grep -q '^services:' "$target"; then
-        echo "The downloaded file is not a compose file: $(compose_url)" >&2
-        return 1
-    fi
-    if [ -f "$INSTALL_DIR/compose.yaml" ]; then
-        cp "$INSTALL_DIR/compose.yaml" "$INSTALL_DIR/compose.yaml.bak"
-    fi
-    mv "$target" "$INSTALL_DIR/compose.yaml"
-}
-
 write_env() {
     local secure='' image_line=''
     [ -n "$CHATVIA_IMAGE" ] && image_line="CHATVIA_IMAGE=$CHATVIA_IMAGE"$'\n'
-    [ -n "$CHUNKER_IMAGE" ] && image_line="${image_line}CHUNKER_IMAGE=$CHUNKER_IMAGE"$'\n'
-    [ -n "$CHUNKER_VERSION" ] && image_line="${image_line}CHUNKER_VERSION=$CHUNKER_VERSION"$'\n'
     case $APP_URL in https://*) secure=$'SESSION_SECURE_COOKIE=true\n' ;; esac
     (
         umask 077
@@ -1248,6 +1308,7 @@ do_install() {
         LOG="$INSTALL_DIR/install.log"
         : >"$LOG"
     fi
+    resolve_version
     run_step 'Downloading compose.yaml and the manage tool' download_files
     if [ "$DRY_RUN" = 0 ]; then
         write_env
@@ -1256,7 +1317,11 @@ do_install() {
         block task
         printf '  %s  %s %s\n' "$SKIP" "Saving the settings to $(pretty_path "$INSTALL_DIR")/.env" "$(dim '(dry run)')"
     fi
-    get_image 'Downloading Chatvia (a few minutes the first time)'
+    if [ "$APP_PULLED" = 1 ]; then
+        get_image 'Downloading the database and Redis'
+    else
+        get_image 'Downloading Chatvia (a few minutes the first time)'
+    fi
     start_and_finish
 }
 
@@ -1299,8 +1364,6 @@ do_resume() {
     CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
     APP_PORT=${APP_PORT:-8000} APP_URL=${APP_URL:-http://localhost:${APP_PORT:-8000}} CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
-    CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
-    CHUNKER_VERSION=${CHUNKER_VERSION:-$(env_value CHUNKER_VERSION)}
 
     # Used only when the earlier attempt did not make the admin account yet.
     ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
@@ -1395,10 +1458,10 @@ collect_settings() {
 
     choose 'Vector size (dimensions)' \
         '1024  — works with every AI provider (recommended)' \
-        '512  — smaller and faster, a little less precise (Qwen3, Cohere, Jina)' \
-        '768  — Qwen3, Jina' \
-        '1536  — more detail, more space (Qwen3, Cohere)' \
-        '2048  — the most detail, the most space (Qwen3 only)'
+        '512  — smaller and faster, a little less precise (Qwen3, OpenAI, Gemini, Cohere, Jina)' \
+        '768  — Qwen3, OpenAI, Gemini, Jina' \
+        '1536  — more detail, more space (Qwen3, OpenAI, Gemini, Cohere)' \
+        '2048  — the most detail, the most space (Qwen3, Gemini, OpenAI large)'
     case $CHOICE in
         0) EMBEDDING_DIMENSIONS=1024 ;;
         1) EMBEDDING_DIMENSIONS=512 ;;
@@ -1499,6 +1562,37 @@ env_value() {
     sed -n "s/^$1=//p" "$INSTALL_DIR/.env" 2>/dev/null | tail -n 1
 }
 
+# env_with KEY VALUE: .env with the line KEY= changed (or added), on stdout.
+env_with() {
+    awk -v key="$1" -v value="$2" '
+        index($0, key "=") == 1 { if (!done) print key "=" value; done = 1; next }
+        { print }
+        END { if (!done) print key "=" value }
+    ' "$INSTALL_DIR/.env"
+}
+
+# set_env_value KEY VALUE: changes the line in .env, or adds it.
+set_env_value() {
+    local tmp
+    tmp=$(mktemp "$INSTALL_DIR/.env.XXXXXX") || return
+    env_with "$1" "$2" >"$tmp" && chmod 600 "$tmp" && mv "$tmp" "$INSTALL_DIR/.env"
+}
+
+# The images of the new compose.yaml (still in the work folder) for the new
+# version (a copy of .env with it), so a failed download changes nothing.
+pull_new_images() {
+    local files=(-f "$WORK_DIR/compose.yaml")
+    if [ -f "$INSTALL_DIR/compose.override.yaml" ]; then files+=(-f "$INSTALL_DIR/compose.override.yaml"); fi
+    (umask 077 && env_with CHATVIA_VERSION "$CHATVIA_VERSION" >"$WORK_DIR/.env") || return
+    docker_cmd compose --project-directory "$INSTALL_DIR" --env-file "$WORK_DIR/.env" "${files[@]}" pull
+}
+
+# Everything is downloaded: the new files go in place, and .env names the
+# new version.
+switch_version() {
+    place_files && set_env_value CHATVIA_VERSION "$CHATVIA_VERSION"
+}
+
 do_upgrade() {
     ok "Chatvia is installed in $(bold "$(pretty_path "$INSTALL_DIR")")"
     info "$(dim 'The first-install questions only run once. Your data and settings are kept.')"
@@ -1521,30 +1615,57 @@ do_upgrade() {
     APP_PORT=${APP_PORT:-8000}
     APP_URL=$(env_value APP_URL)
     APP_URL=${APP_URL:-http://localhost:$APP_PORT}
-    CHATVIA_VERSION=$(env_value CHATVIA_VERSION)
-    CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
+    local installed
+    installed=$(env_value CHATVIA_VERSION)
+    # Without --version: the newest release. A local build (--no-pull) keeps
+    # its tag, as there is nothing to download.
+    if [ "$VERSION_GIVEN" = 0 ]; then
+        CHATVIA_VERSION=latest
+        if [ "$NO_PULL" = 1 ]; then CHATVIA_VERSION=${installed:-latest}; fi
+    fi
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-$(env_value CHATVIA_IMAGE)}
-    CHUNKER_IMAGE=${CHUNKER_IMAGE:-$(env_value CHUNKER_IMAGE)}
-    CHUNKER_VERSION=${CHUNKER_VERSION:-$(env_value CHUNKER_VERSION)}
 
     if [ "$DRY_RUN" = 0 ]; then
         LOG="$INSTALL_DIR/install.log"
         printf '\n== Upgrade %s\n' "$(date)" >>"$LOG"
     fi
-    if [ "$CHATVIA_VERSION" != latest ]; then
-        warn "This install stays on version $CHATVIA_VERSION (CHATVIA_VERSION in .env)."
+    resolve_version
+    # An older version would run on a database that newer migrations have
+    # changed. ./manage rollback goes back: it gets the older version ready
+    # with --no-start, then restores the backup from before the upgrade.
+    if [ "$NO_START" = 0 ] && is_exact_version "$installed" && is_exact_version "$CHATVIA_VERSION" &&
+        ! version_at_least "$CHATVIA_VERSION" "$installed"; then
+        die "Version $CHATVIA_VERSION is older than the one installed here ($installed)." \
+            'Going back needs the data from before the upgrade: ./manage rollback'
     fi
-    run_step 'Updating compose.yaml and the manage tool' download_files
-    get_image 'Downloading the new version'
+    if [ -n "$installed" ] && [ "$installed" != "$CHATVIA_VERSION" ]; then
+        info "Version $installed $S_ARROW $(bold "$CHATVIA_VERSION")"
+    fi
+
+    run_step 'Downloading compose.yaml and the manage tool' fetch_files ||
+        die 'The upgrade stopped. Nothing was changed.'
+    if [ "$NO_PULL" = 0 ]; then
+        run_step 'Downloading the new images' pull_new_images ||
+            die 'The upgrade stopped. Nothing was changed.'
+    else
+        ok "Using the images on this machine $(dim "($(image_ref))")"
+    fi
+    run_step "Switching to version $CHATVIA_VERSION" switch_version ||
+        die 'Could not save the new files in the install folder.' "See why: $LOG"
     export_postgres_settings
-    if ! run_step 'Updating the database, then restarting' compose up -d; then
+
+    if [ "$NO_START" = 1 ]; then
+        outro "Version $CHATVIA_VERSION is ready. Nothing was restarted."
+        return
+    fi
+    if ! run_step 'Updating the database, then restarting' compose up -d --remove-orphans; then
         setup_failed 'The upgrade did not finish.'
     fi
     remove_setup_container
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage logs app"
 
-    ok "$(bold 'Chatvia is up to date.')"
+    ok "$(bold "Chatvia $CHATVIA_VERSION is running.")"
     outro "Open $(accent "$APP_URL")"
 }
 
@@ -1566,11 +1687,12 @@ parse_args() {
             --email) CHATVIA_ADMIN_EMAIL=${2:?--email needs an address}; shift ;;
             --port) CHATVIA_PORT=${2:?--port needs a number}; shift ;;
             --url) CHATVIA_URL=${2:?--url needs an address}; shift ;;
-            --version) CHATVIA_VERSION=${2:?--version needs a version}; shift ;;
+            --version) CHATVIA_VERSION=${2:?--version needs a version} VERSION_GIVEN=1; shift ;;
             --image) CHATVIA_IMAGE=${2:?--image needs a name}; shift ;;
             --no-pull) NO_PULL=1 ;;
             --yes | -y) YES=1 ;;
             --upgrade) UPGRADE=1 ;;
+            --no-start) NO_START=1 ;;
             --dry-run) DRY_RUN=1 ;;
             -h | --help) usage; exit 0 ;;
             *) die "Unknown option: $1" 'See --help.' ;;
@@ -1591,13 +1713,13 @@ interrupted() {
 }
 
 main() {
-    YES=0 UPGRADE=0 DRY_RUN=0 PASSWORD_GENERATED=0 ADMIN_CREATED=1 USE_SUDO=0
+    YES=0 UPGRADE=0 NO_START=0 DRY_RUN=0 PASSWORD_GENERATED=0 ADMIN_CREATED=1 USE_SUDO=0 APP_PULLED=0
     ADMIN_EMAIL='' ADMIN_PASS='' APP_PORT='' APP_URL='' TTY_STATE=''
     EMBEDDING_TYPE=halfvec EMBEDDING_DIMENSIONS=1024
+    VERSION_GIVEN=0
+    if [ -n "${CHATVIA_VERSION:-}" ]; then VERSION_GIVEN=1; fi
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-}
-    CHUNKER_IMAGE=${CHUNKER_IMAGE:-}
-    CHUNKER_VERSION=${CHUNKER_VERSION:-}
     NO_PULL=${CHATVIA_NO_PULL:-0}
 
     setup_output

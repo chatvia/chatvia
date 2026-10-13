@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 use Domain\Conversation\Services\ConversationRetention;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 
 /*
 |--------------------------------------------------------------------------
@@ -178,7 +179,8 @@ return [
     'agent' => [
         'files' => [
             'upload' => [
-                'max_file_size_in_kb' => 10240, // 10MB in KB
+                // The largest PDF a chatter may attach (25 MB).
+                'max_file_size_in_kb' => 25600,
                 'max_files' => 1,
 
                 // Hard cap on PDF pages for a single chat attachment. The whole
@@ -237,7 +239,8 @@ return [
                 // correct write (the reranker scores correct and wrong writes in the
                 // same band), so it stays at the shared default. See ToolRelevanceGate.
                 'relevance_threshold_read' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_READ', 0.45),
-                'relevance_threshold_write' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE', env('AGENT_TOOL_RELEVANCE_THRESHOLD', 0.55)),
+                // Null follows `relevance_threshold` (read in ToolRelevanceGate).
+                'relevance_threshold_write' => env('AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE'),
 
                 // EXPERIMENTAL (off by default). A small "middle model" connector
                 // router: after the relevance gate, a cheap structured LLM call
@@ -290,48 +293,54 @@ return [
             'vision' => null,
         ],
 
-        // Which service handles each ingestion and retrieval step. `auto` picks
-        // the hosted service when its API key is set, and the local tool (or
-        // "off") when it is not — so an install works without those accounts.
-        // See docs/guide/self-hosting/ai-providers.md.
+        // Which service handles each ingestion and retrieval step (Settings →
+        // AI). `auto` picks the hosted service when its API key is set there,
+        // and the local tool (or "off") when it is not — so an install works
+        // without those accounts. See
+        // https://chatvia.ai/docs/guide/self-hosting/ai-providers.
         //
         // - document_parser: reads PDFs, office files and images.
         //   mistral (hosted OCR, also reads images) | local (pdftotext, pandoc
-        //   and catdoc, text only). auto = mistral when MISTRAL_API_KEY is set.
-        // - text_splitter: splits text files, ebooks and web pages into chunks.
-        //   chunkfit | local. auto = chunkfit when the hosted chunk.fit has its
-        //   API key, or CHUNK_FIT_BASE_URL points to a self-hosted chunker
-        //   (github.com/chatvia/chunker, no key; the Docker stack runs one).
+        //   and catdoc, text only). auto = mistral when a Mistral key is set.
         // - reranker: scores search results and tools against the question.
         //   qwen | cohere | none. auto = the embedding provider's own reranker
-        //   (qwen → qwen, cohere → cohere, jina and mistral → none).
+        //   (qwen → qwen, cohere → cohere, openai, google, mistral and jina
+        //   → none).
         // - transcriber: speech-to-text for voice input and audio sources.
-        //   scaleway | none. auto = scaleway when SCALEWAYAI_API_KEY is set.
+        //   scaleway | openai (both Whisper) | none. auto = scaleway when a
+        //   Scaleway key is set, else openai when an OpenAI key is set.
         // - document_llm: the LLM that reads whole PDFs, for document summaries
-        //   and chat with PDF files. mistral | none. auto = mistral when
-        //   MISTRAL_API_KEY is set. With none, those two features are off.
+        //   and chat with PDF files. mistral | none. auto = mistral when a
+        //   Mistral key is set. With none, those two features are off.
         'document_parser' => env('AI_DOCUMENT_PARSER', 'auto'),
-        'text_splitter' => env('AI_TEXT_SPLITTER', 'auto'),
         'reranker' => env('AI_RERANKER', 'auto'),
         'transcriber' => env('AI_TRANSCRIBER', 'auto'),
         'document_llm' => env('AI_DOCUMENT_LLM', 'auto'),
 
-        // Chunk size for the local text splitter, in tokens. Close to the size
-        // the hosted splitter produces, so search quality stays similar.
-        'local_splitter' => [
-            'chunk_tokens' => 400,
-            'overlap_tokens' => 0,
-        ],
-
         // The tokenizer (a tiktoken encoding) every token count uses: chunk
-        // sizes, the stored size of each chunk, estimates. Set in the admin
-        // panel (Settings → Chunking). The chunker counts when it can; the
-        // built-in tokenizer is the fallback.
+        // sizes in tokens, the stored size of each chunk, estimates. Set in
+        // the admin panel (Settings → Chunking).
         'tokenizer' => 'cl100k_base',
 
+        // How text is split into chunks (Settings → Chunking); these are the
+        // defaults. The size and overlap are in the unit: tokens (of the
+        // tokenizer above) or characters. A null size is the unit's default,
+        // 400 tokens or 1,600 characters. The strategy for each kind of
+        // content: Domain\Knowledge\Ingestion\Enums\ContentKind and SplitStrategy.
+        'chunking' => [
+            'unit' => 'tokens',
+            'size' => null,
+            'overlap' => 0,
+            'strategies' => [
+                'markdown' => 'markdown',
+                'text' => 'recursive',
+                'transcript' => 'sentence',
+            ],
+        ],
+
         'models' => [
-            // Embedding provider: qwen (Qwen3 on Scaleway), cohere, jina or
-            // mistral. The database stores 1024-dimension vectors, so the
+            // Embedding provider: qwen (Qwen3 on Scaleway), openai, google
+            // (Gemini), cohere, mistral or jina. The database stores 1024-dimension vectors, so the
             // provider must return exactly 1024 dimensions.
             'embedding' => env('AI_EMBEDDING_PROVIDER', 'qwen'),
 
@@ -362,8 +371,9 @@ return [
 
         'chunker' => [
             // An extra AI step per chunk (a summary and likely questions,
-            // then a new embedding) for uploaded files and crawled pages.
-            // One model call per chunk, so it is off by default.
+            // then a new embedding) for uploaded files and crawled pages, and
+            // a summary of the whole source. One model call per chunk, so it
+            // is off by default.
             'enhance' => env('CHUNKER_ENHANCE', false),
             // The same step for text sources. Pasted texts are short, so it
             // costs little and is on by default. Turn both off to ingest
@@ -392,9 +402,39 @@ return [
 
         // The embedding provider must return this many dimensions. 1024 works
         // with every provider; Mistral only returns 1024, Jina at most 1024,
-        // Cohere 256, 512, 1024 or 1536, and Qwen3 up to 4096.
+        // Cohere 256, 512, 1024 or 1536, OpenAI up to 1536 (3072 with
+        // text-embedding-3-large), Gemini 128 to 3072, and Qwen3 up to 4096.
         'dimensions' => env('EMBEDDING_DIMENSIONS', 1024),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Knowledge
+    |--------------------------------------------------------------------------
+    |
+    | The file types workspaces may upload as knowledge sources, as
+    | KnowledgeFileType values (PDF, Word, images, audio…). Set in the admin
+    | panel (Settings → Ingestion); every type is on by default. Files already
+    | uploaded keep working when their type is turned off.
+    |
+    */
+
+    'knowledge' => [
+        'file_types' => array_column(KnowledgeFileType::cases(), 'value'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Edited prompts
+    |--------------------------------------------------------------------------
+    |
+    | The prompts an admin rewrote (Settings → Prompts), by name, such as
+    | `knowledge/rewrite-query`. prompt() renders an edit in place of its file
+    | in resources/prompts; every other prompt uses its file.
+    |
+    */
+
+    'prompts' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -402,7 +442,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Hybrid-search tuning and the vchordrq build/probe parameters.
-    | NOTE: KnowledgeBase fetches the whole `chatvia.vector` array.
+    | NOTE: HybridChunkSearch reads the whole `chatvia.vector` array.
     |
     */
 
@@ -413,7 +453,7 @@ return [
 
             // Knowledge search combines meaning (vector) and keyword (BM25)
             // search; off means meaning only. Set in the admin panel
-            // (Settings → Knowledge), on by default. Keyword data is always
+            // (Settings → Search), on by default. Keyword data is always
             // stored, so it can change at any time.
             'hybrid' => true,
 
@@ -431,7 +471,7 @@ return [
             // (cold index / autovacuum / checkpoint) KnowledgeBase logs a
             // warning with the full phase breakdown — independent of LOG_LEVEL,
             // so spikes are catchable in prod. Set to 0 to disable.
-            'slow_log_ms' => (int) env('VECTOR_SEARCH_SLOW_LOG_MS', 2000),
+            'slow_log_ms' => 2000,
 
             // Size of the candidate pool fed to the reranker. Must stay
             // comfortably above max_chunks — the reranker's value is promoting a
@@ -441,25 +481,38 @@ return [
             // justifies it. Ignored when rerank is off (pool is max_chunks * 2).
             'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 12),
 
-            // vchordrq.probes — scale with sqrt(lists). For lists=4096, probes=64
-            // is the recall sweet spot. Adjust when lists changes via vector:reindex.
-            'probes' => [
-                'default' => env('VECTORCHORD_DEFAULT_PROBES', 64),
-                'high_accuracy' => env('VECTORCHORD_HIGH_ACCURACY_PROBES', 128),
-                'high_speed' => env('VECTORCHORD_HIGH_SPEED_PROBES', 32),
+            // Agents that reach at most this many chunks are searched exactly:
+            // every one of their chunks is scored, with no approximate index and
+            // no other workspace's rows involved (full recall). Larger agents go
+            // through the vector and BM25 indexes. 0 always uses the indexes.
+            'exact_max_chunks' => 10_000,
+
+            // vchordrq.probes, as a percentage of the index's partitions
+            // ("lists"). The vector indexes start flat (no partitions, no probes)
+            // and vector:reindex partitions them once chunks pass 100k rows,
+            // storing the default value on each index. Higher = better recall on
+            // the indexed path, slower search.
+            'probes_percent' => [
+                'default' => 3,
+                'high_accuracy' => 6,
+                'high_speed' => 1.5,
             ],
 
             // vchordrq.epsilon — early-stop radius for the residual-quantized search.
             'epsilon' => [
-                'default' => env('VECTORCHORD_DEFAULT_EPSILON', 1.9),
-                'high_accuracy' => env('VECTORCHORD_HIGH_ACCURACY_EPSILON', 2.5),
-                'high_speed' => env('VECTORCHORD_HIGH_SPEED_EPSILON', 1.4),
+                'default' => 1.9,
+                'high_accuracy' => 2.5,
+                'high_speed' => 1.4,
             ],
         ],
 
         // Threads used by vector:reindex (vchordrq build_threads). nproc is too
         // fragile to call from PHP, so pin it per environment.
         'build_threads' => env('VECTORCHORD_BUILD_THREADS', 4),
+
+        // Memory vector:reindex lets one k-means build use, in MB. Larger
+        // indexes sample fewer vectors per partition to stay inside it.
+        'build_memory_mb' => 2048,
     ],
 
     /*
@@ -529,8 +582,8 @@ return [
 
         // Size caps (bytes) for the stored tool arguments / result text. The
         // full raw args are hashed (sha256) BEFORE truncation, for integrity.
-        'max_arg_bytes' => (int) env('GOVERNANCE_MAX_ARG_BYTES', 4096),
-        'max_result_bytes' => (int) env('GOVERNANCE_MAX_RESULT_BYTES', 8192),
+        'max_arg_bytes' => 4096,
+        'max_result_bytes' => 8192,
 
         // Argument keys whose values are replaced with "[redacted]" before the
         // audit row is written (defends against secrets/PII echoed in args).
@@ -572,7 +625,7 @@ return [
 
         // Size cap (bytes) for the stored metadata. The full raw metadata is
         // hashed (sha256) BEFORE truncation, for integrity.
-        'max_metadata_bytes' => (int) env('SECURITY_AUDIT_MAX_METADATA_BYTES', 8192),
+        'max_metadata_bytes' => 8192,
 
         // Metadata keys whose values are replaced with "[redacted]" before the
         // audit row is written (defends against secrets/PII echoed in payloads).
@@ -612,22 +665,6 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Spectra (AI call log)
-    |--------------------------------------------------------------------------
-    |
-    | Spectra stores every AI call (request, response, tokens, cost) in its own
-    | database. The daily `spectra:prune` run removes calls older than
-    | `retention_days`. Set in the admin panel (Settings → Retention & limits);
-    | this is the default.
-    |
-    */
-
-    'spectra' => [
-        'retention_days' => 30,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
     | SIEM webhook (Enterprise — advanced compliance)
     |--------------------------------------------------------------------------
     |
@@ -662,7 +699,7 @@ return [
         'max_cases_per_run' => (int) env('EVALS_MAX_CASES', 100),
 
         // Size cap (bytes) for the stored actual_output; a sha256 of the raw is kept.
-        'max_output_bytes' => (int) env('EVALS_MAX_OUTPUT_BYTES', 8192),
+        'max_output_bytes' => 8192,
     ],
 
     /*
@@ -689,7 +726,7 @@ return [
 
         // The redacted snippet stored on a trigger is capped to this many bytes;
         // the full original text is hashed (sha256) before truncation, never stored raw.
-        'max_snippet_bytes' => (int) env('GUARDRAILS_MAX_SNIPPET_BYTES', 2048),
+        'max_snippet_bytes' => 2048,
 
         // Phrases that mark a likely prompt-injection inside retrieved RAG source
         // content (a cheap rules pass; the LLM classifier handles the user message).
@@ -721,7 +758,7 @@ return [
         'dedupe' => [
             // Cache driver name from config/cache.php; null = default store.
             'store' => env('SSE_DEDUPE_STORE'),
-            'ttl_seconds' => (int) env('SSE_DEDUPE_TTL', 600),
+            'ttl_seconds' => 600,
         ],
     ],
 

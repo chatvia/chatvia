@@ -31,11 +31,12 @@ shopt -s extglob
 
 readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/self-hosting/manage"
 readonly DEFAULT_INSTALLER_URL="https://chatvia.ai/install.sh"
+readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 
 # The long-running services, in the order `status` shows them; the first four
 # use the database.
-readonly SERVICES="app horizon scheduler reverb chunker postgres redis"
+readonly SERVICES="app horizon scheduler reverb postgres redis"
 readonly DATABASE_USERS="app horizon scheduler reverb"
 
 # Where PostgreSQL reads postgres/postgresql.conf inside its container.
@@ -72,14 +73,14 @@ setup_output() {
         *UTF-8* | *utf-8* | *UTF8* | *utf8*)
             S_BAR='│' S_START='┌' S_END='└' S_LINE='─' S_JOIN='├' S_TOP_RIGHT='╮' S_BOTTOM_RIGHT='╯'
             S_ACTIVE='◆' S_DONE='◇' S_WARN='▲' S_FAIL='■' S_INFO='●'
-            S_ON='●' S_OFF='○' S_MASK='▪' S_OK='✓' S_UP='↑'
+            S_ON='●' S_OFF='○' S_MASK='▪' S_OK='✓' S_ARROW='→' S_UP='↑'
             S_UP_DOWN='↑/↓' S_LEFT_RIGHT='←/→'
             SPINNER=('◒' '◐' '◓' '◑') UNICODE=1
             ;;
         *)
             S_BAR='|' S_START='+' S_END='+' S_LINE='-' S_JOIN='+' S_TOP_RIGHT='+' S_BOTTOM_RIGHT='+'
             S_ACTIVE='*' S_DONE='o' S_WARN='!' S_FAIL='x' S_INFO='*'
-            S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_UP='^'
+            S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_ARROW='->' S_UP='^'
             S_UP_DOWN='up/down' S_LEFT_RIGHT='left/right'
             SPINNER=('|' '/' '-' '\') UNICODE=0
             ;;
@@ -701,6 +702,24 @@ set_env_value() {
     mv "$tmp" "$DIR/.env"
 }
 
+# A release like 1.4.2 (or 1.5.0-rc.1), not a moving tag like latest or 1.4.
+is_exact_version() {
+    [[ $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+}
+
+version_at_least() {
+    # version_at_least HAVE NEED: compares dotted numbers.
+    local have=$1 need=$2 h n i
+    for i in 1 2 3; do
+        h=$(printf '%s' "$have" | cut -d. -f"$i" | tr -dc '0-9')
+        n=$(printf '%s' "$need" | cut -d. -f"$i" | tr -dc '0-9')
+        h=${h:-0} n=${n:-0}
+        if [ "$h" -gt "$n" ]; then return 0; fi
+        if [ "$h" -lt "$n" ]; then return 1; fi
+    done
+    return 0
+}
+
 wait_until() {
     # wait_until SECONDS command...: retries every 2 seconds.
     local limit=$1 waited=0
@@ -922,6 +941,15 @@ ensure_postgres() {
     STARTED_POSTGRES=1
 }
 
+# Starts Redis alone when it is not running; STARTED_REDIS says so.
+ensure_redis() {
+    STARTED_REDIS=0
+    if is_running redis; then return 0; fi
+    run_step 'Starting Redis' compose up -d --wait redis ||
+        die 'Redis did not start.' 'See why: ./manage logs redis'
+    STARTED_REDIS=1
+}
+
 # The newest migration the database has run.
 latest_migration_in() {
     psql_in "$1" -At -c 'SELECT max(migration) FROM migrations'
@@ -956,6 +984,8 @@ embedding_storage_in() {
 #   database.dump         pg_dump, custom format
 #   database-extras.sql   what pg_dump leaves out (see dump_extras)
 #   secrets.env           the app key and the other secrets of this install
+#   redis.rdb             Redis: who is signed in, the chat memory (and the
+#                         queues and cache, which a restore empties)
 #   files.tar             the uploaded files (with --files)
 #------------------------------------------------------------------------------
 
@@ -1034,6 +1064,75 @@ restore_files() {
         rm -rf app.restoring app.previous'
 }
 
+# A snapshot of all Redis data, made by Redis itself: redis-cli --rdb asks the
+# server for one, as a replica would, so its own files stay as they are.
+dump_redis() {
+    compose exec -T redis sh -c \
+        'f=/tmp/manage-backup.rdb; redis-cli --rdb "$f" >/dev/null && cat "$f"; s=$?; rm -f "$f"; exit $s' \
+        >"$1" || return
+    # An RDB file starts with "REDIS".
+    [ "$(head -c 5 "$1")" = REDIS ]
+}
+
+# Puts back the Redis data from a backup, with Redis stopped, and starts it
+# again. When it fails, Redis keeps its data from before.
+restore_redis_from() {
+    compose stop redis || return
+    if ! from_member "$1" redis.rdb restore_redis; then
+        compose up -d --wait redis
+        return 1
+    fi
+    compose up -d --wait redis
+}
+
+# Redis runs with appendonly yes, and then ignores a dump.rdb without AOF
+# files (it starts empty). So a Redis of its own loads the file with the AOF
+# off, turns the AOF on (Redis writes it from the loaded data) and shuts
+# down. The old files come back when a step fails. Runs as the redis user,
+# who owns /data.
+restore_redis() {
+    compose run --rm --no-deps -T --user redis --entrypoint sh redis -c '
+        set -eu
+        cd /data
+        rm -rf restore-previous
+        mkdir restore-previous
+        for f in appendonlydir dump.rdb; do if [ -e "$f" ]; then mv "$f" restore-previous/; fi; done
+        undo() { rm -rf appendonlydir dump.rdb; mv restore-previous/* . 2>/dev/null || true; rmdir restore-previous; }
+        trap undo EXIT
+        cat >dump.rdb
+        redis-check-rdb dump.rdb >/dev/null
+        cli() { redis-cli -p 6390 "$@"; }
+        persistence() { cli info persistence | tr -d "\r"; }
+        redis-server --port 6390 --dir /data --dbfilename dump.rdb --appendonly no --save "" \
+            --daemonize yes --logfile /data/restore.log
+        i=0
+        until [ "$(cli ping 2>/dev/null)" = PONG ] && persistence | grep -q "^loading:0"; do
+            i=$((i + 1)); [ "$i" -lt 600 ]; sleep 1
+        done
+        cli config set appendonly yes >/dev/null
+        i=0
+        until persistence | grep -q "^aof_enabled:1" && persistence | grep -q "^aof_rewrite_in_progress:0" \
+            && persistence | grep -q "^aof_rewrite_scheduled:0"; do
+            i=$((i + 1)); [ "$i" -lt 600 ]; sleep 1
+        done
+        persistence | grep -q "^aof_last_bgrewrite_status:ok"
+        cli shutdown
+        i=0
+        while cli ping >/dev/null 2>&1; do i=$((i + 1)); [ "$i" -lt 60 ]; sleep 1; done
+        trap - EXIT
+        rm -rf restore-previous restore.log'
+}
+
+# After a Redis restore: empties the queues (a job from the time of the
+# backup must not run twice) and the cache. Sign-ins and the chat memory stay.
+clear_queues_and_cache() {
+    local queue_db cache_db
+    queue_db=$(env_value REDIS_DB)
+    cache_db=$(env_value REDIS_CACHE_DB)
+    compose exec -T redis redis-cli -n "${queue_db:-0}" FLUSHDB >/dev/null || return
+    compose exec -T redis redis-cli -n "${cache_db:-1}" FLUSHDB >/dev/null
+}
+
 write_backup_info() {
     local file=$1 holds=$2 version storage migration
     version=$(app_version)
@@ -1079,10 +1178,10 @@ backup_value() {
     tar -xOf "$1" backup.env 2>/dev/null | sed -n "s/^$2=//p" | tail -n 1
 }
 
-# do_backup FILES(0|1) SECRETS(0|1) [SUFFIX]: makes a backup; BACKUP_FILE is
-# its path.
+# do_backup FILES(0|1) SECRETS(0|1) REDIS(0|1) [SUFFIX]: makes a backup;
+# BACKUP_FILE is its path.
 do_backup() {
-    local with_files=$1 with_secrets=$2 suffix=${3:-} dir name tmp holds='database' members
+    local with_files=$1 with_secrets=$2 with_redis=$3 suffix=${4:-} dir name tmp holds='database' members
     dir=$(backup_dir)
     (umask 077 && mkdir -p "$dir")
     chmod 700 "$dir" 2>/dev/null || true
@@ -1110,6 +1209,13 @@ do_backup() {
         members="$members secrets.env"
     fi
     members="$members database.dump"
+    if [ "$with_redis" = 1 ]; then
+        ensure_redis
+        run_step 'Backing up Redis: sign-ins and chat memory' dump_redis "$tmp/redis.rdb" ||
+            die 'The Redis backup failed. Nothing was saved.'
+        holds="$holds redis"
+        members="$members redis.rdb"
+    fi
     if [ "$with_files" = 1 ]; then
         run_step 'Backing up the uploaded files' dump_files "$tmp/files.tar" ||
             die 'The file backup failed. Nothing was saved.'
@@ -1152,6 +1258,7 @@ prune_backups() {
 describe_holds() {
     local text='the database'
     case " $1 " in *' secrets '*) text="$text, the app key" ;; esac
+    case " $1 " in *' redis '*) text="$text, the sign-ins and chat memory" ;; esac
     case " $1 " in *' files '*) text="$text, the uploaded files" ;; esac
     printf '%s' "$text"
 }
@@ -1272,11 +1379,12 @@ cmd_logs() {
 }
 
 cmd_backup() {
-    local with_files=0 with_secrets=1 keep=''
+    local with_files=0 with_secrets=1 with_redis=1 keep=''
     while [ $# -gt 0 ]; do
         case $1 in
             --files) with_files=1 ;;
             --no-secrets) with_secrets=0 ;;
+            --no-redis) with_redis=0 ;;
             --keep)
                 keep=${2:-}
                 [[ $keep =~ ^[1-9][0-9]*$ ]] || die '--keep needs a number of backups, like --keep 7.'
@@ -1291,9 +1399,10 @@ cmd_backup() {
     intro 'Backup' "$(pretty_path "$DIR")"
     check_docker
     lock
-    do_backup "$with_files" "$with_secrets"
+    do_backup "$with_files" "$with_secrets" "$with_redis"
     # Left as it was found.
     if [ "$STARTED_POSTGRES" = 1 ]; then compose stop postgres >>"$LOG" 2>&1 || true; fi
+    if [ "$STARTED_REDIS" = 1 ]; then compose stop redis >>"$LOG" 2>&1 || true; fi
     if [ -n "$keep" ]; then prune_backups "$keep"; fi
 
     local file size holds
@@ -1409,11 +1518,22 @@ cmd_restore() {
         section 'Backup of the current data'
         local files_too=0
         case " $holds " in *' files '*) files_too=1 ;; esac
-        do_backup "$files_too" 1 before-restore
+        do_backup "$files_too" 1 1 before-restore
         ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
     fi
 
     section 'Restore'
+    restore_backup "$file" "$kind" "$holds"
+
+    ok "$(bold 'Restored.')"
+    outro "Chatvia is running at $(accent "$(app_url)")"
+}
+
+# restore_backup FILE KIND HOLDS: restores the database next to the current
+# one, switches over, puts back what else the backup holds, and starts
+# Chatvia (the version compose.yaml and .env name now).
+restore_backup() {
+    local file=$1 kind=$2 holds=$3
     ensure_postgres
     run_step 'Starting Redis' compose up -d --wait redis || die 'Redis did not start.'
 
@@ -1458,13 +1578,24 @@ cmd_restore() {
         *' secrets '*) restore_secrets "$file" ;;
     esac
 
-    run_step 'Clearing the queues and caches' compose exec -T redis redis-cli FLUSHALL || true
+    case " $holds " in
+        *' redis '*)
+            if run_step 'Restoring Redis: sign-ins and chat memory' restore_redis_from "$file"; then
+                run_step 'Emptying the queues and the cache' clear_queues_and_cache || true
+            else
+                warn 'Redis was not restored, so everyone signs in again.'
+                run_step 'Emptying Redis' compose exec -T redis redis-cli FLUSHALL || true
+            fi
+            ;;
+        *)
+            # Sign-ins and queued jobs of the current data do not fit the
+            # restored database.
+            run_step 'Emptying Redis: queues, cache and sign-ins' compose exec -T redis redis-cli FLUSHALL || true
+            ;;
+    esac
     run_step 'Starting Chatvia (the database is updated first)' compose up -d --remove-orphans || start_failed
     run_step 'Waiting for the web app' wait_until 180 app_is_up ||
         die 'The web app did not answer within 3 minutes.' 'See why: ./manage status, then ./manage logs app'
-
-    ok "$(bold 'Restored.')"
-    outro "Chatvia is running at $(accent "$(app_url)")"
 }
 
 # restore_database FILE KIND NEW_DB EXTRAS: restores into a new database, so
@@ -1707,13 +1838,30 @@ cmd_sync_tools() {
     outro 'Charts, forms, weather, currency and web search are in the tool catalog.'
 }
 
+#------------------------------------------------------------------------------
+# Upgrade and rollback
+#
+# .env names one exact version (CHATVIA_VERSION=1.4.2). An upgrade looks up
+# the new one, backs up, and lets the newest installer switch to it: the
+# installer downloads everything first, then changes compose.yaml, this tool
+# and .env, and starts the new version (the database is updated before it
+# serves requests). A rollback gets the older version ready the same way
+# (--no-start) and restores the backup from before the upgrade.
+#------------------------------------------------------------------------------
+
 cmd_upgrade() {
-    local safety=1 installer_args=()
+    local safety=1 spec='' no_pull=0
     while [ $# -gt 0 ]; do
         case $1 in
+            --version)
+                spec=${2:-}
+                [ -n "$spec" ] || die '--version needs a version, like --version 1.4.2.'
+                shift
+                ;;
             --no-backup) safety=0 ;;
+            --no-pull) no_pull=1 ;;
             --yes | -y) YES=1 INTERACTIVE=0 ;;
-            *) installer_args+=("$1") ;;
+            *) die "Unknown option: $1" 'See ./manage help upgrade' ;;
         esac
         shift
     done
@@ -1721,20 +1869,299 @@ cmd_upgrade() {
     intro 'Upgrade' "$(pretty_path "$DIR")"
     check_docker
     lock
-    if [ "$safety" = 1 ] && confirm 'Back up the database first?' y; then
-        do_backup 0 1 before-upgrade
+
+    local current target app_before notes=''
+    current=$(installed_version)
+    FOUND_SOURCE=''
+    if [ "$no_pull" = 1 ]; then
+        # A local build: there is nothing to download or look up.
+        target=${spec:-${current:-latest}}
+    else
+        find_version "${spec:-latest}"
+        target=$FOUND_VERSION
+        if [ "$target" = "$current" ]; then
+            if [ -z "$spec" ]; then
+                outro "Chatvia $current is the newest version. Nothing to do."
+            else
+                outro "Chatvia $current is already installed. Nothing to do."
+            fi
+            return
+        fi
+    fi
+    if is_exact_version "$current" && is_exact_version "$target" && ! version_at_least "$target" "$current"; then
+        die "Version $target is older than the one you run ($current)." \
+            'Going back needs the data from before the upgrade: ./manage rollback'
+    fi
+
+    local row_version row_notes='' row_first
+    kv_to row_version 'Version' "${current:-unknown} $S_ARROW $(accent "$target")"
+    case $FOUND_SOURCE in
+        https://github.com/*) notes="${FOUND_SOURCE%/}/releases/tag/v$target" ;;
+    esac
+    if [ -n "$notes" ]; then kv_to row_notes 'Release notes' "$notes"; fi
+    if [ "$safety" = 1 ]; then
+        kv_to row_first 'First' 'a backup of the database, the app key and Redis'
+    else
+        kv_to row_first 'First' "${C_YELLOW}no backup$C_RESET$(dim ' (--no-backup)')"
+    fi
+    note 'Upgrade' "$row_version" ${row_notes:+"$row_notes"} "$row_first"
+    if is_exact_version "$current" && [ "${current%%.*}" != "${target%%.*}" ]; then
+        warn 'A new major version: read the release notes before you upgrade.'
+    fi
+    if [ "$INTERACTIVE" = 1 ] && ! confirm "Upgrade to $target now?" y; then
+        outro 'Nothing was changed.'
+        return
+    fi
+
+    if [ "$safety" = 1 ]; then
+        section 'Backup'
+        do_backup 0 1 1 before-upgrade
         ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
     fi
 
+    app_before=$(service_image app)
+    local args=(--upgrade --version "$target")
+    if [ "$no_pull" = 1 ]; then args+=(--no-pull); fi
+    if [ "$INTERACTIVE" = 0 ]; then args+=(--yes); fi
+    if ! run_installer "${args[@]}"; then
+        upgrade_failed "$current" "$target"
+    fi
+
+    intro 'Versions'
+    info "$(printf '%-12s' Chatvia)$(version_change "$app_before" "$(service_image app)")"
+    remove_old_images "$current"
+    outro "$(dim 'Something wrong? Go back: ./manage rollback')"
+}
+
+# installed_version: the version this install runs. .env names it; an
+# install from before that has the version label of its running image. A
+# local build keeps its own tag (like dev). Empty when unknown.
+installed_version() {
+    local version running
+    version=$(env_value CHATVIA_VERSION)
+    running=$(app_version)
+    if is_exact_version "$version"; then
+        printf '%s' "$version"
+    elif is_exact_version "$running"; then
+        printf '%s' "$running"
+    elif [ "$version" != latest ]; then
+        printf '%s' "$version"
+    fi
+    return 0
+}
+
+image_name() {
+    local name
+    name=$(env_value CHATVIA_IMAGE)
+    printf '%s' "${name:-$DEFAULT_IMAGE}"
+}
+
+# find_version SPEC: downloads the image of a version (latest, 1.4 or 1.4.2)
+# before anything stops. FOUND_VERSION is the release it is (its version
+# label), FOUND_SOURCE the repository it was built from.
+find_version() {
+    local spec=$1 ref labels what="version $1"
+    ref="$(image_name):$spec"
+    if [ "$spec" = latest ]; then what='the newest version'; fi
+    run_step "Getting $what" docker_cmd pull "$ref" ||
+        die "Could not download $ref." 'Check the version and the internet connection.'
+    labels=$(docker_cmd image inspect --format \
+        '{{index .Config.Labels "org.opencontainers.image.source"}}|{{index .Config.Labels "org.opencontainers.image.version"}}' \
+        "$ref" 2>/dev/null) || labels='|'
+    FOUND_SOURCE=${labels%%|*}
+    FOUND_VERSION=${labels#*|}
+    if is_exact_version "$spec"; then FOUND_VERSION=$spec; fi
+    if ! is_exact_version "$FOUND_VERSION"; then
+        die "The image $ref does not say which version it is." 'Name the version: ./manage upgrade --version 1.4.2'
+    fi
+}
+
+# run_installer ARGS...: the newest installer, on this folder. It shares this
+# command's lock, and replaces compose.yaml and this tool (with a rename, so
+# this run keeps reading its own copy).
+run_installer() {
     local installer="$WORK_DIR/install.sh"
     run_step 'Downloading the installer' curl -fsSL "${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_URL}" -o "$installer" ||
         die 'Could not download the installer.' "From: ${CHATVIA_INSTALLER_URL:-$DEFAULT_INSTALLER_URL}"
     outro 'The installer takes over.'
-
-    installer_args=(--upgrade --dir "$DIR" ${installer_args[@]+"${installer_args[@]}"})
-    if [ "$INTERACTIVE" = 0 ]; then installer_args+=(--yes); fi
     keys_off
-    bash "$installer" "${installer_args[@]}"
+    bash "$installer" --dir "$DIR" "$@"
+}
+
+# upgrade_failed CURRENT TARGET: the installer stopped. Before it switched
+# versions nothing changed; after, the new version did not start, and the
+# backup made just before brings the old one back.
+upgrade_failed() {
+    local current=$1 target=$2
+    intro 'Upgrade' "$(pretty_path "$DIR")"
+    if [ "$(env_value CHATVIA_VERSION)" != "$target" ]; then
+        die "The upgrade stopped before it changed anything.${current:+ Chatvia $current still runs.}"
+    fi
+    warn "Version $target did not start."
+    if [ -z "$BACKUP_FILE" ] || ! is_exact_version "$current"; then
+        die 'See why: ./manage logs migrate' \
+            'To go back, restore a backup from before the upgrade: ./manage rollback FILE'
+    fi
+    info "The backup made just before the upgrade holds your data from version $current."
+    if ! confirm "Go back to $current with that backup?" y; then
+        die "Chatvia stays on version $target, which did not start." 'See why: ./manage logs migrate' \
+            "Go back later: ./manage rollback ${BACKUP_FILE##*/}"
+    fi
+    do_rollback "$BACKUP_FILE" "$current" "$BACKUP_HOLDS"
+    ok "$(bold "Back on version $current.")"
+    outro "Chatvia is running at $(accent "$(app_url)"). The upgrade failed: see $(pretty_path "$DIR")/install.log"
+    exit 1
+}
+
+cmd_rollback() {
+    local file='' name='' safety=1 version current holds created
+    while [ $# -gt 0 ]; do
+        case $1 in
+            --no-backup) safety=0 ;;
+            --yes | -y) YES=1 INTERACTIVE=0 ;;
+            -*) die "Unknown option: $1" 'See ./manage help rollback' ;;
+            *) file=$1 name=$1 ;;
+        esac
+        shift
+    done
+
+    intro 'Roll back' "$(pretty_path "$DIR")"
+    need_terminal 'A rollback replaces all data, so it asks first.'
+    check_docker
+    lock
+
+    current=$(installed_version)
+    if [ -z "$file" ]; then
+        file=$(rollback_backup "$current") ||
+            die "There is no backup from before an upgrade${current:+ to $current}." \
+                'Name one: ./manage rollback FILE (see ./manage backups)'
+    else
+        file=$(resolve_backup "$file") || die "There is no backup called $name." 'List them: ./manage backups'
+    fi
+    version=$(backup_value "$file" VERSION)
+    holds=$(backup_value "$file" HOLDS)
+    created=$(backup_value "$file" CREATED)
+    if ! is_exact_version "$version"; then
+        die "$(pretty_path "$file") does not say which version of Chatvia made it." \
+            "Restore it on the version you run: ./manage restore ${file##*/}"
+    fi
+    if [ "$version" = "$current" ]; then
+        die "This backup comes from version $version, the one you run now." \
+            "Restore it: ./manage restore ${file##*/}"
+    fi
+    if is_exact_version "$current" && version_at_least "$version" "$current"; then
+        die "This backup comes from version $version, which is newer than this one ($current)." \
+            "Upgrade first (./manage upgrade --version $version), then restore it."
+    fi
+
+    local row_version row_file row_made row_holds row_now
+    kv_to row_version 'Version' "${current:-unknown} $S_ARROW $(accent "$version")"
+    kv_to row_file 'Backup' "${file##*/}  $(dim "$(human_size "$(file_size "$file")")")"
+    created=${created%Z}
+    kv_to row_made 'Made' "${created/T/ } UTC"
+    kv_to row_holds 'Holds' "$(describe_holds "$holds")"
+    kv_to row_now 'Current data' "${C_YELLOW}replaced$C_RESET$(dim ', after a backup of it')"
+    if [ "$safety" = 0 ]; then kv_to row_now 'Current data' "${C_YELLOW}replaced, with no backup of it$C_RESET"; fi
+    note 'Roll back?' "$row_version" "$row_file" "$row_made" "$row_holds" "$row_now"
+    info "$(dim 'Everything since this backup is replaced: new chats, settings and sources.')"
+    if [ "$INTERACTIVE" = 1 ] && ! confirm "Go back to $version and replace all data with this backup?" n; then
+        outro 'Nothing was changed.'
+        return
+    fi
+
+    if [ "$safety" = 1 ]; then
+        section 'Backup of the current data'
+        do_backup 0 1 1 before-rollback
+        ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
+    fi
+    do_rollback "$file" "$version" "$holds"
+    ok "$(bold "Back on version $version.")"
+    outro "Chatvia is running at $(accent "$(app_url)")"
+}
+
+# rollback_backup CURRENT: the newest backup made before an upgrade, from a
+# version older than CURRENT. A failed upgrade also leaves one, of CURRENT
+# itself, which this skips.
+rollback_backup() {
+    local file version
+    while IFS= read -r file; do
+        version=$(backup_value "$file" VERSION)
+        is_exact_version "$version" || continue
+        if is_exact_version "$1" && version_at_least "$version" "$1"; then continue; fi
+        printf '%s' "$file"
+        return 0
+    done < <(list_backups | grep -e '-before-upgrade\.tar$' | sort -r)
+    return 1
+}
+
+# do_rollback FILE VERSION HOLDS: the installer gets the older version ready
+# without starting it, then the restore replaces the data and starts it. An
+# image still on this machine is used as it is (no download).
+do_rollback() {
+    local file=$1 version=$2 holds=$3 args=(--upgrade --version "$2" --no-start)
+    if docker_cmd image inspect "$(image_name):$version" >/dev/null 2>&1; then args+=(--no-pull); fi
+    if [ "$INTERACTIVE" = 0 ]; then args+=(--yes); fi
+    run_installer "${args[@]}" ||
+        die "Could not get version $version ready. Your data was not touched." \
+            "See why: $(pretty_path "$DIR")/install.log"
+    intro 'Restore' "$(pretty_path "$DIR")"
+    restore_backup "$file" full "$holds"
+}
+
+# remove_old_images REPLACED: deletes the app images of versions older than
+# REPLACED (the version an upgrade replaced, which stays, so a rollback needs
+# no download), and the Chatvia images that lost their name when a newer one
+# was downloaded. An image that a container still uses is kept.
+remove_old_images() {
+    local replaced=$1 name tag id source removed=0
+    name=$(image_name)
+    while IFS= read -r tag; do
+        is_exact_version "$tag" && is_exact_version "$replaced" || continue
+        if version_at_least "$tag" "$replaced"; then continue; fi
+        if docker_cmd image rm "$name:$tag" >>"$LOG" 2>&1; then removed=$((removed + 1)); fi
+    done < <(docker_cmd image ls --format '{{.Tag}}' "$name" 2>/dev/null)
+    while IFS= read -r id; do
+        source=$(docker_cmd image inspect --format '{{index .Config.Labels "org.opencontainers.image.source"}}' "$id" 2>/dev/null) ||
+            continue
+        case $source in *github.com/chatvia/*) ;; *) continue ;; esac
+        if docker_cmd image rm "$id" >>"$LOG" 2>&1; then removed=$((removed + 1)); fi
+    done < <(docker_cmd image ls --quiet --filter dangling=true 2>/dev/null)
+    if [ "$removed" -gt 0 ]; then ok "Deleted $removed old image(s)"; fi
+}
+
+# service_image SERVICE: "<image id>|<version>" of what the service runs. The
+# version is the image's version label when the image comes from a Chatvia
+# repository (a local build inherits its base image's label), else the
+# image's short id.
+service_image() {
+    local id image labels
+    id=$(compose ps -q "$1" 2>/dev/null | head -n 1) || id=''
+    [ -n "$id" ] || return 0
+    image=$(docker_cmd inspect --format '{{.Image}}' "$id" 2>/dev/null) || return 0
+    labels=$(docker_cmd image inspect --format \
+        '{{index .Config.Labels "org.opencontainers.image.source"}}|{{index .Config.Labels "org.opencontainers.image.version"}}' \
+        "$image" 2>/dev/null) || labels=''
+    case $labels in
+        *chatvia/*'|'?*) printf '%s|%s' "$image" "${labels#*|}" ;;
+        *)
+            image=${image#sha256:}
+            printf '%s|image %s' "$image" "${image:0:12}"
+            ;;
+    esac
+}
+
+# version_change BEFORE AFTER: "1.4.2 → 1.5.0", or "1.5.0, no change".
+version_change() {
+    local before=$1 after=$2
+    if [ -z "$after" ]; then
+        printf '%s' 'not running'
+    elif [ "${before%%|*}" = "${after%%|*}" ]; then
+        printf '%s' "${after#*|}$(dim ', no change')"
+    elif [ -z "$before" ]; then
+        printf '%s' "${after#*|}"
+    else
+        printf '%s' "${before#*|} $S_ARROW $(accent "${after#*|}")"
+    fi
 }
 
 cmd_postgres() {
@@ -2032,7 +2459,7 @@ cmd_uninstall() {
 
     if [ "$INTERACTIVE" = 1 ]; then
         if confirm 'Make a backup first (database, app key and files)?' y; then
-            do_backup 1 1 before-uninstall
+            do_backup 1 1 1 before-uninstall
             ok "Saved $(dim "$(pretty_path "$BACKUP_FILE")")"
         fi
         # shellcheck disable=SC2034 # set by ask
@@ -2078,8 +2505,9 @@ usage() {
     help_row 'status' 'Show the services, the version and the address'
     help_row 'logs [SERVICE]' 'Follow the logs (Ctrl-C to stop)'
     help_row 'upgrade' 'Back up, then upgrade to the newest version'
+    help_row 'rollback [FILE]' 'Go back to the version before the last upgrade'
     help_section 'Backups'
-    help_row 'backup' 'Back up the database and the app key'
+    help_row 'backup' 'Back up the database, the app key and Redis'
     help_row 'backups' 'List the backups'
     help_row 'restore [FILE]' 'Replace all data with a backup'
     help_section 'Accounts'
@@ -2124,16 +2552,29 @@ command_help() {
             info "$(dim 'Other docker compose logs options work too, like --since 1h.')"
             ;;
         upgrade)
-            info 'Backs up the database, then runs the installer to upgrade this install.'
-            help_option '--no-backup' 'Skip the backup'
+            info 'Upgrades to the newest version, or to the one you name. It shows the change'
+            info 'and the release notes, backs up, then runs the installer. The new version'
+            info 'is downloaded before anything stops, and the database is updated before it'
+            info 'serves requests. When the new version does not start, it offers to go back.'
+            help_option '--version V' 'A version like 1.4.2, or 1.4 for the newest 1.4.x'
+            help_option '--no-backup' 'Skip the backup (then it cannot go back on its own)'
+            help_option '--no-pull' 'Use an image built on this machine (with --version TAG)'
+            help_option '--yes' 'No questions; goes back on its own when the upgrade fails'
+            ;;
+        rollback)
+            info 'Goes back to the version before an upgrade: it gets that version ready, then'
+            info 'restores the backup made before the upgrade (the newest one, or FILE).'
+            info 'Everything since that backup is replaced, so it backs up the current data first.'
+            help_option '--no-backup' 'Skip the backup of the current data'
             help_option '--yes' 'No questions'
-            help_option '--version VERSION' 'Upgrade to this version (passed to the installer)'
             ;;
         backup)
             info "Saves a backup in $(pretty_path "$(backup_dir)"): the database, the search"
-            info 'tokenizers and settings that pg_dump misses, and the app key.'
+            info 'tokenizers and settings that pg_dump misses, the app key, and Redis'
+            info '(who is signed in, the chat memory).'
             help_option '--files' 'Also the uploaded files (when they are stored here, not in S3)'
             help_option '--no-secrets' 'Leave out the app key (keep it somewhere else then)'
+            help_option '--no-redis' 'Leave out Redis (sign-ins and chat memory)'
             help_option '--keep N' 'Then delete all but the newest N backups'
             info ''
             info "$(dim 'Every night at 3, keeping a week:')"
@@ -2143,7 +2584,8 @@ command_help() {
         restore)
             info 'Replaces all data with a backup. Without FILE you choose one from the list.'
             info 'It backs up the current data first, restores next to it, and only then'
-            info 'switches over: a failed restore leaves your data as it was.'
+            info 'switches over: a failed restore leaves your data as it was. Redis comes back'
+            info 'too (sign-ins, chat memory); its queues and cache start empty.'
             info "$(dim 'FILE can also be a plain pg_dump file (custom format).')"
             help_option '--no-backup' 'Skip the backup of the current data'
             help_option '--yes' 'No questions (FILE is needed then)'
@@ -2201,7 +2643,7 @@ interrupted() {
 }
 
 main() {
-    YES=0 USE_SUDO=0 LOCKED=0 TTY_STATE='' STARTED_POSTGRES=0 TMP_BACKUP='' TMP_PARTIAL='' RESTORE_DB=''
+    YES=0 USE_SUDO=0 LOCKED=0 TTY_STATE='' STARTED_POSTGRES=0 STARTED_REDIS=0 TMP_BACKUP='' TMP_PARTIAL='' RESTORE_DB=''
     BACKUP_FILE='' BACKUP_HOLDS='' PASSWORD_INPUT='' RESTORED_STORAGE='' OUTPUT=''
     setup_output
 
@@ -2267,6 +2709,7 @@ main() {
         status) cmd_status "$@" ;;
         logs) cmd_logs "$@" ;;
         upgrade) cmd_upgrade "$@" ;;
+        rollback) cmd_rollback "$@" ;;
         backup) cmd_backup "$@" ;;
         backups) cmd_backups "$@" ;;
         restore) cmd_restore "$@" ;;

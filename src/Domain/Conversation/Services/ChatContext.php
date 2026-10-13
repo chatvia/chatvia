@@ -9,7 +9,6 @@ use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Illuminate\Support\Collection;
-use Spectra\Support\Tracking\StreamingTracker;
 
 /**
  * The working state of one chat turn while it streams: the request, the
@@ -44,13 +43,6 @@ class ChatContext
     public ?float $confidenceScore = null;
 
     public ?QaMatchData $qaMatch = null;
-
-    /**
-     * Spectra cost/usage tracker bound to the current LLM stream. Set by
-     * ToolLoopRunner around each stream() call and null otherwise.
-     * Transformers null-coalesce via `?->`.
-     */
-    public ?StreamingTracker $spectraTracker = null;
 
     /**
      * Tool calls accumulated from the LLM stream within the current tool-loop

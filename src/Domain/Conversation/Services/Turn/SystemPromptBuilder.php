@@ -43,7 +43,7 @@ class SystemPromptBuilder
     public function systemPrompt(StreamRequestData $data): string
     {
         $agent = $data->agent;
-        $prompt = $agent->resolveSystemInstructions().prompt('knowledge/grounding');
+        $prompt = rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding');
 
         // Visitors of a protected agent had to sign in, so the model may
         // address them by name. Public agents serve anonymous visitors — the

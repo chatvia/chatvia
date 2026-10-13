@@ -13,6 +13,7 @@ use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Storage;
 beforeEach(function (): void {
     Storage::fake();
     Storage::fake('public');
+    Storage::fake('assets');
     config(['cache.stores.chat' => ['driver' => 'array']]);
 });
 
@@ -77,8 +79,11 @@ it('removes the agent chats, leads, sources, settings, memory and files, then th
     Cache::driver('chat')->tags([$tag])->forever('memory', ['x']);
 
     $prefix = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id;
-    Storage::put($prefix.'/train/file.txt', 'x');
+    Storage::put($prefix.'/notes.txt', 'x');
     Storage::disk('public')->put($prefix.'/attachments/a.png', 'x');
+    Storage::disk('assets')->put($prefix.'/settings/appearance/logo.png', 'x');
+    Storage::put($file->filepath, 'x');
+    Storage::put(KnowledgeStoragePath::forSource($file, 'images').'/page.jpg', 'x');
 
     $agent->delete();
     app(PurgeAgentAction::class)->execute($agent);
@@ -93,8 +98,10 @@ it('removes the agent chats, leads, sources, settings, memory and files, then th
         ->and(ModelSetting::query()->where('model_type', $agent->getMorphClass())->where('model_id', $agent->id)->exists())->toBeFalse()
         ->and(Cache::driver('chat')->tags([$tag])->has('memory'))->toBeFalse();
 
-    Storage::assertMissing($prefix.'/train/file.txt');
+    Storage::assertMissing($prefix.'/notes.txt');
     Storage::disk('public')->assertMissing($prefix.'/attachments/a.png');
+    Storage::disk('assets')->assertMissing($prefix.'/settings/appearance/logo.png');
+    expect(Storage::allFiles(KnowledgeStoragePath::forSource($file)))->toBe([]);
 });
 
 it('deletes conversations and sessions in small batches', function (): void {
@@ -146,6 +153,29 @@ it('leaves another agent of the workspace alone', function (): void {
         ->and(SourceFile::find($shared->id))->not->toBeNull();
 });
 
+it('keeps the files of a source another agent still uses', function (): void {
+    $agent = Agent::factory()->create();
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+
+    // The first agent uploaded it, then the other agent started using it too.
+    $shared = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    $agent->files()->attach($shared->id);
+    $other->files()->attach($shared->id);
+
+    $folder = KnowledgeStoragePath::forSource($shared);
+    $shared->update(['parser_filepath' => $folder.'/pages.json']);
+    Storage::put($shared->filepath, '%PDF-1.7');
+    Storage::put($shared->parser_filepath, '[]');
+    Storage::put($folder.'/images/page.jpg', 'jpeg');
+
+    $agent->delete();
+    app(PurgeAgentAction::class)->execute($agent);
+
+    expect(SourceFile::find($shared->id))->not->toBeNull()
+        ->and($other->files()->whereKey($shared->id)->exists())->toBeTrue();
+    Storage::assertExists([$shared->filepath, $shared->parser_filepath, $folder.'/images/page.jpg']);
+});
+
 it('deletes a source shared only with another deleted agent', function (): void {
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
@@ -166,9 +196,10 @@ it('finishes the purge when run again after a failure', function (): void {
     $agent = Agent::factory()->create();
     $conversation = purgeTestConversation($agent);
 
-    $fail = true;
-    Agent::forceDeleting(function () use (&$fail): void {
-        if ($fail) {
+    // The final delete fails once (an outage), then works on the retry.
+    $outage = new ArrayObject(['on' => true]);
+    Agent::forceDeleting(function () use ($outage): void {
+        if ($outage['on']) {
             throw new RuntimeException('boom');
         }
     });
@@ -181,7 +212,7 @@ it('finishes the purge when run again after a failure', function (): void {
     expect(Conversation::withTrashed()->find($conversation->id))->toBeNull()
         ->and(Agent::onlyTrashed()->find($agent->id))->not->toBeNull();
 
-    $fail = false;
+    $outage['on'] = false;
     app(PurgeAgentAction::class)->execute(Agent::onlyTrashed()->findOrFail($agent->id));
 
     expect(Agent::withTrashed()->find($agent->id))->toBeNull();
@@ -204,7 +235,7 @@ it('runs from a job on the exports queue that skips a live or purged agent', fun
     $job->handle(app(PurgeAgentAction::class));
 
     // A live agent is never purged, and an id that is gone is a no-op.
-    (new PurgeAgentJob(PHP_INT_MAX))->handle(app(PurgeAgentAction::class));
+    new PurgeAgentJob(PHP_INT_MAX)->handle(app(PurgeAgentAction::class));
 
     expect($job->queue)->toBe('exports')
         ->and($job->timeout)->toBe(1800)

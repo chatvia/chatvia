@@ -1040,9 +1040,9 @@
                 "record_description": "Rekam audio langsung dari mikrofon Anda untuk ditambahkan ke basis pengetahuan agen Anda"
             },
             "files": {
-                "uploader_description_audio": "Unggah file audio untuk transkripsi. Format yang didukung: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, dan 3GP. Batas ukuran file: 200 MB.",
-                "uploader_description_video": "Unggah file video untuk transkripsi. Format yang didukung: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, dan 3GPP. Batas ukuran file: 200 MB.",
-                "uploader_description_default": "Dokumen: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Teks (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Gambar: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Maks. 50 MB per file.",
+                "uploader_description_audio": "Unggah file audio untuk transkripsi. Format yang didukung: {formats}. Maks. {size} MB per file.",
+                "uploader_description_video": "Unggah file video untuk transkripsi. Format yang didukung: {formats}. Maks. {size} MB per file.",
+                "uploader_description_default": "Format yang didukung: {formats}. Maks. {size} MB per file.",
                 "type_unknown": "Tidak diketahui",
                 "minutes_count": "{count} menit | {count} menit",
                 "pages_count": "{count} halaman | {count} halaman",
@@ -1062,6 +1062,7 @@
                 "upload_title_video": "Unggah File Video",
                 "upload_title_default": "Unggah Dokumen Baru",
                 "uploads_disabled": "Unggahan file dinonaktifkan selama pelatihan berlangsung",
+                "uploads_off": "Administrator telah menonaktifkan unggahan jenis file ini.",
                 "ready_to_train": "Siap Dilatih",
                 "uploaded_ready": "{count} file diunggah dan siap untuk pelatihan | {count} file diunggah dan siap untuk pelatihan",
                 "clear_all": "Hapus Semua",

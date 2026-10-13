@@ -43,7 +43,7 @@ class ManageMailSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
     #[\Override]
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 8;
 
     public static function description(): string
     {
@@ -63,7 +63,6 @@ class ManageMailSettings extends AdminSettingsPage
                 ->label('Send a test email')
                 ->icon(Heroicon::OutlinedPaperAirplane)
                 ->color('gray')
-                ->visible(fn (): bool => $this->canEdit())
                 ->modalDescription(fn (): string => 'Sends a short email to '.($this->admin()?->email ?? 'you').' with the saved settings. Save your changes first.')
                 ->modalSubmitActionLabel('Send')
                 ->action(function (): void {
@@ -106,7 +105,7 @@ class ManageMailSettings extends AdminSettingsPage
     protected function cards(): array
     {
         return [
-            SettingsCard::make('provider', 'Sending', 'The service that delivers email, what it needs, and the address emails come from.', Heroicon::OutlinedEnvelope, fn (): array => [
+            SettingsCard::make('provider', 'Sending', 'The service that delivers email, what it needs, and the address emails come from. Horizon\'s queue alerts use a change after Horizon restarts.', Heroicon::OutlinedEnvelope, fn (): array => [
                 Select::make('mailer')
                     ->label('Send email with')
                     ->options(fn (): array => $this->mailerOptions())
@@ -155,7 +154,7 @@ class ManageMailSettings extends AdminSettingsPage
             ->visible(fn (Get $get): bool => $get('mailer') === $provider->value)
             ->required(fn (Get $get): bool => $field->required
                 && $get('mailer') === $provider->value
-                && ! ($field->kind === 'secret' && $this->isSaved($field->property)));
+                && ($field->kind !== 'secret' || ! $this->isSaved($field->property)));
     }
 
     /**

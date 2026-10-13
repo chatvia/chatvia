@@ -24,7 +24,7 @@ interface ChatSurfaceSource {
 
 export function useChatSurface(source: ChatSurfaceSource) {
     const { locale: i18nLocale } = useI18n();
-    const page = usePage<{ maxFilesPerChat?: number }>();
+    const page = usePage<{ maxFilesPerChat?: number; defaultLocale?: string }>();
     const { applyColorTheme } = useColorTheme();
     const { canSendMessages } = useSendCapacity();
 
@@ -39,8 +39,9 @@ export function useChatSurface(source: ChatSurfaceSource) {
     const maxFilesPerChat = computed(() => page.props.maxFilesPerChat ?? DEFAULT_MAX_FILES_PER_CHAT);
 
     onMounted(() => {
-        // Honour the owner's pinned language, else the visitor's stored/browser choice.
-        void setI18nLocale(resolveLocale(source.locale));
+        // Honour the owner's pinned language, else the visitor's stored/browser
+        // choice, else the install's default language.
+        void setI18nLocale(resolveLocale(source.locale, page.props.defaultLocale));
         applyColorTheme(source.appearance);
     });
 

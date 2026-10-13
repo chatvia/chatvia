@@ -9,8 +9,6 @@ use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Ingestion\Services\BatchProgress;
 use Domain\Knowledge\Source\Web\Middleware\ThrottleFirecrawl;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -22,12 +20,9 @@ use Throwable;
  * FireCrawl calls are rate limited across all workers by
  * {@see ThrottleFirecrawl}.
  */
-class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
+class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable;
-    use TracksTokenUsage {
-        middleware as tokenUsageMiddleware;
-    }
 
     /**
      * Cap on genuine processing errors (scrape/embedding failures). FireCrawl
@@ -51,15 +46,14 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
     }
 
     /**
-     * Defining middleware() here replaces the one from {@see TracksTokenUsage},
-     * so the token-usage middleware is merged in explicitly. The throttle runs
-     * first: a throttled job is released before any LLM call is made.
+     * The FireCrawl throttle: a throttled job is released before any page is
+     * scraped or any AI call is made.
      *
      * @return array<int, object>
      */
     public function middleware(): array
     {
-        return [new ThrottleFirecrawl, ...$this->tokenUsageMiddleware()];
+        return [new ThrottleFirecrawl];
     }
 
     /**
@@ -72,11 +66,6 @@ class WebsiteUrlTrainJob implements AttributesTokenUsage, ShouldBeUnique, Should
     public function retryUntil(): DateTimeInterface
     {
         return now()->addHours(6);
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        return $this->agent->workspace_id;
     }
 
     public function handle(TrainWebsiteUrlAction $action): void

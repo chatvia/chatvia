@@ -32,6 +32,10 @@ return new class extends SettingsMigration
             $group->add('openweather_base_url');
             $group->add('exchange_rate_base_url');
             $group->add('horizon_notify_email');
+            $group->add('chat_workers');
+            $group->add('ingestion_workers');
+            $group->add('analytics_workers');
+            $group->add('media_workers');
         });
     }
 

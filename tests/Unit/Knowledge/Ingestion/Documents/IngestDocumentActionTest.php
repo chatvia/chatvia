@@ -6,6 +6,7 @@ use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
@@ -81,9 +82,9 @@ it('reads the document with the configured parser and records the parser name', 
 
     $agent = Agent::factory()->create();
     $sourceFile = AgentFileFactory::new()->create([
+        'workspace_id' => $agent->workspace_id,
         'status' => 'uploaded',
         'filename' => 'manual.pdf',
-        'filepath' => 'users/x/agents/y/files/manual.pdf',
         'mime_type' => 'application/pdf',
     ]);
     Storage::put($sourceFile->filepath, '%PDF-1.4 test');
@@ -114,13 +115,53 @@ it('reads the document with the configured parser and records the parser name', 
 
     $fresh = $sourceFile->fresh();
 
-    expect($parser->parsed)->toHaveCount(1)
-        ->and($parser->parsed[0])->toEndWith('/tmp')
+    $folder = KnowledgeStoragePath::forSource($sourceFile);
+
+    expect($parser->parsed)->toBe([$folder.'/tmp'])
         ->and($fresh->parser)->toBe('local')
         ->and((int) $fresh->expected_chunks)->toBe(2)
-        ->and($fresh->parser_filepath)->not->toBeNull();
+        ->and($fresh->parser_filepath)->toStartWith($folder.'/');
 
     Storage::assertExists($fresh->parser_filepath);
     // Plain pages share one chunk job.
     Bus::assertBatched(fn ($batch): bool => $batch->jobs->count() === 1 && count($batch->jobs->first()->group->pages) === 2);
+});
+
+it('reads a file again with another document reader instead of reusing the cached pages', function (): void {
+    Bus::fake();
+    $agent = Agent::factory()->create();
+
+    $parserNamed = fn (string $name): DocumentParser => new class($name) implements DocumentParser
+    {
+        public int $calls = 0;
+
+        public function __construct(private readonly string $readerName) {}
+
+        public function parse(string $filePath, string $storageDirectory): Collection
+        {
+            $this->calls++;
+
+            return collect([new PageData(pageNumber: 1, content: 'Page one', checksum: hash('xxh128', 'Page one'))]);
+        }
+
+        public function name(): string
+        {
+            return $this->readerName;
+        }
+    };
+
+    foreach (['local', 'mistral-ocr-latest'] as $name) {
+        $sourceFile = AgentFileFactory::new()->create([
+            'workspace_id' => $agent->workspace_id,
+            'status' => 'uploaded',
+            'filename' => 'manual.pdf',
+            'mime_type' => 'application/pdf',
+        ]);
+        Storage::put($sourceFile->filepath, '%PDF-1.4 same bytes');
+
+        $parser = $parserNamed($name);
+        app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
+
+        expect($parser->calls)->toBe(1);
+    }
 });

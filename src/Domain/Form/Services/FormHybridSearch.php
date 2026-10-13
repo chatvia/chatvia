@@ -15,9 +15,10 @@ use Throwable;
 /**
  * Intent-driven retrieval of the forms to return to the model from the
  * `find-forms` MCP tool, so it renders a form by the visitor's INTENT rather than
- * the form's title. Mirrors {@see ToolHybridSearch}: a dense (vchordrq, L2) and a
- * sparse (BM25, llmlingua2) channel over an agent's active forms, fused with RRF
- * (k = 60).
+ * the form's title. Mirrors {@see ToolHybridSearch}: a dense (L2) and a sparse
+ * (BM25, llmlingua2) channel over an agent's active forms, fused with RRF
+ * (k = 60). An agent has a few dozen forms at most, so both channels score
+ * exactly the agent's own forms (`form_definitions` has no vector index).
  *
  * The common case — an agent with only a handful of forms — never pays for the
  * embedding round-trip: {@see self::forPrompt()} returns the whole set wholesale.
@@ -104,30 +105,34 @@ class FormHybridSearch
         $cast = $this->storage->columnType();
         $rrfK = self::RRF_K;
 
+        // The agent's active forms are collected once (MATERIALIZED, from the
+        // agent_id key) and scored on both channels by exact distance. A BM25
+        // score of 0 means no shared term: not a keyword hit.
         $sql = <<<SQL
-WITH form_vector AS (
+WITH scope AS MATERIALIZED (
     SELECT fd.id,
-           ROW_NUMBER() OVER (ORDER BY fd.embedding <-> ?::{$cast}) AS rank
-    FROM form_definitions fd
+           fd.embedding <-> q.vector AS vector_dist,
+           NULLIF(fd.embedding_bm25 <&> q.terms, 0) AS bm25_dist
+    FROM (
+        SELECT ?::{$cast} AS vector,
+               bm25_catalog.to_bm25query('form_definitions_embedding_bm25', tokenizer_catalog.tokenize(?::text, 'llmlingua2')) AS terms
+    ) q
+    CROSS JOIN form_definitions fd
     WHERE fd.agent_id = ?
       AND fd.is_active = true
-      AND fd.embedding IS NOT NULL
-    ORDER BY fd.embedding <-> ?::{$cast}
+),
+form_vector AS (
+    SELECT id, ROW_NUMBER() OVER (ORDER BY vector_dist, id) AS rank
+    FROM scope
+    WHERE vector_dist IS NOT NULL
+    ORDER BY vector_dist, id
     LIMIT ?
 ),
 form_bm25 AS (
-    SELECT fd.id,
-           ROW_NUMBER() OVER (
-               ORDER BY fd.embedding_bm25 <&> bm25_catalog.to_bm25query(
-                   'form_definitions_embedding_bm25',
-                   tokenizer_catalog.tokenize(?::text, 'llmlingua2')
-               )
-           ) AS rank
-    FROM form_definitions fd
-    WHERE fd.agent_id = ?
-      AND fd.is_active = true
-      AND fd.embedding_bm25 IS NOT NULL
-    ORDER BY rank
+    SELECT id, ROW_NUMBER() OVER (ORDER BY bm25_dist, id) AS rank
+    FROM scope
+    WHERE bm25_dist IS NOT NULL
+    ORDER BY bm25_dist, id
     LIMIT ?
 ),
 combined AS (
@@ -140,14 +145,15 @@ rrf AS (
     FROM combined
     GROUP BY id
 )
-SELECT id FROM rrf ORDER BY score DESC LIMIT ?
+SELECT id FROM rrf ORDER BY score DESC, id LIMIT ?
 SQL;
 
         try {
             $rows = DB::select($sql, [
-                $vectorString, $agent->id, $vectorString, $candidateLimit, // form_vector
-                $message, $agent->id, $candidateLimit,                     // form_bm25
-                $limit,                                                     // final LIMIT
+                $vectorString, $message, $agent->id, // scope
+                $candidateLimit,                     // form_vector
+                $candidateLimit,                     // form_bm25
+                $limit,                              // final LIMIT
             ]);
         } catch (Throwable $e) {
             Log::warning('Form hybrid search: query failed', [

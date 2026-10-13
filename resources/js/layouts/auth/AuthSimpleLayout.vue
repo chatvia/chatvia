@@ -2,12 +2,19 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { Toaster } from '@/components/ui/sonner';
+import { useBrand } from '@/composables/useBrand';
 import { home } from '@/routes';
+import { computed } from 'vue';
 
 defineProps<{
     title?: string;
     description?: string;
 }>();
+
+const { brand } = useBrand();
+
+// The logo leads to the brand's website (Settings → Brand) when one is set.
+const logoHref = computed(() => brand.value.website_url ?? home.url());
 </script>
 
 <template>
@@ -18,7 +25,7 @@ defineProps<{
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-4">
-                    <a :href="home.url()" class="flex flex-col items-center gap-2 font-medium">
+                    <a :href="logoHref" class="flex flex-col items-center gap-2 font-medium">
                         <div class="mb-1 flex items-center justify-center rounded-md">
                             <AppLogoIcon class="size-10" />
                         </div>

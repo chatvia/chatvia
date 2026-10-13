@@ -17,7 +17,7 @@ it('uploads an agent brand image to the assets disk and persists its path', func
     $path = $agent->modelSettings()->where('key', 'avatar')->where('group', 'appearance')->value('value');
 
     expect($path)->toBeString()
-        ->and($path)->toStartWith('workspaces/'.$agent->workspace->external_id.'/settings/appearance/'.$agent->external_id.'/');
+        ->and($path)->toStartWith('workspaces/'.$agent->workspace->external_id.'/agents/'.$agent->external_id.'/settings/appearance/');
 
     Storage::disk('assets')->assertExists($path);
 });

@@ -33,6 +33,16 @@ it('transcribes the compressed audio with the configured transcriber and removes
 
             return 'hello there';
         }
+
+        public function isEnabled(): bool
+        {
+            return true;
+        }
+
+        public function name(): string
+        {
+            return 'fake-whisper';
+        }
     };
 
     $recording = UploadedFile::fake()->create('clip.webm', 5, 'audio/webm');

@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $source_website_id
  * @property string $url
+ * @property string|null $title
  * @property string|null $checksum
  * @property SourceStatus $status
  * @property string|null $failure_reason

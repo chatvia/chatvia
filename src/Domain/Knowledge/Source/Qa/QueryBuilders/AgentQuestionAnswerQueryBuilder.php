@@ -3,11 +3,12 @@
 namespace Domain\Knowledge\Source\Qa\QueryBuilders;
 
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
+use Domain\Knowledge\Source\Qa\Services\QuestionNormalizer;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 /**
- * Queries over curated Q&A entries: the strict phrase search that decides
+ * Queries over curated Q&A entries: the whole-question match that decides
  * whether a message is answered from a Q&A entry.
  *
  * @template TModel of AgentQuestionAnswer
@@ -17,28 +18,26 @@ use Illuminate\Support\Facades\DB;
 class AgentQuestionAnswerQueryBuilder extends Builder
 {
     /**
-     * Search Q&A entries using PostgreSQL full-text search with STRICT phrase matching.
-     * Uses phraseto_tsquery for exact phrase matching (word order matters).
+     * The agent's entry with a question equal to the message as a whole,
+     * ignoring case, accents, punctuation and spacing ({@see QuestionNormalizer}).
+     * A word or phrase that is only part of a question does not match.
      *
-     * @return list<\stdClass> matching rows (id, agent_id, title, questions, answer, rank), best first
+     * @return TModel|null
      */
-    public function phraseSearch(int $agentId, string $query, int $limit = 1): array
+    public function wholeQuestionMatch(int $agentId, string $message): ?AgentQuestionAnswer
     {
-        $sql = "
-SELECT 
-    qa.id, 
-    qa.agent_id, 
-    qa.title,
-    qa.questions, 
-    qa.answer,
-    ts_rank(to_tsvector('simple', qa.questions), phraseto_tsquery('simple', ?)) AS rank
-FROM agent_question_answers qa
-WHERE qa.agent_id = ?
-  AND to_tsvector('simple', qa.questions) @@ phraseto_tsquery('simple', ?)
-ORDER BY rank DESC
-LIMIT ?
-";
+        $normalized = QuestionNormalizer::normalize($message);
 
-        return DB::select($sql, [$query, $agentId, $query, $limit]);
+        if ($normalized === '') {
+            return null;
+        }
+
+        return $this->where('agent_id', $agentId)
+            ->whereIn('id', AgentQuestionAnswerQuestion::query()
+                ->select('agent_question_answer_id')
+                ->where('agent_id', $agentId)
+                ->where('normalized', $normalized))
+            ->orderBy('id')
+            ->first();
     }
 }

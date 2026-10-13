@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Agent\Form;
 use App\Http\Requests\Agent\Form\RewriteFormDescriptionRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\RewriteFormDescriptionAction;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -16,12 +15,9 @@ use Illuminate\Http\JsonResponse;
  */
 class RewriteFormDescriptionController
 {
-    public function __invoke(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $rewrite, TokenUsageContext $usage): JsonResponse
+    public function __invoke(RewriteFormDescriptionRequest $request, Agent $agent, RewriteFormDescriptionAction $rewrite): JsonResponse
     {
-        $instructions = $usage->track(
-            $agent->workspace_id,
-            fn (): string => $rewrite->execute($request->toData()),
-        );
+        $instructions = $rewrite->execute($request->toData());
 
         return response()->json(['agent_instructions' => $instructions]);
     }

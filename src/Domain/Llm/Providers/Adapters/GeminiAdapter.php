@@ -39,6 +39,12 @@ final class GeminiAdapter extends OpenAiCompatibleAdapter
         return 'https://aistudio.google.com/apikey';
     }
 
+    /** Its key also runs Gemini embeddings (Settings → AI), which use the native API, not this address. */
+    public function settingsConfig(): array
+    {
+        return ['api_key' => 'services.gemini.api_key'];
+    }
+
     protected function modelId(array $row): string
     {
         $id = (string) $row['id'];

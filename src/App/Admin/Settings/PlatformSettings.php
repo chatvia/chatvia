@@ -9,8 +9,9 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * Install-wide options that fit nowhere else: the default language, the
  * chat widget, page-view analytics, visitor location,
- * the services behind the built-in tools, where Horizon sends alerts, and
- * when the admin setup of the install was completed.
+ * the services behind the built-in tools, where Horizon sends alerts, how
+ * many queue workers it may run, and when the admin setup of the install was
+ * completed.
  */
 class PlatformSettings extends AdminSettings
 {
@@ -64,6 +65,20 @@ class PlatformSettings extends AdminSettings
 
     #[ConfigKey('horizon.notify_email')]
     public ?string $horizon_notify_email = null;
+
+    // The most workers per Horizon supervisor (config/horizon.php). Horizon
+    // reads them when it starts.
+    #[ConfigKey('horizon.environments.production.chat.maxProcesses')]
+    public ?int $chat_workers = null;
+
+    #[ConfigKey('horizon.environments.production.ingestion.maxProcesses')]
+    public ?int $ingestion_workers = null;
+
+    #[ConfigKey('horizon.environments.production.analytics.maxProcesses')]
+    public ?int $analytics_workers = null;
+
+    #[ConfigKey('horizon.environments.production.media.maxProcesses')]
+    public ?int $media_workers = null;
 
     public static function group(): string
     {

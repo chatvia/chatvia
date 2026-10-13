@@ -33,6 +33,10 @@ final class StorageDisks
 
     public function apply(): void
     {
+        // Read the local disks before the first replace: a process that
+        // starts on S3 and is switched to local later must get them back.
+        $this->localDisks();
+
         $disks = $this->disks();
         $hash = md5(serialize($disks));
 

@@ -4,13 +4,15 @@ namespace App\Http\Middleware\Web;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 /**
- * Security headers for every page in the `web` group (marketing site,
- * dashboard and the hosted chat).
+ * Security headers for every page in the `web` group (dashboard and the
+ * hosted chat).
  *
- * The mode comes from `chatvia.security.csp` (env CSP_MODE):
+ * The mode comes from `chatvia.security.csp` (Settings → Security):
  *  - `off`          no headers at all.
  *  - `report-only`  (default) the policy goes out as
  *                   Content-Security-Policy-Report-Only, and the headers that
@@ -87,8 +89,8 @@ class ContentSecurityPolicy
                 config('app.url'),
                 // Built assets when they are served from a CDN host.
                 config('app.asset_url'),
-                // Chat attachments (public bucket).
-                config('filesystems.disks.public.url'),
+                // Chat attachments and chunk images (the public disk).
+                $this->publicFilesUrl(),
                 // Profile photos, agent logo and avatar: the CDN pull zone, or
                 // the local public disk URL when no CDN is configured.
                 config('filesystems.disks.assets.pull_zone'),
@@ -141,6 +143,22 @@ class ContentSecurityPolicy
         }
 
         return implode(' ', array_values(array_unique($sources)));
+    }
+
+    /**
+     * Where the public disk serves files: its URL, or for S3-compatible
+     * storage with no public address set (Settings → Storage), the bucket
+     * address the S3 client builds.
+     */
+    private function publicFilesUrl(): ?string
+    {
+        try {
+            // The S3 client needs a file name to build an address; only the
+            // origin of it is used.
+            return Storage::disk('public')->url('file');
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     /**

@@ -57,7 +57,6 @@ command bar, messaging apps and a REST API.
 | `resources/views/` | Blade views: e-mails, PDF exports, the app shell. |
 | `resources/types/generated.d.ts` | TypeScript types generated from PHP classes. |
 | `lang/` | Server-side translations (e-mails, flash messages, validation). |
-| `docs/` | The user documentation (VitePress). |
 | `tests/` | Pest tests: `Unit`, `Feature`, `Architecture`, `Eval`. |
 
 ---
@@ -239,7 +238,7 @@ dashboard. Link your own website in the admin panel (**Settings → Brand**).
 
 | Folder | Holds |
 |---|---|
-| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard and asks for two-factor authentication (required in production). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. |
+| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
 | `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
@@ -264,6 +263,11 @@ prompts a workspace attaches to many agents.
 Main parts: `Actions/{Account,Analytics,ChatLog,Settings,Sources}`, `Prompt`,
 `Services` (`AgentUrlBuilder`, `AgentSlugGenerator`, `AppearanceTextResolver`),
 `ValueObjects/TranslatableText`.
+
+Deleting an agent is quick for the person who asks: the agent is soft-deleted
+(it disappears from every list, route and chat at once, and its slug and
+domain are freed), and `PurgeAgentJob` then removes its chats, leads, sources
+only it used and files in small batches before the final delete.
 
 ### Conversation
 
@@ -298,7 +302,7 @@ The knowledge base behind the agents' answers (RAG).
 |---|---|
 | `Knowledge\Source` | The source types: `File` (`SourceFile`), `Web` (`SourceWebsite` and its pages, `AgentWebsiteUrl`), `Text` (`SourceText`), `Qa` (`AgentQuestionAnswer`), `Youtube` (behind `FEATURE_YOUTUBE_SOURCES`). Sources belong to the workspace and are attached to agents through `agent_sources`. |
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
-| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `Cohere`, `Jina`, `Mistral`) and rerankers (`Qwen3Reranker`, `CohereReranker`, `NullReranker`). |
+| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `Gemini`, `Cohere`, `Mistral`, `Jina`) and rerankers (`Qwen3Reranker`, `CohereReranker`, `NullReranker`). |
 | `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + BM25 in one SQL query), `KnowledgeBase` (embed, search, rerank), scoring and retrieval stats. |
 | `Knowledge\Document` | File conversion tools (`OfficeText`, `OfficePdf`, `Pandoc`, `CatDoc`, `PdfInfo`) and `HasStorageFile` for models whose file is in storage. |
 
@@ -386,8 +390,10 @@ content are judged by one classifier call. Every decision is logged as a
 ### Security
 
 Workspace security settings and audit: IP allowlist and country rules
-(`NetworkAccessGuard`), conversation retention, the security audit log and
-delivery to a SIEM webhook. Every workspace has the full security feature set.
+(`NetworkAccessGuard`), retention windows (conversations, audit log, leads,
+analytics, and clearing visitor details from old chat sessions — each
+enforced by a daily, batched job), the security audit log and delivery to a
+SIEM webhook. Every workspace has the full security feature set.
 
 ### Form
 
@@ -627,8 +633,11 @@ Key workspace data to the **workspace** (`workspace_id`: `$agent->workspace_id`,
 `$user->workspace()->id`), never to the person who is acting. Otherwise
 removing a teammate would delete workspace data. Storage follows the same
 rule: workspace files live under `workspaces/{external_id}/…` (an agent's
-under `workspaces/{external_id}/agents/{external_id}/…`), a person's own files
-under `users/{external_id}/…` and a chatter's photo under
+under `workspaces/{external_id}/agents/{external_id}/…`; a knowledge source,
+which several agents can share, under
+`workspaces/{external_id}/sources/{type}/{external_id}/…`, where `{type}` is
+its morph alias such as `source_file`), a person's own files under
+`users/{external_id}/…` and a chatter's photo under
 `chatters/{external_id}/…`, so deleting an entity is one prefix wipe.
 
 ### Keeping workspaces apart
@@ -725,26 +734,38 @@ Outside services sit behind contracts. `DomainServiceProvider` picks the driver
 from config, so the rest of the code never knows which service runs. Most steps
 have an `auto` value: use the hosted service when its API key is set, otherwise
 a local implementation or "off". A self-hosted install can run without most
-accounts.
+accounts. Unless a row names another page, its setting is on
+**Settings → AI**.
 
-| Step | Contract | Drivers | Config key (Settings → AI) |
+| Step | Contract | Drivers | Config key (admin setting) |
 |---|---|---|---|
 | Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; roles `chatvia.agent.default_model`, `chatvia.ai.roles.*` |
-| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `cohere`, `jina`, `mistral` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
+| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `google`, `cohere`, `mistral`, `jina` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `qwen`, `cohere`, `none` | `chatvia.ai.reranker` |
 | Reading documents | `DocumentParser` | `mistral`, `local` (pdftotext, pandoc, PhpSpreadsheet, catdoc) | `chatvia.ai.document_parser` |
-| Splitting text | `TextSplitter` | `chunkfit`, `local` | `chatvia.ai.text_splitter` |
+| Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Chunking) |
 | Speech to text | `Transcriber` | `scaleway`, `none` | `chatvia.ai.transcriber` |
 | Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
-| Files | Laravel disks `private`, `public`, `assets` | local or S3-compatible (`private`, `public`; built by `StorageDisks`), Bunny CDN or local (`assets`) | `chatvia.storage` (Settings → Storage; `SCALEWAY_*` in `.env` as defaults), `BUNNYCDN_STORAGE_ZONE` |
+| Files | Laravel disks `private`, `public`, `assets` | local or S3-compatible (`private`, `public`; built by `StorageDisks`), Bunny CDN or local (`assets`) | `chatvia.storage` (Settings → Storage; `SCALEWAY_*` in `.env` as optional presets), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
 
 Everything an admin may want to change lives in the admin panel under
 **Settings**, not in `.env`: API keys and OAuth apps, the AI services, models
-and endpoints, e-mail, brand, default language, CSP, the widget, retention and
-limits. `.env` keeps only what the app needs before it can reach or decrypt
-the database (APP_KEY, DB, Redis, drivers, Reverb, `VITE_*`), storage, the
-embedding storage, and program paths (`*_BIN_PATH`: editable from the web
-they would let a stolen admin login run commands on the server).
+and endpoints, e-mail, file storage, brand, default language, CSP, the
+widget, retention and limits. `.env` keeps only what the app needs before it
+can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
+`VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`
+(error reports must work before the database loads), `BUILTIN_MCP_SECRET`
+and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
+install), `TRUSTED_PROXIES`, and program paths (`*_BIN_PATH`). Program paths
+stay out of the admin panel on purpose: if they were editable from the web, a
+stolen admin login could run commands on the server. Some config/*.php keys
+behind a setting still read `env()`, as an optional preset (Docker and Sail
+use a few, for example `MAIL_HOST` for Mailpit); a value saved in the admin
+panel always wins.
+
+The default disk is `private`, so knowledge files (and anything else stored
+without naming a disk) follow **Settings → Storage**: this server or
+S3-compatible storage.
 
 How it works:
 
@@ -768,12 +789,25 @@ How it works:
 - **Adding an option.** Add a nullable property with `#[ConfigKey]` to the
   right class, a line to its settings migration, and a field to its card.
   Give the config key a default in config/*.php.
-- **Chunking.** The chunker (github.com/chatvia/chunker) is called on
-  `POST /v1/chunk` with the strategy and only that strategy's options
-  (`ChunkerStrategy`, `ChunkerConfigData`). Token counts go through
-  `TokenCounter`: the chunker's `POST /v1/tokens` with the tokenizer set in
-  Settings → Chunking (`chatvia.ai.tokenizer`), and the built-in `TikToken`
-  (same tokenizer) when the chunker cannot count.
+- **Chunking.** Every text is split in-process by `BuiltinTextSplitter`
+  (`Knowledge\Ingestion\Services\Chunking`); there is no outside service.
+  The strategy follows the kind of content (`ContentKind`): Markdown (web
+  pages, .md files, ebooks), Text (typed texts, .txt files) and Transcript
+  (audio and video), each with a default that the admin can change under
+  Advanced (`SplitStrategy`, `ChunkingConfigData::forKind()`). The chunk
+  size and overlap are in one unit (`ChunkSizeUnit`): tokens of the
+  tokenizer (`TokenMeasure`, which only cuts where a token starts a new
+  character) or characters as a reader sees them (`CharacterMeasure`,
+  grapheme clusters). `RecursiveSplitter` cuts at paragraphs, then lines,
+  sentences (ICU, `SentenceSeparator`) and words, packs pieces up to the size
+  with the overlap, and falls back to fixed windows; the `sentence` and
+  `fixed` strategies use it with fewer separators. `MarkdownSplitter` (the
+  Markdown default) splits by heading sections, keeps code blocks and tables
+  whole when they fit (fences or header row repeated when they do not), and
+  starts every chunk with the headings above it. Documents read page by page
+  (PDF, office files, images) are not split: one chunk per page. Token
+  counts (`chunks.tokens`) use the built-in `TikToken` with the tokenizer set
+  in Settings → Chunking (`chatvia.ai.tokenizer`).
 - **Command line.** `php artisan app:settings` lists the values (never
   secrets), `php artisan app:setting group.property value` sets one.
 
@@ -787,7 +821,7 @@ Switches for a self-hosted install:
 | Brand (admin panel, **Settings → Brand**) | Product name, links and the "Powered by" line. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
-The user guide has the full setup: `docs/guide/self-hosting/`.
+The user guide has the full setup: <https://chatvia.ai/docs/guide/self-hosting/>.
 
 ---
 

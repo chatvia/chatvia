@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Support\Http;
 
 /**
- * Constant-time HMAC-SHA256 verification for server-to-server webhook/ingestion
- * callbacks (the chunker pipeline, document ingestion). The caller signs the
- * raw request body with a shared secret and sends the hex digest in a header.
+ * Constant-time HMAC-SHA256 signing and verification for server-to-server
+ * calls (outgoing webhooks, function tool calls, chunk image links). The
+ * caller signs the raw request body with a shared secret and sends the hex
+ * digest in a header.
  */
 final class WebhookSignature
 {

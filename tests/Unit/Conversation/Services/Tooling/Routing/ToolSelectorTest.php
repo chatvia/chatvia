@@ -13,7 +13,6 @@ use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Integration\Tool\Routing\AlwaysAvailableToolResolver;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\DB;
 
 function tsEntry(string $name): ToolEntry
@@ -67,7 +66,7 @@ function tsSelector(array $pool, array $routed): ToolSelector
         }
     };
 
-    return new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(TokenUsageContext::class), app(AlwaysAvailableToolResolver::class));
+    return new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class));
 }
 
 beforeEach(function (): void {
@@ -130,7 +129,7 @@ it('skips the router entirely when every tool in the pool is always-on', functio
             throw new RuntimeException('router must not run for a fully pinned pool');
         }
     };
-    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(TokenUsageContext::class), app(AlwaysAvailableToolResolver::class));
+    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class));
 
     expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['mcp__tutor__ask', 'mcp__tutor__correct']);
 });
@@ -171,7 +170,7 @@ it('ships the full pool when routing fails', function (): void {
             throw new RuntimeException('embedding API down');
         }
     };
-    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(TokenUsageContext::class), app(AlwaysAvailableToolResolver::class));
+    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class));
 
     expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['send_email', 'mcp__crm__search']);
 });

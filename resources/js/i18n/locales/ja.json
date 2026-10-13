@@ -1040,9 +1040,9 @@
                 "record_description": "マイクから直接音声を録音して、エージェントのナレッジベースに追加できます"
             },
             "files": {
-                "uploader_description_audio": "文字起こし用の音声ファイルをアップロードします。対応形式: MP3、M4A、WAV、OGG、WebM、FLAC、AAC、WMA、AMR、3GP。ファイルサイズ上限: 200 MB。",
-                "uploader_description_video": "文字起こし用の動画ファイルをアップロードします。対応形式: MP4、AVI、MOV、WMV、FLV、WebM、MKV、QuickTime、3GPP。ファイルサイズ上限: 200 MB。",
-                "uploader_description_default": "ドキュメント: PDF、Word（.docx、.doc）、PowerPoint（.pptx、.ppt）、Excel（.xlsx、.csv）、テキスト（.txt）、Markdown（.md）、EPUB、RTF、ODT、XML/DocBook、BibTeX（.bib）、FictionBook（.fb2）、Jupyter（.ipynb）、JATS XML、LaTeX（.tex）、OPML、Troff（.1、.man）。画像: JPEG、PNG、AVIF、TIFF、GIF、HEIC/HEIF、BMP、WebP。1ファイルあたり最大50 MB。",
+                "uploader_description_audio": "文字起こし用の音声ファイルをアップロードします。対応形式: {formats}。1ファイルあたり最大 {size} MB。",
+                "uploader_description_video": "文字起こし用の動画ファイルをアップロードします。対応形式: {formats}。1ファイルあたり最大 {size} MB。",
+                "uploader_description_default": "対応形式: {formats}。1ファイルあたり最大 {size} MB。",
                 "type_unknown": "不明",
                 "minutes_count": "{count}分 | {count}分",
                 "pages_count": "{count}ページ | {count}ページ",
@@ -1062,6 +1062,7 @@
                 "upload_title_video": "動画ファイルをアップロード",
                 "upload_title_default": "新しいドキュメントをアップロード",
                 "uploads_disabled": "トレーニング中はファイルのアップロードができません",
+                "uploads_off": "管理者がこれらのファイル形式のアップロードを無効にしています。",
                 "ready_to_train": "トレーニング準備完了",
                 "uploaded_ready": "{count}件のファイルをアップロードし、トレーニングの準備ができました | {count}件のファイルをアップロードし、トレーニングの準備ができました",
                 "clear_all": "すべてクリア",

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 
 /**
@@ -9,13 +10,34 @@ use Domain\Knowledge\Source\File\Services\SourceFileTypes;
  * the ebook formats: .fb2 → xml/text), so validation, routing and metering all
  * key off the file extension through SourceFileTypes.
  */
-it('treats every configured document extension as supported', function (): void {
-    foreach (SourceFileTypes::supportedExtensions() as $ext) {
+it('accepts every document extension the ingestion reads while every type is on', function (): void {
+    foreach (SourceFileTypes::documentExtensions() as $ext) {
         expect(SourceFileTypes::isSupported('file.'.$ext))->toBeTrue("$ext should be supported");
     }
 
     expect(SourceFileTypes::isSupported('malware.exe'))->toBeFalse()
         ->and(SourceFileTypes::isSupported('archive.zip'))->toBeFalse();
+});
+
+it('groups exactly the document extensions the ingestion reads into file types', function (): void {
+    $grouped = collect(KnowledgeFileType::cases())
+        ->reject(fn (KnowledgeFileType $type): bool => $type->isMedia())
+        ->flatMap(fn (KnowledgeFileType $type): array => $type->extensions());
+
+    expect($grouped->duplicates()->all())->toBe([])
+        ->and($grouped->sort()->values()->all())->toBe(collect(SourceFileTypes::documentExtensions())->sort()->values()->all());
+});
+
+it('accepts only the file types an admin turned on', function (): void {
+    // Video needs a speech-to-text service.
+    config(['chatvia.knowledge.file_types' => ['word', 'video', 'unknown'], 'chatvia.ai.transcriber' => 'scaleway']);
+
+    expect(KnowledgeFileType::enabled())->toBe([KnowledgeFileType::Word, KnowledgeFileType::Video])
+        ->and(SourceFileTypes::isSupported('a.docx'))->toBeTrue()
+        ->and(SourceFileTypes::isSupported('a.pdf'))->toBeFalse()
+        ->and(SourceFileTypes::isDocument('a.pdf'))->toBeTrue()
+        ->and(SourceFileTypes::isSupportedMedia('video/mp4'))->toBeTrue()
+        ->and(SourceFileTypes::isSupportedMedia('audio/mpeg'))->toBeFalse();
 });
 
 it('detects image files by extension only', function (): void {

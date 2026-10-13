@@ -132,7 +132,7 @@
     "You've reached the limit of :max files for this chat.": "Du har nået grænsen på :max filer for denne chat.",
     "No file was uploaded.": "Ingen fil blev uploadet.",
     "Only PDF files are supported right now.": "Kun PDF-filer understøttes lige nu.",
-    "File is too large — the limit is 25 MB.": "Filen er for stor — grænsen er 25 MB.",
+    "File is too large — the limit is :size MB.": "Filen er for stor — grænsen er :size MB.",
     "Topic added successfully": "Emnet blev tilføjet",
     "Topic created successfully": "Emnet blev oprettet",
     "Topic not found for this agent": "Emnet findes ikke for denne agent",

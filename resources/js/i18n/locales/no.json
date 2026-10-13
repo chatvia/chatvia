@@ -1042,9 +1042,9 @@
                 "record_description": "Ta opp lyd direkte fra mikrofonen din og legg det til i agentens kunnskapsbase"
             },
             "files": {
-                "uploader_description_audio": "Last opp lydfiler for transkripsjon. Støttede formater: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR og 3GP. Maks filstørrelse: 200 MB.",
-                "uploader_description_video": "Last opp videofiler for transkripsjon. Støttede formater: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime og 3GPP. Maks filstørrelse: 200 MB.",
-                "uploader_description_default": "Dokumenter: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Tekst (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Bilder: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Maks 50 MB per fil.",
+                "uploader_description_audio": "Last opp lydfiler for transkripsjon. Støttede formater: {formats}. Maks {size} MB per fil.",
+                "uploader_description_video": "Last opp videofiler for transkripsjon. Støttede formater: {formats}. Maks {size} MB per fil.",
+                "uploader_description_default": "Støttede formater: {formats}. Maks {size} MB per fil.",
                 "type_unknown": "Ukjent",
                 "minutes_count": "{count} minutt | {count} minutter",
                 "pages_count": "{count} side | {count} sider",
@@ -1105,7 +1105,8 @@
                 "summary_formatting": "Formateringselementer",
                 "summary_sensitive_title": "Sensitiv informasjon oppdaget",
                 "summary_sensitive_description": "Dette dokumentet kan inneholde sensitiv eller konfidensiell informasjon.",
-                "summary_empty": "Ingen sammendragsdata tilgjengelig for denne filen."
+                "summary_empty": "Ingen sammendragsdata tilgjengelig for denne filen.",
+                "uploads_off": "Administratoren har slått av opplasting av disse filtypene."
             },
             "text": {
                 "load_failed": "Kunne ikke laste tekstoppføring",

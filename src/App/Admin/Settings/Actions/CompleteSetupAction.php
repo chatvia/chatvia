@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings\Actions;
 
+use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\SetupData;
-use App\Admin\Settings\Data\SetupMailData;
-use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\SearchSettings;
+use App\Admin\Settings\SettingsConfig;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Models\Llm;
@@ -17,12 +18,14 @@ use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Saves the admin setup of a new install in one go: the chat provider and
- * its model (the chat model, so new agents start with it), the search
- * service and its key, and email. When the provider is also a service of
- * Settings → AI (its adapter names the config keys: Scaleway, Mistral), its
- * key and address go there too, so that service's search, reranking, speech
- * or document reading work with no second key. Then the setup is marked done.
+ * Saves the admin setup of a new install in one go: hybrid search, the
+ * search service with its model and key, and the chat provider and its
+ * model (the chat model, so new agents start with it). When the provider is
+ * also a service of Settings → AI (its adapter names the config keys:
+ * Scaleway, OpenAI, Google Gemini, Mistral), its key and address go there
+ * too, so that service's search, reranking, speech or document reading work
+ * with no second key.
+ * Then the setup is marked done.
  */
 final readonly class CompleteSetupAction
 {
@@ -30,8 +33,9 @@ final readonly class CompleteSetupAction
         private AddLlmModelAction $addModel,
         private ProviderAdapters $adapters,
         private AiSettings $ai,
-        private MailSettings $mail,
+        private SearchSettings $search,
         private PlatformSettings $platform,
+        private SettingsConfig $config,
     ) {}
 
     public function execute(SetupData $data): Llm
@@ -47,9 +51,8 @@ final readonly class CompleteSetupAction
 
             $this->saveAi($data, $model);
 
-            if ($data->mail instanceof SetupMailData) {
-                $this->saveMail($data->mail);
-            }
+            $this->set($this->search, 'hybrid_search', $data->hybridSearch);
+            $this->search->save();
 
             $this->platform->setup_completed_at = now()->toIso8601String();
             $this->platform->save();
@@ -75,6 +78,10 @@ final readonly class CompleteSetupAction
         if ($data->embeddingProvider instanceof EmbeddingProvider) {
             $this->ai->embedding_provider = $data->embeddingProvider->value;
 
+            if (filled($data->embeddingModel)) {
+                $this->fill($data->embeddingProvider->modelConfig(), $data->embeddingModel);
+            }
+
             if (filled($data->embeddingApiKey)) {
                 $this->fill($data->embeddingProvider->apiKeyConfig(), $data->embeddingApiKey);
             }
@@ -89,26 +96,23 @@ final readonly class CompleteSetupAction
         $property = AiSettings::propertyFor($configKey);
 
         if ($property !== null) {
-            $this->ai->{$property} = $value;
+            $this->set($this->ai, $property, $value);
         }
     }
 
-    private function saveMail(SetupMailData $mail): void
+    /**
+     * Set a property, except a value that still equals its default and was
+     * never saved: it stays unsaved, as in the Settings pages, so a later
+     * change of the default applies.
+     */
+    private function set(AdminSettings $settings, string $property, mixed $value): void
     {
-        $this->mail->mailer = $mail->provider->value;
-        $this->mail->from_address = $mail->fromAddress;
+        $default = $settings::cast($property, $this->config->defaultOf($settings::class, $property));
 
-        // Only the settings the provider needs; a blank secret keeps the saved one.
-        foreach ($mail->provider->fields() as $field) {
-            $value = $mail->values[$field->property] ?? null;
-
-            if (blank($value) && $field->kind === 'secret') {
-                continue;
-            }
-
-            $this->mail->{$field->property} = MailSettings::cast($field->property, $value);
+        if ($settings->{$property} === null && $value === $default) {
+            return;
         }
 
-        $this->mail->save();
+        $settings->{$property} = $value;
     }
 }

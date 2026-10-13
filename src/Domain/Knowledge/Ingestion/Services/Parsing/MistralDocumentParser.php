@@ -23,8 +23,9 @@ class MistralDocumentParser implements DocumentParser
         return $this->ocr->fromFile($filePath, $storageDirectory);
     }
 
+    /** The OCR model, such as "mistral-ocr-latest". */
     public function name(): string
     {
-        return 'mistral-ocr';
+        return (string) config('services.mistral.ocr_model');
     }
 }

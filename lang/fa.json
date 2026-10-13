@@ -132,7 +132,7 @@
     "You've reached the limit of :max files for this chat.": "به سقف :max فایل برای این گفتگو رسیده‌اید.",
     "No file was uploaded.": "هیچ فایلی بارگذاری نشد.",
     "Only PDF files are supported right now.": "فعلاً فقط فایل‌های PDF پشتیبانی می‌شوند.",
-    "File is too large — the limit is 25 MB.": "فایل خیلی بزرگ است — سقف مجاز ۲۵ مگابایت است.",
+    "File is too large — the limit is :size MB.": "فایل خیلی بزرگ است — سقف مجاز :size مگابایت است.",
     "Topic added successfully": "موضوع با موفقیت اضافه شد",
     "Topic created successfully": "موضوع با موفقیت ساخته شد",
     "Topic not found for this agent": "این موضوع برای این عامل پیدا نشد",

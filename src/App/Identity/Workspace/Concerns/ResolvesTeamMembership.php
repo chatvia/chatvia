@@ -51,7 +51,8 @@ trait ResolvesTeamMembership
      */
     public function primaryTeam(): ?Team
     {
-        return $this->remember('primaryTeam', fn (): ?Team => $this->ownedTeams()->oldest()->first());
+        // By id: teams made in the same second tie on created_at.
+        return $this->remember('primaryTeam', fn (): ?Team => $this->ownedTeams()->oldest('id')->first());
     }
 
     /**

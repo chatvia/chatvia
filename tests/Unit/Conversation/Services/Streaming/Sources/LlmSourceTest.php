@@ -19,7 +19,6 @@ use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -119,7 +118,6 @@ function fakeToolLoopRunner(Closure $scripted): ToolLoopRunner
             ChatContext $context,
             LlmProviderInterface $provider,
             string $modelName,
-            string $providerSlug,
             array &$llmMessages,
             array $toolDefinitions,
             array $extraSettings = [],
@@ -171,7 +169,6 @@ function makeLlmSource(ToolLoopRunner $runner): LlmSource
         // inspectOutput() is a clean no-op (no classifier call, no events).
         guardrails: app(GuardrailService::class),
         guardrailRecorder: app(GuardrailRecorder::class),
-        tokenUsage: app(TokenUsageContext::class),
     );
 }
 

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useBotCheck } from '@/composables/useBotCheck';
+import { useSocialProviders } from '@/composables/useSocialProviders';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { dashboard, login, register } from '@/routes';
 import { send as sendMagicLink } from '@/routes/magic-link';
@@ -34,6 +35,7 @@ defineProps<{
 const mode = ref<'password' | 'magic-link'>('password');
 
 const { siteKey: botCheckKey } = useBotCheck('sign_in');
+const { hasAny: hasAnySocialProvider } = useSocialProviders();
 const passwordBotCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
 const magicLinkBotCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
 
@@ -269,18 +271,19 @@ onBeforeUnmount(cancelPasskeys);
                 </TabsContent>
             </Tabs>
 
-            <!-- Divider -->
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <span class="w-full border-t"></span>
+            <!-- Social sign-in: only when at least one provider is set up -->
+            <template v-if="hasAnySocialProvider(['google', 'slack', 'microsoft', 'github'])">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <span class="w-full border-t"></span>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.login.or_continue_with') }}</span>
+                    </div>
                 </div>
-                <div class="relative flex justify-center text-sm">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.login.or_continue_with') }}</span>
-                </div>
-            </div>
 
-            <!-- Social Login Buttons -->
-            <SocialLoginButtons show-microsoft show-github />
+                <SocialLoginButtons show-microsoft show-github />
+            </template>
 
             <!-- Sign Up Link: only when self-serve sign-up is open -->
             <div v-if="canRegister" class="pt-4 text-center">

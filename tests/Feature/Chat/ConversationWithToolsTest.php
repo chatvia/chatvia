@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface;
-use Spectra\Facades\Spectra;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -49,10 +48,6 @@ beforeEach(function (): void {
     // StoreMessageJob and the queued analytics/audit
     // listeners must run inline so the test can assert persisted state.
     config(['queue.default' => 'sync']);
-
-    // Spectra is observability-only; its streaming tracker is faked so the
-    // turn never tries to persist cost-tracking rows mid-stream.
-    Spectra::fake();
 
     app()->instance(SseResponder::class, new class extends SseResponder
     {

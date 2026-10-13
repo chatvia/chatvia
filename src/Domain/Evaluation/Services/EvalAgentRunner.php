@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatService;
@@ -12,7 +13,6 @@ use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Spectra\Facades\Spectra;
 use Throwable;
 
 /**
@@ -64,7 +64,7 @@ class EvalAgentRunner
         // A fresh random UUID is also what keeps the run isolated: the conversation
         // doesn't exist, so initializeChatContext never persists the user message
         // (saveUserMessageImmediately is false and the history holds only the system
-        // prompt). `source: 'eval'` + the eval_ requestId tag the traffic for Spectra.
+        // prompt). `source: 'eval'` + the eval_ requestId mark the traffic as an eval.
         $requestData = new StreamRequestData(
             agent: $agent,
             message: new StreamRequestMessageData(model: $model, message: $input),
@@ -86,14 +86,11 @@ class EvalAgentRunner
                 $context->requestData->conversationId,
             );
 
-            Spectra::withTraceId($context->assistantMessageId);
-
             iterator_to_array(
                 $this->runner->run(
                     context: $context,
                     provider: $this->providers->for($model),
                     modelName: $model->internal_name,
-                    providerSlug: $model->provider->kind->value,
                     llmMessages: $llmMessages,
                     toolDefinitions: $toolDefinitions,
                     extraSettings: $agent->llmSettings(),
@@ -130,25 +127,17 @@ class EvalAgentRunner
     }
 
     /**
-     * A lightweight, deduped view of the retrieved RAG sources (for the
-     * groundedness signal). Knowledge chunks carry their document label at
-     * `metadata.filename` (see KnowledgeEnricher); the
-     * title/name/url fallbacks keep it tolerant of other source shapes. Many
-     * chunks come from one document, so collapse to distinct labels.
+     * The distinct labels of the sources the answer was given (file names,
+     * page titles…): a lightweight groundedness signal. Many chunks come from
+     * one document, so labels are collapsed.
      *
-     * @param  Collection<int, mixed>  $sources
+     * @param  Collection<int, RetrievedSourceData>  $sources
      * @return list<string>
      */
     private function summarizeSources(Collection $sources): array
     {
         return $sources
-            ->map(fn ($source): ?string => data_get($source, 'metadata.filename')
-                ?? data_get($source, 'title')
-                ?? data_get($source, 'name')
-                ?? data_get($source, 'url'))
-            ->filter()
-            ->map(fn ($value): string => (string) $value)
-            ->reject(fn (string $label): bool => $label === 'Unknown')
+            ->map(static fn (RetrievedSourceData $source): string => $source->label)
             ->unique()
             ->values()
             ->all();

@@ -5,7 +5,6 @@ namespace Domain\Agent\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Llm\Operations\Translate\TextTranslator;
-use Domain\Llm\Usage\TokenUsageContext;
 
 /**
  * Translates an agent's owner-written copy (starters, chat bubbles, appearance
@@ -16,7 +15,6 @@ final readonly class AgentTextTranslator
 {
     public function __construct(
         private TextTranslator $translator,
-        private TokenUsageContext $usage,
     ) {}
 
     /**
@@ -37,12 +35,9 @@ final readonly class AgentTextTranslator
             return $texts;
         }
 
-        $translated = $this->usage->track(
-            $agent->workspace_id,
-            fn (): array => $this->translator->translate(
-                array_map(static fn (TranslatableText $text): string => (string) $text->base, $texts),
-                $languages,
-            ),
+        $translated = $this->translator->translate(
+            array_map(static fn (TranslatableText $text): string => (string) $text->base, $texts),
+            $languages,
         );
 
         foreach ($texts as $key => $text) {

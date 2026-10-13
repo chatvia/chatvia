@@ -115,7 +115,7 @@ it('reports a reranker failure and returns at most max_chunks results', function
     Exceptions::assertReported(RuntimeException::class);
 });
 
-it('queues only source references for the retrieval stats job', function (): void {
+it('leaves counting the retrieval to the turn that uses the results', function (): void {
     Queue::fake();
     kbFallbackProvider(rerankThrows: false);
 
@@ -123,16 +123,29 @@ it('queues only source references for the retrieval stats job', function (): voi
 
     app(KnowledgeBase::class)->search($agent, 'largest ocean');
 
-    Queue::assertPushed(UpdateRetrievalStatsJob::class, function (UpdateRetrievalStatsJob $job) use ($agent): bool {
-        expect($job->agentId)->toBe($agent->id)
-            ->and($job->results)->toHaveCount(1); // three chunks, one source
+    Queue::assertNotPushed(UpdateRetrievalStatsJob::class);
+});
 
-        foreach ($job->results as $ref) {
-            expect($ref)->toBeArray()
-                ->and(array_keys($ref))->toBe(['chunkable_type', 'chunkable_id'])
-                ->and($ref['chunkable_type'])->toBe('source_file');
+it('returns as many results as asked for, whatever the reranker\'s own default cap', function (): void {
+    Queue::fake();
+    kbFallbackProvider(rerankThrows: false);
+    config(['chatvia.vector.search.max_chunks' => 4, 'chatvia.vector.search.relevance_threshold' => null]);
+
+    // Like Qwen3's endpoint: without a top_n it returns only 3 documents.
+    app()->instance(Reranker::class, new class implements Reranker
+    {
+        public function rerank(string $query, array $documents, ?int $topN = null): array
+        {
+            return array_slice((new NullReranker)->rerank($query, $documents), 0, $topN ?? 3);
         }
 
-        return true;
+        public function isEnabled(): bool
+        {
+            return true;
+        }
     });
+
+    $results = app(KnowledgeBase::class)->search(kbFallbackAgentWithChunks(6), 'largest ocean');
+
+    expect($results)->toHaveCount(4);
 });

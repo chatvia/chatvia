@@ -117,11 +117,9 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         }
 
         // The final chunk carries `usage` when the request asked for it: the
-        // authoritative prompt + completion count, also handed to the cost
-        // tracker.
+        // authoritative prompt + completion count.
         if (isset($chunk['usage']) && is_array($chunk['usage'])) {
             $context->usage = $chunk['usage'];
-            $context->spectraTracker?->setUsage($chunk['usage']);
         }
 
         $delta = $chunk['choices'][0]['delta'] ?? [];
@@ -186,7 +184,6 @@ class OpenAiCompatibleTransformer implements StreamTransformer
     private function streamText(ChatContext $context, string $text): StreamEvent
     {
         $context->appendStreamedMessage($text);
-        $context->spectraTracker?->appendContent($text);
 
         return StreamEvent::delta($context->assistantMessageId, $text);
     }

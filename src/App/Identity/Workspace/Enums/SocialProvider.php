@@ -28,6 +28,23 @@ enum SocialProvider: string
         return [self::Google, self::Microsoft, self::Slack, self::Github];
     }
 
+    /**
+     * The linkable providers whose OAuth app is set up (Settings → Sign-in),
+     * so their buttons work.
+     *
+     * @return list<self>
+     */
+    public static function configured(): array
+    {
+        return array_values(array_filter(self::linkable(), fn (self $provider): bool => $provider->isConfigured()));
+    }
+
+    public function isConfigured(): bool
+    {
+        return filled(config("services.{$this->value}.client_id"))
+            && filled(config("services.{$this->value}.client_secret"));
+    }
+
     /** The linkable provider for a route value, or null when it isn't one. */
     public static function tryLinkable(string $value): ?self
     {

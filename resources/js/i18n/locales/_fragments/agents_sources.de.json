@@ -39,9 +39,9 @@
                 "record_description": "Nehmen Sie Audio direkt über Ihr Mikrofon auf, um es der Wissensdatenbank Ihres Agenten hinzuzufügen"
             },
             "files": {
-                "uploader_description_audio": "Laden Sie Audiodateien zur Transkription hoch. Unterstützte Formate: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR und 3GP. Maximale Dateigröße: 200 MB.",
-                "uploader_description_video": "Laden Sie Videodateien zur Transkription hoch. Unterstützte Formate: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime und 3GPP. Maximale Dateigröße: 200 MB.",
-                "uploader_description_default": "Dokumente: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Bilder: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max. 50 MB pro Datei.",
+                "uploader_description_audio": "Laden Sie Audiodateien zur Transkription hoch. Unterstützte Formate: {formats}. Max. {size} MB pro Datei.",
+                "uploader_description_video": "Laden Sie Videodateien zur Transkription hoch. Unterstützte Formate: {formats}. Max. {size} MB pro Datei.",
+                "uploader_description_default": "Unterstützte Formate: {formats}. Max. {size} MB pro Datei.",
                 "type_unknown": "Unbekannt",
                 "minutes_count": "{count} Minute | {count} Minuten",
                 "pages_count": "{count} Seite | {count} Seiten",
@@ -61,6 +61,7 @@
                 "upload_title_video": "Videodateien hochladen",
                 "upload_title_default": "Neue Dokumente hochladen",
                 "uploads_disabled": "Datei-Uploads sind während des Trainings deaktiviert",
+                "uploads_off": "Der Administrator hat das Hochladen dieser Dateitypen deaktiviert.",
                 "ready_to_train": "Bereit zum Training",
                 "uploaded_ready": "{count} Datei hochgeladen und bereit für das Training | {count} Dateien hochgeladen und bereit für das Training",
                 "clear_all": "Alle entfernen",

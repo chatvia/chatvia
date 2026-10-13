@@ -10,8 +10,9 @@ use Spatie\LaravelData\Data;
 /**
  * One message as the live chat memory caches it and as the chat clients
  * receive it in a conversation's history. `message_for_llm` is the private
- * LLM-facing text (with retrieved reference material); it is cached but
- * stripped before the history leaves the server.
+ * LLM-facing text the history replays (the masked message, without the
+ * reference material of its turn); it is cached but stripped before the
+ * history leaves the server.
  */
 class MessageData extends Data
 {

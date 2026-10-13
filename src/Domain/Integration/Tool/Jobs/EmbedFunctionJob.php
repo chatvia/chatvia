@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Integration\Tool\Jobs;
 
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Tool\Actions\Embedding\EmbedAgentFunctionAction;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -14,10 +14,9 @@ use Illuminate\Foundation\Queue\Queueable;
  * Dispatched by the AgentFunction observer when a function is created or its
  * name/description changes; the tokens bill to the function's workspace.
  */
-class EmbedFunctionJob implements AttributesTokenUsage, ShouldQueue
+class EmbedFunctionJob implements ShouldQueue
 {
     use Queueable;
-    use TracksTokenUsage;
 
     public int $tries = 2;
 
@@ -26,12 +25,5 @@ class EmbedFunctionJob implements AttributesTokenUsage, ShouldQueue
     public function handle(EmbedAgentFunctionAction $action): void
     {
         $action->execute($this->functionId);
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        $userId = AgentFunction::query()->whereKey($this->functionId)->value('workspace_id');
-
-        return $userId !== null ? (int) $userId : null;
     }
 }

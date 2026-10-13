@@ -9,13 +9,12 @@ use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
-use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Generator;
 use Throwable;
 
 /**
- * Answers a turn with a curated Q&A entry whose question matched exactly, in
- * the same envelope as an LLM answer. One delta carries the whole answer —
+ * Answers a turn with a curated Q&A entry whose question matched the message
+ * as a whole, in the same envelope as an LLM answer. One delta carries the whole answer —
  * no chunking and no server-side delay; a typing effect is the client's job.
  * The reply is recorded and billed like any other answer.
  */
@@ -49,14 +48,14 @@ class QaSource
             yield StreamEvent::delta($assistantId, $answer);
 
             if ($context->requestData->streamSources && $qaMatch instanceof QaMatchData) {
+                // Same shape as RetrievedSourceData::forClient(), so clients
+                // show it like any other source.
                 yield StreamEvent::sources($assistantId, [[
-                    'id' => $qaMatch->id,
-                    'chunk' => $answer,
-                    'chunkable_type' => AgentQuestionAnswer::class,
-                    'chunkable_id' => $qaMatch->id,
-                    'metadata' => ['questions' => $qaMatch->questions, 'source' => 'qa'],
-                    'search_type' => 'qa',
-                    'confidence_score' => $context->confidenceScore,
+                    'id' => null,
+                    'label' => $qaMatch->title,
+                    'kind' => 'qa',
+                    'url' => null,
+                    'page' => null,
                 ]]);
             }
 

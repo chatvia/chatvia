@@ -6,7 +6,8 @@ namespace Domain\Evaluation\Data;
 
 /**
  * The captured state of one off-request agent run for an eval — the answer plus
- * the RAG sources + tools the agent used, tokens, and the Spectra trace id.
+ * the RAG sources + tools the agent used, tokens, and the run's trace id (its
+ * assistant message id, also stamped on guardrail events).
  * `error` is set (and answer empty) when the run threw.
  *
  * `toolsCalled` is the deduped list of tool NAMES; `toolCalls` keeps the full

@@ -3,13 +3,14 @@
 use Domain\Agent\Models\Agent;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tool_approval_checkpoints', function (Blueprint $table) {
+        Schema::create('tool_approval_checkpoints', function (Blueprint $table): void {
             $table->id();
             $table->uuid('external_id')->unique();
 
@@ -34,7 +35,12 @@ return new class extends Migration
 
             $table->index(['conversation_external_id', 'status']);
             $table->index('agent_id');
+            $table->index('expires_at');
         });
+
+        // The daily prune also drops settled checkpoints after a grace period;
+        // with the expiry index above Postgres combines the two (bitmap OR).
+        DB::statement("CREATE INDEX tool_approval_checkpoints_settled_idx ON tool_approval_checkpoints (updated_at) WHERE status <> 'pending'");
     }
 
     public function down(): void

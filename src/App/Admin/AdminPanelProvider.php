@@ -15,12 +15,12 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Contracts\View\Factory;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
@@ -31,11 +31,10 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * The panel signs in on its own `admin` guard, not the shared `web` guard. A
  * session opened by the dashboard login (/login) or the hosted-chat login
  * therefore never reaches the panel, and staff always go through the panel's
- * own login, which asks for the authenticator code.
+ * own login, which asks for the authenticator code when one is set up.
  *
- * Two-factor auth (app authenticator + recovery codes) is required: an admin
- * without it is sent to the set-up page on first sign-in and can't use the
- * panel until it is done.
+ * Two-factor auth (app authenticator + recovery codes) is optional: an admin
+ * turns it on from the profile.
  *
  * A new install then opens on its setup ({@see Setup}): every page leads
  * there until the AI model, search and email are set up, or skipped
@@ -49,19 +48,21 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName(config('chatvia.brand.name').' Admin')
-            ->brandLogo(fn () => view('filament.brand'))
+            // A closure: the panel is built while Filament's provider boots,
+            // before the brand name saved in Settings → Brand is applied.
+            ->brandName(fn (): string => config('chatvia.brand.name').' Admin')
+            ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('filament.brand'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/favicons/favicon.svg'))
             // The setup shows the mark alone, large, instead of the logo.
-            ->renderHook(PanelsRenderHook::SIMPLE_PAGE_START, fn () => view('filament.setup-logo'), scopes: Setup::class)
+            ->renderHook(PanelsRenderHook::SIMPLE_PAGE_START, fn (): Factory|\Illuminate\Contracts\View\View => view('filament.setup-logo'), scopes: Setup::class)
             ->authGuard('admin')
             ->login()
             ->profile()
             ->multiFactorAuthentication([
                 AppAuthentication::make()
                     ->recoverable(),
-            ], isRequired: App::isProduction())
+            ])
             // The look of the Chatvia dashboard: its colours, its own copy of
             // Inter and the theme's styles. No top bar: search and the user
             // menu sit in the sidebar, beside the page.
@@ -89,13 +90,10 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 RequireSetup::class,
             ])
-            ->authenticatedRoutes(function (Panel $panel): void {
+            ->authenticatedRoutes(function (): void {
                 // A simple (centered) page, so it is routed here rather than
-                // discovered. It saves API keys: two-factor first, as for
-                // every page of the panel.
-                Route::get('setup', Setup::class)
-                    ->middleware($panel->isMultiFactorAuthenticationRequired() ? [$panel->getMultiFactorAuthenticationRequiredMiddleware()] : [])
-                    ->name('setup');
+                // discovered.
+                Route::get('setup', Setup::class)->name('setup');
             });
     }
 }

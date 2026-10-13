@@ -23,7 +23,9 @@ class SocialController
             ->keyBy(fn (UserSocial $s) => $s->provider->value);
 
         return Inertia::render('account/Social', [
-            'accounts' => collect(SocialProvider::linkable())->map(fn (SocialProvider $p): array => [
+            // A provider that is not set up cannot be connected; one already
+            // linked still shows, so it can be disconnected.
+            'accounts' => collect(SocialProvider::linkable())->filter(fn (SocialProvider $p): bool => $p->isConfigured() || $linked->has($p->value))->map(fn (SocialProvider $p): array => [
                 'provider' => $p->value,
                 'label' => ucfirst($p->value),
                 'connected' => $linked->has($p->value),

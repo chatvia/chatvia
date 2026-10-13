@@ -16,7 +16,7 @@ final class BatchProgress
 {
     public static function afterCurrentJob(?Batch $batch): ?int
     {
-        if ($batch === null || $batch->totalJobs === 0) {
+        if (! $batch instanceof Batch || $batch->totalJobs === 0) {
             return null;
         }
 

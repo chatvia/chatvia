@@ -108,18 +108,27 @@ export function persistLocale(code: string): void {
     }
 }
 
-export function resolveLocale(preference?: string | null): SupportedLocale {
+/** The supported locale for a language code, or null when it has none. */
+function supportedOrNull(input?: string | null): SupportedLocale | null {
+    if (!input) return null;
+    const code = input.trim().toLowerCase().split(/[-_]/)[0];
+    return (SUPPORTED_LOCALES as readonly string[]).includes(code) ? (code as SupportedLocale) : null;
+}
+
+export function resolveLocale(preference?: string | null, defaultLocale?: string | null): SupportedLocale {
     // A signed-in user's saved locale (anything but 'auto') wins. Otherwise fall
-    // back to the remembered guest choice, then the browser language.
+    // back to the remembered guest choice, then the browser language when it
+    // is supported, then the install's default language (Settings → Platform).
     if (preference && preference !== 'auto') return normalizeLocale(preference);
     const stored = getStoredLocale();
     if (stored) return stored;
     if (typeof navigator !== 'undefined') {
         // `userLanguage` is the legacy IE/old-Edge name for `language`.
         const legacy = (navigator as Navigator & { userLanguage?: string }).userLanguage;
-        return normalizeLocale(navigator.language || legacy);
+        const browser = supportedOrNull(navigator.language || legacy);
+        if (browser) return browser;
     }
-    return 'en';
+    return normalizeLocale(defaultLocale);
 }
 
 export function isRTL(locale: string): boolean {

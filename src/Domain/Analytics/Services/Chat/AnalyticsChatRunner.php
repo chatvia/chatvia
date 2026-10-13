@@ -15,7 +15,6 @@ use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Llm\Enums\LlmRole;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\ModelRoles;
-use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -44,7 +43,6 @@ class AnalyticsChatRunner
         private readonly AnalyticsToolset $toolset,
         private readonly AnalyticsToolDispatcher $dispatcher,
         private readonly BuiltinToolRouter $router,
-        private readonly TokenUsageContext $usage,
     ) {}
 
     /**
@@ -84,7 +82,7 @@ class AnalyticsChatRunner
      */
     private function toolLoop(Workspace $workspace, AnalyticsChatRequestData $data, string $assistantId): Generator
     {
-        ['definitions' => $tools, 'routes' => $routes] = $this->toolsFor($workspace, $data->message);
+        ['definitions' => $tools, 'routes' => $routes] = $this->toolsFor($data->message);
         $messages = $this->buildMessages($workspace, $data);
         $model = $this->models->model(LlmRole::Chat);
         $provider = $this->providers->for($model);
@@ -123,17 +121,13 @@ class AnalyticsChatRunner
     /**
      * Only the built-in tools relevant to this question, from the embedded
      * registry. Falls back to the full reflection-built toolset before the
-     * registry is synced (or when routing finds nothing). Routing embeds the
-     * question, so that request is attributed to the workspace.
+     * registry is synced (or when routing finds nothing).
      *
      * @return array{definitions: array<int, array<string, mixed>>, routes: array<string, string>}
      */
-    private function toolsFor(Workspace $workspace, string $question): array
+    private function toolsFor(string $question): array
     {
-        $routed = $this->usage->track(
-            $workspace->id,
-            fn (): array => $this->router->route($question, [McpServerCategory::Analytics, McpServerCategory::Builtin]),
-        );
+        $routed = $this->router->route($question, [McpServerCategory::Analytics, McpServerCategory::Builtin]);
 
         return $routed['definitions'] === [] ? $this->toolset->build() : $routed;
     }

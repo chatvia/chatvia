@@ -39,9 +39,9 @@
                 "record_description": "Record audio directly from your microphone to add to your agent's knowledge base"
             },
             "files": {
-                "uploader_description_audio": "Upload audio files for transcription. Supported formats: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, and 3GP. File size limit: 200 MB.",
-                "uploader_description_video": "Upload video files for transcription. Supported formats: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, and 3GPP. File size limit: 200 MB.",
-                "uploader_description_default": "Documents: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), RTF, EPUB, FictionBook (.fb2). Images: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max 50 MB per file.",
+                "uploader_description_audio": "Upload audio files for transcription. Supported formats: {formats}. Max {size} MB per file.",
+                "uploader_description_video": "Upload video files for transcription. Supported formats: {formats}. Max {size} MB per file.",
+                "uploader_description_default": "Supported formats: {formats}. Max {size} MB per file.",
                 "type_unknown": "Unknown",
                 "minutes_count": "{count} minute | {count} minutes",
                 "pages_count": "{count} page | {count} pages",
@@ -61,6 +61,7 @@
                 "upload_title_video": "Upload Video Files",
                 "upload_title_default": "Upload New Documents",
                 "uploads_disabled": "File uploads are disabled while training is in progress",
+                "uploads_off": "The administrator turned off uploads of these file types.",
                 "ready_to_train": "Ready to Train",
                 "uploaded_ready": "{count} file uploaded and ready for training | {count} files uploaded and ready for training",
                 "clear_all": "Clear All",

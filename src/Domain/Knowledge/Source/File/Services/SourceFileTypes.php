@@ -2,6 +2,7 @@
 
 namespace Domain\Knowledge\Source\File\Services;
 
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
@@ -15,15 +16,19 @@ use Support\MimeType;
  * `ocr`: exotic text formats share generic MIME types (.tex/.bib are
  * text/plain, .fb2 is xml), so the MIME type cannot tell them apart. Audio and
  * video are recognised by their MIME type, which is reliable for them.
+ *
+ * What the ingestion can read is fixed; what this install accepts is the
+ * subset an admin turned on ({@see KnowledgeFileType}). Files already
+ * uploaded keep working when their type is turned off.
  */
 final class SourceFileTypes
 {
     /**
-     * Every extension the document ingestion accepts.
+     * Every extension the document ingestion can read, accepted or not.
      *
      * @return list<string>
      */
-    public static function supportedExtensions(): array
+    public static function documentExtensions(): array
     {
         /** @var array<string, list<string>> $groups */
         $groups = config('mimes.ocr');
@@ -31,10 +36,39 @@ final class SourceFileTypes
         return array_values(array_unique(array_merge(...array_values($groups))));
     }
 
-    /** Whether the document ingestion accepts the file, judged by its extension. */
+    /** Whether the document ingestion can read the file, judged by its extension. */
+    public static function isDocument(UploadedFile|string $file): bool
+    {
+        return in_array(file_extension($file), self::documentExtensions(), true);
+    }
+
+    /**
+     * The document extensions this install accepts: those of the document
+     * types an admin turned on.
+     *
+     * @return list<string>
+     */
+    public static function supportedExtensions(): array
+    {
+        $documents = array_filter(KnowledgeFileType::enabled(), fn (KnowledgeFileType $type): bool => ! $type->isMedia());
+
+        return array_values(array_unique(array_merge([], ...array_map(
+            fn (KnowledgeFileType $type): array => $type->extensions(),
+            array_values($documents),
+        ))));
+    }
+
+    /** Whether this install accepts the document, judged by its extension. */
     public static function isSupported(UploadedFile|string $file): bool
     {
         return in_array(file_extension($file), self::supportedExtensions(), true);
+    }
+
+    /** Whether this install accepts audio or video of this MIME type. */
+    public static function isSupportedMedia(string $mimeType): bool
+    {
+        return (MimeType::isAudio($mimeType) && KnowledgeFileType::Audio->isEnabled())
+            || (MimeType::isVideo($mimeType) && KnowledgeFileType::Video->isEnabled());
     }
 
     /** Whether the file is an image, judged by its extension. */

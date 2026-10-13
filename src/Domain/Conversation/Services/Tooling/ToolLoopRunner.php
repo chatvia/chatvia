@@ -23,8 +23,6 @@ use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Generator;
 use Illuminate\Support\Facades\Log;
-use Spectra\Facades\Spectra;
-use Throwable;
 
 /**
  * The provider-agnostic agentic loop. Streams an LLM completion, drains any
@@ -84,7 +82,6 @@ class ToolLoopRunner
         ChatContext $context,
         LlmProviderInterface $provider,
         string $modelName,
-        string $providerSlug,
         array &$llmMessages,
         array $toolDefinitions,
         array $extraSettings = [],
@@ -103,7 +100,7 @@ class ToolLoopRunner
         for ($iteration = $startIteration; $iteration < $maxIterations; $iteration++) {
             $context->offeredToolNames = $offeredNames;
 
-            yield from $this->streamCompletion($context, $provider, $modelName, $providerSlug, $llmMessages, $settings);
+            yield from $this->streamCompletion($context, $provider, $modelName, $llmMessages, $settings);
 
             $toolCalls = $context->takeToolCalls();
 
@@ -225,29 +222,17 @@ class ToolLoopRunner
     }
 
     /**
-     * Stream one completion through the transformer, tracking its cost.
+     * Stream one completion through the transformer.
      *
      * @param  array<int, array<string, mixed>>  $llmMessages
      * @param  array<string, mixed>  $settings
      * @return Generator<int, StreamEvent>
      */
-    private function streamCompletion(ChatContext $context, LlmProviderInterface $provider, string $modelName, string $providerSlug, array $llmMessages, array $settings): Generator
+    private function streamCompletion(ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $settings): Generator
     {
-        $tracker = Spectra::stream(provider: $providerSlug, model: $modelName);
-        $context->spectraTracker = $tracker;
+        $response = $provider->stream($modelName, $llmMessages, $settings);
 
-        try {
-            $response = $provider->stream($modelName, $llmMessages, $settings);
-
-            yield from $this->transformer->transform($response, $context);
-
-            $tracker->finish();
-        } catch (Throwable $e) {
-            Spectra::recordFailure($tracker->getContext(), $e);
-            throw $e;
-        } finally {
-            $context->spectraTracker = null;
-        }
+        yield from $this->transformer->transform($response, $context);
     }
 
     /**

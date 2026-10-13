@@ -16,7 +16,6 @@ use Livewire\Livewire;
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
-    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
     Filament::setCurrentPanel('admin');
 });
 

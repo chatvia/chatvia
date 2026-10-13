@@ -4,9 +4,9 @@ use App\Http\Middleware\Access\EnsureAgentPermission;
 use App\Http\Middleware\Access\EnsureApiWorkspaceOwner;
 use App\Http\Middleware\Access\EnsureCanAccessDashboard;
 use App\Http\Middleware\Access\EnsureTeamPermission;
-use App\Http\Middleware\Access\ScopeRequestToWorkspace;
 use App\Http\Middleware\Access\EnsureUserCanAccessAgent;
 use App\Http\Middleware\Access\EnsureWorkspaceNetworkAllowed;
+use App\Http\Middleware\Access\ScopeRequestToWorkspace;
 use App\Http\Middleware\Auth\AuthenticateChatterUsingToken;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
@@ -71,7 +71,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             EnsureWorkspaceNetworkAllowed::class,
             // Also covers the hosted chat: chat routes run the `web` group too.
-            // CSP_MODE (config/chatvia.php) picks off / report-only / enforce.
+            // Settings → Security (`chatvia.security.csp`) picks off /
+            // report-only / enforce.
             ContentSecurityPolicy::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
@@ -105,27 +106,18 @@ $app = Application::configure(basePath: dirname(__DIR__))
             : route('dashboard'));
 
         // Exempt only endpoints that the session cookie doesn't authenticate:
-        // the embeddable widget (token auth). The hosted chat (/chat/*) is
+        // the embeddable widget (token auth) and the widget package
+        // (shakomako), which runs on other sites. The hosted chat (/chat/*) is
         // cookie-authenticated, so it keeps CSRF protection: its frontend sends
         // the page's token as the X-CSRF-TOKEN header (resources/js/utils/csrf.ts).
         $middleware->preventRequestForgery(except: [
             '/widget/*',
+            '/shakomako/*',
         ]);
 
-        // Set TRUSTED_PROXIES to a comma-separated list of upstream IPs/CIDRs (e.g. Cloudflare).
-        // Trusting ALL proxies ('*') makes X-Forwarded-For attacker-spoofable, which
-        // defeats every IP-keyed rate limiter and the widget IP fingerprint — so the
-        // wildcard is only allowed in local/dev. In every other environment we trust
-        // ONLY the explicitly-configured proxies (empty ⇒ trust none ⇒ use REMOTE_ADDR).
-        // NB: app()->environment() is not resolvable this early in bootstrap,
-        // so read APP_ENV via the env() helper directly.
-        $trustedProxies = trim((string) env('TRUSTED_PROXIES', ''));
-        $isLocal = env('APP_ENV') === 'local';
-
-        $middleware->trustProxies(at: match (true) {
-            $trustedProxies === '*', $trustedProxies === '' => $isLocal ? '*' : [],
-            default => array_values(array_filter(array_map(trim(...), explode(',', $trustedProxies)))),
-        });
+        // The trusted proxies (TRUSTED_PROXIES) are read from
+        // config/trustedproxy.php on every request: this runs before .env is
+        // loaded, so env() would see nothing here.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         Flare::handles($exceptions);

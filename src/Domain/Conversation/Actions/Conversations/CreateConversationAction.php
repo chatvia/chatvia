@@ -9,9 +9,6 @@ use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
 use Domain\Guardrail\Services\GuardrailService;
-use Domain\Llm\Data\Query\RewrittenQueryData;
-use Domain\Llm\Operations\Query\QueryRewriter;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Str;
 
 /**
@@ -28,8 +25,6 @@ class CreateConversationAction
     public function __construct(
         private readonly StartConversationAction $startConversation,
         private readonly AddMessageToConversationAction $addMessage,
-        private readonly QueryRewriter $queryRewriter,
-        private readonly TokenUsageContext $usage,
         private readonly GuardrailService $guardrails,
     ) {}
 
@@ -40,30 +35,25 @@ class CreateConversationAction
     {
         $agent = $data->scope->agent;
 
-        // The first-turn rewrite uses tokens: attribute them to the workspace,
-        // as the streaming turn does for its own rewrite and search.
-        $rewritten = $this->usage->track(
-            $agent->workspace_id,
-            fn (): RewrittenQueryData => $this->queryRewriter->rewrite($data->message),
-        );
-
         $conversationId = $this->startConversation->execute($data->scope, ConversationSource::HostedChat);
         $scope = $data->scope->forConversation($conversationId);
 
         // PII is masked before anything is stored, so the record and the
         // replayed history never hold a raw identifier. The streaming turn
         // masks the same text the same way, so its match on this first
-        // message still lines up. Blocking is left to the streaming turn.
+        // message still lines up. Blocking, and any rewrite of the question
+        // for search, are left to the streaming turn.
+        $masked = $this->guardrails->redactPii($agent, $data->message);
+
         $this->addMessage->execute($scope, new UserTurnData(
             external_session_id: $data->scope->sessionId,
             external_conversation_id: $conversationId,
             external_message_id: Str::uuid7()->toString(),
             model: $agent->llm?->external_name ?? self::UNKNOWN_MODEL,
-            message: $this->guardrails->redactPii($agent, $data->message),
+            message: $masked,
             sent_at: now(),
-            message_for_llm: $this->guardrails->redactPii($agent, $rewritten->query),
+            message_for_llm: $masked,
             chatter_id: $data->chatterId,
-            language: $rewritten->language,
             ip_address: $data->ipAddress,
             user_agent: $data->userAgent,
             referrer_url: $data->referrerUrl,

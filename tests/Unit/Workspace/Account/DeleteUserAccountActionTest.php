@@ -15,6 +15,7 @@ use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
+use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\ModelSetting;
 use Domain\Conversation\Enums\ConversationSource;
@@ -184,14 +185,15 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
 });
 
 it('wipes the workspace knowledge-file storage tree the FK cascade would orphan', function (): void {
-    // Agents are removed by FK cascade, which never fires AgentObserver — so the
-    // knowledge files under workspaces/{external_id}/agents/{external_id}/ would
-    // leak. The teardown wipes the whole workspaces/{external_id} tree to catch
-    // them.
+    // Sources are removed by FK cascade, which never fires their observers — so
+    // the knowledge files under workspaces/{external_id}/sources/… would leak.
+    // The teardown wipes the whole workspaces/{external_id} tree to catch them.
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
 
-    $knowledgePath = 'workspaces/'.$agent->workspace->external_id.'/agents/'.$agent->external_id.'/files/doc.pdf';
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    $knowledgePath = $file->filepath;
+    expect($knowledgePath)->toStartWith('workspaces/'.$agent->workspace->external_id.'/sources/');
     Storage::put($knowledgePath, 'pdf-bytes');
     Storage::assertExists($knowledgePath);
 
@@ -270,7 +272,7 @@ it('deletes conversations and sessions in small id-ordered batches by workspace'
         }
     });
 
-    (new DeleteUserAccountAction(conversationBatch: 2, rowBatch: 2))->execute($owner);
+    new DeleteUserAccountAction(conversationBatch: 2, rowBatch: 2)->execute($owner);
 
     // 5 rows in batches of 2 → 3 batches, then 1 that finds nothing.
     expect($deletes)->toBe(['chat_conversations' => 4, 'chat_sessions' => 4])

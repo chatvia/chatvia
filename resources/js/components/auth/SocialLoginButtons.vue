@@ -1,7 +1,9 @@
 <script setup lang="ts">
-// OAuth sign-in buttons (Google and Slack always; Microsoft and GitHub on
-// request). Each is a full-page redirect so the provider can take over.
+// OAuth sign-in buttons (Google and Slack; Microsoft and GitHub on request),
+// each shown only when its OAuth app is set up. Each is a full-page redirect
+// so the provider can take over.
 import { Button } from '@/components/ui/button';
+import { useSocialProviders } from '@/composables/useSocialProviders';
 import { github, google, microsoft, slack } from '@/routes/auth';
 import { computed } from 'vue';
 
@@ -34,6 +36,8 @@ const slackHref = computed(() => props.slackUrl || slack.url());
 const microsoftHref = computed(() => props.microsoftUrl || microsoft.url());
 const githubHref = computed(() => props.githubUrl || github.url());
 
+const { has } = useSocialProviders();
+
 const go = (url: string) => {
     window.location.href = url;
 };
@@ -41,7 +45,7 @@ const go = (url: string) => {
 
 <template>
     <div class="grid grid-cols-2 gap-3">
-        <Button type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(googleHref)">
+        <Button v-if="has('google')" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(googleHref)">
             <svg class="me-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -63,7 +67,7 @@ const go = (url: string) => {
             Google
         </Button>
 
-        <Button type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(slackHref)">
+        <Button v-if="has('slack')" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(slackHref)">
             <svg class="me-2 h-5 w-5" viewBox="0 0 127 127" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M27.2 80c0 7.3-5.9 13.2-13.2 13.2C6.7 93.2.8 87.3.8 80c0-7.3 5.9-13.2 13.2-13.2h13.2V80zm6.6 0c0-7.3 5.9-13.2 13.2-13.2 7.3 0 13.2 5.9 13.2 13.2v33c0 7.3-5.9 13.2-13.2 13.2-7.3 0-13.2-5.9-13.2-13.2V80z"
@@ -85,7 +89,13 @@ const go = (url: string) => {
             Slack
         </Button>
 
-        <Button v-if="showMicrosoft" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(microsoftHref)">
+        <Button
+            v-if="showMicrosoft && has('microsoft')"
+            type="button"
+            variant="outline"
+            class="h-12 w-full text-base font-medium"
+            @click="go(microsoftHref)"
+        >
             <svg class="me-2 h-5 w-5" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
                 <path fill="#f25022" d="M1 1h10v10H1z" />
                 <path fill="#7fba00" d="M12 1h10v10H12z" />
@@ -95,7 +105,7 @@ const go = (url: string) => {
             Microsoft
         </Button>
 
-        <Button v-if="showGithub" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(githubHref)">
+        <Button v-if="showGithub && has('github')" type="button" variant="outline" class="h-12 w-full text-base font-medium" @click="go(githubHref)">
             <svg class="me-2 h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
                 <path
                     fill-rule="evenodd"

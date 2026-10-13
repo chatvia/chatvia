@@ -155,6 +155,7 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
 
             $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
+            $table->unique(['workspace_id', 'id']);
 
             $table->index(['chat_conversation_id', 'created_at']);
         });

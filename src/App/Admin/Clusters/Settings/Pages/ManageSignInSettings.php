@@ -65,6 +65,14 @@ class ManageSignInSettings extends AdminSettingsPage
         ])
             ->required("{$service}_client_id", "{$service}_client_secret")
             ->console($consoleUrl)
-            ->callbacks([$redirectLabel => "auth.{$service}.callback"]);
+            ->helpFile('provider')
+            ->callbacks([
+                $redirectLabel => "auth.{$service}.callback",
+                // A chatter accepting a chat invitation with Google or Slack
+                // signs in through the same app, back to its own URL.
+                ...(in_array($service, ['google', 'slack'], true)
+                    ? ['Chat invitation '.lcfirst($redirectLabel) => ['agents.invitation.social.callback', ['provider' => $service]]]
+                    : []),
+            ]);
     }
 }

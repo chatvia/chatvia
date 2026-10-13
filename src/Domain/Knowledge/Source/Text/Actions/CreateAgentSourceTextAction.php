@@ -17,9 +17,10 @@ use Throwable;
 /**
  * Adds a text as a knowledge source of an agent and queues its ingestion.
  *
- * The cleaned text is written to storage first; the row and the agent link are
- * created in one transaction, and the stored file is deleted again when that
- * fails. The text is keyed to the agent's owner (the workspace), and its size
+ * The cleaned text is written to storage first, into the source's own folder
+ * ({@see KnowledgeStoragePath}), so the source's external id is chosen before
+ * the row exists. The row and the agent link are created in one transaction,
+ * and the stored file is deleted again when that fails. The text is keyed to the agent's owner (the workspace), and its size
  * is stored in pages (~450 words each). A workspace holds each text once: the
  * same content again is a validation error on `content`.
  */
@@ -38,34 +39,36 @@ class CreateAgentSourceTextAction
         $numberOfPages = (int) ceil(str_word_count($content) / self::WORDS_PER_PAGE);
 
         if (SourceText::query()->where('workspace_id', $agent->workspace_id)->where('checksum', $checksum)->exists()) {
-            throw self::duplicate();
+            throw $this->duplicate();
         }
 
-        $filepath = KnowledgeStoragePath::forAgent($agent, 'train/text').'/'.Str::uuid()->toString().'.txt';
+        // Knowledge belongs to the workspace, not whoever uploaded it — key
+        // to the agent's owner so an employee's deletion can't cascade it away.
+        $sourceText = new SourceText([
+            'workspace_id' => $agent->workspace_id,
+            'external_id' => (string) Str::uuid7(),
+        ]);
+
+        $filepath = KnowledgeStoragePath::forSource($sourceText).'/'.Str::uuid()->toString().'.txt';
         Storage::put($filepath, $content);
 
         try {
-            $sourceText = DB::transaction(function () use ($agent, $filepath, $content, $checksum, $numberOfPages): SourceText {
-                $sourceText = SourceText::query()->create([
-                    // Knowledge belongs to the workspace, not whoever uploaded it — key
-                    // to the agent's owner so an employee's deletion can't cascade it away.
-                    'workspace_id' => $agent->workspace_id,
+            DB::transaction(function () use ($sourceText, $agent, $filepath, $content, $checksum, $numberOfPages): void {
+                $sourceText->fill([
                     'filepath' => $filepath,
                     'excerpt' => Str::of($content)->limit(200)->replace("\n", ' ')->trim()->toString(),
                     'length' => $numberOfPages,
                     'checksum' => $checksum,
-                ]);
+                ])->save();
 
                 $agent->texts()->attach($sourceText->id);
-
-                return $sourceText;
             });
         } catch (Throwable $e) {
             // No row points at the file, so nothing else would ever delete it.
             Storage::delete($filepath);
 
             // The same text saved at the same moment by another request.
-            throw $e instanceof UniqueConstraintViolationException ? self::duplicate() : $e;
+            throw $e instanceof UniqueConstraintViolationException ? $this->duplicate() : $e;
         }
 
         TextIngestionJob::dispatch($sourceText, $agent);
@@ -73,7 +76,7 @@ class CreateAgentSourceTextAction
         return $sourceText;
     }
 
-    private static function duplicate(): DomainValidationException
+    private function duplicate(): DomainValidationException
     {
         return new DomainValidationException('content', __('This text is already in your knowledge base.'));
     }

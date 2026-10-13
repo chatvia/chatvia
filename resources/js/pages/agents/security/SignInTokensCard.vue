@@ -5,6 +5,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useBrand } from '@/composables/useBrand';
 import { ArrowUpRight, Check, Copy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -23,6 +24,7 @@ const props = defineProps<{
 const emit = defineEmits<{ copy: [text: string, key: string] }>();
 
 const { t } = useI18n();
+const { apiDocsUrl } = useBrand();
 
 const embedSnippet = computed(() =>
     [
@@ -80,7 +82,7 @@ const hmacBlocks = computed<RenderedExample[]>(() =>
                 <p class="text-muted-foreground mt-2 text-sm">
                     {{ t('agents.identity_verification.rest_api_before') }}
                     <a
-                        href="/docs/api#/operations/v1.agents.sign.store"
+                        :href="apiDocsUrl('v1.agents.sign.store')"
                         target="_blank"
                         rel="noopener"
                         class="text-primary inline-flex items-center gap-0.5 font-medium underline-offset-4 hover:underline"

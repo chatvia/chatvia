@@ -25,13 +25,19 @@ class HandleTeamsActivityJob implements ShouldQueue
     /** The turn bills the owner on execution — never retry it. */
     public int $tries = 1;
 
+    /** A reply may call the model and the tools several times. */
+    public int $timeout = 300;
+
     /**
      * @param  array<string, mixed>  $activity
      */
     public function __construct(
         public readonly AgentTeamsBot $bot,
         public readonly array $activity,
-    ) {}
+    ) {
+        // The chat queue: a reply never waits behind e-mails or embeddings.
+        $this->onQueue('messages');
+    }
 
     public function handle(HandleTeamsActivityAction $action, TeamsClient $client, TeamsChatResolver $resolver): void
     {

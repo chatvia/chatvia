@@ -3,44 +3,26 @@
 namespace Domain\Knowledge\Retrieval\Services;
 
 /**
- * Pure scoring + text-cleaning helpers for RAG retrieval results. Extracted from
- * {@see KnowledgeBase} so the rank→confidence math and XML stripping — which
- * shape every answer the agent gives — are unit-testable without standing up the
- * pgvector hybrid-search path.
+ * Pure text-cleaning helpers for RAG retrieval results. Extracted from
+ * {@see KnowledgeBase} so the clean-up of chunk text — which shapes every
+ * answer the agent gives — is unit-testable without standing up the pgvector
+ * hybrid-search path.
  */
 class RetrievalScoring
 {
     /**
-     * Convert a 0-based RRF rank into a display confidence: the top result maps
-     * to ~0.99 and the last to ~0.50, linearly. A lone (or single) result is
-     * always 0.99.
+     * The chunk as the model reads it: HTML or XML tag markup is removed but
+     * the text inside it stays, a line break tag becomes a new line, and the
+     * text keeps its own line breaks (Markdown headings, lists and tables need
+     * them). Three or more line breaks fold to one blank line. Only real tags
+     * go: "a < b" and autolinks like <https://example.com> stay.
      */
-    public static function confidenceScore(int $rank, int $total): float
+    public static function plainText(string $text): string
     {
-        if ($total <= 1) {
-            return 0.99;
-        }
-
-        $confidence = 0.99 - (($rank / max($total - 1, 1)) * 0.49);
-
-        return round($confidence, 4);
-    }
-
-    /**
-     * Strip XML/HTML tags from a chunk before it's shown to the model: paired
-     * tags are removed along with their content, self-closing tags are dropped,
-     * and leftover whitespace is collapsed.
-     */
-    public static function stripXmlTags(string $text): string
-    {
-        // Opening tag + content + closing tag.
-        $text = preg_replace('/<[^>]+>.*?<\/[^>]+>/s', '', $text);
-
-        // Self-closing tags.
-        $text = preg_replace('/<[^>]+\/>/s', '', $text);
-
-        // Collapse whitespace left behind.
-        $text = preg_replace('/\s+/', ' ', $text);
+        $text = (string) preg_replace('/<br\s*\/?>/i', "\n", $text);
+        $text = (string) preg_replace('/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^<>]*)?\/?>/', '', $text);
+        $text = (string) preg_replace('/[ \t]+\n/', "\n", $text);
+        $text = (string) preg_replace('/\n{3,}/', "\n\n", $text);
 
         return trim($text);
     }

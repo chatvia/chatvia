@@ -11,50 +11,44 @@ use Support\Http\SafeUrl;
 use Throwable;
 
 /**
- * RFC 7591 — dynamically registers ChatVia as an OAuth client with the
- * authorization server protecting an MCP endpoint. We register once per
- * `auth_server_url`; every agent that later connects the same service
- * reuses the cached `client_id`.
+ * The OAuth client for the authorization server protecting an MCP endpoint:
+ * the connector's own OAuth app from config (Settings → Connectors) when the
+ * server has no dynamic registration, else one registered with RFC 7591 once
+ * per `auth_server_url` and reused by every agent that later connects it.
  */
 class McpOAuthRegistrar
 {
     /**
-     * Look up or create a registered client for the given auth server.
+     * The client to use for the given auth server.
      *
      * Three paths:
-     *   1. We've already registered for this auth-server URL — return that row.
-     *   2. Server supports RFC 7591 DCR — register dynamically.
-     *   3. Server doesn't support DCR but the catalog carries pre-registered
-     *      credentials (env-var driven, e.g. GitHub) — insert a synthetic
-     *      row from those creds.
+     *   1. The server does not support dynamic registration and the connector
+     *      has an OAuth app the admin registered (Settings → Connectors): a
+     *      client built from config on every call and never stored, so a
+     *      rotated secret applies at once. The stored row is keyed by auth
+     *      server, which several connectors share (Gmail, Calendar and Drive
+     *      all use Google's), so each must bring its own app.
+     *   2. We've already registered with this server (RFC 7591) — return
+     *      that row.
+     *   3. Otherwise register dynamically, and keep the row for the next
+     *      connection.
      */
     public function clientFor(OAuthServerMetadata $metadata, ?ConnectorData $connector = null): ConnectorOAuthClient
     {
-        $existing = ConnectorOAuthClient::query()
-            ->where('auth_server_url', $metadata->authServerUrl)
-            ->first();
-
-        if ($existing) {
-            return $existing;
-        }
-
         if (! $metadata->supportsDynamicRegistration()) {
             if ($connector instanceof ConnectorData && $connector->hasPreRegisteredOAuth()) {
-                return ConnectorOAuthClient::create([
-                    'auth_server_url' => $metadata->authServerUrl,
-                    'client_id' => (string) $connector->oauthClientId,
-                    'client_secret' => $connector->oauthClientSecret,
-                    'registration_access_token' => null,
-                    'registration_client_uri' => null,
-                    'token_endpoint' => $metadata->tokenEndpoint,
-                    'authorization_endpoint' => $metadata->authorizationEndpoint,
-                    'metadata' => ['source' => 'pre_registered', 'connector_slug' => $connector->slug],
-                ]);
+                return $this->preRegistered($metadata, $connector);
             }
 
             throw new McpOAuthException(
                 'This MCP server requires a pre-registered OAuth client. Dynamic Client Registration is not supported.'
             );
+        }
+
+        $existing = $this->findByAuthServer($metadata->authServerUrl);
+
+        if ($existing instanceof ConnectorOAuthClient) {
+            return $existing;
         }
 
         $payload = [
@@ -102,6 +96,24 @@ class McpOAuthRegistrar
             'token_endpoint' => $metadata->tokenEndpoint,
             'authorization_endpoint' => $metadata->authorizationEndpoint,
             'metadata' => $this->publicRegistrationFields($body),
+        ]);
+    }
+
+    /**
+     * The OAuth app the admin registered for a connector, from config. Not
+     * saved: each connection stores the id and secret it was made with.
+     */
+    private function preRegistered(OAuthServerMetadata $metadata, ConnectorData $connector): ConnectorOAuthClient
+    {
+        return new ConnectorOAuthClient()->forceFill([
+            'auth_server_url' => $metadata->authServerUrl,
+            'client_id' => (string) $connector->oauthClientId,
+            'client_secret' => $connector->oauthClientSecret,
+            'registration_access_token' => null,
+            'registration_client_uri' => null,
+            'token_endpoint' => $metadata->tokenEndpoint,
+            'authorization_endpoint' => $metadata->authorizationEndpoint,
+            'metadata' => ['source' => 'pre_registered', 'connector_slug' => $connector->slug],
         ]);
     }
 

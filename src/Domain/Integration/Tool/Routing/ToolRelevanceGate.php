@@ -106,7 +106,7 @@ class ToolRelevanceGate
         // the two are deliberately split).
         $fallback = (float) config('chatvia.agent.tools.routing.relevance_threshold', 0.55);
         $readThreshold = (float) config('chatvia.agent.tools.routing.relevance_threshold_read', $fallback);
-        $writeThreshold = (float) config('chatvia.agent.tools.routing.relevance_threshold_write', $fallback);
+        $writeThreshold = (float) (config('chatvia.agent.tools.routing.relevance_threshold_write') ?? $fallback);
 
         $kept = [];
         $dropped = [];

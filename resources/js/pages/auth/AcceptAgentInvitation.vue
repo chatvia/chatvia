@@ -8,6 +8,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSocialProviders } from '@/composables/useSocialProviders';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { BotIcon, LoaderCircle, Lock, LockKeyhole, Mail, User } from 'lucide-vue-next';
@@ -29,6 +30,8 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const { hasAny: hasAnySocialProvider } = useSocialProviders();
 
 const form = useForm({
     email: props.email,
@@ -158,24 +161,26 @@ const submit = () => {
                 <InputError :message="$page.props.errors?.invitation" class="text-center" />
             </form>
 
-            <!-- Divider -->
-            <div class="relative">
-                <div class="absolute inset-0 flex items-center">
-                    <span class="w-full border-t"></span>
+            <!-- Social sign-in: only when Google or Slack is set up -->
+            <template v-if="hasAnySocialProvider(['google', 'slack'])">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <span class="w-full border-t"></span>
+                    </div>
+                    <div class="relative flex justify-center text-sm uppercase">
+                        <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.accept_agent_invitation.or') }}</span>
+                    </div>
                 </div>
-                <div class="relative flex justify-center text-sm uppercase">
-                    <span class="bg-background text-muted-foreground px-4 font-medium">{{ t('auth.accept_agent_invitation.or') }}</span>
-                </div>
-            </div>
 
-            <!-- Social buttons — same component used on the login page, just
-                 pointed at the invitation-specific OAuth-start URLs. -->
-            <SocialLoginButtons :google-url="social_urls.google" :slack-url="social_urls.slack" />
+                <!-- Social buttons — same component used on the login page, just
+                     pointed at the invitation-specific OAuth-start URLs. -->
+                <SocialLoginButtons :google-url="social_urls.google" :slack-url="social_urls.slack" />
 
-            <p class="text-muted-foreground text-center text-xs">
-                {{ t('auth.accept_agent_invitation.social_email_note_prefix') }} <span class="text-foreground font-medium">{{ email }}</span>
-                {{ t('auth.accept_agent_invitation.social_email_note_suffix') }}
-            </p>
+                <p class="text-muted-foreground text-center text-xs">
+                    {{ t('auth.accept_agent_invitation.social_email_note_prefix') }} <span class="text-foreground font-medium">{{ email }}</span>
+                    {{ t('auth.accept_agent_invitation.social_email_note_suffix') }}
+                </p>
+            </template>
         </div>
     </AuthBase>
 </template>

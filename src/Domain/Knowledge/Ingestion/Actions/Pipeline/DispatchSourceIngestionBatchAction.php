@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Pipeline;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
@@ -49,7 +50,7 @@ class DispatchSourceIngestionBatchAction
             return null;
         }
 
-        SummaryIngestionJob::dispatch($source);
+        SummaryIngestionJob::dispatchIf(ChunkEnhancement::for($source)->summarizes(), $source);
 
         $source->update([
             'status' => SourceStatus::Processing,

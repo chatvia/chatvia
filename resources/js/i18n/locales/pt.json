@@ -1042,9 +1042,9 @@
                 "record_description": "Grave áudio diretamente do seu microfone para adicionar à base de conhecimento do seu agente"
             },
             "files": {
-                "uploader_description_audio": "Carregue ficheiros de áudio para transcrição. Formatos suportados: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR e 3GP. Limite de tamanho do ficheiro: 200 MB.",
-                "uploader_description_video": "Carregue ficheiros de vídeo para transcrição. Formatos suportados: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime e 3GPP. Limite de tamanho do ficheiro: 200 MB.",
-                "uploader_description_default": "Documentos: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Texto (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Imagens: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Máx. 50 MB por ficheiro.",
+                "uploader_description_audio": "Carregue ficheiros de áudio para transcrição. Formatos suportados: {formats}. Máx. {size} MB por ficheiro.",
+                "uploader_description_video": "Carregue ficheiros de vídeo para transcrição. Formatos suportados: {formats}. Máx. {size} MB por ficheiro.",
+                "uploader_description_default": "Formatos suportados: {formats}. Máx. {size} MB por ficheiro.",
                 "type_unknown": "Desconhecido",
                 "minutes_count": "{count} minuto | {count} minutos",
                 "pages_count": "{count} página | {count} páginas",
@@ -1105,7 +1105,8 @@
                 "summary_formatting": "Elementos de Formatação",
                 "summary_sensitive_title": "Informação Sensível Detetada",
                 "summary_sensitive_description": "Este documento pode conter informação sensível ou confidencial.",
-                "summary_empty": "Não há dados de resumo disponíveis para este ficheiro."
+                "summary_empty": "Não há dados de resumo disponíveis para este ficheiro.",
+                "uploads_off": "O administrador desativou o carregamento destes tipos de ficheiro."
             },
             "text": {
                 "load_failed": "Falha ao carregar a entrada de texto",

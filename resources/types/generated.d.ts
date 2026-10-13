@@ -178,6 +178,7 @@ declare namespace Domain {
                                 | null;
                             source: string | null;
                             read_at: string | null;
+                            confidence_score: number | null;
                         };
                         export type ChatLogMessagesResourceData = {
                             messages: Illuminate.LengthAwarePaginator<number, Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData>;
@@ -649,6 +650,11 @@ declare namespace Domain {
     }
     namespace Knowledge {
         namespace Source {
+            namespace File {
+                namespace Enums {
+                    export type KnowledgeFileType = 'pdf' | 'word' | 'spreadsheet' | 'presentation' | 'text' | 'ebook' | 'image' | 'audio' | 'video';
+                }
+            }
             namespace Text {
                 namespace Data {
                     export type TrainedTextRowData = {

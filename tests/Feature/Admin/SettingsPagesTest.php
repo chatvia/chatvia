@@ -33,7 +33,6 @@ use Livewire\Livewire;
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
-    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
 });
 
 /**
@@ -69,7 +68,7 @@ it('shows every settings page, and the overview links to each one', function ():
         }
     }
 
-    expect(SettingsCluster::getClusteredComponents())->toHaveCount(14);
+    expect(SettingsCluster::getClusteredComponents())->toHaveCount(16);
 });
 
 it('shows a card for every service, with its status', function (): void {
@@ -87,22 +86,23 @@ it('shows a card for every service, with its status', function (): void {
     $this->get(SettingsOverview::getUrl())->assertSee('1 of 4 set up');
 });
 
-it('locks the values for admins without two-factor authentication', function (): void {
+it('lets an admin without two-factor authentication change the values', function (): void {
     $settings = app(SignInSettings::class);
-    $settings->google_client_id = 'client-id-hidden';
+    $settings->google_client_id = 'client-id-shown';
     $settings->save();
 
-    $withoutMfa = User::factory()->admin()->create()->fresh();
-
-    $this->actingAs($withoutMfa, 'admin')
+    $this->actingAs($this->admin, 'admin')
         ->get(ManageSignInSettings::getUrl())
         ->assertOk()
-        ->assertSee('Set up two-factor authentication first')
-        ->assertDontSee('client-id-hidden');
+        ->assertSee('client-id-shown')
+        ->assertDontSee('Set up two-factor authentication first');
 
-    $this->get(SettingsOverview::getUrl())
-        ->assertSee('Set up two-factor authentication first')
-        ->assertDontSee('set up</span>', escape: false);
+    settingsPage($this->admin, ManageSignInSettings::class)
+        ->fillForm(['google_client_id' => 'client-id-changed'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(storedSetting(SignInSettings::class, 'google_client_id'))->toBe('client-id-changed');
 });
 
 it('never sends a saved secret to the browser', function (): void {
@@ -237,6 +237,15 @@ it('validates the workspace values', function (): void {
         ->assertHasFormErrors(['retention_days']);
 
     expect(storedSetting(WorkspaceSettings::class, 'retention_days'))->toBeNull();
+});
+
+it('refuses a fewest-days value above the days to keep conversations', function (): void {
+    settingsPage($this->admin, ManageWorkspaceSettings::class)
+        ->fillForm(['retention_days' => 30, 'retention_floor_days' => 60])
+        ->call('save')
+        ->assertHasFormErrors(['retention_floor_days']);
+
+    expect(storedSetting(WorkspaceSettings::class, 'retention_floor_days'))->toBeNull();
 });
 
 it('refuses a choice that is not offered', function (): void {

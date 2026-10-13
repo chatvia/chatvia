@@ -71,15 +71,6 @@ Schedule::command('queue:prune-failed --hours=168')->dailyAt('05:05')->withoutOv
 Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('05:10')->withoutOverlapping()->onOneServer();
 Schedule::command('model:prune', ['--model' => [MagicLink::class]])->dailyAt('05:15')->withoutOverlapping()->onOneServer();
 
-// AI call log retention: Spectra keeps every AI call (request, reply, tokens,
-// cost) in its own database. The days come from the admin panel (Settings →
-// Retention & limits), read when the scheduler starts, so a change applies
-// from the next run.
-Schedule::command('spectra:prune', ['--hours' => max(1, (int) config('chatvia.spectra.retention_days')) * 24])
-    ->dailyAt('05:20')
-    ->withoutOverlapping()
-    ->onOneServer();
-
 // The `chat` cache store groups chat memory under tags. Redis keeps a sorted
 // set per tag that lists its keys; entries stay in it after the keys expire,
 // so the sets only grow until this removes the stale entries.
@@ -92,15 +83,15 @@ Schedule::command('cache:prune-stale-tags chat')->hourly()->withoutOverlapping(6
 // whatever has newly crossed that age.
 Schedule::command('app:analyze-conversations')->hourly()->withoutOverlapping(60)->onOneServer();
 
-// Retrain the vchordrq k-means partitioning on the chunks indexes against the
-// CURRENT rows (migrate:fresh builds them on an empty table, so the initial
-// centroids are placeholders). CONCURRENTLY, so retrieval and ingestion stay
-// unblocked; weekly is a safety net during the growth phase — run it manually
-// after any large bulk ingestion.
+// Size the chunks vector indexes for the current rows: flat below 100k rows,
+// then about 4·√N partitions, rebuilt side by side (CONCURRENTLY) when the
+// rows have doubled. Cheap when nothing changed; run it by hand after a large
+// bulk ingestion.
 Schedule::command('vector:reindex')->sundays()->at('04:30')->withoutOverlapping()->onOneServer();
 
-// Off-host database backup: pg_dump (custom/compressed format) streamed to the
-// private Scaleway bucket, keeping the newest 14 (~7 days at this cadence).
+// Database backup: pg_dump (custom/compressed format) streamed to the private
+// disk (this server, or the private bucket of Settings → Storage), keeping the
+// newest 14 (~7 days at this cadence).
 // Every 12 hours, offset from the 03:00–05:00 prune cluster. withoutOverlapping
 // guards against a slow dump colliding with the next run; runInBackground keeps
 // it off the scheduler's critical path.

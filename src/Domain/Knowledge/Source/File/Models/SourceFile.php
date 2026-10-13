@@ -8,6 +8,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Document\Concerns\HasStorageFile;
 use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -164,6 +165,12 @@ class SourceFile extends Model implements ChunkableContract
     public function isEbook(): bool
     {
         return in_array($this->extension(), config('mimes.ocr.pandoc'), true);
+    }
+
+    /** How the text splitter splits a text file: Markdown and ebooks (read as Markdown) by their structure, .txt as plain text. */
+    public function contentKind(): ContentKind
+    {
+        return $this->extension() === 'txt' ? ContentKind::Text : ContentKind::Markdown;
     }
 
     public function isAudioFile(): bool

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware\Chat;
 
+use App\Http\Auth\BotCheck;
 use App\Http\Chat\HostedChatViewer;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Identity\Chatter\Models\Chatter;
@@ -33,6 +34,8 @@ class ChatHandleInertiaRequests extends Middleware
             // Product name and links (config/chatvia.php `brand`) — drives the
             // "Powered by" credit under the hosted chat.
             'brand' => config('chatvia.brand'),
+            // The bot check of the chatter sign-in forms (Settings → Security).
+            'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),
             'auth' => [
                 'user' => $account,
                 // Staff (a dashboard preview) chat too, but their profile is
@@ -46,6 +49,9 @@ class ChatHandleInertiaRequests extends Middleware
                 // An object even when empty, so the page gets {} rather than [].
                 'params' => (object) ($request->route()?->originalParameters() ?? []),
             ],
+            // The install's default language (Settings → Platform), used when
+            // the visitor's browser language is not one the app has.
+            'defaultLocale' => config('app.locale'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),

@@ -42,6 +42,13 @@ return new class extends SettingsMigration
             $group->addEncrypted('jina_api_key');
             $group->add('jina_api_endpoint');
             $group->add('jina_embedding_model');
+            $group->addEncrypted('openai_api_key');
+            $group->add('openai_api_endpoint');
+            $group->add('openai_embedding_model');
+            $group->add('openai_transcription_model');
+            $group->addEncrypted('gemini_api_key');
+            $group->add('gemini_api_endpoint');
+            $group->add('gemini_embedding_model');
         });
     }
 

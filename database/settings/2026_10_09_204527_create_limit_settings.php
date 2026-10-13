@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\Migrations\SettingsBlueprint;
 use Spatie\LaravelSettings\Migrations\SettingsMigration;
@@ -20,7 +22,6 @@ return new class extends SettingsMigration
             $group->add('guardrail_retention_days');
             $group->add('security_audit_retention_days');
             $group->add('security_audit_retention_floor_days');
-            $group->add('spectra_retention_days');
         });
     }
 

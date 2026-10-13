@@ -107,6 +107,27 @@ class AiSettings extends AdminSettings
     #[ConfigKey('services.jina.embedding_model')]
     public ?string $jina_embedding_model = null;
 
+    #[ConfigKey('services.openai.api_key'), ShouldBeEncrypted]
+    public ?string $openai_api_key = null;
+
+    #[ConfigKey('services.openai.api_endpoint')]
+    public ?string $openai_api_endpoint = null;
+
+    #[ConfigKey('services.openai.embedding_model')]
+    public ?string $openai_embedding_model = null;
+
+    #[ConfigKey('services.openai.transcription_model')]
+    public ?string $openai_transcription_model = null;
+
+    #[ConfigKey('services.gemini.api_key'), ShouldBeEncrypted]
+    public ?string $gemini_api_key = null;
+
+    #[ConfigKey('services.gemini.api_endpoint')]
+    public ?string $gemini_api_endpoint = null;
+
+    #[ConfigKey('services.gemini.embedding_model')]
+    public ?string $gemini_embedding_model = null;
+
     public static function group(): string
     {
         return 'ai';

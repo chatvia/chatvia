@@ -1,10 +1,8 @@
 <?php
 
 use App\Admin\Clusters\Settings\Pages\ManageMailSettings;
-use App\Admin\Pages\Setup;
 use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\MailSettings;
-use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
@@ -14,12 +12,10 @@ use Livewire\Livewire;
 
 /**
  * Settings → Email offers every mailer Laravel ships with in one dropdown
- * ({@see MailProvider}) and asks only for the chosen one's settings. The
- * admin setup offers the same list.
+ * ({@see MailProvider}) and asks only for the chosen one's settings.
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
-    $this->admin->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
     Filament::setCurrentPanel('admin');
 });
 
@@ -104,33 +100,5 @@ it('keeps a mailer from .env that is not in the list', function (): void {
         ->assertHasNoFormErrors();
 
     expect(mailSetting('mailer'))->toBeNull()
-        ->and(mailSetting('from_address'))->toBe('chat@example.com');
-});
-
-it('offers the same providers in the admin setup and saves the one picked', function (): void {
-    $platform = app(PlatformSettings::class);
-    $platform->setup_completed_at = null;
-    $platform->save();
-
-    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'some/model', 'name' => 'Some model']]])]);
-
-    Livewire::actingAs($this->admin, 'admin')->test(Setup::class)
-        ->fillForm(['chat_kind' => 'openrouter', 'chat_api_key' => 'sk-or-test'])
-        ->call('loadModels')
-        ->fillForm([
-            'chat_model' => 'some/model',
-            'embedding_provider' => 'cohere',
-            'embedding_api_key' => 'co-test',
-            'mailer' => 'postmark',
-            'from_address' => 'chat@example.com',
-        ])
-        ->assertFormFieldVisible('postmark_token')
-        ->assertFormFieldHidden('smtp_host')
-        ->fillForm(['postmark_token' => 'pm-token'])
-        ->call('complete')
-        ->assertHasNoFormErrors();
-
-    expect(mailSetting('mailer'))->toBe('postmark')
-        ->and(mailSetting('postmark_token'))->toBe('pm-token')
         ->and(mailSetting('from_address'))->toBe('chat@example.com');
 });

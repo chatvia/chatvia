@@ -3,10 +3,16 @@
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Sources\IngestMediaAction;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
+use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
+use Domain\Llm\Contracts\Transcriber;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
+use Tests\Support\FakeTextSplitter;
 
 /**
  * IngestMediaAction turns an audio/video transcript into a batch of chunk
@@ -55,6 +61,11 @@ it('chunks the stored transcript, not the audio file, on a retry', function (): 
 
     app(IngestMediaAction::class)->execute($sourceFile, $agent);
 
+    $splitter = app(TextSplitter::class);
+
+    expect($splitter)->toBeInstanceOf(FakeTextSplitter::class)
+        ->and($splitter->kinds)->toBe([ContentKind::Transcript]);
+
     Bus::assertBatched(function (PendingBatch $batch): bool {
         $job = $batch->jobs->first();
 
@@ -62,4 +73,44 @@ it('chunks the stored transcript, not the audio file, on a retry', function (): 
             && str_contains($job->group->pages[0]->content, 'stored transcript')
             && ! str_contains($job->group->pages[0]->content, 'ID3');
     });
+});
+
+it('stores a new transcript in the source folder', function (): void {
+    Storage::fake();
+    Bus::fake();
+
+    $agent = Agent::factory()->create();
+    $sourceFile = AgentFileFactory::new()->create([
+        'workspace_id' => $agent->workspace_id,
+        'status' => 'uploaded',
+        'mime_type' => 'audio/mpeg',
+    ]);
+    $agent->files()->attach($sourceFile->id);
+    Storage::put($sourceFile->filepath, 'ID3-binary-audio-bytes');
+
+    $this->mock(AudioCompressor::class)->shouldReceive('process')->andReturnUsing(fn (string $path): string => $path);
+    app()->instance(Transcriber::class, new class implements Transcriber
+    {
+        public function transcribe(string $filePath): string
+        {
+            return 'Hello from a new transcript.';
+        }
+
+        public function isEnabled(): bool
+        {
+            return true;
+        }
+
+        public function name(): string
+        {
+            return 'fake-whisper';
+        }
+    });
+
+    app(IngestMediaAction::class)->execute($sourceFile, $agent);
+
+    $fresh = $sourceFile->fresh();
+
+    expect($fresh->parser_filepath)->toStartWith(KnowledgeStoragePath::forSource($sourceFile).'/')
+        ->and(Storage::get($fresh->parser_filepath))->toBe('Hello from a new transcript.');
 });

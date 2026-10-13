@@ -23,8 +23,9 @@ return [
 
     /*
      * Widget/chat are embeddable on third-party sites, so `*` is intentional here.
-     * Restrict by setting CORS_ALLOWED_ORIGINS to a comma-separated allowlist when ready
-     * to migrate to a per-tenant model (see AUDIT.md SEC-01).
+     * Restrict it by setting CORS_ALLOWED_ORIGINS to a comma-separated list of
+     * origins. Each agent's own list of allowed sites is checked separately
+     * (WidgetVerification, Settings → Platform for install-wide extra sites).
      */
     'allowed_origins' => array_values(array_filter(array_map(
         trim(...),

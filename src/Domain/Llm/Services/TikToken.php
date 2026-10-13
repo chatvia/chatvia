@@ -8,51 +8,58 @@ use Yethee\Tiktoken\Encoder;
 use Yethee\Tiktoken\EncoderProvider;
 
 /**
- * The built-in tokenizer: counts and splits text into tokens with the
- * encoding chosen in the admin panel (`chatvia.ai.tokenizer`, Settings →
- * Chunking), cl100k by default. It needs no outside service, so it is the
- * fallback when the chunker cannot count (Domain\Knowledge\Ingestion\Services\
- * TokenCounter) and the tokenizer of estimates that must be fast: the
- * built-in splitter, and prices when a provider reports no usage.
+ * The built-in tokenizer: counts the tokens of a text with the encoding
+ * chosen in the admin panel (`chatvia.ai.tokenizer`, Settings → Chunking),
+ * cl100k by default. It counts the stored size of every chunk, measures
+ * chunks when they are sized in tokens, and estimates prices when a provider
+ * reports no usage.
  */
 class TikToken
 {
-    /** The encodings this tokenizer knows. */
-    public const array ENCODINGS = ['cl100k_base', 'o200k_base', 'p50k_base', 'r50k_base'];
+    /** The encodings this tokenizer knows, with the models that use them. */
+    public const array ENCODINGS = [
+        'cl100k_base' => 'cl100k_base (GPT-4, GPT-3.5)',
+        'o200k_base' => 'o200k_base (GPT-4o and newer)',
+        'p50k_base' => 'p50k_base (Codex, text-davinci)',
+        'r50k_base' => 'r50k_base (GPT-3)',
+    ];
 
     /** @var array<string, Encoder> */
     private static array $encoders = [];
 
     private static ?EncoderProvider $provider = null;
 
-    public static function encoding(): string
+    /** The configured encoding, or cl100k_base when it is not one of {@see ENCODINGS}. */
+    public static function encoding(?string $encoding = null): string
     {
-        $encoding = (string) config('chatvia.ai.tokenizer', 'cl100k_base');
+        $encoding ??= (string) config('chatvia.ai.tokenizer', 'cl100k_base');
 
-        return in_array($encoding, self::ENCODINGS, true) ? $encoding : 'cl100k_base';
+        return array_key_exists($encoding, self::ENCODINGS) ? $encoding : 'cl100k_base';
     }
 
-    private static function getEncoder(): Encoder
+    public static function countTokens(string $text, ?string $encoding = null): int
     {
-        $encoding = self::encoding();
+        return count(self::encoder($encoding)->encode($text));
+    }
+
+    /**
+     * The bytes of each token of the text, in order: joined, they are the
+     * text again. A token can hold part of a multi-byte character, so one
+     * piece on its own is not always valid UTF-8.
+     *
+     * @return list<string>
+     */
+    public static function tokenBytes(string $text, ?string $encoding = null): array
+    {
+        $encoder = self::encoder($encoding);
+
+        return array_map(static fn (int $token): string => $encoder->decode([$token]), $encoder->encode($text));
+    }
+
+    private static function encoder(?string $encoding): Encoder
+    {
+        $encoding = self::encoding($encoding);
 
         return self::$encoders[$encoding] ??= (self::$provider ??= new EncoderProvider)->get($encoding);
-    }
-
-    public static function countTokens(string $text): int
-    {
-        return count(self::getEncoder()->encode($text));
-    }
-
-    /** @return list<int> */
-    public static function encode(string $text): array
-    {
-        return self::getEncoder()->encode($text);
-    }
-
-    /** @param  array<int>  $tokens */
-    public static function decode(array $tokens): string
-    {
-        return self::getEncoder()->decode($tokens);
     }
 }

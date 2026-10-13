@@ -10,30 +10,33 @@ use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Knowledge\Ingestion\Services\ChunkImageLink;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
+use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
+use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 
 /**
- * Adds the agent's knowledge to a turn. A curated Q&A entry whose question
- * matches the message exactly wins and answers the turn without an LLM call.
+ * Adds the agent's knowledge to a turn. A curated Q&A entry with a question
+ * equal to the message as a whole (ignoring case and punctuation) wins and
+ * answers the turn without an LLM call.
  * Otherwise the knowledge base is searched, retrieved chunks that look like a
  * prompt injection are dropped, and the rest is attached to the LLM-facing
- * message as reference material.
+ * message as reference material. The turn's confidence is the relevance of
+ * its best chunk, and the retrieval counters of the sources it used are
+ * bumped off the request path (eval runs excepted).
  */
 class KnowledgeEnricher
 {
-    /** Confidence given to an exact Q&A phrase match. */
+    /** Confidence given to a whole-question Q&A match. */
     public const float QA_MATCH_CONFIDENCE = 0.99;
 
-    /** Label for a retrieved chunk whose document has no name or URL. */
-    private const string UNKNOWN_DOCUMENT = 'Unknown';
+    /** The request source of eval runs, which leave the retrieval counters alone. */
+    private const string EVAL_SOURCE = 'eval';
 
     public function __construct(
         private readonly KnowledgeBase $knowledgeBase,
+        private readonly SourceLabeler $labeler,
         private readonly GuardrailService $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
     ) {}
@@ -65,86 +68,81 @@ class KnowledgeEnricher
             return $context;
         }
 
+        $this->countRetrieval($context, $sources);
+
         return $this->withReferenceMaterial($context, $sources);
     }
 
-    /** Strict phrase match: the exact phrase, in order. */
+    /** The Q&A entry with a question equal to the whole message, if any. */
     private function findQaMatch(Agent $agent, string $message): ?QaMatchData
     {
-        $match = AgentQuestionAnswer::query()->phraseSearch($agent->id, $message)[0] ?? null;
+        $match = AgentQuestionAnswer::query()->wholeQuestionMatch($agent->id, $message);
 
-        if ($match === null) {
+        if (! $match instanceof AgentQuestionAnswer) {
             return null;
         }
 
         return new QaMatchData(
-            id: (int) $match->id,
+            id: $match->id,
             questions: $match->questions,
-            answer: (string) $match->answer,
+            answer: $match->answer,
             confidenceScore: self::QA_MATCH_CONFIDENCE,
+            title: $match->title,
         );
     }
 
     /**
-     * Always search: the reranker's relevance threshold drops chunks that do
-     * not really match, so greetings come back empty without a separate gate.
+     * Always search: the relevance check drops chunks that do not really
+     * match, so greetings come back empty without a separate gate.
      *
      * @return Collection<int, RetrievedSourceData>
      */
     private function retrieveSources(Agent $agent, string $query): Collection
     {
-        $chunks = collect($this->knowledgeBase->search($agent, $query));
+        $chunks = $this->knowledgeBase->search($agent, $query);
 
-        if ($chunks->isEmpty()) {
+        if ($chunks === []) {
             return collect();
         }
 
-        $documents = $this->documentsBehind($chunks);
+        $labels = $this->labeler->forChunks($chunks);
 
-        return $chunks->map(fn (RetrievedChunkData $chunk): RetrievedSourceData => new RetrievedSourceData(
+        return collect($chunks)->map(fn (RetrievedChunkData $chunk): RetrievedSourceData => new RetrievedSourceData(
             id: $chunk->id,
             external_id: $chunk->external_id,
             content: $chunk->chunk,
-            confidence_score: $chunk->confidence_score,
-            metadata: [
-                'filename' => $this->documentName(($documents[$chunk->chunkable_type] ?? null)?->get($chunk->chunkable_id)),
-                'document_id' => $chunk->id,
-                'chunkable_type' => $chunk->chunkable_type,
-                'chunkable_id' => $chunk->chunkable_id,
-            ],
+            relevance: $chunk->relevance,
+            label: $labels[$chunk->id]->label,
+            kind: $labels[$chunk->id]->kind,
+            url: $labels[$chunk->id]->url,
+            page: $labels[$chunk->id]->page,
+            sourceable_type: $chunk->chunkable_type,
+            sourceable_id: $chunk->chunkable_id,
             images: $chunk->images(),
         ));
     }
 
     /**
-     * The documents the chunks were cut from, loaded once per type and keyed
-     * by morph alias, then id. `chunks.chunkable_type` stores the morph alias,
-     * so it is resolved back to the model class before querying.
+     * Bump the retrieval counters of the sources the turn used, off the
+     * request path. Only source references go on the queue, never chunk text
+     * (customer content would sit in Redis).
      *
-     * @param  Collection<int, RetrievedChunkData>  $chunks
-     * @return array<string, EloquentCollection<array-key, Model>>
+     * @param  Collection<int, RetrievedSourceData>  $sources
      */
-    private function documentsBehind(Collection $chunks): array
+    private function countRetrieval(ChatContext $context, Collection $sources): void
     {
-        $documents = [];
-
-        foreach ($chunks->groupBy('chunkable_type') as $type => $group) {
-            /** @var class-string<Model> $class */
-            $class = Relation::getMorphedModel((string) $type) ?? $type;
-
-            $documents[(string) $type] = $class::query()
-                ->whereIn('id', $group->pluck('chunkable_id')->unique())
-                ->get()
-                ->keyBy('id');
+        if ($context->requestData->source === self::EVAL_SOURCE) {
+            return;
         }
 
-        return $documents;
-    }
-
-    /** A document's file name or URL, as the sources list shows it. */
-    private function documentName(?Model $document): string
-    {
-        return $document->filename ?? ($document->url ?? self::UNKNOWN_DOCUMENT);
+        UpdateRetrievalStatsJob::dispatch(
+            $sources
+                ->map(static fn (RetrievedSourceData $source): array => ['chunkable_type' => $source->sourceable_type, 'chunkable_id' => $source->sourceable_id])
+                ->unique(static fn (array $reference): string => $reference['chunkable_type'].':'.$reference['chunkable_id'])
+                ->values()
+                ->all(),
+            $context->requestData->agent->id,
+        );
     }
 
     /**
@@ -184,8 +182,6 @@ class KnowledgeEnricher
      */
     private function withReferenceMaterial(ChatContext $context, Collection $sources): ChatContext
     {
-        $confidence = $this->averageConfidence($sources);
-
         $enriched = new ChatContext(
             requestData: $context->requestData,
             payload: $context->payload->withMessageForLlm(
@@ -199,24 +195,29 @@ class KnowledgeEnricher
         );
 
         $enriched->setSources($sources);
-        $enriched->setConfidenceScore($confidence);
+        $enriched->setConfidenceScore($this->confidence($sources));
 
         return $enriched;
     }
 
     /**
+     * The relevance of the best chunk (the sources come best first); null
+     * when no relevance check ran, so nothing can be said.
+     *
      * @param  Collection<int, RetrievedSourceData>  $sources
      */
-    private function averageConfidence(Collection $sources): ?float
+    private function confidence(Collection $sources): ?float
     {
-        $scores = $sources->pluck('confidence_score')->filter(static fn (?float $score): bool => $score !== null);
+        $relevance = $sources->first()?->relevance;
 
-        return $scores->isEmpty() ? null : round($scores->avg(), 4);
+        return $relevance === null ? null : round(min(max($relevance, 0.0), 1.0), 4);
     }
 
     /**
-     * The visitor's question followed by the retrieved chunks, numbered, with
-     * a signed link for every image so the model can show them.
+     * The visitor's question followed by the retrieved chunks, each in its own
+     * numbered `<source>` block, with a signed link for every image so the
+     * model can show them. A chunk cannot close its block early: a closing
+     * tag inside it is escaped.
      *
      * @param  Collection<int, RetrievedSourceData>  $sources
      */
@@ -225,8 +226,9 @@ class KnowledgeEnricher
         return prompt('knowledge/reference-material', [
             'question' => $question,
             'hasImages' => $sources->contains(static fn (RetrievedSourceData $source): bool => $source->images !== []),
-            'items' => $sources->map(fn (RetrievedSourceData $source): array => [
-                'content' => $source->content,
+            'items' => $sources->values()->map(fn (RetrievedSourceData $source, int $index): array => [
+                'id' => $index + 1,
+                'content' => (string) preg_replace('/<(\/?source)\b/i', '&lt;$1', $source->content),
                 'images' => $this->imageLinks($source),
             ])->all(),
         ]);

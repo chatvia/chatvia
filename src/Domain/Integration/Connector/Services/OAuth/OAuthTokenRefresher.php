@@ -4,6 +4,7 @@ namespace Domain\Integration\Connector\Services\OAuth;
 
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
+use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Contracts\AccessTokenRefresher;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Contracts\Cache\LockTimeoutException;
@@ -30,6 +31,7 @@ class OAuthTokenRefresher implements AccessTokenRefresher
     public function __construct(
         private readonly OAuthTokenClient $tokens,
         private readonly McpOAuthRegistrar $registrar,
+        private readonly ConnectorCatalog $catalog,
     ) {}
 
     public function refreshIfStale(AgentMcpServer $server): void
@@ -85,15 +87,22 @@ class OAuthTokenRefresher implements AccessTokenRefresher
      * The OAuth client the server was connected with. A client stored on the
      * row (per-workspace clients, and every connection made since that column
      * exists) wins over the shared registry keyed by authorization server,
-     * which cannot represent per-org client ids.
+     * which cannot represent per-org client ids. For a connector's own OAuth
+     * app (Settings → Connectors) the secret comes from config while the id
+     * is unchanged, so a rotated secret applies to existing connections.
      */
     private function clientFor(AgentMcpServer $server): ConnectorOAuthClient
     {
         if ($server->oauth_client_id) {
+            $connector = $server->connector_slug !== null ? $this->catalog->find($server->connector_slug) : null;
+            $secret = $connector?->hasPreRegisteredOAuth() && $connector->oauthClientId === $server->oauth_client_id
+                ? $connector->oauthClientSecret
+                : $server->oauth_client_secret;
+
             // Transient: only the id and secret are read for a refresh.
             return new ConnectorOAuthClient()->forceFill([
                 'client_id' => (string) $server->oauth_client_id,
-                'client_secret' => $server->oauth_client_secret,
+                'client_secret' => $secret,
                 'token_endpoint' => (string) $server->oauth_token_endpoint,
                 'authorization_endpoint' => '',
                 'auth_server_url' => (string) $server->oauth_authorization_server,

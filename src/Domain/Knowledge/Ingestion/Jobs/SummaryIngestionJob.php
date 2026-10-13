@@ -6,8 +6,6 @@ use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceSummaryAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -19,9 +17,9 @@ use Throwable;
  * Writes the summary chunk of a source on its own queue, next to its chunk
  * batch. See CreateSourceSummaryAction.
  */
-class SummaryIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
+class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, Queueable, SerializesModels, TracksTokenUsage;
+    use Batchable, Queueable, SerializesModels;
 
     public int $tries = 3;
 
@@ -36,11 +34,6 @@ class SummaryIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shoul
         public SourceFile|SourceText|SourceWebsite $source,
     ) {
         $this->onQueue('ingestion.summary');
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        return $this->source->workspace_id;
     }
 
     public function handle(CreateSourceSummaryAction $action): void

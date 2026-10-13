@@ -7,7 +7,6 @@ use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Message;
-use Domain\Llm\Usage\TokenUsageContext;
 
 /**
  * Per-message sentiment + tone for a visitor message, in one structured LLM
@@ -19,7 +18,6 @@ class AnalyzeMessageAction
 {
     public function __construct(
         private readonly ConversationAnalyzer $analyzer,
-        private readonly TokenUsageContext $usage,
     ) {}
 
     public function execute(string $externalMessageId): void
@@ -52,13 +50,9 @@ class AnalyzeMessageAction
             return;
         }
 
-        // Attribute the tone/sentiment LLM call to the workspace in Spectra.
-        $analysis = $this->usage->track(
-            $agent->workspace_id,
-            fn (): ?ConversationAnalysisData => $this->analyzer->analyzeMessage($message->content),
-        );
+        $analysis = $this->analyzer->analyzeMessage($message->content);
 
-        if ($analysis === null) {
+        if (! $analysis instanceof ConversationAnalysisData) {
             return;
         }
 

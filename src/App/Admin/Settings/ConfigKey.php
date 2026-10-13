@@ -14,7 +14,7 @@ use Attribute;
  * key.
  *
  * `defaultPath` is for URLs of this app, such as an OAuth redirect: while
- * nothing is saved the key gets `url($defaultPath)`.
+ * nothing is saved the key gets `$defaultPath` on `app.url`.
  */
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::IS_REPEATABLE)]
 final readonly class ConfigKey

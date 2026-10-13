@@ -6,8 +6,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -21,9 +19,9 @@ use Throwable;
  * {@see IngestDocumentAction}. Word files run on their own queue because
  * reading them takes longer; the other formats share the OCR queue.
  */
-class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
+class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public bool $deleteWhenMissingModels = true;
 
@@ -47,11 +45,6 @@ class DocumentIngestionJob implements AttributesTokenUsage, ShouldBeUnique, Shou
         }
 
         $action->execute($this->sourceFile, $this->agent, $this->job->getJobId());
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        return $this->sourceFile->workspace_id;
     }
 
     public function uniqueId(): string

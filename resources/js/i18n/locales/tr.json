@@ -1040,9 +1040,9 @@
                 "record_description": "Asistanınızın bilgi tabanına eklemek için doğrudan mikrofonunuzdan ses kaydedin"
             },
             "files": {
-                "uploader_description_audio": "Transkripsiyon için ses dosyaları yükleyin. Desteklenen biçimler: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR ve 3GP. Dosya boyutu sınırı: 200 MB.",
-                "uploader_description_video": "Transkripsiyon için video dosyaları yükleyin. Desteklenen biçimler: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime ve 3GPP. Dosya boyutu sınırı: 200 MB.",
-                "uploader_description_default": "Belgeler: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Metin (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Görseller: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Dosya başına en fazla 50 MB.",
+                "uploader_description_audio": "Yazıya dökmek için ses dosyaları yükleyin. Desteklenen biçimler: {formats}. Dosya başına en fazla {size} MB.",
+                "uploader_description_video": "Yazıya dökmek için video dosyaları yükleyin. Desteklenen biçimler: {formats}. Dosya başına en fazla {size} MB.",
+                "uploader_description_default": "Desteklenen biçimler: {formats}. Dosya başına en fazla {size} MB.",
                 "type_unknown": "Bilinmiyor",
                 "minutes_count": "{count} dakika | {count} dakika",
                 "pages_count": "{count} sayfa | {count} sayfa",
@@ -1062,6 +1062,7 @@
                 "upload_title_video": "Video Dosyaları Yükle",
                 "upload_title_default": "Yeni Belgeler Yükle",
                 "uploads_disabled": "Eğitim sürerken dosya yüklemeleri devre dışıdır",
+                "uploads_off": "Yönetici bu dosya türlerinin yüklenmesini kapattı.",
                 "ready_to_train": "Eğitime Hazır",
                 "uploaded_ready": "{count} dosya yüklendi ve eğitime hazır | {count} dosya yüklendi ve eğitime hazır",
                 "clear_all": "Tümünü Temizle",

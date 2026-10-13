@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0e3af8a636a659a9978be4d1996fca0a",
+    "content-hash": "26ba9bd446fcb7ea0761385d210d97c6",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -10478,96 +10478,6 @@
                 }
             ],
             "time": "2026-08-28T13:23:41+00:00"
-        },
-        {
-            "name": "spectra-php/laravel-spectra",
-            "version": "v1.3.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/spectra-php/laravel-spectra.git",
-                "reference": "6483098c06e27fccba89539c4928b4199a545bc5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/spectra-php/laravel-spectra/zipball/6483098c06e27fccba89539c4928b4199a545bc5",
-                "reference": "6483098c06e27fccba89539c4928b4199a545bc5",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/contracts": "^11.0||^12.0||^13.0",
-                "illuminate/database": "^11.0||^12.0||^13.0",
-                "illuminate/support": "^11.0||^12.0||^13.0",
-                "php": "^8.2",
-                "symfony/polyfill-php84": "^1.31"
-            },
-            "require-dev": {
-                "james-heinrich/getid3": "2.0.x-dev",
-                "larastan/larastan": "^3.0",
-                "laravel/pint": "^1.14",
-                "nunomaduro/collision": "^8.1",
-                "openai-php/laravel": "^0.19.1",
-                "orchestra/testbench": "^9.0||^10.0||^11.0",
-                "pestphp/pest": "^3.0||^4.0",
-                "pestphp/pest-plugin-arch": "^3.0||^4.0",
-                "pestphp/pest-plugin-laravel": "^3.0||^4.0",
-                "phpstan/extension-installer": "^1.4",
-                "phpstan/phpstan-deprecation-rules": "^2.0",
-                "phpstan/phpstan-phpunit": "^2.0"
-            },
-            "suggest": {
-                "james-heinrich/getid3": "Required for extracting audio duration from TTS binary responses (minute-based cost calculation)"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "aliases": {
-                        "Spectra": "Spectra\\Facades\\Spectra"
-                    },
-                    "providers": [
-                        "Spectra\\SpectraServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Spectra\\": "src/",
-                    "Spectra\\Database\\Factories\\": "database/factories/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Ahmad Mayahi",
-                    "email": "ahmad@mayahi.net",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Comprehensive observability for AI/LLM operations in Laravel applications",
-            "homepage": "https://github.com/spectra-php/laravel-spectra",
-            "keywords": [
-                "Gemini",
-                "ahmadmayahi",
-                "ai",
-                "anthropic",
-                "laravel",
-                "llm",
-                "observability",
-                "openai"
-            ],
-            "support": {
-                "issues": "https://github.com/spectra-php/laravel-spectra/issues",
-                "source": "https://github.com/spectra-php/laravel-spectra/tree/v1.3.0"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/ahmadmayahi",
-                    "type": "github"
-                }
-            ],
-            "time": "2026-07-04T21:51:28+00:00"
         },
         {
             "name": "spomky-labs/cbor-php",

@@ -7,10 +7,8 @@ namespace App\Admin\Clusters\Settings;
 use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SettingStatus;
-use App\Admin\StaffToolsAccess;
 use Closure;
 use Filament\Actions\Action;
-use Filament\Facades\Filament;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -19,7 +17,6 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
-use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
@@ -31,23 +28,24 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontFamily;
 use Filament\Support\Enums\Size;
 use Filament\Support\Enums\TextSize;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 
 /**
  * One page of the admin panel's Settings, for one settings class: every card
  * ({@see SettingsCard}) as a collapsible section with its icon, description,
- * status and fields, one Save button for the page, and an outline that jumps
- * to a section. The rules every page shares:
+ * status, a "?" button that explains its options in plain words, and its
+ * fields; one Save button for the page, and an outline that jumps to a
+ * section. The rules every page shares:
  *
  * - Secrets are write-only. The panel never receives a saved secret, a blank
  *   input keeps it, and the trash button next to the input removes it.
  * - A blank field uses its default, shown as the placeholder. A toggle or a
  *   choice that still equals its default is not saved, so the default (which
  *   .env may preset) keeps applying.
- * - Only an admin with two-factor authentication sees or changes the values
- *   ({@see StaffToolsAccess}); the others get a prompt to set it up.
  *
  * A change applies right away, also to the queue workers (see
  * {@see SettingsConfig}).
@@ -73,16 +71,9 @@ abstract class AdminSettingsPage extends Page
      */
     abstract protected function cards(): array;
 
-    public function canEdit(): bool
-    {
-        return app(StaffToolsAccess::class)->allows();
-    }
-
     public function mount(): void
     {
-        if ($this->canEdit()) {
-            $this->fillCards();
-        }
+        $this->fillCards();
     }
 
     public function getSubheading(): string
@@ -93,10 +84,6 @@ abstract class AdminSettingsPage extends Page
     #[\Override]
     public function content(Schema $schema): Schema
     {
-        if (! $this->canEdit()) {
-            return $schema->components([self::twoFactorRequired()]);
-        }
-
         return $schema->components([
             Grid::make(['default' => 1, 'xl' => 5])
                 ->extraAttributes(['class' => 'cv-settings-layout'])
@@ -135,8 +122,6 @@ abstract class AdminSettingsPage extends Page
 
     public function save(): void
     {
-        abort_unless($this->canEdit(), 403);
-
         $this->settings()->fill($this->valuesToSave($this->form->getState()))->save();
 
         // Refill, so the secret inputs that were just saved are empty again
@@ -259,6 +244,7 @@ abstract class AdminSettingsPage extends Page
             ->icon($card->icon)
             ->extraAttributes(['class' => 'cv-settings-card'])
             ->collapsible()
+            ->collapsed($card->collapsed)
             ->persistCollapsed()
             ->afterHeader([
                 // A service's status is a badge; the options in use are a line.
@@ -270,20 +256,60 @@ abstract class AdminSettingsPage extends Page
                     ->tooltip(fn (): ?string => mb_strlen($this->statusLine($card)[0]) > 60 ? $this->statusLine($card)[0] : null),
                 ...($card->consoleUrl === null ? [] : [
                     Action::make('console_'.$card->key)
-                        ->label('Open console')
+                        ->label($card->consoleLabel ?? 'Open console')
                         ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                         ->iconPosition('after')
                         ->link()
                         ->size(Size::Small)
                         ->color('gray')
-                        ->tooltip('Open the provider console')
+                        ->tooltip($card->consoleLabel === null ? 'Open the provider console' : null)
                         ->url($card->consoleUrl, shouldOpenInNewTab: true),
+                ]),
+                // Wrapped and keyed, so Livewire can find the action without
+                // a key on the section (that would change the fields' paths).
+                ...($this->helpOf($card) === null ? [] : [
+                    Actions::make([$this->helpAction($card)])->key('help-'.$this->sectionId($card)),
                 ]),
             ])
             ->schema([
                 ...($card->fields)(),
                 ...$this->callbackUrls($card),
             ]);
+    }
+
+    /**
+     * The plain-language explanation of a card's options, from
+     * resources/help/settings/{page}/{card}.md (or the file the card shares
+     * with the other cards of its helper), with `{title}` filled in. Null
+     * when there is no file: the card then has no "?" button.
+     */
+    public function helpOf(SettingsCard $card): ?string
+    {
+        $file = resource_path('help/settings/'.static::getSlug().'/'.($card->helpFile ?? $card->key).'.md');
+
+        return is_file($file) ? str_replace('{title}', $card->title, (string) file_get_contents($file)) : null;
+    }
+
+    /**
+     * The card's "?" button: a small window with the explanation. Being in
+     * the header's right side, a click opens it without folding the card.
+     */
+    private function helpAction(SettingsCard $card): Action
+    {
+        return Action::make('help_'.$card->key)
+            ->label('What do these options do?')
+            ->icon(Heroicon::OutlinedQuestionMarkCircle)
+            ->iconButton()
+            ->color('gray')
+            ->tooltip('What do these options do?')
+            ->modalHeading($card->title)
+            ->modalIcon(Heroicon::OutlinedLightBulb)
+            ->modalContent(fn (): HtmlString => new HtmlString(
+                '<div class="fi-prose cv-settings-help">'.Str::markdown((string) $this->helpOf($card), ['html_input' => 'strip', 'allow_unsafe_links' => false]).'</div>'
+            ))
+            ->modalWidth(Width::Large)
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Got it');
     }
 
     /**
@@ -451,7 +477,7 @@ abstract class AdminSettingsPage extends Page
     private function callbackUrls(SettingsCard $card): array
     {
         // Only the routes this install has (a channel's routes may be off).
-        $routes = array_filter($card->callbackRoutes, fn (string $name): bool => Route::has($name));
+        $routes = array_filter($card->callbackRoutes, fn (string|array $route): bool => Route::has(is_array($route) ? $route[0] : $route));
 
         if ($routes === []) {
             return [];
@@ -463,9 +489,9 @@ abstract class AdminSettingsPage extends Page
                 ->compact()
                 ->secondary()
                 ->schema(array_map(
-                    fn (string $label, string $name): TextEntry => TextEntry::make('callback_'.Str::snake($label))
+                    fn (string $label, string|array $route): TextEntry => TextEntry::make('callback_'.Str::snake($label))
                         ->label($label)
-                        ->state(route($name))
+                        ->state(is_array($route) ? route($route[0], $route[1]) : route($route))
                         ->fontFamily(FontFamily::Mono)
                         ->copyable()
                         ->copyMessage('Copied'),
@@ -473,20 +499,6 @@ abstract class AdminSettingsPage extends Page
                     $routes,
                 )),
         ];
-    }
-
-    public static function twoFactorRequired(): Callout
-    {
-        return Callout::make('Set up two-factor authentication first')
-            ->description('These settings hold API keys and secrets, so only admins who use an authenticator app can see or change them. Set it up on your profile, then come back.')
-            ->icon(Heroicon::OutlinedShieldExclamation)
-            ->warning()
-            ->actions([
-                Action::make('setUpTwoFactor')
-                    ->label('Set up two-factor authentication')
-                    ->icon(Heroicon::OutlinedDevicePhoneMobile)
-                    ->url(Filament::getProfileUrl()),
-            ]);
     }
 
     // --- Fields --------------------------------------------------------------
@@ -627,8 +639,6 @@ abstract class AdminSettingsPage extends Page
             ->modalDescription('The features that use it stop working until you add a new value.')
             ->modalSubmitActionLabel('Remove')
             ->action(function () use ($property, $label): void {
-                abort_unless($this->canEdit(), 403);
-
                 $settings = $this->settings();
                 $settings->{$property} = null;
                 $settings->save();

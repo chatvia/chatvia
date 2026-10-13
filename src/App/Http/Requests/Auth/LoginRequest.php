@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Http\Auth\BotCheck;
+use App\Http\Auth\BotCheckForm;
 use App\Identity\Workspace\Data\Sessions\LoginData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -29,7 +31,16 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            ...app(BotCheck::class)->rules(BotCheckForm::SignIn),
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return app(BotCheck::class)->messages();
     }
 
     public function toData(): LoginData

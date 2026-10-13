@@ -1040,9 +1040,9 @@
                 "record_description": "अपने एजेंट के नॉलेज बेस में जोड़ने के लिए सीधे अपने माइक्रोफ़ोन से ऑडियो रिकॉर्ड करें"
             },
             "files": {
-                "uploader_description_audio": "ट्रांसक्रिप्शन के लिए ऑडियो फ़ाइलें अपलोड करें। समर्थित फ़ॉर्मैट: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, और 3GP। फ़ाइल आकार सीमा: 200 MB।",
-                "uploader_description_video": "ट्रांसक्रिप्शन के लिए वीडियो फ़ाइलें अपलोड करें। समर्थित फ़ॉर्मैट: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, और 3GPP। फ़ाइल आकार सीमा: 200 MB।",
-                "uploader_description_default": "दस्तावेज़: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man)। छवियाँ: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP। प्रति फ़ाइल अधिकतम 50 MB।",
+                "uploader_description_audio": "ट्रांसक्रिप्शन के लिए ऑडियो फ़ाइलें अपलोड करें। समर्थित प्रारूप: {formats}। प्रति फ़ाइल अधिकतम {size} MB।",
+                "uploader_description_video": "ट्रांसक्रिप्शन के लिए वीडियो फ़ाइलें अपलोड करें। समर्थित प्रारूप: {formats}। प्रति फ़ाइल अधिकतम {size} MB।",
+                "uploader_description_default": "समर्थित प्रारूप: {formats}। प्रति फ़ाइल अधिकतम {size} MB।",
                 "type_unknown": "अज्ञात",
                 "minutes_count": "{count} मिनट | {count} मिनट",
                 "pages_count": "{count} पेज | {count} पेज",
@@ -1062,6 +1062,7 @@
                 "upload_title_video": "वीडियो फ़ाइलें अपलोड करें",
                 "upload_title_default": "नए दस्तावेज़ अपलोड करें",
                 "uploads_disabled": "ट्रेनिंग जारी रहने के दौरान फ़ाइल अपलोड अक्षम हैं",
+                "uploads_off": "व्यवस्थापक ने इन फ़ाइल प्रकारों का अपलोड बंद कर दिया है।",
                 "ready_to_train": "ट्रेन करने के लिए तैयार",
                 "uploaded_ready": "{count} फ़ाइल अपलोड हुई और ट्रेनिंग के लिए तैयार | {count} फ़ाइलें अपलोड हुईं और ट्रेनिंग के लिए तैयार",
                 "clear_all": "सभी साफ़ करें",

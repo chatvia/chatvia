@@ -39,9 +39,9 @@
                 "record_description": "Enregistrez de l'audio directement depuis votre microphone pour l'ajouter à la base de connaissances de votre agent"
             },
             "files": {
-                "uploader_description_audio": "Importez des fichiers audio pour la transcription. Formats pris en charge : MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR et 3GP. Taille maximale : 200 Mo.",
-                "uploader_description_video": "Importez des fichiers vidéo pour la transcription. Formats pris en charge : MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime et 3GPP. Taille maximale : 200 Mo.",
-                "uploader_description_default": "Documents : PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Texte (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Images : JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max 50 Mo par fichier.",
+                "uploader_description_audio": "Importez des fichiers audio pour la transcription. Formats pris en charge : {formats}. Max {size} Mo par fichier.",
+                "uploader_description_video": "Importez des fichiers vidéo pour la transcription. Formats pris en charge : {formats}. Max {size} Mo par fichier.",
+                "uploader_description_default": "Formats pris en charge : {formats}. Max {size} Mo par fichier.",
                 "type_unknown": "Inconnu",
                 "minutes_count": "{count} minute | {count} minutes",
                 "pages_count": "{count} page | {count} pages",
@@ -61,6 +61,7 @@
                 "upload_title_video": "Importer des fichiers vidéo",
                 "upload_title_default": "Importer de nouveaux documents",
                 "uploads_disabled": "L'importation de fichiers est désactivée pendant l'entraînement",
+                "uploads_off": "L'administrateur a désactivé l'importation de ces types de fichiers.",
                 "ready_to_train": "Prêt pour l'entraînement",
                 "uploaded_ready": "{count} fichier importé et prêt pour l'entraînement | {count} fichiers importés et prêts pour l'entraînement",
                 "clear_all": "Tout effacer",

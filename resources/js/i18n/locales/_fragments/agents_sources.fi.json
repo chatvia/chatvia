@@ -39,9 +39,9 @@
                 "record_description": "Tallenna ääntä suoraan mikrofonistasi lisätäksesi sen agentin tietokantaan"
             },
             "files": {
-                "uploader_description_audio": "Lataa äänitiedostoja litterointia varten. Tuetut muodot: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR ja 3GP. Tiedostokoko enintään: 200 Mt.",
-                "uploader_description_video": "Lataa videotiedostoja litterointia varten. Tuetut muodot: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime ja 3GPP. Tiedostokoko enintään: 200 Mt.",
-                "uploader_description_default": "Asiakirjat: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Teksti (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Kuvat: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Enintään 50 Mt per tiedosto.",
+                "uploader_description_audio": "Lataa äänitiedostoja litterointia varten. Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
+                "uploader_description_video": "Lataa videotiedostoja litterointia varten. Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
+                "uploader_description_default": "Tuetut muodot: {formats}. Enintään {size} Mt per tiedosto.",
                 "type_unknown": "Tuntematon",
                 "minutes_count": "{count} minuutti | {count} minuuttia",
                 "pages_count": "{count} sivu | {count} sivua",
@@ -61,6 +61,7 @@
                 "upload_title_video": "Lataa videotiedostoja",
                 "upload_title_default": "Lataa uusia asiakirjoja",
                 "uploads_disabled": "Tiedostojen lataaminen on poistettu käytöstä koulutuksen aikana",
+                "uploads_off": "Ylläpitäjä on poistanut näiden tiedostotyyppien lataamisen käytöstä.",
                 "ready_to_train": "Valmis koulutukseen",
                 "uploaded_ready": "{count} tiedosto ladattu ja valmis koulutukseen | {count} tiedostoa ladattu ja valmiita koulutukseen",
                 "clear_all": "Tyhjennä kaikki",

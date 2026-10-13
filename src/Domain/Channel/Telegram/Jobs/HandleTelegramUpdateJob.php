@@ -25,6 +25,9 @@ class HandleTelegramUpdateJob implements ShouldQueue
 
     public int $tries = 1;
 
+    /** A reply may call the model and the tools several times. */
+    public int $timeout = 300;
+
     /**
      * @param  array{first_name?: string|null, username?: string|null}  $from
      */
@@ -33,7 +36,10 @@ class HandleTelegramUpdateJob implements ShouldQueue
         public readonly string $chatId,
         public readonly string $text,
         public readonly array $from,
-    ) {}
+    ) {
+        // The chat queue: a reply never waits behind e-mails or embeddings.
+        $this->onQueue('messages');
+    }
 
     public function handle(HandleTelegramUpdateAction $action, TelegramClient $client, TelegramChatResolver $resolver): void
     {

@@ -7,10 +7,12 @@ use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\ChannelSettings;
 use App\Admin\Settings\ChunkingSettings;
 use App\Admin\Settings\ConnectorSettings;
-use App\Admin\Settings\KnowledgeSettings;
+use App\Admin\Settings\IngestionSettings;
 use App\Admin\Settings\LimitSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\PromptSettings;
+use App\Admin\Settings\SearchSettings;
 use App\Admin\Settings\SecuritySettings;
 use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\StorageSettings;
@@ -38,8 +40,9 @@ return [
         SignInSettings::class,
         ChannelSettings::class,
         AiSettings::class,
-        KnowledgeSettings::class,
+        IngestionSettings::class,
         ChunkingSettings::class,
+        SearchSettings::class,
         ConnectorSettings::class,
         MailSettings::class,
         BrandSettings::class,
@@ -48,6 +51,7 @@ return [
         LimitSettings::class,
         StorageSettings::class,
         SecuritySettings::class,
+        PromptSettings::class,
     ],
 
     'setting_class_path' => app_path('Admin/Settings'),

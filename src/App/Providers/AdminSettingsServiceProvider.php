@@ -19,8 +19,10 @@ use Throwable;
  * controllers, jobs.
  *
  * It applies in boot(), not earlier: the package providers have booted by
- * then, including the one that caches loaded settings. No package reads these
- * keys while it boots. Without a database (a build) or before `migrate`,
+ * then, including the one that caches loaded settings. A package that copies
+ * one of these keys while it boots must get it again later: the Filament
+ * panel reads the brand name through a closure, and ApiDocsServiceProvider
+ * sets the Scramble title. Without a database (a build) or before `migrate`,
  * nothing is saved and every key keeps its config value.
  */
 class AdminSettingsServiceProvider extends ServiceProvider

@@ -232,6 +232,12 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return 'users/'.$this->external_id;
     }
 
+    /** A person's setting images sit with their own files. */
+    public function settingsStorageRoot(): string
+    {
+        return $this->storageRoot();
+    }
+
     /**
      * Filament panel gate (FilamentUser contract). Only platform staff
      * (`is_admin`) may reach the admin panel; everyone else, and a

@@ -10,8 +10,6 @@ use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Services\BatchProgress;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -24,9 +22,9 @@ use Throwable;
  * {@see IngestSourceChunkAction}. After its last failed try, the pages are
  * stored without enhancement so they stay searchable.
  */
-class DocumentChunkIngestionJob implements AttributesTokenUsage, ShouldQueue
+class DocumentChunkIngestionJob implements ShouldQueue
 {
-    use Batchable, Queueable, TracksTokenUsage;
+    use Batchable, Queueable;
 
     public bool $deleteWhenMissingModels = true;
 
@@ -59,11 +57,6 @@ class DocumentChunkIngestionJob implements AttributesTokenUsage, ShouldQueue
     {
         return PageGroupData::split($pages, ChunkEnhancement::for($sourceFile))
             ->map(fn (PageGroupData $group): self => new self($agent, $sourceFile, $group));
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        return $this->agent->workspace_id;
     }
 
     public function handle(IngestSourceChunkAction $action): void

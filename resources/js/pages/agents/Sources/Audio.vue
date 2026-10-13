@@ -2,10 +2,12 @@
 /**
  * Audio sources of an agent: upload audio files (the shared files page,
  * limited to audio) or record a voice note in the browser. A recording may
- * last at most one hour.
+ * last at most one hour. While the admin has audio turned off, only the list
+ * of existing audio files shows.
  */
 import { uploadSourceFile } from '@/api/fileSources';
 import VoiceRecorder from '@/components/VoiceRecorder.vue';
+import { useKnowledgeFileTypes } from '@/composables/agents/sources/files/useKnowledgeFileTypes';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { failureReason } from '@/lib/failureReason';
@@ -22,6 +24,7 @@ const props = defineProps<{
 const MAX_RECORDING_SECONDS = 3600;
 
 const { t } = useI18n();
+const acceptsAudio = useKnowledgeFileTypes().isAccepted('audio');
 const filesRef = ref<InstanceType<typeof Files> | null>(null);
 const activeTab = ref('upload');
 const isUploading = ref(false);
@@ -54,7 +57,9 @@ const handleRecorded = async (recording: { blob: Blob; name: string; duration: n
     <AgentLayout :agent="agent" :title="t('agents.sources.page_title.audio')">
         <div class="flex justify-center">
             <div class="w-full max-w-6xl space-y-6">
-                <Tabs v-model="activeTab" class="w-full">
+                <Files v-if="!acceptsAudio" :agent="agent" file-type="audio" />
+
+                <Tabs v-else v-model="activeTab" class="w-full">
                     <TabsList class="grid w-full grid-cols-2">
                         <TabsTrigger value="upload" class="flex items-center gap-2">
                             <Upload class="h-4 w-4" />

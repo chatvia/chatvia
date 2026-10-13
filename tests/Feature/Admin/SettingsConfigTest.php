@@ -4,8 +4,9 @@ use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\ChannelSettings;
-use App\Admin\Settings\KnowledgeSettings;
+use App\Admin\Settings\IngestionSettings;
 use App\Admin\Settings\MailSettings;
+use App\Admin\Settings\SearchSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\WorkspaceSettings;
@@ -58,7 +59,7 @@ it('puts a saved value into config right away', function (): void {
 it('keeps the config default while nothing is saved, and restores it when a value is removed', function (): void {
     $default = config('services.firecrawl.endpoint');
 
-    $settings = app(KnowledgeSettings::class);
+    $settings = app(IngestionSettings::class);
     $settings->firecrawl_endpoint = 'https://firecrawl.internal/v2';
     $settings->save();
     expect(config('services.firecrawl.endpoint'))->toBe('https://firecrawl.internal/v2');
@@ -79,9 +80,20 @@ it('treats a saved false or 0 as a value, not as blank', function (): void {
 });
 
 it('uses the callback URL of this app for a redirect with nothing saved', function (): void {
-    expect(config('services.google.redirect'))->toBe(url('/auth/google/callback'))
-        ->and(config('services.meta.instagram.redirect'))->toBe(url('/my/channels/instagram/oauth/callback'))
-        ->and(settingsConfig()->defaultOf(ChannelSettings::class, 'messenger_redirect'))->toBe(url('/my/channels/messenger/oauth/callback'));
+    $appUrl = rtrim((string) config('app.url'), '/');
+
+    expect(config('services.google.redirect'))->toBe($appUrl.'/auth/google/callback')
+        ->and(config('services.meta.instagram.redirect'))->toBe($appUrl.'/my/channels/instagram/oauth/callback')
+        ->and(settingsConfig()->defaultOf(ChannelSettings::class, 'messenger_redirect'))->toBe($appUrl.'/my/channels/messenger/oauth/callback');
+});
+
+it('builds a default callback on the https app URL, whatever the request scheme', function (): void {
+    // Behind a proxy that ends TLS the request is plain http while the app boots.
+    config(['app.url' => 'https://chat.example.com']);
+    app('url')->forceScheme('http');
+
+    expect(settingsConfig()->defaultOf(SignInSettings::class, 'google_redirect'))
+        ->toBe('https://chat.example.com/auth/google/callback');
 });
 
 it('fills every config key a property names', function (): void {
@@ -133,16 +145,16 @@ it('casts input to the property type and turns blank or invalid input into null'
     'blank text' => [MailSettings::class, 'smtp_host', '   ', null],
     'integer' => [MailSettings::class, 'smtp_port', '587', 587],
     'not an integer' => [MailSettings::class, 'smtp_port', 'abc', null],
-    'float' => [KnowledgeSettings::class, 'relevance_threshold', '0.35', 0.35],
-    'toggle off' => [KnowledgeSettings::class, 'hybrid_search', '0', false],
-    'toggle on' => [KnowledgeSettings::class, 'hybrid_search', true, true],
+    'float' => [SearchSettings::class, 'relevance_threshold', '0.35', 0.35],
+    'toggle off' => [SearchSettings::class, 'hybrid_search', '0', false],
+    'toggle on' => [SearchSettings::class, 'hybrid_search', true, true],
     'select' => [AiSettings::class, 'reranker', 'cohere', 'cohere'],
 ]);
 
-it('lets the knowledge search toggle turn keyword search off', function (): void {
+it('lets the search toggle turn keyword search off', function (): void {
     expect(config('chatvia.vector.search.hybrid'))->toBeTrue();
 
-    $settings = app(KnowledgeSettings::class);
+    $settings = app(SearchSettings::class);
     $settings->hybrid_search = false;
     $settings->save();
 

@@ -1,43 +1,44 @@
 <?php
 
 use Database\Factories\AgentFileFactory;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * A deleted file source loses its stored objects (the upload and its parser
- * output), but only once the delete is committed: a delete that rolls back
- * must keep the files its row points to.
+ * A deleted file source loses its storage folder (the upload, its parser
+ * output and its page images), but only once the delete is committed: a
+ * delete that rolls back must keep the files its row points to.
  */
 beforeEach(function (): void {
     Storage::fake();
 });
 
 it('deletes the stored file when the row delete commits', function (): void {
-    Storage::put('users/u/files/a.pdf', '%PDF-1.7');
-    $file = AgentFileFactory::new()->create(['filepath' => 'users/u/files/a.pdf']);
+    $file = AgentFileFactory::new()->create();
+    Storage::put($file->filepath, '%PDF-1.7');
 
     DB::transaction(function () use ($file): void {
         $file->delete();
 
-        Storage::assertExists('users/u/files/a.pdf');
+        Storage::assertExists($file->filepath);
     });
 
-    Storage::assertMissing('users/u/files/a.pdf');
+    Storage::assertMissing($file->filepath);
 });
 
 it('deletes the stored file at once outside a transaction', function (): void {
-    Storage::put('users/u/files/b.pdf', '%PDF-1.7');
-    $file = AgentFileFactory::new()->create(['filepath' => 'users/u/files/b.pdf']);
+    $file = AgentFileFactory::new()->create();
+    Storage::put($file->filepath, '%PDF-1.7');
 
     $file->delete();
 
-    Storage::assertMissing('users/u/files/b.pdf');
+    Storage::assertMissing($file->filepath);
 });
 
 it('keeps the stored file when the row delete rolls back', function (): void {
-    Storage::put('users/u/files/c.pdf', '%PDF-1.7');
-    $file = AgentFileFactory::new()->create(['filepath' => 'users/u/files/c.pdf']);
+    $file = AgentFileFactory::new()->create();
+    Storage::put($file->filepath, '%PDF-1.7');
 
     try {
         DB::transaction(function () use ($file): void {
@@ -48,16 +49,23 @@ it('keeps the stored file when the row delete rolls back', function (): void {
     } catch (RuntimeException) {
     }
 
-    Storage::assertExists('users/u/files/c.pdf');
+    Storage::assertExists($file->filepath);
 });
 
-it('deletes the parser output with the file', function (): void {
-    Storage::put('users/u/files/d.pdf', '%PDF-1.7');
-    Storage::put('users/u/agents/a/d1.json', '[]');
-    $file = AgentFileFactory::new()->create(['filepath' => 'users/u/files/d.pdf', 'parser_filepath' => 'users/u/agents/a/d1.json']);
+it('deletes the whole source folder: upload, parser output and page images', function (): void {
+    $file = AgentFileFactory::new()->create();
+    $folder = KnowledgeStoragePath::forSource($file);
+    $file->update(['parser_filepath' => $folder.'/pages.json']);
+
+    Storage::put($file->filepath, '%PDF-1.7');
+    Storage::put($file->parser_filepath, '[]');
+    Storage::put($folder.'/images/page-1.jpg', 'jpeg');
+
+    $other = AgentFileFactory::new()->create(['workspace_id' => $file->workspace_id]);
+    Storage::put($other->filepath, '%PDF-1.7');
 
     $file->delete();
 
-    Storage::assertMissing('users/u/files/d.pdf');
-    Storage::assertMissing('users/u/agents/a/d1.json');
+    Storage::assertMissing([$file->filepath, $file->parser_filepath, $folder.'/images/page-1.jpg']);
+    Storage::assertExists($other->filepath);
 });

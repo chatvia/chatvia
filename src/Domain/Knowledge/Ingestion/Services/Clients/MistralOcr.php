@@ -92,14 +92,9 @@ class MistralOcr
                 ->trim()
                 ->toString();
 
-            $pageNumber = (int) $page['index'];
-
-            if ($pageNumber === 0) {
-                $pageNumber++;
-            }
-
             return new PageData(
-                pageNumber: $pageNumber,
+                // Mistral counts pages from 0; page numbers start at 1.
+                pageNumber: (int) $page['index'] + 1,
                 content: $text,
                 checksum: hash('xxh128', $text),
                 imagesBase64: $images,
@@ -112,9 +107,9 @@ class MistralOcr
     /**
      * OCR a local file by uploading a short-lived copy that Mistral can fetch.
      *
-     * The copy is written under the owner's storage prefix (for example
-     * `users/{ws}/agents/{agent}/tmp`) so an account or agent deletion wipes
-     * it too, and it is removed as soon as the OCR call returns or fails.
+     * The copy is written to the given folder (the source's `tmp/` folder),
+     * so deleting the source or its workspace wipes a copy a crash left
+     * behind, and it is removed as soon as the OCR call returns or fails.
      *
      * @return Collection<int,PageData>
      */

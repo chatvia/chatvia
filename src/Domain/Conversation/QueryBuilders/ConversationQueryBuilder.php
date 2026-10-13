@@ -176,7 +176,7 @@ class ConversationQueryBuilder extends Builder
      */
     public function latestActivityPage(int $perPage, ?string $cursor): CursorPaginator
     {
-        $decoded = self::latestActivityCursor($cursor);
+        $decoded = $this->latestActivityCursor($cursor);
 
         // The paginator's bound is `updated_at < ? OR (updated_at = ? AND
         // id < ?)`, which the planner cannot turn into an index range; the
@@ -198,7 +198,7 @@ class ConversationQueryBuilder extends Builder
      * The decoded "next page" cursor of {@see latestActivityPage()}, or null
      * when it is missing or does not carry a valid `updated_at` and `id`.
      */
-    private static function latestActivityCursor(?string $encoded): ?Cursor
+    private function latestActivityCursor(?string $encoded): ?Cursor
     {
         $cursor = Cursor::fromEncoded($encoded);
 
@@ -209,11 +209,11 @@ class ConversationQueryBuilder extends Builder
         $parameters = $cursor->toArray();
         $updatedAt = $parameters['updated_at'] ?? null;
 
-        return is_int($parameters['id'] ?? null) && is_string($updatedAt) && self::isTimestamp($updatedAt) ? $cursor : null;
+        return is_int($parameters['id'] ?? null) && is_string($updatedAt) && $this->isTimestamp($updatedAt) ? $cursor : null;
     }
 
     /** True for a `Y-m-d H:i:s` string that names a real moment (no overflowing fields). */
-    private static function isTimestamp(string $value): bool
+    private function isTimestamp(string $value): bool
     {
         $parsed = DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $value);
 

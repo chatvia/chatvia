@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\Migrations\SettingsBlueprint;
 use Spatie\LaravelSettings\Migrations\SettingsMigration;
@@ -13,27 +15,13 @@ return new class extends SettingsMigration
     public function up(): void
     {
         $this->migrator->inGroup('chunking', function (SettingsBlueprint $group): void {
-            $group->add('text_splitter');
-            $group->add('chunker_url');
-            $group->addEncrypted('chunker_api_key');
-            $group->add('strategy');
-            $group->add('tokenizer');
+            $group->add('chunk_unit');
             $group->add('chunk_size');
             $group->add('chunk_overlap');
-            $group->add('length_unit');
-            $group->add('language');
-            $group->add('separators');
-            $group->add('separator');
-            $group->add('max_header_level');
-            $group->add('strip_headers');
-            $group->add('buffer_size');
-            $group->add('breakpoint_percentile_threshold');
-            $group->add('min_sentences_per_chunk');
-            $group->add('min_characters_per_chunk');
-            $group->add('threshold');
-            $group->add('similarity_window');
-            $group->add('local_chunk_tokens');
-            $group->add('local_overlap_tokens');
+            $group->add('markdown_strategy');
+            $group->add('text_strategy');
+            $group->add('transcript_strategy');
+            $group->add('tokenizer');
         });
     }
 

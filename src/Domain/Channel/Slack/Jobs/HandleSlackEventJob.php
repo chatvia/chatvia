@@ -23,12 +23,18 @@ class HandleSlackEventJob implements ShouldQueue
     /** The turn bills the owner on execution — never retry it. */
     public int $tries = 1;
 
+    /** A reply may call the model and the tools several times. */
+    public int $timeout = 300;
+
     public function __construct(
         public readonly AgentSlackApp $app,
         public readonly string $channelId,
         public readonly string $text,
         public readonly ?string $threadTs = null,
-    ) {}
+    ) {
+        // The chat queue: a reply never waits behind e-mails or embeddings.
+        $this->onQueue('messages');
+    }
 
     public function handle(HandleSlackEventAction $action, SlackClient $client, SlackChannelResolver $resolver): void
     {

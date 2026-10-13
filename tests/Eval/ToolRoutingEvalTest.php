@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
+use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Routing\SemanticToolRouter;
@@ -17,6 +19,7 @@ use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Tests\Support\FakeEmbeddingsProvider;
 
 /**
@@ -123,64 +126,106 @@ it('measures tool-routing retrieval quality against the labelled set', function 
         throw new RuntimeException("Eval fixture invalid:\n  - ".implode("\n  - ", $fixtureErrors));
     }
 
-    // scope lookup keyed by compiled tool name, so we can classify whatever the
-    // router ships (mcp__{slug}__{tool}) back to read/write for the mutation metric.
-    $scopeByName = [];
+    // --- Seed the catalog for a fresh agent, embedded for real. ---
+    // EVAL_TOOL_POOL picks which search channels the catalog lands in:
+    //   preset   (default) shared catalog tools behind attached connectors
+    //   custom   per-server MCP tools (`mcp_tools`, a server without the catalog)
+    //   function webhook functions (`functions`, named {connector}_{tool})
+    $pool = (string) (env('EVAL_TOOL_POOL') ?: 'preset');
+    if (! in_array($pool, ['preset', 'custom', 'function'], true)) {
+        throw new RuntimeException("EVAL_TOOL_POOL must be preset, custom or function, got '{$pool}'.");
+    }
 
-    // --- Seed the catalog as an agent's reachable preset connectors, embedded for real. ---
     $agent = Agent::factory()->create();
 
-    foreach ($data['catalog'] as $slug => $connector) {
-        $server = AgentMcpServer::create([
-            'workspace_id' => $agent->workspace_id,
-            'connector_slug' => $slug,
-            'uses_central_catalog' => true,
-            'name' => $connector['name'],
-            'slug' => $slug,
-            'url' => "https://example.test/mcp/{$slug}",
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-            'is_enabled' => true,
-        ]);
+    // The compiled name each catalog tool ships under, and its scope and
+    // connector, so whatever the router ships can be classified.
+    $compiledName = static fn (string $slug, string $tool): string => $pool === 'function'
+        ? mb_substr($slug.'_'.$tool, 0, 64)
+        : 'mcp__'.$slug.'__'.$tool;
+    $scopeByName = [];
+    $connectorByName = [];
 
-        DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
+    foreach ($data['catalog'] as $slug => $connector) {
+        $server = null;
+
+        if ($pool !== 'function') {
+            $server = AgentMcpServer::create([
+                'workspace_id' => $agent->workspace_id,
+                'connector_slug' => $pool === 'preset' ? $slug : null,
+                'uses_central_catalog' => $pool === 'preset',
+                'name' => $connector['name'],
+                'slug' => $slug,
+                'url' => "https://example.test/mcp/{$slug}",
+                'transport' => 'streamable_http',
+                'auth_type' => 'none',
+                'is_enabled' => true,
+            ]);
+
+            DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
+        }
 
         foreach ($connector['tools'] as $tool) {
             // Mirror EmbedConnectorToolsAction — connector context
             // is embedded alongside the tool so an ambiguous name still carries
             // its brand signal.
             $text = trim($connector['name']."\n".$connector['description']."\n\n".$tool['name']."\n\n".$tool['description']);
-
-            $row = ConnectorTool::factory()->create([
-                'connector_slug' => $slug,
-                'name' => $tool['name'],
-                'description' => $tool['description'],
-                'scope' => McpToolScope::from($tool['scope']),
-            ]);
-
-            $row->forceFill([
+            $vectors = [
                 'embedding' => app(EmbeddingsProviderInterface::class)->embed($text),
                 'embedding_bm25' => Bm25Tokenizer::expression($text),
-            ])->save();
+            ];
 
-            McpServerTool::create([
-                'mcp_server_id' => $server->id,
-                'connector_tool_id' => $row->id,
-                'permission' => McpToolPermission::Allow,
-            ]);
+            if ($pool === 'preset') {
+                $row = ConnectorTool::factory()->create([
+                    'connector_slug' => $slug,
+                    'name' => $tool['name'],
+                    'description' => $tool['description'],
+                    'scope' => McpToolScope::from($tool['scope']),
+                ]);
+                $row->forceFill($vectors)->save();
 
-            $scopeByName['mcp__'.$slug.'__'.$tool['name']] = $tool['scope'];
+                McpServerTool::create([
+                    'mcp_server_id' => $server->id,
+                    'connector_tool_id' => $row->id,
+                    'permission' => McpToolPermission::Allow,
+                ]);
+            } elseif ($pool === 'custom') {
+                McpTool::query()->create([
+                    'mcp_server_id' => $server->id,
+                    'name' => $tool['name'],
+                    'description' => $tool['description'],
+                    'input_schema' => ['type' => 'object', 'properties' => []],
+                    'scope' => McpToolScope::from($tool['scope']),
+                    'permission' => McpToolPermission::Allow,
+                    'fetched_at' => now(),
+                ])->forceFill($vectors)->save();
+            } else {
+                // Without events: the observer would embed the function again.
+                // The id and secret are what its creating hooks fill in.
+                $function = AgentFunction::withoutEvents(fn (): AgentFunction => AgentFunction::query()->create([
+                    'external_id' => (string) Str::uuid7(),
+                    'webhook_secret' => Str::random(48),
+                    'workspace_id' => $agent->workspace_id,
+                    'internal_name' => $compiledName($slug, $tool['name']),
+                    'description' => $tool['description'],
+                    'parameters_schema' => ['type' => 'object', 'properties' => []],
+                    'webhook_url' => "https://example.test/hooks/{$slug}/{$tool['name']}",
+                    // The router treats every method but GET as a mutation.
+                    'webhook_method' => $tool['scope'] === 'write' ? 'POST' : 'GET',
+                ]));
+                $function->forceFill($vectors)->saveQuietly();
+                $agent->functions()->attach($function->id);
+            }
+
+            $scopeByName[$compiledName($slug, $tool['name'])] = $tool['scope'];
+            $connectorByName[$compiledName($slug, $tool['name'])] = $slug;
         }
     }
 
     // read/write classification of a shipped tool; null = not in our catalog
     // (e.g. a global builtin), treated as non-mutating for the wrong-write metric.
-    $scopeOf = static fn (string $compiledName): ?string => $scopeByName[$compiledName] ?? null;
-    $connectorOf = static function (string $compiledName): ?string {
-        $parts = explode('__', $compiledName); // mcp__{slug}__{tool}
-
-        return $parts[1] ?? null;
-    };
+    $scopeOf = static fn (string $name): ?string => $scopeByName[$name] ?? null;
+    $connectorOf = static fn (string $name): ?string => $connectorByName[$name] ?? null;
 
     $search = app(ToolHybridSearch::class);
     $router = app(SemanticToolRouter::class);
@@ -194,7 +239,7 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     ];
 
     foreach ($data['cases'] as $case) {
-        $expected = 'mcp__'.$case['connector'].'__'.$case['tool'];
+        $expected = $compiledName($case['connector'], $case['tool']);
         $queryVector = $this->embeddings->embedQuery($case['query']);
 
         // Pre-gate ranking for the recall/MRR metrics.
@@ -257,10 +302,10 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     $pct = static fn (float $v): string => str_pad(number_format($v * 100, 1).'%', 7, ' ', STR_PAD_LEFT);
     $out = "\n".str_repeat('=', 96)."\n";
     $fallback = config('chatvia.agent.tools.routing.relevance_threshold', 0.55);
-    $out .= "TOOL-ROUTING EVAL  ·  provider={$this->embeddings->getModelName()}"
+    $out .= "TOOL-ROUTING EVAL  ·  pool={$pool}  ·  provider={$this->embeddings->getModelName()}"
         .'  ·  gate='.(config('chatvia.agent.tools.routing.relevance_gate') ? 'on' : 'off')
         .'  ·  threshold read='.config('chatvia.agent.tools.routing.relevance_threshold_read', $fallback)
-        .' / write='.config('chatvia.agent.tools.routing.relevance_threshold_write', $fallback)
+        .' / write='.(config('chatvia.agent.tools.routing.relevance_threshold_write') ?? $fallback)
         .'  ·  connector_router='.(config('chatvia.agent.tools.routing.connector_classifier') ? 'on' : 'off')."\n";
     $out .= str_repeat('=', 96)."\n";
     $out .= sprintf("%-40s %-30s %-7s %-7s %-5s %s\n", 'query', 'expected', 'ship#1', 'in-set', 'rank', 'wrong-write');

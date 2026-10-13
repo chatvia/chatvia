@@ -76,9 +76,9 @@ it('removes the agent with its data and storage once the purge has run', functio
 
     Session::factory()->create(['agent_id' => $agent->id]);
     $kept = Session::factory()->create(['agent_id' => $other->id]);
-    Storage::put($prefix.$agent->external_id.'/train/file.txt', 'x');
+    Storage::put($prefix.$agent->external_id.'/notes.txt', 'x');
     Storage::disk('public')->put($prefix.$agent->external_id.'/attachments/a.png', 'x');
-    Storage::put($prefix.$other->external_id.'/train/file.txt', 'x');
+    Storage::put($prefix.$other->external_id.'/notes.txt', 'x');
 
     // The queue runs synchronously in tests, so the purge follows the delete.
     app(DeleteAgentAction::class)->execute($agent);
@@ -87,9 +87,9 @@ it('removes the agent with its data and storage once the purge has run', functio
         ->and(Session::query()->where('agent_id', $agent->id)->exists())->toBeFalse()
         ->and(Session::find($kept->id))->not->toBeNull();
 
-    Storage::assertMissing($prefix.$agent->external_id.'/train/file.txt');
+    Storage::assertMissing($prefix.$agent->external_id.'/notes.txt');
     Storage::disk('public')->assertMissing($prefix.$agent->external_id.'/attachments/a.png');
-    Storage::assertExists($prefix.$other->external_id.'/train/file.txt');
+    Storage::assertExists($prefix.$other->external_id.'/notes.txt');
 });
 
 it('keeps the agent as it was and queues nothing when the delete fails', function (): void {

@@ -2,6 +2,7 @@
 // Chatter sign-in for a protected agent's hosted chat: password or magic
 // link (the magic link also covers a forgotten password). Uses the agent's colour theme so the page
 // matches the chat the chatter is trying to reach.
+import TurnstileWidget from '@/components/auth/TurnstileWidget.vue';
 import InputError from '@/components/InputError.vue';
 import ThemeSwitcher from '@/components/ThemeSwitcher.vue';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useBotCheck } from '@/composables/useBotCheck';
 import { useColorTheme } from '@/composables/useColorTheme';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { login as chatterLogin } from '@/routes/chat';
@@ -34,27 +36,39 @@ const props = defineProps<{
 
 const mode = ref<'password' | 'magic-link'>('password');
 
+// The bot check of the sign-in forms (Settings → Security), when it is on.
+const { siteKey: botCheckKey } = useBotCheck('sign_in');
+const passwordBotCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+const magicLinkBotCheck = ref<InstanceType<typeof TurnstileWidget> | null>(null);
+
 const passwordForm = useForm({
     email: '',
     password: '',
     remember: false,
+    'cf-turnstile-response': '',
 });
 
 const magicLinkForm = useForm({
     email: '',
+    'cf-turnstile-response': '',
 });
 
 const { applyColorTheme } = useColorTheme();
 
+// A Turnstile token counts once, so every submit needs a new one.
 const submitPassword = () => {
     passwordForm.post(chatterLogin.url(), {
-        onFinish: () => passwordForm.reset('password'),
+        onFinish: () => {
+            passwordForm.reset('password');
+            passwordBotCheck.value?.reset();
+        },
     });
 };
 
 const submitMagicLink = () => {
     magicLinkForm.post(sendChatterMagicLink.url(), {
         preserveScroll: true,
+        onFinish: () => magicLinkBotCheck.value?.reset(),
     });
 };
 
@@ -139,6 +153,11 @@ onMounted(() => {
                             <Label for="remember" class="cursor-pointer text-sm font-medium"> {{ t('auth.login_member.keep_signed_in') }} </Label>
                         </div>
 
+                        <div v-if="botCheckKey" class="space-y-2">
+                            <TurnstileWidget ref="passwordBotCheck" v-model="passwordForm['cf-turnstile-response']" :site-key="botCheckKey" />
+                            <InputError :message="passwordForm.errors['cf-turnstile-response']" />
+                        </div>
+
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="4" :disabled="passwordForm.processing">
                             <LoaderCircle v-if="passwordForm.processing" class="me-2 h-5 w-5 animate-spin" />
                             <span v-if="!passwordForm.processing">{{ t('auth.login_member.start_chatting') }}</span>
@@ -171,6 +190,11 @@ onMounted(() => {
                                 />
                             </div>
                             <InputError :message="magicLinkForm.errors.email" />
+                        </div>
+
+                        <div v-if="botCheckKey" class="space-y-2">
+                            <TurnstileWidget ref="magicLinkBotCheck" v-model="magicLinkForm['cf-turnstile-response']" :site-key="botCheckKey" />
+                            <InputError :message="magicLinkForm.errors['cf-turnstile-response']" />
                         </div>
 
                         <Button type="submit" class="h-12 w-full text-base font-semibold" :tabindex="2" :disabled="magicLinkForm.processing">

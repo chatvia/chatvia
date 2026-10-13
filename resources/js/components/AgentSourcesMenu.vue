@@ -2,12 +2,17 @@
 /**
  * The knowledge-source links (Files, Text, Q&A, Web, Audio, Video) of the agent
  * sidebar, filtered by the teammate's permissions and suffixed with counts.
- * Renders through a slot so the sidebar can use it as a dropdown or a submenu.
+ * Audio and Video hide while the admin has that file type turned off, and Web
+ * while no website import service is set up, unless the agent already has
+ * such sources. Renders through a slot so the sidebar can use it as a
+ * dropdown or a submenu.
  */
 import type { AgentPageUrl } from '@/composables/agents/layout/useAgentNavigation';
+import { type KnowledgeFileType, useKnowledgeFileTypes } from '@/composables/agents/sources/files/useKnowledgeFileTypes';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import sources from '@/routes/agents/sources';
-import { Link } from '@inertiajs/vue3';
+import type { SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
 import { File, FileAudio, FileText, Globe, HelpCircle, Video } from 'lucide-vue-next';
 import { type Component, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -29,7 +34,9 @@ const props = withDefaults(
 );
 
 const { hasPermission } = useTeamPermissions();
+const { isAccepted } = useKnowledgeFileTypes();
 const { t } = useI18n();
+const page = usePage<SharedData>();
 
 // " (3)" suffix for a menu label, or nothing when the kind has no sources.
 const getSourceCount = (statsKey: string, stats: SourceCounts | null | undefined): string => {
@@ -49,6 +56,10 @@ interface SourceMenuItem {
     url: AgentPageUrl;
     statsKey: string;
     permission: string;
+    /** The file type the page uploads, when it uploads only one. */
+    fileType?: KnowledgeFileType;
+    /** Needs the website import service (Settings → Ingestion → Firecrawl). */
+    importsWebsites?: boolean;
 }
 
 const menuItemDefinitions: SourceMenuItem[] = [
@@ -87,6 +98,7 @@ const menuItemDefinitions: SourceMenuItem[] = [
         url: sources.web.url,
         statsKey: 'websites',
         permission: 'agent.sources.train.web',
+        importsWebsites: true,
     },
     {
         id: 'audio',
@@ -96,6 +108,7 @@ const menuItemDefinitions: SourceMenuItem[] = [
         url: sources.audio.url,
         statsKey: 'audio',
         permission: 'agent.sources.train.audio',
+        fileType: 'audio',
     },
     {
         id: 'video',
@@ -105,13 +118,28 @@ const menuItemDefinitions: SourceMenuItem[] = [
         url: sources.video.url,
         statsKey: 'video',
         permission: 'agent.sources.train.video',
+        fileType: 'video',
     },
 ];
+
+// Shown when the type is accepted and its service set up, or when the agent
+// still has such sources to manage.
+const isAvailable = (item: SourceMenuItem): boolean => {
+    if ((props.sourceStats?.[item.statsKey] ?? 0) > 0) {
+        return true;
+    }
+
+    if (item.importsWebsites && page.props.canImportWebsites === false) {
+        return false;
+    }
+
+    return !item.fileType || isAccepted(item.fileType);
+};
 
 // Filter menu items based on user permissions
 const menuItems = computed(() => {
     return menuItemDefinitions
-        .filter((item) => hasPermission(item.permission))
+        .filter((item) => hasPermission(item.permission) && isAvailable(item))
         .map((item) => ({
             ...item,
             label: t(item.labelKey),

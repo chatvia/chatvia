@@ -69,7 +69,9 @@ return [
             'driver' => 'redis',
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
+            // Longer than the 300-second timeout of Horizon's chat and
+            // analytics workers (a messaging-channel reply runs that long).
+            'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 360),
             'block_for' => null,
             'after_commit' => false,
         ],
@@ -84,6 +86,17 @@ return [
             'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_LONG_QUEUE_RETRY_AFTER', 1900),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+        // The same again for transcribing audio and video, which may run for
+        // hours (MediaIngestionJob's timeout is 86000 seconds). A worker that
+        // dies mid-job hands it on only after this long.
+        'redis-media' => [
+            'driver' => 'redis',
+            'connection' => env('REDIS_QUEUE_CONNECTION', 'default'),
+            'queue' => env('REDIS_QUEUE', 'default'),
+            'retry_after' => (int) env('REDIS_MEDIA_QUEUE_RETRY_AFTER', 87000),
             'block_for' => null,
             'after_commit' => false,
         ],

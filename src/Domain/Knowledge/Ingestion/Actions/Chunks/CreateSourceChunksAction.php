@@ -9,9 +9,9 @@ use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Ingestion\Services\TokenCounter;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Operations\Pricing\CostCalculator;
+use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -30,7 +30,6 @@ class CreateSourceChunksAction
     public function __construct(
         private readonly EmbeddingsProviderInterface $embeddings,
         private readonly EnhanceChunkAction $enhance,
-        private readonly TokenCounter $tokens,
     ) {}
 
     /**
@@ -110,10 +109,7 @@ class CreateSourceChunksAction
         }
 
         $vectors = array_combine(array_keys($embeddingTexts), $this->embeddings->embedBatch(array_values($embeddingTexts)));
-        $tokens = array_combine(array_keys($pages), $this->tokens->countMany(array_values(array_map(
-            static fn (PageData $page): string => $page->content,
-            $pages,
-        ))));
+        $tokens = array_map(static fn (PageData $page): int => TikToken::countTokens($page->content), $pages);
         $questionVectors = $this->questionVectors($enhanced);
         $now = now();
         $rows = [];
@@ -134,10 +130,10 @@ class CreateSourceChunksAction
                 'chunked_using_model' => $data->chunkedUsingModel,
                 'cost_in_micro_cents' => CostCalculator::centsToMicroCents($enhancement->costInCents ?? 0.0),
                 'tokens' => $tokens[$position],
-                'embedding' => self::vectorLiteral($vectors[$position]),
+                'embedding' => $this->vectorLiteral($vectors[$position]),
                 'embedding_bm25' => Bm25Tokenizer::expression($embeddingTexts[$position]),
                 'questions' => $questions,
-                'questions_embedding' => $questions !== null ? self::vectorLiteral($questionVectors[$questions]) : null,
+                'questions_embedding' => $questions !== null ? $this->vectorLiteral($questionVectors[$questions]) : null,
                 'questions_embedding_bm25' => $questions !== null ? Bm25Tokenizer::expression($questions) : null,
                 'metadata' => json_encode($enhancement->metadata ?? [], JSON_THROW_ON_ERROR),
                 'checksum' => $page->checksum,
@@ -171,7 +167,7 @@ class CreateSourceChunksAction
     /**
      * @param  array<int, float>  $vector
      */
-    private static function vectorLiteral(array $vector): string
+    private function vectorLiteral(array $vector): string
     {
         return '['.implode(',', $vector).']';
     }

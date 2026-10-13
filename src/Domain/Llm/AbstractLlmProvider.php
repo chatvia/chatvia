@@ -47,8 +47,8 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
 
         $json = $this->preparePayload($json);
 
-        // Force the upstream to emit a final chunk with token usage so Spectra
-        // can record cost/tokens. Caller-provided stream_options keys win.
+        // Force the upstream to emit a final chunk with token usage: the reply's
+        // token counts come from it. Caller-provided stream_options keys win.
         $json['stream_options'] = ($json['stream_options'] ?? []) + ['include_usage' => true];
 
         $json = $this->prepareStreamPayload($json);

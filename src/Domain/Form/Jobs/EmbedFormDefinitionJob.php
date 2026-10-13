@@ -1,12 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Domain\Form\Jobs;
 
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\EmbedFormDefinitionAction;
-use Domain\Form\Models\FormDefinition;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -15,29 +14,14 @@ use Illuminate\Foundation\Queue\Queueable;
  * match it to what a visitor asks. Its token cost is booked to the workspace
  * that owns the form's agent.
  */
-class EmbedFormDefinitionJob implements AttributesTokenUsage, ShouldQueue
+class EmbedFormDefinitionJob implements ShouldQueue
 {
     use Queueable;
-    use TracksTokenUsage;
 
     public function __construct(public int $formId) {}
 
     public function handle(EmbedFormDefinitionAction $action): void
     {
         $action->execute($this->formId);
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        // Forms are agent-scoped (no own workspace_id); the workspace is the agent's
-        // owner, so the embedding token cost lands on the right account.
-        $agentId = FormDefinition::query()->whereKey($this->formId)->value('agent_id');
-        if ($agentId === null) {
-            return null;
-        }
-
-        $userId = Agent::withTrashed()->whereKey($agentId)->value('workspace_id');
-
-        return $userId !== null ? (int) $userId : null;
     }
 }

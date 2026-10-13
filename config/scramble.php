@@ -26,7 +26,8 @@ return [
     ],
 
     'ui' => [
-        'title' => env('BRAND_NAME', env('APP_NAME', 'Chatvia')).' API',
+        // Set from the brand name (Settings → Brand) in ApiDocsServiceProvider.
+        'title' => null,
         'theme' => 'light',
         'hide_try_it' => false,
         'hide_schemas' => false,

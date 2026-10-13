@@ -28,4 +28,14 @@ class ScalewayTranscriber implements Transcriber
 
         return str($response['text'])->trim()->toString();
     }
+
+    public function isEnabled(): bool
+    {
+        return true;
+    }
+
+    public function name(): string
+    {
+        return (string) config('services.scalewayai.transcription_model');
+    }
 }

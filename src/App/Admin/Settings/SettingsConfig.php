@@ -91,11 +91,15 @@ final class SettingsConfig
     /**
      * The value a key has while nothing is saved: this app's URL for a
      * callback, otherwise the value from config/*.php (or .env).
+     *
+     * A callback is built from `app.url`, not `url()`: this runs while the
+     * app boots, before https is forced and before the proxy headers are
+     * trusted, so `url()` would give http:// behind a proxy that ends TLS.
      */
     public function default(ConfigKey $key): mixed
     {
         if ($key->defaultPath !== null) {
-            return url($key->defaultPath);
+            return rtrim((string) $this->config->get('app.url'), '/').$key->defaultPath;
         }
 
         $this->defaults ??= $this->snapshot();

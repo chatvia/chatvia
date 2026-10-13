@@ -27,6 +27,7 @@ this PHP build). Knobs are env overrides, applied for one run:
 | `AGENT_TOOL_RELEVANCE_THRESHOLD_READ` | read-tool relevance bar (recall) |
 | `AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE` | write-tool relevance bar (precision) |
 | `AGENT_TOOL_CONNECTOR_CLASSIFIER` | `1` = enable the small-model connector router |
+| `EVAL_TOOL_POOL` | where the catalog is seeded: `preset` (default, shared catalog tools), `custom` (a custom MCP server's own tools) or `function` (webhook functions named `{connector}_{tool}`) — each exercises other search channels |
 
 The winning combo so far — loose write bar (no starvation) + router (precision):
 

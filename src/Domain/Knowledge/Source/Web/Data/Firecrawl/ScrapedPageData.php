@@ -19,4 +19,18 @@ final class ScrapedPageData extends Data
         public string $markdown,
         public array $metadata = [],
     ) {}
+
+    /** The page's title (its `<title>`, else its Open Graph title), trimmed; null when it has none. */
+    public function title(): ?string
+    {
+        foreach (['title', 'ogTitle'] as $key) {
+            $title = $this->metadata[$key] ?? null;
+
+            if (is_string($title) && trim($title) !== '') {
+                return mb_substr(trim($title), 0, 500);
+            }
+        }
+
+        return null;
+    }
 }

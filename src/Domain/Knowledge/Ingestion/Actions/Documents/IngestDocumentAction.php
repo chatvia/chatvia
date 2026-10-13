@@ -21,6 +21,8 @@ use Symfony\Component\HttpFoundation\File\File;
  * Parsing is the expensive step, so it is done once: the pages are cached by
  * the file's checksum (the same file uploaded twice is parsed once) and stored
  * as JSON in `parser_filepath`, so a retry reads them back without parsing.
+ * Both the pages file and any short-lived copy the parser uploads go in the
+ * source's own storage folder ({@see KnowledgeStoragePath}).
  */
 class IngestDocumentAction
 {
@@ -40,7 +42,7 @@ class IngestDocumentAction
             'parser' => $this->parser->name(),
         ]);
 
-        $pages = $this->pages($sourceFile, $agent);
+        $pages = $this->pages($sourceFile);
 
         $this->dispatchBatch->execute(
             $sourceFile,
@@ -52,27 +54,22 @@ class IngestDocumentAction
     /**
      * @return Collection<int, PageData>
      */
-    private function pages(SourceFile $sourceFile, Agent $agent): Collection
+    private function pages(SourceFile $sourceFile): Collection
     {
         if ($sourceFile->parser_filepath) {
             return PageData::fromJson($sourceFile->readContents('parser_filepath'));
         }
 
-        $agentDirectory = KnowledgeStoragePath::forAgent($agent);
+        $tmpDirectory = KnowledgeStoragePath::forSource($sourceFile, 'tmp');
 
-        [$checksum, $pages] = $sourceFile->withLocalFile(function (File $file) use ($agentDirectory): array {
-            $checksum = (string) md5_file($file->getPathname());
+        // Keyed by the reader too: a file read by another reader or model is read again.
+        $pages = $sourceFile->withLocalFile(fn (File $file): Collection => Cache::remember(
+            'files:ocr:'.md5($this->parser->name()).':'.md5_file($file->getPathname()),
+            now()->addMonth(),
+            fn (): Collection => $this->parser->parse($file->getPathname(), $tmpDirectory),
+        ));
 
-            $pages = Cache::remember(
-                'files:ocr:'.$checksum,
-                now()->addMonth(),
-                fn (): Collection => $this->parser->parse($file->getPathname(), $agentDirectory.'/tmp'),
-            );
-
-            return [$checksum, $pages];
-        });
-
-        $pagesPath = $agentDirectory.'/'.$checksum.'.json';
+        $pagesPath = KnowledgeStoragePath::forSource($sourceFile).'/pages.json';
         Storage::put($pagesPath, $pages->toJson());
 
         $sourceFile->update(['parser_filepath' => $pagesPath]);

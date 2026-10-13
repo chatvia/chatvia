@@ -52,14 +52,24 @@ axios.interceptors.request.use((config) => {
 http.onRequest((config) => ({ ...config, headers: { ...config.headers, ...csrfHeaders() } }));
 
 /** Takes the agent segment and the CSRF token from each page the server sends. */
+// The brand name (Settings → Brand) for page titles. The server-rendered
+// <title> holds it until the first page's props arrive.
+let appName = document.title || 'Chatvia';
+
 function syncPageContext(pageProps: Record<string, unknown>): void {
     agentSlug = typeof pageProps.agentSlug === 'string' && pageProps.agentSlug !== '' ? pageProps.agentSlug : null;
     setCsrfToken(pageProps.csrfToken);
+
+    const brand = pageProps.brand as { name?: unknown } | null | undefined;
+    if (typeof brand?.name === 'string' && brand.name !== '') {
+        appName = brand.name;
+    }
 }
 
-// The Docker image is built without VITE_APP_NAME; the server-rendered <title>
-// holds the brand name then.
-const appName = import.meta.env.VITE_APP_NAME || document.title || 'Chatvia';
+// The install's default language (Settings → Platform), shared by the server.
+function defaultLocaleOf(pageProps: Record<string, unknown>): string | null {
+    return typeof pageProps.defaultLocale === 'string' ? pageProps.defaultLocale : null;
+}
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
@@ -68,7 +78,7 @@ createInertiaApp({
 
         const initialLocale: unknown = props.initialPage?.props?.locale;
         if (typeof initialLocale === 'string' && initialLocale.length > 0) {
-            void setI18nLocale(resolveLocale(initialLocale));
+            void setI18nLocale(resolveLocale(initialLocale, defaultLocaleOf(props.initialPage.props)));
         }
 
         // reka-ui primitives (NavigationMenu, DropdownMenu, Tabs, Sheet, …) read
@@ -101,10 +111,11 @@ router.on('navigate', (event) => {
 
     // Sync the active i18n locale (and document dir/lang) with whatever
     // the server resolved for this Inertia page (chat surfaces send `locale`).
-    // `auto` falls back to the browser language; anything else is forced.
+    // `auto` falls back to the browser language, then the install's default;
+    // anything else is forced.
     const incomingLocale: unknown = props.locale;
     if (typeof incomingLocale === 'string' && incomingLocale.length > 0) {
-        void setI18nLocale(resolveLocale(incomingLocale));
+        void setI18nLocale(resolveLocale(incomingLocale, defaultLocaleOf(props)));
     }
 
     // Handle Laravel validation errors

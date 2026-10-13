@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Retrieval\Services\VectorIndexSizing;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -64,20 +65,14 @@ SQL);
         Schema::dropIfExists('chunks');
     }
 
+    /**
+     * A flat vchordrq index (no partitions): right for an empty or small table,
+     * and nothing to train yet. `php artisan vector:reindex` (weekly) partitions
+     * it once the table passes 100k rows (RebuildVectorIndexAction).
+     */
     private function createVectorChordIndex(string $indexName, string $column): void
     {
-        $buildThreads = (int) config('chatvia.vector.build_threads', 4);
-
-        $options = <<<EOT
-residual_quantization = true
-[build.internal]
-lists = [4096]
-build_threads = {$buildThreads}
-spherical_centroids = false
-sampling_factor = 256
-kmeans_iterations = 25
-
-EOT;
+        $options = app(VectorIndexSizing::class)->flatOptions();
 
         // The install's vector type decides the operator class (EmbeddingStorage).
         $ops = app(EmbeddingStorage::class)->type()->operatorClass();

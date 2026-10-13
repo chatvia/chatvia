@@ -9,11 +9,13 @@ use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Events\TextIngestionProgressed;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * The body of every chunk job of a file or text source: store the job's pages,
@@ -76,6 +78,23 @@ it('enhances document and media pages when enhancement is on', function (string 
     expect($file->chunks()->sole()->is_enhanced)->toBeTrue();
     Http::assertSentCount(1);
 })->with(['document' => 'application/pdf', 'audio' => 'audio/mpeg']);
+
+it('saves the images of document pages in the source folder, not under the agent', function (): void {
+    config(['chatvia.ai.chunker.enhance' => true]);
+    Storage::fake();
+
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id, 'mime_type' => 'application/pdf']);
+    $png = 'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWNgIB0AAAA0AAEjQ4N1AAAAAElFTkSuQmCC';
+    $group = new PageGroupData([new PageData(pageNumber: 1, content: 'A chart.', checksum: md5(uniqid()), imagesBase64: [$png])]);
+
+    app(IngestSourceChunkAction::class)->execute(new SourceChunkData($agent, $file, $group));
+
+    $images = Storage::allFiles(KnowledgeStoragePath::forSource($file, 'images'));
+
+    expect($images)->toHaveCount(1)
+        ->and(array_keys($file->chunks()->sole()->metadata['images']))->toBe($images);
+});
 
 it('enhances text sources by default, even with file enhancement off, and reports their progress', function (): void {
     config(['chatvia.ai.chunker.enhance' => false]);

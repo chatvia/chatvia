@@ -5,10 +5,12 @@ namespace Domain\Knowledge\Ingestion\Actions\Website;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
 use Domain\Knowledge\Ingestion\Data\Chunking\PageGroupData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Source\Enums\SourceStatus;
@@ -28,8 +30,9 @@ use Support\Http\SafeUrl;
  * Chunks belong to the website and are keyed by content checksum, so a part
  * that several pages share is stored and embedded once; `chunk_references`
  * link each chunk to every page that produced it. An unchanged page (same
- * checksum as last time) costs no embedding, and only parts the website does
- * not hold yet are enhanced and embedded (see {@see CreateSourceChunksAction}).
+ * checksum as last time: the same content split with the same chunk settings)
+ * costs no embedding, and only parts the website does not hold yet are
+ * enhanced and embedded (see {@see CreateSourceChunksAction}).
  * When a page changed, its links to parts it no longer has are dropped, and
  * those chunks are deleted once no page uses them.
  */
@@ -51,22 +54,26 @@ class TrainWebsiteUrlAction
         // a scrape credit is spent on them.
         SafeUrl::assert($websiteUrl->url);
 
-        $markdown = trim($this->firecrawl->scrape($websiteUrl->url)->markdown);
+        $scraped = $this->firecrawl->scrape($websiteUrl->url);
+        $markdown = trim($scraped->markdown);
+        $title = $scraped->title();
 
         /** @var SourceWebsite $website */
         $website = $websiteUrl->agentWebsite;
 
         // Nothing scrapable (empty page, blocked, JS-only with no content).
         if ($markdown === '') {
-            $this->finish($websiteUrl, $website, $agent, $progress, ['crawled_at' => now()]);
+            $this->finish($websiteUrl, $website, $agent, $progress, ['title' => $title, 'crawled_at' => now()]);
 
             return;
         }
 
-        $checksum = hash('sha256', $markdown);
+        // The content and how it is split, so new chunk settings (Settings →
+        // Chunking) train an unchanged page again.
+        $checksum = hash('sha256', ChunkingConfigData::forKind(ContentKind::Markdown)->fingerprint().$markdown);
 
         if ($websiteUrl->checksum === $checksum) {
-            $this->finish($websiteUrl, $website, $agent, $progress);
+            $this->finish($websiteUrl, $website, $agent, $progress, ['title' => $title]);
 
             return;
         }
@@ -75,14 +82,10 @@ class TrainWebsiteUrlAction
         $parts = Cache::remember(
             'ingestion:website:chunks:'.$websiteUrl->id.':'.$checksum,
             now()->addDay(),
-            fn (): array => $this->splitter->split($markdown),
+            fn (): array => $this->splitter->split($markdown, ContentKind::Markdown),
         );
 
-        $pages = array_map(static fn (string $part, int $index): PageData => new PageData(
-            pageNumber: $index + 1,
-            content: $part,
-            checksum: hash('sha256', $part),
-        ), $parts, array_keys($parts));
+        $pages = PageData::fromParts($parts);
 
         $this->createChunks->execute(new ChunkPagesData(
             source: $website,
@@ -95,7 +98,7 @@ class TrainWebsiteUrlAction
 
         $this->addExpectedChunks($website, count($parts));
 
-        $this->finish($websiteUrl, $website, $agent, $progress, ['checksum' => $checksum, 'crawled_at' => now()]);
+        $this->finish($websiteUrl, $website, $agent, $progress, ['title' => $title, 'checksum' => $checksum, 'crawled_at' => now()]);
     }
 
     /**

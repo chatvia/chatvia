@@ -42,7 +42,7 @@ class ManageConnectorSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedPuzzlePiece;
 
     #[\Override]
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 7;
 
     public static function description(): string
     {
@@ -76,6 +76,7 @@ class ManageConnectorSettings extends AdminSettingsPage
         )
             ->required("{$property}_client_id", "{$property}_client_secret")
             ->console(self::CONSOLES[$slug])
+            ->helpFile('connector')
             ->callbacks(['Redirect URL' => 'connectors.oauth.callback']);
     }
 }

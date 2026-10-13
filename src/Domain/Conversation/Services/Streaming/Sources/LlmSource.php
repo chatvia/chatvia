@@ -12,7 +12,6 @@ use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Services\LlmProviders;
-use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 
 /**
@@ -30,9 +29,8 @@ class LlmSource extends ToolLoopSource
         ToolLoopRunner $runner,
         GuardrailService $guardrails,
         GuardrailRecorder $guardrailRecorder,
-        TokenUsageContext $tokenUsage,
     ) {
-        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder, $tokenUsage);
+        parent::__construct($replyRecorder, $dedupe, $toolSelector, $runner, $guardrails, $guardrailRecorder);
     }
 
     /**
@@ -54,11 +52,6 @@ class LlmSource extends ToolLoopSource
     protected function modelName(ChatContext $context): string
     {
         return $context->requestData->message->model->internal_name;
-    }
-
-    protected function providerSlug(ChatContext $context): string
-    {
-        return $context->requestData->message->model->provider->kind->value;
     }
 
     protected function logLabel(): string

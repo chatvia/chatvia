@@ -210,6 +210,12 @@ then tag the widget release: every build takes the newest release.
   and `EMBEDDING_DIMENSIONS`. A query vector is cast with
   `EmbeddingStorage::columnType()`, and a vchordrq index uses
   `EmbeddingStorage::type()->operatorClass()`.
+- A vector index only pays off on a large shared table (`chunks`,
+  `connector_tools`). A small per-agent set (its tools, functions, forms, or
+  the chunks of an agent with few of them) is searched exactly: collect the
+  agent's rows in a `MATERIALIZED` CTE and order them by distance. The chunks
+  indexes start flat; `php artisan vector:reindex` (weekly) partitions them as
+  the table grows.
 - Key workspace data to the **workspace** (`$agent->workspace_id`,
   `$user->workspace()->id`), not to the person who is acting.
 

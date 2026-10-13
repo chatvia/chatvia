@@ -41,7 +41,9 @@ class AgentFactory extends Factory
                 return ($team ?? app(TeamService::class)->createDefaultTeam($workspace->owner ?? throw new \LogicException('A workspace always has an owner.')))->id;
             },
             'name' => fake()->words(2, true),
-            'slug' => fake()->unique()->slug(),
+            // Exactly three words: a variable word count can pass the 63-character
+            // limit of a chat slug (AgentSlug) and fail validation at random.
+            'slug' => fake()->unique()->slug(3, false),
             'system_instructions' => 'You are a helpful assistant.',
             'is_public' => false,
         ];

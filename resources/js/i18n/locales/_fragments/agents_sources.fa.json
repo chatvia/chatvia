@@ -39,9 +39,9 @@
                 "record_description": "صدا را مستقیماً از میکروفون ضبط کنید و به پایگاه دانش دستیار خود اضافه نمایید"
             },
             "files": {
-                "uploader_description_audio": "فایل‌های صوتی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی شده: MP3، M4A، WAV، OGG، WebM، FLAC، AAC، WMA، AMR و 3GP. حداکثر حجم فایل: ۲۰۰ مگابایت.",
-                "uploader_description_video": "فایل‌های ویدیویی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی شده: MP4، AVI، MOV، WMV، FLV، WebM، MKV، QuickTime و 3GPP. حداکثر حجم فایل: ۲۰۰ مگابایت.",
-                "uploader_description_default": "اسناد: PDF، Word (‎.docx، ‎.doc)، PowerPoint (‎.pptx، ‎.ppt)، Excel (‎.xlsx، ‎.csv)، متن (‎.txt)، Markdown (‎.md)، EPUB، RTF، ODT، XML/DocBook، BibTeX (‎.bib)، FictionBook (‎.fb2)، Jupyter (‎.ipynb)، JATS XML، LaTeX (‎.tex)، OPML، Troff (‎.1، ‎.man). تصاویر: JPEG، PNG، AVIF، TIFF، GIF، HEIC/HEIF، BMP، WebP. حداکثر ۵۰ مگابایت در هر فایل.",
+                "uploader_description_audio": "فایل‌های صوتی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی‌شده: {formats}. حداکثر {size} مگابایت برای هر فایل.",
+                "uploader_description_video": "فایل‌های ویدیویی را برای رونویسی آپلود کنید. فرمت‌های پشتیبانی‌شده: {formats}. حداکثر {size} مگابایت برای هر فایل.",
+                "uploader_description_default": "فرمت‌های پشتیبانی‌شده: {formats}. حداکثر {size} مگابایت برای هر فایل.",
                 "type_unknown": "ناشناخته",
                 "minutes_count": "{count} دقیقه",
                 "pages_count": "{count} صفحه",
@@ -61,6 +61,7 @@
                 "upload_title_video": "آپلود فایل‌های ویدیویی",
                 "upload_title_default": "آپلود اسناد جدید",
                 "uploads_disabled": "آپلود فایل در حین آموزش غیرفعال است",
+                "uploads_off": "مدیر سیستم آپلود این نوع فایل‌ها را غیرفعال کرده است.",
                 "ready_to_train": "آماده آموزش",
                 "uploaded_ready": "{count} فایل آپلود شده و آماده آموزش",
                 "clear_all": "پاک کردن همه",

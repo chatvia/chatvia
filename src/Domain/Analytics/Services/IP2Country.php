@@ -23,6 +23,12 @@ class IP2Country
         }
 
         $key = (string) config('services.ip2location.key');
+
+        // No key set up (Settings → Platform): visitor location is off.
+        if ($key === '') {
+            return null;
+        }
+
         $url = rtrim((string) config('services.ip2location.endpoint'), '/').'/';
 
         try {

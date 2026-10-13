@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace App\Admin\Pages;
 
 use App\Admin\AdminPanelProvider;
-use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\RequireSetup;
 use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\Data\SetupData;
-use App\Admin\Settings\Data\SetupMailData;
-use App\Admin\Settings\MailField;
-use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\PlatformSettings;
-use App\Admin\StaffToolsAccess;
 use Closure;
+use Domain\Knowledge\Embedding\Data\EmbeddingColumnData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
+use Domain\Knowledge\Embedding\Queries\StoredEmbeddingColumnsQuery;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\LlmProviderEnum;
@@ -24,15 +22,17 @@ use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\SimplePage;
 use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Callout;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -50,25 +50,43 @@ use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The setup of a new install, in three steps: the AI provider and the model
- * agents answer with (its key is checked by loading the provider's model
- * list), search (the embedding service), and email (optional). Every admin
- * panel page leads here until it is done or skipped ({@see RequireSetup});
- * it can be run again later from Settings. Like the Settings pages it needs
- * two-factor authentication, and saved keys are never shown.
+ * The setup of a new install, in two steps. Search first: hybrid search
+ * (meaning plus BM25 keywords) and the embedding service and model, which
+ * must return the vector size the database columns were created with. That
+ * size is read from the database, and Next checks the service, model and key
+ * with a test embedding. Then the AI provider and the model agents answer
+ * with (its key is checked by loading the provider's model list; a provider
+ * of the same service as search reuses its key). Every admin panel page
+ * leads here until it is done or skipped ({@see RequireSetup}); it can be
+ * run again later from Settings. Saved keys are never shown.
  *
  * @property-read Schema $form
  */
 class Setup extends SimplePage
 {
-    /** What each search service needs and does, under the dropdown. */
+    /** What each search service returns and what else its key does, under the dropdown. */
     private const array EMBEDDING_DESCRIPTIONS = [
-        'qwen' => 'Needs a Scaleway AI key. Also ranks results and turns speech into text.',
-        'cohere' => 'Needs a Cohere key. Also ranks results.',
-        'jina' => 'Needs a Jina key.',
-        'mistral' => 'Needs a Mistral key. Also reads documents and PDFs.',
+        'qwen' => 'Open-weight Qwen3-Embedding. Returns 32 to 4096 dimensions. The same key also ranks results and turns speech into text.',
+        'openai' => 'text-embedding-3-small returns up to 1536 dimensions, text-embedding-3-large up to 3072. The same key can run GPT chat models.',
+        'google' => 'gemini-embedding-001 returns 128 to 3072 dimensions. The same key can run Gemini chat models.',
+        'cohere' => 'Returns 256, 512, 1024 or 1536 dimensions. The same key also ranks results.',
+        'mistral' => 'Always returns 1024 dimensions. The same key also reads documents and PDFs.',
+        'jina' => 'Returns 32 to 1024 dimensions.',
     ];
 
+    private const array EMBEDDING_KEY_LABELS = [
+        'qwen' => 'Scaleway AI API key',
+        'openai' => 'OpenAI API key',
+        'google' => 'Gemini API key',
+        'cohere' => 'Cohere API key',
+        'mistral' => 'Mistral API key',
+        'jina' => 'Jina API key',
+    ];
+
+    /** The text embedded to check a search service. */
+    private const string CHECK_TEXT = 'How do I reset my password?';
+
+    #[\Override]
     protected Width|string|null $maxWidth = Width::FourExtraLarge;
 
     /** @var array<string, mixed>|null */
@@ -86,15 +104,19 @@ class Setup extends SimplePage
     /** The provider, address and key the list was last loaded with, so Next does not load it again. */
     public ?string $loadedFor = null;
 
+    /** The embedding columns as the database has them, read once per request. */
+    private ?EmbeddingColumnData $storedColumn = null;
+
     public function mount(): void
     {
-        $first = $this->adapters()->all()[0]->kind()->value;
+        // Once sources are trained, the search service stays as it is.
+        $embedding = Chunk::query()->exists() ? null : $this->suggestedEmbedding();
 
         $this->form->fill([
-            'chat_kind' => $first,
-            'embedding_provider' => $this->suggestedEmbedding($first),
-            'mailer' => 'later',
-            'smtp_port' => 587,
+            'hybrid_search' => (bool) (config('chatvia.vector.search.hybrid') ?? true),
+            'embedding_provider' => $embedding?->value,
+            'embedding_model' => $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null,
+            'chat_kind' => $this->suggestedChatKind($embedding),
         ]);
     }
 
@@ -116,20 +138,11 @@ class Setup extends SimplePage
 
     public function getSubheading(): string|Htmlable|null
     {
-        return 'Three short steps and your agents can answer. You can change all of it later in Settings.';
-    }
-
-    public function canEdit(): bool
-    {
-        return app(StaffToolsAccess::class)->allows();
+        return 'Two short steps and your agents can answer. You can change all of it later in Settings.';
     }
 
     public function content(Schema $schema): Schema
     {
-        if (! $this->canEdit()) {
-            return $schema->components([AdminSettingsPage::twoFactorRequired()]);
-        }
-
         return $schema->components([
             Form::make([EmbeddedSchema::make('form')])
                 ->id('form')
@@ -147,33 +160,36 @@ class Setup extends SimplePage
     {
         return $schema->components([
             Wizard::make([
-                $this->modelStep(),
                 $this->searchStep(),
-                $this->emailStep(),
-            ])->submitAction(new HtmlString(Blade::render(<<<'BLADE'
-                <x-filament::button type="submit" size="sm" icon="heroicon-m-check" wire:target="complete">
-                    Finish setup
-                </x-filament::button>
-                BLADE))),
+                $this->modelStep(),
+            ])
+                ->contained(false)
+                ->extraAttributes(['class' => 'cv-setup-wizard'])
+                ->submitAction(new HtmlString(Blade::render(<<<'BLADE'
+                    <x-filament::button type="submit" icon="heroicon-m-check" wire:target="complete">
+                        Finish setup
+                    </x-filament::button>
+                    BLADE))),
         ]);
     }
 
     public function complete(): void
     {
-        abort_unless($this->canEdit(), 403);
-
         $state = $this->form->getState();
+        $this->checkChatModel();
         $kind = LlmProviderEnum::from((string) $state['chat_kind']);
         $modelId = (string) ($state['chat_model'] ?? $state['chat_model_id']);
+        $embedding = isset($state['embedding_provider']) ? EmbeddingProvider::from($state['embedding_provider']) : null;
 
         $model = app(CompleteSetupAction::class)->execute(new SetupData(
             chatKind: $kind,
             chatBaseUrl: filled($state['chat_base_url'] ?? null) ? rtrim((string) $state['chat_base_url'], '/') : null,
-            chatApiKey: filled($state['chat_api_key'] ?? null) ? $state['chat_api_key'] : null,
+            chatApiKey: $this->chatApiKey($state),
             chatModel: $this->listedModel($modelId) ?? new RemoteModelData($modelId, $modelId),
-            embeddingProvider: isset($state['embedding_provider']) ? EmbeddingProvider::from($state['embedding_provider']) : null,
+            hybridSearch: (bool) ($state['hybrid_search'] ?? true),
+            embeddingProvider: $embedding,
+            embeddingModel: filled($state['embedding_model'] ?? null) ? trim((string) $state['embedding_model']) : null,
             embeddingApiKey: filled($state['embedding_api_key'] ?? null) ? $state['embedding_api_key'] : null,
-            mail: $this->mailData($state),
         ));
 
         Cache::forget($this->modelCacheKey());
@@ -234,215 +250,234 @@ class Setup extends SimplePage
 
     // --- Steps ---------------------------------------------------------------
 
+    private function searchStep(): Step
+    {
+        $trained = Chunk::query()->exists();
+
+        return Step::make('Search')
+            ->description('How agents find answers')
+            ->icon(Heroicon::OutlinedMagnifyingGlass)
+            ->schema([
+                Section::make('Hybrid search')
+                    ->key('hybrid-search')
+                    ->description('Search by meaning and by keywords at the same time.')
+                    ->icon(Heroicon::OutlinedArrowsPointingIn)
+                    ->afterLabel([$this->hybridSearchHelpAction()])
+                    ->schema([
+                        Toggle::make('hybrid_search')
+                            ->label('Use hybrid search')
+                            ->helperText('Recommended. You can change it at any time in Settings → Search.'),
+                    ]),
+                Section::make('Embedding model')
+                    ->description('Turns your documents, and each question, into vectors.')
+                    ->icon(Heroicon::OutlinedCubeTransparent)
+                    ->schema($trained ? $this->trainedSearchFields() : $this->embeddingFields()),
+            ])
+            ->afterValidation(function () use ($trained): void {
+                if (! $trained) {
+                    $this->checkEmbedding();
+                }
+
+                // A chat provider of the same service reuses this key: its
+                // models are ready when the next step opens.
+                if ($this->reusesSearchKey($this->form->getRawState()) && $this->loadedFor !== $this->draftFingerprint()) {
+                    $this->loadModels();
+                }
+            });
+    }
+
+    /** The "?" beside the hybrid search heading: what it does, in a popup. */
+    private function hybridSearchHelpAction(): Action
+    {
+        return Action::make('hybridSearchHelp')
+            ->label('What is hybrid search?')
+            ->icon(Heroicon::OutlinedQuestionMarkCircle)
+            ->iconButton()
+            ->color('gray')
+            ->modalHeading('What is hybrid search?')
+            ->modalIcon(Heroicon::OutlinedArrowsPointingIn)
+            ->modalWidth(Width::Large)
+            ->modalContent(view('filament.setup-hybrid-search'))
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close');
+    }
+
+    /**
+     * The search service, its model and key, under the vector size the
+     * database stores: a service that cannot return it cannot be picked.
+     *
+     * @return list<Component>
+     */
+    private function embeddingFields(): array
+    {
+        $dimensions = $this->storedDimensions();
+        $fitting = array_map(fn (EmbeddingProvider $provider): string => $provider->value, $this->fittingEmbeddings());
+
+        return [
+            Callout::make("Your database stores {$dimensions}-dimension vectors")
+                ->description(new HtmlString(sprintf(
+                    'Read from its embedding columns (<code>%s</code>). Use an embedding model that returns exactly %d dimensions. This size was set at install and cannot change.',
+                    e($this->storedColumnType()),
+                    $dimensions,
+                )))
+                ->icon(Heroicon::OutlinedCircleStack)
+                ->info(),
+            Select::make('embedding_provider')
+                ->label('Service')
+                ->options(collect(EmbeddingProvider::cases())->mapWithKeys(fn (EmbeddingProvider $provider): array => [
+                    $provider->value => in_array($provider->value, $fitting, true)
+                        ? $provider->label()
+                        : "{$provider->label()} (cannot return {$dimensions} dimensions)",
+                ])->all())
+                ->disableOptionWhen(fn (string $value): bool => ! in_array($value, $fitting, true))
+                ->in($fitting)
+                ->native(false)
+                ->selectablePlaceholder(false)
+                ->helperText(fn (Get $get): ?string => self::EMBEDDING_DESCRIPTIONS[(string) $get('embedding_provider')] ?? null)
+                ->required()
+                ->live()
+                ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                    $provider = EmbeddingProvider::tryFrom((string) $state);
+                    $set('embedding_model', $provider instanceof EmbeddingProvider ? config($provider->modelConfig()) : null);
+
+                    // Suggest the chat provider of the same service, until
+                    // the chat step is filled in.
+                    if (blank($get('chat_api_key')) && blank($get('chat_model')) && blank($get('chat_model_id'))) {
+                        $set('chat_kind', $this->suggestedChatKind($provider));
+                    }
+                }),
+            TextInput::make('embedding_model')
+                ->label('Model')
+                ->placeholder(fn (Get $get): ?string => ($provider = $this->embeddingProvider($get)) instanceof EmbeddingProvider ? (string) config($provider->modelConfig()) : null)
+                ->helperText("The model's name exactly as the service writes it. It must return {$dimensions} dimensions: Next checks it with a test request.")
+                ->required()
+                ->maxLength(255)
+                ->visible(fn (Get $get): bool => $this->embeddingProvider($get) instanceof EmbeddingProvider),
+            TextInput::make('embedding_api_key')
+                ->label(fn (Get $get): string => self::EMBEDDING_KEY_LABELS[$get('embedding_provider')] ?? 'API key')
+                ->password()
+                ->revealable()
+                ->autocomplete('new-password')
+                ->required()
+                ->helperText('Stored encrypted. It is never shown again.')
+                ->hintAction(fn (Get $get): ?Action => ($url = $this->embeddingProvider($get)?->keysUrl()) === null ? null : Action::make('getEmbeddingKey')
+                    ->label('Get a key')
+                    ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+                    ->iconPosition('after')
+                    ->url($url, shouldOpenInNewTab: true))
+                ->visible(fn (Get $get): bool => $this->embeddingProvider($get) instanceof EmbeddingProvider),
+        ];
+    }
+
+    /**
+     * Sources are trained with the search service in use, so it stays.
+     *
+     * @return list<Component>
+     */
+    private function trainedSearchFields(): array
+    {
+        $provider = EmbeddingProvider::tryFrom((string) config('chatvia.ai.models.embedding'));
+        $model = $provider instanceof EmbeddingProvider ? (string) config($provider->modelConfig()) : null;
+
+        return [
+            Callout::make('Search is already set up')
+                ->description(sprintf(
+                    'Sources are trained with %s%s, %d dimensions (%s), so it stays as it is. It is in Settings → AI.',
+                    $provider?->label() ?? 'the service in use',
+                    filled($model) ? " ({$model})" : '',
+                    $this->storedDimensions(),
+                    $this->storedColumnType(),
+                ))
+                ->icon(Heroicon::OutlinedCheckCircle)
+                ->success(),
+        ];
+    }
+
     private function modelStep(): Step
     {
         return Step::make('AI model')
             ->description('What agents answer with')
             ->icon(Heroicon::OutlinedSparkles)
             ->schema([
-                Select::make('chat_kind')
-                    ->label('Provider')
-                    ->options(collect($this->adapters()->all())->mapWithKeys(fn (ProviderAdapter $adapter): array => [$adapter->kind()->value => $adapter->label()])->all())
-                    ->native(false)
-                    ->selectablePlaceholder(false)
-                    ->helperText(fn (Get $get): ?string => $this->adapter($get('chat_kind'))?->description())
-                    ->in(array_map(fn (ProviderAdapter $adapter): string => $adapter->kind()->value, $this->adapters()->all()))
-                    ->required()
-                    ->live()
-                    ->afterStateUpdated(function (Set $set, ?string $state): void {
-                        $set('embedding_provider', $this->suggestedEmbedding((string) $state));
-                        $this->loadModels();
-                    }),
-                TextInput::make('chat_base_url')
-                    ->label(fn (Get $get): string => $this->adapter($get('chat_kind'))?->defaultBaseUrl() === null ? 'Address' : 'Address (optional)')
-                    ->url()
-                    ->placeholder(fn (Get $get): string => $this->adapter($get('chat_kind'))?->defaultBaseUrl() ?? 'http://localhost:11434/v1')
-                    ->helperText(fn (Get $get): ?string => $this->adapter($get('chat_kind'))?->baseUrlHelp())
-                    ->required(fn (Get $get): bool => $this->adapter($get('chat_kind'))?->defaultBaseUrl() === null)
-                    ->visible(fn (Get $get): bool => $this->adapter($get('chat_kind'))?->acceptsBaseUrl() ?? false)
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn () => $this->loadModels()),
-                TextInput::make('chat_api_key')
-                    ->label('API key')
-                    ->password()
-                    ->revealable()
-                    ->autocomplete('new-password')
-                    ->required(fn (Get $get): bool => $this->adapter($get('chat_kind'))?->needsApiKey() ?? true)
-                    ->helperText(fn (Get $get): string => ($this->adapter($get('chat_kind'))?->needsApiKey() ?? true)
-                        ? 'Stored encrypted. It is never shown again.'
-                        : 'Leave empty when your server has no key.')
-                    ->hintAction(fn (Get $get): ?Action => ($url = $this->adapter($get('chat_kind'))?->keysUrl()) === null ? null : Action::make('getKey')
-                        ->label('Get a key')
-                        ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
-                        ->iconPosition('after')
-                        ->url($url, shouldOpenInNewTab: true))
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn () => $this->loadModels()),
-                Callout::make(fn (): ?string => $this->modelListError)
-                    ->icon(Heroicon::OutlinedExclamationTriangle)
-                    ->color(fn (): string => $this->keyRefused ? 'danger' : 'warning')
-                    ->visible(fn (): bool => filled($this->modelListError)),
-                Select::make('chat_model')
-                    ->label('Model')
-                    ->options(fn (): array => $this->models)
-                    ->in(fn (): array => array_keys($this->models))
-                    ->searchable()
-                    ->required()
-                    ->placeholder('Pick a model')
-                    ->helperText(fn (): string => count($this->models).' chat models. New agents start with this one; each agent can change it.')
-                    ->visible(fn (): bool => $this->models !== []),
-                TextInput::make('chat_model_id')
-                    ->label('Model')
-                    ->placeholder('For example llama3.1:8b')
-                    ->helperText('The model\'s name exactly as your provider writes it. New agents start with it.')
-                    ->required()
-                    ->maxLength(255)
-                    ->visible(fn (): bool => $this->models === [] && filled($this->modelListError) && ! $this->keyRefused),
-                Text::make(fn (Get $get): string => ($this->adapter($get('chat_kind'))?->needsApiKey() ?? true)
-                    ? 'Type the API key to pick from the provider\'s models.'
-                    : 'Type the address (and key, if any) to pick from your server\'s models.')
-                    ->color('gray')
-                    ->visible(fn (): bool => $this->models === [] && blank($this->modelListError)),
-            ])
-            ->afterValidation(function (): void {
-                // The step's own check of the key: the list loads with it,
-                // unless it already did with what is typed now.
-                if ($this->loadedFor !== $this->draftFingerprint()) {
-                    $this->loadModels();
-                }
-
-                if ($this->keyRefused) {
-                    throw ValidationException::withMessages(['data.chat_api_key' => $this->modelListError]);
-                }
-
-                $state = $this->form->getRawState();
-
-                if (blank($state['chat_model'] ?? null) && blank($state['chat_model_id'] ?? null)) {
-                    throw ValidationException::withMessages([
-                        $this->models !== [] ? 'data.chat_model' : 'data.chat_model_id' => 'Pick the model your agents answer with.',
-                    ]);
-                }
-            });
-    }
-
-    private function searchStep(): Step
-    {
-        $trained = Chunk::query()->exists();
-        $fitting = $this->fittingEmbeddings();
-
-        return Step::make('Search')
-            ->description('Searching your documents')
-            ->icon(Heroicon::OutlinedMagnifyingGlass)
-            ->schema($trained ? [
-                Callout::make('Search is already set up')
-                    ->description('Sources are trained with it, so it stays as it is. It is in Settings → AI.')
-                    ->icon(Heroicon::OutlinedCheckCircle)
-                    ->success(),
-            ] : [
-                Select::make('embedding_provider')
-                    ->label('Search service')
-                    ->options(array_combine(
-                        array_map(fn (EmbeddingProvider $provider): string => $provider->value, $fitting),
-                        array_map(fn (EmbeddingProvider $provider): string => $provider->label(), $fitting),
-                    ))
-                    ->native(false)
-                    ->selectablePlaceholder(false)
-                    ->helperText(fn (Get $get): string => trim((self::EMBEDDING_DESCRIPTIONS[$get('embedding_provider')] ?? '').' It turns your documents into vectors, and cannot change once your first source is trained.'))
-                    ->in(array_map(fn (EmbeddingProvider $provider): string => $provider->value, $fitting))
-                    ->required()
-                    ->live(),
-                TextInput::make('embedding_api_key')
-                    ->label(fn (Get $get): string => match ($get('embedding_provider')) {
-                        'qwen' => 'Scaleway AI API key',
-                        'cohere' => 'Cohere API key',
-                        'jina' => 'Jina API key',
-                        'mistral' => 'Mistral API key',
-                        default => 'API key',
-                    })
-                    ->password()
-                    ->revealable()
-                    ->autocomplete('new-password')
-                    ->required()
-                    ->helperText('Stored encrypted. It is never shown again.')
-                    ->visible(fn (Get $get): bool => filled($get('embedding_provider')) && ! $this->reusesChatKey($get)),
-                Callout::make(fn (Get $get): string => 'Uses your '.$this->adapter($get('chat_kind'))?->label().' key from the first step.')
-                    ->icon(Heroicon::OutlinedKey)
-                    ->info()
-                    ->visible(fn (Get $get): bool => $this->reusesChatKey($get)),
+                Section::make('Chat model')
+                    ->description('New agents start with it. Each agent can change it later.')
+                    ->icon(Heroicon::OutlinedChatBubbleLeftRight)
+                    ->schema($this->chatFields()),
             ]);
     }
 
-    private function emailStep(): Step
+    /**
+     * @return list<Component>
+     */
+    private function chatFields(): array
     {
-        $providers = array_values(array_filter(MailProvider::cases(), fn (MailProvider $provider): bool => $provider->delivers()));
-        $mailerIs = fn (string ...$mailers): Closure => fn (Get $get): bool => in_array($get('mailer'), $mailers, true);
-
-        return Step::make('Email')
-            ->description('Optional')
-            ->icon(Heroicon::OutlinedEnvelope)
-            ->schema([
-                Select::make('mailer')
-                    ->label('Send email with')
-                    ->options(['later' => 'Not now'] + collect($providers)->mapWithKeys(fn (MailProvider $provider): array => [$provider->value => $provider->label()])->all())
-                    ->native(false)
-                    ->selectablePlaceholder(false)
-                    ->helperText(fn (Get $get): ?string => $get('mailer') === 'later'
-                        ? 'Emails are written to the log until you set this up in Settings → Email.'
-                        : MailProvider::tryFrom((string) $get('mailer'))?->description())
-                    ->in(['later', ...array_map(fn (MailProvider $provider): string => $provider->value, $providers)])
-                    ->required()
-                    ->live(),
-                TextInput::make('from_address')
-                    ->label('Sender address')
-                    ->email()
-                    ->required()
-                    ->placeholder('chat@example.com')
-                    ->visible(fn (Get $get): bool => ! in_array($get('mailer'), ['later', null], true)),
-                ...array_merge(...array_map(
-                    fn (MailProvider $provider): array => array_map(
-                        fn (MailField $field): Field => $this->mailField($field, $provider)->visible($mailerIs($provider->value)),
-                        $provider->fields(),
-                    ),
-                    $providers,
-                )),
-            ]);
-    }
-
-    /** One setting of an email provider ({@see MailProvider::fields()}). */
-    private function mailField(MailField $field, MailProvider $provider): Field
-    {
-        if ($field->kind === 'choice') {
-            return Select::make($field->property)
-                ->label($field->label)
-                ->options($field->options)
-                ->in(array_keys($field->options))
-                ->placeholder('Default')
-                ->helperText($field->help);
-        }
-
-        $input = TextInput::make($field->property)
-            ->label($field->label)
-            ->helperText($field->help)
-            ->placeholder($field->placeholder)
-            ->required($field->required);
-
-        if ($field->kind === 'integer') {
-            $input->integer()->minValue(1)->maxValue(65535);
-        }
-
-        if ($field->kind === 'secret') {
-            $input->password()->revealable()->autocomplete('new-password');
-
-            if (($url = $provider->keysUrl()) !== null) {
-                $input->hintAction(Action::make('getMailKey_'.$provider->value)
+        return [
+            Select::make('chat_kind')
+                ->label('Provider')
+                ->options(collect($this->adapters()->all())->mapWithKeys(fn (ProviderAdapter $adapter): array => [$adapter->kind()->value => $adapter->label()])->all())
+                ->native(false)
+                ->selectablePlaceholder(false)
+                ->helperText(fn (Get $get): ?string => $this->adapter($get('chat_kind'))?->description())
+                ->in(array_map(fn (ProviderAdapter $adapter): string => $adapter->kind()->value, $this->adapters()->all()))
+                ->required()
+                ->live()
+                ->afterStateUpdated(fn () => $this->loadModels()),
+            TextInput::make('chat_base_url')
+                ->label(fn (Get $get): string => $this->adapter($get('chat_kind'))?->defaultBaseUrl() === null ? 'Address' : 'Address (optional)')
+                ->url()
+                ->placeholder(fn (Get $get): string => $this->adapter($get('chat_kind'))?->defaultBaseUrl() ?? 'http://localhost:11434/v1')
+                ->helperText(fn (Get $get): ?string => $this->adapter($get('chat_kind'))?->baseUrlHelp())
+                ->required(fn (Get $get): bool => $this->adapter($get('chat_kind'))?->defaultBaseUrl() === null)
+                ->visible(fn (Get $get): bool => $this->adapter($get('chat_kind'))?->acceptsBaseUrl() ?? false)
+                ->live(onBlur: true)
+                ->afterStateUpdated(fn () => $this->loadModels()),
+            Callout::make(fn (Get $get): string => 'Uses your '.$this->adapter($get('chat_kind'))?->label().' key from the Search step.')
+                ->icon(Heroicon::OutlinedKey)
+                ->info()
+                ->visible(fn (Get $get): bool => $this->reusesSearchKey($get)),
+            TextInput::make('chat_api_key')
+                ->label('API key')
+                ->password()
+                ->revealable()
+                ->autocomplete('new-password')
+                ->required(fn (Get $get): bool => $this->adapter($get('chat_kind'))?->needsApiKey() ?? true)
+                ->helperText(fn (Get $get): string => ($this->adapter($get('chat_kind'))?->needsApiKey() ?? true)
+                    ? 'Stored encrypted. It is never shown again.'
+                    : 'Leave empty when your server has no key.')
+                ->hintAction(fn (Get $get): ?Action => ($url = $this->adapter($get('chat_kind'))?->keysUrl()) === null ? null : Action::make('getKey')
                     ->label('Get a key')
                     ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                     ->iconPosition('after')
-                    ->url($url, shouldOpenInNewTab: true));
-            }
-        }
-
-        return $input;
+                    ->url($url, shouldOpenInNewTab: true))
+                ->visible(fn (Get $get): bool => ! $this->reusesSearchKey($get))
+                ->live(onBlur: true)
+                ->afterStateUpdated(fn () => $this->loadModels()),
+            Callout::make(fn (): ?string => $this->modelListError)
+                ->icon(Heroicon::OutlinedExclamationTriangle)
+                ->color(fn (): string => $this->keyRefused ? 'danger' : 'warning')
+                ->visible(fn (): bool => filled($this->modelListError)),
+            Select::make('chat_model')
+                ->label('Model')
+                ->options(fn (): array => $this->models)
+                ->in(fn (): array => array_keys($this->models))
+                ->searchable()
+                ->required()
+                ->placeholder('Pick a model')
+                ->helperText(fn (): string => count($this->models).' chat models.')
+                ->visible(fn (): bool => $this->models !== []),
+            TextInput::make('chat_model_id')
+                ->label('Model')
+                ->placeholder('For example llama3.1:8b')
+                ->helperText('The model\'s name exactly as your provider writes it.')
+                ->required()
+                ->maxLength(255)
+                ->visible(fn (): bool => $this->models === [] && filled($this->modelListError) && ! $this->keyRefused),
+            Text::make(fn (Get $get): string => ($this->adapter($get('chat_kind'))?->needsApiKey() ?? true)
+                ? 'Type the API key to pick from the provider\'s models.'
+                : 'Type the address (and key, if any) to pick from your server\'s models.')
+                ->color('gray')
+                ->visible(fn (): bool => $this->models === [] && blank($this->modelListError)),
+        ];
     }
 
     public function skipAction(): Action
@@ -457,13 +492,96 @@ class Setup extends SimplePage
             ->modalDescription('Agents cannot answer until an AI model is set up. You can run the setup later from Settings.')
             ->modalSubmitActionLabel('Skip')
             ->action(function (PlatformSettings $settings): void {
-                abort_unless($this->canEdit(), 403);
-
                 $settings->setup_completed_at = now()->toIso8601String();
                 $settings->save();
 
                 $this->redirect(Filament::getUrl());
             });
+    }
+
+    // --- Checks ----------------------------------------------------------------
+
+    /**
+     * The last step's check, on Finish (a wizard runs no step hook there):
+     * the model list loads with the key, unless it already did with what is
+     * typed now, and a model must be picked.
+     */
+    private function checkChatModel(): void
+    {
+        if ($this->loadedFor !== $this->draftFingerprint()) {
+            $this->loadModels();
+        }
+
+        $state = $this->form->getRawState();
+
+        if ($this->keyRefused) {
+            throw ValidationException::withMessages([
+                $this->reusesSearchKey($state) ? 'data.chat_kind' : 'data.chat_api_key' => $this->modelListError,
+            ]);
+        }
+
+        if (blank($state['chat_model'] ?? null) && blank($state['chat_model_id'] ?? null)) {
+            throw ValidationException::withMessages([
+                $this->models !== [] ? 'data.chat_model' : 'data.chat_model_id' => 'Pick the model your agents answer with.',
+            ]);
+        }
+    }
+
+    /**
+     * Embed a short text with the service, model and key typed, as training
+     * a source will. A refused key, an unknown model or a vector of another
+     * size than the database stores stops the step.
+     */
+    private function checkEmbedding(): void
+    {
+        $state = $this->form->getRawState();
+        $provider = EmbeddingProvider::from((string) $state['embedding_provider']);
+        $dimensions = $this->storedDimensions();
+
+        try {
+            $returned = $this->withConfig([
+                $provider->apiKeyConfig() => (string) $state['embedding_api_key'],
+                $provider->modelConfig() => trim((string) $state['embedding_model']),
+            ], fn (): int => count((array) app($provider->providerClass())->embed(self::CHECK_TEXT)));
+        } catch (RequestException $e) {
+            $status = $e->response->status();
+
+            throw ValidationException::withMessages(in_array($status, [401, 403], true)
+                ? ['data.embedding_api_key' => "{$provider->label()} refused the API key. Check that you copied all of it."]
+                : ['data.embedding_model' => "{$provider->label()} could not use this model ({$status}). Check the model's name."]);
+        } catch (ConnectionException) {
+            throw ValidationException::withMessages(['data.embedding_model' => "{$provider->label()} could not be reached. Try again."]);
+        }
+
+        if ($returned !== $dimensions) {
+            throw ValidationException::withMessages(['data.embedding_model' => $returned === 0
+                ? "{$provider->label()} returned no vector. Check the model's name."
+                : "This model returned {$returned} dimensions, but the database stores {$dimensions}. Use a model that returns {$dimensions}."]);
+        }
+    }
+
+    /**
+     * Run a callback with some config values in place (the typed key and
+     * model, which the embedding services read from config), then put the
+     * old values back.
+     *
+     * @template T
+     *
+     * @param  array<string, string>  $values
+     * @param  Closure(): T  $callback
+     * @return T
+     */
+    private function withConfig(array $values, Closure $callback): mixed
+    {
+        $before = array_map(fn (string $key): mixed => config($key), array_combine(array_keys($values), array_keys($values)));
+
+        config($values);
+
+        try {
+            return $callback();
+        } finally {
+            config($before);
+        }
     }
 
     // --- Helpers -------------------------------------------------------------
@@ -481,12 +599,30 @@ class Setup extends SimplePage
         return $kind instanceof LlmProviderEnum && $this->adapters()->has($kind) ? $this->adapters()->for($kind) : null;
     }
 
+    private function embeddingProvider(Get $get): ?EmbeddingProvider
+    {
+        return EmbeddingProvider::tryFrom((string) $get('embedding_provider'));
+    }
+
+    /**
+     * The chat provider's key: its own, or the search key when it is the
+     * same service.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function chatApiKey(array $state): ?string
+    {
+        $key = $this->reusesSearchKey($state) ? $state['embedding_api_key'] : ($state['chat_api_key'] ?? null);
+
+        return filled($key) ? (string) $key : null;
+    }
+
     /** The provider typed so far, unsaved, or null while something is missing. */
     private function draftProvider(): ?LlmProvider
     {
         $state = $this->form->getRawState();
         $adapter = $this->adapter($state['chat_kind'] ?? null);
-        $key = (string) ($state['chat_api_key'] ?? '');
+        $key = (string) $this->chatApiKey($state);
         $url = $adapter?->acceptsBaseUrl() ? (string) ($state['chat_base_url'] ?? '') : '';
 
         if (! $adapter instanceof ProviderAdapter
@@ -509,7 +645,7 @@ class Setup extends SimplePage
     {
         $state = $this->form->getRawState();
 
-        return hash('sha256', implode("\n", [$state['chat_kind'] ?? '', $state['chat_base_url'] ?? '', $state['chat_api_key'] ?? '']));
+        return hash('sha256', implode("\n", [$state['chat_kind'] ?? '', $state['chat_base_url'] ?? '', (string) $this->chatApiKey($state)]));
     }
 
     /** What the provider's list said about a model, while it is cached. */
@@ -526,6 +662,28 @@ class Setup extends SimplePage
     }
 
     /**
+     * An embedding column as the database has it, or null before the first
+     * migration. Every one has the same type: `app:check-embedding-storage`
+     * stops a start otherwise.
+     */
+    private function storedColumn(): ?EmbeddingColumnData
+    {
+        return $this->storedColumn ??= app(StoredEmbeddingColumnsQuery::class)->get()->first();
+    }
+
+    /** The column type as PostgreSQL names it: `halfvec(1024)`. */
+    private function storedColumnType(): string
+    {
+        return $this->storedColumn()->type ?? app(EmbeddingStorage::class)->columnType();
+    }
+
+    /** The vector size the database stores, which an embedding model must return. */
+    private function storedDimensions(): int
+    {
+        return $this->storedColumn()?->dimensions() ?? app(EmbeddingStorage::class)->dimensions();
+    }
+
+    /**
      * The search services that return vectors of the size this install
      * stores (chosen when it was installed).
      *
@@ -539,45 +697,44 @@ class Setup extends SimplePage
         ));
     }
 
-    /**
-     * The search service that shares the chat provider's key (no second key),
-     * else the first that fits.
-     */
-    private function suggestedEmbedding(string $chatKind): ?string
+    /** The search service in use when it fits, else the first that fits. */
+    private function suggestedEmbedding(): ?EmbeddingProvider
     {
         $fitting = $this->fittingEmbeddings();
-        $keyConfig = $this->adapter($chatKind)?->settingsConfig()['api_key'] ?? null;
-        $own = collect($fitting)->first(fn (EmbeddingProvider $provider): bool => $provider->apiKeyConfig() === $keyConfig);
+        $current = EmbeddingProvider::tryFrom((string) config('chatvia.ai.models.embedding'));
 
-        return ($own ?? $fitting[0] ?? null)?->value;
-    }
-
-    /** Whether the search service reads its key from the same setting as the chat provider's. */
-    private function reusesChatKey(Get $get): bool
-    {
-        $embedding = EmbeddingProvider::tryFrom((string) $get('embedding_provider'));
-        $keyConfig = $this->adapter($get('chat_kind'))?->settingsConfig()['api_key'] ?? null;
-
-        return $embedding instanceof EmbeddingProvider && $keyConfig !== null && $embedding->apiKeyConfig() === $keyConfig;
+        return in_array($current, $fitting, true) ? $current : ($fitting[0] ?? null);
     }
 
     /**
-     * @param  array<string, mixed>  $state
+     * The chat provider of the same service as search (Scaleway for Qwen3,
+     * OpenAI, Google Gemini, Mistral), so one key does both; else the first
+     * provider.
      */
-    private function mailData(array $state): ?SetupMailData
+    private function suggestedChatKind(?EmbeddingProvider $embedding): string
     {
-        $provider = MailProvider::tryFrom((string) ($state['mailer'] ?? ''));
+        $adapters = $this->adapters()->all();
+        $same = collect($adapters)->first(fn (ProviderAdapter $adapter): bool => $embedding instanceof EmbeddingProvider
+            && ($adapter->settingsConfig()['api_key'] ?? null) === $embedding->apiKeyConfig());
 
-        if (! $provider instanceof MailProvider || ! $provider->delivers()) {
-            return null;
-        }
+        return ($same ?? $adapters[0])->kind()->value;
+    }
 
-        return new SetupMailData(
-            provider: $provider,
-            fromAddress: (string) $state['from_address'],
-            values: collect($provider->fields())
-                ->mapWithKeys(fn (MailField $field): array => [$field->property => $state[$field->property] ?? null])
-                ->all(),
-        );
+    /**
+     * Whether the chat provider reads its key from the same setting as the
+     * search service typed in the first step, so it reuses that key.
+     *
+     * @param  Get|array<string, mixed>  $state  the form's, inside it or not
+     */
+    private function reusesSearchKey(Get|array $state): bool
+    {
+        $value = fn (string $key): mixed => $state instanceof Get ? $state($key) : ($state[$key] ?? null);
+        $embedding = EmbeddingProvider::tryFrom((string) $value('embedding_provider'));
+        $keyConfig = $this->adapter($value('chat_kind'))?->settingsConfig()['api_key'] ?? null;
+
+        return $embedding instanceof EmbeddingProvider
+            && filled($value('embedding_api_key'))
+            && $keyConfig !== null
+            && $embedding->apiKeyConfig() === $keyConfig;
     }
 }

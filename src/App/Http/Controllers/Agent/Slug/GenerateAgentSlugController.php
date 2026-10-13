@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Agent\Slug;
 
 use Domain\Agent\Services\AgentSlugGenerator;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,12 +12,9 @@ use Illuminate\Http\Request;
  */
 class GenerateAgentSlugController
 {
-    public function __invoke(Request $request, AgentSlugGenerator $generator, TokenUsageContext $usage): JsonResponse
+    public function __invoke(Request $request, AgentSlugGenerator $generator): JsonResponse
     {
-        $name = $usage->track(
-            $request->user()->workspace()->id,
-            fn (): string => $generator->generate(),
-        );
+        $name = $generator->generate();
 
         return response()->json(['name' => $name]);
     }

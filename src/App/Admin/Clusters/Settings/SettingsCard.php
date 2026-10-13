@@ -24,7 +24,10 @@ final class SettingsCard
 
     public ?string $consoleUrl = null;
 
-    /** @var array<string, string> Route name by label: URLs to register with the provider. */
+    /** The link's text, for a page that is not a provider console (a project page). */
+    public ?string $consoleLabel = null;
+
+    /** @var array<string, string|array{0: string, 1: array<string, string>}> Route name (or name and parameters) by label: URLs to register with the provider. */
     public array $callbackRoutes = [];
 
     /** @var (Closure(): string)|null A line about the values in use, shown on the card. */
@@ -32,6 +35,16 @@ final class SettingsCard
 
     /** @var (Closure(): bool)|null */
     public ?Closure $visible = null;
+
+    /** Whether the card starts closed, for options most admins never need. */
+    public bool $collapsed = false;
+
+    /**
+     * The help file behind the card's "?" button, when cards built by one
+     * helper (a provider per card) share it; null uses the card's key. See
+     * {@see AdminSettingsPage::helpOf()}.
+     */
+    public ?string $helpFile = null;
 
     /**
      * @param  Closure(): list<Component>  $fields  The fields of the panel.
@@ -66,15 +79,16 @@ final class SettingsCard
         return $this;
     }
 
-    public function console(?string $url): self
+    public function console(?string $url, ?string $label = null): self
     {
         $this->consoleUrl = $url;
+        $this->consoleLabel = $label;
 
         return $this;
     }
 
     /**
-     * @param  array<string, string>  $routes  Route name by label.
+     * @param  array<string, string|array{0: string, 1: array<string, string>}>  $routes  Route name, or name and parameters, by label.
      */
     public function callbacks(array $routes): self
     {
@@ -99,6 +113,21 @@ final class SettingsCard
     public function visible(Closure $visible): self
     {
         $this->visible = $visible;
+
+        return $this;
+    }
+
+    public function collapsed(bool $collapsed = true): self
+    {
+        $this->collapsed = $collapsed;
+
+        return $this;
+    }
+
+    /** Share one help file between the cards a helper builds, with `{title}` filled in per card. */
+    public function helpFile(string $name): self
+    {
+        $this->helpFile = $name;
 
         return $this;
     }

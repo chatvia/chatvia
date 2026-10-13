@@ -3,6 +3,7 @@
 use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Models\AgentSource;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -16,13 +17,16 @@ use Illuminate\Support\Str;
  */
 function cleanupSourceText(Agent $agent): SourceText
 {
-    return SourceText::create([
-        'workspace_id' => $agent->workspace_id,
-        'filepath' => 'users/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/train/text/'.Str::uuid()->toString().'.txt',
+    $text = new SourceText(['workspace_id' => $agent->workspace_id, 'external_id' => (string) Str::uuid7()]);
+
+    $text->fill([
+        'filepath' => KnowledgeStoragePath::forSource($text).'/'.Str::uuid()->toString().'.txt',
         'excerpt' => 'cleanup',
         'length' => 1,
         'checksum' => md5(Str::uuid()->toString()),
-    ]);
+    ])->save();
+
+    return $text;
 }
 
 it('resolves exclusive source ids from an FQCN', function (): void {
@@ -47,8 +51,16 @@ it('deletes exclusively-owned sources when the agent is deleted, keeps shared on
     $agent->texts()->attach($shared->id);
     $other->texts()->attach($shared->id);
 
+    Storage::put($exclusive->filepath, 'exclusive');
+    Storage::put($shared->filepath, 'shared');
+
     app(DeleteAgentAction::class)->execute($agent);
 
     expect(SourceText::find($exclusive->id))->toBeNull()
         ->and(SourceText::find($shared->id))->not->toBeNull();
+
+    // The shared text was added through the deleted agent, but its file is in
+    // the text's own folder, so the other agent keeps it.
+    Storage::assertMissing($exclusive->filepath);
+    Storage::assertExists($shared->filepath);
 });

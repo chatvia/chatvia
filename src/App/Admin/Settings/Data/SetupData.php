@@ -10,13 +10,13 @@ use Domain\Llm\Enums\LlmProviderEnum;
 use Spatie\LaravelData\Data;
 
 /**
- * What the admin setup of a new install collects: the chat provider (its
- * kind, its own address if any, and key) and the model agents start with, the search
- * (embedding) service and its key, and how email is sent.
+ * What the admin setup of a new install collects: whether knowledge search
+ * is hybrid (meaning plus keywords), the search (embedding) service with its
+ * model and key, then the chat provider (its kind, its own address if any,
+ * and key) and the model agents start with.
  *
  * A null embedding provider keeps the one in use (sources are trained with
- * it already); a null key reuses the chat provider's key for the same
- * service. No mail means email stays as it is.
+ * it already). A null embedding model or key keeps the saved one.
  */
 final class SetupData extends Data
 {
@@ -25,8 +25,9 @@ final class SetupData extends Data
         public ?string $chatBaseUrl,
         public ?string $chatApiKey,
         public RemoteModelData $chatModel,
+        public bool $hybridSearch = true,
         public ?EmbeddingProvider $embeddingProvider = null,
+        public ?string $embeddingModel = null,
         public ?string $embeddingApiKey = null,
-        public ?SetupMailData $mail = null,
     ) {}
 }

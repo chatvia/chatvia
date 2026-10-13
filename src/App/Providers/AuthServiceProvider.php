@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Admin\StaffToolsAccess;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
 use Domain\Agent\Models\Agent;
@@ -17,8 +16,6 @@ use Laravel\Sanctum\Sanctum;
  *
  *  - `access-agent`: may the user work on an agent from the dashboard
  *    ({@see AgentAccessPolicy::canManage()}).
- *  - `viewSpectra` (and Horizon in its own provider): the staff tools, open
- *    only to an admin signed in to the admin panel ({@see StaffToolsAccess}).
  *  - API tokens of a deactivated account stop working.
  */
 class AuthServiceProvider extends ServiceProvider
@@ -53,10 +50,6 @@ class AuthServiceProvider extends ServiceProvider
             'access-agent',
             fn (User $user, Agent $agent): bool => $this->app->make(AgentAccessPolicy::class)->canManage($user, $agent),
         );
-
-        // The web-guard user is ignored on purpose: staff tools need the admin
-        // panel's own session.
-        Gate::define('viewSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
     }
 
     /**

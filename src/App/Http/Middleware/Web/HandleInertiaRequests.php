@@ -4,7 +4,9 @@ namespace App\Http\Middleware\Web;
 
 use App\Http\Auth\BotCheck;
 use App\Http\Middleware\Chat\ChatHandleInertiaRequests;
+use App\Identity\Workspace\Enums\SocialProvider;
 use Domain\Agent\Services\AgentUrlBuilder;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
@@ -39,6 +41,9 @@ class HandleInertiaRequests extends Middleware
             // The Cloudflare Turnstile bot check of the public forms (Settings →
             // Security): its site key and the forms it protects, or null.
             'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),
+            // The sign-in providers whose OAuth app is set up (Settings →
+            // Sign-in): only their buttons are shown.
+            'socialProviders' => fn (): array => array_map(fn (SocialProvider $provider): string => $provider->value, SocialProvider::configured()),
             'auth' => [
                 'user' => $user,
                 // Owner-only areas (workspace, teams) are hidden from teammates;
@@ -65,6 +70,9 @@ class HandleInertiaRequests extends Middleware
             // client fall back to the browser locale. app.ts syncs vue-i18n +
             // document dir/lang from this on every Inertia navigation.
             'locale' => $user?->locale ?? 'auto',
+            // The install's default language (Settings → Platform), used for
+            // `auto` when the browser's language is not one the app has.
+            'defaultLocale' => config('app.locale'),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'schema' => $request->getScheme(),
             'environment' => app()->environment(),
@@ -87,6 +95,15 @@ class HandleInertiaRequests extends Middleware
             'features' => $user ? [
                 'youtube_sources' => (bool) config('chatvia.features.youtube_sources', false),
             ] : [],
+            // The knowledge file types this install accepts (Settings →
+            // Ingestion), each with its extensions, for the upload pages and
+            // the sources menu. An object even when empty.
+            // Whether websites can be imported as knowledge: the import
+            // service is set up (Settings → Ingestion → Firecrawl).
+            'canImportWebsites' => $user && filled(config('services.firecrawl.key')),
+            'knowledgeFileTypes' => $user ? (object) collect(KnowledgeFileType::enabled())
+                ->mapWithKeys(fn (KnowledgeFileType $type): array => [$type->value => $type->extensions()])
+                ->all() : (object) [],
         ];
     }
 

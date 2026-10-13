@@ -6,8 +6,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Ingestion\Actions\Sources\IngestMediaAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Llm\Usage\AttributesTokenUsage;
-use Domain\Llm\Usage\TracksTokenUsage;
 use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -21,9 +19,9 @@ use Throwable;
  * {@see IngestMediaAction}. Long recordings take hours to transcribe, hence the
  * long timeout and the dedicated audio and video queues.
  */
-class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQueue
+class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, InteractsWithQueue, Queueable, SerializesModels, TracksTokenUsage;
+    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public bool $deleteWhenMissingModels = true;
 
@@ -47,11 +45,6 @@ class MediaIngestionJob implements AttributesTokenUsage, ShouldBeUnique, ShouldQ
         }
 
         $action->execute($this->sourceFile, $this->agent, $this->job->getJobId());
-    }
-
-    public function tokenWorkspaceId(): ?int
-    {
-        return $this->sourceFile->workspace_id;
     }
 
     public function uniqueId(): string

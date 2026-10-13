@@ -27,10 +27,11 @@ use Throwable;
  * conversations (their messages, attachment rows and topics go by cascade),
  * then sessions, then leads. Then the knowledge sources no other
  * live agent uses (deleted through their models, so their observers clean
- * chunks and files), the agent's settings rows (`model_settings` has no
- * foreign key), its chat memory in Redis and its storage subtree (knowledge
- * files and chat attachments). The final `forceDelete()` then only cascades
- * small tables.
+ * chunks and wipe each source's own storage folder), the agent's settings
+ * rows (`model_settings` has no foreign key), its chat memory in Redis and its
+ * storage subtree (chat attachments). Knowledge files are never under the
+ * agent's subtree, so a source another agent still uses keeps its files. The
+ * final `forceDelete()` then only cascades small tables.
  *
  * Every step deletes only what is left, so running it again after a failure
  * is safe. The Redis flush and the storage wipe are best-effort: a short
@@ -128,8 +129,8 @@ class PurgeAgentAction
 
     /**
      * The agent's whole storage subtree, keyed entity-first by external id:
-     * knowledge files, audio, websites, text and chunk images on the default
-     * disk, plus chat attachments on the public disk.
+     * chat attachments (public disk) and anything else written for the agent
+     * alone. Knowledge sources live in their own folders, outside this one.
      */
     private function wipeStorage(Agent $agent): void
     {
@@ -138,6 +139,8 @@ class PurgeAgentAction
         try {
             Storage::deleteDirectory($prefix);
             Storage::disk('public')->deleteDirectory($prefix);
+            // Setting images (widget logo, avatar) are on the CDN-backed disk.
+            Storage::disk('assets')->deleteDirectory($prefix);
         } catch (Throwable $e) {
             Log::warning('Agent purge: failed to wipe agent storage subtree.', [
                 'agent_id' => $agent->id,

@@ -11,7 +11,7 @@
 @if (! $loop->first)
 
 @endif
-[{{ $index }}]:
+<source id="{{ $item['id'] }}">
 {!! $item['content'] !!}
 @if ($item['images'] !== [])
 
@@ -20,6 +20,6 @@
 - Image {{ $imageIndex }}: {!! $image['description'] !!}
   Markdown: ![{!! $image['description'] !!}]({!! $image['url'] !!})
 @endforeach
-
 @endif
+</source>
 @endforeach

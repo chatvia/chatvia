@@ -22,7 +22,6 @@ use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
 use Domain\Conversation\Services\Turn\TurnContextFactory;
-use Domain\Llm\Usage\TokenUsageContext;
 use Generator;
 
 /**
@@ -55,7 +54,6 @@ readonly class ChatStreamService
         private ReplaySource $replaySource,
         private RequestDedupeStore $dedupe,
         private ToolApprovalStore $approvalStore,
-        private TokenUsageContext $usage,
         private AgentChatRateLimiter $rateLimiter,
     ) {}
 
@@ -186,12 +184,7 @@ readonly class ChatStreamService
      */
     private function answer(StreamRequestData $data, ?Conversation $conversation): Generator
     {
-        // The query rewrite, the query embedding and the reranking call AI
-        // models: attribute those requests to the workspace.
-        $context = $this->usage->track(
-            $data->agent->workspace_id,
-            fn (): ChatContext => $this->chatService->enrichContextWithKnowledge($this->chatService->initializeChatContext($data)),
-        );
+        $context = $this->chatService->enrichContextWithKnowledge($this->chatService->initializeChatContext($data));
 
         // An input guardrail refused the message: no model call, not counted.
         if ($context->guardBlocked) {

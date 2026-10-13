@@ -1,12 +1,13 @@
 # Chatvia: the whole stack in Docker. Web app, queue workers, scheduler,
-# WebSocket server, text splitter, PostgreSQL (with the search extensions)
-# and Redis.
+# WebSocket server, PostgreSQL (with the search extensions) and Redis.
 #
 #   docker compose up -d          start (the first start sets everything up)
 #   docker compose logs migrate   the first admin's password, on the first start
 #   docker compose ps             show the services and their health
-#   docker compose pull && docker compose up -d     upgrade
 #   docker compose down           stop (data is kept)
+#
+# To upgrade, change CHATVIA_VERSION in .env, then run
+# `docker compose pull && docker compose up -d` (or use ./manage upgrade).
 #
 # Then open http://localhost:8000.
 #
@@ -119,11 +120,7 @@ services:
     command: ["php", "artisan", "horizon"]
     stop_signal: SIGTERM
     stop_grace_period: 60s
-    # The queue workers split text with the chunker.
-    depends_on:
-      <<: *depends-on-migrate
-      chunker:
-        condition: service_healthy
+    depends_on: *depends-on-migrate
     healthcheck:
       test: ["CMD", "healthcheck-horizon"]
       start_period: 30s
@@ -145,16 +142,6 @@ services:
     healthcheck:
       test: ["CMD", "healthcheck-reverb"]
       start_period: 30s
-
-  # The text splitter: the image github.com/chatvia/chunker publishes. It has
-  # its own versions, so it follows CHUNKER_VERSION, not CHATVIA_VERSION. Only
-  # the app's containers reach it, on this network, and it takes no API key
-  # (API_KEY stays unset). Its health check is in its image.
-  chunker:
-    image: ${CHUNKER_IMAGE:-ghcr.io/chatvia/chunker}:${CHUNKER_VERSION:-latest}
-    restart: unless-stopped
-    environment:
-      WORKERS: ${CHUNKER_WORKERS:-2}
 
 volumes:
   storage:

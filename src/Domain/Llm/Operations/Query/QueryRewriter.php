@@ -25,7 +25,8 @@ class QueryRewriter
 
     public function rewrite(string $userQuery, ?string $previousQuery = null): RewrittenQueryData
     {
-        if (config('chatvia.ai.query.rewriter.enabled') === false) {
+        // A preset in .env may read "1" or "true".
+        if (! filter_var(config('chatvia.ai.query.rewriter.enabled'), FILTER_VALIDATE_BOOL)) {
             return RewrittenQueryData::unchanged($userQuery);
         }
 

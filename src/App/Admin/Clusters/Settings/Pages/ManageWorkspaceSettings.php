@@ -8,6 +8,8 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\WorkspaceSettings;
 use BackedEnum;
+use Closure;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -29,7 +31,7 @@ class ManageWorkspaceSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
     #[\Override]
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 10;
 
     public static function description(): string
     {
@@ -57,8 +59,19 @@ class ManageWorkspaceSettings extends AdminSettingsPage
             SettingsCard::make('conversations', 'Conversations', 'How long conversations are kept.', Heroicon::OutlinedClock, fn (): array => [
                 $this->integer('retention_days', 'Days to keep conversations',
                     help: 'Older conversations are deleted. A workspace can choose fewer days in its security settings.', min: 1),
-                $this->integer('retention_floor_days', 'Fewest days a workspace may choose', min: 1),
+                $this->integer('retention_floor_days', 'Fewest days a workspace may choose', min: 1)
+                    // A floor above the days would leave a workspace no value to choose.
+                    ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                        if (is_numeric($value) && (int) $value > $this->retentionDays($get)) {
+                            $fail('The fewest days cannot be more than the days to keep conversations.');
+                        }
+                    }),
             ])->summary(fn (): string => 'Kept '.$this->valueInUse('retention_days').' days'),
         ];
+    }
+
+    private function retentionDays(Get $get): int
+    {
+        return (int) (WorkspaceSettings::cast('retention_days', $get('retention_days')) ?? $this->defaultValue('retention_days'));
     }
 }

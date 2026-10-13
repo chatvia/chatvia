@@ -55,6 +55,9 @@ export interface SharedData extends PageProps {
     // The Cloudflare Turnstile bot check of the public forms (Settings →
     // Security), or null while it is not set up. Read through useBotCheck().
     turnstile: { site_key: string; forms: string[] } | null;
+    // The sign-in providers whose OAuth app is set up (Settings → Sign-in).
+    // Read through useSocialProviders().
+    socialProviders?: string[];
     quote: { message: string; author: string };
     auth: Auth;
     // The matched route's name and raw parameters, shared by the server for
@@ -67,9 +70,18 @@ export interface SharedData extends PageProps {
     currentTeam: CurrentTeam | null;
     // Persisted UI language for the signed-in user (`auto` follows the browser).
     locale?: string;
+    // The install's default language (Settings → Platform), for `auto` when
+    // the browser's language is not supported.
+    defaultLocale?: string;
     // Install-wide switches for unfinished features (`chatvia.features`), keyed
     // by name (e.g. `youtube_sources`). Read them through `useFeature()`.
     features: Record<string, boolean>;
+    // The knowledge file types this install accepts (admin Settings →
+    // Ingestion), each with its extensions. Read through useKnowledgeFileTypes().
+    knowledgeFileTypes: Partial<Record<Domain.Knowledge.Source.File.Enums.KnowledgeFileType, string[]>>;
+    // Whether websites can be imported as knowledge (Settings → Ingestion →
+    // Firecrawl is set up).
+    canImportWebsites?: boolean;
 
     // Where every agent's hosted chat lives (`{chatBaseUrl}/{slug}`).
     chatBaseUrl: string;

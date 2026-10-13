@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
-const { brand } = useBrand();
+const { brand, apiDocsUrl } = useBrand();
 
 const isCurrentRoute = computed(() => (url: string) => {
     const currentUrl = page.url;
@@ -119,7 +119,7 @@ const rightNavItems = computed<NavItem[]>(() => {
 
     items.push({
         title: t('app.header.api'),
-        href: '/docs/api',
+        href: apiDocsUrl(),
         icon: Code2,
     });
 

@@ -1040,9 +1040,9 @@
                 "record_description": "Записывайте аудио прямо с микрофона, чтобы добавить его в базу знаний агента"
             },
             "files": {
-                "uploader_description_audio": "Загружайте аудиофайлы для транскрипции. Поддерживаемые форматы: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR и 3GP. Ограничение размера файла: 200 МБ.",
-                "uploader_description_video": "Загружайте видеофайлы для транскрипции. Поддерживаемые форматы: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime и 3GPP. Ограничение размера файла: 200 МБ.",
-                "uploader_description_default": "Документы: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), EPUB, RTF, ODT, XML/DocBook, BibTeX (.bib), FictionBook (.fb2), Jupyter (.ipynb), JATS XML, LaTeX (.tex), OPML, Troff (.1, .man). Изображения: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Максимум 50 МБ на файл.",
+                "uploader_description_audio": "Загрузите аудиофайлы для расшифровки. Поддерживаемые форматы: {formats}. Макс. {size} МБ на файл.",
+                "uploader_description_video": "Загрузите видеофайлы для расшифровки. Поддерживаемые форматы: {formats}. Макс. {size} МБ на файл.",
+                "uploader_description_default": "Поддерживаемые форматы: {formats}. Макс. {size} МБ на файл.",
                 "type_unknown": "Неизвестно",
                 "minutes_count": "{count} минута | {count} минут",
                 "pages_count": "{count} страница | {count} страниц",
@@ -1062,6 +1062,7 @@
                 "upload_title_video": "Загрузить видеофайлы",
                 "upload_title_default": "Загрузить новые документы",
                 "uploads_disabled": "Загрузка файлов недоступна во время обучения",
+                "uploads_off": "Администратор отключил загрузку файлов этих типов.",
                 "ready_to_train": "Готово к обучению",
                 "uploaded_ready": "{count} файл загружен и готов к обучению | {count} файлов загружено и готовы к обучению",
                 "clear_all": "Очистить всё",

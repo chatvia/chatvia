@@ -7,8 +7,8 @@ namespace Domain\Conversation\Data\Turn;
 use Spatie\LaravelData\Data;
 
 /**
- * A curated Q&A entry whose question phrase matched the visitor's message
- * exactly. Its answer is sent as-is, with no LLM call.
+ * A curated Q&A entry with a question that matched the visitor's message as
+ * a whole. Its answer is sent as-is, with no LLM call.
  */
 class QaMatchData extends Data
 {
@@ -17,5 +17,6 @@ class QaMatchData extends Data
         public ?string $questions,
         public string $answer,
         public float $confidenceScore,
+        public string $title = '',
     ) {}
 }

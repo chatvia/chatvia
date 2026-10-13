@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
@@ -23,9 +24,10 @@ use Illuminate\Support\Facades\Http;
  */
 function trainUrlFakes(array $chunks): void
 {
+    // Web pages are scraped as Markdown, so they are split as Markdown.
     $splitter = test()->mock(TextSplitter::class);
-    $splitter->shouldReceive('split')->andReturn($chunks);
-    $splitter->shouldReceive('name')->andReturn('chunkfit');
+    $splitter->shouldReceive('split')->with(Mockery::type('string'), ContentKind::Markdown)->andReturn($chunks);
+    $splitter->shouldReceive('name')->andReturn('builtin');
 
     app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
     {
@@ -58,7 +60,7 @@ function trainUrlFakes(array $chunks): void
     });
 }
 
-function trainUrlFixture(): array
+function trainUrlFixture(array $metadata = []): array
 {
     $agent = Agent::factory()->create();
 
@@ -75,7 +77,7 @@ function trainUrlFixture(): array
     config()->set('services.firecrawl.key', 'fc-test');
     Http::fake(['https://firecrawl.test/v2/scrape' => Http::response([
         'success' => true,
-        'data' => ['markdown' => '# Page'.PHP_EOL.'Some content about the product.', 'metadata' => []],
+        'data' => ['markdown' => '# Page'.PHP_EOL.'Some content about the product.', 'metadata' => $metadata],
     ], 200)]);
 
     return [$agent, $website, $url];
@@ -149,7 +151,7 @@ it('keeps the index a shared part got when it was first stored', function (): vo
     $other = $website->urls()->create(['url' => 'https://docs.example.test/other']);
     test()->mock(TextSplitter::class, function ($splitter): void {
         $splitter->shouldReceive('split')->andReturn(['Shared footer.']);
-        $splitter->shouldReceive('name')->andReturn('chunkfit');
+        $splitter->shouldReceive('name')->andReturn('builtin');
     });
 
     app(TrainWebsiteUrlAction::class)->execute($other, $agent);
@@ -174,7 +176,7 @@ it('drops the parts a changed page no longer has and deletes the chunks no page 
     // The page changed: it splits into other parts now.
     test()->mock(TextSplitter::class, function ($splitter): void {
         $splitter->shouldReceive('split')->andReturn(['Shared part.', 'New part.']);
-        $splitter->shouldReceive('name')->andReturn('chunkfit');
+        $splitter->shouldReceive('name')->andReturn('builtin');
     });
     $url->update(['checksum' => null]);
     Cache::flush();
@@ -195,3 +197,38 @@ it('reports the website progress it is given', function (): void {
 
     Event::assertDispatched(WebsiteIngestionProgressed::class, fn (WebsiteIngestionProgressed $event): bool => $event->broadcastWith()['progress'] === 50);
 });
+
+it('trains an unchanged page again once the chunk settings change', function (array $change): void {
+    trainUrlFakes(['First chunk of the page.']);
+    [$agent, $website, $url] = trainUrlFixture();
+    config(['chatvia.ai.chunking' => ['unit' => 'tokens', 'size' => 400, 'overlap' => 0, 'strategies' => ['markdown' => 'markdown']]]);
+
+    app(TrainWebsiteUrlAction::class)->execute($url, $agent);
+    $first = $url->fresh()->checksum;
+
+    // Same page, same settings: skipped, the checksum stays.
+    app(TrainWebsiteUrlAction::class)->execute($url->fresh(), $agent);
+    expect($url->fresh()->checksum)->toBe($first);
+
+    config($change);
+    app(TrainWebsiteUrlAction::class)->execute($url->fresh(), $agent);
+
+    expect($url->fresh()->checksum)->not->toBe($first);
+})->with([
+    'the size' => [['chatvia.ai.chunking.size' => 800]],
+    'the unit' => [['chatvia.ai.chunking.unit' => 'characters']],
+    'the strategy' => [['chatvia.ai.chunking.strategies.markdown' => 'recursive']],
+]);
+
+it('keeps the page title FireCrawl found, to name the page as a source', function (array $metadata, ?string $title): void {
+    trainUrlFakes(['First chunk of the page.']);
+    [$agent, $website, $url] = trainUrlFixture($metadata);
+
+    app(TrainWebsiteUrlAction::class)->execute($url, $agent);
+
+    expect($url->fresh()->title)->toBe($title);
+})->with([
+    'the page title' => [['title' => ' Returns and refunds ', 'ogTitle' => 'OG title'], 'Returns and refunds'],
+    'the Open Graph title' => [['ogTitle' => 'OG title'], 'OG title'],
+    'none' => [[], null],
+]);

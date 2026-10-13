@@ -22,6 +22,8 @@ final class RetrievalSettingsData extends Data
         public ?float $relevanceThreshold,
         /** SQL time (ms) from which a search is logged as slow; 0 turns it off. */
         public int $slowLogMs,
+        /** Agents with at most this many chunks are searched exactly; 0 never. */
+        public int $exactMaxChunks,
     ) {}
 
     public static function fromConfig(): self
@@ -31,19 +33,21 @@ final class RetrievalSettingsData extends Data
         return new self(
             accuracy: (string) config('chatvia.vector.search.mode', 'default'),
             maxChunks: (int) config('chatvia.vector.search.max_chunks', 3),
-            rerank: (bool) config('chatvia.vector.search.rerank', false),
+            rerank: (bool) config('chatvia.vector.search.rerank', true),
             rerankCandidates: (int) config('chatvia.vector.search.rerank_candidates', 12),
             relevanceThreshold: $relevanceThreshold !== null ? (float) $relevanceThreshold : null,
             slowLogMs: (int) config('chatvia.vector.search.slow_log_ms', 2000),
+            exactMaxChunks: (int) config('chatvia.vector.search.exact_max_chunks', 10_000),
         );
     }
 
     /**
      * How many candidates the SQL returns: enough for the reranker to choose
-     * from, or twice the result count without one.
+     * from (never fewer than the results asked for, Settings → Search), or
+     * twice the result count without one.
      */
     public function candidateLimit(): int
     {
-        return $this->rerank ? $this->rerankCandidates : $this->maxChunks * 2;
+        return $this->rerank ? max($this->rerankCandidates, $this->maxChunks) : $this->maxChunks * 2;
     }
 }

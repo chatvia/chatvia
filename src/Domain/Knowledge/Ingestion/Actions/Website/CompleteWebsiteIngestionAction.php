@@ -3,6 +3,7 @@
 namespace Domain\Knowledge\Ingestion\Actions\Website;
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Enums\ChunkEnhancement;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
@@ -19,8 +20,9 @@ use RuntimeException;
  * step of the batch, so also after failures).
  *
  * It marks the website as ingested, saves all its page chunks as one text file
- * (the document the summary step reads), queues the summary when enhancement
- * is on, and pushes the final state to the Web sources page.
+ * in the website's storage folder (the document the summary step reads; the
+ * previous document of a retrain is deleted), queues the summary when
+ * enhancement is on, and pushes the final state to the Web sources page.
  *
  * `expected_chunks` starts as the number of URLs (a progress placeholder) and
  * each page adds its real chunk count, so the URL count is subtracted here.
@@ -45,13 +47,18 @@ class CompleteWebsiteIngestionAction
 
         $website->refresh();
 
-        $filePath = KnowledgeStoragePath::forAgent($agent, 'websites/'.$website->id).'/'.Str::uuid()->toString().'.txt';
+        $previousPath = $website->filepath;
+        $filePath = KnowledgeStoragePath::forSource($website).'/'.Str::uuid()->toString().'.txt';
 
         $this->writeDocument($website, $filePath);
 
         $website->update(['filepath' => $filePath]);
 
-        SummaryIngestionJob::dispatchIf(config('chatvia.ai.chunker.enhance') === true, $website);
+        if ($previousPath !== null && $previousPath !== $filePath) {
+            Storage::delete($previousPath);
+        }
+
+        SummaryIngestionJob::dispatchIf(ChunkEnhancement::for($website)->summarizes(), $website);
 
         WebsiteIngestionProgressed::dispatch($website, $agent->external_id);
         WebsiteCrawlStarted::dispatch($website, $agent->external_id);

@@ -12,6 +12,7 @@ use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -128,7 +129,7 @@ it('reads the context size a vLLM server lists', function (): void {
 it('fails on a refused key', function (): void {
     Http::fake(['*' => Http::response(['error' => 'unauthorized'], 401)]);
 
-    expect(fn () => adapterFor(LlmProviderEnum::OPENAI)->models(LlmProvider::factory()->kind(LlmProviderEnum::OPENAI)->make()))
+    expect(fn (): Collection => adapterFor(LlmProviderEnum::OPENAI)->models(LlmProvider::factory()->kind(LlmProviderEnum::OPENAI)->make()))
         ->toThrow(RequestException::class);
 });
 

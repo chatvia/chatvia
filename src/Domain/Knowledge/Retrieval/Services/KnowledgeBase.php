@@ -3,15 +3,13 @@
 namespace Domain\Knowledge\Retrieval\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Agent\Models\AgentSource;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
-use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
+use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -23,13 +21,14 @@ use Throwable;
  *
  *   1. embed the query (cached per query and model);
  *   2. run the four-channel hybrid SQL ({@see HybridChunkSearch}) for a pool
- *      of candidates;
+ *      of candidates: exactly over the agent's own chunks when it has few,
+ *      through the vector and BM25 indexes when it has many;
  *   3. narrow the pool to `max_chunks`: with a reranker, keep the candidates
  *      that pass its relevance threshold; without one (or when it fails), keep
  *      the SQL ranking.
  *
- * Results carry a display confidence from their final rank, and the retrieval
- * counters of their sources are bumped off the request path.
+ * Each result carries the relevance its check gave it (null when none ran),
+ * and its text as the model reads it ({@see RetrievalScoring::plainText()}).
  */
 class KnowledgeBase
 {
@@ -44,15 +43,17 @@ class KnowledgeBase
      */
     public function search(Agent $agent, string $query): array
     {
-        // An agent with no sources can never match the EXISTS filter of any
-        // channel, so skip the (possibly cold) query embedding and the scan.
-        // agent_id leads the agent_sources primary key: an index seek.
-        if (! AgentSource::query()->where('agent_id', $agent->id)->exists()) {
-            return [];
-        }
-
         $settings = RetrievalSettingsData::fromConfig();
         $searchStart = microtime(true);
+
+        // A bounded count of the agent's chunks picks the search path. An
+        // agent with none (no sources, or none ingested yet) skips the
+        // (possibly cold) query embedding and the search.
+        $scope = $this->hybridSearch->scope($agent, $settings->exactMaxChunks);
+
+        if ($scope === ChunkSearchScope::None) {
+            return [];
+        }
 
         // Query embeddings follow the provider's query conventions (for
         // example Qwen3's instruction prefix), unlike document embeddings, and
@@ -62,7 +63,7 @@ class KnowledgeBase
         $embedMs = $this->elapsedMs($embedStart);
 
         $sqlStart = microtime(true);
-        $candidates = $this->candidates($agent, $query, $queryVector, $settings);
+        $candidates = $this->hybridSearch->search($agent, $query, $queryVector, $settings->candidateLimit(), $scope, $settings->accuracy);
         $sqlMs = $this->elapsedMs($sqlStart);
 
         $reranked = false;
@@ -70,13 +71,9 @@ class KnowledgeBase
         $results = [];
 
         if ($candidates !== []) {
-            // Only source references go on the queue — never chunk text, which
-            // is customer content and would sit in Redis.
-            UpdateRetrievalStatsJob::dispatch($this->sourceReferences($candidates), $agent->id);
-
             $rerankStart = microtime(true);
             $reranked = $this->shouldRerank($candidates, $settings);
-            $results = $this->scored($reranked
+            $results = $this->readable($reranked
                 ? $this->rerank($query, $candidates, $settings)
                 : array_slice($candidates, 0, $settings->maxChunks));
             $rerankMs = $this->elapsedMs($rerankStart);
@@ -86,6 +83,7 @@ class KnowledgeBase
             'agent_id' => $agent->id,
             'query_chars' => strlen($query),
             'accuracy' => $settings->accuracy,
+            'scope' => $scope->value,
             'candidate_limit' => $settings->candidateLimit(),
             'candidates' => count($candidates),
             'returned' => count($results),
@@ -94,24 +92,14 @@ class KnowledgeBase
             'sql_ms' => round($sqlMs, 2),
             'rerank_ms' => round($rerankMs, 2),
             'total_ms' => round($this->elapsedMs($searchStart), 2),
+            'results' => array_map(static fn (RetrievedChunkData $result): array => [
+                'chunk_id' => $result->id,
+                'search_type' => $result->search_type,
+                'relevance' => $result->relevance,
+            ], $results),
         ], $sqlMs);
 
         return $results;
-    }
-
-    /**
-     * The hybrid SQL, in a transaction because `SET LOCAL` needs one: the
-     * vchordrq settings must not leak to the next user of a pooled connection.
-     *
-     * @return list<RetrievedChunkData>
-     */
-    private function candidates(Agent $agent, string $query, string $queryVector, RetrievalSettingsData $settings): array
-    {
-        return DB::transaction(function () use ($agent, $query, $queryVector, $settings): array {
-            $this->hybridSearch->configureAccuracy($settings->accuracy, (array) config('chatvia.vector', []));
-
-            return $this->hybridSearch->search($agent, $query, $queryVector, $settings->candidateLimit());
-        });
     }
 
     /**
@@ -137,7 +125,9 @@ class KnowledgeBase
     private function rerank(string $query, array $candidates, RetrievalSettingsData $settings): array
     {
         try {
-            $ranked = $this->reranker->rerank($query, array_map(static fn (RetrievedChunkData $chunk): string => $chunk->chunk, $candidates));
+            // Score every candidate: a reranker's own default cap (Qwen3's is 3)
+            // must not cut below the results asked for, or the threshold.
+            $ranked = $this->reranker->rerank($query, array_map(static fn (RetrievedChunkData $chunk): string => $chunk->chunk, $candidates), count($candidates));
         } catch (Throwable $e) {
             report($e);
 
@@ -149,50 +139,24 @@ class KnowledgeBase
             static fn (RerankedDocumentData $item): bool => $settings->relevanceThreshold === null || $item->relevanceScore >= $settings->relevanceThreshold,
         );
 
-        return array_map(
-            static fn (RerankedDocumentData $item): RetrievedChunkData => $candidates[$item->index]->withRerankScore($item->relevanceScore),
-            array_slice(array_values($kept), 0, $settings->maxChunks),
-        );
+        return $kept
+                |> array_values(...)
+                |> (fn ($x): array => array_slice($x, 0, $settings->maxChunks))
+                |> (fn ($x): array => array_map(static fn (RerankedDocumentData $item): RetrievedChunkData => $candidates[$item->index]->withRelevance($item->relevanceScore), $x));
     }
 
     /**
-     * Strip XML/HTML from each chunk and give it a display confidence from its
-     * rank: the RRF score itself is a small number (~0.01–0.07) that means
-     * little to a reader.
+     * The results as the model reads them: tag markup removed, text kept.
      *
      * @param  list<RetrievedChunkData>  $results
      * @return list<RetrievedChunkData>
      */
-    private function scored(array $results): array
+    private function readable(array $results): array
     {
-        $total = count($results);
-
         return array_map(
-            static fn (RetrievedChunkData $result, int $rank): RetrievedChunkData => $result->scored(
-                RetrievalScoring::stripXmlTags($result->chunk),
-                RetrievalScoring::confidenceScore($rank, $total),
-            ),
+            static fn (RetrievedChunkData $result): RetrievedChunkData => $result->withText(RetrievalScoring::plainText($result->chunk)),
             $results,
-            array_keys($results),
         );
-    }
-
-    /**
-     * The distinct sources behind the results — all the stats job needs.
-     *
-     * @param  list<RetrievedChunkData>  $results
-     * @return list<array{chunkable_type: string, chunkable_id: int}>
-     */
-    private function sourceReferences(array $results): array
-    {
-        return collect($results)
-            ->map(static fn (RetrievedChunkData $result): array => [
-                'chunkable_type' => $result->chunkable_type,
-                'chunkable_id' => $result->chunkable_id,
-            ])
-            ->unique(static fn (array $reference): string => $reference['chunkable_type'].':'.$reference['chunkable_id'])
-            ->values()
-            ->all();
     }
 
     /**

@@ -4,8 +4,7 @@ name: Docker image
 # it to the GitHub Container Registry, next to this repository. The tag v1.4.2
 # publishes ghcr.io/<owner>/<repo>:1.4.2, :1.4, :1 and :latest. A pre-release
 # tag (v1.5.0-rc.1) only publishes its own version. The image is built only
-# after the test suite passes. The stack's text splitter is not built here:
-# github.com/chatvia/chunker publishes its own image, ghcr.io/chatvia/chunker.
+# after the test suite passes.
 #
 # No secrets to set up: the job signs in with the workflow's own GITHUB_TOKEN.
 # The first push from a private repository creates a private package; make it

@@ -1042,9 +1042,9 @@
                 "record_description": "Record audio directly from your microphone to add to your agent's knowledge base"
             },
             "files": {
-                "uploader_description_audio": "Upload audio files for transcription. Supported formats: MP3, M4A, WAV, OGG, WebM, FLAC, AAC, WMA, AMR, and 3GP. File size limit: 200 MB.",
-                "uploader_description_video": "Upload video files for transcription. Supported formats: MP4, AVI, MOV, WMV, FLV, WebM, MKV, QuickTime, and 3GPP. File size limit: 200 MB.",
-                "uploader_description_default": "Documents: PDF, Word (.docx, .doc), PowerPoint (.pptx, .ppt), Excel (.xlsx, .csv), Text (.txt), Markdown (.md), RTF, EPUB, FictionBook (.fb2). Images: JPEG, PNG, AVIF, TIFF, GIF, HEIC/HEIF, BMP, WebP. Max 50 MB per file.",
+                "uploader_description_audio": "Upload audio files for transcription. Supported formats: {formats}. Max {size} MB per file.",
+                "uploader_description_video": "Upload video files for transcription. Supported formats: {formats}. Max {size} MB per file.",
+                "uploader_description_default": "Supported formats: {formats}. Max {size} MB per file.",
                 "type_unknown": "Unknown",
                 "minutes_count": "{count} minute | {count} minutes",
                 "pages_count": "{count} page | {count} pages",
@@ -1105,7 +1105,8 @@
                 "summary_formatting": "Formatting Elements",
                 "summary_sensitive_title": "Sensitive Information Detected",
                 "summary_sensitive_description": "This document may contain sensitive or confidential information.",
-                "summary_empty": "No summary data available for this file."
+                "summary_empty": "No summary data available for this file.",
+                "uploads_off": "The administrator turned off uploads of these file types."
             },
             "text": {
                 "load_failed": "Failed to load text entry",

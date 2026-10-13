@@ -10,6 +10,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -52,6 +53,7 @@ use Support\Concerns\HasExternalId;
  * @property-read Conversation|null $conversation
  * @property-read Llm|null $llm
  * @property-read AgentQuestionAnswer|null $questionAnswer
+ * @property-read Collection<int, MessageSource> $sources
  *
  * @method static \Database\Factories\MessageFactory factory($count = null, $state = [])
  * @method static MessageQueryBuilder<static>|Message forAgentConversation(int $agentId, int $conversationId)
@@ -132,6 +134,16 @@ class Message extends Model
             'completion_tokens' => 'integer',
             'cost_in_micro_cents' => 'integer',
         ];
+    }
+
+    /**
+     * The knowledge this answer was given, best first.
+     *
+     * @return HasMany<MessageSource, $this>
+     */
+    public function sources(): HasMany
+    {
+        return $this->hasMany(MessageSource::class, 'chat_message_id')->orderBy('rank');
     }
 
     /**

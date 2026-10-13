@@ -17,4 +17,14 @@ class NullTranscriber implements Transcriber
     {
         throw new TranscriptionNotConfiguredException;
     }
+
+    public function isEnabled(): bool
+    {
+        return false;
+    }
+
+    public function name(): string
+    {
+        return 'none';
+    }
 }

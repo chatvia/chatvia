@@ -11,7 +11,9 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Web\Actions\Crawl\CrawlWebsiteAction;
+use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Actions\Source\RecrawlSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Actions\Source\RetrainSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Actions\Url\DeleteAgentWebsiteUrlsAction;
@@ -184,10 +186,33 @@ it('finishes a website: ingested, text file saved, URL placeholders taken off th
 
     expect($website->status)->toBe(SourceStatus::Completed)
         ->and($website->expected_chunks)->toBe(1)
+        ->and($website->filepath)->toStartWith(KnowledgeStoragePath::forSource($website).'/')
         ->and(Storage::get($website->filepath))->toBe('First part of the page.');
 
     Bus::assertDispatched(SummaryIngestionJob::class);
     Event::assertDispatched(WebsiteIngestionProgressed::class);
+});
+
+it('replaces the website document on a retrain, and deleting the website removes its folder', function (): void {
+    Storage::fake();
+
+    $agent = Agent::factory()->create();
+    $website = wsaWebsite($agent, 'ingesting');
+    $url = $website->urls()->create(['url' => 'https://docs.example.test/a']);
+    wsaChunk($website, 'First part of the page.', [$url]);
+
+    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
+    $first = $website->fresh()->filepath;
+
+    app(CompleteWebsiteIngestionAction::class)->execute($website, $agent);
+    $second = $website->fresh()->filepath;
+
+    expect($second)->not->toBe($first)
+        ->and(Storage::allFiles())->toBe([$second]);
+
+    app(DeleteSourceWebsiteAction::class)->execute($website->fresh());
+
+    expect(Storage::allFiles())->toBe([]);
 });
 
 it('writes a large website document in chunk_index order, batch after batch', function (): void {

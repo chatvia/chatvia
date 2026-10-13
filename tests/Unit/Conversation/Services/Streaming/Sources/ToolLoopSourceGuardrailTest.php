@@ -27,7 +27,6 @@ use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmProviders;
-use Domain\Llm\Usage\TokenUsageContext;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -118,7 +117,6 @@ function tlsRunner(Closure $scripted): ToolLoopRunner
             ChatContext $context,
             LlmProviderInterface $provider,
             string $modelName,
-            string $providerSlug,
             array &$llmMessages,
             array $toolDefinitions,
             array $extraSettings = [],
@@ -169,7 +167,7 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
     $replyRecorder = tlsReplyRecorder();
     $recorder = tlsRecorder();
 
-    $shared = [$replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder, app(TokenUsageContext::class)];
+    $shared = [$replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), $recorder];
 
     $events = match ($source) {
         'pdf' => new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
@@ -235,7 +233,7 @@ it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF
         throw new RuntimeException('The tool loop must not run without a document LLM.');
     });
 
-    $source = new PdfSource(new DocumentLlm(null), $replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), tlsRecorder(), app(TokenUsageContext::class));
+    $source = new PdfSource(new DocumentLlm(null), $replyRecorder, new RequestDedupeStore, tlsToolSelector(), $runner, tlsGuard(), tlsRecorder());
     $events = iterator_to_array($source->events($context, [['role' => 'user', 'content' => 'Hello']], collect()), false);
 
     expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Error, EventType::Done])

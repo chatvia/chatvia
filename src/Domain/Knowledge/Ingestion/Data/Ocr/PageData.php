@@ -44,6 +44,21 @@ final class PageData extends Data
         return collect($pages)->map(fn ($page): PageData => new PageData(...$page));
     }
 
+    /**
+     * The parts of a split text as pages, numbered from 1 in reading order.
+     *
+     * @param  list<string>  $parts
+     * @return list<self>
+     */
+    public static function fromParts(array $parts): array
+    {
+        return array_map(static fn (string $part, int $index): self => new self(
+            pageNumber: $index + 1,
+            content: $part,
+            checksum: hash('sha256', $part),
+        ), $parts, array_keys($parts));
+    }
+
     /** The same page without its images, tables and links. */
     public function withoutMedia(): self
     {

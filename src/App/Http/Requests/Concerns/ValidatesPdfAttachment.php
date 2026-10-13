@@ -33,7 +33,7 @@ trait ValidatesPdfAttachment
                 'file',
                 'mimes:pdf',
                 'mimetypes:application/pdf',
-                'max:25600', // 25 MB — chat attachments rarely need more.
+                'max:'.$this->maxFileSizeInKb(),
                 new MaxConversationAttachments(
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
                     max: (int) config('chatvia.agent.files.upload.max_files'),
@@ -54,7 +54,13 @@ trait ValidatesPdfAttachment
             'file.required' => __('No file was uploaded.'),
             'file.mimes' => __('Only PDF files are supported right now.'),
             'file.mimetypes' => __('Only PDF files are supported right now.'),
-            'file.max' => __('File is too large — the limit is 25 MB.'),
+            'file.max' => __('File is too large — the limit is :size MB.', ['size' => (int) round($this->maxFileSizeInKb() / 1024)]),
         ];
+    }
+
+    /** The largest chat attachment, in KB (`chatvia.agent.files.upload.max_file_size_in_kb`). */
+    private function maxFileSizeInKb(): int
+    {
+        return (int) config('chatvia.agent.files.upload.max_file_size_in_kb');
     }
 }

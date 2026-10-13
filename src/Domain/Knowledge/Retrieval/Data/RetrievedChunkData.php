@@ -7,7 +7,7 @@ use stdClass;
 
 /**
  * One chunk found by the knowledge-base search, with how it was found and how
- * much to trust it.
+ * relevant the relevance check found it.
  *
  * Property names follow the `chunks` columns (snake_case) because callers read
  * the search results by those names. `metadata` stays the JSON text the column
@@ -29,10 +29,11 @@ final class RetrievedChunkData extends Data
         public string $search_type,
         /** The fused Reciprocal Rank Fusion score; small positive numbers, higher is better. */
         public float $score,
-        /** Display confidence from the final rank (0.99 for the best, down to 0.50). */
-        public ?float $confidence_score = null,
-        /** The reranker's relevance score, when a reranker ordered the results. */
-        public ?float $rerank_score = null,
+        /**
+         * How relevant the relevance check found the chunk, 0..1: the
+         * reranker's score, or the similarity check's. Null when no check ran.
+         */
+        public ?float $relevance = null,
     ) {}
 
     /**
@@ -65,23 +66,19 @@ final class RetrievedChunkData extends Data
         return is_array($metadata['images'] ?? null) ? $metadata['images'] : [];
     }
 
-    public function withRerankScore(float $score): self
+    public function withRelevance(float $relevance): self
     {
         $copy = clone $this;
-        $copy->rerank_score = $score;
+        $copy->relevance = $relevance;
 
         return $copy;
     }
 
-    /**
-     * The result as the model sees it: XML/HTML stripped from the text and the
-     * display confidence for its final rank.
-     */
-    public function scored(string $chunk, float $confidence): self
+    /** The same chunk with other text, such as the text the model reads. */
+    public function withText(string $chunk): self
     {
         $copy = clone $this;
         $copy->chunk = $chunk;
-        $copy->confidence_score = $confidence;
 
         return $copy;
     }

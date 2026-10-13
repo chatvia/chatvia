@@ -15,7 +15,9 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
  * for document pages — with the neighbouring pages and the page's images and
  * tables. Text sources follow `chatvia.ai.chunker.enhance_text` (on by
  * default, they are short); files and websites follow
- * `chatvia.ai.chunker.enhance` (off by default).
+ * `chatvia.ai.chunker.enhance` (off by default). The same switch decides the
+ * summary of the whole source, so with both off ingestion makes no model
+ * calls.
  */
 enum ChunkEnhancement
 {
@@ -28,11 +30,12 @@ enum ChunkEnhancement
 
     public static function for(SourceFile|SourceText|SourceWebsite $source): self
     {
+        // A preset in .env may read "1" or "true".
         if ($source instanceof SourceText) {
-            return config('chatvia.ai.chunker.enhance_text') === true ? self::Text : self::Off;
+            return filter_var(config('chatvia.ai.chunker.enhance_text'), FILTER_VALIDATE_BOOL) ? self::Text : self::Off;
         }
 
-        if (config('chatvia.ai.chunker.enhance') !== true) {
+        if (! filter_var(config('chatvia.ai.chunker.enhance'), FILTER_VALIDATE_BOOL)) {
             return self::Off;
         }
 
@@ -48,6 +51,12 @@ enum ChunkEnhancement
     public function pagesPerJob(): int
     {
         return $this === self::Off ? self::PLAIN_PAGES_PER_JOB : 1;
+    }
+
+    /** Whether the source also gets a summary of the whole of it (a model call). */
+    public function summarizes(): bool
+    {
+        return $this !== self::Off;
     }
 
     /** Whether the page's images and tables are needed (they are described). */

@@ -207,12 +207,22 @@ RUN set -eux; \
     ln -sfn /var/www/chatvia/storage/app/public public/storage; \
     rm -rf storage/framework/views/* storage/logs/*
 
+# OPcache: the code never changes inside a container, so the base image
+# already skips the file checks (validate_timestamps=0). Room for every PHP
+# file of the app and its packages (about 30,000), and the tracing JIT for
+# the CPU work of the queue workers and the WebSocket server (the CLI uses
+# OPcache too). An FPM worker is replaced after 500 requests, so a slow leak
+# in a package cannot grow without end.
 ENV AUTORUN_ENABLED=false \
     SHOW_WELCOME_MESSAGE=false \
     PHP_OPCACHE_ENABLE=1 \
+    PHP_OPCACHE_MAX_ACCELERATED_FILES=65407 \
+    PHP_OPCACHE_JIT=tracing \
+    PHP_OPCACHE_JIT_BUFFER_SIZE=64M \
     PHP_MEMORY_LIMIT=512M \
     PHP_MAX_EXECUTION_TIME=300 \
     PHP_FPM_PM_MAX_CHILDREN=32 \
+    PHP_FPM_PM_MAX_REQUESTS=500 \
     NGINX_FASTCGI_BUFFER_SIZE=32k \
     NGINX_FASTCGI_BUFFERS="16 32k" \
     CHATVIA_REVERB_UPSTREAM=reverb:8080

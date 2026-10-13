@@ -8,7 +8,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * One message in the chat log's conversation view, with its analysis
- * (sentiment, tone, feedback) and cost details.
+ * (sentiment, tone, feedback), the confidence of the knowledge behind an
+ * answer (null when none was used), and cost details.
  */
 #[TypeScript]
 class ChatLogMessageData extends Data
@@ -35,6 +36,7 @@ class ChatLogMessageData extends Data
         public ?array $artifacts = null,
         public ?string $source = null,
         public ?string $read_at = null,
+        public ?float $confidence_score = null,
     ) {}
 
     public static function fromMessage(Message $message): self
@@ -60,6 +62,7 @@ class ChatLogMessageData extends Data
             artifacts: is_array($artifacts) ? $artifacts : null,
             source: $message->source,
             read_at: $message->read_at?->toISOString(),
+            confidence_score: $message->confidence_score,
         );
     }
 }

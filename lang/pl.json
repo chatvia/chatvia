@@ -132,7 +132,7 @@
     "You've reached the limit of :max files for this chat.": "Osiągnięto limit :max plików dla tego czatu.",
     "No file was uploaded.": "Nie przesłano pliku.",
     "Only PDF files are supported right now.": "Obecnie obsługiwane są tylko pliki PDF.",
-    "File is too large — the limit is 25 MB.": "Plik jest za duży — limit to 25 MB.",
+    "File is too large — the limit is :size MB.": "Plik jest za duży — limit to :size MB.",
     "Topic added successfully": "Temat został dodany",
     "Topic created successfully": "Temat został utworzony",
     "Topic not found for this agent": "Nie znaleziono tematu dla tego agenta",

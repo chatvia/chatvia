@@ -220,6 +220,26 @@ it('takes a path on this server or a full address for the widget script', functi
     }
 });
 
+it('keeps the tracking code as typed, and an empty box turns it off', function (): void {
+    $snippet = "<script defer data-site=\"acme\" src=\"https://stats.acme.example/js/script.js\"></script>\n<script>window.stats = window.stats || [];</script>";
+
+    settingsPage($this->admin, ManagePlatformSettings::class)
+        ->fillForm(['tracking_code' => $snippet])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(storedSetting(PlatformSettings::class, 'tracking_code'))->toBe($snippet)
+        ->and(config('chatvia.tracking_code'))->toBe($snippet);
+
+    settingsPage($this->admin, ManagePlatformSettings::class)
+        ->assertSchemaStateSet(['tracking_code' => $snippet])
+        ->fillForm(['tracking_code' => ''])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(storedSetting(PlatformSettings::class, 'tracking_code'))->toBeNull();
+});
+
 it('shows the workspace values in use', function (): void {
     Livewire::actingAs($this->admin, 'admin')
         ->test(ManageWorkspaceSettings::class)

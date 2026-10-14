@@ -1,23 +1,23 @@
 <?php
 
 /**
- * The app shell must not carry one operator's identity (analytics account,
+ * The app shell must not carry one operator's identity (tracking code,
  * social handle, website) into another install, and must not load web fonts
  * from a third-party CDN. Everything comes from config.
  */
-it('loads analytics only when a Plausible domain is configured', function (): void {
+it('adds the tracking code only when one is set, and only in production', function (): void {
+    $snippet = '<script defer src="https://stats.acme.example/js/script.js"></script>';
+
     app()->detectEnvironment(fn (): string => 'production');
 
-    config(['services.plausible.domain' => null]);
-    expect(trim(view('analytics')->render()))->toBe('');
+    config(['chatvia.tracking_code' => null]);
+    expect(trim(view('partials.tracking-code')->render()))->toBe('');
 
-    config([
-        'services.plausible.domain' => 'acme.example',
-        'services.plausible.script_url' => 'https://stats.acme.example/js/script.js',
-    ]);
-    expect(view('analytics')->render())
-        ->toContain('data-domain="acme.example"')
-        ->toContain('src="https://stats.acme.example/js/script.js"');
+    config(['chatvia.tracking_code' => $snippet]);
+    expect(trim(view('partials.tracking-code')->render()))->toBe($snippet);
+
+    app()->detectEnvironment(fn (): string => 'local');
+    expect(trim(view('partials.tracking-code')->render()))->toBe('');
 });
 
 it('serves the app shell with self-hosted fonts and the configured brand only', function (): void {

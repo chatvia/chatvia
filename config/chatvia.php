@@ -48,6 +48,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Tracking code
+    |--------------------------------------------------------------------------
+    |
+    | Set in the admin panel (Settings → Platform). HTML, such as the script of
+    | an analytics service, added to the <head> of every page of the app, in
+    | production only. Nothing is added while it is empty.
+    |
+    */
+
+    'tracking_code' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Sign-up and message limits
     |--------------------------------------------------------------------------
     |

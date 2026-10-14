@@ -268,11 +268,4 @@ return [
         'key' => null,
         'secret' => null,
     ],
-
-    // Page-view analytics (production only). Nothing is loaded while the
-    // domain is empty. The script URL can point at a self-hosted Plausible.
-    'plausible' => [
-        'domain' => env('PLAUSIBLE_DOMAIN'),
-        'script_url' => env('PLAUSIBLE_SCRIPT_URL', 'https://plausible.io/js/script.js'),
-    ],
 ];

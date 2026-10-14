@@ -31,7 +31,7 @@ class LoginChatterToAgentAction
 
         $hash = $chatter?->password;
 
-        if (! is_string($hash) || $hash === '') {
+        if (blank($hash)) {
             // Same cost as a real check, so an unknown email is not faster.
             Hash::make($data->password);
 

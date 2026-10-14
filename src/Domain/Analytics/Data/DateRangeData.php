@@ -33,8 +33,8 @@ class DateRangeData extends Data
     public static function fromDates(?string $start, ?string $end, int $days = self::DEFAULT_DAYS): self
     {
         return new self(
-            $start !== null && $start !== '' ? Carbon::parse($start)->startOfDay() : now()->subDays(max(0, $days - 1))->startOfDay(),
-            $end !== null && $end !== '' ? Carbon::parse($end)->endOfDay() : now()->endOfDay(),
+            filled($start) ? Carbon::parse($start)->startOfDay() : now()->subDays(max(0, $days - 1))->startOfDay(),
+            filled($end) ? Carbon::parse($end)->endOfDay() : now()->endOfDay(),
         );
     }
 

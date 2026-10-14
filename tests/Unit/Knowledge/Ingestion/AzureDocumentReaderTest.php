@@ -2,7 +2,7 @@
 
 use App\Admin\Settings\AiProviderCheck;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
-use Domain\Knowledge\Ingestion\Services\Clients\AzureDocumentIntelligence;
+use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
@@ -11,6 +11,7 @@ use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Sleep;
 
 /**
@@ -143,5 +144,127 @@ it('checks an Azure key against its resource', function (): void {
         ->and($check->check(AiProvider::Azure, 'az-key', 'https://bad.cognitiveservices.azure.com')->keyRefused)->toBeTrue()
         ->and($check->check(AiProvider::Azure, 'az-key')->message)->toBe('Add the endpoint of your Azure resource too.');
 
-    expect(AzureDocumentIntelligence::READS)->toContain('pdf', 'docx', 'pptx', 'xlsx', 'png');
+    expect(DocumentReaders::AZURE_READS)->toContain('pdf', 'docx', 'pptx', 'png')->not->toContain('xlsx');
+});
+
+it('warns when the Azure resource is on the free tier', function (): void {
+    Http::fake([
+        'free.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0, 'limit' => 500]]),
+        'paid.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0, 'limit' => 5000]]),
+    ]);
+
+    $check = app(AiProviderCheck::class);
+    $free = $check->check(AiProvider::Azure, 'az-key', 'https://free.cognitiveservices.azure.com');
+
+    expect($free->connected)->toBeTrue()
+        ->and($free->warning)->toContain('free tier (F0)')->toContain('first 2 pages')
+        ->and($check->check(AiProvider::Azure, 'az-key', 'https://paid.cognitiveservices.azure.com')->warning)->toBeNull();
+});
+
+/** Azure accepts the file and answers with these pages (each a short text). */
+function fakeAzureAnalysis(int $pages = 1): void
+{
+    $content = implode("\n", array_map(fn (int $page): string => "Page {$page}.", range(1, $pages)));
+    $offset = 0;
+
+    Http::fake([
+        'docs.cognitiveservices.azure.com/documentintelligence/documentModels/prebuilt-layout:analyze*' => Http::response('', 202, [
+            'Operation-Location' => 'https://docs.cognitiveservices.azure.com/documentintelligence/documentModels/prebuilt-layout/analyzeResults/r1?api-version=2024-11-30',
+        ]),
+        'docs.cognitiveservices.azure.com/documentintelligence/documentModels/prebuilt-layout/analyzeResults/*' => Http::response(['status' => 'succeeded', 'analyzeResult' => [
+            'content' => $content,
+            'pages' => array_map(function (int $page) use (&$offset): array {
+                $length = mb_strlen("Page {$page}.");
+                $span = ['pageNumber' => $page, 'spans' => [['offset' => $offset, 'length' => $length]]];
+                $offset += $length + 1;
+
+                return $span;
+            }, range(1, $pages)),
+        ]]),
+    ]);
+}
+
+/** An image file of this size and format, in the temp folder. */
+function tempImage(int $width, int $height, string $format): string
+{
+    $image = imagecreatetruecolor($width, $height);
+    ob_start();
+    $format === 'gif' ? imagegif($image) : imagepng($image);
+
+    return create_temp_file("image.{$format}", (string) ob_get_clean());
+}
+
+it('reads Excel with the app, as Azure loses its tables', function (): void {
+    connectAzure();
+    Http::fake();
+    $local = Mockery::mock(LocalDocumentParser::class);
+    $local->shouldReceive('parse')->once()->andReturn(collect());
+    app()->instance(LocalDocumentParser::class, $local);
+
+    $file = create_temp_file('prices.xlsx', 'not really excel');
+
+    try {
+        app(AzureDocumentParser::class)->parse($file, 'tmp');
+    } finally {
+        @unlink($file);
+    }
+
+    Http::assertNothingSent();
+});
+
+it('sends Azure a PNG for an image format or size it does not take', function (string $format, int $width, int $height): void {
+    connectAzure();
+    fakeAzureAnalysis();
+    $file = tempImage($width, $height, $format);
+
+    try {
+        app(AzureDocumentParser::class)->parse($file, 'tmp');
+    } finally {
+        @unlink($file);
+    }
+
+    Http::assertSent(function (Request $request): bool {
+        if (! str_contains($request->url(), ':analyze')) {
+            return false;
+        }
+
+        $size = getimagesizefromstring(base64_decode((string) $request['base64Source']));
+
+        return $size !== false && $size['mime'] === 'image/png' && min($size[0], $size[1]) >= 50;
+    });
+})->with([
+    'a GIF' => ['gif', 60, 60],
+    'a picture under 50 pixels' => ['png', 20, 30],
+]);
+
+it('fails a PDF the free tier read only 2 pages of, rather than training part of it', function (): void {
+    connectAzure();
+    fakeAzureAnalysis(pages: 2);
+    Process::fake(['*' => Process::result("Pages:          30\n")]);
+    $file = create_temp_file('manual.pdf', '%PDF-1.4 test');
+
+    try {
+        expect(fn () => app(AzureDocumentParser::class)->parse($file, 'tmp'))
+            ->toThrow(DocumentParsingException::class, 'Azure read only the first 2 of 30 pages');
+    } finally {
+        @unlink($file);
+    }
+});
+
+it('shows why Azure refused a file', function (): void {
+    connectAzure();
+    Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['error' => [
+        'code' => 'InvalidRequest',
+        'message' => 'Invalid request.',
+        'innererror' => ['code' => 'InvalidContentLength', 'message' => 'The input file is too large. The limit is 4 MB.'],
+    ]], 400)]);
+    Process::fake(['*' => Process::result("Pages:          1\n")]);
+    $file = create_temp_file('big.pdf', '%PDF-1.4 test');
+
+    try {
+        expect(fn () => app(AzureDocumentParser::class)->parse($file, 'tmp'))
+            ->toThrow(DocumentParsingException::class, 'The input file is too large. The limit is 4 MB.');
+    } finally {
+        @unlink($file);
+    }
 });

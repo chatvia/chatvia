@@ -29,7 +29,7 @@ readonly class BroadcastAuthController
         $channelName = $request->input('channel_name');
         $socketId = $request->input('socket_id');
 
-        if ($sessionId === null || ! is_string($channelName) || $channelName === '' || ! is_string($socketId) || $socketId === '') {
+        if ($sessionId === null || ! is_string($channelName) || blank($channelName) || ! is_string($socketId) || blank($socketId)) {
             return response()->json(['error' => 'Missing required parameters'], JsonResponse::HTTP_BAD_REQUEST);
         }
 

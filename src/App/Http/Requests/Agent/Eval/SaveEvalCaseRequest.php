@@ -52,7 +52,7 @@ class SaveEvalCaseRequest extends FormRequest
     private function jsonObjectRule(): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail): void {
-            if (! is_string($value) || trim($value) === '') {
+            if (! is_string($value) || blank($value)) {
                 return;
             }
 

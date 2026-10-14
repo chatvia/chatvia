@@ -26,7 +26,7 @@ class ReceiveTelegramUpdateAction
             return;
         }
 
-        if ($update->text === null || trim($update->text) === '' || $update->chatId === null) {
+        if (blank($update->text) || $update->chatId === null) {
             return;
         }
 

@@ -82,7 +82,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
                 $line = substr($buffer, 0, $newline);
                 $buffer = substr($buffer, $newline + 1);
 
-                if (trim($line) !== '' && str_starts_with($line, self::DATA_PREFIX)) {
+                if (filled($line) && str_starts_with($line, self::DATA_PREFIX)) {
                     yield substr($line, strlen(self::DATA_PREFIX));
                 }
             }
@@ -125,6 +125,7 @@ class OpenAiCompatibleTransformer implements StreamTransformer
         $delta = $chunk['choices'][0]['delta'] ?? [];
         $text = $delta['content'] ?? null;
 
+        // Not filled(): a whitespace-only delta (" ", "\n") is real output.
         if (is_string($text) && $text !== '') {
             yield from $this->handleText($context, $state, $text);
         }

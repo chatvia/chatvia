@@ -40,7 +40,7 @@ class ReceiveSlackEventAction
 
     private function shouldAnswer(AgentSlackApp $app, SlackEventData $event): bool
     {
-        if ($event->text === null || trim($event->text) === '' || $event->channelId === null) {
+        if (blank($event->text) || $event->channelId === null) {
             return false;
         }
 

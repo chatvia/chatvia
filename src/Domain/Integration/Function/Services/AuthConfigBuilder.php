@@ -56,7 +56,7 @@ class AuthConfigBuilder
         return match ($newType) {
             FunctionAuthType::Bearer => ['token' => $value ?? ($carry['token'] ?? '')],
             FunctionAuthType::Header => [
-                'name' => ($headerName !== null && $headerName !== '') ? $headerName : ($carry['name'] ?? ''),
+                'name' => filled($headerName) ? $headerName : ($carry['name'] ?? ''),
                 'value' => $value ?? ($carry['value'] ?? ''),
             ],
             FunctionAuthType::Hmac => ['secret' => $value ?? ($carry['secret'] ?? '')],

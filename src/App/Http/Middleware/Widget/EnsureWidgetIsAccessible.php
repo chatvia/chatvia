@@ -70,9 +70,9 @@ class EnsureWidgetIsAccessible
      */
     private function resolveSignedInUser(Request $request, Agent $agent): bool
     {
-        $token = $request->header(WidgetHeaders::AUTH_TOKEN);
+        $token = $request->headers->get(WidgetHeaders::AUTH_TOKEN);
 
-        if (! is_string($token) || $token === '') {
+        if (blank($token)) {
             return false;
         }
 

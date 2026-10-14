@@ -179,6 +179,7 @@ class AnalyticsChatRunner
     {
         $delta = $chunk['choices'][0]['delta'] ?? [];
 
+        // Not filled(): a whitespace-only delta (" ", "\n") is real output.
         if (isset($delta['content']) && is_string($delta['content']) && $delta['content'] !== '') {
             $assistantText .= $delta['content'];
 

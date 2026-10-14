@@ -64,7 +64,7 @@ class AgentKnowledgeUsageQuery extends AgentAnalyticsQuery
             ->map(static fn (object $row): SourceUsageData => new SourceUsageData(
                 kind: (string) $row->sourceable_type,
                 sourceId: (int) $row->sourceable_id,
-                name: $row->name !== null && $row->name !== '' ? (string) $row->name : null,
+                name: filled($row->name) ? (string) $row->name : null,
                 mimeType: $row->mime_type,
                 retrievals: (int) $row->count,
                 lastUsedOn: $row->last_used_at !== null ? (string) $row->last_used_at : null,

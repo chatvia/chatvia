@@ -19,7 +19,7 @@ trait BindsConnectorOAuthToSession
         $key = 'connectors.oauth.session_binding';
         $binding = $request->session()->get($key);
 
-        if (! is_string($binding) || $binding === '') {
+        if (blank($binding)) {
             $binding = Str::random(48);
             $request->session()->put($key, $binding);
         }

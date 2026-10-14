@@ -73,7 +73,7 @@ final class ChatResponseData extends Data
         foreach ($toolCalls as $call) {
             $name = $call['function']['name'] ?? null;
 
-            if (! is_string($name) || $name === '') {
+            if (! is_string($name) || blank($name)) {
                 continue;
             }
 

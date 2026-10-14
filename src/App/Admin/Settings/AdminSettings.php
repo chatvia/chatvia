@@ -118,7 +118,7 @@ abstract class AdminSettings extends Settings
             $value = trim($value);
         }
 
-        if ($value === null || $value === '' || ! is_scalar($value)) {
+        if (blank($value) || ! is_scalar($value)) {
             return null;
         }
 

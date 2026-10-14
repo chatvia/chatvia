@@ -34,7 +34,7 @@ class SalesforceEndpointBuilder
 
         // OAuth login host: the org's My Domain if given (required for orgs that
         // enforce it), else the generic prod/sandbox login host.
-        $loginHost = $org->myDomain !== null && trim($org->myDomain) !== ''
+        $loginHost = filled($org->myDomain)
             ? rtrim(trim($org->myDomain), '/')
             : ($isSandbox ? 'https://test.salesforce.com' : 'https://login.salesforce.com');
 
@@ -42,7 +42,7 @@ class SalesforceEndpointBuilder
 
         return new BringYourOwnOAuthData(
             clientId: $org->clientId,
-            clientSecret: $org->clientSecret !== null && trim($org->clientSecret) !== '' ? trim($org->clientSecret) : null,
+            clientSecret: filled($org->clientSecret) ? trim($org->clientSecret) : null,
             mcpUrl: "https://api.salesforce.com/platform/mcp/v1/{$segment}/{$org->server}",
             authServerUrl: $loginHost,
             authorizationEndpoint: $loginHost.'/services/oauth2/authorize',

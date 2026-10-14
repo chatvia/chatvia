@@ -95,15 +95,15 @@ final class McpCallerResolver
 
     private function header(Request $request, string $name): ?string
     {
-        $value = $request->header($name);
+        $value = $request->headers->get($name);
 
-        return is_string($value) && $value !== '' ? $value : null;
+        return filled($value) ? $value : null;
     }
 
     private function bearerToken(Request $request): ?string
     {
         $token = $request->bearerToken();
 
-        return is_string($token) && $token !== '' ? $token : null;
+        return filled($token) ? $token : null;
     }
 }

@@ -35,11 +35,9 @@ class UpdateChatterRequest extends FormRequest
 
     public function toData(Chatter $chatter): UpdateChatterAccessData
     {
-        $limit = $this->input('messages_limit');
-
         return new UpdateChatterAccessData(
             chatter: $chatter,
-            messagesLimit: $limit !== null && $limit !== '' ? (int) $limit : null,
+            messagesLimit: $this->filled('messages_limit') ? $this->integer('messages_limit') : null,
             deactivated: $this->boolean('deactivated'),
             deactivationReason: $this->input('deactivation_reason') ?: null,
         );

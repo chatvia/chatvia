@@ -43,7 +43,7 @@ class PasswordAuthenticator
         $user = User::query()->where('email', $email)->first();
         $hash = $user?->password;
 
-        if (! is_string($hash) || $hash === '') {
+        if (blank($hash)) {
             // Same cost as Hash::check() below, but the result is thrown away.
             Hash::make($password);
 

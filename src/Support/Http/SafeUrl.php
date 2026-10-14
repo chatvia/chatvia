@@ -167,7 +167,7 @@ final class SafeUrl
      */
     public static function httpSchemeOrNull(?string $url): ?string
     {
-        if (! is_string($url) || $url === '') {
+        if (blank($url)) {
             return null;
         }
 

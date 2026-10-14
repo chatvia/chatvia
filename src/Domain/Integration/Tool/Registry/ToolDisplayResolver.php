@@ -70,7 +70,7 @@ class ToolDisplayResolver
         // first-party builtins.
         return new ToolDisplayData(
             kind: ToolKind::Function,
-            label: is_string($displayName) && $displayName !== '' ? $displayName : $tool->value,
+            label: filled($displayName) ? $displayName : $tool->value,
         );
     }
 

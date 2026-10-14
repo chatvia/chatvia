@@ -46,7 +46,7 @@ class SaveGuardrailSettingsRequest extends FormRequest
             toxicity: $this->boolean('toxicity'),
             blocked_topics: array_values(array_filter(
                 (array) $this->input('blocked_topics', []),
-                fn ($t): bool => is_string($t) && trim($t) !== '',
+                filled(...),
             )),
             allowed_scope: $this->string('allowed_scope')->toString() ?: null,
             refusal_message: $this->string('refusal_message')->toString() ?: null,

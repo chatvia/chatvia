@@ -99,7 +99,7 @@ class OfficeText
         $length = 0;
 
         foreach (preg_split("/\n{2,}/", str_replace(["\r\n", "\r"], "\n", $text)) ?: [] as $paragraph) {
-            if (trim($paragraph) === '') {
+            if (blank($paragraph)) {
                 continue;
             }
 
@@ -170,7 +170,7 @@ class OfficeText
         $stat = $zip->statIndex($index);
         $xml = $stat !== false && $stat['size'] <= self::MAX_PART_BYTES ? $zip->getFromIndex($index) : false;
 
-        if (! is_string($xml) || $xml === '') {
+        if ($xml === false || blank($xml)) {
             return '';
         }
 

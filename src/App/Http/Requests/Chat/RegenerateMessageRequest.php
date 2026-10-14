@@ -33,7 +33,7 @@ class RegenerateMessageRequest extends FormRequest
         }
 
         $conversationId = $this->input('conversation_id');
-        if (! is_string($conversationId) || $conversationId === '') {
+        if (! is_string($conversationId) || blank($conversationId)) {
             return false;
         }
 

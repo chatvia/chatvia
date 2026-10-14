@@ -62,7 +62,7 @@ final readonly class MessengerInboundMessageData
         $text = $message['text'] ?? null;
         $sender = $event['sender']['id'] ?? null;
 
-        if (! is_string($text) || trim($text) === '' || $sender === null) {
+        if (! is_string($text) || blank($text) || $sender === null) {
             return null;
         }
 

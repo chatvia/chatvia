@@ -218,7 +218,7 @@ trait HasSettings
 
         // Delete the replaced file only after the new one is safely stored,
         // best-effort: a stale CDN object must not fail an otherwise-good save.
-        if (is_string($previousPath) && $previousPath !== '' && $previousPath !== $uploadedPath) {
+        if (filled($previousPath) && $previousPath !== $uploadedPath) {
             try {
                 $disk->delete($previousPath);
             } catch (Throwable $e) {

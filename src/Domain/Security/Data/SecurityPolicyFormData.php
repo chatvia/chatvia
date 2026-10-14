@@ -42,6 +42,6 @@ class SecurityPolicyFormData extends Data
 
     public function rotatesWebhookSecret(): bool
     {
-        return $this->webhook_secret !== null && $this->webhook_secret !== '';
+        return filled($this->webhook_secret);
     }
 }

@@ -20,7 +20,7 @@ final class ChannelLocale
         foreach (['embed', 'widget'] as $group) {
             $language = $agent->settings($group)->get('language');
 
-            if (is_string($language) && $language !== '' && $language !== 'auto') {
+            if (filled($language) && $language !== 'auto') {
                 return $language;
             }
         }

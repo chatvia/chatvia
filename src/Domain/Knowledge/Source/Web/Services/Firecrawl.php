@@ -79,7 +79,7 @@ class Firecrawl
         foreach ($response['links'] ?? [] as $link) {
             $href = is_array($link) ? ($link['url'] ?? null) : (is_string($link) ? $link : null);
 
-            if (is_string($href) && $href !== '') {
+            if (is_string($href) && filled($href)) {
                 $links[$href] = true;
             }
         }

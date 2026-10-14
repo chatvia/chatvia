@@ -95,7 +95,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
         // Fail with a clear message rather than a confusing "Return value must
         // be of type string, null returned" TypeError when the key is unset
         // (e.g. a misconfigured prod env). Callers catch + degrade gracefully.
-        if (! is_string($key) || $key === '') {
+        if (blank($key)) {
             throw new \RuntimeException('Scaleway AI API key is not configured (services.scalewayai.api_key).');
         }
 

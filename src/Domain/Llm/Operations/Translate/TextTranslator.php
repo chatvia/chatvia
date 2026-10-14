@@ -73,7 +73,7 @@ class TextTranslator
             foreach ($localeKeys as $locale) {
                 $value = $byLocale[$locale] ?? null;
 
-                if (is_string($value) && trim($value) !== '') {
+                if (is_string($value) && filled($value)) {
                     $result[$field][$locale] = trim($value);
                 }
             }

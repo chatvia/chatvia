@@ -102,9 +102,9 @@ class WidgetVerification
     private function requestingHost(Request $request): ?string
     {
         foreach (['origin', 'referer'] as $header) {
-            $value = $request->header($header);
+            $value = $request->headers->get($header);
 
-            if (is_string($value) && $value !== '') {
+            if (filled($value)) {
                 return parse_url($value, PHP_URL_HOST) ?: null;
             }
         }

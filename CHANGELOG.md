@@ -27,6 +27,20 @@ theme.
 - **Azure Document Intelligence** reads PDFs, Word, slides and images, as
   Mistral OCR does. Without one of them, PDF, Word, slides and images cannot
   be uploaded; text, Markdown, spreadsheets and ebooks always work.
+- **Each reader gets only the formats it documents.** Mistral OCR: PDF,
+  .docx, .pptx and common images; Azure: PDF, .docx, .pptx and JPEG, PNG,
+  BMP, TIFF, HEIF. Other images are sent as PNG (and fitted to Azure's 50 to
+  10,000 pixels); Excel, CSV, .doc, .ppt and RTF are read by the app (Excel
+  keeps its tables, which Azure would lose). Settings → Knowledge → File
+  types shows what reads each type now, and greys out the types nothing can
+  read.
+- **Azure's free tier is caught.** It reads only the first 2 pages of a
+  file, without an error: the connection check warns about a free (F0)
+  resource, and a PDF that comes back with 2 of more pages fails with that
+  reason instead of training part of it. Azure's own reason for refusing a
+  file (such as the 4 MB free-tier limit) is shown as the failure reason.
+- **PDFs locked with a password** are refused at upload (knowledge files,
+  the API and chat attachments) with that reason; no reader can open them.
 - The **setup** of a new install is its own page, with every step listed on
   the left. It asks for everything the app needs: the AI provider and its
   key, one or more chat models and the default, the embedding model (checked

@@ -124,7 +124,7 @@ final readonly class MarkdownSplitter
                 continue;
             }
 
-            if (trim($line) === '') {
+            if (blank($line)) {
                 $blocks = $this->withText($blocks, $paragraph);
                 $paragraph = [];
 
@@ -157,7 +157,7 @@ final readonly class MarkdownSplitter
                 $paragraph = [];
                 $table = [$line, $lines[++$i]];
 
-                while (isset($lines[$i + 1]) && trim($lines[$i + 1]) !== '' && str_contains($lines[$i + 1], '|')) {
+                while (isset($lines[$i + 1]) && filled($lines[$i + 1]) && str_contains($lines[$i + 1], '|')) {
                     $table[] = $lines[++$i];
                 }
 
@@ -239,7 +239,7 @@ final readonly class MarkdownSplitter
         $chunks = [];
 
         foreach ($splitter->pack($pieces) as $chunk) {
-            if (trim($chunk) !== '') {
+            if (filled($chunk)) {
                 $chunks[] = $prefix.trim($chunk);
             }
         }
@@ -292,7 +292,7 @@ final readonly class MarkdownSplitter
         $parts = [];
 
         foreach ($splitter->withSize($room)->chunks($code, [PatternSeparator::lines(), PatternSeparator::words()]) as $part) {
-            if (trim($part) !== '') {
+            if (filled($part)) {
                 $parts[] = $open."\n".rtrim($part, "\n")."\n".$close;
             }
         }

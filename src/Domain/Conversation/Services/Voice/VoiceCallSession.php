@@ -10,6 +10,7 @@ use Domain\Conversation\Data\Voice\VoiceCallData;
 use Domain\Conversation\Enums\VoiceCallRefusal;
 use Domain\Conversation\Models\Conversation;
 use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\RealtimeConnection;
@@ -24,8 +25,14 @@ use Illuminate\Support\Facades\Log;
  * - When the visitor stops talking it checks the per-turn gates (message
  *   limits, rate limit, a teammate taking over) and only then asks for a
  *   reply, so nothing is answered unchecked.
- * - It runs the tools the model calls ({@see VoiceToolRunner}) and asks
- *   for the next part of the reply.
+ * - For an agent with knowledge, every reply starts with a required
+ *   knowledge search (the model writes the query; an empty one for small
+ *   talk), as a typed turn always searches: left to choose, the model
+ *   answered questions blind.
+ * - It runs the tools the model calls ({@see VoiceToolRunner}) and asks for
+ *   the next part of the reply. While a real search or tool runs, the agent
+ *   says a short "let me check" (not saved), and the reply follows once it
+ *   has been said.
  * - It saves the visitor's words and each finished reply, in that order
  *   ({@see VoiceTurnRecorder}).
  * - It hangs up when the visitor presses End, at the call's time limit, or
@@ -44,6 +51,9 @@ final class VoiceCallSession implements RealtimeCallHandler
     /** How long the provider gets to close the call before the socket is dropped. */
     private const int CLOSE_SECONDS = 2;
 
+    /** How long a reply waits for its "let me check" before it goes on anyway. */
+    private const int FILLER_WAIT_SECONDS = 8;
+
     private VoiceCallData $call;
 
     private StreamRequestData $request;
@@ -58,6 +68,17 @@ final class VoiceCallSession implements RealtimeCallHandler
 
     /** @var array<string, VoiceTurn|null> by response id; null for a spoken notice */
     private array $responses = [];
+
+    /** Whether the agent has knowledge to search: then every reply starts with a search. */
+    private bool $searchesKnowledge = false;
+
+    /** The turn whose reply goes on once the "let me check" has been said. */
+    private ?VoiceTurn $waitingTurn = null;
+
+    private ?float $waitingSince = null;
+
+    /** The tool choice of the reply that goes on: `none` once the tool rounds are used up. */
+    private ?string $waitingToolChoice = null;
 
     private bool $hangingUp = false;
 
@@ -85,6 +106,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         $session->call = $call;
         $session->request = $this->factory->request($call, $agent);
         $session->tools = $this->catalog->for($agent, $call->conversation_id);
+        $session->searchesKnowledge = Chunk::query()->hasContentForAgent($agent);
 
         return $session;
     }
@@ -106,7 +128,6 @@ final class VoiceCallSession implements RealtimeCallHandler
             'conversation.item.input_audio_transcription.completed' => $this->transcribed((string) ($event['item_id'] ?? ''), (string) ($event['transcript'] ?? '')),
             'conversation.item.input_audio_transcription.failed' => $this->transcribed((string) ($event['item_id'] ?? ''), ''),
             'response.created' => $this->responseCreated((array) ($event['response'] ?? [])),
-            'response.function_call_arguments.done' => $this->functionCalled($event),
             'response.done' => $this->responseDone((array) ($event['response'] ?? [])),
             'session.closed' => $this->connection?->close(),
             'error' => Log::info('Voice call: the provider reported an error', [
@@ -119,7 +140,7 @@ final class VoiceCallSession implements RealtimeCallHandler
 
     public function tick(): void
     {
-        $now = microtime(true);
+        $now = $this->clock();
 
         if ($this->closeAt !== null) {
             if ($now >= $this->closeAt) {
@@ -142,6 +163,11 @@ final class VoiceCallSession implements RealtimeCallHandler
             }
 
             return;
+        }
+
+        // The "let me check" never finished: the reply goes on anyway.
+        if ($this->waitingTurn instanceof VoiceTurn && $now - (float) $this->waitingSince >= self::FILLER_WAIT_SECONDS) {
+            $this->continueWaitingTurn();
         }
 
         if (now()->getTimestamp() >= $this->call->endsAt()) {
@@ -192,12 +218,15 @@ final class VoiceCallSession implements RealtimeCallHandler
         $turn = $this->factory->turn($this->request, $itemId);
         $this->turns[$itemId] = $turn;
 
+        // The visitor spoke again: an earlier reply still waiting is dropped.
+        $this->stopWaiting();
+
         $refusal = $this->isHandedOff()
             ? VoiceCallRefusal::HandedOff
             : $this->gate->refusal($this->request->agent, $this->call->chatter_id);
 
         if (! $refusal instanceof VoiceCallRefusal) {
-            $this->createResponse($turn);
+            $this->createResponse($turn, $this->searchesKnowledge ? $this->knowledgeSearch() : null);
 
             return;
         }
@@ -221,6 +250,7 @@ final class VoiceCallSession implements RealtimeCallHandler
             return;
         }
 
+        $turn->words = trim($transcript);
         $guard = $this->recorder->visitorSaid($turn, $transcript);
 
         if (! $guard->blocked) {
@@ -262,27 +292,6 @@ final class VoiceCallSession implements RealtimeCallHandler
             : $this->turns[(string) ($metadata['turn'] ?? '')] ?? $this->latestTurn();
     }
 
-    /** @param  array<string, mixed>  $event */
-    private function functionCalled(array $event): void
-    {
-        $callId = (string) ($event['call_id'] ?? '');
-
-        if ($callId === '') {
-            return;
-        }
-
-        $turn = $this->responses[(string) ($event['response_id'] ?? '')] ?? null;
-
-        $output = $turn instanceof VoiceTurn && ! $turn->refused
-            ? $this->toolRunner->run($turn, $this->tools, $callId, (string) ($event['name'] ?? ''), (string) ($event['arguments'] ?? '{}'))
-            : 'Tool error: this tool cannot run any more in this call.';
-
-        $this->send([
-            'type' => 'conversation.item.create',
-            'item' => ['type' => 'function_call_output', 'call_id' => $callId, 'output' => $output],
-        ]);
-    }
-
     /** @param  array<string, mixed>  $response */
     private function responseDone(array $response): void
     {
@@ -292,10 +301,16 @@ final class VoiceCallSession implements RealtimeCallHandler
 
         $spoken = $this->spokenText($response);
 
-        // A notice (a goodbye, "too busy"): close once it has been said.
+        // A notice (a goodbye, "too busy", "let me check"): close once a
+        // goodbye has been said; go on with the reply after "let me check",
+        // unless the visitor cut it short by talking.
         if (! $turn instanceof VoiceTurn) {
             if ($this->hangingUp) {
-                $this->hangUpAt = min((float) $this->hangUpAt, microtime(true) + $this->secondsToSay($spoken));
+                $this->hangUpAt = min((float) $this->hangUpAt, $this->clock() + $this->secondsToSay($spoken));
+            }
+
+            if (isset(((array) ($response['metadata'] ?? []))['filler'])) {
+                ($response['status'] ?? null) === 'cancelled' ? $this->stopWaiting() : $this->continueWaitingTurn();
             }
 
             return;
@@ -304,16 +319,22 @@ final class VoiceCallSession implements RealtimeCallHandler
         $usage = (array) ($response['usage'] ?? []);
         $turn->addUsage((int) ($usage['input_tokens'] ?? 0), (int) ($usage['output_tokens'] ?? 0));
 
+        $calls = $this->toolCalls($response);
+
         if ($turn->refused || $turn->replyStored) {
+            // Every call gets an answer, so the conversation stays valid.
+            foreach ($calls as $call) {
+                $this->sendToolOutput($call['call_id'], 'Tool error: this turn was cancelled.');
+            }
+
             return;
         }
 
         $turn->addSpoken($spoken);
 
-        // The model called tools: their results are in, so it goes on.
-        if (($response['status'] ?? null) === 'completed' && $this->calledTools($response) && ! $this->hangingUp) {
-            $turn->toolRounds++;
-            $this->createResponse($turn, $turn->toolRounds >= max(1, (int) config('chatvia.agent.tools.max_iterations', 5)) ? 'none' : null);
+        // The model called tools: run them, then it goes on.
+        if (($response['status'] ?? null) === 'completed' && $calls !== [] && ! $this->hangingUp) {
+            $this->runTools($turn, $calls);
 
             return;
         }
@@ -324,7 +345,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         }
 
         $turn->context->markEndTime();
-        $turn->replyReadyAt ??= microtime(true);
+        $turn->replyReadyAt ??= $this->clock();
         $this->saveReplyWhenReady($turn);
     }
 
@@ -353,8 +374,113 @@ final class VoiceCallSession implements RealtimeCallHandler
         }
     }
 
-    /** Ask for the reply to a turn, or its next part after tool calls. */
-    private function createResponse(VoiceTurn $turn, ?string $toolChoice = null): void
+    /**
+     * Run the tools a response called, then ask for the next part of the
+     * reply. A real search or tool says "let me check" first (once a turn),
+     * and the reply goes on after it has been said; a small-talk search
+     * (empty query) goes on at once.
+     *
+     * @param  list<array{call_id: string, name: string, arguments: string}>  $calls
+     */
+    private function runTools(VoiceTurn $turn, array $calls): void
+    {
+        $filler = $turn->toolRounds === 0 && array_any($calls, $this->takesAMoment(...));
+
+        if ($filler) {
+            $this->sayFiller($this->searchQuery($calls) ?? $turn->words);
+        }
+
+        foreach ($calls as $call) {
+            $this->sendToolOutput($call['call_id'], $this->toolRunner->run($turn, $this->tools, $call['call_id'], $call['name'], $call['arguments']));
+        }
+
+        $turn->toolRounds++;
+        $toolChoice = $turn->toolRounds >= max(1, (int) config('chatvia.agent.tools.max_iterations', 5)) ? 'none' : null;
+
+        if (! $filler) {
+            $this->createResponse($turn, $toolChoice);
+
+            return;
+        }
+
+        $this->waitingTurn = $turn;
+        $this->waitingSince = $this->clock();
+        $this->waitingToolChoice = $toolChoice;
+    }
+
+    /**
+     * Whether a call is worth a "let me check": any tool, or a knowledge
+     * search with a query (an empty one is small talk).
+     *
+     * @param  array{call_id: string, name: string, arguments: string}  $call
+     */
+    private function takesAMoment(array $call): bool
+    {
+        return $call['name'] !== VoiceToolCatalog::KNOWLEDGE_TOOL || $this->searchQuery([$call]) !== null;
+    }
+
+    /**
+     * The query of the first knowledge search among the calls, if any. It is
+     * in the visitor's language, so "let me check" is said in it too.
+     *
+     * @param  list<array{call_id: string, name: string, arguments: string}>  $calls
+     */
+    private function searchQuery(array $calls): ?string
+    {
+        foreach ($calls as $call) {
+            $arguments = json_decode($call['arguments'], true);
+
+            if ($call['name'] === VoiceToolCatalog::KNOWLEDGE_TOOL && is_array($arguments) && is_string($arguments['query'] ?? null) && filled(trim($arguments['query']))) {
+                return trim($arguments['query']);
+            }
+        }
+
+        return null;
+    }
+
+    /** The reply waiting for its "let me check" goes on. */
+    private function continueWaitingTurn(): void
+    {
+        $turn = $this->waitingTurn;
+        $toolChoice = $this->waitingToolChoice;
+        $this->stopWaiting();
+
+        if ($turn instanceof VoiceTurn && ! $turn->refused && ! $this->hangingUp) {
+            $this->createResponse($turn, $toolChoice);
+        }
+    }
+
+    private function stopWaiting(): void
+    {
+        $this->waitingTurn = null;
+        $this->waitingSince = null;
+        $this->waitingToolChoice = null;
+    }
+
+    private function sendToolOutput(string $callId, string $output): void
+    {
+        $this->send([
+            'type' => 'conversation.item.create',
+            'item' => ['type' => 'function_call_output', 'call_id' => $callId, 'output' => $output],
+        ]);
+    }
+
+    /**
+     * The tool choice that makes a reply start with a knowledge search.
+     *
+     * @return array{type: string, name: string}
+     */
+    private function knowledgeSearch(): array
+    {
+        return ['type' => 'function', 'name' => VoiceToolCatalog::KNOWLEDGE_TOOL];
+    }
+
+    /**
+     * Ask for the reply to a turn, or its next part after tool calls.
+     *
+     * @param  string|array<string, string>|null  $toolChoice
+     */
+    private function createResponse(VoiceTurn $turn, string|array|null $toolChoice = null): void
     {
         $response = ['metadata' => ['turn' => $turn->itemId]];
 
@@ -378,6 +504,28 @@ final class VoiceCallSession implements RealtimeCallHandler
         ]);
     }
 
+    /**
+     * Say a short "let me check" while a search or tool runs. It is
+     * out-of-band (`conversation: none`), so it never enters the call's
+     * history, and it gets no conversation to read (`input: []`): with the
+     * question in front of it the model answers instead. The visitor's words
+     * come with the instructions, only for the language. Not saved or
+     * counted.
+     */
+    private function sayFiller(?string $question): void
+    {
+        $this->send([
+            'type' => 'response.create',
+            'response' => [
+                'conversation' => 'none',
+                'input' => [],
+                'instructions' => prompt('voice/filler', ['question' => $question]),
+                'tool_choice' => 'none',
+                'metadata' => ['notice' => '1', 'filler' => '1'],
+            ],
+        ]);
+    }
+
     /** Say goodbye, then close the call once it has been said. */
     private function hangUp(string $message): void
     {
@@ -386,7 +534,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         }
 
         $this->hangingUp = true;
-        $this->hangUpAt = microtime(true) + self::GOODBYE_SECONDS;
+        $this->hangUpAt = $this->clock() + self::GOODBYE_SECONDS;
         $this->say($message);
     }
 
@@ -396,7 +544,7 @@ final class VoiceCallSession implements RealtimeCallHandler
             return;
         }
 
-        $this->closeAt = microtime(true) + self::CLOSE_SECONDS;
+        $this->closeAt = $this->clock() + self::CLOSE_SECONDS;
         $this->send(['type' => 'session.close']);
         $this->calls->hangUp($this->call->provider_call_id);
     }
@@ -432,11 +580,23 @@ final class VoiceCallSession implements RealtimeCallHandler
             ->implode(' ');
     }
 
-    /** @param  array<string, mixed>  $response */
-    private function calledTools(array $response): bool
+    /**
+     * The tool calls a finished response made.
+     *
+     * @param  array<string, mixed>  $response
+     * @return list<array{call_id: string, name: string, arguments: string}>
+     */
+    private function toolCalls(array $response): array
     {
         return collect((array) ($response['output'] ?? []))
-            ->contains(static fn (mixed $item): bool => is_array($item) && ($item['type'] ?? null) === 'function_call');
+            ->filter(static fn (mixed $item): bool => is_array($item) && ($item['type'] ?? null) === 'function_call' && filled($item['call_id'] ?? null))
+            ->map(static fn (array $item): array => [
+                'call_id' => (string) $item['call_id'],
+                'name' => (string) ($item['name'] ?? ''),
+                'arguments' => (string) ($item['arguments'] ?? '{}'),
+            ])
+            ->values()
+            ->all();
     }
 
     /** About how long it takes to say a text, so the call ends after the goodbye. */
@@ -445,6 +605,12 @@ final class VoiceCallSession implements RealtimeCallHandler
         $words = count(preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: []);
 
         return min(self::GOODBYE_SECONDS, max(2.0, $words / 2.5 + 1.5));
+    }
+
+    /** Seconds now, with microseconds; through Carbon, so tests can move the clock. */
+    private function clock(): float
+    {
+        return now()->getPreciseTimestamp(6) / 1_000_000;
     }
 
     /** @param  array<string, mixed>  $event */

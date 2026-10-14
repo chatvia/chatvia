@@ -16,13 +16,16 @@ use App\Identity\Workspace\Models\User;
  */
 class DeleteAccountAction
 {
+    /** The deactivation reason that marks a workspace whose teardown has started. */
+    public const string DELETION_REASON = 'Account deletion in progress';
+
     public function __construct(
         private readonly DeactivateAccountAction $deactivate,
     ) {}
 
     public function execute(User $owner): void
     {
-        $this->deactivate->execute($owner, 'Account deletion in progress');
+        $this->deactivate->execute($owner, self::DELETION_REASON);
 
         DeleteWorkspaceJob::dispatch($owner->id);
     }

@@ -157,7 +157,8 @@
         "file_with_page": "{file}（{page} ページ）",
         "fallback_title": "ソース {number}",
         "chunk_label": "チャンク {index}",
-        "open_link": "{label} を開く"
+        "open_link": "{label} を開く",
+        "passage_count": "{count} 件の抜粋 | {count} 件の抜粋"
     },
     "home": {
         "logo_alt": "ロゴ",

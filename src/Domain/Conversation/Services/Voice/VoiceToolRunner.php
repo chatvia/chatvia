@@ -36,7 +36,8 @@ final readonly class VoiceToolRunner
 {
     public const string NEEDS_APPROVAL_RESULT = 'This action needs a person\'s approval, which cannot be given during a voice call, so it was not run. Tell the user they can ask for it in the text chat.';
 
-    public const string MISSING_QUERY_RESULT = 'Tool error: "query" is missing. Call search_knowledge again with the full question to look up.';
+    /** The answer to a search with an empty query: small talk needs no knowledge. */
+    public const string SMALL_TALK_RESULT = 'No search was needed. Reply to the user naturally and briefly.';
 
     /** Longest tool result read back to the model, in characters. */
     private const int MAX_RESULT_LENGTH = 6000;
@@ -133,7 +134,7 @@ final readonly class VoiceToolRunner
         $query = is_array($decoded) && is_string($decoded['query'] ?? null) ? trim($decoded['query']) : '';
 
         if (blank($query)) {
-            return self::MISSING_QUERY_RESULT;
+            return self::SMALL_TALK_RESULT;
         }
 
         $context = $turn->context;

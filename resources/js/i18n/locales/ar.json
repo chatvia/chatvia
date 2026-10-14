@@ -157,7 +157,8 @@
         "file_with_page": "{file} (صفحة {page})",
         "fallback_title": "المصدر {number}",
         "chunk_label": "المقطع {index}",
-        "open_link": "فتح {label}"
+        "open_link": "فتح {label}",
+        "passage_count": "{count} مقطع | {count} مقاطع"
     },
     "home": {
         "logo_alt": "الشعار",

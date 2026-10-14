@@ -157,7 +157,8 @@
         "file_with_page": "{file} ({page}페이지)",
         "fallback_title": "출처 {number}",
         "chunk_label": "청크 {index}",
-        "open_link": "{label} 열기"
+        "open_link": "{label} 열기",
+        "passage_count": "발췌 {count}개 | 발췌 {count}개"
     },
     "home": {
         "logo_alt": "로고",

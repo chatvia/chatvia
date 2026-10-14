@@ -46,8 +46,8 @@ export interface Message {
 
 /**
  * A source an assistant reply was given (shown in SourcesDialog): its name,
- * the page of a PDF, and a link for a website page or a video. Stored files
- * are never linked.
+ * the page of a PDF, a link for a website page or a video, and how many of
+ * its passages the reply was given. Stored files are never linked.
  */
 export interface MessageSource {
     id: string | null;
@@ -55,6 +55,7 @@ export interface MessageSource {
     kind: 'file' | 'media' | 'website' | 'text' | 'video';
     url: string | null;
     page: number | null;
+    passages?: number;
 }
 
 /** A tool call that is running right now; drives the "Calling …" indicator. */

@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Seite {page})",
         "fallback_title": "Quelle {number}",
         "chunk_label": "Abschnitt {index}",
-        "open_link": "{label} öffnen"
+        "open_link": "{label} öffnen",
+        "passage_count": "{count} Abschnitt | {count} Abschnitte"
     },
     "home": {
         "logo_alt": "Logo",

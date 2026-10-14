@@ -86,13 +86,13 @@ final readonly class VoiceToolCatalog
             [
                 'type' => 'function',
                 'name' => self::KNOWLEDGE_TOOL,
-                'description' => 'Search what this business knows: its documents, website pages and prepared answers. Call it before answering any question about facts, products, services, prices, policies or how to do something.',
+                'description' => 'Search what this business knows: its documents, website pages and prepared answers. Called before every answer. For small talk (a greeting, thanks), call it with an empty query.',
                 'parameters' => [
                     'type' => 'object',
                     'properties' => [
                         'query' => [
                             'type' => 'string',
-                            'description' => 'The full question to look up, written out on its own (for example "What are the opening hours on Sunday?", not "and on Sunday?").',
+                            'description' => 'The full question to look up, written out on its own (for example "What are the opening hours on Sunday?", not "and on Sunday?"). Empty for small talk.',
                         ],
                     ],
                     'required' => ['query'],

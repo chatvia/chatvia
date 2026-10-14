@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * "N Sources" button under an assistant reply, opening a dialog with the
- * sources the answer was given: each one's name, the page of a PDF, and a
- * link to a website page or a video.
+ * sources the answer was given: each one's name, the page of a PDF, how many
+ * of its passages were used, and a link to a website page or a video.
  */
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,7 +44,7 @@ function sourceTitle(source: MessageSource, index: number): string {
                 {{ t('sources.source_count', { count: sourcesCount }, { plural: sourcesCount }) }}
             </Button>
         </DialogTrigger>
-        <DialogContent class="max-h-[80vh] max-w-xl">
+        <DialogContent class="max-h-[80vh] sm:max-w-xl">
             <DialogHeader>
                 <DialogTitle class="flex items-center gap-2">
                     <FileText class="h-5 w-5" />
@@ -53,13 +53,18 @@ function sourceTitle(source: MessageSource, index: number): string {
                 <DialogDescription>{{ t('sources.description', { count: sourcesCount }, { plural: sourcesCount }) }}</DialogDescription>
             </DialogHeader>
 
-            <ScrollArea class="max-h-[60vh] pe-4">
+            <!-- min-w-0: a grid item is otherwise as wide as its longest name, which pushes the rows past the dialog. -->
+            <ScrollArea class="max-h-[60vh] min-w-0 pe-4">
                 <ul class="space-y-2">
-                    <li v-for="(source, index) in sources" :key="source.id ?? index" class="flex items-center gap-3 rounded-lg border p-3">
+                    <li v-for="(source, index) in sources" :key="source.id ?? index" class="flex min-w-0 items-center gap-3 rounded-lg border p-3">
                         <Badge variant="secondary" class="shrink-0 text-xs">{{ index + 1 }}</Badge>
                         <component :is="kindIcons[source.kind] ?? FileText" class="text-muted-foreground h-4 w-4 shrink-0" />
-                        <span class="min-w-0 flex-1 truncate text-sm font-medium" :title="sourceTitle(source, index)">
+                        <!-- dir="auto": a right-to-left name reads from the right and is cut at its own end. -->
+                        <span dir="auto" class="min-w-0 flex-1 truncate text-start text-sm font-medium" :title="sourceTitle(source, index)">
                             {{ sourceTitle(source, index) }}
+                        </span>
+                        <span v-if="(source.passages ?? 1) > 1" class="text-muted-foreground shrink-0 text-xs">
+                            {{ t('sources.passage_count', { count: source.passages }, { plural: source.passages }) }}
                         </span>
                         <a
                             v-if="source.url"

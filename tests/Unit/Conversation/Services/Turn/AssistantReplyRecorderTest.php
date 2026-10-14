@@ -5,6 +5,7 @@ use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
+use Domain\Conversation\Data\Messages\MessageSourceData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
@@ -168,5 +169,27 @@ it('remembers only what the clients may see, for a client that shows sources', f
         ->withScope(new ChatScopeData($request->agent, $request->externalSessionId, $request->conversationId))
         ->getSources();
 
-    expect($sources[$context->assistantMessageId])->toBe([['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null]]);
+    expect($sources[$context->assistantMessageId])->toBe([['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null, 'passages' => 1]]);
+});
+
+it('remembers the chunks of one source as one source, but stores every chunk', function (): void {
+    $context = recorderContext();
+    $context->requestData->streamSources = true;
+    $second = recorderSource(0.74);
+    $second->id = 12;
+    $second->external_id = 'chunk-12';
+    $context->setSources(collect([recorderSource(0.82), $second]));
+
+    app(AssistantReplyRecorder::class)->recordCompletedReply($context);
+
+    $request = $context->requestData;
+    $sources = app(ChatMemory::class)
+        ->withScope(new ChatScopeData($request->agent, $request->externalSessionId, $request->conversationId))
+        ->getSources();
+
+    expect($sources[$context->assistantMessageId])->toHaveCount(1)
+        ->and($sources[$context->assistantMessageId][0])->toMatchArray(['id' => 'chunk-11', 'passages' => 2]);
+
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
+        && array_map(static fn (MessageSourceData $source): ?int => $source->chunk_id, $job->payload->sources) === [11, 12]);
 });

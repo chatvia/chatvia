@@ -316,8 +316,13 @@ through Chatvia:
    before it opens the microphone. For each spoken turn the session:
    - checks the message limits and the rate limit (`VoiceTurnGate`), then
      asks for the reply;
+   - for an agent with knowledge, makes the reply start with a required
+     `search_knowledge` call (the model writes the query, an empty one for
+     small talk), as a typed turn always searches;
    - runs the tools (`VoiceToolRunner`, through the same access policy,
-     dispatcher and audit as a typed turn);
+     dispatcher and audit as a typed turn). While a real search or tool
+     runs, the agent says a short "let me check" (an out-of-band response,
+     never saved), and the reply follows once it has been said;
    - saves both sides as messages (`VoiceTurnRecorder` →
      `AssistantReplyRecorder`). The reply counts against the limit and
      carries `metadata.voice`.

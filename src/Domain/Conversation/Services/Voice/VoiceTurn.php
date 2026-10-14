@@ -17,6 +17,9 @@ use Domain\Conversation\Services\ChatContext;
  */
 final class VoiceTurn
 {
+    /** What the visitor said, once it is written down. */
+    public ?string $words = null;
+
     /** The visitor's words were stored (or the turn was refused). */
     public bool $userStored = false;
 

@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Sivu {page})",
         "fallback_title": "Lähde {number}",
         "chunk_label": "Katkelma {index}",
-        "open_link": "Avaa {label}"
+        "open_link": "Avaa {label}",
+        "passage_count": "{count} katkelma | {count} katkelmaa"
     },
     "home": {
         "logo_alt": "Logo",

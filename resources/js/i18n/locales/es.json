@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Página {page})",
         "fallback_title": "Fuente {number}",
         "chunk_label": "Fragmento {index}",
-        "open_link": "Abrir {label}"
+        "open_link": "Abrir {label}",
+        "passage_count": "{count} fragmento | {count} fragmentos"
     },
     "home": {
         "logo_alt": "Logo",

@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Page {page})",
         "fallback_title": "Source {number}",
         "chunk_label": "Chunk {index}",
-        "open_link": "Open {label}"
+        "open_link": "Open {label}",
+        "passage_count": "{count} passage | {count} passages"
     },
     "home": {
         "logo_alt": "Logo",

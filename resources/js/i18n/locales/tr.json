@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Sayfa {page})",
         "fallback_title": "Kaynak {number}",
         "chunk_label": "Parça {index}",
-        "open_link": "{label} aç"
+        "open_link": "{label} aç",
+        "passage_count": "{count} bölüm | {count} bölüm"
     },
     "home": {
         "logo_alt": "Logo",

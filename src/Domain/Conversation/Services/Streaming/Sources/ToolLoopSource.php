@@ -363,6 +363,6 @@ abstract class ToolLoopSource
      */
     private function clientSources(ChatContext $context): array
     {
-        return $context->sources->map(static fn (RetrievedSourceData $source): array => $source->forClient())->values()->all();
+        return RetrievedSourceData::forClients($context->sources);
     }
 }

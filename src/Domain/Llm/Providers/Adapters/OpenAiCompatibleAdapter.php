@@ -22,8 +22,12 @@ use Illuminate\Support\Collection;
  */
 abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 {
-    /** Ids of models that are not chat models, for the lists that do not say. */
-    protected const string NOT_CHAT = '/(embed|whisper|tts|dall-e|moderation|transcri|rerank|sora|imagen|image-gen)/i';
+    /**
+     * Ids of models that are not chat models, for the lists that do not say.
+     * Realtime models only speak over a live voice call (Settings → AI
+     * models → Voice conversations), never in a chat reply.
+     */
+    protected const string NOT_CHAT = '/(embed|whisper|tts|dall-e|moderation|transcri|rerank|sora|imagen|image-gen|realtime)/i';
 
     public function defaultBaseUrl(): ?string
     {

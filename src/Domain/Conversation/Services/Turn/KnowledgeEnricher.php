@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Turn;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Turn\KnowledgeLookupData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Services\ChatContext;
@@ -72,6 +73,31 @@ class KnowledgeEnricher
         $this->countRetrieval($context, $sources);
 
         return $this->withReferenceMaterial($context, $sources);
+    }
+
+    /**
+     * What the knowledge holds for a question the model looks up itself (a
+     * voice call has no reference material pasted in; its model calls the
+     * knowledge search tool): a Q&A answer, else the chunks that pass the
+     * relevance check and the injection scan. The retrieval counters of the
+     * sources used are bumped as on a typed turn.
+     */
+    public function lookup(ChatContext $context, string $query): KnowledgeLookupData
+    {
+        $agent = $context->requestData->agent;
+        $qaMatch = $this->findQaMatch($agent, $query, $query);
+
+        if ($qaMatch instanceof QaMatchData) {
+            return new KnowledgeLookupData(qaMatch: $qaMatch, sources: collect());
+        }
+
+        $sources = $this->withoutInjectedSources($context, $this->retrieveSources($agent, $query));
+
+        if ($sources->isNotEmpty()) {
+            $this->countRetrieval($context, $sources);
+        }
+
+        return new KnowledgeLookupData(qaMatch: null, sources: $sources);
     }
 
     /** The Q&A entry that answers the message, as a whole question or by meaning ({@see QaMatcher}). */
@@ -208,7 +234,7 @@ class KnowledgeEnricher
      *
      * @param  Collection<int, RetrievedSourceData>  $sources
      */
-    private function confidence(Collection $sources): ?float
+    public function confidence(Collection $sources): ?float
     {
         $relevance = $sources->first()?->relevance;
 

@@ -24,6 +24,14 @@ theme.
   default for new agents, the embedding service, the reranker, document
   reading and speech to text. Before, models could only be added by running
   the setup again.
+- **The embedding model can be changed after sources are trained.** Settings
+  → AI models warns that agents cannot find documents until everything is
+  embedded again, and asks before it saves. Saving starts a **re-index** in
+  the background queue: every document, Q&A and tool gets new vectors from the
+  stored text (files are not read again), then partitioned vector indexes are
+  rebuilt. The Embeddings section shows its progress, and **Re-index
+  documents** starts one by hand. Before, the embedding model was locked once
+  a source was trained.
 - **Azure Document Intelligence** reads PDFs, Word, slides and images, as
   Mistral OCR does. Without one of them, PDF, Word, slides and images cannot
   be uploaded; text, Markdown, spreadsheets and ebooks always work.
@@ -34,6 +42,14 @@ theme.
   keeps its tables, which Azure would lose). Settings → Knowledge → File
   types shows what reads each type now, and greys out the types nothing can
   read.
+- **Settings → AI models → Documents is clearer.** Document reading is Mistral
+  OCR, Azure Document Intelligence or Off, and "Whole-PDF reading" is now
+  **Summaries and PDF chat** (Mistral or Off). There is no "Automatic": each
+  list shows the service in use, marks each one connected or not, and greys
+  out the ones that are not. A new pick is checked with a real call as it is
+  saved (Mistral OCR reads a small test image) and refused if the call
+  fails. With only Azure connected, the hosted chat and the widget no longer
+  fail on a PDF model that Azure does not have.
 - **Azure's free tier is caught.** It reads only the first 2 pages of a
   file, without an error: the connection check warns about a free (F0)
   resource, and a PDF that comes back with 2 of more pages fails with that
@@ -83,6 +99,29 @@ theme.
   to clear one. Only admins signed in to the admin panel can open it. Docker
   installs now write logs to a file per day in `storage/logs` (the newest 14
   are kept) as well as to the container output.
+
+### Voice conversations
+
+- **Visitors can talk with an agent out loud** in the hosted chat and the chat
+  widget. A new button next to the microphone opens a voice view with a
+  glowing orb that moves with the voice, live captions, Mute and End. It runs
+  on the OpenAI Realtime API: the audio goes straight from the browser to
+  OpenAI, and the OpenAI key never reaches the browser.
+- The agent keeps its instructions. It looks things up in its knowledge (a
+  new `search_knowledge` tool) and can use its tools that need no approval.
+  Approval-gated tools, forms and charts stay text-only.
+- **Both sides are saved as messages**: in the thread, in Chat Logs (marked
+  "Voice") and in analytics. Each spoken answer counts against the message
+  limits, which are checked before every answer.
+- Each call holds one queue worker for its whole length (a new `voice` Horizon
+  supervisor; Settings → Platform → Queue workers → Live voice calls), so that
+  number is also the most calls at once.
+- Admin: **Settings → AI models → Voice conversations**: on or off, the
+  default voice, the longest call (at most 25 minutes) and the model. Each
+  agent turns it on in Setup → Settings → Composer options, and may pick its
+  own voice. It is off by default: a call costs much more than a typed chat.
+- The hosted-chat embed code now has `allow="microphone"`, so voice input
+  and voice calls work when the chat is embedded on another site.
 
 ### Knowledge search
 

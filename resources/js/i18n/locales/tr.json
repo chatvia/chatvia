@@ -34,7 +34,8 @@
         "delete_failed": "Ek kaldırılamadı",
         "upload_limit_reached": "En fazla {count} dosya ekleyebilirsiniz | En fazla {count} dosya ekleyebilirsiniz",
         "send_message": "Mesaj gönder",
-        "stop_streaming": "Oluşturmayı durdur"
+        "stop_streaming": "Oluşturmayı durdur",
+        "start_voice_call": "Sesle konuş"
     },
     "header": {
         "toggle_sidebar": "Kenar çubuğunu aç/kapat",
@@ -458,7 +459,8 @@
                 "negative_feedback": "Olumsuz geri bildirim",
                 "qa_matched": "Soru-Cevap eşleşmesi",
                 "revised": "Düzeltilmiş yanıt",
-                "revise": "Düzelt"
+                "revise": "Düzelt",
+                "voice": "Ses"
             },
             "details": {
                 "select_conversation": "Ayrıntıları görüntülemek için bir görüşme seçin",
@@ -1618,7 +1620,7 @@
             },
             "settings": {
                 "composer_title": "Yazma alanı seçenekleri",
-                "composer_description": "Asistanınızın bu girdileri kabul etmemesi gerekiyorsa dosya yükleme veya sesli giriş düğmesini gizleyin.",
+                "composer_description": "Mesaj kutusunun hangi düğmeleri göstereceğini seçin: dosya yükleme, sesle yazma ve sesli görüşmeler.",
                 "file_uploads_label": "Dosya yüklemeye izin ver",
                 "file_uploads_aria": "Dosya yüklemeleri nasıl ücretlendirilir?",
                 "file_uploads_help_title": "Dosya yüklemeleri",
@@ -1654,7 +1656,17 @@
                 "topics_help_title": "Konular",
                 "topics_help_1": "Konular, görüşmeleri tarar ve insanların sorduğu şeylere göre gruplandırır; böylece sohbetleri elle etiketlemeniz gerekmez.",
                 "topics_help_2": "Yeni konular otomatik olarak algılanır ve Konular panosunda toplanır; size en yaygın temaları gösterir. Görüşmeleri sakla seçeneğinin açık olması gerekir.",
-                "topics_hint": "Ziyaretçilerin sorduğu şeyleri otomatik olarak algılayın ve gruplandırın."
+                "topics_hint": "Ziyaretçilerin sorduğu şeyleri otomatik olarak algılayın ve gruplandırın.",
+                "voice_conversation_label": "Sesli görüşmelere izin ver",
+                "voice_conversation_hint": "Mikrofonun yanında, ajanla canlı sesli görüşme başlatan bir düğme gösterir.",
+                "voice_conversation_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici sesli görüşmeleri yönetim panelinden açabilir.",
+                "voice_conversation_aria": "Sesli görüşmeler nasıl sayılır?",
+                "voice_conversation_help_title": "Sesli görüşmeler",
+                "voice_conversation_help_1": "Ziyaretçiler ajanla sesli konuşur. Ajan bilgisinden yanıt verir ve onay gerektirmeyen araçlarını kullanabilir. Görüşmenin iki tarafı da sohbet kayıtlarına kaydedilir.",
+                "voice_conversation_help_2": "Her sesli yanıt bir mesaj sayılır. Sesli görüşmenin maliyeti yazılı sohbetten çok daha yüksektir.",
+                "voice_label": "Ses",
+                "voice_default": "Varsayılan ({voice})",
+                "voice_input_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici konuşmayı metne çevirmeyi yönetim panelinden açabilir."
             },
             "bubbles_title": "Sohbet Balonları",
             "bubbles_description": "Widget balonunun yanında gösterilen hızlı mesaj istemleri. Her birini eklemek için Enter'a basın.",
@@ -3758,6 +3770,26 @@
                 "name": "Amplitude",
                 "description": "Amplitude projenizden ürün analitiğini — etkinlikler, grafikler ve kohortlar — sorgulayın."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Sesli görüşme",
+        "connecting": "Bağlanıyor…",
+        "listening": "Dinliyor",
+        "thinking": "Düşünüyor…",
+        "speaking": "Konuşuyor",
+        "muted": "Mikrofon kapalı",
+        "ended": "Görüşme bitti",
+        "mute": "Mikrofonu kapat",
+        "unmute": "Mikrofonu aç",
+        "end": "Görüşmeyi bitir",
+        "close": "Kapat",
+        "errors": {
+            "not_supported": "Bu tarayıcı sesli görüşme yapamıyor.",
+            "microphone_denied": "Ajanla konuşmak için mikrofon erişimine izin verin.",
+            "microphone_not_found": "Mikrofon bulunamadı.",
+            "busy": "Ses şu anda meşgul. Lütfen biraz sonra tekrar deneyin.",
+            "failed": "Sesli görüşme başlatılamadı. Lütfen tekrar deneyin."
         }
     }
 }

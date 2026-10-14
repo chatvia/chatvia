@@ -8,6 +8,7 @@ use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\MailSetupData;
+use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\KnowledgeSettings;
@@ -31,8 +32,8 @@ use InvalidArgumentException;
  * Saves the admin setup of a new install in one go: each key once in
  * Settings → AI providers (for everything that provider does), the chat
  * models agents can use with the default one, the embedding service and
- * model, the document reader, the Firecrawl key, speech to text, where files
- * are kept, and how email is sent. A service left at "Not now" is turned
+ * model, the reranker, the document reader, the Firecrawl key, speech to
+ * text, where files are kept, and how email is sent. A service left at "Not now" is turned
  * off, so "Automatic" does not turn it on. Agents made before any model
  * was added (the demo data) get the default model. Then the setup is
  * marked done. A value that still equals its default
@@ -86,6 +87,10 @@ final readonly class CompleteSetupAction
                 }
 
                 $this->saveKey($data->embeddingProvider->account(), $data->embeddingApiKey);
+            }
+
+            if ($data->reranker instanceof RerankerSetupData) {
+                $this->saveReranker($data->reranker);
             }
 
             if ($data->documentReader instanceof AiProvider) {
@@ -145,6 +150,42 @@ final readonly class CompleteSetupAction
 
         if ($property !== null && filled($address)) {
             $this->set($this->providers, $property, rtrim(trim($address), '/'));
+        }
+    }
+
+    /**
+     * The reranker, with its model and key: OpenRouter's and Cohere's keys go
+     * to Settings → AI providers, a server of your own keeps its own.
+     */
+    private function saveReranker(RerankerSetupData $reranker): void
+    {
+        $this->set($this->ai, 'reranker', $reranker->driver);
+
+        $account = AiProvider::tryFrom($reranker->driver);
+
+        if ($account instanceof AiProvider) {
+            $this->saveKey($account, $reranker->apiKey);
+        }
+
+        $model = match ($reranker->driver) {
+            'openrouter' => 'openrouter_rerank_model',
+            'cohere' => 'cohere_rerank_model',
+            'custom' => 'rerank_custom_model',
+            default => null,
+        };
+
+        if ($model !== null && filled($reranker->model)) {
+            $this->set($this->ai, $model, $reranker->model);
+        }
+
+        if ($reranker->driver !== 'custom') {
+            return;
+        }
+
+        $this->set($this->ai, 'rerank_custom_url', rtrim(trim((string) $reranker->url), '/'));
+
+        if (filled($reranker->apiKey)) {
+            $this->ai->rerank_custom_key = $reranker->apiKey;
         }
     }
 

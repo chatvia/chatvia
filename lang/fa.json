@@ -268,5 +268,13 @@
     "Complete the security check.": "بررسی امنیتی را کامل کنید.",
     "This account has been deactivated.": "این حساب غیرفعال شده است.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "این ایمیل از قبل در فضای کاری دیگری حساب دارد. برای ایمیل دیگری دعوت‌نامه بخواهید.",
-    "A chatter with this email already exists in your workspace.": "در فضای کاری شما از قبل یک کاربر گفتگو با این ایمیل وجود دارد."
+    "A chatter with this email already exists in your workspace.": "در فضای کاری شما از قبل یک کاربر گفتگو با این ایمیل وجود دارد.",
+    "Voice input is not available right now.": "ورودی صوتی اکنون در دسترس نیست.",
+    "Voice conversations are not available for this agent.": "مکالمه صوتی برای این عامل در دسترس نیست.",
+    "A team member has joined this conversation. Please continue in the chat.": "یکی از اعضای تیم به این گفتگو پیوسته است. لطفاً در گفتگوی متنی ادامه دهید.",
+    "Voice is busy right now. Please try again in a moment.": "بخش صوت اکنون مشغول است. لطفاً کمی بعد دوباره امتحان کنید.",
+    "The voice call could not start. Please try again.": "تماس صوتی شروع نشد. لطفاً دوباره امتحان کنید.",
+    "Our time for this call is up. You can keep chatting in the text box.": "زمان این تماس تمام شد. می‌توانید در کادر متن ادامه دهید.",
+    "Sorry, I can't help with that.": "متأسفم، نمی‌توانم در این مورد کمک کنم.",
+    "(Voice message that could not be transcribed)": "(پیام صوتی که به متن تبدیل نشد)"
 }

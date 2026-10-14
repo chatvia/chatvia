@@ -70,3 +70,23 @@ it('does not write groups that have their own, stricter endpoint', function (str
     'guardrails' => ['guardrails', 'enabled', true],
     'model' => ['llm_settings', 'temperature', 1.5],
 ]);
+
+it('saves the voice-conversation switch and the agent\'s voice', function (): void {
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), [
+            'allow_voice_conversation' => true,
+            'voice' => 'cedar',
+        ])
+        ->assertOk();
+
+    $appearance = $this->agent->fresh()->settings('appearance');
+    expect($appearance->get('allow_voice_conversation'))->toBeTrue()
+        ->and($appearance->get('voice'))->toBe('cedar');
+});
+
+it('refuses a voice that does not exist', function (): void {
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['voice' => 'robot'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('voice');
+});

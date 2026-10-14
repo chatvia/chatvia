@@ -34,7 +34,8 @@
         "delete_failed": "Liitteen poistaminen epäonnistui",
         "upload_limit_reached": "Voit liittää enintään {count} tiedoston | Voit liittää enintään {count} tiedostoa",
         "send_message": "Lähetä viesti",
-        "stop_streaming": "Lopeta luominen"
+        "stop_streaming": "Lopeta luominen",
+        "start_voice_call": "Puhu äänellä"
     },
     "header": {
         "toggle_sidebar": "Näytä tai piilota sivupalkki",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Negatiivinen palaute",
                 "qa_matched": "K&V-osuma",
                 "revised": "Tarkistettu vastaus",
-                "revise": "Tarkista"
+                "revise": "Tarkista",
+                "voice": "Puhe"
             },
             "details": {
                 "select_conversation": "Valitse keskustelu nähdäksesi tiedot",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
-                "composer_description": "Piilota tiedostonlataus- tai äänisyöttöpainike, jos agentisi ei tarvitse niitä.",
+                "composer_description": "Valitse, mitä painikkeita viestikenttä näyttää: tiedostojen lataus, puhesyöte ja puhekeskustelut.",
                 "file_uploads_label": "Salli tiedostojen lataaminen",
                 "file_uploads_aria": "Miten tiedostojen lataaminen laskutetaan?",
                 "file_uploads_help_title": "Tiedostojen lataaminen",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Aiheet",
                 "topics_help_1": "Aiheet skannaa keskusteluja ja ryhmittelee ne sen mukaan, mistä ihmiset kysyvät, joten sinun ei tarvitse merkitä chattejä käsin.",
                 "topics_help_2": "Uudet aiheet havaitaan automaattisesti ja kootaan aiheet-koontinäytölle, joka näyttää yleisimmät teemat. Edellyttää, että keskustelujen tallentaminen on päällä.",
-                "topics_hint": "Tunnista ja ryhmittele automaattisesti, mistä vierailijat kysyvät."
+                "topics_hint": "Tunnista ja ryhmittele automaattisesti, mistä vierailijat kysyvät.",
+                "voice_conversation_label": "Salli puhekeskustelut",
+                "voice_conversation_hint": "Näytä mikrofonin vieressä painike, joka aloittaa suoran puhelun agentin kanssa.",
+                "voice_conversation_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa puhekeskustelut käyttöön hallintapaneelissa.",
+                "voice_conversation_aria": "Miten puhekeskustelut laskutetaan?",
+                "voice_conversation_help_title": "Puhekeskustelut",
+                "voice_conversation_help_1": "Kävijät puhuvat agentin kanssa ääneen. Se vastaa tietojensa pohjalta ja voi käyttää työkalujaan, jotka eivät vaadi hyväksyntää. Puhelun molemmat osapuolet tallennetaan keskusteluhistoriaan.",
+                "voice_conversation_help_2": "Jokainen puhuttu vastaus lasketaan yhdeksi viestiksi. Puhelu maksaa paljon enemmän kuin kirjoitettu keskustelu.",
+                "voice_label": "Ääni",
+                "voice_default": "Oletus ({voice})",
+                "voice_input_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa puheentunnistuksen käyttöön hallintapaneelissa."
             },
             "bubbles_title": "Chat-kuplat",
             "bubbles_description": "Pikaviestikehotukset, jotka näytetään widget-kuplan vieressä. Lisää painamalla Enter.",
@@ -3765,6 +3777,26 @@
                 "name": "Amplitude",
                 "description": "Tee kyselyitä tuoteanalytiikkaan — tapahtumat, kaaviot ja kohortit — Amplitude-projektistasi."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Puhekeskustelu",
+        "connecting": "Yhdistetään…",
+        "listening": "Kuuntelee",
+        "thinking": "Miettii…",
+        "speaking": "Puhuu",
+        "muted": "Mikrofoni pois",
+        "ended": "Puhelu päättyi",
+        "mute": "Mykistä mikrofoni",
+        "unmute": "Ota mikrofoni käyttöön",
+        "end": "Lopeta puhelu",
+        "close": "Sulje",
+        "errors": {
+            "not_supported": "Tällä selaimella ei voi soittaa puheluita.",
+            "microphone_denied": "Salli mikrofonin käyttö, jotta voit puhua agentin kanssa.",
+            "microphone_not_found": "Mikrofonia ei löytynyt.",
+            "busy": "Puhe on juuri nyt varattu. Yritä hetken kuluttua uudelleen.",
+            "failed": "Puhelua ei voitu aloittaa. Yritä uudelleen."
         }
     }
 }

@@ -22,7 +22,10 @@ use InvalidArgumentException;
  * suits an empty or small table; once the table passes 100k rows the index is
  * rebuilt with about 4·√N partitions ({@see VectorIndexSizing}), and again each
  * time the rows double, so the partitions follow the data. A flat index needs
- * no training, so it is never rebuilt while it stays flat.
+ * no training, so it is never rebuilt while it stays flat. After a re-index
+ * with a new embedding model every partitioned index is rebuilt
+ * ({@see VectorIndexRebuild::WhenPartitioned}): its partitions were trained on
+ * the old model's vectors.
  *
  * The rebuild runs side by side: a new index is built CONCURRENTLY next to the
  * old one, then swapped in, so search and ingestion keep running. The row count
@@ -54,7 +57,7 @@ class RebuildVectorIndexAction
         $lists = $this->sizing->lists($rows);
         $current = $this->layout->read($index);
 
-        if ($when === VectorIndexRebuild::WhenGrown && $current instanceof VectorIndexStateData && ! $this->needsRebuild($current, $lists, $rows)) {
+        if ($current instanceof VectorIndexStateData && ! $this->shouldRebuild($when, $current, $lists, $rows)) {
             return new VectorIndexRebuildData(index: $index, rows: $rows, lists: $current->lists, rebuilt: false);
         }
 
@@ -62,6 +65,18 @@ class RebuildVectorIndexAction
         $this->layout->forget($index);
 
         return new VectorIndexRebuildData(index: $index, rows: $rows, lists: $lists, rebuilt: true);
+    }
+
+    /**
+     * @param  list<int>  $lists  the partitions the current row count calls for
+     */
+    private function shouldRebuild(VectorIndexRebuild $when, VectorIndexStateData $current, array $lists, int $rows): bool
+    {
+        return match ($when) {
+            VectorIndexRebuild::Always => true,
+            VectorIndexRebuild::WhenGrown => $this->needsRebuild($current, $lists, $rows),
+            VectorIndexRebuild::WhenPartitioned => $current->lists !== [] || $lists !== [],
+        };
     }
 
     /**

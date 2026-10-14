@@ -361,6 +361,112 @@ it('form requests scope exists/unique rules to the workspace', function (): void
     ]));
 });
 
+// --- Code style ----------------------------------------------------------
+
+/**
+ * Empty checks use Laravel's filled()/blank() (.ai/rules/src.md): writing out
+ * `is_string($x) && $x !== ''` or `$x !== null && $x !== ''` repeats what the
+ * helpers already say. A value that can really be another type keeps its
+ * is_string() guard, paired with filled(). Listed: files where filled() is
+ * wrong, with how many hand-written checks each may keep.
+ */
+const HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST = [
+    // A whitespace-only stream delta (" ", "\n") is real output; filled() drops it.
+    'src/Domain/Analytics/Services/Chat/AnalyticsChatRunner.php' => 1,
+    'src/Domain/Conversation/Services/Streaming/Transformers/OpenAiCompatibleTransformer.php' => 1,
+    // An empty list (e.g. no sites) is a real setting value; filled([]) is false.
+    'src/App/Http/Requests/Agent/Settings/UpdateAgentSettingsRequest.php' => 1,
+];
+
+/**
+ * Line numbers in $code that test for an empty value by hand:
+ * `is_string($x) && $x !== ''`, `$x !== null && $x !== ''` (either order,
+ * either polarity, with or without trim()) or `trim($x) === ''`.
+ *
+ * @return list<int>
+ */
+function conventionHandWrittenEmptyChecks(string $code): array
+{
+    $tokens = [
+        // The tested value ($x, $this->x, $row['x']), named so the second
+        // half of the check can refer back to it.
+        '{x}' => '(?<x>\$\w+(?:\??->\w+|\[[^\]\n]*\])*)',
+        '{same}' => '(?:\k<x>|trim\(\s*\k<x>\s*\))',
+        '{empty}' => '(?:\'\'|"")',
+        '{is}' => '\s*[!=]==\s*',
+        '{and}' => '\s*(?:&&|\|\|)\s*',
+    ];
+
+    $patterns = [
+        'is_string\(\s*{x}(?:\s*\?\?\s*null)?\s*\){and}{same}{is}{empty}', // is_string($x) && $x !== ''
+        '{x}{is}null{and}{same}{is}{empty}', // $x !== null && $x !== ''
+        '{x}{is}{empty}{and}\k<x>{is}null', // $x !== '' && $x !== null
+        'trim\(\s*{x}\s*\){is}{empty}', // trim($x) === ''
+    ];
+
+    $lines = [];
+
+    foreach ($patterns as $pattern) {
+        preg_match_all('/'.strtr($pattern, $tokens).'/', $code, $matches, PREG_OFFSET_CAPTURE);
+
+        foreach ($matches[0] as [, $offset]) {
+            $lines[] = substr_count($code, "\n", 0, $offset) + 1;
+        }
+    }
+
+    $lines = array_values(array_unique($lines));
+    sort($lines);
+
+    return $lines;
+}
+
+it('empty checks use filled()/blank(), not hand-written comparisons with an empty string', function (): void {
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $found = [];
+
+    foreach (conventionPhpFiles('src') as $path) {
+        $lines = conventionHandWrittenEmptyChecks((string) file_get_contents($path));
+
+        if ($lines !== []) {
+            $found[str_replace($root, '', $path)] = $lines;
+        }
+    }
+
+    ksort($found);
+
+    // Drift up: a new hand-written check, or one more in an allowlisted file.
+    $newOffenders = [];
+
+    foreach ($found as $file => $lines) {
+        if (count($lines) > (HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST[$file] ?? 0)) {
+            $newOffenders[] = $file.':'.implode(',', $lines);
+        }
+    }
+
+    expect($newOffenders)->toBe([], implode("\n", [
+        '',
+        'Hand-written empty check(s) — use filled()/blank() (keep is_string() only for values that can be another type):',
+        ...array_map(fn (string $o): string => "  - {$o}", $newOffenders),
+        '',
+        'Or, where filled() is really wrong, add the file to HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST in this file.',
+    ]));
+
+    // Drift down: an allowlisted check is gone, so the list must shrink too.
+    $nowClean = [];
+
+    foreach (HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST as $file => $allowed) {
+        if (count($found[$file] ?? []) < $allowed) {
+            $nowClean[] = $file;
+        }
+    }
+
+    expect($nowClean)->toBe([], implode("\n", [
+        '',
+        'Allowlisted file has fewer hand-written empty checks — lower or remove its HAND_WRITTEN_EMPTY_CHECK_ALLOWLIST entry:',
+        ...array_map(fn (string $f): string => "  - {$f}", $nowClean),
+    ]));
+});
+
 // --- Event wiring --------------------------------------------------------
 
 it('every listener is registered in a service provider', function (): void {

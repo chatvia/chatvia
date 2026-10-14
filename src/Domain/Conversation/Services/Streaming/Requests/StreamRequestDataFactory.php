@@ -8,13 +8,16 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
+use Domain\Conversation\Data\Voice\VoiceCallerData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Llm\Models\Llm;
 use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
  * Turns an incoming chat request (hosted chat or widget) into the
- * {@see StreamRequestData} a turn runs on. The one sanctioned place where the
+ * {@see StreamRequestData} a turn runs on, or into the {@see VoiceCallerData}
+ * of a voice call. The one sanctioned place where the
  * domain reads the HTTP request; everything after it gets plain values.
  */
 class StreamRequestDataFactory
@@ -111,6 +114,67 @@ class StreamRequestDataFactory
             pageUrl: $request->input('page_url'),
             locale: $request->input('locale') ?: $request->header('accept-language'),
             requestId: $request->input('request_id') ?? $request->header('X-REQUEST-ID'),
+        );
+    }
+
+    /**
+     * Who asks for a voice call on the hosted chat: the same viewer and
+     * request facts as a hosted-chat message.
+     */
+    public function voiceForChat(Request $request, Agent $agent, string $externalSessionId, string $conversationId): VoiceCallerData
+    {
+        $account = $request->user();
+        $chatter = $account instanceof Chatter ? $account : null;
+        $staff = $account instanceof User ? $account : null;
+
+        return new VoiceCallerData(
+            agent: $agent,
+            surface: ConversationSource::HostedChat,
+            sessionId: $externalSessionId,
+            conversationId: $conversationId,
+            chatterId: $chatter?->id,
+            chatterName: $chatter?->name,
+            chatterExternalId: $chatter?->external_id,
+            actorUserId: $staff?->id,
+            actorName: $chatter?->name ?? $staff?->name,
+            ipAddress: $request->ip(),
+            country: $request->country(),
+            userAgent: $request->userAgent(),
+            referrerUrl: $this->referrer($request),
+            pageUrl: $request->headers->get('referer'),
+            locale: $this->locale($request),
+        );
+    }
+
+    /**
+     * Who asks for a voice call in the widget: the same account rules and
+     * request facts as a widget message.
+     */
+    public function voiceForWidget(
+        Request $request,
+        Agent $agent,
+        string $sessionId,
+        string $conversationId,
+        bool $isPlayground,
+        Chatter|User|null $account = null,
+    ): VoiceCallerData {
+        return new VoiceCallerData(
+            agent: $agent,
+            surface: ConversationSource::Widget,
+            sessionId: $sessionId,
+            conversationId: $conversationId,
+            chatterId: $account instanceof Chatter ? $account->id : null,
+            chatterName: $account instanceof Chatter ? $account->name : null,
+            chatterExternalId: $account instanceof Chatter ? $account->external_id : null,
+            actorUserId: $account instanceof User ? $account->id : null,
+            actorName: $account?->name,
+            source: $isPlayground ? 'playground' : null,
+            ipAddress: $request->ip(),
+            country: $request->country(),
+            userAgent: $request->userAgent(),
+            referrerUrl: $this->referrer($request),
+            pageUrl: $request->input('page_url'),
+            locale: $request->input('locale') ?: $request->header('accept-language'),
         );
     }
 

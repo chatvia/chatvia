@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Bicara dengan suara"
+    },
+    "voice_call": {
+        "title": "Percakapan suara",
+        "connecting": "Menghubungkan…",
+        "listening": "Mendengarkan",
+        "thinking": "Berpikir…",
+        "speaking": "Berbicara",
+        "muted": "Mikrofon mati",
+        "ended": "Panggilan berakhir",
+        "mute": "Matikan mikrofon",
+        "unmute": "Nyalakan mikrofon",
+        "end": "Akhiri panggilan",
+        "close": "Tutup",
+        "errors": {
+            "not_supported": "Browser ini tidak dapat melakukan panggilan suara.",
+            "microphone_denied": "Izinkan akses mikrofon untuk berbicara dengan agen.",
+            "microphone_not_found": "Mikrofon tidak ditemukan.",
+            "busy": "Suara sedang sibuk. Silakan coba lagi sebentar lagi.",
+            "failed": "Panggilan suara tidak dapat dimulai. Silakan coba lagi."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Pilih tombol yang ditampilkan kotak pesan: unggah file, input suara, dan percakapan suara.",
+                "voice_conversation_label": "Izinkan percakapan suara",
+                "voice_conversation_hint": "Tampilkan tombol di samping mikrofon yang memulai panggilan suara langsung dengan agen.",
+                "voice_conversation_unavailable": "Belum diatur di server ini. Admin dapat menyalakan percakapan suara di panel admin.",
+                "voice_conversation_aria": "Bagaimana percakapan suara dihitung?",
+                "voice_conversation_help_title": "Percakapan suara",
+                "voice_conversation_help_1": "Pengunjung berbicara langsung dengan agen. Agen menjawab dari pengetahuannya dan dapat memakai alatnya yang tidak perlu persetujuan. Kedua sisi panggilan disimpan di Log Chat.",
+                "voice_conversation_help_2": "Setiap jawaban lisan dihitung sebagai satu pesan. Panggilan suara jauh lebih mahal daripada chat tertulis.",
+                "voice_label": "Suara",
+                "voice_default": "Bawaan ({voice})",
+                "voice_input_unavailable": "Belum diatur di server ini. Admin dapat menyalakan ucapan ke teks di panel admin."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Suara"
+            }
+        }
+    }
+}

@@ -6,6 +6,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AppearanceTextResolver;
 use Domain\Agent\ValueObjects\TranslatableText;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Services\Voice\VoiceAvailability;
+use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Data\Settings\WidgetSettingsBrandingData;
 use Domain\Widget\Data\Settings\WidgetSettingsData;
@@ -39,6 +41,8 @@ class BuildWidgetSettingsAction
     public function __construct(
         private readonly AppearanceTextResolver $appearanceText,
         private readonly DocumentLlm $documentLlm,
+        private readonly VoiceAvailability $voice,
+        private readonly Transcriber $transcriber,
     ) {}
 
     public function execute(Agent $agent, ?string $visitorLocale = null): WidgetSettingsData
@@ -86,7 +90,9 @@ class BuildWidgetSettingsAction
             handoff_enabled: (bool) ($widget['handoff_enabled'] ?? true),
             // Chat uploads are PDFs, so they need an LLM that can read them.
             allow_file_uploads: (bool) ($appearance['allow_file_uploads'] ?? true) && $this->documentLlm->isAvailable(),
-            allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true),
+            // Dictation is written down by the server: no speech-to-text, no mic.
+            allow_voice_input: (bool) ($appearance['allow_voice_input'] ?? true) && $this->transcriber->isEnabled(),
+            voice_conversation: $this->voice->isOnFor($agent),
             max_files_per_chat: (int) config('chatvia.agent.files.upload.max_files'),
             reverb: $this->reverb(),
         );

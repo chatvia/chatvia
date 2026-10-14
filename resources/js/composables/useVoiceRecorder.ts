@@ -1,9 +1,12 @@
 /**
  * Voice input for the chat composer: records the microphone (via
  * `useAudioCapture`) and turns the recording into text with the hosted chat's
- * transcription endpoint. `stopRecording()` resolves with the transcript.
+ * transcription endpoint. `stopRecording()` resolves with the transcript, or
+ * an empty string with `error` set (no microphone, or the server could not
+ * write it down) for the composer to show.
  */
 import { transcribeAudio } from '@/api/chat';
+import { errorMessage } from '@/api/http';
 import { useAudioCapture } from '@/composables/useAudioCapture';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -24,11 +27,18 @@ export function useVoiceRecorder() {
             await capture.start();
             isRecording.value = true;
         } catch (err) {
-            error.value = (err as Error).message || t('shared.voice_recorder.microphone_failed');
+            const name = (err as { name?: string }).name;
+            error.value =
+                name === 'NotAllowedError'
+                    ? t('shared.voice_recorder.microphone_denied')
+                    : name === 'NotFoundError'
+                      ? t('shared.voice_recorder.microphone_not_found')
+                      : t('shared.voice_recorder.microphone_failed');
         }
     };
 
     const stopRecording = async (): Promise<string> => {
+        error.value = null;
         if (!capture.isActive()) return '';
 
         const audio = await capture.stop();
@@ -43,8 +53,10 @@ export function useVoiceRecorder() {
 
             return text;
         } catch (err) {
-            error.value = (err as Error).message || t('shared.voice_recorder.transcription_failed');
-            throw err;
+            // The server's reason (e.g. no speech-to-text service is set up).
+            error.value = errorMessage(err, t('shared.voice_recorder.transcription_failed'));
+
+            return '';
         } finally {
             isTranscribing.value = false;
         }

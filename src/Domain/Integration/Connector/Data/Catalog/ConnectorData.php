@@ -60,6 +60,9 @@ class ConnectorData extends Data
         // Charts only renders on Hosted Chat).
         /** @var array<int, string>|null */
         public ?array $surfaces = null,
+        // Whether a voice call may offer this connector's tools. False for
+        // tools that only make sense on a screen (a chart, a form to fill).
+        public bool $voice = true,
         // When true, this is an OAuth connector whose client is registered
         // per-workspace (no global app / no DCR) — the workspace supplies its
         // own client_id at connect time (e.g. Salesforce External Client App).
@@ -111,6 +114,7 @@ class ConnectorData extends Data
             comingSoon: (bool) ($entry['coming_soon'] ?? false),
             isCapability: (bool) ($entry['is_capability'] ?? false),
             surfaces: isset($entry['surfaces']) ? array_values((array) $entry['surfaces']) : null,
+            voice: (bool) ($entry['voice'] ?? true),
             requiresClientId: (bool) ($entry['requires_client_id'] ?? false),
             oauthClientId: $entry['oauth_client_id'] ?? null,
             oauthClientSecret: $entry['oauth_client_secret'] ?? null,

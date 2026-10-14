@@ -10,7 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Turns a voice note from the hosted-chat composer into text.
+ * Turns a voice note from the hosted-chat composer into text. A failure is
+ * answered with a `message` the composer shows to the visitor.
  */
 class ChatTranscriptionController
 {
@@ -22,13 +23,13 @@ class ChatTranscriptionController
 
         try {
             $text = $transcribe->execute((string) $audio->getRealPath(), $audio->getClientOriginalExtension());
-        } catch (TranscriptionNotConfiguredException $e) {
+        } catch (TranscriptionNotConfiguredException) {
             // Not a failure to retry: this install has no speech-to-text service.
-            return response()->json(['error' => $e->getMessage()], 503);
+            return response()->json(['message' => __('Voice input is not available right now.')], 503);
         } catch (Exception $e) {
             Log::error('Transcription failed', ['error' => $e->getMessage()]);
 
-            return response()->json(['error' => __('Transcription failed. Please try again.')], 500);
+            return response()->json(['message' => __('Transcription failed. Please try again.')], 500);
         }
 
         return response()->json(['text' => $text]);

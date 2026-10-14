@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Per Sprache sprechen"
+    },
+    "voice_call": {
+        "title": "Sprachgespräch",
+        "connecting": "Verbinde…",
+        "listening": "Hört zu",
+        "thinking": "Denkt nach…",
+        "speaking": "Spricht",
+        "muted": "Mikrofon aus",
+        "ended": "Anruf beendet",
+        "mute": "Mikrofon ausschalten",
+        "unmute": "Mikrofon einschalten",
+        "end": "Anruf beenden",
+        "close": "Schließen",
+        "errors": {
+            "not_supported": "Dieser Browser kann keine Sprachanrufe führen.",
+            "microphone_denied": "Erlaube den Zugriff auf das Mikrofon, um mit dem Agenten zu sprechen.",
+            "microphone_not_found": "Kein Mikrofon gefunden.",
+            "busy": "Die Sprachfunktion ist gerade ausgelastet. Bitte versuche es gleich noch einmal.",
+            "failed": "Der Sprachanruf konnte nicht starten. Bitte versuche es erneut."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Lege fest, welche Schaltflächen das Eingabefeld zeigt: Datei-Uploads, Spracheingabe und Sprachgespräche.",
+                "voice_conversation_label": "Sprachgespräche erlauben",
+                "voice_conversation_hint": "Zeigt neben dem Mikrofon eine Schaltfläche, die ein Live-Sprachgespräch mit dem Agenten startet.",
+                "voice_conversation_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann Sprachgespräche im Admin-Bereich einschalten.",
+                "voice_conversation_aria": "Wie werden Sprachgespräche berechnet?",
+                "voice_conversation_help_title": "Sprachgespräche",
+                "voice_conversation_help_1": "Besucher sprechen laut mit dem Agenten. Er antwortet aus seinem Wissen und kann seine Werkzeuge nutzen, die keine Freigabe brauchen. Beide Seiten des Gesprächs werden im Chatprotokoll gespeichert.",
+                "voice_conversation_help_2": "Jede gesprochene Antwort zählt als eine Nachricht. Ein Sprachgespräch kostet im Betrieb viel mehr als ein geschriebener Chat.",
+                "voice_label": "Stimme",
+                "voice_default": "Standard ({voice})",
+                "voice_input_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann Sprache-zu-Text im Admin-Bereich einschalten."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Sprache"
+            }
+        }
+    }
+}

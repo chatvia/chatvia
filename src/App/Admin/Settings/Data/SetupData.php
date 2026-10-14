@@ -16,14 +16,14 @@ use Spatie\LaravelData\Data;
  * What the admin setup of a new install collects: the chat provider (an
  * account's key, or a server of your own), the chat models agents can use
  * and the default one, the embedding service and model (with its account's
- * key when that is another account), the document reader, the Firecrawl
- * key for website import, speech to text, where files are kept, and how
- * email is sent.
+ * key when that is another account), the reranker, the document reader,
+ * the Firecrawl key for website import, speech to text, where files are
+ * kept, and how email is sent.
  *
  * A null key keeps the saved one. A null embedding provider keeps the one
  * in use (sources are trained with it already); a null embedding model the
  * saved one. A null reader or speech service turns that service off ("Not
- * now"). A null storage or mail leaves those settings as they are.
+ * now"). A null reranker, storage or mail leaves those settings as they are.
  */
 final class SetupData extends Data
 {
@@ -40,6 +40,7 @@ final class SetupData extends Data
         public ?EmbeddingProvider $embeddingProvider = null,
         public ?string $embeddingModel = null,
         public ?string $embeddingApiKey = null,
+        public ?RerankerSetupData $reranker = null,
         public ?AiProvider $documentReader = null,
         public ?string $documentApiKey = null,
         public ?string $documentEndpoint = null,

@@ -8,6 +8,7 @@ use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Services\ProviderAdapters;
 use GrahamCampbell\Markdown\Facades\Markdown;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -53,6 +54,27 @@ class MistralOcr
     public function fromImageUrl(string $url): Collection
     {
         return $this->read(['type' => 'image_url', 'image_url' => $url]);
+    }
+
+    /**
+     * Reads a small built-in image, to check the key, the OCR model and the
+     * account at once: a model list can work for a key that OCR refuses. It
+     * succeeds when all three work, and throws a ConnectionException when
+     * Mistral cannot be reached. The image is sent in the request, so this
+     * site need not be reachable from the internet.
+     */
+    public function check(): Response
+    {
+        return $this->mistral
+            ->client()
+            ->timeout(30)
+            ->post($this->baseUrl.'/ocr', [
+                'model' => (string) config('services.mistral.ocr_model'),
+                'document' => [
+                    'type' => 'image_url',
+                    'image_url' => 'data:image/png;base64,'.base64_encode((string) file_get_contents(resource_path('checks/document-reader.png'))),
+                ],
+            ]);
     }
 
     /**

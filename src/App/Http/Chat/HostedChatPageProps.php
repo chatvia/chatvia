@@ -3,20 +3,28 @@
 namespace App\Http\Chat;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Services\Voice\VoiceAvailability;
+use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Services\DocumentLlm;
 
 /**
  * The page props every hosted-chat page shares (the standalone chat and the
  * iframe embed): the appearance with its per-language texts — the page picks
  * the visitor's language itself, so the header switcher can change it live —
- * and the owner's embed choices.
+ * the owner's embed choices, and which composer buttons to show.
  */
-final class HostedChatPageProps
+final readonly class HostedChatPageProps
 {
+    public function __construct(
+        private DocumentLlm $documentLlm,
+        private VoiceAvailability $voice,
+        private Transcriber $transcriber,
+    ) {}
+
     /**
      * @return array<string, mixed>
      */
-    public static function for(?Agent $agent, DocumentLlm $documentLlm): array
+    public function for(?Agent $agent): array
     {
         $embed = $agent?->settings('embed');
         $appearance = $agent?->settings('appearance');
@@ -28,7 +36,16 @@ final class HostedChatPageProps
             // (the same rule as the widget settings).
             'allowFileUploads' => $agent instanceof Agent
                 && (bool) ($appearance?->get('allow_file_uploads') ?? true)
-                && $documentLlm->isAvailable(),
+                && $this->documentLlm->isAvailable(),
+            // The mic (dictation) records, then the server writes it down, so
+            // it only shows when the owner allows it AND a speech-to-text
+            // service is set up (the same rule as the widget settings).
+            'allowVoiceInput' => $agent instanceof Agent
+                && (bool) ($appearance?->get('allow_voice_input') ?? true)
+                && $this->transcriber->isEnabled(),
+            // The voice-conversation button: on for the agent and set up on
+            // this install (the same rule as the widget settings).
+            'voiceConversation' => $agent instanceof Agent && $this->voice->isOnFor($agent),
             'removeSidebar' => $embed?->get('remove_sidebar'),
             'hideSidebarOnPageLoad' => $embed?->get('hide_sidebar_on_page_load'),
             'enableThemeSwitcher' => $embed?->get('enable_theme_switcher'),

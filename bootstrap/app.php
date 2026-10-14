@@ -21,9 +21,11 @@ use App\Http\Middleware\Web\HandleAppearance;
 use App\Http\Middleware\Web\HandleInertiaRequests;
 use App\Http\Middleware\Web\SetLocale;
 use Domain\Conversation\Exceptions\HandoffUnavailableException;
+use Domain\Conversation\Exceptions\VoiceCallRefusedException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -134,6 +136,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // A visitor asked for a human operator on an agent whose live-chat
         // toggle does not allow it.
         $exceptions->map(fn (HandoffUnavailableException $e): AccessDeniedHttpException => new AccessDeniedHttpException($e->getMessage(), $e));
+        // A refused voice call: the chat clients switch on the code.
+        $exceptions->render(fn (VoiceCallRefusedException $e): JsonResponse => response()->json([
+            'error' => $e->refusal->value,
+            'message' => $e->getMessage(),
+        ], $e->refusal->status()));
     })->create();
 
 // DDD layout: the Laravel framework surface lives at src/App/ rather than

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Agent\Models\Agent;
+use Domain\Llm\Enums\RealtimeVoice;
 
 return [
     /*
@@ -63,6 +64,14 @@ return [
                 // on by default.
                 'allow_file_uploads' => false,
                 'allow_voice_input' => true,
+                // Live voice conversations (Hosted Chat and Chat Widget): a
+                // button beside the mic opens a spoken call with the agent.
+                // Off by default — realtime audio costs far more than text —
+                // and only shown while voice is set up (chatvia.ai.voice).
+                // `voice` is the agent's own voice, or `default` for the one
+                // set in the admin panel (RealtimeVoice).
+                'allow_voice_conversation' => false,
+                'voice' => RealtimeVoice::DEFAULT,
                 // "Powered by Chatvia" badge. Only honoured for workspaces that
                 // can hide branding (plan white-label or the remove-branding
                 // add-on); everyone else always shows it regardless of this
@@ -227,6 +236,8 @@ return [
             'privacy_policy_url' => ['nullable', 'url', 'max:2048'],
             'allow_file_uploads' => ['nullable', 'boolean'],
             'allow_voice_input' => ['nullable', 'boolean'],
+            'allow_voice_conversation' => ['nullable', 'boolean'],
+            'voice' => ['nullable', 'string', 'in:'.implode(',', RealtimeVoice::agentChoices())],
             'show_branding' => ['nullable', 'boolean'],
             'text_translations' => ['nullable', 'array'],
             'text_overrides' => ['nullable', 'array'],

@@ -18,6 +18,9 @@ use Domain\Conversation\Enums\ConversationSource;
  * on. Omit it (the default) to expose the connector on every surface. When set,
  * the tool router withholds the connector's tools from the model on any other
  * surface — used for tools whose artifact only one surface can render.
+ *
+ * Optional `voice` key (default true): false keeps the connector's tools out
+ * of voice calls, for tools whose result has to be seen (charts, forms).
  */
 
 return [
@@ -120,6 +123,8 @@ return [
         // the render-*-chart tools from the model everywhere else (the router
         // reads this allow-list and drops them on non-listed surfaces).
         'surfaces' => ['hosted_chat'],
+        // A chart has to be seen, so a voice call never offers these tools.
+        'voice' => false,
         'mcp_url' => env('APP_URL').'/mcp/charts',
     ],
 
@@ -141,6 +146,8 @@ return [
         // only on the web surfaces — there is no off-web (messaging) fallback.
         'server_category' => 'builtin',
         'is_capability' => true,
+        // A form is filled on screen, so a voice call never offers it.
+        'voice' => false,
         'mcp_url' => env('APP_URL').'/mcp/forms',
     ],
 

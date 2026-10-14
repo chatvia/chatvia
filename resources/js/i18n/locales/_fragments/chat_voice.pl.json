@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Mów głosem"
+    },
+    "voice_call": {
+        "title": "Rozmowa głosowa",
+        "connecting": "Łączenie…",
+        "listening": "Słucham",
+        "thinking": "Myślę…",
+        "speaking": "Mówię",
+        "muted": "Mikrofon wyłączony",
+        "ended": "Rozmowa zakończona",
+        "mute": "Wyłącz mikrofon",
+        "unmute": "Włącz mikrofon",
+        "end": "Zakończ rozmowę",
+        "close": "Zamknij",
+        "errors": {
+            "not_supported": "Ta przeglądarka nie obsługuje rozmów głosowych.",
+            "microphone_denied": "Zezwól na dostęp do mikrofonu, aby rozmawiać z agentem.",
+            "microphone_not_found": "Nie znaleziono mikrofonu.",
+            "busy": "Głos jest teraz zajęty. Spróbuj ponownie za chwilę.",
+            "failed": "Nie udało się rozpocząć rozmowy głosowej. Spróbuj ponownie."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Wybierz przyciski widoczne w polu wiadomości: przesyłanie plików, wprowadzanie głosowe i rozmowy głosowe.",
+                "voice_conversation_label": "Zezwalaj na rozmowy głosowe",
+                "voice_conversation_hint": "Pokaż obok mikrofonu przycisk, który rozpoczyna rozmowę głosową na żywo z agentem.",
+                "voice_conversation_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć rozmowy głosowe w panelu administracyjnym.",
+                "voice_conversation_aria": "Jak liczone są rozmowy głosowe?",
+                "voice_conversation_help_title": "Rozmowy głosowe",
+                "voice_conversation_help_1": "Odwiedzający rozmawiają z agentem na głos. Agent odpowiada na podstawie swojej wiedzy i może używać narzędzi, które nie wymagają zgody. Obie strony rozmowy są zapisywane w dzienniku czatów.",
+                "voice_conversation_help_2": "Każda wypowiedziana odpowiedź liczy się jako jedna wiadomość. Rozmowa głosowa kosztuje znacznie więcej niż czat pisany.",
+                "voice_label": "Głos",
+                "voice_default": "Domyślny ({voice})",
+                "voice_input_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć zamianę mowy na tekst w panelu administracyjnym."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Głos"
+            }
+        }
+    }
+}

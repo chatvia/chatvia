@@ -57,6 +57,7 @@ const deviceLabels = computed<Record<PreviewDevice, string>>(() => ({
                     class="h-full w-full border-0"
                     :class="{ 'pointer-events-none': isResizing }"
                     :title="t('agents.setup.embed.surface_preview')"
+                    allow="microphone"
                     loading="lazy"
                 />
             </div>

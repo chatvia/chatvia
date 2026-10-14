@@ -101,6 +101,9 @@ return [
         'redis:messages' => 30,
         'redis:default' => 120,
         'redis:analytics' => 900,
+        // A voice call waits for its worker while the caller listens to
+        // "Connecting…": anything past a few seconds means the pool is full.
+        'redis-long:voice' => 15,
     ],
 
     /*
@@ -263,13 +266,31 @@ return [
             'timeout' => 86000,
             'nice' => 10,
         ],
+        // Live voice calls: each worker joins one call (OpenAI's sideband
+        // WebSocket) and holds it until the call ends, so maxProcesses is also
+        // the most calls at once (VoiceCallSlots). `redis-long`'s retry_after
+        // (1900 s) outlasts the longest call (25 minutes) plus its wrap-up; a
+        // call is never retried. Not niced: the worker answers in real time.
+        'voice' => [
+            'connection' => 'redis-long',
+            'queue' => ['voice'],
+            'balance' => false,
+            'minProcesses' => 1,
+            'maxProcesses' => 2,
+            'maxTime' => 0,
+            'maxJobs' => 0,
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => 1620,
+            'nice' => 0,
+        ],
     ],
 
     /*
     | The most workers each supervisor runs at once. Horizon starts a
     | supervisor with half of it, keeps at least minProcesses per pool, and
     | each worker is a PHP process of about 80 MB, so production fits a small
-    | server: 13 workers at most, 5 when idle. The admin panel raises them
+    | server: 17 workers at most, 6 when idle. The admin panel raises them
     | (Settings, Platform, Queue workers) after a restart of Horizon.
     */
     'environments' => [
@@ -286,6 +307,9 @@ return [
             'media' => [
                 'maxProcesses' => 1,
             ],
+            'voice' => [
+                'maxProcesses' => 4,
+            ],
         ],
 
         'local' => [
@@ -300,6 +324,9 @@ return [
             ],
             'media' => [
                 'maxProcesses' => 1,
+            ],
+            'voice' => [
+                'maxProcesses' => 2,
             ],
         ],
     ],

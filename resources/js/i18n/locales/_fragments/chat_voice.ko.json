@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "음성으로 대화"
+    },
+    "voice_call": {
+        "title": "음성 대화",
+        "connecting": "연결 중…",
+        "listening": "듣는 중",
+        "thinking": "생각 중…",
+        "speaking": "말하는 중",
+        "muted": "마이크 꺼짐",
+        "ended": "통화가 종료되었습니다",
+        "mute": "마이크 끄기",
+        "unmute": "마이크 켜기",
+        "end": "통화 종료",
+        "close": "닫기",
+        "errors": {
+            "not_supported": "이 브라우저에서는 음성 통화를 할 수 없습니다.",
+            "microphone_denied": "에이전트와 대화하려면 마이크 접근을 허용하세요.",
+            "microphone_not_found": "마이크를 찾을 수 없습니다.",
+            "busy": "지금은 음성이 혼잡합니다. 잠시 후 다시 시도하세요.",
+            "failed": "음성 통화를 시작할 수 없습니다. 다시 시도하세요."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "입력창에 표시할 버튼을 선택하세요: 파일 업로드, 음성 입력, 음성 대화.",
+                "voice_conversation_label": "음성 대화 허용",
+                "voice_conversation_hint": "마이크 옆에 에이전트와 실시간 음성 통화를 시작하는 버튼을 표시합니다.",
+                "voice_conversation_unavailable": "이 서버에는 설정되어 있지 않습니다. 관리자가 관리자 패널에서 음성 대화를 켤 수 있습니다.",
+                "voice_conversation_aria": "음성 대화는 어떻게 집계되나요?",
+                "voice_conversation_help_title": "음성 대화",
+                "voice_conversation_help_1": "방문자는 에이전트와 소리 내어 대화합니다. 에이전트는 자신의 지식으로 답하고 승인이 필요 없는 도구를 사용할 수 있습니다. 통화의 양쪽 내용이 채팅 로그에 저장됩니다.",
+                "voice_conversation_help_2": "말로 한 답변 하나가 메시지 하나로 집계됩니다. 음성 통화는 글로 하는 채팅보다 비용이 훨씬 많이 듭니다.",
+                "voice_label": "목소리",
+                "voice_default": "기본값 ({voice})",
+                "voice_input_unavailable": "이 서버에는 설정되어 있지 않습니다. 관리자가 관리자 패널에서 음성 텍스트 변환을 켤 수 있습니다."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "음성"
+            }
+        }
+    }
+}

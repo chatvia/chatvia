@@ -179,6 +179,7 @@ declare namespace Domain {
                             source: string | null;
                             read_at: string | null;
                             confidence_score: number | null;
+                            voice: boolean;
                         };
                         export type ChatLogMessagesResourceData = {
                             messages: Illuminate.LengthAwarePaginator<number, Domain.Agent.Data.Resources.ChatLog.Messages.ChatLogMessageData>;
@@ -528,6 +529,7 @@ declare namespace Domain {
                         comingSoon: boolean;
                         isCapability: boolean;
                         surfaces: string[] | null;
+                        voice: boolean;
                         requiresClientId: boolean;
                         oauthClientId: string | null;
                         oauthAuthorizationEndpoint: string | null;
@@ -916,6 +918,7 @@ declare namespace Domain {
                     handoff_enabled: boolean;
                     allow_file_uploads: boolean;
                     allow_voice_input: boolean;
+                    voice_conversation: boolean;
                     max_files_per_chat: number;
                     reverb: Domain.Widget.Data.Settings.WidgetSettingsReverbData;
                 };

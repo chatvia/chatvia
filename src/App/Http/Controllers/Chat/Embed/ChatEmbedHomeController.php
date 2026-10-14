@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Chat\Embed;
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatPageProps;
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Services\DocumentLlm;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,10 +13,10 @@ use Inertia\Response;
  */
 class ChatEmbedHomeController
 {
-    public function __invoke(#[HostedChatAgent] ?Agent $agent, DocumentLlm $documentLlm): Response
+    public function __invoke(#[HostedChatAgent] ?Agent $agent, HostedChatPageProps $props): Response
     {
         return Inertia::render('chat/Home', [
-            ...HostedChatPageProps::for($agent, $documentLlm),
+            ...$props->for($agent),
             'embedded' => true,
         ]);
     }

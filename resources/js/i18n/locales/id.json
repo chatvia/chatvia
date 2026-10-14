@@ -34,7 +34,8 @@
         "delete_failed": "Tidak dapat menghapus lampiran",
         "upload_limit_reached": "Anda dapat melampirkan hingga {count} berkas | Anda dapat melampirkan hingga {count} berkas",
         "send_message": "Kirim pesan",
-        "stop_streaming": "Hentikan pembuatan"
+        "stop_streaming": "Hentikan pembuatan",
+        "start_voice_call": "Bicara dengan suara"
     },
     "header": {
         "toggle_sidebar": "Alihkan sidebar",
@@ -458,7 +459,8 @@
                 "negative_feedback": "Umpan balik negatif",
                 "qa_matched": "Kecocokan Q&A",
                 "revised": "Jawaban yang direvisi",
-                "revise": "Revisi"
+                "revise": "Revisi",
+                "voice": "Suara"
             },
             "details": {
                 "select_conversation": "Pilih percakapan untuk melihat detail",
@@ -1618,7 +1620,7 @@
             },
             "settings": {
                 "composer_title": "Opsi penyusun",
-                "composer_description": "Sembunyikan tombol unggah file atau input suara jika agen Anda tidak seharusnya menerima input tersebut.",
+                "composer_description": "Pilih tombol yang ditampilkan kotak pesan: unggah file, input suara, dan percakapan suara.",
                 "file_uploads_label": "Izinkan unggahan file",
                 "file_uploads_aria": "Bagaimana unggahan file dikenakan biaya?",
                 "file_uploads_help_title": "Unggahan file",
@@ -1654,7 +1656,17 @@
                 "topics_help_title": "Topik",
                 "topics_help_1": "Topik memindai percakapan dan mengelompokkannya berdasarkan apa yang ditanyakan orang, sehingga Anda tidak perlu menandai obrolan secara manual.",
                 "topics_help_2": "Topik baru terdeteksi otomatis dan dirangkum di dasbor Topik, menampilkan tema yang paling umum kepada Anda. Memerlukan Simpan percakapan aktif.",
-                "topics_hint": "Deteksi dan kelompokkan secara otomatis apa yang ditanyakan pengunjung."
+                "topics_hint": "Deteksi dan kelompokkan secara otomatis apa yang ditanyakan pengunjung.",
+                "voice_conversation_label": "Izinkan percakapan suara",
+                "voice_conversation_hint": "Tampilkan tombol di samping mikrofon yang memulai panggilan suara langsung dengan agen.",
+                "voice_conversation_unavailable": "Belum diatur di server ini. Admin dapat menyalakan percakapan suara di panel admin.",
+                "voice_conversation_aria": "Bagaimana percakapan suara dihitung?",
+                "voice_conversation_help_title": "Percakapan suara",
+                "voice_conversation_help_1": "Pengunjung berbicara langsung dengan agen. Agen menjawab dari pengetahuannya dan dapat memakai alatnya yang tidak perlu persetujuan. Kedua sisi panggilan disimpan di Log Chat.",
+                "voice_conversation_help_2": "Setiap jawaban lisan dihitung sebagai satu pesan. Panggilan suara jauh lebih mahal daripada chat tertulis.",
+                "voice_label": "Suara",
+                "voice_default": "Bawaan ({voice})",
+                "voice_input_unavailable": "Belum diatur di server ini. Admin dapat menyalakan ucapan ke teks di panel admin."
             },
             "bubbles_title": "Gelembung Obrolan",
             "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping gelembung widget. Tekan Enter untuk menambahkan masing-masing.",
@@ -3758,6 +3770,26 @@
                 "name": "Amplitude",
                 "description": "Kueri analitik produk — peristiwa, grafik, dan kohort — dari proyek Amplitude Anda."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Percakapan suara",
+        "connecting": "Menghubungkan…",
+        "listening": "Mendengarkan",
+        "thinking": "Berpikir…",
+        "speaking": "Berbicara",
+        "muted": "Mikrofon mati",
+        "ended": "Panggilan berakhir",
+        "mute": "Matikan mikrofon",
+        "unmute": "Nyalakan mikrofon",
+        "end": "Akhiri panggilan",
+        "close": "Tutup",
+        "errors": {
+            "not_supported": "Browser ini tidak dapat melakukan panggilan suara.",
+            "microphone_denied": "Izinkan akses mikrofon untuk berbicara dengan agen.",
+            "microphone_not_found": "Mikrofon tidak ditemukan.",
+            "busy": "Suara sedang sibuk. Silakan coba lagi sebentar lagi.",
+            "failed": "Panggilan suara tidak dapat dimulai. Silakan coba lagi."
         }
     }
 }

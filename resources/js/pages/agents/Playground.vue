@@ -177,6 +177,7 @@ const copyExternalId = async () => {
                         :src="currentUrl"
                         class="h-full w-full border-0"
                         :title="t('agents.playground.preview_title')"
+                        allow="microphone"
                         loading="lazy"
                     />
                 </div>

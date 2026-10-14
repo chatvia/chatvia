@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Falar por voz"
+    },
+    "voice_call": {
+        "title": "Conversa por voz",
+        "connecting": "A ligar…",
+        "listening": "A ouvir",
+        "thinking": "A pensar…",
+        "speaking": "A falar",
+        "muted": "Microfone desligado",
+        "ended": "Chamada terminada",
+        "mute": "Desligar o microfone",
+        "unmute": "Ligar o microfone",
+        "end": "Terminar chamada",
+        "close": "Fechar",
+        "errors": {
+            "not_supported": "Este navegador não consegue fazer chamadas de voz.",
+            "microphone_denied": "Permita o acesso ao microfone para falar com o agente.",
+            "microphone_not_found": "Nenhum microfone encontrado.",
+            "busy": "A voz está ocupada neste momento. Tente novamente daqui a pouco.",
+            "failed": "Não foi possível iniciar a chamada de voz. Tente novamente."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Escolha que botões a caixa de mensagem mostra: envio de ficheiros, entrada de voz e conversas por voz.",
+                "voice_conversation_label": "Permitir conversas por voz",
+                "voice_conversation_hint": "Mostra ao lado do microfone um botão que inicia uma chamada de voz em direto com o agente.",
+                "voice_conversation_unavailable": "Não está configurado neste servidor. Um administrador pode ativar as conversas por voz no painel de administração.",
+                "voice_conversation_aria": "Como são contabilizadas as conversas por voz?",
+                "voice_conversation_help_title": "Conversas por voz",
+                "voice_conversation_help_1": "Os visitantes falam em voz alta com o agente. Ele responde com o seu conhecimento e pode usar as ferramentas que não precisam de aprovação. Os dois lados da chamada ficam guardados no registo de conversas.",
+                "voice_conversation_help_2": "Cada resposta falada conta como uma mensagem. Uma chamada de voz custa muito mais do que uma conversa escrita.",
+                "voice_label": "Voz",
+                "voice_default": "Predefinida ({voice})",
+                "voice_input_unavailable": "Não está configurado neste servidor. Um administrador pode ativar a conversão de voz em texto no painel de administração."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Voz"
+            }
+        }
+    }
+}

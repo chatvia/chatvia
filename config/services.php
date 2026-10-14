@@ -120,12 +120,19 @@ return [
         'embedding_model' => env('JINA_EMBEDDING_MODEL', 'jina-embeddings-v3'),
     ],
 
-    // Embeddings and speech to text; OpenAI chat models are added as a provider.
+    // Embeddings, speech to text and voice conversations; OpenAI chat models
+    // are added as a provider. The realtime_* keys are the voice calls
+    // (Settings → AI models → Voice conversations): the speech-to-speech
+    // model, the voice agents speak with unless they pick their own, and the
+    // model that writes down what the visitor says.
     'openai' => [
         'api_key' => null,
         'api_endpoint' => 'https://api.openai.com/v1',
         'embedding_model' => 'text-embedding-3-small',
         'transcription_model' => 'whisper-1',
+        'realtime_model' => 'gpt-realtime-2.1',
+        'realtime_voice' => 'marin',
+        'realtime_transcription_model' => 'gpt-4o-mini-transcribe',
     ],
 
     // Google Gemini embeddings (the Gemini API, not Vertex AI). Gemini chat

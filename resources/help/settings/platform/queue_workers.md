@@ -4,6 +4,7 @@ Queue workers are background processes that do slow work, so people do not have 
 - **Files and websites** — Reading knowledge sources (files and web pages), then exports.
 - **Analytics** — Conversation analysis, evals (automatic tests of agent answers) and audit logs.
 - **Audio and video** — Turning recordings into text. Each one can take a long time.
+- **Live voice calls** — Each voice conversation holds one worker for its whole length, so this is also the most calls at once.
 
 Changes apply only on a live (production) install, such as the Docker setup, and only after Horizon restarts.
 

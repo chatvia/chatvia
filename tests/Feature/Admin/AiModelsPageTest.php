@@ -3,8 +3,14 @@
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentFileFactory;
 use Domain\Agent\Actions\Settings\ReplaceAgentModelAction;
+use Domain\Integration\Tool\Jobs\ReembedToolVectorsJob;
+use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
@@ -12,14 +18,18 @@ use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Filament\Actions\Testing\TestAction;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Testing\Fakes\PendingBatchFake;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
 /**
  * Settings → AI models: the chat models agents can use are added from a
  * connected provider's list and removed with their agents moved to another
- * model; a service whose provider is not connected cannot be picked.
+ * model; a service whose provider is not connected cannot be picked. A new
+ * embedding model, once documents are stored as vectors, is saved only after
+ * a warning, and starts a re-index.
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
@@ -41,18 +51,33 @@ function aiSetting(string $property): mixed
     return app(AiSettings::class)->{$property};
 }
 
-it('adds a model from a connected provider\'s list', function (): void {
+/** OpenRouter connected, listing two chat models. */
+function fakeOpenRouterModels(): void
+{
     connectAiProviders(AiProvider::OpenRouter);
-    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [[
-        'id' => 'meta-llama/llama-4-maverick',
-        'name' => 'Llama 4 Maverick',
-        'context_length' => 1_048_576,
-        'architecture' => ['input_modalities' => ['text', 'image'], 'output_modalities' => ['text']],
-        'supported_parameters' => ['tools'],
-    ]]])]);
+    Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
+        [
+            'id' => 'meta-llama/llama-4-maverick',
+            'name' => 'Llama 4 Maverick',
+            'context_length' => 1_048_576,
+            'architecture' => ['input_modalities' => ['text', 'image'], 'output_modalities' => ['text']],
+            'supported_parameters' => ['tools'],
+        ],
+        [
+            'id' => 'qwen/qwen3-235b-a22b',
+            'name' => 'Qwen3 235B',
+            'context_length' => 131_072,
+            'architecture' => ['input_modalities' => ['text'], 'output_modalities' => ['text']],
+            'supported_parameters' => ['tools'],
+        ],
+    ]])]);
+}
+
+it('adds a model from a connected provider\'s list', function (): void {
+    fakeOpenRouterModels();
 
     modelsPage($this->admin)
-        ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'model' => 'meta-llama/llama-4-maverick'])
+        ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick']])
         ->assertHasNoActionErrors()
         ->assertNotified('Llama 4 Maverick added');
 
@@ -64,8 +89,42 @@ it('adds a model from a connected provider\'s list', function (): void {
         ->and($model->isAvailable())->toBeTrue();
 });
 
+it('adds several models at once', function (): void {
+    fakeOpenRouterModels();
+
+    modelsPage($this->admin)
+        ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b']])
+        ->assertHasNoActionErrors()
+        ->assertNotified('2 models added');
+
+    expect(Llm::query()->whereIn('internal_name', ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b'])->pluck('descriptive_name')->sort()->values()->all())
+        ->toBe(['Llama 4 Maverick', 'Qwen3 235B']);
+});
+
+it('lists the first provider\'s models as soon as the form opens', function (): void {
+    fakeOpenRouterModels();
+
+    modelsPage($this->admin)
+        ->mountAction(TestAction::make('addModel')->table())
+        ->assertSchemaStateSet(['source' => 'account:openrouter'], 'mountedActionSchema0')
+        ->assertFormFieldVisible('models');
+});
+
+it('keeps Add off until a model is picked', function (): void {
+    fakeOpenRouterModels();
+
+    $page = modelsPage($this->admin)->mountAction(TestAction::make('addModel')->table());
+
+    expect($page->instance()->getMountedAction()->getModalSubmitAction()->isDisabled())->toBeTrue();
+
+    $page->fillForm(['models' => ['qwen/qwen3-235b-a22b']]);
+
+    expect($page->instance()->getMountedAction()->getModalSubmitAction()->isDisabled())->toBeFalse();
+});
+
 it('offers only connected providers and servers of your own', function (): void {
     connectAiProviders(AiProvider::Groq);
+    Http::fake(['api.groq.com/*' => Http::response(['data' => []])]);
     $server = LlmProvider::factory()->create(['name' => 'Office Ollama']);
 
     $sources = modelsPage($this->admin)
@@ -155,4 +214,77 @@ it('shows how many models agents can use on the overview, or a warning', functio
     testLlm('one-model');
 
     expect(app(ManageAiModelSettings::class)->overviewStatus())->toBe(['1 model for agents', 'success']);
+});
+
+/** One trained chunk, so documents are stored as vectors. */
+function storedVectors(): void
+{
+    $file = AgentFileFactory::new()->create();
+
+    Chunk::query()->create([
+        'workspace_id' => $file->workspace_id,
+        'chunkable_type' => $file->getMorphClass(),
+        'chunkable_id' => $file->id,
+        'chunk_index' => 1,
+        'chunk' => 'Trained text.',
+        'tokens' => 2,
+        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
+        'embedding_bm25' => Bm25Tokenizer::expression('Trained text.'),
+        'checksum' => md5('Trained text.'),
+        'cost_in_micro_cents' => 0,
+    ]);
+}
+
+it('warns and asks before it changes the embedding model of stored documents, then re-indexes', function (): void {
+    connectAiProviders(AiProvider::OpenAi);
+    storedVectors();
+    $before = aiSetting('openai_embedding_model');
+    Bus::fake();
+
+    $page = modelsPage($this->admin)
+        ->fillForm(['embedding_provider' => 'openai', 'openai_embedding_model' => 'text-embedding-3-large'])
+        ->assertSee('Changing the embedding model means a re-index')
+        ->call('save')
+        ->assertActionMounted('changeEmbeddings')
+        ->assertMountedActionModalSee(['Change the embedding model?', 'Saving starts this re-index in the background queue', 'Save and re-index']);
+
+    expect(aiSetting('openai_embedding_model'))->toBe($before);
+    Bus::assertNotDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+
+    $page->callMountedAction()->assertNotified('Settings saved. Re-index started');
+
+    expect(aiSetting('embedding_provider'))->toBe('openai')
+        ->and(aiSetting('openai_embedding_model'))->toBe('text-embedding-3-large');
+    Bus::assertDispatchedAfterResponse(ReindexEmbeddingsJob::class);
+});
+
+it('changes the embedding model without asking while nothing is stored as vectors', function (): void {
+    connectAiProviders(AiProvider::OpenAi);
+    Chunk::query()->delete();
+    AgentQuestionAnswerQuestion::query()->update(['embedding' => null]);
+
+    modelsPage($this->admin)
+        ->fillForm(['embedding_provider' => 'openai', 'openai_embedding_model' => 'text-embedding-3-large'])
+        ->assertDontSee('Changing the embedding model means a re-index')
+        ->call('save')
+        ->assertHasNoFormErrors()
+        ->assertActionNotMounted('changeEmbeddings')
+        ->assertNotified('Settings saved');
+
+    expect(aiSetting('openai_embedding_model'))->toBe('text-embedding-3-large');
+});
+
+it('starts a re-index by hand and shows its progress', function (): void {
+    storedVectors();
+    Bus::fake();
+
+    modelsPage($this->admin)
+        ->callAction('reindex')
+        ->assertNotified('Re-index started')
+        ->assertSee('Re-indexing: 0% done');
+
+    Bus::assertBatched(fn (PendingBatchFake $batch): bool => $batch->name === 'Embedding re-index');
+    Bus::assertDispatched(ReembedToolVectorsJob::class);
+
+    modelsPage($this->admin)->assertActionDisabled('reindex');
 });

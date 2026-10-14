@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Nói bằng giọng"
+    },
+    "voice_call": {
+        "title": "Cuộc trò chuyện bằng giọng nói",
+        "connecting": "Đang kết nối…",
+        "listening": "Đang nghe",
+        "thinking": "Đang suy nghĩ…",
+        "speaking": "Đang nói",
+        "muted": "Micrô đã tắt",
+        "ended": "Cuộc gọi đã kết thúc",
+        "mute": "Tắt micrô",
+        "unmute": "Bật micrô",
+        "end": "Kết thúc cuộc gọi",
+        "close": "Đóng",
+        "errors": {
+            "not_supported": "Trình duyệt này không thể gọi thoại.",
+            "microphone_denied": "Hãy cho phép truy cập micrô để nói chuyện với trợ lý.",
+            "microphone_not_found": "Không tìm thấy micrô.",
+            "busy": "Giọng nói đang bận. Vui lòng thử lại sau giây lát.",
+            "failed": "Không thể bắt đầu cuộc gọi thoại. Vui lòng thử lại."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Chọn các nút hiển thị trong ô nhập: tải tệp lên, nhập bằng giọng nói và trò chuyện bằng giọng nói.",
+                "voice_conversation_label": "Cho phép trò chuyện bằng giọng nói",
+                "voice_conversation_hint": "Hiển thị một nút cạnh micrô để bắt đầu cuộc gọi thoại trực tiếp với trợ lý.",
+                "voice_conversation_unavailable": "Chưa được thiết lập trên máy chủ này. Quản trị viên có thể bật trò chuyện bằng giọng nói trong trang quản trị.",
+                "voice_conversation_aria": "Trò chuyện bằng giọng nói được tính thế nào?",
+                "voice_conversation_help_title": "Trò chuyện bằng giọng nói",
+                "voice_conversation_help_1": "Khách truy cập nói chuyện thành tiếng với trợ lý. Trợ lý trả lời từ kiến thức của mình và có thể dùng các công cụ không cần phê duyệt. Cả hai phía của cuộc gọi đều được lưu trong nhật ký trò chuyện.",
+                "voice_conversation_help_2": "Mỗi câu trả lời bằng lời được tính là một tin nhắn. Một cuộc gọi thoại tốn kém hơn nhiều so với trò chuyện bằng chữ.",
+                "voice_label": "Giọng",
+                "voice_default": "Mặc định ({voice})",
+                "voice_input_unavailable": "Chưa được thiết lập trên máy chủ này. Quản trị viên có thể bật chuyển giọng nói thành văn bản trong trang quản trị."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Giọng nói"
+            }
+        }
+    }
+}

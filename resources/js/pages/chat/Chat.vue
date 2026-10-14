@@ -11,11 +11,13 @@ import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import ChatMessageList from '@/components/chat/ChatMessageList.vue';
 import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
+import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import { useChatMessages } from '@/composables/chat/useChatMessages';
 import { useChatScroll } from '@/composables/chat/useChatScroll';
 import { isNewConversationVisit, useChatStreamTurn } from '@/composables/chat/useChatStreamTurn';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
 import { useChatTurnActions } from '@/composables/chat/useChatTurnActions';
+import { useVoiceTranscript } from '@/composables/chat/useVoiceTranscript';
 import { deleteMethod as deleteAttachment, store as storeAttachment } from '@/routes/chat/messages/attachments';
 import type { ChatAppearance, ChatDefaultTheme } from '@/types/chat';
 import { useChatEventBus } from '@/utils/eventBus';
@@ -46,6 +48,10 @@ interface Props {
     enabledLanguages?: string[];
     /** Whether the composer offers PDF uploads: the owner allows them and the server can read PDFs. */
     allowFileUploads?: boolean;
+    /** Whether the composer offers dictation: the owner allows it and the server has speech to text set up. */
+    allowVoiceInput?: boolean;
+    /** Whether the composer offers voice conversations: the owner turned them on and the server has them set up. */
+    voiceConversation?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -67,6 +73,8 @@ const props = withDefaults(defineProps<Props>(), {
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
     allowFileUploads: false,
+    allowVoiceInput: false,
+    voiceConversation: false,
 });
 
 const { t } = useI18n();
@@ -90,6 +98,13 @@ const { showScrollToBottom } = scroll;
 const { isStreaming, isMessageStreaming, liveAnnouncement, activeCalls, hasActiveCalls, approvals, stop: stopStreaming } = turn;
 const { resolvingApprovalIds, hasPendingApprovals } = approvals;
 const loadingMessages = ref(true);
+const isVoiceOpen = ref(false);
+const voiceTranscript = useVoiceTranscript(transcript, () => void nextTick(() => scroll.scrollToBottom()));
+
+function closeVoice() {
+    isVoiceOpen.value = false;
+    void voiceTranscript.syncAfterCall();
+}
 const isChatExpanded = computed(() => bus.isChatExpanded.value);
 
 // InlineFormBlock (deep inside assistant messages) injects this so it stays
@@ -206,7 +221,8 @@ onMounted(async () => {
                             :isThinking="isStreaming"
                             :placeholder="resolvedAppearance.composer_placeholder ?? undefined"
                             :allow-file-uploads="allowFileUploads"
-                            :allow-voice-input="appearance.allow_voice_input !== false"
+                            :allow-voice-input="allowVoiceInput"
+                            :allow-voice-conversation="voiceConversation"
                             :max-files="maxFilesPerChat"
                             :disabled="!canSendMessages || hasPendingApprovals"
                             :upload-endpoint="storeAttachment.url()"
@@ -214,12 +230,15 @@ onMounted(async () => {
                             :delete-endpoint="deleteEndpoint"
                             @messageAdded="actions.send"
                             @stopStreaming="stopStreaming"
+                            @startVoice="isVoiceOpen = true"
                         />
 
                         <!-- Hidden when the workspace owns the remove-branding add-on -->
                         <PoweredByFooter :show="chatviaBranding" />
                     </div>
                 </div>
+
+                <VoiceModeOverlay v-if="isVoiceOpen" :conversation-id="conversation_id" @turn="voiceTranscript.onTurn" @close="closeVoice" />
             </div>
         </template>
     </ChatLayout>

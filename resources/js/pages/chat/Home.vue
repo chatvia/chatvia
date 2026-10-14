@@ -2,13 +2,15 @@
 /**
  * The hosted chat's empty "new chat" screen: logo, welcome line, composer and
  * conversation starters. Sending the first message creates the conversation
- * and moves to the chat page, which streams the reply.
+ * and moves to the chat page, which streams the reply. A voice call opens its
+ * own conversation; once it ends, that conversation is named and opened.
  */
-import { createConversation, fetchStarters } from '@/api/chat';
+import { createConversation, fetchStarters, generateConversationTitle, type VoiceCallStarted } from '@/api/chat';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import ChatComposer from '@/components/chat/ChatComposer.vue';
 import ChatLayout from '@/components/chat/ChatLayout.vue';
 import PoweredByFooter from '@/components/chat/PoweredByFooter.vue';
+import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import HeroIcon from '@/components/common/HeroIcon.vue';
 import { chatPages } from '@/composables/chat/chatPages';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
@@ -40,6 +42,10 @@ interface Props {
     enabledLanguages?: string[];
     /** Whether the composer offers PDF uploads: the owner allows them and the server can read PDFs. */
     allowFileUploads?: boolean;
+    /** Whether the composer offers dictation: the owner allows it and the server has speech to text set up. */
+    allowVoiceInput?: boolean;
+    /** Whether the composer offers voice conversations: the owner turned them on and the server has them set up. */
+    voiceConversation?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,6 +69,8 @@ const props = withDefaults(defineProps<Props>(), {
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
     allowFileUploads: false,
+    allowVoiceInput: false,
+    voiceConversation: false,
 });
 
 const { t, locale: i18nLocale } = useI18n();
@@ -84,6 +92,32 @@ onMounted(async () => {
     starters.value = await fetchStarters();
 });
 
+const isVoiceOpen = ref(false);
+/** The conversation the voice call opened, once the server answered. */
+let voiceConversationId: string | null = null;
+/** Whether anything was said in the call (an empty call opens no thread). */
+let voiceSpoke = false;
+
+function onVoiceStarted(call: VoiceCallStarted) {
+    voiceConversationId = call.conversation_id;
+}
+
+function onVoiceTurn() {
+    voiceSpoke = true;
+}
+
+async function closeVoice() {
+    isVoiceOpen.value = false;
+
+    if (!voiceConversationId || !voiceSpoke) return;
+
+    const id = voiceConversationId;
+    voiceConversationId = null;
+    // Named from what was said, as after a first typed reply.
+    await generateConversationTitle(id).catch(() => null);
+    router.visit(chatPages(props.embedded).show(id));
+}
+
 async function createNewConversation(message: string, attachments: ChatAttachment[] = []) {
     const { id } = await createConversation(message, attachments);
     router.visit(chatPages(props.embedded).show(id, { query: { new: '1' } }));
@@ -104,7 +138,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
     >
         <Head :title="brand.name" />
         <template #content>
-            <div class="flex h-full items-center justify-center px-4 py-8">
+            <div class="relative flex h-full items-center justify-center px-4 py-8">
                 <div class="mx-auto -mt-8 w-full max-w-3xl">
                     <div class="mb-5 flex justify-center">
                         <div class="flex h-12 w-12 items-center justify-center overflow-hidden">
@@ -123,12 +157,14 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                             :text="selectedStarter"
                             :placeholder="resolvedAppearance.composer_placeholder ?? undefined"
                             :allow-file-uploads="allowFileUploads"
-                            :allow-voice-input="appearance.allow_voice_input !== false"
+                            :allow-voice-input="allowVoiceInput"
+                            :allow-voice-conversation="voiceConversation"
                             :max-files="maxFilesPerChat"
                             :upload-endpoint="uploadEndpoint"
                             :upload-headers="uploadHeaders"
                             :delete-endpoint="deleteEndpoint"
                             @messageAdded="createNewConversation"
+                            @startVoice="isVoiceOpen = true"
                         />
 
                         <div
@@ -163,6 +199,8 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                         <PoweredByFooter :show="chatviaBranding" />
                     </div>
                 </div>
+
+                <VoiceModeOverlay v-if="isVoiceOpen" @started="onVoiceStarted" @turn="onVoiceTurn" @close="closeVoice" />
             </div>
         </template>
     </ChatLayout>

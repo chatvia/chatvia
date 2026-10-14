@@ -4,7 +4,7 @@ namespace Domain\Knowledge\Ingestion\Actions\Chunks;
 
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhancedChunkData;
-use Domain\Knowledge\Ingestion\Data\Chunking\PageVisualsData;
+use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
 use Domain\Knowledge\Ingestion\Services\Enhancement\PageVisualsDescriber;
 use Domain\Llm\Operations\Pricing\CostCalculator;
@@ -38,7 +38,7 @@ class EnhanceChunkAction
 
         $enhancement = $this->chunker->enhancePage($data->page, $data->previousPage, $data->nextPage);
 
-        $embeddingText = $this->contextualize($enhancement->summary, $data->page->content, $visuals);
+        $embeddingText = ChunkEmbeddingText::forPage($enhancement->summary, $data->page->content, $visuals?->embeddingText() ?? '');
         $questions = implode("\n", $enhancement->questions);
 
         return new EnhancedChunkData(
@@ -48,21 +48,6 @@ class EnhanceChunkAction
             metadata: $visuals?->toMetadata(),
             costInCents: $enhancement->cost + $this->embeddingCost($embeddingText) + $this->embeddingCost($questions),
         );
-    }
-
-    /**
-     * The text that is embedded: the summary, then the page, then the image and
-     * table descriptions (which describe the same page in prose).
-     */
-    private function contextualize(string $summary, string $content, ?PageVisualsData $visuals): string
-    {
-        $visualsText = $visuals?->embeddingText() ?? '';
-
-        if ($visualsText !== '') {
-            $content .= "\n\n".$visualsText;
-        }
-
-        return $summary !== '' ? $summary."\n\n".$content : $content;
     }
 
     private function embeddingCost(string $text): float

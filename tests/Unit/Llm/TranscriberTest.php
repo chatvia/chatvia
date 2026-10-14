@@ -17,7 +17,7 @@ it('throws a clear "not configured" error', function (): void {
         ->toThrow(TranscriptionNotConfiguredException::class, 'Audio transcription is not configured on this server.');
 });
 
-it('answers chat voice input with 503 and the reason when transcription is not configured', function (): void {
+it('answers chat voice input with 503 and a message the composer shows when transcription is not configured', function (): void {
     $action = Mockery::mock(TranscribeAudioAction::class);
     $action->shouldReceive('execute')->once()->andThrow(new TranscriptionNotConfiguredException);
 
@@ -28,5 +28,5 @@ it('answers chat voice input with 503 and the reason when transcription is not c
     $response = (new ChatTranscriptionController)($request, $action);
 
     expect($response->getStatusCode())->toBe(503)
-        ->and($response->getData(true))->toBe(['error' => 'Audio transcription is not configured on this server.']);
+        ->and($response->getData(true))->toBe(['message' => 'Voice input is not available right now.']);
 });

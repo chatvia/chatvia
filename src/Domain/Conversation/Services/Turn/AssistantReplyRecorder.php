@@ -76,6 +76,7 @@ class AssistantReplyRecorder
             artifacts: $context->artifacts,
             tool_calls: $context->toolCallNames,
             sources: $context->sources->values()->map(static fn (RetrievedSourceData $source, int $rank): MessageSourceData => MessageSourceData::fromRetrieved($source, $rank))->all(),
+            voice: $request->voice,
         ));
     }
 

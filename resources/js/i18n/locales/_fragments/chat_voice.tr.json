@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Sesle konuş"
+    },
+    "voice_call": {
+        "title": "Sesli görüşme",
+        "connecting": "Bağlanıyor…",
+        "listening": "Dinliyor",
+        "thinking": "Düşünüyor…",
+        "speaking": "Konuşuyor",
+        "muted": "Mikrofon kapalı",
+        "ended": "Görüşme bitti",
+        "mute": "Mikrofonu kapat",
+        "unmute": "Mikrofonu aç",
+        "end": "Görüşmeyi bitir",
+        "close": "Kapat",
+        "errors": {
+            "not_supported": "Bu tarayıcı sesli görüşme yapamıyor.",
+            "microphone_denied": "Ajanla konuşmak için mikrofon erişimine izin verin.",
+            "microphone_not_found": "Mikrofon bulunamadı.",
+            "busy": "Ses şu anda meşgul. Lütfen biraz sonra tekrar deneyin.",
+            "failed": "Sesli görüşme başlatılamadı. Lütfen tekrar deneyin."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Mesaj kutusunun hangi düğmeleri göstereceğini seçin: dosya yükleme, sesle yazma ve sesli görüşmeler.",
+                "voice_conversation_label": "Sesli görüşmelere izin ver",
+                "voice_conversation_hint": "Mikrofonun yanında, ajanla canlı sesli görüşme başlatan bir düğme gösterir.",
+                "voice_conversation_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici sesli görüşmeleri yönetim panelinden açabilir.",
+                "voice_conversation_aria": "Sesli görüşmeler nasıl sayılır?",
+                "voice_conversation_help_title": "Sesli görüşmeler",
+                "voice_conversation_help_1": "Ziyaretçiler ajanla sesli konuşur. Ajan bilgisinden yanıt verir ve onay gerektirmeyen araçlarını kullanabilir. Görüşmenin iki tarafı da sohbet kayıtlarına kaydedilir.",
+                "voice_conversation_help_2": "Her sesli yanıt bir mesaj sayılır. Sesli görüşmenin maliyeti yazılı sohbetten çok daha yüksektir.",
+                "voice_label": "Ses",
+                "voice_default": "Varsayılan ({voice})",
+                "voice_input_unavailable": "Bu sunucuda ayarlı değil. Bir yönetici konuşmayı metne çevirmeyi yönetim panelinden açabilir."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Ses"
+            }
+        }
+    }
+}

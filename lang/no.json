@@ -268,5 +268,13 @@
     "Complete the security check.": "Fullfør sikkerhetssjekken.",
     "This account has been deactivated.": "Denne kontoen er deaktivert.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "Denne e-postadressen har allerede en konto i et annet arbeidsområde. Be om en invitasjon til en annen e-postadresse.",
-    "A chatter with this email already exists in your workspace.": "Det finnes allerede en chattebruker med denne e-postadressen i arbeidsområdet ditt."
+    "A chatter with this email already exists in your workspace.": "Det finnes allerede en chattebruker med denne e-postadressen i arbeidsområdet ditt.",
+    "Voice input is not available right now.": "Stemmeinndata er ikke tilgjengelig akkurat nå.",
+    "Voice conversations are not available for this agent.": "Stemmesamtaler er ikke tilgjengelige for denne agenten.",
+    "A team member has joined this conversation. Please continue in the chat.": "Et teammedlem har blitt med i samtalen. Fortsett i chatten.",
+    "Voice is busy right now. Please try again in a moment.": "Stemme er opptatt akkurat nå. Prøv igjen om litt.",
+    "The voice call could not start. Please try again.": "Stemmesamtalen kunne ikke starte. Prøv igjen.",
+    "Our time for this call is up. You can keep chatting in the text box.": "Tiden for denne samtalen er ute. Du kan fortsette i tekstfeltet.",
+    "Sorry, I can't help with that.": "Beklager, det kan jeg ikke hjelpe med.",
+    "(Voice message that could not be transcribed)": "(Talemelding som ikke kunne skrives ned)"
 }

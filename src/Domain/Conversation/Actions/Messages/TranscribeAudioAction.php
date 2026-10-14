@@ -6,11 +6,15 @@ namespace Domain\Conversation\Actions\Messages;
 
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
 use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Exceptions\TranscriptionNotConfiguredException;
 use Illuminate\Support\Str;
 
 /**
  * Turns a voice note into text: compresses a working copy of the recording,
  * sends it to the speech-to-text service, and always removes the copy.
+ * Without a speech-to-text service it fails at once, before any compression.
+ *
+ * @throws TranscriptionNotConfiguredException when no speech-to-text service is set up
  */
 class TranscribeAudioAction
 {
@@ -25,6 +29,10 @@ class TranscribeAudioAction
      */
     public function execute(string $audioPath, string $extension): string
     {
+        if (! $this->transcriber->isEnabled()) {
+            throw new TranscriptionNotConfiguredException;
+        }
+
         $workingCopy = create_temp_dir('/transcription').'/'.Str::uuid().'.'.$extension;
 
         copy($audioPath, $workingCopy);

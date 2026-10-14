@@ -58,6 +58,21 @@ class RateLimitServiceProvider extends ServiceProvider
             return $limits;
         });
 
+        // Starting a voice call: each call holds a worker and costs far more
+        // than a message, so a session may start only a few a minute, and an
+        // agent only so many across all its visitors.
+        RateLimiter::for('widget-voice', function (Request $request): array {
+            $sessionKey = $request->header(WidgetHeaders::SESSION_ID) ?: $request->ip();
+            $limits = [Limit::perMinute(5)->by('widget-voice|sess|'.$sessionKey)];
+            $agent = WidgetAgent::from($request);
+
+            if ($agent instanceof Agent) {
+                $limits[] = Limit::perMinute(30)->by('widget-voice|agent|'.$agent->id);
+            }
+
+            return $limits;
+        });
+
         // The auth exchange runs once per page load for protected widgets. A
         // tight per-IP cap removes JWT-verification brute force as a DoS
         // surface (defence in depth — verify() is already constant-time).
@@ -91,6 +106,14 @@ class RateLimitServiceProvider extends ServiceProvider
             $key = $account instanceof Model ? $account->getMorphClass().':'.$account->getKey() : $request->ip();
 
             return Limit::perMinute(30)->by('chat-stream|'.$key);
+        });
+
+        // Starting a hosted-chat voice call (see `widget-voice`).
+        RateLimiter::for('chat-voice', function (Request $request) {
+            $account = $request->user();
+            $key = $account instanceof Model ? $account->getMorphClass().':'.$account->getKey() : $request->ip();
+
+            return Limit::perMinute(5)->by('chat-voice|'.$key);
         });
     }
 }

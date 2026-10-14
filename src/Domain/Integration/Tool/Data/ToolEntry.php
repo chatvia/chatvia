@@ -97,6 +97,18 @@ final readonly class ToolEntry
     }
 
     /**
+     * The flat shape a voice call's session takes (the Realtime API):
+     * `{type, name, description, parameters}`, with the same normalized
+     * schema as {@see toOpenAiFormat()}.
+     *
+     * @return array<string, mixed>
+     */
+    public function toRealtimeFormat(): array
+    {
+        return ['type' => 'function', ...$this->toOpenAiFormat()['function']];
+    }
+
+    /**
      * PHP collapses `{}` and `[]` to the same empty array, so an MCP tool's
      * `{properties: {}}` round-trips through json_decode/json_encode as
      * `{properties: []}` — which Mistral rejects ("[] is not of type

@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Turn;
 
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
@@ -10,7 +11,8 @@ use Domain\Conversation\Services\ChatContext;
  * Assembles what the LLM receives for a turn: the system prompt (the agent's
  * instructions, the grounding rules, who the visitor is on protected agents,
  * and the business's contact details), then the recent history, then the
- * visitor's message with any retrieved reference material.
+ * visitor's message with any retrieved reference material. A voice call gets
+ * its own instructions ({@see voicePrompt()}).
  *
  * Forms are not listed here: the agent discovers them through the Forms MCP
  * server (find-forms → render-form), so a form only enters the context when
@@ -43,13 +45,46 @@ class SystemPromptBuilder
     public function systemPrompt(StreamRequestData $data): string
     {
         $agent = $data->agent;
-        $prompt = rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding');
 
+        return $this->withCallerAndBusiness(
+            rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding'),
+            $agent,
+            $data->chatterName,
+        );
+    }
+
+    /**
+     * The instructions of a voice call: the agent's own instructions, the
+     * rules of speaking (short, no markdown, search the knowledge before
+     * answering — a call has no reference material pasted in), who the
+     * visitor is and the business's details, then the messages typed before
+     * the call so it carries on from them.
+     *
+     * @param  array<int, array{role: string, content: string}>  $history
+     */
+    public function voicePrompt(Agent $agent, ?string $chatterName, array $history): string
+    {
+        $prompt = $this->withCallerAndBusiness(
+            rtrim($agent->resolveSystemInstructions())."\n\n".prompt('voice/system'),
+            $agent,
+            $chatterName,
+        );
+
+        if ($history !== []) {
+            $prompt .= "\n\n".prompt('voice/history', ['messages' => $history]);
+        }
+
+        return $prompt;
+    }
+
+    /** The prompt followed by who the visitor is (protected agents) and the business profile. */
+    private function withCallerAndBusiness(string $prompt, Agent $agent, ?string $chatterName): string
+    {
         // Visitors of a protected agent had to sign in, so the model may
         // address them by name. Public agents serve anonymous visitors — the
         // name is left out there even when a chatter happens to be signed in.
-        if (! $agent->is_public && filled($data->chatterName)) {
-            $prompt .= "\n\n".prompt('chatter/identity', ['name' => $data->chatterName]);
+        if (! $agent->is_public && filled($chatterName)) {
+            $prompt .= "\n\n".prompt('chatter/identity', ['name' => $chatterName]);
         }
 
         $business = array_filter($agent->settings('business')->toArray(), filled(...));

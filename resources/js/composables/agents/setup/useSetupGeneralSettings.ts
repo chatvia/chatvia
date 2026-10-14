@@ -1,6 +1,7 @@
 /**
  * The Settings section: agent-wide switches that aren't tied to one surface.
- * Composer options (file uploads, voice input) live in the `appearance` group;
+ * Composer options (file uploads, voice input, voice conversations and the
+ * agent's voice) live in the `appearance` group;
  * the chat log and the analytics dimensions live in the `analytics` group.
  * The chat log is the analytics' master switch: with nothing stored there is
  * nothing to analyse, so the dimensions are forced off while it is off.
@@ -12,14 +13,33 @@ import { useI18n } from 'vue-i18n';
 import type { SettingsReader } from './settingValues';
 import { submitSetupForm, type SetupSectionDeps } from './submitSetupForm';
 
-export function useSetupGeneralSettings({ agentId, reloadPreview }: SetupSectionDeps, appearance: SettingsReader, analytics: SettingsReader) {
+/** What this install offers for voice input and voice conversations (sent by the Setup page). */
+export interface SetupVoiceOptions {
+    /** Speech to text is set up; without it the voice-input switch is locked. */
+    inputAvailable: boolean;
+    /** Set up on this install (Settings → AI models); without it the switch is off and locked. */
+    available: boolean;
+    /** The voice agents speak with unless they pick their own. */
+    default: string;
+    choices: string[];
+}
+
+export function useSetupGeneralSettings(
+    { agentId, reloadPreview }: SetupSectionDeps,
+    appearance: SettingsReader,
+    analytics: SettingsReader,
+    voice: SetupVoiceOptions,
+) {
     const { t } = useI18n();
     const settingsUrl = (group: 'appearance' | 'analytics') => updateSettings.url({ agent: agentId(), group });
 
     // Composer affordances — on by default; owners can hide the paperclip / mic.
+    // Voice conversations start off: a call costs far more than a message.
     const composerForm = useForm({
         allow_file_uploads: appearance.boolean('allow_file_uploads', true),
         allow_voice_input: appearance.boolean('allow_voice_input', true),
+        allow_voice_conversation: appearance.boolean('allow_voice_conversation', false),
+        voice: appearance.string('voice', 'default'),
     });
     const isSavingComposer = ref(false);
     const saveComposer = (): void =>
@@ -92,6 +112,7 @@ export function useSetupGeneralSettings({ agentId, reloadPreview }: SetupSection
         composerForm,
         isSavingComposer,
         saveComposer,
+        voice,
         chatlogForm,
         isSavingChatlog,
         saveChatlog,

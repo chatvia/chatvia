@@ -37,6 +37,8 @@ use App\Http\Controllers\Chat\Stream\ChatStreamController;
 use App\Http\Controllers\Chat\Tools\ResolveToolApprovalController;
 use App\Http\Controllers\Chat\Transcription\ChatTranscriptionController;
 use App\Http\Controllers\Chat\Usage\MessagesUsage;
+use App\Http\Controllers\Chat\Voice\EndVoiceCallController;
+use App\Http\Controllers\Chat\Voice\StartVoiceCallController;
 
 // Moves a dashboard sign-in (the end of a chat sign-in link's two-factor
 // challenge) into an agent's chat session. Outside /chat, so it runs on the
@@ -127,5 +129,11 @@ Route::prefix('chat/{agentSlug}')
             Route::get('usage', MessagesUsage::class)->name('chat.usage');
 
             Route::post('transcribe', ChatTranscriptionController::class)->middleware('throttle:chat-stream')->name('chat.transcribe');
+
+            // Voice conversations: the browser's WebRTC offer opens a call in
+            // a conversation of the visitor's (audio then goes straight to the
+            // provider); End hangs it up from the server too.
+            Route::post('voice/{conversationId?}', StartVoiceCallController::class)->middleware('throttle:chat-voice')->name('chat.voice.store');
+            Route::delete('voice/calls/{call}', EndVoiceCallController::class)->name('chat.voice.destroy');
         });
     });

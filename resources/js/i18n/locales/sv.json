@@ -34,7 +34,8 @@
         "delete_failed": "Det gick inte att ta bort bilagan",
         "upload_limit_reached": "Du kan bifoga upp till {count} fil | Du kan bifoga upp till {count} filer",
         "send_message": "Skicka meddelande",
-        "stop_streaming": "Stoppa genereringen"
+        "stop_streaming": "Stoppa genereringen",
+        "start_voice_call": "Prata med rösten"
     },
     "header": {
         "toggle_sidebar": "Växla sidopanel",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Negativ feedback",
                 "qa_matched": "Q&A-matchning",
                 "revised": "Reviderat svar",
-                "revise": "Revidera"
+                "revise": "Revidera",
+                "voice": "Röst"
             },
             "details": {
                 "select_conversation": "Välj en konversation för att visa detaljer",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
-                "composer_description": "Dölj knappen för filuppladdning eller röstinmatning om din agent inte ska ta emot sådana indata.",
+                "composer_description": "Välj vilka knappar meddelandefältet visar: filuppladdning, röstinmatning och röstsamtal.",
                 "file_uploads_label": "Tillåt filuppladdningar",
                 "file_uploads_aria": "Hur debiteras filuppladdningar?",
                 "file_uploads_help_title": "Filuppladdningar",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Ämnen",
                 "topics_help_1": "Ämnen skannar konversationer och grupperar dem efter vad folk frågar om, så att du slipper tagga chattar manuellt.",
                 "topics_help_2": "Nya ämnen identifieras automatiskt och samlas på Ämnes-instrumentpanelen, som visar de vanligaste temana. Kräver att Spara konversationer är aktiverat.",
-                "topics_hint": "Identifiera och gruppera automatiskt vad besökare frågar om."
+                "topics_hint": "Identifiera och gruppera automatiskt vad besökare frågar om.",
+                "voice_conversation_label": "Tillåt röstsamtal",
+                "voice_conversation_hint": "Visa en knapp bredvid mikrofonen som startar ett direkt röstsamtal med agenten.",
+                "voice_conversation_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på röstsamtal i adminpanelen.",
+                "voice_conversation_aria": "Hur räknas röstsamtal?",
+                "voice_conversation_help_title": "Röstsamtal",
+                "voice_conversation_help_1": "Besökare pratar högt med agenten. Den svarar utifrån sin kunskap och kan använda sina verktyg som inte kräver godkännande. Båda sidor av samtalet sparas i chattloggen.",
+                "voice_conversation_help_2": "Varje talat svar räknas som ett meddelande. Ett röstsamtal kostar mycket mer att köra än en skriven chatt.",
+                "voice_label": "Röst",
+                "voice_default": "Standard ({voice})",
+                "voice_input_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på tal till text i adminpanelen."
             },
             "bubbles_title": "Chattbubblor",
             "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetbubblan. Tryck på Enter för att lägga till var och en.",
@@ -3765,6 +3777,26 @@
                 "name": "Amplitude",
                 "description": "Hämta produktanalys — händelser, diagram och kohorter — från ditt Amplitude-projekt."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Röstsamtal",
+        "connecting": "Ansluter…",
+        "listening": "Lyssnar",
+        "thinking": "Tänker…",
+        "speaking": "Pratar",
+        "muted": "Mikrofonen av",
+        "ended": "Samtalet avslutat",
+        "mute": "Stäng av mikrofonen",
+        "unmute": "Slå på mikrofonen",
+        "end": "Avsluta samtal",
+        "close": "Stäng",
+        "errors": {
+            "not_supported": "Den här webbläsaren kan inte ringa röstsamtal.",
+            "microphone_denied": "Tillåt åtkomst till mikrofonen för att prata med agenten.",
+            "microphone_not_found": "Ingen mikrofon hittades.",
+            "busy": "Röst är upptaget just nu. Försök igen om en stund.",
+            "failed": "Röstsamtalet kunde inte starta. Försök igen."
         }
     }
 }

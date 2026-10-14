@@ -55,7 +55,11 @@ export interface IframeOptions {
     title: string;
 }
 
-/** The Hosted Chat embedded in a page. */
+/**
+ * The Hosted Chat embedded in a page. `allow="microphone"` lets the embedded
+ * chat ask for the microphone (voice input and voice conversations); a page
+ * on another site cannot otherwise grant it.
+ */
 export function iframeSnippet(src: string, options: IframeOptions): string {
-    return `<iframe src="${src}" width="${options.width}" height="${options.height}" title="${options.title}" frameborder="0" allowfullscreen loading="lazy"></iframe>`;
+    return `<iframe src="${src}" width="${options.width}" height="${options.height}" title="${options.title}" frameborder="0" allow="microphone" allowfullscreen loading="lazy"></iframe>`;
 }

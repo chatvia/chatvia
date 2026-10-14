@@ -64,5 +64,8 @@ class StreamRequestData extends Data
         // turns it off for itself only, without touching global config that
         // other code in the same worker reads.
         public bool $guardrailsEnabled = true,
+        // The turn was spoken in a voice call: its reply is marked as such
+        // (`metadata.voice`) so the chat log can show it.
+        public bool $voice = false,
     ) {}
 }

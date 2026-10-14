@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Talk with voice"
+    },
+    "voice_call": {
+        "title": "Voice conversation",
+        "connecting": "Connecting…",
+        "listening": "Listening",
+        "thinking": "Thinking…",
+        "speaking": "Speaking",
+        "muted": "Microphone off",
+        "ended": "Call ended",
+        "mute": "Turn microphone off",
+        "unmute": "Turn microphone on",
+        "end": "End call",
+        "close": "Close",
+        "errors": {
+            "not_supported": "This browser can't make voice calls.",
+            "microphone_denied": "Allow microphone access to talk with the agent.",
+            "microphone_not_found": "No microphone was found.",
+            "busy": "Voice is busy right now. Please try again in a moment.",
+            "failed": "The voice call could not start. Please try again."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Choose which buttons the chat composer shows: file uploads, voice input and voice conversations.",
+                "voice_conversation_label": "Allow voice conversations",
+                "voice_conversation_hint": "Show a button beside the microphone that starts a live spoken call with the agent.",
+                "voice_conversation_unavailable": "Not set up on this server. An admin can turn on voice conversations in the admin panel.",
+                "voice_conversation_aria": "How are voice conversations charged?",
+                "voice_conversation_help_title": "Voice conversations",
+                "voice_conversation_help_1": "Visitors talk with the agent out loud. It answers from its knowledge and can use its tools that need no approval. Both sides of the call are saved in Chat Logs.",
+                "voice_conversation_help_2": "Each spoken answer counts as one message. A voice call costs much more to run than a typed chat.",
+                "voice_label": "Voice",
+                "voice_default": "Default ({voice})",
+                "voice_input_unavailable": "Not set up on this server. An admin can turn on speech to text in the admin panel."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Voice"
+            }
+        }
+    }
+}

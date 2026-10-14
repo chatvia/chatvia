@@ -268,5 +268,13 @@
     "Complete the security check.": "Slutför säkerhetskontrollen.",
     "This account has been deactivated.": "Det här kontot har inaktiverats.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "Den här e-postadressen har redan ett konto i en annan arbetsyta. Be om en inbjudan till en annan e-postadress.",
-    "A chatter with this email already exists in your workspace.": "Det finns redan en chattanvändare med den här e-postadressen i din arbetsyta."
+    "A chatter with this email already exists in your workspace.": "Det finns redan en chattanvändare med den här e-postadressen i din arbetsyta.",
+    "Voice input is not available right now.": "Röstinmatning är inte tillgänglig just nu.",
+    "Voice conversations are not available for this agent.": "Röstsamtal är inte tillgängliga för den här agenten.",
+    "A team member has joined this conversation. Please continue in the chat.": "En teammedlem har anslutit till samtalet. Fortsätt i chatten.",
+    "Voice is busy right now. Please try again in a moment.": "Röst är upptaget just nu. Försök igen om en stund.",
+    "The voice call could not start. Please try again.": "Röstsamtalet kunde inte starta. Försök igen.",
+    "Our time for this call is up. You can keep chatting in the text box.": "Tiden för det här samtalet är slut. Du kan fortsätta i textfältet.",
+    "Sorry, I can't help with that.": "Tyvärr kan jag inte hjälpa till med det.",
+    "(Voice message that could not be transcribed)": "(Röstmeddelande som inte kunde skrivas ned)"
 }

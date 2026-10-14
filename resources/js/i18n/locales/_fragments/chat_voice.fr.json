@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Parler à voix haute"
+    },
+    "voice_call": {
+        "title": "Conversation vocale",
+        "connecting": "Connexion…",
+        "listening": "À l'écoute",
+        "thinking": "Réflexion…",
+        "speaking": "Parle",
+        "muted": "Micro coupé",
+        "ended": "Appel terminé",
+        "mute": "Couper le micro",
+        "unmute": "Activer le micro",
+        "end": "Terminer l'appel",
+        "close": "Fermer",
+        "errors": {
+            "not_supported": "Ce navigateur ne peut pas passer d'appels vocaux.",
+            "microphone_denied": "Autorisez l'accès au micro pour parler avec l'agent.",
+            "microphone_not_found": "Aucun micro n'a été trouvé.",
+            "busy": "La voix est occupée pour le moment. Réessayez dans un instant.",
+            "failed": "L'appel vocal n'a pas pu démarrer. Veuillez réessayer."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Choisissez les boutons affichés dans la zone de saisie : envoi de fichiers, saisie vocale et conversations vocales.",
+                "voice_conversation_label": "Autoriser les conversations vocales",
+                "voice_conversation_hint": "Affiche à côté du micro un bouton qui lance un appel vocal en direct avec l'agent.",
+                "voice_conversation_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer les conversations vocales dans le panneau d'administration.",
+                "voice_conversation_aria": "Comment les conversations vocales sont-elles facturées ?",
+                "voice_conversation_help_title": "Conversations vocales",
+                "voice_conversation_help_1": "Les visiteurs parlent à voix haute avec l'agent. Il répond à partir de ses connaissances et peut utiliser ses outils qui ne demandent pas d'approbation. Les deux côtés de l'appel sont enregistrés dans l'historique des chats.",
+                "voice_conversation_help_2": "Chaque réponse parlée compte comme un message. Un appel vocal coûte beaucoup plus cher qu'un chat écrit.",
+                "voice_label": "Voix",
+                "voice_default": "Par défaut ({voice})",
+                "voice_input_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer la transcription vocale dans le panneau d'administration."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Vocal"
+            }
+        }
+    }
+}

@@ -58,8 +58,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('filament.brand'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/favicons/favicon.svg'))
-            // The setup shows the mark alone, large, instead of the logo.
-            ->renderHook(PanelsRenderHook::SIMPLE_PAGE_START, fn (): Factory|\Illuminate\Contracts\View\View => view('filament.setup-logo'), scopes: Setup::class)
+            // The setup shows the mark alone, large, above its card, instead of the logo.
+            ->renderHook(PanelsRenderHook::SIMPLE_LAYOUT_START, fn (): Factory|\Illuminate\Contracts\View\View => view('filament.setup-logo'), scopes: Setup::class)
             ->authGuard('admin')
             ->login()
             ->profile()
@@ -75,6 +75,8 @@ class AdminPanelProvider extends PanelProvider
             ->font('Inter', url: asset('fonts/inter/inter.css'), provider: LocalFontProvider::class)
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->topbar(false)
+            // The sidebar's search finds the Settings sections and options too.
+            ->globalSearch(AdminGlobalSearchProvider::class)
             ->discoverClusters(in: app_path('Admin/Clusters'), for: 'App\Admin\Clusters')
             ->discoverResources(in: app_path('Admin/Resources'), for: 'App\Admin\Resources')
             ->discoverPages(in: app_path('Admin/Pages'), for: 'App\Admin\Pages')

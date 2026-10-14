@@ -34,7 +34,8 @@
         "delete_failed": "Kunne ikke fjerne vedlegg",
         "upload_limit_reached": "Du kan legge ved opptil {count} fil | Du kan legge ved opptil {count} filer",
         "send_message": "Send melding",
-        "stop_streaming": "Stopp genereringen"
+        "stop_streaming": "Stopp genereringen",
+        "start_voice_call": "Snakk med stemmen"
     },
     "header": {
         "toggle_sidebar": "Vis/skjul sidepanel",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Negativ tilbakemelding",
                 "qa_matched": "Spørsmål og svar-treff",
                 "revised": "Revidert svar",
-                "revise": "Revider"
+                "revise": "Revider",
+                "voice": "Stemme"
             },
             "details": {
                 "select_conversation": "Velg en samtale for å se detaljer",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Skrivefeltinnstillinger",
-                "composer_description": "Skjul knappen for filopplasting eller taleinput hvis agenten din ikke skal godta slike inndata.",
+                "composer_description": "Velg hvilke knapper meldingsfeltet viser: filopplasting, stemmeinndata og stemmesamtaler.",
                 "file_uploads_label": "Tillat filopplastinger",
                 "file_uploads_aria": "Hvordan belastes filopplastinger?",
                 "file_uploads_help_title": "Filopplastinger",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Emner",
                 "topics_help_1": "Emner skanner samtaler og grupperer dem etter hva folk spør om, slik at du slipper å merke chatter manuelt.",
                 "topics_help_2": "Nye emner oppdages automatisk og samles på Emner-dashbordet, som viser de vanligste temaene. Krever at Lagre samtaler er på.",
-                "topics_hint": "Oppdag og grupper automatisk hva besøkende spør om."
+                "topics_hint": "Oppdag og grupper automatisk hva besøkende spør om.",
+                "voice_conversation_label": "Tillat stemmesamtaler",
+                "voice_conversation_hint": "Vis en knapp ved siden av mikrofonen som starter en direkte stemmesamtale med agenten.",
+                "voice_conversation_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på stemmesamtaler i adminpanelet.",
+                "voice_conversation_aria": "Hvordan regnes stemmesamtaler?",
+                "voice_conversation_help_title": "Stemmesamtaler",
+                "voice_conversation_help_1": "Besøkende snakker høyt med agenten. Den svarer ut fra kunnskapen sin og kan bruke verktøyene sine som ikke trenger godkjenning. Begge sider av samtalen lagres i chatloggen.",
+                "voice_conversation_help_2": "Hvert muntlige svar teller som én melding. En stemmesamtale koster mye mer å kjøre enn en skrevet chat.",
+                "voice_label": "Stemme",
+                "voice_default": "Standard ({voice})",
+                "voice_input_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på tale til tekst i adminpanelet."
             },
             "bubbles_title": "Snakkebobler",
             "bubbles_description": "Raske meldingsprompt som vises ved siden av widgetboblen. Trykk Enter for å legge til hver enkelt.",
@@ -3765,6 +3777,26 @@
                 "name": "Amplitude",
                 "description": "Spør om produktanalyse — hendelser, diagrammer og kohorter — fra Amplitude-prosjektet ditt."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Stemmesamtale",
+        "connecting": "Kobler til…",
+        "listening": "Lytter",
+        "thinking": "Tenker…",
+        "speaking": "Snakker",
+        "muted": "Mikrofon av",
+        "ended": "Samtalen er avsluttet",
+        "mute": "Slå av mikrofonen",
+        "unmute": "Slå på mikrofonen",
+        "end": "Avslutt samtalen",
+        "close": "Lukk",
+        "errors": {
+            "not_supported": "Denne nettleseren kan ikke ta stemmesamtaler.",
+            "microphone_denied": "Gi tilgang til mikrofonen for å snakke med agenten.",
+            "microphone_not_found": "Fant ingen mikrofon.",
+            "busy": "Stemme er opptatt akkurat nå. Prøv igjen om litt.",
+            "failed": "Stemmesamtalen kunne ikke starte. Prøv igjen."
         }
     }
 }

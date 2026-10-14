@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Admin\Pages;
 
 use App\Admin\AdminPanelProvider;
+use App\Admin\Forms\CardRadio;
 use App\Admin\RequireSetup;
 use App\Admin\Settings\Actions\CompleteSetupAction;
 use App\Admin\Settings\AiProviderCheck;
+use App\Admin\Settings\AiProviderIcon;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\MailSetupData;
+use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\Data\SetupData;
 use App\Admin\Settings\Data\StorageSetupData;
 use App\Admin\Settings\FirecrawlCheck;
@@ -17,15 +20,19 @@ use App\Admin\Settings\MailField;
 use App\Admin\Settings\MailProvider;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\RerankerCheck;
 use App\Admin\Settings\SetupRequirements;
 use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageCheck;
 use App\Admin\Settings\StorageSettings;
+use Closure;
 use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Data\EmbeddingColumnData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Queries\StoredEmbeddingColumnsQuery;
+use Domain\Knowledge\Embedding\Rerank\RerankerFactory;
+use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
 use Domain\Knowledge\Embedding\Services\EmbeddingCheck;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\OpenRouterEmbeddingModels;
@@ -77,8 +84,10 @@ use Support\Http\SafeUrl;
  *    makes no embeddings of the size the database stores (Groq, a server of
  *    your own), an embedding service and its key too.
  * 2. Models: the chat models agents can use (one or more, one of them the
- *    default for new agents) and the embedding model (picked from
- *    OpenRouter's list there), checked with a test embedding.
+ *    default for new agents), the embedding model (picked from
+ *    OpenRouter's list there), checked with a test embedding, and the
+ *    reranker: OpenRouter (its live list of rerankers), Cohere, a server
+ *    of your own or none, checked with a test question.
  * 3. Documents: Mistral OCR, Azure Document Intelligence or none (the
  *    default). Without a reader, PDF, Word, slides and images cannot be
  *    uploaded.
@@ -93,10 +102,12 @@ use Support\Http\SafeUrl;
  * 7. Mailer: none (the default) or a mail service. Without one nobody
  *    receives sign-up, password or invitation emails.
  * 8. Final: "Complete", the choices made, and where the rest (chunking,
- *    search, the reranker…), which keeps its default values, is changed.
+ *    search…), which keeps its default values, is changed.
  *
  * Each step starts on the safe choice ("Not now", "This server") unless
- * it is set up already: what `.env` suggests is not a choice. "Not now"
+ * it is set up already: what `.env` suggests is not a choice. The one
+ * exception is the reranker with OpenRouter as the provider: the same key
+ * covers it, so it starts on OpenRouter. "Not now"
  * turns the service off, so "Automatic" does not turn it on behind the
  * admin's back. A service on the account of an earlier step uses the key
  * typed there.
@@ -125,6 +136,7 @@ class Setup extends SimplePage
     private const array KEY_FIELDS = [
         'provider' => ['api_key', 'Connect AI'],
         'embedding_provider' => ['embedding_api_key', 'Connect AI'],
+        'reranker' => ['rerank_api_key', 'Models'],
         'document_reader' => ['document_api_key', 'Documents'],
         'transcriber' => ['transcription_api_key', 'Speech to text'],
     ];
@@ -156,6 +168,9 @@ class Setup extends SimplePage
     /** The embedding service, model and key last checked, so Finish does not check them again. */
     public ?string $embeddingCheckedFor = null;
 
+    /** The reranker, model, key and address last checked, so Finish does not check them again. */
+    public ?string $rerankerCheckedFor = null;
+
     /** Whether the admin agreed to go on without a document reader, so Next does not warn again. */
     public bool $noReaderConfirmed = false;
 
@@ -184,6 +199,11 @@ class Setup extends SimplePage
             'embedding_provider' => $embedding?->value,
             'embedding_model' => $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null,
             'chat_models' => [],
+            'reranker' => $this->suggestedReranker($provider),
+            'openrouter_rerank_model' => config('chatvia.ai.rerank.openrouter_model') ?: RerankModelCatalog::DEFAULT_OPENROUTER,
+            'cohere_rerank_model' => config('services.cohere.rerank_model') ?: array_key_first(RerankModelCatalog::COHERE),
+            'rerank_custom_url' => config('chatvia.ai.rerank.custom.url'),
+            'rerank_custom_model' => config('chatvia.ai.rerank.custom.model'),
             'document_reader' => $this->suggestedReader($provider),
             'website_import' => filled(config('services.firecrawl.key')) ? self::FIRECRAWL : self::NOT_NOW,
             'transcriber' => in_array(app(AiSettings::class)->transcriber, $this->speechOptions(), true) ? app(AiSettings::class)->transcriber : self::NOT_NOW,
@@ -259,6 +279,7 @@ class Setup extends SimplePage
         $state = $this->form->getState();
         $this->checkConnection();
         $this->checkModels();
+        $this->checkReranker();
         $this->checkReader();
         $this->checkFirecrawl();
         $this->checkTranscriber();
@@ -282,6 +303,7 @@ class Setup extends SimplePage
             embeddingProvider: $embedding,
             embeddingModel: $this->filled($state, 'embedding_model'),
             embeddingApiKey: $embedding instanceof EmbeddingProvider && $embedding->account() !== $account ? $this->filled($state, 'embedding_api_key') : null,
+            reranker: $this->rerankerData($state),
             documentReader: $reader,
             documentApiKey: $reader instanceof AiProvider && ! $this->reusesEarlierKey('document_reader', $state) ? $this->filled($state, 'document_api_key') : null,
             documentEndpoint: $reader === AiProvider::Azure ? $this->filled($state, 'document_endpoint') : null,
@@ -354,8 +376,15 @@ class Setup extends SimplePage
                     ->description(fn (Get $get): string => $this->embeddingDescription($get))
                     ->icon(Heroicon::OutlinedCubeTransparent)
                     ->schema($this->embeddingModelFields()),
+                Section::make('Reranker')
+                    ->description('Scores what search finds, and your tools, against each question, so agents use only the relevant ones.')
+                    ->icon(Heroicon::OutlinedBarsArrowDown)
+                    ->schema($this->rerankerFields()),
             ])
-            ->afterValidation(fn () => $this->checkModels());
+            ->afterValidation(function (): void {
+                $this->checkModels();
+                $this->checkReranker();
+            });
     }
 
     private function documentsStep(): Step
@@ -608,7 +637,7 @@ class Setup extends SimplePage
                         View::make('filament.setup.summary')
                             ->viewData(['rows' => [
                                 'Settings → Knowledge' => 'How texts are split into chunks, search, the AI enhancement of sources, follow-up questions, and the file types people can upload.',
-                                'Settings → AI models' => 'More chat models, the reranker, and the models for background jobs.',
+                                'Settings → AI models' => 'More chat models, and the models for background jobs.',
                                 'Settings → Brand' => 'The name and links shown in the app and in emails.',
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
                                 'Settings → Sign-in and Security' => 'Sign-in with other accounts, and the bot check on public forms.',
@@ -641,6 +670,7 @@ class Setup extends SimplePage
             'Embeddings' => $embedding instanceof EmbeddingProvider
                 ? $embedding->label().(filled($get('embedding_model')) ? " · {$get('embedding_model')}" : '')
                 : 'Already set up',
+            'Reranker' => $this->rerankerSummary(),
             'Documents' => AiProvider::tryFrom((string) $get('document_reader'))?->label() ?? 'Not now',
             'Websites' => $get('website_import') === self::FIRECRAWL ? 'Firecrawl' : 'Not now',
             'Speech to text' => AiProvider::tryFrom((string) $get('transcriber'))?->label() ?? 'Not now',
@@ -655,10 +685,12 @@ class Setup extends SimplePage
     private function providerFields(): array
     {
         return [
-            Radio::make('provider')
+            CardRadio::make('provider')
                 ->hiddenLabel()
                 ->options($this->providerOptions())
                 ->descriptions($this->providerDescriptions())
+                ->icons($this->providerIcons())
+                ->tags($this->providerTags())
                 ->required()
                 ->live()
                 ->afterStateUpdated(function (Set $set, ?string $state): void {
@@ -667,6 +699,7 @@ class Setup extends SimplePage
                     $set('embedding_provider', $embedding?->value);
                     $set('embedding_model', $embedding instanceof EmbeddingProvider ? config($embedding->modelConfig()) : null);
                     $set('document_reader', $this->suggestedReader(AiProvider::tryFrom((string) $state)));
+                    $set('reranker', $this->suggestedReranker(AiProvider::tryFrom((string) $state)));
                 }),
             TextInput::make('server_name')
                 ->label('Name')
@@ -771,6 +804,95 @@ class Setup extends SimplePage
                 ->maxLength(255)
                 ->visible(fn (Get $get): bool => $this->embeddingProvider($get) !== EmbeddingProvider::OpenRouter),
         ];
+    }
+
+    /**
+     * The reranker: OpenRouter with a model from its live list, Cohere, a
+     * server of your own, or none. OpenRouter and Cohere use the key of an
+     * earlier step on the same account, else the saved one, else one typed
+     * here.
+     *
+     * @return list<Component>
+     */
+    private function rerankerFields(): array
+    {
+        $chosen = fn (string $driver): Closure => fn (Get $get): bool => $get('reranker') === $driver;
+
+        return [
+            CardRadio::make('reranker')
+                ->hiddenLabel()
+                ->options([
+                    AiProvider::Cohere->value => 'Cohere',
+                    AiProvider::OpenRouter->value => 'OpenRouter',
+                    self::CUSTOM => 'Your own server',
+                    self::NOT_NOW => 'Not now',
+                ])
+                ->descriptions([
+                    AiProvider::Cohere->value => 'Cohere Rerank 4, on Cohere\'s own API.',
+                    AiProvider::OpenRouter->value => 'The rerankers of Cohere, Voyage and Qwen, with one key.',
+                    self::CUSTOM => 'vLLM, Infinity or another server with the common /rerank API.',
+                    self::NOT_NOW => 'Search uses a basic similarity check instead, and finds the right part less often.',
+                ])
+                ->icons([
+                    AiProvider::Cohere->value => AiProviderIcon::of(AiProvider::Cohere),
+                    AiProvider::OpenRouter->value => AiProviderIcon::of(AiProvider::OpenRouter),
+                    self::CUSTOM => Heroicon::OutlinedServerStack,
+                    self::NOT_NOW => Heroicon::OutlinedNoSymbol,
+                ])
+                ->required()
+                ->live(),
+            $this->keyCallout('reranker'),
+            $this->serviceKeyField('rerank_api_key', 'reranker', 'getRerankKey'),
+            Select::make('openrouter_rerank_model')
+                ->label('Model')
+                ->options(fn (): array => app(RerankModelCatalog::class)->openRouterOptions())
+                ->searchable()
+                ->required($chosen(AiProvider::OpenRouter->value))
+                ->helperText('The strongest first. The list comes from OpenRouter, so new rerankers show up here.')
+                ->visible($chosen(AiProvider::OpenRouter->value)),
+            Select::make('cohere_rerank_model')
+                ->label('Model')
+                ->options(fn (): array => app(RerankModelCatalog::class)->cohereOptions())
+                ->native(false)
+                ->selectablePlaceholder(false)
+                ->required($chosen(AiProvider::Cohere->value))
+                ->visible($chosen(AiProvider::Cohere->value)),
+            TextInput::make('rerank_custom_url')
+                ->label('Address')
+                ->url()
+                ->placeholder('http://reranker:8000/v1')
+                ->helperText('The address of its /rerank API.')
+                ->required($chosen(self::CUSTOM))
+                ->visible($chosen(self::CUSTOM)),
+            TextInput::make('rerank_custom_model')
+                ->label('Model')
+                ->placeholder('Qwen/Qwen3-Reranker-4B')
+                ->helperText('The model\'s name exactly as your server writes it.')
+                ->required($chosen(self::CUSTOM))
+                ->maxLength(255)
+                ->visible($chosen(self::CUSTOM)),
+            TextInput::make('rerank_custom_key')
+                ->label('API key (optional)')
+                ->password()
+                ->revealable()
+                ->autocomplete('new-password')
+                ->placeholder(fn (): ?string => filled(config('chatvia.ai.rerank.custom.key')) ? '•••••••• saved, leave blank to keep' : null)
+                ->helperText('Only when your server asks for one. Stored encrypted.')
+                ->visible($chosen(self::CUSTOM)),
+        ];
+    }
+
+    /** The reranker chosen, in plain words, for the last step. */
+    private function rerankerSummary(): string
+    {
+        $reranker = $this->rerankerData($this->form->getRawState());
+
+        return match ($reranker->driver) {
+            AiProvider::OpenRouter->value => "OpenRouter · {$reranker->model}",
+            AiProvider::Cohere->value => "Cohere · {$reranker->model}",
+            self::CUSTOM => "Your own server · {$reranker->model}",
+            default => 'Not now',
+        };
     }
 
     /** Why the chosen provider cannot make the embeddings: none at all, or none of the stored size. */
@@ -1004,6 +1126,44 @@ class Setup extends SimplePage
         $this->embeddingCheckedFor = $fingerprint;
     }
 
+    /**
+     * The models step's check of the reranker: it ranks a test question with
+     * the model and key chosen ({@see RerankerCheck}). A key typed in an
+     * earlier step was checked there, so a refusal then points at the model.
+     */
+    private function checkReranker(): void
+    {
+        $state = $this->form->getRawState();
+        $chosen = $this->rerankerData($state);
+
+        if (! $chosen->isOn()) {
+            return;
+        }
+
+        $earlier = $this->earlierKeyField('reranker', $state);
+        $keyField = $chosen->driver === self::CUSTOM ? 'rerank_custom_key' : ($earlier ?? 'rerank_api_key');
+        $reranker = new RerankerSetupData($chosen->driver, $chosen->model, $this->filled($state, $keyField), $chosen->url);
+        $fingerprint = hash('sha256', implode("\n", [$reranker->driver, (string) $reranker->model, (string) $reranker->apiKey, (string) $reranker->url]));
+
+        if ($this->rerankerCheckedFor === $fingerprint) {
+            return;
+        }
+
+        $check = app(RerankerCheck::class)->check($reranker);
+
+        if (! $check->connected) {
+            $field = match (true) {
+                $check->keyRefused && $earlier === null && filled($reranker->apiKey) => $keyField,
+                $reranker->driver === self::CUSTOM => 'rerank_custom_url',
+                default => "{$reranker->driver}_rerank_model",
+            };
+
+            throw ValidationException::withMessages(["data.{$field}" => $check->message]);
+        }
+
+        $this->rerankerCheckedFor = $fingerprint;
+    }
+
     /** The documents step's check: the reader's key (and Azure's endpoint) work. */
     private function checkReader(): void
     {
@@ -1186,6 +1346,30 @@ class Setup extends SimplePage
     }
 
     /**
+     * The reranker chosen, with the key typed for it here: a key of an
+     * earlier step is saved with that step.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function rerankerData(array $state): RerankerSetupData
+    {
+        return match ($driver = (string) ($state['reranker'] ?? '')) {
+            AiProvider::OpenRouter->value, AiProvider::Cohere->value => new RerankerSetupData(
+                driver: $driver,
+                model: $this->filled($state, "{$driver}_rerank_model"),
+                apiKey: $this->reusesEarlierKey('reranker', $state) ? null : $this->filled($state, 'rerank_api_key'),
+            ),
+            self::CUSTOM => new RerankerSetupData(
+                driver: self::CUSTOM,
+                model: $this->filled($state, 'rerank_custom_model'),
+                apiKey: $this->filled($state, 'rerank_custom_key'),
+                url: $this->filled($state, 'rerank_custom_url'),
+            ),
+            default => new RerankerSetupData(self::NOT_NOW),
+        };
+    }
+
+    /**
      * @param  array<string, mixed>  $state
      */
     private function storageData(array $state): StorageSetupData
@@ -1228,26 +1412,58 @@ class Setup extends SimplePage
     }
 
     /**
-     * What each provider gives, under its name.
+     * One short sentence about each provider, under its name.
      *
      * @return array<string, string>
      */
     private function providerDescriptions(): array
     {
         return [
-            ...collect($this->chatAccounts())->mapWithKeys(fn (AiProvider $provider): array => [
-                $provider->value => ucfirst($this->capabilityList($provider)).'. '.$provider->description(),
-            ])->all(),
-            self::CUSTOM => 'Chat. vLLM, Ollama, LM Studio or another service with an OpenAI-compatible API.',
+            ...collect($this->chatAccounts())->mapWithKeys(fn (AiProvider $provider): array => [$provider->value => $provider->description()])->all(),
+            self::CUSTOM => 'vLLM, Ollama, LM Studio or another service with an OpenAI-compatible API.',
         ];
     }
 
     /**
+     * The logo or icon on each provider's card, as in Settings → AI providers.
+     *
+     * @return array<string, string|Heroicon>
+     */
+    private function providerIcons(): array
+    {
+        return [
+            ...collect($this->chatAccounts())->mapWithKeys(fn (AiProvider $provider): array => [$provider->value => AiProviderIcon::of($provider)])->all(),
+            self::CUSTOM => Heroicon::OutlinedServerStack,
+        ];
+    }
+
+    /**
+     * What each provider's key gives: its card's tags.
+     *
+     * @return array<string, list<string>>
+     */
+    private function providerTags(): array
+    {
+        return [
+            ...collect($this->chatAccounts())->mapWithKeys(fn (AiProvider $provider): array => [
+                $provider->value => array_map(fn (AiCapability $capability): string => $capability->label(), $provider->capabilities()),
+            ])->all(),
+            self::CUSTOM => [AiCapability::Chat->label()],
+        ];
+    }
+
+    /**
+     * The providers with chat models, by name: the order of their cards.
+     *
      * @return list<AiProvider>
      */
     private function chatAccounts(): array
     {
-        return array_values(array_filter(AiProvider::cases(), fn (AiProvider $provider): bool => $provider->can(AiCapability::Chat)));
+        return collect(AiProvider::cases())
+            ->filter(fn (AiProvider $provider): bool => $provider->can(AiCapability::Chat))
+            ->sortBy(fn (AiProvider $provider): string => $provider->label(), SORT_NATURAL | SORT_FLAG_CASE)
+            ->values()
+            ->all();
     }
 
     /** "chat · embeddings · speech to text" */
@@ -1535,16 +1751,13 @@ class Setup extends SimplePage
     }
 
     /**
-     * The provider to start on: one whose key is saved already, else the
-     * first that also makes embeddings of the stored size, else the first.
+     * The provider to start on: one whose key is saved already, else
+     * OpenRouter, whose one key gives chat, embeddings and reranking.
      */
     private function suggestedProvider(): AiProvider
     {
-        $accounts = $this->chatAccounts();
-
-        return array_find($accounts, fn (AiProvider $provider): bool => $provider->isConnected())
-            ?? array_find($accounts, fn (AiProvider $provider): bool => EmbeddingProvider::fittingFor($provider) instanceof EmbeddingProvider)
-            ?? $accounts[0];
+        return array_find(AiProvider::cases(), fn (AiProvider $provider): bool => $provider->can(AiCapability::Chat) && $provider->isConnected())
+            ?? AiProvider::OpenRouter;
     }
 
     /**
@@ -1562,6 +1775,23 @@ class Setup extends SimplePage
             $own instanceof EmbeddingProvider => $own,
             in_array($current, $fitting, true) && $current->account()->isConnected() => $current,
             default => array_find($fitting, fn (EmbeddingProvider $fits): bool => $fits->account()->isConnected()) ?? $fitting[0] ?? null,
+        };
+    }
+
+    /**
+     * The reranker to start on: OpenRouter when it is the provider (its key
+     * covers it), else the one set up already, else none.
+     */
+    private function suggestedReranker(?AiProvider $provider): string
+    {
+        $saved = (string) config('chatvia.ai.reranker');
+        $saved = $saved === 'auto' ? app(RerankerFactory::class)->autoDriver() : $saved;
+
+        return match (true) {
+            $provider === AiProvider::OpenRouter => AiProvider::OpenRouter->value,
+            AiProvider::tryFrom($saved)?->isConnected() === true => $saved,
+            $saved === self::CUSTOM && filled(config('chatvia.ai.rerank.custom.url')) => self::CUSTOM,
+            default => self::NOT_NOW,
         };
     }
 

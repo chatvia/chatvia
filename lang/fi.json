@@ -268,5 +268,13 @@
     "Complete the security check.": "Suorita turvatarkistus.",
     "This account has been deactivated.": "Tämä tili on poistettu käytöstä.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "Tällä sähköpostiosoitteella on jo tili toisessa työtilassa. Pyydä kutsu toiseen sähköpostiosoitteeseen.",
-    "A chatter with this email already exists in your workspace.": "Työtilassasi on jo keskustelija tällä sähköpostiosoitteella."
+    "A chatter with this email already exists in your workspace.": "Työtilassasi on jo keskustelija tällä sähköpostiosoitteella.",
+    "Voice input is not available right now.": "Puhesyöte ei ole juuri nyt käytettävissä.",
+    "Voice conversations are not available for this agent.": "Puhekeskustelut eivät ole käytettävissä tälle agentille.",
+    "A team member has joined this conversation. Please continue in the chat.": "Tiimin jäsen liittyi keskusteluun. Jatka keskustelua chatissa.",
+    "Voice is busy right now. Please try again in a moment.": "Puhe on juuri nyt varattu. Yritä hetken kuluttua uudelleen.",
+    "The voice call could not start. Please try again.": "Puhelua ei voitu aloittaa. Yritä uudelleen.",
+    "Our time for this call is up. You can keep chatting in the text box.": "Tämän puhelun aika on loppunut. Voit jatkaa kirjoittamalla tekstikenttään.",
+    "Sorry, I can't help with that.": "Valitettavasti en voi auttaa siinä.",
+    "(Voice message that could not be transcribed)": "(Puheviesti, jota ei voitu kirjoittaa auki)"
 }

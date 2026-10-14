@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Clusters\Settings;
 
+use App\Admin\Clusters\Settings\Data\SettingsSearchEntryData;
 use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SettingStatus;
@@ -33,6 +34,7 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * One page of the admin panel's Settings, for one settings class: every card
@@ -133,13 +135,19 @@ abstract class AdminSettingsPage extends Page
 
     public function save(): void
     {
+        $this->saveSettings();
+
+        Notification::make()->success()->title('Settings saved')->send();
+    }
+
+    /** Saves the panel's input, for a page that tells about the save its own way. */
+    protected function saveSettings(): void
+    {
         $this->settings()->fill($this->valuesToSave($this->form->getState()))->save();
 
         // Refill, so the secret inputs that were just saved are empty again
         // and a card that a change shows (or hides) has its values.
         $this->fillCards();
-
-        Notification::make()->success()->title('Settings saved')->send();
     }
 
     /**
@@ -161,7 +169,8 @@ abstract class AdminSettingsPage extends Page
     }
 
     /**
-     * The status line of the page's tile on the overview, and its tone. A
+     * The status of the page's tile on the overview, and its tone: the tile
+     * shows a dot in the tone, and the status when the dot is pointed at. A
      * service that is half set up comes first. A page of optional services
      * (sign-in buttons, channels) says how many are set up; any other page
      * how many options differ from the defaults.
@@ -180,7 +189,7 @@ abstract class AdminSettingsPage extends Page
         if ($services !== [] && count($services) === count($cards)) {
             $ready = count(array_filter($services, fn (SettingsCard $card): bool => $this->statusOf($card) === SettingStatus::Configured));
 
-            return $ready === 0 ? ['Optional', 'gray'] : ["{$ready} set up", 'success'];
+            return $ready === 0 ? ['Optional: none set up yet', 'gray'] : ["{$ready} set up", 'success'];
         }
 
         $changed = count(array_filter(
@@ -188,7 +197,7 @@ abstract class AdminSettingsPage extends Page
             $this->isSaved(...),
         ));
 
-        return $changed === 0 ? ['Using the defaults', 'gray'] : [$changed.' '.Str::plural('change', $changed), 'primary'];
+        return $changed === 0 ? ['Using the defaults', 'gray'] : [$changed.' '.Str::plural('change', $changed).' from the defaults', 'primary'];
     }
 
     /**
@@ -256,6 +265,83 @@ abstract class AdminSettingsPage extends Page
             ...array_values(array_filter($cards, fn (SettingsCard $card): bool => ! $card->advanced)),
             ...array_values(array_filter($cards, fn (SettingsCard $card): bool => $card->advanced)),
         ];
+    }
+
+    /**
+     * What the Settings search finds on this page: the page itself, and each
+     * card it shows with the labels of its options, linked to its section
+     * ({@see SettingsSearch}).
+     *
+     * @return list<SettingsSearchEntryData>
+     */
+    public function searchEntries(): array
+    {
+        $page = (string) static::getNavigationLabel();
+
+        return [
+            new SettingsSearchEntryData(
+                title: $page,
+                page: null,
+                description: static::description(),
+                url: static::getUrl(),
+                icon: static::getNavigationIcon(),
+            ),
+            ...array_map(fn (SettingsCard $card): SettingsSearchEntryData => new SettingsSearchEntryData(
+                title: $card->title,
+                page: $page,
+                description: $card->description,
+                url: static::getUrl().'#'.$this->sectionId($card),
+                icon: $card->icon,
+                options: $this->optionLabels($card),
+                pageDescription: static::description(),
+            ), $this->visibleCards()),
+        ];
+    }
+
+    /**
+     * The labels of a card's options, its "Advanced" part included.
+     *
+     * @return list<string>
+     */
+    private function optionLabels(SettingsCard $card): array
+    {
+        return array_values(array_unique($this->labelsIn($this->fieldsOf($card))));
+    }
+
+    /**
+     * The labels of the fields among these components and inside them (a
+     * grid, a group of fields). A label or a group that needs the form's
+     * state cannot be read outside the page; it is left out of the search.
+     *
+     * @param  array<mixed>  $components
+     * @return list<string>
+     */
+    private function labelsIn(array $components): array
+    {
+        $labels = [];
+
+        foreach ($components as $component) {
+            if (! $component instanceof Component) {
+                continue;
+            }
+
+            try {
+                $label = $component instanceof Field ? Str::squish(strip_tags((string) $component->getLabel())) : '';
+                $children = $component->getDefaultChildComponents();
+            } catch (Throwable) {
+                continue;
+            }
+
+            if (filled($label)) {
+                $labels[] = $label;
+            }
+
+            if (is_array($children)) {
+                array_push($labels, ...$this->labelsIn($children));
+            }
+        }
+
+        return $labels;
     }
 
     /** A visible card by its key. */

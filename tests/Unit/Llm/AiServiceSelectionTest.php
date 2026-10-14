@@ -15,6 +15,7 @@ use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
+use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Llm\Contracts\Transcriber;
@@ -83,6 +84,17 @@ it('keeps the hosted services when their keys are set, as in production', functi
         ->and($documentLlm->isAvailable())->toBeTrue()
         ->and($documentLlm->provider())->toBeInstanceOf(Mistral::class)
         ->and($documentLlm->slug())->toBe('mistral');
+});
+
+it('reads documents with Azure but turns whole-PDF reading off when only Azure is connected', function (): void {
+    config([
+        'services.azure_document_intelligence.key' => 'az-key',
+        'services.azure_document_intelligence.endpoint' => 'https://docs.cognitiveservices.azure.com',
+    ]);
+
+    // Azure reads documents, but has no models that read a whole PDF.
+    expect(app(DocumentParser::class))->toBeInstanceOf(AzureDocumentParser::class)
+        ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
 });
 
 it('always splits text with the built-in splitter, which needs no outside service', function (): void {

@@ -34,7 +34,8 @@
         "delete_failed": "Nie udało się usunąć załącznika",
         "upload_limit_reached": "Możesz załączyć maksymalnie {count} plik | Możesz załączyć maksymalnie {count} pliki",
         "send_message": "Wyślij wiadomość",
-        "stop_streaming": "Zatrzymaj generowanie"
+        "stop_streaming": "Zatrzymaj generowanie",
+        "start_voice_call": "Mów głosem"
     },
     "header": {
         "toggle_sidebar": "Przełącz panel boczny",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Negatywna opinia",
                 "qa_matched": "Dopasowanie Q&A",
                 "revised": "Poprawiona odpowiedź",
-                "revise": "Popraw"
+                "revise": "Popraw",
+                "voice": "Głos"
             },
             "details": {
                 "select_conversation": "Wybierz rozmowę, aby wyświetlić szczegóły",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Opcje kompozytora",
-                "composer_description": "Ukryj przycisk przesyłania plików lub wprowadzania głosowego, jeśli agent nie powinien przyjmować tych danych.",
+                "composer_description": "Wybierz przyciski widoczne w polu wiadomości: przesyłanie plików, wprowadzanie głosowe i rozmowy głosowe.",
                 "file_uploads_label": "Zezwól na przesyłanie plików",
                 "file_uploads_aria": "Jak naliczane są opłaty za przesyłanie plików?",
                 "file_uploads_help_title": "Przesyłanie plików",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Tematy",
                 "topics_help_1": "Tematy skanują rozmowy i grupują je według tego, o co pytają ludzie, dzięki czemu nie musisz ręcznie tagować czatów.",
                 "topics_help_2": "Nowe tematy są wykrywane automatycznie i zbierane na pulpicie tematów, pokazując najczęstsze zagadnienia. Wymaga włączonej opcji przechowywania rozmów.",
-                "topics_hint": "Automatycznie wykrywaj i grupuj to, o co pytają odwiedzający."
+                "topics_hint": "Automatycznie wykrywaj i grupuj to, o co pytają odwiedzający.",
+                "voice_conversation_label": "Zezwalaj na rozmowy głosowe",
+                "voice_conversation_hint": "Pokaż obok mikrofonu przycisk, który rozpoczyna rozmowę głosową na żywo z agentem.",
+                "voice_conversation_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć rozmowy głosowe w panelu administracyjnym.",
+                "voice_conversation_aria": "Jak liczone są rozmowy głosowe?",
+                "voice_conversation_help_title": "Rozmowy głosowe",
+                "voice_conversation_help_1": "Odwiedzający rozmawiają z agentem na głos. Agent odpowiada na podstawie swojej wiedzy i może używać narzędzi, które nie wymagają zgody. Obie strony rozmowy są zapisywane w dzienniku czatów.",
+                "voice_conversation_help_2": "Każda wypowiedziana odpowiedź liczy się jako jedna wiadomość. Rozmowa głosowa kosztuje znacznie więcej niż czat pisany.",
+                "voice_label": "Głos",
+                "voice_default": "Domyślny ({voice})",
+                "voice_input_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć zamianę mowy na tekst w panelu administracyjnym."
             },
             "bubbles_title": "Dymki czatu",
             "bubbles_description": "Szybkie podpowiedzi wiadomości wyświetlane obok dymka widgetu. Naciśnij Enter, aby dodać każdą z nich.",
@@ -3765,6 +3777,26 @@
                 "name": "Amplitude",
                 "description": "Pobieraj analizy produktowe — zdarzenia, wykresy i kohorty — z projektu Amplitude."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Rozmowa głosowa",
+        "connecting": "Łączenie…",
+        "listening": "Słucham",
+        "thinking": "Myślę…",
+        "speaking": "Mówię",
+        "muted": "Mikrofon wyłączony",
+        "ended": "Rozmowa zakończona",
+        "mute": "Wyłącz mikrofon",
+        "unmute": "Włącz mikrofon",
+        "end": "Zakończ rozmowę",
+        "close": "Zamknij",
+        "errors": {
+            "not_supported": "Ta przeglądarka nie obsługuje rozmów głosowych.",
+            "microphone_denied": "Zezwól na dostęp do mikrofonu, aby rozmawiać z agentem.",
+            "microphone_not_found": "Nie znaleziono mikrofonu.",
+            "busy": "Głos jest teraz zajęty. Spróbuj ponownie za chwilę.",
+            "failed": "Nie udało się rozpocząć rozmowy głosowej. Spróbuj ponownie."
         }
     }
 }

@@ -67,3 +67,24 @@ it('falls back to a random free name after the retries run out', function (): vo
 it('falls back to a random name when the model is unreachable', function (): void {
     expect(agentSlugGenerator(new RuntimeException('down'))->generate())->toStartWith('agent-');
 });
+
+it('falls back to a random name when every reply is empty', function (): void {
+    expect(agentSlugGenerator(['', '', ''])->generate())->toStartWith('agent-');
+});
+
+it('gives the model room to reason before it names the agent', function (): void {
+    testLlm();
+    $sent = null;
+
+    $provider = Mockery::mock(LlmProviderInterface::class);
+    $provider->shouldReceive('completion')->once()->andReturnUsing(function (array $data) use (&$sent): Response {
+        $sent = $data;
+
+        return new Response(new Psr7Response(200, [], json_encode(['choices' => [['message' => ['content' => 'answer-owl']]]])));
+    });
+
+    $name = new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(ModelRoles::class))->generate();
+
+    expect($name)->toBe('answer-owl')
+        ->and($sent['max_tokens'] ?? $sent['max_completion_tokens'] ?? 0)->toBeGreaterThanOrEqual(400);
+});

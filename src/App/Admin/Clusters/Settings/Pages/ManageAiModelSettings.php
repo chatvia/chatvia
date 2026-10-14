@@ -8,9 +8,12 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\Actions\ReindexEmbeddingsAction;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
+use App\Admin\Settings\AiProviderCheck;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Data\ConnectionCheckData;
+use App\Admin\Settings\Data\RerankerSetupData;
 use App\Admin\Settings\DocumentServiceCheck;
+use App\Admin\Settings\RerankerCheck;
 use BackedEnum;
 use Closure;
 use Domain\Agent\Models\Agent;
@@ -59,6 +62,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 /**
  * What runs on the connected AI providers: the chat models agents can use
@@ -73,9 +77,10 @@ use Illuminate\Support\Str;
  * again and asks before it saves; saving starts that re-index in the queue
  * ({@see ReindexEmbeddingsAction}), and the card shows how far it got. "Re-index
  * documents" starts one by hand. A service whose provider is not connected
- * cannot be picked; "Automatic" always can. The Documents services have no
- * "Automatic": they show the one in use, and a new pick is checked with a
- * real call as it is saved ({@see DocumentServiceCheck}).
+ * cannot be picked. The reranker, documents, speech and voice choices have
+ * no "Automatic": they show the service in use, and a new pick is checked
+ * with a real call as it is saved ({@see RerankerCheck},
+ * {@see DocumentServiceCheck}, {@see AiProviderCheck}).
  */
 class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 {
@@ -103,11 +108,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private ?bool $hasStoredVectors = null;
 
     /**
-     * The Documents checks made in this request: a save reads the form twice.
+     * The service checks made in this request: a save reads the form twice.
      *
      * @var array<string, ConnectionCheckData>
      */
-    private array $documentChecks = [];
+    private array $serviceChecks = [];
 
     /** The last re-index, read once per request (false: not read yet). */
     private Batch|false|null $latestReindex = false;
@@ -236,21 +241,21 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->visible(fn (): bool => $this->changesStoredVectors($this->data ?? [])),
             ])->summary(fn (): string => $this->embeddingSummary()),
             SettingsCard::make('reranker', 'Reranker', 'Scores search results and tools against the question, so only relevant ones are used.', Heroicon::OutlinedBarsArrowDown, fn (): array => [
-                $this->choice('reranker', 'Reranker', $this->withConnection([
-                    'auto' => 'Automatic (OpenRouter when it is connected, else Cohere)',
+                $this->serviceChoice('reranker', 'Reranker', [
                     'openrouter' => 'OpenRouter',
-                    'cohere' => 'Cohere',
+                    'cohere' => 'Cohere Rerank',
                     'custom' => 'Self-hosted',
                     'none' => 'Off (a basic similarity check)',
-                ]), help: 'OpenRouter and Cohere use their keys from AI providers.')
-                    ->live()
-                    ->rule($this->connectedRule()),
+                ], 'OpenRouter and Cohere use their keys from AI providers.',
+                    check: fn (string $driver, Get $get): ConnectionCheckData => app(RerankerCheck::class)->check($this->rerankerPicked($driver, $get)),
+                    changed: fn (string $driver, Get $get): bool => $this->rerankerPicked($driver, $get)->toArray() !== $this->rerankerInUse()->toArray())
+                    ->live(),
                 $this->choice('openrouter_rerank_model', 'OpenRouter model', app(RerankModelCatalog::class)->openRouterOptions(),
                     help: 'The strongest first. Each model has its own scores, so its own relevance bar.')
                     ->searchable()
-                    ->visible(fn (Get $get): bool => $this->rerankerDriver($get) === 'openrouter'),
+                    ->visible(fn (Get $get): bool => $get('reranker') === 'openrouter'),
                 $this->choice('cohere_rerank_model', 'Cohere model', app(RerankModelCatalog::class)->cohereOptions())
-                    ->visible(fn (Get $get): bool => $this->rerankerDriver($get) === 'cohere'),
+                    ->visible(fn (Get $get): bool => $get('reranker') === 'cohere'),
                 $this->url('rerank_custom_url', 'Address',
                     help: 'A server with the common /rerank API (vLLM, Infinity, Jina-compatible), such as http://reranker:8000/v1.')
                     ->visible(fn (Get $get): bool => $get('reranker') === 'custom'),
@@ -260,36 +265,38 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->visible(fn (Get $get): bool => $get('reranker') === 'custom'),
             ])->summary(fn (): string => $this->rerankerSummary()),
             SettingsCard::make('documents', 'Documents', 'How PDFs, office files and images are read.', Heroicon::OutlinedDocumentMagnifyingGlass, fn (): array => [
-                $this->documentChoice('document_parser', 'Document reading', [
+                $this->serviceChoice('document_parser', 'Document reading', [
                     'mistral' => 'Mistral OCR',
                     'azure' => 'Azure Document Intelligence',
+                    'none' => 'Off',
                 ], 'Reads the text, scans and tables of PDFs, Word, slides and images while sources are trained. Mistral OCR also reads the pictures inside Word and PowerPoint files; Azure skips them. Excel, CSV, old office files and RTF are read by the app. Off: PDF, Word, slides and images cannot be uploaded.',
-                    fn (AiProvider $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->reader($provider)),
-                $this->documentChoice('document_llm', 'Summaries and PDF chat', [
+                    check: fn (string $reader): ConnectionCheckData => app(DocumentServiceCheck::class)->reader(AiProvider::from($reader))),
+                $this->serviceChoice('document_llm', 'Summaries and PDF chat', [
                     'mistral' => 'Mistral',
+                    'none' => 'Off',
                 ], 'Mistral\'s models read each document whole: they write a short summary of every source, and answer questions about PDF files attached in a chat. Off turns both off.',
-                    fn (AiProvider $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->wholePdf($provider)),
+                    check: fn (string $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->wholePdf(AiProvider::from($provider))),
             ])->advancedFields(fn (): array => [
                 $this->text('mistral_ocr_model', 'Mistral OCR model'),
             ])->summary(fn (): string => $this->documentsSummary()),
             SettingsCard::make('speech', 'Speech to text', 'Voice input, and audio and video sources.', Heroicon::OutlinedMicrophone, fn (): array => [
-                $this->choice('transcriber', 'Speech to text', $this->withConnection([
-                    'auto' => 'Automatic (Scaleway AI, else OpenAI)',
-                    'scaleway' => 'Scaleway AI (Whisper)',
-                    'openai' => 'OpenAI (Whisper)',
+                $this->serviceChoice('transcriber', 'Speech to text', [
+                    'scaleway' => 'Scaleway AI Whisper',
+                    'openai' => 'OpenAI Whisper',
                     'none' => 'Off',
-                ]), help: 'Off hides audio and video files from the sources.')->rule($this->connectedRule()),
+                ], 'Off hides audio and video files from the sources.',
+                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider))),
             ])->advancedFields(fn (): array => [
                 $this->text('scaleway_transcription_model', 'Scaleway AI model'),
                 $this->text('openai_transcription_model', 'OpenAI model',
                     help: 'whisper-1, or gpt-4o-transcribe. Files up to 25 MB, about an hour and a half of audio.'),
-            ])->summary(fn (): string => $this->resolvedLabel('transcriber', AiCapability::Speech, 'off')),
+            ])->summary(fn (): string => $this->providerInUse('transcriber')),
             SettingsCard::make('voice', 'Voice conversations', 'Live spoken calls with an agent, in the hosted chat and the chat widget.', Heroicon::OutlinedSpeakerWave, fn (): array => [
-                $this->choice('voice', 'Voice conversations', $this->withConnection([
-                    'auto' => 'Automatic (OpenAI when it is connected, else off)',
+                $this->serviceChoice('voice', 'Voice conversations', [
                     'openai' => 'OpenAI Realtime',
                     'none' => 'Off',
-                ]), help: 'Each agent still turns them on (Setup → Settings → Composer options). A call costs much more than a typed chat.')->rule($this->connectedRule()),
+                ], 'Each agent still turns them on (Setup → Settings → Composer options). A call costs much more than a typed chat.',
+                    check: fn (string $provider): ConnectionCheckData => app(AiProviderCheck::class)->check(AiProvider::from($provider))),
                 $this->choice('openai_realtime_voice', 'Default voice', collect(RealtimeVoice::cases())->mapWithKeys(fn (RealtimeVoice $voice): array => [$voice->value => $voice->label()])->all(),
                     help: 'Agents speak with it unless they pick their own. Marin and Cedar sound the most natural.'),
                 $this->integer('voice_max_call_minutes', 'Longest call, in minutes', help: 'The agent says goodbye and hangs up then.', min: 1, max: 25),
@@ -632,116 +639,155 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     // --- Services ----------------------------------------------------------------
 
     /**
-     * Options for a service choice, each one whose provider is not
-     * connected marked so.
+     * A service choice (reranker, documents, speech, voice): each provider
+     * by its product name, marked connected or not (one that is not cannot
+     * be picked), with the choices that need no key (Self-hosted, Off). There
+     * is no "Automatic": the list shows the service in use. A new pick is
+     * checked with a real call as it is saved, and refused when the call
+     * fails; an unchanged one is not called again.
      *
-     * @param  array<string, string>  $options
-     * @return array<string, string>
+     * @param  array<string, string>  $options  The name of each choice, by stored value.
+     * @param  Closure(string, Get): ConnectionCheckData  $check  The real call for a pick.
+     * @param  (Closure(string, Get): bool)|null  $changed  Whether a pick differs from the one in use; by default, when it is another service.
      */
-    private function withConnection(array $options): array
+    private function serviceChoice(string $property, string $label, array $options, string $help, Closure $check, ?Closure $changed = null): Select
     {
-        return collect($options)
-            ->map(fn (string $label, string $value): string => ($provider = AiProvider::tryFrom($value)) instanceof AiProvider && ! $provider->isConnected()
-                ? "{$label} (not connected)"
-                : $label)
-            ->all();
-    }
-
-    /**
-     * A Documents service: each provider, marked connected or not (one that
-     * is not cannot be picked), and Off. There is no "Automatic": the list
-     * shows the service in use. A new pick is checked with a real call as it
-     * is saved, and refused when the call fails; an unchanged one is not
-     * called again.
-     *
-     * @param  array<string, string>  $providers
-     * @param  Closure(AiProvider): ConnectionCheckData  $check
-     */
-    private function documentChoice(string $property, string $label, array $providers, string $help, Closure $check): Select
-    {
-        $options = collect($providers)
-            ->map(fn (string $name, string $value): string => $name.(AiProvider::from($value)->isConnected() ? ' (connected)' : ' (not connected)'))
-            ->put('none', 'Off')
+        $changed ??= fn (string $value): bool => $value !== $this->driverInUse($property);
+        $marked = collect($options)
+            ->map(fn (string $name, string $value): string => ($provider = AiProvider::tryFrom($value)) instanceof AiProvider
+                ? $name.($provider->isConnected() ? ' (connected)' : ' (not connected)')
+                : $name)
             ->all();
 
-        return $this->choice($property, $label, $options, help: $help)
+        return $this->choice($property, $label, $marked, help: $help)
             ->selectablePlaceholder(false)
-            ->formatStateUsing(fn (): string => $this->documentDriver($property))
+            ->formatStateUsing(fn (): string => $this->driverInUse($property))
             ->disableOptionWhen(fn (string $value): bool => AiProvider::tryFrom($value)?->isConnected() === false)
-            ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail) use ($property, $check): void {
-                $provider = AiProvider::tryFrom((string) $value);
+            ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($property, $options, $check, $changed, $get): void {
+                $value = (string) $value;
+                $provider = AiProvider::tryFrom($value);
 
-                if (! $provider instanceof AiProvider) {
-                    return;
-                }
-
-                if (! $provider->isConnected()) {
+                if ($provider instanceof AiProvider && ! $provider->isConnected()) {
                     $fail("{$provider->label()} is not connected. Add its key in AI providers first.");
 
                     return;
                 }
 
-                if ($value === $this->documentDriver($property)) {
+                // Off needs no call; a value that is not offered fails the "in" rule.
+                if ($value === 'none' || ! array_key_exists($value, $options) || ! $changed($value, $get)) {
                     return;
                 }
 
-                $result = $this->documentChecks["{$property}:{$provider->value}"] ??= $check($provider);
+                $result = $this->serviceChecks["{$property}:{$value}"] ??= $check($value, $get);
 
                 if (! $result->connected) {
-                    $fail($result->message ?? "{$provider->label()} could not be reached.");
+                    $fail($result->message ?? "{$options[$value]} could not be reached.");
 
                     return;
                 }
 
                 // It works, with a catch: the free Azure tier reads 2 pages a file.
                 if ($result->warning !== null) {
-                    Notification::make()->warning()->title("{$provider->label()} works, with a catch")->body($result->warning)->persistent()->send();
+                    Notification::make()->warning()->title("{$options[$value]} works, with a catch")->body($result->warning)->persistent()->send();
                 }
             });
     }
 
-    /** The service a Documents choice uses now, with an unsaved "Automatic" resolved. */
-    private function documentDriver(string $property): string
+    /**
+     * The service a choice uses now: the one saved, or the one "Automatic"
+     * (the default while nothing is saved) resolves to, as the app picks it.
+     */
+    private function driverInUse(string $property): string
     {
         if ($property === 'document_parser') {
             return app(DocumentReaders::class)->driver();
         }
 
-        $llm = app(DocumentLlm::class);
+        if ($property === 'document_llm') {
+            $llm = app(DocumentLlm::class);
 
-        return $llm->isAvailable() ? $llm->slug() : 'none';
+            return $llm->isAvailable() ? $llm->slug() : 'none';
+        }
+
+        $driver = strtolower(trim((string) $this->configured($property)));
+
+        if ($driver !== '' && $driver !== 'auto') {
+            return $driver;
+        }
+
+        return match ($property) {
+            'reranker' => app(RerankerFactory::class)->autoDriver(),
+            'transcriber' => AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none',
+            'voice' => AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none',
+            default => throw new InvalidArgumentException("{$property} is not a service choice."),
+        };
+    }
+
+    /** A setting as the app reads it now: the saved value, else its default. */
+    private function configured(string $property): mixed
+    {
+        return config(AiSettings::configKeys()[$property][0]->key);
+    }
+
+    /** The provider a service choice uses now, by name, or "off". */
+    private function providerInUse(string $property): string
+    {
+        return AiProvider::tryFrom($this->driverInUse($property))?->label() ?? 'off';
     }
 
     /** The reader in use, and whether summaries and PDF chat are on, for the card's summary line. */
     private function documentsSummary(): string
     {
-        $reader = match ($this->documentDriver('document_parser')) {
+        $reader = match ($this->driverInUse('document_parser')) {
             'mistral' => 'Mistral OCR',
             'azure' => 'Azure Document Intelligence',
             default => 'off',
         };
 
-        return "Reading: {$reader} · PDF chat: ".($this->documentDriver('document_llm') === 'none' ? 'off' : 'on');
+        return "Reading: {$reader} · PDF chat: ".($this->driverInUse('document_llm') === 'none' ? 'off' : 'on');
     }
 
-    /** Refuses a provider whose key is not set: it would not work. */
-    private function connectedRule(): Closure
+    /**
+     * The reranker the form picks: a blank model is the default one, and a
+     * blank key of your own server keeps the saved key.
+     */
+    private function rerankerPicked(string $driver, Get $get): RerankerSetupData
     {
-        return fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
-            $provider = AiProvider::tryFrom((string) $value);
+        $key = $get('rerank_custom_key');
 
-            if ($provider instanceof AiProvider && ! $provider->isConnected()) {
-                $fail("Connect {$provider->label()} in AI providers first.");
-            }
+        return $this->rerankerSetup(
+            $driver,
+            fn (string $property): mixed => filled($get($property)) ? $get($property) : $this->defaultValue($property),
+            filled($key) ? (string) $key : null,
+        );
+    }
+
+    /** The reranker in use, with the saved key. */
+    private function rerankerInUse(): RerankerSetupData
+    {
+        return $this->rerankerSetup($this->driverInUse('reranker'), $this->configured(...));
+    }
+
+    /**
+     * A reranker: OpenRouter or Cohere with its model, or your own server
+     * with its address, model and key (null keeps the saved one).
+     *
+     * @param  Closure(string): mixed  $value  An option's value, by property.
+     */
+    private function rerankerSetup(string $driver, Closure $value, ?string $key = null): RerankerSetupData
+    {
+        $text = function (string $property) use ($value): ?string {
+            $option = $value($property);
+
+            return filled($option) ? (string) $option : null;
         };
-    }
 
-    /** The reranker driver chosen, with "Automatic" resolved. */
-    private function rerankerDriver(Get $get): string
-    {
-        $driver = (string) ($get('reranker') ?: $this->defaultValue('reranker'));
-
-        return $driver === 'auto' ? app(RerankerFactory::class)->autoDriver() : $driver;
+        return match ($driver) {
+            'openrouter' => new RerankerSetupData('openrouter', $text('openrouter_rerank_model')),
+            'cohere' => new RerankerSetupData('cohere', $text('cohere_rerank_model')),
+            'custom' => new RerankerSetupData('custom', $text('rerank_custom_model'), $key, $text('rerank_custom_url')),
+            default => new RerankerSetupData('none'),
+        };
     }
 
     /** The reranker in use, for the card's summary line. */
@@ -752,19 +798,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return $reranker->isEnabled() ? $reranker->model() : 'Off: a basic similarity check';
     }
 
-    /** The provider a driver resolves to now, by name. */
-    private function resolvedLabel(string $property, AiCapability $capability, string $none): string
-    {
-        $driver = strtolower((string) $this->valueInUse($property));
-        $provider = $driver === 'auto' ? AiProvider::firstConnectedFor($capability) : AiProvider::tryFrom($driver);
-
-        return $provider?->label() ?? $none;
-    }
-
     /** The voice provider in use and the default voice, or "off". */
     private function voiceSummary(): string
     {
-        $provider = $this->resolvedLabel('voice', AiCapability::Voice, 'off');
+        $provider = $this->providerInUse('voice');
 
         return $provider === 'off' ? $provider : $provider.' · '.RealtimeVoice::configured()->label();
     }

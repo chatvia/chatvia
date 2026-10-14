@@ -144,24 +144,18 @@ it('adds extra passkey origins and skips the www variant for local hosts', funct
         ->toBe(['http://localhost:8000', 'https://app.acme.example', 'https://admin.acme.example']);
 });
 
-it('resolves helper binaries from PATH by default', function (): void {
-    $bin = configFileWith('services.php', [
-        'CATDOC_BIN_PATH' => null,
-        'CATPPT_BIN_PATH' => null,
-        'PANDOC_BIN_PATH' => null,
-        'PDFINFO_BIN_PATH' => null,
-        'FFMPEG_BIN_PATH' => null,
-        'FFPROBE_PATH' => null,
-    ])['bin'];
+it('resolves helper binaries from PATH by default, never from .env', function (): void {
+    $bin = configFileWith('services.php', ['PDFINFO_BIN_PATH' => '/bin/sh'])['bin'];
 
-    expect($bin)->toMatchArray([
+    expect($bin)->toBe([
         'catdoc' => 'catdoc',
         'catppt' => 'catppt',
         'pandoc' => 'pandoc',
         'pdfinfo' => 'pdfinfo',
+        'pdftotext' => 'pdftotext',
         'ffmpeg' => 'ffmpeg',
         'ffprobe' => 'ffprobe',
-    ]);
+    ])->and(configFileWith('laravel-pdf.php', ['WEASYPRINT_BIN_PATH' => '/bin/sh'])['weasyprint']['binary'])->toBe('weasyprint');
 });
 
 it('ships no other app\'s Reverb credentials', function (): void {

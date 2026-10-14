@@ -7,14 +7,21 @@ namespace App\Admin\Clusters\Settings\Pages;
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\ServerProgram;
+use App\Admin\Settings\ServerProgramFinder;
 use BackedEnum;
+use Closure;
+use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 
 /**
  * Install-wide options: default language, the chat widget,
- * the tracking code, visitor location, the built-in tools, alerts and the
- * number of queue workers.
+ * the tracking code, visitor location, the built-in tools, alerts, the
+ * number of queue workers, and where the programs that read files are.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -35,7 +42,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, tracking code, the built-in tools and queue workers.';
+        return 'Language, widget, tracking code, the built-in tools, queue workers and programs.';
     }
 
     public static function overviewGroup(): string
@@ -67,13 +74,20 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->advancedFields(fn (): array => [
                 $this->url('ip2location_endpoint', 'Address'),
             ])->required('ip2location_api_key')->console('https://www.ip2location.io/dashboard'),
-            SettingsCard::make('tools', 'Built-in tools', 'The services behind the Perplexity, Weather and Currency tools. Each workspace brings its own API key.', Heroicon::OutlinedSquaresPlus, fn (): array => [
-                $this->url('perplexity_base_url', 'Perplexity address'),
-                $this->text('perplexity_agent_model', 'Perplexity search model'),
-                $this->text('perplexity_ask_model', 'Perplexity ask model'),
-                $this->text('perplexity_research_model', 'Perplexity research model'),
-                $this->url('openweather_base_url', 'OpenWeather address'),
-                $this->url('exchange_rate_base_url', 'ExchangeRate-API address'),
+            SettingsCard::make('perplexity', 'Perplexity', 'The service behind the Perplexity tool (web search). Each workspace adds its own API key.', Heroicon::OutlinedGlobeAlt, fn (): array => [
+                $this->url('perplexity_base_url', 'Address'),
+                $this->text('perplexity_agent_model', 'Search model',
+                    help: 'Used to search the web, fetch a page, search finance data, find people and run code.'),
+                $this->text('perplexity_ask_model', 'Ask model',
+                    help: 'Used to "ask": a full answer with reasons, from web sources.'),
+                $this->text('perplexity_research_model', 'Research model',
+                    help: 'Used to "research": a deep look across many sources. It is slower.'),
+            ])->advanced(),
+            SettingsCard::make('openweather', 'OpenWeather', 'The service behind the Weather tool. Each workspace adds its own API key.', Heroicon::OutlinedCloud, fn (): array => [
+                $this->url('openweather_base_url', 'Address'),
+            ])->advanced(),
+            SettingsCard::make('exchange_rate', 'ExchangeRate-API', 'The service behind the Currency tool. Each workspace adds its own API key.', Heroicon::OutlinedBanknotes, fn (): array => [
+                $this->url('exchange_rate_base_url', 'Address'),
             ])->advanced(),
             SettingsCard::make('alerts', 'Alerts', 'Where the queue sends its alerts.', Heroicon::OutlinedBellAlert, fn (): array => [
                 $this->email('horizon_notify_email', 'Alert email',
@@ -89,7 +103,85 @@ class ManagePlatformSettings extends AdminSettingsPage
                 fn (string $property): int => (int) $this->valueInUse($property),
                 ['chat_workers', 'ingestion_workers', 'analytics_workers', 'media_workers', 'voice_workers'],
             ))))->advanced(),
+            SettingsCard::make('programs', 'Programs', 'The programs on this server that read files and make PDFs. Enter a full path for a program that is not found.', Heroicon::OutlinedCommandLine, fn (): array => array_map(
+                $this->programField(...),
+                ServerProgram::cases(),
+            ))->summary(fn (): string => $this->programsSummary())->advanced(),
         ];
+    }
+
+    /**
+     * The path of a program. Blank runs it by name, from the PATH. Only its
+     * name or a full path that ends in it is accepted ({@see ServerProgram}),
+     * and a full path must lead to a program on this server. "Detect" fills
+     * in the path `which` finds.
+     */
+    private function programField(ServerProgram $program): TextInput
+    {
+        return $this->text($program->property(), $program->value)
+            ->helperText(fn (): string => $this->programHelp($program))
+            ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail) use ($program): void {
+                $path = is_string($value) ? trim($value) : '';
+
+                if ($path === '' || $path === $program->value) {
+                    return;
+                }
+
+                if (! $program->acceptsPath($path)) {
+                    $fail("Enter \"{$program->value}\", or a full path that ends in /{$program->value}, such as /usr/local/bin/{$program->value}.");
+                } elseif (app(ServerProgramFinder::class)->find($path) === null) {
+                    $fail("There is no program at {$path} on this server, or it cannot be run.");
+                }
+            })
+            ->hint(fn (): string => $this->programPath($program) !== null ? 'Found' : 'Not found')
+            ->hintIcon(fn (): Heroicon => $this->programPath($program) !== null ? Heroicon::OutlinedCheckCircle : Heroicon::OutlinedExclamationTriangle)
+            ->hintColor(fn (): string => $this->programPath($program) !== null ? 'success' : 'warning')
+            ->hintAction($this->detectAction($program));
+    }
+
+    /** Runs `which` for the program and puts the path it finds in the field, to save. */
+    private function detectAction(ServerProgram $program): Action
+    {
+        return Action::make('detect_'.$program->value)
+            ->label('Detect')
+            ->icon(Heroicon::OutlinedMagnifyingGlass)
+            ->tooltip("Runs \"which {$program->value}\" on the server and puts the path it finds here")
+            ->action(function (Set $set) use ($program): void {
+                $path = app(ServerProgramFinder::class)->detect($program);
+
+                if ($path === null) {
+                    Notification::make()->warning()->title("{$program->value} was not found")->body('Install it on the server, or enter its full path.')->send();
+
+                    return;
+                }
+
+                $set($program->property(), $path);
+
+                Notification::make()->success()->title("Found {$path}")->body('Save changes to use it.')->send();
+            });
+    }
+
+    /** What the program is for, then where it was found. */
+    private function programHelp(ServerProgram $program): string
+    {
+        $found = $this->programPath($program);
+
+        return $program->purpose().' '.($found !== null ? "Runs {$found}." : 'Click Detect, or enter its full path.');
+    }
+
+    /** The file this server runs for the program's path in use, or null when there is none. */
+    private function programPath(ServerProgram $program): ?string
+    {
+        return app(ServerProgramFinder::class)->find((string) $this->valueInUse($program->property()));
+    }
+
+    private function programsSummary(): string
+    {
+        $missing = array_filter(ServerProgram::cases(), fn (ServerProgram $program): bool => $this->programPath($program) === null);
+
+        return $missing === []
+            ? 'All found'
+            : 'Not found: '.implode(', ', array_map(fn (ServerProgram $program): string => $program->value, $missing));
     }
 
     /** @return array<string, string> */

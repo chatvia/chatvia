@@ -163,15 +163,15 @@ return [
 
     'bin' => [
         // Bare names are looked up on the PATH of the process that runs them
-        // (usually the queue worker). Set an absolute path when the binary
-        // lives somewhere that PATH doesn't cover.
-        'catdoc' => env('CATDOC_BIN_PATH', 'catdoc'),
-        'catppt' => env('CATPPT_BIN_PATH', 'catppt'),
-        'pandoc' => env('PANDOC_BIN_PATH', 'pandoc'),
-        'pdfinfo' => env('PDFINFO_BIN_PATH', 'pdfinfo'),
-        'pdftotext' => env('PDFTOTEXT_BIN_PATH', 'pdftotext'),
-        'ffmpeg' => env('FFMPEG_BIN_PATH', 'ffmpeg'),
-        'ffprobe' => env('FFPROBE_PATH', 'ffprobe'),
+        // (usually the queue worker). A full path is set in the admin panel
+        // (Settings → Platform → Programs) when a program is not on that PATH.
+        'catdoc' => 'catdoc',
+        'catppt' => 'catppt',
+        'pandoc' => 'pandoc',
+        'pdfinfo' => 'pdfinfo',
+        'pdftotext' => 'pdftotext',
+        'ffmpeg' => 'ffmpeg',
+        'ffprobe' => 'ffprobe',
     ],
 
     'firecrawl' => [

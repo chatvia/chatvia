@@ -136,10 +136,9 @@ explains how to work on it.
   - [WeasyPrint](https://weasyprint.org/) (`weasyprint`): exporting a chat as PDF, and summaries
     of office files
 
-  If a tool is not on the `PATH`, set its path in `.env`:
-  `PANDOC_BIN_PATH`, `CATDOC_BIN_PATH`, `CATPPT_BIN_PATH`, `PDFINFO_BIN_PATH`,
-  `PDFTOTEXT_BIN_PATH`, `FFMPEG_BIN_PATH`, `FFPROBE_PATH`,
-  `WEASYPRINT_BIN_PATH`.
+  If a tool is not on the `PATH` of the web server or the queue worker (for
+  example Homebrew's `/opt/homebrew/bin` on a Mac), set its full path in the
+  admin panel: **Settings → Platform → Programs**.
 
 **External AI services.** Chatvia calls AI models through OpenAI-compatible
 APIs. You need a chat provider and an embedding provider. The default

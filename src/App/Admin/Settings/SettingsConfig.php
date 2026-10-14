@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use Illuminate\Container\Container as IlluminateContainer;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\Foundation\Application;
@@ -11,6 +12,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Mail\MailManager;
 use Illuminate\Support\Manager;
 use Laravel\Socialite\Contracts\Factory as Socialite;
+use Spatie\LaravelPdf\Drivers\PdfDriver;
 use Throwable;
 
 /**
@@ -158,11 +160,17 @@ final class SettingsConfig
     }
 
     /**
-     * The mailer and the Socialite drivers keep the config they were built
-     * with. A queue worker builds them once, so drop them after a change.
+     * The mailer, the Socialite drivers and the PDF driver (the WeasyPrint
+     * path) keep the config they were built with. A queue worker builds them
+     * once, so drop them after a change.
      */
     private function forgetResolvedClients(): void
     {
+        if ($this->container instanceof IlluminateContainer) {
+            $this->container->forgetInstance('laravel-pdf.driver.weasyprint');
+            $this->container->forgetInstance(PdfDriver::class);
+        }
+
         if ($this->container->resolved('mail.manager')) {
             $mail = $this->container->make('mail.manager');
 

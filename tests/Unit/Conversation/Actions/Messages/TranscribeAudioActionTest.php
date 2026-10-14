@@ -56,8 +56,10 @@ it('transcribes the compressed audio with the configured transcriber and removes
         ->and(file_exists($recording->getRealPath()))->toBeTrue();
 });
 
-it('fails with the "not configured" error when no transcriber is set up', function (): void {
-    $action = new TranscribeAudioAction(taaCompressor(), new NullTranscriber);
+it('fails with the "not configured" error, before compressing, when no transcriber is set up', function (): void {
+    $compressor = Mockery::mock(AudioCompressor::class);
+    $compressor->shouldNotReceive('process');
+    $action = new TranscribeAudioAction($compressor, new NullTranscriber);
     $recording = UploadedFile::fake()->create('clip.webm', 5, 'audio/webm');
 
     expect(fn (): string => $action->execute($recording->getRealPath(), 'webm'))

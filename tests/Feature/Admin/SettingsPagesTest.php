@@ -303,7 +303,7 @@ it('refuses an embedding provider that cannot return the stored vector size', fu
     expect(storedSetting(AiSettings::class, 'embedding_provider'))->toBeNull();
 });
 
-it('locks the embedding provider and models once a source is trained', function (): void {
+it('keeps the embedding provider and models open once a source is trained', function (): void {
     $source = AgentFileFactory::new()->create(['workspace_id' => $this->admin->workspace()->id]);
     Chunk::create([
         'workspace_id' => $this->admin->workspace()->id,
@@ -317,12 +317,10 @@ it('locks the embedding provider and models once a source is trained', function 
         'checksum' => Str::random(32),
     ]);
 
+    // A change warns and re-indexes (AiModelsPageTest) instead of being locked.
     settingsPage($this->admin, ManageAiModelSettings::class)
-        ->assertFormFieldDisabled('embedding_provider');
-
-    settingsPage($this->admin, ManageAiModelSettings::class)
-        ->assertFormFieldDisabled('scaleway_embedding_model')
-        ->assertFormFieldEnabled('scaleway_transcription_model');
+        ->assertFormFieldEnabled('embedding_provider')
+        ->assertFormFieldEnabled('scaleway_embedding_model');
 });
 
 it('picks the model of each job from the models that may be used', function (): void {

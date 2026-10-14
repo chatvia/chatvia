@@ -34,7 +34,8 @@
         "delete_failed": "Could not remove attachment",
         "upload_limit_reached": "You can attach up to {count} file | You can attach up to {count} files",
         "send_message": "Send message",
-        "stop_streaming": "Stop generating"
+        "stop_streaming": "Stop generating",
+        "start_voice_call": "Talk with voice"
     },
     "header": {
         "toggle_sidebar": "Toggle sidebar",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Negative feedback",
                 "qa_matched": "Q&A match",
                 "revised": "Revised answer",
-                "revise": "Revise"
+                "revise": "Revise",
+                "voice": "Voice"
             },
             "details": {
                 "select_conversation": "Select a conversation to view details",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Composer options",
-                "composer_description": "Hide the file-upload or voice-input button if your agent shouldn't accept those inputs.",
+                "composer_description": "Choose which buttons the chat composer shows: file uploads, voice input and voice conversations.",
                 "file_uploads_label": "Allow file uploads",
                 "file_uploads_aria": "How are file uploads charged?",
                 "file_uploads_help_title": "File uploads",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Topics",
                 "topics_help_1": "Topics scans conversations and groups them by what people ask about, so you don't have to tag chats by hand.",
                 "topics_help_2": "New topics are detected automatically and rolled up on the Topics dashboard, showing you the most common themes. Needs Store conversations on.",
-                "topics_hint": "Automatically detect and group what visitors ask about."
+                "topics_hint": "Automatically detect and group what visitors ask about.",
+                "voice_conversation_label": "Allow voice conversations",
+                "voice_conversation_hint": "Show a button beside the microphone that starts a live spoken call with the agent.",
+                "voice_conversation_unavailable": "Not set up on this server. An admin can turn on voice conversations in the admin panel.",
+                "voice_conversation_aria": "How are voice conversations charged?",
+                "voice_conversation_help_title": "Voice conversations",
+                "voice_conversation_help_1": "Visitors talk with the agent out loud. It answers from its knowledge and can use its tools that need no approval. Both sides of the call are saved in Chat Logs.",
+                "voice_conversation_help_2": "Each spoken answer counts as one message. A voice call costs much more to run than a typed chat.",
+                "voice_label": "Voice",
+                "voice_default": "Default ({voice})",
+                "voice_input_unavailable": "Not set up on this server. An admin can turn on speech to text in the admin panel."
             },
             "bubbles_title": "Chat Bubbles",
             "bubbles_description": "Quick message prompts shown next to the widget launcher.",
@@ -3773,6 +3785,26 @@
                 "name": "Amplitude",
                 "description": "Query product analytics — events, charts, and cohorts — from your Amplitude project."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Voice conversation",
+        "connecting": "Connecting…",
+        "listening": "Listening",
+        "thinking": "Thinking…",
+        "speaking": "Speaking",
+        "muted": "Microphone off",
+        "ended": "Call ended",
+        "mute": "Turn microphone off",
+        "unmute": "Turn microphone on",
+        "end": "End call",
+        "close": "Close",
+        "errors": {
+            "not_supported": "This browser can't make voice calls.",
+            "microphone_denied": "Allow microphone access to talk with the agent.",
+            "microphone_not_found": "No microphone was found.",
+            "busy": "Voice is busy right now. Please try again in a moment.",
+            "failed": "The voice call could not start. Please try again."
         }
     }
 }

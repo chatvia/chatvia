@@ -86,9 +86,13 @@ class WidgetSettingsData extends Data
         // FAQ-only, compliance). Default true.
         public bool $allow_file_uploads,
         // Whether to show the microphone / voice-input button in the composer.
-        // Owners turn this off when the agent shouldn't expose speech-to-text.
-        // Default true.
+        // Owners turn this off when the agent shouldn't expose speech-to-text;
+        // it is also off while no speech-to-text service is set up.
         public bool $allow_voice_input,
+        // Whether to show the voice-conversation button (a live spoken call
+        // with the agent). True only when the owner turned it on AND voice
+        // conversations are set up on this install.
+        public bool $voice_conversation,
         // Per-chat upload ceiling (config: agent.files.upload.max_files).
         // Widget gates the paperclip button on this; the server enforces the
         // same value via MaxConversationAttachments so a forged request

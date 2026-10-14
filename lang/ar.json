@@ -268,5 +268,13 @@
     "Complete the security check.": "أكمل التحقق الأمني.",
     "This account has been deactivated.": "تم إلغاء تفعيل هذا الحساب.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "هذا البريد الإلكتروني لديه حساب بالفعل في مساحة عمل أخرى. اطلب دعوة إلى بريد إلكتروني مختلف.",
-    "A chatter with this email already exists in your workspace.": "يوجد بالفعل مستخدم دردشة بهذا البريد الإلكتروني في مساحة عملك."
+    "A chatter with this email already exists in your workspace.": "يوجد بالفعل مستخدم دردشة بهذا البريد الإلكتروني في مساحة عملك.",
+    "Voice input is not available right now.": "الإدخال الصوتي غير متاح الآن.",
+    "Voice conversations are not available for this agent.": "المحادثات الصوتية غير متاحة لهذا الوكيل.",
+    "A team member has joined this conversation. Please continue in the chat.": "انضم أحد أعضاء الفريق إلى هذه المحادثة. يرجى المتابعة في الدردشة.",
+    "Voice is busy right now. Please try again in a moment.": "الصوت مشغول الآن. يرجى المحاولة مرة أخرى بعد قليل.",
+    "The voice call could not start. Please try again.": "تعذّر بدء المكالمة الصوتية. يرجى المحاولة مرة أخرى.",
+    "Our time for this call is up. You can keep chatting in the text box.": "انتهى وقت هذه المكالمة. يمكنك متابعة الدردشة في مربع الكتابة.",
+    "Sorry, I can't help with that.": "عذرًا، لا أستطيع المساعدة في ذلك.",
+    "(Voice message that could not be transcribed)": "(رسالة صوتية تعذّر تحويلها إلى نص)"
 }

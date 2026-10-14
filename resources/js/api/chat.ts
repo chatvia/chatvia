@@ -36,6 +36,28 @@ export interface InlineFormSubmitResult {
 
 export type MessageFeedbackValue = 'positive' | 'negative' | null;
 
+/** A voice call the server opened (Domain\Conversation\Data\Voice\VoiceCallStartedData). */
+export interface VoiceCallStarted {
+    /** The WebRTC answer to apply. */
+    sdp: string;
+    call_id: string;
+    /** The conversation the call is in: a new one when none was given. */
+    conversation_id: string;
+    max_seconds: number;
+    /** Seconds to wait for the server to join the call before giving up. */
+    join_timeout: number;
+}
+
+/** Open a voice call for the browser's WebRTC offer; without a conversation, a new one is opened. */
+export function startVoiceCall(sdp: string, conversationId?: string): Promise<VoiceCallStarted> {
+    return post<VoiceCallStarted>(chat.voice.store.url(conversationId ? { conversationId } : undefined), { sdp });
+}
+
+/** Hang up a voice call (the End button); the server ends the provider's side too. */
+export function endVoiceCall(callId: string): Promise<void> {
+    return del(chat.voice.destroy.url({ call: callId }));
+}
+
 export function chatStreamUrl(conversationId: string): string {
     return chat.stream.url({ conversationId });
 }

@@ -22,6 +22,8 @@ use App\Http\Controllers\Widget\Handoff\HandoffStatusController;
 use App\Http\Controllers\Widget\Sessions\SessionInitController;
 use App\Http\Controllers\Widget\Settings\WidgetSettingsController;
 use App\Http\Controllers\Widget\Stream\StreamController;
+use App\Http\Controllers\Widget\Voice\EndVoiceCallController;
+use App\Http\Controllers\Widget\Voice\StartVoiceCallController;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
 use App\Http\Middleware\Widget\VerifyWidgetOrigin;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -44,8 +46,9 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
             ->middleware('throttle:widget-exchange')
             ->name('widget.auth.exchange');
 
-        // Chat-data routes — gated by EnsureWidgetIsAccessible. No-op for public
-        // agents; for protected agents they require a valid X-AUTH-TOKEN.
+        // Chat-data routes — gated by EnsureWidgetIsAccessible: a 404 once both
+        // the Chat Widget and the Command Bar are off; for protected agents
+        // they also require a valid X-AUTH-TOKEN.
         Route::middleware(EnsureWidgetIsAccessible::class)->group(function (): void {
             Route::post('/sessions/init', SessionInitController::class)->name('widget.sessions.init');
 
@@ -73,6 +76,13 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
             Route::post('/stream', StreamController::class)
                 ->middleware('throttle:widget-stream')
                 ->name('widget.stream');
+
+            // Voice conversations: like the stream, a call costs the agent's
+            // workspace, so starting one has its own tight limit.
+            Route::post('/voice', StartVoiceCallController::class)
+                ->middleware('throttle:widget-voice')
+                ->name('widget.voice.store');
+            Route::delete('/voice/calls/{call}', EndVoiceCallController::class)->name('widget.voice.destroy');
 
             Route::post('/feedback', FeedbackController::class)->name('widget.feedback');
 

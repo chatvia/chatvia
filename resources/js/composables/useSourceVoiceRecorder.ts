@@ -5,6 +5,7 @@
  * Blob for upload.
  */
 import { useAudioCapture } from '@/composables/useAudioCapture';
+import { useAudioLevel } from '@/composables/useAudioLevel';
 import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -28,11 +29,9 @@ export function useSourceVoiceRecorder() {
     const isPaused = ref(false);
     const error = ref<string | null>(null);
     const recordingDuration = ref(0);
-    const audioLevel = ref(0);
+    const meter = useAudioLevel();
+    const audioLevel = meter.level;
 
-    let audioContext: AudioContext | null = null;
-    let analyser: AnalyserNode | null = null;
-    let animationFrameId: number | null = null;
     let durationInterval: number | null = null;
     let startTime = 0;
     let pausedDuration = 0;
@@ -45,40 +44,12 @@ export function useSourceVoiceRecorder() {
         return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     });
 
-    // Average loudness across the analyser's frequency bins, normalised to 0–1.
-    const updateAudioLevel = () => {
-        if (!analyser) return;
-
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-        audioLevel.value = average / 255;
-
-        if (isRecording.value && !isPaused.value) {
-            animationFrameId = requestAnimationFrame(updateAudioLevel);
-        }
-    };
-
-    const attachAnalyser = (stream: MediaStream) => {
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        audioContext.createMediaStreamSource(stream).connect(analyser);
-    };
-
     const stopMeters = () => {
         if (durationInterval) {
             clearInterval(durationInterval);
             durationInterval = null;
         }
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-            animationFrameId = null;
-        }
-        if (audioContext) {
-            audioContext.close();
-            audioContext = null;
-        }
+        meter.detach();
     };
 
     const describeMicrophoneError = (err: unknown): string => {
@@ -95,7 +66,7 @@ export function useSourceVoiceRecorder() {
         pausedDuration = 0;
 
         try {
-            await capture.start(attachAnalyser);
+            await capture.start(meter.attach);
         } catch (err) {
             error.value = describeMicrophoneError(err);
             return;
@@ -110,8 +81,6 @@ export function useSourceVoiceRecorder() {
                 recordingDuration.value = Date.now() - startTime + pausedDuration;
             }
         }, DURATION_TICK_MS);
-
-        updateAudioLevel();
     };
 
     const pauseRecording = () => {
@@ -119,9 +88,7 @@ export function useSourceVoiceRecorder() {
 
         isPaused.value = true;
         pausedDuration = recordingDuration.value;
-        if (animationFrameId) {
-            cancelAnimationFrame(animationFrameId);
-        }
+        meter.pause();
     };
 
     const resumeRecording = () => {
@@ -129,7 +96,7 @@ export function useSourceVoiceRecorder() {
 
         isPaused.value = false;
         startTime = Date.now();
-        updateAudioLevel();
+        meter.resume();
     };
 
     const stopRecording = async (): Promise<RecordingData | null> => {
@@ -141,7 +108,6 @@ export function useSourceVoiceRecorder() {
         stopMeters();
         isRecording.value = false;
         isPaused.value = false;
-        audioLevel.value = 0;
 
         return blob ? { blob, duration, mimeType: blob.type } : null;
     };
@@ -153,7 +119,6 @@ export function useSourceVoiceRecorder() {
         isRecording.value = false;
         isPaused.value = false;
         recordingDuration.value = 0;
-        audioLevel.value = 0;
     };
 
     onUnmounted(() => {

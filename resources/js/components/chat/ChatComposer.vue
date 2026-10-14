@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * The chat composer: a growing textarea with file upload, voice input and a
- * send/stop button. Used by the hosted chat's Home and Chat pages; the page
+ * The chat composer: a growing textarea with file upload, voice input, the
+ * voice-conversation button and a send/stop button. Used by the hosted chat's Home and Chat pages; the page
  * decides where uploads go and what happens with the sent message.
  */
 import ComposerAttachmentChips from '@/components/chat/ComposerAttachmentChips.vue';
@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useComposerAttachments } from '@/composables/chat/useComposerAttachments';
+import { isVoiceCallSupported } from '@/composables/chat/useRealtimeVoice';
 import { useVoiceRecorder } from '@/composables/useVoiceRecorder';
 import type { ChatAttachment } from '@/types/chat';
-import { ArrowUp, Loader2, Mic, Plus, Square } from 'lucide-vue-next';
+import { ArrowUp, AudioLines, Loader2, Mic, Plus, Square } from 'lucide-vue-next';
 import { computed, nextTick, onMounted, ref, toRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { toast } from 'vue-sonner';
 
 interface Props {
     isThinking?: boolean;
@@ -33,6 +35,8 @@ interface Props {
     allowFileUploads?: boolean;
     /** Show the mic / speech-to-text button. Set false for agents without voice input. */
     allowVoiceInput?: boolean;
+    /** Show the voice-conversation button (a live spoken call with the agent). */
+    allowVoiceConversation?: boolean;
     /** Per-chat upload ceiling (`agent.files.upload.max_files`). The server enforces it too. */
     maxFiles?: number;
 }
@@ -41,6 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
     uploadAccept: 'application/pdf',
     allowFileUploads: true,
     allowVoiceInput: true,
+    allowVoiceConversation: false,
     maxFiles: 2,
 });
 
@@ -48,6 +53,7 @@ const emit = defineEmits<{
     messageAdded: [content: string, attachments: ChatAttachment[]];
     attachmentUploaded: [attachment: ChatAttachment];
     stopStreaming: [];
+    startVoice: [];
 }>();
 
 const { t } = useI18n();
@@ -60,7 +66,7 @@ const messageInput = ref<InstanceType<typeof Textarea> | null>(null);
 const fileInput = ref<HTMLInputElement>();
 const isFocused = ref(false);
 
-const { isRecording, isTranscribing, isSupported: isVoiceSupported, startRecording, stopRecording } = useVoiceRecorder();
+const { isRecording, isTranscribing, isSupported: isVoiceSupported, error: voiceError, startRecording, stopRecording } = useVoiceRecorder();
 
 const {
     attachments,
@@ -83,6 +89,8 @@ const {
 // Also drives the textarea's start padding, so the caret is not flush with
 // the edge when the button is hidden.
 const showUploadButton = computed(() => props.allowFileUploads && !!props.uploadEndpoint && !props.isThinking && !props.disabled);
+
+const showVoiceCallButton = computed(() => props.allowVoiceConversation && isVoiceCallSupported() && !props.isThinking && !props.disabled);
 
 const canSend = computed(() => (userInput.value.trim() !== '' || attachments.value.length > 0) && !props.disabled && !isAttachmentBusy.value);
 
@@ -152,14 +160,16 @@ function sendMessage() {
     if (textarea) textarea.style.height = 'auto';
 }
 
-/** The transcript is appended to whatever was already typed. */
+/** The transcript is appended to whatever was already typed; a failure is shown as a toast. */
 async function toggleRecording() {
     if (!isRecording.value) {
         await startRecording();
+        if (voiceError.value) toast.error(voiceError.value);
         return;
     }
 
     const transcript = await stopRecording();
+    if (voiceError.value) toast.error(voiceError.value);
     if (!transcript) return;
 
     userInput.value = userInput.value ? `${userInput.value} ${transcript}` : transcript;
@@ -262,6 +272,23 @@ async function toggleRecording() {
                             <TooltipContent side="top">
                                 {{ isRecording ? t('composer.stop_recording') : t('composer.start_voice_input') }}
                             </TooltipContent>
+                        </Tooltip>
+
+                        <!-- Voice conversation: opens a live spoken call with the agent. -->
+                        <Tooltip v-if="showVoiceCallButton">
+                            <TooltipTrigger as-child>
+                                <Button
+                                    @click="emit('startVoice')"
+                                    :disabled="isRecording || isTranscribing"
+                                    size="icon"
+                                    variant="ghost"
+                                    class="hover:bg-muted text-muted-foreground hover:text-foreground h-9 w-9 shrink-0 rounded-full transition-colors"
+                                    :aria-label="t('composer.start_voice_call')"
+                                >
+                                    <AudioLines class="h-5 w-5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">{{ t('composer.start_voice_call') }}</TooltipContent>
                         </Tooltip>
 
                         <Button

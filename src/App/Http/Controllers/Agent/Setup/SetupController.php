@@ -8,9 +8,12 @@ use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Agent\Services\AgentModel;
+use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Data\LlmModelData;
 use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\ModelRoles;
 use Illuminate\Http\Request;
@@ -34,6 +37,8 @@ class SetupController
         TeamPermissionPolicy $permissions,
         AgentModel $agentModel,
         ModelRoles $roles,
+        VoiceAvailability $voice,
+        Transcriber $transcriber,
     ): Response {
         $agent->loadMissing(['llm', 'agentPrompt']);
 
@@ -78,6 +83,17 @@ class SetupController
             // Shared content settings + their defaults — written across all surfaces.
             'appearanceSettings' => $agent->settings('appearance'),
             'defaultAppearance' => config('model-settings.defaults.'.Agent::class.'.appearance'),
+
+            // Voice input and voice conversations (Settings → Composer
+            // options): whether this install has speech to text and voice
+            // calls set up, and the voice agents speak with unless they pick
+            // their own.
+            'voice' => [
+                'inputAvailable' => $transcriber->isEnabled(),
+                'available' => $voice->isSetUp(),
+                'default' => RealtimeVoice::configured()->value,
+                'choices' => array_column(RealtimeVoice::cases(), 'value'),
+            ],
 
             // Per-surface behaviour settings (the Behavior section swaps them on the preview tab).
             'widgetSettings' => $agent->settings('widget'),

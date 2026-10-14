@@ -6,6 +6,7 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCluster;
+use App\Admin\Clusters\Settings\SettingsSearch;
 use App\Admin\Settings\SetupRequirements;
 use App\Admin\Settings\SetupStatus;
 use BackedEnum;
@@ -14,16 +15,22 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Livewire\Attributes\Url;
 
 /**
  * The start of the admin panel's Settings: a tile for each Settings page, in
  * groups, with its icon, what it holds and how much of it is set up. A tile
  * opens its page.
+ *
+ * A search box above the tiles searches all of Settings, the sections of
+ * each page and their options too ({@see SettingsSearch}); while it holds a
+ * question, its finds take the place of the tiles. The question stays in the
+ * address (`?q=`), so Back from a find returns to the list.
  */
 class SettingsOverview extends Page
 {
-    /** The groups of tiles, in order. */
-    private const array GROUPS = ['Sign-in and people', 'AI and knowledge', 'Connections', 'Brand and platform'];
+    /** The groups of tiles, in order. The Settings search lists its finds in this order too. */
+    public const array GROUPS = ['Sign-in and people', 'AI and knowledge', 'Connections', 'Brand and platform'];
 
     #[\Override]
     protected static ?string $cluster = SettingsCluster::class;
@@ -42,6 +49,10 @@ class SettingsOverview extends Page
 
     #[\Override]
     protected static ?int $navigationSort = 0;
+
+    /** What is typed in the search box. */
+    #[Url(as: 'q', except: '')]
+    public string $search = '';
 
     public function getSubheading(): string
     {
@@ -86,7 +97,18 @@ class SettingsOverview extends Page
     public function content(Schema $schema): Schema
     {
         return $schema->components([
-            View::make('filament.settings.tiles')->viewData(fn (): array => ['groups' => $this->groups()]),
+            View::make('filament.settings.tiles')->viewData(function (): array {
+                $search = app(SettingsSearch::class);
+                $terms = $search->terms($this->search);
+
+                return [
+                    'groups' => $terms === [] ? $this->groups() : [],
+                    'search' => $search,
+                    'query' => $this->search,
+                    'terms' => $terms,
+                    'hits' => $search->search($this->search),
+                ];
+            }),
         ]);
     }
 

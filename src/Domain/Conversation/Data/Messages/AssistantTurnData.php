@@ -48,12 +48,15 @@ class AssistantTurnData extends Data
         public array $artifacts = [],
         public array $tool_calls = [],
         public array $sources = [],
+        // Spoken in a voice call; saved as `metadata.voice`.
+        public bool $voice = false,
     ) {}
 
     /**
      * What the reply keeps in `chat_messages.metadata` and in the cached
-     * history: its artifacts and the tools it ran. Null when it has neither,
-     * so plain text replies stay small.
+     * history: its artifacts, the tools it ran, and whether it was spoken in
+     * a voice call. Null when it has none of them, so plain text replies stay
+     * small.
      *
      * @return array<string, mixed>|null
      */
@@ -63,6 +66,10 @@ class AssistantTurnData extends Data
             'artifacts' => $this->artifacts,
             'tool_calls' => $this->tool_calls,
         ], static fn (array $value): bool => $value !== []);
+
+        if ($this->voice) {
+            $metadata['voice'] = true;
+        }
 
         return $metadata !== [] ? $metadata : null;
     }

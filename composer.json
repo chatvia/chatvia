@@ -47,6 +47,7 @@
         "phpoffice/phpspreadsheet": "^5.10",
         "platformcommunity/flysystem-bunnycdn": "^3.3",
         "pontedilana/php-weasyprint": "^2.7",
+        "ratchet/pawl": "^0.4.3",
         "resend/resend-php": "^1.16",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
         "saade/filament-laravel-log": "^4.0",

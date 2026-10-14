@@ -34,7 +34,8 @@
         "delete_failed": "No se pudo eliminar el adjunto",
         "upload_limit_reached": "Puedes adjuntar hasta {count} archivo | Puedes adjuntar hasta {count} archivos",
         "send_message": "Enviar mensaje",
-        "stop_streaming": "Detener la generación"
+        "stop_streaming": "Detener la generación",
+        "start_voice_call": "Hablar con voz"
     },
     "header": {
         "toggle_sidebar": "Mostrar/ocultar barra lateral",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Opinión negativa",
                 "qa_matched": "Coincidencia de P&R",
                 "revised": "Respuesta revisada",
-                "revise": "Revisar"
+                "revise": "Revisar",
+                "voice": "Voz"
             },
             "details": {
                 "select_conversation": "Selecciona una conversación para ver los detalles",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
-                "composer_description": "Oculta el botón de subir archivos o de entrada de voz si tu agente no debería aceptar esas entradas.",
+                "composer_description": "Elige qué botones muestra el cuadro de mensaje: subida de archivos, entrada de voz y conversaciones de voz.",
                 "file_uploads_label": "Permitir subida de archivos",
                 "file_uploads_aria": "¿Cómo se cobran las subidas de archivos?",
                 "file_uploads_help_title": "Subida de archivos",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Temas",
                 "topics_help_1": "Temas analiza las conversaciones y las agrupa según lo que la gente pregunta, para que no tengas que etiquetar los chats manualmente.",
                 "topics_help_2": "Los nuevos temas se detectan automáticamente y se acumulan en el panel de Temas, mostrando los asuntos más frecuentes. Requiere Guardar conversaciones activado.",
-                "topics_hint": "Detecta y agrupa automáticamente lo que los visitantes preguntan."
+                "topics_hint": "Detecta y agrupa automáticamente lo que los visitantes preguntan.",
+                "voice_conversation_label": "Permitir conversaciones de voz",
+                "voice_conversation_hint": "Muestra un botón junto al micrófono que inicia una llamada de voz en vivo con el agente.",
+                "voice_conversation_unavailable": "No está configurado en este servidor. Un administrador puede activar las conversaciones de voz en el panel de administración.",
+                "voice_conversation_aria": "¿Cómo se cobran las conversaciones de voz?",
+                "voice_conversation_help_title": "Conversaciones de voz",
+                "voice_conversation_help_1": "Los visitantes hablan en voz alta con el agente. Responde con su conocimiento y puede usar sus herramientas que no necesitan aprobación. Ambos lados de la llamada se guardan en el registro de chats.",
+                "voice_conversation_help_2": "Cada respuesta hablada cuenta como un mensaje. Una llamada de voz cuesta mucho más que un chat escrito.",
+                "voice_label": "Voz",
+                "voice_default": "Predeterminada ({voice})",
+                "voice_input_unavailable": "No está configurado en este servidor. Un administrador puede activar la conversión de voz a texto en el panel de administración."
             },
             "bubbles_title": "Burbujas de chat",
             "bubbles_description": "Mensajes de inicio rápido que se muestran junto a la burbuja del widget. Presiona Enter para agregar cada uno.",
@@ -3765,6 +3777,26 @@
                 "name": "Amplitude",
                 "description": "Consulta análisis de producto — eventos, gráficos y cohortes — desde tu proyecto de Amplitude."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Conversación de voz",
+        "connecting": "Conectando…",
+        "listening": "Escuchando",
+        "thinking": "Pensando…",
+        "speaking": "Hablando",
+        "muted": "Micrófono apagado",
+        "ended": "Llamada finalizada",
+        "mute": "Apagar el micrófono",
+        "unmute": "Encender el micrófono",
+        "end": "Finalizar llamada",
+        "close": "Cerrar",
+        "errors": {
+            "not_supported": "Este navegador no puede hacer llamadas de voz.",
+            "microphone_denied": "Permite el acceso al micrófono para hablar con el agente.",
+            "microphone_not_found": "No se encontró ningún micrófono.",
+            "busy": "La voz está ocupada ahora mismo. Inténtalo de nuevo en un momento.",
+            "failed": "No se pudo iniciar la llamada de voz. Inténtalo de nuevo."
         }
     }
 }

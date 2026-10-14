@@ -115,6 +115,19 @@ it('rebuilds a missing index, and any index on --force', function (bool $exists,
     'fits, forced' => [true, VectorIndexRebuild::Always],
 ]);
 
+it('after a re-index, rebuilds a partitioned index that fits its rows and keeps a flat one', function (string $options, int $rows, bool $rebuilt): void {
+    $statements = [];
+    fakeVectorIndexDatabase($rows, $options, 'rows=150000', $statements);
+
+    $result = app(RebuildVectorIndexAction::class)->execute('chunks_embedding_vchordrq_optimized', VectorIndexRebuild::WhenPartitioned);
+
+    expect($result->rebuilt)->toBe($rebuilt)
+        ->and($statements)->toHaveCount($rebuilt ? 5 : 0);
+})->with([
+    'partitioned, same rows' => ["residual_quantization = true\n[build.internal]\nlists = [1549]\n", 150_000, true],
+    'flat, small table' => ["residual_quantization = true\n[build.internal]\nlists = []\n", 5_000, false],
+]);
+
 it('refuses any other index name', function (): void {
     DB::shouldReceive('scalar')->never();
     DB::shouldReceive('statement')->never();

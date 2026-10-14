@@ -6,6 +6,7 @@ use Domain\Knowledge\Document\Conversion\OfficePdf;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Data\Analysis\AnalyzedDocumentData;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Services\ChunkEmbeddingText;
 use Domain\Knowledge\Ingestion\Services\ContentAnalyzer;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -43,7 +44,7 @@ class CreateSourceSummaryAction
         [$analyzed, $summary] = $this->readDocument($source);
 
         $summaryText = $summary->content;
-        $plainSummary = strip_tags($summaryText);
+        $plainSummary = ChunkEmbeddingText::forSummary($summaryText);
         $questions = implode("\n", $analyzed->analysis->questions);
 
         return Chunk::query()->create([

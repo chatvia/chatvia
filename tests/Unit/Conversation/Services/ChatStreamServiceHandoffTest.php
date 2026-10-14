@@ -8,6 +8,7 @@ use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\MessagePosted;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Llm\Models\Llm;
@@ -70,6 +71,9 @@ it('does not relay into a conversation of another visitor session', function ():
     // visitor who knew another conversation's id could post into it.
     [$agent, , $conversation] = heldConversation();
     $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
+    // The relay check runs before the per-turn gates, so refusing here stops
+    // the unrelayed turn before it calls the model.
+    test()->mock(AgentChatRateLimiter::class)->shouldReceive('exceeded')->andReturnTrue();
 
     streamFor($agent, $otherSession->external_id, $conversation->external_id);
 

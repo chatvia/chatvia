@@ -8,6 +8,7 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\Actions\RemoveCustomLlmServerAction;
 use App\Admin\Settings\AiProviderCheck;
+use App\Admin\Settings\AiProviderIcon;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiProviderUsage;
 use BackedEnum;
@@ -49,15 +50,6 @@ use Illuminate\Validation\ValidationException;
 class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
 {
     use InteractsWithTable;
-
-    /** Logos the app has; the other providers show an icon. */
-    private const array LOGOS = [
-        'azure' => 'images/llms/microsoft.svg',
-        'openai' => 'images/llms/gpt.svg',
-        'mistral' => 'images/llms/mistral.svg',
-        'google' => 'images/llms/gemini.svg',
-        'cohere' => 'images/llms/cohere.svg',
-    ];
 
     #[\Override]
     protected static string $settings = AiProviderSettings::class;
@@ -246,7 +238,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         $key = (string) AiProviderSettings::propertyFor($provider->apiKeyConfig());
         $address = $provider->baseUrlConfig() !== null ? AiProviderSettings::propertyFor($provider->baseUrlConfig()) : null;
 
-        $card = SettingsCard::make($provider->value, $provider->label(), $provider->description(), $this->iconOf($provider), fn (): array => [
+        $card = SettingsCard::make($provider->value, $provider->label(), $provider->description(), AiProviderIcon::of($provider), fn (): array => [
             $this->secret($key, 'API key'),
             ...($provider->needsBaseUrl() && $address !== null ? [
                 $this->url($address, 'Endpoint', help: 'Your resource\'s endpoint, from the Azure portal, such as https://my-resource.cognitiveservices.azure.com.', required: true),
@@ -281,20 +273,6 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
         return collect($provider->capabilities())
             ->mapWithKeys(fn (AiCapability $capability): array => [$capability->label() => in_array($capability, $used, true)])
             ->all();
-    }
-
-    private function iconOf(AiProvider $provider): string|Heroicon
-    {
-        if (isset(self::LOGOS[$provider->value])) {
-            return asset(self::LOGOS[$provider->value]);
-        }
-
-        return match ($provider) {
-            AiProvider::OpenRouter => Heroicon::OutlinedArrowsRightLeft,
-            AiProvider::Groq => Heroicon::OutlinedBolt,
-            AiProvider::Jina => Heroicon::OutlinedCubeTransparent,
-            default => Heroicon::OutlinedCloud,
-        };
     }
 
     // --- Servers of your own -----------------------------------------------------

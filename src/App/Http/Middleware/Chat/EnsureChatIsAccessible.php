@@ -46,7 +46,8 @@ class EnsureChatIsAccessible
         $agent = HostedChatAgent::from($request);
 
         // A disabled Hosted Chat surface looks as if the agent did not exist.
-        // The widget and bar surfaces are gated separately (widget settings).
+        // The widget and bar surfaces are gated separately (widget settings
+        // and EnsureWidgetIsAccessible).
         if (! $agent instanceof Agent || ! $agent->surfaceEnabled(ConversationSource::HostedChat)) {
             return Inertia::render('agents/chat/AgentNotFound');
         }

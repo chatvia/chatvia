@@ -36,6 +36,7 @@ return new class extends SettingsMigration
             $group->add('ingestion_workers');
             $group->add('analytics_workers');
             $group->add('media_workers');
+            $group->add('voice_workers');
         });
     }
 

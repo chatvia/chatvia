@@ -34,7 +34,8 @@
         "delete_failed": "添付ファイルを削除できませんでした",
         "upload_limit_reached": "添付できるファイルは最大 {count} 件です | 添付できるファイルは最大 {count} 件です",
         "send_message": "メッセージを送信",
-        "stop_streaming": "生成を停止"
+        "stop_streaming": "生成を停止",
+        "start_voice_call": "音声で話す"
     },
     "header": {
         "toggle_sidebar": "サイドバーを切り替え",
@@ -458,7 +459,8 @@
                 "negative_feedback": "低評価のフィードバック",
                 "qa_matched": "Q&A 一致",
                 "revised": "修正済みの回答",
-                "revise": "修正"
+                "revise": "修正",
+                "voice": "音声"
             },
             "details": {
                 "select_conversation": "詳細を表示する会話を選択してください",
@@ -1618,7 +1620,7 @@
             },
             "settings": {
                 "composer_title": "入力欄のオプション",
-                "composer_description": "エージェントがそれらの入力を受け付けない場合は、ファイルアップロードや音声入力のボタンを非表示にできます。",
+                "composer_description": "入力欄に表示するボタンを選びます：ファイルのアップロード、音声入力、音声会話。",
                 "file_uploads_label": "ファイルのアップロードを許可",
                 "file_uploads_aria": "ファイルのアップロードはどのように課金されますか？",
                 "file_uploads_help_title": "ファイルのアップロード",
@@ -1654,7 +1656,17 @@
                 "topics_help_title": "トピック",
                 "topics_help_1": "トピックは会話をスキャンし、人々が尋ねている内容ごとにグループ化するため、手作業でチャットにタグを付ける必要がありません。",
                 "topics_help_2": "新しいトピックは自動で検出され、トピックダッシュボードに集計されて、最も多いテーマが表示されます。「会話を保存」をオンにする必要があります。",
-                "topics_hint": "訪問者が尋ねている内容を自動で検出してグループ化します。"
+                "topics_hint": "訪問者が尋ねている内容を自動で検出してグループ化します。",
+                "voice_conversation_label": "音声会話を許可",
+                "voice_conversation_hint": "マイクの横に、エージェントとのライブ音声通話を始めるボタンを表示します。",
+                "voice_conversation_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで音声会話をオンにできます。",
+                "voice_conversation_aria": "音声会話の料金はどう数えられますか？",
+                "voice_conversation_help_title": "音声会話",
+                "voice_conversation_help_1": "訪問者はエージェントと声で話します。エージェントは自分の知識から答え、承認が不要なツールを使えます。通話の両方の発言がチャットログに保存されます。",
+                "voice_conversation_help_2": "話した回答1つが1メッセージとして数えられます。音声通話は文字のチャットよりはるかに費用がかかります。",
+                "voice_label": "声",
+                "voice_default": "デフォルト（{voice}）",
+                "voice_input_unavailable": "このサーバーでは設定されていません。管理者が管理パネルで音声文字変換をオンにできます。"
             },
             "bubbles_title": "チャットバブル",
             "bubbles_description": "ウィジェットのバブルの横に表示されるクイックメッセージのプロンプトです。Enter キーを押して 1 つずつ追加します。",
@@ -3758,6 +3770,26 @@
                 "name": "Amplitude",
                 "description": "Amplitude プロジェクトからプロダクト分析（イベント、チャート、コホート）をクエリします。"
             }
+        }
+    },
+    "voice_call": {
+        "title": "音声会話",
+        "connecting": "接続中…",
+        "listening": "聞いています",
+        "thinking": "考えています…",
+        "speaking": "話しています",
+        "muted": "マイクオフ",
+        "ended": "通話が終了しました",
+        "mute": "マイクをオフにする",
+        "unmute": "マイクをオンにする",
+        "end": "通話を終了",
+        "close": "閉じる",
+        "errors": {
+            "not_supported": "このブラウザでは音声通話ができません。",
+            "microphone_denied": "エージェントと話すにはマイクへのアクセスを許可してください。",
+            "microphone_not_found": "マイクが見つかりません。",
+            "busy": "現在、音声が混み合っています。少し待ってからもう一度お試しください。",
+            "failed": "音声通話を開始できませんでした。もう一度お試しください。"
         }
     }
 }

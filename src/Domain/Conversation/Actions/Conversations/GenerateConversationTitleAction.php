@@ -13,7 +13,7 @@ use Domain\Llm\Operations\Query\TitleGenerator;
  * Names a conversation from its first exchange with one short LLM call.
  * Does nothing while the conversation has no messages yet, or once it has a
  * title: the browser and the queued fallback may both ask, and a name given
- * by hand is kept.
+ * by hand is kept. A blank answer from the model is never saved as the name.
  */
 class GenerateConversationTitleAction
 {
@@ -43,6 +43,14 @@ class GenerateConversationTitleAction
             return;
         }
 
-        $this->renameConversation->execute($scope, $this->titleGenerator->generate($transcript));
+        $title = $this->titleGenerator->generate($transcript);
+
+        // An empty answer keeps the default name, so a later request (the
+        // browser's, or the queued fallback) can try again.
+        if (blank($title)) {
+            return;
+        }
+
+        $this->renameConversation->execute($scope, $title);
     }
 }

@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Prata med rösten"
+    },
+    "voice_call": {
+        "title": "Röstsamtal",
+        "connecting": "Ansluter…",
+        "listening": "Lyssnar",
+        "thinking": "Tänker…",
+        "speaking": "Pratar",
+        "muted": "Mikrofonen av",
+        "ended": "Samtalet avslutat",
+        "mute": "Stäng av mikrofonen",
+        "unmute": "Slå på mikrofonen",
+        "end": "Avsluta samtal",
+        "close": "Stäng",
+        "errors": {
+            "not_supported": "Den här webbläsaren kan inte ringa röstsamtal.",
+            "microphone_denied": "Tillåt åtkomst till mikrofonen för att prata med agenten.",
+            "microphone_not_found": "Ingen mikrofon hittades.",
+            "busy": "Röst är upptaget just nu. Försök igen om en stund.",
+            "failed": "Röstsamtalet kunde inte starta. Försök igen."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Välj vilka knappar meddelandefältet visar: filuppladdning, röstinmatning och röstsamtal.",
+                "voice_conversation_label": "Tillåt röstsamtal",
+                "voice_conversation_hint": "Visa en knapp bredvid mikrofonen som startar ett direkt röstsamtal med agenten.",
+                "voice_conversation_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på röstsamtal i adminpanelen.",
+                "voice_conversation_aria": "Hur räknas röstsamtal?",
+                "voice_conversation_help_title": "Röstsamtal",
+                "voice_conversation_help_1": "Besökare pratar högt med agenten. Den svarar utifrån sin kunskap och kan använda sina verktyg som inte kräver godkännande. Båda sidor av samtalet sparas i chattloggen.",
+                "voice_conversation_help_2": "Varje talat svar räknas som ett meddelande. Ett röstsamtal kostar mycket mer att köra än en skriven chatt.",
+                "voice_label": "Röst",
+                "voice_default": "Standard ({voice})",
+                "voice_input_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på tal till text i adminpanelen."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Röst"
+            }
+        }
+    }
+}

@@ -6,8 +6,11 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Settings\Actions\ReindexEmbeddingsAction;
 use App\Admin\Settings\Actions\RemoveLlmModelAction;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\Data\ConnectionCheckData;
+use App\Admin\Settings\DocumentServiceCheck;
 use BackedEnum;
 use Closure;
 use Domain\Agent\Models\Agent;
@@ -17,9 +20,12 @@ use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
 use Domain\Knowledge\Embedding\Rerank\RerankerFactory;
 use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
 use Domain\Knowledge\Embedding\Services\EmbeddingCheck;
+use Domain\Knowledge\Embedding\Services\EmbeddingReindexStatus;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Embedding\Services\OpenRouterEmbeddingModels;
 use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Ingestion\Services\DocumentReaders;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Data\Catalog\ModelListData;
@@ -28,8 +34,10 @@ use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Enums\ModelListStatus;
+use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
+use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ModelListing;
 use Domain\Llm\Services\ProviderAdapters;
 use Filament\Actions\Action;
@@ -46,6 +54,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Bus\Batch;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Number;
@@ -58,16 +67,23 @@ use Illuminate\Support\Str;
  * reranker; document reading; speech to text. The models behind the app's
  * own jobs (Fast, Smart, Vision) and the PDF models are under Advanced.
  *
- * The embedding service and its model decide the stored vectors: once a
- * source is trained they are locked, and a service that cannot return the
- * stored vector size is refused. A service whose provider is not connected
- * cannot be picked; "Automatic" always can.
+ * The embedding service and its model decide the stored vectors, and a
+ * service that cannot return the stored vector size is refused. Once
+ * documents are stored as vectors, a change warns that they must be embedded
+ * again and asks before it saves; saving starts that re-index in the queue
+ * ({@see ReindexEmbeddingsAction}), and the card shows how far it got. "Re-index
+ * documents" starts one by hand. A service whose provider is not connected
+ * cannot be picked; "Automatic" always can. The Documents services have no
+ * "Automatic": they show the one in use, and a new pick is checked with a
+ * real call as it is saved ({@see DocumentServiceCheck}).
  */
 class ManageAiModelSettings extends AdminSettingsPage implements HasTable
 {
     use InteractsWithTable;
 
-    private const string LOCKED_HELP = 'Locked: sources are already trained with it. Changing it needs every source trained again.';
+    private const string CHANGE_WARNING = 'Your documents were turned into vectors with the current model. Another model makes different vectors, so agents cannot find your documents until every document, Q&A and tool is embedded again. Saving starts this re-index in the background queue. With many documents it can take hours, and until it ends agents may miss documents.';
+
+    private const string REINDEX_NOTE = 'Files are not read again: only the embeddings are made again.';
 
     #[\Override]
     protected static string $settings = AiSettings::class;
@@ -84,7 +100,17 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     #[\Override]
     protected static ?int $navigationSort = 2;
 
-    private ?bool $hasEmbeddings = null;
+    private ?bool $hasStoredVectors = null;
+
+    /**
+     * The Documents checks made in this request: a save reads the form twice.
+     *
+     * @var array<string, ConnectionCheckData>
+     */
+    private array $documentChecks = [];
+
+    /** The last re-index, read once per request (false: not read yet). */
+    private Batch|false|null $latestReindex = false;
 
     public static function description(): string
     {
@@ -137,7 +163,57 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                         ? Notification::make()->success()->title("{$provider->label()} works")->body("It returned {$result->returned} dimensions, as the database stores.")->send()
                         : Notification::make()->danger()->title("{$provider->label()} does not work")->body($result->message($provider->label(), $stored))->send();
                 }),
+            Action::make('reindex')
+                ->label('Re-index documents')
+                ->icon(Heroicon::OutlinedArrowPath)
+                ->color('gray')
+                ->disabled(fn (): bool => $this->runningReindex() instanceof Batch)
+                ->tooltip(fn (): ?string => $this->runningReindex() instanceof Batch ? 'A re-index is running.' : null)
+                ->requiresConfirmation()
+                ->modalIcon(Heroicon::OutlinedArrowPath)
+                ->modalIconColor('warning')
+                ->modalHeading('Re-index all documents?')
+                ->modalDescription('Every document, Q&A and tool is embedded again with the current embedding model. It runs in the background queue and, with many documents, can take hours. Until it ends, agents may miss some documents. '.self::REINDEX_NOTE)
+                ->modalSubmitActionLabel('Re-index')
+                ->action(function (): void {
+                    $this->latestReindex = app(ReindexEmbeddingsAction::class)->execute();
+
+                    Notification::make()->success()->title('Re-index started')->body('It runs in the background queue. Its progress shows under Embeddings.')->send();
+                }),
         ];
+    }
+
+    /**
+     * Saves, but first asks when the change makes the stored vectors useless
+     * (another embedding service or model): saving then starts a re-index.
+     */
+    #[\Override]
+    public function save(): void
+    {
+        if ($this->changesStoredVectors($this->form->getState())) {
+            $this->mountAction('changeEmbeddings');
+
+            return;
+        }
+
+        parent::save();
+    }
+
+    public function changeEmbeddingsAction(): Action
+    {
+        return Action::make('changeEmbeddings')
+            ->requiresConfirmation()
+            ->modalIcon(Heroicon::OutlinedExclamationTriangle)
+            ->modalIconColor('warning')
+            ->modalHeading('Change the embedding model?')
+            ->modalDescription(self::CHANGE_WARNING.' '.self::REINDEX_NOTE)
+            ->modalSubmitActionLabel('Save and re-index')
+            ->color('warning')
+            ->action(function (): void {
+                $this->saveSettings();
+
+                Notification::make()->success()->title('Settings saved. Re-index started')->body('It runs in the background queue. Its progress shows under Embeddings.')->send();
+            });
     }
 
     protected function cards(): array
@@ -150,8 +226,14 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     unset: 'The first model on the list'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
+                $this->reindexCallout(),
                 $this->embeddingChoice(),
                 ...array_map($this->embeddingModel(...), EmbeddingProvider::cases()),
+                Callout::make('Changing the embedding model means a re-index')
+                    ->description(self::CHANGE_WARNING)
+                    ->icon(Heroicon::OutlinedExclamationTriangle)
+                    ->warning()
+                    ->visible(fn (): bool => $this->changesStoredVectors($this->data ?? [])),
             ])->summary(fn (): string => $this->embeddingSummary()),
             SettingsCard::make('reranker', 'Reranker', 'Scores search results and tools against the question, so only relevant ones are used.', Heroicon::OutlinedBarsArrowDown, fn (): array => [
                 $this->choice('reranker', 'Reranker', $this->withConnection([
@@ -178,20 +260,18 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->visible(fn (Get $get): bool => $get('reranker') === 'custom'),
             ])->summary(fn (): string => $this->rerankerSummary()),
             SettingsCard::make('documents', 'Documents', 'How PDFs, office files and images are read.', Heroicon::OutlinedDocumentMagnifyingGlass, fn (): array => [
-                $this->choice('document_parser', 'Document reading', $this->withConnection([
-                    'auto' => 'Automatic (Mistral, else Azure, when connected)',
+                $this->documentChoice('document_parser', 'Document reading', [
                     'mistral' => 'Mistral OCR',
                     'azure' => 'Azure Document Intelligence',
-                    'none' => 'Off',
-                ]), help: 'Reads PDFs, Word, slides and images while sources are trained. Mistral also reads the pictures inside Word and PowerPoint files; Azure skips them. Excel, CSV, old office files and RTF are read by the app. Without a reader, PDF, Word, slides and images cannot be uploaded.')->rule($this->connectedRule()),
-                $this->choice('document_llm', 'Whole-PDF reading', $this->withConnection([
-                    'auto' => 'Automatic (Mistral when it is connected, else off)',
+                ], 'Reads the text, scans and tables of PDFs, Word, slides and images while sources are trained. Mistral OCR also reads the pictures inside Word and PowerPoint files; Azure skips them. Excel, CSV, old office files and RTF are read by the app. Off: PDF, Word, slides and images cannot be uploaded.',
+                    fn (AiProvider $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->reader($provider)),
+                $this->documentChoice('document_llm', 'Summaries and PDF chat', [
                     'mistral' => 'Mistral',
-                    'none' => 'Off',
-                ]), help: 'Document summaries and chat with PDF files. Off turns those two features off.')->rule($this->connectedRule()),
+                ], 'Mistral\'s models read each document whole: they write a short summary of every source, and answer questions about PDF files attached in a chat. Off turns both off.',
+                    fn (AiProvider $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->wholePdf($provider)),
             ])->advancedFields(fn (): array => [
                 $this->text('mistral_ocr_model', 'Mistral OCR model'),
-            ])->summary(fn (): string => 'Reading: '.$this->resolvedLabel('document_parser', AiCapability::Documents, 'off')),
+            ])->summary(fn (): string => $this->documentsSummary()),
             SettingsCard::make('speech', 'Speech to text', 'Voice input, and audio and video sources.', Heroicon::OutlinedMicrophone, fn (): array => [
                 $this->choice('transcriber', 'Speech to text', $this->withConnection([
                     'auto' => 'Automatic (Scaleway AI, else OpenAI)',
@@ -204,6 +284,25 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->text('openai_transcription_model', 'OpenAI model',
                     help: 'whisper-1, or gpt-4o-transcribe. Files up to 25 MB, about an hour and a half of audio.'),
             ])->summary(fn (): string => $this->resolvedLabel('transcriber', AiCapability::Speech, 'off')),
+            SettingsCard::make('voice', 'Voice conversations', 'Live spoken calls with an agent, in the hosted chat and the chat widget.', Heroicon::OutlinedSpeakerWave, fn (): array => [
+                $this->choice('voice', 'Voice conversations', $this->withConnection([
+                    'auto' => 'Automatic (OpenAI when it is connected, else off)',
+                    'openai' => 'OpenAI Realtime',
+                    'none' => 'Off',
+                ]), help: 'Each agent still turns them on (Setup → Settings → Composer options). A call costs much more than a typed chat.')->rule($this->connectedRule()),
+                $this->choice('openai_realtime_voice', 'Default voice', collect(RealtimeVoice::cases())->mapWithKeys(fn (RealtimeVoice $voice): array => [$voice->value => $voice->label()])->all(),
+                    help: 'Agents speak with it unless they pick their own. Marin and Cedar sound the most natural.'),
+                $this->integer('voice_max_call_minutes', 'Longest call, in minutes', help: 'The agent says goodbye and hangs up then.', min: 1, max: 25),
+            ])->advancedFields(fn (): array => [
+                $this->choice('openai_realtime_model', 'Model', [
+                    'gpt-realtime-2.1' => 'GPT Realtime 2.1',
+                    'gpt-realtime-2.1-mini' => 'GPT Realtime 2.1 mini (cheaper)',
+                    'gpt-realtime-2' => 'GPT Realtime 2',
+                    'gpt-realtime' => 'GPT Realtime',
+                ], help: 'The mini model costs less, but follows instructions and calls tools less well.'),
+                $this->text('openai_realtime_transcription_model', 'Transcription model',
+                    help: 'Writes down what the visitor says, for the chat log: gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
+            ])->summary(fn (): string => $this->voiceSummary()),
             SettingsCard::make('advanced', 'Models for background jobs', 'The models behind the app\'s own jobs, how much history agents see, and the PDF models.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 $this->modelChoice('fast_model', 'Fast',
                     help: 'Short, frequent calls: conversation titles, topics, tone, guardrails, starters, translation and the eval judge. A small, cheap model.'),
@@ -212,8 +311,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->modelChoice('vision_model', 'Vision',
                     help: 'Describes the images inside documents. Needs a model that reads images.'),
                 $this->integer('history_messages', 'Messages of history', help: 'How many recent messages of a conversation the model sees on each turn.', min: 1, max: 50),
-                $this->text('summary_model', 'Document summary model', help: 'A Mistral model, for whole-PDF reading.'),
-                $this->text('analysis_model', 'Document analysis model', help: 'A Mistral model, for whole-PDF reading.'),
+                $this->text('summary_model', 'Document summary model', help: 'A Mistral model, for summaries and PDF chat.'),
+                $this->text('analysis_model', 'Document analysis model', help: 'A Mistral model, for summaries and PDF chat.'),
                 $this->text('document_chat_model', 'PDF chat model',
                     help: 'Answers questions about PDF files in a chat. Needs PDF reading and function calling.'),
             ])->advanced(),
@@ -261,33 +360,47 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->paginated(false);
     }
 
+    /**
+     * Adds one or more of a provider's chat models. The first provider is
+     * picked as the modal opens, so its models are listed at once, and they
+     * are listed again whenever another provider is picked. Add stays off
+     * until a model is picked or typed.
+     */
     private function addModelAction(): Action
     {
         return Action::make('addModel')
             ->label('Add a model')
             ->icon(Heroicon::OutlinedPlus)
             ->modalHeading('Add a model')
-            ->modalDescription('Pick a connected provider, then one of its chat models.')
+            ->modalDescription('Pick a connected provider, then one or more of its chat models.')
             ->schema([
                 Select::make('source')
                     ->label('Provider')
                     ->options(fn (): array => $this->sources())
+                    ->default(fn (): ?string => array_key_first($this->sources()))
                     ->required()
                     ->native(false)
                     ->live()
-                    ->afterStateUpdated(fn (Set $set): mixed => $set('model', null)),
+                    ->afterStateUpdated(function (Set $set): void {
+                        $set('models', []);
+                        $set('model_id', null);
+                    }),
                 Callout::make(fn (Get $get): ?string => $this->listOf($get('source'))?->message($this->sourceLabel($get('source')), $this->sourceAddress($get('source'))))
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning()
                     ->visible(fn (Get $get): bool => filled($get('source')) && $this->listOf($get('source'))?->status !== ModelListStatus::Listed),
-                Select::make('model')
-                    ->label('Model')
+                Select::make('models')
+                    ->label('Models')
+                    ->placeholder('Pick one or more models')
+                    ->helperText('Models agents can use already are greyed out.')
                     ->options(fn (Get $get): array => collect($this->listOf($get('source'))->models ?? [])
                         ->mapWithKeys(fn (RemoteModelData $model): array => [$model->id => $model->name === $model->id ? $model->id : "{$model->name} ({$model->id})"])
                         ->all())
                     ->disableOptionWhen(fn (string $value, Get $get): bool => in_array($value, $this->addedModels($get('source')), true))
+                    ->multiple()
                     ->searchable()
                     ->required()
+                    ->live()
                     ->visible(fn (Get $get): bool => $this->listOf($get('source'))?->status === ModelListStatus::Listed),
                 TextInput::make('model_id')
                     ->label('Model')
@@ -295,8 +408,11 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     ->helperText('The model\'s name exactly as your provider writes it.')
                     ->required()
                     ->maxLength(255)
+                    ->live(debounce: 300)
                     ->visible(fn (Get $get): bool => ($list = $this->listOf($get('source'))) instanceof ModelListData && $list->keyAccepted() && $list->status !== ModelListStatus::Listed),
             ])
+            ->modalSubmitActionLabel('Add')
+            ->modalSubmitAction(fn (Action $action): Action => $action->disabled(fn (): bool => ! $this->hasModelToAdd()))
             ->action(function (array $data, Action $action): void {
                 $provider = $this->providerOf((string) $data['source']);
 
@@ -306,12 +422,25 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     return;
                 }
 
-                $id = trim((string) ($data['model'] ?? $data['model_id'] ?? ''));
-                $listed = collect($this->listOf((string) $data['source'])->models ?? [])->firstWhere('id', $id);
-                $model = app(AddLlmModelAction::class)->execute($provider, $listed instanceof RemoteModelData ? $listed : new RemoteModelData($id, $id));
+                $listed = collect($this->listOf((string) $data['source'])->models ?? [])->keyBy('id');
+                $added = collect((array) ($data['models'] ?? $data['model_id'] ?? []))
+                    ->map(fn (mixed $id): string => trim((string) $id))
+                    ->filter()
+                    ->unique()
+                    ->map(fn (string $id): Llm => app(AddLlmModelAction::class)->execute($provider, $listed->get($id) ?? new RemoteModelData($id, $id)));
 
-                Notification::make()->success()->title("{$model->descriptive_name} added")->body('Agents can pick it now.')->send();
+                $added->count() === 1
+                    ? Notification::make()->success()->title("{$added->first()->descriptive_name} added")->body('Agents can pick it now.')->send()
+                    : Notification::make()->success()->title("{$added->count()} models added")->body('Agents can pick them now.')->send();
             });
+    }
+
+    /** Whether the open "Add a model" form names a model to add yet. */
+    private function hasModelToAdd(): bool
+    {
+        $data = $this->getMountedAction()?->getRawData() ?? [];
+
+        return filled($data['models'] ?? null) || filled(trim((string) ($data['model_id'] ?? '')));
     }
 
     private function removeModelAction(): Action
@@ -518,6 +647,83 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->all();
     }
 
+    /**
+     * A Documents service: each provider, marked connected or not (one that
+     * is not cannot be picked), and Off. There is no "Automatic": the list
+     * shows the service in use. A new pick is checked with a real call as it
+     * is saved, and refused when the call fails; an unchanged one is not
+     * called again.
+     *
+     * @param  array<string, string>  $providers
+     * @param  Closure(AiProvider): ConnectionCheckData  $check
+     */
+    private function documentChoice(string $property, string $label, array $providers, string $help, Closure $check): Select
+    {
+        $options = collect($providers)
+            ->map(fn (string $name, string $value): string => $name.(AiProvider::from($value)->isConnected() ? ' (connected)' : ' (not connected)'))
+            ->put('none', 'Off')
+            ->all();
+
+        return $this->choice($property, $label, $options, help: $help)
+            ->selectablePlaceholder(false)
+            ->formatStateUsing(fn (): string => $this->documentDriver($property))
+            ->disableOptionWhen(fn (string $value): bool => AiProvider::tryFrom($value)?->isConnected() === false)
+            ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail) use ($property, $check): void {
+                $provider = AiProvider::tryFrom((string) $value);
+
+                if (! $provider instanceof AiProvider) {
+                    return;
+                }
+
+                if (! $provider->isConnected()) {
+                    $fail("{$provider->label()} is not connected. Add its key in AI providers first.");
+
+                    return;
+                }
+
+                if ($value === $this->documentDriver($property)) {
+                    return;
+                }
+
+                $result = $this->documentChecks["{$property}:{$provider->value}"] ??= $check($provider);
+
+                if (! $result->connected) {
+                    $fail($result->message ?? "{$provider->label()} could not be reached.");
+
+                    return;
+                }
+
+                // It works, with a catch: the free Azure tier reads 2 pages a file.
+                if ($result->warning !== null) {
+                    Notification::make()->warning()->title("{$provider->label()} works, with a catch")->body($result->warning)->persistent()->send();
+                }
+            });
+    }
+
+    /** The service a Documents choice uses now, with an unsaved "Automatic" resolved. */
+    private function documentDriver(string $property): string
+    {
+        if ($property === 'document_parser') {
+            return app(DocumentReaders::class)->driver();
+        }
+
+        $llm = app(DocumentLlm::class);
+
+        return $llm->isAvailable() ? $llm->slug() : 'none';
+    }
+
+    /** The reader in use, and whether summaries and PDF chat are on, for the card's summary line. */
+    private function documentsSummary(): string
+    {
+        $reader = match ($this->documentDriver('document_parser')) {
+            'mistral' => 'Mistral OCR',
+            'azure' => 'Azure Document Intelligence',
+            default => 'off',
+        };
+
+        return "Reading: {$reader} · PDF chat: ".($this->documentDriver('document_llm') === 'none' ? 'off' : 'on');
+    }
+
     /** Refuses a provider whose key is not set: it would not work. */
     private function connectedRule(): Closure
     {
@@ -555,13 +761,63 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return $provider?->label() ?? $none;
     }
 
+    /** The voice provider in use and the default voice, or "off". */
+    private function voiceSummary(): string
+    {
+        $provider = $this->resolvedLabel('voice', AiCapability::Voice, 'off');
+
+        return $provider === 'off' ? $provider : $provider.' · '.RealtimeVoice::configured()->label();
+    }
+
     private function embeddingSummary(): string
     {
         $provider = EmbeddingProvider::tryFrom((string) $this->valueInUse('embedding_provider'));
-
-        return $provider instanceof EmbeddingProvider
+        $summary = $provider instanceof EmbeddingProvider
             ? $provider->label().' ('.config($provider->modelConfig()).')'
             : $this->shown($this->valueInUse('embedding_provider'));
+        $reindex = $this->runningReindex();
+
+        return $reindex instanceof Batch ? $summary.' · re-indexing, '.$reindex->progress().'% done' : $summary;
+    }
+
+    /**
+     * How far the re-index got while it runs, or a warning when the last one
+     * could not embed every part.
+     */
+    private function reindexCallout(): Callout
+    {
+        return Callout::make(fn (): string => $this->runningReindex() instanceof Batch
+            ? 'Re-indexing: '.$this->latestReindex()?->progress().'% done'
+            : 'The last re-index missed some documents')
+            ->description(fn (): string => $this->runningReindex() instanceof Batch
+                ? 'It runs in the background queue. Until it ends, agents may miss some documents.'
+                : "{$this->latestReindex()?->failedJobs} of {$this->latestReindex()?->totalJobs} parts could not be embedded, often because the embedding service refused too many requests. Run \"Re-index documents\" again.")
+            ->icon(fn (): Heroicon => $this->runningReindex() instanceof Batch ? Heroicon::OutlinedArrowPath : Heroicon::OutlinedExclamationTriangle)
+            ->status(fn (): string => $this->runningReindex() instanceof Batch ? 'info' : 'warning')
+            ->visible(fn (): bool => $this->runningReindex() instanceof Batch || $this->reindexMissedParts());
+    }
+
+    private function latestReindex(): ?Batch
+    {
+        if ($this->latestReindex === false) {
+            $this->latestReindex = app(EmbeddingReindexStatus::class)->latest();
+        }
+
+        return $this->latestReindex;
+    }
+
+    private function runningReindex(): ?Batch
+    {
+        $batch = $this->latestReindex();
+
+        return $batch instanceof Batch && EmbeddingReindexStatus::runs($batch) ? $batch : null;
+    }
+
+    private function reindexMissedParts(): bool
+    {
+        $batch = $this->latestReindex();
+
+        return $batch instanceof Batch && $batch->finished() && ! $batch->cancelled() && $batch->failedJobs > 0;
     }
 
     private function embeddingChoice(): Field
@@ -571,11 +827,8 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->all();
 
         return $this->choice('embedding_provider', 'Service', $providers)
-            ->disabled(fn (): bool => $this->hasEmbeddings())
             ->live()
-            ->helperText(fn (): string => $this->hasEmbeddings()
-                ? self::LOCKED_HELP
-                : 'It must return the vector size this install stores. Its provider must be connected.')
+            ->helperText('It must return the vector size this install stores. Its provider must be connected.')
             ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
                 $provider = EmbeddingProvider::tryFrom((string) $value);
 
@@ -606,22 +859,37 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $property = (string) AiSettings::propertyFor($provider->modelConfig());
         $listed = $provider === EmbeddingProvider::OpenRouter;
         $field = $listed
-            ? $this->choice($property, 'Model', app(OpenRouterEmbeddingModels::class)->options(app(EmbeddingStorage::class)->dimensions()))->searchable()
-            : $this->text($property, 'Model');
+            ? $this->choice($property, 'Model', app(OpenRouterEmbeddingModels::class)->options(app(EmbeddingStorage::class)->dimensions()))->searchable()->live()
+            : $this->text($property, 'Model')->live(onBlur: true);
 
         return $field
-            ->disabled(fn (): bool => $this->hasEmbeddings())
-            ->helperText(fn (): string => match (true) {
-                $this->hasEmbeddings() => self::LOCKED_HELP,
-                $listed => 'OpenRouter\'s embedding models. "Test embeddings" checks that the saved one returns the size this install stores.',
-                default => 'The model\'s name exactly as the service writes it.',
-            })
+            ->helperText($listed
+                ? 'OpenRouter\'s embedding models. "Test embeddings" checks that the saved one returns the size this install stores.'
+                : 'The model\'s name exactly as the service writes it.')
             ->visible(fn (Get $get): bool => ($get('embedding_provider') ?: $this->defaultValue('embedding_provider')) === $provider->value);
     }
 
-    private function hasEmbeddings(): bool
+    /** Whether documents or Q&A questions are stored as vectors. */
+    private function hasStoredVectors(): bool
     {
-        return $this->hasEmbeddings ??= Chunk::query()->exists();
+        return $this->hasStoredVectors ??= Chunk::query()->exists() || AgentQuestionAnswerQuestion::query()->whereNotNull('embedding')->exists();
+    }
+
+    /**
+     * Whether these form values change the embedding service or model while
+     * vectors are stored: then everything must be embedded again.
+     *
+     * @param  array<string, mixed>  $state
+     */
+    private function changesStoredVectors(array $state): bool
+    {
+        if (! $this->hasStoredVectors()) {
+            return false;
+        }
+
+        $saved = $this->settings()->toArray();
+
+        return AiSettings::embeddingFor($saved) !== AiSettings::embeddingFor(array_merge($saved, $this->valuesToSave($state)));
     }
 
     /**

@@ -9,7 +9,8 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 /**
  * One message in the chat log's conversation view, with its analysis
  * (sentiment, tone, feedback), the confidence of the knowledge behind an
- * answer (null when none was used), and cost details.
+ * answer (null when none was used), cost details, and whether it was spoken
+ * in a voice call.
  */
 #[TypeScript]
 class ChatLogMessageData extends Data
@@ -37,6 +38,8 @@ class ChatLogMessageData extends Data
         public ?string $source = null,
         public ?string $read_at = null,
         public ?float $confidence_score = null,
+        // Spoken in a voice call (`metadata.voice` on the reply).
+        public bool $voice = false,
     ) {}
 
     public static function fromMessage(Message $message): self
@@ -63,6 +66,7 @@ class ChatLogMessageData extends Data
             source: $message->source,
             read_at: $message->read_at?->toISOString(),
             confidence_score: $message->confidence_score,
+            voice: (bool) ($message->metadata['voice'] ?? false),
         );
     }
 }

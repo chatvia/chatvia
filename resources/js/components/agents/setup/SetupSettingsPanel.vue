@@ -1,12 +1,15 @@
 <script setup lang="ts">
 /**
  * Setup → Settings: agent-wide switches that aren't tied to one surface —
- * composer options, the chat log, and which conversation analytics run.
+ * composer options (with voice conversations and the agent's voice), the
+ * chat log, and which conversation analytics run.
  * Each group is its own form with its own Save button.
  */
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
 import SetupSectionHeading from '@/components/agents/setup/SetupSectionHeading.vue';
 import SetupSwitchRow from '@/components/agents/setup/SetupSwitchRow.vue';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 import { computed } from 'vue';
@@ -14,10 +17,28 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const { locked, generalSettings } = useSetupContext();
-const { composerForm, isSavingComposer, saveComposer, chatlogForm, isSavingChatlog, saveChatlog, analyticsForm, isSavingAnalytics, saveAnalytics } =
-    generalSettings;
+const {
+    composerForm,
+    isSavingComposer,
+    saveComposer,
+    voice,
+    chatlogForm,
+    isSavingChatlog,
+    saveChatlog,
+    analyticsForm,
+    isSavingAnalytics,
+    saveAnalytics,
+} = generalSettings;
+
+/** A voice's name as shown: "Marin". */
+const voiceName = (voice: string): string => voice.charAt(0).toUpperCase() + voice.slice(1);
 
 const help = computed(() => ({
+    voiceConversation: {
+        ariaLabel: t('agents.setup.settings.voice_conversation_aria'),
+        title: t('agents.setup.settings.voice_conversation_help_title'),
+        paragraphs: [t('agents.setup.settings.voice_conversation_help_1'), t('agents.setup.settings.voice_conversation_help_2')],
+    },
     fileUploads: {
         ariaLabel: t('agents.setup.settings.file_uploads_aria'),
         title: t('agents.setup.settings.file_uploads_help_title'),
@@ -64,9 +85,38 @@ const help = computed(() => ({
                     id="allow-voice-input"
                     v-model="composerForm.allow_voice_input"
                     :label="t('agents.setup.settings.voice_input_label')"
-                    :hint="t('agents.setup.settings.voice_input_hint')"
-                    :disabled="locked"
+                    :hint="voice.inputAvailable ? t('agents.setup.settings.voice_input_hint') : t('agents.setup.settings.voice_input_unavailable')"
+                    :disabled="locked || !voice.inputAvailable"
                 />
+                <div>
+                    <SetupSwitchRow
+                        id="allow-voice-conversation"
+                        v-model="composerForm.allow_voice_conversation"
+                        :label="t('agents.setup.settings.voice_conversation_label')"
+                        :hint="
+                            voice.available
+                                ? t('agents.setup.settings.voice_conversation_hint')
+                                : t('agents.setup.settings.voice_conversation_unavailable')
+                        "
+                        :help="help.voiceConversation"
+                        :disabled="locked || !voice.available"
+                    />
+                    <!-- The agent's voice, shown while voice conversations are on. -->
+                    <div v-if="voice.available && composerForm.allow_voice_conversation" class="flex items-center justify-between gap-3 px-4 pb-3">
+                        <Label for="agent-voice" class="text-muted-foreground text-sm">{{ t('agents.setup.settings.voice_label') }}</Label>
+                        <Select v-model="composerForm.voice" :disabled="locked">
+                            <SelectTrigger id="agent-voice" class="w-48">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="default">{{
+                                    t('agents.setup.settings.voice_default', { voice: voiceName(voice.default) })
+                                }}</SelectItem>
+                                <SelectItem v-for="choice in voice.choices" :key="choice" :value="choice">{{ voiceName(choice) }}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
             </div>
             <SetupSaveFooter submit :saving="isSavingComposer" />
         </form>

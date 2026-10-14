@@ -7,16 +7,21 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
 use Closure;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Context;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Gates the widget's chat-data routes behind the agent's sign-in rule. The
- * same `is_public` flag governs the hosted chat (see EnsureChatIsAccessible),
- * so one switch protects both surfaces.
+ * Gates the widget's chat-data routes behind the agent's embed switches and
+ * its sign-in rule. The same `is_public` flag governs the hosted chat (see
+ * EnsureChatIsAccessible), so one switch protects both surfaces.
  *
+ *  - Embeds off: when the owner turned off both the Chat Widget and the
+ *    Command Bar (Deploy page), every call gets a 404, as the hosted chat
+ *    does when its own surface is off. The embed script already stays hidden
+ *    then; this stops hand-made calls from still getting answers.
  *  - Public agent: always passes. When the call carries a valid X-AUTH-TOKEN
  *    anyway (a signed-in visitor, or the dashboard playground) the user is
  *    resolved on a best-effort basis, so actions can be attributed to them.
@@ -49,6 +54,13 @@ class EnsureWidgetIsAccessible
             return response()->json(['error' => 'Could not verify the agent'], Response::HTTP_FORBIDDEN);
         }
 
+        if (! $this->embedIsOn($agent)) {
+            return response()->json([
+                'error' => 'This chat is turned off.',
+                'code' => 'widget_disabled',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
         // Jobs this request queues carry the agent's workspace.
         Context::addHidden('workspace_id', $agent->workspace_id);
 
@@ -62,6 +74,21 @@ class EnsureWidgetIsAccessible
         }
 
         return $next($request);
+    }
+
+    /**
+     * Whether the Chat Widget or the Command Bar is on. Both are the same
+     * embed script: they send identical requests and their conversations are
+     * both stored as `widget`, so the server cannot tell which one is calling.
+     * A surface named by the client could be faked by a hand-made call, so
+     * the API serves the agent while either switch is on, and each embed
+     * hides itself when its own switch is off (`widget_enabled` /
+     * `bar_enabled` in the widget settings).
+     */
+    private function embedIsOn(Agent $agent): bool
+    {
+        return $agent->surfaceEnabled(ConversationSource::Widget)
+            || $agent->surfaceEnabled(ConversationSource::Bar);
     }
 
     /**

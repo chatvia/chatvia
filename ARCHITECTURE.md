@@ -36,7 +36,7 @@ command bar, messaging apps and a REST API.
 | Process | Command | What it does |
 |---|---|---|
 | Web | PHP-FPM (or `php artisan serve`) | Dashboard, hosted chat, widget API, REST API, webhooks. Chat answers stream as server-sent events (SSE). |
-| Queues | `php artisan horizon` | Ingestion, channel replies, analytics, exports, embeddings. Several named queues (see `config/horizon.php`). |
+| Queues | `php artisan horizon` | Ingestion, channel replies, analytics, exports, embeddings, and live voice calls (one worker per call). Several named queues (see `config/horizon.php`). |
 | WebSockets | `php artisan reverb:start` | Live updates: ingestion progress, handoff messages, typing, eval progress. |
 | Scheduler | `php artisan schedule:run` (cron, every minute) | Pruning, analysis, usage caches, backups (see `routes/console.php`). |
 | PostgreSQL 18 | | All data, plus vector search (`vchord`, `pgvector`) and keyword search (`vchord_bm25`, `pg_tokenizer`). |
@@ -290,9 +290,44 @@ for every surface, and keeps the chat log.
   the approval store and per-turn tool selection.
 - **`Services\Memory\`**: `ChatMemory`, the live chat history in the cache
   (encrypted). The database copy is the chat log.
+- **`Services\Voice\`**: voice calls (see below).
 - **`Topic`**: conversation topics (`Topic`, `ConversationTopic`).
 - Actions by feature: `Conversations`, `Messages`, `Sessions`, `Handoff`,
-  `Attachments`, `Activity`, `Removal`, `Retention`, `Tools`.
+  `Attachments`, `Activity`, `Removal`, `Retention`, `Tools`, `Voice`.
+
+#### Voice calls
+
+A visitor can talk with the agent out loud in the hosted chat and the chat
+widget (the OpenAI Realtime API, speech to speech). The audio never passes
+through Chatvia:
+
+1. The browser posts its WebRTC offer (`chat.voice.store` / `widget.voice.store`).
+   `StartVoiceCallAction` checks the gates, takes a slot (`VoiceCallSlots`),
+   and opens the call with the OpenAI key (`Llm\Contracts\RealtimeCalls`). The
+   call starts with the agent's speaking instructions
+   (`SystemPromptBuilder::voicePrompt()`), its voice, and its tools
+   (`VoiceToolCatalog`: `search_knowledge` plus the tools that need no
+   approval). Listening is off.
+2. `JoinVoiceCallJob` (queue `voice`, its own Horizon supervisor) runs
+   `RunVoiceCallAction`. It joins the call over OpenAI's server WebSocket
+   ("sideband") and runs `VoiceCallSession` until the call ends, so one call
+   holds one worker.
+3. Once joined, the session turns listening on. The browser waits for that
+   before it opens the microphone. For each spoken turn the session:
+   - checks the message limits and the rate limit (`VoiceTurnGate`), then
+     asks for the reply;
+   - runs the tools (`VoiceToolRunner`, through the same access policy,
+     dispatcher and audit as a typed turn);
+   - saves both sides as messages (`VoiceTurnRecorder` →
+     `AssistantReplyRecorder`). The reply counts against the limit and
+     carries `metadata.voice`.
+4. End (`chat.voice.destroy`), the time limit or a limit hangs up from the
+   server.
+
+The guardrails read what was written down. They can stop a reply and keep it
+out of the history, but cannot un-hear audio. Admin settings live in
+Settings → AI models → Voice conversations. The per-agent switch and voice
+are in the `appearance` group (`allow_voice_conversation`, `voice`).
 
 ### Knowledge
 
@@ -302,7 +337,7 @@ The knowledge base behind the agents' answers (RAG).
 |---|---|
 | `Knowledge\Source` | The source types: `File` (`SourceFile`), `Web` (`SourceWebsite` and its pages, `AgentWebsiteUrl`), `Text` (`SourceText`), `Qa` (`AgentQuestionAnswer`), `Youtube` (behind `FEATURE_YOUTUBE_SOURCES`). Sources belong to the workspace and are attached to agents through `agent_sources`. |
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
-| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. |
+| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. The re-index after a change of the embedding model (`StartEmbeddingReindexAction`: one job batch that embeds the stored chunk text and Q&A questions again, then rebuilds partitioned vector indexes; progress in `EmbeddingReindexStatus`). |
 | `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + BM25 in one SQL query), `KnowledgeBase` (embed, search, relevance check, context budget), `SourceLabeler` (names each chunk's source), retrieval stats. |
 | `Knowledge\Document` | File conversion tools (`OfficeText`, `OfficePdf`, `Pandoc`, `CatDoc`, `PdfInfo`) and `HasStorageFile` for models whose file is in storage. |
 
@@ -732,6 +767,7 @@ Use these words in code, UI and docs. Do not invent synonyms.
 | Where an agent answers | **Surface**: Hosted Chat, Chat Widget, Command Bar | values `hosted_chat`, `widget`, `bar` |
 | A messaging app connection | **Channel** | `Domain\Channel\*` |
 | A monthly cap on a workspace's agent replies or a chatter's messages | **MessageLimit** | `App\Identity\Workspace\Models\MessageLimit` (`message_limits`) |
+| A live spoken conversation with an agent | **Voice call** | `Domain\Conversation\Services\Voice\*`, `VoiceCallData`; no table (its turns are messages) |
 
 ---
 
@@ -752,7 +788,8 @@ unless a row names another page, its setting is on **Settings → AI models**.
 | Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |
 | Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Knowledge) |
 | Speech to text | `Transcriber` | `scaleway`, `openai`, `none` | `chatvia.ai.transcriber` |
-| Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
+| Voice calls | `RealtimeCalls` | `openai` (the Realtime API), `none` (the voice button is hidden) | `chatvia.ai.voice`, `services.openai.realtime_*`, `chatvia.voice.*` |
+| Summaries and PDF chat (whole PDFs) | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
 | Files | Laravel disks `private`, `public`, `assets` | local or S3-compatible (`private`, `public`; built by `StorageDisks`), Bunny CDN or local (`assets`) | `chatvia.storage` (Settings → Storage; `SCALEWAY_*` in `.env` as optional presets), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
 
 Everything an admin may want to change lives in the admin panel under

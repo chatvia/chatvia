@@ -7,7 +7,7 @@
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
+import { AudioLines, LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
@@ -171,6 +171,15 @@ function goToPage(offset: number) {
                                             })
                                         }}
                                     </span>
+                                </span>
+                                <span class="text-muted-foreground/30">•</span>
+                            </template>
+
+                            <!-- Spoken in a voice call -->
+                            <template v-if="m.voice">
+                                <span class="inline-flex items-center gap-1">
+                                    <AudioLines class="h-3 w-3" aria-hidden="true" />
+                                    {{ t('agents.chatlog.messages.voice') }}
                                 </span>
                                 <span class="text-muted-foreground/30">•</span>
                             </template>

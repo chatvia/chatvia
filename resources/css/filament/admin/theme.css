@@ -1263,33 +1263,58 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     color: var(--cv-text-muted);
 }
 
+/* The setup's mark stands on the dotted page above the card, drawn in the
+ * brand colour with no tile, and the card starts right below it. */
 .cv-setup-mark {
     display: flex;
     justify-content: center;
-    margin-bottom: 1.75rem;
-
-    & span {
-        display: grid;
-        place-items: center;
-        width: 4rem;
-        height: 4rem;
-        border-radius: 1.125rem;
-        background-color: var(--cv-primary);
-        color: var(--cv-on-primary);
-        box-shadow:
-            inset 0 1px 0 0 oklch(1 0 0 / 0.14),
-            0 12px 28px -10px oklch(0 0 0 / 0.45);
-    }
+    padding-top: 2rem;
+    color: var(--cv-primary);
 
     & svg {
-        width: 2.625rem;
-        height: 2.625rem;
+        width: 3.5rem;
+        height: 3.5rem;
+        filter: drop-shadow(0 8px 16px color-mix(in oklch, var(--cv-primary) 28%, transparent));
+    }
+}
+
+@media (min-width: 40rem) {
+    .cv-setup-mark {
+        padding-top: 3.5rem;
+    }
+}
+
+/* The setup has no card of its own: its steps and sections stand on the
+ * dotted page, as the sign-in card does. */
+.fi-simple-layout:has(> .cv-setup-mark) > .fi-simple-main-ctn {
+    align-items: flex-start;
+}
+
+.fi-simple-layout:has(> .cv-setup-mark) .fi-simple-main {
+    margin-top: 1.25rem;
+    padding: 0 1rem 3rem;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+}
+
+@media (min-width: 40rem) {
+    .fi-simple-layout:has(> .cv-setup-mark) .fi-simple-main {
+        padding-inline: 1.5rem;
     }
 }
 
 /* -------------------------------------------------------------------------
  * Chatvia views: the setup (its outline of steps, the vector size notice)
  * ---------------------------------------------------------------------- */
+
+/* Squarer corners in the setup than in the rest of the panel: its many
+ * cards side by side looked too round. */
+.cv-setup-wizard {
+    --cv-radius-card: 0.5rem;
+    --cv-radius-control: 0.375rem;
+    --cv-radius-item: 0.375rem;
+}
 
 /* The steps as an outline on the left; the current step and its buttons on
  * the right. Phones keep Filament's single current step above the form. */
@@ -1344,7 +1369,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     align-items: flex-start;
     gap: 0.625rem;
     padding: 0.5rem 0.625rem;
-    border-radius: 0.75rem;
+    border-radius: var(--cv-radius-control);
     transition:
         background-color 150ms ease,
         box-shadow 150ms ease;
@@ -1398,7 +1423,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     z-index: 10;
     margin-top: 1.5rem;
     padding: 0.75rem 1rem;
-    border-radius: 0.875rem;
+    border-radius: var(--cv-radius-card);
     background-color: var(--cv-card);
     box-shadow:
         0 0 0 1px var(--cv-border),
@@ -1417,21 +1442,89 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
         0 12px 32px -12px oklch(0 0 0 / 0.7);
 }
 
-/* A line from each step down to the next, filled in once the step is done. */
+/* The step marks: a plain ring for the steps to come, a tinted ring with a
+ * soft, slow halo for the current step, a check on a filled circle once a
+ * step is done. The marks cover the dots that join them. */
+.cv-setup-wizard .fi-sc-wizard-header-step .fi-sc-wizard-header-step-icon-ctn {
+    position: relative;
+    z-index: 1;
+    background-color: var(--cv-card);
+    transition:
+        background-color 200ms ease,
+        border-color 200ms ease,
+        box-shadow 200ms ease;
+}
+
+.cv-setup-wizard .fi-sc-wizard-header-step.fi-active .fi-sc-wizard-header-step-icon-ctn {
+    border-color: var(--cv-primary);
+    background-color: color-mix(in oklab, var(--cv-primary) 10%, var(--cv-card));
+    animation: cv-step-halo 2.4s ease-in-out infinite;
+}
+
+.cv-setup-wizard .fi-sc-wizard-header-step.fi-completed .fi-sc-wizard-header-step-icon-ctn {
+    background-color: var(--cv-primary);
+    box-shadow: 0 2px 6px -1px color-mix(in oklch, var(--cv-primary) 45%, transparent);
+}
+
+.cv-setup-wizard .fi-sc-wizard-header-step.fi-completed .fi-sc-wizard-header-step-label {
+    color: var(--cv-text);
+}
+
+@keyframes cv-step-halo {
+    0%,
+    100% {
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--cv-primary) 18%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px color-mix(in oklch, var(--cv-primary) 7%, transparent);
+    }
+}
+
+/* A row of dots from each step down to the next: grey ahead, indigo once
+ * the step is done, and moving gently down from the current step. */
 @media (min-width: 48rem) {
     .cv-setup-wizard .fi-sc-wizard-header-step:not(:last-child)::after {
+        --cv-step-dot: var(--cv-border-strong);
+
         content: '';
         position: absolute;
-        inset-inline-start: calc(0.625rem + 0.875rem - 1px);
-        top: calc(0.5rem + 1.75rem + 0.25rem);
-        bottom: calc(-0.75rem + 0.25rem);
-        width: 2px;
-        border-radius: 1px;
-        background-color: var(--cv-border-strong);
+        inset-inline-start: calc(0.625rem + 0.875rem - 2px);
+        top: calc(0.5rem + 1.75rem + 0.125rem);
+        bottom: calc(-0.75rem + 0.125rem);
+        width: 4px;
+        background-image: radial-gradient(circle at center, var(--cv-step-dot) 1.5px, transparent 2px);
+        background-position: center 0;
+        background-repeat: repeat-y;
+        background-size: 4px 7px;
     }
 
     .cv-setup-wizard .fi-sc-wizard-header-step.fi-completed:not(:last-child)::after {
-        background-color: var(--cv-primary);
+        --cv-step-dot: var(--cv-primary);
+    }
+
+    .cv-setup-wizard .fi-sc-wizard-header-step.fi-active:not(:last-child)::after {
+        --cv-step-dot: color-mix(in oklab, var(--cv-primary) 55%, var(--cv-border-strong));
+
+        animation: cv-step-dots 1.4s linear infinite;
+    }
+}
+
+@keyframes cv-step-dots {
+    to {
+        background-position: center 7px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cv-setup-wizard .fi-sc-wizard-header-step .fi-sc-wizard-header-step-icon-ctn,
+    .cv-setup-wizard .fi-sc-wizard-header-step::after {
+        animation: none !important;
+        transition: none;
+    }
+
+    .cv-setup-wizard .fi-sc-wizard-header-step.fi-active .fi-sc-wizard-header-step-icon-ctn {
+        box-shadow: 0 0 0 3px color-mix(in oklch, var(--cv-primary) 18%, transparent);
     }
 }
 
@@ -1441,6 +1534,211 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     background-color: var(--cv-chip);
     box-shadow: inset 0 0 0 1px var(--cv-border);
     font-size: 0.8125em;
+}
+
+/* -------------------------------------------------------------------------
+ * Chatvia views: choice cards ({@see \App\Admin\Forms\CardRadio})
+ * ---------------------------------------------------------------------- */
+
+/* Two columns where there is room, one on phones. */
+.cv-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+    gap: 0.75rem;
+}
+
+/* A card: its picture, its text, and a ring in the corner that fills with a
+ * check once it is chosen. The radio input stays in the card for the
+ * keyboard and screen readers; the card shows its state. */
+.cv-choice {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 1rem;
+    padding-inline-end: 2.75rem;
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+    cursor: pointer;
+    transition:
+        background-color 180ms ease,
+        box-shadow 180ms ease,
+        transform 180ms ease;
+
+    &:hover {
+        box-shadow:
+            0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-md);
+        transform: translateY(-1px);
+    }
+
+    &:has(.cv-choice__input:checked) {
+        background-color: color-mix(in oklab, var(--cv-primary) 4%, var(--cv-card));
+        box-shadow:
+            0 0 0 1.5px var(--cv-primary),
+            0 0 0 5px color-mix(in oklch, var(--cv-primary) 12%, transparent),
+            var(--cv-shadow-md);
+    }
+
+    &:has(.cv-choice__input:focus-visible) {
+        box-shadow:
+            0 0 0 1.5px var(--cv-primary),
+            0 0 0 5px var(--cv-focus-ring);
+    }
+
+    &:has(.cv-choice__input.fi-invalid) {
+        box-shadow:
+            0 0 0 1px var(--danger-500),
+            var(--cv-shadow-xs);
+    }
+
+    &:has(.cv-choice__input:disabled) {
+        cursor: not-allowed;
+        opacity: 0.55;
+        transform: none;
+    }
+}
+
+.cv-choice__input {
+    position: absolute;
+    top: 0;
+    inset-inline-start: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Logos and icons wait in grey, and take their colour on hover and once
+ * chosen. A logo keeps a light tile in dark mode, so dark marks stay seen. */
+.cv-choice__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    color: var(--cv-nav-text);
+    transition:
+        background-color 180ms ease,
+        box-shadow 180ms ease,
+        color 180ms ease,
+        transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    & .fi-icon {
+        width: 1.375rem;
+        height: 1.375rem;
+    }
+
+    & img.fi-icon {
+        object-fit: contain;
+        filter: grayscale(1);
+        opacity: 0.7;
+        transition:
+            filter 180ms ease,
+            opacity 180ms ease;
+    }
+}
+
+.cv-choice__icon--logo {
+    background-color: oklch(1 0 0);
+}
+
+.dark .cv-choice__icon--logo {
+    background-color: oklch(0.96 0 0);
+    box-shadow: none;
+}
+
+.cv-choice:hover .cv-choice__icon img.fi-icon,
+.cv-choice:has(.cv-choice__input:checked) .cv-choice__icon img.fi-icon {
+    filter: none;
+    opacity: 1;
+}
+
+.cv-choice:has(.cv-choice__input:checked) .cv-choice__icon {
+    transform: scale(1.06);
+}
+
+.cv-choice:has(.cv-choice__input:checked) .cv-choice__icon:not(.cv-choice__icon--logo) {
+    background-color: color-mix(in oklab, var(--cv-primary) 12%, var(--cv-card));
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--cv-primary) 30%, transparent);
+    color: var(--cv-primary);
+}
+
+.cv-choice__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.cv-choice__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.375rem;
+    color: var(--cv-text);
+}
+
+.cv-choice__description {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--cv-text-muted);
+}
+
+.cv-choice__check {
+    position: absolute;
+    top: 0.875rem;
+    inset-inline-end: 0.875rem;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: var(--cv-radius-pill);
+    box-shadow: inset 0 0 0 1.5px var(--cv-border-strong);
+    color: var(--cv-on-primary);
+    transition:
+        background-color 180ms ease,
+        box-shadow 180ms ease;
+
+    & .fi-icon {
+        width: 0.875rem;
+        height: 0.875rem;
+        opacity: 0;
+        transform: scale(0.4);
+        transition:
+            opacity 160ms ease,
+            transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+}
+
+.cv-choice:has(.cv-choice__input:checked) .cv-choice__check {
+    background-color: var(--cv-primary);
+    box-shadow: none;
+
+    & .fi-icon {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cv-choice,
+    .cv-choice__icon,
+    .cv-choice__check .fi-icon {
+        transition: none;
+    }
+
+    .cv-choice:hover,
+    .cv-choice:has(.cv-choice__input:checked) .cv-choice__icon {
+        transform: none;
+    }
 }
 
 /* -------------------------------------------------------------------------
@@ -1560,6 +1858,224 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
 }
 
+/* The search box over all of Settings, with its "/" key hint. */
+.cv-settings-search {
+    position: relative;
+    margin-bottom: -0.75rem;
+
+    & .fi-input-wrp {
+        border-radius: var(--cv-radius-control);
+        box-shadow:
+            0 0 0 1px var(--cv-input),
+            var(--cv-shadow-card);
+    }
+
+    /* Taller through its padding, so the text stays centred. */
+    & .fi-input {
+        padding-block: 0.6875rem;
+        padding-inline-end: 2.75rem;
+        font-size: 0.9375rem;
+        line-height: 1.5rem;
+    }
+
+    &:has(.fi-input:not(:placeholder-shown)) .cv-settings-search__key {
+        display: none;
+    }
+}
+
+.cv-settings-search__key {
+    position: absolute;
+    top: 50%;
+    inset-inline-end: 0.75rem;
+    display: grid;
+    place-items: center;
+    min-width: 1.375rem;
+    height: 1.375rem;
+    padding: 0 0.25rem;
+    border-radius: 0.3125rem;
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border-strong);
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--cv-text-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+/* The finds: a page or a section per row, the words searched marked, the
+ * options that match as chips. */
+.cv-search {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.cv-search__count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cv-text-subtle);
+}
+
+.cv-search__list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.cv-search-hit {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.875rem;
+    padding: 0.875rem 1rem;
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    color: inherit;
+    text-decoration: none;
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-xs);
+    transition:
+        box-shadow 160ms ease,
+        transform 160ms ease;
+
+    &:hover,
+    &:focus-visible {
+        box-shadow:
+            0 0 0 1px var(--cv-border-strong),
+            var(--cv-shadow-md);
+        transform: translateY(-1px);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--cv-focus-ring);
+        outline-offset: 2px;
+    }
+
+    & mark {
+        padding: 0 0.0625rem;
+        border-radius: 0.1875rem;
+        background-color: color-mix(in oklab, var(--cv-primary) 16%, transparent);
+        color: inherit;
+    }
+}
+
+.cv-search-hit__icon {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    color: var(--cv-nav-text);
+
+    & .fi-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    & img.fi-icon {
+        object-fit: contain;
+        filter: grayscale(1);
+    }
+}
+
+.dark .cv-search-hit__icon--logo {
+    background-color: oklch(0.96 0 0);
+    box-shadow: none;
+}
+
+.cv-search-hit__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+}
+
+.cv-search-hit__path {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--cv-text-subtle);
+}
+
+.cv-search-hit__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.375rem;
+    color: var(--cv-text);
+}
+
+.cv-search-hit__description {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--cv-text-muted);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.cv-search-hit__go {
+    align-self: center;
+    width: 1rem;
+    height: 1rem;
+    color: var(--cv-text-subtle);
+    transition: transform 160ms ease;
+}
+
+.cv-search-hit:hover .cv-search-hit__go,
+.cv-search-hit:focus-visible .cv-search-hit__go {
+    color: var(--cv-text);
+    transform: translateX(2px);
+}
+
+[dir='rtl'] .cv-search-hit__go {
+    transform: scaleX(-1);
+}
+
+.cv-search__empty {
+    display: grid;
+    justify-items: center;
+    gap: 0.375rem;
+    padding: 3rem 1rem;
+    border-radius: var(--cv-radius-card);
+    text-align: center;
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.cv-search__empty-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-bottom: 0.25rem;
+    color: var(--cv-text-subtle);
+}
+
+.cv-search__empty-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--cv-text);
+}
+
+.cv-search__empty-text {
+    font-size: 0.8125rem;
+    color: var(--cv-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cv-search-hit,
+    .cv-search-hit__go {
+        transition: none;
+    }
+
+    .cv-search-hit:hover,
+    .cv-search-hit:focus-visible {
+        transform: none;
+    }
+}
+
 .cv-tile {
     display: grid;
     grid-template-areas:
@@ -1666,72 +2182,66 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     text-wrap: pretty;
 }
 
+/* The status as a dot: grey for off or nothing set up, else its tone. A
+ * larger, round hit area makes its tooltip easy to reach. */
 .cv-tile__status {
-    display: inline-flex;
+    --cv-tile-dot: var(--cv-text-subtle);
+
+    display: grid;
     grid-area: status;
-    max-width: 100%;
-    min-width: 0;
-    align-items: center;
+    place-items: center;
     align-self: center;
     justify-self: end;
-    gap: 0.375rem;
-    padding: 0.1875rem 0.5625rem 0.1875rem 0.5rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: -0.375rem;
     border-radius: var(--cv-radius-pill);
-    background-color: var(--cv-hover);
-    font-size: 0.75rem;
-    font-weight: 500;
-    line-height: 1.125rem;
-    white-space: normal;
-    color: var(--cv-text-muted);
+    cursor: help;
 
     &::before {
-        flex: none;
-        width: 0.375rem;
-        height: 0.375rem;
+        width: 0.625rem;
+        height: 0.625rem;
         border-radius: var(--cv-radius-pill);
-        background-color: var(--cv-text-subtle);
+        background-color: var(--cv-tile-dot);
+        box-shadow: 0 0 0 3px color-mix(in oklab, var(--cv-tile-dot) 20%, transparent);
         content: '';
     }
 }
 
 .cv-tile__status--success {
-    background-color: color-mix(in oklab, var(--success-500) 12%, transparent);
-    color: var(--success-700);
-
-    &::before {
-        background-color: var(--success-500);
-    }
+    --cv-tile-dot: var(--success-500);
 }
 
 .cv-tile__status--warning {
-    background-color: color-mix(in oklab, var(--warning-500) 14%, transparent);
-    color: var(--warning-700);
-
-    &::before {
-        background-color: var(--warning-500);
-    }
+    --cv-tile-dot: var(--warning-500);
 }
 
 .cv-tile__status--primary {
-    background-color: var(--cv-hover);
-    color: var(--cv-text);
-
-    &::before {
-        background-color: var(--cv-primary);
-    }
-}
-
-.dark .cv-tile__status--success {
-    color: var(--success-400);
-}
-
-.dark .cv-tile__status--warning {
-    color: var(--warning-400);
+    --cv-tile-dot: var(--cv-primary);
 }
 
 /* -------------------------------------------------------------------------
  * Chatvia views: a Settings page (its cards and outline)
  * ---------------------------------------------------------------------- */
+
+/* The section a search find (or a link) opened: a ring that fades, so the
+ * eye finds it on the page. */
+.cv-settings-card--found > .fi-section {
+    outline: 2px solid transparent;
+    outline-offset: 4px;
+    animation: cv-settings-found 2.4s ease-out;
+}
+
+@keyframes cv-settings-found {
+    0%,
+    40% {
+        outline-color: var(--cv-primary);
+    }
+
+    100% {
+        outline-color: transparent;
+    }
+}
 
 .cv-settings-card {
     scroll-margin-top: 1.5rem;

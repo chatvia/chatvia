@@ -85,9 +85,10 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->integer('ingestion_workers', 'Files and websites', help: 'Reading knowledge sources, then exports.', min: 1, max: 200),
                 $this->integer('analytics_workers', 'Analytics', help: 'Conversation analysis, evals and audit logs.', min: 1, max: 100),
                 $this->integer('media_workers', 'Audio and video', help: 'Transcribing recordings. Each one can take a long time.', min: 1, max: 50),
+                $this->integer('voice_workers', 'Live voice calls', help: 'Each voice conversation holds one worker for its whole length, so this is also the most calls at once.', min: 1, max: 200),
             ])->summary(fn (): string => sprintf('Up to %d workers', array_sum(array_map(
                 fn (string $property): int => (int) $this->valueInUse($property),
-                ['chat_workers', 'ingestion_workers', 'analytics_workers', 'media_workers'],
+                ['chat_workers', 'ingestion_workers', 'analytics_workers', 'media_workers', 'voice_workers'],
             ))))->advanced(),
         ];
     }

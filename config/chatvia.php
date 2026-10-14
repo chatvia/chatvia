@@ -308,6 +308,10 @@ return [
         // - transcriber: speech-to-text for voice input and audio sources.
         //   scaleway | openai (both Whisper) | none. auto = scaleway, else
         //   openai, when connected.
+        // - voice: live voice conversations in the hosted chat and the widget
+        //   (speech to speech, the OpenAI Realtime API). openai | none. auto =
+        //   openai when connected. Each agent still opts in (Setup → Settings →
+        //   Composer options).
         // - document_llm: the LLM that reads whole PDFs, for document summaries
         //   and chat with PDF files. mistral | none. auto = mistral when it is
         //   connected. With none, those two features are off.
@@ -326,6 +330,7 @@ return [
             'timeout' => 10,
         ],
         'transcriber' => env('AI_TRANSCRIBER', 'auto'),
+        'voice' => 'auto',
         'document_llm' => env('AI_DOCUMENT_LLM', 'auto'),
 
         // The tokenizer (a tiktoken encoding) every token count uses: chunk
@@ -775,6 +780,35 @@ return [
     | re-streams the snapshot instead of re-running the LLM.
     |
     */
+
+    /*
+    |--------------------------------------------------------------------------
+    | Voice conversations
+    |--------------------------------------------------------------------------
+    |
+    | Live voice calls with an agent (the OpenAI Realtime API, see
+    | chatvia.ai.voice). The browser talks to OpenAI directly; a `voice` queue
+    | worker joins each call to search the knowledge, run tools and save the
+    | transcript, so the number of calls at once is the `voice` Horizon
+    | supervisor's worker count (Settings → Platform → Queue workers).
+    |
+    */
+
+    'voice' => [
+        // The longest call, in minutes (Settings → AI models). At most 25: the
+        // worker's job must end before the queue retries it (redis-long's
+        // retry_after, 1900 seconds).
+        'max_call_minutes' => 10,
+
+        // The most agent tools a call offers, after knowledge search. A voice
+        // session's tools are fixed when it starts (no per-message routing),
+        // so a long tool list is cut here.
+        'max_tools' => 20,
+
+        // How long the browser waits for the worker to join before it gives
+        // up with "busy", in seconds. The call's slot is held this long too.
+        'join_timeout' => 20,
+    ],
 
     'sse' => [
         'dedupe' => [

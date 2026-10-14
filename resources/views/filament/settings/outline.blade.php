@@ -4,7 +4,8 @@
     and buttons that open or close every section. It stays in view beside
     the sections on wide screens and is a row of links above them on narrow
     ones. A link opens its section if it is closed, and the link of the
-    section in view is highlighted. Styled by the panel theme
+    section in view is highlighted. A page opened on a section (a find of
+    the Settings search) opens it, scrolls to it and rings it for a moment. Styled by the panel theme
     (resources/css/filament/admin/theme.css), which also holds the rules for
     the cards themselves (`cv-settings-card`).
 
@@ -38,11 +39,20 @@
 
             this.active = this.ids.findLast((id) => (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= 140) ?? this.ids[0]
         },
+        flash(id) {
+            const section = document.getElementById(id)
+
+            section?.classList.add('cv-settings-card--found')
+            setTimeout(() => section?.classList.remove('cv-settings-card--found'), 2600)
+        },
         init() {
             const id = decodeURIComponent(location.hash.slice(1))
 
             if (this.ids.includes(id)) {
-                setTimeout(() => this.go(id), 100)
+                setTimeout(() => {
+                    this.go(id)
+                    this.flash(id)
+                }, 100)
             }
         },
     }"

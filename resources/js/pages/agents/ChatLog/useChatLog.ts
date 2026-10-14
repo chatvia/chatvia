@@ -359,6 +359,7 @@ export function useChatLog() {
             source: null,
             read_at: null,
             confidence_score: null,
+            voice: false,
         });
     }
 

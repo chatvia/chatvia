@@ -34,7 +34,8 @@
         "delete_failed": "Impossible de supprimer la pièce jointe",
         "upload_limit_reached": "Vous pouvez joindre jusqu'à {count} fichier | Vous pouvez joindre jusqu'à {count} fichiers",
         "send_message": "Envoyer le message",
-        "stop_streaming": "Arrêter la génération"
+        "stop_streaming": "Arrêter la génération",
+        "start_voice_call": "Parler à voix haute"
     },
     "header": {
         "toggle_sidebar": "Afficher/masquer le panneau latéral",
@@ -459,7 +460,8 @@
                 "negative_feedback": "Retour négatif",
                 "qa_matched": "Correspondance Q&R",
                 "revised": "Réponse révisée",
-                "revise": "Réviser"
+                "revise": "Réviser",
+                "voice": "Vocal"
             },
             "details": {
                 "select_conversation": "Sélectionnez une conversation pour afficher les détails",
@@ -1620,7 +1622,7 @@
             },
             "settings": {
                 "composer_title": "Options du compositeur",
-                "composer_description": "Masquez le bouton de téléversement de fichiers ou de saisie vocale si votre agent ne doit pas accepter ces entrées.",
+                "composer_description": "Choisissez les boutons affichés dans la zone de saisie : envoi de fichiers, saisie vocale et conversations vocales.",
                 "file_uploads_label": "Autoriser le téléversement de fichiers",
                 "file_uploads_aria": "Comment les téléversements de fichiers sont-ils facturés ?",
                 "file_uploads_help_title": "Téléversement de fichiers",
@@ -1656,7 +1658,17 @@
                 "topics_help_title": "Sujets",
                 "topics_help_1": "Sujets analyse les conversations et les regroupe selon ce que les gens demandent, vous évitant ainsi d'étiqueter les chats manuellement.",
                 "topics_help_2": "Les nouveaux sujets sont détectés automatiquement et consolidés sur le tableau de bord Sujets, affichant les thèmes les plus fréquents. Nécessite l'enregistrement des conversations.",
-                "topics_hint": "Détecter et regrouper automatiquement ce que les visiteurs demandent."
+                "topics_hint": "Détecter et regrouper automatiquement ce que les visiteurs demandent.",
+                "voice_conversation_label": "Autoriser les conversations vocales",
+                "voice_conversation_hint": "Affiche à côté du micro un bouton qui lance un appel vocal en direct avec l'agent.",
+                "voice_conversation_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer les conversations vocales dans le panneau d'administration.",
+                "voice_conversation_aria": "Comment les conversations vocales sont-elles facturées ?",
+                "voice_conversation_help_title": "Conversations vocales",
+                "voice_conversation_help_1": "Les visiteurs parlent à voix haute avec l'agent. Il répond à partir de ses connaissances et peut utiliser ses outils qui ne demandent pas d'approbation. Les deux côtés de l'appel sont enregistrés dans l'historique des chats.",
+                "voice_conversation_help_2": "Chaque réponse parlée compte comme un message. Un appel vocal coûte beaucoup plus cher qu'un chat écrit.",
+                "voice_label": "Voix",
+                "voice_default": "Par défaut ({voice})",
+                "voice_input_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer la transcription vocale dans le panneau d'administration."
             },
             "bubbles_title": "Bulles de chat",
             "bubbles_description": "Invitations rapides affichées à côté de la bulle du widget. Appuyez sur Entrée pour en ajouter une.",
@@ -3765,6 +3777,26 @@
                 "name": "Amplitude",
                 "description": "Interrogez les analyses produit — événements, graphiques et cohortes — depuis votre projet Amplitude."
             }
+        }
+    },
+    "voice_call": {
+        "title": "Conversation vocale",
+        "connecting": "Connexion…",
+        "listening": "À l'écoute",
+        "thinking": "Réflexion…",
+        "speaking": "Parle",
+        "muted": "Micro coupé",
+        "ended": "Appel terminé",
+        "mute": "Couper le micro",
+        "unmute": "Activer le micro",
+        "end": "Terminer l'appel",
+        "close": "Fermer",
+        "errors": {
+            "not_supported": "Ce navigateur ne peut pas passer d'appels vocaux.",
+            "microphone_denied": "Autorisez l'accès au micro pour parler avec l'agent.",
+            "microphone_not_found": "Aucun micro n'a été trouvé.",
+            "busy": "La voix est occupée pour le moment. Réessayez dans un instant.",
+            "failed": "L'appel vocal n'a pas pu démarrer. Veuillez réessayer."
         }
     }
 }

@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "Snakk med stemmen"
+    },
+    "voice_call": {
+        "title": "Stemmesamtale",
+        "connecting": "Kobler til…",
+        "listening": "Lytter",
+        "thinking": "Tenker…",
+        "speaking": "Snakker",
+        "muted": "Mikrofon av",
+        "ended": "Samtalen er avsluttet",
+        "mute": "Slå av mikrofonen",
+        "unmute": "Slå på mikrofonen",
+        "end": "Avslutt samtalen",
+        "close": "Lukk",
+        "errors": {
+            "not_supported": "Denne nettleseren kan ikke ta stemmesamtaler.",
+            "microphone_denied": "Gi tilgang til mikrofonen for å snakke med agenten.",
+            "microphone_not_found": "Fant ingen mikrofon.",
+            "busy": "Stemme er opptatt akkurat nå. Prøv igjen om litt.",
+            "failed": "Stemmesamtalen kunne ikke starte. Prøv igjen."
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "Velg hvilke knapper meldingsfeltet viser: filopplasting, stemmeinndata og stemmesamtaler.",
+                "voice_conversation_label": "Tillat stemmesamtaler",
+                "voice_conversation_hint": "Vis en knapp ved siden av mikrofonen som starter en direkte stemmesamtale med agenten.",
+                "voice_conversation_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på stemmesamtaler i adminpanelet.",
+                "voice_conversation_aria": "Hvordan regnes stemmesamtaler?",
+                "voice_conversation_help_title": "Stemmesamtaler",
+                "voice_conversation_help_1": "Besøkende snakker høyt med agenten. Den svarer ut fra kunnskapen sin og kan bruke verktøyene sine som ikke trenger godkjenning. Begge sider av samtalen lagres i chatloggen.",
+                "voice_conversation_help_2": "Hvert muntlige svar teller som én melding. En stemmesamtale koster mye mer å kjøre enn en skrevet chat.",
+                "voice_label": "Stemme",
+                "voice_default": "Standard ({voice})",
+                "voice_input_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på tale til tekst i adminpanelet."
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "Stemme"
+            }
+        }
+    }
+}

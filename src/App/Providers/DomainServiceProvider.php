@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Admin\Settings\Listeners\ReembedToolsForNewEmbeddingModel;
+use App\Admin\Settings\Listeners\ReindexForNewEmbeddingModel;
 use App\Identity\Chatter\Events\ChatterPasswordResetRequested;
 use App\Identity\Chatter\Listeners\SendChatterPasswordResetLink;
 use App\Identity\Workspace\Events\AccountDeletionRequested;
@@ -76,6 +76,7 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
+use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
@@ -83,6 +84,8 @@ use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
+use Domain\Llm\Operations\Realtime\NullRealtimeCalls;
+use Domain\Llm\Operations\Realtime\OpenAiRealtimeCalls;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\ProviderAdapters;
@@ -202,19 +205,31 @@ class DomainServiceProvider extends ServiceProvider
             default => throw $this->unknownAiDriver('transcriber', ['scaleway', 'openai', 'none']),
         });
 
+        $this->app->bind(fn ($app): RealtimeCalls => match ($this->aiDriver('voice', auto: AiProvider::firstConnectedFor(AiCapability::Voice)?->value ?? 'none')) {
+            'openai' => $app->make(OpenAiRealtimeCalls::class),
+            'none' => $app->make(NullRealtimeCalls::class),
+            default => throw $this->unknownAiDriver('voice', ['openai', 'none']),
+        });
+
         $this->app->bind(function ($app): DocumentLlm {
-            $driver = $this->aiDriver('document_llm', auto: AiProvider::firstConnectedFor(AiCapability::Documents)?->value ?? 'none');
+            $readers = array_map(
+                static fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(),
+                array_values(array_filter($app->make(ProviderAdapters::class)->all(), static fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments())),
+            );
+
+            // "Automatic" takes the first connected account whose models read
+            // a whole PDF: Azure reads documents too, but has no such models.
+            $auto = array_find(AiProvider::cases(), static fn (AiProvider $account): bool => $account->isConnected() && in_array($account->chatKind(), $readers, true));
+            $driver = $this->aiDriver('document_llm', auto: $auto?->value ?? 'none');
 
             if ($driver === 'none') {
                 return new DocumentLlm(null);
             }
 
-            $adapters = $app->make(ProviderAdapters::class);
-            $readers = array_values(array_filter($adapters->all(), static fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments()));
             $provider = LlmProviderEnum::tryFrom($driver);
 
-            if (! in_array($provider, array_map(static fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(), $readers), true)) {
-                throw $this->unknownAiDriver('document_llm', [...array_map(static fn (ProviderAdapter $adapter): string => $adapter->kind()->value, $readers), 'none']);
+            if (! in_array($provider, $readers, true)) {
+                throw $this->unknownAiDriver('document_llm', [...array_map(static fn (LlmProviderEnum $kind): string => $kind->value, $readers), 'none']);
             }
 
             return new DocumentLlm($provider);
@@ -266,8 +281,8 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(Login::class, RecordKnownDevice::class);
         Event::listen(Login::class, RecordLastLogin::class);
 
-        // A new embedding model (Settings → AI models) needs every tool embedded again.
-        Event::listen(SavingSettings::class, ReembedToolsForNewEmbeddingModel::class);
+        // A new embedding model (Settings → AI models) needs everything embedded again.
+        Event::listen(SavingSettings::class, ReindexForNewEmbeddingModel::class);
 
         // Enterprise security audit log — one parametric event, persisted off
         // the request by a queued listener. The auth listeners run on the web

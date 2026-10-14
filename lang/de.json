@@ -268,5 +268,13 @@
     "Complete the security check.": "Schließen Sie die Sicherheitsprüfung ab.",
     "This account has been deactivated.": "Dieses Konto wurde deaktiviert.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "Für diese E-Mail-Adresse gibt es bereits ein Konto in einem anderen Workspace. Bitten Sie um eine Einladung an eine andere E-Mail-Adresse.",
-    "A chatter with this email already exists in your workspace.": "In Ihrem Workspace gibt es bereits einen Chatter mit dieser E-Mail-Adresse."
+    "A chatter with this email already exists in your workspace.": "In Ihrem Workspace gibt es bereits einen Chatter mit dieser E-Mail-Adresse.",
+    "Voice input is not available right now.": "Die Spracheingabe ist gerade nicht verfügbar.",
+    "Voice conversations are not available for this agent.": "Sprachgespräche sind für diesen Agenten nicht verfügbar.",
+    "A team member has joined this conversation. Please continue in the chat.": "Ein Teammitglied ist dem Gespräch beigetreten. Bitte mach im Chat weiter.",
+    "Voice is busy right now. Please try again in a moment.": "Die Sprachfunktion ist gerade ausgelastet. Bitte versuche es gleich noch einmal.",
+    "The voice call could not start. Please try again.": "Der Sprachanruf konnte nicht starten. Bitte versuche es erneut.",
+    "Our time for this call is up. You can keep chatting in the text box.": "Die Zeit für diesen Anruf ist um. Du kannst im Textfeld weiterschreiben.",
+    "Sorry, I can't help with that.": "Tut mir leid, dabei kann ich nicht helfen.",
+    "(Voice message that could not be transcribed)": "(Sprachnachricht, die nicht aufgeschrieben werden konnte)"
 }

@@ -268,5 +268,13 @@
     "Complete the security check.": "Gennemfør sikkerhedstjekket.",
     "This account has been deactivated.": "Denne konto er blevet deaktiveret.",
     "This email already has an account in another workspace. Ask for an invitation to a different email.": "Denne e-mail har allerede en konto i et andet workspace. Bed om en invitation til en anden e-mail.",
-    "A chatter with this email already exists in your workspace.": "Der findes allerede en chatter med denne e-mail i dit workspace."
+    "A chatter with this email already exists in your workspace.": "Der findes allerede en chatter med denne e-mail i dit workspace.",
+    "Voice input is not available right now.": "Stemmeinput er ikke tilgængelig lige nu.",
+    "Voice conversations are not available for this agent.": "Stemmesamtaler er ikke tilgængelige for denne agent.",
+    "A team member has joined this conversation. Please continue in the chat.": "Et teammedlem har sluttet sig til samtalen. Fortsæt venligst i chatten.",
+    "Voice is busy right now. Please try again in a moment.": "Stemme er optaget lige nu. Prøv igen om et øjeblik.",
+    "The voice call could not start. Please try again.": "Stemmeopkaldet kunne ikke starte. Prøv igen.",
+    "Our time for this call is up. You can keep chatting in the text box.": "Tiden for dette opkald er gået. Du kan fortsætte i tekstfeltet.",
+    "Sorry, I can't help with that.": "Beklager, det kan jeg ikke hjælpe med.",
+    "(Voice message that could not be transcribed)": "(Stemmebesked, der ikke kunne skrives ned)"
 }

@@ -26,6 +26,24 @@ final class PageVisualsData extends Data
     ) {}
 
     /**
+     * The descriptions back from a chunk's stored `metadata` ({@see toMetadata()}),
+     * empty for a chunk without images or tables.
+     *
+     * @param  array<array-key, mixed>  $metadata
+     */
+    public static function fromMetadata(array $metadata): self
+    {
+        $images = $metadata['images'] ?? [];
+        $tables = $metadata['tables'] ?? [];
+
+        return new self(
+            imageDescriptions: is_array($images) ? array_map(strval(...), $images) : [],
+            tables: is_array($tables) && is_array($tables['markdown'] ?? null) ? array_values(array_map(strval(...), $tables['markdown'])) : [],
+            tableDescription: is_array($tables) ? (string) ($tables['descriptions'] ?? '') : '',
+        );
+    }
+
+    /**
      * The descriptions to add to the page text before embedding, in reading
      * order (images first, then tables).
      */

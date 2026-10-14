@@ -32,9 +32,10 @@ use Support\Http\SafeUrl;
  * The admin setup of a new install: every panel page leads to it until it is
  * done or skipped. "Connect AI": a provider and its key, checked by reading
  * its model list; a provider that makes no embeddings of the stored size
- * also needs an embedding service and its key. "Models": the chat model, and
- * the embedding model (OpenRouter's from its list) checked with a test
- * embedding. Each key is saved once, in
+ * also needs an embedding service and its key. "Models": the chat model, the
+ * embedding model (OpenRouter's from its list) checked with a test
+ * embedding, and the reranker checked with a test question. Each key is
+ * saved once, in
  * Settings → AI providers ({@see CompleteSetupAction}).
  */
 beforeEach(function (): void {
@@ -43,6 +44,9 @@ beforeEach(function (): void {
 
     Filament::setCurrentPanel('admin');
     Queue::fake([SyncBuiltinConnectorsJob::class]);
+    fakeOpenRouterEmbeddingModels();
+    // The setup reads lists and checks keys over HTTP: none may leave the test.
+    Http::preventStrayRequests();
     setupNotDone();
 
     // A new install: no key is saved yet.
@@ -83,8 +87,11 @@ function fakeScaleway(int $dimensions): void
     ]);
 }
 
-/** The OpenRouter model lists (one chat model, one that cannot chat; two embedding models) and its embeddings. */
-function fakeOpenRouter(int $dimensions): void
+/**
+ * OpenRouter's public list of embedding models (two, and a batch one it
+ * hides). The setup opens on OpenRouter, so it reads the list at once.
+ */
+function fakeOpenRouterEmbeddingModels(): void
 {
     Http::fake([
         'openrouter.ai/api/v1/embeddings/models' => Http::response(['data' => [
@@ -92,7 +99,15 @@ function fakeOpenRouter(int $dimensions): void
             ['id' => 'baai/bge-m3', 'name' => 'BAAI: bge-m3'],
             ['id' => 'openai/text-embedding-3-small:batch', 'name' => 'OpenAI: Text Embedding 3 Small (batch)'],
         ]]),
+    ]);
+}
+
+/** The OpenRouter model list (one chat model, one that cannot chat), its embeddings and its reranking. */
+function fakeOpenRouter(int $dimensions): void
+{
+    Http::fake([
         'openrouter.ai/api/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $dimensions, 0.1)]]]),
+        'openrouter.ai/api/v1/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]]),
         'openrouter.ai/api/v1/models' => Http::response(['data' => [
             [
                 'id' => 'meta-llama/llama-4-maverick',
@@ -111,12 +126,13 @@ function fakeOpenRouter(int $dimensions): void
     ]);
 }
 
-/** The Groq model list, and Cohere embeddings. */
+/** The Groq model list, and Cohere embeddings and reranking. */
 function fakeGroqAndCohere(int $dimensions): void
 {
     Http::fake([
         'api.groq.com/openai/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
         'api.cohere.com/v2/embed' => Http::response(['embeddings' => ['float' => [array_fill(0, $dimensions, 0.1)]]]),
+        'api.cohere.com/v2/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]]),
     ]);
 }
 
@@ -157,12 +173,14 @@ it('can be finished after a skip, from Settings', function (): void {
     $this->get(route('filament.admin.setup'))->assertOk()->assertSee('Back to the admin panel')->assertDontSee('Skip the setup for now');
 });
 
-it('starts on a provider that also makes the embeddings, and says what each provider gives', function (): void {
+it('starts on OpenRouter, lists the providers by name, and says what each provider gives', function (): void {
     setupPage($this->admin)
         ->assertWizardCurrentStep(1)
-        ->assertFormSet(['provider' => 'scaleway', 'embedding_provider' => 'qwen'])
-        ->assertSee(['Chat · embeddings · speech to text', 'Chat · embeddings · reranking', 'Your own server'])
-        ->assertSee('Made with Qwen3 on Scaleway AI, with your Scaleway AI key.')
+        ->assertFormSet(['provider' => 'openrouter', 'embedding_provider' => 'openrouter'])
+        ->assertSeeInOrder(['Google Gemini', 'Groq', 'Mistral', 'OpenAI', 'OpenRouter', 'Scaleway AI', 'Your own server'])
+        ->assertSee(['Open models hosted in Europe.', 'Your own server'])
+        ->assertSeeHtml(['<span class="cv-chip">speech to text</span>', '<span class="cv-chip">reranking</span>', 'images/llms/gpt.svg'])
+        ->assertSee('Made with OpenRouter, with your OpenRouter key.')
         ->assertFormFieldHidden('embedding_provider')
         ->assertFormFieldHidden('embedding_api_key');
 });
@@ -313,6 +331,112 @@ it('stops on Finish when the embedding model returns another vector size', funct
 
     expect(setupSetting(PlatformSettings::class, 'setup_status'))->toBeNull()
         ->and(setupSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
+});
+
+it('starts the reranker on OpenRouter with the key of the first step, from its live list', function (): void {
+    fakeOpenRouter($this->dimensions);
+
+    $page = setupPage($this->admin)
+        ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
+        ->goToNextWizardStep()
+        ->assertWizardCurrentStep(2)
+        ->assertFormSet(['reranker' => 'openrouter', 'openrouter_rerank_model' => 'cohere/rerank-4-pro'])
+        ->assertFormFieldHidden('rerank_api_key')
+        ->assertSee('Uses the OpenRouter key you entered in Connect AI');
+
+    // The strongest first (OpenRouter's live list adds the others it has).
+    $models = array_keys($page->instance()->form->getFlatFields(withHidden: true)['openrouter_rerank_model']->getOptions());
+    expect(array_slice($models, 0, 3))->toBe(['cohere/rerank-4-pro', 'voyageai/rerank-3', 'qwen/qwen3-reranker-8b']);
+
+    $page->fillForm(['openrouter_rerank_model' => 'qwen/qwen3-reranker-8b'])
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('openrouter')
+        ->and(setupSetting(AiSettings::class, 'openrouter_rerank_model'))->toBe('qwen/qwen3-reranker-8b');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/rerank'
+        && $request->header('Authorization') === ['Bearer sk-or-test']
+        && $request['model'] === 'qwen/qwen3-reranker-8b');
+});
+
+it('starts the reranker on "Not now" for another provider, and checks Cohere with its own key', function (): void {
+    fakeScaleway($this->dimensions);
+    Http::fake(['api.cohere.com/v2/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]])]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToNextWizardStep()
+        ->assertFormSet(['reranker' => 'none'])
+        ->fillForm(['reranker' => 'cohere'])
+        ->assertFormFieldVisible('rerank_api_key')
+        ->fillForm(['rerank_api_key' => 'co-test', 'cohere_rerank_model' => 'rerank-v4.0-fast'])
+        ->goToWizardStep(3)
+        ->assertHasNoFormErrors()
+        ->assertWizardCurrentStep(3)
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('cohere')
+        ->and(setupSetting(AiSettings::class, 'cohere_rerank_model'))->toBe('rerank-v4.0-fast')
+        ->and(setupSetting(AiProviderSettings::class, 'cohere_api_key'))->toBe('co-test');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.cohere.com/v2/rerank'
+        && $request->header('Authorization') === ['Bearer co-test']
+        && $request['model'] === 'rerank-v4.0-fast');
+});
+
+it('reranks with the Cohere key typed for the embeddings', function (): void {
+    fakeGroqAndCohere($this->dimensions);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'groq', 'api_key' => 'gsk-test', 'embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test'])
+        ->goToNextWizardStep()
+        ->fillForm(['reranker' => 'cohere'])
+        ->assertFormFieldHidden('rerank_api_key')
+        ->assertSee('Uses the Cohere key you entered in Connect AI')
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('cohere');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.cohere.com/v2/rerank'
+        && $request->header('Authorization') === ['Bearer co-test']);
+});
+
+it('stops on the models step when the reranker refuses its key', function (): void {
+    fakeScaleway($this->dimensions);
+    Http::fake(['api.cohere.com/v2/rerank' => Http::response(['message' => 'invalid api token'], 401)]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToNextWizardStep()
+        ->fillForm(['reranker' => 'cohere', 'rerank_api_key' => 'wrong'])
+        ->goToWizardStep(3)
+        ->assertHasFormErrors(['rerank_api_key'])
+        ->assertWizardCurrentStep(2);
+});
+
+it('reranks with a server of your own', function (): void {
+    fakeScaleway($this->dimensions);
+    Http::fake(['reranker.example.com/v1/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]])]);
+
+    setupPage($this->admin)
+        ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
+        ->goToNextWizardStep()
+        ->fillForm(['reranker' => 'custom'])
+        ->assertFormFieldHidden('rerank_api_key')
+        ->fillForm(['rerank_custom_url' => 'https://reranker.example.com/v1/', 'rerank_custom_model' => 'Qwen/Qwen3-Reranker-4B', 'rerank_custom_key' => 'own-key'])
+        ->call('complete')
+        ->assertHasNoFormErrors();
+
+    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('custom')
+        ->and(setupSetting(AiSettings::class, 'rerank_custom_url'))->toBe('https://reranker.example.com/v1')
+        ->and(setupSetting(AiSettings::class, 'rerank_custom_model'))->toBe('Qwen/Qwen3-Reranker-4B')
+        ->and(setupSetting(AiSettings::class, 'rerank_custom_key'))->toBe('own-key');
+
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://reranker.example.com/v1/rerank'
+        && $request->header('Authorization') === ['Bearer own-key']);
 });
 
 it('adds a server of your own and takes a typed model name when it lists none', function (): void {
@@ -467,7 +591,8 @@ it('starts every optional service on "Not now" and storage on this server, whate
     config(['chatvia.storage.driver' => 's3', 'mail.default' => 'smtp', 'chatvia.ai.transcriber' => 'auto']);
 
     setupPage($this->admin)
-        ->assertFormSet(['document_reader' => 'none', 'website_import' => 'none', 'transcriber' => 'none', 'storage_driver' => 'local', 'mailer' => 'log'])
+        ->fillForm(['provider' => 'scaleway'])
+        ->assertFormSet(['reranker' => 'none', 'document_reader' => 'none', 'website_import' => 'none', 'transcriber' => 'none', 'storage_driver' => 'local', 'mailer' => 'log'])
         ->assertSee(['Reading PDFs and Word', 'Importing websites', 'Audio and video files', 'Mailer'])
         ->assertDontSee('Optional:');
 });
@@ -483,6 +608,7 @@ it('turns the services left at "Not now" off, so Automatic does not turn them on
 
     expect(setupSetting(AiSettings::class, 'transcriber'))->toBe('none')
         ->and(setupSetting(AiSettings::class, 'document_parser'))->toBe('none')
+        ->and(setupSetting(AiSettings::class, 'reranker'))->toBe('none')
         ->and(setupSetting(KnowledgeSettings::class, 'firecrawl_api_key'))->toBeNull();
 });
 
@@ -679,6 +805,7 @@ it('ends on a final step with the choices made, and where the defaults are chang
             'AI provider', 'Scaleway AI',
             'Chat models', 'gpt-oss-120b, mistral-small-3.2-24b-instruct-2506 (default)',
             'Embeddings', 'Qwen3 on Scaleway AI', config('services.scalewayai.embedding_model'),
+            'Reranker', 'Not now',
             'Documents', 'Not now',
             'Websites', 'Not now',
             'Speech to text', 'Not now',
@@ -686,7 +813,7 @@ it('ends on a final step with the choices made, and where the defaults are chang
             'Mailer', 'Not now',
             'Default values',
             'Knowledge', 'How texts are split into chunks',
-            'AI models', 'More chat models, the reranker',
+            'AI models', 'More chat models, and the models for background jobs',
         ])
         ->call('complete')
         ->assertHasNoFormErrors();

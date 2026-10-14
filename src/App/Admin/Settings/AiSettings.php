@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * What runs on which AI provider (Settings → AI models): which service
  * handles each step (embeddings, reranking, document reading, speech to
- * text), the models those services call, and the catalog model behind each
+ * text, voice conversations), the models those services call, and the catalog model behind each
  * of the app's own jobs (LlmRole). The providers' keys are in
  * {@see AiProviderSettings}; chat models are rows (`llms`). The services are
  * picked in App\Providers\DomainServiceProvider from `chatvia.ai.*`.
  *
- * The embedding provider and its model decide the stored vectors, so the panel
- * locks them once a source is trained.
+ * The embedding provider and its model decide the stored vectors: a change
+ * of either ({@see embeddingFor()}) embeds everything again.
  */
 class AiSettings extends AdminSettings
 {
@@ -42,6 +43,9 @@ class AiSettings extends AdminSettings
 
     #[ConfigKey('chatvia.ai.transcriber')]
     public ?string $transcriber = null;
+
+    #[ConfigKey('chatvia.ai.voice')]
+    public ?string $voice = null;
 
     #[ConfigKey('chatvia.ai.document_llm')]
     public ?string $document_llm = null;
@@ -97,6 +101,18 @@ class AiSettings extends AdminSettings
     #[ConfigKey('services.openai.transcription_model')]
     public ?string $openai_transcription_model = null;
 
+    #[ConfigKey('services.openai.realtime_model')]
+    public ?string $openai_realtime_model = null;
+
+    #[ConfigKey('services.openai.realtime_voice')]
+    public ?string $openai_realtime_voice = null;
+
+    #[ConfigKey('services.openai.realtime_transcription_model')]
+    public ?string $openai_realtime_transcription_model = null;
+
+    #[ConfigKey('chatvia.voice.max_call_minutes')]
+    public ?int $voice_max_call_minutes = null;
+
     #[ConfigKey('services.gemini.embedding_model')]
     public ?string $gemini_embedding_model = null;
 
@@ -106,5 +122,25 @@ class AiSettings extends AdminSettings
     public static function group(): string
     {
         return 'ai';
+    }
+
+    /**
+     * The embedding service and model these values put in use, as "service
+     * model"; a blank value uses its default. Vectors made with two different
+     * ones cannot be compared.
+     *
+     * @param  array<string, mixed>  $values  property => value
+     */
+    public static function embeddingFor(array $values): string
+    {
+        $value = static fn (string $property): string => (string) (filled($values[$property] ?? null)
+            ? $values[$property]
+            : app(SettingsConfig::class)->defaultOf(self::class, $property));
+
+        $service = $value('embedding_provider');
+        $provider = EmbeddingProvider::tryFrom($service);
+        $model = $provider instanceof EmbeddingProvider ? self::propertyFor($provider->modelConfig()) : null;
+
+        return $model === null ? $service : $service.' '.$value($model);
     }
 }

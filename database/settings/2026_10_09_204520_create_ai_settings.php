@@ -23,6 +23,7 @@ return new class extends SettingsMigration
             $group->add('rerank_custom_model');
             $group->add('document_parser');
             $group->add('transcriber');
+            $group->add('voice');
             $group->add('document_llm');
             $group->add('default_agent_model');
             $group->add('fast_model');
@@ -41,6 +42,10 @@ return new class extends SettingsMigration
             $group->add('jina_embedding_model');
             $group->add('openai_embedding_model');
             $group->add('openai_transcription_model');
+            $group->add('openai_realtime_model');
+            $group->add('openai_realtime_voice');
+            $group->add('openai_realtime_transcription_model');
+            $group->add('voice_max_call_minutes');
             $group->add('gemini_embedding_model');
             $group->add('openrouter_embedding_model');
         });

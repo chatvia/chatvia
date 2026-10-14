@@ -1,0 +1,47 @@
+{
+    "composer": {
+        "start_voice_call": "用语音交谈"
+    },
+    "voice_call": {
+        "title": "语音对话",
+        "connecting": "正在连接…",
+        "listening": "正在聆听",
+        "thinking": "正在思考…",
+        "speaking": "正在说话",
+        "muted": "麦克风已关闭",
+        "ended": "通话已结束",
+        "mute": "关闭麦克风",
+        "unmute": "打开麦克风",
+        "end": "结束通话",
+        "close": "关闭",
+        "errors": {
+            "not_supported": "此浏览器无法进行语音通话。",
+            "microphone_denied": "请允许使用麦克风，以便与助手交谈。",
+            "microphone_not_found": "未找到麦克风。",
+            "busy": "语音服务正忙，请稍后再试。",
+            "failed": "无法开始语音通话，请重试。"
+        }
+    },
+    "agents": {
+        "setup": {
+            "settings": {
+                "composer_description": "选择输入框显示哪些按钮：文件上传、语音输入和语音对话。",
+                "voice_conversation_label": "允许语音对话",
+                "voice_conversation_hint": "在麦克风旁显示一个按钮，用于与助手开始实时语音通话。",
+                "voice_conversation_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启语音对话。",
+                "voice_conversation_aria": "语音对话如何计数？",
+                "voice_conversation_help_title": "语音对话",
+                "voice_conversation_help_1": "访客可以与助手直接对话。助手根据其知识回答，并可以使用无需审批的工具。通话双方的内容都会保存在聊天记录中。",
+                "voice_conversation_help_2": "每条语音回答计为一条消息。语音通话的运行成本远高于文字聊天。",
+                "voice_label": "声音",
+                "voice_default": "默认（{voice}）",
+                "voice_input_unavailable": "此服务器尚未设置。管理员可以在管理面板中开启语音转文字。"
+            }
+        },
+        "chatlog": {
+            "messages": {
+                "voice": "语音"
+            }
+        }
+    }
+}

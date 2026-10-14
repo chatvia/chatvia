@@ -37,8 +37,10 @@ readonly class StreamController
         $conversationId = $this->widgetConversationId($request);
 
         // The session must belong to THIS agent, or a session started under
-        // agent A could stream against agent B.
-        abort_if(! $verification->verifySessionExternalId($sessionId, $agent), JsonResponse::HTTP_FORBIDDEN, 'Invalid session id');
+        // agent A could stream against agent B, and to the signed-in viewer,
+        // or another visitor could send messages as that chatter by replaying
+        // their session id.
+        abort_if(! $verification->verifySessionExternalId($sessionId, $agent, $this->widgetViewer($request)), JsonResponse::HTTP_FORBIDDEN, 'Invalid session id');
         abort_if($conversationId === null, JsonResponse::HTTP_BAD_REQUEST, 'Missing conversation id');
 
         // Playground status comes only from the verified widget session (set

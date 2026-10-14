@@ -93,10 +93,10 @@ class Llm extends Model
         return $this->belongsTo(LlmProvider::class, 'llm_provider_id');
     }
 
-    /** Whether the model may be picked: it and its provider are enabled. */
+    /** Whether the model may be picked: it and its provider are on, and the provider has its key. */
     public function isAvailable(): bool
     {
-        return $this->is_enabled && $this->provider->is_enabled;
+        return $this->is_enabled && $this->provider->is_enabled && $this->provider->isConnected();
     }
 
     /**

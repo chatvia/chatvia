@@ -98,34 +98,43 @@ class ManageStorageSettings extends AdminSettingsPage
 
     protected function cards(): array
     {
+        $s3 = fn (Get $get): bool => $this->usesS3($get);
+
         return [
             SettingsCard::make('location', 'Where files are kept', 'Knowledge files and backups, chat attachments and chunk images.', Heroicon::OutlinedArchiveBox, fn (): array => [
                 $this->choice('driver', 'Store files in', self::DRIVERS,
-                    help: 'This server needs no account. S3-compatible storage keeps files off the server and scales with them.')
+                    help: 'This server needs no account. S3-compatible storage (AWS S3, Scaleway, Cloudflare R2, MinIO…) keeps files off the server and scales with them.')
                     ->live(),
                 Callout::make('Switching moves no files')
                     ->description('Files already stored stay where they are, and the app no longer finds them. Switch before people add files, or copy the files to the new place first.')
                     ->icon(Heroicon::OutlinedExclamationTriangle)
                     ->warning(),
-            ])->summary(fn (): string => self::DRIVERS[(string) $this->valueInUse('driver')] ?? self::DRIVERS['local']),
-            SettingsCard::make('s3', 'S3-compatible storage', 'AWS S3, Scaleway Object Storage, Cloudflare R2, MinIO and other services with the S3 API.', Heroicon::OutlinedCloud, fn (): array => [
                 $this->url('s3_endpoint', 'Endpoint',
-                    help: 'For example https://s3.fr-par.scw.cloud, https://<account-id>.r2.cloudflarestorage.com or http://minio:9000. Leave empty for AWS S3.'),
+                    help: 'For example https://s3.fr-par.scw.cloud, https://<account-id>.r2.cloudflarestorage.com or http://minio:9000. Leave empty for AWS S3.')
+                    ->visible($s3),
                 $this->text('s3_region', 'Region', help: 'For example fr-par, eu-west-1, or auto for Cloudflare R2.')
-                    ->required(fn (Get $get): bool => $this->usesS3($get)),
+                    ->required($s3)
+                    ->visible($s3),
                 $this->text('s3_key', 'Access key ID')
-                    ->required(fn (Get $get): bool => $this->usesS3($get)),
+                    ->required($s3)
+                    ->visible($s3),
                 $this->secret('s3_secret', 'Secret access key')
-                    ->required(fn (Get $get): bool => $this->usesS3($get) && ! $this->isSaved('s3_secret')),
+                    ->required(fn (Get $get): bool => $this->usesS3($get) && ! $this->isSaved('s3_secret'))
+                    ->visible($s3),
+                $this->text('private_bucket', 'Private bucket', help: 'Knowledge files and backups. Keep this bucket private.')
+                    ->required($s3)
+                    ->visible($s3),
+                $this->text('public_bucket', 'Public bucket', help: 'Chat attachments and chunk images. Anyone with a file\'s link can open it.')
+                    ->required($s3)
+                    ->visible($s3),
+            ])->advancedFields(fn (): array => [
                 $this->toggle('s3_path_style', 'Use path-style addresses',
                     help: 'Puts the bucket in the path instead of the host name. MinIO and some other servers need it.'),
-                $this->text('private_bucket', 'Private bucket', help: 'Knowledge files and backups. Keep this bucket private.')
-                    ->required(fn (Get $get): bool => $this->usesS3($get)),
-                $this->text('public_bucket', 'Public bucket', help: 'Chat attachments and chunk images. Anyone with a file\'s link can open it.')
-                    ->required(fn (Get $get): bool => $this->usesS3($get)),
                 $this->url('public_url', 'Public files address',
                     help: 'Where the public bucket\'s files are served from, for example a CDN. Leave empty to use the bucket\'s own address.'),
-            ])->required('s3_region', 's3_key', 's3_secret', 'private_bucket', 'public_bucket'),
+            ], visible: $s3)
+                ->properties('driver', 's3_endpoint', 's3_region', 's3_key', 's3_secret', 's3_path_style', 'private_bucket', 'public_bucket', 'public_url')
+                ->summary(fn (): string => self::DRIVERS[(string) $this->valueInUse('driver')] ?? self::DRIVERS['local']),
         ];
     }
 

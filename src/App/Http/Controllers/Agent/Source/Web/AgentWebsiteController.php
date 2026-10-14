@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Agent\Source\Web;
 
 use App\Http\Requests\Agent\Source\StartAgentWebsiteCrawlRequest;
+use App\Http\Requests\Agent\Source\UpdateAgentWebsiteRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
+use Domain\Knowledge\Source\Web\Actions\Refresh\SetWebsiteRefreshIntervalAction;
 use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -32,7 +34,7 @@ class AgentWebsiteController
         $websites = $agent
             ->websites()
             ->getQuery()
-            ->select(['source_websites.id', 'url', 'status', 'source_websites.created_at', 'options', 'expected_chunks'])
+            ->select(['source_websites.id', 'url', 'status', 'source_websites.created_at', 'options', 'expected_chunks', 'refresh_interval', 'refreshed_at'])
             ->withCount(['urls', 'agents'])
             ->orderByDesc('source_websites.id')
             ->paginate(self::PER_PAGE);
@@ -48,6 +50,13 @@ class AgentWebsiteController
     public function store(StartAgentWebsiteCrawlRequest $request, Agent $agent, StartAgentWebsiteCrawlAction $startCrawl): void
     {
         $startCrawl->execute($agent, $request->toData());
+    }
+
+    public function update(UpdateAgentWebsiteRequest $request, Agent $agent, SourceWebsite $website, SetWebsiteRefreshIntervalAction $setRefresh): void
+    {
+        abort_if($request->user()->cannot('update', $website), 404);
+
+        $setRefresh->execute($website, $request->refreshInterval());
     }
 
     public function destroy(Request $request, Agent $agent, SourceWebsite $website, DeleteSourceWebsiteAction $delete): void

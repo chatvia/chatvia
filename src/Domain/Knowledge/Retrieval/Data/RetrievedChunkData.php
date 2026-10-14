@@ -29,6 +29,10 @@ final class RetrievedChunkData extends Data
         public string $search_type,
         /** The fused Reciprocal Rank Fusion score; small positive numbers, higher is better. */
         public float $score,
+        /** Cosine similarity to the query (the closer of the chunk's and its questions' vectors). */
+        public ?float $similarity = null,
+        /** The chunk's size in tokens, as stored. */
+        public int $tokens = 0,
         /**
          * How relevant the relevance check found the chunk, 0..1: the
          * reranker's score, or the similarity check's. Null when no check ran.
@@ -51,6 +55,8 @@ final class RetrievedChunkData extends Data
             metadata: is_string($row->metadata) ? $row->metadata : null,
             search_type: (string) $row->search_type,
             score: (float) $row->score,
+            similarity: isset($row->similarity) ? (float) $row->similarity : null,
+            tokens: (int) ($row->tokens ?? 0),
         );
     }
 

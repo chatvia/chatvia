@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "التحديث التلقائي",
+                "refresh_hint": "زحف الموقع مرة أخرى وتعلّم صفحاته الجديدة والمعدّلة.",
+                "refresh_off": "بدون تحديث تلقائي",
+                "refresh_daily": "تحديث يومي",
+                "refresh_weekly": "تحديث أسبوعي",
+                "refresh_monthly": "تحديث شهري",
+                "refresh_saved": "تم حفظ التحديث التلقائي.",
+                "refresh_failed": "تعذّر حفظ التحديث التلقائي."
+            }
+        }
+    }
+}

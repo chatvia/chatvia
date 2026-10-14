@@ -155,7 +155,8 @@
         "page_label": "Seite {page}",
         "file_with_page": "{file} (Seite {page})",
         "fallback_title": "Quelle {number}",
-        "chunk_label": "Abschnitt {index}"
+        "chunk_label": "Abschnitt {index}",
+        "open_link": "{label} öffnen"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Training abgeschlossen!",
                 "training_failed_retry": "Training fehlgeschlagen. Klicken Sie zum Wiederholen",
                 "retrain_this_link": "Diesen Link erneut trainieren",
-                "delete_this_link": "Diesen Link löschen"
+                "delete_this_link": "Diesen Link löschen",
+                "refresh_label": "Automatische Aktualisierung",
+                "refresh_hint": "Die Website erneut durchsuchen und neue und geänderte Seiten lernen.",
+                "refresh_off": "Keine automatische Aktualisierung",
+                "refresh_daily": "Täglich aktualisieren",
+                "refresh_weekly": "Wöchentlich aktualisieren",
+                "refresh_monthly": "Monatlich aktualisieren",
+                "refresh_saved": "Automatische Aktualisierung gespeichert.",
+                "refresh_failed": "Automatische Aktualisierung konnte nicht gespeichert werden."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Chat-Blase hinzufügen",
             "bubbles_remove": "Chat-Blase entfernen",
             "bubbles_empty": "Noch keine Chat-Blasen vorhanden.",
-            "bubbles_translate_empty": "Fügen Sie zuerst eine Chat-Blase hinzu, um sie zu übersetzen."
+            "bubbles_translate_empty": "Fügen Sie zuerst eine Chat-Blase hinzu, um sie zu übersetzen.",
+            "model_picker_title": "Modell",
+            "model_picker_description": "Das KI-Modell, mit dem dieser Agent antwortet. Ein Admin legt fest, welche Modelle in dieser Liste stehen (Admin-Bereich → Settings → AI models).",
+            "model_placeholder": "Modell wählen",
+            "model_default": "Standard",
+            "model_empty": "Noch keine Modelle. Ein Admin fügt sie im Admin-Bereich unter Settings → AI models hinzu."
         },
         "topics_index": {
             "title": "Themen",

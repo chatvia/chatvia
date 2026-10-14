@@ -12,7 +12,9 @@ use Domain\Integration\Tool\Search\ToolHybridSearch;
  *
  * `score` is the fused RRF score (higher is better; only meaningful for
  * ordering). `channels` names the retrieval channels that found the tool —
- * `vector`, `bm25` or `bm25+vector`.
+ * `vector`, `bm25` or `bm25+vector`. `similarity` is the cosine similarity of
+ * the tool's embedding to the message, for the similarity check used when no
+ * reranker is set up.
  */
 final readonly class ToolSearchHitData
 {
@@ -21,6 +23,7 @@ final readonly class ToolSearchHitData
         public float $score,
         public string $channels,
         public ToolSearchPool $pool,
+        public ?float $similarity = null,
     ) {}
 
     /**

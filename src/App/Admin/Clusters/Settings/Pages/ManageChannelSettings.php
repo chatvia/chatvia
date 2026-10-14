@@ -67,11 +67,13 @@ class ManageChannelSettings extends AdminSettingsPage
     {
         return SettingsCard::make($channel, $label, $description, asset("images/logos/channels/{$channel}.svg"), fn (): array => [
             ...$this->appFields($channel),
-            $this->text("{$channel}_config_id", 'Login configuration ID',
-                help: 'Facebook Login for Business configuration. Without it the classic permission request is used.'),
-            $this->url("{$channel}_redirect", 'Redirect URL',
-                help: 'Leave empty to use the URL shown. It must be a valid OAuth redirect URI in the Meta app.'),
         ])
+            ->advancedFields(fn (): array => [
+                $this->text("{$channel}_config_id", 'Login configuration ID',
+                    help: 'Facebook Login for Business configuration. Without it the classic permission request is used.'),
+                $this->url("{$channel}_redirect", 'Another redirect URL',
+                    help: 'Leave empty to use the URL shown. It must be a valid OAuth redirect URI in the Meta app.'),
+            ])
             ->required("{$channel}_app_id", "{$channel}_app_secret", "{$channel}_webhook_verify_token")
             ->console(self::META_CONSOLE)
             ->callbacks(['OAuth redirect' => $redirectRoute, 'Webhook callback URL' => $webhookRoute]);

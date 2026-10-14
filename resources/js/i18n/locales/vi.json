@@ -155,7 +155,8 @@
         "page_label": "Trang {page}",
         "file_with_page": "{file} (Trang {page})",
         "fallback_title": "Nguồn {number}",
-        "chunk_label": "Đoạn {index}"
+        "chunk_label": "Đoạn {index}",
+        "open_link": "Mở {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "Huấn luyện hoàn tất!",
                 "training_failed_retry": "Huấn luyện thất bại. Nhấp để thử lại",
                 "retrain_this_link": "Huấn luyện lại liên kết này",
-                "delete_this_link": "Xóa liên kết này"
+                "delete_this_link": "Xóa liên kết này",
+                "refresh_label": "Tự động làm mới",
+                "refresh_hint": "Thu thập lại trang web và học các trang mới và đã thay đổi.",
+                "refresh_off": "Không tự động làm mới",
+                "refresh_daily": "Làm mới hằng ngày",
+                "refresh_weekly": "Làm mới hằng tuần",
+                "refresh_monthly": "Làm mới hằng tháng",
+                "refresh_saved": "Đã lưu tự động làm mới.",
+                "refresh_failed": "Không thể lưu tự động làm mới."
             }
         },
         "leads": {

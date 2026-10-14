@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Sivu {page})",
         "fallback_title": "Lähde {number}",
-        "chunk_label": "Katkelma {index}"
+        "open_link": "Avaa {label}"
     },
     "sidebar": {
         "save_title": "Tallenna otsikko",

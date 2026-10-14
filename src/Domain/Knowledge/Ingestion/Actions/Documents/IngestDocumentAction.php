@@ -5,7 +5,10 @@ namespace Domain\Knowledge\Ingestion\Actions\Documents;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
+use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
+use Domain\Knowledge\Ingestion\Data\Chunking\ChunkingConfigData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
@@ -16,7 +19,9 @@ use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * Ingest a PDF, office file or image: read it into pages with the configured
- * DocumentParser, then chunk and embed the pages in one batch.
+ * DocumentParser, split a page longer than the chunk size (Settings →
+ * Chunking) into parts that keep its page number, then chunk and embed them
+ * in one batch.
  *
  * Parsing is the expensive step, so it is done once: the pages are cached by
  * the file's checksum (the same file uploaded twice is parsed once) and stored
@@ -29,6 +34,7 @@ class IngestDocumentAction
     public function __construct(
         private readonly DocumentParser $parser,
         private readonly DispatchSourceIngestionBatchAction $dispatchBatch,
+        private readonly TextSplitter $splitter,
     ) {}
 
     public function execute(SourceFile $sourceFile, Agent $agent, ?string $internalJobId = null): void
@@ -42,13 +48,33 @@ class IngestDocumentAction
             'parser' => $this->parser->name(),
         ]);
 
-        $pages = $this->pages($sourceFile);
+        $pages = $this->withLongPagesSplit($this->pages($sourceFile));
 
         $this->dispatchBatch->execute(
             $sourceFile,
             $agent,
             DocumentChunkIngestionJob::forPages($agent, $sourceFile, $pages),
         );
+    }
+
+    /**
+     * Each page that fits one chunk as it is; a longer one cut by the text
+     * splitter into parts that keep its page number. The stored pages stay
+     * whole, so new chunk settings split them anew.
+     *
+     * @param  Collection<int, PageData>  $pages
+     * @return Collection<int, PageData>
+     */
+    private function withLongPagesSplit(Collection $pages): Collection
+    {
+        $config = ChunkingConfigData::forKind(ContentKind::Text);
+        $measure = $config->measure();
+
+        return $pages
+            ->flatMap(fn (PageData $page): array => $measure->length($page->content) > $config->size
+                ? $page->partsOf($this->splitter->split($page->content, ContentKind::Text))
+                : [$page])
+            ->values();
     }
 
     /**

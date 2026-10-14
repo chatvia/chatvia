@@ -91,6 +91,7 @@ class ToolHybridSearch
             $vectorString, $userMessage, $agent->id,       // fn_scope
             $candidateLimit,                               // fn_vector
             $candidateLimit,                               // fn_bm25
+            $vectorString,                                 // final similarity
             $limit,                                        // final LIMIT
         ]);
         $elapsedMs = (microtime(true) - $startedAt) * 1000;
@@ -130,6 +131,7 @@ class ToolHybridSearch
             score: (float) $row->score,
             channels: (string) $row->src,
             pool: $pool,
+            similarity: isset($row->similarity) ? (float) $row->similarity : null,
         );
     }
 
@@ -223,6 +225,7 @@ custom_scope AS MATERIALIZED (
     -- A BM25 score of 0 means no shared term: not a keyword hit.
     SELECT t.id, t.name, t.description, t.input_schema, t.scope, rs.slug AS server_slug,
            t.embedding <-> q.vector AS vector_dist,
+           1 - (t.embedding <=> q.vector) AS similarity,
            NULLIF(t.embedding_bm25 <&> q.terms, 0) AS bm25_dist
     FROM (
         SELECT ?::{$cast} AS vector,
@@ -251,6 +254,7 @@ fn_scope AS MATERIALIZED (
     -- The enabled functions attached to the agent, scored exactly.
     SELECT f.id, f.internal_name, f.description, f.parameters_schema, f.webhook_method,
            f.embedding <-> q.vector AS vector_dist,
+           1 - (f.embedding <=> q.vector) AS similarity,
            NULLIF(f.embedding_bm25 <&> q.terms, 0) AS bm25_dist
     FROM (
         SELECT ?::{$cast} AS vector,
@@ -296,6 +300,11 @@ rrf AS (
     GROUP BY kind, id
 )
 SELECT r.kind, r.id, r.score, r.src,
+       CASE r.kind
+           WHEN 'mcp_preset' THEN 1 - (pt.embedding <=> ?::{$cast})
+           WHEN 'mcp_custom' THEN t.similarity
+           ELSE f.similarity
+       END                  AS similarity,
        pt.name              AS preset_name,
        pt.description        AS preset_description,
        pt.input_schema      AS preset_schema,

@@ -5,6 +5,7 @@ namespace Domain\Conversation\Services\Streaming\Requests;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Llm\Models\Llm;
@@ -18,6 +19,10 @@ use RuntimeException;
  */
 class StreamRequestDataFactory
 {
+    public function __construct(
+        private readonly AgentModel $models,
+    ) {}
+
     /**
      * Build StreamRequestData for the main chat endpoint.
      */
@@ -52,7 +57,8 @@ class StreamRequestDataFactory
             actorUserId: $staff?->id,
             actorName: $chatter?->name ?? $staff?->name,
             saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
-            streamSources: false,
+            // The sources list under each answer (labels and public links only).
+            streamSources: true,
             ipAddress: $request->ip(),
             country: $request->country(),
             userAgent: $request->userAgent(),
@@ -94,7 +100,8 @@ class StreamRequestDataFactory
             actorUserId: $account instanceof User ? $account->id : null,
             actorName: $account?->name,
             saveUserMessageImmediately: true,
-            streamSources: false,
+            // The sources list under each answer (labels and public links only).
+            streamSources: true,
             streamLanguage: false,
             source: $isPlayground ? 'playground' : null,
             ipAddress: $request->ip(),
@@ -108,23 +115,17 @@ class StreamRequestDataFactory
     }
 
     /**
-     * Every agent has a single LLM configured at the agent level (`llm_id`).
-     * Downstream code (StreamRequestMessageData, ChatService, LlmSource) treats
-     * `model` as non-nullable, so fail fast with a clear error if an operator
-     * hasn't picked one yet rather than letting a typed null surface deep in
-     * the streaming pipeline.
+     * The model the agent answers with ({@see AgentModel}): its own, or the
+     * default one while it has none. Downstream code (StreamRequestMessageData,
+     * ChatService, LlmSource) treats `model` as non-nullable, so fail fast
+     * with a clear error when no model can answer at all, rather than letting
+     * a typed null surface deep in the streaming pipeline.
      */
     private function resolveModel(Agent $agent): Llm
     {
-        $llm = $agent->llm;
-
-        if (! $llm) {
-            throw new RuntimeException(
-                "Agent {$agent->external_id} has no LLM configured. Pick a model in Setup → Model."
-            );
-        }
-
-        return $llm;
+        return $this->models->for($agent) ?? throw new RuntimeException(
+            "Agent {$agent->external_id} has no model, and no model can answer. Add a model in the admin panel (Settings → AI models)."
+        );
     }
 
     private function referrer(Request $request): ?string

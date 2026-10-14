@@ -87,7 +87,7 @@ beforeEach(function (): void {
     app()->instance(Reranker::class, new NullReranker);
 
     config([
-        'chatvia.vector.search.rerank' => false,
+        'chatvia.vector.search.relevance_check' => false,
         'chatvia.vector.search.max_chunks' => 6,
         // Meaning only, so the order is the vector order.
         'chatvia.vector.search.hybrid' => false,

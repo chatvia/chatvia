@@ -41,6 +41,14 @@ final readonly class PdfInfo
         );
     }
 
+    /** Whether the PDF needs a password to open: pdfinfo refuses it without one. */
+    public function isLocked(string $pdfPath): bool
+    {
+        $result = Process::timeout(60)->run([$this->pdfInfoPath, $pdfPath]);
+
+        return ! $result->successful() && str_contains($result->errorOutput(), 'Incorrect password');
+    }
+
     /** @return array<string, string|float> pdfinfo fields keyed by snake_case name (`pages`, `title`, ...) */
     private function getRawInfo(string $pdfPath): array
     {

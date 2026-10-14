@@ -7,6 +7,7 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Horizon\Horizon;
 use Laravel\Horizon\HorizonApplicationServiceProvider;
+use Override;
 
 /**
  * Horizon (the queue dashboard): alert routing and who may open it outside the
@@ -15,7 +16,7 @@ use Laravel\Horizon\HorizonApplicationServiceProvider;
  */
 class HorizonServiceProvider extends HorizonApplicationServiceProvider
 {
-    #[\Override]
+    #[Override]
     public function boot(): void
     {
         parent::boot();
@@ -33,7 +34,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
      * The web-guard user Horizon passes in is ignored: only the admin panel's
      * own session counts.
      */
-    #[\Override]
+    #[Override]
     protected function gate(): void
     {
         Gate::define('viewHorizon', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());

@@ -155,7 +155,8 @@
         "page_label": "Page {page}",
         "file_with_page": "{file} (Page {page})",
         "fallback_title": "Source {number}",
-        "chunk_label": "Extrait {index}"
+        "chunk_label": "Extrait {index}",
+        "open_link": "Ouvrir {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Entraînement terminé !",
                 "training_failed_retry": "Entraînement échoué. Cliquez pour réessayer",
                 "retrain_this_link": "Réentraîner ce lien",
-                "delete_this_link": "Supprimer ce lien"
+                "delete_this_link": "Supprimer ce lien",
+                "refresh_label": "Actualisation automatique",
+                "refresh_hint": "Explorer à nouveau le site et apprendre ses pages nouvelles et modifiées.",
+                "refresh_off": "Pas d'actualisation automatique",
+                "refresh_daily": "Actualiser chaque jour",
+                "refresh_weekly": "Actualiser chaque semaine",
+                "refresh_monthly": "Actualiser chaque mois",
+                "refresh_saved": "Actualisation automatique enregistrée.",
+                "refresh_failed": "Impossible d'enregistrer l'actualisation automatique."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Ajouter une bulle",
             "bubbles_remove": "Supprimer la bulle",
             "bubbles_empty": "Aucune bulle de chat pour l'instant.",
-            "bubbles_translate_empty": "Ajoutez d'abord une bulle pour pouvoir la traduire."
+            "bubbles_translate_empty": "Ajoutez d'abord une bulle pour pouvoir la traduire.",
+            "model_picker_title": "Modèle",
+            "model_picker_description": "Le modèle d'IA avec lequel cet agent répond. Un administrateur choisit les modèles de cette liste (panneau d'administration → Settings → AI models).",
+            "model_placeholder": "Choisir un modèle",
+            "model_default": "Par défaut",
+            "model_empty": "Aucun modèle pour l'instant. Un administrateur les ajoute dans le panneau d'administration, sous Settings → AI models."
         },
         "topics_index": {
             "title": "Sujets",

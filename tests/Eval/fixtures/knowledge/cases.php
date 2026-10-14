@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Labelled questions for the knowledge retrieval eval (see ../../README.md).
  *

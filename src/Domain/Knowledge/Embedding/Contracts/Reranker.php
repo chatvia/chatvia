@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Embedding\Contracts;
 
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
+use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
 
 /**
  * Scores how well each candidate text answers a query, so retrieval and tool
  * routing can keep the relevant candidates and drop the rest. The
  * implementation is chosen from config (`chatvia.ai.reranker`); an install
- * without a reranking service gets the no-op reranker.
+ * without a reranking service gets the no-op reranker, and the callers fall
+ * back to a basic similarity check.
  */
 interface Reranker
 {
@@ -28,4 +30,11 @@ interface Reranker
      * skip their relevance threshold instead of filtering on them.
      */
     public function isEnabled(): bool;
+
+    /**
+     * The reranking model, as its provider names it (empty for the no-op
+     * reranker). Each model scores on its own scale, so the relevance
+     * thresholds follow it ({@see RerankModelCatalog}).
+     */
+    public function model(): string;
 }

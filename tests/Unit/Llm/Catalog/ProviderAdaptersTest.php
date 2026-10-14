@@ -2,6 +2,7 @@
 
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
@@ -133,15 +134,30 @@ it('fails on a refused key', function (): void {
         ->toThrow(RequestException::class);
 });
 
-it('names the Settings → AI service a provider\'s key also runs', function (): void {
-    config(['services.mistral.api_key' => 'mistral-key', 'services.mistral.base_url' => 'https://mistral.test/v1']);
+it('calls with the key and address of the provider\'s account', function (): void {
+    config([
+        'services.mistral.api_key' => 'mistral-key',
+        'services.mistral.base_url' => 'https://mistral.test/v1',
+        'services.gemini.api_key' => 'gemini-key',
+        'services.gemini.api_endpoint' => 'https://gemini.test/v1beta',
+        'services.groq.api_key' => null,
+    ]);
 
-    $settings = adapterFor(LlmProviderEnum::MISTRAL)->fromSettings();
+    $mistral = adapterFor(LlmProviderEnum::MISTRAL);
+    $row = $mistral->standalone();
 
-    expect(adapterFor(LlmProviderEnum::SCALEWAY)->settingsConfig()['api_key'])->toBe('services.scalewayai.api_key')
-        ->and(adapterFor(LlmProviderEnum::OPENROUTER)->settingsConfig())->toBe([])
-        ->and($settings->api_key)->toBe('mistral-key')
-        ->and(adapterFor(LlmProviderEnum::MISTRAL)->baseUrl($settings))->toBe('https://mistral.test/v1');
+    expect($mistral->account())->toBe(AiProvider::Mistral)
+        ->and($mistral->apiKey($row))->toBe('mistral-key')
+        ->and($mistral->baseUrl($row))->toBe('https://mistral.test/v1')
+        ->and($mistral->isConnected($row))->toBeTrue()
+        // Gemini's account address is the native API its embeddings call; chat keeps its own.
+        ->and(adapterFor(LlmProviderEnum::GOOGLE)->baseUrl(adapterFor(LlmProviderEnum::GOOGLE)->standalone()))->toBe('https://generativelanguage.googleapis.com/v1beta/openai')
+        ->and(adapterFor(LlmProviderEnum::GROQ)->isConnected(adapterFor(LlmProviderEnum::GROQ)->standalone()))->toBeFalse()
+        // A key typed but not saved yet (a check before saving) wins.
+        ->and($mistral->apiKey(new LlmProvider(['kind' => LlmProviderEnum::MISTRAL, 'api_key' => 'typed'])))->toBe('typed')
+        // A server of your own has no account: its row holds its key, and it may have none.
+        ->and(adapterFor(LlmProviderEnum::CUSTOM)->account())->toBeNull()
+        ->and(adapterFor(LlmProviderEnum::CUSTOM)->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
 });
 
 it('adds a model to the catalog under a unique alias', function (): void {

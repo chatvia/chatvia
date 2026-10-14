@@ -5,99 +5,193 @@ declare(strict_types=1);
 namespace App\Admin\Settings\Actions;
 
 use App\Admin\Settings\AdminSettings;
+use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\Data\MailSetupData;
 use App\Admin\Settings\Data\SetupData;
+use App\Admin\Settings\Data\StorageSetupData;
+use App\Admin\Settings\KnowledgeSettings;
+use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
-use App\Admin\Settings\SearchSettings;
 use App\Admin\Settings\SettingsConfig;
+use App\Admin\Settings\SetupStatus;
+use App\Admin\Settings\StorageSettings;
+use Domain\Agent\Actions\Settings\AssignModelToAgentsWithoutOneAction;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
+use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
+use Domain\Llm\Actions\Catalog\SaveCustomLlmServerAction;
+use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Models\LlmProvider;
-use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 
 /**
- * Saves the admin setup of a new install in one go: hybrid search, the
- * search service with its model and key, and the chat provider and its
- * model (the chat model, so new agents start with it). When the provider is
- * also a service of Settings → AI (its adapter names the config keys:
- * Scaleway, OpenAI, Google Gemini, Mistral), its key and address go there
- * too, so that service's search, reranking, speech or document reading work
- * with no second key.
- * Then the setup is marked done.
+ * Saves the admin setup of a new install in one go: each key once in
+ * Settings → AI providers (for everything that provider does), the chat
+ * models agents can use with the default one, the embedding service and
+ * model, the document reader, the Firecrawl key, speech to text, where files
+ * are kept, and how email is sent. A service left at "Not now" is turned
+ * off, so "Automatic" does not turn it on. Agents made before any model
+ * was added (the demo data) get the default model. Then the setup is
+ * marked done. A value that still equals its default
+ * stays unsaved, as in the Settings pages.
  */
 final readonly class CompleteSetupAction
 {
     public function __construct(
+        private EnsureLlmProviderAction $ensureProvider,
+        private SaveCustomLlmServerAction $saveServer,
         private AddLlmModelAction $addModel,
-        private ProviderAdapters $adapters,
+        private AssignModelToAgentsWithoutOneAction $assignModel,
+        private AiProviderSettings $providers,
         private AiSettings $ai,
-        private SearchSettings $search,
+        private KnowledgeSettings $knowledge,
+        private StorageSettings $storage,
+        private MailSettings $mail,
         private PlatformSettings $platform,
         private SettingsConfig $config,
     ) {}
 
+    /**
+     * @return Llm the default model for new agents
+     */
     public function execute(SetupData $data): Llm
     {
+        if ($data->chatModels === []) {
+            throw new InvalidArgumentException('Pick at least one model for the agents.');
+        }
+
         return DB::transaction(function () use ($data): Llm {
-            // Running the setup again with the same provider updates its key.
-            $provider = LlmProvider::query()->updateOrCreate(
-                ['kind' => $data->chatKind, 'base_url' => $data->chatBaseUrl],
-                ['name' => $this->adapters->for($data->chatKind)->label(), 'api_key' => $data->chatApiKey, 'is_enabled' => true],
-            );
+            $account = AiProvider::forChatKind($data->chatKind);
 
-            $model = $this->addModel->execute($provider, $data->chatModel);
+            if ($account instanceof AiProvider) {
+                $this->saveKey($account, $data->apiKey);
+                $provider = $this->ensureProvider->execute($data->chatKind);
+            } else {
+                $provider = $this->saveServer->execute($data->server ?? throw new InvalidArgumentException('A server of your own needs its address.'));
+            }
 
-            $this->saveAi($data, $model);
+            $models = array_map(fn (RemoteModelData $model): Llm => $this->addModel->execute($provider, $model), $data->chatModels);
+            $default = array_find($models, fn (Llm $model): bool => $model->internal_name === $data->defaultModel) ?? $models[0];
+            $this->ai->default_agent_model = $default->external_name;
+            $this->assignModel->execute($default);
 
-            $this->set($this->search, 'hybrid_search', $data->hybridSearch);
-            $this->search->save();
+            if ($data->embeddingProvider instanceof EmbeddingProvider) {
+                $this->set($this->ai, 'embedding_provider', $data->embeddingProvider->value);
 
-            $this->platform->setup_completed_at = now()->toIso8601String();
+                if (filled($data->embeddingModel)) {
+                    $this->set($this->ai, (string) AiSettings::propertyFor($data->embeddingProvider->modelConfig()), $data->embeddingModel);
+                }
+
+                $this->saveKey($data->embeddingProvider->account(), $data->embeddingApiKey);
+            }
+
+            if ($data->documentReader instanceof AiProvider) {
+                $this->saveKey($data->documentReader, $data->documentApiKey);
+                $this->saveAddress($data->documentReader, $data->documentEndpoint);
+                $this->set($this->ai, 'document_parser', $data->documentReader->value);
+            } else {
+                $this->set($this->ai, 'document_parser', 'none');
+            }
+
+            if ($data->transcriber instanceof AiProvider) {
+                $this->saveKey($data->transcriber, $data->transcriptionApiKey);
+                $this->set($this->ai, 'transcriber', $data->transcriber->value);
+            } else {
+                $this->set($this->ai, 'transcriber', 'none');
+            }
+
+            if (filled($data->firecrawlApiKey)) {
+                $this->knowledge->firecrawl_api_key = $data->firecrawlApiKey;
+            }
+
+            if ($data->storage instanceof StorageSetupData) {
+                $this->saveStorage($data->storage);
+            }
+
+            if ($data->mail instanceof MailSetupData) {
+                $this->saveMail($data->mail);
+            }
+
+            $this->providers->save();
+            $this->ai->save();
+            $this->knowledge->save();
+            $this->storage->save();
+            $this->mail->save();
+
+            $this->platform->setup_status = SetupStatus::Completed->value;
             $this->platform->save();
 
-            return $model;
+            return $default;
         });
     }
 
-    private function saveAi(SetupData $data, Llm $model): void
+    /** Keep a provider's key in Settings → AI providers; a blank one keeps the saved key. */
+    private function saveKey(AiProvider $account, ?string $key): void
     {
-        $this->ai->default_agent_model = $model->external_name;
+        $property = AiProviderSettings::propertyFor($account->apiKeyConfig());
 
-        $service = $this->adapters->for($data->chatKind)->settingsConfig();
-
-        if (isset($service['api_key']) && filled($data->chatApiKey)) {
-            $this->fill($service['api_key'], $data->chatApiKey);
+        if ($property !== null && filled($key)) {
+            $this->providers->{$property} = $key;
         }
-
-        if (isset($service['base_url']) && filled($data->chatBaseUrl)) {
-            $this->fill($service['base_url'], $data->chatBaseUrl);
-        }
-
-        if ($data->embeddingProvider instanceof EmbeddingProvider) {
-            $this->ai->embedding_provider = $data->embeddingProvider->value;
-
-            if (filled($data->embeddingModel)) {
-                $this->fill($data->embeddingProvider->modelConfig(), $data->embeddingModel);
-            }
-
-            if (filled($data->embeddingApiKey)) {
-                $this->fill($data->embeddingProvider->apiKeyConfig(), $data->embeddingApiKey);
-            }
-        }
-
-        $this->ai->save();
     }
 
-    /** Set the Settings → AI property that fills a config key. */
-    private function fill(string $configKey, string $value): void
+    private function saveAddress(AiProvider $account, ?string $address): void
     {
-        $property = AiSettings::propertyFor($configKey);
+        $config = $account->baseUrlConfig();
+        $property = $config !== null ? AiProviderSettings::propertyFor($config) : null;
 
-        if ($property !== null) {
-            $this->set($this->ai, $property, $value);
+        if ($property !== null && filled($address)) {
+            $this->set($this->providers, $property, rtrim(trim($address), '/'));
         }
+    }
+
+    private function saveStorage(StorageSetupData $storage): void
+    {
+        $this->set($this->storage, 'driver', $storage->driver);
+
+        if (! $storage->usesS3()) {
+            return;
+        }
+
+        foreach ([
+            's3_endpoint' => $storage->endpoint,
+            's3_region' => $storage->region,
+            's3_key' => $storage->key,
+            's3_path_style' => $storage->pathStyle,
+            'private_bucket' => $storage->privateBucket,
+            'public_bucket' => $storage->publicBucket,
+        ] as $property => $value) {
+            $this->set($this->storage, $property, StorageSettings::cast($property, $value));
+        }
+
+        if (filled($storage->secret)) {
+            $this->storage->s3_secret = $storage->secret;
+        }
+    }
+
+    private function saveMail(MailSetupData $mail): void
+    {
+        $this->set($this->mail, 'mailer', $mail->provider->value);
+
+        foreach ($mail->provider->fields() as $field) {
+            $value = MailSettings::cast($field->property, $mail->values[$field->property] ?? null);
+
+            if ($field->kind === 'secret') {
+                if ($value !== null) {
+                    $this->mail->{$field->property} = $value;
+                }
+
+                continue;
+            }
+
+            $this->set($this->mail, $field->property, $value);
+        }
+
+        $this->set($this->mail, 'from_address', MailSettings::cast('from_address', $mail->fromAddress));
+        $this->set($this->mail, 'from_name', MailSettings::cast('from_name', $mail->fromName));
     }
 
     /**

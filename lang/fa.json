@@ -128,6 +128,7 @@
     "Transcription failed. Please try again.": "تبدیل صدا به متن ناموفق بود. دوباره تلاش کنید.",
     "Chatting with PDF files is not available.": "گفتگو با فایل‌های PDF در دسترس نیست.",
     "We couldn't read this PDF. Please try a different file.": "نتوانستیم این PDF را بخوانیم. فایل دیگری را امتحان کنید.",
+    "This PDF is locked with a password. Remove the password and upload it again.": "این PDF با رمز عبور قفل شده است. رمز عبور را بردارید و دوباره بارگذاری کنید.",
     "This PDF has :pages pages — the limit is :max.": "این PDF :pages صفحه دارد — سقف مجاز :max است.",
     "You've reached the limit of :max files for this chat.": "به سقف :max فایل برای این گفتگو رسیده‌اید.",
     "No file was uploaded.": "هیچ فایلی بارگذاری نشد.",

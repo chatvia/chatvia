@@ -55,6 +55,20 @@ class ManageSecuritySettings extends AdminSettingsPage
         return 'Sign-in and people';
     }
 
+    /**
+     * Whether the bot check is on: a half set-up one first.
+     *
+     * @return array{0: string, 1: string}
+     */
+    #[\Override]
+    public function overviewStatus(): array
+    {
+        return $this->unfinishedStatus()
+            ?? (filled($this->valueInUse('turnstile_site_key')) && filled($this->valueInUse('turnstile_secret_key'))
+                ? ['Bot check on', 'success']
+                : ['Bot check off', 'gray']);
+    }
+
     protected function cards(): array
     {
         return [
@@ -67,11 +81,12 @@ class ManageSecuritySettings extends AdminSettingsPage
             ])->required('turnstile_site_key', 'turnstile_secret_key')
                 ->console('https://dash.cloudflare.com/?to=/:account/turnstile')
                 ->summary(fn (): string => $this->turnstileSummary()),
-            SettingsCard::make('headers', 'Security headers', 'The Content Security Policy of every page.', Heroicon::OutlinedLockClosed, fn (): array => [
+            SettingsCard::make('headers', 'Security headers', 'The Content Security Policy of every page.', Heroicon::OutlinedCodeBracketSquare, fn (): array => [
                 $this->choice('csp_mode', 'Content Security Policy', self::CSP_MODES,
                     help: 'Enforce also sends X-Frame-Options and, over HTTPS, HSTS.'),
                 $this->url('csp_report_uri', 'Report address', help: 'Optional. Receives the reports of blocked content.'),
-            ])->summary(fn (): string => self::CSP_MODES[(string) $this->valueInUse('csp_mode')] ?? $this->shown($this->valueInUse('csp_mode'))),
+            ])->summary(fn (): string => self::CSP_MODES[(string) $this->valueInUse('csp_mode')] ?? $this->shown($this->valueInUse('csp_mode')))
+                ->advanced(),
             SettingsCard::make('audit', 'Security audit log', 'A record of sign-ins, membership and configuration changes in every workspace.', Heroicon::OutlinedClipboardDocumentList, fn (): array => [
                 $this->toggle('security_audit_enabled', 'Keep the security audit log',
                     help: 'Workspaces see their own log. How long it is kept is under Retention & limits.'),

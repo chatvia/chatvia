@@ -123,6 +123,11 @@ class ChatContext
         public readonly string $assistantMessageId,
         public readonly ?string $queryLanguage = null,
         ?float $startTime = null,
+        /**
+         * The question the knowledge is searched with: the visitor's message,
+         * or, for a follow-up, the full question written from the chat.
+         */
+        public readonly ?string $searchQuery = null,
     ) {
         $this->sources = collect();
         $this->startTime = $startTime ?? microtime(true);

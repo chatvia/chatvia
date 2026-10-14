@@ -144,13 +144,16 @@ explains how to work on it.
 **External AI services.** Chatvia calls AI models through OpenAI-compatible
 APIs. You need a chat provider and an embedding provider. The default
 configuration uses Scaleway's Generative APIs with open-weight models (Qwen3
-and others) for chat, embeddings and reranking. The chat provider can be
-changed to Mistral, Groq or OpenRouter. Reading documents runs on your server
-unless you add a Mistral key. Text is split into chunks inside Chatvia, by
-tokens or by characters (**Settings → Chunking**). Website import uses
-Firecrawl. The
-services, their API keys and models are chosen in the admin panel
-(**Settings → AI**), not in `.env`; see
+and others) for chat and embeddings. Other chat providers: OpenRouter,
+OpenAI, Mistral, Google Gemini, Groq, or your own OpenAI-compatible server.
+OpenRouter, OpenAI, Mistral and Google Gemini make embeddings with the same
+key.
+Reranking uses OpenRouter or Cohere. PDF, Word, slides and images are read by
+Mistral OCR or Azure Document Intelligence; without one of them, those files
+cannot be uploaded. Text is split into chunks inside Chatvia, by tokens or by
+characters (**Settings → Knowledge**). Website import uses Firecrawl. Each
+API key is entered once in the admin panel (**Settings → AI providers**), and
+the models in **Settings → AI models**, not in `.env`; see
 [AI providers](https://chatvia.ai/docs/guide/self-hosting/ai-providers).
 
 ## Getting started
@@ -283,9 +286,10 @@ list of AI models and, outside production, create a demo admin account
 ### 5. Add your API keys
 
 Sign in to the admin panel at `/admin` with the demo admin account and open
-**Settings → AI**. Enter the key of your chat and embedding provider
-(with the defaults, one Scaleway key covers both). Then add the built-in tools
-(charts, forms, weather, currency, web search) to the tool catalog:
+**Settings → AI providers**. Enter the key of your chat and embedding
+provider (with the defaults, one Scaleway key covers both). Then add the
+built-in tools (charts, forms, weather, currency, web search) to the tool
+catalog:
 
 ```bash
 php artisan app:sync-builtin-mcp

@@ -59,6 +59,31 @@ final class PageData extends Data
         ), $parts, array_keys($parts));
     }
 
+    /**
+     * The page cut into parts that all keep its page number, for a page too
+     * long for one chunk. The page's images, tables and links go with its
+     * first part, so they are described and shown once.
+     *
+     * @param  list<string>  $parts
+     * @return list<self>
+     */
+    public function partsOf(array $parts): array
+    {
+        if (count($parts) < 2) {
+            return [$this];
+        }
+
+        return array_map(fn (string $part, int $index): self => new self(
+            pageNumber: $this->pageNumber,
+            content: $part,
+            checksum: hash('xxh128', $part),
+            imagesBase64: $index === 0 ? $this->imagesBase64 : [],
+            imagePaths: $index === 0 ? $this->imagePaths : [],
+            tables: $index === 0 ? $this->tables : [],
+            hyperlinks: $index === 0 ? $this->hyperlinks : [],
+        ), $parts, array_keys($parts));
+    }
+
     /** The same page without its images, tables and links. */
     public function withoutMedia(): self
     {

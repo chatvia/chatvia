@@ -103,6 +103,11 @@
             "temperature_precise": "Precis",
             "temperature_balanced": "Balanserad",
             "temperature_creative": "Kreativ",
+            "model_picker_title": "Modell",
+            "model_picker_description": "AI-modellen som den här agenten svarar med. En administratör väljer vilka modeller som finns i listan (adminpanelen → Settings → AI models).",
+            "model_placeholder": "Välj en modell",
+            "model_default": "Standard",
+            "model_empty": "Inga modeller ännu. En administratör lägger till dem i adminpanelen under Settings → AI models.",
             "behavior": {
                 "hosted_title": "Beteende för Hosted Chat",
                 "hosted_description": "Iframe-alternativ för den inbäddade Hosted Chat-ytan.",

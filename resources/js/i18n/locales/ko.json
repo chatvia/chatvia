@@ -155,7 +155,8 @@
         "page_label": "{page} 페이지",
         "file_with_page": "{file} ({page}페이지)",
         "fallback_title": "출처 {number}",
-        "chunk_label": "청크 {index}"
+        "chunk_label": "청크 {index}",
+        "open_link": "{label} 열기"
     },
     "home": {
         "logo_alt": "로고",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "학습이 완료되었습니다!",
                 "training_failed_retry": "학습에 실패했습니다. 다시 시도하려면 클릭하세요",
                 "retrain_this_link": "이 링크 재학습",
-                "delete_this_link": "이 링크 삭제"
+                "delete_this_link": "이 링크 삭제",
+                "refresh_label": "자동 새로 고침",
+                "refresh_hint": "웹사이트를 다시 크롤링하여 새 페이지와 변경된 페이지를 학습합니다.",
+                "refresh_off": "자동 새로 고침 안 함",
+                "refresh_daily": "매일 새로 고침",
+                "refresh_weekly": "매주 새로 고침",
+                "refresh_monthly": "매월 새로 고침",
+                "refresh_saved": "자동 새로 고침이 저장되었습니다.",
+                "refresh_failed": "자동 새로 고침을 저장할 수 없습니다."
             }
         },
         "leads": {

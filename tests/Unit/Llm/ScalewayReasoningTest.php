@@ -21,6 +21,8 @@ function reasoningClient(LlmProviderEnum $kind = LlmProviderEnum::SCALEWAY): Llm
 }
 
 beforeEach(function (): void {
+    connectAiProviders();
+
     Http::fake(['*' => Http::response([
         'choices' => [['message' => ['content' => 'hi']]],
     ])]);

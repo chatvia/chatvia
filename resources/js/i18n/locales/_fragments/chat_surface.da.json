@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Side {page})",
         "fallback_title": "Kilde {number}",
-        "chunk_label": "Uddrag {index}"
+        "open_link": "Åbn {label}"
     },
     "sidebar": {
         "save_title": "Gem titel",

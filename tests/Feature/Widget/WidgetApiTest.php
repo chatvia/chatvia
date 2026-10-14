@@ -1,10 +1,13 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
+use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Widget\WidgetHeaders;
+use Mockery\MockInterface;
 
 /**
  * HTTP contract of the embedded widget API for a public agent: the headers it
@@ -300,4 +303,63 @@ it('treats a conversation id that is not a UUID as unknown for a real session', 
 
     // The bad id did not fall through to "clear every conversation".
     expect(Conversation::query()->where('external_id', $boot['conversation_id'])->value('cleared_at'))->toBeNull();
+});
+
+it('names the conversation at once when the widget asks, after the first reply', function (): void {
+    $boot = bootWidget($this->agent);
+
+    test()->mock(GenerateConversationTitleAction::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('execute')->once()->andReturnUsing(function (ChatScopeData $scope): void {
+            Conversation::query()->firstWhere('external_id', $scope->conversationId)->update(['title' => 'Order status']);
+        });
+    });
+
+    $this->withHeaders(widgetHeaders($this->agent, [
+        WidgetHeaders::SESSION_ID => $boot['session_id'],
+        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
+    ]))
+        ->postJson('/widget/conversations/title')
+        ->assertOk()
+        ->assertExactJson(['title' => 'Order status']);
+});
+
+it('keeps a title that is there, without another AI call', function (): void {
+    $boot = bootWidget($this->agent);
+    Conversation::query()->firstWhere('external_id', $boot['conversation_id'])->update(['title' => 'Billing question']);
+
+    test()->mock(GenerateConversationTitleAction::class, fn (MockInterface $mock) => $mock->shouldNotReceive('execute'));
+
+    $this->withHeaders(widgetHeaders($this->agent, [
+        WidgetHeaders::SESSION_ID => $boot['session_id'],
+        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
+    ]))
+        ->postJson('/widget/conversations/title')
+        ->assertOk()
+        ->assertExactJson(['title' => 'Billing question']);
+});
+
+it('will not name a conversation of another agent or another session', function (): void {
+    $other = Agent::factory()->create(['is_public' => true]);
+    $other->setSetting('sites', ['customer.example'], 'widget');
+    $foreign = bootWidget($other);
+    $sameAgent = bootWidget($this->agent);
+    $boot = bootWidget($this->agent);
+
+    test()->mock(GenerateConversationTitleAction::class, fn (MockInterface $mock) => $mock->shouldNotReceive('execute'));
+
+    foreach ([$foreign['conversation_id'], $sameAgent['conversation_id']] as $conversationId) {
+        $this->withHeaders(widgetHeaders($this->agent, [
+            WidgetHeaders::SESSION_ID => $boot['session_id'],
+            WidgetHeaders::CONVERSATION_ID => $conversationId,
+        ]))
+            ->postJson('/widget/conversations/title')
+            ->assertNotFound()
+            ->assertJson(['error' => 'Invalid thread']);
+    }
+});
+
+it('needs a session and a conversation to name one', function (): void {
+    $this->withHeaders(widgetHeaders($this->agent))
+        ->postJson('/widget/conversations/title')
+        ->assertBadRequest();
 });

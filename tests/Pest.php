@@ -14,6 +14,7 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
@@ -150,13 +151,30 @@ function bindFakeLlmProvider(LlmProviderInterface $provider): void
 }
 
 /**
+ * Give AI provider accounts a test key in config (Settings → AI providers),
+ * so their chat models and services can be called. With none named, every
+ * account gets one.
+ */
+function connectAiProviders(AiProvider ...$providers): void
+{
+    foreach ($providers === [] ? AiProvider::cases() : $providers as $provider) {
+        config([$provider->apiKeyConfig() => 'test-key']);
+    }
+}
+
+/**
  * A catalog model on a new provider (an OpenAI-compatible test server unless
- * a kind is given).
+ * a kind is given). A provider with an account gets a test key in config, as
+ * a connected one has.
  *
  * @param  array<string, mixed>  $attributes
  */
 function testLlm(string $internalName = 'test-model', LlmProviderEnum $kind = LlmProviderEnum::CUSTOM, array $attributes = []): Llm
 {
+    if (($account = AiProvider::forChatKind($kind)) instanceof AiProvider) {
+        connectAiProviders($account);
+    }
+
     return Llm::factory()
         ->for(LlmProvider::factory()->kind($kind), 'provider')
         ->create(['internal_name' => $internalName, ...$attributes]);

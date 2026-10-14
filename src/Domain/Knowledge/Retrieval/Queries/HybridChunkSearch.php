@@ -29,8 +29,9 @@ use Illuminate\Support\Facades\DB;
  *   (`c.workspace_id`) and the agent's sources (`EXISTS`) checked during the
  *   index scan. The probes follow the index's live partitions.
  *
- * Retrieval quality is measured by an evaluation harness: any change to this
- * SQL changes search results and must be measured first.
+ * Retrieval quality is measured by the knowledge retrieval eval
+ * (tests/Eval/KnowledgeRetrievalEvalTest.php): any change to this SQL changes
+ * search results and must be measured first.
  */
 final readonly class HybridChunkSearch
 {
@@ -233,7 +234,7 @@ scope AS MATERIALIZED (
       AND c.workspace_id = ?
 ),
 {$definitions},
-{$this->fusion(array_column($channels, 'name'))}
+{$this->fusion(array_column($channels, 'name'), 'q.vector', "\nCROSS JOIN search q")}
 SQL;
 
         $bindings = [
@@ -270,9 +271,13 @@ SQL;
             $bindings[] = $candidateLimit;
         }
 
+        // The final SELECT measures each result's similarity to the query.
+        $bindings[] = $queryVector;
+        $bindings[] = $queryVector;
         $bindings[] = $limit;
 
-        $sql = 'WITH '.implode(",\n", array_column($channels, 'sql')).",\n".$this->fusion(array_column($channels, 'name'));
+        $cast = $this->storage->columnType();
+        $sql = 'WITH '.implode(",\n", array_column($channels, 'sql')).",\n".$this->fusion(array_column($channels, 'name'), "?::{$cast}");
 
         return array_map(RetrievedChunkData::fromRow(...), DB::select($sql, $bindings));
     }
@@ -346,11 +351,16 @@ SQL;
     }
 
     /**
-     * RRF over the channels, then the chunk rows of the best `LIMIT ?`.
+     * RRF over the channels, then the chunk rows of the best `LIMIT ?`, each
+     * with its cosine similarity to the query (the closer of the chunk's own
+     * vector and its questions' vector) for the similarity check, and its
+     * size in tokens for the context budget.
      *
      * @param  list<string>  $channelNames
+     * @param  string  $vector  the SQL expression of the query vector (used twice)
+     * @param  string  $join  what makes that expression available
      */
-    private function fusion(array $channelNames): string
+    private function fusion(array $channelNames, string $vector, string $join = ''): string
     {
         $combined = implode("\n    UNION ALL\n", array_map(
             static fn (string $name): string => "    SELECT id, rank, search_type FROM {$name}",
@@ -368,10 +378,11 @@ rrf_scores AS (
     FROM combined_results
     GROUP BY id
 )
-SELECT c.id, c.external_id, c.chunk, c.chunk_index, c.chunkable_type, c.chunkable_id, c.metadata,
-       r.search_type, r.rrf_score AS score
+SELECT c.id, c.external_id, c.chunk, c.chunk_index, c.chunkable_type, c.chunkable_id, c.metadata, c.tokens,
+       r.search_type, r.rrf_score AS score,
+       GREATEST(1 - (c.embedding <=> {$vector}), COALESCE(1 - (c.questions_embedding <=> {$vector}), 0)) AS similarity
 FROM rrf_scores r
-JOIN chunks c USING (id)
+JOIN chunks c USING (id){$join}
 ORDER BY r.rrf_score DESC, r.id
 LIMIT ?
 SQL;

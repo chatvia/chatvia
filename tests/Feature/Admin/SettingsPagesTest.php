@@ -1,13 +1,18 @@
 <?php
 
-use App\Admin\Clusters\Settings\Pages\ManageAiSettings;
+use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
+use App\Admin\Clusters\Settings\Pages\ManageAiProviderSettings;
 use App\Admin\Clusters\Settings\Pages\ManageChannelSettings;
+use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
+use App\Admin\Clusters\Settings\Pages\ManageLimitSettings;
 use App\Admin\Clusters\Settings\Pages\ManageMailSettings;
 use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
 use App\Admin\Clusters\Settings\Pages\ManageSignInSettings;
+use App\Admin\Clusters\Settings\Pages\ManageStorageSettings;
 use App\Admin\Clusters\Settings\Pages\ManageWorkspaceSettings;
 use App\Admin\Clusters\Settings\Pages\SettingsOverview;
 use App\Admin\Clusters\Settings\SettingsCluster;
+use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\ChannelSettings;
 use App\Admin\Settings\MailSettings;
@@ -18,9 +23,11 @@ use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
+use Domain\Llm\Enums\AiProvider;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
@@ -68,7 +75,8 @@ it('shows every settings page, and the overview links to each one', function ():
         }
     }
 
-    expect(SettingsCluster::getClusteredComponents())->toHaveCount(16);
+    expect(collect(SettingsCluster::getClusteredComponents())->map(fn (string $page): string => $page::getSlug())->sort()->values()->all())
+        ->toBe(['ai-models', 'ai-providers', 'brand', 'channels', 'connectors', 'email', 'knowledge', 'limits', 'overview', 'platform', 'security', 'sign-in', 'storage', 'workspaces']);
 });
 
 it('shows a card for every service, with its status', function (): void {
@@ -83,7 +91,29 @@ it('shows a card for every service, with its status', function (): void {
         ->assertOk()
         ->assertSeeInOrder(['Google', 'Ready to use', 'Microsoft', 'Not set up', 'GitHub', 'Missing: Client secret.']);
 
-    $this->get(SettingsOverview::getUrl())->assertSee('1 of 4 set up');
+    $this->get(SettingsOverview::getUrl())->assertSee('GitHub is not finished');
+
+    $settings->github_client_secret = 'secret';
+    $settings->save();
+
+    $this->get(SettingsOverview::getUrl())->assertSee('2 set up');
+});
+
+it('marks a page of optional services that has none set up as optional', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(SettingsOverview::getUrl())
+        ->assertSeeInOrder(['Sign-in', 'Optional'])
+        ->assertSee(['Sign-up open', 'Bot check off', 'Not sending email yet'])
+        ->assertDontSee('of 4 set up');
+});
+
+it('lists the advanced cards last, closed, under their own heading', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageKnowledgeSettings::getUrl())
+        ->assertOk()
+        ->assertSeeInOrder(['File types', 'Follow-up questions', 'Technical options. The defaults suit most installs.', 'knowledge-splitting', 'knowledge-try_it', 'knowledge-search_tuning'])
+        ->assertSeeText('Save changes')
+        ->assertDontSee('cv-outline__save');
 });
 
 it('lets an admin without two-factor authentication change the values', function (): void {
@@ -133,12 +163,14 @@ it('keeps a saved secret when its input is left blank', function (): void {
 });
 
 it('saves a new secret encrypted', function (): void {
-    settingsPage($this->admin, ManageAiSettings::class)
+    Http::fake(['api.scaleway.ai/*' => Http::response(['data' => [['id' => 'gpt-oss-120b']]])]);
+
+    settingsPage($this->admin, ManageAiProviderSettings::class)
         ->fillForm(['scaleway_api_key' => 'scw-key'])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(AiSettings::class, 'scaleway_api_key'))->toBe('scw-key')
+    expect(storedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-key')
         ->and(config('services.scalewayai.api_key'))->toBe('scw-key')
         ->and(DB::table('settings')->where('name', 'scaleway_api_key')->value('payload'))->not->toContain('scw-key');
 });
@@ -260,8 +292,9 @@ it('refuses a choice that is not offered', function (): void {
 it('refuses an embedding provider that cannot return the stored vector size', function (): void {
     Chunk::query()->delete();
     config(['chatvia.embeddings.dimensions' => 4096]);
+    connectAiProviders(AiProvider::Mistral);
 
-    settingsPage($this->admin, ManageAiSettings::class)
+    settingsPage($this->admin, ManageAiModelSettings::class)
         ->assertFormFieldEnabled('embedding_provider')
         ->fillForm(['embedding_provider' => 'mistral'])
         ->call('save')
@@ -284,24 +317,24 @@ it('locks the embedding provider and models once a source is trained', function 
         'checksum' => Str::random(32),
     ]);
 
-    settingsPage($this->admin, ManageAiSettings::class)
+    settingsPage($this->admin, ManageAiModelSettings::class)
         ->assertFormFieldDisabled('embedding_provider');
 
-    settingsPage($this->admin, ManageAiSettings::class)
+    settingsPage($this->admin, ManageAiModelSettings::class)
         ->assertFormFieldDisabled('scaleway_embedding_model')
-        ->assertFormFieldEnabled('scaleway_rerank_model');
+        ->assertFormFieldEnabled('scaleway_transcription_model');
 });
 
 it('picks the model of each job from the models that may be used', function (): void {
     $fast = testLlm('fast-model');
     $off = testLlm('off-model', attributes: ['is_enabled' => false]);
 
-    settingsPage($this->admin, ManageAiSettings::class)
+    settingsPage($this->admin, ManageAiModelSettings::class)
         ->fillForm(['fast_model' => $off->external_name])
         ->call('save')
         ->assertHasFormErrors(['fast_model']);
 
-    settingsPage($this->admin, ManageAiSettings::class)
+    settingsPage($this->admin, ManageAiModelSettings::class)
         ->fillForm(['fast_model' => $fast->external_name])
         ->call('save')
         ->assertHasNoFormErrors();
@@ -329,4 +362,21 @@ it('shows every card as a section of its page, with an outline', function (): vo
         ->assertSee('Open the provider console')
         ->assertSee(route('auth.google.callback'))
         ->assertSee(route('auth.slack.callback'));
+});
+
+it('shows the S3 fields only while S3-compatible storage is chosen', function (): void {
+    config(['chatvia.storage.driver' => 'local']);
+
+    settingsPage($this->admin, ManageStorageSettings::class)
+        ->assertFormFieldHidden('s3_region')
+        ->fillForm(['driver' => 's3'])
+        ->assertFormFieldVisible('s3_region')
+        ->assertFormFieldVisible('private_bucket');
+});
+
+it('refuses a security log floor above the days to keep it', function (): void {
+    settingsPage($this->admin, ManageLimitSettings::class)
+        ->fillForm(['security_audit_retention_days' => 30, 'security_audit_retention_floor_days' => 60])
+        ->call('save')
+        ->assertHasFormErrors(['security_audit_retention_floor_days']);
 });

@@ -38,6 +38,12 @@ class LlmProviders
             throw LlmProviderUnavailableException::disabled($provider);
         }
 
-        return $this->adapters->for($provider->kind)->client($provider);
+        $adapter = $this->adapters->for($provider->kind);
+
+        if (! $adapter->isConnected($provider)) {
+            throw LlmProviderUnavailableException::notConnected($provider);
+        }
+
+        return $adapter->client($provider);
     }
 }

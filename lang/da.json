@@ -128,6 +128,7 @@
     "Transcription failed. Please try again.": "Transskriptionen mislykkedes. Prøv igen.",
     "Chatting with PDF files is not available.": "Chat med PDF-filer er ikke tilgængelig.",
     "We couldn't read this PDF. Please try a different file.": "Vi kunne ikke læse denne PDF. Prøv en anden fil.",
+    "This PDF is locked with a password. Remove the password and upload it again.": "Denne PDF er låst med en adgangskode. Fjern adgangskoden, og upload den igen.",
     "This PDF has :pages pages — the limit is :max.": "Denne PDF har :pages sider — grænsen er :max.",
     "You've reached the limit of :max files for this chat.": "Du har nået grænsen på :max filer for denne chat.",
     "No file was uploaded.": "Ingen fil blev uploadet.",

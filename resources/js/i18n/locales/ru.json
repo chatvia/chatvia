@@ -155,7 +155,8 @@
         "page_label": "Страница {page}",
         "file_with_page": "{file} (стр. {page})",
         "fallback_title": "Источник {number}",
-        "chunk_label": "Фрагмент {index}"
+        "chunk_label": "Фрагмент {index}",
+        "open_link": "Открыть {label}"
     },
     "home": {
         "logo_alt": "Логотип",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "Обучение завершено!",
                 "training_failed_retry": "Обучение не удалось. Нажмите, чтобы повторить",
                 "retrain_this_link": "Переобучить эту ссылку",
-                "delete_this_link": "Удалить эту ссылку"
+                "delete_this_link": "Удалить эту ссылку",
+                "refresh_label": "Автообновление",
+                "refresh_hint": "Повторно обойти сайт и изучить новые и изменённые страницы.",
+                "refresh_off": "Без автообновления",
+                "refresh_daily": "Обновлять ежедневно",
+                "refresh_weekly": "Обновлять еженедельно",
+                "refresh_monthly": "Обновлять ежемесячно",
+                "refresh_saved": "Автообновление сохранено.",
+                "refresh_failed": "Не удалось сохранить автообновление."
             }
         },
         "leads": {

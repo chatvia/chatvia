@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Sida {page})",
         "fallback_title": "Källa {number}",
-        "chunk_label": "Utdrag {index}"
+        "open_link": "Öppna {label}"
     },
     "sidebar": {
         "save_title": "Spara titel",

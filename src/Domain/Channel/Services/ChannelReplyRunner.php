@@ -5,6 +5,7 @@ namespace Domain\Channel\Services;
 use App\Identity\Workspace\Services\MessageAllowance;
 use Closure;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\AgentModel;
 use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\Replies\StreamingReplyStrategy;
 use Domain\Channel\Services\Replies\TypingReplyStrategy;
@@ -16,8 +17,10 @@ use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\QaSource;
+use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -45,6 +48,7 @@ class ChannelReplyRunner
         private readonly GuardBlockSource $guardBlockSource,
         private readonly MessageAllowance $allowance,
         private readonly AgentChatRateLimiter $rateLimiter,
+        private readonly AgentModel $models,
     ) {}
 
     /**
@@ -88,7 +92,10 @@ class ChannelReplyRunner
             return 'Sorry — this assistant is unavailable right now. Please try again later.';
         }
 
-        if ($agent->llm === null) {
+        // Its own model, or the default one while it has none (as on the web).
+        $model = $this->models->for($agent);
+
+        if (! $model instanceof Llm) {
             return 'Sorry — this assistant is not fully configured yet.';
         }
 
@@ -113,10 +120,12 @@ class ChannelReplyRunner
     private function run(ChannelTurnData $turn, ?Closure $onProgress): string
     {
         $agent = $turn->agent;
+        // refusal() has made sure one can answer.
+        $model = $this->models->for($agent) ?? throw new RuntimeException("Agent {$agent->external_id} has no model, and no model can answer.");
 
         $context = $this->chatService->initializeChatContext(new StreamRequestData(
             agent: $agent,
-            message: new StreamRequestMessageData(model: $agent->llm, message: $turn->message),
+            message: new StreamRequestMessageData(model: $model, message: $turn->message),
             externalSessionId: $turn->sessionExternalId,
             conversationId: $turn->conversationExternalId,
             saveUserMessageImmediately: true,

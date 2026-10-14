@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Auto-refresh",
+                "refresh_hint": "Crawl the website again and learn its new and changed pages.",
+                "refresh_off": "No auto-refresh",
+                "refresh_daily": "Refresh daily",
+                "refresh_weekly": "Refresh weekly",
+                "refresh_monthly": "Refresh monthly",
+                "refresh_saved": "Auto-refresh saved.",
+                "refresh_failed": "Could not save auto-refresh."
+            }
+        }
+    }
+}

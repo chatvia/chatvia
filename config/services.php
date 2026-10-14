@@ -194,15 +194,33 @@ return [
         'endpoint' => env('IP2LOCATION_ENDPOINT', 'https://api.ip2location.io'),
     ],
 
+    // Azure AI Document Intelligence: reads PDFs, office files and images
+    // (Settings → AI providers). Each Azure resource has its own endpoint.
+    'azure_document_intelligence' => [
+        'key' => null,
+        'endpoint' => null,
+        'model' => env('AZURE_DOCUMENT_INTELLIGENCE_MODEL', 'prebuilt-layout'),
+        'api_version' => '2024-11-30',
+    ],
+
+    // One key for the OpenRouter chat models, its embeddings and its rerankers.
+    'openrouter' => [
+        'api_key' => null,
+        'embedding_model' => 'openai/text-embedding-3-small',
+    ],
+
+    'groq' => [
+        'api_key' => null,
+    ],
+
     'scalewayai' => [
         'api_key' => null,
-        // Base URL for chat, embeddings, rerank and transcription. The generic
+        // Base URL for chat, embeddings and transcription. The generic
         // URL uses the API key's default project; set a project URL
         // (https://api.scaleway.ai/{project-id}/v1) to bill a specific project.
         'endpoint' => env('SCALEWAYAI_API_ENDPOINT', 'https://api.scaleway.ai/v1'),
-        // Open-weight models used for embeddings, reranking and speech-to-text.
+        // Open-weight models used for embeddings and speech-to-text.
         'embedding_model' => env('SCALEWAYAI_EMBEDDING_MODEL', 'qwen3-embedding-8b'),
-        'rerank_model' => env('SCALEWAYAI_RERANK_MODEL', 'qwen3-embedding-8b'),
         'transcription_model' => env('SCALEWAYAI_TRANSCRIPTION_MODEL', 'whisper-large-v3'),
     ],
 

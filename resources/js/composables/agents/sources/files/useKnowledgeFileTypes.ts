@@ -1,6 +1,6 @@
 /**
  * The knowledge file types this install accepts, with their extensions. An
- * admin turns them on or off (Settings → Ingestion); the server shares them
+ * admin turns them on or off (Settings → Knowledge); the server shares them
  * on every page. The server checks every upload again.
  */
 import type { SharedData } from '@/types';

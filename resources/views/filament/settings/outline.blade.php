@@ -1,15 +1,17 @@
 {{--
     The outline of a Settings page: a link to each card's section, with a dot
-    for a service's status, buttons that open or close every section, and the
-    page's Save button. It stays in view beside the sections on wide screens
-    and is a row of links above them on narrow ones. A link opens its section
-    if it is closed, and the link of the section in view is highlighted.
-    Styled by the panel theme (resources/css/filament/admin/theme.css), which
-    also holds the rules for the cards themselves (`cv-settings-card`).
+    for a service's status, the advanced cards last under their own heading,
+    and buttons that open or close every section. It stays in view beside
+    the sections on wide screens and is a row of links above them on narrow
+    ones. A link opens its section if it is closed, and the link of the
+    section in view is highlighted. Styled by the panel theme
+    (resources/css/filament/admin/theme.css), which also holds the rules for
+    the cards themselves (`cv-settings-card`).
 
-    @var list<array{id: string, title: string, status: string, tone: string}> $items
+    @var list<array{id: string, title: string, status: string, tone: string, advanced: bool}> $items
 --}}
 @php($ids = array_column($items, 'id'))
+@php($firstAdvanced = array_search(true, array_column($items, 'advanced'), true))
 
 <nav
     class="cv-outline"
@@ -49,7 +51,10 @@
     <p class="cv-outline__heading">On this page</p>
 
     <ul class="cv-outline__list">
-        @foreach ($items as $item)
+        @foreach ($items as $index => $item)
+            @if ($index === $firstAdvanced && $index > 0)
+                <li class="cv-outline__group" aria-hidden="true">Advanced</li>
+            @endif
             <li>
                 <a
                     href="#{{ $item['id'] }}"
@@ -73,9 +78,4 @@
             <button type="button" x-on:click="all('collapse-section')">Collapse all</button>
         </div>
     @endif
-
-    {{-- Outside the form: `form-id` ties it to the form, `form` names the submit handler. --}}
-    <x-filament::button type="submit" form="save" form-id="form" class="cv-outline__save">
-        Save changes
-    </x-filament::button>
 </nav>

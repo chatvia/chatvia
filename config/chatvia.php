@@ -102,15 +102,15 @@ return [
     | Admin setup
     |--------------------------------------------------------------------------
     |
-    | When the first admin finished (or skipped) the setup of a new install:
-    | the AI provider and model, search, and email. Until then every admin
-    | panel page leads to the setup. Saved by the admin panel
-    | (PlatformSettings), never set in .env.
+    | How the setup of a new install ended: `completed` or `skipped` (AI,
+    | models, documents, storage and email). While it is empty, every admin
+    | panel page leads to the setup; a skipped one can be finished later from
+    | Settings. Saved by the admin panel (PlatformSettings), never in .env.
     |
     */
 
     'admin' => [
-        'setup_completed_at' => null,
+        'setup_status' => null,
     ],
 
     /*
@@ -223,28 +223,26 @@ return [
                 // its top hybrid hits, the old availability-driven behaviour).
                 'relevance_gate' => (bool) env('AGENT_TOOL_RELEVANCE_GATE', true),
 
-                // A tool must score at/above this (reranker relevance, 0..1) to
-                // ship. Higher = stricter. Tune against real traffic via the
-                // ToolRelevanceGate debug log ("kept"/"dropped" with scores) or
-                // the offline harness (tests/Eval/ToolRoutingEvalTest). Acts as
-                // the shared fallback for the per-scope thresholds below.
-                'relevance_threshold' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD', 0.55),
-
-                // Per-scope gating. A wrong READ is cheap (the user re-asks); a
-                // wrong WRITE executes — so read tools get a looser bar (recall)
-                // and write/delete tools the shared, stricter `relevance_threshold`
-                // (precision). Tuned against the offline eval harness
-                // (tests/Eval/ToolRoutingEvalTest): raising the WRITE bar above the
-                // shared value trades wrong-tool suppression ~1:1 for starving the
-                // correct write (the reranker scores correct and wrong writes in the
-                // same band), so it stays at the shared default. See ToolRelevanceGate.
-                'relevance_threshold_read' => (float) env('AGENT_TOOL_RELEVANCE_THRESHOLD_READ', 0.45),
-                // Null follows `relevance_threshold` (read in ToolRelevanceGate).
+                // The reranker score (0..1) a tool must reach to ship. Each
+                // reranking model scores on its own scale, so null (the
+                // default) uses the model's measured thresholds
+                // (RerankModelCatalog). A wrong READ is cheap (the user re-asks);
+                // a wrong WRITE executes, so writes can get a stricter bar. Set
+                // these only to try other values against the offline eval
+                // (tests/Eval/ToolRoutingEvalTest). See ToolRelevanceGate.
+                'relevance_threshold_read' => env('AGENT_TOOL_RELEVANCE_THRESHOLD_READ'),
                 'relevance_threshold_write' => env('AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE'),
+
+                // Without a reranker (or when it fails), tools are gated by the
+                // similarity of their embedding to the message instead: the
+                // bars of the embedding model in use (EmbeddingProvider), or
+                // these when set. A model that was never measured gets no gate.
+                'similarity_threshold_read' => env('AGENT_TOOL_SIMILARITY_THRESHOLD_READ'),
+                'similarity_threshold_write' => env('AGENT_TOOL_SIMILARITY_THRESHOLD_WRITE'),
 
                 // EXPERIMENTAL (off by default). A small "middle model" connector
                 // router: after the relevance gate, a cheap structured LLM call
-                // (the Fast model, Settings → AI) picks which
+                // (the Fast model, Settings → AI models) picks which
                 // connector(s) the turn is about, and write tools from connectors
                 // it didn't pick are dropped. A reasoning model can separate
                 // "ticket → support" from "issue → tracker" where the embedding
@@ -261,7 +259,7 @@ return [
 
         // The chat model (LlmRole::Chat): the catalog model, by its alias
         // (`llms.external_name`), that new agents start with and the
-        // analytics assistant uses. Set in the admin panel (Settings → AI).
+        // analytics assistant uses. Set in the admin panel (Settings → AI models).
         // Unset, or not usable, means the first usable model of the catalog.
         'default_model' => null,
 
@@ -284,7 +282,7 @@ return [
 
     'ai' => [
         // The catalog models (aliases, `llms.external_name`) behind the app's
-        // own LLM calls, picked in the admin panel (Settings → AI). A role
+        // own LLM calls, picked in the admin panel (Settings → AI models). A role
         // that is unset uses the chat model (chatvia.agent.default_model).
         // Every call goes to its model's provider. See LlmRole.
         'roles' => [
@@ -294,35 +292,48 @@ return [
         ],
 
         // Which service handles each ingestion and retrieval step (Settings →
-        // AI). `auto` picks the hosted service when its API key is set there,
-        // and the local tool (or "off") when it is not — so an install works
-        // without those accounts. See
+        // AI models). `auto` picks the first provider whose key is set in
+        // Settings → AI providers, and "off" when none is — so an install
+        // works without those accounts. See
         // https://chatvia.ai/docs/guide/self-hosting/ai-providers.
         //
-        // - document_parser: reads PDFs, office files and images.
-        //   mistral (hosted OCR, also reads images) | local (pdftotext, pandoc
-        //   and catdoc, text only). auto = mistral when a Mistral key is set.
-        // - reranker: scores search results and tools against the question.
-        //   qwen | cohere | none. auto = the embedding provider's own reranker
-        //   (qwen → qwen, cohere → cohere, openai, google, mistral and jina
-        //   → none).
+        // - document_parser: reads PDFs, Word, slides and images. mistral
+        //   (Mistral OCR) | azure (Azure Document Intelligence) | none (those
+        //   files cannot be uploaded; spreadsheets and CSV are still read by
+        //   the app). auto = mistral, else azure, when connected.
+        // - reranker: scores search results and tools against the question
+        //   (a cross-encoder). openrouter | cohere | custom (a self-hosted
+        //   /rerank server) | none (a basic similarity check instead). auto =
+        //   openrouter, else cohere, when connected, else none.
         // - transcriber: speech-to-text for voice input and audio sources.
-        //   scaleway | openai (both Whisper) | none. auto = scaleway when a
-        //   Scaleway key is set, else openai when an OpenAI key is set.
+        //   scaleway | openai (both Whisper) | none. auto = scaleway, else
+        //   openai, when connected.
         // - document_llm: the LLM that reads whole PDFs, for document summaries
-        //   and chat with PDF files. mistral | none. auto = mistral when a
-        //   Mistral key is set. With none, those two features are off.
+        //   and chat with PDF files. mistral | none. auto = mistral when it is
+        //   connected. With none, those two features are off.
         'document_parser' => env('AI_DOCUMENT_PARSER', 'auto'),
         'reranker' => env('AI_RERANKER', 'auto'),
+
+        // The reranker's model and a self-hosted reranker's address (Settings
+        // → AI). The models to choose from: RerankModelCatalog.
+        'rerank' => [
+            'openrouter_model' => 'cohere/rerank-4-pro',
+            'custom' => [
+                'url' => null,
+                'key' => null,
+                'model' => null,
+            ],
+            'timeout' => 10,
+        ],
         'transcriber' => env('AI_TRANSCRIBER', 'auto'),
         'document_llm' => env('AI_DOCUMENT_LLM', 'auto'),
 
         // The tokenizer (a tiktoken encoding) every token count uses: chunk
         // sizes in tokens, the stored size of each chunk, estimates. Set in
-        // the admin panel (Settings → Chunking).
+        // the admin panel (Settings → Knowledge).
         'tokenizer' => 'cl100k_base',
 
-        // How text is split into chunks (Settings → Chunking); these are the
+        // How text is split into chunks (Settings → Knowledge); these are the
         // defaults. The size and overlap are in the unit: tokens (of the
         // tokenizer above) or characters. A null size is the unit's default,
         // 400 tokens or 1,600 characters. The strategy for each kind of
@@ -355,8 +366,10 @@ return [
 
         'query' => [
             'rewriter' => [
-                // Uses the Fast model.
-                'enabled' => env('QUERY_REWRITER_ENABLED', false),
+                // Turns a follow-up ("and the price?") into a full question for
+                // the knowledge search, from the chat before it. One Fast-model
+                // call per follow-up; the first message of a chat needs none.
+                'enabled' => env('QUERY_REWRITER_ENABLED', true),
             ],
         ],
 
@@ -372,9 +385,10 @@ return [
         'chunker' => [
             // An extra AI step per chunk (a summary and likely questions,
             // then a new embedding) for uploaded files and crawled pages, and
-            // a summary of the whole source. One model call per chunk, so it
-            // is off by default.
-            'enhance' => env('CHUNKER_ENHANCE', false),
+            // a summary of the whole source. It finds far more of the right
+            // passages ("contextual retrieval"), so it is on by default; it
+            // costs one Smart-model call per chunk while training.
+            'enhance' => env('CHUNKER_ENHANCE', true),
             // The same step for text sources. Pasted texts are short, so it
             // costs little and is on by default. Turn both off to ingest
             // without any model calls.
@@ -403,7 +417,8 @@ return [
         // The embedding provider must return this many dimensions. 1024 works
         // with every provider; Mistral only returns 1024, Jina at most 1024,
         // Cohere 256, 512, 1024 or 1536, OpenAI up to 1536 (3072 with
-        // text-embedding-3-large), Gemini 128 to 3072, and Qwen3 up to 4096.
+        // text-embedding-3-large), Gemini 128 to 3072, Qwen3 up to 4096, and
+        // OpenRouter what its model returns.
         'dimensions' => env('EMBEDDING_DIMENSIONS', 1024),
     ],
 
@@ -414,7 +429,7 @@ return [
     |
     | The file types workspaces may upload as knowledge sources, as
     | KnowledgeFileType values (PDF, Word, images, audio…). Set in the admin
-    | panel (Settings → Ingestion); every type is on by default. Files already
+    | panel (Settings → Knowledge); every type is on by default. Files already
     | uploaded keep working when their type is turned off.
     |
     */
@@ -422,19 +437,6 @@ return [
     'knowledge' => [
         'file_types' => array_column(KnowledgeFileType::cases(), 'value'),
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Edited prompts
-    |--------------------------------------------------------------------------
-    |
-    | The prompts an admin rewrote (Settings → Prompts), by name, such as
-    | `knowledge/rewrite-query`. prompt() renders an edit in place of its file
-    | in resources/prompts; every other prompt uses its file.
-    |
-    */
-
-    'prompts' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -453,19 +455,39 @@ return [
 
             // Knowledge search combines meaning (vector) and keyword (BM25)
             // search; off means meaning only. Set in the admin panel
-            // (Settings → Search), on by default. Keyword data is always
+            // (Settings → Knowledge), on by default. Keyword data is always
             // stored, so it can change at any time.
             'hybrid' => true,
 
-            // Rerank is the relevance gate: chunks scoring below
-            // relevance_threshold are dropped. Turning this off means every query
-            // injects the top max_chunks regardless of how well they match —
-            // greetings and acknowledgments will pull in noise.
-            'rerank' => env('VECTOR_SEARCH_RERANK', true),
+            // The relevance check ("Leave out weak matches"): with a reranker
+            // (Settings → AI models), chunks it scores below
+            // relevance_threshold are dropped; without one (or when it fails),
+            // chunks whose meaning is too far from the question
+            // (similarity_threshold). So greetings pull in nothing. Off means
+            // every question gets the top max_chunks, however well they match.
+            'relevance_check' => env('VECTOR_SEARCH_RELEVANCE_CHECK', true),
 
-            'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD', 0.50),
+            // The reranker score (0..1) a chunk must reach. Null (the default)
+            // uses the reranking model's measured threshold (RerankModelCatalog).
+            'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD'),
 
-            'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 3),
+            // Without a reranker: the cosine similarity a chunk must reach.
+            // Null uses the embedding model's measured value
+            // (EmbeddingProvider); a model never measured gets no check.
+            'similarity_threshold' => env('VECTOR_SEARCH_SIMILARITY_THRESHOLD'),
+
+            // The cosine similarity a message must reach to a saved Q&A
+            // question to get its answer by meaning (a whole-question match
+            // needs none). Null uses the embedding model's measured value; a
+            // model never measured matches Q&A only as whole questions.
+            'qa_similarity_threshold' => env('VECTOR_SEARCH_QA_SIMILARITY_THRESHOLD'),
+
+            'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 5),
+
+            // The most tokens of knowledge one question may add to the prompt:
+            // lower-ranked chunks past it are left out (the best one always
+            // goes in).
+            'max_context_tokens' => env('VECTOR_SEARCH_MAX_CONTEXT_TOKENS', 3000),
 
             // Hybrid SQL normally runs in ~200ms; when the phase exceeds this
             // (cold index / autovacuum / checkpoint) KnowledgeBase logs a
@@ -479,7 +501,7 @@ return [
             // makes it a no-op reorder. Latency is dominated by the rerank
             // round-trip, not the doc count, so trim only if debug rerank_ms
             // justifies it. Ignored when rerank is off (pool is max_chunks * 2).
-            'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 12),
+            'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 25),
 
             // Agents that reach at most this many chunks are searched exactly:
             // every one of their chunks is scored, with no approximate index and

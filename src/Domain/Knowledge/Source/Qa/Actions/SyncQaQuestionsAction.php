@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Knowledge\Source\Qa\Actions;
 
+use Domain\Knowledge\Source\Qa\Jobs\EmbedQaQuestionsJob;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Knowledge\Source\Qa\Services\QuestionNormalizer;
@@ -11,9 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Rebuilds the question rows of a curated Q&A entry from its `questions`
- * (one per line): one row per non-empty question, with its normalized form.
- * Questions that normalize to nothing (only punctuation) are left out, so
- * they never match.
+ * (one per line): one row per non-empty question, with its normalized form,
+ * and queues their embeddings for the match by meaning. Questions that
+ * normalize to nothing (only punctuation) are left out, so they never match.
  */
 class SyncQaQuestionsAction
 {
@@ -37,5 +38,9 @@ class SyncQaQuestionsAction
             AgentQuestionAnswerQuestion::query()->where('agent_question_answer_id', $qa->id)->delete();
             AgentQuestionAnswerQuestion::query()->insert($rows);
         });
+
+        if ($rows !== []) {
+            EmbedQaQuestionsJob::dispatch($qa)->afterCommit();
+        }
     }
 }

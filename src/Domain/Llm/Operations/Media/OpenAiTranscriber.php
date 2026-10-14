@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 /**
  * Speech-to-text through OpenAI's `/audio/transcriptions` endpoint (Whisper,
  * `whisper-1` by default, set in `services.openai.transcription_model`), with
- * the OpenAI key and address of Settings → AI. OpenAI takes files of up to
+ * the OpenAI key and address of Settings → AI providers. OpenAI takes files of up to
  * 25 MB: the compressed audio (32 kbps) fits about an hour and a half.
  */
 class OpenAiTranscriber implements Transcriber

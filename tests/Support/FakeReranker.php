@@ -30,4 +30,9 @@ class FakeReranker implements Reranker
     {
         return true;
     }
+
+    public function model(): string
+    {
+        return 'fake-reranker';
+    }
 }

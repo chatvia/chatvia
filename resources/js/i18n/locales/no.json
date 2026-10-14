@@ -155,7 +155,8 @@
         "page_label": "Side {page}",
         "file_with_page": "{file} (Side {page})",
         "fallback_title": "Kilde {number}",
-        "chunk_label": "Utdrag {index}"
+        "chunk_label": "Utdrag {index}",
+        "open_link": "Åpne {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Opplæring fullført!",
                 "training_failed_retry": "Opplæring mislyktes. Klikk for å prøve igjen",
                 "retrain_this_link": "Gjenopplær denne lenken",
-                "delete_this_link": "Slett denne lenken"
+                "delete_this_link": "Slett denne lenken",
+                "refresh_label": "Automatisk oppdatering",
+                "refresh_hint": "Gå gjennom nettstedet på nytt og lær de nye og endrede sidene.",
+                "refresh_off": "Ingen automatisk oppdatering",
+                "refresh_daily": "Oppdater daglig",
+                "refresh_weekly": "Oppdater ukentlig",
+                "refresh_monthly": "Oppdater månedlig",
+                "refresh_saved": "Automatisk oppdatering lagret.",
+                "refresh_failed": "Kunne ikke lagre automatisk oppdatering."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Legg til boble",
             "bubbles_remove": "Fjern boble",
             "bubbles_empty": "Ingen snakkebobler ennå.",
-            "bubbles_translate_empty": "Legg til en boble først for å oversette den."
+            "bubbles_translate_empty": "Legg til en boble først for å oversette den.",
+            "model_picker_title": "Modell",
+            "model_picker_description": "AI-modellen denne agenten svarer med. En administrator velger hvilke modeller som står på listen (adminpanelet → Settings → AI models).",
+            "model_placeholder": "Velg en modell",
+            "model_default": "Standard",
+            "model_empty": "Ingen modeller ennå. En administrator legger dem til i adminpanelet under Settings → AI models."
         },
         "topics_index": {
             "title": "Emner",

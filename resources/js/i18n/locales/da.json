@@ -155,7 +155,8 @@
         "page_label": "Side {page}",
         "file_with_page": "{file} (Side {page})",
         "fallback_title": "Kilde {number}",
-        "chunk_label": "Uddrag {index}"
+        "chunk_label": "Uddrag {index}",
+        "open_link": "Åbn {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Træning fuldført!",
                 "training_failed_retry": "Træning mislykkedes. Klik for at prøve igen",
                 "retrain_this_link": "Gentræn dette link",
-                "delete_this_link": "Slet dette link"
+                "delete_this_link": "Slet dette link",
+                "refresh_label": "Automatisk opdatering",
+                "refresh_hint": "Gennemgå websitet igen og lær dets nye og ændrede sider.",
+                "refresh_off": "Ingen automatisk opdatering",
+                "refresh_daily": "Opdater dagligt",
+                "refresh_weekly": "Opdater ugentligt",
+                "refresh_monthly": "Opdater månedligt",
+                "refresh_saved": "Automatisk opdatering gemt.",
+                "refresh_failed": "Kunne ikke gemme automatisk opdatering."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Tilføj boble",
             "bubbles_remove": "Fjern boble",
             "bubbles_empty": "Ingen chatbobler endnu.",
-            "bubbles_translate_empty": "Tilføj først en boble for at kunne oversætte den."
+            "bubbles_translate_empty": "Tilføj først en boble for at kunne oversætte den.",
+            "model_picker_title": "Model",
+            "model_picker_description": "Den AI-model, som denne agent svarer med. En administrator vælger, hvilke modeller der er på listen (adminpanelet → Settings → AI models).",
+            "model_placeholder": "Vælg en model",
+            "model_default": "Standard",
+            "model_empty": "Ingen modeller endnu. En administrator tilføjer dem i adminpanelet under Settings → AI models."
         },
         "topics_index": {
             "title": "Emner",

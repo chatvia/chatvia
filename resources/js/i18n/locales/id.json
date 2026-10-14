@@ -155,7 +155,8 @@
         "page_label": "Halaman {page}",
         "file_with_page": "{file} (Halaman {page})",
         "fallback_title": "Sumber {number}",
-        "chunk_label": "Potongan {index}"
+        "chunk_label": "Potongan {index}",
+        "open_link": "Buka {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "Pelatihan selesai!",
                 "training_failed_retry": "Pelatihan gagal. Klik untuk mencoba lagi",
                 "retrain_this_link": "Latih ulang tautan ini",
-                "delete_this_link": "Hapus tautan ini"
+                "delete_this_link": "Hapus tautan ini",
+                "refresh_label": "Penyegaran otomatis",
+                "refresh_hint": "Jelajahi situs web lagi dan pelajari halaman baru dan yang berubah.",
+                "refresh_off": "Tanpa penyegaran otomatis",
+                "refresh_daily": "Segarkan setiap hari",
+                "refresh_weekly": "Segarkan setiap minggu",
+                "refresh_monthly": "Segarkan setiap bulan",
+                "refresh_saved": "Penyegaran otomatis disimpan.",
+                "refresh_failed": "Tidak dapat menyimpan penyegaran otomatis."
             }
         },
         "leads": {

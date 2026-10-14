@@ -15,8 +15,9 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  */
 class PlatformSettings extends AdminSettings
 {
-    #[ConfigKey('chatvia.admin.setup_completed_at')]
-    public ?string $setup_completed_at = null;
+    /** @see SetupStatus */
+    #[ConfigKey('chatvia.admin.setup_status')]
+    public ?string $setup_status = null;
 
     #[ConfigKey('app.locale')]
     public ?string $default_locale = null;

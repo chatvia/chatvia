@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers\Adapters;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\OpenAiCompatible;
@@ -41,7 +42,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
     public function baseUrl(LlmProvider $provider): string
     {
-        return rtrim((string) ($provider->base_url ?: $this->defaultBaseUrl()), '/');
+        return rtrim((string) ($provider->base_url ?: $this->accountBaseUrl() ?: $this->defaultBaseUrl()), '/');
     }
 
     public function needsApiKey(): bool
@@ -61,7 +62,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new OpenAiCompatible($provider, $this->baseUrl($provider));
+        return new OpenAiCompatible($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
     }
 
     public function models(LlmProvider $provider): Collection
@@ -84,21 +85,47 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
             ->values();
     }
 
-    public function settingsConfig(): array
+    public function account(): ?AiProvider
     {
-        return [];
+        return AiProvider::forChatKind($this->kind());
     }
 
-    public function fromSettings(): LlmProvider
+    public function apiKey(LlmProvider $provider): ?string
     {
-        $config = $this->settingsConfig();
+        if (filled($provider->api_key)) {
+            return $provider->api_key;
+        }
 
-        return new LlmProvider([
-            'kind' => $this->kind(),
-            'name' => $this->label(),
-            'base_url' => isset($config['base_url']) ? (config($config['base_url']) ?: null) : null,
-            'api_key' => isset($config['api_key']) ? (config($config['api_key']) ?: null) : null,
-        ]);
+        $account = $this->account();
+
+        return $account instanceof AiProvider ? (config($account->apiKeyConfig()) ?: null) : null;
+    }
+
+    public function isConnected(LlmProvider $provider): bool
+    {
+        return ! $this->needsApiKey() || filled($this->apiKey($provider));
+    }
+
+    public function standalone(): LlmProvider
+    {
+        return new LlmProvider(['kind' => $this->kind(), 'name' => $this->label()]);
+    }
+
+    /**
+     * The account's address when chat calls the same API as its other
+     * services (a Scaleway project address, a Mistral proxy); null otherwise.
+     */
+    protected function accountBaseUrl(): ?string
+    {
+        $config = $this->sharesAccountAddress() ? $this->account()?->baseUrlConfig() : null;
+
+        return $config === null ? null : (config($config) ?: null);
+    }
+
+    /** Whether chat calls the address set for the account. */
+    protected function sharesAccountAddress(): bool
+    {
+        return true;
     }
 
     /**

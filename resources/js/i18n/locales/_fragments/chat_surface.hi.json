@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (पृष्ठ {page})",
         "fallback_title": "स्रोत {number}",
-        "chunk_label": "खंड {index}"
+        "open_link": "{label} खोलें"
     },
     "sidebar": {
         "save_title": "शीर्षक सहेजें",

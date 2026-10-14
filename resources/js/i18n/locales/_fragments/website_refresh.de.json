@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Automatische Aktualisierung",
+                "refresh_hint": "Die Website erneut durchsuchen und neue und geänderte Seiten lernen.",
+                "refresh_off": "Keine automatische Aktualisierung",
+                "refresh_daily": "Täglich aktualisieren",
+                "refresh_weekly": "Wöchentlich aktualisieren",
+                "refresh_monthly": "Monatlich aktualisieren",
+                "refresh_saved": "Automatische Aktualisierung gespeichert.",
+                "refresh_failed": "Automatische Aktualisierung konnte nicht gespeichert werden."
+            }
+        }
+    }
+}

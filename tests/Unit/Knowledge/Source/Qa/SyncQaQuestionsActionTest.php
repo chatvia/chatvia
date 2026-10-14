@@ -5,9 +5,11 @@ use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Actions\SyncQaQuestionsAction;
 use Domain\Knowledge\Source\Qa\Actions\UpdateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
+use Domain\Knowledge\Source\Qa\Jobs\EmbedQaQuestionsJob;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Knowledge\Source\Qa\Services\QuestionNormalizer;
+use Illuminate\Support\Facades\Bus;
 
 /**
  * Every question of a Q&A entry gets its own row with its normalized form,
@@ -69,3 +71,12 @@ it('normalizes case, accents, Arabic diacritics, punctuation and spaces', functi
     'symbols and spaces' => ['  price   in €  /  $ ', 'price in'],
     'only punctuation' => ['?!', ''],
 ]);
+
+it('queues the embeddings of the questions after saving', function (): void {
+    Bus::fake();
+    $agent = Agent::factory()->create();
+
+    $qa = app(CreateAgentQaAction::class)->execute($agent, new QaEntryData('Hours', ['When are you open?'], 'From nine to five.'));
+
+    Bus::assertDispatched(EmbedQaQuestionsJob::class, fn (EmbedQaQuestionsJob $job): bool => $job->qa->is($qa));
+});

@@ -99,3 +99,24 @@ it('leaves a conversation without messages untitled', function (): void {
 
     expect(Conversation::query()->firstWhere('external_id', $scope->conversationId)->title)->toBe(Conversation::DEFAULT_TITLE);
 });
+
+it('keeps a title the conversation has already, without another AI call', function (): void {
+    $scope = renameScope();
+    app(ChatMemory::class)->withScope($scope)->appendMessage(new MessageData(
+        id: 'q1',
+        role: MessageRole::User,
+        content: 'Where is my order?',
+        type: MessageData::TYPE_TEXT,
+        timestamp: now()->timestamp,
+    ));
+    // Named by the browser right after the first reply, before the queued fallback ran.
+    Conversation::query()->firstWhere('external_id', $scope->conversationId)->update(['title' => 'Order status']);
+
+    $titles = Mockery::mock(TitleGenerator::class);
+    $titles->shouldNotReceive('generate');
+    app()->instance(TitleGenerator::class, $titles);
+
+    app(GenerateConversationTitleAction::class)->execute($scope);
+
+    expect(Conversation::query()->firstWhere('external_id', $scope->conversationId)->title)->toBe('Order status');
+});

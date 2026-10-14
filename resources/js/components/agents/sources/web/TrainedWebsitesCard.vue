@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { DiscoveredLinks } from '@/composables/agents/sources/web/useDiscoveredLinks';
+import type { WebsiteRefreshInterval } from '@/api/webSources';
 import type { WebSource } from '@/composables/agents/sources/web/useWebSources';
 import { Database, Link2, LoaderCircle } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
@@ -24,6 +25,7 @@ const emit = defineEmits<{
     attach: [];
     viewLinks: [source: WebSource];
     delete: [source: WebSource];
+    setRefresh: [source: WebSource, interval: WebsiteRefreshInterval];
 }>();
 
 const { t } = useI18n();
@@ -66,6 +68,7 @@ const { t } = useI18n();
                             :links="links"
                             @view-links="emit('viewLinks', $event)"
                             @delete="emit('delete', $event)"
+                            @set-refresh="(website, interval) => emit('setRefresh', website, interval)"
                         />
                     </div>
                 </component>

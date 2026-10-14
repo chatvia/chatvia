@@ -1,3 +1,14 @@
+# Evals
+
+Two offline measurement harnesses, both in the `Eval` test suite. They run
+the *real* embeddings and reranker, print a scoreboard, and skip themselves
+without keys. Neither is a pass/fail gate.
+
+- [Knowledge retrieval](#knowledge-retrieval-eval): does the agent's search find the
+  passage that answers a question, and nothing for a question its knowledge
+  does not cover?
+- [Tool routing](#tool-routing-eval): does the router give the model the right tool?
+
 # Tool-routing eval
 
 An **offline measurement harness** for the agent tool router
@@ -114,3 +125,53 @@ names in `cases.php`.
 Rule of thumb: **starvation is worse than a wrong write in the set** — a wrong
 write is never top-1 here and write tools already gate through the approval
 checkpoint, but a starved tool can't be called at all.
+
+# Knowledge retrieval eval
+
+`KnowledgeRetrievalEvalTest.php` measures the agent's knowledge search
+(`HybridChunkSearch` → relevance check → `KnowledgeBase::search`). Each run it
+splits and embeds four documents for a fresh agent — the three chunking samples
+in `resources/chunking/` and [`fixtures/knowledge/arabic.md`](fixtures/knowledge/arabic.md)
+— then asks the labelled questions in
+[`fixtures/knowledge/cases.php`](fixtures/knowledge/cases.php).
+
+```bash
+SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval --filter=knowledge
+# with a reranker (Settings → AI); its key the same way, e.g. COHERE_API_KEY=…
+```
+
+| Env var | What it does |
+|---|---|
+| `VECTOR_SEARCH_RELEVANCE_THRESHOLD` | the relevance bar of this run |
+| `VECTOR_SEARCH_MAX_CHUNKS` | how many chunks the model gets |
+| `EVAL_ENRICH` | `1` = add a summary and questions to every chunk first (needs a chat model) |
+
+## Cases
+
+```php
+['query' => 'How long does express delivery take?', 'expect' => '1 to 2 working days'],
+['query' => 'hi', 'expect' => null],                         // not covered: nothing should come back
+['query' => 'and how much is it?', 'history' => ['How long does express delivery take?'], 'expect' => '9.95'],
+```
+
+Follow-ups go through the follow-up rewriter (Settings → Search), so its
+effect shows in the `Follow-ups` line. [`fixtures/knowledge/qa.php`](fixtures/knowledge/qa.php)
+holds saved Q&A answers and messages that should (or should not) get them by
+meaning; its sweep picks the Q&A similarity bar.
+
+`expect` is text that must be in a retrieved chunk (case-insensitive). Add real,
+anonymized questions from your logs; keep some that the knowledge does **not**
+cover, or the threshold sweep can only say "keep everything".
+
+## Reading the scoreboard
+
+| Line | Meaning |
+|---|---|
+| `Before the check` | the hybrid search's ranking: is the right passage in the top 1 / 3 / 5? `MRR` rewards it being first |
+| `After the check` | what the model actually gets: questions that got their passage, and uncovered questions that got **nothing** |
+| `Follow-ups` | questions that only make sense with the history |
+| scores + sweep | the check's score for the right passage vs. the best score of an uncovered question, and for each threshold how many of each it keeps or blocks |
+
+The best threshold keeps nearly every right passage and blocks most uncovered
+questions. A reranker's scores have their own scale, so each reranker gets its
+own threshold.

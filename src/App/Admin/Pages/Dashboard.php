@@ -14,11 +14,10 @@ use App\Identity\Workspace\Models\Workspace;
 use Domain\Analytics\Enums\AnalyticsPeriod;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Pages\Dashboard\Actions\FilterAction;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
-use Filament\Schemas\Components\Section;
+use Filament\Pages\Dashboard\Concerns\HasFiltersAction;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -32,7 +31,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class Dashboard extends BaseDashboard
 {
-    use HasFiltersForm;
+    use HasFiltersAction;
 
     /** How many workspaces the workspace filter lists per search. */
     private const int WORKSPACE_SEARCH_LIMIT = 50;
@@ -47,21 +46,28 @@ class Dashboard extends BaseDashboard
             : "Activity in {$workspace}, {$scope->period->label}.";
     }
 
-    public function filtersForm(Schema $schema): Schema
+    /**
+     * The filters sit behind Filament's own funnel button (a slide-over),
+     * so the page opens on the numbers; the subheading names what is shown.
+     *
+     * @return list<FilterAction>
+     */
+    protected function getHeaderActions(): array
     {
         $isCustom = fn (Get $get): bool => $get(DashboardFilters::PERIOD) === DashboardFilters::CUSTOM;
 
-        return $schema->components([
-            Section::make()
-                ->columnSpanFull()
-                ->columns(['md' => 2, 'xl' => 4])
+        return [
+            FilterAction::make()
+                ->iconButton()
+                ->tooltip('Filter')
                 ->schema([
                     Select::make(DashboardFilters::PERIOD)
                         ->label('Period')
                         ->options(DashboardFilters::periodOptions())
                         ->default(AnalyticsPeriod::ThisMonth->value)
                         ->selectablePlaceholder(false)
-                        ->native(false),
+                        ->native(false)
+                        ->live(),
                     DatePicker::make(DashboardFilters::START_DATE)
                         ->label('From')
                         ->maxDate(today())
@@ -77,7 +83,7 @@ class Dashboard extends BaseDashboard
                         ->getSearchResultsUsing(fn (string $search): array => $this->searchWorkspaces($search))
                         ->getOptionLabelUsing(fn (mixed $value): ?string => is_numeric($value) ? $this->workspaceLabel((int) $value) : null),
                 ]),
-        ]);
+        ];
     }
 
     /**

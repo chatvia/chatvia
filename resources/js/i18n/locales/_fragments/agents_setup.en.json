@@ -121,6 +121,11 @@
             "temperature_precise": "Precise",
             "temperature_balanced": "Balanced",
             "temperature_creative": "Creative",
+            "model_picker_title": "Model",
+            "model_picker_description": "The AI model this agent answers with. An admin chooses which models are on this list (admin panel → Settings → AI models).",
+            "model_placeholder": "Choose a model",
+            "model_default": "Default",
+            "model_empty": "No models yet. An admin adds them in the admin panel, under Settings → AI models.",
             "behavior": {
                 "hosted_title": "Hosted Chat behaviour",
                 "hosted_description": "Iframe options for the embedded Hosted Chat surface.",

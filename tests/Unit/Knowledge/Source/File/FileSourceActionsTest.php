@@ -11,6 +11,7 @@ use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
 use Domain\Knowledge\Source\File\Exceptions\UnsupportedSourceFileException;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Llm\Enums\AiProvider;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,7 +19,11 @@ use Illuminate\Support\Facades\Storage;
  * File sources: uploading (no HTTP upload object in the Domain), training the
  * uploaded files, discarding them, and deleting one.
  */
-beforeEach(fn () => Storage::fake());
+beforeEach(function (): void {
+    Storage::fake();
+    // PDF, Word, slides and images need a document reader.
+    connectAiProviders(AiProvider::Mistral);
+});
 
 function fsaUpload(string $name, string $content, string $mimeType): UploadedSourceFileData
 {

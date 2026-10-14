@@ -11,7 +11,7 @@ use Spatie\LaravelSettings\Events\SavingSettings;
 
 /**
  * When an admin changes the embedding provider or an embedding model
- * (Settings → AI, or the admin setup), embeds every tool again: tool routing
+ * (Settings → AI models, or the admin setup), embeds every tool again: tool routing
  * compares the visitor's question with the tools' vectors, and vectors of two
  * models cannot be compared. Knowledge sources need no step here: the panel
  * locks the embedding once a source is trained.

@@ -103,6 +103,11 @@
             "temperature_precise": "Täsmällinen",
             "temperature_balanced": "Tasapainoinen",
             "temperature_creative": "Luova",
+            "model_picker_title": "Malli",
+            "model_picker_description": "Tekoälymalli, jolla tämä agentti vastaa. Ylläpitäjä valitsee, mitkä mallit ovat tällä listalla (hallintapaneeli → Settings → AI models).",
+            "model_placeholder": "Valitse malli",
+            "model_default": "Oletus",
+            "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models.",
             "behavior": {
                 "hosted_title": "Isännöidyn chatin käyttäytyminen",
                 "hosted_description": "Iframe-asetukset upotetulle isännöidylle chat-pinnalle.",

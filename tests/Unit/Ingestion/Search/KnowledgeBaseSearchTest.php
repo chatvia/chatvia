@@ -113,8 +113,8 @@ it('returns ranked results scoped to the agent with confidence scores from Retri
 
     expect($results)->not->toBe([])
         ->and($results[0])->toHaveProperties(['id', 'chunk', 'chunkable_type', 'chunkable_id', 'relevance', 'search_type'])
-        // The no-op reranker runs no relevance check.
-        ->and($results[0]->relevance)->toBeNull();
+        // Without a reranker, the basic similarity check gives the relevance.
+        ->and($results[0]->relevance)->toBe($results[0]->similarity);
 });
 
 it('does not return another agent\'s chunks (tenancy boundary)', function (): void {

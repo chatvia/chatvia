@@ -1,8 +1,17 @@
 <script setup lang="ts">
-/** Setup → Model: the answer temperature (the model itself is managed by the platform). */
+/** Setup → Model: the model the agent answers with, from the ones an admin made available, and the answer temperature. */
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSetupContext } from '@/composables/agents/setup/useSetupContext';
 import { useI18n } from 'vue-i18n';
+
+type Llm = Domain.Llm.Data.LlmModelData;
+
+defineProps<{
+    catalog: Llm[];
+    defaultModel: string | null;
+}>();
 
 const { t } = useI18n();
 const { locked, model } = useSetupContext();
@@ -12,6 +21,37 @@ const { form, isSaving, save } = model;
 <template>
     <div class="space-y-6 p-6">
         <div class="space-y-1">
+            <h3 class="text-sm font-medium">{{ t('agents.setup.model_picker_title') }}</h3>
+            <p class="text-muted-foreground text-sm">
+                {{ t('agents.setup.model_picker_description') }}
+            </p>
+        </div>
+
+        <div class="max-w-md space-y-2">
+            <p v-if="!catalog.length" class="text-muted-foreground rounded-md border border-dashed p-3 text-sm">
+                {{ t('agents.setup.model_empty') }}
+            </p>
+            <Select v-else v-model="form.model_external_name" :disabled="locked">
+                <SelectTrigger class="w-full" :aria-label="t('agents.setup.model_picker_title')">
+                    <SelectValue :placeholder="t('agents.setup.model_placeholder')" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem v-for="llm in catalog" :key="llm.id" :value="llm.id">
+                        <span class="flex items-center gap-2">
+                            {{ llm.name }}
+                            <Badge v-if="llm.id === defaultModel" variant="secondary" class="text-xs font-normal">
+                                {{ t('agents.setup.model_default') }}
+                            </Badge>
+                        </span>
+                    </SelectItem>
+                </SelectContent>
+            </Select>
+            <p v-if="form.errors.model_external_name" class="text-destructive text-sm">
+                {{ form.errors.model_external_name }}
+            </p>
+        </div>
+
+        <div class="space-y-1 border-t pt-6">
             <h3 class="text-sm font-medium">{{ t('agents.setup.model_title') }}</h3>
             <p class="text-muted-foreground text-sm">
                 {{ t('agents.setup.model_description') }}
@@ -42,6 +82,6 @@ const { form, isSaving, save } = model;
             </p>
         </div>
 
-        <SetupSaveFooter divided :saving="isSaving" @save="save" />
+        <SetupSaveFooter divided :saving="isSaving" :disabled="!catalog.length" @save="save" />
     </div>
 </template>

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Automaattinen päivitys",
+                "refresh_hint": "Käy verkkosivusto läpi uudelleen ja opi sen uudet ja muuttuneet sivut.",
+                "refresh_off": "Ei automaattista päivitystä",
+                "refresh_daily": "Päivitä päivittäin",
+                "refresh_weekly": "Päivitä viikoittain",
+                "refresh_monthly": "Päivitä kuukausittain",
+                "refresh_saved": "Automaattinen päivitys tallennettu.",
+                "refresh_failed": "Automaattisen päivityksen tallennus epäonnistui."
+            }
+        }
+    }
+}

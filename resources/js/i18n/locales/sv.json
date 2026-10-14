@@ -155,7 +155,8 @@
         "page_label": "Sida {page}",
         "file_with_page": "{file} (Sida {page})",
         "fallback_title": "Källa {number}",
-        "chunk_label": "Utdrag {index}"
+        "chunk_label": "Utdrag {index}",
+        "open_link": "Öppna {label}"
     },
     "home": {
         "logo_alt": "Logotyp",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Träning klar!",
                 "training_failed_retry": "Träning misslyckades. Klicka för att försöka igen",
                 "retrain_this_link": "Träna om den här länken",
-                "delete_this_link": "Ta bort den här länken"
+                "delete_this_link": "Ta bort den här länken",
+                "refresh_label": "Automatisk uppdatering",
+                "refresh_hint": "Genomsök webbplatsen igen och lär dig dess nya och ändrade sidor.",
+                "refresh_off": "Ingen automatisk uppdatering",
+                "refresh_daily": "Uppdatera dagligen",
+                "refresh_weekly": "Uppdatera varje vecka",
+                "refresh_monthly": "Uppdatera varje månad",
+                "refresh_saved": "Automatisk uppdatering sparad.",
+                "refresh_failed": "Det gick inte att spara automatisk uppdatering."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Lägg till bubbla",
             "bubbles_remove": "Ta bort bubbla",
             "bubbles_empty": "Inga chattbubblor ännu.",
-            "bubbles_translate_empty": "Lägg först till en bubbla för att kunna översätta den."
+            "bubbles_translate_empty": "Lägg först till en bubbla för att kunna översätta den.",
+            "model_picker_title": "Modell",
+            "model_picker_description": "AI-modellen som den här agenten svarar med. En administratör väljer vilka modeller som finns i listan (adminpanelen → Settings → AI models).",
+            "model_placeholder": "Välj en modell",
+            "model_default": "Standard",
+            "model_empty": "Inga modeller ännu. En administratör lägger till dem i adminpanelen under Settings → AI models."
         },
         "topics_index": {
             "title": "Ämnen",

@@ -23,6 +23,7 @@ use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Contracts\LlmProviderInterface;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\DocumentLlm;
@@ -180,6 +181,8 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
 beforeEach(function (): void {
     Cache::flush();
     Log::spy();
+    // The PDF source reads whole PDFs with Mistral, which needs its key.
+    connectAiProviders(AiProvider::Mistral);
 });
 
 dataset('tool loop sources', ['llm', 'pdf']);

@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Trang {page})",
         "fallback_title": "Nguồn {number}",
-        "chunk_label": "Đoạn {index}"
+        "open_link": "Mở {label}"
     },
     "sidebar": {
         "save_title": "Lưu tiêu đề",

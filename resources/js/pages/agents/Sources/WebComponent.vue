@@ -19,6 +19,7 @@ import { useDiscoveredLinks } from '@/composables/agents/sources/web/useDiscover
 import { useWebsiteDeletion } from '@/composables/agents/sources/web/useWebsiteDeletion';
 import { useWebsiteLinksDialog } from '@/composables/agents/sources/web/useWebsiteLinksDialog';
 import { useWebsiteLiveUpdates } from '@/composables/agents/sources/web/useWebsiteLiveUpdates';
+import { useWebsiteRefresh } from '@/composables/agents/sources/web/useWebsiteRefresh';
 import { useWebSources } from '@/composables/agents/sources/web/useWebSources';
 import { useWebsiteTraining } from '@/composables/agents/sources/web/useWebsiteTraining';
 import { onMounted, ref } from 'vue';
@@ -36,6 +37,7 @@ const links = useDiscoveredLinks(agentId, sources);
 const training = useWebsiteTraining(agentId, sources);
 const linksDialog = useWebsiteLinksDialog(agentId, sources);
 const deletion = useWebsiteDeletion(agentId, sources, training);
+const refresh = useWebsiteRefresh(agentId, sources);
 useWebsiteLiveUpdates(agentId, { sources, links, training, linksDialog });
 
 const {
@@ -97,6 +99,7 @@ onMounted(reload);
                 @attach="isAttachDialogOpen = true"
                 @view-links="linksDialog.open"
                 @delete="deletion.confirm"
+                @set-refresh="refresh.set"
             />
 
             <LoadMoreButton v-if="hasMoreWebSources && !isInitialLoad" :is-loading="isLoadingMoreWebSources" @click="loadMoreWebSources" />

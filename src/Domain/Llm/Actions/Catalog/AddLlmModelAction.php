@@ -13,13 +13,13 @@ use Domain\Llm\Models\LlmProvider;
  * about it. Its alias (`external_name`, what agents and settings store) is
  * the model's id, or the id with the provider's number when another provider
  * already has a model by that id. Adding a model that is already there
- * returns it unchanged.
+ * returns it, turned on again when it was removed.
  */
 final class AddLlmModelAction
 {
     public function execute(LlmProvider $provider, RemoteModelData $model): Llm
     {
-        return Llm::query()->firstOrCreate(
+        $llm = Llm::query()->firstOrCreate(
             ['llm_provider_id' => $provider->id, 'internal_name' => $model->id],
             [
                 'external_name' => $this->alias($provider, $model->id),
@@ -30,6 +30,12 @@ final class AddLlmModelAction
                 'output_price_per_1m_tokens' => $model->outputPricePerMillion,
             ],
         );
+
+        if (! $llm->is_enabled) {
+            $llm->update(['is_enabled' => true]);
+        }
+
+        return $llm;
     }
 
     private function alias(LlmProvider $provider, string $id): string

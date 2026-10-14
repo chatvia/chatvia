@@ -20,7 +20,7 @@ interface Transcriber
      */
     public function transcribe(string $filePath): string;
 
-    /** Whether a speech-to-text service is set up (Settings → AI). */
+    /** Whether a speech-to-text service is set up (Settings → AI models). */
     public function isEnabled(): bool;
 
     /**

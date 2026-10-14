@@ -6,10 +6,10 @@
 #   1. wait for PostgreSQL
 #   2. run the migrations (the first one installs the search extensions)
 #   3. check the embedding storage settings still match the database
-#   4. load the AI model list (reference data, never demo data)
-#   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
+#   4. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
 #      install has no admin yet
-#   6. add the built-in tools to the tool catalog (needs an embedding API key)
+#   5. add the built-in tools to the tool catalog (needs an embedding API key;
+#      on a new install the admin setup adds them when it finishes)
 set -eu
 
 cd "${APP_BASE_DIR:-/var/www/chatvia}"

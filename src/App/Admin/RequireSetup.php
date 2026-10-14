@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Admin;
 
 use App\Admin\Pages\Setup;
+use App\Admin\Settings\SetupStatus;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +27,7 @@ final class RequireSetup
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (blank(config('chatvia.admin.setup_completed_at')) && ! $request->routeIs(self::OPEN_ROUTES)) {
+        if (! SetupStatus::current() instanceof SetupStatus && ! $request->routeIs(self::OPEN_ROUTES)) {
             return redirect()->route('filament.admin.setup');
         }
 

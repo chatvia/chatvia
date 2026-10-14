@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +15,8 @@ use Inertia\Testing\AssertableInertia as Assert;
  */
 beforeEach(function (): void {
     Storage::fake();
+    // PDF, Word, slides and images need a document reader.
+    connectAiProviders(AiProvider::Mistral);
 
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);

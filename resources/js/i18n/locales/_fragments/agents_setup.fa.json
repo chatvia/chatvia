@@ -103,6 +103,11 @@
             "temperature_precise": "دقیق",
             "temperature_balanced": "متعادل",
             "temperature_creative": "خلاقانه",
+            "model_picker_title": "مدل",
+            "model_picker_description": "مدل هوش مصنوعی‌ای که این عامل با آن پاسخ می‌دهد. مدیر انتخاب می‌کند کدام مدل‌ها در این فهرست باشند (پنل مدیریت ← Settings → AI models).",
+            "model_placeholder": "یک مدل انتخاب کنید",
+            "model_default": "پیش‌فرض",
+            "model_empty": "هنوز مدلی وجود ندارد. مدیر آن‌ها را در پنل مدیریت، در Settings → AI models اضافه می‌کند.",
             "behavior": {
                 "hosted_title": "رفتار چت میزبانی‌شده",
                 "hosted_description": "گزینه‌های iframe برای سطح چت میزبانی‌شده جاسازی‌شده.",

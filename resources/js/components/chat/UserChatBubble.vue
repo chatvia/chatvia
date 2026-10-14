@@ -140,7 +140,7 @@ async function deleteMessage() {
                         }}</Button>
                         <Button
                             @click="saveEditedMessage"
-                            class="bg-foreground text-background hover:bg-foreground/90 h-9 rounded-full px-5 text-sm font-medium"
+                            class="bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-full px-5 text-sm font-medium"
                         >
                             {{ t('messages.send') }}
                         </Button>

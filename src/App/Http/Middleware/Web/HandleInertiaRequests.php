@@ -99,7 +99,7 @@ class HandleInertiaRequests extends Middleware
             // Ingestion), each with its extensions, for the upload pages and
             // the sources menu. An object even when empty.
             // Whether websites can be imported as knowledge: the import
-            // service is set up (Settings → Ingestion → Firecrawl).
+            // service is set up (Settings → Knowledge → Website import).
             'canImportWebsites' => $user && filled(config('services.firecrawl.key')),
             'knowledgeFileTypes' => $user ? (object) collect(KnowledgeFileType::enabled())
                 ->mapWithKeys(fn (KnowledgeFileType $type): array => [$type->value => $type->extensions()])

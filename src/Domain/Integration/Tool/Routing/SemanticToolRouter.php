@@ -63,11 +63,20 @@ class SemanticToolRouter
         $entries = array_map(static fn (ToolSearchHitData $hit): ToolEntry => $hit->entry, $ranked);
 
         // Recall is done; now the precision gate. RRF ranked these candidates but
-        // can't say whether the strongest is actually relevant — the reranker can.
+        // can't say whether the strongest is actually relevant — the reranker
+        // can (or, without one, each tool's similarity to the message).
         // On an off-topic turn (a greeting, a thank-you) this returns [], so the
         // caller ships zero tools and the model stays conversational. The gate
         // holds write tools to a stricter bar than reads (per-scope thresholds).
-        $gated = $this->gate->gate($userMessage, $entries);
+        $similarities = [];
+
+        foreach ($ranked as $hit) {
+            if ($hit->similarity !== null) {
+                $similarities[$hit->entry->sourceId] = $hit->similarity;
+            }
+        }
+
+        $gated = $this->gate->gate($userMessage, $entries, $similarities);
 
         // Optional small-model connector router: drop write tools whose connector
         // the classifier didn't pick for this turn. Off by default; fails open.

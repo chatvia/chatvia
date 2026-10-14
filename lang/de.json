@@ -128,6 +128,7 @@
     "Transcription failed. Please try again.": "Die Transkription ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "Chatting with PDF files is not available.": "Chatten mit PDF-Dateien ist nicht verfügbar.",
     "We couldn't read this PDF. Please try a different file.": "Wir konnten diese PDF nicht lesen. Bitte versuchen Sie es mit einer anderen Datei.",
+    "This PDF is locked with a password. Remove the password and upload it again.": "Diese PDF ist mit einem Passwort gesperrt. Entferne das Passwort und lade sie erneut hoch.",
     "This PDF has :pages pages — the limit is :max.": "Diese PDF hat :pages Seiten – das Limit ist :max.",
     "You've reached the limit of :max files for this chat.": "Sie haben das Limit von :max Dateien für diesen Chat erreicht.",
     "No file was uploaded.": "Es wurde keine Datei hochgeladen.",

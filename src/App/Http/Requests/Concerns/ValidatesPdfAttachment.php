@@ -5,6 +5,7 @@ namespace App\Http\Requests\Concerns;
 use App\Http\Rules\DocumentChatAvailable;
 use App\Http\Rules\MaxConversationAttachments;
 use App\Http\Rules\MaxPdfPages;
+use App\Http\Rules\UnlockedPdf;
 use Domain\Llm\Services\DocumentLlm;
 
 /**
@@ -38,6 +39,7 @@ trait ValidatesPdfAttachment
                     conversationExternalId: $this->header('X-CONVERSATION-ID'),
                     max: (int) config('chatvia.agent.files.upload.max_files'),
                 ),
+                new UnlockedPdf,
                 new MaxPdfPages(
                     max: (int) config('chatvia.agent.files.upload.max_pdf_pages'),
                 ),

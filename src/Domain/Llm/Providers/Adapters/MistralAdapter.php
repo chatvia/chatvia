@@ -12,8 +12,9 @@ use Domain\Llm\Providers\Mistral;
 
 /**
  * Mistral's API. Its list says which models chat, read images and call
- * tools, and their context size. The same key reads documents (OCR) and whole
- * PDFs, so it is also the Mistral service of Settings → AI.
+ * tools, and their context size. Its key is the Mistral account's
+ * (Settings → AI providers), which also reads documents (OCR) and whole
+ * PDFs.
  */
 final class MistralAdapter extends OpenAiCompatibleAdapter
 {
@@ -49,12 +50,7 @@ final class MistralAdapter extends OpenAiCompatibleAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new Mistral($provider, $this->baseUrl($provider));
-    }
-
-    public function settingsConfig(): array
-    {
-        return ['api_key' => 'services.mistral.api_key', 'base_url' => 'services.mistral.base_url'];
+        return new Mistral($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
     }
 
     protected function isChatModel(array $row): bool

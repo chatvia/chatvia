@@ -57,13 +57,13 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Exceptions\EmbeddingDimensionsMismatchException;
-use Domain\Knowledge\Embedding\Rerank\CohereReranker;
-use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
+use Domain\Knowledge\Embedding\Rerank\RerankerFactory;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
+use Domain\Knowledge\Ingestion\Services\DocumentReaders;
+use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Knowledge\Source\File\Models\SourceFile;
@@ -77,6 +77,8 @@ use Domain\Knowledge\Source\Web\Observers\SourceWebsiteObserver;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Knowledge\Source\Youtube\Observers\SourceYoutubeVideoObserver;
 use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Enums\AiCapability;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
@@ -172,30 +174,28 @@ class DomainServiceProvider extends ServiceProvider
             return $provider;
         });
 
-        $this->app->bind(fn ($app): Reranker => match ($this->aiDriver('reranker', auto: match (config('chatvia.ai.models.embedding', 'mistral')) {
-            'qwen' => 'qwen',
-            'openai', 'google', 'mistral', 'jina' => 'none',
-            default => 'cohere',
-        })) {
-            'qwen' => $app->make(Qwen3Reranker::class),
-            'cohere' => $app->make(CohereReranker::class),
-            'none' => $app->make(NullReranker::class),
-            default => throw $this->unknownAiDriver('reranker', ['qwen', 'cohere', 'none']),
+        $this->app->bind(function ($app): Reranker {
+            $factory = $app->make(RerankerFactory::class);
+            $driver = $this->aiDriver('reranker', auto: $factory->autoDriver());
+
+            if (! in_array($driver, RerankerFactory::DRIVERS, true)) {
+                throw $this->unknownAiDriver('reranker', RerankerFactory::DRIVERS);
+            }
+
+            return $factory->make($driver);
         });
 
-        $this->app->bind(fn ($app): DocumentParser => match ($this->aiDriver('document_parser', auto: filled(config('services.mistral.api_key')) ? 'mistral' : 'local')) {
+        // Without a reader, only spreadsheets and CSV reach a parser: the app
+        // reads them itself (the other document types cannot be uploaded).
+        $this->app->bind(fn ($app): DocumentParser => match ($app->make(DocumentReaders::class)->driver()) {
             'mistral' => $app->make(MistralDocumentParser::class),
-            'local' => $app->make(LocalDocumentParser::class),
-            default => throw $this->unknownAiDriver('document_parser', ['mistral', 'local']),
+            'azure' => $app->make(AzureDocumentParser::class),
+            default => $app->make(LocalDocumentParser::class),
         });
 
         $this->app->bind(TextSplitter::class, BuiltinTextSplitter::class);
 
-        $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: match (true) {
-            filled(config('services.scalewayai.api_key')) => 'scaleway',
-            filled(config('services.openai.api_key')) => 'openai',
-            default => 'none',
-        })) {
+        $this->app->bind(fn ($app): Transcriber => match ($this->aiDriver('transcriber', auto: AiProvider::firstConnectedFor(AiCapability::Speech)?->value ?? 'none')) {
             'scaleway' => $app->make(ScalewayTranscriber::class),
             'openai' => $app->make(OpenAiTranscriber::class),
             'none' => $app->make(NullTranscriber::class),
@@ -203,7 +203,7 @@ class DomainServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(function ($app): DocumentLlm {
-            $driver = $this->aiDriver('document_llm', auto: filled(config('services.mistral.api_key')) ? 'mistral' : 'none');
+            $driver = $this->aiDriver('document_llm', auto: AiProvider::firstConnectedFor(AiCapability::Documents)?->value ?? 'none');
 
             if ($driver === 'none') {
                 return new DocumentLlm(null);
@@ -266,7 +266,7 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(Login::class, RecordKnownDevice::class);
         Event::listen(Login::class, RecordLastLogin::class);
 
-        // A new embedding model (Settings → AI) needs every tool embedded again.
+        // A new embedding model (Settings → AI models) needs every tool embedded again.
         Event::listen(SavingSettings::class, ReembedToolsForNewEmbeddingModel::class);
 
         // Enterprise security audit log — one parametric event, persisted off

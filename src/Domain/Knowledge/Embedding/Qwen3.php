@@ -17,7 +17,7 @@ class Qwen3 extends AbstractEmbeddingsProvider
      * Instruction prefix recommended by the Qwen3-Embedding paper for
      * retrieval queries. Documents are embedded without any prefix.
      */
-    private const string QUERY_INSTRUCTION = 'Given a search query, retrieve relevant passages that answer the query';
+    public const string QUERY_INSTRUCTION = 'Given a search query, retrieve relevant passages that answer the query';
 
     public function embed(string $text, bool $returnAsText = false): string|array
     {

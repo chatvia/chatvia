@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file}（第 {page} 页）",
         "fallback_title": "来源 {number}",
-        "chunk_label": "片段 {index}"
+        "open_link": "打开 {label}"
     },
     "sidebar": {
         "save_title": "保存标题",

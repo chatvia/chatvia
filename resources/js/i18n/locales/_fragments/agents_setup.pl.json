@@ -103,6 +103,11 @@
             "temperature_precise": "Precyzyjny",
             "temperature_balanced": "Wyważony",
             "temperature_creative": "Kreatywny",
+            "model_picker_title": "Model",
+            "model_picker_description": "Model AI, którym odpowiada ten agent. Administrator wybiera, które modele są na tej liście (panel administracyjny → Settings → AI models).",
+            "model_placeholder": "Wybierz model",
+            "model_default": "Domyślny",
+            "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models.",
             "behavior": {
                 "hosted_title": "Zachowanie hostowanego czatu",
                 "hosted_description": "Opcje iframe dla osadzonej powierzchni hostowanego czatu.",

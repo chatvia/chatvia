@@ -26,9 +26,9 @@ class MistralOcr
 
     public function __construct(ProviderAdapters $adapters)
     {
-        // The Mistral service of Settings → AI, not a catalog provider.
+        // The Mistral account (Settings → AI providers), not a catalog model.
         $adapter = $adapters->for(LlmProviderEnum::MISTRAL);
-        $connection = $adapter->fromSettings();
+        $connection = $adapter->standalone();
 
         $this->mistral = $adapter->client($connection);
         $this->baseUrl = $adapter->baseUrl($connection);

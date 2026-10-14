@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Halaman {page})",
         "fallback_title": "Sumber {number}",
-        "chunk_label": "Potongan {index}"
+        "open_link": "Buka {label}"
     },
     "sidebar": {
         "save_title": "Simpan judul",

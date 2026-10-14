@@ -1,7 +1,7 @@
 <?php
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
-use App\Admin\Clusters\Settings\Pages\ManageSearchSettings;
+use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
 use App\Admin\Clusters\Settings\Pages\ManageSignInSettings;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Clusters\Settings\SettingsCluster;
@@ -56,10 +56,10 @@ it('explains every card of every settings page', function (): void {
 
 it('opens the explanation from the card\'s "?" button', function (): void {
     Livewire::actingAs($this->admin, 'admin')
-        ->test(ManageSearchSettings::class)
+        ->test(ManageKnowledgeSettings::class)
         ->assertSee('What do these options do?')
-        ->mountAction(TestAction::make('help_results')->schemaComponent('help-search-results', schema: 'form'))
-        ->assertActionMounted(TestAction::make('help_results')->schemaComponent('help-search-results', schema: 'form'))
+        ->mountAction(TestAction::make('help_search')->schemaComponent('help-knowledge-search', schema: 'form'))
+        ->assertActionMounted(TestAction::make('help_search')->schemaComponent('help-knowledge-search', schema: 'form'))
         ->assertMountedActionModalSee('as well as by meaning');
 });
 

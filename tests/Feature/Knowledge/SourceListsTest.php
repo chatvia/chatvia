@@ -130,6 +130,28 @@ it('pages the website list with link counts and progress', function (): void {
         ->assertJsonPath('data.0.progress', 100);
 });
 
+it('sets how often a website is refreshed', function (): void {
+    $website = SourceWebsite::query()->create([
+        'workspace_id' => $this->workspaceId,
+        'url' => 'https://docs.example.test',
+        'status' => 'ingested',
+    ]);
+    $this->agent->websites()->attach($website->id);
+
+    $this->actingAs($this->owner)
+        ->patchJson(route('agents.sources.websites.update', [$this->agent, $website]), ['refresh_interval' => 'yearly'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('refresh_interval');
+
+    $this->actingAs($this->owner)
+        ->patchJson(route('agents.sources.websites.update', [$this->agent, $website]), ['refresh_interval' => 'weekly'])
+        ->assertOk();
+
+    $this->actingAs($this->owner)
+        ->getJson(route('agents.sources.websites.index', $this->agent))
+        ->assertJsonPath('data.0.refresh_interval', 'weekly');
+});
+
 it('answers a text the workspace already has with a validation error', function (): void {
     Bus::fake([TextIngestionJob::class]);
     Storage::fake();

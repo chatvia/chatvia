@@ -44,7 +44,7 @@ final class OpenRouterAdapter extends OpenAiCompatibleAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new OpenRouter($provider, $this->baseUrl($provider));
+        return new OpenRouter($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
     }
 
     protected function isChatModel(array $row): bool

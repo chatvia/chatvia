@@ -155,7 +155,8 @@
         "page_label": "صفحه {page}",
         "file_with_page": "{file} (صفحه {page})",
         "fallback_title": "منبع {number}",
-        "chunk_label": "بخش {index}"
+        "chunk_label": "بخش {index}",
+        "open_link": "باز کردن {label}"
     },
     "home": {
         "logo_alt": "لوگو",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "آموزش تکمیل شد!",
                 "training_failed_retry": "آموزش ناموفق بود. برای تلاش مجدد کلیک کنید",
                 "retrain_this_link": "بازآموزی این لینک",
-                "delete_this_link": "حذف این لینک"
+                "delete_this_link": "حذف این لینک",
+                "refresh_label": "به‌روزرسانی خودکار",
+                "refresh_hint": "وب‌سایت را دوباره بخزید و صفحه‌های جدید و تغییرکرده‌اش را یاد بگیرید.",
+                "refresh_off": "بدون به‌روزرسانی خودکار",
+                "refresh_daily": "به‌روزرسانی روزانه",
+                "refresh_weekly": "به‌روزرسانی هفتگی",
+                "refresh_monthly": "به‌روزرسانی ماهانه",
+                "refresh_saved": "به‌روزرسانی خودکار ذخیره شد.",
+                "refresh_failed": "ذخیره‌ی به‌روزرسانی خودکار ممکن نشد."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "افزودن حباب",
             "bubbles_remove": "حذف حباب",
             "bubbles_empty": "هنوز حباب چتی وجود ندارد.",
-            "bubbles_translate_empty": "ابتدا یک حباب اضافه کنید تا بتوانید آن را ترجمه کنید."
+            "bubbles_translate_empty": "ابتدا یک حباب اضافه کنید تا بتوانید آن را ترجمه کنید.",
+            "model_picker_title": "مدل",
+            "model_picker_description": "مدل هوش مصنوعی‌ای که این عامل با آن پاسخ می‌دهد. مدیر انتخاب می‌کند کدام مدل‌ها در این فهرست باشند (پنل مدیریت ← Settings → AI models).",
+            "model_placeholder": "یک مدل انتخاب کنید",
+            "model_default": "پیش‌فرض",
+            "model_empty": "هنوز مدلی وجود ندارد. مدیر آن‌ها را در پنل مدیریت، در Settings → AI models اضافه می‌کند."
         },
         "topics_index": {
             "title": "موضوعات",

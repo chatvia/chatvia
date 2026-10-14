@@ -32,13 +32,18 @@ class LlmProviderFactory extends Factory
         ];
     }
 
-    /** A provider of the given kind, at its default address (a test address for a custom server). */
+    /**
+     * A provider of the given kind: a custom server at a test address with a
+     * test key, any other kind with neither (it calls with its account's key,
+     * from config).
+     */
     public function kind(LlmProviderEnum $kind): static
     {
         return $this->state(fn (): array => [
             'kind' => $kind,
             'name' => ucfirst($kind->value),
             'base_url' => $kind === LlmProviderEnum::CUSTOM ? 'https://llm.test/v1' : null,
+            'api_key' => $kind === LlmProviderEnum::CUSTOM ? 'test-key' : null,
         ]);
     }
 

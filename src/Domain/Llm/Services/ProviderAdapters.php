@@ -11,7 +11,7 @@ use Domain\Llm\Providers\Contracts\ProviderAdapter;
 /**
  * The adapter of each provider kind ({@see LlmProviderEnum::adapter()}), and
  * the list of kinds the app can call, in picker order. Every question about a
- * provider (its address, key, client, models, Settings → AI service) goes
+ * provider (its address, key, client, models, account) goes
  * through here.
  */
 class ProviderAdapters

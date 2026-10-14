@@ -268,7 +268,7 @@ async function toggleRecording() {
                             v-if="isThinking"
                             @click="emit('stopStreaming')"
                             size="icon"
-                            class="bg-foreground text-background hover:bg-foreground/90 h-9 w-9 shrink-0 rounded-full"
+                            class="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 shrink-0 rounded-full"
                             :aria-label="t('composer.stop_streaming')"
                         >
                             <Square class="h-4 w-4 fill-current" />

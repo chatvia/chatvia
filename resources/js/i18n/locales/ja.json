@@ -155,7 +155,8 @@
         "page_label": "{page} ページ",
         "file_with_page": "{file}（{page} ページ）",
         "fallback_title": "ソース {number}",
-        "chunk_label": "チャンク {index}"
+        "chunk_label": "チャンク {index}",
+        "open_link": "{label} を開く"
     },
     "home": {
         "logo_alt": "ロゴ",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "トレーニングが完了しました!",
                 "training_failed_retry": "トレーニングに失敗しました。クリックして再試行",
                 "retrain_this_link": "このリンクを再トレーニング",
-                "delete_this_link": "このリンクを削除"
+                "delete_this_link": "このリンクを削除",
+                "refresh_label": "自動更新",
+                "refresh_hint": "ウェブサイトを再度クロールし、新しいページと変更されたページを学習します。",
+                "refresh_off": "自動更新なし",
+                "refresh_daily": "毎日更新",
+                "refresh_weekly": "毎週更新",
+                "refresh_monthly": "毎月更新",
+                "refresh_saved": "自動更新を保存しました。",
+                "refresh_failed": "自動更新を保存できませんでした。"
             }
         },
         "leads": {

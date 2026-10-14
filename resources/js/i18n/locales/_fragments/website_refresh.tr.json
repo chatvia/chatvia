@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Otomatik yenileme",
+                "refresh_hint": "Web sitesini yeniden tara ve yeni ve değişen sayfalarını öğren.",
+                "refresh_off": "Otomatik yenileme yok",
+                "refresh_daily": "Her gün yenile",
+                "refresh_weekly": "Her hafta yenile",
+                "refresh_monthly": "Her ay yenile",
+                "refresh_saved": "Otomatik yenileme kaydedildi.",
+                "refresh_failed": "Otomatik yenileme kaydedilemedi."
+            }
+        }
+    }
+}

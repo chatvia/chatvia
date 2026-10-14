@@ -30,10 +30,9 @@ function gateWith(Reranker $reranker): ToolRelevanceGate
 
 beforeEach(function (): void {
     config()->set('chatvia.agent.tools.routing.relevance_gate', true);
-    config()->set('chatvia.agent.tools.routing.relevance_threshold', 0.55);
     // Pin both per-scope bars to a symmetric 0.55 baseline so the generic tests
-    // below are deterministic regardless of the config-file defaults (read ships
-    // at 0.45 in prod). The per-scope test overrides these.
+    // below are deterministic regardless of the model's measured bars. The
+    // per-scope test overrides these.
     config()->set('chatvia.agent.tools.routing.relevance_threshold_read', 0.55);
     config()->set('chatvia.agent.tools.routing.relevance_threshold_write', 0.55);
     config()->set('chatvia.agent.tools.routing.rerank_candidates', 12);
@@ -42,6 +41,7 @@ beforeEach(function (): void {
 it('ships nothing when no candidate clears the threshold (the "Hi" case)', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     $reranker->shouldReceive('rerank')->once()->andReturn([
         new RerankedDocumentData(0, 0.04),
         new RerankedDocumentData(1, 0.02),
@@ -58,6 +58,7 @@ it('ships nothing when no candidate clears the threshold (the "Hi" case)', funct
 it('keeps only the tools above the threshold, in reranked order', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     // Reranker promotes index 1 (weather) and drops index 0 (events) below the bar.
     $reranker->shouldReceive('rerank')->once()->andReturn([
         new RerankedDocumentData(1, 0.91),
@@ -76,6 +77,7 @@ it('keeps only the tools above the threshold, in reranked order', function (): v
 it('keeps multiple tools when several clear the threshold', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     $reranker->shouldReceive('rerank')->once()->andReturn([
         new RerankedDocumentData(0, 0.88),
         new RerankedDocumentData(1, 0.72),
@@ -98,6 +100,7 @@ it('holds write tools to a stricter bar than read tools', function (): void {
 
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     // Both land at 0.55 — between the read bar (0.45) and the write bar (0.65).
     $reranker->shouldReceive('rerank')->once()->andReturn([
         new RerankedDocumentData(0, 0.55),
@@ -117,6 +120,7 @@ it('holds write tools to a stricter bar than read tools', function (): void {
 it('treats the threshold as inclusive (>=)', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     $reranker->shouldReceive('rerank')->once()->andReturn([
         new RerankedDocumentData(0, 0.55),
     ]);
@@ -129,6 +133,7 @@ it('treats the threshold as inclusive (>=)', function (): void {
 it('passes candidates through unchanged when the reranker throws', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('reranker down'));
 
     $candidates = [toolEntry('get_weather', 'Get the weather forecast')];
@@ -178,6 +183,7 @@ it('only reranks up to the configured candidate cap', function (): void {
 
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
     // Cap is 2, so only the first two candidates are sent to the reranker.
     $reranker->shouldReceive('rerank')
         ->once()
@@ -197,4 +203,48 @@ it('only reranks up to the configured candidate cap', function (): void {
 
     expect($kept)->toHaveCount(2)
         ->and(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['tool_a', 'tool_b']);
+});
+
+it('falls back to the similarity check when the reranker fails', function (): void {
+    config()->set('chatvia.agent.tools.routing.similarity_threshold_read', 0.5);
+    config()->set('chatvia.agent.tools.routing.similarity_threshold_write', 0.6);
+
+    $reranker = Mockery::mock(Reranker::class);
+    $reranker->shouldReceive('isEnabled')->andReturnTrue();
+    $reranker->shouldReceive('model')->andReturn('test-reranker');
+    $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('down'));
+
+    $read = toolEntry('get_charge', 'Look up a charge', mutates: false);
+    $write = toolEntry('refund_charge', 'Refund a charge', mutates: true);
+    $far = toolEntry('get_weather', 'Get the weather', mutates: false);
+
+    $kept = gateWith($reranker)->gate('refund that charge', [$read, $write, $far], [
+        $read->sourceId => 0.55,
+        $write->sourceId => 0.58,
+        $far->sourceId => 0.12,
+    ]);
+
+    // The write misses its stricter bar; the unrelated read misses the read bar.
+    expect(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['get_charge']);
+});
+
+it('gates by similarity without a reranker, with the embedding model\'s bars', function (): void {
+    config()->set('chatvia.ai.models.embedding', 'qwen');
+    config()->set('chatvia.agent.tools.routing.similarity_threshold_read');
+    config()->set('chatvia.agent.tools.routing.similarity_threshold_write');
+
+    $near = toolEntry('get_weather', 'Get the weather', mutates: false);
+    $far = toolEntry('create_event', 'Schedule a meeting', mutates: false);
+
+    $kept = gateWith(new NullReranker)->gate('Hi', [$near, $far], [$near->sourceId => 0.9, $far->sourceId => 0.01]);
+
+    expect(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['get_weather']);
+});
+
+it('passes the pool ungated when the embedding model was never measured', function (): void {
+    config()->set('chatvia.ai.models.embedding', 'openai');
+
+    $candidates = [toolEntry('get_weather', 'Get the weather', mutates: false)];
+
+    expect(gateWith(new NullReranker)->gate('Hi', $candidates, [$candidates[0]->sourceId => 0.01]))->toBe($candidates);
 });

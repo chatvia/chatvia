@@ -103,6 +103,11 @@
             "temperature_precise": "Præcis",
             "temperature_balanced": "Afbalanceret",
             "temperature_creative": "Kreativ",
+            "model_picker_title": "Model",
+            "model_picker_description": "Den AI-model, som denne agent svarer med. En administrator vælger, hvilke modeller der er på listen (adminpanelet → Settings → AI models).",
+            "model_placeholder": "Vælg en model",
+            "model_default": "Standard",
+            "model_empty": "Ingen modeller endnu. En administrator tilføjer dem i adminpanelet under Settings → AI models.",
             "behavior": {
                 "hosted_title": "Adfærd for hostet chat",
                 "hosted_description": "Iframe-indstillinger for den indlejrede hostede chatoverflade.",

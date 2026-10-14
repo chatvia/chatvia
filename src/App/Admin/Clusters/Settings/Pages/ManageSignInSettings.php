@@ -26,7 +26,7 @@ class ManageSignInSettings extends AdminSettingsPage
     protected static ?string $slug = 'sign-in';
 
     #[\Override]
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFingerPrint;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArrowRightEndOnRectangle;
 
     #[\Override]
     protected static ?int $navigationSort = 1;
@@ -60,9 +60,11 @@ class ManageSignInSettings extends AdminSettingsPage
         return SettingsCard::make($service, $label, $description, $icon, fn (): array => [
             $this->text("{$service}_client_id", 'Client ID', required: true),
             $this->secret("{$service}_client_secret", 'Client secret'),
-            $this->url("{$service}_redirect", 'Redirect URL',
-                help: 'Leave empty to use the URL shown. It must match a redirect URL registered in the OAuth app.'),
         ])
+            ->advancedFields(fn (): array => [
+                $this->url("{$service}_redirect", 'Another redirect URL',
+                    help: 'Leave empty to use the URL shown. It must match a redirect URL registered in the OAuth app.'),
+            ])
             ->required("{$service}_client_id", "{$service}_client_secret")
             ->console($consoleUrl)
             ->helpFile('provider')

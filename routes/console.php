@@ -55,6 +55,10 @@ Schedule::command('app:prune-security-audit-log')->dailyAt('04:25')->withoutOver
 // where re-deriving (or debugging) per-event data is still useful.
 Schedule::command('app:prune-analytics-events')->dailyAt('04:45')->withoutOverlapping()->onOneServer();
 
+// Websites set to refresh on their own (daily, weekly, monthly) are crawled
+// and trained again once their interval has passed.
+Schedule::command('app:refresh-websites')->hourlyAt(20)->withoutOverlapping()->onOneServer();
+
 // Per-workspace retention (Settings → Security → Retention), only for the
 // workspaces that set a window. Visitor details are cleared after the
 // conversation prune has removed orphan sessions; the analytics sweep runs

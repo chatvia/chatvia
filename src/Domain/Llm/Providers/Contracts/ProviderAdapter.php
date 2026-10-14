@@ -6,6 +6,7 @@ namespace Domain\Llm\Providers\Contracts;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Data\Catalog\RemoteModelData;
+use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Http\Client\ConnectionException;
@@ -31,13 +32,13 @@ interface ProviderAdapter
     /** The API address of a provider row without one, or null when the admin must give it. */
     public function defaultBaseUrl(): ?string;
 
-    /** Whether an admin may give an address of their own (a self-hosted server, a cloud project). */
+    /** Whether a row must name its own address: a server of your own. */
     public function acceptsBaseUrl(): bool;
 
     /** Help under the address field, for providers that accept one. */
     public function baseUrlHelp(): ?string;
 
-    /** The provider's API address for a row: its own, or the default, without a trailing slash. */
+    /** The provider's API address for a row: its own, its account's, or the default, without a trailing slash. */
     public function baseUrl(LlmProvider $provider): string;
 
     public function needsApiKey(): bool;
@@ -62,18 +63,26 @@ interface ProviderAdapter
     public function models(LlmProvider $provider): Collection;
 
     /**
-     * The config keys of the same service in Settings → AI, when it is one
-     * (Scaleway's key also runs Qwen3 search and speech to text): `api_key`,
-     * and `base_url` when it has an address.
-     *
-     * @return array{api_key?: string, base_url?: string}
+     * The AI provider account whose key (and address) rows of this kind call
+     * with, set once in Settings → AI providers; null for a server of your
+     * own, whose row holds its own.
      */
-    public function settingsConfig(): array;
+    public function account(): ?AiProvider;
 
     /**
-     * That service as an unsaved provider row, from what Settings → AI holds,
-     * for the clients that are not catalog providers (Mistral OCR and
+     * The key a row calls with: its own (a server of your own, or a key
+     * being checked before it is saved), else its account's. Null when
+     * there is none.
+     */
+    public function apiKey(LlmProvider $provider): ?string;
+
+    /** Whether a row can call: it has a key, or its server needs none. */
+    public function isConnected(LlmProvider $provider): bool;
+
+    /**
+     * An unsaved row of this kind that calls with its account's key and
+     * address, for the clients that are not catalog models (Mistral OCR and
      * whole-PDF reading).
      */
-    public function fromSettings(): LlmProvider;
+    public function standalone(): LlmProvider;
 }

@@ -16,7 +16,12 @@ final class LlmProviderUnavailableException extends RuntimeException
 {
     public static function disabled(LlmProvider $provider): self
     {
-        return new self("The LLM provider \"{$provider->name}\" is turned off. Turn it on in the admin panel (Settings → AI → Providers).");
+        return new self("The LLM provider \"{$provider->name}\" is turned off. Turn it on in the admin panel (Settings → AI providers).");
+    }
+
+    public static function notConnected(LlmProvider $provider): self
+    {
+        return new self("The LLM provider \"{$provider->name}\" has no API key. Add it in the admin panel (Settings → AI providers).");
     }
 
     public static function unsupported(LlmProviderEnum $kind): self

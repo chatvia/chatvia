@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Penyegaran otomatis",
+                "refresh_hint": "Jelajahi situs web lagi dan pelajari halaman baru dan yang berubah.",
+                "refresh_off": "Tanpa penyegaran otomatis",
+                "refresh_daily": "Segarkan setiap hari",
+                "refresh_weekly": "Segarkan setiap minggu",
+                "refresh_monthly": "Segarkan setiap bulan",
+                "refresh_saved": "Penyegaran otomatis disimpan.",
+                "refresh_failed": "Tidak dapat menyimpan penyegaran otomatis."
+            }
+        }
+    }
+}

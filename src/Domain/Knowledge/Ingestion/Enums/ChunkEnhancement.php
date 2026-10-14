@@ -15,9 +15,9 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
  * for document pages — with the neighbouring pages and the page's images and
  * tables. Text sources follow `chatvia.ai.chunker.enhance_text` (on by
  * default, they are short); files and websites follow
- * `chatvia.ai.chunker.enhance` (off by default). The same switch decides the
- * summary of the whole source, so with both off ingestion makes no model
- * calls.
+ * `chatvia.ai.chunker.enhance` (on by default too: search finds far more of
+ * the right passages). The same switch decides the summary of the whole
+ * source, so with both off ingestion makes no model calls.
  */
 enum ChunkEnhancement
 {

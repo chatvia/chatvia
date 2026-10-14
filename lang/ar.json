@@ -128,6 +128,7 @@
     "Transcription failed. Please try again.": "فشل تحويل الصوت إلى نص. حاول مرة أخرى.",
     "Chatting with PDF files is not available.": "الدردشة مع ملفات PDF غير متاحة.",
     "We couldn't read this PDF. Please try a different file.": "تعذّرت قراءة ملف PDF هذا. جرّب ملفًا آخر.",
+    "This PDF is locked with a password. Remove the password and upload it again.": "ملف PDF هذا مقفل بكلمة مرور. أزل كلمة المرور ثم ارفعه مرة أخرى.",
     "This PDF has :pages pages — the limit is :max.": "يحتوي ملف PDF هذا على :pages صفحة — الحد الأقصى :max.",
     "You've reached the limit of :max files for this chat.": "وصلت إلى الحد الأقصى وهو :max ملفات لهذه الدردشة.",
     "No file was uploaded.": "لم يُرفع أي ملف.",

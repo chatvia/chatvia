@@ -7,9 +7,12 @@ use App\Identity\Workspace\Services\TeamPermissionPolicy;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
+use Domain\Agent\Services\AgentModel;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Data\LlmModelData;
+use Domain\Llm\Enums\LlmRole;
 use Domain\Llm\Models\Llm;
+use Domain\Llm\Services\ModelRoles;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -29,6 +32,8 @@ class SetupController
         Agent $agent,
         ChatterAuthTokenService $authTokenService,
         TeamPermissionPolicy $permissions,
+        AgentModel $agentModel,
+        ModelRoles $roles,
     ): Response {
         $agent->loadMissing(['llm', 'agentPrompt']);
 
@@ -42,7 +47,9 @@ class SetupController
             ])
             ->all();
 
-        $selectedModel = $agent->llm?->external_name;
+        // Its own model, or the default one while it has none.
+        $selectedModel = $agentModel->for($agent)?->external_name;
+        $defaultModel = $roles->find(LlmRole::Chat)?->external_name;
 
         // The models that may be picked, plus the agent's own even when it
         // was turned off since.
@@ -88,6 +95,7 @@ class SetupController
             // Single-model picker + hyperparameters.
             'catalog' => $catalog,
             'selectedModel' => $selectedModel,
+            'defaultModel' => $defaultModel,
             'llmSettings' => $agent->llmSettings(),
             'defaultLlmSettings' => config('model-settings.defaults.'.Agent::class.'.llm_settings'),
 

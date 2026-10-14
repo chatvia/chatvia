@@ -94,10 +94,9 @@ abstract class AdminSettings extends Settings
     /**
      * Input from a form or the command line as the property's type. Blank
      * input, and input that is not valid for the type, become null. An array
-     * keeps its keys when it has names (a map, such as the edited prompts) and
-     * is a list otherwise.
+     * becomes a list of its non-empty items.
      *
-     * @return string|int|float|bool|list<string>|array<string, string>|null
+     * @return string|int|float|bool|list<string>|null
      */
     public static function cast(string $property, mixed $value): string|int|float|bool|array|null
     {
@@ -112,7 +111,7 @@ abstract class AdminSettings extends Settings
                 return null;
             }
 
-            return array_is_list($value) ? array_values($items) : $items;
+            return array_values($items);
         }
 
         if (is_string($value)) {

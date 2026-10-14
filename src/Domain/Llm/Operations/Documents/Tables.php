@@ -17,6 +17,13 @@ use Domain\Llm\Services\ModelRoles;
  */
 class Tables
 {
+    /**
+     * Room for the reply. A page can hold several tables, and a reasoning
+     * model (gpt-oss, gpt-5…) spends tokens thinking before it writes: with a
+     * tight cap the description is cut short or comes back empty.
+     */
+    private const int MAX_TOKENS = 2048;
+
     public function __construct(
         private readonly LlmChat $chat,
         private readonly ModelRoles $models,
@@ -33,7 +40,7 @@ class Tables
                 ChatMessageData::user(prompt('tables/describe', ['tables' => implode("\n\n", $tables)])),
             ],
             temperature: 0.0,
-            maxTokens: 512,
+            maxTokens: self::MAX_TOKENS,
         ))->content;
     }
 }

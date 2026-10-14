@@ -19,9 +19,10 @@ return [
     'driver' => 'weasyprint',
 
     'weasyprint' => [
-        // A program name is looked up on the PATH of the web server; set a
-        // full path when weasyprint lives somewhere else.
-        'binary' => env('WEASYPRINT_BIN_PATH', 'weasyprint'),
+        // A program name is looked up on the PATH of the process that runs
+        // it. A full path is set in the admin panel (Settings → Platform →
+        // Programs) when weasyprint lives somewhere else.
+        'binary' => 'weasyprint',
 
         // Seconds. A long conversation takes a few seconds to lay out.
         'timeout' => 60,

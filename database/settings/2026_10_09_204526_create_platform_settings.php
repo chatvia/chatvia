@@ -36,6 +36,14 @@ return new class extends SettingsMigration
             $group->add('analytics_workers');
             $group->add('media_workers');
             $group->add('voice_workers');
+            $group->add('pdfinfo_path');
+            $group->add('pdftotext_path');
+            $group->add('pandoc_path');
+            $group->add('catdoc_path');
+            $group->add('catppt_path');
+            $group->add('ffmpeg_path');
+            $group->add('ffprobe_path');
+            $group->add('weasyprint_path');
         });
     }
 

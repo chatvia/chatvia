@@ -800,9 +800,11 @@ can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
 `VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`
 (error reports must work before the database loads), `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
-install), `TRUSTED_PROXIES`, and program paths (`*_BIN_PATH`). Program paths
-stay out of the admin panel on purpose: if they were editable from the web, a
-stolen admin login could run commands on the server. Some config/*.php keys
+install), and `TRUSTED_PROXIES`. Program paths (pdfinfo, pandoc, ffmpeg,
+WeasyPrint…) are in **Settings → Platform → Programs** (`ServerProgram`). The
+panel accepts only a program's own name or a full path that ends in it and
+leads to a program on the server, so a stolen admin login cannot make the
+server run another command. Some config/*.php keys
 behind a setting still read `env()`, as an optional preset (Docker and Sail
 use a few, for example `MAIL_HOST` for Mailpit); a value saved in the admin
 panel always wins.

@@ -50,6 +50,15 @@ theme.
   saved (Mistral OCR reads a small test image) and refused if the call
   fails. With only Azure connected, the hosted chat and the widget no longer
   fail on a PDF model that Azure does not have.
+- **Reranker, Speech to text and Voice conversations work the same way.**
+  There is no "Automatic" and no "Default: …" line: each list shows the
+  service in use by its product name (OpenRouter, Cohere Rerank, Scaleway AI
+  Whisper, OpenAI Whisper, OpenAI Realtime), marks each provider connected or
+  not, and greys out the ones that are not. Self-hosted and Off stay. A new
+  pick is checked with a real call as it is saved, and refused if the call
+  fails: the reranker reranks two test texts (also when only its model or
+  your server's address changes), speech to text and voice check the
+  provider's key.
 - **Azure's free tier is caught.** It reads only the first 2 pages of a
   file, without an error: the connection check warns about a free (F0)
   resource, and a PDF that comes back with 2 of more pages fails with that
@@ -249,8 +258,15 @@ theme.
   keeps its default, which `.env` can still preset (optional). `.env` keeps
   only what the app needs to start (database, Redis, drivers, Reverb and so
   on), plus the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`,
-  the built-in tools' secret and address (`BUILTIN_MCP_*`),
-  `TRUSTED_PROXIES` and program paths.
+  the built-in tools' secret and address (`BUILTIN_MCP_*`) and
+  `TRUSTED_PROXIES`.
+- **Program paths are set in the admin panel** (**Settings → Platform →
+  Programs**): pdfinfo, pdftotext, pandoc, catdoc, catppt, ffmpeg, ffprobe
+  and WeasyPrint. Each shows whether the server finds it, and suggests the
+  path when the program is in a usual folder (such as Homebrew's) that the
+  PATH misses. A path must end in the program's own name, so the panel
+  cannot be used to run another program. The `*_BIN_PATH` and
+  `FFPROBE_PATH` variables are no longer read.
 - `MAIL_URL` is no longer read. Set up e-mail in the admin panel
   (**Settings → Email**).
 - Sign-in buttons (Google, Microsoft, GitHub, Slack) only show for the

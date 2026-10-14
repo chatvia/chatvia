@@ -6,7 +6,7 @@
 After you add a key:
 
 - Add the provider's chat models in **Settings → AI models**.
-- Its other services (embeddings, speech to text, documents, reranking) work when **Automatic** is chosen on **AI models**, or when you choose this provider there.
+- To use its other services (embeddings, reranking, documents, speech to text, voice), choose it in **Settings → AI models**. There, each list marks the providers that are connected.
 
 **Tip:** One provider is enough to start. Scaleway AI, OpenRouter, OpenAI, Mistral and Google Gemini also make embeddings; with Groq you need a second provider for them.
 

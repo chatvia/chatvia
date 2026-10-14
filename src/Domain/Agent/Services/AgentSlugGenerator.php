@@ -28,6 +28,13 @@ class AgentSlugGenerator
 
     private const int MAX_LENGTH = 63;
 
+    /**
+     * Room for the reply. The name is two or three words, but a reasoning
+     * model (gpt-oss, gpt-5…) spends tokens thinking first: with a tight cap
+     * it stops before writing anything and every suggestion comes back empty.
+     */
+    private const int MAX_TOKENS = 500;
+
     public function __construct(
         private readonly LlmChat $chat,
         private readonly ModelRoles $models,
@@ -69,7 +76,7 @@ class AgentSlugGenerator
             return $this->chat->send(new ChatRequestData(
                 model: $this->models->model(LlmRole::Fast),
                 messages: [ChatMessageData::user(prompt('agent-slug/generate'))],
-                maxTokens: 30,
+                maxTokens: self::MAX_TOKENS,
             ))->content;
         } catch (Throwable $e) {
             Log::warning('Agent slug suggestion failed; falling back to a random name.', ['exception' => $e::class]);

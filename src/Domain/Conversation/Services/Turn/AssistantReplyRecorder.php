@@ -39,7 +39,7 @@ class AssistantReplyRecorder
         if ($request->streamSources) {
             $this->memory
                 ->withScope($this->scope($context))
-                ->storeSourcesForMessage($context->assistantMessageId, $context->sources->map(static fn (RetrievedSourceData $source): array => $source->forClient())->values()->all());
+                ->storeSourcesForMessage($context->assistantMessageId, RetrievedSourceData::forClients($context->sources));
         }
     }
 

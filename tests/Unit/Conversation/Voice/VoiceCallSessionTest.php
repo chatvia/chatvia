@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Services\MessageAllowance;
+use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Voice\RunVoiceCallAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -19,6 +20,8 @@ use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Conversation\Services\Voice\VoiceToolRunner;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Knowledge\Ingestion\Models\Chunk;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\RealtimeConnection;
@@ -191,7 +194,51 @@ it('saves the visitor\'s words before the reply, and counts the reply', function
     Queue::assertPushed(StoreMessageJob::class, fn (StoreMessageJob $job): bool => ($job->payload->prompt_tokens ?? null) === 120);
 });
 
-it('looks up the knowledge, then asks for the rest of the reply', function (): void {
+/** A finished response that only called a tool. */
+function toolCallResponse(string $id, string $name, string $arguments, string $callId = 'fc_1'): array
+{
+    return ['type' => 'response.done', 'response' => [
+        'id' => $id, 'status' => 'completed', 'metadata' => ['turn' => 'item_1'],
+        'output' => [['type' => 'function_call', 'call_id' => $callId, 'name' => $name, 'arguments' => $arguments]],
+    ]];
+}
+
+/** The finished "let me check". */
+function fillerDone(string $status = 'completed'): array
+{
+    return ['type' => 'response.done', 'response' => ['id' => 'resp_filler', 'status' => $status, 'metadata' => ['notice' => '1', 'filler' => '1'], 'output' => []]];
+}
+
+it('starts every reply with a knowledge search when the agent has knowledge', function (): void {
+    $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
+    $this->agent->files()->attach($file->id);
+    Chunk::query()->create([
+        'workspace_id' => $this->agent->workspace_id,
+        'chunkable_type' => $file->getMorphClass(),
+        'chunkable_id' => $file->id,
+        'chunk_index' => 1,
+        'chunk' => 'We open at nine.',
+        'tokens' => 4,
+        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
+        'embedding_bm25' => Bm25Tokenizer::expression('We open at nine.'),
+        'checksum' => md5(uniqid()),
+        'cost_in_micro_cents' => 0,
+    ]);
+    $session = app(VoiceCallSession::class)->for($this->call, $this->agent);
+    $session->opened($connection = new RecordingVoiceConnection);
+
+    $session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
+
+    expect($connection->ofType('response.create')[0]['response']['tool_choice'])->toBe(['type' => 'function', 'name' => 'search_knowledge']);
+});
+
+it('lets the model choose when the agent has no knowledge', function (): void {
+    $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
+
+    expect($this->connection->ofType('response.create')[0]['response'])->not->toHaveKey('tool_choice');
+});
+
+it('says "let me check" while it searches, then asks for the rest of the reply', function (): void {
     $this->mock(KnowledgeEnricher::class, fn ($mock) => $mock->shouldReceive('lookup')->andReturn(new KnowledgeLookupData(
         qaMatch: new QaMatchData(id: 7, questions: 'Opening hours?', answer: 'Nine to five, Monday to Friday.', confidenceScore: 0.99),
         sources: collect(),
@@ -201,36 +248,66 @@ it('looks up the knowledge, then asks for the rest of the reply', function (): v
 
     $session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
     $session->received(['type' => 'response.created', 'response' => ['id' => 'resp_1', 'metadata' => ['turn' => 'item_1']]]);
-    $session->received(['type' => 'response.function_call_arguments.done', 'response_id' => 'resp_1', 'call_id' => 'fc_1', 'name' => 'search_knowledge', 'arguments' => '{"query":"When are you open?"}']);
+    $session->received(toolCallResponse('resp_1', 'search_knowledge', '{"query":"When are you open?"}'));
+
+    $creates = $connection->ofType('response.create');
+    expect($creates)->toHaveCount(2)
+        ->and($creates[1]['response']['conversation'])->toBe('none')
+        ->and($creates[1]['response']['metadata'])->toBe(['notice' => '1', 'filler' => '1']);
 
     $output = $connection->ofType('conversation.item.create')[0]['item'];
     expect($output['type'])->toBe('function_call_output')
         ->and($output['call_id'])->toBe('fc_1')
         ->and($output['output'])->toContain('Nine to five, Monday to Friday.');
 
-    $session->received(['type' => 'response.done', 'response' => [
-        'id' => 'resp_1', 'status' => 'completed', 'metadata' => ['turn' => 'item_1'],
-        'output' => [['type' => 'function_call', 'call_id' => 'fc_1', 'name' => 'search_knowledge', 'arguments' => '{}']],
-    ]]);
+    // The answer waits until "let me check" has been said.
+    $session->received(['type' => 'response.created', 'response' => ['id' => 'resp_filler', 'metadata' => ['notice' => '1', 'filler' => '1']]]);
+    $session->received(fillerDone());
 
-    expect($connection->ofType('response.create'))->toHaveCount(2)
-        ->and($connection->ofType('response.create')[1]['response']['metadata'])->toBe(['turn' => 'item_1']);
+    expect($connection->ofType('response.create'))->toHaveCount(3)
+        ->and($connection->ofType('response.create')[2]['response']['metadata'])->toBe(['turn' => 'item_1']);
+});
+
+it('drops the waiting reply when the visitor talks over "let me check"', function (): void {
+    $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
+    $this->session->received(['type' => 'response.created', 'response' => ['id' => 'resp_1', 'metadata' => ['turn' => 'item_1']]]);
+    $this->session->received(toolCallResponse('resp_1', 'search_knowledge', '{"query":"Opening hours"}'));
+    $this->session->received(['type' => 'response.created', 'response' => ['id' => 'resp_filler', 'metadata' => ['notice' => '1', 'filler' => '1']]]);
+    $this->session->received(fillerDone('cancelled'));
+
+    // The search's "let me check" only; no answer to the dropped question.
+    expect($this->connection->ofType('response.create'))->toHaveCount(2);
+});
+
+it('goes straight on, without "let me check", for small talk', function (): void {
+    $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
+    $this->session->received(['type' => 'response.created', 'response' => ['id' => 'resp_1', 'metadata' => ['turn' => 'item_1']]]);
+    $this->session->received(toolCallResponse('resp_1', 'search_knowledge', '{"query":""}'));
+
+    expect($this->connection->ofType('conversation.item.create')[0]['item']['output'])->toBe(VoiceToolRunner::SMALL_TALK_RESULT)
+        ->and($this->connection->ofType('response.create'))->toHaveCount(2)
+        ->and($this->connection->ofType('response.create')[1]['response']['metadata'])->toBe(['turn' => 'item_1']);
 });
 
 it('refuses a tool the call did not offer', function (): void {
     $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
     $this->session->received(['type' => 'response.created', 'response' => ['id' => 'resp_1', 'metadata' => ['turn' => 'item_1']]]);
-    $this->session->received(['type' => 'response.function_call_arguments.done', 'response_id' => 'resp_1', 'call_id' => 'fc_1', 'name' => 'delete_everything', 'arguments' => '{}']);
+    $this->session->received(toolCallResponse('resp_1', 'delete_everything', '{}'));
 
     expect($this->connection->ofType('conversation.item.create')[0]['item']['output'])->toContain('is not one of the tools');
 });
 
-it('asks for the query when knowledge search gets none', function (): void {
+it('goes on after "let me check" even when it never finishes', function (): void {
     $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_1']);
     $this->session->received(['type' => 'response.created', 'response' => ['id' => 'resp_1', 'metadata' => ['turn' => 'item_1']]]);
-    $this->session->received(['type' => 'response.function_call_arguments.done', 'response_id' => 'resp_1', 'call_id' => 'fc_1', 'name' => 'search_knowledge', 'arguments' => '{}']);
+    $this->session->received(toolCallResponse('resp_1', 'search_knowledge', '{"query":"Opening hours"}'));
 
-    expect($this->connection->ofType('conversation.item.create')[0]['item']['output'])->toBe(VoiceToolRunner::MISSING_QUERY_RESULT);
+    expect($this->connection->ofType('response.create'))->toHaveCount(2);
+
+    $this->travel(9)->seconds();
+    $this->session->tick();
+
+    expect($this->connection->ofType('response.create'))->toHaveCount(3);
 });
 
 it('says goodbye instead of answering once the message limit is reached', function (): void {

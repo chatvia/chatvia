@@ -194,7 +194,7 @@ export function useRealtimeVoice(options: Options) {
         }
     }
 
-    /** A finished reply goes to the thread; notices (goodbye, "too busy") do not. */
+    /** A finished reply goes to the thread; notices ("let me check", goodbye, "too busy") do not. */
     function onResponseDone(response: ServerEvent['response']): void {
         if (!response || response.metadata?.notice) return;
 

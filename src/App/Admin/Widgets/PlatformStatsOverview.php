@@ -6,7 +6,6 @@ namespace App\Admin\Widgets;
 
 use App\Admin\Pages\DashboardFilters;
 use Domain\Analytics\Data\Platform\ActivityBucketData;
-use Domain\Analytics\Data\Platform\CountTrendData;
 use Domain\Analytics\Queries\Platform\PlatformActivityQuery;
 use Domain\Analytics\Queries\Platform\PlatformOverviewQuery;
 use Filament\Support\Icons\Heroicon;
@@ -43,20 +42,20 @@ class PlatformStatsOverview extends StatsOverviewWidget
         $series = collect(app(PlatformActivityQuery::class)->get($scope));
 
         return array_values(array_filter([
-            $this->trend(Stat::make('Messages', Number::format($overview->messages->current)), $overview->messages)
+            StatFormat::trend(Stat::make('Messages', Number::format($overview->messages->current)), $overview->messages)
                 ->icon(Heroicon::OutlinedChatBubbleLeftRight)
                 ->chart($series->map(fn (ActivityBucketData $bucket): int => $bucket->messages())->all()),
-            $this->trend(Stat::make('Conversations', Number::format($overview->conversations->current)), $overview->conversations)
+            StatFormat::trend(Stat::make('Conversations', Number::format($overview->conversations->current)), $overview->conversations)
                 ->icon(Heroicon::OutlinedChatBubbleOvalLeftEllipsis)
                 ->chart($series->map(fn (ActivityBucketData $bucket): int => $bucket->conversations)->all()),
             Stat::make('New visitors', Number::format($overview->newVisitors))
                 ->icon(Heroicon::OutlinedUserGroup)
                 ->description('People who chatted for the first time'),
-            Stat::make('Average reply time', $this->duration($overview->avgReplyMs))
+            Stat::make('Average reply time', StatFormat::duration($overview->avgReplyMs))
                 ->icon(Heroicon::OutlinedClock)
                 ->description('Time an agent takes to answer'),
             $scope->isWholePlatform()
-                ? $this->trend(Stat::make('New workspaces', Number::format($overview->newWorkspaces->current)), $overview->newWorkspaces)
+                ? StatFormat::trend(Stat::make('New workspaces', Number::format($overview->newWorkspaces->current)), $overview->newWorkspaces)
                     ->icon(Heroicon::OutlinedBuildingOffice2)
                     ->chart($series->map(fn (ActivityBucketData $bucket): int => $bucket->newWorkspaces)->all())
                 : null,
@@ -85,30 +84,5 @@ class PlatformStatsOverview extends StatsOverviewWidget
         $columns = count($this->getCachedStats()) % 4 === 0 ? 4 : 3;
 
         return ['@xl' => $columns, '!@lg' => $columns];
-    }
-
-    /** "12% more than the previous period", in green or red. */
-    private function trend(Stat $stat, CountTrendData $trend): Stat
-    {
-        $change = $trend->changePct();
-
-        if ($change === null) {
-            return $stat->description('Nothing to compare with yet')->chartColor('primary');
-        }
-
-        return $stat
-            ->description(Number::format(abs($change), maxPrecision: 1).'% '.($change >= 0 ? 'more' : 'fewer').' than the period before')
-            ->descriptionIcon($change >= 0 ? Heroicon::ArrowTrendingUp : Heroicon::ArrowTrendingDown)
-            ->descriptionColor($change >= 0 ? 'success' : 'danger')
-            ->chartColor('primary');
-    }
-
-    private function duration(?int $milliseconds): string
-    {
-        return match (true) {
-            $milliseconds === null => '—',
-            $milliseconds < 1000 => Number::format($milliseconds).' ms',
-            default => Number::format($milliseconds / 1000, maxPrecision: 1).' s',
-        };
     }
 }

@@ -116,8 +116,10 @@ theme.
   glowing orb that moves with the voice, live captions, Mute and End. It runs
   on the OpenAI Realtime API: the audio goes straight from the browser to
   OpenAI, and the OpenAI key never reaches the browser.
-- The agent keeps its instructions. It looks things up in its knowledge (a
-  new `search_knowledge` tool) and can use its tools that need no approval.
+- The agent keeps its instructions. Every answer starts with a search of its
+  knowledge (as typed chats do), and it can use its tools that need no
+  approval. While it searches, it says a short "Let me check, one moment" in
+  the visitor's language.
   Approval-gated tools, forms and charts stay text-only.
 - **Both sides are saved as messages**: in the thread, in Chat Logs (marked
   "Voice") and in analytics. Each spoken answer counts against the message

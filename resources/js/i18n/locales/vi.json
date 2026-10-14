@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Trang {page})",
         "fallback_title": "Nguồn {number}",
         "chunk_label": "Đoạn {index}",
-        "open_link": "Mở {label}"
+        "open_link": "Mở {label}",
+        "passage_count": "{count} đoạn | {count} đoạn"
     },
     "home": {
         "logo_alt": "Logo",

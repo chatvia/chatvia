@@ -157,7 +157,8 @@
         "file_with_page": "{file} (पृष्ठ {page})",
         "fallback_title": "स्रोत {number}",
         "chunk_label": "खंड {index}",
-        "open_link": "{label} खोलें"
+        "open_link": "{label} खोलें",
+        "passage_count": "{count} अंश | {count} अंश"
     },
     "home": {
         "logo_alt": "लोगो",

@@ -10,7 +10,7 @@ use Spatie\LaravelData\Data;
 /**
  * One knowledge chunk retrieved for a turn: its text (for the model), how
  * relevant the relevance check found it, and how its source is named (a
- * label, a public link, a PDF page). {@see self::forClient()} is what the
+ * label, a public link, a PDF page). {@see self::forClients()} is what the
  * chat clients receive.
  */
 class RetrievedSourceData extends Data
@@ -34,8 +34,37 @@ class RetrievedSourceData extends Data
     ) {}
 
     /**
-     * The source as the chat clients show it under an answer: no chunk text
-     * and no internal ids.
+     * A turn's sources as the chat clients show them under an answer: one
+     * entry per place the answer drew on (a source, a PDF page, a website
+     * page), best first, with how many of its passages were used. The chunks
+     * of one source share its name, so one entry per chunk would list the
+     * same name again and again.
+     *
+     * @param  iterable<int, self>  $sources  best first
+     * @return list<array{id: string|null, label: string, kind: string, url: string|null, page: int|null, passages: int}>
+     */
+    public static function forClients(iterable $sources): array
+    {
+        $entries = [];
+
+        foreach ($sources as $source) {
+            $key = implode('|', [$source->sourceable_type, $source->sourceable_id, $source->url, $source->page]);
+
+            if (isset($entries[$key])) {
+                $entries[$key]['passages']++;
+
+                continue;
+            }
+
+            $entries[$key] = [...$source->forClient(), 'passages' => 1];
+        }
+
+        return array_values($entries);
+    }
+
+    /**
+     * One chunk's source as the chat clients show it: no chunk text and no
+     * internal ids.
      *
      * @return array{id: string|null, label: string, kind: string, url: string|null, page: int|null}
      */

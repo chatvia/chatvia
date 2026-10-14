@@ -157,7 +157,8 @@
         "file_with_page": "{file} (Side {page})",
         "fallback_title": "Kilde {number}",
         "chunk_label": "Utdrag {index}",
-        "open_link": "Åpne {label}"
+        "open_link": "Åpne {label}",
+        "passage_count": "{count} utdrag | {count} utdrag"
     },
     "home": {
         "logo_alt": "Logo",

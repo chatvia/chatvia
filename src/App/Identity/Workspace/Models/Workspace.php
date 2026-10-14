@@ -151,6 +151,16 @@ class Workspace extends Model
     }
 
     /**
+     * Whether any staff account of the workspace is platform staff. Every
+     * admin also has a workspace of their own; switching it off would lock
+     * the admin out of the admin panel too.
+     */
+    public function hasPlatformAdmin(): bool
+    {
+        return $this->members()->where('users.is_admin', true)->exists();
+    }
+
+    /**
      * The workspace's security and compliance policy, created on first read
      * so no caller ever sees null.
      */

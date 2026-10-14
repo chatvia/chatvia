@@ -157,7 +157,8 @@
         "file_with_page": "{file} (стр. {page})",
         "fallback_title": "Источник {number}",
         "chunk_label": "Фрагмент {index}",
-        "open_link": "Открыть {label}"
+        "open_link": "Открыть {label}",
+        "passage_count": "{count} фрагмент | {count} фрагментов"
     },
     "home": {
         "logo_alt": "Логотип",

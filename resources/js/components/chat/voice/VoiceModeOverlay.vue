@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { useRealtimeVoice, type VoiceTurnEvent } from '@/composables/chat/useRealtimeVoice';
 import { useAudioLevel } from '@/composables/useAudioLevel';
 import { Mic, MicOff, X } from 'lucide-vue-next';
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -87,6 +87,22 @@ const caption = computed(() =>
 );
 const isLive = computed(() => ['connecting', 'waiting', 'listening', 'thinking', 'speaking'].includes(state.value));
 
+// Live captions: a fixed box that keeps the newest words in view as a long
+// answer grows (like subtitles), fading out the lines above once it overflows.
+const captionBox = ref<HTMLElement | null>(null);
+const captionOverflows = ref(false);
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+watch(caption, () =>
+    nextTick(() => {
+        const box = captionBox.value;
+        if (!box) return;
+
+        captionOverflows.value = box.scrollHeight > box.clientHeight + 1;
+        box.scrollTo({ top: box.scrollHeight, behavior: reducedMotion ? 'auto' : 'smooth' });
+    }),
+);
+
 // Elapsed time, from the moment the agent starts listening.
 const now = ref(Date.now());
 const clock = window.setInterval(() => (now.value = Date.now()), 1000);
@@ -143,7 +159,15 @@ onBeforeUnmount(() => {
             <p class="text-foreground text-base font-medium" role="status" aria-live="polite">{{ status }}</p>
 
             <p v-if="error" class="text-destructive max-w-sm text-center text-sm" role="alert">{{ error }}</p>
-            <p v-else class="text-muted-foreground line-clamp-3 min-h-[3.75rem] max-w-sm text-center text-sm leading-5">{{ caption }}</p>
+            <div
+                v-else
+                ref="captionBox"
+                dir="auto"
+                class="text-muted-foreground h-20 w-full max-w-md overflow-hidden text-center text-sm leading-5"
+                :class="{ '[mask-image:linear-gradient(to_bottom,transparent,black_1.5rem)]': captionOverflows }"
+            >
+                {{ caption }}
+            </div>
         </div>
 
         <div class="flex items-center gap-6">

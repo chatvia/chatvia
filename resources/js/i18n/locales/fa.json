@@ -157,7 +157,8 @@
         "file_with_page": "{file} (صفحه {page})",
         "fallback_title": "منبع {number}",
         "chunk_label": "بخش {index}",
-        "open_link": "باز کردن {label}"
+        "open_link": "باز کردن {label}",
+        "passage_count": "{count} بخش | {count} بخش"
     },
     "home": {
         "logo_alt": "لوگو",

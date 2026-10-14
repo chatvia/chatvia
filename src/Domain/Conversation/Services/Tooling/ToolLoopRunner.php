@@ -494,7 +494,7 @@ class ToolLoopRunner
         foreach ($toolDefinitions as $definition) {
             $name = $definition['function']['name'] ?? null;
 
-            if (is_string($name) && $name !== '') {
+            if (filled($name)) {
                 $names[] = $name;
             }
         }

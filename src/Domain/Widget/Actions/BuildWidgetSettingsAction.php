@@ -245,7 +245,7 @@ class BuildWidgetSettingsAction
         foreach (array_unique([...array_keys($copy->translations), ...array_keys($copy->overrides)]) as $locale) {
             $text = $copy->overrides[$locale] ?? $copy->translations[$locale] ?? null;
 
-            if (is_string($text) && $text !== '') {
+            if (filled($text)) {
                 $map[(string) $locale] = $text;
             }
         }

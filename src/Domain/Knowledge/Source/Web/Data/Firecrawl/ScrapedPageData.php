@@ -26,7 +26,7 @@ final class ScrapedPageData extends Data
         foreach (['title', 'ogTitle'] as $key) {
             $title = $this->metadata[$key] ?? null;
 
-            if (is_string($title) && trim($title) !== '') {
+            if (is_string($title) && filled($title)) {
                 return mb_substr(trim($title), 0, 500);
             }
         }

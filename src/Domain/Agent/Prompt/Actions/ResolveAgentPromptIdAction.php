@@ -18,7 +18,7 @@ class ResolveAgentPromptIdAction
      */
     public function execute(Workspace $workspace, ?string $promptExternalId): ?int
     {
-        if ($promptExternalId === null || $promptExternalId === '') {
+        if (blank($promptExternalId)) {
             return null;
         }
 

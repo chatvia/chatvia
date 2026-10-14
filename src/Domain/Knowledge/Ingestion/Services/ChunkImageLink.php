@@ -43,7 +43,7 @@ final class ChunkImageLink
      */
     public static function verify(string $externalId, int $index, ?string $signature): bool
     {
-        if (! is_string($signature) || $signature === '') {
+        if (blank($signature)) {
             return false;
         }
 

@@ -103,7 +103,7 @@ final class JsonToolCallParser
             $arguments = $item['parameters'] ?? $item['arguments'] ?? $item['input'] ?? [];
         }
 
-        if (! is_string($name) || $name === '') {
+        if (! is_string($name) || blank($name)) {
             return null;
         }
 

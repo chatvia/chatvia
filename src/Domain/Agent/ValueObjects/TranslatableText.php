@@ -58,7 +58,7 @@ final readonly class TranslatableText
         }
 
         foreach ([$this->overrides[$locale] ?? null, $this->translations[$locale] ?? null] as $candidate) {
-            if (is_string($candidate) && $candidate !== '') {
+            if (filled($candidate)) {
                 return $candidate;
             }
         }
@@ -80,7 +80,7 @@ final readonly class TranslatableText
 
         return array_all(
             $locales,
-            fn (string $locale): bool => is_string($this->translations[$locale] ?? null) && $this->translations[$locale] !== '',
+            fn (string $locale): bool => filled($this->translations[$locale] ?? null),
         );
     }
 

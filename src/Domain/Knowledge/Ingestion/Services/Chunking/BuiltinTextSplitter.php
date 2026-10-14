@@ -35,7 +35,7 @@ class BuiltinTextSplitter implements TextSplitter
     {
         $text = mb_scrub($text, 'UTF-8');
 
-        if (trim($text) === '') {
+        if (blank($text)) {
             return [];
         }
 

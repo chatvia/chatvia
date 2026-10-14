@@ -24,7 +24,7 @@ final class WebhookSignature
      */
     public static function verify(string $payload, ?string $signature, string $secret): bool
     {
-        if (! is_string($signature) || $signature === '' || $secret === '') {
+        if (blank($signature) || blank($secret)) {
             return false;
         }
 

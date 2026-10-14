@@ -72,7 +72,7 @@ class AgentFunctionData extends Data
         $names = [];
 
         foreach ((array) ($headers ?? []) as $header) {
-            if (is_array($header) && isset($header['key']) && is_string($header['key']) && $header['key'] !== '') {
+            if (is_array($header) && filled($header['key'] ?? null)) {
                 $names[] = $header['key'];
             }
         }

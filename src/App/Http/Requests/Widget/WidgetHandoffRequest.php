@@ -28,11 +28,11 @@ class WidgetHandoffRequest extends FormRequest
 
     public function toData(): WidgetConversationRefData
     {
-        $sessionId = $this->header(WidgetHeaders::SESSION_ID);
+        $sessionId = $this->headers->get(WidgetHeaders::SESSION_ID);
 
         return new WidgetConversationRefData(
             conversationId: $this->string('conversation_id')->toString(),
-            sessionId: is_string($sessionId) && $sessionId !== '' ? $sessionId : null,
+            sessionId: filled($sessionId) ? $sessionId : null,
         );
     }
 }

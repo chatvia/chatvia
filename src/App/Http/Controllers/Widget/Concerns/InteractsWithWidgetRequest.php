@@ -67,8 +67,8 @@ trait InteractsWithWidgetRequest
 
     private function widgetHeader(Request $request, string $name): ?string
     {
-        $value = $request->header($name);
+        $value = $request->headers->get($name);
 
-        return is_string($value) && $value !== '' ? $value : null;
+        return filled($value) ? $value : null;
     }
 }

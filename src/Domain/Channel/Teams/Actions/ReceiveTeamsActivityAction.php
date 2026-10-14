@@ -50,7 +50,7 @@ class ReceiveTeamsActivityAction
     {
         $text = $activity['text'] ?? null;
 
-        if (($activity['type'] ?? null) !== 'message' || ! is_string($text) || trim($text) === '') {
+        if (($activity['type'] ?? null) !== 'message' || ! is_string($text) || blank($text)) {
             return false;
         }
 

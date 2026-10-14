@@ -295,11 +295,11 @@ class MetaOAuthClient
 
             Log::debug('Meta OAuth: resolved IG account for Page', [
                 'page_id' => $page->id,
-                'has_ig_account' => is_string($igId) && $igId !== '',
+                'has_ig_account' => is_string($igId) && filled($igId),
                 'ig_id' => is_string($igId) ? $igId : null,
             ]);
 
-            if (! is_string($igId) || $igId === '') {
+            if (! is_string($igId) || blank($igId)) {
                 continue; // no IG professional account linked to this Page
             }
 

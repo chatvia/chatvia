@@ -55,7 +55,7 @@ class StickyToolResolver
                 continue;
             }
             foreach ($toolCalls as $name) {
-                if (is_string($name) && $name !== '') {
+                if (filled($name)) {
                     $names[$name] = true;
                 }
             }

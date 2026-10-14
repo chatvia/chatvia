@@ -41,7 +41,7 @@ class SetAgentStartersAction
                 continue;
             }
 
-            $id = $starter->id !== null && $starter->id !== '' ? $starter->id : (string) Str::uuid();
+            $id = filled($starter->id) ? $starter->id : (string) Str::uuid();
             $copy = new TranslatableText($text, [], TranslatableText::onlyLanguages($starter->overrides, $languages));
 
             // Keep the stored translations while the base text is unchanged and

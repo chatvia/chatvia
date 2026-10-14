@@ -53,7 +53,7 @@ class IP2Country
     {
         $code = $this->locate($ip)?->countryCode;
 
-        return $code !== null && $code !== '' ? $code : null;
+        return filled($code) ? $code : null;
     }
 
     private function isPublicIp(string $ip): bool

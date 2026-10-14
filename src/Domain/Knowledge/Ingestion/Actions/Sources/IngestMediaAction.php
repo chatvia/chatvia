@@ -52,7 +52,7 @@ class IngestMediaAction
 
         $transcript = $this->transcript($sourceFile);
 
-        if (trim($transcript) === '') {
+        if (blank($transcript)) {
             throw new RuntimeException('The transcript is empty: there is nothing to chunk.');
         }
 

@@ -25,7 +25,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
         // Without one, Horizon has nowhere to send them, so they stay off.
         $notifyEmail = config('horizon.notify_email');
 
-        if (is_string($notifyEmail) && $notifyEmail !== '') {
+        if (filled($notifyEmail)) {
             Horizon::routeMailNotificationsTo($notifyEmail);
         }
     }

@@ -33,7 +33,7 @@ class GuardrailClassifier
 
     public function classify(string $text, ClassifierOptionsData $options): ClassifierVerdictData
     {
-        if (! $options->any() || trim($text) === '') {
+        if (! $options->any() || blank($text)) {
             return new ClassifierVerdictData;
         }
 

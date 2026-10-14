@@ -77,7 +77,7 @@ class SyncMcpServerCatalogAction
      */
     private function backfillDescription(AgentMcpServer $server): void
     {
-        if (($server->description !== null && $server->description !== '') || ! $server->connector_slug) {
+        if (filled($server->description) || ! $server->connector_slug) {
             return;
         }
 

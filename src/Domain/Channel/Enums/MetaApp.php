@@ -57,7 +57,7 @@ enum MetaApp: string
     {
         $value = $this->config($key);
 
-        return is_string($value) && $value !== '' ? $value : null;
+        return filled($value) ? $value : null;
     }
 
     private function config(string $key): mixed

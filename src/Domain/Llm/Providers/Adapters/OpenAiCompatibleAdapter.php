@@ -161,7 +161,7 @@ abstract class OpenAiCompatibleAdapter implements ProviderAdapter
 
         return new RemoteModelData(
             id: $id,
-            name: is_string($row['name'] ?? null) && $row['name'] !== '' ? $row['name'] : $id,
+            name: is_string($row['name'] ?? null) && filled($row['name']) ? $row['name'] : $id,
             contextWindow: is_numeric($context) ? (int) $context : null,
         );
     }

@@ -37,8 +37,6 @@ class ExportChatRequest extends FormRequest
     /** The one message to export, or null for the whole conversation. */
     public function messageId(): ?string
     {
-        $messageId = $this->input('messageId');
-
-        return is_string($messageId) && $messageId !== '' ? $messageId : null;
+        return $this->filled('messageId') ? $this->string('messageId')->toString() : null;
     }
 }

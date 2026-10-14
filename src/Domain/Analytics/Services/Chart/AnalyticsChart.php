@@ -110,7 +110,7 @@ final class AnalyticsChart
      */
     private static function withTitle(array $option, ?string $title): array
     {
-        if ($title !== null && $title !== '') {
+        if (filled($title)) {
             $option['title'] = ['text' => $title, 'left' => 'center'];
         }
 

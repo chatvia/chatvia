@@ -47,6 +47,6 @@ final readonly class OAuthServerMetadata
 
     public function supportsDynamicRegistration(): bool
     {
-        return is_string($this->registrationEndpoint) && $this->registrationEndpoint !== '';
+        return filled($this->registrationEndpoint);
     }
 }

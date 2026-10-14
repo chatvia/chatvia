@@ -139,7 +139,7 @@ trait HasStorageFile
     {
         $path = $this->getAttribute($field);
 
-        if (! is_string($path) || $path === '') {
+        if (blank($path)) {
             throw new RuntimeException(sprintf('No stored file in "%s" for %s #%s.', $field, class_basename($this), $this->getKey()));
         }
 

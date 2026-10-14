@@ -186,7 +186,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
      */
     private function countryLabel(?string $code): string
     {
-        if ($code === null || $code === '') {
+        if (blank($code)) {
             return '';
         }
 
@@ -230,13 +230,11 @@ class UpdateSecurityPolicyRequest extends FormRequest
 
     private function blankToNull(mixed $value): ?string
     {
-        return ($value === null || $value === '') ? null : (string) $value;
+        return blank($value) ? null : (string) $value;
     }
 
     private function nullableInt(string $key): ?int
     {
-        $value = $this->input($key);
-
-        return ($value === null || $value === '') ? null : (int) $value;
+        return $this->filled($key) ? $this->integer($key) : null;
     }
 }

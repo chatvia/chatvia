@@ -13,16 +13,16 @@ use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Rerank\RerankModelCatalog;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
-use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
-use Filament\Forms\Components\CheckboxList;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Collection;
-use Illuminate\Contracts\Support\Htmlable;
-use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\AiCapability;
-use Domain\Llm\Contracts\Transcriber;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
+use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
+use Domain\Llm\Contracts\Transcriber;
+use Domain\Llm\Enums\AiCapability;
+use Domain\Llm\Enums\AiProvider;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 /**
  * What agents learn from, and how they search it. Everyday cards: the file
@@ -252,9 +252,6 @@ class ManageKnowledgeSettings extends AdminSettingsPage
         $waiting = count($chosen) - count($readable);
 
         return $waiting > 0 ? "{$summary} · {$waiting} cannot be read yet" : $summary;
-    }
-
-        return $extensions;
     }
 
     /** Whether the reranker in use (Settings → AI models) scores results. */

@@ -92,7 +92,7 @@ class GuardrailService
      */
     public function inspectOutput(Agent $agent, string $text): GuardResultData
     {
-        if (! $this->enabledFor($agent) || trim($text) === '') {
+        if (! $this->enabledFor($agent) || blank($text)) {
             return GuardResultData::clean($text);
         }
 

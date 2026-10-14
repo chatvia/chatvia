@@ -35,6 +35,7 @@ class UpdateAgentSettingsRequest extends FormRequest
     {
         return array_filter(
             $this->only($this->group()->keys()),
+            // Not filled(): an empty list (e.g. no sites) is a real value to store.
             static fn (mixed $value): bool => $value !== '' && $value !== null,
         );
     }

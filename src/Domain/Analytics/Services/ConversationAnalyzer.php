@@ -254,7 +254,7 @@ class ConversationAnalyzer
         $existingNames = $topics->pluck('topic')->map(fn (mixed $name): string => mb_strtolower(trim((string) $name)))->all();
 
         return collect(is_array($labels) ? $labels : [])
-            ->filter(fn (mixed $label): bool => is_string($label) && trim($label) !== '')
+            ->filter(fn (mixed $label): bool => is_string($label) && filled($label))
             ->map(fn (string $label): string => trim($label))
             ->reject(fn (string $label): bool => in_array(mb_strtolower($label), $existingNames, true))
             ->unique(fn (string $label): string => mb_strtolower($label))

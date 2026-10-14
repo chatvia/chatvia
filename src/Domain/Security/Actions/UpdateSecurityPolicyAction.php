@@ -160,7 +160,7 @@ class UpdateSecurityPolicyAction
      */
     private function guardWebhookUrl(?string $url): void
     {
-        if ($url === null || $url === '') {
+        if (blank($url)) {
             return;
         }
 

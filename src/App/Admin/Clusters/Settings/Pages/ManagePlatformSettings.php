@@ -13,7 +13,7 @@ use Illuminate\Support\Arr;
 
 /**
  * Install-wide options: default language, the chat widget,
- * page-view analytics, visitor location, the built-in tools, alerts and the
+ * the tracking code, visitor location, the built-in tools, alerts and the
  * number of queue workers.
  */
 class ManagePlatformSettings extends AdminSettingsPage
@@ -35,7 +35,7 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, analytics, the built-in tools and queue workers.';
+        return 'Language, widget, tracking code, the built-in tools and queue workers.';
     }
 
     public static function overviewGroup(): string
@@ -58,11 +58,10 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->integer('widget_stream_per_minute', 'Replies per agent per minute', min: 1),
                 $this->integer('widget_stream_per_hour', 'Replies per agent per hour', min: 1),
             ])->summary(fn (): string => $this->valueInUse('widget_stream_per_minute').' replies per agent per minute'),
-            SettingsCard::make('plausible', 'Plausible', 'Page-view analytics. Nothing is loaded while the domain is empty.', Heroicon::OutlinedChartBar, fn (): array => [
-                $this->text('plausible_domain', 'Domain'),
-            ])->advancedFields(fn (): array => [
-                $this->url('plausible_script_url', 'Script address', help: 'Point it to your own Plausible to self-host.'),
-            ])->summary(fn (): string => filled($this->valueInUse('plausible_domain')) ? 'On for '.$this->valueInUse('plausible_domain') : 'Off'),
+            SettingsCard::make('tracking', 'Tracking code', 'Code added to every page, such as the script of an analytics service. Nothing is added while it is empty.', Heroicon::OutlinedChartBar, fn (): array => [
+                $this->code('tracking_code', 'Code', placeholder: '<script defer src="https://…"></script>',
+                    help: 'Added to the <head> of the dashboard, the hosted chat and the sign-in pages, on a live (production) install only.'),
+            ])->summary(fn (): string => filled($this->valueInUse('tracking_code')) ? 'On' : 'Off'),
             SettingsCard::make('ip2location', 'IP2Location', 'Finds the country of a visitor from their IP address.', Heroicon::OutlinedMapPin, fn (): array => [
                 $this->secret('ip2location_api_key', 'API key'),
             ])->advancedFields(fn (): array => [

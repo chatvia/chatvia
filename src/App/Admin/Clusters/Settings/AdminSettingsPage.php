@@ -12,6 +12,7 @@ use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Field;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
@@ -739,6 +740,22 @@ abstract class AdminSettingsPage extends Page
             ->placeholder(fn (): ?string => $this->defaultText($property))
             ->hint(fn (): ?string => $required && ! $this->isSaved($property) ? 'Required' : null)
             ->hintColor('gray');
+    }
+
+    /**
+     * Several lines of code, such as HTML, kept as typed. Blank uses the
+     * default.
+     */
+    protected function code(string $property, string $label, ?string $help = null, ?string $placeholder = null): Textarea
+    {
+        return Textarea::make($property)
+            ->label($label)
+            ->helperText($help)
+            ->rows(6)
+            ->autosize()
+            ->rules(['nullable', 'string', 'max:20000'])
+            ->placeholder($placeholder)
+            ->extraInputAttributes(['class' => 'font-mono text-sm', 'spellcheck' => 'false']);
     }
 
     protected function url(string $property, string $label, ?string $help = null, bool $required = false): TextInput

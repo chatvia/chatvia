@@ -21,8 +21,7 @@ return new class extends SettingsMigration
             $group->add('widget_script_url');
             $group->add('widget_stream_per_minute');
             $group->add('widget_stream_per_hour');
-            $group->add('plausible_domain');
-            $group->add('plausible_script_url');
+            $group->add('tracking_code');
             $group->addEncrypted('ip2location_api_key');
             $group->add('ip2location_endpoint');
             $group->add('perplexity_base_url');

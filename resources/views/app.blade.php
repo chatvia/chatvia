@@ -15,7 +15,7 @@
              (the Docker image). The browser sees this key anyway. --}}
         <meta name="reverb-key" content="{{ config('broadcasting.connections.reverb.key') }}">
 
-        @include('analytics')
+        @include('partials.tracking-code')
 
         <script>
             (function() {

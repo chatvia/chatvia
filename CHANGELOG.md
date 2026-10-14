@@ -187,8 +187,9 @@ theme.
 - The product name and links come from the admin panel (**Settings → Brand**). There
   are no hard-coded links, personal e-mail addresses or vendor account ids
   any more.
-- Fonts are served by the app itself. Page-view analytics (Plausible) only
-  load when a Plausible domain is set (**Settings → Platform**).
+- Fonts are served by the app itself. For page-view analytics, paste the
+  script of any analytics service in the **tracking code** box
+  (**Settings → Platform**). Nothing is added while it is empty.
 - Seeders and factories no longer depend on a personal account, and demo data
   is never created in production.
 - The public website (landing, pricing, blog, changelog, contact, legal and
@@ -243,7 +244,7 @@ theme.
   Retention & limits. This covers API keys and OAuth apps, the AI services, models and
   addresses, e-mail (SMTP or Resend, with a test e-mail button), file
   storage, brand, default language, the content security policy, the chat
-  widget, Plausible, Horizon alerts, log retention and the tool rate limit.
+  widget, the tracking code, Horizon alerts, log retention and the tool rate limit.
   Secrets are encrypted and never sent back to the browser. A blank field
   keeps its default, which `.env` can still preset (optional). `.env` keeps
   only what the app needs to start (database, Redis, drivers, Reverb and so

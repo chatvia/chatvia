@@ -24,8 +24,8 @@ use Throwable;
  * The policy is deliberately small. It has no script-src / style-src /
  * connect-src / font-src / frame-src: the app needs 'unsafe-inline' (Alpine,
  * AOS, inline handlers), and adding a nonce would switch
- * 'unsafe-inline' off. So the Reverb websocket, Turnstile,
- * Plausible and the asset CDN load without an allow-list (fonts are
+ * 'unsafe-inline' off. So the Reverb websocket, Turnstile, the
+ * tracking code and the asset CDN load without an allow-list (fonts are
  * self-hosted under /fonts, so 'self'). What is left are the directives that
  * don't fight asset loading.
  */

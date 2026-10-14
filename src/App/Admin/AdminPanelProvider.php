@@ -23,6 +23,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
 
 /**
  * Internal staff panel. Access is gated to platform staff (`is_admin`) via
@@ -37,8 +38,11 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
  * turns it on from the profile.
  *
  * A new install then opens on its setup ({@see Setup}): every page leads
- * there until the AI model, search and email are set up, or skipped
- * ({@see RequireSetup}).
+ * there until AI, models, documents, storage and email are set up, or
+ * skipped ({@see RequireSetup}).
+ *
+ * Logs reads and clears the files in storage/logs, so it opens only for the
+ * same staff as Horizon ({@see StaffToolsAccess}).
  */
 class AdminPanelProvider extends PanelProvider
 {
@@ -75,6 +79,12 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Admin/Resources'), for: 'App\Admin\Resources')
             ->discoverPages(in: app_path('Admin/Pages'), for: 'App\Admin\Pages')
             ->discoverWidgets(in: app_path('Admin/Widgets'), for: 'App\Admin\Widgets')
+            // The log files are the whole install's, not one workspace's.
+            ->plugin(
+                FilamentLaravelLogPlugin::make()
+                    ->authorize(fn (): bool => app(StaffToolsAccess::class)->allows())
+                    ->navigationSort(99)
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

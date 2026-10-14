@@ -1,7 +1,7 @@
 <?php
 
 use App\Admin\Settings\Actions\SetSettingAction;
-use App\Admin\Settings\AiSettings;
+use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\WorkspaceSettings;
 
@@ -31,11 +31,11 @@ it('saves a setting by its key and casts it to the property type', function (): 
 
 it('removes a saved value when given null', function (): void {
     $action = app(SetSettingAction::class);
-    $action->execute('ai.mistral_api_key', 'mistral-key');
+    $action->execute('ai_providers.mistral_api_key', 'mistral-key');
 
-    $action->execute('ai.mistral_api_key', null);
+    $action->execute('ai_providers.mistral_api_key', null);
 
-    expect(settingValue(AiSettings::class, 'mistral_api_key'))->toBeNull();
+    expect(settingValue(AiProviderSettings::class, 'mistral_api_key'))->toBeNull();
 });
 
 it('refuses an unknown key', function (string $key): void {
@@ -65,10 +65,10 @@ it('fails app:setting on an unknown key', function (): void {
 });
 
 it('lists the settings with app:settings without showing secrets', function (): void {
-    app(SetSettingAction::class)->execute('ai.cohere_api_key', 'co-hidden-value');
+    app(SetSettingAction::class)->execute('ai_providers.cohere_api_key', 'co-hidden-value');
 
-    $this->artisan('app:settings', ['group' => 'ai'])
-        ->expectsOutputToContain('ai.cohere_api_key')
+    $this->artisan('app:settings', ['group' => 'ai_providers'])
+        ->expectsOutputToContain('ai_providers.cohere_api_key')
         ->doesntExpectOutputToContain('co-hidden-value')
         ->assertSuccessful();
 });

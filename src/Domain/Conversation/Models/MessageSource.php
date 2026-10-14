@@ -7,6 +7,8 @@ namespace Domain\Conversation\Models;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutIncrementing;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -31,15 +33,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @mixin \Eloquent
  */
 #[Guarded([])]
-#[Table(name: 'chat_message_sources')]
+#[Table(name: 'chat_message_sources', key: null)]
+#[WithoutIncrementing]
+#[WithoutTimestamps]
 class MessageSource extends Model
 {
-    public $timestamps = false;
-
-    public $incrementing = false;
-
-    protected $primaryKey = null;
-
     protected function casts(): array
     {
         return [

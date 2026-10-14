@@ -15,7 +15,7 @@ return new class extends SettingsMigration
     public function up(): void
     {
         $this->migrator->inGroup('platform', function (SettingsBlueprint $group): void {
-            $group->add('setup_completed_at');
+            $group->add('setup_status');
             $group->add('default_locale');
             $group->add('widget_allowed_origins');
             $group->add('widget_script_url');

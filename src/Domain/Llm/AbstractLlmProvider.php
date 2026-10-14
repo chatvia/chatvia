@@ -23,10 +23,12 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
 {
     /**
      * @param  string  $baseUrl  the provider's API address, from its adapter
+     * @param  string  $apiKey  the key it calls with, from its adapter (empty for a server without one)
      */
     public function __construct(
         protected readonly LlmProvider $connection,
         protected readonly string $baseUrl,
+        protected readonly string $apiKey = '',
     ) {}
 
     /**
@@ -152,7 +154,7 @@ abstract class AbstractLlmProvider implements LlmProviderInterface
     /** The provider's API key, or an empty string when it has none. */
     public function getApiKey(): string
     {
-        return (string) $this->connection->api_key;
+        return $this->apiKey;
     }
 
     /** The provider's API address, without a trailing slash. */

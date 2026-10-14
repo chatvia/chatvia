@@ -111,7 +111,7 @@ const copyExternalId = async () => {
                     >
                         <component :is="tab.icon" class="h-4 w-4" />
                         <span>{{ t(tab.label) }}</span>
-                        <span v-if="surface === tab.value" class="bg-foreground absolute start-0 end-0 -bottom-px h-0.5"></span>
+                        <span v-if="surface === tab.value" class="bg-primary absolute start-0 end-0 -bottom-px h-0.5"></span>
                     </button>
                 </nav>
 

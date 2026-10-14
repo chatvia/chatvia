@@ -44,16 +44,17 @@ export interface Message {
     errorRetryable?: boolean;
 }
 
-/** A knowledge-base chunk that grounded an assistant reply (shown in SourcesDialog). */
+/**
+ * A source an assistant reply was given (shown in SourcesDialog): its name,
+ * the page of a PDF, and a link for a website page or a video. Stored files
+ * are never linked.
+ */
 export interface MessageSource {
-    content: string;
-    metadata?: {
-        title?: string;
-        file_name?: string;
-        page?: number;
-        chunk_index?: number;
-        [key: string]: unknown;
-    };
+    id: string | null;
+    label: string;
+    kind: 'file' | 'media' | 'website' | 'text' | 'video';
+    url: string | null;
+    page: number | null;
 }
 
 /** A tool call that is running right now; drives the "Calling …" indicator. */

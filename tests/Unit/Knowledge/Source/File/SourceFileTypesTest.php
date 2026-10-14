@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
+use Domain\Llm\Enums\AiProvider;
 
 /**
  * The knowledge base recognises documents by extension (MIME is unreliable for
  * the ebook formats: .fb2 → xml/text), so validation, routing and metering all
  * key off the file extension through SourceFileTypes.
  */
+beforeEach(function (): void {
+    // PDF, Word, slides and images need a document reader.
+    connectAiProviders(AiProvider::Mistral);
+});
+
 it('accepts every document extension the ingestion reads while every type is on', function (): void {
     foreach (SourceFileTypes::documentExtensions() as $ext) {
         expect(SourceFileTypes::isSupported('file.'.$ext))->toBeTrue("$ext should be supported");

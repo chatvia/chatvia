@@ -5,6 +5,8 @@ declare(strict_types=1);
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
+use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
@@ -18,7 +20,12 @@ use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
+use Domain\Knowledge\Source\Qa\Actions\EmbedQaQuestionsAction;
+use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Llm\Operations\Query\QueryRewriter;
+use Illuminate\Support\Facades\DB;
 use Tests\Support\FakeEmbeddingsProvider;
 
 /**
@@ -73,7 +80,7 @@ beforeEach(function (): void {
 });
 
 /** The eval's documents: path => how it is split. */
-function knowledgeEvalDocuments(): array
+function retrievalEvalDocuments(): array
 {
     return [
         resource_path('chunking/markdown.md') => ContentKind::Markdown,
@@ -84,12 +91,12 @@ function knowledgeEvalDocuments(): array
 }
 
 /** An agent that knows the eval documents, split and embedded for real. */
-function knowledgeEvalAgent(): Agent
+function retrievalEvalAgent(): Agent
 {
     $agent = Agent::factory()->create();
     $enhancement = env('EVAL_ENRICH') ? ChunkEnhancement::Text : ChunkEnhancement::Off;
 
-    foreach (knowledgeEvalDocuments() as $path => $kind) {
+    foreach (retrievalEvalDocuments() as $path => $kind) {
         $text = (string) file_get_contents($path);
 
         $source = SourceText::query()->create([
@@ -114,10 +121,16 @@ function knowledgeEvalAgent(): Agent
     return $agent;
 }
 
-/** The search question of a case: a follow-up is searched as the user typed it until the turn rewrites it. */
-function knowledgeEvalQuery(array $case): string
+/** The search question of a case: a follow-up goes through the rewriter, with its history. */
+function retrievalEvalQuery(array $case): string
 {
-    return $case['query'];
+    if (! isset($case['history'])) {
+        return $case['query'];
+    }
+
+    $history = array_map(static fn (string $message): array => ['role' => 'user', 'content' => $message], $case['history']);
+
+    return app(QueryRewriter::class)->rewrite($case['query'], $history)->query;
 }
 
 /**
@@ -125,7 +138,7 @@ function knowledgeEvalQuery(array $case): string
  *
  * @param  list<RetrievedChunkData>  $chunks
  */
-function knowledgeEvalRank(array $chunks, string $expect): ?int
+function retrievalEvalRank(array $chunks, string $expect): ?int
 {
     foreach ($chunks as $index => $chunk) {
         if (mb_stripos($chunk->chunk, $expect) !== false) {
@@ -143,7 +156,7 @@ function knowledgeEvalRank(array $chunks, string $expect): ?int
  * @param  list<RetrievedChunkData>  $candidates
  * @return array<int, float>|null
  */
-function knowledgeEvalScores(string $query, array $candidates): ?array
+function retrievalEvalScores(string $query, array $candidates): ?array
 {
     $reranker = app(Reranker::class);
 
@@ -162,7 +175,7 @@ function knowledgeEvalScores(string $query, array $candidates): ?array
 
 it('measures knowledge retrieval quality against the labelled set', function (): void {
     $cases = require __DIR__.'/fixtures/knowledge/cases.php';
-    $agent = knowledgeEvalAgent();
+    $agent = retrievalEvalAgent();
     $settings = RetrievalSettingsData::fromConfig();
     $search = app(HybridChunkSearch::class);
     $embeddings = app(EmbeddingsProviderInterface::class);
@@ -171,20 +184,20 @@ it('measures knowledge retrieval quality against the labelled set', function ():
     $rows = [];
 
     foreach ($cases as $case) {
-        $query = knowledgeEvalQuery($case);
+        $query = retrievalEvalQuery($case);
         $vector = '['.implode(',', $embeddings->embedQuery($query)).']';
         $scope = $search->scope($agent, $settings->exactMaxChunks);
         $candidates = $search->search($agent, $query, $vector, $pool, $scope, $settings->accuracy);
         $shipped = app(KnowledgeBase::class)->search($agent, $query);
-        $scores = knowledgeEvalScores($query, $candidates);
+        $scores = retrievalEvalScores($query, $candidates);
 
-        $rank = $case['expect'] !== null ? knowledgeEvalRank($candidates, $case['expect']) : null;
+        $rank = $case['expect'] !== null ? retrievalEvalRank($candidates, $case['expect']) : null;
 
         $rows[] = [
             'query' => $case['query'],
             'kind' => $case['expect'] === null ? 'uncovered' : (isset($case['history']) ? 'follow-up' : 'answer'),
             'rank' => $rank,
-            'shipped_hit' => $case['expect'] !== null && knowledgeEvalRank($shipped, $case['expect']) !== null,
+            'shipped_hit' => $case['expect'] !== null && retrievalEvalRank($shipped, $case['expect']) !== null,
             'shipped_count' => count($shipped),
             // The right passage's score, or the best score of an uncovered question.
             'score' => $scores === null ? null : ($case['expect'] === null
@@ -193,15 +206,63 @@ it('measures knowledge retrieval quality against the labelled set', function ():
         ];
     }
 
-    knowledgeEvalReport($rows, $settings);
+    retrievalEvalReport($rows, $settings);
+    retrievalEvalQaReport($agent);
 
     expect($rows)->toHaveCount(count($cases));
 })->group('eval');
 
 /**
+ * Saved Q&A answers by meaning: the closest saved question's similarity for
+ * messages that should get the answer and for ones that should not, with a
+ * threshold sweep (EmbeddingProvider::qaSimilarityThreshold()).
+ */
+function retrievalEvalQaReport(Agent $agent): void
+{
+    $data = require __DIR__.'/fixtures/knowledge/qa.php';
+    $entries = [];
+
+    foreach ($data['entries'] as $entry) {
+        $qa = app(CreateAgentQaAction::class)->execute($agent, new QaEntryData($entry['title'], $entry['questions'], $entry['answer']));
+        app(EmbedQaQuestionsAction::class)->execute($qa);
+        $entries[] = $qa->id;
+    }
+
+    $cast = app(EmbeddingStorage::class)->columnType();
+    $positives = [];
+    $negatives = [];
+    $out = ['', '=== Saved answers by meaning ==='];
+
+    foreach ($data['cases'] as $case) {
+        $vector = '['.implode(',', app(EmbeddingsProviderInterface::class)->embedQuery($case['query'])).']';
+        $closest = DB::selectOne("SELECT agent_question_answer_id, 1 - (embedding <=> ?::{$cast}) AS similarity FROM agent_question_answer_questions WHERE agent_id = ? ORDER BY embedding <=> ?::{$cast} LIMIT 1", [$vector, $agent->id, $vector]);
+        $similarity = (float) ($closest->similarity ?? 0);
+        $right = $case['match'] !== null && (int) ($closest->agent_question_answer_id ?? 0) === $entries[$case['match']];
+
+        if ($case['match'] !== null) {
+            $positives[] = $right ? $similarity : 0.0;
+        } else {
+            $negatives[] = $similarity;
+        }
+
+        $out[] = sprintf('  %.3f  %-5s %s', $similarity, $case['match'] === null ? 'none' : ($right ? 'right' : 'WRONG'), $case['query']);
+    }
+
+    $out[] = 'threshold   should match   should not match, blocked';
+
+    for ($t = 0.50; $t < 0.96; $t += 0.05) {
+        $out[] = sprintf('   %.2f        %5.1f%%          %5.1f%%', $t,
+            100 * count(array_filter($positives, static fn (float $s): bool => $s >= $t)) / max(count($positives), 1),
+            100 * count(array_filter($negatives, static fn (float $s): bool => $s < $t)) / max(count($negatives), 1));
+    }
+
+    fwrite(STDOUT, implode(PHP_EOL, $out).PHP_EOL);
+}
+
+/**
  * @param  list<array{query: string, kind: string, rank: int|null, shipped_hit: bool, shipped_count: int, score: float|null}>  $rows
  */
-function knowledgeEvalReport(array $rows, RetrievalSettingsData $settings): void
+function retrievalEvalReport(array $rows, RetrievalSettingsData $settings): void
 {
     $by = fn (string $kind): array => array_values(array_filter($rows, static fn (array $row): bool => $row['kind'] === $kind));
     $answers = $by('answer');
@@ -215,9 +276,11 @@ function knowledgeEvalReport(array $rows, RetrievalSettingsData $settings): void
     $out = [];
     $out[] = '';
     $out[] = '=== Knowledge retrieval eval ===';
-    $out[] = sprintf('reranker: %s (%s) · max_chunks %d · relevance_threshold %s · hybrid %s',
-        class_basename($reranker), $reranker->isEnabled() ? 'on' : 'off', $settings->maxChunks,
-        $settings->relevanceThreshold ?? 'none', config('chatvia.vector.search.hybrid') ? 'on' : 'off');
+    $out[] = sprintf('check: %s · max_chunks %d · hybrid %s',
+        $reranker->isEnabled()
+            ? 'reranker '.$reranker->model().', threshold '.RelevanceThresholds::knowledgeRerank($reranker)
+            : 'similarity, threshold '.(RelevanceThresholds::knowledgeSimilarity() ?? 'none'),
+        $settings->maxChunks, config('chatvia.vector.search.hybrid') ? 'on' : 'off');
     $out[] = '';
     $out[] = sprintf('Before the check   (%d questions): hit@1 %s  hit@3 %s  hit@5 %s  MRR %.3f',
         count($answers), $pct($hitAt($answers, 1), count($answers)), $pct($hitAt($answers, 3), count($answers)), $pct($hitAt($answers, 5), count($answers)), $mrr($answers));

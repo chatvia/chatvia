@@ -39,10 +39,10 @@ final class GeminiAdapter extends OpenAiCompatibleAdapter
         return 'https://aistudio.google.com/apikey';
     }
 
-    /** Its key also runs Gemini embeddings (Settings → AI), which use the native API, not this address. */
-    public function settingsConfig(): array
+    /** The account's address is the native API the embeddings call; chat stays on its OpenAI-style address. */
+    protected function sharesAccountAddress(): bool
     {
-        return ['api_key' => 'services.gemini.api_key'];
+        return false;
     }
 
     protected function modelId(array $row): string

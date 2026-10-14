@@ -14,7 +14,7 @@ use Domain\Llm\Models\LlmProvider;
  * chat with PDF files use it.
  *
  * Built from config (`chatvia.ai.document_llm`), with the key and address of
- * that service in Settings → AI rather than a catalog provider. When no such
+ * that account (Settings → AI providers) rather than a catalog model. When no such
  * provider is set up, isAvailable() is false and those features switch off
  * instead of failing.
  */
@@ -67,6 +67,6 @@ final readonly class DocumentLlm
      */
     private function connection(): LlmProvider
     {
-        return app(ProviderAdapters::class)->for($this->provider ?? throw new DocumentLlmUnavailableException)->fromSettings();
+        return app(ProviderAdapters::class)->for($this->provider ?? throw new DocumentLlmUnavailableException)->standalone();
     }
 }

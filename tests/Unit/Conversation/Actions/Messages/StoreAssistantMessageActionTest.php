@@ -246,17 +246,33 @@ it('stores no sources for an answer given no knowledge', function (): void {
     expect($message->sources)->toBeEmpty();
 });
 
-it('queues the title after the first reply outside the hosted chat', function (): void {
+it('queues the title at once for a channel, where nobody watches it', function (): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
     $userTurn = seedUserTurn($agent);
 
-    Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null]);
+    // A Telegram conversation (the channel runner starts it with that source).
+    Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null, 'source' => ConversationSource::Telegram]);
 
     storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, $userTurn));
 
-    Bus::assertDispatched(GenerateConversationTitleJob::class);
+    Bus::assertDispatched(GenerateConversationTitleJob::class, fn (GenerateConversationTitleJob $job): bool => $job->delay === null);
 });
+
+it('only queues a delayed fallback where the browser asks for the title itself', function (ConversationSource $source): void {
+    $agent = Agent::factory()->create();
+    $llm = Llm::factory()->create();
+    $userTurn = seedUserTurn($agent);
+
+    Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null, 'source' => $source]);
+
+    storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, $userTurn));
+
+    Bus::assertDispatched(GenerateConversationTitleJob::class, fn (GenerateConversationTitleJob $job): bool => $job->delay !== null);
+})->with([
+    'chat widget' => [ConversationSource::Widget],
+    'command bar' => [ConversationSource::Bar],
+]);
 
 it('leaves titling to the hosted chat client', function (): void {
     $agent = Agent::factory()->create();

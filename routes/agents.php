@@ -77,7 +77,6 @@ use App\Http\Controllers\Agent\Setup\AgentDeployController;
 use App\Http\Controllers\Agent\Setup\SetupController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentDomainController;
 use App\Http\Controllers\Agent\Setup\UpdateAgentLlmController;
-use App\Http\Controllers\Agent\Setup\UpdateAgentTemperatureController;
 use App\Http\Controllers\Agent\Slug\GenerateAgentSlugController;
 use App\Http\Controllers\Agent\Source\Audio\AgentSourceAudioController;
 use App\Http\Controllers\Agent\Source\Connector\AgentConnectorAlwaysAvailableController;
@@ -268,6 +267,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('sources/websites', [AgentWebsiteController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.index');
         Route::post('sources/websites', [AgentWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.store');
         Route::delete('sources/websites/{website}', [AgentWebsiteController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.websites.destroy');
+        Route::patch('sources/websites/{website}', [AgentWebsiteController::class, 'update'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.update');
         Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->name('sources.websites.train');
 
         Route::get('sources/websites/{website}/links', [AgentWebsiteLinkController::class, 'index'])->name('sources.websites.links.index');
@@ -401,14 +401,10 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // Deploy — embed/install hub (Widget, Hosted Chat, Command Bar snippets).
         Route::get('deploy', AgentDeployController::class)->middleware('agent.permission:agent.setup')->name('deploy');
 
-        // Single-model picker — sets the agent's `llm_id` and hyperparameters.
+        // Setup → Model: the model the agent answers with (one the admin
+        // made available) and its answer temperature.
         Route::patch('llm', UpdateAgentLlmController::class)
             ->middleware('agent.permission:agent.setup')->name('llm.update');
-
-        // Answer temperature — the only LLM knob exposed to owners; the model
-        // itself is platform-managed and never editable from Setup.
-        Route::patch('temperature', UpdateAgentTemperatureController::class)
-            ->middleware('agent.permission:agent.setup')->name('temperature.update');
 
         // Custom domain (Hosted Chat) — pass an empty value to clear.
         Route::patch('domain', UpdateAgentDomainController::class)

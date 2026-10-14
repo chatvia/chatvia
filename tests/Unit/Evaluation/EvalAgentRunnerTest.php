@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Services\ChatContext;
@@ -8,8 +9,10 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Services\EvalAgentRunner;
+use Domain\Llm\Enums\LlmRole;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
+use Domain\Llm\Services\ModelRoles;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 
@@ -70,7 +73,7 @@ function fakeChatService(?Closure $onInit = null): ChatService
     };
 }
 
-function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null): EvalAgentRunner
+function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $models = null): EvalAgentRunner
 {
     $chatService = fakeChatService($onInit);
 
@@ -86,7 +89,7 @@ function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null): EvalAgentRunne
         })();
     });
 
-    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class));
+    return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class), $models ?? app(AgentModel::class));
 }
 
 it('captures the answer without persisting a chat message or charging a credit', function (): void {
@@ -204,7 +207,7 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
         },
     );
 
-    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviders::class));
+    $evalRunner = new EvalAgentRunner(fakeChatService(), $runner, $toolSelector, app(LlmProviders::class), app(AgentModel::class));
     $result = $evalRunner->run($agent, 'Please email support.');
 
     expect($captureFlag)->toBeTrue()
@@ -212,16 +215,23 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
         ->and($result->toolsCalled)->toBe(['send_email']);
 });
 
-it('returns an error result when the agent has no model', function (): void {
+it('returns an error result when the agent has no model and no model can answer', function (): void {
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
     // Pre-load the relations as null so loadMissing() is a no-op and llm stays null.
     $agent->setRelation('agentPrompt', null);
     $agent->setRelation('llm', null);
 
-    $runner = fakeEvalRunner(fn (): null => null);
+    // No default model either.
+    $noModels = new AgentModel(new class extends ModelRoles
+    {
+        public function find(LlmRole $role): ?Llm
+        {
+            return null;
+        }
+    });
 
-    $result = $runner->run($agent, 'hello');
+    $result = fakeEvalRunner(fn (): null => null, models: $noModels)->run($agent, 'hello');
 
     expect($result->failed())->toBeTrue()
-        ->and($result->error)->toContain('no LLM');
+        ->and($result->error)->toContain('no model can answer');
 });

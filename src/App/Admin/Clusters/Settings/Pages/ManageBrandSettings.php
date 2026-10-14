@@ -50,7 +50,7 @@ class ManageBrandSettings extends AdminSettingsPage
                 $this->url('docs_url', 'Documentation', help: 'The Documentation link in the dashboard header. Leave empty to hide it.'),
                 $this->url('api_docs_url', 'API documentation', help: 'Leave empty to use the API reference this app serves at /docs/api.'),
             ])->summary(fn (): string => 'Name: '.$this->shown($this->valueInUse('name'))),
-            SettingsCard::make('powered_by', 'Powered by', 'The credit under hosted chats and widgets. Each agent can also hide it.', Heroicon::OutlinedHeart, fn (): array => [
+            SettingsCard::make('powered_by', 'Powered by', 'The credit under hosted chats and widgets. Each agent can also hide it.', Heroicon::OutlinedTag, fn (): array => [
                 $this->toggle('powered_by_enabled', 'Show the credit'),
                 $this->text('powered_by_label', 'Label'),
                 $this->url('powered_by_url', 'Link'),

@@ -203,7 +203,7 @@ const rightNavItems = computed<NavItem[]>(() => {
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute inset-x-0 bottom-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="bg-primary absolute inset-x-0 bottom-0 h-0.5 w-full translate-y-px"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>

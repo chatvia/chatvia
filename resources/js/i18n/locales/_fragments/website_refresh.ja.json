@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "自動更新",
+                "refresh_hint": "ウェブサイトを再度クロールし、新しいページと変更されたページを学習します。",
+                "refresh_off": "自動更新なし",
+                "refresh_daily": "毎日更新",
+                "refresh_weekly": "毎週更新",
+                "refresh_monthly": "毎月更新",
+                "refresh_saved": "自動更新を保存しました。",
+                "refresh_failed": "自動更新を保存できませんでした。"
+            }
+        }
+    }
+}

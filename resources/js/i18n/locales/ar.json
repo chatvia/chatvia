@@ -155,7 +155,8 @@
         "page_label": "صفحة {page}",
         "file_with_page": "{file} (صفحة {page})",
         "fallback_title": "المصدر {number}",
-        "chunk_label": "المقطع {index}"
+        "chunk_label": "المقطع {index}",
+        "open_link": "فتح {label}"
     },
     "home": {
         "logo_alt": "الشعار",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "اكتمل التدريب!",
                 "training_failed_retry": "فشل التدريب. انقر لإعادة المحاولة",
                 "retrain_this_link": "إعادة تدريب هذا الرابط",
-                "delete_this_link": "حذف هذا الرابط"
+                "delete_this_link": "حذف هذا الرابط",
+                "refresh_label": "التحديث التلقائي",
+                "refresh_hint": "زحف الموقع مرة أخرى وتعلّم صفحاته الجديدة والمعدّلة.",
+                "refresh_off": "بدون تحديث تلقائي",
+                "refresh_daily": "تحديث يومي",
+                "refresh_weekly": "تحديث أسبوعي",
+                "refresh_monthly": "تحديث شهري",
+                "refresh_saved": "تم حفظ التحديث التلقائي.",
+                "refresh_failed": "تعذّر حفظ التحديث التلقائي."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "إضافة فقاعة",
             "bubbles_remove": "إزالة الفقاعة",
             "bubbles_empty": "لا توجد فقاعات دردشة بعد.",
-            "bubbles_translate_empty": "أضف فقاعة أولًا لترجمتها."
+            "bubbles_translate_empty": "أضف فقاعة أولًا لترجمتها.",
+            "model_picker_title": "النموذج",
+            "model_picker_description": "نموذج الذكاء الاصطناعي الذي يجيب به هذا الوكيل. يختار المسؤول النماذج الموجودة في هذه القائمة (لوحة الإدارة ← Settings → AI models).",
+            "model_placeholder": "اختر نموذجًا",
+            "model_default": "افتراضي",
+            "model_empty": "لا توجد نماذج بعد. يضيفها المسؤول في لوحة الإدارة، ضمن Settings → AI models."
         },
         "topics_index": {
             "title": "المواضيع",

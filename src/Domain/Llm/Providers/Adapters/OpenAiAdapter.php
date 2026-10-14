@@ -36,10 +36,4 @@ final class OpenAiAdapter extends OpenAiCompatibleAdapter
     {
         return 'https://platform.openai.com/api-keys';
     }
-
-    /** Its key also runs OpenAI embeddings (Settings → AI). */
-    public function settingsConfig(): array
-    {
-        return ['api_key' => 'services.openai.api_key'];
-    }
 }

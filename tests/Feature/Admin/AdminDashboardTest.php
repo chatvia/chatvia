@@ -70,11 +70,27 @@ it('shows every widget for the whole platform', function (): void {
 it('leaves out the workspace-only widgets when one workspace is chosen', function (): void {
     $page = Livewire::actingAs($this->admin, 'admin')
         ->test(Dashboard::class)
-        ->set('filters.'.DashboardFilters::WORKSPACE, $this->acme->workspace()->id);
+        ->set('filters', [DashboardFilters::WORKSPACE => $this->acme->workspace()->id]);
 
     $page->assertSee('Activity in Acme Corp, this month.');
 
     expect($page->instance()->getWidgets())->not->toContain(GrowthChart::class, TopWorkspacesTable::class);
+});
+
+it('applies the filters from the filter button', function (): void {
+    $workspaceId = $this->acme->workspace()->id;
+
+    Livewire::actingAs($this->admin, 'admin')
+        ->test(Dashboard::class)
+        ->assertActionExists('filter')
+        ->callAction('filter', data: [
+            DashboardFilters::PERIOD => 'last_month',
+            DashboardFilters::WORKSPACE => $workspaceId,
+        ])
+        ->assertHasNoFormErrors()
+        ->assertSet('filters.'.DashboardFilters::PERIOD, 'last_month')
+        ->assertSet('filters.'.DashboardFilters::WORKSPACE, $workspaceId)
+        ->assertSee('Activity in Acme Corp, last month.');
 });
 
 it('shows the headline numbers for the chosen period', function (): void {

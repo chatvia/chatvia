@@ -1,7 +1,7 @@
 <?php
 
-use App\Admin\Clusters\Settings\Pages\ManageIngestionSettings;
-use App\Admin\Settings\IngestionSettings;
+use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
+use App\Admin\Settings\KnowledgeSettings;
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Livewire\Features\SupportTesting\Testable;
@@ -19,12 +19,12 @@ function savedFileTypes(): ?array
 {
     app()->forgetScopedInstances();
 
-    return app(IngestionSettings::class)->file_types;
+    return app(KnowledgeSettings::class)->file_types;
 }
 
 function ingestionPage(User $admin): Testable
 {
-    return Livewire::actingAs($admin, 'admin')->test(ManageIngestionSettings::class);
+    return Livewire::actingAs($admin, 'admin')->test(ManageKnowledgeSettings::class);
 }
 
 it('shows every file type turned on by default', function (): void {

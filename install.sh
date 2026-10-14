@@ -1491,7 +1491,7 @@ show_summary() {
 }
 
 # Opens the admin panel in the browser, when this machine has one: its
-# setup asks for the AI provider, search and email.
+# setup asks for AI, models, documents, storage and email.
 offer_browser() {
     [ "$INTERACTIVE" = 1 ] && [ "$DRY_RUN" = 0 ] || return 0
     local opener=''
@@ -1536,9 +1536,7 @@ show_finish() {
     fi
     info "$n. Sign in to the admin panel and set up two-factor authentication."
     info "$((n + 1)). Follow the short setup there: your AI provider and its API key,"
-    info "   search, and (optional) email."
-    info "$((n + 2)). Add the built-in tools (charts, forms, weather, web search):"
-    info "   $(dim "cd $folder && ./manage sync-tools")"
+    info "   the models, and (optional) documents, storage and email."
 
     section 'Everyday commands' "in $folder"
     info "./manage status          $(dim 'is everything running?')"

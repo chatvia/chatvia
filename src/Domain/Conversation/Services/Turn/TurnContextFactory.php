@@ -44,8 +44,12 @@ class TurnContextFactory
 
         $history = $memory->getLlmMessages();
 
-        $rewritten = $this->queryRewriter->rewrite($data->message->message, $this->previousQuestion($history, $data));
+        // The guard runs first: a blocked turn needs no rewrite, and the
+        // rewrite reads the masked text, never a raw identifier.
         $guard = $this->inspectInput($data);
+        $rewritten = $guard->blocked
+            ? RewrittenQueryData::unchanged($guard->text)
+            : $this->queryRewriter->rewrite($guard->text, $this->earlierTurns($history, $data));
         $turn = $this->userTurn($data, $guard, $rewritten);
 
         // A follow-up message is recorded now. The first message of a new
@@ -66,6 +70,7 @@ class TurnContextFactory
             userMessageId: $turn->external_message_id,
             assistantMessageId: Str::uuid7()->toString(),
             queryLanguage: $rewritten->language,
+            searchQuery: $rewritten->query,
         );
 
         // Carry the block decision to the stream, and log every input verdict.
@@ -127,26 +132,20 @@ class TurnContextFactory
     }
 
     /**
-     * The visitor's last question before this one, as it was searched (the
-     * rewritten, redacted text), so the rewriter can complete a follow-up
-     * such as "and the price?". The first message of a new conversation is
-     * already in the history, and has no previous question.
+     * The chat before this message, so the rewriter can turn a follow-up such
+     * as "and the price?" into a full question. The first message of a new
+     * conversation is already in the history: it has no chat before it.
      *
      * @param  list<array{role: string, content: mixed}>  $history
+     * @return list<array{role: string, content: mixed}>
      */
-    private function previousQuestion(array $history, StreamRequestData $data): ?string
+    private function earlierTurns(array $history, StreamRequestData $data): array
     {
         if (! $data->saveUserMessageImmediately && count($history) <= 1) {
-            return null;
+            return [];
         }
 
-        foreach (array_reverse($history) as $message) {
-            if ($message['role'] === MessageRole::User->value && is_string($message['content']) && trim($message['content']) !== '') {
-                return $message['content'];
-            }
-        }
-
-        return null;
+        return $history;
     }
 
     /**
@@ -163,15 +162,14 @@ class TurnContextFactory
     /**
      * The visitor's message as the turn carries it. The guarded text has PII
      * masked (it equals the original when there is none) and is what gets
-     * stored, shown and replayed — and, when PII was found, what the LLM sees,
-     * so a raw identifier never reaches the record or the model. Without PII
-     * the LLM gets the rewritten query, which retrieves better. PDFs travel
-     * separately (see PdfSource), so the visible text stays clean.
+     * stored, shown, replayed and answered, so a raw identifier never reaches
+     * the record or the model. The rewritten question only serves the search
+     * (ChatContext::$searchQuery). PDFs travel separately (see PdfSource), so
+     * the visible text stays clean.
      */
     private function userTurn(StreamRequestData $data, GuardResultData $guard, RewrittenQueryData $rewritten): UserTurnData
     {
         $storedMessage = $guard->text;
-        $piiRedacted = $storedMessage !== $data->message->message;
 
         return new UserTurnData(
             external_session_id: $data->externalSessionId,
@@ -180,7 +178,7 @@ class TurnContextFactory
             model: $data->message->model->external_name,
             message: $storedMessage,
             sent_at: $data->message->createdAt ? Carbon::parse($data->message->createdAt) : now(),
-            message_for_llm: $piiRedacted ? $storedMessage : $rewritten->query,
+            message_for_llm: $storedMessage,
             chatter_id: $data->chatterId,
             language: $rewritten->language,
             ip_address: $data->ipAddress,

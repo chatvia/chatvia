@@ -155,7 +155,8 @@
         "page_label": "第 {page} 页",
         "file_with_page": "{file}（第 {page} 页）",
         "fallback_title": "来源 {number}",
-        "chunk_label": "片段 {index}"
+        "chunk_label": "片段 {index}",
+        "open_link": "打开 {label}"
     },
     "home": {
         "logo_alt": "标志",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "训练完成！",
                 "training_failed_retry": "训练失败。点击重试",
                 "retrain_this_link": "重新训练此链接",
-                "delete_this_link": "删除此链接"
+                "delete_this_link": "删除此链接",
+                "refresh_label": "自动刷新",
+                "refresh_hint": "重新抓取网站，学习其中新增和修改的页面。",
+                "refresh_off": "不自动刷新",
+                "refresh_daily": "每天刷新",
+                "refresh_weekly": "每周刷新",
+                "refresh_monthly": "每月刷新",
+                "refresh_saved": "已保存自动刷新。",
+                "refresh_failed": "无法保存自动刷新。"
             }
         },
         "leads": {

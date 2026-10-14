@@ -10,6 +10,104 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This is the first open-source release. The list below groups the changes by
 theme.
 
+### Admin panel: simpler AI setup and Settings
+
+- **Each AI key is entered once**, on a new **Settings → AI providers** page:
+  Scaleway AI, OpenRouter, OpenAI, Mistral, Google Gemini, Groq, Cohere,
+  Jina and Azure Document Intelligence, plus servers of your own
+  (OpenAI-compatible). Each provider shows what it does here (chat,
+  embeddings, speech to text, documents, reranking), with what it is used for
+  marked. A key is checked before it is saved. Before, a chat key was saved
+  twice (setup and Settings → AI) and the copies could differ.
+- A new **Settings → AI models** page: add chat models from a connected
+  provider's list, remove one (its agents move to the model you pick), the
+  default for new agents, the embedding service, the reranker, document
+  reading and speech to text. Before, models could only be added by running
+  the setup again.
+- **Azure Document Intelligence** reads PDFs, Word, slides and images, as
+  Mistral OCR does. Without one of them, PDF, Word, slides and images cannot
+  be uploaded; text, Markdown, spreadsheets and ebooks always work.
+- The **setup** of a new install is its own page, with every step listed on
+  the left. It asks for everything the app needs: the AI provider and its
+  key, one or more chat models and the default, the embedding model (checked
+  with a test request; with OpenRouter, picked from its embedding models,
+  OpenAI text-embedding-3-small by default, with the same key), the document
+  reader, website import (Firecrawl), speech to text, storage (this server or
+  S3-compatible, checked), and the mailer (with a clear warning that nobody
+  gets emails without it). The reader, Firecrawl, speech to text and the
+  mailer start on "Not now", which turns them off; storage starts on this
+  server. Every key is checked, and entered once: a later step uses a key
+  typed in an earlier step or saved already. With Mistral OCR and files on
+  this server, the setup explains that Mistral reads each file through a
+  signed link to the site, and warns when the site's address cannot be
+  reached from the internet. Going on without a document reader asks
+  first, as PDF, Word, slides and images then cannot be uploaded. A last
+  step shows "Complete", the choices
+  made, and where the rest (chunking, search, the reranker…), which keeps
+  its default values, is changed in Settings. It adds the built-in tools
+  when it finishes. The admin panel stays closed until it is done or skipped; skipping
+  warns what does not work yet, and a skipped setup can be finished later
+  from Settings ("Finish the setup"). How it ended is kept as
+  `setup_status` (`completed` or `skipped`).
+- **Agents pick their model again** (dashboard → agent → Setup → Model),
+  from the models an admin made available, with the default marked. An
+  agent without a model answers with the default one (web chat, channels
+  and evals), and the setup gives the default model to agents made before
+  any model existed, such as the demo agents.
+- **Settings → Knowledge** replaces Ingestion, Chunking and Search: file
+  types, website import, AI enhancement, search and follow-up questions.
+  Splitting, the splitting preview and search fine-tuning sit under
+  **Advanced**.
+- Technical options on every page sit under a closed **Advanced** section:
+  addresses, rate limits, queue workers, security headers, redirect URLs and
+  the like. Each page has one **Save changes** button that stays in view.
+- The overview's statuses are honest: "Optional" for sign-in buttons not set
+  up, the connected providers, "Website import off", and so on.
+- The prompt editor (Settings → Prompts) is removed; prompts live in
+  `resources/prompts`.
+- A new **Logs** page shows the log files in `storage/logs`, with a button
+  to clear one. Only admins signed in to the admin panel can open it. Docker
+  installs now write logs to a file per day in `storage/logs` (the newest 14
+  are kept) as well as to the container output.
+
+### Knowledge search
+
+- The reranker is a real one now, picked in **Settings → AI models →
+  Reranker** from a list of the strongest: Cohere Rerank 4 Pro (the default),
+  Voyage rerank-3, Qwen3 Reranker 8B and more, through OpenRouter, Cohere
+  directly, or your own server with the common `/rerank` API.
+  Before, the Scaleway "reranker" only compared embeddings again. Without a
+  reranker, a basic similarity check keeps greetings and off-topic questions
+  from pulling in unrelated text. Each model has its own minimum score.
+- Agents get up to 5 parts of their sources per question (was 3), within a
+  token budget (**Settings → Knowledge**).
+- The text of a search result keeps its line breaks and the words inside
+  HTML tags (before, `<span>Price: €10</span>` was removed completely).
+- Follow-up questions ("and how much is it?") are understood: an AI step
+  writes the full question from the chat for the search, on by default
+  (**Settings → Knowledge**). The agent still answers what the person wrote.
+- A saved Q&A answer is used when the message is one of its questions as a
+  whole (ignoring case and punctuation), or very close to one in meaning.
+  Before, one word such as "price" could trigger it.
+- Answers show their sources in the Hosted Chat and the Chat Widget: the file
+  name (with the page of a PDF), the website page title with its link, or the
+  start of a text. The model also gets each source's name, so it can tell
+  documents apart.
+- Each answer's sources (which part of which file, page or text, how relevant)
+  are stored with the answer. The Chat Log shows the answer's real confidence.
+- When the knowledge does not cover a question, the agent says so politely and
+  offers the closest next step.
+- Website pages keep their title, to name them as sources.
+- A website can refresh on its own: daily, weekly or monthly (Sources → Web,
+  on each trained website). Only new and changed pages are trained again.
+- Chunk enrichment (a short summary and the questions each part likely
+  answers, written by the Smart model) is on by default. Turn it off in
+  **Settings → Knowledge** to save model calls.
+- Long document pages are split into parts of the chunk size. Before, a long
+  PDF page was one large part that matched questions badly.
+- PDF pages read by Mistral OCR get the right page numbers.
+- A new offline eval measures knowledge search (`tests/Eval`).
+
 ### Security
 
 - Fixed many security problems found in an internal audit and during the
@@ -87,9 +185,9 @@ theme.
   backup made before it.
 - Almost every setting moved from `.env` to the admin panel, under
   **Settings**, so an install can be set up without editing files. One page
-  per topic: Sign-in, Channels, AI, Ingestion, Chunking, Search, Connectors,
-  Email, Brand, Workspaces, Platform, Retention & limits, Storage and
-  Security. This covers API keys and OAuth apps, the AI services, models and
+  per topic: AI providers, AI models, Knowledge, Workspaces, Sign-in,
+  Security, Email, Channels, Connectors, Brand, Platform, Storage and
+  Retention & limits. This covers API keys and OAuth apps, the AI services, models and
   addresses, e-mail (SMTP or Resend, with a test e-mail button), file
   storage, brand, default language, the content security policy, the chat
   widget, Plausible, Horizon alerts, log retention and the tool rate limit.
@@ -103,13 +201,14 @@ theme.
   (**Settings → Email**).
 - Sign-in buttons (Google, Microsoft, GitHub, Slack) only show for the
   providers that are set up in the admin panel (**Settings → Sign-in**).
-- Settings opens on an overview of tiles, one per topic; each topic shows a
-  tile per service or group of options, and a tile opens its own page.
+- Settings opens on an overview of tiles, one per topic; each topic shows
+  its cards (a service or a group of options), technical ones last under
+  **Advanced**.
 - Text is split into chunks inside Chatvia; no separate service is needed.
-  A **Settings → Chunking** page holds the chunk size and overlap, measured
+  **Settings → Knowledge** holds the chunk size and overlap, measured
   in tokens or in characters, the strategy for each kind of content
-  (Markdown, text and transcripts; under **Advanced**) and a **Try it**
-  preview that splits a sample before you save. Markdown (web pages, .md
+  (Markdown, text and transcripts), all under **Advanced**, and a **Try
+  splitting** preview that splits a sample before you save. Markdown (web pages, .md
   files, ebooks) is split by its headings: code blocks and tables stay whole
   when they fit, and every chunk starts with the headings above it. Text is
   split at paragraphs, then sentences and words; transcripts by whole
@@ -130,11 +229,10 @@ theme.
   conversations** (366 by default; a workspace can choose fewer days in its
   security settings, never more).
 - AI services sit behind contracts with `auto` drivers: document reading
-  (Mistral, or local: `pdftotext`, pandoc and catdoc, with no office suite),
-  reranking, speech to text and whole-PDF reading. Each one uses the
-  hosted service when its API key is set and a local or "off" option when it
-  is not. Services, endpoints and models are set in the admin panel
-  (**Settings → AI**).
+  (Mistral OCR or Azure Document Intelligence), reranking, speech to text and
+  whole-PDF reading. Each one uses the first connected provider that can do
+  it, and "off" when none is. Keys are set in the admin panel (**Settings →
+  AI providers**), services and models in **Settings → AI models**.
 - Chatvia stops with a clear error when the embedding model does not return
   the stored vector size (`EMBEDDING_DIMENSIONS`, 1024 by default).
 - API keys and OAuth apps for outside services are managed in the admin panel
@@ -185,6 +283,13 @@ theme.
   buttons. Custom components moved from `components/ui` to
   `components/common`.
 - Every dashboard language has every key; Polish plurals were fixed.
+- **Chat titles at once on every web surface.** The Chat Widget and the
+  Command Bar now ask for the conversation's title right after the first
+  reply (`POST /widget/conversations/title`), as Hosted Chat does, so it is
+  there when the visitor opens the history. For them a queued job a minute
+  later names a conversation the browser did not (an older widget, a closed
+  page), and does nothing once it has a title. Channels and the API still
+  get their title from the queue at once.
 - Fixed listener leaks, chart dates that were one day early west of UTC, and
   the chat composer that did not shrink after sending.
 
@@ -213,7 +318,7 @@ theme.
 - German texts use the formal "Sie" everywhere (some messages used "du").
 - Text sources always got the extra AI step during ingestion, even when it was
   turned off. They now follow their own setting, **Enhance text sources** in
-  the admin panel (**Settings → Ingestion**; on by default, as before).
+  the admin panel (**Settings → Knowledge**; on by default, as before).
 - The default OAuth callback URLs (sign-in and the Meta channels) are built
   from `APP_URL`, so they stay https behind a proxy that ends TLS.
 

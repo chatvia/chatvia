@@ -155,7 +155,8 @@
         "page_label": "पृष्ठ {page}",
         "file_with_page": "{file} (पृष्ठ {page})",
         "fallback_title": "स्रोत {number}",
-        "chunk_label": "खंड {index}"
+        "chunk_label": "खंड {index}",
+        "open_link": "{label} खोलें"
     },
     "home": {
         "logo_alt": "लोगो",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "ट्रेनिंग पूर्ण हुई!",
                 "training_failed_retry": "ट्रेनिंग विफल। पुनः प्रयास के लिए क्लिक करें",
                 "retrain_this_link": "इस लिंक को फिर से ट्रेन करें",
-                "delete_this_link": "इस लिंक को हटाएं"
+                "delete_this_link": "इस लिंक को हटाएं",
+                "refresh_label": "स्वतः रीफ़्रेश",
+                "refresh_hint": "वेबसाइट को फिर से क्रॉल करें और उसके नए और बदले हुए पेज सीखें।",
+                "refresh_off": "कोई स्वतः रीफ़्रेश नहीं",
+                "refresh_daily": "रोज़ रीफ़्रेश करें",
+                "refresh_weekly": "हर हफ़्ते रीफ़्रेश करें",
+                "refresh_monthly": "हर महीने रीफ़्रेश करें",
+                "refresh_saved": "स्वतः रीफ़्रेश सहेजा गया।",
+                "refresh_failed": "स्वतः रीफ़्रेश सहेजा नहीं जा सका।"
             }
         },
         "leads": {

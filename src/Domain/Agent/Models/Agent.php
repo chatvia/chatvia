@@ -576,13 +576,17 @@ class Agent extends Model
     /**
      * Resolved LLM hyperparameters (temperature/top_k/top_p/penalties). Read
      * from the `llm_settings` settings group, falling back to the config
-     * defaults via HasSettings.
+     * defaults via HasSettings. Stored values can come back as strings
+     * ("1"), so each is turned into a number: top-k a whole number, the
+     * rest decimals, as the providers' APIs and the Setup form expect.
      *
      * @return array<string, float|int>
      */
     public function llmSettings(): array
     {
-        return $this->settings('llm_settings')->all();
+        return collect($this->settings('llm_settings')->all())
+            ->map(fn (mixed $value, string $key): float|int => $key === 'top_k' ? (int) $value : (float) $value)
+            ->all();
     }
 
     /**

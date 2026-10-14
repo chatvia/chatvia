@@ -120,6 +120,11 @@
             "temperature_precise": "دقيق",
             "temperature_balanced": "متوازن",
             "temperature_creative": "إبداعي",
+            "model_picker_title": "النموذج",
+            "model_picker_description": "نموذج الذكاء الاصطناعي الذي يجيب به هذا الوكيل. يختار المسؤول النماذج الموجودة في هذه القائمة (لوحة الإدارة ← Settings → AI models).",
+            "model_placeholder": "اختر نموذجًا",
+            "model_default": "افتراضي",
+            "model_empty": "لا توجد نماذج بعد. يضيفها المسؤول في لوحة الإدارة، ضمن Settings → AI models.",
             "behavior": {
                 "hosted_title": "سلوك الدردشة المستضافة",
                 "hosted_description": "خيارات iframe لسطح الدردشة المستضافة المضمّن.",

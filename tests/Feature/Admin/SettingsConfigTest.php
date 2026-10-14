@@ -4,9 +4,8 @@ use App\Admin\Settings\AdminSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\ChannelSettings;
-use App\Admin\Settings\IngestionSettings;
+use App\Admin\Settings\KnowledgeSettings;
 use App\Admin\Settings\MailSettings;
-use App\Admin\Settings\SearchSettings;
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\WorkspaceSettings;
@@ -59,7 +58,7 @@ it('puts a saved value into config right away', function (): void {
 it('keeps the config default while nothing is saved, and restores it when a value is removed', function (): void {
     $default = config('services.firecrawl.endpoint');
 
-    $settings = app(IngestionSettings::class);
+    $settings = app(KnowledgeSettings::class);
     $settings->firecrawl_endpoint = 'https://firecrawl.internal/v2';
     $settings->save();
     expect(config('services.firecrawl.endpoint'))->toBe('https://firecrawl.internal/v2');
@@ -122,7 +121,7 @@ it('stores secrets encrypted and other values in plain JSON', function (): void 
 it('applies a change made elsewhere before a queued job runs', function (): void {
     // Another process saved a new key: the row changed, this process has
     // not seen it yet.
-    DB::table('settings')->where('group', 'ai')->where('name', 'mistral_api_key')
+    DB::table('settings')->where('group', 'ai_providers')->where('name', 'mistral_api_key')
         ->update(['payload' => json_encode(Crypt::encrypt('saved-elsewhere'))]);
     cache()->flush();
     // A queue worker forgets scoped instances before each job.
@@ -145,16 +144,16 @@ it('casts input to the property type and turns blank or invalid input into null'
     'blank text' => [MailSettings::class, 'smtp_host', '   ', null],
     'integer' => [MailSettings::class, 'smtp_port', '587', 587],
     'not an integer' => [MailSettings::class, 'smtp_port', 'abc', null],
-    'float' => [SearchSettings::class, 'relevance_threshold', '0.35', 0.35],
-    'toggle off' => [SearchSettings::class, 'hybrid_search', '0', false],
-    'toggle on' => [SearchSettings::class, 'hybrid_search', true, true],
+    'float' => [KnowledgeSettings::class, 'relevance_threshold', '0.35', 0.35],
+    'toggle off' => [KnowledgeSettings::class, 'hybrid_search', '0', false],
+    'toggle on' => [KnowledgeSettings::class, 'hybrid_search', true, true],
     'select' => [AiSettings::class, 'reranker', 'cohere', 'cohere'],
 ]);
 
 it('lets the search toggle turn keyword search off', function (): void {
     expect(config('chatvia.vector.search.hybrid'))->toBeTrue();
 
-    $settings = app(SearchSettings::class);
+    $settings = app(KnowledgeSettings::class);
     $settings->hybrid_search = false;
     $settings->save();
 

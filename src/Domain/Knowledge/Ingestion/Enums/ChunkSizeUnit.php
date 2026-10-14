@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Knowledge\Ingestion\Enums;
 
 /**
- * The unit of the chunk size and overlap (admin panel, Settings → Chunking):
+ * The unit of the chunk size and overlap (admin panel, Settings → Knowledge):
  * tokens of the chosen tokenizer, or characters as a reader sees them. The
  * value is stored in the settings, so never rename a case value.
  */

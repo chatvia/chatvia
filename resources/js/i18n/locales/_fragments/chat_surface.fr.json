@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Page {page})",
         "fallback_title": "Source {number}",
-        "chunk_label": "Extrait {index}"
+        "open_link": "Ouvrir {label}"
     },
     "sidebar": {
         "save_title": "Enregistrer le titre",

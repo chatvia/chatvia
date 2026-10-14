@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (Sayfa {page})",
         "fallback_title": "Kaynak {number}",
-        "chunk_label": "Parça {index}"
+        "open_link": "{label} aç"
     },
     "sidebar": {
         "save_title": "Başlığı kaydet",

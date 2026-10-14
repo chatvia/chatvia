@@ -9,6 +9,7 @@ use Domain\Knowledge\Ingestion\Contracts\ChunkableContract;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Concerns\Chunkable;
 use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\Web\Enums\RefreshInterval;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -36,6 +37,8 @@ use Support\Concerns\HasExternalId;
  * @property string|null $internal_ingestion_job_id
  * @property string|null $internal_chunking_batch_id
  * @property SourceStatus $status
+ * @property RefreshInterval $refresh_interval
+ * @property Carbon|null $refreshed_at
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
@@ -83,6 +86,12 @@ class SourceWebsite extends Model implements ChunkableContract
 {
     use Chunkable, HasExternalId, HasStorageFile;
 
+    /** The column default, so a website just created reads it too. */
+    #[\Override]
+    protected $attributes = [
+        'refresh_interval' => 'off',
+    ];
+
     /**
      * @return MorphToMany<Agent, $this, AgentSource>
      */
@@ -97,6 +106,8 @@ class SourceWebsite extends Model implements ChunkableContract
         return [
             'options' => 'json',
             'status' => SourceStatus::class,
+            'refresh_interval' => RefreshInterval::class,
+            'refreshed_at' => 'datetime',
         ];
     }
 

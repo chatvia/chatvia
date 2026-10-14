@@ -32,12 +32,13 @@ use Illuminate\Support\Carbon;
 #[Guarded(['id'])]
 #[Hidden(['api_key', 'headers'])]
 /**
- * A connection to an LLM provider that an admin set up: its kind, address,
- * API key and extra headers. An install can have several, of the same kind
- * too (two OpenAI-compatible servers, say). Every catalog model ({@see Llm})
- * belongs to one, and calls to the model go through it. What a kind means
- * (its default address, client, model list) is its adapter's
- * ({@see ProviderAdapters}).
+ * A chat provider that catalog models ({@see Llm}) belong to; calls to a
+ * model go through it. A provider with an account (OpenRouter, Scaleway AI,
+ * Mistral…) has one row with no key or address: it calls with the account's,
+ * set once in Settings → AI providers. Only a server of your own (`custom`,
+ * there may be several) keeps its address, key and extra headers on its
+ * row. What a kind means (its default address, client, model list) is its
+ * adapter's ({@see ProviderAdapters}).
  */
 class LlmProvider extends Model
 {
@@ -58,6 +59,17 @@ class LlmProvider extends Model
     protected $attributes = [
         'is_enabled' => true,
     ];
+
+    /**
+     * Whether it can call: a server of your own needs no key, any other kind
+     * the key of its account (Settings → AI providers).
+     */
+    public function isConnected(): bool
+    {
+        $adapters = app(ProviderAdapters::class);
+
+        return $adapters->has($this->kind) && $adapters->for($this->kind)->isConnected($this);
+    }
 
     /**
      * @return HasMany<Llm, $this>

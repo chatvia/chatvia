@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file}（{page} ページ）",
         "fallback_title": "ソース {number}",
-        "chunk_label": "チャンク {index}"
+        "open_link": "{label} を開く"
     },
     "sidebar": {
         "save_title": "タイトルを保存",

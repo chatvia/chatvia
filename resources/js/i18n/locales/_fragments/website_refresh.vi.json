@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Tự động làm mới",
+                "refresh_hint": "Thu thập lại trang web và học các trang mới và đã thay đổi.",
+                "refresh_off": "Không tự động làm mới",
+                "refresh_daily": "Làm mới hằng ngày",
+                "refresh_weekly": "Làm mới hằng tuần",
+                "refresh_monthly": "Làm mới hằng tháng",
+                "refresh_saved": "Đã lưu tự động làm mới.",
+                "refresh_failed": "Không thể lưu tự động làm mới."
+            }
+        }
+    }
+}

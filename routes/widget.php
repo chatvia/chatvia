@@ -14,6 +14,7 @@ use App\Http\Controllers\Widget\Conversations\ConversationController;
 use App\Http\Controllers\Widget\Conversations\ConversationCreateController;
 use App\Http\Controllers\Widget\Conversations\ConversationDeleteController;
 use App\Http\Controllers\Widget\Conversations\ConversationMessageController;
+use App\Http\Controllers\Widget\Conversations\ConversationTitleController;
 use App\Http\Controllers\Widget\Forms\SubmitInlineFormController;
 use App\Http\Controllers\Widget\Handoff\EndChatController;
 use App\Http\Controllers\Widget\Handoff\HandoffRequestController;
@@ -53,6 +54,12 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
             Route::delete('/conversations', ConversationDeleteController::class)->name('widget.conversations.delete');
 
             Route::post('/conversations/messages', ConversationMessageController::class)->name('widget.conversations.messages.store');
+
+            // Names the conversation right after its first reply: one short
+            // LLM call, so under the stream's tighter limit.
+            Route::post('/conversations/title', ConversationTitleController::class)
+                ->middleware('throttle:widget-stream')
+                ->name('widget.conversations.title');
             Route::get('/conversations/messages', ConversationMessageController::class)->name('widget.conversations.messages');
 
             // Visitor uploads (PDFs for now). Returns a public URL the LLM-side

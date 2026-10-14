@@ -238,7 +238,7 @@ dashboard. Link your own website in the admin panel (**Settings → Brand**).
 
 | Folder | Holds |
 |---|---|
-| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. |
+| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. Its Logs page (saade/filament-laravel-log, registered in `AdminPanelProvider`) reads and clears the files in `storage/logs`, for the same staff as Horizon (`StaffToolsAccess`). |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
 | `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
@@ -302,8 +302,8 @@ The knowledge base behind the agents' answers (RAG).
 |---|---|
 | `Knowledge\Source` | The source types: `File` (`SourceFile`), `Web` (`SourceWebsite` and its pages, `AgentWebsiteUrl`), `Text` (`SourceText`), `Qa` (`AgentQuestionAnswer`), `Youtube` (behind `FEATURE_YOUTUBE_SOURCES`). Sources belong to the workspace and are attached to agents through `agent_sources`. |
 | `Knowledge\Ingestion` | The pipeline from a source to searchable chunks: queued jobs per type, parsing (`DocumentParser`), splitting (`TextSplitter`), chunk enhancement, OCR, media. The `Chunk` model. |
-| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `Gemini`, `Cohere`, `Mistral`, `Jina`) and rerankers (`Qwen3Reranker`, `CohereReranker`, `NullReranker`). |
-| `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + BM25 in one SQL query), `KnowledgeBase` (embed, search, rerank), scoring and retrieval stats. |
+| `Knowledge\Embedding` | Embedding providers (`Qwen3`, `OpenAi`, `OpenRouter`, `Gemini`, `Cohere`, `Mistral`, `Jina`; OpenRouter's models listed by `OpenRouterEmbeddingModels`), rerankers (`CompatibleReranker` for any `/rerank` API, built by `RerankerFactory`; `NullReranker`), the reranking model list with per-model thresholds (`RerankModelCatalog`) and `RelevanceThresholds`. |
+| `Knowledge\Retrieval` | Search: `HybridChunkSearch` (vector + BM25 in one SQL query), `KnowledgeBase` (embed, search, relevance check, context budget), `SourceLabeler` (names each chunk's source), retrieval stats. |
 | `Knowledge\Document` | File conversion tools (`OfficeText`, `OfficePdf`, `Pandoc`, `CatDoc`, `PdfInfo`) and `HasStorageFile` for models whose file is in storage. |
 
 ### Integration
@@ -320,21 +320,28 @@ Tools that an agent can call.
 
 ### Llm
 
-Talking to language models. An admin connects providers (`LlmProvider` rows,
-`llm_providers`: a kind from `LlmProviderEnum`, an address, an encrypted key
-and headers) and adds their models to the catalog (`Llm`, `llms`: one model
-on one provider, with an alias in `external_name` that agents and settings
-store). Each kind has one adapter (`Providers\Contracts\ProviderAdapter`,
-in `Providers\Adapters`, picked by `LlmProviderEnum::adapter()` through the
-`ProviderAdapters` registry) that owns everything about it: label, address,
-key, chat client, how its model list is read (with what it knows about models
-the list says little about), and the Settings → AI service its key also runs.
+Talking to language models. An admin enters each provider's key once
+(Settings → AI providers): an `AiProvider` account (Scaleway AI, OpenRouter,
+OpenAI, Mistral, Google Gemini, Groq, Cohere, Jina, Azure Document
+Intelligence), whose `capabilities()` say what it does here (chat,
+embeddings, speech, documents, reranking). The key serves everything the
+provider does. Chat models are added in Settings → AI models to the catalog
+(`Llm`, `llms`: one model on one provider, with an alias in `external_name`
+that agents and settings store). Their provider row (`LlmProvider`,
+`llm_providers`) holds no key or address: it calls with its account's. Only
+a server of your own (`custom`, several allowed) keeps its address, key and
+headers on its row; a CHECK constraint keeps it that way. Each kind has one
+adapter (`Providers\Contracts\ProviderAdapter`, in `Providers\Adapters`,
+picked by `LlmProviderEnum::adapter()` through the `ProviderAdapters`
+registry) that owns everything about it: label, address, key (`apiKey()`,
+from its `account()`), chat client, and how its model list is read (with
+what it knows about models the list says little about).
 Nothing outside an adapter branches on the kind; adding a provider is an enum
 case and an adapter class. Every call goes to its model's provider:
 `LlmProviders::for($model)` asks the adapter for the client (`Scaleway`,
 `Mistral`, `OpenRouter`, or `OpenAiCompatible`; all implement
 `LlmProviderInterface`). The app's own calls use a model per `LlmRole` (Chat,
-Fast, Smart, Vision), picked in Settings → AI and resolved by `ModelRoles`.
+Fast, Smart, Vision), picked in Settings → AI models and resolved by `ModelRoles`.
 Callers use typed helpers: `LlmChat` (one completion), `StructuredCompletion`
 and `LlmJson` (JSON answers), `DocumentLlm` (a model that reads whole PDF
 files).
@@ -732,19 +739,19 @@ Use these words in code, UI and docs. Do not invent synonyms.
 
 Outside services sit behind contracts. `DomainServiceProvider` picks the driver
 from config, so the rest of the code never knows which service runs. Most steps
-have an `auto` value: use the hosted service when its API key is set, otherwise
-a local implementation or "off". A self-hosted install can run without most
-accounts. Unless a row names another page, its setting is on
-**Settings → AI**.
+have an `auto` value: the first connected provider that can do it
+(`AiProvider::firstConnectedFor()`), otherwise "off". A self-hosted install
+can run without most accounts. Keys are on **Settings → AI providers**;
+unless a row names another page, its setting is on **Settings → AI models**.
 
 | Step | Contract | Drivers | Config key (admin setting) |
 |---|---|---|---|
 | Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; roles `chatvia.agent.default_model`, `chatvia.ai.roles.*` |
-| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `google`, `cohere`, `mistral`, `jina` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
-| Reranking | `Reranker` | `qwen`, `cohere`, `none` | `chatvia.ai.reranker` |
-| Reading documents | `DocumentParser` | `mistral`, `local` (pdftotext, pandoc, PhpSpreadsheet, catdoc) | `chatvia.ai.document_parser` |
-| Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Chunking) |
-| Speech to text | `Transcriber` | `scaleway`, `none` | `chatvia.ai.transcriber` |
+| Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
+| Reranking | `Reranker` | `openrouter`, `cohere`, `custom` (a self-hosted `/rerank` server), `none` (a basic similarity check instead) | `chatvia.ai.reranker`, `chatvia.ai.rerank.*` |
+| Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |
+| Splitting text | `TextSplitter` | built in only (`BuiltinTextSplitter`, in-process) | `chatvia.ai.chunking.*`, `chatvia.ai.tokenizer` (Settings → Knowledge) |
+| Speech to text | `Transcriber` | `scaleway`, `openai`, `none` | `chatvia.ai.transcriber` |
 | Reading whole PDFs | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
 | Files | Laravel disks `private`, `public`, `assets` | local or S3-compatible (`private`, `public`; built by `StorageDisks`), Bunny CDN or local (`assets`) | `chatvia.storage` (Settings → Storage; `SCALEWAY_*` in `.env` as optional presets), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
 
@@ -783,12 +790,27 @@ How it works:
 - **Caching.** Settings are cached (secrets stay encrypted in the cache); a
   save updates the cache, `migrate` clears it.
 - **Admin UI.** `Settings` opens on an overview of tiles (one per page,
-  grouped). Each page (`AdminSettingsPage`) shows a tile per `SettingsCard`
-  (a service or a group of options) with its status; a tile opens the card's
-  own page (`?card=`), with its fields and Save.
+  grouped, with an honest status). Each page (`AdminSettingsPage`) shows its
+  cards (`SettingsCard`: a service or a group of options) as collapsible
+  sections with an outline beside them and one Save button that stays in
+  view. Everyday cards come first; technical ones are `advanced()`: listed
+  last under an "Advanced" heading, closed. A card can also keep its own
+  technical fields (an address, a rate) in a closed "Advanced" part
+  (`advancedFields()`).
+- **Setup.** A new install opens on the setup wizard (`App\Admin\Pages\Setup`,
+  its steps listed on the left): AI provider and key, chat models and the
+  embedding model, document reader, website import (Firecrawl), speech to
+  text, storage, mailer, and a final step with the choices made and where
+  the defaults are changed. Each key is checked before the next step; the
+  optional services start on "Not now", which turns them off. Every panel page leads there (`RequireSetup`) until
+  `chatvia.admin.setup_status` (`SetupStatus`) is `completed` or `skipped`.
+  Skipping warns with what is still missing (`SetupRequirements`); a skipped
+  setup can be finished later from Settings.
 - **Adding an option.** Add a nullable property with `#[ConfigKey]` to the
-  right class, a line to its settings migration, and a field to its card.
-  Give the config key a default in config/*.php.
+  right class, a line to its settings migration, and a field to its card
+  (under Advanced when only a few admins need it). Give the config key a
+  default in config/*.php, and add a line to the card's help file in
+  `resources/help/settings/`.
 - **Chunking.** Every text is split in-process by `BuiltinTextSplitter`
   (`Knowledge\Ingestion\Services\Chunking`); there is no outside service.
   The strategy follows the kind of content (`ContentKind`): Markdown (web
@@ -805,9 +827,34 @@ How it works:
   Markdown default) splits by heading sections, keeps code blocks and tables
   whole when they fit (fences or header row repeated when they do not), and
   starts every chunk with the headings above it. Documents read page by page
-  (PDF, office files, images) are not split: one chunk per page. Token
-  counts (`chunks.tokens`) use the built-in `TikToken` with the tokenizer set
-  in Settings → Chunking (`chatvia.ai.tokenizer`).
+  (PDF, office files, images) make one chunk per page; a page longer than the
+  chunk size is split as Text, and every part keeps the page number
+  (`PageData::partsOf()`). Token counts (`chunks.tokens`) use the built-in
+  `TikToken` with the tokenizer set in Settings → Knowledge
+  (`chatvia.ai.tokenizer`).
+- **Chunk enrichment.** On by default (Settings → Knowledge,
+  `chatvia.ai.chunker.enhance`): before embedding, the Smart model writes a
+  short summary and the questions each chunk likely answers (with the page's
+  pictures and tables for documents), plus a summary of the whole source. It
+  costs one model call per chunk; Off embeds the plain text.
+- **Website refresh.** A website can refresh on its own
+  (`source_websites.refresh_interval`: off, daily, weekly, monthly). The
+  hourly `app:refresh-websites` runs `RefreshDueWebsitesAction`, which crawls
+  again with the options the website was added with, then trains; pages that
+  did not change keep their chunks (checksum).
+- **Relevance check.** `KnowledgeBase` keeps only what answers the question:
+  a cross-encoder reranker (Settings → AI models → Reranker: OpenRouter, Cohere or a
+  self-hosted `/rerank` server) scores the candidates; without one, or when it
+  fails, a basic similarity check (cosine to the query, returned by
+  `HybridChunkSearch`) gates them. Each model scores on its own scale, so the
+  bars follow the model: `RerankModelCatalog` for rerankers,
+  `EmbeddingProvider::similarityThresholds()` for the basic check (a model
+  never measured gets no check), unless config sets them
+  (`RelevanceThresholds`). The thresholds are measured with the evals in
+  `tests/Eval` (knowledge retrieval and tool routing). `ToolRelevanceGate`
+  gates tools the same way. The results then fit `max_context_tokens`, and
+  each source is named for the model and the chat clients (`SourceLabeler`);
+  the sources of every answer are stored (`chat_message_sources`).
 - **Command line.** `php artisan app:settings` lists the values (never
   secrets), `php artisan app:setting group.property value` sets one.
 

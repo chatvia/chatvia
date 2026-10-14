@@ -13,6 +13,11 @@ use Filament\Support\Icons\Heroicon;
  * of options (sign-up and limits). The card is a collapsible section of the
  * page, with its status or a short summary in the header and its fields
  * below ({@see AdminSettingsPage}).
+ *
+ * Technical options stay out of the way in two ways: a whole card can be
+ * advanced (listed last, under "Advanced", and closed), and a card can keep
+ * its own technical fields (an address, a rate limit) in a closed "Advanced"
+ * part below its everyday fields.
  */
 final class SettingsCard
 {
@@ -36,8 +41,17 @@ final class SettingsCard
     /** @var (Closure(): bool)|null */
     public ?Closure $visible = null;
 
-    /** Whether the card starts closed, for options most admins never need. */
-    public bool $collapsed = false;
+    /** Whether the whole card is technical: listed last, under "Advanced", and closed. */
+    public bool $advanced = false;
+
+    /** @var (Closure(): list<Component>)|null The fields of the card's closed "Advanced" part. */
+    public ?Closure $advancedFields = null;
+
+    /** @var Closure|null When the "Advanced" part shows (Filament injects `Get`); null always. */
+    public ?Closure $advancedVisible = null;
+
+    /** @var (Closure(): array<string, bool>)|null Small labels under the description (what a service does), each marked when in use. */
+    public ?Closure $chips = null;
 
     /**
      * The help file behind the card's "?" button, when cards built by one
@@ -117,9 +131,30 @@ final class SettingsCard
         return $this;
     }
 
-    public function collapsed(bool $collapsed = true): self
+    public function advanced(bool $advanced = true): self
     {
-        $this->collapsed = $collapsed;
+        $this->advanced = $advanced;
+
+        return $this;
+    }
+
+    /**
+     * @param  Closure(): list<Component>  $fields
+     */
+    public function advancedFields(Closure $fields, ?Closure $visible = null): self
+    {
+        $this->advancedFields = $fields;
+        $this->advancedVisible = $visible;
+
+        return $this;
+    }
+
+    /**
+     * @param  Closure(): array<string, bool>  $chips  Whether each label is in use, by label.
+     */
+    public function chips(Closure $chips): self
+    {
+        $this->chips = $chips;
 
         return $this;
     }

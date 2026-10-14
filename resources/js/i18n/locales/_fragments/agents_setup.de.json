@@ -103,6 +103,11 @@
             "temperature_precise": "Präzise",
             "temperature_balanced": "Ausgewogen",
             "temperature_creative": "Kreativ",
+            "model_picker_title": "Modell",
+            "model_picker_description": "Das KI-Modell, mit dem dieser Agent antwortet. Ein Admin legt fest, welche Modelle in dieser Liste stehen (Admin-Bereich → Settings → AI models).",
+            "model_placeholder": "Modell wählen",
+            "model_default": "Standard",
+            "model_empty": "Noch keine Modelle. Ein Admin fügt sie im Admin-Bereich unter Settings → AI models hinzu.",
             "behavior": {
                 "hosted_title": "Verhalten des gehosteten Chats",
                 "hosted_description": "Iframe-Optionen für die eingebettete gehostete Chat-Oberfläche.",

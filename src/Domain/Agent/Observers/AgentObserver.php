@@ -37,7 +37,7 @@ class AgentObserver
     public function created(Agent $agent): void
     {
         // Each agent answers with a single LLM: the chat model picked in
-        // Settings → AI (LlmRole::Chat), else the first usable model of the
+        // Settings → AI models (LlmRole::Chat), else the first usable model of the
         // catalog. Operators can swap it in Setup later.
         if ($agent->llm_id === null) {
             $llmId = $this->models->find(LlmRole::Chat)?->id;

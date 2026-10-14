@@ -2,18 +2,18 @@
 
 namespace Database\Seeders;
 
+use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
-use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Database\Seeder;
 
 /**
  * The starter catalog of a demo database (DatabaseSeeder): the providers and
  * models in `database/data/llms.json`, added only while no provider exists,
- * so it never changes a catalog an admin has set up. A provider's key is
- * taken from the matching Settings → AI service when one is saved there. A
- * real install gets its catalog from the admin setup instead.
+ * so it never changes a catalog an admin has set up. A provider calls with
+ * its account's key (Settings → AI providers). A real install gets its
+ * catalog from the admin setup and Settings → AI models instead.
  */
 class LlmSeeder extends Seeder
 {
@@ -42,16 +42,9 @@ class LlmSeeder extends Seeder
         }
 
         foreach ($llms as $llm) {
-            // The provider with the key and address of its Settings → AI
-            // service, when it is one.
-            $adapter = app(ProviderAdapters::class)->for(LlmProviderEnum::from($llm['provider'] ?? 'scaleway'));
-            $settings = $adapter->fromSettings();
-
-            $provider = LlmProvider::query()->firstOrCreate(['kind' => $adapter->kind()], [
-                'name' => $adapter->label(),
-                'base_url' => $settings->base_url,
-                'api_key' => $settings->api_key,
-            ]);
+            // One row per provider; it calls with its account's key
+            // (Settings → AI providers).
+            $provider = app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::from($llm['provider'] ?? 'scaleway'));
 
             $llm['features'] = [];
             $llm['is_reasoning'] = $llm['reasoning'] ?? false;

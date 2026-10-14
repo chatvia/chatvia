@@ -6,7 +6,7 @@
  */
 import trainedWebsites from '@/routes/agents/sources/trained-websites';
 import websites from '@/routes/agents/sources/websites';
-import { del, get, post } from './http';
+import { del, get, patch, post } from './http';
 import type { LengthAwarePage } from './pagination';
 
 /** Lifecycle of a website: discovery (pending → crawling → crawled), then training (ingesting → ingested). */
@@ -14,6 +14,9 @@ export type WebsiteStatus = 'pending' | 'crawling' | 'crawled' | 'ingesting' | '
 
 /** Training state of one discovered page. */
 export type WebsiteLinkStatus = 'pending' | 'ingesting' | 'ingested' | 'failed';
+
+/** How often a website is crawled and trained again on its own. */
+export type WebsiteRefreshInterval = 'off' | 'daily' | 'weekly' | 'monthly';
 
 /** The path filters the website was crawled with. */
 export interface WebsiteCrawlOptions {
@@ -31,6 +34,9 @@ export interface WebsiteRecord {
     options: WebsiteCrawlOptions | null;
     urls_count: number;
     agents_count: number;
+    refresh_interval: WebsiteRefreshInterval;
+    /** When it was last refreshed on its own (or the refresh was switched on); null if never. */
+    refreshed_at: string | null;
 }
 
 /** A discovered page as the paginated link list returns it. */
@@ -75,6 +81,11 @@ export function listWebsiteLinks(agentId: string, websiteId: number, page: numbe
 /** Deletes the website everywhere, for every agent that uses it. */
 export function deleteWebsite(agentId: string, websiteId: number): Promise<void> {
     return del(websites.destroy.url({ agent: agentId, website: websiteId }));
+}
+
+/** Sets how often the website is crawled and trained again on its own. */
+export function setWebsiteRefresh(agentId: string, websiteId: number, refreshInterval: WebsiteRefreshInterval): Promise<void> {
+    return patch(websites.update.url({ agent: agentId, website: websiteId }), { refresh_interval: refreshInterval });
 }
 
 /** Removes a shared website from this agent only. */

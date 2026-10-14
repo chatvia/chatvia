@@ -10,7 +10,7 @@ use Illuminate\Foundation\Queue\Queueable;
 
 /**
  * Embeds every tool again with the embedding model now in use. Dispatched
- * after a change of the embedding provider or model (Settings → AI).
+ * after a change of the embedding provider or model (Settings → AI models).
  */
 class ReembedToolVectorsJob implements ShouldQueue
 {

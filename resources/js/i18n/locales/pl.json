@@ -155,7 +155,8 @@
         "page_label": "Strona {page}",
         "file_with_page": "{file} (Strona {page})",
         "fallback_title": "Źródło {number}",
-        "chunk_label": "Fragment {index}"
+        "chunk_label": "Fragment {index}",
+        "open_link": "Otwórz {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Trenowanie ukończone!",
                 "training_failed_retry": "Trenowanie nie powiodło się. Kliknij, aby ponowić",
                 "retrain_this_link": "Trenuj ponownie ten link",
-                "delete_this_link": "Usuń ten link"
+                "delete_this_link": "Usuń ten link",
+                "refresh_label": "Automatyczne odświeżanie",
+                "refresh_hint": "Ponownie przeszukaj witrynę i poznaj jej nowe i zmienione strony.",
+                "refresh_off": "Bez automatycznego odświeżania",
+                "refresh_daily": "Odświeżaj codziennie",
+                "refresh_weekly": "Odświeżaj co tydzień",
+                "refresh_monthly": "Odświeżaj co miesiąc",
+                "refresh_saved": "Zapisano automatyczne odświeżanie.",
+                "refresh_failed": "Nie udało się zapisać automatycznego odświeżania."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Dodaj dymek",
             "bubbles_remove": "Usuń dymek",
             "bubbles_empty": "Brak dymków czatu.",
-            "bubbles_translate_empty": "Najpierw dodaj dymek, aby go przetłumaczyć."
+            "bubbles_translate_empty": "Najpierw dodaj dymek, aby go przetłumaczyć.",
+            "model_picker_title": "Model",
+            "model_picker_description": "Model AI, którym odpowiada ten agent. Administrator wybiera, które modele są na tej liście (panel administracyjny → Settings → AI models).",
+            "model_placeholder": "Wybierz model",
+            "model_default": "Domyślny",
+            "model_empty": "Nie ma jeszcze modeli. Administrator dodaje je w panelu administracyjnym, w Settings → AI models."
         },
         "topics_index": {
             "title": "Tematy",

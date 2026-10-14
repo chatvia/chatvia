@@ -155,7 +155,8 @@
         "page_label": "Page {page}",
         "file_with_page": "{file} (Page {page})",
         "fallback_title": "Source {number}",
-        "chunk_label": "Chunk {index}"
+        "chunk_label": "Chunk {index}",
+        "open_link": "Open {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Training completed!",
                 "training_failed_retry": "Training failed. Click to retry",
                 "retrain_this_link": "Retrain this link",
-                "delete_this_link": "Delete this link"
+                "delete_this_link": "Delete this link",
+                "refresh_label": "Auto-refresh",
+                "refresh_hint": "Crawl the website again and learn its new and changed pages.",
+                "refresh_off": "No auto-refresh",
+                "refresh_daily": "Refresh daily",
+                "refresh_weekly": "Refresh weekly",
+                "refresh_monthly": "Refresh monthly",
+                "refresh_saved": "Auto-refresh saved.",
+                "refresh_failed": "Could not save auto-refresh."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Add bubble",
             "bubbles_remove": "Remove bubble",
             "bubbles_empty": "No chat bubbles yet.",
-            "bubbles_translate_empty": "Add a bubble first to translate it."
+            "bubbles_translate_empty": "Add a bubble first to translate it.",
+            "model_picker_title": "Model",
+            "model_picker_description": "The AI model this agent answers with. An admin chooses which models are on this list (admin panel → Settings → AI models).",
+            "model_placeholder": "Choose a model",
+            "model_default": "Default",
+            "model_empty": "No models yet. An admin adds them in the admin panel, under Settings → AI models."
         },
         "topics_index": {
             "title": "Topics",

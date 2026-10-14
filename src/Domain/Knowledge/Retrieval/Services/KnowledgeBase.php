@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Data\RerankedDocumentData;
+use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Retrieval\Data\RetrievalSettingsData;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
@@ -23,9 +24,9 @@ use Throwable;
  *   2. run the four-channel hybrid SQL ({@see HybridChunkSearch}) for a pool
  *      of candidates: exactly over the agent's own chunks when it has few,
  *      through the vector and BM25 indexes when it has many;
- *   3. narrow the pool to `max_chunks`: with a reranker, keep the candidates
- *      that pass its relevance threshold; without one (or when it fails), keep
- *      the SQL ranking.
+ *   3. the relevance check narrows the pool to `max_chunks`: the reranker's
+ *      threshold, or without one (or when it fails) a basic similarity
+ *      check; then the context budget (`max_context_tokens`).
  *
  * Each result carries the relevance its check gave it (null when none ran),
  * and its text as the model reads it ({@see RetrievalScoring::plainText()}).
@@ -66,17 +67,15 @@ class KnowledgeBase
         $candidates = $this->hybridSearch->search($agent, $query, $queryVector, $settings->candidateLimit(), $scope, $settings->accuracy);
         $sqlMs = $this->elapsedMs($sqlStart);
 
-        $reranked = false;
-        $rerankMs = 0.0;
+        $check = 'none';
+        $checkMs = 0.0;
         $results = [];
 
         if ($candidates !== []) {
-            $rerankStart = microtime(true);
-            $reranked = $this->shouldRerank($candidates, $settings);
-            $results = $this->readable($reranked
-                ? $this->rerank($query, $candidates, $settings)
-                : array_slice($candidates, 0, $settings->maxChunks));
-            $rerankMs = $this->elapsedMs($rerankStart);
+            $checkStart = microtime(true);
+            [$check, $selected] = $this->select($query, $candidates, $settings);
+            $results = $this->readable($this->withinBudget($selected, $settings));
+            $checkMs = $this->elapsedMs($checkStart);
         }
 
         $this->logTimings($settings, [
@@ -87,10 +86,10 @@ class KnowledgeBase
             'candidate_limit' => $settings->candidateLimit(),
             'candidates' => count($candidates),
             'returned' => count($results),
-            'reranked' => $reranked,
+            'check' => $check,
             'embed_ms' => round($embedMs, 2),
             'sql_ms' => round($sqlMs, 2),
-            'rerank_ms' => round($rerankMs, 2),
+            'check_ms' => round($checkMs, 2),
             'total_ms' => round($this->elapsedMs($searchStart), 2),
             'results' => array_map(static fn (RetrievedChunkData $result): array => [
                 'chunk_id' => $result->id,
@@ -103,46 +102,95 @@ class KnowledgeBase
     }
 
     /**
-     * Rerank only when there is something to order, it is switched on, and a
-     * real reranker is configured (the no-op one's scores mean nothing).
+     * The relevance check, best first, at most `max_chunks`:
+     *  - with a reranker: the candidates it scores at or above the model's
+     *    threshold, in its order;
+     *  - without one, or when it fails: the candidates whose meaning is close
+     *    enough to the question (the embedding model's threshold), in the
+     *    search's order; an outage must not take chat down, nor widen it;
+     *  - with the check off, or no threshold known: the search's top results.
      *
      * @param  list<RetrievedChunkData>  $candidates
+     * @return array{0: string, 1: list<RetrievedChunkData>} which check ran, and what it kept
      */
-    private function shouldRerank(array $candidates, RetrievalSettingsData $settings): bool
+    private function select(string $query, array $candidates, RetrievalSettingsData $settings): array
     {
-        return count($candidates) > 1 && $settings->rerank && $this->reranker->isEnabled();
+        if ($settings->relevanceCheck && $this->reranker->isEnabled()) {
+            try {
+                return ['rerank', $this->rerank($query, $candidates, $settings)];
+            } catch (Throwable $e) {
+                report($e);
+            }
+        }
+
+        $threshold = $settings->relevanceCheck ? RelevanceThresholds::knowledgeSimilarity() : null;
+
+        if ($threshold !== null) {
+            return ['similarity', $this->bySimilarity($candidates, $threshold, $settings)];
+        }
+
+        return ['none', array_slice($candidates, 0, $settings->maxChunks)];
     }
 
     /**
      * Keep the candidates the reranker scores at or above the relevance
-     * threshold, best first. A reranker outage must not take chat down, but it
-     * must not widen the context either: then the SQL ranking and the usual
-     * limit apply.
+     * threshold, best first.
      *
      * @param  list<RetrievedChunkData>  $candidates
      * @return list<RetrievedChunkData>
      */
     private function rerank(string $query, array $candidates, RetrievalSettingsData $settings): array
     {
-        try {
-            // Score every candidate: a reranker's own default cap (Qwen3's is 3)
-            // must not cut below the results asked for, or the threshold.
-            $ranked = $this->reranker->rerank($query, array_map(static fn (RetrievedChunkData $chunk): string => $chunk->chunk, $candidates), count($candidates));
-        } catch (Throwable $e) {
-            report($e);
+        $threshold = RelevanceThresholds::knowledgeRerank($this->reranker);
 
-            return array_slice($candidates, 0, $settings->maxChunks);
-        }
+        // Score every candidate, so the threshold sees them all.
+        $ranked = $this->reranker->rerank($query, array_map(static fn (RetrievedChunkData $chunk): string => $chunk->chunk, $candidates), count($candidates));
 
-        $kept = array_filter(
-            $ranked,
-            static fn (RerankedDocumentData $item): bool => $settings->relevanceThreshold === null || $item->relevanceScore >= $settings->relevanceThreshold,
-        );
-
-        return $kept
+        return $ranked
+                |> (fn ($x): array => array_filter($x, static fn (RerankedDocumentData $item): bool => $item->relevanceScore >= $threshold && isset($candidates[$item->index])))
                 |> array_values(...)
                 |> (fn ($x): array => array_slice($x, 0, $settings->maxChunks))
                 |> (fn ($x): array => array_map(static fn (RerankedDocumentData $item): RetrievedChunkData => $candidates[$item->index]->withRelevance($item->relevanceScore), $x));
+    }
+
+    /**
+     * The basic similarity check: the candidates whose cosine similarity to
+     * the question reaches the threshold, in the search's order.
+     *
+     * @param  list<RetrievedChunkData>  $candidates
+     * @return list<RetrievedChunkData>
+     */
+    private function bySimilarity(array $candidates, float $threshold, RetrievalSettingsData $settings): array
+    {
+        return $candidates
+                |> (fn ($x): array => array_filter($x, static fn (RetrievedChunkData $chunk): bool => $chunk->similarity !== null && $chunk->similarity >= $threshold))
+                |> array_values(...)
+                |> (fn ($x): array => array_slice($x, 0, $settings->maxChunks))
+                |> (fn ($x): array => array_map(static fn (RetrievedChunkData $chunk): RetrievedChunkData => $chunk->withRelevance((float) $chunk->similarity), $x));
+    }
+
+    /**
+     * The results that fit the context budget (`max_context_tokens`), in
+     * order: the best always goes in, a lower one only while there is room.
+     *
+     * @param  list<RetrievedChunkData>  $results
+     * @return list<RetrievedChunkData>
+     */
+    private function withinBudget(array $results, RetrievalSettingsData $settings): array
+    {
+        $kept = [];
+        $total = 0;
+
+        foreach ($results as $result) {
+            if ($kept !== [] && $settings->maxContextTokens > 0 && $total + $result->tokens > $settings->maxContextTokens) {
+                continue;
+            }
+
+            $kept[] = $result;
+            $total += $result->tokens;
+        }
+
+        return $kept;
     }
 
     /**

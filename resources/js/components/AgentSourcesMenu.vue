@@ -58,7 +58,7 @@ interface SourceMenuItem {
     permission: string;
     /** The file type the page uploads, when it uploads only one. */
     fileType?: KnowledgeFileType;
-    /** Needs the website import service (Settings → Ingestion → Firecrawl). */
+    /** Needs the website import service (Settings → Knowledge → Website import). */
     importsWebsites?: boolean;
 }
 

@@ -6,6 +6,8 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCluster;
+use App\Admin\Settings\SetupRequirements;
+use App\Admin\Settings\SetupStatus;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
@@ -70,10 +72,12 @@ class SettingsOverview extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('setup')
-                ->label('Run the setup again')
+            Action::make('finishSetup')
+                ->label('Finish the setup')
                 ->icon(Heroicon::OutlinedRocketLaunch)
-                ->color('gray')
+                ->color('warning')
+                ->visible(fn (): bool => SetupStatus::current() === SetupStatus::Skipped)
+                ->tooltip(fn (): ?string => ($missing = app(SetupRequirements::class)->missing()) === [] ? null : 'Still missing: '.implode(', ', $missing).'.')
                 ->url(route('filament.admin.setup')),
         ];
     }

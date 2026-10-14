@@ -12,9 +12,9 @@ use Domain\Llm\Providers\Scaleway;
 /**
  * Scaleway's Generative APIs: open models hosted in Europe. Its model list
  * carries ids only, so what each model can do comes from the table below.
- * The same key runs Qwen3 search, reranking and speech to text, so it is also
- * the Scaleway service of Settings → AI. An address of the form
- * `https://api.scaleway.ai/{project-id}/v1` bills a given project.
+ * Its key and address are the Scaleway AI account's (Settings → AI
+ * providers), which also runs Qwen3 search and speech to text. An address of
+ * the form `https://api.scaleway.ai/{project-id}/v1` bills a given project.
  */
 final class ScalewayAdapter extends OpenAiCompatibleAdapter
 {
@@ -91,16 +91,6 @@ final class ScalewayAdapter extends OpenAiCompatibleAdapter
         return 'https://api.scaleway.ai/v1';
     }
 
-    public function acceptsBaseUrl(): bool
-    {
-        return true;
-    }
-
-    public function baseUrlHelp(): string
-    {
-        return 'Leave empty for your default project. To bill another project, use https://api.scaleway.ai/{project-id}/v1.';
-    }
-
     public function keysUrl(): string
     {
         return 'https://console.scaleway.com/iam/api-keys';
@@ -108,12 +98,7 @@ final class ScalewayAdapter extends OpenAiCompatibleAdapter
 
     public function client(LlmProvider $provider): LlmProviderInterface
     {
-        return new Scaleway($provider, $this->baseUrl($provider));
-    }
-
-    public function settingsConfig(): array
-    {
-        return ['api_key' => 'services.scalewayai.api_key', 'base_url' => 'services.scalewayai.endpoint'];
+        return new Scaleway($provider, $this->baseUrl($provider), (string) $this->apiKey($provider));
     }
 
     protected function knownModels(): array

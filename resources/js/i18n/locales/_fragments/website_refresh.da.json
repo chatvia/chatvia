@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "Automatisk opdatering",
+                "refresh_hint": "Gennemgå websitet igen og lær dets nye og ændrede sider.",
+                "refresh_off": "Ingen automatisk opdatering",
+                "refresh_daily": "Opdater dagligt",
+                "refresh_weekly": "Opdater ugentligt",
+                "refresh_monthly": "Opdater månedligt",
+                "refresh_saved": "Automatisk opdatering gemt.",
+                "refresh_failed": "Kunne ikke gemme automatisk opdatering."
+            }
+        }
+    }
+}

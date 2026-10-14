@@ -133,11 +133,13 @@ class StoreAssistantMessageAction
     }
 
     /**
-     * Name the conversation once its first reply lands, on every surface
-     * except Hosted Chat — that client titles itself right after the first
-     * turn, so queueing here too would mean a second LLM call and a title
-     * flicker. needsTitle() keeps this to one run and never renames a
-     * conversation that already has a name.
+     * Name the conversation once its first reply lands. Hosted Chat asks for
+     * the title itself right after the first reply, so it gets no job. The
+     * Chat Widget and the Command Bar ask too; for them the job waits a
+     * minute as a fallback (an older widget, or a page closed first) and
+     * does nothing once the title is there. Channels and the API get it from
+     * the queue at once: nobody watches a title there, and the reply never
+     * waits for it. needsTitle() keeps this to one run.
      */
     private function queueTitle(Agent $agent, Conversation $conversation, AssistantTurnData $turn): void
     {
@@ -145,7 +147,11 @@ class StoreAssistantMessageAction
             return;
         }
 
-        GenerateConversationTitleJob::dispatch($agent, $turn->external_session_id, $turn->external_conversation_id);
+        $job = GenerateConversationTitleJob::dispatch($agent, $turn->external_session_id, $turn->external_conversation_id);
+
+        if (in_array($conversation->source, [ConversationSource::Widget, ConversationSource::Bar], true)) {
+            $job->delay(now()->addMinute());
+        }
     }
 
     /**

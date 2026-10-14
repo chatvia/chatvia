@@ -43,7 +43,7 @@ class Scaleway extends AbstractLlmProvider
     }
 
     /**
-     * The Scaleway address set in Settings → AI
+     * The Scaleway address set in Settings → AI providers
      * (`services.scalewayai.endpoint`), for the Qwen3 embedding and rerank
      * clients and audio transcription. Chat calls use the address of their
      * provider row instead.

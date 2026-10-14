@@ -45,8 +45,9 @@ class OpenAi extends AbstractEmbeddingsProvider
                 ])
                 ->json('data');
 
-            // Each item carries its `index`: sort so the result lines up with the input.
-            usort($data, fn (array $a, array $b): int => $a['index'] <=> $b['index']);
+            // Each item carries its `index`: sort so the result lines up with the
+            // input. The sort is stable, so items without one keep their order.
+            usort($data, fn (array $a, array $b): int => ($a['index'] ?? 0) <=> ($b['index'] ?? 0));
 
             array_push($vectors, ...array_column($data, 'embedding'));
         }

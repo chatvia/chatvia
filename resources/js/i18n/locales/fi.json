@@ -155,7 +155,8 @@
         "page_label": "Sivu {page}",
         "file_with_page": "{file} (Sivu {page})",
         "fallback_title": "Lähde {number}",
-        "chunk_label": "Katkelma {index}"
+        "chunk_label": "Katkelma {index}",
+        "open_link": "Avaa {label}"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1387,7 +1388,15 @@
                 "training_completed_tooltip": "Koulutus valmis!",
                 "training_failed_retry": "Koulutus epäonnistui. Napsauta yrittääksesi uudelleen",
                 "retrain_this_link": "Kouluta tämä linkki uudelleen",
-                "delete_this_link": "Poista tämä linkki"
+                "delete_this_link": "Poista tämä linkki",
+                "refresh_label": "Automaattinen päivitys",
+                "refresh_hint": "Käy verkkosivusto läpi uudelleen ja opi sen uudet ja muuttuneet sivut.",
+                "refresh_off": "Ei automaattista päivitystä",
+                "refresh_daily": "Päivitä päivittäin",
+                "refresh_weekly": "Päivitä viikoittain",
+                "refresh_monthly": "Päivitä kuukausittain",
+                "refresh_saved": "Automaattinen päivitys tallennettu.",
+                "refresh_failed": "Automaattisen päivityksen tallennus epäonnistui."
             }
         },
         "leads": {
@@ -1802,7 +1811,12 @@
             "bubbles_add": "Lisää kupla",
             "bubbles_remove": "Poista kupla",
             "bubbles_empty": "Ei vielä chat-kuplia.",
-            "bubbles_translate_empty": "Lisää ensin kupla, jotta voit kääntää sen."
+            "bubbles_translate_empty": "Lisää ensin kupla, jotta voit kääntää sen.",
+            "model_picker_title": "Malli",
+            "model_picker_description": "Tekoälymalli, jolla tämä agentti vastaa. Ylläpitäjä valitsee, mitkä mallit ovat tällä listalla (hallintapaneeli → Settings → AI models).",
+            "model_placeholder": "Valitse malli",
+            "model_default": "Oletus",
+            "model_empty": "Malleja ei ole vielä. Ylläpitäjä lisää ne hallintapaneelissa kohdassa Settings → AI models."
         },
         "topics_index": {
             "title": "Aiheet",

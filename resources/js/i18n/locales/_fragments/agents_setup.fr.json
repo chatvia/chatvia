@@ -103,6 +103,11 @@
             "temperature_precise": "Précis",
             "temperature_balanced": "Équilibré",
             "temperature_creative": "Créatif",
+            "model_picker_title": "Modèle",
+            "model_picker_description": "Le modèle d'IA avec lequel cet agent répond. Un administrateur choisit les modèles de cette liste (panneau d'administration → Settings → AI models).",
+            "model_placeholder": "Choisir un modèle",
+            "model_default": "Par défaut",
+            "model_empty": "Aucun modèle pour l'instant. Un administrateur les ajoute dans le panneau d'administration, sous Settings → AI models.",
             "behavior": {
                 "hosted_title": "Comportement du chat hébergé",
                 "hosted_description": "Options d'iframe pour la surface de chat hébergé intégrée.",

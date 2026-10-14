@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Queue;
 
 /**
- * KnowledgeBase::search() behaviour around the reranker and the stats job:
- * a reranker failure is reported and falls back to the SQL ranking capped at
- * max_chunks (it used to return every candidate), and the stats job payload
- * carries only source references, never chunk text.
+ * KnowledgeBase::search() behaviour around the relevance check: a reranker
+ * failure is reported and falls back to the basic similarity check, capped at
+ * max_chunks; without a reranker the similarity check gates; the results fit
+ * the context budget; and counting the retrieval is left to the turn.
  */
 function kbFallbackProvider(bool $rerankThrows): void
 {
@@ -70,6 +70,11 @@ function kbFallbackProvider(bool $rerankThrows): void
         {
             return true;
         }
+
+        public function model(): string
+        {
+            return 'fake-reranker';
+        }
     });
 }
 
@@ -94,7 +99,7 @@ function kbFallbackAgentWithChunks(int $count): Agent
 
 beforeEach(function (): void {
     config([
-        'chatvia.vector.search.rerank' => true,
+        'chatvia.vector.search.relevance_check' => true,
         'chatvia.vector.search.rerank_candidates' => 12,
         'chatvia.vector.search.max_chunks' => 2,
     ]);
@@ -143,9 +148,62 @@ it('returns as many results as asked for, whatever the reranker\'s own default c
         {
             return true;
         }
+
+        public function model(): string
+        {
+            return 'fake-reranker';
+        }
     });
 
     $results = app(KnowledgeBase::class)->search(kbFallbackAgentWithChunks(6), 'largest ocean');
 
     expect($results)->toHaveCount(4);
 });
+
+it('keeps only chunks close enough in meaning when no reranker is set up', function (float $threshold, int $expected): void {
+    kbFallbackProvider(rerankThrows: false);
+    app()->instance(Reranker::class, new NullReranker);
+    config(['chatvia.vector.search.similarity_threshold' => $threshold]);
+
+    $agent = kbFallbackAgentWithChunks(3);
+
+    // Every chunk and the query share one vector here: similarity 1.0.
+    $results = app(KnowledgeBase::class)->search($agent, 'largest ocean');
+
+    expect($results)->toHaveCount($expected);
+
+    foreach ($results as $result) {
+        expect($result->relevance)->toBe($result->similarity);
+    }
+})->with([
+    'a reachable bar' => [0.5, 2],
+    'an unreachable bar' => [1.01, 0],
+]);
+
+it('falls back to the similarity check when the reranker fails', function (): void {
+    Exceptions::fake();
+    kbFallbackProvider(rerankThrows: true);
+    config(['chatvia.vector.search.similarity_threshold' => 1.01]);
+
+    $agent = kbFallbackAgentWithChunks(3);
+
+    expect(app(KnowledgeBase::class)->search($agent, 'largest ocean'))->toBe([]);
+
+    Exceptions::assertReported(RuntimeException::class);
+});
+
+it('keeps the results within the context budget, the best always in', function (int $budget, int $expected): void {
+    kbFallbackProvider(rerankThrows: false);
+    config(['chatvia.vector.search.max_chunks' => 3, 'chatvia.vector.search.max_context_tokens' => $budget]);
+
+    $agent = kbFallbackAgentWithChunks(3);
+    $results = app(KnowledgeBase::class)->search($agent, 'largest ocean');
+    $tokens = $results === [] ? 0 : $results[0]->tokens;
+
+    expect($tokens)->toBeGreaterThan(0)
+        ->and($results)->toHaveCount($expected);
+})->with([
+    'room for all' => [10_000, 3],
+    'room for two' => [32, 2],
+    'too small even for one' => [1, 1],
+]);

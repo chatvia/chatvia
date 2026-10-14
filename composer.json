@@ -49,6 +49,7 @@
         "pontedilana/php-weasyprint": "^2.7",
         "resend/resend-php": "^1.16",
         "ryangjchandler/laravel-cloudflare-turnstile": "^3.0",
+        "saade/filament-laravel-log": "^4.0",
         "socialiteproviders/microsoft": "^4.7",
         "spatie/laravel-data": "^4.15",
         "spatie/laravel-flare": "^3.0",

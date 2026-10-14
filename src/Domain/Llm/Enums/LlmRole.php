@@ -6,7 +6,7 @@ namespace Domain\Llm\Enums;
 
 /**
  * The jobs the app's own LLM calls are grouped into. An admin picks a catalog
- * model for each in Settings → AI; a role without one uses the chat model.
+ * model for each in Settings → AI models; a role without one uses the chat model.
  *
  * - Chat: what new agents answer with, and the analytics assistant.
  * - Fast: short, frequent calls (titles, topics, tone, guardrails, slugs,

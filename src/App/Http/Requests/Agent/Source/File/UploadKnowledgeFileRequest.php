@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Agent\Source\File;
 
 use App\Http\Requests\Concerns\ReadsUploadedSourceFile;
+use App\Http\Rules\UnlockedPdf;
 use Domain\Knowledge\Source\File\Data\UploadedSourceFileData;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,7 +29,7 @@ class UploadKnowledgeFileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file'],
+            'file' => ['required', 'file', new UnlockedPdf],
         ];
     }
 

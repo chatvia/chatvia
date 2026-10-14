@@ -75,6 +75,7 @@ interface Props {
 
     catalog: Llm[];
     selectedModel: string | null;
+    defaultModel: string | null;
     llmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
     defaultLlmSettings: { temperature: number; top_k: number; top_p: number; presence_penalty: number; frequency_penalty: number };
 
@@ -112,7 +113,7 @@ provideSetupContext({
     languages: useSetupLanguages(deps, appearance, () => props.availableLanguages),
     starters: useSetupStarters(deps, props.starters),
     bubbles: useSetupBubbles(deps, props.bubbles),
-    model: useSetupModel(deps, props.llmSettings.temperature),
+    model: useSetupModel(deps, props.selectedModel, props.llmSettings),
     branding: useSetupBranding(deps, appearance, () => props.appearanceSettings),
     behavior: useSetupBehavior(
         deps,
@@ -164,7 +165,7 @@ provideSetupContext({
                                     :has-knowledge-base="hasKnowledgeBase"
                                 />
                                 <SetupBubblesPanel v-if="activeSection === 'bubbles'" />
-                                <SetupModelPanel v-if="activeSection === 'model'" />
+                                <SetupModelPanel v-if="activeSection === 'model'" :catalog="catalog" :default-model="defaultModel" />
                                 <SetupBrandingPanel v-if="activeSection === 'branding'" />
 
                                 <!-- Behavior swaps its fields with the surface tab. -->

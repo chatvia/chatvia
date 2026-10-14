@@ -2,6 +2,8 @@
 
 namespace Tests\Support;
 
+use App\Admin\Settings\PlatformSettings;
+use App\Admin\Settings\SetupStatus;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -36,6 +38,7 @@ class ProvisionTestDatabase
             // Seeding loads reference data (the LLM catalogue) that tests read.
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
+            $this->markSetupCompleted();
             $this->recordChecksum();
 
             return;
@@ -52,11 +55,23 @@ class ProvisionTestDatabase
             Artisan::call('db:wipe');
             $this->installPostgresExtensions();
             Artisan::call('migrate', ['--seed' => true]);
+            $this->markSetupCompleted();
             // Record the checksum only after a successful rebuild — writing it
             // first would mark a failed migration as up to date and skip every
             // retry.
             $this->recordChecksum();
         }
+    }
+
+    /**
+     * Most tests use the admin panel as an install that finished its setup;
+     * the setup's own tests clear the status first.
+     */
+    protected function markSetupCompleted(): void
+    {
+        $platform = app(PlatformSettings::class);
+        $platform->setup_status = SetupStatus::Completed->value;
+        $platform->save();
     }
 
     protected function databaseAlreadyMigrated(): bool

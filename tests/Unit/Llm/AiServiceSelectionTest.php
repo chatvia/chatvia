@@ -8,10 +8,10 @@ use Domain\Knowledge\Embedding\Gemini;
 use Domain\Knowledge\Embedding\Jina;
 use Domain\Knowledge\Embedding\Mistral as MistralEmbeddings;
 use Domain\Knowledge\Embedding\OpenAi;
+use Domain\Knowledge\Embedding\OpenRouter as OpenRouterEmbeddings;
 use Domain\Knowledge\Embedding\Qwen3;
-use Domain\Knowledge\Embedding\Rerank\CohereReranker;
+use Domain\Knowledge\Embedding\Rerank\CompatibleReranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
-use Domain\Knowledge\Embedding\Rerank\Qwen3Reranker;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
@@ -32,6 +32,8 @@ use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\ProviderAdapters;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Each AI step is bound from config('chatvia.ai.*') in DomainServiceProvider.
@@ -50,6 +52,7 @@ beforeEach(function (): void {
         'services.scalewayai.api_key' => null,
         'services.cohere.api_key' => null,
         'services.openai.api_key' => null,
+        'services.openrouter.api_key' => null,
         'chatvia.ai.document_parser' => 'auto',
         'chatvia.ai.reranker' => 'auto',
         'chatvia.ai.transcriber' => 'auto',
@@ -75,7 +78,7 @@ it('keeps the hosted services when their keys are set, as in production', functi
     expect(app(DocumentParser::class))->toBeInstanceOf(MistralDocumentParser::class)
         ->and(app(DocumentParser::class)->name())->toBe(config('services.mistral.ocr_model'))
         ->and(app(Transcriber::class))->toBeInstanceOf(ScalewayTranscriber::class)
-        ->and(app(Reranker::class))->toBeInstanceOf(Qwen3Reranker::class)
+        ->and(app(Reranker::class))->toBeInstanceOf(NullReranker::class)
         ->and(app(EmbeddingsProviderInterface::class))->toBeInstanceOf(Qwen3::class)
         ->and($documentLlm->isAvailable())->toBeTrue()
         ->and($documentLlm->provider())->toBeInstanceOf(Mistral::class)
@@ -91,7 +94,7 @@ it('lets an explicit driver override auto', function (): void {
     config([
         'services.mistral.api_key' => 'mistral-key',
         'services.scalewayai.api_key' => 'scaleway-key',
-        'chatvia.ai.document_parser' => 'local',
+        'chatvia.ai.document_parser' => 'none',
         'chatvia.ai.transcriber' => 'none',
         'chatvia.ai.reranker' => 'none',
         'chatvia.ai.document_llm' => 'none',
@@ -103,17 +106,34 @@ it('lets an explicit driver override auto', function (): void {
         ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
 });
 
-it('follows the embedding provider for the auto reranker', function (string $embedding, string $reranker): void {
-    config(['chatvia.ai.models.embedding' => $embedding]);
+it('reranks through OpenRouter with its key, when it is connected, by default', function (): void {
+    config(['services.openrouter.api_key' => 'sk-or-test', 'services.cohere.api_key' => 'cohere-key']);
 
-    expect(app(Reranker::class))->toBeInstanceOf($reranker);
+    $reranker = app(Reranker::class);
+
+    expect($reranker)->toBeInstanceOf(CompatibleReranker::class)
+        ->and($reranker->isEnabled())->toBeTrue()
+        ->and($reranker->model())->toBe('cohere/rerank-4-pro');
+});
+
+it('falls back to Cohere, then to no reranker, for auto', function (): void {
+    config(['services.cohere.api_key' => 'cohere-key']);
+
+    expect(app(Reranker::class)->model())->toBe('rerank-v4.0-pro');
+
+    config(['services.cohere.api_key' => null]);
+
+    expect(app(Reranker::class))->toBeInstanceOf(NullReranker::class);
+});
+
+it('uses the chosen reranker and model', function (string $driver, array $config, string $model): void {
+    config(['chatvia.ai.reranker' => $driver, ...$config]);
+
+    expect(app(Reranker::class)->model())->toBe($model);
 })->with([
-    'qwen' => ['qwen', Qwen3Reranker::class],
-    'cohere' => ['cohere', CohereReranker::class],
-    'jina' => ['jina', NullReranker::class],
-    'mistral' => ['mistral', NullReranker::class],
-    'openai' => ['openai', NullReranker::class],
-    'google' => ['google', NullReranker::class],
+    'an OpenRouter model' => ['openrouter', ['chatvia.ai.rerank.openrouter_model' => 'qwen/qwen3-reranker-8b'], 'qwen/qwen3-reranker-8b'],
+    'a Cohere model' => ['cohere', ['services.cohere.rerank_model' => 'rerank-v4.0-fast'], 'rerank-v4.0-fast'],
+    'a self-hosted server' => ['custom', ['chatvia.ai.rerank.custom.url' => 'http://reranker:8000/v1', 'chatvia.ai.rerank.custom.model' => 'Qwen/Qwen3-Reranker-4B'], 'Qwen/Qwen3-Reranker-4B'],
 ]);
 
 it('transcribes with OpenAI Whisper when chosen, or when only an OpenAI key is set', function (): void {
@@ -148,6 +168,8 @@ it('refuses a document LLM provider that cannot read PDF documents', function ()
 });
 
 it('builds the client of each provider kind', function (LlmProviderEnum $kind, string $class): void {
+    connectAiProviders();
+
     expect(app(LlmProviders::class)->forProvider(LlmProvider::factory()->kind($kind)->make()))->toBeInstanceOf($class);
 })->with([
     'scaleway' => [LlmProviderEnum::SCALEWAY, Scaleway::class],
@@ -159,12 +181,21 @@ it('builds the client of each provider kind', function (LlmProviderEnum $kind, s
     'custom server' => [LlmProviderEnum::CUSTOM, OpenAiCompatible::class],
 ]);
 
-it('refuses a provider kind it has no client for, or one that is off', function (LlmProvider $provider): void {
+it('refuses a provider kind it has no client for, one that is off, or one without its key', function (LlmProvider $provider): void {
     expect(fn () => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
 })->with([
     'no client yet' => fn () => LlmProvider::factory()->kind(LlmProviderEnum::ANTHROPIC)->make(),
     'turned off' => fn () => LlmProvider::factory()->disabled()->make(),
+    'no key' => fn () => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(),
 ]);
+
+it('lets only a server of your own keep a key and an address on its row', function (): void {
+    // In a savepoint, so the refused insert leaves the test's transaction usable.
+    expect(fn () => DB::transaction(fn () => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->create(['api_key' => 'scw-key'])))
+        ->toThrow(QueryException::class, 'llm_providers_key_on_custom_only');
+
+    expect(LlmProvider::factory()->create(['api_key' => 'local-key'])->fresh()->api_key)->toBe('local-key');
+});
 
 it('stores every provider kind, and only Mistral reads PDF documents', function (): void {
     foreach (LlmProviderEnum::cases() as $kind) {
@@ -190,6 +221,7 @@ it('fails fast when the embedding provider cannot return the size the database s
     'jina stops at 1024' => ['jina', 2048],
     'cohere has fixed sizes' => ['cohere', 768],
     'openai small stops at 1536' => ['openai', 2048],
+    'openai small on openrouter stops at 1536' => ['openrouter', 2048],
     'gemini starts at 128' => ['google', 64],
 ]);
 
@@ -209,5 +241,6 @@ it('asks the embedding provider for the size the database stores', function (str
     'qwen 2048' => ['qwen', Qwen3::class, 2048],
     'mistral 1024' => ['mistral', MistralEmbeddings::class, 1024],
     'openai 1536' => ['openai', OpenAi::class, 1536],
+    'openrouter 1536' => ['openrouter', OpenRouterEmbeddings::class, 1536],
     'gemini 768' => ['google', Gemini::class, 768],
 ]);

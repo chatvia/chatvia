@@ -128,6 +128,7 @@
     "Transcription failed. Please try again.": "Litterointi epäonnistui. Yritä uudelleen.",
     "Chatting with PDF files is not available.": "PDF-tiedostojen kanssa keskustelu ei ole käytettävissä.",
     "We couldn't read this PDF. Please try a different file.": "Emme voineet lukea tätä PDF-tiedostoa. Kokeile toista tiedostoa.",
+    "This PDF is locked with a password. Remove the password and upload it again.": "Tämä PDF on lukittu salasanalla. Poista salasana ja lataa tiedosto uudelleen.",
     "This PDF has :pages pages — the limit is :max.": "Tässä PDF-tiedostossa on :pages sivua — raja on :max.",
     "You've reached the limit of :max files for this chat.": "Olet saavuttanut tämän keskustelun :max tiedoston rajan.",
     "No file was uploaded.": "Tiedostoa ei ladattu.",

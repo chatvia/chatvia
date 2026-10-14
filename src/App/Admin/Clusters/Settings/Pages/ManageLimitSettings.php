@@ -8,6 +8,8 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\LimitSettings;
 use BackedEnum;
+use Closure;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 
 /**
@@ -44,11 +46,12 @@ class ManageLimitSettings extends AdminSettingsPage
     protected function cards(): array
     {
         return [
-            SettingsCard::make('tool_calls', 'Tool calls', 'Every tool call of an agent is logged and rate limited.', Heroicon::OutlinedWrench, fn (): array => [
+            SettingsCard::make('tool_calls', 'Tool calls', 'Every tool call of an agent is logged and rate limited.', Heroicon::OutlinedWrenchScrewdriver, fn (): array => [
+                $this->integer('tool_audit_retention_days', 'Days to keep the tool-call log', min: 1),
+            ])->advancedFields(fn (): array => [
                 $this->integer('tool_rate_limit', 'Calls per tool',
                     help: 'How many times an agent may call one tool in the time window.', min: 1),
-                $this->integer('tool_rate_window_seconds', 'Time window (seconds)', min: 1),
-                $this->integer('tool_audit_retention_days', 'Days to keep the tool-call log', min: 1),
+                $this->integer('tool_rate_window_seconds', 'Time window (seconds)', help: 'The length of the time window the calls are counted in.', min: 1),
             ])->summary(fn (): string => sprintf('%s calls per %s seconds · log kept %s days',
                 $this->valueInUse('tool_rate_limit'), $this->valueInUse('tool_rate_window_seconds'), $this->valueInUse('tool_audit_retention_days'))),
             SettingsCard::make('guardrails', 'Guardrails', 'The safety checks on every chat: personal data, prompt injection, off-topic and toxicity.', Heroicon::OutlinedShieldCheck, fn (): array => [
@@ -59,7 +62,15 @@ class ManageLimitSettings extends AdminSettingsPage
             SettingsCard::make('security_log', 'Security log', 'Sign-ins, membership, configuration and data changes of each workspace.', Heroicon::OutlinedClipboardDocumentCheck, fn (): array => [
                 $this->integer('security_audit_retention_days', 'Days to keep the security log',
                     help: 'A workspace may choose fewer days.', min: 1),
-                $this->integer('security_audit_retention_floor_days', 'Fewest days a workspace may choose', min: 1),
+                $this->integer('security_audit_retention_floor_days', 'Fewest days a workspace may choose', min: 1)
+                    // A floor above the days would leave a workspace no value to choose.
+                    ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                        $days = LimitSettings::cast('security_audit_retention_days', $get('security_audit_retention_days')) ?? $this->defaultValue('security_audit_retention_days');
+
+                        if (is_numeric($value) && is_numeric($days) && (int) $value > (int) $days) {
+                            $fail('The fewest days cannot be more than the days to keep the security log.');
+                        }
+                    }),
             ])->summary(fn (): string => 'Kept '.$this->valueInUse('security_audit_retention_days').' days'),
         ];
     }

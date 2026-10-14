@@ -14,12 +14,13 @@ use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Qa\Services\QaMatcher;
 use Illuminate\Support\Collection;
 
 /**
  * Adds the agent's knowledge to a turn. A curated Q&A entry with a question
- * equal to the message as a whole (ignoring case and punctuation) wins and
- * answers the turn without an LLM call.
+ * equal to the message as a whole (ignoring case and punctuation), or very
+ * close to it in meaning, wins and answers the turn without an LLM call.
  * Otherwise the knowledge base is searched, retrieved chunks that look like a
  * prompt injection are dropped, and the rest is attached to the LLM-facing
  * message as reference material. The turn's confidence is the relevance of
@@ -28,7 +29,7 @@ use Illuminate\Support\Collection;
  */
 class KnowledgeEnricher
 {
-    /** Confidence given to a whole-question Q&A match. */
+    /** Confidence given to a Q&A match. */
     public const float QA_MATCH_CONFIDENCE = 0.99;
 
     /** The request source of eval runs, which leave the retrieval counters alone. */
@@ -37,6 +38,7 @@ class KnowledgeEnricher
     public function __construct(
         private readonly KnowledgeBase $knowledgeBase,
         private readonly SourceLabeler $labeler,
+        private readonly QaMatcher $qaMatcher,
         private readonly GuardrailService $guardrails,
         private readonly GuardrailRecorder $guardrailRecorder,
     ) {}
@@ -51,8 +53,7 @@ class KnowledgeEnricher
 
         $agent = $context->requestData->agent;
 
-        // Q&A matches on the stored message, not the rewritten query.
-        $qaMatch = $this->findQaMatch($agent, $context->payload->message);
+        $qaMatch = $this->findQaMatch($agent, $context->payload->message, $context->searchQuery ?? $context->payload->message);
 
         if ($qaMatch instanceof QaMatchData) {
             $context->setQaMatch($qaMatch);
@@ -61,7 +62,7 @@ class KnowledgeEnricher
             return $context;
         }
 
-        $sources = $this->withoutInjectedSources($context, $this->retrieveSources($agent, (string) $context->payload->message_for_llm));
+        $sources = $this->withoutInjectedSources($context, $this->retrieveSources($agent, $context->searchQuery ?? (string) $context->payload->message_for_llm));
         $context->setSources($sources);
 
         if ($sources->isEmpty()) {
@@ -73,10 +74,10 @@ class KnowledgeEnricher
         return $this->withReferenceMaterial($context, $sources);
     }
 
-    /** The Q&A entry with a question equal to the whole message, if any. */
-    private function findQaMatch(Agent $agent, string $message): ?QaMatchData
+    /** The Q&A entry that answers the message, as a whole question or by meaning ({@see QaMatcher}). */
+    private function findQaMatch(Agent $agent, string $message, string $searchQuery): ?QaMatchData
     {
-        $match = AgentQuestionAnswer::query()->wholeQuestionMatch($agent->id, $message);
+        $match = $this->qaMatcher->match($agent, $message, $searchQuery);
 
         if (! $match instanceof AgentQuestionAnswer) {
             return null;
@@ -192,6 +193,7 @@ class KnowledgeEnricher
             assistantMessageId: $context->assistantMessageId,
             queryLanguage: $context->queryLanguage,
             startTime: $context->getStartTime(),
+            searchQuery: $context->searchQuery,
         );
 
         $enriched->setSources($sources);

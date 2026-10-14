@@ -38,8 +38,9 @@ use Illuminate\Support\Str;
  * One page of the admin panel's Settings, for one settings class: every card
  * ({@see SettingsCard}) as a collapsible section with its icon, description,
  * status, a "?" button that explains its options in plain words, and its
- * fields; one Save button for the page, and an outline that jumps to a
- * section. The rules every page shares:
+ * fields; one Save button that stays in view, and an outline that jumps to a
+ * section. The everyday cards come first; technical cards follow under an
+ * "Advanced" heading, closed. The rules every page shares:
  *
  * - Secrets are write-only. The panel never receives a saved secret, a blank
  *   input keeps it, and the trash button next to the input removes it.
@@ -96,10 +97,12 @@ abstract class AdminSettingsPage extends Page
                         ->footer([
                             Actions::make([
                                 Action::make('save')
-                                    ->label('Save')
+                                    ->label('Save changes')
                                     ->submit('save')
                                     ->keyBindings(['mod+s']),
-                            ]),
+                            ])
+                                ->sticky()
+                                ->key('form-actions'),
                         ])
                         ->columnSpan(['xl' => 4]),
                 ]),
@@ -113,11 +116,19 @@ abstract class AdminSettingsPage extends Page
 
     /**
      * A section per card: its fields, and the URLs to register with its
-     * provider.
+     * provider. The advanced cards follow under their own heading.
      */
     public function form(Schema $schema): Schema
     {
-        return $schema->components(array_map($this->section(...), $this->visibleCards()));
+        $cards = $this->visibleCards();
+        $everyday = array_filter($cards, fn (SettingsCard $card): bool => ! $card->advanced);
+        $advanced = array_filter($cards, fn (SettingsCard $card): bool => $card->advanced);
+
+        return $schema->components([
+            ...array_map($this->section(...), array_values($everyday)),
+            ...($advanced === [] ? [] : [View::make('filament.settings.advanced')]),
+            ...array_map($this->section(...), array_values($advanced)),
+        ]);
     }
 
     public function save(): void
@@ -150,25 +161,26 @@ abstract class AdminSettingsPage extends Page
     }
 
     /**
-     * The status line of the page's tile on the overview, and its tone: how
-     * many services are set up, or how many options differ from the
-     * defaults.
+     * The status line of the page's tile on the overview, and its tone. A
+     * service that is half set up comes first. A page of optional services
+     * (sign-in buttons, channels) says how many are set up; any other page
+     * how many options differ from the defaults.
      *
      * @return array{0: string, 1: string}
      */
     public function overviewStatus(): array
     {
-        $cards = $this->visibleCards();
-        $services = array_values(array_filter($cards, fn (SettingsCard $card): bool => $card->required !== []));
+        if (($unfinished = $this->unfinishedStatus()) !== null) {
+            return $unfinished;
+        }
 
-        if ($services !== []) {
+        $cards = $this->visibleCards();
+        $services = array_filter($cards, fn (SettingsCard $card): bool => $card->required !== []);
+
+        if ($services !== [] && count($services) === count($cards)) {
             $ready = count(array_filter($services, fn (SettingsCard $card): bool => $this->statusOf($card) === SettingStatus::Configured));
 
-            return ["{$ready} of ".count($services).' set up', match (true) {
-                $ready === count($services) => 'success',
-                $ready > 0 => 'primary',
-                default => 'gray',
-            }];
+            return $ready === 0 ? ['Optional', 'gray'] : ["{$ready} set up", 'success'];
         }
 
         $changed = count(array_filter(
@@ -177,6 +189,26 @@ abstract class AdminSettingsPage extends Page
         ));
 
         return $changed === 0 ? ['Using the defaults', 'gray'] : [$changed.' '.Str::plural('change', $changed), 'primary'];
+    }
+
+    /**
+     * A warning when a service on the page is half set up (a client ID
+     * without its secret), naming it; null when none is.
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    protected function unfinishedStatus(): ?array
+    {
+        $unfinished = array_values(array_filter(
+            $this->visibleCards(),
+            fn (SettingsCard $card): bool => $card->required !== [] && $this->statusOf($card) === SettingStatus::Incomplete,
+        ));
+
+        return match (count($unfinished)) {
+            0 => null,
+            1 => [$unfinished[0]->title.' is not finished', 'warning'],
+            default => [count($unfinished).' services are not finished', 'warning'],
+        };
     }
 
     /**
@@ -218,10 +250,21 @@ abstract class AdminSettingsPage extends Page
      */
     protected function visibleCards(): array
     {
-        return array_values(array_filter($this->cards(), fn (SettingsCard $card): bool => ! $card->visible instanceof Closure || ($card->visible)()));
+        $cards = array_filter($this->cards(), fn (SettingsCard $card): bool => ! $card->visible instanceof Closure || ($card->visible)());
+
+        return [
+            ...array_values(array_filter($cards, fn (SettingsCard $card): bool => ! $card->advanced)),
+            ...array_values(array_filter($cards, fn (SettingsCard $card): bool => $card->advanced)),
+        ];
     }
 
-    private function fillCards(): void
+    /** A visible card by its key. */
+    protected function card(string $key): ?SettingsCard
+    {
+        return array_find($this->visibleCards(), fn (SettingsCard $card): bool => $card->key === $key);
+    }
+
+    protected function fillCards(): void
     {
         $this->form->fill($this->formValues(array_merge(...array_map($this->propertiesOf(...), $this->visibleCards()))));
     }
@@ -234,18 +277,20 @@ abstract class AdminSettingsPage extends Page
 
     /**
      * One card as a collapsible section: the status and the provider console
-     * in its header, its fields, and the URLs to register with the provider.
+     * in its header, its fields, the URLs to register with the provider, and
+     * its closed "Advanced" part. An advanced card always starts closed; an
+     * everyday card remembers whether the admin closed it.
      */
     private function section(SettingsCard $card): Section
     {
         return Section::make($card->title)
             ->id($this->sectionId($card))
-            ->description($card->description)
+            ->description(fn (): string|HtmlString => $this->descriptionOf($card))
             ->icon($card->icon)
-            ->extraAttributes(['class' => 'cv-settings-card'])
+            ->extraAttributes(['class' => 'cv-settings-card'.($card->advanced ? ' cv-settings-card--advanced' : '')])
             ->collapsible()
-            ->collapsed($card->collapsed)
-            ->persistCollapsed()
+            ->collapsed($card->advanced)
+            ->persistCollapsed(! $card->advanced)
             ->afterHeader([
                 // A service's status is a badge; the options in use are a line.
                 // The header shows two lines of it at most, the tooltip all of it.
@@ -274,7 +319,57 @@ abstract class AdminSettingsPage extends Page
             ->schema([
                 ...($card->fields)(),
                 ...$this->callbackUrls($card),
+                ...$this->advancedPart($card),
             ]);
+    }
+
+    /**
+     * The card's description, with its chips (what a service does, those in
+     * use marked) below it, so they show while the card is closed too.
+     */
+    private function descriptionOf(SettingsCard $card): string|HtmlString
+    {
+        if (! $card->chips instanceof Closure) {
+            return $card->description;
+        }
+
+        $chips = collect(($card->chips)())
+            ->map(fn (bool $used, string $label): string => '<span class="cv-chip'.($used ? ' cv-chip--used' : '').'"'.($used ? ' title="In use"' : '').'>'.e($label).'</span>')
+            ->join('');
+
+        return new HtmlString(e($card->description).'<span class="cv-chips">'.$chips.'</span>');
+    }
+
+    /**
+     * The card's technical fields in a closed part of their own. It has no
+     * key: a key would change the paths of the fields inside it.
+     *
+     * @return list<Component>
+     */
+    private function advancedPart(SettingsCard $card): array
+    {
+        if (! $card->advancedFields instanceof Closure) {
+            return [];
+        }
+
+        return [
+            Section::make('Advanced')
+                ->icon(Heroicon::OutlinedAdjustmentsHorizontal)
+                ->description(function () use ($card): string {
+                    $changed = array_values(array_filter($this->namesOf(($card->advancedFields)()), $this->isSaved(...)));
+
+                    return $changed === []
+                        ? 'The defaults suit most installs.'
+                        : 'Changed: '.collect($changed)->map(fn (string $property): string => $this->labelOf($card, $property))->join(', ', ' and ').'.';
+                })
+                ->compact()
+                ->secondary()
+                ->collapsible()
+                ->collapsed()
+                ->visible($card->advancedVisible ?? true)
+                ->extraAttributes(['class' => 'cv-settings-advanced-part'])
+                ->schema(($card->advancedFields)()),
+        ];
     }
 
     /**
@@ -334,7 +429,7 @@ abstract class AdminSettingsPage extends Page
     }
 
     /**
-     * @return array{id: string, title: string, status: string, tone: string}
+     * @return array{id: string, title: string, status: string, tone: string, advanced: bool}
      */
     private function outlineItem(SettingsCard $card): array
     {
@@ -345,6 +440,7 @@ abstract class AdminSettingsPage extends Page
             'title' => $card->title,
             'status' => $status,
             'tone' => $card->required === [] ? 'options' : $tone,
+            'advanced' => $card->advanced,
         ];
     }
 
@@ -360,9 +456,35 @@ abstract class AdminSettingsPage extends Page
         $configKeys = static::$settings::configKeys();
 
         return array_values(array_filter(
-            array_map(fn (Component $field): ?string => $field instanceof Field ? $field->getName() : null, ($card->fields)()),
-            fn (?string $name): bool => $name !== null && array_key_exists($name, $configKeys),
+            $this->namesOf($this->fieldsOf($card)),
+            fn (string $name): bool => array_key_exists($name, $configKeys),
         ));
+    }
+
+    /**
+     * The card's top-level components: its fields and those of its
+     * "Advanced" part.
+     *
+     * @return list<Component>
+     */
+    private function fieldsOf(SettingsCard $card): array
+    {
+        return [
+            ...($card->fields)(),
+            ...($card->advancedFields instanceof Closure ? ($card->advancedFields)() : []),
+        ];
+    }
+
+    /**
+     * @param  list<Component>  $components
+     * @return list<string>
+     */
+    private function namesOf(array $components): array
+    {
+        return array_values(array_filter(array_map(
+            fn (Component $field): ?string => $field instanceof Field ? $field->getName() : null,
+            $components,
+        )));
     }
 
     protected function statusOf(SettingsCard $card): SettingStatus
@@ -400,7 +522,7 @@ abstract class AdminSettingsPage extends Page
 
     private function labelOf(SettingsCard $card, string $property): string
     {
-        foreach (($card->fields)() as $field) {
+        foreach ($this->fieldsOf($card) as $field) {
             if ($field instanceof Field && $field->getName() === $property) {
                 return (string) $field->getLabel();
             }
@@ -533,9 +655,9 @@ abstract class AdminSettingsPage extends Page
             ->hintColor('gray');
     }
 
-    protected function url(string $property, string $label, ?string $help = null): TextInput
+    protected function url(string $property, string $label, ?string $help = null, bool $required = false): TextInput
     {
-        return $this->text($property, $label, $help)->url();
+        return $this->text($property, $label, $help, $required)->url();
     }
 
     /**
@@ -636,7 +758,7 @@ abstract class AdminSettingsPage extends Page
             ->visible(fn (): bool => $this->isSaved($property))
             ->requiresConfirmation()
             ->modalHeading("Remove the saved {$label}?")
-            ->modalDescription('The features that use it stop working until you add a new value.')
+            ->modalDescription(fn (): string => $this->forgetDescription($property, $label))
             ->modalSubmitActionLabel('Remove')
             ->action(function () use ($property, $label): void {
                 $settings = $this->settings();
@@ -645,6 +767,12 @@ abstract class AdminSettingsPage extends Page
 
                 Notification::make()->success()->title("{$label} removed")->send();
             });
+    }
+
+    /** What removing a saved secret stops, shown before it is removed. */
+    protected function forgetDescription(string $property, string $label): string
+    {
+        return 'The features that use it stop working until you add a new value.';
     }
 
     private function defaultText(string $property): ?string

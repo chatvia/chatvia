@@ -35,7 +35,10 @@ final readonly class MaxPdfPages implements ValidationRule
             // into the container instead of passing one in.
             $pages = app(PdfInfo::class)->getInfo($value->getPathname())->length;
         } catch (Throwable) {
-            $fail(__('We couldn\'t read this PDF. Please try a different file.'));
+            // A locked PDF gets its own reason from UnlockedPdf.
+            if (! app(PdfInfo::class)->isLocked($value->getPathname())) {
+                $fail(__('We couldn\'t read this PDF. Please try a different file.'));
+            }
 
             return;
         }

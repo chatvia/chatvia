@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Admin\Settings\PlatformSettings;
 use App\Identity\Workspace\Actions\Account\CreateWorkspaceAction;
 use App\Identity\Workspace\Models\User;
 use Database\Seeders\Demo\SkipsInProduction;
@@ -31,13 +30,9 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
-        // A starter catalog, so the demo agents have a model, and no admin
-        // setup to go through.
+        // A starter catalog, so the demo agents have a model. The admin setup
+        // still opens on the first visit to the admin panel.
         $this->call(LlmSeeder::class);
-
-        $platform = app(PlatformSettings::class);
-        $platform->setup_completed_at ??= now()->toIso8601String();
-        $platform->save();
 
         // Create the main demo user
         $user = User::firstOrCreate(

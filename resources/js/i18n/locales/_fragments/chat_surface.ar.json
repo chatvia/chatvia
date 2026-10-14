@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (صفحة {page})",
         "fallback_title": "المصدر {number}",
-        "chunk_label": "المقطع {index}"
+        "open_link": "فتح {label}"
     },
     "sidebar": {
         "save_title": "حفظ العنوان",

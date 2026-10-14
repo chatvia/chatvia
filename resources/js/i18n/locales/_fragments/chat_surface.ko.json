@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} ({page}페이지)",
         "fallback_title": "출처 {number}",
-        "chunk_label": "청크 {index}"
+        "open_link": "{label} 열기"
     },
     "sidebar": {
         "save_title": "제목 저장",

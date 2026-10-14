@@ -43,6 +43,17 @@ class ManageWorkspaceSettings extends AdminSettingsPage
         return 'Sign-in and people';
     }
 
+    /**
+     * Whether people can sign up.
+     *
+     * @return array{0: string, 1: string}
+     */
+    #[\Override]
+    public function overviewStatus(): array
+    {
+        return $this->valueInUse('registration_enabled') ? ['Sign-up open', 'success'] : ['Sign-up closed', 'gray'];
+    }
+
     protected function cards(): array
     {
         return [

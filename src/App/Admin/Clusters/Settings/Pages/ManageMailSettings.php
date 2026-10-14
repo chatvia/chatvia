@@ -91,7 +91,7 @@ class ManageMailSettings extends AdminSettingsPage
         $provider = $this->provider();
 
         if (! $provider->delivers()) {
-            return ['Not sending email yet', 'gray'];
+            return ['Not sending email yet', 'warning'];
         }
 
         return [$provider->label(), $this->missing($provider) === [] ? 'success' : 'warning'];

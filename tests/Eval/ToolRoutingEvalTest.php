@@ -16,6 +16,7 @@ use Domain\Integration\Tool\Routing\SemanticToolRouter;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
+use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -301,11 +302,13 @@ it('measures tool-routing retrieval quality against the labelled set', function 
     // --- Scoreboard ---
     $pct = static fn (float $v): string => str_pad(number_format($v * 100, 1).'%', 7, ' ', STR_PAD_LEFT);
     $out = "\n".str_repeat('=', 96)."\n";
-    $fallback = config('chatvia.agent.tools.routing.relevance_threshold', 0.55);
+    $reranker = app(Reranker::class);
+    $bars = $reranker->isEnabled()
+        ? 'reranker '.$reranker->model().' read='.RelevanceThresholds::toolRerank($reranker, false).' / write='.RelevanceThresholds::toolRerank($reranker, true)
+        : 'similarity read='.(RelevanceThresholds::toolSimilarity(false) ?? 'none').' / write='.(RelevanceThresholds::toolSimilarity(true) ?? 'none');
     $out .= "TOOL-ROUTING EVAL  ·  pool={$pool}  ·  provider={$this->embeddings->getModelName()}"
         .'  ·  gate='.(config('chatvia.agent.tools.routing.relevance_gate') ? 'on' : 'off')
-        .'  ·  threshold read='.config('chatvia.agent.tools.routing.relevance_threshold_read', $fallback)
-        .' / write='.(config('chatvia.agent.tools.routing.relevance_threshold_write') ?? $fallback)
+        .'  ·  '.$bars
         .'  ·  connector_router='.(config('chatvia.agent.tools.routing.connector_classifier') ? 'on' : 'off')."\n";
     $out .= str_repeat('=', 96)."\n";
     $out .= sprintf("%-40s %-30s %-7s %-7s %-5s %s\n", 'query', 'expected', 'ship#1', 'in-set', 'rank', 'wrong-write');

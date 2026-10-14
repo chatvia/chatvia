@@ -4,7 +4,14 @@
  * sends them one page at a time ("Load more"); a refresh starts again from the
  * first page and keeps the links already loaded for each website.
  */
-import { listWebsites, type WebsiteCrawlOptions, type WebsiteLinkStatus, type WebsiteRecord, type WebsiteStatus } from '@/api/webSources';
+import {
+    listWebsites,
+    type WebsiteCrawlOptions,
+    type WebsiteLinkStatus,
+    type WebsiteRecord,
+    type WebsiteRefreshInterval,
+    type WebsiteStatus,
+} from '@/api/webSources';
 import { usePagedSourceList } from '@/composables/agents/sources/usePagedSourceList';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,6 +37,7 @@ export interface WebSource {
     /** How many agents use the website; above one it is shared. */
     agents_count: number;
     options: WebsiteCrawlOptions;
+    refresh_interval: WebsiteRefreshInterval;
     error_message?: string;
     /** The current page of discovered links; `undefined` until loaded. */
     discovered_links?: WebsiteLink[];
@@ -70,6 +78,7 @@ export function useWebSources(agentId: string) {
         urls_count: website.urls_count || 0,
         agents_count: website.agents_count || 0,
         options: website.options || {},
+        refresh_interval: website.refresh_interval ?? 'off',
         discovered_links: findSource(website.id)?.discovered_links,
     });
 

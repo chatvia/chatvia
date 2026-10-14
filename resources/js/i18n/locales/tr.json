@@ -155,7 +155,8 @@
         "page_label": "Sayfa {page}",
         "file_with_page": "{file} (Sayfa {page})",
         "fallback_title": "Kaynak {number}",
-        "chunk_label": "Parça {index}"
+        "chunk_label": "Parça {index}",
+        "open_link": "{label} aç"
     },
     "home": {
         "logo_alt": "Logo",
@@ -1385,7 +1386,15 @@
                 "training_completed_tooltip": "Eğitim tamamlandı!",
                 "training_failed_retry": "Eğitim başarısız oldu. Yeniden denemek için tıklayın",
                 "retrain_this_link": "Bu bağlantıyı yeniden eğit",
-                "delete_this_link": "Bu bağlantıyı sil"
+                "delete_this_link": "Bu bağlantıyı sil",
+                "refresh_label": "Otomatik yenileme",
+                "refresh_hint": "Web sitesini yeniden tara ve yeni ve değişen sayfalarını öğren.",
+                "refresh_off": "Otomatik yenileme yok",
+                "refresh_daily": "Her gün yenile",
+                "refresh_weekly": "Her hafta yenile",
+                "refresh_monthly": "Her ay yenile",
+                "refresh_saved": "Otomatik yenileme kaydedildi.",
+                "refresh_failed": "Otomatik yenileme kaydedilemedi."
             }
         },
         "leads": {

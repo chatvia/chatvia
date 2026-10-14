@@ -27,4 +27,9 @@ class NullReranker implements Reranker
     {
         return false;
     }
+
+    public function model(): string
+    {
+        return '';
+    }
 }

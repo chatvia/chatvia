@@ -2,8 +2,8 @@ Lets workspaces connect a Facebook Page to an agent, so the agent answers messag
 
 - **App ID** and **App secret** — From your Meta app's settings. The secret also proves that new messages come from Meta. It is stored encrypted and never shown again. Leave it blank to keep it.
 - **Webhook verify token** — Any random text. Paste the same text in your Meta app's webhook settings. A webhook is how Meta tells this app about new messages. The token is stored encrypted.
-- **Login configuration ID** — A "Facebook Login for Business" setup in your Meta app. It lists the permissions to ask for. Leave it empty to ask the classic way.
-- **Redirect URL** — Where Meta sends people back after they allow access. Leave it empty to use the URL shown.
+- **Login configuration ID** (under **Advanced**) — A "Facebook Login for Business" setup in your Meta app. It lists the permissions to ask for. Leave it empty to ask the classic way.
+- **Another redirect URL** (under **Advanced**) — Where Meta sends people back after they allow access. Leave it empty to use the URL shown.
 
 Copy both URLs under "Register these URLs with the provider" into your Meta app.
 

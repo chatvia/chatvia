@@ -20,6 +20,11 @@ class DocumentParsingException extends RuntimeException
         return new self("Files of type .{$extension} cannot be read by the local document parser.");
     }
 
+    public static function unreadableImage(string $extension): self
+    {
+        return new self("This .{$extension} image could not be opened. Save it as PNG or JPEG and upload it again.");
+    }
+
     public static function failed(string $reason): self
     {
         return new self('The document could not be read: '.$reason);

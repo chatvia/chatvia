@@ -79,8 +79,8 @@ export interface SharedData extends PageProps {
     // The knowledge file types this install accepts (admin Settings →
     // Ingestion), each with its extensions. Read through useKnowledgeFileTypes().
     knowledgeFileTypes: Partial<Record<Domain.Knowledge.Source.File.Enums.KnowledgeFileType, string[]>>;
-    // Whether websites can be imported as knowledge (Settings → Ingestion →
-    // Firecrawl is set up).
+    // Whether websites can be imported as knowledge (Settings → Knowledge →
+    // Website import is set up).
     canImportWebsites?: boolean;
 
     // Where every agent's hosted chat lives (`{chatBaseUrl}/{slug}`).

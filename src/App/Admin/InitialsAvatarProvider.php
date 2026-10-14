@@ -9,7 +9,7 @@ use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * The admin panel's default avatar: the person's initials on an ink circle,
+ * The admin panel's default avatar: the person's initials on a dark circle,
  * drawn as an inline SVG. Filament's own default loads the avatar from
  * ui-avatars.com, which would send every admin's name to a third party on
  * each page.

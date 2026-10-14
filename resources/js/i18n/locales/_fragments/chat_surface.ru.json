@@ -21,7 +21,7 @@
     "sources": {
         "file_with_page": "{file} (стр. {page})",
         "fallback_title": "Источник {number}",
-        "chunk_label": "Фрагмент {index}"
+        "open_link": "Открыть {label}"
     },
     "sidebar": {
         "save_title": "Сохранить название",

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Services\Streaming\Sources;
 
-use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
@@ -13,10 +12,11 @@ use Generator;
 use Throwable;
 
 /**
- * Answers a turn with a curated Q&A entry whose question matched the message
- * as a whole, in the same envelope as an LLM answer. One delta carries the whole answer —
- * no chunking and no server-side delay; a typing effect is the client's job.
- * The reply is recorded and billed like any other answer.
+ * Answers a turn with a curated Q&A entry that matched the message, in the
+ * same envelope as an LLM answer. One delta carries the whole answer — no
+ * chunking and no server-side delay; a typing effect is the client's job. A
+ * saved answer is not a document, so it lists no sources. The reply is
+ * recorded and billed like any other answer.
  */
 class QaSource
 {
@@ -29,8 +29,7 @@ class QaSource
      */
     public function events(ChatContext $context): Generator
     {
-        $qaMatch = $context->qaMatch;
-        $answer = (string) $qaMatch?->answer;
+        $answer = (string) $context->qaMatch?->answer;
         $assistantId = $context->assistantMessageId;
 
         $context->appendStreamedMessage($answer);
@@ -46,18 +45,6 @@ class QaSource
             ]);
 
             yield StreamEvent::delta($assistantId, $answer);
-
-            if ($context->requestData->streamSources && $qaMatch instanceof QaMatchData) {
-                // Same shape as RetrievedSourceData::forClient(), so clients
-                // show it like any other source.
-                yield StreamEvent::sources($assistantId, [[
-                    'id' => null,
-                    'label' => $qaMatch->title,
-                    'kind' => 'qa',
-                    'url' => null,
-                    'page' => null,
-                ]]);
-            }
 
             $context->markEndTime();
             $this->replyRecorder->recordCompletedReply($context);

@@ -16,7 +16,7 @@ use Spatie\LaravelData\Data;
 /**
  * How one kind of content is split: the kind's strategy, the chunk size and
  * overlap in their unit, and the tokenizer when the unit is tokens. Built
- * from config (set in the admin panel, Settings → Chunking) or, for a
+ * from config (set in the admin panel, Settings → Knowledge) or, for a
  * preview, from the panel's form before it is saved.
  */
 final class ChunkingConfigData extends Data

@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Services;
 
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
@@ -46,16 +47,18 @@ class EvalAgentRunner
         private readonly ToolLoopRunner $runner,
         private readonly ToolSelector $toolSelector,
         private readonly LlmProviders $providers,
+        private readonly AgentModel $models,
     ) {}
 
     public function run(Agent $agent, string $input): AgentRunResultData
     {
         $agent->loadMissing(['agentPrompt', 'llm']);
-        $model = $agent->llm;
+        // Its own model, or the default one while it has none (as in chats).
+        $model = $this->models->for($agent);
         $started = microtime(true);
 
         if ($model === null) {
-            return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent has no LLM configured.');
+            return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent has no model, and no model can answer.');
         }
 
         // external session + conversation ids map to Postgres `uuid` columns

@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "sources": {
+            "web": {
+                "refresh_label": "자동 새로 고침",
+                "refresh_hint": "웹사이트를 다시 크롤링하여 새 페이지와 변경된 페이지를 학습합니다.",
+                "refresh_off": "자동 새로 고침 안 함",
+                "refresh_daily": "매일 새로 고침",
+                "refresh_weekly": "매주 새로 고침",
+                "refresh_monthly": "매월 새로 고침",
+                "refresh_saved": "자동 새로 고침이 저장되었습니다.",
+                "refresh_failed": "자동 새로 고침을 저장할 수 없습니다."
+            }
+        }
+    }
+}

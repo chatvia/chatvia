@@ -52,7 +52,7 @@ function typescriptTransformPlugin(): Plugin {
         configureServer() {
             console.log(`\x1b[36m[typescript:transform] Watching ${TYPESCRIPT_SOURCE_DIRS.join(', ')} for changes...\x1b[0m`);
             runTransform();
-            TYPESCRIPT_SOURCE_DIRS.forEach((dir) => watchDir(path.resolve(__dirname, dir)));
+            TYPESCRIPT_SOURCE_DIRS.forEach((dir) => watchDir(path.resolve(import.meta.dirname, dir)));
         },
     };
 }
@@ -86,7 +86,7 @@ function wayfinderPlugin(): Plugin {
         },
         configureServer() {
             WAYFINDER_SOURCE_DIRS.forEach((dir) => {
-                const absolute = path.resolve(__dirname, dir);
+                const absolute = path.resolve(import.meta.dirname, dir);
                 if (!fs.existsSync(absolute)) return;
 
                 fs.watch(absolute, { recursive: true }, (eventType, filename) => {
@@ -127,7 +127,7 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './resources/js'),
+            '@': path.resolve(import.meta.dirname, './resources/js'),
         },
     },
     build: {

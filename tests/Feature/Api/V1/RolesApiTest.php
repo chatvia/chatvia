@@ -97,7 +97,7 @@ describe('POST /api/v1/teams/{team}/roles', function (): void {
                 'agent_ids' => [$agent->external_id],
                 'permissions' => ['agent.chat.view'],
             ])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.name', 'Support')
             ->assertJsonPath('data.all_agents', false)
             ->assertJsonPath('data.agent_ids', [$agent->external_id])
@@ -114,7 +114,7 @@ describe('POST /api/v1/teams/{team}/roles', function (): void {
                 'name' => 'Admins',
                 'all_agents' => true,
             ])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.all_agents', true)
             ->assertJsonPath('data.agent_ids', []);
     });
@@ -213,7 +213,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
             ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
                 'user_id' => $endUser->external_id,
             ])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.id', $endUser->external_id);
 
         expect($this->team->members()->where('users.id', $endUser->id)->wherePivot('role_id', $role->id)->exists())->toBeTrue();
@@ -229,7 +229,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
                 ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
                     'user_id' => $endUser->external_id,
                 ])
-                ->assertOk();
+                ->assertCreated();
         }
 
         expect($this->team->members()->where('users.id', $endUser->id)->count())->toBe(1)

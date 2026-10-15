@@ -30,7 +30,7 @@ class ConversationDetailData extends Data
         // Project specific columns + hard limit; conversations can grow into
         // the thousands and a full dump is a memory bomb.
         $messages = $conversation->messages()
-            ->select(['id', 'role', 'content', 'created_at', 'sentiment', 'tone'])
+            ->select(['id', 'external_id', 'role', 'content', 'created_at', 'sentiment', 'tone'])
             ->orderBy('id')
             ->limit(500)
             ->get()

@@ -124,6 +124,11 @@ $app = Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         Flare::handles($exceptions);
 
+        // The public API always answers errors as JSON, even when a client
+        // leaves out `Accept: application/json`: a 401 or a 422, never a
+        // redirect to the login page or back to a form.
+        $exceptions->shouldRenderJsonWhen(fn (Request $request): bool => $request->is('api/*') || $request->expectsJson());
+
         // Canonical HTTP translation for the domain's field-keyed rejection
         // exception: render it as a 422 validation error — JSON gets
         // {message, errors:{field:[...]}}, web/Inertia redirects back with the

@@ -56,7 +56,7 @@ describe('POST /api/v1/chatters', function (): void {
                 'email' => 'jane@example.test',
                 'password' => 'super-secret-pw',
             ])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.name', 'Jane')
             ->assertJsonStructure(['data' => ['id', 'name', 'created_at']])
             ->json('data');
@@ -99,7 +99,7 @@ describe('POST /api/v1/chatters', function (): void {
                 'email' => 'jane@example.test',
                 'password' => 'super-secret-pw',
             ])
-            ->assertOk()
+            ->assertCreated()
             ->json('data');
 
         $created = Chatter::where('external_id', $body['id'])->firstOrFail();
@@ -117,7 +117,7 @@ describe('POST /api/v1/chatters', function (): void {
                 'email' => $this->user->email,
                 'password' => 'super-secret-pw',
             ])
-            ->assertOk();
+            ->assertCreated();
 
         expect($this->user->workspace()->chatters()->where('email', $this->user->email)->exists())->toBeTrue();
     });
@@ -132,7 +132,7 @@ describe('POST /api/v1/chatters', function (): void {
                 'email' => 'multi@example.test',
                 'password' => 'super-secret-pw',
             ])
-            ->assertOk()
+            ->assertCreated()
             ->json('data');
 
         $created = Chatter::where('external_id', $body['id'])->firstOrFail();
@@ -286,7 +286,7 @@ describe('POST /api/v1/teams', function (): void {
     it('creates a team and returns its external id', function (): void {
         $body = $this->withHeaders(apiHeaders($this->token))
             ->postJson('/api/v1/teams', ['name' => 'Acme Support'])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.name', 'Acme Support')
             ->assertJsonStructure(['data' => ['id', 'name', 'created_at']])
             ->json('data');

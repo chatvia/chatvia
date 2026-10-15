@@ -168,7 +168,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     it('lets the owner create a chatter', function () use ($chatterBody): void {
         $this->withHeaders(permHeaders($this->ownerToken))
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
-            ->assertOk();
+            ->assertCreated();
     });
 
     it('forbids a member WITHOUT account.chatters.manage', function () use ($chatterBody): void {
@@ -184,7 +184,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
 
         $id = $this->withHeaders(permHeaders($token))
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
-            ->assertOk()
+            ->assertCreated()
             ->json('data.id');
 
         expect(Chatter::where('external_id', $id)->value('workspace_id'))->toBe($this->owner->workspace()->id);
@@ -241,7 +241,7 @@ describe('owner-only operations (api.owner)', function (): void {
     it('lets the owner create an agent', function (): void {
         $this->withHeaders(permHeaders($this->ownerToken))
             ->postJson('/api/v1/agents', ['name' => 'Support Bot', 'team_id' => $this->owner->primaryTeam()->external_id, 'is_public' => false])
-            ->assertOk();
+            ->assertCreated();
     });
 
     it('forbids a member from listing or creating teams', function (): void {

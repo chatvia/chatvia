@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Source;
 
 use App\Http\Requests\Api\V1\Source\StoreSourceTextRequest;
+use App\Http\Resources\Api\V1\Source\SourceData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
@@ -31,25 +32,16 @@ class SourceTextController
         // holds the API token.
         $text = $createText->execute($agent, $request->textContent());
 
-        return response()->json([
-            'data' => [
-                'id' => $text->id,
-                'kind' => 'text',
-                'length_pages' => $text->length,
-                'status' => $text->status?->value,
-                'excerpt' => $text->excerpt,
-            ],
-        ], 201);
+        return response()->json(['data' => SourceData::fromModel($text)], 201);
     }
 
     /**
      * Delete text source
      */
-    public function destroy(Agent $agent, int $source, DeleteAgentSourceTextAction $deleteText): JsonResponse
+    public function destroy(Agent $agent, SourceText $text, DeleteAgentSourceTextAction $deleteText): JsonResponse
     {
-        /** @var SourceText $text */
-        $text = $agent->texts()->where('source_texts.id', $source)->firstOrFail();
-
+        // {text} is looked up through the agent's own texts, so a text of
+        // another agent is a 404.
         $deleteText->execute($agent, $text);
 
         return response()->json(null, 204);

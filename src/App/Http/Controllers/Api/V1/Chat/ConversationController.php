@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api\V1\Chat;
 
+use App\Http\Requests\Api\V1\CursorPageRequest;
 use App\Http\Resources\Api\V1\Conversations\ConversationDetailData;
 use Dedoc\Scramble\Attributes\Group;
-use Dedoc\Scramble\Attributes\QueryParameter;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
@@ -28,16 +28,12 @@ class ConversationController
      *
      * @return array{data: list<ConversationSummaryData>, next_cursor: string|null}
      */
-    #[QueryParameter('per_page', description: 'How many conversations to return (1 to 100).', type: 'int', default: 25)]
-    #[QueryParameter('cursor', description: 'The `next_cursor` of the previous page. Leave it out for the first page.', type: 'string')]
-    public function index(Request $request, Agent $agent, ListAgentConversationsAction $list): array
+    public function index(CursorPageRequest $request, Agent $agent, ListAgentConversationsAction $list): array
     {
-        $cursor = $request->query('cursor');
-
         $page = $list->execute(
             agent: $agent,
-            perPage: min(max(1, $request->integer('per_page', 25)), 100),
-            cursor: is_string($cursor) ? $cursor : null,
+            perPage: $request->perPage(),
+            cursor: $request->cursor(),
         );
 
         return ['data' => $page->data->all(), 'next_cursor' => $page->next_cursor];
@@ -45,12 +41,16 @@ class ConversationController
 
     /**
      * Get conversation
+     *
+     * The conversation with its first 500 messages, oldest first.
+     *
+     * @return array{data: ConversationDetailData}
      */
-    public function show(Request $request, Agent $agent, Conversation $conversation): ConversationDetailData
+    public function show(Agent $agent, Conversation $conversation): array
     {
         abort_unless($conversation->belongsToAgent($agent), 404);
 
-        return ConversationDetailData::fromModel($conversation);
+        return ['data' => ConversationDetailData::fromModel($conversation)];
     }
 
     /**

@@ -2,65 +2,36 @@
 
 namespace App\Http\Controllers\Api\V1\Source;
 
+use App\Http\Requests\Api\V1\CursorPageRequest;
+use App\Http\Resources\Api\V1\Source\SourceData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Source\File\Models\SourceFile;
-use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Illuminate\Http\JsonResponse;
+use Domain\Agent\Queries\AgentSourcePageQuery;
 
 /**
- * Lists all knowledge sources attached to an agent, regardless of type.
- * Each entry includes ingestion status so customers can poll for completion.
- *
- * @tags Sources
+ * Lists the files, texts and websites attached to an agent, whatever their
+ * kind. Each entry includes its training status so customers can poll for
+ * completion.
  */
 #[Group(name: 'Sources', weight: 70)]
 class SourceListController
 {
     /**
      * List sources
+     *
+     * The agent's sources, newest first. The list is paged with a cursor: to
+     * get the next page, send the `next_cursor` of the response as `cursor`.
+     * On the last page `next_cursor` is null.
+     *
+     * @return array{data: list<SourceData>, next_cursor: string|null}
      */
-    public function __invoke(Agent $agent): JsonResponse
+    public function __invoke(CursorPageRequest $request, Agent $agent, AgentSourcePageQuery $sources): array
     {
-        $files = $agent->files()
-            ->select(['source_files.id', 'filename', 'filetype', 'mime_type', 'size_in_kb', 'status', 'source_files.created_at'])
-            ->get()
-            ->map(fn (SourceFile $f): array => [
-                'id' => $f->id,
-                'kind' => 'file',
-                'name' => $f->filename,
-                'mime_type' => $f->mime_type,
-                'size_kb' => $f->size_in_kb,
-                'status' => $f->status->value,
-                'created_at' => $f->created_at?->toIso8601String(),
-            ]);
+        $page = $sources->get($agent, $request->perPage(), $request->cursor());
 
-        $texts = $agent->texts()
-            ->select(['source_texts.id', 'excerpt', 'length', 'status', 'source_texts.created_at'])
-            ->get()
-            ->map(fn (SourceText $t): array => [
-                'id' => $t->id,
-                'kind' => 'text',
-                'name' => str($t->excerpt)->limit(60)->toString(),
-                'length_pages' => $t->length,
-                'status' => $t->status->value,
-                'created_at' => $t->created_at?->toIso8601String(),
-            ]);
-
-        $urls = $agent->websites()
-            ->select(['source_websites.id', 'url', 'status', 'source_websites.created_at'])
-            ->get()
-            ->map(fn (SourceWebsite $w): array => [
-                'id' => $w->id,
-                'kind' => 'url',
-                'name' => $w->url,
-                'status' => $w->status->value,
-                'created_at' => $w->created_at?->toIso8601String(),
-            ]);
-
-        return response()->json([
-            'data' => $files->concat($texts)->concat($urls)->sortByDesc('created_at')->values()->all(),
-        ]);
+        return [
+            'data' => array_map(SourceData::fromModel(...), $page->sources),
+            'next_cursor' => $page->next_cursor,
+        ];
     }
 }

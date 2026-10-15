@@ -9,6 +9,7 @@ use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Data\Account\CreateUserPayloadData;
 use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -29,10 +30,8 @@ class ExternalChatterController
      * Provisions an end-user (chatter) under your account, granted access to
      * the agents named by `agent_ids`. Returns the chatter's `id` — pass it
      * when minting a sign-in link.
-     *
-     * @return array{data: UserData}
      */
-    public function store(Request $request, CreateUserPayloadData $payload, CreateChatterAction $createChatter): array
+    public function store(Request $request, CreateUserPayloadData $payload, CreateChatterAction $createChatter): JsonResponse
     {
         /** @var User $account */
         $account = $request->user();
@@ -46,6 +45,6 @@ class ExternalChatterController
             password: $payload->password,
         ));
 
-        return ['data' => UserData::fromModel($chatter)];
+        return response()->json(['data' => UserData::fromModel($chatter)], 201);
     }
 }

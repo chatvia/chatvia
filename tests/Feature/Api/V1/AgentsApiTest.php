@@ -34,7 +34,7 @@ describe('POST /api/v1/agents', function (): void {
                 'team_id' => $this->user->primaryTeam()->external_id,
                 'is_public' => false,
             ])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.name', 'Support Bot')
             ->assertJsonPath('data.source', 'api')
             ->assertJsonStructure(['data' => ['id', 'url', 'permanent_url']]);
@@ -50,7 +50,7 @@ describe('POST /api/v1/agents', function (): void {
 
         $this->withHeaders(authHeaders($this->token))
             ->postJson('/api/v1/agents', ['name' => 'Team Bot', 'team_id' => $team->external_id, 'is_public' => false])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('data.name', 'Team Bot');
 
         expect($team->agents()->where('name', 'Team Bot')->exists())->toBeTrue();
@@ -224,7 +224,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
 
         $this->withHeaders(authHeaders($this->token))
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
-            ->assertOk();
+            ->assertCreated();
 
         $this->withHeaders(authHeaders($this->token))
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
@@ -259,7 +259,7 @@ describe('Account-level MCPs + attach/detach', function (): void {
 
         $this->withHeaders(authHeaders($this->token))
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
-            ->assertOk();
+            ->assertCreated();
 
         $this->withHeaders(authHeaders($this->token))
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
@@ -314,7 +314,7 @@ describe('Account-level Functions CRUD', function (): void {
                 'parameters_schema' => ['type' => 'object', 'properties' => (object) []],
                 'webhook_url' => 'https://acme.example.com/webhooks/orders',
             ])
-            ->assertOk()
+            ->assertCreated()
             ->json('data');
 
         expect($created['internal_name'])->toBe('get_order_status');
@@ -344,7 +344,7 @@ describe('POST /api/v1/chatters/sign', function (): void {
                 'ttl_seconds' => 600,
             ]);
 
-        $response->assertOk()->assertJsonStructure(['data' => ['url', 'expires_at']]);
+        $response->assertCreated()->assertJsonStructure(['data' => ['url', 'expires_at']]);
 
         $url = $response->json('data.url');
         expect($url)->toContain('?token=');

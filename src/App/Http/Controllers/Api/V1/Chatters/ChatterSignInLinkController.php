@@ -8,6 +8,7 @@ use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Data\Api\SignInLinkPayloadData;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -30,10 +31,8 @@ class ChatterSignInLinkController
      * Sign a chatter
      *
      * Mint a sign-in link for one of your end-users (chatters) into one of your agents.
-     *
-     * @return array{data: SignInLinkData}
      */
-    public function store(Request $request, SignInLinkPayloadData $payload): array
+    public function store(Request $request, SignInLinkPayloadData $payload): JsonResponse
     {
         $agent = $this->resolveAccountAgent($request, $payload->agent_id);
 
@@ -55,9 +54,9 @@ class ChatterSignInLinkController
             ttlSeconds: $payload->ttl_seconds ?? AgentSignInTokenService::DEFAULT_TTL_SECONDS,
         );
 
-        return ['data' => new SignInLinkData(
+        return response()->json(['data' => new SignInLinkData(
             url: $agent->chat_url.'?token='.$result['token'],
             expires_at: $result['expires_at'],
-        )];
+        )], 201);
     }
 }

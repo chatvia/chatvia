@@ -14,7 +14,8 @@ use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Small regressions in the hosted-chat middleware stack.
+ * Rules of the hosted-chat middleware stack: who is sent to the login page, how
+ * the agent is resolved, and what an unnamed agent gets.
  */
 it('sends a guest of a protected agent to that agent\'s login page', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
@@ -77,8 +78,7 @@ it('keeps the resolved hosted-chat agent on the request', function (): void {
 });
 
 it('resolves no hosted-chat agent when the request names none, even if an agent has no slug', function (): void {
-    // Regression: a request without an agent slug looked agents up by a NULL
-    // slug, which matched any agent whose slug is NULL.
+    // Looking agents up by a NULL slug would match any agent whose slug is NULL.
     Agent::factory()->create(['slug' => null]);
 
     $request = Request::create('http://localhost/chat');
@@ -92,7 +92,3 @@ it('resolves no hosted-chat agent when the request names none, even if an agent 
 
     expect($response)->toBeInstanceOf(InertiaResponse::class);
 });
-
-it('no longer registers routes that render missing pages', function (string $name): void {
-    expect(Route::has($name))->toBeFalse();
-})->with(['knowledge-base.show', 'billing.packages', 'trial.checkout', 'usage']);

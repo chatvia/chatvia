@@ -4,10 +4,9 @@ use App\Identity\Workspace\Enums\SocialProvider;
 use App\Identity\Workspace\Models\User;
 
 /*
- * Covers SocialController::destroy — the inline `$user->socials()
- * ->where('provider', …)->delete()` (formerly UnlinkSocialAccountAction). The
- * action was inlined as a trivial single-relation delete; this feature test
- * keeps the behaviour covered end-to-end (route + provider guard + scoped delete).
+ * Covers SocialController::destroy, a single-relation delete
+ * (`$user->socials()->where('provider', …)->delete()`): the route, the
+ * provider guard and the delete scoped to the signed-in user.
  */
 
 beforeEach(function (): void {

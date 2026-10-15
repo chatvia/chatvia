@@ -3,11 +3,16 @@
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\WidgetHeaders;
+use Illuminate\Testing\TestResponse;
 use Mockery\MockInterface;
+use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * HTTP contract of the embedded widget API for a public agent: the headers it
@@ -15,37 +20,17 @@ use Mockery\MockInterface;
  * or name another visitor's data.
  */
 beforeEach(function (): void {
-    config(['chatvia.widget.always_allowed_origins' => []]);
-
     $this->agent = Agent::factory()->create(['is_public' => true]);
-    $this->agent->setSetting('sites', ['customer.example'], 'widget');
+    EmbeddedWidget::allowSite($this->agent);
 });
 
-/**
- * @param  array<string, string>  $extra
- * @return array<string, string>
- */
-function widgetHeaders(Agent $agent, array $extra = []): array
-{
-    return [WidgetHeaders::AGENT_ID => $agent->external_id, 'Origin' => 'https://customer.example', ...$extra];
-}
-
-/** @return array{session_id: string, conversation_id: string} */
-function bootWidget(Agent $agent): array
-{
-    return test()->withHeaders(widgetHeaders($agent))
-        ->postJson('/widget/sessions/init')
-        ->assertSuccessful()
-        ->json();
-}
-
 it('boots a session with a widget conversation and resumes both on the next load', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
     expect(Conversation::query()->where('external_id', $boot['conversation_id'])->value('source'))
         ->toBe(ConversationSource::Widget);
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $boot['session_id'],
         WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
     ]))
@@ -60,9 +45,9 @@ it('boots a session with a widget conversation and resumes both on the next load
 });
 
 it('lists the session conversations without starting another one', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->getJson('/widget/conversations')
         ->assertOk()
         ->assertJsonCount(1, 'conversations')
@@ -72,7 +57,7 @@ it('lists the session conversations without starting another one', function (): 
 it('starts a conversation for a session that has none when listing', function (): void {
     $session = Session::factory()->create(['agent_id' => $this->agent->id]);
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $session->external_id]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $session->external_id]))
         ->getJson('/widget/conversations')
         ->assertOk()
         ->assertJsonCount(1, 'conversations')
@@ -80,9 +65,9 @@ it('starts a conversation for a session that has none when listing', function ()
 });
 
 it('creates a new widget conversation on request', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $id = $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $id = $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/conversations')
         ->assertCreated()
         ->json('id');
@@ -94,7 +79,7 @@ it('creates a new widget conversation on request', function (): void {
 it('refuses conversation calls that send no session id instead of writing a blank session', function (string $method): void {
     $sessionsBefore = Session::query()->count();
 
-    $this->withHeaders(widgetHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
         ->json($method, '/widget/conversations')
         ->assertStatus(400)
         ->assertJson(['error' => 'Missing session']);
@@ -103,9 +88,9 @@ it('refuses conversation calls that send no session id instead of writing a blan
 })->with(['GET', 'POST', 'DELETE']);
 
 it('clears one conversation from the widget but keeps it for the chat log', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $boot['session_id'],
         WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
     ]))
@@ -118,11 +103,11 @@ it('clears one conversation from the widget but keeps it for the chat log', func
 
 it('will not clear a conversation of another agent', function (): void {
     $other = Agent::factory()->create(['is_public' => true]);
-    $other->setSetting('sites', ['customer.example'], 'widget');
-    $foreign = bootWidget($other);
-    $boot = bootWidget($this->agent);
+    EmbeddedWidget::allowSite($other);
+    $foreign = EmbeddedWidget::boot($other);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $boot['session_id'],
         WidgetHeaders::CONVERSATION_ID => $foreign['conversation_id'],
     ]))
@@ -133,10 +118,31 @@ it('will not clear a conversation of another agent', function (): void {
     expect(Conversation::query()->where('external_id', $foreign['conversation_id'])->value('cleared_at'))->toBeNull();
 });
 
-it('reports the AI as answering a conversation the visitor cannot see', function (): void {
-    $boot = bootWidget($this->agent);
+it('reads the messages of the visitor\'s own conversation only', function (): void {
+    $boot = EmbeddedWidget::boot($this->agent);
+    app(ChatMemory::class)
+        ->withContext($this->agent, $boot['session_id'], $boot['conversation_id'])
+        ->appendMessage(new MessageData(id: 'msg-1', role: MessageRole::User, content: 'Where is my order?', type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
+    $read = fn (string $sessionId, ?Agent $as = null): TestResponse => $this->withHeaders(EmbeddedWidget::headers($as ?? $this->agent, [
+        WidgetHeaders::SESSION_ID => $sessionId,
+        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
+    ]))->getJson('/widget/conversations/messages');
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $read($boot['session_id'])->assertOk()->assertJsonPath('0.content', 'Where is my order?');
+
+    // Another visitor of the agent, replaying the conversation id.
+    $read(EmbeddedWidget::boot($this->agent)['session_id'])->assertOk()->assertExactJson([]);
+
+    // Another agent's widget, with the visitor's own ids.
+    $other = Agent::factory()->create(['is_public' => true]);
+    EmbeddedWidget::allowSite($other);
+    $read($boot['session_id'], $other)->assertForbidden();
+});
+
+it('reports the AI as answering a conversation the visitor cannot see', function (): void {
+    $boot = EmbeddedWidget::boot($this->agent);
+
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->getJson('/widget/handoff/status?conversation_id=01a11e0a-0000-7000-8000-000000000000')
         ->assertOk()
         ->assertExactJson([
@@ -148,36 +154,36 @@ it('reports the AI as answering a conversation the visitor cannot see', function
 });
 
 it('reports the handoff status of the visitor conversation', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->getJson('/widget/handoff/status?conversation_id='.$boot['conversation_id'])
         ->assertOk()
         ->assertJson(['conversation_id' => $boot['conversation_id'], 'handoff_status' => 'ai', 'is_human_controlled' => false]);
 });
 
 it('needs a session to request a human', function (): void {
-    $this->withHeaders(widgetHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
         ->postJson('/widget/handoff/request', ['conversation_id' => 'abc'])
         ->assertStatus(400)
         ->assertJson(['error' => 'Missing session']);
 });
 
 /** Sends one widget heartbeat for the booted conversation. */
-function sendHeartbeat(Agent $agent, array $boot): void
+function widgetHeartbeat(Agent $agent, array $boot): void
 {
-    test()->withHeaders(widgetHeaders($agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    test()->withHeaders(EmbeddedWidget::headers($agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/heartbeat', ['conversation_id' => $boot['conversation_id']])
         ->assertSuccessful();
 }
 
 it('moves the activity time of a visible conversation forward on a heartbeat, leaving updated_at alone', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
     $updatedAt = now()->subHours(2)->startOfSecond();
     Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()
         ->update(['is_visible' => true, 'last_activity_at' => now()->subHour(), 'updated_at' => $updatedAt]);
 
-    sendHeartbeat($this->agent, $boot);
+    widgetHeartbeat($this->agent, $boot);
 
     $conversation = Conversation::query()->where('external_id', $boot['conversation_id'])->firstOrFail();
     expect($conversation->last_activity_at)->toBeGreaterThan(now()->subMinute())
@@ -185,28 +191,28 @@ it('moves the activity time of a visible conversation forward on a heartbeat, le
 });
 
 it('does not stamp a hidden conversation on a heartbeat', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    sendHeartbeat($this->agent, $boot);
+    widgetHeartbeat($this->agent, $boot);
 
     expect(Conversation::query()->where('external_id', $boot['conversation_id'])->value('last_activity_at'))->toBeNull();
 });
 
 it('stamps the activity time at most once a minute', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
     $recent = now()->subSeconds(20)->startOfSecond();
     Conversation::query()->where('external_id', $boot['conversation_id'])->toBase()
         ->update(['is_visible' => true, 'last_activity_at' => $recent]);
 
-    sendHeartbeat($this->agent, $boot);
+    widgetHeartbeat($this->agent, $boot);
 
     expect(Conversation::query()->where('external_id', $boot['conversation_id'])->firstOrFail()->last_activity_at->equalTo($recent))->toBeTrue();
 });
 
 it('rejects feedback that names no message', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $boot['session_id'],
         WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
     ]))
@@ -216,16 +222,16 @@ it('rejects feedback that names no message', function (): void {
 });
 
 it('answers an auth exchange without a token with 401', function (): void {
-    $this->withHeaders(widgetHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
         ->postJson('/widget/auth/exchange')
         ->assertUnauthorized()
         ->assertJson(['error' => 'Invalid or expired token']);
 });
 
 it('signs the presence channel of the visitor conversation with a plain 200', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/broadcasting/auth', [
             'channel_name' => 'presence-chat.'.$boot['conversation_id'],
             'socket_id' => '1234.5678',
@@ -235,10 +241,10 @@ it('signs the presence channel of the visitor conversation with a plain 200', fu
 });
 
 it('refuses the presence channel of another session', function (): void {
-    $boot = bootWidget($this->agent);
-    $other = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
+    $other = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/broadcasting/auth', [
             'channel_name' => 'presence-chat.'.$other['conversation_id'],
             'socket_id' => '1234.5678',
@@ -248,19 +254,19 @@ it('refuses the presence channel of another session', function (): void {
 });
 
 it('refuses to stream without a conversation id', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    $this->withHeaders(widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]))
         ->postJson('/widget/stream', ['content' => 'Hello'])
         ->assertStatus(400);
 });
 
 it('refuses to stream on a session of another agent', function (): void {
     $other = Agent::factory()->create(['is_public' => true]);
-    $other->setSetting('sites', ['customer.example'], 'widget');
-    $foreign = bootWidget($other);
+    EmbeddedWidget::allowSite($other);
+    $foreign = EmbeddedWidget::boot($other);
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $foreign['session_id'],
         WidgetHeaders::CONVERSATION_ID => $foreign['conversation_id'],
     ]))
@@ -269,7 +275,7 @@ it('refuses to stream on a session of another agent', function (): void {
 });
 
 it('treats ids that are not UUIDs as unknown instead of failing with a 500', function (string $method, string $uri, array $body, int $status): void {
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => 'not-a-uuid',
         WidgetHeaders::CONVERSATION_ID => 'not-a-uuid',
     ]))
@@ -285,8 +291,8 @@ it('treats ids that are not UUIDs as unknown instead of failing with a 500', fun
 ]);
 
 it('treats a conversation id that is not a UUID as unknown for a real session', function (): void {
-    $boot = bootWidget($this->agent);
-    $headers = widgetHeaders($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]);
+    $boot = EmbeddedWidget::boot($this->agent);
+    $headers = EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]);
 
     $this->withHeaders($headers)
         ->getJson('/widget/handoff/status?conversation_id=nope')
@@ -306,7 +312,7 @@ it('treats a conversation id that is not a UUID as unknown for a real session', 
 });
 
 it('names the conversation at once when the widget asks, after the first reply', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
     test()->mock(GenerateConversationTitleAction::class, function (MockInterface $mock): void {
         $mock->shouldReceive('execute')->once()->andReturnUsing(function (ChatScopeData $scope): void {
@@ -314,7 +320,7 @@ it('names the conversation at once when the widget asks, after the first reply',
         });
     });
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $boot['session_id'],
         WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
     ]))
@@ -324,12 +330,14 @@ it('names the conversation at once when the widget asks, after the first reply',
 });
 
 it('keeps a title that is there, without another AI call', function (): void {
-    $boot = bootWidget($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
     Conversation::query()->firstWhere('external_id', $boot['conversation_id'])->update(['title' => 'Billing question']);
 
-    test()->mock(GenerateConversationTitleAction::class, fn (MockInterface $mock) => $mock->shouldNotReceive('execute'));
+    test()->mock(GenerateConversationTitleAction::class, function (MockInterface $mock): void {
+        $mock->shouldNotReceive('execute');
+    });
 
-    $this->withHeaders(widgetHeaders($this->agent, [
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [
         WidgetHeaders::SESSION_ID => $boot['session_id'],
         WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
     ]))
@@ -340,15 +348,17 @@ it('keeps a title that is there, without another AI call', function (): void {
 
 it('will not name a conversation of another agent or another session', function (): void {
     $other = Agent::factory()->create(['is_public' => true]);
-    $other->setSetting('sites', ['customer.example'], 'widget');
-    $foreign = bootWidget($other);
-    $sameAgent = bootWidget($this->agent);
-    $boot = bootWidget($this->agent);
+    EmbeddedWidget::allowSite($other);
+    $foreign = EmbeddedWidget::boot($other);
+    $sameAgent = EmbeddedWidget::boot($this->agent);
+    $boot = EmbeddedWidget::boot($this->agent);
 
-    test()->mock(GenerateConversationTitleAction::class, fn (MockInterface $mock) => $mock->shouldNotReceive('execute'));
+    test()->mock(GenerateConversationTitleAction::class, function (MockInterface $mock): void {
+        $mock->shouldNotReceive('execute');
+    });
 
     foreach ([$foreign['conversation_id'], $sameAgent['conversation_id']] as $conversationId) {
-        $this->withHeaders(widgetHeaders($this->agent, [
+        $this->withHeaders(EmbeddedWidget::headers($this->agent, [
             WidgetHeaders::SESSION_ID => $boot['session_id'],
             WidgetHeaders::CONVERSATION_ID => $conversationId,
         ]))
@@ -359,7 +369,7 @@ it('will not name a conversation of another agent or another session', function 
 });
 
 it('needs a session and a conversation to name one', function (): void {
-    $this->withHeaders(widgetHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent))
         ->postJson('/widget/conversations/title')
         ->assertBadRequest();
 });

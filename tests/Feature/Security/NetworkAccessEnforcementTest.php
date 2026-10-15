@@ -19,9 +19,9 @@ use Illuminate\Support\Facades\Cache;
 | circuits the request before the page is ever rendered.
 |
 | `route('security.edit')` is the representative protected web route: the
-| existing Settings\SecurityPolicyTest proves a plain entitled owner reaches it
-| with assertOk(), so a 403 here isolates the network gate rather than some
-| unrelated dashboard/subscription gate. The geo branch is driven by priming
+| existing Settings\SecurityPolicyTest proves a plain owner reaches it with
+| assertOk(), so a 403 here isolates the network gate rather than some
+| unrelated dashboard gate. The geo branch is driven by priming
 | the guard's geo-IP cache key (`security:geoip:{ip}`) — NetworkAccessGuard
 | reads that cache before calling the real provider, so no live geo lookup runs.
 */
@@ -76,8 +76,15 @@ it('enforces the own workspace policy on a platform admin like anyone else', fun
 });
 
 it('passes a workspace whose policy mode is off', function (): void {
-    // forWorkspace() created the row in beforeEach; mode defaults to 'off' and
-    // we leave it there. The middleware must no-op regardless of the request IP.
+    // The row exists with an allowlist the request IP is outside of, but the
+    // mode is off, so the middleware must let the request through.
+    WorkspaceSecurityPolicy::forWorkspace($this->owner->workspace()->id)->update([
+        'ip_allowlist_mode' => 'off',
+        'ip_allowlist' => ['203.0.113.0/24'],
+        'geo_mode' => 'off',
+    ]);
+    expect(WorkspaceSecurityPolicy::query()->where('workspace_id', $this->owner->workspace()->id)->exists())->toBeTrue();
+
     $this->actingAs($this->owner)
         ->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
         ->get(route('security.edit'))
@@ -86,9 +93,7 @@ it('passes a workspace whose policy mode is off', function (): void {
 
 it('passes a workspace that has no policy row at all', function (): void {
     // A fresh owner with no WorkspaceSecurityPolicy row — the middleware's
-    // `$policy === null` branch must fall straight through to the request. We
-    // deliberately do NOT entitle this workspace (which would create a row), so
-    // the page renders its non-entitled upsell teaser (a 200) rather than 403.
+    // `$policy === null` branch must fall straight through to the request.
     $fresh = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($fresh);
 
@@ -136,9 +141,8 @@ it('passes a request from a country not on the deny list', function (): void {
 
 /*
 | Geo-only policy: the IP allowlist is OFF and geo alone decides. This is the
-| common UI path ("Allow only these → Denmark" with no IP rules). Regression
-| guard: the middleware used to short-circuit whenever `ip_allowlist_mode` was
-| 'off', so a geo-only policy never enforced and any country got through.
+| common UI path ("Allow only these → Denmark" with no IP rules), so the
+| middleware must not skip the check just because `ip_allowlist_mode` is 'off'.
 */
 
 it('forbids a geo-allow policy from a country not on the allow list, with the IP allowlist off', function (): void {
@@ -209,7 +213,7 @@ it('trusts the Cloudflare visitor country over the connecting edge IP', function
     ]);
 
     // The connecting IP geo-resolves to Bulgaria (the CF edge), but the visitor
-    // is in Iraq. Old code 403'd here; the header must let them through.
+    // is in Iraq: the header must let them through.
     Cache::put('security:geoip:198.51.100.7', 'BG', now()->addDay());
 
     $this->actingAs($this->owner)

@@ -1,25 +1,20 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 
+/**
+ * The workspace prompt library: create, rename, delete (which also detaches
+ * the prompt from agents), shared by teammates with account.prompts and
+ * hidden from other workspaces.
+ */
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     // The settings routes are gated by a team permission, which requires the
     // user to have a current/primary team.
     app(TeamService::class)->createDefaultTeam($this->user);
 });
-
-function makePrompt(User $user, array $overrides = []): AgentPrompt
-{
-    return $user->workspace()->prompts()->create(array_merge([
-        'name' => 'Support persona',
-        'prompt' => 'You are a helpful support agent.',
-    ], $overrides));
-}
 
 it('creates a prompt', function (): void {
     $this->actingAs($this->user)
@@ -39,7 +34,7 @@ it('validates required fields on create', function (): void {
 });
 
 it('rejects a duplicate name on create', function (): void {
-    makePrompt($this->user, ['name' => 'Taken']);
+    AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id, 'name' => 'Taken']);
 
     $this->actingAs($this->user)
         ->post(route('library.prompts.store'), ['name' => 'Taken', 'prompt' => 'x'])
@@ -47,7 +42,7 @@ it('rejects a duplicate name on create', function (): void {
 });
 
 it('updates a prompt', function (): void {
-    $prompt = makePrompt($this->user);
+    $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id]);
 
     $this->actingAs($this->user)
         ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
@@ -63,7 +58,7 @@ it('updates a prompt', function (): void {
 
 it('hides a prompt of another workspace from an update', function (): void {
     $other = User::factory()->create();
-    $prompt = makePrompt($other);
+    $prompt = AgentPrompt::factory()->create(['workspace_id' => $other->workspace()->id]);
 
     $this->actingAs($this->user)
         ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
@@ -74,18 +69,9 @@ it('hides a prompt of another workspace from an update', function (): void {
 });
 
 it('deletes a prompt and detaches it from agents', function (): void {
-    $prompt = makePrompt($this->user);
+    $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id]);
 
-    $agent = Agent::create([
-        'workspace_id' => $this->user->workspace()->id,
-        'team_id' => $this->user->primaryTeam()->id,
-        'name' => 'Bot',
-        'external_id' => Str::random(14),
-        'slug' => Str::random(14),
-        'agent_prompt_id' => $prompt->id,
-        'is_public' => false,
-        'source' => 'dashboard',
-    ]);
+    $agent = createAgent($this->user, ['agent_prompt_id' => $prompt->id]);
 
     $this->actingAs($this->user)
         ->delete(route('library.prompts.destroy', ['external_id' => $prompt->external_id]))
@@ -115,7 +101,7 @@ describe('teammates share the workspace prompt library', function (): void {
     });
 
     it('lets a teammate edit and delete a workspace prompt', function (): void {
-        $prompt = makePrompt($this->user);
+        $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id]);
 
         $this->actingAs($this->teammate)
             ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
@@ -135,8 +121,8 @@ describe('teammates share the workspace prompt library', function (): void {
     });
 
     it('rejects a teammate rename that collides with another workspace prompt', function (): void {
-        makePrompt($this->user, ['name' => 'Taken']);
-        $prompt = makePrompt($this->user, ['name' => 'Mine']);
+        AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id, 'name' => 'Taken']);
+        $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id, 'name' => 'Mine']);
 
         $this->actingAs($this->teammate)
             ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
@@ -148,7 +134,7 @@ describe('teammates share the workspace prompt library', function (): void {
 
     it('still hides another workspace\'s prompts from a teammate', function (): void {
         $other = User::factory()->create();
-        $foreign = makePrompt($other);
+        $foreign = AgentPrompt::factory()->create(['workspace_id' => $other->workspace()->id]);
 
         $this->actingAs($this->teammate)
             ->delete(route('library.prompts.destroy', ['external_id' => $foreign->external_id]))

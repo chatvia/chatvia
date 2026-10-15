@@ -2,26 +2,19 @@
 
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Middleware\Auth\AuthenticateChatViaSignInToken;
-use App\Identity\Chatter\Actions\CreateChatterAction;
-use App\Identity\Chatter\Data\CreateChatterData;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 beforeEach(function (): void {
-    $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
-    $this->agent = makeSignInAgent($this->owner);
+    $this->agent = Agent::factory()->create(['is_public' => false]);
 
-    // The chatter signs in to the agent — CreateChatterAction provisions the
-    // user and attaches the agent_user grant in one shot. Without that grant
-    // canAccessAgent() would refuse and verify() would return null.
-    $this->endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
+    // A chatter granted the agent: without that grant canAccessAgent() would
+    // refuse and verify() would return null.
+    $this->endUser = Chatter::factory()->grantedTo($this->agent)->create();
 
     $this->service = app(AgentSignInTokenService::class);
     $this->middleware = app(AuthenticateChatViaSignInToken::class);
@@ -56,7 +49,7 @@ it('ignores an unknown or expired token (no login)', function (): void {
 });
 
 it('ignores a token minted for a different agent (no login)', function (): void {
-    $other = makeSignInAgent($this->owner);
+    $other = Agent::factory()->create(['workspace_id' => $this->agent->workspace_id, 'is_public' => false]);
     $token = $this->service->issue($this->endUser, $other)['token'];
 
     $request = signInChatRequest($this->agent, $token);
@@ -73,10 +66,7 @@ it('keeps the end-user authed across the post-sign-in redirect (full HTTP flow)'
     $this->get("{$chat}?token={$token}")
         ->assertRedirect($chat);
 
-    $second = $this->get($chat);
-    if ($second->isRedirect()) {
-        expect($second->headers->get('Location'))->not->toContain('/login');
-    }
+    $this->get($chat)->assertOk();
 
     expect(auth('chat')->id())->toBe($this->endUser->id);
 });
@@ -94,7 +84,7 @@ describe('compact HMAC credential (?token=cvh1.…)', function (): void {
     });
 
     it('ignores an HMAC token minted for a different agent (no login)', function (): void {
-        $other = makeSignInAgent($this->owner);
+        $other = Agent::factory()->create(['workspace_id' => $this->agent->workspace_id, 'is_public' => false]);
         $token = $this->service->issueHmac($this->endUser, $other)['token'];
 
         $request = signInChatRequest($this->agent, $token);
@@ -119,26 +109,11 @@ describe('compact HMAC credential (?token=cvh1.…)', function (): void {
         $this->get("{$chat}?token={$token}")
             ->assertRedirect($chat);
 
-        $second = $this->get($chat);
-        if ($second->isRedirect()) {
-            expect($second->headers->get('Location'))->not->toContain('/login');
-        }
+        $this->get($chat)->assertOk();
 
         expect(auth('chat')->id())->toBe($this->endUser->id);
     });
 });
-
-function makeSignInAgent(User $owner): Agent
-{
-    return Agent::create([
-        'workspace_id' => $owner->workspace()->id,
-        'team_id' => $owner->primaryTeam()->id,
-        'name' => 'Private Agent',
-        'external_id' => Str::random(14),
-        'slug' => Str::lower(Str::random(12)),
-        'is_public' => false,
-    ]);
-}
 
 function signInChatRequest(Agent $agent, ?string $token): Request
 {

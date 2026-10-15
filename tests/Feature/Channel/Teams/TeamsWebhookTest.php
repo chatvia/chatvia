@@ -35,13 +35,16 @@ beforeEach(function (): void {
     {
         public bool $valid = true;
 
+        /** @var array<string, mixed> the claims of the token, once verified */
+        public array $claims = [];
+
         public ?string $checkedAppId = null;
 
         public function verify(?string $authorization, string $appId): ?array
         {
             $this->checkedAppId = $appId;
 
-            return $this->valid ? [] : null;
+            return $this->valid ? $this->claims : null;
         }
     };
     $this->app->instance(TeamsActivityVerifier::class, $this->verifier);
@@ -92,6 +95,23 @@ it('verifies the JWT against this bot’s App ID', function (): void {
 
 it('ignores a request whose JWT the verifier rejects', function (): void {
     $this->verifier->valid = false;
+
+    postTeamsActivity($this->secret, teamsActivity())->assertOk();
+
+    Bus::assertNotDispatched(HandleTeamsActivityJob::class);
+});
+
+it('answers an activity whose serviceUrl is the one the token was issued for', function (): void {
+    $this->verifier->claims = ['serviceurl' => 'https://smba.trafficmanager.net/emea'];
+
+    postTeamsActivity($this->secret, teamsActivity())->assertOk();
+
+    Bus::assertDispatched(HandleTeamsActivityJob::class);
+});
+
+it('ignores an activity whose serviceUrl is not the one the token was issued for', function (): void {
+    // A token replayed with another serviceUrl must not send the reply elsewhere.
+    $this->verifier->claims = ['serviceurl' => 'https://attacker.example/'];
 
     postTeamsActivity($this->secret, teamsActivity())->assertOk();
 

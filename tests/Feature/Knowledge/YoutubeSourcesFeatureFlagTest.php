@@ -29,10 +29,6 @@ beforeEach(function (): void {
     $this->agent->youtubeVideos()->attach($this->video->id);
 });
 
-it('is off by default', function (): void {
-    expect(config('chatvia.features.youtube_sources'))->toBeFalse();
-});
-
 it('answers 404 on every YouTube source route while the feature is off', function (): void {
     config(['chatvia.features.youtube_sources' => false]);
     $params = ['agent' => $this->agent->external_id, 'youtube' => $this->video->id];

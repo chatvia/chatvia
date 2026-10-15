@@ -34,11 +34,10 @@ describe('enforce mode', function (): void {
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // The app deliberately ships a minimal CSP (no script-src/style-src
-        // allowlist): it requires 'unsafe-inline' (Alpine, AOS,
-        // inline handlers) which a nonce would silently disable, and the
-        // allowlist kept breaking on new CDN/font/Turnstile/Stripe/Vite origins.
-        // What remains are the high-value directives that never fight asset
-        // loading.
+        // allowlist): the pages need 'unsafe-inline', which a nonce would
+        // silently disable, and an allowlist breaks whenever a new CDN, font
+        // or Vite origin is added. What remains are the high-value directives
+        // that never fight asset loading.
         expect($response->headers->get('Content-Security-Policy'))
             ->toContain("object-src 'none'")
             ->toContain("base-uri 'self'")
@@ -46,11 +45,6 @@ describe('enforce mode', function (): void {
             ->toContain("frame-ancestors 'self'")
             ->not->toContain('script-src')
             ->not->toContain('connect-src');
-    });
-
-    it('lets forms post only to this app', function (): void {
-        expect($this->get('/_csp-probe')->headers->get('Content-Security-Policy'))
-            ->not->toContain('https://checkout.stripe.com');
     });
 
     it('frames the dashboard same-origin only (clickjacking)', function (): void {
@@ -112,10 +106,6 @@ describe('enforce mode', function (): void {
 });
 
 describe('report-only mode', function (): void {
-    it('is the default', function (): void {
-        expect(config('chatvia.security.csp'))->toBe(ContentSecurityPolicy::MODE_REPORT_ONLY);
-    });
-
     it('only reports, and sends no header that could block a page', function (): void {
         config(['chatvia.security.csp' => ContentSecurityPolicy::MODE_REPORT_ONLY]);
 

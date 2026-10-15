@@ -3,14 +3,20 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\OAuth\CompleteConnectorOAuthAction;
 use Domain\Integration\Connector\Data\OAuth\ConnectorOAuthCallbackData;
-use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
 use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Mcp\Actions\Catalog\SyncMcpServerCatalogAction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
+use Mockery\MockInterface;
+use Tests\Support\Connector\PendingConnectorOAuth;
 
+/**
+ * The connector OAuth callback over HTTP: it hands the signed-in user and the
+ * browser session's binding to CompleteConnectorOAuthAction (whose state
+ * checks are unit-tested) and turns the outcome into a flash on the
+ * connector settings.
+ */
 beforeEach(function (): void {
     $this->user = User::factory()->create();
 });
@@ -32,37 +38,17 @@ function connectedMcpServerFor(User $user, ?string $connectorSlug = null): Agent
     ]);
 }
 
-/**
- * Cache a pending OAuth state the way BeginConnectorOAuthAction does, for a flow
- * started by $starter in a browser session holding $binding.
- */
-function stashPendingOAuthState(string $state, User $starter, string $binding): void
-{
-    $pending = new PendingOAuthState(
-        userId: $starter->id,
-        connectorSlug: 'notion',
-        authServerUrl: 'https://auth.example.test',
-        tokenEndpoint: 'https://auth.example.test/token',
-        clientId: 'client-123',
-        codeVerifier: Str::random(43),
-        mcpUrl: 'https://mcp.example.test/mcp',
-        sessionBindingHash: PendingOAuthState::hashBinding($binding),
-    );
-
-    cache()->put('oauth:mcp:state:'.$state, $pending->seal(), 600);
-}
-
 it('completes the flow and redirects to the connector settings with a success flash', function (): void {
     $server = connectedMcpServerFor($this->user);
     $user = $this->user;
 
     // The controller hands the action the signed-in user and the callback,
     // including this browser session's binding secret.
-    $this->mock(CompleteConnectorOAuthAction::class, function ($mock) use ($server, $user): void {
+    $this->mock(CompleteConnectorOAuthAction::class, function (MockInterface $mock) use ($server, $user): void {
         $mock->shouldReceive('execute')
             ->once()
             ->with(
-                Mockery::on(fn ($given): bool => $given instanceof User && $given->is($user)),
+                Mockery::on(fn (User $given): bool => $given->is($user)),
                 Mockery::on(fn (ConnectorOAuthCallbackData $callback): bool => $callback->sessionBinding === 'binding-1'
                     && $callback->state === 'valid-state'
                     && $callback->code === 'auth-code'),
@@ -80,7 +66,7 @@ it('completes the flow and redirects to the connector settings with a success fl
 
 it('bounces gracefully with an error flash when the provider denies authorization', function (): void {
     // The user clicked "Deny" upstream — no token exchange may be attempted.
-    $this->mock(CompleteConnectorOAuthAction::class, function ($mock): void {
+    $this->mock(CompleteConnectorOAuthAction::class, function (MockInterface $mock): void {
         $mock->shouldNotReceive('execute');
     });
 
@@ -97,26 +83,13 @@ it('bounces gracefully with an error flash when the provider denies authorizatio
     expect($this->user->workspace()->mcpServers()->count())->toBe(0);
 });
 
-it('rejects a tampered or expired state without connecting anything', function (): void {
-    // Real flow, no cached pending state: completing must refuse the state
-    // (CSRF / replay defence) and the controller must turn that into a flash,
-    // not a 500.
-    $this->actingAs($this->user)
-        ->get(route('connectors.oauth.callback', ['state' => 'forged-state', 'code' => 'auth-code']))
-        ->assertRedirect(route('integrations.connectors.edit'))
-        ->assertSessionHas('error')
-        ->assertSessionMissing('success');
-
-    expect($this->user->workspace()->mcpServers()->count())->toBe(0);
-});
-
 it('refuses a state another user started — the victim\'s tokens never reach the attacker\'s workspace', function (): void {
     Http::fake();
     $attacker = User::factory()->create();
 
     // The attacker starts a flow in their own browser and sends the victim
     // the provider's authorize link; the provider redirects the victim here.
-    stashPendingOAuthState('attacker-state', $attacker, 'attacker-binding');
+    PendingConnectorOAuth::stash('attacker-state', $attacker, 'attacker-binding');
 
     $this->actingAs($this->user)
         ->get(route('connectors.oauth.callback', ['state' => 'attacker-state', 'code' => 'victim-code']))
@@ -127,21 +100,6 @@ it('refuses a state another user started — the victim\'s tokens never reach th
     // No code exchange happened and nothing was saved anywhere.
     Http::assertNothingSent();
     expect(AgentMcpServer::query()->whereIn('workspace_id', [$attacker->workspace()->id, $this->user->workspace()->id])->count())->toBe(0);
-});
-
-it('refuses a state the same user started in a different browser session', function (): void {
-    Http::fake();
-
-    stashPendingOAuthState('other-browser-state', $this->user, 'binding-from-other-browser');
-
-    $this->actingAs($this->user)
-        ->withSession(['connectors.oauth.session_binding' => 'binding-in-this-browser'])
-        ->get(route('connectors.oauth.callback', ['state' => 'other-browser-state', 'code' => 'auth-code']))
-        ->assertRedirect(route('integrations.connectors.edit'))
-        ->assertSessionHas('error');
-
-    Http::assertNothingSent();
-    expect($this->user->workspace()->mcpServers()->count())->toBe(0);
 });
 
 it('saves a connector a teammate connects under the workspace, visible to the whole team', function (): void {
@@ -155,9 +113,11 @@ it('saves a connector a teammate connects under the workspace, visible to the wh
             'expires_in' => 3600,
         ]),
     ]);
-    $this->mock(SyncMcpServerCatalogAction::class, fn ($mock) => $mock->shouldReceive('execute')->andReturn(new Collection));
+    $this->mock(SyncMcpServerCatalogAction::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('execute')->andReturn(new Collection);
+    });
 
-    stashPendingOAuthState('team-state', $teammate, 'team-binding');
+    PendingConnectorOAuth::stash('team-state', $teammate, 'team-binding');
 
     $this->actingAs($teammate)
         ->withSession(['connectors.oauth.session_binding' => 'team-binding'])
@@ -180,9 +140,11 @@ it('consumes the state so a second callback with it fails', function (): void {
     Http::fake([
         'auth.example.test/token' => Http::response(['access_token' => 'tok']),
     ]);
-    $this->mock(SyncMcpServerCatalogAction::class, fn ($mock) => $mock->shouldReceive('execute')->andReturn(new Collection));
+    $this->mock(SyncMcpServerCatalogAction::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('execute')->andReturn(new Collection);
+    });
 
-    stashPendingOAuthState('one-time-state', $this->user, 'binding-1');
+    PendingConnectorOAuth::stash('one-time-state', $this->user, 'binding-1');
 
     $this->actingAs($this->user)
         ->withSession(['connectors.oauth.session_binding' => 'binding-1'])
@@ -196,7 +158,7 @@ it('consumes the state so a second callback with it fails', function (): void {
 });
 
 it('surfaces flow failures during completion as an error flash', function (): void {
-    $this->mock(CompleteConnectorOAuthAction::class, function ($mock): void {
+    $this->mock(CompleteConnectorOAuthAction::class, function (MockInterface $mock): void {
         $mock->shouldReceive('execute')
             ->once()
             ->andThrow(new McpOAuthException('The authorization server rejected the token exchange (400).'));
@@ -209,7 +171,7 @@ it('surfaces flow failures during completion as an error flash', function (): vo
 });
 
 it('redirects home when state or code is missing', function (): void {
-    $this->mock(CompleteConnectorOAuthAction::class, function ($mock): void {
+    $this->mock(CompleteConnectorOAuthAction::class, function (MockInterface $mock): void {
         $mock->shouldNotReceive('execute');
     });
 

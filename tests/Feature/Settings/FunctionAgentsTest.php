@@ -1,22 +1,14 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
-    $this->function = $this->user->workspace()->functions()->create([
-        'internal_name' => 'get_order_status',
-        'description' => 'Get the order status',
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => 'https://example.com/webhook',
-        'webhook_method' => 'POST',
-        'auth_type' => 'none',
-        'auth_config' => null,
-        'is_enabled' => true,
-    ]);
+    $this->function = AgentFunction::factory()->forOwner($this->user)->create();
 });
 
 it('lists accessible agents as available when none are attached', function (): void {

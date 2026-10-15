@@ -7,8 +7,8 @@ use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 
 /**
- * Controllers no longer hand-translate DomainValidationException: the global
- * mapping in bootstrap/app.php turns it into a field error for web forms and a
+ * Controllers leave DomainValidationException to the global mapping in
+ * bootstrap/app.php, which turns it into a field error for web forms and a
  * 422 with the same `message` for JSON callers.
  */
 it('turns a domain rejection into a field error on a web form', function (): void {

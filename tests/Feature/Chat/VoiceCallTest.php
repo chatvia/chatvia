@@ -12,11 +12,14 @@ use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Widget\WidgetHeaders;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
+use Mockery\LegacyMockInterface;
+use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * Voice conversations over HTTP ({@see StartVoiceCallAction},
@@ -30,20 +33,19 @@ beforeEach(function (): void {
     connectAiProviders(AiProvider::OpenAi);
     config([
         'chatvia.ai.voice' => 'auto',
-        'chatvia.widget.always_allowed_origins' => [],
         'horizon.defaults.voice.maxProcesses' => 2,
     ]);
     Queue::fake();
     // OpenAI's answer to the offer; a test swaps it to make OpenAI fail.
-    $this->openAiAnswer = fn () => Http::response('v=0 answer', 201, ['Location' => '/v1/realtime/calls/rtc_abc123']);
+    $this->openAiAnswer = fn (): PromiseInterface => Http::response('v=0 answer', 201, ['Location' => '/v1/realtime/calls/rtc_abc123']);
     Http::fake([
-        'api.openai.com/v1/realtime/calls' => fn () => ($this->openAiAnswer)(),
+        'api.openai.com/v1/realtime/calls' => fn (): PromiseInterface => ($this->openAiAnswer)(),
         'api.openai.com/*' => Http::response('', 200),
     ]);
 
     $this->agent = Agent::factory()->create(['is_public' => true, 'system_instructions' => 'You are the Acme helper.']);
     $this->agent->setSetting('allow_voice_conversation', true, 'appearance');
-    $this->agent->setSetting('sites', ['customer.example'], 'widget');
+    EmbeddedWidget::allowSite($this->agent);
     $this->chat = '/chat/'.$this->agent->slug;
 });
 
@@ -158,7 +160,9 @@ it('refuses when voice is not set up on this install', function (): void {
 });
 
 it('refuses once the workspace reached its message limit', function (): void {
-    $this->mock(MessageAllowance::class, fn ($mock) => $mock->shouldReceive('canSend')->andReturnFalse());
+    $this->mock(MessageAllowance::class, function (LegacyMockInterface $mock): void {
+        $mock->shouldReceive('canSend')->andReturnFalse();
+    });
 
     $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])
         ->assertStatus(429)
@@ -190,7 +194,7 @@ it('refuses when every voice worker is on a call', function (): void {
 
 it('frees the worker slot when OpenAI refuses the call', function (): void {
     config(['horizon.defaults.voice.maxProcesses' => 1]);
-    $this->openAiAnswer = fn () => Http::response(['error' => ['message' => 'nope']], 500);
+    $this->openAiAnswer = fn (): PromiseInterface => Http::response(['error' => ['message' => 'nope']], 500);
 
     $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])
         ->assertStatus(502)
@@ -241,15 +245,9 @@ it('answers dictation with a message the composer can show when speech to text i
 });
 
 describe('widget', function (): void {
-    /** @return array<string, string> */
-    function voiceWidgetHeaders(Agent $agent, array $extra = []): array
-    {
-        return [WidgetHeaders::AGENT_ID => $agent->external_id, 'Origin' => 'https://customer.example', ...$extra];
-    }
-
     beforeEach(function (): void {
-        $this->boot = $this->withHeaders(voiceWidgetHeaders($this->agent))->postJson('/widget/sessions/init')->assertSuccessful()->json();
-        $this->headers = voiceWidgetHeaders($this->agent, [
+        $this->boot = EmbeddedWidget::boot($this->agent);
+        $this->headers = EmbeddedWidget::headers($this->agent, [
             WidgetHeaders::SESSION_ID => $this->boot['session_id'],
             WidgetHeaders::CONVERSATION_ID => $this->boot['conversation_id'],
         ]);
@@ -267,7 +265,7 @@ describe('widget', function (): void {
 
     it('refuses a session of another agent', function (): void {
         $other = Agent::factory()->create(['is_public' => true]);
-        $other->setSetting('sites', ['customer.example'], 'widget');
+        EmbeddedWidget::allowSite($other);
         $other->setSetting('allow_voice_conversation', true, 'appearance');
 
         $this->withHeaders([...$this->headers, WidgetHeaders::AGENT_ID => $other->external_id])

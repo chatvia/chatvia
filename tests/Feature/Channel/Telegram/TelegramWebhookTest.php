@@ -41,7 +41,7 @@ function tgUpdate(int $updateId = 1, string $text = 'hello'): array
     ];
 }
 
-function postUpdate(string $urlSecret, ?string $headerSecret, array $payload): TestResponse
+function tgPostUpdate(string $urlSecret, ?string $headerSecret, array $payload): TestResponse
 {
     $headers = $headerSecret !== null ? ['X-Telegram-Bot-Api-Secret-Token' => $headerSecret] : [];
 
@@ -49,7 +49,7 @@ function postUpdate(string $urlSecret, ?string $headerSecret, array $payload): T
 }
 
 it('dispatches a job for a valid, authenticated update', function (): void {
-    postUpdate($this->secret, $this->secret, tgUpdate())
+    tgPostUpdate($this->secret, $this->secret, tgUpdate())
         ->assertOk()
         ->assertJson(['ok' => true]);
 
@@ -57,19 +57,19 @@ it('dispatches a job for a valid, authenticated update', function (): void {
 });
 
 it('ignores an update whose header secret does not match', function (): void {
-    postUpdate($this->secret, 'wrong-secret', tgUpdate())->assertOk();
+    tgPostUpdate($this->secret, 'wrong-secret', tgUpdate())->assertOk();
 
     Bus::assertNotDispatched(HandleTelegramUpdateJob::class);
 });
 
 it('ignores an update with no header secret at all', function (): void {
-    postUpdate($this->secret, null, tgUpdate())->assertOk();
+    tgPostUpdate($this->secret, null, tgUpdate())->assertOk();
 
     Bus::assertNotDispatched(HandleTelegramUpdateJob::class);
 });
 
 it('returns 200 for an unknown bot secret without dispatching', function (): void {
-    postUpdate(Str::random(48), Str::random(48), tgUpdate())->assertOk();
+    tgPostUpdate(Str::random(48), Str::random(48), tgUpdate())->assertOk();
 
     Bus::assertNotDispatched(HandleTelegramUpdateJob::class);
 });
@@ -77,14 +77,14 @@ it('returns 200 for an unknown bot secret without dispatching', function (): voi
 it('ignores a disabled bot', function (): void {
     $this->bot->update(['enabled' => false]);
 
-    postUpdate($this->secret, $this->secret, tgUpdate())->assertOk();
+    tgPostUpdate($this->secret, $this->secret, tgUpdate())->assertOk();
 
     Bus::assertNotDispatched(HandleTelegramUpdateJob::class);
 });
 
 it('processes each update_id at most once', function (): void {
-    postUpdate($this->secret, $this->secret, tgUpdate(updateId: 7))->assertOk();
-    postUpdate($this->secret, $this->secret, tgUpdate(updateId: 7))->assertOk();
+    tgPostUpdate($this->secret, $this->secret, tgUpdate(updateId: 7))->assertOk();
+    tgPostUpdate($this->secret, $this->secret, tgUpdate(updateId: 7))->assertOk();
 
     Bus::assertDispatchedTimes(HandleTelegramUpdateJob::class, 1);
 });
@@ -92,7 +92,7 @@ it('processes each update_id at most once', function (): void {
 it('does not dispatch for a non-text message', function (): void {
     $payload = ['update_id' => 3, 'message' => ['chat' => ['id' => 555]]];
 
-    postUpdate($this->secret, $this->secret, $payload)->assertOk();
+    tgPostUpdate($this->secret, $this->secret, $payload)->assertOk();
 
     Bus::assertNotDispatched(HandleTelegramUpdateJob::class);
 });

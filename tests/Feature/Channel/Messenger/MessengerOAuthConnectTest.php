@@ -12,9 +12,8 @@ use Tests\Support\Messenger\FakeMessengerOAuthClient;
  * The Messenger connect flow is OAuth (Facebook Login for Business): redirect →
  * callback → pick a Page. The pending state + the granted Pages live in the
  * SESSION so they survive the cross-site round-trip to Facebook independent of
- * the cache store (a cache-store mismatch across php-fpm workers was the
- * original "redirected home, nothing connected" bug). These tests pin that
- * stash, the CSRF state check, and the final connect.
+ * the cache store. These tests pin that stash, the CSRF state check, and the
+ * final connect.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -24,15 +23,18 @@ beforeEach(function (): void {
     $this->agent = createAgent($this->owner);
     $this->agent->update(['is_public' => true]);
 
-    $this->app->instance(MetaOAuthClient::class, new FakeMessengerOAuthClient);
+    $this->oauth = new FakeMessengerOAuthClient;
+    $this->app->instance(MetaOAuthClient::class, $this->oauth);
 });
 
 it('redirect stashes the pending connection in the session and bounces to Facebook', function (): void {
     $res = $this->actingAs($this->owner)->get(route('agents.channels.messenger.redirect', $this->agent));
 
-    $res->assertRedirectContains('facebook.com/dialog/oauth');
-    expect(session('messenger_oauth.agent_id'))->toBe($this->agent->id)
-        ->and(session('messenger_oauth.state'))->toBeString();
+    // The state sent to Facebook is the one stashed for the callback to check.
+    $state = session('messenger_oauth.state');
+    expect($state)->toBeString()->toHaveLength(48)
+        ->and(session('messenger_oauth.agent_id'))->toBe($this->agent->id);
+    $res->assertRedirect('https://www.facebook.com/dialog/oauth?state='.$state);
 });
 
 it('callback with a matching state holds the granted Pages for the picker', function (): void {
@@ -47,6 +49,18 @@ it('callback with a matching state holds the granted Pages for the picker', func
         ->and(session('messenger_oauth_pages.pages'))->toHaveCount(1);
     // Not connected until the workspace actually picks a Page.
     expect(AgentMessengerPage::query()->count())->toBe(0);
+});
+
+it('callback whose code exchange fails stores no Pages and says why', function (): void {
+    $this->oauth->userToken = null;
+
+    $res = $this->actingAs($this->owner)
+        ->withSession(['messenger_oauth' => ['agent_id' => $this->agent->id, 'state' => 'good-state']])
+        ->get(route('channels.messenger.callback', ['code' => 'CODE', 'state' => 'good-state']));
+
+    $res->assertRedirect(route('agents.channels', ['agent' => $this->agent, 'open' => 'messenger']))
+        ->assertSessionHasErrors(['messenger' => 'No Facebook Pages came back. Re-run the connection and grant access to a Page with every permission checked.']);
+    expect(session('messenger_oauth_pages'))->toBeNull();
 });
 
 it('callback with a mismatched state bails without storing Pages', function (): void {

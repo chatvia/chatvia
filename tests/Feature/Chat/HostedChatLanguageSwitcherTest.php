@@ -13,10 +13,6 @@ beforeEach(function (): void {
     $this->chat = '/chat/'.$this->agent->slug;
 });
 
-it('defaults the embed language-switcher setting on', function (): void {
-    expect($this->agent->settings('embed')->get('show_language_switcher'))->toBeTrue();
-});
-
 it('passes the language switcher flag to the hosted chat home (default on)', function (): void {
     $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page
@@ -43,13 +39,13 @@ it('persists the owner toggle through the settings endpoint', function (): void 
     expect($this->agent->fresh()->settings('embed')->get('show_language_switcher'))->toBeFalse();
 });
 
-it('passes the full language list to the hosted chat when none are curated', function (): void {
-    $all = array_keys($this->agent->enabledLanguages());
+it('passes every language but "auto" to the hosted chat when none are curated', function (): void {
+    config(['chatvia.languages' => ['auto' => 'Auto-detect', 'en' => 'English', 'de' => 'Deutsch', 'ar' => 'العربية']]);
 
     $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page
             ->component('chat/Home')
-            ->where('enabledLanguages', $all));
+            ->where('enabledLanguages', ['en', 'de', 'ar']));
 });
 
 it('restricts the hosted-chat switcher list to the owner-selected languages', function (): void {

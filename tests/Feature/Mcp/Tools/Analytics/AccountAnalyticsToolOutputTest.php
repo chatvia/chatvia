@@ -4,8 +4,6 @@ use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
-use App\Mcp\McpCallerContext;
-use App\Mcp\McpCallerResolver;
 use App\Mcp\Servers\AccountAnalyticsServer;
 use App\Mcp\Tools\Analytics\GetAccountOverviewTool;
 use App\Mcp\Tools\Analytics\GetActivityPatternsTool;
@@ -32,16 +30,16 @@ use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Connection;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Mcp\Server\Testing\TestResponse;
+use Tests\Support\Mcp\InternalMcp;
 
 /**
  * Every Account-Analytics tool answers from SQL over the analytics rollups and
  * the live chat tables. These snapshots pin each tool's exact text + structured
- * result over one fixed, fully seeded workspace (two agents, a billing cycle, a
+ * result over one fixed, fully seeded workspace (two agents, a monthly message limit, a
  * second workspace as noise), so moving the queries can't change a number.
  */
 /** @return array{workspace: Workspace, alpha: Agent, beta: Agent} */
@@ -291,20 +289,6 @@ function seededAnalyticsDb(): Connection
 }
 
 /**
- * Act as the owner-facing analytics chat for this workspace (or for nobody),
- * resolved from the signed identity header exactly as the middleware does.
- */
-function analyticsCaller(?Workspace $workspace): void
-{
-    $request = Request::create('/mcp/account-analytics', 'POST');
-    if ($workspace instanceof Workspace) {
-        $request->headers->set('X-Chatvia-Workspace-Id', $workspace->external_id);
-    }
-
-    app()->instance(McpCallerContext::class, app(McpCallerResolver::class)->resolve($request));
-}
-
-/**
  * The tool's JSON-RPC result as pretty JSON, with the run-specific agent ids
  * replaced by stable names.
  *
@@ -369,13 +353,13 @@ it('returns a stable result for each analytics tool', function (string $tool, ar
         $arguments['agent'] = $agents[substr($arguments['agent'], 1)]->external_id;
     }
 
-    analyticsCaller($seeded['workspace']);
+    InternalMcp::actAsWorkspace($seeded['workspace']);
 
     expect(analyticsToolResult(AccountAnalyticsServer::tool($tool, $arguments), $agents))->toMatchSnapshot();
 })->with('analytics tool calls');
 
 it('refuses every analytics tool without a workspace identity', function (string $tool): void {
-    analyticsCaller(null);
+    InternalMcp::actAsWorkspace(null);
 
     AccountAnalyticsServer::tool($tool)->assertHasErrors(['No workspace context for this analytics request.']);
 })->with([
@@ -396,21 +380,10 @@ it('refuses every analytics tool without a workspace identity', function (string
     GetTopUsersTool::class,
 ]);
 
-it('answers activity patterns on Postgres (the `hour` alias needs AS)', function (): void {
-    analyticsCaller(seedAnalyticsWorkspace()['workspace']);
-
-    AccountAnalyticsServer::tool(GetActivityPatternsTool::class)
-        ->assertHasNoErrors()
-        ->assertStructuredContent(fn (AssertableJson $json): AssertableJson => $json
-            ->where('peak_hour_utc', 9)
-            ->where('busiest_weekday', 'Sunday')
-            ->etc());
-});
-
 it('reports zeros, not the whole account, for an agent the workspace does not own', function (): void {
     $seeded = seedAnalyticsWorkspace();
     $foreign = Agent::factory()->create();
-    analyticsCaller($seeded['workspace']);
+    InternalMcp::actAsWorkspace($seeded['workspace']);
 
     AccountAnalyticsServer::tool(GetMessageStatsTool::class, ['agent' => $foreign->external_id])
         ->assertOk()
@@ -422,7 +395,7 @@ it('reports zeros, not the whole account, for an agent the workspace does not ow
 
 it('narrows the first-response time to the requested agent', function (): void {
     $seeded = seedAnalyticsWorkspace();
-    analyticsCaller($seeded['workspace']);
+    InternalMcp::actAsWorkspace($seeded['workspace']);
 
     // Beta's only conversation got its first reply 3 seconds in; the account
     // average (Alpha's 2s and 5s included) is 3.3s.

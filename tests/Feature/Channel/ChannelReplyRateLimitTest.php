@@ -1,12 +1,10 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Data\ChannelTurnData;
 use Domain\Channel\Services\ChannelReplyRunner;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Llm\Models\Llm;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -23,19 +21,7 @@ beforeEach(function (): void {
 
 function rateLimitedChannelAgent(): Agent
 {
-    $owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($owner);
-
-    $agent = Agent::create([
-        'workspace_id' => $owner->workspace()->id,
-        'team_id' => $owner->primaryTeam()->id,
-        'llm_id' => Llm::factory()->create()->id,
-        'name' => 'Channel Bot',
-        'external_id' => Str::random(14),
-        'slug' => Str::lower(Str::random(12)),
-        'system_instructions' => 'You are a helpful assistant.',
-        'is_public' => true,
-    ]);
+    $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id, 'is_public' => true]);
 
     $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 1, group: 'security');
 

@@ -8,7 +8,7 @@ use Domain\Membership\Team\Services\TeamService;
 | Workspace (account-level) permission gates — dashboard
 |--------------------------------------------------------------------------
 |
-| The dashboard half of the production sign-off. Every account section
+| Every account section of the dashboard
 | (Connectors, Functions, API keys, Prompts, Chatters, Governance) is gated by
 | its `account.*` team permission: the owner has full access; a teammate without
 | the permission is blocked; a teammate with it passes.
@@ -93,7 +93,12 @@ describe('mutations are gated too (not just the section pages)', function (): vo
         $with = teammateWithPermissions($this->owner, ['account.api_keys']);
         $this->actingAs($with)
             ->post(route('integrations.api-keys.store'), ['name' => 'CI token'])
-            ->assertSessionHasNoErrors();
+            ->assertRedirect()
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('created_token.name', 'CI token');
+
+        expect($with->tokens()->where('name', 'CI token')->count())->toBe(1)
+            ->and($without->tokens()->count())->toBe(0);
     });
 
     it('blocks a teammate without account.prompts from creating a prompt', function (): void {

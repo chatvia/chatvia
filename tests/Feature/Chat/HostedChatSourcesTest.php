@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Bus;
  * sources, so turning the setting off also hides the ones remembered before.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array'], 'chatvia.ai.query.rewriter.enabled' => false]);
+    config(['chatvia.ai.query.rewriter.enabled' => false]);
     Bus::fake();
 
     $this->agent = Agent::factory()->create(['is_public' => true]);

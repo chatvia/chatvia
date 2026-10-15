@@ -85,6 +85,16 @@ it('counts the services that are down in the banner', function (): void {
         ->assertSee('Everything is running');
 });
 
+it('calls a service running and an outside service set up', function (): void {
+    $running = ['state' => 'running', 'summary' => 'Answers.', 'facts' => [], 'providers' => []];
+
+    Livewire::actingAs($this->admin, 'admin')->test(Status::class)
+        ->set('checkedAt', now()->toIso8601String())
+        ->set('services', ['database' => $running])
+        ->set('aiServices', ['chat' => $running])
+        ->assertSeeInOrder(['Database', 'Running', 'Chat models', 'Set up']);
+});
+
 it('finds the database with the extensions the search needs', function (): void {
     $status = app(ServiceChecks::class)->check(Service::Database);
 

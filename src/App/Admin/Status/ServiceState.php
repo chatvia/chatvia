@@ -25,6 +25,15 @@ enum ServiceState: string
         };
     }
 
+    /**
+     * The label on an AI or other outside service: one that works is set
+     * up, as nothing of it runs on this server.
+     */
+    public function outsideServiceLabel(): string
+    {
+        return $this === self::Running ? __('Set up') : $this->label();
+    }
+
     /** The colour of its dot and badge, from the panel's palette. */
     public function tone(): string
     {

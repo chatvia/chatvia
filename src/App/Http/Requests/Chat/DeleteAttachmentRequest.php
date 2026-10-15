@@ -28,9 +28,13 @@ class DeleteAttachmentRequest extends FormRequest
     public function authorize(#[HostedChatAgent] ?Agent $agent): bool
     {
         $attachment = $this->route('attachment');
-        if (! $attachment instanceof Attachment) {
+        if (! $attachment instanceof Attachment || ! $agent instanceof Agent) {
             return false;
         }
+
+        // Another agent's attachment answers like an unknown id, so a
+        // guessed id does not tell whether it exists.
+        abort_unless($this->belongsToAgent($attachment, $agent), 404);
 
         // Composer-only — once bound to a sent message, the attachment's
         // lifecycle follows the message/conversation cascade.
@@ -38,19 +42,12 @@ class DeleteAttachmentRequest extends FormRequest
             return false;
         }
 
-        if (! $agent instanceof Agent) {
-            return false;
-        }
-
         if ($attachment->chat_conversation_id === null) {
-            return str_starts_with(
-                $attachment->filepath,
-                sprintf('workspaces/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id)
-            );
+            return true;
         }
 
         $conversation = $attachment->conversation;
-        if ($conversation === null || $conversation->session?->agent_id !== $agent->id) {
+        if ($conversation === null) {
             return false;
         }
 
@@ -64,6 +61,22 @@ class DeleteAttachmentRequest extends FormRequest
         }
 
         return true;
+    }
+
+    /**
+     * An orphan upload is the agent's when it sits under the agent's upload
+     * folder; a bound one when its conversation (deleted or not) is the agent's.
+     */
+    private function belongsToAgent(Attachment $attachment, Agent $agent): bool
+    {
+        if ($attachment->chat_conversation_id === null) {
+            return str_starts_with(
+                $attachment->filepath,
+                sprintf('workspaces/%s/agents/%s/attachments/', $agent->workspaceExternalId(), $agent->external_id)
+            );
+        }
+
+        return $attachment->conversation()->withTrashed()->first()?->session?->agent_id === $agent->id;
     }
 
     /**

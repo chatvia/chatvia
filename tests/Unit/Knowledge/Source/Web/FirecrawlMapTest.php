@@ -5,8 +5,8 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Wire-format coverage for the synchronous `/map` discovery that replaced the
- * async `/crawl` + poll flow.
+ * Wire-format coverage for website discovery: one synchronous FireCrawl
+ * `/map` call that lists the site's links.
  */
 beforeEach(function (): void {
     config()->set('services.firecrawl.endpoint', 'https://firecrawl.test/v2');

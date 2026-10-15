@@ -9,46 +9,18 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Knowledge\Source\Qa\Services\QaMatcher;
 use Illuminate\Support\Facades\Bus;
+use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * A saved answer is sent for a message that is one of its questions as a
  * whole, or very close to one in meaning (with a measured bar). Vectors are
  * placed by hand: each text maps to a direction, so the similarities are known.
  */
+
+/** @param  array<string, list<float>>  $directions */
 function qaMatcherEmbeddings(array $directions): void
 {
-    app()->instance(EmbeddingsProviderInterface::class, new readonly class($directions) implements EmbeddingsProviderInterface
-    {
-        public function __construct(private array $directions) {}
-
-        public function embed(string $text, bool $returnAsText = false): string|array
-        {
-            [$x, $y] = $this->directions[$text] ?? [0.0, 1.0];
-            $vector = array_merge([$x, $y], array_fill(0, 1022, 0.0));
-
-            return $returnAsText ? '['.implode(',', $vector).']' : $vector;
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
-        {
-            return $this->embed($text, $returnAsText);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'directions';
-        }
-    });
+    app()->instance(EmbeddingsProviderInterface::class, FakeEmbeddingsProvider::directions($directions));
 }
 
 function qaMatcherEntry(Agent $agent): AgentQuestionAnswer

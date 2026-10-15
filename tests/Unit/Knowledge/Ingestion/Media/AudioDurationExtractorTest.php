@@ -10,7 +10,7 @@ use Symfony\Component\Process\ExecutableFinder;
  * duration into the container header — exactly how a browser's MediaRecorder
  * produces voice notes. ffprobe then reports the container duration as "N/A".
  */
-function makeAudioFixture(float $seconds, string $extension, bool $headerless = false): string
+function adeAudioFixture(float $seconds, string $extension, bool $headerless = false): string
 {
     $ffmpeg = config('services.bin.ffmpeg');
     $path = tempnam(sys_get_temp_dir(), 'aud_').'.'.$extension;
@@ -51,7 +51,7 @@ beforeEach(function (): void {
 });
 
 it('reads the duration from a normal container header', function (): void {
-    $file = makeAudioFixture(3, 'mp3');
+    $file = adeAudioFixture(3, 'mp3');
 
     $seconds = app(AudioDurationExtractor::class)->getDurationInSeconds($file);
 
@@ -61,9 +61,9 @@ it('reads the duration from a normal container header', function (): void {
 });
 
 it('recovers the duration of a header-less MediaRecorder webm where ffprobe returns N/A', function (): void {
-    // Regression: Flare error "Invalid duration value returned: N/A" — a recorded
-    // voice note (audio/webm from MediaRecorder) has no duration in its header.
-    $file = makeAudioFixture(3, 'webm', headerless: true);
+    // A recorded voice note (audio/webm from MediaRecorder) has no duration in
+    // its header, so ffprobe answers "N/A".
+    $file = adeAudioFixture(3, 'webm', headerless: true);
 
     // Guard: confirm the fixture actually reproduces the N/A container metadata,
     // otherwise this test would pass via the fast path and prove nothing.
@@ -82,7 +82,7 @@ it('recovers the duration of a header-less MediaRecorder webm where ffprobe retu
 });
 
 it('rounds the duration up to whole minutes', function (): void {
-    $file = makeAudioFixture(3, 'webm', headerless: true);
+    $file = adeAudioFixture(3, 'webm', headerless: true);
 
     expect(app(AudioDurationExtractor::class)->getDurationInMinutes($file))->toBe(1);
 

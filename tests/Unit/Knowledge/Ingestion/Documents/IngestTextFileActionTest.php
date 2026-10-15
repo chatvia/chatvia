@@ -4,11 +4,15 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Document\Conversion\Pandoc;
 use Domain\Knowledge\Ingestion\Actions\Documents\IngestTextFileAction;
+use Domain\Knowledge\Ingestion\Actions\Pipeline\DispatchSourceIngestionBatchAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
+use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Bus\PendingBatch;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
@@ -17,8 +21,8 @@ use Illuminate\Support\Facades\Storage;
  * IngestTextFileAction chunks a raw-text SourceFile (.txt/.md) directly with
  * the text splitter (no OCR), as Markdown or plain text, and rides the shared
  * DocumentChunkIngestionJob batch. The splitter is faked to return fixed
- * chunks, so we assert the orchestration: idempotency, the empty-input
- * terminal broadcast, real-chunk fan-out and the kind of content.
+ * chunks, so we assert the orchestration: idempotency, handing an empty
+ * file to the shared batch step, real-chunk fan-out and the kind of content.
  */
 function itfFakeSplitter(array $chunks): TextSplitter
 {
@@ -78,9 +82,7 @@ it('is idempotent: an already-ingested SourceFile returns immediately', function
     Event::assertNotDispatched(FileIngestionProgressed::class);
 });
 
-it('finishes cleanly with a terminal broadcast when the file yields no chunks', function (): void {
-    Bus::fake();
-    Event::fake([FileIngestionProgressed::class]);
+it('hands an empty job list to the shared batch step when the file yields no chunks', function (): void {
     Storage::fake();
 
     $agent = Agent::factory()->create();
@@ -91,13 +93,16 @@ it('finishes cleanly with a terminal broadcast when the file yields no chunks', 
     Storage::put($sourceFile->filepath, '   ');
     $agent->files()->attach($sourceFile->id);
 
+    // Completing an empty source is that step's job (DispatchSourceIngestionBatchActionTest).
+    $this->mock(DispatchSourceIngestionBatchAction::class)
+        ->shouldReceive('execute')
+        ->once()
+        ->withArgs(fn (SourceFile $source, Agent $for, Collection $jobs): bool => $source->is($sourceFile) && $for->is($agent) && $jobs->isEmpty())
+        ->andReturnNull();
+
     itfAction(itfFakeSplitter([]))->execute($sourceFile, $agent);
 
-    Bus::assertNothingBatched();
-    Event::assertDispatched(FileIngestionProgressed::class);
-    expect($sourceFile->fresh()->status)->toBe(SourceStatus::Completed)
-        ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(0)
-        ->and($sourceFile->fresh()->parser)->toBe('fixed');
+    expect($sourceFile->fresh()->parser)->toBe('fixed');
 });
 
 it('fans real chunks out through a Bus batch named with the SourceFile id', function (): void {
@@ -114,7 +119,7 @@ it('fans real chunks out through a Bus batch named with the SourceFile id', func
 
     itfAction(itfFakeSplitter(['# Title', 'Body text.']))->execute($sourceFile, $agent);
 
-    Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
         ->and($sourceFile->fresh()->parser)->toBe('fixed');
@@ -138,7 +143,7 @@ it('extracts ebook (.epub/.fb2) text via Pandoc before chunking', function (): v
     itfAction(itfFakeSplitter(['# Chapter 1', 'The book body.']), $pandoc)
         ->execute($sourceFile, $agent);
 
-    Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->status)->toBe(SourceStatus::Processing)
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(2)
         ->and($sourceFile->fresh()->parser)->toBe('fixed');
@@ -176,7 +181,7 @@ it('splits with the built-in splitter and records its name', function (): void {
 
     itfAction(new BuiltinTextSplitter)->execute($sourceFile, $agent);
 
-    Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
+    Bus::assertBatched(fn (PendingBatch $batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
     expect($sourceFile->fresh()->parser)->toBe('builtin')
         ->and((int) $sourceFile->fresh()->expected_chunks)->toBe(3);
 });

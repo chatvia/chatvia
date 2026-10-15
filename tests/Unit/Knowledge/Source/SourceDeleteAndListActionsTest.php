@@ -2,9 +2,7 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Actions\ListUserKnowledgeFilesAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
@@ -17,22 +15,6 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
  * its agent links; the account-wide file list shows every workspace file with
  * the agent that uses it.
  */
-function sdlChunk(SourceText|SourceWebsite $source, int $index): Chunk
-{
-    return Chunk::query()->create([
-        'workspace_id' => $source->workspace_id,
-        'chunkable_type' => $source->getMorphClass(),
-        'chunkable_id' => $source->id,
-        'chunk_index' => $index,
-        'chunk' => "chunk {$index}",
-        'tokens' => 2,
-        'embedding' => app(EmbeddingsProviderInterface::class)->embed("chunk {$index}", true),
-        'embedding_bm25' => Bm25Tokenizer::expression("chunk {$index}"),
-        'checksum' => md5(uniqid()),
-        'cost_in_micro_cents' => 0,
-    ]);
-}
-
 it('deletes a text with its chunks, summary included', function (): void {
     $agent = Agent::factory()->create();
     $text = SourceText::query()->create([
@@ -44,8 +26,8 @@ it('deletes a text with its chunks, summary included', function (): void {
         'status' => SourceStatus::Completed,
     ]);
     $agent->texts()->attach($text->id);
-    sdlChunk($text, 0);
-    sdlChunk($text, 1);
+    Chunk::factory()->forSource($text)->summary()->create();
+    Chunk::factory()->forSource($text)->create();
 
     app(DeleteAgentSourceTextAction::class)->execute($agent, $text);
 
@@ -58,7 +40,7 @@ it('deletes a website with its chunks and agent links', function (): void {
     $agent = Agent::factory()->create();
     $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
     $agent->websites()->attach($website->id);
-    sdlChunk($website, 1);
+    Chunk::factory()->forSource($website)->create();
 
     app(DeleteSourceWebsiteAction::class)->execute($website);
 

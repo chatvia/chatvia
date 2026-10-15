@@ -1,7 +1,6 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Website\TrainWebsiteUrlAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
@@ -9,11 +8,13 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Web\Events\UrlIngestionStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Mockery\MockInterface;
 
 /**
  * TrainWebsiteUrlAction turns one crawled page into chunks and links each
@@ -28,36 +29,6 @@ function trainUrlFakes(array $chunks): void
     $splitter = test()->mock(TextSplitter::class);
     $splitter->shouldReceive('split')->with(Mockery::type('string'), ContentKind::Markdown)->andReturn($chunks);
     $splitter->shouldReceive('name')->andReturn('builtin');
-
-    app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
-    {
-        public function embed(string $text, bool $returnAsText = false): string|array
-        {
-            $vector = array_fill(0, 1024, 0.1);
-
-            return $returnAsText ? '['.implode(',', $vector).']' : $vector;
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
-        {
-            return $this->embed($text, $returnAsText);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'fake-embed';
-        }
-    });
 }
 
 function trainUrlFixture(array $metadata = []): array
@@ -97,7 +68,7 @@ it('links the chunks to the URL using the morph alias', function (): void {
     $types = DB::table('chunk_references')->where('referenceable_id', $url->id)->pluck('referenceable_type')->unique()->all();
 
     // Discovery stores no page content, so training scrapes the page itself.
-    Http::assertSent(fn ($request): bool => $request->url() === 'https://firecrawl.test/v2/scrape'
+    Http::assertSent(fn (Request $request): bool => $request->url() === 'https://firecrawl.test/v2/scrape'
         && $request['url'] === $url->url);
 
     $firstChunkId = Chunk::query()->where('chunkable_id', $website->id)->value('id');
@@ -124,7 +95,7 @@ it('reuses existing chunks and links on a retrain without duplicating them', fun
 });
 
 it('enhances the new parts before storing them when enhancement is on', function (): void {
-    config(['chatvia.ai.chunker.enhance' => true, 'services.scalewayai.api_key' => 'test-key']);
+    config(['chatvia.ai.chunker.enhance' => true]);
     trainUrlFakes(['First chunk of the page.', 'Second chunk of the page.']);
     [$agent, $website, $url] = trainUrlFixture();
     Http::fake([
@@ -149,7 +120,7 @@ it('keeps the index a shared part got when it was first stored', function (): vo
     app(TrainWebsiteUrlAction::class)->execute($url, $agent);
 
     $other = $website->urls()->create(['url' => 'https://docs.example.test/other']);
-    test()->mock(TextSplitter::class, function ($splitter): void {
+    test()->mock(TextSplitter::class, function (MockInterface $splitter): void {
         $splitter->shouldReceive('split')->andReturn(['Shared footer.']);
         $splitter->shouldReceive('name')->andReturn('builtin');
     });
@@ -174,7 +145,7 @@ it('drops the parts a changed page no longer has and deletes the chunks no page 
     $old = Chunk::query()->ofSource($website)->where('checksum', hash('sha256', 'Old part.'))->sole();
 
     // The page changed: it splits into other parts now.
-    test()->mock(TextSplitter::class, function ($splitter): void {
+    test()->mock(TextSplitter::class, function (MockInterface $splitter): void {
         $splitter->shouldReceive('split')->andReturn(['Shared part.', 'New part.']);
         $splitter->shouldReceive('name')->andReturn('builtin');
     });

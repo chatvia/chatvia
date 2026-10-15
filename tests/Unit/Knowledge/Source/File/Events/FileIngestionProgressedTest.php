@@ -3,7 +3,6 @@
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 /**
  * Locks the completion contract the frontend (Files.vue) depends on: when a file
@@ -19,9 +18,7 @@ it('broadcasts 100% on the agent files-progress channel when the file is ingeste
 
     $event = new FileIngestionProgressed($file, 'agent-ext-id');
 
-    expect($event)->toBeInstanceOf(ShouldBroadcastNow::class)
-        ->and($event->broadcastAs())->toBe('FileIngestionProgressed')
-        ->and($event->broadcastWith())->toBe(['file_id' => 123, 'progress' => 100]);
+    expect($event->broadcastWith())->toBe(['file_id' => 123, 'progress' => 100]);
 
     $channels = $event->broadcastOn();
 

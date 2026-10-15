@@ -38,21 +38,10 @@ function cscData(SourceFile $file, array $pages, ChunkEnhancement $enhancement =
     );
 }
 
-/** Counts the texts sent to the embeddings provider. */
-function cscCountingEmbeddings(): object
+/** Keeps the texts sent to the embeddings provider from now on. */
+function cscCountingEmbeddings(): FakeEmbeddingsProvider
 {
-    $provider = new class extends FakeEmbeddingsProvider
-    {
-        /** @var list<string> */
-        public array $embedded = [];
-
-        public function embedBatch(array $texts): array
-        {
-            array_push($this->embedded, ...$texts);
-
-            return parent::embedBatch($texts);
-        }
-    };
+    $provider = new FakeEmbeddingsProvider;
 
     app()->instance(EmbeddingsProviderInterface::class, $provider);
 
@@ -61,8 +50,6 @@ function cscCountingEmbeddings(): object
 
 function cscFakeChunker(): void
 {
-    config(['services.scalewayai.api_key' => 'test-key']);
-
     Http::fake(fn (Request $request) => Http::response(['choices' => [['message' => ['content' => json_encode([
         'summary' => 'A page about oceans.',
         'questions' => ['Which ocean is largest?', 'How deep is it?'],
@@ -88,7 +75,7 @@ it('stores a group of pages with one embedding request and one insert', function
 
     expect($created)->toHaveCount(2)
         ->and($inserts)->toBe(1)
-        ->and($embeddings->embedded)->toHaveCount(2)
+        ->and($embeddings->texts)->toHaveCount(2)
         ->and($chunk->chunk)->toBe('The mitochondria is the powerhouse of the cell.')
         ->and($chunk->chunk_index)->toBe(3)
         ->and($chunk->workspace_id)->toBe($agent->workspace_id)
@@ -112,7 +99,7 @@ it('stores chunk text as plaintext at rest', function (): void {
 it('skips pages the source holds and repeated pages without embedding them', function (): void {
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Already stored.')]));
+    $first = app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Already stored.')]));
 
     $embeddings = cscCountingEmbeddings();
 
@@ -121,24 +108,14 @@ it('skips pages the source holds and repeated pages without embedding them', fun
         cscPage(2, 'A new page.'),
         cscPage(3, 'A new page.'),
     ]));
-
-    expect($created->keys()->all())->toBe([md5('A new page.')])
-        ->and($embeddings->embedded)->toBe(['A new page.'])
-        ->and($file->chunks()->count())->toBe(2)
-        ->and($file->chunks()->where('checksum', md5('A new page.'))->value('chunk_index'))->toBe(2);
-});
-
-it('creates nothing on a re-run with the same pages', function (): void {
-    $agent = Agent::factory()->create();
-    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $data = cscData($file, [cscPage(1, 'Repeated content.')]);
-
-    $first = app(CreateSourceChunksAction::class)->execute($data);
-    $second = app(CreateSourceChunksAction::class)->execute($data);
+    $rerun = app(CreateSourceChunksAction::class)->execute(cscData($file, [cscPage(1, 'Already stored.')]));
 
     expect($first)->toHaveCount(1)
-        ->and($second)->toBeEmpty()
-        ->and($file->chunks()->count())->toBe(1);
+        ->and($created->keys()->all())->toBe([md5('A new page.')])
+        ->and($rerun)->toBeEmpty()
+        ->and($embeddings->texts)->toBe(['A new page.'])
+        ->and($file->chunks()->count())->toBe(2)
+        ->and($file->chunks()->where('checksum', md5('A new page.'))->value('chunk_index'))->toBe(2);
 });
 
 it('enhances a page before storing it, so the chunk row is written once', function (): void {
@@ -167,7 +144,7 @@ it('enhances a page before storing it, so the chunk row is written once', functi
         ->and($chunk->cost_in_micro_cents)->toBeGreaterThan(0)
         ->and($chunk->chunk)->toBe('The Pacific is the largest ocean.')
         // The summary is embedded with the page; the questions get their own vector.
-        ->and($embeddings->embedded)->toBe([
+        ->and($embeddings->texts)->toBe([
             "A page about oceans.\n\nThe Pacific is the largest ocean.",
             "Which ocean is largest?\nHow deep is it?",
         ]);

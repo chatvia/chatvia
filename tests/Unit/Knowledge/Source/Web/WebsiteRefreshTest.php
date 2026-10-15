@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Event;
  * interval has passed: discovery, then training, as one chain. Busy, unused
  * and switched-off websites are left alone.
  */
-function refreshWebsite(array $attributes = [], bool $attached = true): SourceWebsite
+function wrfWebsite(array $attributes = [], bool $attached = true): SourceWebsite
 {
     $agent = Agent::factory()->create();
     $website = SourceWebsite::query()->create([
@@ -53,7 +53,7 @@ it('knows when each interval is due', function (RefreshInterval $interval, ?stri
 ]);
 
 it('crawls then trains a website whose interval has passed', function (): void {
-    $website = refreshWebsite(['refresh_interval' => RefreshInterval::Daily, 'refreshed_at' => now()->subDays(2)]);
+    $website = wrfWebsite(['refresh_interval' => RefreshInterval::Daily, 'refreshed_at' => now()->subDays(2)]);
 
     expect(app(RefreshDueWebsitesAction::class)->execute())->toBe(1)
         ->and($website->fresh()->status)->toBe(SourceStatus::Crawling)
@@ -64,7 +64,7 @@ it('crawls then trains a website whose interval has passed', function (): void {
 });
 
 it('crawls again with the options the website was added with', function (): void {
-    refreshWebsite([
+    wrfWebsite([
         'refresh_interval' => RefreshInterval::Daily,
         'options' => ['limit' => 40, 'include_paths' => '/docs/*', 'exclude_paths' => null, 'country' => 'DK', 'languages' => ['da']],
     ]);
@@ -80,10 +80,10 @@ it('crawls again with the options the website was added with', function (): void
 });
 
 it('leaves alone websites that are not due, switched off, busy or unused', function (): void {
-    refreshWebsite(['refresh_interval' => RefreshInterval::Weekly, 'refreshed_at' => now()->subDay()]);
-    refreshWebsite(['refresh_interval' => RefreshInterval::Off]);
-    refreshWebsite(['refresh_interval' => RefreshInterval::Daily, 'status' => SourceStatus::Processing]);
-    refreshWebsite(['refresh_interval' => RefreshInterval::Daily], attached: false);
+    wrfWebsite(['refresh_interval' => RefreshInterval::Weekly, 'refreshed_at' => now()->subDay()]);
+    wrfWebsite(['refresh_interval' => RefreshInterval::Off]);
+    wrfWebsite(['refresh_interval' => RefreshInterval::Daily, 'status' => SourceStatus::Processing]);
+    wrfWebsite(['refresh_interval' => RefreshInterval::Daily], attached: false);
 
     expect(app(RefreshDueWebsitesAction::class)->execute())->toBe(0);
 
@@ -91,7 +91,7 @@ it('leaves alone websites that are not due, switched off, busy or unused', funct
 });
 
 it('sets the interval, counting from now', function (): void {
-    $website = refreshWebsite();
+    $website = wrfWebsite();
 
     app(SetWebsiteRefreshIntervalAction::class)->execute($website, RefreshInterval::Weekly);
 
@@ -105,7 +105,7 @@ it('sets the interval, counting from now', function (): void {
 });
 
 it('counts from now when switched on again, and from the last refresh between intervals', function (): void {
-    $website = refreshWebsite(['refresh_interval' => RefreshInterval::Off, 'refreshed_at' => now()->subMonths(3)]);
+    $website = wrfWebsite(['refresh_interval' => RefreshInterval::Off, 'refreshed_at' => now()->subMonths(3)]);
 
     app(SetWebsiteRefreshIntervalAction::class)->execute($website, RefreshInterval::Daily);
 

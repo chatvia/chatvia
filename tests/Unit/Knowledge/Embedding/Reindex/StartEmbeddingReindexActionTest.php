@@ -5,12 +5,11 @@ use Domain\Knowledge\Embedding\Actions\Reindex\StartEmbeddingReindexAction;
 use Domain\Knowledge\Embedding\Jobs\ReembedChunksJob;
 use Domain\Knowledge\Embedding\Services\EmbeddingReindexStatus;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batch;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
 
 /**
@@ -22,23 +21,10 @@ use Illuminate\Support\Testing\Fakes\PendingBatchFake;
 /** @return list<int> the ids of the new chunks, in order */
 function reindexChunks(SourceFile $file, int $count): array
 {
-    $vector = '['.implode(',', array_fill(0, 1024, 0.1)).']';
-
-    DB::table('chunks')->insert(array_map(fn (int $index): array => [
-        'external_id' => (string) Str::uuid7(),
-        'workspace_id' => $file->workspace_id,
-        'chunkable_type' => $file->getMorphClass(),
-        'chunkable_id' => $file->id,
-        'chunk_index' => $index + 1,
-        'chunk' => "Page {$index}.",
-        'tokens' => 2,
-        'embedding' => $vector,
-        'embedding_bm25' => Bm25Tokenizer::expression("Page {$index}."),
-        'checksum' => md5("page {$index}"),
-        'cost_in_micro_cents' => 0,
-    ], range(0, $count - 1)));
-
-    return Chunk::query()->ofSource($file)->orderBy('id')->pluck('id')->all();
+    return Chunk::factory()->forSource($file)->count($count)
+        ->sequence(fn (Sequence $sequence): array => ['chunk_index' => $sequence->index + 1])
+        ->create()
+        ->modelKeys();
 }
 
 it('queues the chunks in ranges of 32 rows, on the ingestion queue', function (): void {

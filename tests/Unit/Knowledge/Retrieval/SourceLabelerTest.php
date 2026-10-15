@@ -2,13 +2,11 @@
 
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Data\SourceLabelData;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Retrieval\Services\SourceLabeler;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -23,18 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 function labelerChunk(Model $source, int $chunkIndex = 1, string $text = 'Some text.'): RetrievedChunkData
 {
-    $chunk = Chunk::query()->create([
-        'workspace_id' => $source->getAttribute('workspace_id'),
-        'chunkable_type' => $source->getMorphClass(),
-        'chunkable_id' => $source->getKey(),
-        'chunk_index' => $chunkIndex,
-        'chunk' => $text,
-        'tokens' => 3,
-        'embedding' => app(EmbeddingsProviderInterface::class)->embed($text, true),
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
-        'checksum' => hash('sha256', $text.$chunkIndex.$source->getKey()),
-        'cost_in_micro_cents' => 0,
-    ]);
+    $chunk = Chunk::factory()->forSource($source)->create(['chunk_index' => $chunkIndex, 'chunk' => $text]);
 
     return new RetrievedChunkData(
         id: $chunk->id,

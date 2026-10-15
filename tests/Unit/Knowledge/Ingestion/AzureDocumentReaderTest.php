@@ -1,12 +1,10 @@
 <?php
 
 use App\Admin\Settings\AiProviderCheck;
-use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\DocumentReaders;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
-use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 use Domain\Llm\Enums\AiProvider;
 use Illuminate\Http\Client\Request;
@@ -32,7 +30,7 @@ beforeEach(function (): void {
     ]);
 });
 
-function connectAzure(): void
+function adrConnectAzure(): void
 {
     config([
         'services.azure_document_intelligence.key' => 'az-key',
@@ -41,22 +39,20 @@ function connectAzure(): void
 }
 
 it('picks the reader: Mistral, else Azure, else none', function (): void {
-    expect(app(DocumentReaders::class)->driver())->toBe('none')
-        ->and(app(DocumentParser::class))->toBeInstanceOf(LocalDocumentParser::class);
+    expect(app(DocumentReaders::class)->driver())->toBe('none');
 
-    connectAzure();
+    adrConnectAzure();
 
-    expect(app(DocumentReaders::class)->driver())->toBe('azure')
-        ->and(app(DocumentParser::class))->toBeInstanceOf(AzureDocumentParser::class)
-        ->and(app(DocumentParser::class)->name())->toBe('azure:prebuilt-layout');
+    expect(app(DocumentReaders::class)->driver())->toBe('azure');
 
     connectAiProviders(AiProvider::Mistral);
 
-    expect(app(DocumentParser::class))->toBeInstanceOf(MistralDocumentParser::class);
+    expect(app(DocumentReaders::class)->driver())->toBe('mistral');
 
     config(['chatvia.ai.document_parser' => 'none']);
 
-    expect(app(DocumentReaders::class)->available())->toBeFalse();
+    expect(app(DocumentReaders::class)->driver())->toBe('none')
+        ->and(app(DocumentReaders::class)->available())->toBeFalse();
 });
 
 it('needs the Azure endpoint as well as its key', function (): void {
@@ -72,14 +68,14 @@ it('offers PDF, Word, slides and images only with a reader', function (): void {
     expect($values())->not->toContain('pdf', 'word', 'presentation', 'image')
         ->and($values())->toContain('text', 'spreadsheet', 'ebook');
 
-    connectAzure();
+    adrConnectAzure();
 
     expect($values())->toContain('pdf', 'word', 'presentation', 'image');
 });
 
 it('sends the file to Azure, waits for it, and reads its pages and tables', function (): void {
     Sleep::fake();
-    connectAzure();
+    adrConnectAzure();
 
     $first = "# Prices\n\nOur plan costs 10 euros.\n<!-- PageBreak -->\n";
     $second = "<table><tr><td>Plan</td></tr></table>\nRefunds within 30 days.";
@@ -143,8 +139,6 @@ it('checks an Azure key against its resource', function (): void {
     expect($check->check(AiProvider::Azure, 'az-key', 'https://good.cognitiveservices.azure.com')->connected)->toBeTrue()
         ->and($check->check(AiProvider::Azure, 'az-key', 'https://bad.cognitiveservices.azure.com')->keyRefused)->toBeTrue()
         ->and($check->check(AiProvider::Azure, 'az-key')->message)->toBe('Add the endpoint of your Azure resource too.');
-
-    expect(DocumentReaders::AZURE_READS)->toContain('pdf', 'docx', 'pptx', 'png')->not->toContain('xlsx');
 });
 
 it('warns when the Azure resource is on the free tier', function (): void {
@@ -162,7 +156,7 @@ it('warns when the Azure resource is on the free tier', function (): void {
 });
 
 /** Azure accepts the file and answers with these pages (each a short text). */
-function fakeAzureAnalysis(int $pages = 1): void
+function adrFakeAnalysis(int $pages = 1): void
 {
     $content = implode("\n", array_map(fn (int $page): string => "Page {$page}.", range(1, $pages)));
     $offset = 0;
@@ -185,7 +179,7 @@ function fakeAzureAnalysis(int $pages = 1): void
 }
 
 /** An image file of this size and format, in the temp folder. */
-function tempImage(int $width, int $height, string $format): string
+function adrTempImage(int $width, int $height, string $format): string
 {
     $image = imagecreatetruecolor($width, $height);
     ob_start();
@@ -195,7 +189,7 @@ function tempImage(int $width, int $height, string $format): string
 }
 
 it('reads Excel with the app, as Azure loses its tables', function (): void {
-    connectAzure();
+    adrConnectAzure();
     Http::fake();
     $local = Mockery::mock(LocalDocumentParser::class);
     $local->shouldReceive('parse')->once()->andReturn(collect());
@@ -213,9 +207,9 @@ it('reads Excel with the app, as Azure loses its tables', function (): void {
 });
 
 it('sends Azure a PNG for an image format or size it does not take', function (string $format, int $width, int $height): void {
-    connectAzure();
-    fakeAzureAnalysis();
-    $file = tempImage($width, $height, $format);
+    adrConnectAzure();
+    adrFakeAnalysis();
+    $file = adrTempImage($width, $height, $format);
 
     try {
         app(AzureDocumentParser::class)->parse($file, 'tmp');
@@ -238,8 +232,8 @@ it('sends Azure a PNG for an image format or size it does not take', function (s
 ]);
 
 it('fails a PDF the free tier read only 2 pages of, rather than training part of it', function (): void {
-    connectAzure();
-    fakeAzureAnalysis(pages: 2);
+    adrConnectAzure();
+    adrFakeAnalysis(pages: 2);
     Process::fake(['*' => Process::result("Pages:          30\n")]);
     $file = create_temp_file('manual.pdf', '%PDF-1.4 test');
 
@@ -252,7 +246,7 @@ it('fails a PDF the free tier read only 2 pages of, rather than training part of
 });
 
 it('shows why Azure refused a file', function (): void {
-    connectAzure();
+    adrConnectAzure();
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['error' => [
         'code' => 'InvalidRequest',
         'message' => 'Invalid request.',

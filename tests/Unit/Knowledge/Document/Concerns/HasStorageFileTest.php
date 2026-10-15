@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Unguarded;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\File\File;
 
 /**
  * HasStorageFile copies stored files to local temp files for tools that need a
@@ -33,7 +34,7 @@ it('reads the requested field even when filepath is empty', function (): void {
     $model = storageFileModel(['id' => 7, 'filepath' => null, 'parser_filepath' => 'users/u/audio/transcript.txt']);
 
     expect($model->readContents('parser_filepath'))->toBe('hello transcript')
-        ->and($model->withLocalFile(fn ($file): string => $file->getContent(), 'parser_filepath'))->toBe('hello transcript');
+        ->and($model->withLocalFile(fn (File $file): string => $file->getContent(), 'parser_filepath'))->toBe('hello transcript');
 });
 
 it('names the missing field instead of always blaming filepath', function (): void {
@@ -50,8 +51,7 @@ it('creates exactly one local copy, with the stored extension', function (): voi
     $file = $model->readFile();
 
     try {
-        // tempnam() + a second ".docx" write used to leave an empty sibling
-        // file without the extension behind on every call.
+        // No empty sibling without the extension is left next to the copy.
         expect(file_exists(substr($file->getPathname(), 0, -strlen('.docx'))))->toBeFalse()
             ->and($file->getExtension())->toBe('docx')
             ->and($file->getContent())->toBe('docx-bytes');
@@ -64,12 +64,12 @@ it('deletes the local copy after withLocalFile, even when the callback throws', 
     Storage::put('users/u/doc.txt', 'text');
     $model = storageFileModel(['id' => 1, 'filepath' => 'users/u/doc.txt']);
 
-    $path = $model->withLocalFile(fn ($file): string => $file->getPathname());
+    $path = $model->withLocalFile(fn (File $file): string => $file->getPathname());
     expect(file_exists($path))->toBeFalse();
 
     $thrownPath = null;
     try {
-        $model->withLocalFile(function ($file) use (&$thrownPath): void {
+        $model->withLocalFile(function (File $file) use (&$thrownPath): void {
             $thrownPath = $file->getPathname();
 
             throw new RuntimeException('boom');

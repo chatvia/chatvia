@@ -11,13 +11,13 @@ use Illuminate\Support\Str;
  * mid-ingestion. It must tolerate a batch that was already pruned, and still
  * find media batches whose id was stored in the older column.
  */
-function storedBatchId(): string
+function cfiStoredBatchId(): string
 {
     return app(BatchRepository::class)->store(Bus::batch([]))->id;
 }
 
 it('cancels the batch stored in internal_chunking_batch_id', function (): void {
-    $batchId = storedBatchId();
+    $batchId = cfiStoredBatchId();
     $file = AgentFileFactory::new()->create(['internal_chunking_batch_id' => $batchId]);
 
     app(CancelFileIngestionAction::class)->execute($file);
@@ -26,7 +26,7 @@ it('cancels the batch stored in internal_chunking_batch_id', function (): void {
 });
 
 it('cancels a media batch whose id was stored in internal_ingestion_job_id', function (): void {
-    $batchId = storedBatchId();
+    $batchId = cfiStoredBatchId();
     $file = AgentFileFactory::new()->create([
         'internal_chunking_batch_id' => null,
         'internal_ingestion_job_id' => $batchId,

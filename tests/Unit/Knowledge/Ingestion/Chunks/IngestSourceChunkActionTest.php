@@ -24,7 +24,6 @@ use Illuminate\Support\Facades\Storage;
 beforeEach(function (): void {
     Event::fake([FileIngestionProgressed::class, TextIngestionProgressed::class]);
 
-    config(['services.scalewayai.api_key' => 'test-key']);
     Http::fake(fn (Request $request) => Http::response(['choices' => [['message' => ['content' => json_encode([
         'summary' => 'A short summary.',
         'questions' => ['What is this about?'],

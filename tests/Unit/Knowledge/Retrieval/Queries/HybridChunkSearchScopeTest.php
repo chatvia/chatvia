@@ -5,12 +5,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Data\RetrievedChunkData;
 use Domain\Knowledge\Retrieval\Enums\ChunkSearchScope;
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Domain\Knowledge\Source\File\Models\SourceFile;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -34,17 +35,11 @@ function scopeTestVector(float $similarity, int $axis): array
 
 function scopeTestChunk(SourceFile $source, int $index, array $vector, string $text): int
 {
-    return DB::table('chunks')->insertGetId([
-        'workspace_id' => $source->workspace_id,
-        'chunkable_type' => $source->getMorphClass(),
-        'chunkable_id' => $source->id,
+    return Chunk::factory()->forSource($source)->withVector($vector)->create([
         'chunk_index' => $index,
         'chunk' => $text,
         'tokens' => 8,
-        'embedding' => '['.implode(',', $vector).']',
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
-        'checksum' => md5($source->id.':'.$index),
-    ]);
+    ])->id;
 }
 
 /**
@@ -126,7 +121,7 @@ it('ranks a small agent\'s chunks by true distance and never returns another wor
     [$agent, $ids] = scopeTestAgentAmongNeighbours();
 
     $statements = [];
-    DB::listen(function ($query) use (&$statements): void {
+    DB::listen(function (QueryExecuted $query) use (&$statements): void {
         $statements[] = $query->sql;
     });
 
@@ -159,7 +154,7 @@ it('never scans a vector or keyword index on the exact path', function (): void 
     [$agent] = scopeTestAgentAmongNeighbours();
 
     $captured = null;
-    DB::listen(function ($query) use (&$captured): void {
+    DB::listen(function (QueryExecuted $query) use (&$captured): void {
         if (str_contains($query->sql, 'scope AS MATERIALIZED')) {
             $captured = [$query->sql, $query->bindings];
         }

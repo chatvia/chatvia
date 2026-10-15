@@ -14,6 +14,7 @@ use Domain\Knowledge\Retrieval\Jobs\UpdateRetrievalStatsJob;
 use Domain\Knowledge\Retrieval\Services\KnowledgeBase;
 use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Queue;
+use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * KnowledgeBase::search() behaviour around the relevance check: a reranker
@@ -23,35 +24,8 @@ use Illuminate\Support\Facades\Queue;
  */
 function kbFallbackProvider(bool $rerankThrows): void
 {
-    app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
-    {
-        public function embed(string $text, bool $returnAsText = false): string|array
-        {
-            $vector = array_fill(0, 1024, 0.1);
-
-            return $returnAsText ? '['.implode(',', $vector).']' : $vector;
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
-        {
-            return $this->embed($text, $returnAsText);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'fake-embed';
-        }
-    });
+    // Every chunk and the query get the same vector: similarity 1.0.
+    app()->instance(EmbeddingsProviderInterface::class, FakeEmbeddingsProvider::constant());
 
     app()->instance(Reranker::class, new readonly class($rerankThrows) implements Reranker
     {

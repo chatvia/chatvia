@@ -7,13 +7,13 @@ use Domain\Knowledge\Embedding\Actions\Reindex\ReembedQaQuestionsAction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Qa\Actions\CreateAgentQaAction;
 use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * A re-index embeds the stored rows of an id range again with the model in
@@ -25,41 +25,9 @@ use Illuminate\Support\Facades\DB;
  * A model that gives every text the same vector (0.5 everywhere: exact in
  * half precision) and remembers what it embedded.
  */
-function reembedProvider(): object
+function reembedProvider(): FakeEmbeddingsProvider
 {
-    $provider = new class implements EmbeddingsProviderInterface
-    {
-        /** @var list<string> */
-        public array $texts = [];
-
-        public function embed(string $text, bool $returnAsText = false): string|array
-        {
-            $this->texts[] = $text;
-            $vector = array_fill(0, 1024, 0.5);
-
-            return $returnAsText ? '['.implode(',', $vector).']' : $vector;
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
-        {
-            return $this->embed($text, $returnAsText);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'new-model';
-        }
-    };
+    $provider = FakeEmbeddingsProvider::constant(0.5, 'new-model');
 
     app()->instance(EmbeddingsProviderInterface::class, $provider);
 
@@ -67,32 +35,24 @@ function reembedProvider(): object
 }
 
 /** A vector of the old model: 0.25 everywhere. */
-function oldModelVector(): string
+function reembedOldVector(): string
 {
     return '['.implode(',', array_fill(0, 1024, 0.25)).']';
 }
 
 function reembedChunk(SourceFile $file, string $text, ?string $questions = null, ?string $summary = null): Chunk
 {
-    return Chunk::query()->create([
-        'workspace_id' => $file->workspace_id,
-        'chunkable_type' => $file->getMorphClass(),
-        'chunkable_id' => $file->id,
-        'chunk_index' => 1,
+    return Chunk::factory()->forSource($file)->create([
         'chunk' => $text,
         'summary' => $summary,
         'questions' => $questions,
-        'questions_embedding' => $questions === null ? null : oldModelVector(),
-        'tokens' => 3,
-        'embedding' => oldModelVector(),
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
-        'checksum' => md5($text.uniqid()),
-        'cost_in_micro_cents' => 0,
+        'questions_embedding' => $questions === null ? null : reembedOldVector(),
+        'embedding' => reembedOldVector(),
     ]);
 }
 
 /** Whether the row's vector column now holds the new model's vector. */
-function hasNewVector(string $table, string $column, int $id): bool
+function reembedHasNewVector(string $table, string $column, int $id): bool
 {
     $type = app(EmbeddingStorage::class)->columnType();
 
@@ -111,11 +71,11 @@ it('embeds the chunks of a range again from their text and questions', function 
 
     expect($done)->toBe(2)
         ->and($provider->texts)->toBe(["About hours.\n\nOpening hours.", 'Prices.', 'When are you open?'])
-        ->and(hasNewVector('chunks', 'embedding', $asked->id))->toBeTrue()
-        ->and(hasNewVector('chunks', 'questions_embedding', $asked->id))->toBeTrue()
-        ->and(hasNewVector('chunks', 'embedding', $plain->id))->toBeTrue()
+        ->and(reembedHasNewVector('chunks', 'embedding', $asked->id))->toBeTrue()
+        ->and(reembedHasNewVector('chunks', 'questions_embedding', $asked->id))->toBeTrue()
+        ->and(reembedHasNewVector('chunks', 'embedding', $plain->id))->toBeTrue()
         ->and(Chunk::query()->whereKey($plain->id)->value('questions_embedding'))->toBeNull()
-        ->and(hasNewVector('chunks', 'embedding', $outside->id))->toBeFalse()
+        ->and(reembedHasNewVector('chunks', 'embedding', $outside->id))->toBeFalse()
         ->and(Chunk::query()->whereKey($asked->id)->value('embedding_bm25'))->toBe($keywords);
 });
 
@@ -131,12 +91,12 @@ it('embeds the Q&A questions of a range again', function (): void {
     $agent = Agent::factory()->create();
     app(CreateAgentQaAction::class)->execute($agent, new QaEntryData('Hours', ['What are your hours?', 'When do you open?'], 'Nine to five.'));
     $questions = AgentQuestionAnswerQuestion::query()->where('agent_id', $agent->id)->orderBy('id')->get();
-    AgentQuestionAnswerQuestion::query()->whereKey($questions->modelKeys())->update(['embedding' => oldModelVector()]);
+    AgentQuestionAnswerQuestion::query()->whereKey($questions->modelKeys())->update(['embedding' => reembedOldVector()]);
     $provider = reembedProvider();
 
     $done = app(ReembedQaQuestionsAction::class)->execute($questions->first()->id, $questions->last()->id);
 
     expect($done)->toBe(2)
         ->and($provider->texts)->toBe(['What are your hours?', 'When do you open?'])
-        ->and($questions->every(fn (AgentQuestionAnswerQuestion $question): bool => hasNewVector('agent_question_answer_questions', 'embedding', $question->id)))->toBeTrue();
+        ->and($questions->every(fn (AgentQuestionAnswerQuestion $question): bool => reembedHasNewVector('agent_question_answer_questions', 'embedding', $question->id)))->toBeTrue();
 });

@@ -1,7 +1,7 @@
 /**
  * Tool calls that are running during the current streamed turn, keyed by
  * `tool_call_id`. Fed by the stream's `tool` start/end events (synchronous and
- * in order with the text) and read by the branded "Calling …" indicator.
+ * in order with the text) and read by the branded "Connecting to …" indicator.
  */
 import type { ActiveToolCall } from '@/types/chat';
 import type { StreamToolData } from '@/types/stream';

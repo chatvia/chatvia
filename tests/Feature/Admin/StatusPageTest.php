@@ -116,6 +116,7 @@ it('says when live updates do not go through Reverb, or Reverb does not answer',
         'broadcasting.default' => 'reverb',
         'broadcasting.connections.reverb.options' => ['host' => '127.0.0.1', 'port' => 1, 'scheme' => 'http', 'useTLS' => false],
     ]);
+    Http::fake(['127.0.0.1:1/*' => Http::failedConnection()]);
     $status = app(ServiceChecks::class)->check(Service::Realtime);
 
     expect($status->state)->toBe(ServiceState::Down)

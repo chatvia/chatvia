@@ -19,6 +19,16 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 10
+    ignore:
+      # TypeScript 7 (the Go compiler) has no JS API yet, and vue-tsc and
+      # typescript-eslint need one: stay on 6.x until they support 7.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+      # marked-katex-extension only supports katex below 0.19.
+      - dependency-name: katex
+        versions:
+          - ">=0.19.0"
     groups:
       npm-minor-and-patch:
         update-types:

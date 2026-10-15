@@ -49,6 +49,19 @@ abstract class TestCase extends BaseTestCase
 
         // The admin panel lists OpenRouter's rerankers live; no test reaches it.
         Http::fake(['openrouter.ai/api/v1/models?output_modalities=rerank*' => Http::response(['data' => []])]);
+
+        // No test talks to a real service: a request no fake answers fails
+        // the test instead of going out (and passing because the code
+        // forgives the failed call).
+        Http::preventStrayRequests();
+
+        // Pages render without server-side rendering: with `npm run dev`
+        // running, Inertia would post every page to the Vite dev server.
+        config(['inertia.ssr.enabled' => false]);
+
+        // The chat memory store is Redis in every environment. Tests use an
+        // array store, so nothing outlives a test and none needs Redis.
+        config(['cache.stores.chat' => ['driver' => 'array']]);
     }
 
     public function faker(): Generator

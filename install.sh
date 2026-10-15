@@ -1733,6 +1733,1359 @@ do_upgrade() {
 }
 
 #------------------------------------------------------------------------------
+# Which install
+#------------------------------------------------------------------------------
+
+# MODE: docker, or complete (everything directly on this server). An option
+# that only means something for Docker (--dir, --port, ...) picks Docker, so
+# ./manage upgrade, which passes --dir, never asks. A server with a complete
+# installation goes on with it: to upgrade it, or to finish it.
+choose_mode() {
+    if [ -n "$MODE" ]; then return; fi
+    if [ "$OS" = macos ] || [ "$DOCKER_OPTIONS" = 1 ]; then
+        MODE=docker
+    elif [ -f "$NATIVE_CONF" ]; then
+        MODE=complete
+    elif [ "$INTERACTIVE" = 0 ]; then
+        MODE=docker
+    else
+        choose 'How do you want to install Chatvia?' \
+            'With Docker  — everything in containers, easy to move and remove' \
+            "Complete installation  — everything directly on this server (Ubuntu $NATIVE_UBUNTU)"
+        if [ "$CHOICE" = 0 ]; then MODE=docker; else MODE=complete; fi
+    fi
+}
+
+#------------------------------------------------------------------------------
+# Complete installation: everything directly on this server, without Docker
+#
+# Ubuntu 26.04 LTS on a fresh server. It does what the guides "Install on
+# Ubuntu" and "Deploy with Deployer" describe: PostgreSQL 18 with the search
+# extensions, Redis, PHP-FPM behind nginx, a Let's Encrypt certificate,
+# Horizon, Reverb and Pulse under Supervisor, the scheduler in cron, and the
+# firewall. One system user, chatvia, owns the code and runs every part of
+# the app. Deployer, installed for that user, deploys each release into its
+# own folder under /var/www/chatvia and switches over in one step, so an
+# upgrade has no downtime, and a failed one changes nothing that runs.
+#
+# The answers are saved to /etc/chatvia/install.conf before anything else
+# changes, and the secrets to /var/www/chatvia/shared/.env. Every step is
+# safe to repeat: running the installer again finishes an install that
+# stopped, and upgrades a finished one.
+#------------------------------------------------------------------------------
+
+# conf_value KEY: an answer saved in install.conf.
+conf_value() {
+    sed -n "s/^$1=//p" "$NATIVE_CONF" 2>/dev/null | tail -n 1
+}
+
+# conf_set KEY VALUE: changes the answer in install.conf, or adds it.
+conf_set() {
+    local tmp
+    tmp=$(mktemp "$NATIVE_CONF.XXXXXX") || return
+    file_with "$NATIVE_CONF" "$1" "$2" >"$tmp" && chmod 600 "$tmp" && mv "$tmp" "$NATIVE_CONF"
+}
+
+# native_set_env KEY VALUE: changes the line in the shared .env, which stays
+# the chatvia user's.
+native_set_env() {
+    set_env_value "$1" "$2" && chown "$NATIVE_USER:$NATIVE_USER" "$INSTALL_DIR/.env"
+}
+
+package_installed() {
+    [ "$(dpkg-query -W -f='${Status}' "$1" 2>/dev/null)" = 'install ok installed' ]
+}
+
+# apt-get without questions, keeping changed config files. It waits for the
+# package lock: on a new server, the automatic updates may hold it for a few
+# minutes.
+apt_get() {
+    DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -y -q \
+        -o DPkg::Lock::Timeout=600 \
+        -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold "$@"
+}
+
+# psql as the postgres superuser, on Chatvia's cluster. From /, which the
+# postgres user can read.
+psql_admin() {
+    (cd / && runuser -u postgres -- psql --cluster "$NATIVE_PG/main" -X -q -v ON_ERROR_STOP=1 "$@")
+}
+
+# as_chatvia DIR COMMAND...: runs it as the chatvia user, in DIR.
+as_chatvia() {
+    local dir=$1
+    shift
+    (cd "$dir" && runuser -u "$NATIVE_USER" -- env HOME="$NATIVE_HOME" USER="$NATIVE_USER" LOGNAME="$NATIVE_USER" "$@")
+}
+
+# native_dep ARGS...: Deployer, as chatvia, in its folder. -v puts every
+# command it runs in the log.
+native_dep() {
+    as_chatvia "$NATIVE_DEPLOY_DIR" vendor/bin/dep --no-interaction -v "$@"
+}
+
+random_hex() {
+    od -An -tx1 -N"$1" /dev/urandom | tr -d ' \n'
+}
+
+is_ip() {
+    [[ $1 =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]
+}
+
+valid_host() {
+    if is_ip "$1" || [[ $1 =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$ ]]; then
+        return 0
+    fi
+    INVALID='Type a domain name like chat.example.com, or an IP address: no https:// and no path.'
+    return 1
+}
+
+# This server's public IPv4 address, for the DNS hint. Asked from outside,
+# as a server behind NAT does not know it; else its own first address.
+server_ip() {
+    local ip
+    ip=$(curl -4 -fsS --max-time 5 https://api.ipify.org 2>/dev/null) || ip=''
+    if ! is_ip "$ip"; then
+        ip=$(hostname -I 2>/dev/null | awk '{ print $1 }') || ip=''
+    fi
+    printf '%s' "$ip"
+}
+
+# The addresses of this server: the public one and its own.
+server_addresses() {
+    {
+        if [ -n "$SERVER_IP" ]; then printf '%s\n' "$SERVER_IP"; fi
+        hostname -I 2>/dev/null | tr ' ' '\n'
+    } | sed '/^$/d' | sort -u
+    return 0
+}
+
+# The addresses NAME points at in DNS, one per line.
+dns_addresses() {
+    getent ahosts "$1" 2>/dev/null | awk '{ print $1 }' | sort -u
+    return 0
+}
+
+meminfo_kb() {
+    local kb
+    kb=$(awk -v key="$1:" '$1 == key { print $2 }' /proc/meminfo 2>/dev/null) || kb=''
+    printf '%s' "${kb:-0}"
+}
+
+# Little memory and no swap: the frontend build may run out of memory.
+needs_swap() {
+    local memory
+    memory=$(meminfo_kb MemTotal)
+    [ "$memory" -gt 0 ] && [ "$memory" -lt "$SWAP_BELOW_KB" ] && [ "$(meminfo_kb SwapTotal)" -eq 0 ]
+}
+
+# The SSH ports, so the firewall never locks you out: the ones sshd uses,
+# and the one of this very connection.
+ssh_ports() {
+    {
+        sshd -T 2>/dev/null | awk '$1 == "port" { print $2 }' ||
+            cat /etc/ssh/sshd_config /etc/ssh/sshd_config.d/*.conf 2>/dev/null | awk 'tolower($1) == "port" { print $2 }'
+        if [ -n "${SSH_CONNECTION:-}" ]; then printf '%s\n' "${SSH_CONNECTION##* }"; fi
+        printf '22\n'
+    } | grep -E '^[0-9]+$' | sort -un
+    return 0
+}
+
+# release_tags: the releases (vX.Y.Z tags) of the repository, oldest first.
+# With git, or on a server without git yet, with curl through Git's HTTP
+# protocol.
+release_tags() {
+    local refs
+    if command -v git >/dev/null 2>&1; then
+        refs=$(GIT_TERMINAL_PROMPT=0 git ls-remote --tags --refs "$CHATVIA_REPO" 2>/dev/null) || return 1
+    else
+        refs=$(curl -fsS --max-time 30 "${CHATVIA_REPO%.git}.git/info/refs?service=git-upload-pack" 2>/dev/null) || return 1
+    fi
+    printf '%s\n' "$refs" | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | sed 's#^refs/tags/##' | sort -V || true
+}
+
+# Turns CHATVIA_VERSION (latest, 1, 1.4, 1.4.2 or a branch) into the release
+# tag to deploy (CHATVIA_RELEASE), or the branch (CHATVIA_BRANCH).
+native_resolve_version() {
+    local spec=${CHATVIA_VERSION#v} tags tag=''
+    CHATVIA_RELEASE='' CHATVIA_BRANCH=''
+    if [ "$spec" != latest ] && ! [[ $spec =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
+        CHATVIA_BRANCH=$CHATVIA_VERSION
+        if command -v git >/dev/null 2>&1 &&
+            [ -z "$(GIT_TERMINAL_PROMPT=0 git ls-remote --heads "$CHATVIA_REPO" "$CHATVIA_BRANCH" 2>/dev/null)" ]; then
+            die "$CHATVIA_REPO has no release or branch called $CHATVIA_VERSION." \
+                'Use latest, a version number like 1.2.0, or a branch like main.'
+        fi
+        warn "$(bold "$CHATVIA_BRANCH") is a branch, not a release. Use it only to test."
+        return
+    fi
+
+    tags=$(release_tags) || die "Could not read the releases of $CHATVIA_REPO." 'Check the internet connection.'
+    if [ "$spec" = latest ]; then
+        tag=$(printf '%s\n' "$tags" | tail -n 1)
+    else
+        tag=$(printf '%s\n' "$tags" | grep -E "^v${spec//./\\.}(\\.|\$)" | tail -n 1) || tag=''
+    fi
+    if [ -z "$tag" ]; then
+        if [ -z "$tags" ]; then
+            die "$CHATVIA_REPO has no release yet (no vX.Y.Z tag)." \
+                'To install code that is not released yet, name a branch: --version main'
+        fi
+        die "There is no release $CHATVIA_VERSION." "The newest is $(printf '%s\n' "$tags" | tail -n 1)."
+    fi
+    CHATVIA_RELEASE=$tag
+}
+
+native_version_text() {
+    if [ -n "$CHATVIA_RELEASE" ]; then
+        printf '%s' "$CHATVIA_RELEASE"
+    else
+        printf 'branch %s' "$CHATVIA_BRANCH"
+    fi
+}
+
+# Deployer's option for what to deploy.
+native_target() {
+    if [ -n "$CHATVIA_RELEASE" ]; then
+        printf -- '--tag=%s' "$CHATVIA_RELEASE"
+    else
+        printf -- '--branch=%s' "$CHATVIA_BRANCH"
+    fi
+}
+
+native_check_system() {
+    local id='' version='' name='' arch
+    if [ -r /etc/os-release ]; then
+        # shellcheck source=/dev/null
+        id=$(. /etc/os-release && printf '%s' "${ID:-}")
+        # shellcheck source=/dev/null
+        version=$(. /etc/os-release && printf '%s' "${VERSION_ID:-}")
+        # shellcheck source=/dev/null
+        name=$(. /etc/os-release && printf '%s' "${PRETTY_NAME:-}")
+    fi
+    name=${name:-$(uname -s)}
+    if [ "$OS" != linux ] || [ "$id" != ubuntu ] || [ "$version" != "$NATIVE_UBUNTU" ]; then
+        if [ "$DRY_RUN" = 1 ]; then
+            warn "This is $name, not Ubuntu $NATIVE_UBUNTU: a real install stops here. $(dim '(dry run)')"
+            return
+        fi
+        die "The complete installation needs Ubuntu $NATIVE_UBUNTU LTS. This is $name." \
+            "Use a fresh Ubuntu $NATIVE_UBUNTU server, or install with Docker (--docker)."
+    fi
+    arch=$(dpkg --print-architecture)
+    case $arch in
+        amd64 | arm64) ;;
+        *) die "The complete installation needs an amd64 or arm64 server, not $arch." ;;
+    esac
+    if [ ! -d /run/systemd/system ]; then
+        if [ "$DRY_RUN" = 1 ]; then
+            warn "systemd does not run here: a real install stops here. $(dim '(dry run)')"
+            return
+        fi
+        die 'systemd does not run here (is this a container?).' \
+            'The complete installation needs a whole server or VPS. Install with Docker instead (--docker).'
+    fi
+    ok "$name $(dim "($arch)")"
+}
+
+# The complete installation changes the whole server, so it runs as root.
+# Started by another user, it runs itself again with sudo: from its own
+# file, or when it came through a pipe (curl | bash), from a new download.
+native_become_root() {
+    [ "$(id -u)" = 0 ] && return 0
+    if [ "$DRY_RUN" = 1 ]; then
+        info "$(dim 'A real install runs as root: it starts itself again with sudo. (dry run)')"
+        return 0
+    fi
+    command -v sudo >/dev/null 2>&1 || die 'The complete installation needs root.' 'Run it as root.'
+
+    local script=${BASH_SOURCE[0]:-} name status=0
+    local env=(CHATVIA_RESTARTED=1)
+    if [ -z "$script" ] || [ ! -f "$script" ]; then
+        script="$WORK_DIR/install.sh"
+        curl -fsSL "${CHATVIA_INSTALLER_URL:-$INSTALLER_URL}" -o "$script" ||
+            die 'Could not download the installer to run it as root.' 'Run it as root instead.'
+    fi
+    # The settings that came as environment variables, and how to draw.
+    for name in $(compgen -e); do
+        case $name in
+            CHATVIA_RESTARTED) ;;
+            CHATVIA_* | SHAKOMAKO_* | NO_COLOR | TERM | LANG | LC_* | SSH_CONNECTION) env+=("$name=${!name}") ;;
+        esac
+    done
+
+    info 'The complete installation runs as root, so it starts again with sudo.'
+    keys_off
+    # shellcheck disable=SC2024 # sudo asks for the password on the terminal.
+    sudo -v </dev/tty || die 'sudo did not work.' 'Run the installer as root instead.'
+    # The new run says "Stopped." itself.
+    trap 'keys_off; exit 130' INT TERM
+    sudo env "${env[@]}" bash "$script" --complete ${ARGS[@]+"${ARGS[@]}"} || status=$?
+    exit "$status"
+}
+
+native_main() {
+    if [ "$DOCKER_OPTIONS" = 1 ]; then
+        die '--dir, --port, --url, --image, --no-pull and --no-start are for the Docker install.' \
+            'Leave them out for the complete installation.'
+    fi
+    native_check_system
+    native_become_root
+
+    # The shared .env is the one the env_value and set_env_value helpers use.
+    INSTALL_DIR="$NATIVE_ROOT/shared"
+    if [ "$DRY_RUN" = 0 ]; then
+        LOG=$NATIVE_LOG
+        (umask 077 && printf '\n== Chatvia installer, %s\n' "$(date)" >>"$LOG")
+    fi
+
+    if [ -f "$NATIVE_CONF" ]; then
+        if grep -q '^# Install finished on' "$NATIVE_CONF"; then native_upgrade; else native_resume; fi
+        return
+    fi
+    native_install
+}
+
+native_install() {
+    native_warning
+    native_check_fresh
+    native_collect_settings
+    native_show_summary
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Install Chatvia on this server with these settings?' y; then
+        outro 'Nothing was changed.'
+        exit 0
+    fi
+    run_step "Saving your answers to $NATIVE_CONF" native_save_settings || native_failed
+    native_run_steps
+}
+
+native_warning() {
+    warn "$(bold 'The complete installation sets up this whole server for Chatvia.')"
+    info 'It installs PostgreSQL, Redis, PHP, nginx, Supervisor and Certbot,'
+    info 'changes their settings for Chatvia, takes over ports 80 and 443, and'
+    info 'turns on the firewall. Other sites, databases and programs on this'
+    info 'server may stop working, and none of it is easy to undo.'
+    info "$(bold 'We strongly recommend a fresh server or VPS with nothing else on it.')"
+    if [ "$INTERACTIVE" = 1 ] && ! confirm 'Is this a fresh server that Chatvia can have to itself?' n; then
+        outro 'Nothing was changed. On a server that runs other things, install with Docker.'
+        exit 0
+    fi
+}
+
+# What is on this server already. A fresh server has none of it.
+native_check_fresh() {
+    local found=() pkg site item
+    if command -v dpkg-query >/dev/null 2>&1; then
+        for pkg in apache2 nginx caddy mysql-server mariadb-server redis-server docker-ce docker.io; do
+            if package_installed "$pkg"; then found+=("$pkg is installed"); fi
+        done
+    fi
+    if [ -n "$(ls -A /etc/postgresql 2>/dev/null)" ]; then found+=('PostgreSQL is installed'); fi
+    for site in /etc/nginx/sites-enabled/*; do
+        [ -e "$site" ] || continue
+        case ${site##*/} in default | chatvia) continue ;; esac
+        found+=("nginx serves another site: ${site##*/}")
+    done
+    for site in /var/www/*; do
+        [ -e "$site" ] || continue
+        case ${site##*/} in html | chatvia) continue ;; esac
+        found+=('/var/www holds other sites')
+        break
+    done
+    if command -v ss >/dev/null 2>&1 && [ -n "$(ss -Hltn '( sport = :80 or sport = :443 )' 2>/dev/null)" ]; then
+        found+=('a program listens on port 80 or 443')
+    fi
+
+    if [ "${#found[@]}" -eq 0 ]; then
+        ok 'This server looks fresh'
+        return
+    fi
+    warn "$(bold 'This server does not look fresh:')"
+    for item in "${found[@]}"; do info "- $item"; done
+    info 'The installer changes their settings for Chatvia.'
+    if [ "$FORCE" = 1 ]; then return; fi
+    if [ "$INTERACTIVE" = 0 ]; then
+        die 'Use a fresh server, or pass --force to install anyway.'
+    fi
+    if ! confirm 'Install on this server anyway?' n; then
+        outro 'Nothing was changed.'
+        exit 0
+    fi
+}
+
+native_collect_settings() {
+    SERVER_IP=$(server_ip)
+    if [ "$INTERACTIVE" = 0 ]; then
+        ADMIN_EMAIL=${CHATVIA_ADMIN_EMAIL:-}
+        [ -n "$ADMIN_EMAIL" ] || die 'Set the admin e-mail: --email you@example.com (or CHATVIA_ADMIN_EMAIL).'
+        valid_email "$ADMIN_EMAIL" || die "$INVALID"
+        ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
+        if [ -z "$ADMIN_PASS" ]; then
+            ADMIN_PASS=$(random_password)
+            PASSWORD_GENERATED=1
+        fi
+        DOMAIN=${CHATVIA_DOMAIN:-$SERVER_IP}
+        [ -n "$DOMAIN" ] || die 'Set the address: --domain chat.example.com (or CHATVIA_DOMAIN).'
+        valid_host "$DOMAIN" || die "$INVALID"
+        case ${CHATVIA_HTTPS:-yes} in no | false | 0) HTTPS=no ;; *) HTTPS=yes ;; esac
+        case ${CHATVIA_FIREWALL:-yes} in no | false | 0) FIREWALL=no ;; *) FIREWALL=yes ;; esac
+        case ${CHATVIA_SWAP:-auto} in
+            yes | true | 1) SWAP=yes ;;
+            no | false | 0) SWAP=no ;;
+            *) if needs_swap; then SWAP=yes; else SWAP=no; fi ;;
+        esac
+        EMBEDDING_TYPE=${CHATVIA_EMBEDDING_TYPE:-halfvec}
+        EMBEDDING_DIMENSIONS=${CHATVIA_EMBEDDING_DIMENSIONS:-1024}
+        case $EMBEDDING_TYPE in halfvec | vector) ;; *) die 'CHATVIA_EMBEDDING_TYPE must be halfvec or vector.' ;; esac
+        [[ $EMBEDDING_DIMENSIONS =~ ^[0-9]+$ ]] || die 'CHATVIA_EMBEDDING_DIMENSIONS must be a number.'
+    else
+        ask_admin
+        ask DOMAIN 'Domain name or IP address' --default "${CHATVIA_DOMAIN:-}" --placeholder 'chat.example.com' \
+            --hint "Where people open Chatvia. Point the domain's DNS record at this server${SERVER_IP:+ ($SERVER_IP)} first." \
+            --check valid_host
+        HTTPS=no
+        if ! is_ip "$DOMAIN"; then
+            choose 'HTTPS' \
+                "Get a free certificate from Let's Encrypt  — renews by itself (recommended)" \
+                'No HTTPS for now  — you can get a certificate later'
+            if [ "$CHOICE" = 0 ]; then HTTPS=yes; fi
+        fi
+        FIREWALL=no
+        if confirm "Turn on the firewall? Only SSH, HTTP and HTTPS can come in." y; then FIREWALL=yes; fi
+        SWAP=no
+        if needs_swap; then
+            info "This server has $(awk -v kb="$(meminfo_kb MemTotal)" 'BEGIN { printf "%.1f GB", kb / 1048576 }') of memory and no swap."
+            if confirm 'Add 4 GB of swap, so building Chatvia does not run out of memory?' y; then SWAP=yes; fi
+        fi
+        ask_setup
+    fi
+
+    DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
+    if is_ip "$DOMAIN"; then HTTPS=no; fi
+    native_check_dns
+    if [ "$HTTPS" = yes ]; then APP_URL="https://$DOMAIN"; else APP_URL="http://$DOMAIN"; fi
+    native_resolve_version
+}
+
+# Let's Encrypt checks that the domain points at this server. Behind a proxy
+# or CDN it may point elsewhere and still work, so this only warns.
+native_check_dns() {
+    if is_ip "$DOMAIN"; then return; fi
+    local addresses mine
+    addresses=$(dns_addresses "$DOMAIN")
+    mine=$(server_addresses)
+    if [ -n "$addresses" ] && grep -qFxf <(printf '%s\n' "$mine") <<<"$addresses"; then
+        ok "$DOMAIN points at this server"
+        return
+    fi
+    if [ -z "$addresses" ]; then
+        warn "$DOMAIN has no DNS record yet."
+    else
+        warn "$DOMAIN points at $(printf '%s' "$addresses" | tr '\n' ' ')and not at this server${SERVER_IP:+ ($SERVER_IP)}."
+    fi
+    info "Add an A record for it that points at ${SERVER_IP:-this server}, unless a proxy or CDN is in front."
+    if [ "$HTTPS" = yes ]; then
+        info 'Without it, the HTTPS certificate fails, and Chatvia runs on HTTP until you'
+        info 'get one (run this installer again then).'
+        if [ "$INTERACTIVE" = 1 ] && ! confirm 'Try to get the certificate anyway?' y; then HTTPS=no; fi
+    fi
+}
+
+native_show_summary() {
+    local password='the one you typed' address version storage firewall swap code email kind
+    local rows=()
+    if [ "$PASSWORD_GENERATED" = 1 ]; then password='a new random one, shown at the end'; fi
+    kv_to kind 'Install' 'Complete, directly on this server'
+    if [ "$HTTPS" = yes ]; then
+        kv_to address 'Address' "$APP_URL  $(dim '(HTTPS certificate from Let'\''s Encrypt)')"
+    else
+        kv_to address 'Address' "$APP_URL"
+    fi
+    kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
+    kv_to password 'Admin password' "$password"
+    kv_to version 'Version' "$(native_version_text)"
+    kv_to storage 'Search storage' "$EMBEDDING_TYPE, $EMBEDDING_DIMENSIONS dimensions $(dim '(permanent)')"
+    kv_to code 'Code' "$NATIVE_ROOT, run by the user $NATIVE_USER"
+    rows=("$kind" "$address" "$email" "$password" "$version" "$storage" "$code")
+    if [ "$FIREWALL" = yes ]; then
+        kv_to firewall 'Firewall' "on: SSH (port $(ssh_ports | paste -sd, - | sed 's/,/, /g')), HTTP and HTTPS"
+    else
+        kv_to firewall 'Firewall' 'left as it is'
+    fi
+    rows+=("$firewall")
+    if [ "$SWAP" = yes ]; then
+        kv_to swap 'Swap' '4 GB, in /swapfile'
+        rows+=("$swap")
+    fi
+    note 'Check your settings' "${rows[@]}"
+    if [ "$HTTPS" = yes ]; then
+        local notice="Let's Encrypt sends expiry notices to $ADMIN_EMAIL. Getting the certificate"
+        info "$(dim "$notice")"
+        info "$(dim 'means you accept its Subscriber Agreement: https://letsencrypt.org/repository/')"
+    fi
+}
+
+native_save_settings() {
+    install -d -m 755 "$(dirname "$NATIVE_CONF")"
+    (
+        umask 077
+        cat >"$NATIVE_CONF" <<EOF
+# The answers of the Chatvia complete installation, saved by the installer
+# on $(date '+%Y-%m-%d'). It reads them when it runs again: to finish an install
+# that stopped, or to upgrade. The secrets are in $NATIVE_ROOT/shared/.env.
+CHATVIA_DOMAIN=$DOMAIN
+APP_URL=$APP_URL
+HTTPS=$HTTPS
+ADMIN_EMAIL=$ADMIN_EMAIL
+EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
+EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
+CHATVIA_REPO=$CHATVIA_REPO
+CHATVIA_RELEASE=$CHATVIA_RELEASE
+CHATVIA_BRANCH=$CHATVIA_BRANCH
+FIREWALL=$FIREWALL
+SWAP=$SWAP
+EOF
+    )
+}
+
+native_load_settings() {
+    DOMAIN=$(conf_value CHATVIA_DOMAIN)
+    APP_URL=$(conf_value APP_URL)
+    HTTPS=$(conf_value HTTPS)
+    ADMIN_EMAIL=$(conf_value ADMIN_EMAIL)
+    EMBEDDING_TYPE=$(conf_value EMBEDDING_VECTOR_TYPE)
+    EMBEDDING_DIMENSIONS=$(conf_value EMBEDDING_DIMENSIONS)
+    CHATVIA_REPO=$(conf_value CHATVIA_REPO)
+    CHATVIA_RELEASE=$(conf_value CHATVIA_RELEASE)
+    CHATVIA_BRANCH=$(conf_value CHATVIA_BRANCH)
+    FIREWALL=$(conf_value FIREWALL)
+    SWAP=$(conf_value SWAP)
+    CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO}
+}
+
+native_failed() {
+    die 'The installation stopped.' "See why: $LOG" \
+        'Fix the cause, then run the installer again: it goes on where it stopped.'
+}
+
+# Every step of the install, in order. Each one is safe to repeat.
+native_run_steps() {
+    if [ "$SWAP" = yes ]; then
+        run_step 'Adding 4 GB of swap' native_add_swap || native_failed
+    fi
+    run_step 'Updating the system packages' native_update_system || native_failed
+    run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
+    run_step 'Checking Node.js' native_check_node || native_failed
+    run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
+    run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
+    run_step "Creating the $NATIVE_USER user" native_create_user || native_failed
+    run_step 'Setting up PHP-FPM' native_configure_php || native_failed
+    run_step 'Setting up nginx' native_configure_nginx || native_failed
+    if [ "$HTTPS" != no ]; then native_https; fi
+    run_step "Saving the settings to $NATIVE_ROOT/shared/.env" native_write_env || native_failed
+    run_step 'Creating the database' native_setup_database || native_failed
+    run_step 'Setting up Redis' native_configure_redis || native_failed
+    run_step 'Installing Deployer' native_install_deployer || native_failed
+    run_step "Deploying Chatvia $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
+    run_step 'Starting Horizon, Reverb and Pulse' native_configure_supervisor || native_failed
+    run_step 'Starting the scheduler' native_configure_cron || native_failed
+    run_step 'Creating the admin account' native_create_admin || native_failed
+    native_read_admin_result
+    if [ "$FIREWALL" = yes ]; then
+        run_step 'Turning on the firewall' native_configure_firewall || native_failed
+    fi
+    if ! run_step 'Waiting for the web app' wait_until 120 native_app_is_up; then
+        info "The admin account is ready: $(bold "$ADMIN_EMAIL"), password $(admin_password_text)"
+        die 'The web app did not answer within 2 minutes.' \
+            "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log" \
+            'Then run this installer again to finish.'
+    fi
+    if [ "$DRY_RUN" = 0 ]; then
+        printf '\n# Install finished on %s.\n' "$(date '+%Y-%m-%d')" >>"$NATIVE_CONF"
+    fi
+    native_show_finish
+}
+
+# The certificate, when the answers ask for one (or an earlier attempt could
+# not get it). Without it, Chatvia runs on HTTP: the next run of the
+# installer tries again.
+native_https() {
+    if run_step "Getting an HTTPS certificate for $DOMAIN" native_get_certificate; then
+        HTTPS=yes
+        APP_URL="https://$DOMAIN"
+    else
+        HTTPS=pending
+        APP_URL="http://$DOMAIN"
+        warn 'No HTTPS certificate yet, so Chatvia runs on HTTP for now.'
+        info "Once $DOMAIN points at this server, run this installer again to get it."
+    fi
+    if [ "$DRY_RUN" = 0 ]; then
+        conf_set HTTPS "$HTTPS"
+        conf_set APP_URL "$APP_URL"
+    fi
+}
+
+native_add_swap() {
+    if [ ! -f /swapfile ]; then
+        fallocate -l 4G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=4096
+        chmod 600 /swapfile
+        mkswap /swapfile
+    fi
+    if ! swapon --show=NAME --noheadings | grep -qx /swapfile; then swapon /swapfile; fi
+    if ! grep -q '^/swapfile ' /etc/fstab; then echo '/swapfile none swap sw 0 0' >>/etc/fstab; fi
+}
+
+native_update_system() {
+    apt_get update
+    apt_get upgrade
+}
+
+native_install_packages() {
+    local php=php$NATIVE_PHP
+    # Node.js and npm build the frontend and the chat widget. Poppler,
+    # pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes PDF
+    # exports, and the Noto fonts give it every script.
+    apt_get install \
+        git curl unzip ca-certificates cron ufw \
+        "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
+        "$php-curl" "$php-zip" "$php-gd" "$php-xml" composer \
+        nodejs npm \
+        nginx redis-server supervisor certbot python3-certbot-nginx \
+        "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \
+        poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk
+    php -v
+    composer --version
+}
+
+# The frontend build and Shakomako need Node.js 22.18 or newer. Ubuntu's own
+# is; should it not be, Node.js 22 comes from NodeSource instead.
+native_check_node() {
+    local version
+    version=$(node -v 2>/dev/null) || version=''
+    version=${version#v}
+    if [ -n "$version" ] && version_at_least "$version" "$MIN_NODE_VERSION"; then
+        echo "Node.js $version"
+        return 0
+    fi
+    echo "Node.js ${version:-is missing}: installing Node.js 22 from NodeSource."
+    curl -fsSL https://deb.nodesource.com/setup_22.x -o "$WORK_DIR/nodesource.sh"
+    bash "$WORK_DIR/nodesource.sh"
+    apt_get install nodejs
+    node -v
+}
+
+# VectorChord, VectorChord-bm25 and pg_tokenizer come as packages from
+# their GitHub releases; pgvector comes from Ubuntu.
+native_install_extensions() {
+    local arch dir="$WORK_DIR/debs" name version repo file files=()
+    arch=$(dpkg --print-architecture)
+    mkdir -p "$dir"
+    for name in vchord vchord-bm25 pg-tokenizer; do
+        case $name in
+            vchord) version=$VCHORD_VERSION repo=VectorChord ;;
+            vchord-bm25) version=$VCHORD_BM25_VERSION repo=VectorChord-bm25 ;;
+            pg-tokenizer) version=$PG_TOKENIZER_VERSION repo=pg_tokenizer.rs ;;
+        esac
+        if [ "$(dpkg-query -W -f='${Version}' "postgresql-$NATIVE_PG-$name" 2>/dev/null)" = "$version-1" ]; then
+            echo "postgresql-$NATIVE_PG-$name $version is installed."
+            continue
+        fi
+        file="$dir/postgresql-$NATIVE_PG-${name}_$version-1_$arch.deb"
+        curl -fsSL -o "$file" \
+            "https://github.com/tensorchord/$repo/releases/download/$version/postgresql-$NATIVE_PG-${name}_$version-1_$arch.deb"
+        files+=("$file")
+    done
+    if [ "${#files[@]}" -gt 0 ]; then apt_get install "${files[@]}"; fi
+}
+
+native_configure_postgres() {
+    local conf="/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
+    install -d "$(dirname "$conf")"
+    cat >"$conf" <<'EOF'
+# Written by the Chatvia installer. Chatvia's search needs these libraries
+# loaded when PostgreSQL starts; add your own after them.
+shared_preload_libraries = 'vchord,vchord_bm25,vector,pg_tokenizer'
+EOF
+    chmod 644 "$conf"
+    systemctl enable postgresql
+    systemctl restart postgresql
+    wait_until 60 psql_admin -Atc 'SELECT 1'
+    psql_admin -Atc 'SHOW shared_preload_libraries'
+}
+
+native_create_user() {
+    if ! id -u "$NATIVE_USER" >/dev/null 2>&1; then
+        adduser --system --group --shell /bin/bash --home "$NATIVE_HOME" "$NATIVE_USER"
+    fi
+    install -d -o "$NATIVE_USER" -g "$NATIVE_USER" -m 750 "$NATIVE_HOME"
+    install -d -o "$NATIVE_USER" -g "$NATIVE_USER" -m 755 "$NATIVE_ROOT" "$NATIVE_ROOT/shared"
+}
+
+# A PHP-FPM pool of its own, run by chatvia, and room in OPcache for all of
+# Chatvia's PHP files (about 30,000).
+native_configure_php() {
+    cat >"/etc/php/$NATIVE_PHP/fpm/pool.d/chatvia.conf" <<'EOF'
+; Chatvia's PHP-FPM pool. Written by the Chatvia installer.
+[chatvia]
+user = chatvia
+group = chatvia
+
+listen = /run/php/chatvia.sock
+listen.owner = www-data
+listen.group = www-data
+
+; A streaming chat answer keeps one worker busy until it ends.
+pm = dynamic
+pm.max_children = 20
+pm.start_servers = 4
+pm.min_spare_servers = 2
+pm.max_spare_servers = 6
+pm.max_requests = 500
+
+php_admin_value[memory_limit] = 512M
+php_admin_value[max_execution_time] = 300
+; Knowledge files can be up to 50 MB.
+php_admin_value[upload_max_filesize] = 64M
+php_admin_value[post_max_size] = 64M
+EOF
+    cat >"/etc/php/$NATIVE_PHP/fpm/conf.d/99-chatvia.ini" <<'EOF'
+; Written by the Chatvia installer.
+opcache.memory_consumption = 256
+opcache.interned_strings_buffer = 32
+opcache.max_accelerated_files = 65407
+EOF
+    "php-fpm$NATIVE_PHP" -t
+    systemctl enable "php$NATIVE_PHP-fpm"
+    systemctl restart "php$NATIVE_PHP-fpm"
+}
+
+# The site, on HTTP. Certbot adds HTTPS to it.
+native_configure_nginx() {
+    local name=$DOMAIN
+    if is_ip "$DOMAIN"; then name=_; fi
+    sed -e "s|__SERVER_NAME__|$name|" -e "s|__ROOT__|$NATIVE_ROOT/current/public|" >/etc/nginx/sites-available/chatvia <<'EOF'
+# Chatvia. Written by the Chatvia installer; Certbot adds HTTPS to it.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __SERVER_NAME__;
+
+    root __ROOT__;
+    index index.php;
+    charset utf-8;
+
+    # Knowledge files can be up to 50 MB.
+    client_max_body_size 64M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # Live updates: the browser's WebSocket connections go to Reverb.
+    location ^~ /app/ {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+
+    # The chat widget. Other websites load it, so every file allows any origin.
+    location ^~ /shakomako/ {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    location = /shakomako/embed.js {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "public, max-age=300" always;
+        try_files $uri =404;
+    }
+
+    location = /shakomako/version.json {
+        add_header Access-Control-Allow-Origin "*" always;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    # $realpath_root: the release that `current` points at, so the first
+    # request after a deploy runs the new one.
+    location ~ ^/index\.php(/|$) {
+        fastcgi_pass unix:/run/php/chatvia.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_hide_header X-Powered-By;
+        # Chat answers stream for a while.
+        fastcgi_read_timeout 300s;
+        fastcgi_buffer_size 32k;
+        fastcgi_buffers 16 32k;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+EOF
+    ln -sfn /etc/nginx/sites-available/chatvia /etc/nginx/sites-enabled/chatvia
+    rm -f /etc/nginx/sites-enabled/default
+    nginx -t
+    systemctl enable nginx
+    systemctl reload-or-restart nginx
+}
+
+# --keep-until-expiring: a certificate from an earlier attempt is put back
+# into the site instead of asking for a new one.
+native_get_certificate() {
+    certbot --nginx --non-interactive --agree-tos --no-eff-email --keep-until-expiring --redirect \
+        -m "$ADMIN_EMAIL" -d "$DOMAIN"
+}
+
+# The settings of this install. Secrets from an earlier attempt are kept:
+# the database and Redis already use them.
+native_write_env() {
+    local file="$INSTALL_DIR/.env" app_key db_password redis_password reverb_id reverb_key reverb_secret mcp_secret
+    local db_port secure=false
+    app_key=$(env_value APP_KEY)
+    db_password=$(env_value DB_PASSWORD)
+    redis_password=$(env_value REDIS_PASSWORD)
+    reverb_id=$(env_value REVERB_APP_ID)
+    reverb_key=$(env_value REVERB_APP_KEY)
+    reverb_secret=$(env_value REVERB_APP_SECRET)
+    mcp_secret=$(env_value BUILTIN_MCP_SECRET)
+    app_key=${app_key:-base64:$(head -c 32 /dev/urandom | base64)}
+    db_password=${db_password:-$(random_hex 24)}
+    redis_password=${redis_password:-$(random_hex 24)}
+    reverb_id=${reverb_id:-$(random_hex 8)}
+    reverb_key=${reverb_key:-$(random_hex 16)}
+    reverb_secret=${reverb_secret:-$(random_hex 32)}
+    mcp_secret=${mcp_secret:-$(random_hex 32)}
+    db_port=$(pg_conftool -s "$NATIVE_PG" main show port 2>/dev/null) || db_port=5432
+    case $APP_URL in https://*) secure=true ;; esac
+
+    (
+        umask 077
+        cat >"$file.new" <<EOF
+# Chatvia settings, written by the installer on $(date '+%Y-%m-%d').
+# Only what Chatvia needs to start. Email, API keys, the AI services and the
+# other options are set in the admin panel, under Settings. Every release
+# reads this file. After a change, run as chatvia (sudo -iu chatvia):
+#   cd $NATIVE_ROOT/current && php artisan optimize && php artisan reload
+# More: $NATIVE_DOCS
+
+APP_NAME=Chatvia
+APP_ENV=production
+APP_DEBUG=false
+# Encrypts the secrets in the database. Keep a copy somewhere safe, and
+# never change it: without it, they cannot be read.
+APP_KEY=$app_key
+APP_URL=$APP_URL
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+
+# How the database stores embeddings. Chosen at install: they can NEVER
+# change afterwards, or Chatvia stops with an error.
+EMBEDDING_VECTOR_TYPE=$EMBEDDING_TYPE
+EMBEDDING_DIMENSIONS=$EMBEDDING_DIMENSIONS
+
+# A log file per day in storage/logs, which the admin panel's Logs page
+# reads. Only the newest 14 are kept.
+LOG_CHANNEL=stack
+LOG_STACK=daily
+LOG_DAILY_DAYS=14
+LOG_LEVEL=info
+LOG_DEPRECATIONS_CHANNEL=null
+
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=$db_port
+DB_DATABASE=chatvia
+DB_USERNAME=chatvia
+DB_PASSWORD=$db_password
+DB_PULSE_DATABASE=pulse
+DB_SPECTRA_DATABASE=spectra
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=$redis_password
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+SESSION_ENCRYPT=true
+# Sends the session cookie only over HTTPS.
+SESSION_SECURE_COOKIE=$secure
+
+# "log" writes every e-mail to the log. Set up email in the admin panel
+# (Settings -> Email) before other people use the app: sign-up, invitations
+# and password resets are sent by e-mail.
+MAIL_MAILER=log
+MAIL_FROM_ADDRESS=hello@example.com
+MAIL_FROM_NAME="\${APP_NAME}"
+
+# Live updates. The app reaches Reverb on this server; browsers and the chat
+# widget connect to APP_URL, and nginx passes /app/ to Reverb.
+BROADCAST_CONNECTION=reverb
+REVERB_APP_ID=$reverb_id
+REVERB_APP_KEY=$reverb_key
+REVERB_APP_SECRET=$reverb_secret
+REVERB_HOST=127.0.0.1
+REVERB_PORT=8080
+REVERB_SCHEME=http
+REVERB_SERVER_HOST=127.0.0.1
+REVERB_SERVER_PORT=8080
+VITE_REVERB_APP_KEY=
+VITE_REVERB_HOST=
+VITE_REVERB_PORT=
+VITE_REVERB_SCHEME=
+
+# Signs the calls the app makes to its own built-in tools.
+BUILTIN_MCP_SECRET=$mcp_secret
+EOF
+    )
+    chown "$NATIVE_USER:$NATIVE_USER" "$file.new"
+    mv "$file.new" "$file"
+}
+
+# The database user and the databases of the app, Pulse and Spectra. The
+# password goes through stdin, never the command line.
+native_setup_database() {
+    {
+        printf "\\set password '%s'\n" "$(env_value DB_PASSWORD)"
+        cat <<'SQL'
+SELECT 'CREATE ROLE chatvia LOGIN' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'chatvia')\gexec
+ALTER ROLE chatvia WITH LOGIN PASSWORD :'password';
+SELECT 'CREATE DATABASE chatvia OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'chatvia')\gexec
+SELECT 'CREATE DATABASE pulse OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'pulse')\gexec
+SELECT 'CREATE DATABASE spectra OWNER chatvia' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'spectra')\gexec
+SQL
+    } | psql_admin
+}
+
+# Redis keeps the queues, the cache and the sessions: a password, and every
+# change on disk, so queued jobs survive a restart.
+native_configure_redis() {
+    local conf=/etc/redis/redis.conf
+    sed -i -e '/^# Chatvia:/d' -e '/^requirepass /d' -e '/^appendonly /d' "$conf"
+    printf '# Chatvia: a password, and every change kept on disk.\nrequirepass %s\nappendonly yes\n' \
+        "$(env_value REDIS_PASSWORD)" >>"$conf"
+    systemctl enable redis-server
+    systemctl restart redis-server
+    wait_until 30 native_redis_ready
+}
+
+native_redis_ready() {
+    [ "$(REDISCLI_AUTH=$(env_value REDIS_PASSWORD) redis-cli ping 2>/dev/null)" = PONG ]
+}
+
+# Deployer, for the chatvia user, in ~/deploy. deploy.php there is yours
+# once written: an upgrade replaces it only while it is unchanged.
+native_install_deployer() {
+    install -d -o "$NATIVE_USER" -g "$NATIVE_USER" -m 755 "$NATIVE_DEPLOY_DIR"
+    native_write_deploy_file
+    if [ ! -x "$NATIVE_DEPLOY_DIR/vendor/bin/dep" ]; then
+        as_chatvia "$NATIVE_DEPLOY_DIR" composer require --no-interaction --no-progress "deployer/deployer:$DEPLOYER_VERSION"
+    fi
+    native_dep --version
+}
+
+native_write_deploy_file() {
+    native_deploy_file >"$NATIVE_DEPLOY_DIR/deploy.php.new"
+    chown "$NATIVE_USER:$NATIVE_USER" "$NATIVE_DEPLOY_DIR/deploy.php.new"
+    mv "$NATIVE_DEPLOY_DIR/deploy.php.new" "$NATIVE_DEPLOY_DIR/deploy.php"
+    conf_set DEPLOY_FILE_SUM "$(cksum <"$NATIVE_DEPLOY_DIR/deploy.php")"
+}
+
+native_deploy_file() {
+    sed -e "s|__REPOSITORY__|${CHATVIA_REPO//|/\\|}|" -e "s|__DEPLOY_PATH__|$NATIVE_ROOT|g" -e "s|__DOCS__|$NATIVE_DOCS|" <<'EOF'
+<?php
+
+// Deploys Chatvia on this server. Written by the Chatvia installer, which
+// replaces this file on an upgrade as long as you have not changed it.
+//
+// Every release goes into a folder of its own in __DEPLOY_PATH__/releases,
+// and `current` points at the one that runs. A deploy builds the new release
+// next to it and switches only when every step worked. As chatvia
+// (sudo -iu chatvia), in ~/deploy:
+//
+//   vendor/bin/dep deploy --tag=v1.2.3                 deploy a release
+//   vendor/bin/dep rollback && vendor/bin/dep artisan:reload
+//                                                      back to the one before
+//   vendor/bin/dep releases                            list the releases
+//
+// It runs on this server (localhost), as chatvia. To deploy from your own
+// computer instead, copy this file there and replace localhost() with
+// host('chat.example.com')->set('remote_user', 'chatvia').
+// More: https://chatvia.ai/docs/guide/self-hosting/deployer
+
+namespace Deployer;
+
+require 'recipe/laravel.php';
+
+set('repository', '__REPOSITORY__');
+set('keep_releases', 5);
+
+// One user runs PHP-FPM, Horizon, Reverb and the scheduler, so a release
+// needs no extra write permissions.
+set('writable_mode', 'skip');
+
+localhost()
+    ->set('deploy_path', '__DEPLOY_PATH__');
+
+desc('Creates the storage folders Laravel needs');
+task('chatvia:storage', function () {
+    run('mkdir -p {{deploy_path}}/shared/storage/framework/cache/data {{deploy_path}}/shared/storage/framework/sessions {{deploy_path}}/shared/storage/framework/views');
+});
+
+desc('Builds the frontend and the chat widget');
+task('chatvia:build', function () {
+    cd('{{release_path}}');
+    run('npm ci --no-audit --no-fund');
+    run('npm run build');
+    run('npm run shakomako:build');
+});
+
+desc('Creates the Pulse and Spectra databases when they are missing');
+task('chatvia:tool-databases', artisan('app:create-tool-databases'));
+
+desc('Checks that the embedding settings still match the database');
+task('chatvia:check-embeddings', artisan('app:check-embedding-storage'));
+
+desc('Adds the built-in tools to the tool catalog');
+task('chatvia:sync-tools', function () {
+    // Needs the embedding provider's API key, which a new install has not got yet.
+    if (! test('{{bin/php}} {{release_path}}/artisan app:sync-builtin-mcp --no-interaction')) {
+        warning('The built-in tools were not updated. Add your embedding API key in the admin panel, then deploy again.');
+    }
+});
+
+after('deploy:shared', 'chatvia:storage');
+after('deploy:vendors', 'chatvia:build');
+before('artisan:migrate', 'chatvia:tool-databases');
+after('artisan:migrate', 'chatvia:check-embeddings');
+after('chatvia:check-embeddings', 'chatvia:sync-tools');
+after('deploy:failed', 'deploy:unlock');
+EOF
+}
+
+# The first deploy. Its first migration installs the PostgreSQL extensions
+# and sets up the keyword tokenizer, which needs a superuser: the database
+# user is one for this deploy only.
+native_first_deploy() {
+    local status=0
+    psql_admin -c "ALTER ROLE $NATIVE_USER SUPERUSER"
+    native_dep deploy "$(native_target)" || status=$?
+    psql_admin -c "ALTER ROLE $NATIVE_USER NOSUPERUSER" || status=1
+    return "$status"
+}
+
+# An upgrade deploys without the superuser right. A release whose migration
+# adds a PostgreSQL extension needs it, like the first deploy: then it gets
+# it for one more try.
+native_upgrade_deploy() {
+    local output
+    native_dep deploy "$(native_target)" && return 0
+    output=$(tail -n 300 "$LOG")
+    [[ $output == *'permission denied to create extension'* ]] || return 1
+    echo 'A migration installs a PostgreSQL extension: deploying again, as a superuser this time.'
+    native_first_deploy
+}
+
+# Supervisor keeps Horizon (the queues), Reverb (live updates) and Pulse's
+# server stats running, and starts them again when they stop. They run the
+# release that `current` points at; a deploy restarts them.
+native_configure_supervisor() {
+    sed -e "s|__CURRENT__|$NATIVE_ROOT/current|g" -e "s|__HOME__|$NATIVE_HOME|g" \
+        >/etc/supervisor/conf.d/chatvia.conf <<'EOF'
+; Chatvia. Written by the Chatvia installer.
+[program:chatvia-horizon]
+command=/usr/bin/php __CURRENT__/artisan horizon
+directory=__CURRENT__
+user=chatvia
+environment=HOME="__HOME__"
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+; A running job gets up to an hour to finish, so a long document is not cut off.
+stopwaitsecs=3600
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/chatvia-horizon.log
+
+[program:chatvia-reverb]
+command=/usr/bin/php __CURRENT__/artisan reverb:start
+directory=__CURRENT__
+user=chatvia
+environment=HOME="__HOME__"
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/chatvia-reverb.log
+
+[program:chatvia-pulse]
+command=/usr/bin/php __CURRENT__/artisan pulse:check
+directory=__CURRENT__
+user=chatvia
+environment=HOME="__HOME__"
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/chatvia-pulse.log
+EOF
+    systemctl enable supervisor
+    systemctl start supervisor
+    supervisorctl reread
+    supervisorctl update
+    wait_until 60 native_programs_running
+    supervisorctl status
+}
+
+native_programs_running() {
+    local status
+    status=$(supervisorctl status chatvia-horizon chatvia-reverb chatvia-pulse 2>/dev/null) || true
+    [ "$(printf '%s\n' "$status" | grep -c ' RUNNING ')" = 3 ]
+}
+
+# The scheduler cleans up old data, analyses conversations, collects
+# statistics and backs up the database. cron starts it every minute.
+native_configure_cron() {
+    printf '# Chatvia. Written by the Chatvia installer.\n* * * * * %s cd %s && php artisan schedule:run >> /dev/null 2>&1\n' \
+        "$NATIVE_USER" "$NATIVE_ROOT/current" >/etc/cron.d/chatvia
+    chmod 644 /etc/cron.d/chatvia
+    systemctl enable cron
+    systemctl start cron
+}
+
+# The password goes through stdin, never the command line.
+native_create_admin() {
+    printf '%s' "$ADMIN_PASS" | as_chatvia "$NATIVE_ROOT/current" \
+        php artisan admin:create-user "$ADMIN_EMAIL" Admin --stdin --if-no-admin --if-missing --no-interaction
+}
+
+# Whether the step above made the account, or it was there already (made by
+# an earlier attempt).
+native_read_admin_result() {
+    local output
+    ADMIN_CREATED=1
+    [ "$DRY_RUN" = 1 ] && return 0
+    output=$(tail -n 5 "$LOG")
+    if [[ $output == *'Nothing to do'* ]]; then ADMIN_CREATED=0; fi
+}
+
+native_configure_firewall() {
+    local port
+    for port in $(ssh_ports); do
+        ufw allow "$port/tcp" comment 'SSH'
+    done
+    ufw allow 80/tcp comment 'HTTP'
+    ufw allow 443/tcp comment 'HTTPS'
+    ufw --force enable
+    ufw status verbose
+}
+
+# Asks the site for /up through nginx on this server, as visitors would.
+native_app_is_up() {
+    local host=${APP_URL#*://} port=80
+    case $APP_URL in https://*) port=443 ;; esac
+    curl -fsS -o /dev/null --max-time 5 --resolve "$host:$port:127.0.0.1" "$APP_URL/up"
+}
+
+native_show_finish() {
+    local title open admin email password saved='' n=1
+    if [ "$DRY_RUN" = 1 ]; then
+        title='Dry run done. A real install ends like this:'
+    else
+        title=$(bold 'Chatvia is running')
+    fi
+
+    kv_to open 'Open the app' "$(accent "$APP_URL")"
+    kv_to admin 'Admin panel' "$(accent "$APP_URL/admin")"
+    kv_to email 'Admin e-mail' "$ADMIN_EMAIL"
+    if [ "$ADMIN_CREATED" = 0 ]; then
+        kv_to password 'Admin password' 'unchanged: made by an earlier attempt'
+    elif [ "$PASSWORD_GENERATED" = 1 ]; then
+        kv_to password 'Admin password' "$(bold "$ADMIN_PASS")"
+        kv_to saved '' "$(accent "$S_UP save it now, it is shown only once")"
+    else
+        kv_to password 'Admin password' 'the one you typed'
+    fi
+    note "$title" "$open" "$admin" "$email" "$password" ${saved:+"$saved"}
+
+    section 'Next steps'
+    if [ "$HTTPS" = pending ]; then
+        info "$n. Point $DOMAIN at this server, then run this installer again to get"
+        info '   the HTTPS certificate.'
+        n=$((n + 1))
+    fi
+    info "$n. Sign in to the admin panel and set up two-factor authentication."
+    info "$((n + 1)). Follow the short setup there: your AI provider and its API key,"
+    info '   the models, and email.'
+    info "$((n + 2)). Then add the built-in tools, like charts, forms and web search:"
+    info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan app:sync-builtin-mcp"
+
+    section 'Good to know'
+    info "Settings     $NATIVE_ROOT/shared/.env"
+    info "             $(dim 'Back it up: its APP_KEY unlocks the secrets in the database.')"
+    info "Upgrade      $(dim 'run this installer again: it deploys the newest release')"
+    info "Status       sudo supervisorctl status"
+    info "App logs     $NATIVE_ROOT/shared/storage/logs"
+    info "Deployer     sudo -iu $NATIVE_USER, then cd deploy && vendor/bin/dep releases"
+    info "Backups      $(dim 'the database, twice a day, to the storage set in the admin panel')"
+    info "Install log  $NATIVE_LOG"
+
+    offer_browser
+    outro "$(dim "Guide: $NATIVE_DOCS")"
+}
+
+native_resume() {
+    warn 'An earlier complete installation on this server did not finish.'
+    if [ "$INTERACTIVE" = 1 ]; then
+        choose 'What do you want to do?' \
+            'Finish it  — the remaining steps, with the answers you gave then' \
+            'Nothing, exit'
+        if [ "$CHOICE" != 0 ]; then
+            outro 'Nothing was changed.'
+            exit 0
+        fi
+    fi
+    native_load_settings
+
+    # Used only when the earlier attempt did not make the admin account yet.
+    ADMIN_PASS=${CHATVIA_ADMIN_PASSWORD:-}
+    if [ -z "$ADMIN_PASS" ] && [ "$INTERACTIVE" = 1 ]; then
+        choose 'Admin password (used if the account does not exist yet)' \
+            'Create a strong one for me  — shown once at the end' \
+            'I will type my own'
+        if [ "$CHOICE" = 1 ]; then ask_secret ADMIN_PASS 'Your password'; fi
+    fi
+    if [ -z "$ADMIN_PASS" ]; then
+        ADMIN_PASS=$(random_password)
+        PASSWORD_GENERATED=1
+    fi
+    native_run_steps
+}
+
+native_upgrade() {
+    native_load_settings
+    local installed new
+    installed=$(native_version_text)
+    ok "Chatvia $(bold "$installed") is installed on this server $(dim '(complete installation)')"
+    info "$(dim 'The install questions only run once. Your data and settings are kept.')"
+
+    if [ "$HTTPS" = pending ]; then native_retry_https; fi
+
+    if [ "$UPGRADE" = 0 ]; then
+        if [ "$INTERACTIVE" = 0 ]; then
+            die 'Pass --upgrade to upgrade it without questions.'
+        fi
+        choose 'What do you want to do?' \
+            'Upgrade to the newest version  — keeps your data' \
+            'Nothing, exit'
+        if [ "$CHOICE" != 0 ]; then
+            outro 'Nothing was changed.'
+            exit 0
+        fi
+    fi
+
+    # Without --version: the newest release, or the newest code of the
+    # branch an install of a branch follows.
+    if [ "$VERSION_GIVEN" = 0 ]; then
+        CHATVIA_VERSION=${CHATVIA_BRANCH:-latest}
+    fi
+    local old_release=$CHATVIA_RELEASE
+    native_resolve_version
+    new=$(native_version_text)
+    if [ -n "$old_release" ] && [ -n "$CHATVIA_RELEASE" ]; then
+        if [ "$old_release" = "$CHATVIA_RELEASE" ] && [ "$VERSION_GIVEN" = 0 ]; then
+            outro "Chatvia $old_release is the newest version. Nothing to do."
+            return
+        fi
+        if ! version_at_least "${CHATVIA_RELEASE#v}" "${old_release#v}"; then
+            die "$CHATVIA_RELEASE is older than the version installed here ($old_release)." \
+                "Going back needs the data from before the upgrade: a backup in $NATIVE_BACKUPS."
+        fi
+    fi
+    if [ "$installed" != "$new" ]; then info "Version $installed $S_ARROW $(bold "$new")"; fi
+
+    native_refresh_deploy_file
+    run_step 'Backing up the database' native_backup ||
+        die 'The backup failed, so nothing was upgraded.' "See why: $LOG"
+    run_step "Deploying Chatvia $new" native_upgrade_deploy ||
+        die "The upgrade stopped. Chatvia $installed still runs: Deployer switches only when every step worked." \
+            "See why: $LOG"
+    if [ "$DRY_RUN" = 0 ]; then
+        conf_set CHATVIA_RELEASE "$CHATVIA_RELEASE"
+        conf_set CHATVIA_BRANCH "$CHATVIA_BRANCH"
+    fi
+    run_step 'Waiting for the web app' wait_until 120 native_app_is_up ||
+        die 'The web app did not answer within 2 minutes.' \
+            "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log"
+    ok "$(bold "Chatvia $new is running.")"
+    outro "Open $(accent "$APP_URL")"
+}
+
+# deploy.php is the installer's until you change it: an upgrade replaces an
+# unchanged one, so it gets the steps a new release may need.
+native_refresh_deploy_file() {
+    [ "$DRY_RUN" = 1 ] && return 0
+    if [ "$(cksum <"$NATIVE_DEPLOY_DIR/deploy.php")" = "$(conf_value DEPLOY_FILE_SUM)" ]; then
+        native_write_deploy_file
+    else
+        warn "$NATIVE_DEPLOY_DIR/deploy.php has your changes, so it was not updated."
+    fi
+}
+
+# A copy of the database right before an upgrade, in /var/backups/chatvia.
+# The newest five are kept.
+native_backup() {
+    local file
+    file="$NATIVE_BACKUPS/chatvia-$(date '+%Y%m%d-%H%M%S')-before-$(native_version_text | tr ' ' '-').dump"
+    install -d -m 700 "$NATIVE_BACKUPS"
+    (cd / && runuser -u postgres -- pg_dump --cluster "$NATIVE_PG/main" -Fc chatvia) >"$file"
+    chmod 600 "$file"
+    echo "Saved $file"
+    # shellcheck disable=SC2012 # The installer names these files.
+    ls -1t "$NATIVE_BACKUPS"/chatvia-*-before-*.dump | tail -n +6 | xargs -r rm -f
+}
+
+native_retry_https() {
+    warn "$DOMAIN has no HTTPS certificate yet."
+    if [ "$INTERACTIVE" = 1 ] && ! confirm "Get it now? $DOMAIN must point at this server." y; then return; fi
+    if ! run_step "Getting an HTTPS certificate for $DOMAIN" native_get_certificate; then
+        warn 'Still no certificate. Chatvia keeps running on HTTP.'
+        return
+    fi
+    HTTPS=yes
+    APP_URL="https://$DOMAIN"
+    run_step 'Switching Chatvia to HTTPS' native_switch_to_https ||
+        die 'Could not switch to HTTPS.' "See why: $LOG"
+}
+
+native_switch_to_https() {
+    native_set_env APP_URL "$APP_URL"
+    native_set_env SESSION_SECURE_COOKIE true
+    conf_set HTTPS yes
+    conf_set APP_URL "$APP_URL"
+    as_chatvia "$NATIVE_ROOT/current" php artisan optimize
+    as_chatvia "$NATIVE_ROOT/current" php artisan reload
+}
+
+#------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
@@ -1746,6 +3099,8 @@ usage() {
 parse_args() {
     while [ $# -gt 0 ]; do
         case $1 in
+            --docker) MODE=docker ;;
+            --complete) MODE=complete ;;
             --dir) CHATVIA_DIR=${2:?--dir needs a folder}; shift ;;
             --email) CHATVIA_ADMIN_EMAIL=${2:?--email needs an address}; shift ;;
             --port) CHATVIA_PORT=${2:?--port needs a number}; shift ;;
@@ -1753,6 +3108,10 @@ parse_args() {
             --version) CHATVIA_VERSION=${2:?--version needs a version} VERSION_GIVEN=1; shift ;;
             --image) CHATVIA_IMAGE=${2:?--image needs a name}; shift ;;
             --no-pull) NO_PULL=1 ;;
+            --domain) CHATVIA_DOMAIN=${2:?--domain needs a name}; shift ;;
+            --no-https) CHATVIA_HTTPS=no ;;
+            --no-firewall) CHATVIA_FIREWALL=no ;;
+            --force) FORCE=1 ;;
             --yes | -y) YES=1 ;;
             --upgrade) UPGRADE=1 ;;
             --no-start) NO_START=1 ;;
@@ -1784,9 +3143,22 @@ main() {
     CHATVIA_VERSION=${CHATVIA_VERSION:-latest}
     CHATVIA_IMAGE=${CHATVIA_IMAGE:-}
     NO_PULL=${CHATVIA_NO_PULL:-0}
+    MODE=${CHATVIA_INSTALL:-} FORCE=${CHATVIA_FORCE:-0} ARGS=("$@")
+    CHATVIA_REPO=${CHATVIA_REPO:-$NATIVE_REPO} CHATVIA_RELEASE='' CHATVIA_BRANCH=''
+    DOMAIN='' SERVER_IP='' HTTPS=no FIREWALL=no SWAP=no
 
     setup_output
     parse_args "$@"
+    case $MODE in
+        '' | docker | complete) ;;
+        *) die "CHATVIA_INSTALL must be docker or complete, not $MODE." ;;
+    esac
+    # Options that only the Docker install has.
+    DOCKER_OPTIONS=0
+    if [ -n "${CHATVIA_DIR:-}${CHATVIA_PORT:-}${CHATVIA_URL:-}$CHATVIA_IMAGE" ] ||
+        [ "$NO_PULL" = 1 ] || [ "$NO_START" = 1 ]; then
+        DOCKER_OPTIONS=1
+    fi
 
     trap cleanup EXIT
     trap interrupted INT TERM
@@ -1812,9 +3184,19 @@ main() {
             'On Windows, run it inside WSL 2 (Ubuntu) with Docker Desktop.' ;;
     esac
 
-    banner
-    intro 'Setup'
-    if [ "$DRY_RUN" = 1 ]; then info "$(accent 'Dry run: nothing will be changed.')"; fi
+    # A complete installation started by another user runs again as root,
+    # and goes on below the questions it already asked.
+    if [ -z "${CHATVIA_RESTARTED:-}" ]; then
+        banner
+        intro 'Setup'
+        if [ "$DRY_RUN" = 1 ]; then info "$(accent 'Dry run: nothing will be changed.')"; fi
+    fi
+
+    choose_mode
+    if [ "$MODE" = complete ]; then
+        native_main
+        return
+    fi
 
     INSTALL_DIR=${CHATVIA_DIR:-$HOME/chatvia}
     if [ "$INTERACTIVE" = 1 ] && [ -z "${CHATVIA_DIR:-}" ]; then

@@ -34,6 +34,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Account Overview Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -73,6 +74,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Message Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -112,6 +114,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Conversation Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -156,6 +159,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Top Users Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -195,6 +199,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Channel Breakdown Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -230,6 +235,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Agent Breakdown Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -274,6 +280,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Geography Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -313,6 +320,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Activity Patterns Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -352,6 +360,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Satisfaction Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -391,6 +400,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Response Time Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -435,6 +445,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Top Topics Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -474,6 +485,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Lead Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -513,6 +525,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Handoff Stats Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -552,6 +565,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Token Usage Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -596,6 +610,7 @@
             "type": "object"
         },
         "annotations": {
+            "title": "Get Ai Usage Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }

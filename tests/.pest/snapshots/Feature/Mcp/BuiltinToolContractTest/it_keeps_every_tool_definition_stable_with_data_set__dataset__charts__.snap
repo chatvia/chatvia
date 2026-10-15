@@ -74,6 +74,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Bar Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -157,6 +158,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Line Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -209,6 +211,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Pie Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -300,6 +303,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Combo Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -380,6 +384,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Scatter Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -453,6 +458,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Radar Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -529,6 +535,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Heatmap Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -573,6 +580,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Gauge Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -641,6 +649,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Sankey Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -691,6 +700,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Treemap Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -741,6 +751,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Sunburst Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }
@@ -812,6 +823,7 @@
             ]
         },
         "annotations": {
+            "title": "Render Candlestick Chart Tool",
             "readOnlyHint": true,
             "idempotentHint": true
         }

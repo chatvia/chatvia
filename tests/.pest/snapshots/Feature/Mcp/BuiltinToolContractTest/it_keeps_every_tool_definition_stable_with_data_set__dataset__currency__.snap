@@ -26,6 +26,7 @@
             ]
         },
         "annotations": {
+            "title": "Exchange Rate Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true

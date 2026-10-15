@@ -395,14 +395,7 @@ function isolationRecordParameters(): array
  */
 function isolationKnownLeaks(): array
 {
-    // The trained-source link routes look the source up by the id in the URL
-    // with no workspace scope and answer 403 when it is another workspace's
-    // (the body's own id is what the form request checks).
-    return [
-        "POST my/agents/{agent}/sources/trained-files/{fileId}/link (A's {fileId}) → 403",
-        "POST my/agents/{agent}/sources/trained-texts/{textId}/link (A's {textId}) → 403",
-        "POST my/agents/{agent}/sources/trained-websites/{websiteId}/link (A's {websiteId}) → 403",
-    ];
+    return [];
 }
 
 /**

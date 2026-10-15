@@ -39,7 +39,8 @@ class AgentTrainedFileController
 
     public function store(LinkSourceFileRequest $request, Agent $agent, int $fileId, AttachSourceToAgentAction $attach): void
     {
-        $file = SourceFile::query()->findOrFail($fileId);
+        // Another workspace's file answers like an unknown id.
+        $file = SourceFile::query()->where('workspace_id', $agent->workspace_id)->findOrFail($fileId);
 
         abort_if($request->user()->cannot('view', $file), 403);
 

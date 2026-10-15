@@ -41,7 +41,8 @@ class AgentTrainedWebsiteController
 
     public function store(LinkSourceWebsiteRequest $request, Agent $agent, int $websiteId, AttachSourceToAgentAction $attach): JsonResponse
     {
-        $website = SourceWebsite::query()->findOrFail($websiteId);
+        // Another workspace's website answers like an unknown id.
+        $website = SourceWebsite::query()->where('workspace_id', $agent->workspace_id)->findOrFail($websiteId);
 
         abort_if($request->user()->cannot('view', $website), 403);
 

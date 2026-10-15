@@ -821,7 +821,10 @@ can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
 `VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`
 (error reports must work before the database loads), `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
-install), and `TRUSTED_PROXIES`. Program paths (pdfinfo, pandoc, ffmpeg,
+install), `TRUSTED_PROXIES`, and `CHATVIA_LICENSE_SERVER` (the site that
+sells and activates license keys, chatvia.ai by default; set it only to test
+against a local copy of that site). The license public key stays fixed in
+`config/chatvia.php`: whoever could set it could sign their own keys. Program paths (pdfinfo, pandoc, ffmpeg,
 WeasyPrint…) are in **Settings → Platform → Programs** (`ServerProgram`). The
 panel accepts only a program's own name or a full path that ends in it and
 leads to a program on the server, so a stolen admin login cannot make the

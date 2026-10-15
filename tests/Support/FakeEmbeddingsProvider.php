@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use Closure;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 
 /**
@@ -12,10 +13,45 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
  * The `testing` env has no Scaleway API key, so every embedding path (catalog
  * sync, tool routing, function indexing, KB ingestion) would otherwise hit the
  * network and trip the typed `getApiKey()`. Bound by default in TestCase so
- * tests are fast + deterministic; a test that needs specific vectors re-binds.
+ * tests are fast + deterministic; a test that needs specific vectors re-binds
+ * one made with {@see constant()} or {@see directions()}.
+ *
+ * Every text it embeds is kept in {@see $texts}, in order.
  */
 class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
 {
+    private const int DIMENSIONS = 1024;
+
+    /** @var list<string> */
+    public array $texts = [];
+
+    /**
+     * @param  (Closure(string): list<float>)|null  $vectors  the vector of a text; null for the text-varying default
+     */
+    public function __construct(
+        private readonly ?Closure $vectors = null,
+        private readonly string $model = 'fake-embeddings',
+    ) {}
+
+    /** Every text gets the same vector: `$value` in every dimension. */
+    public static function constant(float $value = 0.1, string $model = 'fake-embeddings'): self
+    {
+        return new self(fn (string $text): array => array_fill(0, self::DIMENSIONS, $value), $model);
+    }
+
+    /**
+     * Vectors placed by hand, so the similarities are known: each listed text
+     * gets its leading coordinates (every other dimension is 0), and any other
+     * text gets `$otherwise`.
+     *
+     * @param  array<string, list<float>>  $directions
+     * @param  list<float>  $otherwise
+     */
+    public static function directions(array $directions, array $otherwise = [0.0, 1.0]): self
+    {
+        return new self(fn (string $text): array => array_pad($directions[$text] ?? $otherwise, self::DIMENSIONS, 0.0), 'directions');
+    }
+
     public function embed(string $text, bool $returnAsText = false): string|array
     {
         $vector = $this->vectorFor($text);
@@ -35,12 +71,20 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
 
     public function getDimensions(): int
     {
-        return 1024;
+        return self::DIMENSIONS;
     }
 
     public function getModelName(): string
     {
-        return 'fake-embeddings';
+        return $this->model;
+    }
+
+    /** @return list<float> */
+    private function vectorFor(string $text): array
+    {
+        $this->texts[] = $text;
+
+        return $this->vectors instanceof Closure ? ($this->vectors)($text) : $this->textVaryingVector($text);
     }
 
     /**
@@ -49,12 +93,12 @@ class FakeEmbeddingsProvider implements EmbeddingsProviderInterface
      *
      * @return list<float>
      */
-    private function vectorFor(string $text): array
+    private function textVaryingVector(string $text): array
     {
         $seed = crc32($text);
         $vector = [];
 
-        for ($i = 0; $i < 1024; $i++) {
+        for ($i = 0; $i < self::DIMENSIONS; $i++) {
             $vector[] = ((($seed >> ($i % 31)) & 1) === 1) ? 0.04 : 0.01;
         }
 

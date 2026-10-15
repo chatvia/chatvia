@@ -4,6 +4,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
+use Domain\Conversation\Services\Tooling\Routing\ApprovalToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\StickyToolResolver;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
@@ -66,7 +67,7 @@ function tsSelector(array $pool, array $routed): ToolSelector
         }
     };
 
-    return new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class));
+    return new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class), app(ApprovalToolFilter::class));
 }
 
 beforeEach(function (): void {
@@ -129,7 +130,7 @@ it('skips the router entirely when every tool in the pool is always-on', functio
             throw new RuntimeException('router must not run for a fully pinned pool');
         }
     };
-    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class));
+    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class), app(ApprovalToolFilter::class));
 
     expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['mcp__tutor__ask', 'mcp__tutor__correct']);
 });
@@ -170,7 +171,7 @@ it('ships the full pool when routing fails', function (): void {
             throw new RuntimeException('embedding API down');
         }
     };
-    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class));
+    $selector = new ToolSelector($registry, $router, app(StickyToolResolver::class), app(SurfaceToolFilter::class), app(AlwaysAvailableToolResolver::class), app(ApprovalToolFilter::class));
 
     expect(array_column(array_column($selector->selectForTurn($this->agent, 'hi', null), 'function'), 'name'))->toBe(['send_email', 'mcp__crm__search']);
 });

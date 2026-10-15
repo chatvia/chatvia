@@ -36,7 +36,7 @@ return new class extends Migration
             $table->text('auth_value')->nullable();
             $table->text('headers')->nullable();
 
-            $table->unsignedInteger('timeout_ms')->default(300000);
+            $table->unsignedInteger('timeout_ms')->default(60000);
             $table->boolean('is_enabled')->default(true);
 
             $table->timestamp('catalog_cached_at')->nullable();

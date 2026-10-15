@@ -187,10 +187,13 @@ return [
     | the page cap bounds cost and time (MaxPdfPages checks it at upload).
     |
     | `tools`: the most tool-call rounds one turn may run, so a model that
-    | keeps asking for tools cannot loop forever; the switch for tool
-    | approval (off runs every tool at once, whatever a tool's own
-    | `requires_approval` says); and how many minutes an approval stays
-    | open before it expires.
+    | keeps asking for tools cannot loop forever (after the last round the
+    | model answers without tools); the longest tool result the model reads,
+    | in characters (a longer one is cut, with a note saying so); the switch
+    | for tool approval (off runs every tool at once, whatever a tool's own
+    | `requires_approval` says); and how many minutes an approval stays open
+    | before it expires. All four are set in the admin panel (Settings →
+    | Security → Tool calls).
     |
     | `tools.routing`: which tools one turn gets. The hybrid tool search
     | ranks the candidates, and the relevance gate drops those a reranker
@@ -223,9 +226,10 @@ return [
         ],
 
         'tools' => [
-            'max_iterations' => (int) env('AGENT_TOOL_MAX_ITERATIONS', 5),
-            'approval_enabled' => (bool) env('AGENT_TOOL_APPROVAL_ENABLED', true),
-            'approval_ttl_minutes' => (int) env('AGENT_TOOL_APPROVAL_TTL_MINUTES', 1440),
+            'max_iterations' => 5,
+            'max_result_chars' => 64000,
+            'approval_enabled' => true,
+            'approval_ttl_minutes' => 1440,
 
             'routing' => [
                 'relevance_gate' => (bool) env('AGENT_TOOL_RELEVANCE_GATE', true),

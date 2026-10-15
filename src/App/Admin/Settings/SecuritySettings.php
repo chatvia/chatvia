@@ -10,7 +10,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * The install's protections and their logs: the bot check of the public
  * forms (Cloudflare Turnstile, {@see BotCheck}) and the forms it covers, the
- * guardrails master switch, the per-tool rate limit, the security headers
+ * guardrails master switch, the tool-call limits (rate, rounds per answer,
+ * result size) and approval switch, the security headers
  * (Content Security Policy), the security audit log, and how long the
  * guardrail, tool-call and security logs are kept.
  */
@@ -45,6 +46,18 @@ class SecuritySettings extends AdminSettings
 
     #[ConfigKey('chatvia.governance.tool_rate_window_seconds')]
     public ?int $tool_rate_window_seconds = null;
+
+    #[ConfigKey('chatvia.agent.tools.max_iterations')]
+    public ?int $tool_max_rounds = null;
+
+    #[ConfigKey('chatvia.agent.tools.max_result_chars')]
+    public ?int $tool_result_max_chars = null;
+
+    #[ConfigKey('chatvia.agent.tools.approval_enabled')]
+    public ?bool $tool_approval_enabled = null;
+
+    #[ConfigKey('chatvia.agent.tools.approval_ttl_minutes')]
+    public ?int $tool_approval_ttl_minutes = null;
 
     #[ConfigKey('chatvia.security.csp')]
     public ?string $csp_mode = null;

@@ -30,7 +30,9 @@ use Illuminate\Support\Facades\Log;
  * The provider-agnostic agentic loop. Streams an LLM completion, drains any
  * emitted tool calls, runs each through the governance gate (approval / rate
  * limit), dispatches the allowed ones, and iterates until the model produces a
- * final answer or the configured iteration cap kicks in.
+ * final answer. After the last allowed round (the admin's "Tool rounds per
+ * answer") the model answers once more without tools, so a turn never ends
+ * on tool results alone.
  *
  * Every tool-call decision — auto, approved, denied, rate limited or not
  * offered — is announced for the governance audit ({@see ToolCallAuditTrail},
@@ -71,7 +73,7 @@ class ToolLoopRunner
     /**
      * Run the tool loop. Returns true when paused for approval (the checkpoint
      * and the `awaiting_approval` / `done` events were already emitted) and
-     * false when a final answer was streamed or the iteration cap was hit.
+     * false when a final answer was streamed.
      *
      * When `$captureToolCallsOnly` is true (evals), the loop never dispatches a
      * tool: the first turn that emits tool calls records them on
@@ -93,7 +95,7 @@ class ToolLoopRunner
         int $startIteration = 0,
         bool $captureToolCallsOnly = false,
     ): Generator {
-        $maxIterations = (int) config('chatvia.agent.tools.max_iterations');
+        $maxIterations = max(1, (int) config('chatvia.agent.tools.max_iterations'));
 
         // The model may only call what it was offered on this turn. The names
         // gate both the transformer (no JSON sniffing without tools) and the
@@ -132,6 +134,10 @@ class ToolLoopRunner
             // only the post-tool reply.
             $context->resetStreamedMessage();
         }
+
+        // Out of rounds while the model still wanted tools: without one more
+        // completion the turn would end on tool results and an empty reply.
+        yield from $this->finalAnswer($context, $provider, $modelName, $llmMessages, $settings, $offeredNames);
 
         return false;
     }
@@ -224,6 +230,31 @@ class ToolLoopRunner
         }
 
         return [...$extraSettings, 'tools' => $toolDefinitions, 'tool_choice' => 'auto'];
+    }
+
+    /**
+     * The completion after the last round: the tools stay in the request (the
+     * history refers to them) but the model may not call one, so it answers
+     * from the results it has. A provider that ignores `tool_choice` may still
+     * ask for tools; those calls are dropped, never run. The offered names
+     * stay set so a call the model writes as text is caught, not shown.
+     *
+     * @param  array<int, array<string, mixed>>  $llmMessages
+     * @param  array<string, mixed>  $settings
+     * @param  array<int, string>  $offeredNames
+     * @return Generator<int, StreamEvent>
+     */
+    private function finalAnswer(ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $settings, array $offeredNames): Generator
+    {
+        $context->offeredToolNames = $offeredNames;
+
+        if (isset($settings['tools'])) {
+            $settings['tool_choice'] = 'none';
+        }
+
+        yield from $this->streamCompletion($context, $provider, $modelName, $llmMessages, $settings);
+
+        $context->takeToolCalls();
     }
 
     /**

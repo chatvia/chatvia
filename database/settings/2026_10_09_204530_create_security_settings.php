@@ -23,6 +23,10 @@ return new class extends SettingsMigration
             $group->add('tool_audit_retention_days');
             $group->add('tool_rate_limit');
             $group->add('tool_rate_window_seconds');
+            $group->add('tool_max_rounds');
+            $group->add('tool_result_max_chars');
+            $group->add('tool_approval_enabled');
+            $group->add('tool_approval_ttl_minutes');
             $group->add('csp_mode');
             $group->add('csp_report_uri');
             $group->add('security_audit_enabled');

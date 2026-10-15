@@ -90,13 +90,22 @@ class ManageSecuritySettings extends AdminSettingsPage
                     help: 'When off, no check runs on any agent, whatever the agent\'s own settings.'),
                 $this->integer('guardrail_retention_days', 'Days to keep the guardrail log', min: 1),
             ])->summary(fn (): string => ($this->valueInUse('guardrails_enabled') ? 'On' : 'Off').' · log kept '.$this->valueInUse('guardrail_retention_days').' days'),
-            SettingsCard::make('tool_calls', 'Tool calls', 'Every tool call of an agent is logged and rate limited.', Heroicon::OutlinedWrenchScrewdriver, fn (): array => [
+            SettingsCard::make('tool_calls', 'Tool calls', 'How far an agent may go with tools, and the log of every tool call.', Heroicon::OutlinedWrenchScrewdriver, fn (): array => [
+                $this->integer('tool_max_rounds', 'Tool rounds per answer',
+                    help: 'How many times an agent may call tools while it works on one answer. After the last round it answers with what it found.', min: 1, max: 20),
+                $this->toggle('tool_approval_enabled', 'Ask before tools that make changes',
+                    help: 'When off, every tool runs without asking, even one set to need approval.'),
                 $this->integer('tool_audit_retention_days', 'Days to keep the tool-call log', min: 1),
             ])->advancedFields(fn (): array => [
                 $this->integer('tool_rate_limit', 'Calls per tool',
                     help: 'How many times an agent may call one tool in the time window.', min: 1),
                 $this->integer('tool_rate_window_seconds', 'Time window (seconds)', help: 'The length of the time window the calls are counted in.', min: 1),
-            ])->summary(fn (): string => sprintf('%s calls per %s seconds · log kept %s days',
+                $this->integer('tool_result_max_chars', 'Longest tool result (characters)',
+                    help: 'A longer result is cut before the agent reads it, so one large result cannot use up the model\'s context.', min: 1000),
+                $this->integer('tool_approval_ttl_minutes', 'Minutes an approval stays open',
+                    help: 'An approval nobody answers expires after this.', min: 1),
+            ])->summary(fn (): string => sprintf('Up to %s rounds · approval %s · %s calls per %s seconds · log kept %s days',
+                $this->valueInUse('tool_max_rounds'), $this->valueInUse('tool_approval_enabled') ? 'on' : 'off',
                 $this->valueInUse('tool_rate_limit'), $this->valueInUse('tool_rate_window_seconds'), $this->valueInUse('tool_audit_retention_days'))),
             SettingsCard::make('audit', 'Security audit log', 'A record of sign-ins, membership, configuration and data changes in every workspace.', Heroicon::OutlinedClipboardDocumentList, fn (): array => [
                 $this->toggle('security_audit_enabled', 'Keep the security audit log',

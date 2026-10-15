@@ -21,7 +21,8 @@ use Throwable;
  *     BM25 retrieval in SQL).
  *   - Union the agent's "always on" connector tools (AlwaysAvailableToolResolver).
  *   - Union sticky tools from recent assistant turns of the conversation.
- *   - Drop tools the conversation's surface can't render (SurfaceToolFilter).
+ *   - Drop tools the conversation's surface can't render (SurfaceToolFilter),
+ *     and tools that need approval where no one can approve (ApprovalToolFilter).
  *   - Flatten the result to the OpenAI `tools` shape LlmSource expects.
  *
  * Fallback: any failure in routing (embedding API down, malformed
@@ -36,6 +37,7 @@ class ToolSelector
         private readonly StickyToolResolver $sticky,
         private readonly SurfaceToolFilter $surfaceFilter,
         private readonly AlwaysAvailableToolResolver $alwaysAvailable,
+        private readonly ApprovalToolFilter $approvalFilter,
     ) {}
 
     /**
@@ -85,7 +87,7 @@ class ToolSelector
         // Drop tools whose connector isn't allowed on this conversation's surface
         // (e.g. Interactive Charts outside Hosted Chat). Runs last so a sticky or
         // routed match can't re-introduce a surface-pinned tool.
-        $shipped = $this->surfaceFilter->apply($withSticky, $conversationId);
+        $shipped = $this->forSurface($agent, $withSticky, $conversationId);
 
         Log::debug('ToolSelector: tools shipped to model', [
             'agent_id' => $agent->id,
@@ -107,7 +109,7 @@ class ToolSelector
      */
     private function shipPinnedOnly(Agent $agent, array $pinned, ?string $conversationId): array
     {
-        $shipped = $this->surfaceFilter->apply($pinned, $conversationId);
+        $shipped = $this->forSurface($agent, $pinned, $conversationId);
 
         Log::debug('ToolSelector: whole pool is always-on; routing skipped', [
             'agent_id' => $agent->id,
@@ -127,7 +129,7 @@ class ToolSelector
      */
     private function shipFullPool(Agent $agent, ?string $conversationId, Throwable $e): array
     {
-        $pool = $this->surfaceFilter->apply($this->registry->for($agent), $conversationId);
+        $pool = $this->forSurface($agent, $this->registry->for($agent), $conversationId);
 
         Log::warning('Tool router failed; falling back to full pool', [
             'agent_id' => $agent->id,
@@ -136,6 +138,18 @@ class ToolSelector
         ]);
 
         return $this->toOpenAiTools($pool);
+    }
+
+    /**
+     * The entries this conversation's surface can use: none pinned to another
+     * surface, and none that need an approval the surface cannot ask for.
+     *
+     * @param  array<int, ToolEntry>  $entries
+     * @return array<int, ToolEntry>
+     */
+    private function forSurface(Agent $agent, array $entries, ?string $conversationId): array
+    {
+        return $this->approvalFilter->apply($agent, $this->surfaceFilter->apply($entries, $conversationId), $conversationId);
     }
 
     /**

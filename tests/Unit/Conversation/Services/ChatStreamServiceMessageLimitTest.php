@@ -1,8 +1,10 @@
 <?php
 
 use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Enums\WorkspaceRole;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
@@ -10,8 +12,10 @@ use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
+use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -20,7 +24,6 @@ use Illuminate\Support\Str;
  * chatter that share an integer id never trip each other's limit.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Bus::fake();
 });
 
@@ -35,8 +38,8 @@ function limitedStreamCodes(Agent $agent, ?int $chatterId = null): array
     )), preserve_keys: false);
 
     return collect($events)
-        ->filter(fn ($event): bool => $event->type === EventType::Error)
-        ->map(fn ($event): string => $event->data['code'])
+        ->filter(fn (StreamEvent $event): bool => $event->type === EventType::Error)
+        ->map(fn (StreamEvent $event): string => $event->data['code'])
         ->values()
         ->all();
 }
@@ -52,6 +55,23 @@ function reachedLimit(array $owner): void
         'messages_used' => 3,
         'period_starts_at' => now()->startOfMonth(),
     ]);
+}
+
+/**
+ * The owner of a new workspace whose id is free in `chatters` too, so a test
+ * can give a chatter the same id. Taking the next value of both sequences
+ * means neither table can hold it.
+ */
+function mlOwnerOfWorkspaceWithChatterFreeId(): User
+{
+    $id = (int) DB::scalar("select greatest(nextval(pg_get_serial_sequence('workspaces', 'id')), nextval(pg_get_serial_sequence('chatters', 'id')))");
+    $workspace = Workspace::factory()->create(['id' => $id]);
+    $owner = User::factory()
+        ->afterMaking(fn (User $user): User => $user->setRelation('factoryWorkspace', $workspace))
+        ->create();
+    $workspace->members()->updateExistingPivot($owner->id, ['role' => WorkspaceRole::Owner->value]);
+
+    return $owner->fresh();
 }
 
 /**
@@ -80,9 +100,9 @@ it('refuses the turn when the signed-in chatter reached their monthly limit', fu
 });
 
 it('does not refuse the workspace over a chatter limit with the same id', function (): void {
-    $owner = User::factory()->workspace()->create(['id' => 987_654_326]);
+    $owner = mlOwnerOfWorkspaceWithChatterFreeId();
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id, 'llm_id' => Llm::factory()->create()->id]);
-    $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $owner->id]);
+    $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $agent->workspace_id]);
     reachedLimit(['chatter_id' => $chatter->id]);
     refuseTurnsPastTheMessageLimits();
 
@@ -92,9 +112,9 @@ it('does not refuse the workspace over a chatter limit with the same id', functi
 
 it('does not refuse a chatter over the limit of a workspace with the same id', function (): void {
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
-    $otherWorkspace = User::factory()->workspace()->create(['id' => 987_654_327]);
+    $otherWorkspace = mlOwnerOfWorkspaceWithChatterFreeId()->workspace();
     $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $otherWorkspace->id]);
-    reachedLimit(['workspace_id' => $otherWorkspace->workspace()->id]);
+    reachedLimit(['workspace_id' => $otherWorkspace->id]);
     refuseTurnsPastTheMessageLimits();
 
     expect(limitedStreamCodes($agent, $chatter->id))->toBe([ErrorCode::RateLimited->value]);

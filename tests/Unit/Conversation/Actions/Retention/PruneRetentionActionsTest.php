@@ -18,10 +18,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 function retentionConversation(array $attributes = []): Conversation
 {
     $agent = Agent::factory()->create();

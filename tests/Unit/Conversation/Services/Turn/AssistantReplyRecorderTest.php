@@ -6,10 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
 use Domain\Conversation\Data\Messages\MessageSourceData;
-use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
-use Domain\Conversation\Data\Turn\StreamRequestData;
-use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Jobs\StoreMessageJob;
@@ -19,10 +16,9 @@ use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
-use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
+use Tests\Support\Conversation\TestChatContext;
 
 /**
  * A completed answer is stored and announced, so it counts against the
@@ -30,7 +26,6 @@ use Illuminate\Support\Str;
  * counted.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Bus::fake();
 });
 
@@ -44,26 +39,12 @@ function recorderContext(): ChatContext
         'source' => ConversationSource::HostedChat,
     ]);
 
-    $request = new StreamRequestData(
+    $context = TestChatContext::make(
         agent: $agent,
-        message: new StreamRequestMessageData(model: Llm::factory()->create(), message: 'Summarise the PDF'),
+        message: 'Summarise the PDF',
+        llmMessages: [],
         externalSessionId: $session->external_id,
         conversationId: $conversation->external_id,
-    );
-
-    $context = new ChatContext(
-        requestData: $request,
-        payload: new UserTurnData(
-            external_session_id: $session->external_id,
-            external_conversation_id: $conversation->external_id,
-            external_message_id: (string) Str::uuid(),
-            model: 'm',
-            message: 'Summarise the PDF',
-            sent_at: now(),
-        ),
-        llmMessages: [],
-        userMessageId: null,
-        assistantMessageId: (string) Str::uuid(),
     );
     $context->appendStreamedMessage('Here is the summary.');
 

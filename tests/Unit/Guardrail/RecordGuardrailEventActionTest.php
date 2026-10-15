@@ -3,6 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Actions\RecordGuardrailEventAction;
 use Domain\Guardrail\Events\GuardrailTriggered;
+use Domain\Guardrail\Listeners\RecordGuardrailEvent;
 use Domain\Guardrail\Models\GuardrailEvent;
 use Illuminate\Support\Str;
 
@@ -80,3 +81,20 @@ it('cuts a multibyte snippet on a character boundary so Postgres accepts it', fu
     'arabic' => 'مرحبا بك في الدعم',
     'emoji' => 'ok 😀😀😀😀 done',
 ]);
+
+it('records the event from the queued listener while guardrails are on', function (): void {
+    $agent = Agent::factory()->create();
+
+    app(RecordGuardrailEvent::class)->handle(guardEvent($agent, 'email a@b.com'));
+
+    expect(GuardrailEvent::query()->where('agent_id', $agent->id)->count())->toBe(1);
+});
+
+it('records nothing while the global guardrails switch is off', function (): void {
+    config(['chatvia.guardrails.enabled' => false]);
+    $agent = Agent::factory()->create();
+
+    app(RecordGuardrailEvent::class)->handle(guardEvent($agent, 'email a@b.com'));
+
+    expect(GuardrailEvent::query()->where('agent_id', $agent->id)->exists())->toBeFalse();
+});

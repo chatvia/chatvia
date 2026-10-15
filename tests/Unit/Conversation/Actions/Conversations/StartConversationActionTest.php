@@ -12,10 +12,6 @@ use Illuminate\Support\Str;
  * widget starts one on every visit), so it gets a short life, not the full
  * retention window.
  */
-beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 it('starts a hidden conversation that expires after a day', function (): void {
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();

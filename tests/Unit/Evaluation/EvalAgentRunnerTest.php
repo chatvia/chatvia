@@ -1,27 +1,32 @@
 <?php
 
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentModel;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
+use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Evaluation\Services\EvalAgentRunner;
+use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\TaskModels;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Exceptions;
 
 /**
  * The whole point of the eval runner is to exercise the agent's REAL pipeline
- * WITHOUT the side effects of a real chat: the runner persists no chat message
- * and charges no credit itself (it never calls finishTurn), and it switches
- * guardrails off for its own request through the DTO — never by mutating
- * global config that other code in the same worker reads.
+ * WITHOUT the side effects of a real chat: the runner records no reply and
+ * counts none against the message limit (it never runs the finish step), and
+ * it switches guardrails off for its own request through the DTO — never by
+ * mutating global config that other code in the same worker reads.
  *
  * We fake the heavy collaborators (a real run would need a live LLM + embeddings)
  * and drive the orchestration body.
@@ -84,7 +89,7 @@ function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $mo
     $runner->shouldReceive('run')->andReturnUsing(function (ChatContext $context) use ($onRun): Generator {
         $onRun($context);
 
-        return (function () {
+        return (static function (): Generator {
             yield from [];
         })();
     });
@@ -92,10 +97,11 @@ function fakeEvalRunner(Closure $onRun, ?Closure $onInit = null, ?AgentModel $mo
     return new EvalAgentRunner($chatService, $runner, $toolSelector, app(LlmProviders::class), $models ?? app(AgentModel::class));
 }
 
-it('captures the answer without persisting a chat message or charging a credit', function (): void {
+it('captures the answer without recording a reply or counting it against the message limit', function (): void {
+    Event::fake([AssistantReplyCompleted::class]);
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
-
-    $messagesBefore = DB::table('chat_messages')->count();
+    app(SetMessageLimitAction::class)->execute($agent->workspace, 10);
+    $replyRecorder = $this->spy(AssistantReplyRecorder::class);
 
     $runner = fakeEvalRunner(function (ChatContext $context): void {
         $context->streamedMessage = 'Eval answer.';
@@ -109,8 +115,11 @@ it('captures the answer without persisting a chat message or charging a credit',
         ->and($result->toolsCalled)->toBe(['lookup'])
         ->and($result->traceId)->toBe('assistant-eval-1');
 
-    // No chat message persisted, no credit charged (finishTurn never runs).
-    expect(DB::table('chat_messages')->count())->toBe($messagesBefore);
+    // The finish step of a chat turn never runs: no reply is recorded,
+    // announced or counted.
+    $replyRecorder->shouldNotHaveReceived('recordCompletedReply');
+    Event::assertNotDispatched(AssistantReplyCompleted::class);
+    expect(MessageLimit::query()->where('workspace_id', $agent->workspace_id)->value('messages_used'))->toBe(0);
 });
 
 it('turns guardrails off for its own request without touching global config', function (): void {
@@ -164,9 +173,9 @@ it('reports a pipeline failure and records it as a failed run', function (): voi
 });
 
 it('builds the headless request with VALID uuid session + conversation ids', function (): void {
-    // Regression guard: chat_conversations.external_id / sessions.external_id are
-    // Postgres `uuid` columns. A prefixed id (e.g. "eval_<uuid>") throws SQLSTATE
-    // 22P02 on the lookup and fails every eval run.
+    // chat_conversations.external_id and sessions.external_id are Postgres
+    // `uuid` columns: a prefixed id (e.g. "eval_<uuid>") throws SQLSTATE 22P02
+    // on the lookup and would fail every eval run.
     $agent = Agent::factory()->create(['llm_id' => Llm::factory()->create()->id]);
 
     $captured = null;
@@ -195,13 +204,13 @@ it('runs the tool loop in capture-only mode and returns the intended calls witho
 
     $runner = Mockery::mock(ToolLoopRunner::class);
     $runner->shouldReceive('run')->andReturnUsing(
-        function ($context, $provider, $modelName, $llmMessages, $toolDefinitions, $extraSettings = [], $startIteration = 0, $captureToolCallsOnly = false) use (&$captureFlag): Generator {
+        function (ChatContext $context, LlmProviderInterface $provider, string $modelName, array $llmMessages, array $toolDefinitions, array $extraSettings = [], int $startIteration = 0, bool $captureToolCallsOnly = false) use (&$captureFlag): Generator {
             $captureFlag = $captureToolCallsOnly;
             // What the runner records in capture mode: the intended call + its name.
             $context->capturedToolCalls[] = ['name' => 'send_email', 'arguments' => '{"to":"a@b.com"}'];
             $context->toolCallNames[] = 'send_email';
 
-            return (function () {
+            return (static function (): Generator {
                 yield from [];
             })();
         },

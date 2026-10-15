@@ -22,7 +22,6 @@ use Illuminate\Support\Facades\Event;
  * id; when the row got a different id, the visitor's "read" never persisted.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Event::fake([MessagePosted::class]);
 });
 

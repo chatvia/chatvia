@@ -14,10 +14,6 @@ use Illuminate\Support\Carbon;
  * viewer's stays. A chatter's session is linked by `chatter_id`, a staff
  * member's by `user_id`, so equal ids from the two tables never share one.
  */
-beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 it('starts a guest session that lapses after a few days', function (): void {
     $agent = Agent::factory()->create();
 

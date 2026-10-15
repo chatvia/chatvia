@@ -17,7 +17,6 @@ use Illuminate\Support\Str;
  * together, so no row ever points at a deleted file.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Storage::fake(Attachment::DISK);
 });
 
@@ -54,19 +53,14 @@ function storedUpload(?Conversation $conversation, ?int $daysOld = null): Attach
     return $attachment;
 }
 
-it('keeps the files of a live conversation however old they are', function (): void {
-    $upload = storedUpload(prunedConversation(['expires_at' => now()->addDays(10)]), daysOld: 400);
+it('never touches the files of a conversation, live or expired, however old they are', function (): void {
+    // An expired conversation's files go with the conversation prune.
+    $live = storedUpload(prunedConversation(['expires_at' => now()->addDays(10)]), daysOld: 400);
+    $expired = storedUpload(prunedConversation(['expires_at' => now()->subDay()]), daysOld: 400);
 
     expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(0)
-        ->and(Attachment::query()->find($upload->id))->not->toBeNull();
-    Storage::disk(Attachment::DISK)->assertExists($upload->filepath);
-});
-
-it('leaves the files of an expired conversation to the conversation prune', function (): void {
-    $upload = storedUpload(prunedConversation(['expires_at' => now()->subDay()]), daysOld: 400);
-
-    expect(app(PruneExpiredAttachmentsAction::class)->execute(orphanDays: 30, chunk: 100))->toBe(0)
-        ->and(Attachment::query()->find($upload->id))->not->toBeNull();
+        ->and(Attachment::query()->whereKey([$live->id, $expired->id])->count())->toBe(2);
+    Storage::disk(Attachment::DISK)->assertExists([$live->filepath, $expired->filepath]);
 });
 
 it('deletes an upload that never joined a conversation only after the orphan window', function (): void {

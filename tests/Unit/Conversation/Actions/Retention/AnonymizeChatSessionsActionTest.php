@@ -57,9 +57,12 @@ it('clears visitor details on that workspace\'s older sessions and keeps the ana
 
     expect(app(AnonymizeChatSessionsAction::class)->execute())->toBe(1);
 
+    // Listed here rather than read from the action, so a column dropped from
+    // its list fails the test.
+    $visitorColumns = ['name', 'email', 'phone', 'ip_address', 'is_proxy', 'user_agent', 'city', 'region', 'zip_code', 'time_zone', 'referrer_url', 'page_url'];
     $cleared = DB::table('chat_sessions')->where('id', $old->id)->first();
-    foreach (AnonymizeChatSessionsAction::CLEARED_COLUMNS as $column) {
-        expect($cleared->{$column})->toBeNull();
+    foreach ($visitorColumns as $column) {
+        expect($cleared->{$column})->toBeNull("{$column} is still set");
     }
 
     expect($cleared->anonymized_at)->not->toBeNull()

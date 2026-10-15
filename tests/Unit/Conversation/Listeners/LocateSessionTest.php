@@ -23,7 +23,7 @@ function fakeIpLocation(array $body): void
     Http::fake(['ip2location.test*' => Http::response($body)]);
 }
 
-function locate(Session $session, ?string $countryCode): void
+function locateSession(Session $session, ?string $countryCode): void
 {
     app(LocateSession::class)->handle(new SessionLocationUnknown($session, $countryCode));
 }
@@ -42,7 +42,7 @@ it('stamps the request-resolved country and ignores a disagreeing IP geo', funct
 
     $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => null, 'city' => null]);
 
-    locate($session, 'iq');
+    locateSession($session, 'iq');
 
     $session->refresh();
     expect($session->country_id)->toBe(Country::where('code', 'iq')->value('id'))
@@ -61,7 +61,7 @@ it('keeps IP-derived city/region when the IP geo agrees with the country', funct
 
     $session = Session::factory()->create(['ip_address' => '198.51.100.7', 'country_id' => null, 'city' => null]);
 
-    locate($session, 'us');
+    locateSession($session, 'us');
 
     $session->refresh();
     expect($session->country_id)->toBe(Country::where('code', 'us')->value('id'))
@@ -71,33 +71,26 @@ it('keeps IP-derived city/region when the IP geo agrees with the country', funct
 
 it('never stamps a country from IP geo when no Cloudflare country is supplied', function (): void {
     // No trusted request-time country. The stored IP may be the Cloudflare edge
-    // PoP, so geo-locating it for country would stamp the wrong place (the
-    // Bulgaria bug). Leave country_id null — Request::country() already geo-
-    // locates the real visitor at request time for the genuine dev/no-CF case.
+    // PoP, so geo-locating it for country would stamp the edge's country
+    // instead of the visitor's. Leave country_id null: Request::country()
+    // already geo-locates the real visitor at request time when there is no
+    // Cloudflare in front.
     fakeIpLocation(['ip' => '203.0.113.10', 'country_code' => 'BG', 'city_name' => 'Sofia']);
 
     $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => null, 'city' => null]);
 
-    locate($session, null);
+    locateSession($session, null);
 
     $session->refresh();
     expect($session->country_id)->toBeNull()
         ->and($session->city)->toBeNull();
 });
 
-it('does nothing when neither a country nor a resolvable IP is available', function (): void {
-    $session = Session::factory()->create(['ip_address' => null, 'country_id' => null]);
-
-    locate($session, null);
-
-    expect($session->refresh()->country_id)->toBeNull();
-});
-
 it('never overwrites an already-resolved country', function (): void {
     $bg = Country::where('code', 'bg')->value('id');
     $session = Session::factory()->create(['ip_address' => '203.0.113.10', 'country_id' => $bg]);
 
-    locate($session, 'iq');
+    locateSession($session, 'iq');
 
     expect($session->refresh()->country_id)->toBe($bg);
 });

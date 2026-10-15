@@ -48,7 +48,7 @@ function surfaceCatalogConfig(): void
     ]);
 }
 
-function namesOf(array $entries): array
+function surfaceToolNames(array $entries): array
 {
     return array_map(static fn (ToolEntry $e): string => $e->name, $entries);
 }
@@ -62,32 +62,25 @@ beforeEach(function (): void {
     ];
 });
 
-it('drops a surface-pinned connector on a surface not in its allow-list', function (): void {
+it('drops a surface-pinned connector on a surface not in its allow-list', function (ConversationSource $surface): void {
     surfaceCatalogConfig();
-    $conversation = Conversation::factory()->create(['source' => ConversationSource::Widget]);
+    $conversation = Conversation::factory()->create(['source' => $surface]);
 
-    $kept = namesOf($this->filter->apply($this->entries, $conversation->external_id));
+    $kept = surfaceToolNames($this->filter->apply($this->entries, $conversation->external_id));
 
     expect($kept)->toBe(['mcp__weather__get-weather', 'lookup_order']);
-});
+})->with([
+    'the widget' => [ConversationSource::Widget],
+    'a messaging channel' => [ConversationSource::Telegram],
+]);
 
 it('keeps a surface-pinned connector on a surface in its allow-list', function (): void {
     surfaceCatalogConfig();
     $conversation = Conversation::factory()->create(['source' => ConversationSource::HostedChat]);
 
-    $kept = namesOf($this->filter->apply($this->entries, $conversation->external_id));
+    $kept = surfaceToolNames($this->filter->apply($this->entries, $conversation->external_id));
 
     expect($kept)->toBe(['mcp__charts__render-bar-chart', 'mcp__weather__get-weather', 'lookup_order']);
-});
-
-it('drops a surface-pinned connector on a messaging channel too', function (): void {
-    surfaceCatalogConfig();
-    $conversation = Conversation::factory()->create(['source' => ConversationSource::Telegram]);
-
-    $kept = namesOf($this->filter->apply($this->entries, $conversation->external_id));
-
-    expect($kept)->not->toContain('mcp__charts__render-bar-chart')
-        ->and($kept)->toContain('mcp__weather__get-weather');
 });
 
 it('keeps everything when no connector declares a surface restriction', function (): void {
@@ -106,17 +99,17 @@ it('keeps everything when no connector declares a surface restriction', function
     ]);
     $conversation = Conversation::factory()->create(['source' => ConversationSource::Widget]);
 
-    $kept = namesOf($this->filter->apply($this->entries, $conversation->external_id));
+    $kept = surfaceToolNames($this->filter->apply($this->entries, $conversation->external_id));
 
-    expect($kept)->toBe(namesOf($this->entries));
+    expect($kept)->toBe(surfaceToolNames($this->entries));
 });
 
 it('keeps everything when the conversation id is null (surface unknown)', function (): void {
     surfaceCatalogConfig();
 
-    $kept = namesOf($this->filter->apply($this->entries, null));
+    $kept = surfaceToolNames($this->filter->apply($this->entries, null));
 
-    expect($kept)->toBe(namesOf($this->entries));
+    expect($kept)->toBe(surfaceToolNames($this->entries));
 });
 
 it('keeps everything when the conversation cannot be found', function (): void {
@@ -124,7 +117,7 @@ it('keeps everything when the conversation cannot be found', function (): void {
 
     // A well-formed but absent external id (the streaming layer always passes a
     // real conversation UUID — same assumption StickyToolResolver makes).
-    $kept = namesOf($this->filter->apply($this->entries, '00000000-0000-7000-8000-000000000000'));
+    $kept = surfaceToolNames($this->filter->apply($this->entries, '00000000-0000-7000-8000-000000000000'));
 
-    expect($kept)->toBe(namesOf($this->entries));
+    expect($kept)->toBe(surfaceToolNames($this->entries));
 });

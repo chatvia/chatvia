@@ -22,9 +22,6 @@ use Support\Exceptions\DomainValidationException;
  * server-side (chunk text / QA answer), ids that don't belong to the agent are
  * rejected before anything is written, and duplicate questions (existing case
  * inputs or repeats within one payload) are skipped silently.
- *
- * REQUIRES the migrated test DB like CreateSourceChunksActionTest: chunks uses
- * pgvector halfvec(1024) + bm25vector.
  */
 function knowledgeEvalAgent(): Agent
 {

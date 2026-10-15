@@ -4,12 +4,9 @@ use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 /**
  * AdminDeleteConversationAction soft-deletes a conversation through
@@ -17,12 +14,6 @@ use Illuminate\Support\Str;
  * 'admin' fallback for actor-less callers) and hard-deletes the parent
  * session only when it is both empty and inactive for over 30 days.
  */
-beforeEach(function (): void {
-    // ChatCache pins Cache::driver('chat') (redis in config); point it at the
-    // array store for tests — same override as the other Memory unit tests.
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 /**
  * @return array{0: User, 1: Agent, 2: Session, 3: Conversation}
  */
@@ -37,9 +28,6 @@ function adcaSetup(array $sessionAttrs = []): array
         'last_activity_at' => now()->subDay(),
     ], $sessionAttrs));
 
-    // Pin the source (the test DB's CHECK constraint predates the newer
-    // ConversationSource cases the factory may randomly pick) and the title
-    // (a random faker sentence can overflow varchar(255) once encrypted).
     $conversation = Conversation::factory()->withoutTitle()->create([
         'chat_session_id' => $session->id,
         'source' => ConversationSource::Widget,
@@ -51,11 +39,8 @@ function adcaSetup(array $sessionAttrs = []): array
 it('soft-deletes the conversation, wipes message content, and stamps the actor id', function (): void {
     [$owner, $agent, $session, $conversation] = adcaSetup();
 
-    $message = Message::create([
-        'external_id' => (string) Str::uuid(),
-        'workspace_id' => $conversation->workspace_id,
+    $message = Message::factory()->fromUser()->create([
         'chat_conversation_id' => $conversation->id,
-        'role' => MessageRole::User,
         'content' => 'My card number is 4242...',
     ]);
 
@@ -140,22 +125,6 @@ it('deletes the conversation exactly once', function (): void {
     app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
 
     expect($deletes)->toBe(1);
-});
-
-it('also clears the BM25 search copy of the erased text', function (): void {
-    [$owner, $agent, , $conversation] = adcaSetup();
-
-    $message = Message::create([
-        'external_id' => (string) Str::uuid(),
-        'workspace_id' => $conversation->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'role' => MessageRole::User,
-        'content' => 'My card number is 4242...',
-    ]);
-
-    app(AdminDeleteConversationAction::class)->execute($agent, $conversation, $owner);
-
-    expect(DB::table('chat_messages')->where('id', $message->id)->value('content'))->toBeNull();
 });
 
 it('does nothing when the conversation has no session any more', function (): void {

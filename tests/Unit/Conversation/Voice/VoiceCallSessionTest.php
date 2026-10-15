@@ -54,6 +54,9 @@ beforeEach(function (): void {
     app()->instance(RealtimeCalls::class, $this->calls);
 
     $this->agent = Agent::factory()->create(['is_public' => true]);
+    // Guardrails off, so the real guards return the words unchanged without a
+    // classifier call; the guardrail test below binds its own guard.
+    $this->agent->setSetting('enabled', false, 'guardrails');
     $session = Session::factory()->create(['agent_id' => $this->agent->id]);
     $this->conversation = Conversation::factory()->create(['agent_id' => $this->agent->id, 'chat_session_id' => $session->id]);
 

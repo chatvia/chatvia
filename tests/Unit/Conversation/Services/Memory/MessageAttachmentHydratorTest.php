@@ -7,12 +7,11 @@ use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
-use Domain\Membership\Team\Services\TeamService;
 
 /**
- * Unit tests for the orphan-attachment clustering decision. Pure logic, no DB —
- * runs regardless of test-schema state. Covers the rules that were previously
- * copy-pasted (and untested) inside two controllers' __invoke().
+ * Which message an uploaded file belongs to when a chat is reloaded (pure
+ * logic, no DB), and the live status of a form shown in a reply (reads the
+ * submission from the DB).
  */
 beforeEach(function (): void {
     $this->hydrator = new MessageAttachmentHydrator;
@@ -55,23 +54,17 @@ it('clusters an orphan when the last user timestamp is unknown', function (): vo
 });
 
 it('overwrites a form artifact status with the live submission status on reload', function (): void {
-    $user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($user);
-    $agent = makeTeamAgent($user, 'Bot');
-    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => null]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
+    $agent = makeTeamAgent(User::factory()->create(), 'Bot');
+    $conversation = Conversation::factory()->withTitle('t')->create([
+        'chat_session_id' => Session::factory()->create(['agent_id' => $agent->id])->id,
         'source' => ConversationSource::HostedChat,
-        'title' => 't',
     ]);
     $definition = FormDefinition::factory()->forAgent($agent)->create();
     $submission = FormSubmission::factory()->forDefinition($definition)->submitted()->create([
         'chat_conversation_id' => $conversation->id,
     ]);
 
-    // Persisted metadata still says 'pending' (the on-submit flip raced / never landed).
+    // The stored metadata still says 'pending': the change made on submit did not reach it.
     $messages = [[
         'id' => 'msg-1',
         'role' => 'assistant',

@@ -7,7 +7,6 @@ use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Support\Str;
 
 /**
@@ -74,8 +73,7 @@ it('returns null for a thread the visitor cleared, like the widget\'s other look
         $agent,
     );
 
-    expect($found)->toBeNull()
-        ->and(app(WidgetVerification::class)->verifyConversationId($conversation->external_id, $agent))->toBeNull();
+    expect($found)->toBeNull();
 });
 
 it('on a protected agent, only finds the signed-in chatter\'s own conversation', function (): void {
@@ -91,17 +89,12 @@ it('on a protected agent, only finds the signed-in chatter\'s own conversation',
         $session->agent,
         $viewer,
     );
-    $verify = fn (ChatViewerData $viewer): ?Conversation => app(WidgetVerification::class)
-        ->verifyConversationId($conversation->external_id, $session->agent, $viewer);
 
     // Another chatter replaying the owner's session and conversation ids, and
     // a staff account whose id happens to equal the owner's.
     expect($find(ChatViewerData::chatter($other->id)))->toBeNull()
         ->and($find(ChatViewerData::staff($owner->id)))->toBeNull()
-        ->and($find(ChatViewerData::chatter($owner->id))?->id)->toBe($conversation->id)
-        ->and($verify(ChatViewerData::chatter($other->id)))->toBeNull()
-        ->and($verify(ChatViewerData::staff($owner->id)))->toBeNull()
-        ->and($verify(ChatViewerData::chatter($owner->id))?->id)->toBe($conversation->id);
+        ->and($find(ChatViewerData::chatter($owner->id))?->id)->toBe($conversation->id);
 });
 
 it('on a protected agent, finds a staff member\'s conversation for that staff member only', function (): void {

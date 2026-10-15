@@ -1,8 +1,10 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Domain\Conversation\Events\ToolCallCompleted;
+use Domain\Conversation\Listeners\RecordToolCallAudit;
 use Domain\Conversation\Models\AgentActivity;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Support\Str;
@@ -10,10 +12,8 @@ use Illuminate\Support\Str;
 /**
  * The recorder writes one immutable governance row per tool-call decision into
  * `agent_activity`. The guarantees under test: denormalized agent/user names +
- * connector are stored, the tool name is unprefixed, secrets are redacted,
- * oversized payloads are capped, and a sha256 of the RAW args is kept.
- *
- * REQUIRES the migrated test DB (the agent_activity table).
+ * connector are stored, secrets are redacted, oversized payloads are capped,
+ * and a sha256 of the RAW args is kept.
  */
 function auditEvent(array $overrides = []): ToolCallCompleted
 {
@@ -40,7 +40,7 @@ function auditEvent(array $overrides = []): ToolCallCompleted
     ], $overrides));
 }
 
-it('writes one agent_activity row with denormalized names, unprefixed tool, redacted args + raw hash', function (): void {
+it('writes one agent_activity row with denormalized names, redacted args + raw hash', function (): void {
     $agent = Agent::factory()->create();
     $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]);
 
@@ -63,13 +63,20 @@ it('writes one agent_activity row with denormalized names, unprefixed tool, reda
         ->and((int) $row->latency_ms)->toBe(42);
 });
 
-it('marks an anonymous visitor (no user)', function (): void {
+it('stores who acted: the staff account or the chatter named on the event', function (): void {
     $agent = Agent::factory()->create();
-    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'userId' => null, 'userName' => null]);
+    $staff = $agent->workspace->owner;
+    $chatter = Chatter::factory()->grantedTo($agent)->create();
+    $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id];
 
-    app(RecordToolCallAuditAction::class)->execute($event);
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'userId' => $staff->id, 'userName' => $staff->name]));
+    $staffRow = AgentActivity::query()->latest('id')->first();
 
-    expect(AgentActivity::query()->latest('id')->first()->user_name)->toBeNull();
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'chatterId' => $chatter->id, 'userName' => $chatter->name]));
+    $chatterRow = AgentActivity::query()->latest('id')->first();
+
+    expect([(int) $staffRow->user_id, $staffRow->chatter_id, $staffRow->user_name])->toBe([$staff->id, null, $staff->name])
+        ->and([$chatterRow->user_id, (int) $chatterRow->chatter_id, $chatterRow->user_name])->toBe([null, $chatter->id, $chatter->name]);
 });
 
 it('records decided_at for a gated approved call', function (): void {
@@ -123,3 +130,69 @@ it('stores every outcome the tool loop can report', function (ToolCallOutcome $o
 
     expect(AgentActivity::query()->latest('id')->first()->outcome)->toBe($outcome->value);
 })->with(ToolCallOutcome::cases());
+
+it('redacts secret keys at any depth and in any case', function (): void {
+    $agent = Agent::factory()->create();
+    $raw = '{"user":{"name":"Dana","Password":"pw-1"},"items":[{"api_key":"k-1","sku":"A7"}]}';
+    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
+
+    app(RecordToolCallAuditAction::class)->execute($event);
+    $row = AgentActivity::query()->latest('id')->first();
+
+    // jsonb keeps its own key order, so the keys are compared without it.
+    expect($row->arguments)->toEqual([
+        'user' => ['name' => 'Dana', 'Password' => '[redacted]'],
+        'items' => [['api_key' => '[redacted]', 'sku' => 'A7']],
+    ])
+        ->and($row->arguments_truncated)->toBeFalse()
+        ->and($row->arguments_sha256)->toBe(hash('sha256', $raw));
+});
+
+it('caps oversized arguments after redacting them and flags the cut', function (): void {
+    config(['chatvia.governance.max_arg_bytes' => 40]);
+    $agent = Agent::factory()->create();
+    $raw = json_encode(['token' => 'secret123', 'note' => str_repeat('x', 200)]);
+    $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'arguments' => $raw]);
+
+    app(RecordToolCallAuditAction::class)->execute($event);
+    $row = AgentActivity::query()->latest('id')->first();
+
+    expect($row->arguments)->toBeString()
+        ->and(strlen($row->arguments))->toBe(40)
+        ->and($row->arguments)->toStartWith('{"token":"[redacted]"')
+        ->and($row->arguments)->not->toContain('secret123')
+        ->and($row->arguments_truncated)->toBeTrue()
+        ->and($row->arguments_sha256)->toBe(hash('sha256', $raw));
+});
+
+it('stores arguments that are not JSON as text, capped', function (): void {
+    config(['chatvia.governance.max_arg_bytes' => 10]);
+    $agent = Agent::factory()->create();
+    $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id];
+
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'arguments' => 'city=Oslo']));
+    $short = AgentActivity::query()->latest('id')->first();
+
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'arguments' => 'city=Copenhagen']));
+    $long = AgentActivity::query()->latest('id')->first();
+
+    expect([$short->arguments, $short->arguments_truncated])->toBe(['city=Oslo', false])
+        ->and([$long->arguments, $long->arguments_truncated])->toBe(['city=Copen', true]);
+});
+
+it('writes the audit row from the queued listener while the audit is on', function (): void {
+    $agent = Agent::factory()->create();
+
+    app(RecordToolCallAudit::class)->handle(auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]));
+
+    expect(AgentActivity::query()->where('agent_id', $agent->id)->count())->toBe(1);
+});
+
+it('writes nothing while the governance audit is switched off', function (): void {
+    config(['chatvia.governance.audit_enabled' => false]);
+    $agent = Agent::factory()->create();
+
+    app(RecordToolCallAudit::class)->handle(auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]));
+
+    expect(AgentActivity::query()->where('agent_id', $agent->id)->exists())->toBeFalse();
+});

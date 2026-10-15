@@ -1,17 +1,12 @@
 <?php
 
-use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\UserTurnData;
-use Domain\Conversation\Data\Turn\StreamRequestData;
-use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
-use Domain\Llm\Models\Llm;
-use Illuminate\Support\Str;
+use Tests\Support\Conversation\TestChatContext;
 
 /**
  * A blocked message gets the refusal; when a blocked topic handed the
@@ -20,28 +15,7 @@ use Illuminate\Support\Str;
  */
 function guardBlockContext(): ChatContext
 {
-    $llm = Llm::factory()->create();
-    $requestData = new StreamRequestData(
-        agent: Agent::factory()->create(),
-        message: new StreamRequestMessageData(model: $llm, message: 'I want to complain'),
-        externalSessionId: (string) Str::uuid(),
-        conversationId: (string) Str::uuid(),
-    );
-
-    $context = new ChatContext(
-        requestData: $requestData,
-        payload: UserTurnData::from([
-            'external_session_id' => $requestData->externalSessionId,
-            'external_conversation_id' => $requestData->conversationId,
-            'external_message_id' => (string) Str::uuid(),
-            'model' => $llm->external_name,
-            'message' => 'I want to complain',
-            'sent_at' => now(),
-        ]),
-        llmMessages: [],
-        userMessageId: (string) Str::uuid(),
-        assistantMessageId: (string) Str::uuid(),
-    );
+    $context = TestChatContext::make(message: 'I want to complain', llmMessages: []);
     $context->guardBlocked = true;
     $context->guardRefusal = 'Sorry, I can’t help with that request.';
     $context->guardHandoffMessage = 'Let me connect you with someone from our team.';

@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Event;
  * not answer.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Event::fake([MessagePosted::class]);
     Bus::fake();
 });

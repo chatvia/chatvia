@@ -60,13 +60,10 @@ final class VoiceCallSlots
         });
     }
 
-    /** The most calls at once: the `voice` supervisor's workers in this environment. */
+    /** The most calls at once: the `voice` supervisor's workers. */
     public function capacity(): int
     {
-        $workers = config('horizon.environments.'.app()->environment().'.voice.maxProcesses')
-            ?? config('horizon.defaults.voice.maxProcesses', 1);
-
-        return max(1, (int) $workers);
+        return max(1, (int) config('horizon.defaults.voice.maxProcesses', 1));
     }
 
     /**

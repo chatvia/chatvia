@@ -101,14 +101,16 @@ it('pops each long job through a connection whose retry_after outlasts the job',
     [JoinVoiceCallJob::class, 'voice'],
 ]);
 
-it('fits production on a small server', function (): void {
-    $production = config('horizon.environments.production');
-    $most = collect($production)->sum('maxProcesses');
+it('runs the same supervisors in every environment', function (): void {
+    expect(config('horizon.environments'))->toBe(['*' => []]);
+});
+
+it('fits a small server', function (): void {
+    $most = collect(horizonSupervisors())->sum('maxProcesses');
     $idle = collect(horizonSupervisors())->sum(fn (array $supervisor): int => $supervisor['balance'] === 'auto'
         ? count((array) $supervisor['queue']) * $supervisor['minProcesses']
         : $supervisor['minProcesses']);
 
-    expect(array_keys($production))->toEqualCanonicalizing(array_keys(horizonSupervisors()))
-        ->and($most)->toBeLessThanOrEqual(16)
+    expect($most)->toBeLessThanOrEqual(16)
         ->and($idle)->toBeLessThanOrEqual(6);
 });

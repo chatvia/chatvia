@@ -210,7 +210,7 @@ return [
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'minProcesses' => 1,
-            'maxProcesses' => 2,
+            'maxProcesses' => 6,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
@@ -226,7 +226,7 @@ return [
             'balance' => 'auto',
             'autoScalingStrategy' => 'time',
             'minProcesses' => 1,
-            'maxProcesses' => 1,
+            'maxProcesses' => 2,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
@@ -243,7 +243,7 @@ return [
             'queue' => ['ingestion.chunks', 'ingestion.summary', 'ingestion.text', 'ingestion.pdf', 'ingestion.word', 'ingestion.website', 'exports'],
             'balance' => false,
             'minProcesses' => 1,
-            'maxProcesses' => 1,
+            'maxProcesses' => 4,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 512,
@@ -276,7 +276,7 @@ return [
             'queue' => ['voice'],
             'balance' => false,
             'minProcesses' => 1,
-            'maxProcesses' => 2,
+            'maxProcesses' => 3,
             'maxTime' => 0,
             'maxJobs' => 0,
             'memory' => 128,
@@ -287,47 +287,14 @@ return [
     ],
 
     /*
-    | The most workers each supervisor runs at once. Horizon starts a
-    | supervisor with half of it, keeps at least minProcesses per pool, and
-    | each worker is a PHP process of about 80 MB, so production fits a small
-    | server: 16 workers at most, 6 when idle. The admin panel raises them
-    | (Settings, Platform, Queue workers) after a restart of Horizon.
+    | Every environment runs the supervisors above. The most workers of each
+    | (maxProcesses) fit a small server: Horizon starts a supervisor with half
+    | of it, keeps at least minProcesses per pool, and each worker is a PHP
+    | process of about 80 MB, so 16 workers at most, 6 when idle. The admin
+    | panel changes them (Settings, Platform, Queue workers); Horizon reads
+    | them when it starts.
     */
     'environments' => [
-        'production' => [
-            'chat' => [
-                'maxProcesses' => 6,
-            ],
-            'analytics' => [
-                'maxProcesses' => 2,
-            ],
-            'ingestion' => [
-                'maxProcesses' => 4,
-            ],
-            'media' => [
-                'maxProcesses' => 1,
-            ],
-            'voice' => [
-                'maxProcesses' => 3,
-            ],
-        ],
-
-        'local' => [
-            'chat' => [
-                'maxProcesses' => 3,
-            ],
-            'analytics' => [
-                'maxProcesses' => 1,
-            ],
-            'ingestion' => [
-                'maxProcesses' => 3,
-            ],
-            'media' => [
-                'maxProcesses' => 1,
-            ],
-            'voice' => [
-                'maxProcesses' => 2,
-            ],
-        ],
+        '*' => [],
     ],
 ];

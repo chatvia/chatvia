@@ -171,8 +171,6 @@ it('sets how many voice calls run at once', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(config('horizon.environments.production.voice.maxProcesses'))->toBe(6);
-
-    app()->detectEnvironment(fn (): string => 'production');
-    expect(app(VoiceCallSlots::class)->capacity())->toBe(6);
+    expect(config('horizon.defaults.voice.maxProcesses'))->toBe(6)
+        ->and(app(VoiceCallSlots::class)->capacity())->toBe(6);
 });

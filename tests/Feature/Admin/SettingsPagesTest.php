@@ -20,6 +20,7 @@ use App\Admin\Settings\ConnectorSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SignInSettings;
+use App\Admin\Settings\ToolRecording;
 use App\Admin\Settings\WorkspaceSettings;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
@@ -29,6 +30,7 @@ use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmTask;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -271,6 +273,46 @@ it('keeps the tracking code as typed, and an empty box turns it off', function (
         ->assertHasNoFormErrors();
 
     expect(storedSetting(PlatformSettings::class, 'tracking_code'))->toBeNull();
+});
+
+it('turns Spectra on, and keeps only counts while prompts and replies are not saved', function (): void {
+    // phpunit.xml leaves Pulse out of the install, and Spectra in.
+    settingsPage($this->admin, ManagePlatformSettings::class)
+        ->assertSee(['Off in .env', 'PULSE_ENABLED=false in .env', 'Open Spectra'])
+        // A number left blank shows its default (30 days) as a placeholder.
+        ->assertSchemaStateSet(['spectra_enabled' => false, 'spectra_store_content' => true, 'spectra_retention_days' => null])
+        ->fillForm(['spectra_enabled' => true, 'spectra_store_content' => false, 'spectra_retention_days' => 7])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(storedSetting(PlatformSettings::class, 'spectra_enabled'))->toBeTrue()
+        ->and(config('spectra.enabled'))->toBeTrue()
+        ->and(config('spectra.storage.store_prompts'))->toBeFalse()
+        ->and(config('spectra.storage.store_responses'))->toBeFalse()
+        ->and(config('spectra.storage.store_system_prompts'))->toBeFalse()
+        ->and(config('chatvia.spectra.retention_days'))->toBe(7);
+});
+
+it('restarts Pulse\'s server stats when the Pulse switch changes', function (): void {
+    // As if PULSE_ENABLED were true when the app booted.
+    config(['pulse.enabled' => true]);
+    app()->forgetInstance(ToolRecording::class);
+    Artisan::spy();
+
+    settingsPage($this->admin, ManagePlatformSettings::class)
+        ->fillForm(['tracking_code' => '<script></script>'])
+        ->call('save');
+
+    Artisan::shouldNotHaveReceived('call', ['pulse:restart']);
+
+    settingsPage($this->admin, ManagePlatformSettings::class)
+        ->assertSchemaStateSet(['pulse_enabled' => true])
+        ->fillForm(['pulse_enabled' => false])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(storedSetting(PlatformSettings::class, 'pulse_enabled'))->toBeFalse();
+    Artisan::shouldHaveReceived('call')->with('pulse:restart')->once();
 });
 
 it('shows the workspace values in use', function (): void {

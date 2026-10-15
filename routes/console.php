@@ -83,6 +83,10 @@ Schedule::command('queue:prune-failed --hours=168')->dailyAt('05:05')->withoutOv
 Schedule::command('sanctum:prune-expired --hours=24')->dailyAt('05:10')->withoutOverlapping()->onOneServer();
 Schedule::command('model:prune', ['--model' => [MagicLink::class]])->dailyAt('05:15')->withoutOverlapping()->onOneServer();
 
+// Spectra's AI call log keeps the days set in Settings → Platform → Spectra.
+// It runs while Spectra does not record too, so an old log still empties.
+Schedule::command('spectra:prune', ['--hours' => max(1, (int) config('chatvia.spectra.retention_days')) * 24])->dailyAt('05:20')->withoutOverlapping()->onOneServer();
+
 // The `chat` cache store groups chat memory under tags. Redis keeps a sorted
 // set per tag that lists its keys; entries stay in it after the keys expire,
 // so the sets only grow until this removes the stale entries.

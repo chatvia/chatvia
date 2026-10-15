@@ -61,6 +61,7 @@
         "spatie/laravel-settings": "^3.9",
         "spatie/laravel-typescript-transformer": "^3.3",
         "spatie/typescript-transformer": "^3.3",
+        "spectra-php/laravel-spectra": "dev-main",
         "symfony/http-client": "^8.1",
         "symfony/mailgun-mailer": "^8.1",
         "symfony/postmark-mailer": "^8.1",
@@ -183,5 +184,13 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [{
+        "name": "spectra",
+        "type": "path",
+        "url": "../../Packages/laravel-spectra",
+        "options": {
+            "symlink": true
+        }
+    }]
 }

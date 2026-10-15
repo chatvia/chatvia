@@ -287,5 +287,8 @@
     "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "تعذر تشغيل فحص الأمان لوكيلك «:name»، لذا أُجيب عن بعض الرسائل بدونه.",
     "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "يحدث هذا عندما يتعذر الوصول إلى نموذج الذكاء الاصطناعي الخاص بالحمايات. تحقق من النموذج في لوحة الإدارة إذا تكرر ذلك.",
     "Open the guardrails activity": "فتح نشاط الحمايات",
-    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "تصلك رسالة واحدة من هذا النوع على الأكثر كل ساعة. يمكنك إيقاف هذه التنبيهات من صفحة الحمايات."
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "تصلك رسالة واحدة من هذا النوع على الأكثر كل ساعة. يمكنك إيقاف هذه التنبيهات من صفحة الحمايات.",
+    "Spectra": "Spectra",
+    "AI calls and their cost": "استدعاءات الذكاء الاصطناعي وتكلفتها",
+    "See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.": "اطّلع على كل استدعاء لخدمة ذكاء اصطناعي: النموذج والرموز والتكلفة والمدة التي استغرقها. لا يسجّل إلا عندما يكون Settings → Platform → Spectra مفعّلًا."
 }

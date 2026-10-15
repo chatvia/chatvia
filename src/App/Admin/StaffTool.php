@@ -19,12 +19,14 @@ enum StaffTool: string
 {
     case Horizon = 'horizon';
     case Pulse = 'pulse';
+    case Spectra = 'spectra';
 
     public function label(): string
     {
         return match ($this) {
             self::Horizon => __('Laravel Horizon'),
             self::Pulse => __('Laravel Pulse'),
+            self::Spectra => __('Spectra'),
         };
     }
 
@@ -34,6 +36,7 @@ enum StaffTool: string
         return match ($this) {
             self::Horizon => __('Queues and workers'),
             self::Pulse => __('App health and performance'),
+            self::Spectra => __('AI calls and their cost'),
         };
     }
 
@@ -42,6 +45,7 @@ enum StaffTool: string
         return match ($this) {
             self::Horizon => __('See the background jobs: what waits in the queue, what runs now and what failed. Retry a failed job, and check that the workers keep up.'),
             self::Pulse => __('See how the app performs: slow pages, slow database queries and jobs, errors, and the people and jobs that use the server most.'),
+            self::Spectra => __('See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.'),
         };
     }
 
@@ -75,6 +79,7 @@ enum StaffTool: string
         return match ($this) {
             self::Horizon => Horizon::check(request()),
             self::Pulse => Gate::allows('viewPulse'),
+            self::Spectra => Gate::allows('viewSpectra'),
         };
     }
 
@@ -84,6 +89,7 @@ enum StaffTool: string
         return match ($this) {
             self::Horizon => 'horizon.index',
             self::Pulse => 'pulse',
+            self::Spectra => 'spectra.dashboard',
         };
     }
 }

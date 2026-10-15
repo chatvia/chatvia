@@ -45,6 +45,9 @@
              database, so the suite needs no second database. -->
         <env name="DB_PULSE_DATABASE" value="testing"/>
         <env name="PULSE_ENABLED" value="false"/>
+        <!-- Spectra stays installed (its dashboard routes are tested) but
+             records nothing: its admin switch is off by default. -->
+        <env name="DB_SPECTRA_DATABASE" value="testing"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

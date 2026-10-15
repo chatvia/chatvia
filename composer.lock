@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1e1cf05123ef8f482acb625716d0df16",
+    "content-hash": "0c4245301a7a987f0a84557f7301d4b9",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -10762,6 +10762,109 @@
             "time": "2026-08-28T13:23:41+00:00"
         },
         {
+            "name": "spectra-php/laravel-spectra",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "../../Packages/laravel-spectra",
+                "reference": "0d346fdd4b0b97ef6c04597c0df8576b1de39b9c"
+            },
+            "require": {
+                "illuminate/contracts": "^12.0||^13.0",
+                "illuminate/database": "^12.0||^13.0",
+                "illuminate/support": "^12.0||^13.0",
+                "php": "^8.2",
+                "symfony/polyfill-php84": "^1.31"
+            },
+            "require-dev": {
+                "james-heinrich/getid3": "2.0.x-dev",
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.1",
+                "openai-php/laravel": "^0.19.1",
+                "orchestra/testbench": "^10.0||^11.0",
+                "pestphp/pest": "^3.0||^4.0||^5.0",
+                "pestphp/pest-plugin-arch": "^3.0||^4.0||^5.0",
+                "pestphp/pest-plugin-laravel": "^3.0||^4.0||^5.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0"
+            },
+            "suggest": {
+                "james-heinrich/getid3": "Required for extracting audio duration from TTS binary responses (minute-based cost calculation)"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spectra\\SpectraServiceProvider"
+                    ],
+                    "aliases": {
+                        "Spectra": "Spectra\\Facades\\Spectra"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spectra\\": "src/",
+                    "Spectra\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Spectra\\Tests\\": "tests/",
+                    "Workbench\\App\\": "workbench/app/",
+                    "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+                }
+            },
+            "scripts": {
+                "post-autoload-dump": [
+                    "@composer run prepare"
+                ],
+                "prepare": [
+                    "@php vendor/bin/testbench package:discover --ansi"
+                ],
+                "analyse": [
+                    "vendor/bin/phpstan analyse --no-progress --memory-limit=1G"
+                ],
+                "test": [
+                    "vendor/bin/pest"
+                ],
+                "test-coverage": [
+                    "vendor/bin/pest --coverage"
+                ],
+                "format": [
+                    "vendor/bin/pint"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ahmad Mayahi",
+                    "email": "ahmad@mayahi.net",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Comprehensive observability for AI/LLM operations in Laravel applications",
+            "homepage": "https://github.com/spectra-php/laravel-spectra",
+            "keywords": [
+                "ahmadmayahi",
+                "ai",
+                "anthropic",
+                "gemini",
+                "laravel",
+                "llm",
+                "observability",
+                "openai"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
             "name": "spomky-labs/cbor-php",
             "version": "3.4.2",
             "source": {
@@ -19679,7 +19782,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "spectra-php/laravel-spectra": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

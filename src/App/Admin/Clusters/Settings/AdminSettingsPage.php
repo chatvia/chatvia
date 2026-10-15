@@ -504,7 +504,7 @@ abstract class AdminSettingsPage extends Page
     private function statusLine(SettingsCard $card): array
     {
         if ($card->required === []) {
-            return [$this->summaryOf($card), 'gray'];
+            return [$this->summaryOf($card), $card->tone instanceof Closure ? ($card->tone)() : 'gray'];
         }
 
         $status = $this->statusOf($card);

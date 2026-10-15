@@ -10,7 +10,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  * Install-wide options that fit nowhere else: the default language, the
  * chat widget, the tracking code, visitor location, where Horizon sends
  * alerts, how many queue workers it may run, where the programs that read
- * files are, and when the admin setup of the install was completed.
+ * files are, whether the panel shows its Logs page, and when the admin setup
+ * of the install was completed.
  */
 class PlatformSettings extends AdminSettings
 {
@@ -90,6 +91,11 @@ class PlatformSettings extends AdminSettings
 
     #[ConfigKey('laravel-pdf.weasyprint.binary')]
     public ?string $weasyprint_path = null;
+
+    // The Logs page reads and clears the install's log files, so it stays
+    // out of the panel until an admin turns it on.
+    #[ConfigKey('chatvia.admin.logs_page_enabled')]
+    public ?bool $logs_page_enabled = null;
 
     public static function group(): string
     {

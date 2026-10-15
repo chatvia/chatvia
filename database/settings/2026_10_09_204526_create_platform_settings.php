@@ -38,6 +38,7 @@ return new class extends SettingsMigration
             $group->add('ffmpeg_path');
             $group->add('ffprobe_path');
             $group->add('weasyprint_path');
+            $group->add('logs_page_enabled');
         });
     }
 

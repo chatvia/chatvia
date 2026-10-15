@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Admin\Clusters\Settings;
 
+use App\Admin\AdminPanelProvider;
 use BackedEnum;
 use Filament\Clusters\Cluster;
 use Filament\Pages\Enums\SubNavigationPosition;
 use Filament\Support\Icons\Heroicon;
+use UnitEnum;
 
 /**
  * The admin panel's Settings: one page per settings class
@@ -23,6 +25,9 @@ class SettingsCluster extends Cluster
 
     #[\Override]
     protected static ?int $navigationSort = 100;
+
+    #[\Override]
+    protected static string|UnitEnum|null $navigationGroup = AdminPanelProvider::SYSTEM_NAVIGATION_GROUP;
 
     #[\Override]
     protected static ?string $slug = 'settings';

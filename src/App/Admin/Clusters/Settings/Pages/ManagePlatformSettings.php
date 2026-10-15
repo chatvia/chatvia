@@ -22,8 +22,8 @@ use Illuminate\Support\Arr;
 
 /**
  * Install-wide options: default language, the chat widget, the tracking
- * code, visitor location, alerts, the number of queue workers, and where the
- * programs that read files are.
+ * code, visitor location, alerts, the number of queue workers, where the
+ * programs that read files are, and the panel's Logs page.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -62,7 +62,19 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, tracking code, visitor location, queue workers and programs.';
+        return 'Language, widget, tracking code, visitor location, queue workers, programs and logs.';
+    }
+
+    /**
+     * The Development card shows or hides Logs in the sidebar, so the
+     * sidebar is drawn again with the saved choice.
+     */
+    #[\Override]
+    public function save(): void
+    {
+        parent::save();
+
+        $this->dispatch('refresh-sidebar');
     }
 
     public static function overviewGroup(): string
@@ -112,6 +124,11 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->programField(...),
                 ServerProgram::cases(),
             ))->summary(fn (): string => $this->programsSummary())->advanced(),
+            SettingsCard::make('development', __('Development'), __('Tools for finding problems in this install.'), Heroicon::OutlinedCodeBracket, fn (): array => [
+                $this->toggle('logs_page_enabled', __('Logs page'),
+                    help: __('Shows Logs in the sidebar, where admins read and clear the log files of this install. Off hides the page and blocks its address.')),
+            ])->summary(fn (): string => $this->valueInUse('logs_page_enabled') === true ? __('Logs page on') : __('Logs page off'))
+                ->advanced(),
         ];
     }
 

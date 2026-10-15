@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Chi tiết",
-        "arguments": "Đối số"
-    },
     "messages": {
         "responding": "Trợ lý đang phản hồi…",
         "response_complete": "Đã phản hồi xong",

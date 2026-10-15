@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Detalhes",
-        "arguments": "Argumentos"
-    },
     "messages": {
         "responding": "O assistente está a responder…",
         "response_complete": "Resposta concluída",

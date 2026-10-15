@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Odottaa hyväksyntää",
-        "prompt": "Haluatko jatkaa?",
         "mcp_tool": "MCP-työkalu",
         "function": "Funktio",
         "approve": "Hyväksy",
         "deny": "Hylkää",
-        "details": "Tiedot",
-        "arguments": "Argumentit"
+        "explain_in": "Tämä toiminto voi tehdä muutoksia palveluun {provider}, joten se tarvitsee ensin hyväksyntäsi.",
+        "explain": "Tämä toiminto voi tehdä muutoksia, joten se tarvitsee ensin hyväksyntäsi.",
+        "approved": "Hyväksytty",
+        "denied": "Hylätty",
+        "show_details": "Näytä tiedot",
+        "hide_details": "Piilota tiedot"
     },
     "composer": {
         "default_placeholder": "Viesti...",

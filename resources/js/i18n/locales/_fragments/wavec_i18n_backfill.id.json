@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Detail",
-        "arguments": "Argumen"
-    },
     "messages": {
         "responding": "Asisten sedang merespons…",
         "response_complete": "Respons selesai",

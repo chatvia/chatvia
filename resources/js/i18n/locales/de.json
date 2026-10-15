@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Genehmigung erforderlich",
-        "prompt": "Möchten Sie fortfahren?",
         "mcp_tool": "MCP-Tool",
         "function": "Funktion",
         "approve": "Genehmigen",
         "deny": "Ablehnen",
-        "details": "Details",
-        "arguments": "Argumente"
+        "explain_in": "Diese Aktion kann Änderungen in {provider} vornehmen und braucht deshalb zuerst Ihre Genehmigung.",
+        "explain": "Diese Aktion kann Änderungen vornehmen und braucht deshalb zuerst Ihre Genehmigung.",
+        "approved": "Genehmigt",
+        "denied": "Abgelehnt",
+        "show_details": "Details anzeigen",
+        "hide_details": "Details ausblenden"
     },
     "composer": {
         "default_placeholder": "Nachricht...",

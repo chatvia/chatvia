@@ -151,7 +151,6 @@ async function deleteMessage() {
                     v-for="call in pendingApprovals"
                     :key="call.tool_call_id"
                     :call="call"
-                    :is-rtl="isRTL ?? false"
                     :resolving="(resolvingApprovalIds ?? []).includes(call.approval_id)"
                     @approve="(c) => emit('approveTool', c)"
                     @deny="(c) => emit('denyTool', c)"

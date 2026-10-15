@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Wymaga zatwierdzenia",
-        "prompt": "Czy chcesz kontynuować?",
         "mcp_tool": "Narzędzie MCP",
         "function": "Funkcja",
         "approve": "Zatwierdź",
         "deny": "Odrzuć",
-        "details": "Szczegóły",
-        "arguments": "Argumenty"
+        "explain_in": "Ta akcja może wprowadzić zmiany w {provider}, dlatego najpierw wymaga Twojej zgody.",
+        "explain": "Ta akcja może wprowadzić zmiany, dlatego najpierw wymaga Twojej zgody.",
+        "approved": "Zatwierdzono",
+        "denied": "Odrzucono",
+        "show_details": "Pokaż szczegóły",
+        "hide_details": "Ukryj szczegóły"
     },
     "composer": {
         "default_placeholder": "Wiadomość...",

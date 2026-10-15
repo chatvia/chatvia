@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Needs approval",
-        "prompt": "Do you want to proceed?",
         "mcp_tool": "MCP tool",
         "function": "Function",
         "approve": "Approve",
         "deny": "Deny",
-        "details": "Details",
-        "arguments": "Arguments"
+        "explain_in": "This action can make changes in {provider}, so it needs your approval first.",
+        "explain": "This action can make changes, so it needs your approval first.",
+        "approved": "Approved",
+        "denied": "Denied",
+        "show_details": "Show details",
+        "hide_details": "Hide details"
     },
     "composer": {
         "default_placeholder": "Message...",

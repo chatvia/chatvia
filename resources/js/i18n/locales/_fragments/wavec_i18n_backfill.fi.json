@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Tiedot",
-        "arguments": "Argumentit"
-    },
     "messages": {
         "responding": "Avustaja vastaa…",
         "response_complete": "Vastaus valmis",

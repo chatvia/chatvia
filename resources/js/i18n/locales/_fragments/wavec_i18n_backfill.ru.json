@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Подробности",
-        "arguments": "Аргументы"
-    },
     "messages": {
         "responding": "Ассистент отвечает…",
         "response_complete": "Ответ завершён",

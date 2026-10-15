@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Esta acción puede hacer cambios en {provider}, así que primero necesita tu aprobación.",
+        "explain": "Esta acción puede hacer cambios, así que primero necesita tu aprobación.",
+        "approved": "Aprobado",
+        "denied": "Rechazado",
+        "show_details": "Mostrar detalles",
+        "hide_details": "Ocultar detalles"
+    }
+}

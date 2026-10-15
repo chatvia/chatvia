@@ -1,7 +1,6 @@
 {
     "approval": {
         "badge": "Wymaga zatwierdzenia",
-        "prompt": "Czy chcesz kontynuować?",
         "mcp_tool": "Narzędzie MCP",
         "function": "Funkcja",
         "approve": "Zatwierdź",

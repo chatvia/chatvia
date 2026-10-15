@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Hành động này có thể thay đổi dữ liệu trong {provider}, vì vậy cần bạn phê duyệt trước.",
+        "explain": "Hành động này có thể thay đổi dữ liệu, vì vậy cần bạn phê duyệt trước.",
+        "approved": "Đã phê duyệt",
+        "denied": "Đã từ chối",
+        "show_details": "Hiện chi tiết",
+        "hide_details": "Ẩn chi tiết"
+    }
+}

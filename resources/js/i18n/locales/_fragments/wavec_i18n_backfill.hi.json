@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "विवरण",
-        "arguments": "आर्ग्युमेंट"
-    },
     "messages": {
         "responding": "असिस्टेंट जवाब दे रहा है…",
         "response_complete": "उत्तर पूरा हुआ",

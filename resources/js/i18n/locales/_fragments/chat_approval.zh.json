@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "此操作可能会更改 {provider} 中的内容，因此需要你先批准。",
+        "explain": "此操作可能会更改内容，因此需要你先批准。",
+        "approved": "已批准",
+        "denied": "已拒绝",
+        "show_details": "显示详情",
+        "hide_details": "隐藏详情"
+    }
+}

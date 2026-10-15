@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Onay gerekiyor",
-        "prompt": "Devam etmek istiyor musunuz?",
         "mcp_tool": "MCP aracı",
         "function": "İşlev",
         "approve": "Onayla",
         "deny": "Reddet",
-        "details": "Ayrıntılar",
-        "arguments": "Argümanlar"
+        "explain_in": "Bu işlem {provider} içinde değişiklik yapabilir, bu yüzden önce onayınız gerekir.",
+        "explain": "Bu işlem değişiklik yapabilir, bu yüzden önce onayınız gerekir.",
+        "approved": "Onaylandı",
+        "denied": "Reddedildi",
+        "show_details": "Ayrıntıları göster",
+        "hide_details": "Ayrıntıları gizle"
     },
     "composer": {
         "default_placeholder": "Mesaj…",

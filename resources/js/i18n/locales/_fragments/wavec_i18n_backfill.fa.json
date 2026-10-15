@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "جزئیات",
-        "arguments": "آرگومان‌ها"
-    },
     "messages": {
         "responding": "دستیار در حال پاسخ دادن است…",
         "response_complete": "پاسخ کامل شد",

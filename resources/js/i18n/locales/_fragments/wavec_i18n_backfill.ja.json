@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "詳細",
-        "arguments": "引数"
-    },
     "messages": {
         "responding": "アシスタントが応答しています…",
         "response_complete": "応答が完了しました",

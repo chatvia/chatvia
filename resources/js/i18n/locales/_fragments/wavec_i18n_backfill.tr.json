@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Ayrıntılar",
-        "arguments": "Argümanlar"
-    },
     "messages": {
         "responding": "Asistan yanıt veriyor…",
         "response_complete": "Yanıt tamamlandı",

@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Tämä toiminto voi tehdä muutoksia palveluun {provider}, joten se tarvitsee ensin hyväksyntäsi.",
+        "explain": "Tämä toiminto voi tehdä muutoksia, joten se tarvitsee ensin hyväksyntäsi.",
+        "approved": "Hyväksytty",
+        "denied": "Hylätty",
+        "show_details": "Näytä tiedot",
+        "hide_details": "Piilota tiedot"
+    }
+}

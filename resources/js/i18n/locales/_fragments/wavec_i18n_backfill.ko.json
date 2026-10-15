@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "세부 정보",
-        "arguments": "인수"
-    },
     "messages": {
         "responding": "어시스턴트가 응답하는 중…",
         "response_complete": "응답 완료",

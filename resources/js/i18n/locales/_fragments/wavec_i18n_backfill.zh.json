@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "详情",
-        "arguments": "参数"
-    },
     "messages": {
         "responding": "助手正在回复…",
         "response_complete": "回复完成",

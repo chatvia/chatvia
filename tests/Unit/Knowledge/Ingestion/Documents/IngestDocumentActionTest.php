@@ -15,19 +15,11 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * IngestDocumentAction is the most-burned-on orchestrator in the codebase
- * (per the audit). The two regression-class invariants tested below are
- * the ones the project's MEMORY explicitly tracks as previously-shipped
- * outages:
- *   1. The Bus::batch().then() terminal-broadcast must fire — checksum
- *      dedup drops blank/duplicate pages so per-chunk progress can't reach
- *      100% on its own; without this broadcast the UI hangs on 'ingesting'.
- *   2. Idempotency on already-ingested SourceFile is a hard short-circuit
- *      that protects against double-OCR cost on a retry.
+ * IngestDocumentAction reads a document into pages once, splits long pages,
+ * and hands the pages to one chunking batch. An ingested file is never parsed
+ * again (parsing is the costly step), and a retry reads the stored pages back.
  *
- * The DocumentParser collaborator is faked so the test never reaches a parsing
- * service; we just need to confirm the orchestrator routes batches and the
- * terminal broadcast through the right paths.
+ * The DocumentParser is faked, so the tests never reach a parsing service.
  */
 function idaFakeParser(): DocumentParser
 {
@@ -62,21 +54,46 @@ it('is idempotent: a SourceFile already in the ingested state returns immediatel
     Event::assertNotDispatched(FileIngestionProgressed::class);
 });
 
-it('routes ingestion via a Bus batch named with the SourceFile id', function (): void {
+it('reads the stored pages back on a retry instead of parsing the file again', function (): void {
     Bus::fake();
+    Storage::fake();
 
     $agent = Agent::factory()->create();
     $sourceFile = AgentFileFactory::new()->create([
+        'workspace_id' => $agent->workspace_id,
         'status' => 'ingesting',
         'mime_type' => 'application/pdf',
-        'parser_filepath' => 'ocr/path/x.json',
+        'parser_filepath' => 'workspaces/x/sources/y/pages.json',
     ]);
+    Storage::put($sourceFile->parser_filepath, collect([
+        new PageData(pageNumber: 1, content: 'Stored page one', checksum: hash('xxh128', 'Stored page one')),
+        new PageData(pageNumber: 2, content: 'Stored page two', checksum: hash('xxh128', 'Stored page two')),
+    ])->toJson());
     $agent->files()->attach($sourceFile->id);
 
-    app()->make(IngestDocumentAction::class, ['parser' => idaFakeParser()])->execute($sourceFile, $agent);
+    $parser = new class implements DocumentParser
+    {
+        public int $calls = 0;
 
-    Bus::assertBatched(fn ($batch): bool => str_contains((string) $batch->name, (string) $sourceFile->id));
-})->skip('Bus batch shape depends on whether parser_filepath has chunks present; covered by ingestion feature path.');
+        public function parse(string $filePath, string $storageDirectory): Collection
+        {
+            $this->calls++;
+
+            return collect();
+        }
+
+        public function name(): string
+        {
+            return 'local';
+        }
+    };
+
+    app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
+
+    expect($parser->calls)->toBe(0);
+    Bus::assertBatched(fn ($batch): bool => $batch->name === "Ingestion {$sourceFile->getMorphClass()} ID: {$sourceFile->id}"
+        && $batch->jobs->flatMap(fn ($job): array => $job->group->pages)->pluck('content')->all() === ['Stored page one', 'Stored page two']);
+});
 
 it('reads the document with the configured parser and records the parser name', function (): void {
     Bus::fake();

@@ -11,7 +11,10 @@
 |
 */
 
+use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
+use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\AiProvider;
@@ -140,6 +143,26 @@ function teammateWithPermissions(User $owner, array $permissions, ?Team $team = 
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     return $member;
+}
+
+/**
+ * Switch off the agent's workspace the way the admin panel does: deactivate
+ * its owner, which also stops its agents ({@see WorkspaceActivation}).
+ */
+function deactivateWorkspaceOf(Agent $agent, string $reason = 'Unpaid invoices'): void
+{
+    app(DeactivateAccountAction::class)->execute(
+        $agent->workspace->owner ?? throw new LogicException('A workspace always has an owner.'),
+        $reason,
+    );
+}
+
+/** Switch the agent's workspace back on, as the admin panel does. */
+function reactivateWorkspaceOf(Agent $agent): void
+{
+    app(ReactivateAccountAction::class)->execute(
+        $agent->workspace->owner ?? throw new LogicException('A workspace always has an owner.'),
+    );
 }
 
 /**

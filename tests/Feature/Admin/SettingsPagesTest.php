@@ -24,6 +24,7 @@ use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Enums\AiProvider;
+use Domain\Llm\Enums\LlmTask;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\DB;
@@ -343,22 +344,35 @@ it('keeps the embedding provider and models open once a source is trained', func
         ->assertFormFieldEnabled('scaleway_embedding_model');
 });
 
-it('picks the model of each job from the models that may be used', function (): void {
-    $fast = testLlm('fast-model');
+it('picks the model of each app task from the models that may be used', function (string $property, string $configKey): void {
+    $picked = testLlm('picked-model');
     $off = testLlm('off-model', attributes: ['is_enabled' => false]);
 
     settingsPage($this->admin, ManageAiModelSettings::class)
-        ->fillForm(['fast_model' => $off->external_name])
+        ->fillForm([$property => $off->external_name])
         ->call('save')
-        ->assertHasFormErrors(['fast_model']);
+        ->assertHasFormErrors([$property]);
 
     settingsPage($this->admin, ManageAiModelSettings::class)
-        ->fillForm(['fast_model' => $fast->external_name])
+        ->fillForm([$property => $picked->external_name])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(AiSettings::class, 'fast_model'))->toBe($fast->external_name)
-        ->and(config('chatvia.ai.roles.fast'))->toBe($fast->external_name);
+    expect(storedSetting(AiSettings::class, $property))->toBe($picked->external_name)
+        ->and(config($configKey))->toBe($picked->external_name);
+})->with([
+    'the model for app tasks' => ['task_model', 'chatvia.ai.tasks.default'],
+    'one task' => ['guardrails_model', 'chatvia.ai.tasks.guardrails'],
+]);
+
+it('has a setting and a field for every app task', function (): void {
+    $page = settingsPage($this->admin, ManageAiModelSettings::class);
+
+    foreach (LlmTask::appTasks() as $task) {
+        expect(AiSettings::propertyFor($task->configKey()))->toBe($task->settingsProperty());
+
+        $page->assertFormFieldExists($task->settingsProperty());
+    }
 });
 
 it('sends a test email with the saved settings', function (): void {

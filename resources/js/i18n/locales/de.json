@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Der Avatar konnte nicht hochgeladen werden",
                 "logo_upload_error": "Das Logo konnte nicht hochgeladen werden",
                 "avatar_remove_error": "Der Avatar konnte nicht entfernt werden",
-                "logo_remove_error": "Das Logo konnte nicht entfernt werden"
+                "logo_remove_error": "Das Logo konnte nicht entfernt werden",
+                "replies_saved": "Antwortoptionen gespeichert",
+                "replies_error": "Antwortoptionen konnten nicht gespeichert werden"
             },
             "settings": {
                 "composer_title": "Composer-Optionen",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Jede gesprochene Antwort zählt als eine Nachricht. Ein Sprachgespräch kostet im Betrieb viel mehr als ein geschriebener Chat.",
                 "voice_label": "Stimme",
                 "voice_default": "Standard ({voice})",
-                "voice_input_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann Sprache-zu-Text im Admin-Bereich einschalten."
+                "voice_input_unavailable": "Auf diesem Server nicht eingerichtet. Ein Admin kann Sprache-zu-Text im Admin-Bereich einschalten.",
+                "replies_title": "Antworten",
+                "replies_description": "Wählen Sie, was unter jeder Antwort angezeigt wird.",
+                "show_sources_label": "Quellen anzeigen",
+                "show_sources_hint": "Zeigen Sie unter jeder Antwort eine Schaltfläche an, die das verwendete Wissen auflistet."
             },
             "bubbles_title": "Chat-Blasen",
             "bubbles_description": "Schnelle Nachrichtenvorschläge, die neben der Widget-Blase angezeigt werden. Drücken Sie die Eingabetaste, um jeden hinzuzufügen.",

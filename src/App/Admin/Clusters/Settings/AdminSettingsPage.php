@@ -23,6 +23,7 @@ use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Icon;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\View;
@@ -813,6 +814,24 @@ abstract class AdminSettingsPage extends Page
         return Toggle::make($property)
             ->label($label)
             ->helperText($help);
+    }
+
+    /**
+     * A "?" right after the field's label, with the help as its tooltip, in
+     * place of a line of help under the field.
+     *
+     * @template T of Field
+     *
+     * @param  T  $field
+     * @return T
+     */
+    protected function withHelp(Field $field, string $help): Field
+    {
+        return $field->afterLabel(Schema::start([
+            Icon::make(Heroicon::OutlinedQuestionMarkCircle)
+                ->color('gray')
+                ->tooltip($help),
+        ]));
     }
 
     /**

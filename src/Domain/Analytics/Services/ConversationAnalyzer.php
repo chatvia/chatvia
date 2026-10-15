@@ -13,9 +13,9 @@ use Domain\Conversation\Topic\Models\Topic;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
-use Domain\Llm\Enums\LlmRole;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 
@@ -38,7 +38,7 @@ class ConversationAnalyzer
 
     public function __construct(
         private readonly StructuredCompletion $completion,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     public function analyze(string $transcript, Agent $agent): ?ConversationAnalysisData
@@ -47,7 +47,7 @@ class ConversationAnalyzer
         $topics = $agent->topics()->get();
 
         $data = $this->ask(new ChatRequestData(
-            model: $this->models->model(LlmRole::Fast),
+            model: $this->models->model(LlmTask::ConversationAnalysis),
             messages: [
                 ChatMessageData::system($this->conversationPrompt($topics, $this->pendingLabels($agent))),
                 ChatMessageData::user($transcript),
@@ -78,7 +78,7 @@ class ConversationAnalyzer
     public function analyzeMessage(string $text): ?ConversationAnalysisData
     {
         $data = $this->ask(new ChatRequestData(
-            model: $this->models->model(LlmRole::Fast),
+            model: $this->models->model(LlmTask::ConversationAnalysis),
             messages: [
                 ChatMessageData::system(trim(prompt('analytics/message-analysis'))),
                 ChatMessageData::user($text),

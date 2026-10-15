@@ -26,7 +26,8 @@ use Support\Localization\Country\Models\Country;
 /**
  * Oversight of customer workspaces (the `workspaces` table) with their owner.
  * The view page is the workspace's dashboard: its numbers, agents and
- * people, and what staff may do to it (message limit, deactivate, delete).
+ * people, and what staff may do to it (edit, password reset, message limit,
+ * deactivate, delete).
  * Staff-only; the panel itself is gated to admins.
  */
 class WorkspaceResource extends Resource

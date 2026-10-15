@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Could not upload the avatar",
                 "logo_upload_error": "Could not upload the logo",
                 "avatar_remove_error": "Could not remove the avatar",
-                "logo_remove_error": "Could not remove the logo"
+                "logo_remove_error": "Could not remove the logo",
+                "replies_saved": "Reply options saved",
+                "replies_error": "Could not save reply options"
             },
             "settings": {
                 "composer_title": "Composer options",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Each spoken answer counts as one message. A voice call costs much more to run than a typed chat.",
                 "voice_label": "Voice",
                 "voice_default": "Default ({voice})",
-                "voice_input_unavailable": "Not set up on this server. An admin can turn on speech to text in the admin panel."
+                "voice_input_unavailable": "Not set up on this server. An admin can turn on speech to text in the admin panel.",
+                "replies_title": "Replies",
+                "replies_description": "Choose what appears under each answer.",
+                "show_sources_label": "Show sources",
+                "show_sources_hint": "Show a button under each answer that lists the knowledge it used."
             },
             "bubbles_title": "Chat Bubbles",
             "bubbles_description": "Quick message prompts shown next to the widget launcher.",

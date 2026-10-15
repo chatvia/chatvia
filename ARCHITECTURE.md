@@ -170,6 +170,19 @@ new calendar month has begun, so no scheduled job is needed.
 `SetMessageLimitAction` sets or clears a limit. Messages are counted, never
 tokens.
 
+#### Deactivated workspaces
+
+A workspace is switched off through its owner's account
+(`DeactivateAccountAction`, also run when a deletion starts). Everyone in it is
+signed out, and its agents stop answering. `WorkspaceActivation::isActive()` is
+the check (cached per workspace; Deactivate and Reactivate drop it). The hosted
+chat shows the "agent not found" page, the widget and Command Bar do not appear
+(their settings report both off) and their chat calls get a 404
+`widget_disabled`. `ChatStreamService` ends the turn with an error,
+`ChannelAccessGate` and `ChannelReplyRunner` reply with a short "unavailable"
+message, and `VoiceTurnGate` refuses a new call and ends an open one at the
+visitor's next turn.
+
 ### `App\Http`
 
 | Folder | Holds |
@@ -380,8 +393,11 @@ Nothing outside an adapter branches on the kind; adding a provider is an enum
 case and an adapter class. Every call goes to its model's provider:
 `LlmProviders::for($model)` asks the adapter for the client (`Scaleway`,
 `Mistral`, `OpenRouter`, or `OpenAiCompatible`; all implement
-`LlmProviderInterface`). The app's own calls use a model per `LlmRole` (Chat,
-Fast, Smart, Vision), picked in Settings → AI models and resolved by `ModelRoles`.
+`LlmProviderInterface`). The app's own calls use a model per `LlmTask` (one
+case per call: follow-up rewriting, tool picking, guardrails, titles, image
+descriptions…), picked in Settings → AI models and resolved by `TaskModels`:
+the task's model, else the model for app tasks (`chatvia.ai.tasks.default`),
+else the chat model (`LlmTask::Chat`, the default for new agents).
 Callers use typed helpers: `LlmChat` (one completion), `StructuredCompletion`
 and `LlmJson` (JSON answers), `DocumentLlm` (a model that reads whole PDF
 files).
@@ -787,7 +803,7 @@ unless a row names another page, its setting is on **Settings → AI models**.
 
 | Step | Contract | Drivers | Config key (admin setting) |
 |---|---|---|---|
-| Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; roles `chatvia.agent.default_model`, `chatvia.ai.roles.*` |
+| Chat answers | `LlmProviderInterface`, per model (`LlmProviders`, from the kind's `ProviderAdapter`) | the model's provider row: `openrouter`, `openai`, `google`, `mistral`, `groq`, `scaleway`, `custom` | `llm_providers`, `llms`; tasks `chatvia.agent.default_model`, `chatvia.ai.tasks.*` |
 | Embeddings | `EmbeddingsProviderInterface` | `qwen`, `openai`, `openrouter`, `google`, `cohere`, `mistral`, `jina` (`EmbeddingProvider`; must return `EMBEDDING_DIMENSIONS`) | `chatvia.ai.models.embedding` |
 | Reranking | `Reranker` | `openrouter`, `cohere`, `custom` (a self-hosted `/rerank` server), `none` (a basic similarity check instead) | `chatvia.ai.reranker`, `chatvia.ai.rerank.*` |
 | Reading documents | `DocumentParser` (driver chosen by `DocumentReaders`) | `mistral` (Mistral OCR), `azure` (Azure Document Intelligence), `none` (then PDF, Word, slides and images cannot be uploaded; spreadsheets and CSV are read locally) | `chatvia.ai.document_parser` |
@@ -877,7 +893,8 @@ How it works:
   `TikToken` with the tokenizer set in Settings → Knowledge
   (`chatvia.ai.tokenizer`).
 - **Chunk enrichment.** On by default (Settings → Knowledge,
-  `chatvia.ai.chunker.enhance`): before embedding, the Smart model writes a
+  `chatvia.ai.chunker.enhance`): before embedding, the AI enhancement model
+  (`LlmTask::Enhancement`) writes a
   short summary and the questions each chunk likely answers (with the page's
   pictures and tables for documents), plus a summary of the whole source. It
   costs one model call per chunk; Off embeds the plain text.

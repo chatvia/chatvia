@@ -1,7 +1,8 @@
 /**
  * The Settings section: agent-wide switches that aren't tied to one surface.
  * Composer options (file uploads, voice input, voice conversations and the
- * agent's voice) live in the `appearance` group;
+ * agent's voice) and the reply options (the sources under an answer) live in
+ * the `appearance` group;
  * the chat log and the analytics dimensions live in the `analytics` group.
  * The chat log is the analytics' master switch: with nothing stored there is
  * nothing to analyse, so the dimensions are forced off while it is off.
@@ -47,6 +48,19 @@ export function useSetupGeneralSettings(
             saving: isSavingComposer,
             success: t('agents.setup.toasts.composer_saved'),
             error: t('agents.setup.toasts.composer_error'),
+            onSuccess: reloadPreview,
+        });
+
+    // Reply options. Sources start hidden: the button under small talk confuses chatters.
+    const repliesForm = useForm({
+        show_sources: appearance.boolean('show_sources', false),
+    });
+    const isSavingReplies = ref(false);
+    const saveReplies = (): void =>
+        submitSetupForm(repliesForm, 'post', settingsUrl('appearance'), {
+            saving: isSavingReplies,
+            success: t('agents.setup.toasts.replies_saved'),
+            error: t('agents.setup.toasts.replies_error'),
             onSuccess: reloadPreview,
         });
 
@@ -113,6 +127,9 @@ export function useSetupGeneralSettings(
         isSavingComposer,
         saveComposer,
         voice,
+        repliesForm,
+        isSavingReplies,
+        saveReplies,
         chatlogForm,
         isSavingChatlog,
         saveChatlog,

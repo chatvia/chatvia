@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Admin\Settings;
 
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
+use Domain\Llm\Enums\LlmTask;
 use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * What runs on which AI provider (Settings → AI models): which service
  * handles each step (embeddings, reranking, document reading, speech to
- * text, voice conversations), the models those services call, and the catalog model behind each
- * of the app's own jobs (LlmRole). The providers' keys are in
+ * text, voice conversations), the models those services call, and the
+ * catalog model behind each of the app's own tasks ({@see LlmTask}: one
+ * shared model, and one per task). The providers' keys are in
  * {@see AiProviderSettings}; chat models are rows (`llms`). The services are
  * picked in App\Providers\DomainServiceProvider from `chatvia.ai.*`.
  *
@@ -53,14 +55,47 @@ class AiSettings extends AdminSettings
     #[ConfigKey('chatvia.agent.default_model')]
     public ?string $default_agent_model = null;
 
-    #[ConfigKey('chatvia.ai.roles.fast')]
-    public ?string $fast_model = null;
+    #[ConfigKey('chatvia.ai.tasks.default')]
+    public ?string $task_model = null;
 
-    #[ConfigKey('chatvia.ai.roles.smart')]
-    public ?string $smart_model = null;
+    #[ConfigKey('chatvia.ai.tasks.follow_up')]
+    public ?string $follow_up_model = null;
 
-    #[ConfigKey('chatvia.ai.roles.vision')]
-    public ?string $vision_model = null;
+    #[ConfigKey('chatvia.ai.tasks.tool_routing')]
+    public ?string $tool_routing_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.guardrails')]
+    public ?string $guardrails_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.titles')]
+    public ?string $titles_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.conversation_analysis')]
+    public ?string $conversation_analysis_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.starters')]
+    public ?string $starters_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.translation')]
+    public ?string $translation_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.form_text')]
+    public ?string $form_text_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.chat_address')]
+    public ?string $chat_address_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.enhancement')]
+    public ?string $enhancement_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.tables')]
+    public ?string $tables_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.images')]
+    public ?string $images_model = null;
+
+    #[ConfigKey('chatvia.ai.tasks.eval_judge')]
+    public ?string $eval_judge_model = null;
 
     #[ConfigKey('chatvia.agent.history_messages')]
     public ?int $history_messages = null;

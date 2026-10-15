@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "تعذّر رفع الصورة الرمزية",
                 "logo_upload_error": "تعذّر رفع الشعار",
                 "avatar_remove_error": "تعذّر إزالة الصورة الرمزية",
-                "logo_remove_error": "تعذّر إزالة الشعار"
+                "logo_remove_error": "تعذّر إزالة الشعار",
+                "replies_saved": "تم حفظ خيارات الردود",
+                "replies_error": "تعذّر حفظ خيارات الردود"
             },
             "settings": {
                 "composer_title": "خيارات المحرر",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "كل إجابة منطوقة تُحتسب رسالة واحدة. تكلفة المكالمة الصوتية أعلى بكثير من المحادثة المكتوبة.",
                 "voice_label": "الصوت",
                 "voice_default": "الافتراضي ({voice})",
-                "voice_input_unavailable": "غير مُعدّ على هذا الخادم. يمكن للمسؤول تفعيل تحويل الكلام إلى نص من لوحة الإدارة."
+                "voice_input_unavailable": "غير مُعدّ على هذا الخادم. يمكن للمسؤول تفعيل تحويل الكلام إلى نص من لوحة الإدارة.",
+                "replies_title": "الردود",
+                "replies_description": "اختر ما يظهر أسفل كل إجابة.",
+                "show_sources_label": "إظهار المصادر",
+                "show_sources_hint": "اعرض زرًا أسفل كل إجابة يسرد المعرفة التي استُخدمت فيها."
             },
             "bubbles_title": "فقاعات الدردشة",
             "bubbles_description": "رسائل سريعة تظهر بجانب مُشغّل الأداة.",

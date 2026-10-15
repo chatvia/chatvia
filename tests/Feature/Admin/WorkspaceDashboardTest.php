@@ -13,11 +13,15 @@ use App\Identity\Workspace\Jobs\PrepareDataExportJob;
 use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Conversation\Enums\ConversationSource;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
@@ -26,8 +30,9 @@ use Support\Localization\Country\Models\Country;
 
 /**
  * The admin panel's page for one workspace: its account, this month's
- * numbers, its agents and teammates, and what staff may do to it
- * (deactivate, reactivate, delete, turn off two-step sign-in, export).
+ * numbers, its agents and teammates, and what staff may do to it (edit,
+ * reset the owner's password, deactivate, reactivate, delete, turn off
+ * two-step sign-in, export).
  */
 function wdRollup(Agent $agent, string $bucketHour, array $values = []): void
 {
@@ -188,9 +193,13 @@ it('deactivates the workspace with a reason and reactivates it', function (): vo
         ->assertActionHidden('deactivate')
         ->assertActionVisible('reactivate');
 
+    $activation = app(WorkspaceActivation::class);
+    $workspaceId = $this->owner->workspace()->id;
+
     expect($this->owner->fresh()->deactivation_reason)->toBe('Unpaid invoice')
         ->and($teammate->fresh()->isDeactivated())->toBeTrue()
-        ->and($chatter->fresh()->deactivated_at)->not->toBeNull();
+        ->and($chatter->fresh()->deactivated_at)->not->toBeNull()
+        ->and($activation->isActive($workspaceId))->toBeFalse();
 
     viewWorkspace()
         ->callAction('reactivate')
@@ -198,7 +207,8 @@ it('deactivates the workspace with a reason and reactivates it', function (): vo
 
     expect($this->owner->fresh()->isDeactivated())->toBeFalse()
         ->and($teammate->fresh()->isDeactivated())->toBeFalse()
-        ->and($chatter->fresh()->deactivated_at)->toBeNull();
+        ->and($chatter->fresh()->deactivated_at)->toBeNull()
+        ->and($activation->isActive($workspaceId))->toBeTrue();
 });
 
 it('needs a reason to deactivate', function (): void {
@@ -209,12 +219,91 @@ it('needs a reason to deactivate', function (): void {
     expect($this->owner->fresh()->isDeactivated())->toBeFalse();
 });
 
-it('offers no deactivate or delete for a workspace with platform staff in it', function (): void {
+it('disables deactivate and delete for a workspace with platform staff in it', function (): void {
     Livewire::actingAs($this->admin, 'admin')
         ->test(ViewWorkspace::class, ['record' => $this->admin->workspace()->getRouteKey()])
-        ->assertActionHidden('deactivate')
-        ->assertActionHidden('delete')
-        ->assertActionVisible('messageLimit');
+        ->assertActionVisible('deactivate')
+        ->assertActionDisabled('deactivate')
+        ->assertSee('Platform staff belong to this workspace. Switching it off would lock them out of this panel.')
+        ->assertActionDisabled('delete')
+        ->assertActionEnabled('messageLimit')
+        ->assertActionEnabled('edit')
+        ->callAction('deactivate', data: ['reason' => 'Testing']);
+
+    expect($this->admin->fresh()->isDeactivated())->toBeFalse();
+});
+
+it('edits the workspace name and the owner\'s name and email', function (): void {
+    viewWorkspace()
+        ->assertActionVisible('edit')
+        ->mountAction('edit')
+        ->assertActionDataSet([
+            'name' => 'Acme Corp',
+            'owner_name' => 'Dana Owner',
+            'owner_email' => 'dana@acme.test',
+        ])
+        ->fillForm(['name' => 'Acme GmbH', 'owner_name' => 'Dana Smith', 'owner_email' => 'dana@acme.example'])
+        ->callMountedAction()
+        ->assertHasNoActionErrors()
+        ->assertNotified('Workspace saved');
+
+    $owner = $this->owner->fresh();
+    expect($this->workspace->fresh()->name)->toBe('Acme GmbH')
+        ->and($owner->name)->toBe('Dana Smith')
+        ->and($owner->email)->toBe('dana@acme.example')
+        ->and($owner->email_verified_at)->toBeNull();
+});
+
+it('keeps the owner\'s email confirmed when it does not change', function (): void {
+    viewWorkspace()
+        ->callAction('edit', data: ['name' => 'Acme GmbH', 'owner_name' => 'Dana Owner', 'owner_email' => 'dana@acme.test'])
+        ->assertHasNoActionErrors();
+
+    expect($this->owner->fresh()->email_verified_at)->not->toBeNull();
+});
+
+it('does not give the owner an email another account uses', function (): void {
+    User::factory()->create(['email' => 'taken@acme.test']);
+
+    viewWorkspace()
+        ->callAction('edit', data: ['name' => 'Acme Corp', 'owner_name' => 'Dana Owner', 'owner_email' => 'taken@acme.test'])
+        ->assertHasActionErrors(['owner_email' => 'unique']);
+
+    viewWorkspace()
+        ->callAction('edit', data: ['name' => '', 'owner_name' => 'Dana Owner', 'owner_email' => 'Dana@Acme.test'])
+        ->assertHasActionErrors(['name' => 'required', 'owner_email' => 'lowercase']);
+
+    expect($this->owner->fresh()->email)->toBe('dana@acme.test');
+});
+
+it('emails the owner a password reset link', function (): void {
+    Notification::fake();
+
+    viewWorkspace()
+        ->callAction('sendPasswordResetLink')
+        ->assertHasNoActionErrors()
+        ->assertNotified('Password reset link sent');
+
+    Notification::assertSentTo($this->owner, ResetPassword::class);
+
+    viewWorkspace()
+        ->callAction('sendPasswordResetLink')
+        ->assertNotified('No link sent');
+
+    Notification::assertSentToTimes($this->owner, ResetPassword::class, 1);
+});
+
+it('sets a new password for the owner', function (): void {
+    viewWorkspace()
+        ->callAction('setPassword', data: ['password' => ''])
+        ->assertHasActionErrors(['password' => 'required']);
+
+    viewWorkspace()
+        ->callAction('setPassword', data: ['password' => 'a-new-secret-1'])
+        ->assertHasNoActionErrors()
+        ->assertNotified('Password changed');
+
+    expect(Hash::check('a-new-secret-1', $this->owner->fresh()->password))->toBeTrue();
 });
 
 it('deletes the workspace only after its name is typed', function (): void {
@@ -238,7 +327,10 @@ it('deletes the workspace only after its name is typed', function (): void {
         ->assertSee('Being deleted')
         ->assertActionHidden('delete')
         ->assertActionHidden('reactivate')
-        ->assertActionHidden('deactivate');
+        ->assertActionHidden('deactivate')
+        ->assertActionHidden('edit')
+        ->assertActionHidden('sendPasswordResetLink')
+        ->assertActionHidden('setPassword');
 });
 
 it('turns off the owner\'s two-step sign-in', function (): void {

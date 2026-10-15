@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Nie można przesłać awatara",
                 "logo_upload_error": "Nie można przesłać logo",
                 "avatar_remove_error": "Nie można usunąć awatara",
-                "logo_remove_error": "Nie można usunąć logo"
+                "logo_remove_error": "Nie można usunąć logo",
+                "replies_saved": "Opcje odpowiedzi zapisane",
+                "replies_error": "Nie można zapisać opcji odpowiedzi"
             },
             "settings": {
                 "composer_title": "Opcje kompozytora",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Każda wypowiedziana odpowiedź liczy się jako jedna wiadomość. Rozmowa głosowa kosztuje znacznie więcej niż czat pisany.",
                 "voice_label": "Głos",
                 "voice_default": "Domyślny ({voice})",
-                "voice_input_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć zamianę mowy na tekst w panelu administracyjnym."
+                "voice_input_unavailable": "Nie skonfigurowano na tym serwerze. Administrator może włączyć zamianę mowy na tekst w panelu administracyjnym.",
+                "replies_title": "Odpowiedzi",
+                "replies_description": "Wybierz, co pojawia się pod każdą odpowiedzią.",
+                "show_sources_label": "Pokaż źródła",
+                "show_sources_hint": "Pokaż pod każdą odpowiedzią przycisk z listą wiedzy, z której skorzystano."
             },
             "bubbles_title": "Dymki czatu",
             "bubbles_description": "Szybkie podpowiedzi wiadomości wyświetlane obok dymka widgetu. Naciśnij Enter, aby dodać każdą z nich.",

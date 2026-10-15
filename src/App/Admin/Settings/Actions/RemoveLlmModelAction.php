@@ -7,6 +7,7 @@ namespace App\Admin\Settings\Actions;
 use App\Admin\Settings\AiSettings;
 use Domain\Agent\Actions\Settings\ReplaceAgentModelAction;
 use Domain\Agent\Models\Agent;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -14,9 +15,10 @@ use InvalidArgumentException;
 /**
  * Takes a model off the list agents can use (Settings → AI models). Agents
  * that answer with it move to the replacement, and so does the default for
- * new agents; a job (Fast, Smart, Vision) that used it goes back to the
- * default. The model's row is turned off, never deleted, so past messages
- * still say which model wrote them, and adding it again turns it back on.
+ * new agents; the model for app tasks, and a task (LlmTask) that used it,
+ * go back to the default. The model's row is turned off, never deleted, so
+ * past messages still say which model wrote them, and adding it again turns
+ * it back on.
  */
 final readonly class RemoveLlmModelAction
 {
@@ -46,9 +48,11 @@ final readonly class RemoveLlmModelAction
                 $this->ai->default_agent_model = $replacement?->external_name;
             }
 
-            foreach (['fast_model', 'smart_model', 'vision_model'] as $role) {
-                if ($this->ai->{$role} === $model->external_name) {
-                    $this->ai->{$role} = null;
+            $taskProperties = ['task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTask::appTasks())];
+
+            foreach ($taskProperties as $property) {
+                if ($this->ai->{$property} === $model->external_name) {
+                    $this->ai->{$property} = null;
                 }
             }
 

@@ -3,6 +3,7 @@
 namespace Domain\Channel\Services;
 
 use App\Identity\Workspace\Services\MessageAllowance;
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentModel;
@@ -31,7 +32,8 @@ use Throwable;
  * happens *while* the reply generates (refresh a typing indicator, push
  * streamed partials) via `$onProgress`.
  *
- * Mirrors {@see ChatStreamService}: the same workspace message limit
+ * Mirrors {@see ChatStreamService}: the same deactivated-workspace stop
+ * ({@see WorkspaceActivation}), the same workspace message limit
  * ({@see MessageAllowance}), the same per-agent rate limit, the same source
  * selection (guard-block → Q&A → LLM). The fixed replies below are sent in
  * the agent's channel language ({@see ChannelLocale}). The sources persist, count
@@ -49,6 +51,7 @@ class ChannelReplyRunner
         private readonly MessageAllowance $allowance,
         private readonly AgentChatRateLimiter $rateLimiter,
         private readonly AgentModel $models,
+        private readonly WorkspaceActivation $activation,
     ) {}
 
     /**
@@ -87,6 +90,12 @@ class ChannelReplyRunner
      */
     private function refusal(Agent $agent): ?string
     {
+        // A deactivated workspace's agents answer nowhere; the web chat sends
+        // the same text. ChannelAccessGate normally stops the turn earlier.
+        if (! $this->activation->isActive($agent->workspace_id)) {
+            return 'Sorry — this assistant is unavailable right now. Please try again later.';
+        }
+
         // Same monthly limit as the web chat, so every surface is treated alike.
         if (! $this->allowance->canSend($agent->workspace_id)) {
             return 'Sorry — this assistant is unavailable right now. Please try again later.';

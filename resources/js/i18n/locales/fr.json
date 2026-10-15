@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Impossible de téléverser l’avatar",
                 "logo_upload_error": "Impossible de téléverser le logo",
                 "avatar_remove_error": "Impossible de supprimer l’avatar",
-                "logo_remove_error": "Impossible de supprimer le logo"
+                "logo_remove_error": "Impossible de supprimer le logo",
+                "replies_saved": "Options de réponse enregistrées",
+                "replies_error": "Impossible d'enregistrer les options de réponse"
             },
             "settings": {
                 "composer_title": "Options du compositeur",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Chaque réponse parlée compte comme un message. Un appel vocal coûte beaucoup plus cher qu'un chat écrit.",
                 "voice_label": "Voix",
                 "voice_default": "Par défaut ({voice})",
-                "voice_input_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer la transcription vocale dans le panneau d'administration."
+                "voice_input_unavailable": "Non configuré sur ce serveur. Un administrateur peut activer la transcription vocale dans le panneau d'administration.",
+                "replies_title": "Réponses",
+                "replies_description": "Choisissez ce qui s'affiche sous chaque réponse.",
+                "show_sources_label": "Afficher les sources",
+                "show_sources_hint": "Afficher sous chaque réponse un bouton qui liste les connaissances utilisées."
             },
             "bubbles_title": "Bulles de chat",
             "bubbles_description": "Invitations rapides affichées à côté de la bulle du widget. Appuyez sur Entrée pour en ajouter une.",

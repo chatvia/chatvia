@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services;
 
 use App\Identity\Workspace\Services\MessageAllowance;
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
@@ -30,11 +31,12 @@ use Generator;
  * starts — and the chosen source's generator streams the rest (the App layer
  * turns the events into server-sent events). In order:
  *
- *   1. a retried request replays its finished answer;
- *   2. a conversation held by a human operator relays the message to them;
- *   3. the workspace's and the chatter's monthly message limits and the
+ *   1. a deactivated workspace's agent answers nothing ({@see WorkspaceActivation});
+ *   2. a retried request replays its finished answer;
+ *   3. a conversation held by a human operator relays the message to them;
+ *   4. the workspace's and the chatter's monthly message limits and the
  *      agent's rate limit can refuse the turn with a typed error;
- *   4. otherwise the turn is built and answered by the guardrail refusal, an
+ *   5. otherwise the turn is built and answered by the guardrail refusal, an
  *      exact Q&A match, the document LLM (PDF conversations) or the agent's
  *      LLM with its tools.
  */
@@ -55,6 +57,7 @@ readonly class ChatStreamService
         private RequestDedupeStore $dedupe,
         private ToolApprovalStore $approvalStore,
         private AgentChatRateLimiter $rateLimiter,
+        private WorkspaceActivation $activation,
     ) {}
 
     /**
@@ -62,6 +65,13 @@ readonly class ChatStreamService
      */
     public function stream(StreamRequestData $data): Generator
     {
+        // The hosted chat and widget middleware already turn these visitors
+        // away; this keeps the engine closed to any other caller too. The
+        // messaging channels send the same text.
+        if (! $this->activation->isActive($data->agent->workspace_id)) {
+            return $this->errorSource->events(ErrorCode::Internal, __('Sorry — this assistant is unavailable right now. Please try again later.'));
+        }
+
         $replay = $this->replay($data);
 
         if ($replay instanceof Generator) {

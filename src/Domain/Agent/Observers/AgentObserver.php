@@ -4,8 +4,8 @@ namespace Domain\Agent\Observers;
 
 use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Enums\LlmRole;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Enums\LlmTask;
+use Domain\Llm\Services\TaskModels;
 
 /**
  * Agent lifecycle hooks that must run on every insert: seed the sign-in
@@ -15,7 +15,7 @@ use Domain\Llm\Services\ModelRoles;
 class AgentObserver
 {
     public function __construct(
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     /**
@@ -37,10 +37,10 @@ class AgentObserver
     public function created(Agent $agent): void
     {
         // Each agent answers with a single LLM: the chat model picked in
-        // Settings → AI models (LlmRole::Chat), else the first usable model of the
+        // Settings → AI models (LlmTask::Chat), else the first usable model of the
         // catalog. Operators can swap it in Setup later.
         if ($agent->llm_id === null) {
-            $llmId = $this->models->find(LlmRole::Chat)?->id;
+            $llmId = $this->models->find(LlmTask::Chat)?->id;
 
             if ($llmId !== null) {
                 $agent->forceFill(['llm_id' => $llmId])->save();

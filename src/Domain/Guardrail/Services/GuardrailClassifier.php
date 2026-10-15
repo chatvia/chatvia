@@ -8,9 +8,9 @@ use Domain\Guardrail\Enums\GuardSeverity;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
-use Domain\Llm\Enums\LlmRole;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -28,7 +28,7 @@ class GuardrailClassifier
 {
     public function __construct(
         private readonly StructuredCompletion $completion,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     public function classify(string $text, ClassifierOptionsData $options): ClassifierVerdictData
@@ -39,7 +39,7 @@ class GuardrailClassifier
 
         try {
             $data = $this->completion->send(new ChatRequestData(
-                model: $this->models->model(LlmRole::Fast),
+                model: $this->models->model(LlmTask::Guardrails),
                 messages: [
                     ChatMessageData::system(trim(prompt('guardrails/classifier-system'))),
                     ChatMessageData::user($this->userPrompt($text, $options)),

@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Det gick inte att ladda upp avataren",
                 "logo_upload_error": "Det gick inte att ladda upp logotypen",
                 "avatar_remove_error": "Det gick inte att ta bort avataren",
-                "logo_remove_error": "Det gick inte att ta bort logotypen"
+                "logo_remove_error": "Det gick inte att ta bort logotypen",
+                "replies_saved": "Svarsinställningar sparade",
+                "replies_error": "Det gick inte att spara svarsinställningarna"
             },
             "settings": {
                 "composer_title": "Kompositoralternativ",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Varje talat svar räknas som ett meddelande. Ett röstsamtal kostar mycket mer att köra än en skriven chatt.",
                 "voice_label": "Röst",
                 "voice_default": "Standard ({voice})",
-                "voice_input_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på tal till text i adminpanelen."
+                "voice_input_unavailable": "Inte konfigurerat på den här servern. En administratör kan slå på tal till text i adminpanelen.",
+                "replies_title": "Svar",
+                "replies_description": "Välj vad som visas under varje svar.",
+                "show_sources_label": "Visa källor",
+                "show_sources_hint": "Visa en knapp under varje svar som listar kunskapen svaret bygger på."
             },
             "bubbles_title": "Chattbubblor",
             "bubbles_description": "Snabbmeddelandeuppmaningar som visas bredvid widgetbubblan. Tryck på Enter för att lägga till var och en.",

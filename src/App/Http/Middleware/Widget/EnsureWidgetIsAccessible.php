@@ -5,6 +5,7 @@ namespace App\Http\Middleware\Widget;
 use App\Http\Widget\WidgetAgent;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
@@ -19,7 +20,8 @@ use Symfony\Component\HttpFoundation\Response;
  * EnsureChatIsAccessible), so one switch protects both surfaces.
  *
  *  - Embeds off: when the owner turned off both the Chat Widget and the
- *    Command Bar (Deploy page), every call gets a 404, as the hosted chat
+ *    Command Bar (Deploy page), or the workspace is deactivated
+ *    ({@see WorkspaceActivation}), every call gets a 404, as the hosted chat
  *    does when its own surface is off. The embed script already stays hidden
  *    then; this stops hand-made calls from still getting answers.
  *  - Public agent: always passes. When the call carries a valid X-AUTH-TOKEN
@@ -44,6 +46,7 @@ class EnsureWidgetIsAccessible
 
     public function __construct(
         private readonly WidgetAuthSessionService $sessions,
+        private readonly WorkspaceActivation $activation,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -54,7 +57,7 @@ class EnsureWidgetIsAccessible
             return response()->json(['error' => 'Could not verify the agent'], Response::HTTP_FORBIDDEN);
         }
 
-        if (! $this->embedIsOn($agent)) {
+        if (! $this->embedIsOn($agent) || ! $this->activation->isActive($agent->workspace_id)) {
             return response()->json([
                 'error' => 'This chat is turned off.',
                 'code' => 'widget_disabled',

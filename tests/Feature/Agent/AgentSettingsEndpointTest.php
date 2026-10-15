@@ -90,3 +90,19 @@ it('refuses a voice that does not exist', function (): void {
         ->assertUnprocessable()
         ->assertJsonValidationErrors('voice');
 });
+
+it('saves the switch that shows the sources under an answer', function (): void {
+    expect($this->agent->showsSources())->toBeFalse();
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['show_sources' => true])
+        ->assertOk();
+
+    expect($this->agent->fresh()->showsSources())->toBeTrue();
+
+    $this->actingAs($this->owner)
+        ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'appearance']), ['show_sources' => false])
+        ->assertOk();
+
+    expect($this->agent->fresh()->showsSources())->toBeFalse();
+});

@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Kunne ikke laste opp avataren",
                 "logo_upload_error": "Kunne ikke laste opp logoen",
                 "avatar_remove_error": "Kunne ikke fjerne avataren",
-                "logo_remove_error": "Kunne ikke fjerne logoen"
+                "logo_remove_error": "Kunne ikke fjerne logoen",
+                "replies_saved": "Svarinnstillinger lagret",
+                "replies_error": "Kunne ikke lagre svarinnstillinger"
             },
             "settings": {
                 "composer_title": "Skrivefeltinnstillinger",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Hvert muntlige svar teller som én melding. En stemmesamtale koster mye mer å kjøre enn en skrevet chat.",
                 "voice_label": "Stemme",
                 "voice_default": "Standard ({voice})",
-                "voice_input_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på tale til tekst i adminpanelet."
+                "voice_input_unavailable": "Ikke satt opp på denne serveren. En administrator kan slå på tale til tekst i adminpanelet.",
+                "replies_title": "Svar",
+                "replies_description": "Velg hva som vises under hvert svar.",
+                "show_sources_label": "Vis kilder",
+                "show_sources_hint": "Vis en knapp under hvert svar som lister opp kunnskapen svaret bygger på."
             },
             "bubbles_title": "Snakkebobler",
             "bubbles_description": "Raske meldingsprompt som vises ved siden av widgetboblen. Trykk Enter for å legge til hver enkelt.",

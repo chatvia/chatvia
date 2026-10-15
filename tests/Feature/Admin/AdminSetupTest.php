@@ -813,7 +813,7 @@ it('ends on a final step with the choices made, and where the defaults are chang
             'Mailer', 'Not now',
             'Default values',
             'Knowledge', 'How texts are split into chunks',
-            'AI models', 'More chat models, and the models for background jobs',
+            'AI models', 'More chat models, and the models for app tasks',
         ])
         ->call('complete')
         ->assertHasNoFormErrors();

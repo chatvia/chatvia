@@ -14,8 +14,12 @@ use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Actions\Account\DeleteAccountAction;
 use App\Identity\Workspace\Actions\Account\DisableTwoFactorAction;
 use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
+use App\Identity\Workspace\Actions\Account\UpdatePasswordAction;
+use App\Identity\Workspace\Actions\Account\UpdateWorkspaceAction;
 use App\Identity\Workspace\Actions\DataExport\RequestDataExportAction;
 use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Data\Account\UpdatePasswordData;
+use App\Identity\Workspace\Data\Account\UpdateWorkspaceData;
 use App\Identity\Workspace\Data\DataExport\RequestDataExportData;
 use App\Identity\Workspace\Exceptions\ActiveDataExportExistsException;
 use App\Identity\Workspace\Models\User;
@@ -31,6 +35,8 @@ use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 
 /**
  * One workspace's dashboard in the admin panel, in tabs: Overview (the
@@ -39,15 +45,23 @@ use Filament\Support\Icons\Heroicon;
  * Agents and Teammates. Staff act on the workspace from the header; every
  * action runs the same domain action the product uses.
  *
- * Deactivating and deleting go through the owner's account, which switches
- * off every teammate and chatter with it. Neither is offered for a
- * workspace with platform staff in it: that would lock the admin out of
- * this panel.
+ * Editing renames the workspace and saves its owner's name and email; a
+ * password reset is for the owner (an emailed link, or a new password set
+ * here for an install that sends no email). Deactivating and deleting go
+ * through the owner's account, which switches off every teammate and
+ * chatter with it. Both are shown but disabled for a workspace with
+ * platform staff in it: that would lock the admin out of this panel.
  */
 class ViewWorkspace extends ViewRecord
 {
     /** The Analytics tab's key in the `relation` query string. */
     private const string ANALYTICS_TAB = 'analytics';
+
+    /** Why deactivate and delete are disabled for a workspace with platform staff in it. */
+    private const string STAFF_WORKSPACE_REASON = 'Platform staff belong to this workspace. Switching it off would lock them out of this panel.';
+
+    /** {@see self::hasPlatformStaff()}, worked out once per request. */
+    private ?bool $hasPlatformStaff = null;
 
     #[\Override]
     protected static string $resource = WorkspaceResource::class;
@@ -111,13 +125,20 @@ class ViewWorkspace extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            $this->editAction(),
             $this->messageLimitAction(),
             $this->deactivateAction(),
             $this->reactivateAction(),
             ActionGroup::make([
-                $this->openDashboardAction(),
-                $this->disableTwoFactorAction(),
-                $this->exportDataAction(),
+                ActionGroup::make([
+                    $this->openDashboardAction(),
+                    $this->exportDataAction(),
+                ])->dropdown(false),
+                ActionGroup::make([
+                    $this->sendPasswordResetLinkAction(),
+                    $this->setPasswordAction(),
+                    $this->disableTwoFactorAction(),
+                ])->dropdown(false),
                 $this->deleteAction(),
             ])
                 ->label('More')
@@ -125,6 +146,55 @@ class ViewWorkspace extends ViewRecord
                 ->color('gray')
                 ->button(),
         ];
+    }
+
+    /**
+     * The workspace's name and its owner's name and email. A new email must
+     * be confirmed again by the owner, as when they change it themselves.
+     */
+    private function editAction(): Action
+    {
+        return Action::make('edit')
+            ->label('Edit')
+            ->icon(Heroicon::OutlinedPencilSquare)
+            ->color('gray')
+            ->modalHeading('Edit workspace')
+            ->modalSubmitActionLabel('Save')
+            ->fillForm(fn (): array => [
+                'name' => $this->workspace()->name,
+                'owner_name' => $this->owner()?->name,
+                'owner_email' => $this->owner()?->email,
+            ])
+            ->schema([
+                TextInput::make('name')
+                    ->label('Workspace name')
+                    ->required()
+                    ->maxLength(255),
+                TextInput::make('owner_name')
+                    ->label('Owner name')
+                    ->required()
+                    ->maxLength(255),
+                TextInput::make('owner_email')
+                    ->label('Owner email')
+                    ->email()
+                    ->required()
+                    ->maxLength(255)
+                    ->rule('lowercase')
+                    ->unique(User::class, 'email', ignorable: fn (): ?User => $this->owner())
+                    ->helperText('The owner signs in with it. A new email must be confirmed again before they can use the dashboard.'),
+            ])
+            ->visible(fn (): bool => $this->hasManageableOwner())
+            ->action(function (array $data, UpdateWorkspaceAction $update): void {
+                $update->execute(new UpdateWorkspaceData(
+                    workspace: $this->workspace(),
+                    name: (string) $data['name'],
+                    ownerName: (string) $data['owner_name'],
+                    ownerEmail: (string) $data['owner_email'],
+                ));
+                $this->refreshWorkspace();
+
+                Notification::make()->success()->title('Workspace saved')->send();
+            });
     }
 
     private function messageLimitAction(): Action
@@ -158,7 +228,7 @@ class ViewWorkspace extends ViewRecord
             ->icon(Heroicon::OutlinedNoSymbol)
             ->color('danger')
             ->modalHeading('Deactivate this workspace?')
-            ->modalDescription('The owner, every teammate and every chatter are signed out and cannot sign in again until you reactivate it. Its agents keep answering visitors.')
+            ->modalDescription('The owner, every teammate and every chatter are signed out and cannot sign in again until you reactivate it. Its agents stop answering on every surface and channel, and voice calls end.')
             ->modalSubmitActionLabel('Deactivate')
             ->schema([
                 Textarea::make('reason')
@@ -168,8 +238,9 @@ class ViewWorkspace extends ViewRecord
                     ->helperText('Only staff see it.'),
             ])
             ->visible(fn (): bool => $this->owner() instanceof User
-                && WorkspaceStatus::for($this->workspace()) === WorkspaceStatus::Active
-                && ! $this->workspace()->hasPlatformAdmin())
+                && WorkspaceStatus::for($this->workspace()) === WorkspaceStatus::Active)
+            ->disabled(fn (): bool => $this->hasPlatformStaff())
+            ->tooltip(fn (): ?string => $this->hasPlatformStaff() ? self::STAFF_WORKSPACE_REASON : null)
             ->action(function (array $data, DeactivateAccountAction $deactivate): void {
                 $deactivate->execute($this->ownerOrFail(), (string) $data['reason']);
                 $this->refreshWorkspace();
@@ -186,7 +257,7 @@ class ViewWorkspace extends ViewRecord
             ->color('success')
             ->requiresConfirmation()
             ->modalHeading('Reactivate this workspace?')
-            ->modalDescription('The owner, its teammates and its chatters can sign in again.')
+            ->modalDescription('The owner, its teammates and its chatters can sign in again, and its agents answer again.')
             ->modalSubmitActionLabel('Reactivate')
             ->visible(fn (): bool => WorkspaceStatus::for($this->workspace()) === WorkspaceStatus::Deactivated)
             ->action(function (ReactivateAccountAction $reactivate): void {
@@ -203,6 +274,67 @@ class ViewWorkspace extends ViewRecord
             ->label('Open in dashboard')
             ->icon(Heroicon::OutlinedChartBar)
             ->url(fn (): string => Dashboard::getUrl(['filters' => [DashboardFilters::WORKSPACE => $this->workspace()->id]]));
+    }
+
+    /**
+     * The same email as "Forgot password" on the sign-in page. The current
+     * password keeps working until the owner chooses a new one.
+     */
+    private function sendPasswordResetLinkAction(): Action
+    {
+        return Action::make('sendPasswordResetLink')
+            ->label('Email a password reset link')
+            ->icon(Heroicon::OutlinedEnvelope)
+            ->requiresConfirmation()
+            ->modalIcon(Heroicon::OutlinedEnvelope)
+            ->modalHeading('Email the owner a password reset link?')
+            ->modalDescription(fn (): string => "{$this->ownerOrFail()->email} gets a link to choose a new password. The current password keeps working until they do.")
+            ->modalSubmitActionLabel('Send link')
+            ->visible(fn (): bool => $this->hasManageableOwner())
+            ->action(function (): void {
+                $email = $this->ownerOrFail()->email;
+                $status = Password::sendResetLink(['email' => $email]);
+
+                if ($status !== Password::RESET_LINK_SENT) {
+                    Notification::make()->warning()->title('No link sent')->body(__($status))->send();
+
+                    return;
+                }
+
+                Notification::make()->success()->title('Password reset link sent')->body("Sent to {$email}.")->send();
+            });
+    }
+
+    /**
+     * For an owner who cannot get the reset email, like `admin:reset-password`
+     * on the command line. The old password stops working at once.
+     */
+    private function setPasswordAction(): Action
+    {
+        return Action::make('setPassword')
+            ->label('Set a new password')
+            ->icon(Heroicon::OutlinedLockClosed)
+            ->modalHeading('Set a new password for the owner?')
+            ->modalDescription('Use this when the owner gets no email. The current password stops working at once. Give them the new one in a safe way. Two-step sign-in, if it is on, still applies.')
+            ->modalSubmitActionLabel('Set password')
+            ->schema([
+                TextInput::make('password')
+                    ->label('New password')
+                    ->password()
+                    ->revealable()
+                    ->autocomplete('new-password')
+                    ->required()
+                    ->rule(PasswordRule::default()),
+            ])
+            ->visible(fn (): bool => $this->hasManageableOwner())
+            ->action(function (array $data, UpdatePasswordAction $updatePassword): void {
+                $updatePassword->execute(new UpdatePasswordData(
+                    user: $this->ownerOrFail(),
+                    password: (string) $data['password'],
+                ));
+
+                Notification::make()->success()->title('Password changed')->send();
+            });
     }
 
     private function disableTwoFactorAction(): Action
@@ -263,9 +395,9 @@ class ViewWorkspace extends ViewRecord
                     ->in(fn (): array => [$this->workspace()->name])
                     ->validationMessages(['in' => 'This is not the name of the workspace.']),
             ])
-            ->visible(fn (): bool => $this->owner() instanceof User
-                && WorkspaceStatus::for($this->workspace()) !== WorkspaceStatus::BeingDeleted
-                && ! $this->workspace()->hasPlatformAdmin())
+            ->visible(fn (): bool => $this->hasManageableOwner())
+            ->disabled(fn (): bool => $this->hasPlatformStaff())
+            ->tooltip(fn (): ?string => $this->hasPlatformStaff() ? self::STAFF_WORKSPACE_REASON : null)
             ->action(function (DeleteAccountAction $delete): void {
                 $delete->execute($this->ownerOrFail());
 
@@ -289,6 +421,18 @@ class ViewWorkspace extends ViewRecord
     private function ownerOrFail(): User
     {
         return $this->owner() ?? throw new \LogicException("Workspace {$this->workspace()->id} has no owner.");
+    }
+
+    /** An owner whose account staff may still edit: not one being deleted. */
+    private function hasManageableOwner(): bool
+    {
+        return $this->owner() instanceof User
+            && WorkspaceStatus::for($this->workspace()) !== WorkspaceStatus::BeingDeleted;
+    }
+
+    private function hasPlatformStaff(): bool
+    {
+        return $this->hasPlatformStaff ??= $this->workspace()->hasPlatformAdmin();
     }
 
     /** Reload the owner, so the status, the badge and the actions show the change. */

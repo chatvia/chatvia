@@ -50,7 +50,7 @@ class StubChannelReplyRunner extends ChannelReplyRunner
     public function handler(): HandleChannelMessageAction
     {
         return new HandleChannelMessageAction(
-            new ChannelAccessGate,
+            app(ChannelAccessGate::class),
             new TypingReplyStrategy($this),
             new StreamingReplyStrategy($this),
         );

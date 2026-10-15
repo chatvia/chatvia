@@ -148,14 +148,16 @@ it('takes a typed model name from a server that lists none', function (): void {
     expect($server->llms()->sole()->internal_name)->toBe('llama3.1:8b');
 });
 
-it('removes a model, moving its agents and the jobs that used it', function (): void {
+it('removes a model, moving its agents and the tasks that used it', function (): void {
     $old = testLlm('old-model');
     $new = testLlm('new-model');
     $agent = createAgent($this->admin, ['llm_id' => $old->id]);
 
     $settings = app(AiSettings::class);
     $settings->default_agent_model = $old->external_name;
-    $settings->fast_model = $old->external_name;
+    $settings->task_model = $old->external_name;
+    $settings->titles_model = $old->external_name;
+    $settings->images_model = $new->external_name;
     $settings->save();
 
     modelsPage($this->admin)
@@ -165,7 +167,9 @@ it('removes a model, moving its agents and the jobs that used it', function (): 
     expect($agent->fresh()->llm_id)->toBe($new->id)
         ->and($old->fresh()->is_enabled)->toBeFalse()
         ->and(aiSetting('default_agent_model'))->toBe($new->external_name)
-        ->and(aiSetting('fast_model'))->toBeNull();
+        ->and(aiSetting('task_model'))->toBeNull()
+        ->and(aiSetting('titles_model'))->toBeNull()
+        ->and(aiSetting('images_model'))->toBe($new->external_name);
 });
 
 it('keeps the last model agents use', function (): void {

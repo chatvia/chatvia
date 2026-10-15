@@ -36,6 +36,7 @@ use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
@@ -50,6 +51,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\EmbeddedTable;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
@@ -68,8 +70,9 @@ use InvalidArgumentException;
  * What runs on the connected AI providers: the chat models agents can use
  * (added from a provider's list, removed with their agents moved to another
  * model) and the default for new agents; the embedding service; the
- * reranker; document reading; speech to text. The models behind the app's
- * own jobs (Fast, Smart, Vision) and the PDF models are under Advanced.
+ * reranker; document reading; speech to text; voice. The models behind the
+ * app's own tasks ({@see LlmTask}) are a closed card of their own: one model
+ * for every task, and one per task, grouped by when the task runs.
  *
  * The embedding service and its model decide the stored vectors, and a
  * service that cannot return the stored vector size is refused. Once
@@ -89,6 +92,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
     private const string CHANGE_WARNING = 'Your documents were turned into vectors with the current model. Another model makes different vectors, so agents cannot find your documents until every document, Q&A and tool is embedded again. Saving starts this re-index in the background queue. With many documents it can take hours, and until it ends agents may miss documents.';
 
     private const string REINDEX_NOTE = 'Files are not read again: only the embeddings are made again.';
+
+    /** The app's tasks on the "Models for app tasks" card, by when they run. */
+    private const array TASK_GROUPS = [
+        'During a chat (the reply waits for these)' => [LlmTask::FollowUp, LlmTask::ToolRouting, LlmTask::Guardrails],
+        'After a reply (in the background)' => [LlmTask::Titles, LlmTask::ConversationAnalysis],
+        'Agent setup' => [LlmTask::Starters, LlmTask::Translation, LlmTask::FormText, LlmTask::ChatAddress],
+        'Training sources' => [LlmTask::Enhancement, LlmTask::Tables, LlmTask::Images],
+        'Testing' => [LlmTask::EvalJudge],
+    ];
 
     #[\Override]
     protected static string $settings = AiSettings::class;
@@ -226,9 +238,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         return [
             SettingsCard::make('models', 'Models agents can use', 'Add models from your connected providers. Each agent picks one of them.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
                 EmbeddedTable::make(),
-                $this->modelChoice('default_agent_model', 'Default model for new agents',
-                    help: 'The analytics assistant uses it too.',
-                    unset: 'The first model on the list'),
+                $this->withHelp($this->modelChoice('default_agent_model', 'Default model for new agents', unset: 'The first model on the list'),
+                    'New agents answer with this model until they pick their own. The analytics assistant uses it too. Empty: the first model on the list.'),
+                $this->withHelp($this->integer('history_messages', 'Messages of history', min: 1, max: 50),
+                    'How many recent messages of a conversation an agent reads each time it answers, in typed chats and voice calls. More helps with follow-up questions, but each answer costs more.'),
             ])->summary(fn (): string => $this->modelsSummary()),
             SettingsCard::make('embeddings', 'Embeddings', 'Turn your documents, and each question, into vectors, so agents find the right part.', Heroicon::OutlinedCubeTransparent, fn (): array => [
                 $this->reindexCallout(),
@@ -278,6 +291,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                     check: fn (string $provider): ConnectionCheckData => app(DocumentServiceCheck::class)->wholePdf(AiProvider::from($provider))),
             ])->advancedFields(fn (): array => [
                 $this->text('mistral_ocr_model', 'Mistral OCR model'),
+                $this->text('summary_model', 'Summary model', help: 'A Mistral model. Writes the short summary of each source.'),
+                $this->text('analysis_model', 'Analysis model', help: 'A Mistral model. Finds each document\'s type, language, audience and likely questions.'),
+                $this->text('document_chat_model', 'PDF chat model',
+                    help: 'A Mistral model. Answers questions about PDF files attached in a chat. Needs PDF reading and function calling.'),
             ])->summary(fn (): string => $this->documentsSummary()),
             SettingsCard::make('speech', 'Speech to text', 'Voice input, and audio and video sources.', Heroicon::OutlinedMicrophone, fn (): array => [
                 $this->serviceChoice('transcriber', 'Speech to text', [
@@ -310,19 +327,15 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
                 $this->text('openai_realtime_transcription_model', 'Transcription model',
                     help: 'Writes down what the visitor says, for the chat log: gpt-4o-mini-transcribe, gpt-4o-transcribe or whisper-1.'),
             ])->summary(fn (): string => $this->voiceSummary()),
-            SettingsCard::make('advanced', 'Models for background jobs', 'The models behind the app\'s own jobs, how much history agents see, and the PDF models.', Heroicon::OutlinedCog8Tooth, fn (): array => [
-                $this->modelChoice('fast_model', 'Fast',
-                    help: 'Short, frequent calls: conversation titles, topics, tone, guardrails, starters, translation and the eval judge. A small, cheap model.'),
-                $this->modelChoice('smart_model', 'Smart',
-                    help: 'Reading content: page summaries and tables while sources are trained.'),
-                $this->modelChoice('vision_model', 'Vision',
-                    help: 'Describes the images inside documents. Needs a model that reads images.'),
-                $this->integer('history_messages', 'Messages of history', help: 'How many recent messages of a conversation the model sees on each turn.', min: 1, max: 50),
-                $this->text('summary_model', 'Document summary model', help: 'A Mistral model, for summaries and PDF chat.'),
-                $this->text('analysis_model', 'Document analysis model', help: 'A Mistral model, for summaries and PDF chat.'),
-                $this->text('document_chat_model', 'PDF chat model',
-                    help: 'Answers questions about PDF files in a chat. Needs PDF reading and function calling.'),
-            ])->advanced(),
+            SettingsCard::make('tasks', 'Models for app tasks', 'The models behind the app\'s own AI calls. Empty uses the default model.', Heroicon::OutlinedCog8Tooth, fn (): array => [
+                $this->withHelp($this->modelChoice('task_model', 'Model for app tasks'),
+                    'Every task below without its own model uses this one. A small, fast model suits most of them. Empty: the default model for new agents.'),
+                ...array_map(fn (string $group, array $tasks): Fieldset => Fieldset::make($group)
+                    ->columns(1)
+                    ->schema(array_map($this->taskChoice(...), $tasks)), array_keys(self::TASK_GROUPS), self::TASK_GROUPS),
+            ])->properties('task_model', ...array_map(fn (LlmTask $task): string => $task->settingsProperty(), LlmTask::appTasks()))
+                ->summary(fn (): string => $this->tasksSummary())
+                ->advanced(),
         ];
     }
 
@@ -607,7 +620,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
      * A catalog model, by its alias, for one of the app's jobs. Unset uses
      * the default model.
      */
-    private function modelChoice(string $property, string $label, string $help, string $unset = 'Same as the default model'): Select
+    private function modelChoice(string $property, string $label, ?string $help = null, string $unset = 'Same as the default model'): Select
     {
         return Select::make($property)
             ->label($label)
@@ -616,6 +629,41 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
             ->in(fn (): array => array_merge(...array_map(array_keys(...), array_values($this->catalogOptions()))))
             ->searchable()
             ->placeholder($unset);
+    }
+
+    // --- Models for app tasks ----------------------------------------------------
+
+    /** One task's model, with a "?" that says what uses it and which model fits. */
+    private function taskChoice(LlmTask $task): Select
+    {
+        [$label, $help] = match ($task) {
+            LlmTask::FollowUp => ['Follow-up questions', 'Turns a short follow-up, like "and the price?", into a full question for the search. Runs before the reply, so pick a small, fast model. Turned on in Settings → Knowledge → Follow-up questions.'],
+            LlmTask::ToolRouting => ['Tool picking', 'When an agent could change data with the tools of more than one connector, picks the connector a message is about. Runs before the reply, so pick a small, fast model.'],
+            LlmTask::Guardrails => ['Guardrails', 'Checks each message for prompt injection, off-topic questions and toxicity, when an agent has these checks on. Runs before the reply, so pick a small, fast model.'],
+            LlmTask::Titles => ['Conversation titles', 'Writes a short title for each conversation from its first messages.'],
+            LlmTask::ConversationAnalysis => ['Conversation analysis', 'Finds the topics, sentiment, tone and language of conversations, for Analytics. The model must be able to reply in a fixed JSON format.'],
+            LlmTask::Starters => ['Conversation starters', 'Suggests conversation starters for an agent, when asked in its setup.'],
+            LlmTask::Translation => ['Translating agent texts', 'Translates an agent\'s title, welcome message and message box hint into each language when they are saved.'],
+            LlmTask::FormText => ['Form descriptions', 'Rewrites the description of a form, when asked in the form editor.'],
+            LlmTask::ChatAddress => ['Hosted chat addresses', 'Suggests a short address for an agent\'s hosted chat (/chat/…).'],
+            LlmTask::Enhancement => ['AI enhancement', 'Writes a summary and the likely questions for each part of a file or web page while sources are trained. One call per part, so large files make many calls. Turned on in Settings → Knowledge → AI enhancement.'],
+            LlmTask::Tables => ['Tables', 'Turns the tables inside documents into plain text, so search can find what they say.'],
+            LlmTask::Images => ['Image descriptions', 'Describes the pictures inside documents, so search can find them. Needs a model that reads images.'],
+            LlmTask::EvalJudge => ['Evaluation judge', 'Scores an agent\'s answers in evaluations. A stronger model gives fairer scores.'],
+            LlmTask::Chat => throw new InvalidArgumentException('The chat model is "Default model for new agents".'),
+        };
+
+        return $this->withHelp($this->modelChoice($task->settingsProperty(), $label, unset: 'Same as the model for app tasks'), $help);
+    }
+
+    /** The model every task uses, and how many tasks have their own. */
+    private function tasksSummary(): string
+    {
+        $shared = $this->catalogName($this->valueInUse('task_model'));
+        $own = count(array_filter(LlmTask::appTasks(), fn (LlmTask $task): bool => filled($this->valueInUse($task->settingsProperty()))));
+
+        return ($shared === null ? 'The default model' : $shared).' for every task'
+            .($own === 0 ? '' : ' · '.$own.' '.Str::plural('task', $own).' with '.($own === 1 ? 'its' : 'their').' own model');
     }
 
     /**

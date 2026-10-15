@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "No se pudo subir el avatar",
                 "logo_upload_error": "No se pudo subir el logo",
                 "avatar_remove_error": "No se pudo eliminar el avatar",
-                "logo_remove_error": "No se pudo eliminar el logo"
+                "logo_remove_error": "No se pudo eliminar el logo",
+                "replies_saved": "Opciones de respuesta guardadas",
+                "replies_error": "No se pudieron guardar las opciones de respuesta"
             },
             "settings": {
                 "composer_title": "Opciones del compositor",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Cada respuesta hablada cuenta como un mensaje. Una llamada de voz cuesta mucho más que un chat escrito.",
                 "voice_label": "Voz",
                 "voice_default": "Predeterminada ({voice})",
-                "voice_input_unavailable": "No está configurado en este servidor. Un administrador puede activar la conversión de voz a texto en el panel de administración."
+                "voice_input_unavailable": "No está configurado en este servidor. Un administrador puede activar la conversión de voz a texto en el panel de administración.",
+                "replies_title": "Respuestas",
+                "replies_description": "Elige qué se muestra debajo de cada respuesta.",
+                "show_sources_label": "Mostrar fuentes",
+                "show_sources_hint": "Muestra un botón debajo de cada respuesta con el conocimiento que se usó."
             },
             "bubbles_title": "Burbujas de chat",
             "bubbles_description": "Mensajes de inicio rápido que se muestran junto a la burbuja del widget. Presiona Enter para agregar cada uno.",

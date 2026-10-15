@@ -15,13 +15,12 @@ use Livewire\Livewire;
 
 /**
  * Settings → Platform → Queue workers. Horizon reads the worker numbers only
- * when it starts, so in production the card says "Restart needed" while the
- * running Horizon uses other numbers than the saved ones, and its "Restart
- * queue" button asks every running Horizon to restart. It also says when
- * the queue is not running or is restarting. Elsewhere Horizon does not use
- * these numbers, and nothing may start it again, so the card says so. The
- * button always shows, so the admin finds it, but is greyed out whenever it
- * cannot restart Horizon.
+ * when it starts, so the card says "Restart needed" while the running Horizon
+ * uses other numbers than the saved ones, and its "Restart queue" button asks
+ * every running Horizon to restart. It also says when the queue is not
+ * running or is restarting. The numbers apply in every environment, and the
+ * button is never greyed out: when there is nothing to restart, the
+ * notification says why.
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
@@ -72,32 +71,36 @@ it('restarts every running Horizon after a confirm', function (): void {
         ->assertNotified('The queue is restarting');
 });
 
-it('says the queue is not running, and greys out the button', function (): void {
+it('says the queue is not running, and the button says so too', function (): void {
     $this->masters->allows('names')->andReturn([]);
     $this->supervisors->allows('names')->andReturn([]);
+    $this->commands->shouldNotReceive('push');
 
     queueWorkersPage($this->admin)
         ->assertSee('Queue not running')
         ->assertDontSee('Restart needed')
-        ->assertActionVisible(restartQueueButton())
-        ->assertActionDisabled(restartQueueButton());
+        ->assertActionEnabled(restartQueueButton())
+        ->callAction(restartQueueButton())
+        ->assertNotified('The queue is not running');
 });
 
 it('says the queue is restarting while its supervisors finish their jobs', function (): void {
     $this->masters->allows('names')->andReturn([]);
+    $this->commands->shouldNotReceive('push');
 
     queueWorkersPage($this->admin)
         ->assertSee('Queue restarting')
-        ->assertActionDisabled(restartQueueButton());
+        ->assertActionEnabled(restartQueueButton())
+        ->callAction(restartQueueButton())
+        ->assertNotified('The queue is already restarting');
 });
 
-it('says the numbers are only used in production, and greys out the button, elsewhere', function (): void {
-    $this->commands->shouldNotReceive('push');
+it('restarts the queue outside production too', function (): void {
+    $this->commands->expects('push')->with('master:web-1-abcd', RestartMasterSupervisor::class);
 
     queueWorkersPage($this->admin, 'local')
-        ->assertSee('Production only')
-        ->assertDontSee('Restart needed')
-        ->assertActionVisible(restartQueueButton())
-        ->assertActionDisabled(restartQueueButton())
-        ->callAction(restartQueueButton());
+        ->assertSee('Restart needed')
+        ->assertDontSee('Production only')
+        ->callAction(restartQueueButton())
+        ->assertNotified('The queue is restarting');
 });

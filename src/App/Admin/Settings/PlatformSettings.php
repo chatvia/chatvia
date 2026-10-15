@@ -48,21 +48,21 @@ class PlatformSettings extends AdminSettings
 
     // The most workers per Horizon supervisor (config/horizon.php). Horizon
     // reads them when it starts.
-    #[ConfigKey('horizon.environments.production.chat.maxProcesses')]
+    #[ConfigKey('horizon.defaults.chat.maxProcesses')]
     public ?int $chat_workers = null;
 
-    #[ConfigKey('horizon.environments.production.ingestion.maxProcesses')]
+    #[ConfigKey('horizon.defaults.ingestion.maxProcesses')]
     public ?int $ingestion_workers = null;
 
-    #[ConfigKey('horizon.environments.production.analytics.maxProcesses')]
+    #[ConfigKey('horizon.defaults.analytics.maxProcesses')]
     public ?int $analytics_workers = null;
 
-    #[ConfigKey('horizon.environments.production.media.maxProcesses')]
+    #[ConfigKey('horizon.defaults.media.maxProcesses')]
     public ?int $media_workers = null;
 
     // Each live voice call holds one of these workers for its whole length,
     // so this is also the most voice calls at once (VoiceCallSlots).
-    #[ConfigKey('horizon.environments.production.voice.maxProcesses')]
+    #[ConfigKey('horizon.defaults.voice.maxProcesses')]
     public ?int $voice_workers = null;
 
     // The programs the app runs (ServerProgram). Blank runs the program by

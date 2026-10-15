@@ -10,6 +10,7 @@ use Domain\Membership\Team\Data\RolePayloadData;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -23,17 +24,15 @@ class RoleController
 {
     /**
      * Create role
-     *
-     * @return array{data: RoleData}
      */
-    public function store(Request $request, Team $team, RolePayloadData $payload, CreateTeamRoleAction $action): array
+    public function store(Request $request, Team $team, RolePayloadData $payload, CreateTeamRoleAction $action): JsonResponse
     {
         // Same gate as the web side (SaveTeamRoleRequest): TeamPolicy::update.
         abort_unless($request->user()->can('update', $team), 403);
 
         $role = $action->execute($this->toSaveData($team, $payload));
 
-        return ['data' => RoleData::fromModel($role)];
+        return response()->json(['data' => RoleData::fromModel($role)], 201);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Team;
 
+use App\Http\Requests\Api\V1\CursorPageRequest;
 use App\Http\Resources\Api\V1\Team\TeamData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
@@ -10,7 +11,9 @@ use Domain\Membership\Team\Data\CreateTeamData;
 use Domain\Membership\Team\Data\TeamPayloadData;
 use Domain\Membership\Team\Data\UpdateTeamData;
 use Domain\Membership\Team\Models\Team;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Support\Pagination\CursorPage;
 
 /**
  * Teams organise your agents. Each agent belongs to a team — create a team
@@ -23,33 +26,37 @@ class TeamController
     /**
      * List teams
      *
-     * Returns every team you own, each with its agents and roles nested.
+     * Returns the teams you own, newest first, each with its agents and roles
+     * nested. The list is paged with a cursor: to get the next page, send the
+     * `next_cursor` of the response as `cursor`. On the last page
+     * `next_cursor` is null.
      *
-     * @return array{data: list<TeamData>}
+     * @return array{data: list<TeamData>, next_cursor: string|null}
      */
-    public function index(Request $request): array
+    public function index(CursorPageRequest $request): array
     {
         $teams = $request->user()->workspace()
             ->teams()
-            ->with(['agents', 'roles.permissions', 'roles.agents'])
-            ->latest()
-            ->get();
+            ->with(['agents', 'roles.permissions', 'roles.agents']);
 
-        return ['data' => $teams->map(fn (Team $team): TeamData => TeamData::fromModel($team))->all()];
+        $page = CursorPage::newestFirst($teams, $request->perPage(), $request->cursor());
+
+        return [
+            'data' => array_map(fn (Team $team): TeamData => TeamData::fromModel($team), $page->items()),
+            'next_cursor' => $page->nextCursor()?->encode(),
+        ];
     }
 
     /**
      * Create team
-     *
-     * @return array{data: TeamData}
      */
-    public function store(Request $request, TeamPayloadData $payload, CreateTeamAction $action): array
+    public function store(Request $request, TeamPayloadData $payload, CreateTeamAction $action): JsonResponse
     {
         $workspace = $request->user()->workspace();
 
-        return ['data' => TeamData::fromModel($action->execute(
+        return response()->json(['data' => TeamData::fromModel($action->execute(
             new CreateTeamData(workspace: $workspace, name: $payload->name),
-        ))];
+        ))], 201);
     }
 
     /**

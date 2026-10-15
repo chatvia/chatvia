@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Agent;
 
 use App\Http\Requests\Api\V1\Agent\AttachAgentMcpRequest;
+use App\Http\Requests\Api\V1\CursorPageRequest;
 use App\Http\Resources\Api\V1\Tools\McpServerData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
+use Support\Pagination\CursorPage;
 
 /**
  * Attach / detach MCP servers to a specific agent.
@@ -18,27 +20,33 @@ class AgentMcpAttachmentController
     /**
      * List an agent's connectors
      *
-     * @return array{data: list<McpServerData>}
+     * The connectors attached to the agent, newest first. The list is paged
+     * with a cursor: to get the next page, send the `next_cursor` of the
+     * response as `cursor`. On the last page `next_cursor` is null.
+     *
+     * @return array{data: list<McpServerData>, next_cursor: string|null}
      */
-    public function index(Agent $agent): array
+    public function index(CursorPageRequest $request, Agent $agent): array
     {
-        return ['data' => $agent->mcpServers()->get()
-            ->map(fn (AgentMcpServer $s): McpServerData => McpServerData::fromModel($s))->all()];
+        $page = CursorPage::newestFirst($agent->mcpServers(), $request->perPage(), $request->cursor());
+
+        return [
+            'data' => array_map(fn (AgentMcpServer $s): McpServerData => McpServerData::fromModel($s), $page->items()),
+            'next_cursor' => $page->nextCursor()?->encode(),
+        ];
     }
 
     /**
      * Attach connector to agent
-     *
-     * @return array{data: McpServerData}
      */
-    public function store(AttachAgentMcpRequest $request, Agent $agent): array
+    public function store(AttachAgentMcpRequest $request, Agent $agent): JsonResponse
     {
         $data = $request->toData($agent);
         $server = $this->resolveServer($data->agent, $data->mcp_id);
 
         $data->agent->attachConnector($server);
 
-        return ['data' => McpServerData::fromModel($server->fresh())];
+        return response()->json(['data' => McpServerData::fromModel($server->fresh())], 201);
     }
 
     /**

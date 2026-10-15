@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Function;
 
+use App\Http\Requests\Api\V1\CursorPageRequest;
 use App\Http\Requests\Api\V1\Function\StoreApiFunctionRequest;
 use App\Http\Requests\Api\V1\Function\UpdateApiFunctionRequest;
 use App\Http\Resources\Api\V1\Tools\FunctionData;
@@ -12,6 +13,7 @@ use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Support\Pagination\CursorPage;
 
 /**
  * Workspace webhook functions over the public API — the same Actions as the
@@ -24,29 +26,34 @@ class FunctionController
     /**
      * List functions
      *
-     * @return array{data: list<FunctionData>}
+     * Your functions, newest first. The list is paged with a cursor: to get
+     * the next page, send the `next_cursor` of the response as `cursor`. On
+     * the last page `next_cursor` is null.
+     *
+     * @return array{data: list<FunctionData>, next_cursor: string|null}
      */
-    public function index(Request $request): array
+    public function index(CursorPageRequest $request): array
     {
         /** @var User $user */
         $user = $request->user();
-        $workspace = $user->workspace();
 
-        return ['data' => $workspace->functions()->latest()->get()
-            ->map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f))->all()];
+        $page = CursorPage::newestFirst($user->workspace()->functions(), $request->perPage(), $request->cursor());
+
+        return [
+            'data' => array_map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f), $page->items()),
+            'next_cursor' => $page->nextCursor()?->encode(),
+        ];
     }
 
     /**
      * Create function
-     *
-     * @return array{data: FunctionData}
      */
-    public function store(StoreApiFunctionRequest $request, CreateAgentFunctionAction $createFunction): array
+    public function store(StoreApiFunctionRequest $request, CreateAgentFunctionAction $createFunction): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        return ['data' => FunctionData::fromModel($createFunction->execute($user, $request->toData()))];
+        return response()->json(['data' => FunctionData::fromModel($createFunction->execute($user, $request->toData()))], 201);
     }
 
     /**

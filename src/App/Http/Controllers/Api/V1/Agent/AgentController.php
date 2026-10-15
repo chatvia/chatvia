@@ -15,6 +15,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentVisibility;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\JsonResponse;
+use Support\Pagination\CursorPage;
 
 /**
  * The public API's agent endpoints: list, create, show, update and delete.
@@ -26,10 +27,12 @@ class AgentController
     /**
      * List agents
      *
-     * Returns every agent across all your teams. Pass `?team_id=` to list only
-     * one team's agents.
+     * Returns the agents across all your teams, newest first. Pass `?team_id=`
+     * to list only one team's agents. The list is paged with a cursor: to get
+     * the next page, send the `next_cursor` of the response as `cursor`. On
+     * the last page `next_cursor` is null.
      *
-     * @return array{data: list<AgentData>}
+     * @return array{data: list<AgentData>, next_cursor: string|null}
      */
     public function index(ListApiAgentsRequest $request, AgentVisibility $visibility): array
     {
@@ -39,7 +42,7 @@ class AgentController
         // The same visibility rule as the dashboard's agent list: owners see
         // every agent in their teams, a teammate only the agents their role
         // reaches — so a member token never lists agents it can't access.
-        $query = $visibility->query($user, $user->currentOrPrimaryTeam())->with(['team', 'agentPrompt'])->latest();
+        $query = $visibility->query($user, $user->currentOrPrimaryTeam())->with(['team', 'agentPrompt']);
 
         $team = $request->team();
 
@@ -47,22 +50,25 @@ class AgentController
             $query->where('team_id', $team->id);
         }
 
-        return ['data' => $query->get()->map(fn (Agent $agent): AgentData => AgentData::fromModel($agent))->all()];
+        $page = CursorPage::newestFirst($query, $request->perPage(), $request->cursor());
+
+        return [
+            'data' => array_map(fn (Agent $agent): AgentData => AgentData::fromModel($agent), $page->items()),
+            'next_cursor' => $page->nextCursor()?->encode(),
+        ];
     }
 
     /**
      * Create agent
      *
      * Create a new agent
-     *
-     * @return array{data: AgentData}
      */
-    public function store(StoreApiAgentRequest $request, CreateApiAgentAction $createAgent): array
+    public function store(StoreApiAgentRequest $request, CreateApiAgentAction $createAgent): JsonResponse
     {
         /** @var User $user */
         $user = $request->user();
 
-        return ['data' => AgentData::fromModel($createAgent->execute($user->workspace(), $request->toData()))];
+        return response()->json(['data' => AgentData::fromModel($createAgent->execute($user->workspace(), $request->toData()))], 201);
     }
 
     /**
@@ -77,8 +83,6 @@ class AgentController
 
     /**
      * Update agent
-     *
-     *
      *
      * @return array{data: AgentData}
      */

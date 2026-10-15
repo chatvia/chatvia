@@ -62,20 +62,26 @@ return [
     | always shows, whatever the switch says.
     |
     | - key: the activated key, set in the admin panel (Settings → Brand).
-    | - public_key: checks the keys. Fixed here, never in .env or the panel.
-    |   While it is empty, no key is valid.
+    | - public_key: checks the keys. Fixed here, never in .env or the panel:
+    |   whoever sets it could sign their own keys. While it is empty, no key
+    |   is valid.
     | - buy_url / manage_url: where to buy a license and where to see or
     |   deactivate it, linked from Settings → Brand.
     | - api_url: where keys are activated, released and checked.
+    |
+    | All three are on the site that sells and activates keys, chatvia.ai.
+    | Set CHATVIA_LICENSE_SERVER in .env (no trailing slash) only to test
+    | against a local copy of that site. A server of your own can't make keys
+    | this install accepts: they must be signed for public_key.
     |
     */
 
     'license' => [
         'key' => null,
-        'public_key' => null,
-        'buy_url' => 'https://chatvia.ai/license',
-        'manage_url' => 'https://chatvia.ai/license/manage',
-        'api_url' => 'https://chatvia.ai/api/licenses',
+        'public_key' => 'Syv1BerjH1Daz/uepuAgSjxf0uyyzbjzKyc2osApnQc=',
+        'buy_url' => env('CHATVIA_LICENSE_SERVER', 'https://chatvia.ai').'/license',
+        'manage_url' => env('CHATVIA_LICENSE_SERVER', 'https://chatvia.ai').'/license/manage',
+        'api_url' => env('CHATVIA_LICENSE_SERVER', 'https://chatvia.ai').'/api/licenses',
     ],
 
     /*

@@ -34,10 +34,10 @@ readonly DEFAULT_INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
 
-# The long-running services, in the order `status` shows them; the first four
+# The long-running services, in the order `status` shows them; the first five
 # use the database.
-readonly SERVICES="app horizon scheduler reverb postgres redis"
-readonly DATABASE_USERS="app horizon scheduler reverb"
+readonly SERVICES="app horizon scheduler reverb pulse postgres redis"
+readonly DATABASE_USERS="app horizon scheduler reverb pulse"
 
 # Where PostgreSQL reads postgres/postgresql.conf inside its container.
 readonly PG_CONF_MOUNT="/etc/postgresql/chatvia"

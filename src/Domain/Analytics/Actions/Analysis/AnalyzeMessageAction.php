@@ -10,8 +10,8 @@ use Domain\Conversation\Models\Message;
 
 /**
  * Per-message sentiment + tone for a visitor message, in one structured LLM
- * call. Runs only when the plan exposes a dimension and the agent has it
- * switched on. An unparseable answer saves nothing, so the message keeps no
+ * call. Runs only when the agent has sentiment or tone switched on. An
+ * unparseable answer saves nothing, so the message keeps no
  * made-up "neutral" values and is not counted in the rollups.
  */
 class AnalyzeMessageAction

@@ -23,9 +23,8 @@ use Support\Localization\Language\Models\Language;
  *    + a ConversationTopicAssigned event each (rolls up analytics_agent_topic_daily)
  *  - emergent topic suggestions (no existing topic fit) → suggested_label rows
  *
- * Everything the one call produces is stored — plan capabilities gate what the
- * customer can VIEW (enforced on the analytics routes), not what we analyze:
- * the inference is already spent, so discarding results would only waste it.
+ * The language, tone and sentiment are always stored; the topics only while
+ * the agent has topics switched on.
  * `analyzed_at` is stamped exactly once, making the batch idempotent. When the
  * model's answer cannot be parsed nothing is saved and `analyzed_at` stays
  * null, so the next scheduled pass tries again instead of recording a

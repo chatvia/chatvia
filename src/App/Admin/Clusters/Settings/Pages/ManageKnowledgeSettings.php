@@ -131,7 +131,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
             ])->required('firecrawl_api_key')->console('https://www.firecrawl.dev/app/api-keys', 'Get a key'),
             SettingsCard::make('enhancement', 'AI enhancement', 'An optional AI step while sources are trained. Helps agents find the right part.', Heroicon::OutlinedCpuChip, fn (): array => [
                 $this->toggle('enhance_chunks', 'Enhance files and web pages',
-                    help: 'Adds a summary and likely questions to every chunk of uploaded files and crawled pages, and a summary of the whole source, so far more of the right passages are found. One Smart-model call per chunk while training: a 300-page PDF makes about 300 calls.'),
+                    help: 'Adds a summary and likely questions to every chunk of uploaded files and crawled pages, and a summary of the whole source, so far more of the right passages are found. One model call per chunk while training: a 300-page PDF makes about 300 calls. The model is set in Settings → AI models → Models for app tasks.'),
                 $this->toggle('enhance_text_chunks', 'Enhance text sources',
                     help: 'The same step for pasted texts. They are short, so it costs little. With both off, training makes no model calls.'),
             ])->summary(fn (): string => sprintf(
@@ -150,7 +150,7 @@ class ManageKnowledgeSettings extends AdminSettingsPage
             )),
             SettingsCard::make('questions', 'Follow-up questions', 'How a short follow-up, like "and the price?", is searched.', Heroicon::OutlinedChatBubbleLeftRight, fn (): array => [
                 $this->toggle('query_rewriter', 'Understand follow-up questions',
-                    help: 'An AI step turns a follow-up ("and the price?") into a full question from the chat before it, only for the search. One Fast-model call per follow-up.'),
+                    help: 'An AI step turns a follow-up ("and the price?") into a full question from the chat before it, only for the search. One model call per follow-up. The model is set in Settings → AI models → Models for app tasks.'),
             ])->summary(fn (): string => 'Understand follow-up questions '.$this->shown($this->valueInUse('query_rewriter'))),
             SettingsCard::make('splitting', 'Splitting', 'How texts are cut into chunks (small parts). The defaults suit most agents.', Heroicon::OutlinedScissors, fn (): array => $this->splittingFields())
                 ->properties('chunk_unit', 'chunk_size', 'chunk_overlap', 'markdown_strategy', 'text_strategy', 'transcript_strategy', 'tokenizer')

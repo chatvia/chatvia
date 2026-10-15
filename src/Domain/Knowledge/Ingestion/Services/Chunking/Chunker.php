@@ -8,15 +8,15 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatUsageData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Operations\Pricing\CostCalculator;
-use Domain\Llm\Services\ModelRoles;
 use Domain\Llm\Services\StructuredCompletion;
+use Domain\Llm\Services\TaskModels;
 use Domain\Llm\Services\TikToken;
 
 /**
- * Asks the Smart model (LlmRole::Smart) for a summary of one page
+ * Asks the AI enhancement model (LlmTask::Enhancement) for a summary of one page
  * and the questions it answers, with the neighbouring pages as context. The
  * reply must follow a strict JSON schema. The summary is later prepended to the
  * chunk before embedding ("contextual retrieval"); the questions get their own
@@ -27,7 +27,7 @@ class Chunker
     public function __construct(
         private readonly StructuredCompletion $completion,
         private readonly CostCalculator $costCalculator,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     /**
@@ -43,7 +43,7 @@ class Chunker
             'next_page' => $nextPage?->content,
         ]);
 
-        $model = $this->models->model(LlmRole::Smart);
+        $model = $this->models->model(LlmTask::Enhancement);
 
         $reply = $this->completion->send(new ChatRequestData(
             model: $model,

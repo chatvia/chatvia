@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Domain\Agent\Services;
 
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 
 /**
  * The model an agent answers with: its own, or the default chat model
@@ -17,11 +17,11 @@ use Domain\Llm\Services\ModelRoles;
 final readonly class AgentModel
 {
     public function __construct(
-        private ModelRoles $roles,
+        private TaskModels $models,
     ) {}
 
     public function for(Agent $agent): ?Llm
     {
-        return $agent->llm ?? $this->roles->find(LlmRole::Chat);
+        return $agent->llm ?? $this->models->find(LlmTask::Chat);
     }
 }

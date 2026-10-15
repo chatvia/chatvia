@@ -5,9 +5,9 @@ namespace Domain\Llm\Operations\Query;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Query\RewrittenQueryData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Throwable;
 
 /**
@@ -29,7 +29,7 @@ class QueryRewriter
 
     public function __construct(
         private readonly LlmChat $chat,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     /**
@@ -46,7 +46,7 @@ class QueryRewriter
 
         try {
             $reply = $this->chat->send(new ChatRequestData(
-                model: $this->models->model(LlmRole::Fast),
+                model: $this->models->model(LlmTask::FollowUp),
                 messages: [
                     ChatMessageData::system(prompt('knowledge/rewrite-query')),
                     ChatMessageData::user(prompt('knowledge/rewrite-query-user', [

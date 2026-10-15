@@ -229,7 +229,7 @@ class ChatMemory
      */
     public function getLlmMessages(?int $limit = null): array
     {
-        $limit ??= (int) config('chatvia.agent.history_messages', 10);
+        $limit ??= (int) config('chatvia.agent.history_messages', 3);
 
         return collect($this->cachedMessages())
             ->map(static fn (array $message): array => [

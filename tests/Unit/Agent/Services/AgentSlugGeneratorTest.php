@@ -4,7 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentSlugGenerator;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Response;
 
@@ -28,7 +28,7 @@ function agentSlugGenerator(array|Throwable $replies): AgentSlugGenerator
         ));
     }
 
-    return new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(ModelRoles::class));
+    return new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(TaskModels::class));
 }
 
 it('lowercases before stripping, so capital letters are kept', function (): void {
@@ -83,7 +83,7 @@ it('gives the model room to reason before it names the agent', function (): void
         return new Response(new Psr7Response(200, [], json_encode(['choices' => [['message' => ['content' => 'answer-owl']]]])));
     });
 
-    $name = new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(ModelRoles::class))->generate();
+    $name = new AgentSlugGenerator(app(LlmChat::class)->using($provider), app(TaskModels::class))->generate();
 
     expect($name)->toBe('answer-owl')
         ->and($sent['max_tokens'] ?? $sent['max_completion_tokens'] ?? 0)->toBeGreaterThanOrEqual(400);

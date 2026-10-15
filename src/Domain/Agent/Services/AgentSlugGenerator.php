@@ -5,16 +5,16 @@ namespace Domain\Agent\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
 /**
  * Suggests a free slug for an agent's Hosted Chat address (`/chat/{slug}`):
- * the Fast model (LlmRole::Fast) proposes a short playful name,
+ * the Hosted chat addresses model (LlmTask::ChatAddress) proposes a short playful name,
  * which is cleaned to lowercase letters, digits and inner dashes. A taken or
  * unusable suggestion is retried a few times; after that — or when the model
  * is unreachable — a random `agent-…` name is used, so the button always gets
@@ -37,7 +37,7 @@ class AgentSlugGenerator
 
     public function __construct(
         private readonly LlmChat $chat,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     public function generate(): string
@@ -74,7 +74,7 @@ class AgentSlugGenerator
     {
         try {
             return $this->chat->send(new ChatRequestData(
-                model: $this->models->model(LlmRole::Fast),
+                model: $this->models->model(LlmTask::ChatAddress),
                 messages: [ChatMessageData::user(prompt('agent-slug/generate'))],
                 maxTokens: self::MAX_TOKENS,
             ))->content;

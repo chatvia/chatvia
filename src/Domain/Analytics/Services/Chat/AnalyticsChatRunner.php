@@ -12,9 +12,9 @@ use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\ToolCallDeltas;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmProviders;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Generator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -39,7 +39,7 @@ class AnalyticsChatRunner
 
     public function __construct(
         private readonly LlmProviders $providers,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
         private readonly AnalyticsToolset $toolset,
         private readonly AnalyticsToolDispatcher $dispatcher,
         private readonly BuiltinToolRouter $router,
@@ -84,7 +84,7 @@ class AnalyticsChatRunner
     {
         ['definitions' => $tools, 'routes' => $routes] = $this->toolsFor($data->message);
         $messages = $this->buildMessages($workspace, $data);
-        $model = $this->models->model(LlmRole::Chat);
+        $model = $this->models->model(LlmTask::Chat);
         $provider = $this->providers->for($model);
         $maxIterations = (int) config('chatvia.agent.tools.max_iterations', 5);
 

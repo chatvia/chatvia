@@ -41,7 +41,7 @@ function telegramHandle(FakeTelegramClient $client, StubChannelReplyRunner $runn
     $resolver = app(TelegramChatResolver::class);
 
     $action = new HandleTelegramUpdateAction(
-        new ChannelAccessGate,
+        app(ChannelAccessGate::class),
         new TypingReplyStrategy($runner),
         new TelegramCommandRouter($resolver, $client),
     );
@@ -100,6 +100,21 @@ it('refuses to answer on a protected agent and creates no chat', function (): vo
 
     expect(TelegramChat::query()->count())->toBe(0);
 });
+
+it('answers neither messages nor commands for a deactivated workspace, and creates no chat', function (string $text): void {
+    $bot = handleBot();
+    deactivateWorkspaceOf($bot->agent);
+    $client = new FakeTelegramClient;
+    $runner = new StubChannelReplyRunner('should never be sent');
+
+    telegramHandle($client, $runner, $bot, '555', $text, 'Sam');
+
+    // Gated before the pipeline and the commands: one "unavailable" notice.
+    expect($client->sent)->toHaveCount(1)
+        ->and($client->sent[0]['text'])->toBe('Sorry — this assistant is unavailable right now. Please try again later.')
+        ->and($runner->received())->toBeNull()
+        ->and(TelegramChat::query()->count())->toBe(0);
+})->with(['message' => 'hello', '/start command' => '/start']);
 
 it('answers /start with the default message and never runs the pipeline', function (): void {
     $bot = handleBot();

@@ -238,6 +238,16 @@ class Agent extends Model
     }
 
     /**
+     * Whether chatters see the knowledge sources under an answer (Setup →
+     * Settings → Replies). Off by default, so an agent with no stored
+     * `show_sources` setting keeps its sources on the server.
+     */
+    public function showsSources(): bool
+    {
+        return (bool) $this->settings('appearance')->get('show_sources', false);
+    }
+
+    /**
      * Whether an optional analytics dimension (`sentiment`, `tone`, `topics`)
      * is actively collecting for this agent. Requires BOTH the chat log (the
      * master switch — with no stored messages there's nothing to analyze) and

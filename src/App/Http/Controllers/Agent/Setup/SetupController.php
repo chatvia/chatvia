@@ -12,10 +12,10 @@ use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Data\LlmModelData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\RealtimeVoice;
 use Domain\Llm\Models\Llm;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -36,7 +36,7 @@ class SetupController
         ChatterAuthTokenService $authTokenService,
         TeamPermissionPolicy $permissions,
         AgentModel $agentModel,
-        ModelRoles $roles,
+        TaskModels $models,
         VoiceAvailability $voice,
         Transcriber $transcriber,
     ): Response {
@@ -54,7 +54,7 @@ class SetupController
 
         // Its own model, or the default one while it has none.
         $selectedModel = $agentModel->for($agent)?->external_name;
-        $defaultModel = $roles->find(LlmRole::Chat)?->external_name;
+        $defaultModel = $models->find(LlmTask::Chat)?->external_name;
 
         // The models that may be picked, plus the agent's own even when it
         // was turned off since.

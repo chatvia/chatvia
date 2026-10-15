@@ -5,10 +5,10 @@ namespace Domain\Form\Actions;
 use Domain\Form\Data\RewriteFormDescriptionData;
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Str;
 use Support\Exceptions\DomainValidationException;
 
@@ -30,7 +30,7 @@ class RewriteFormDescriptionAction
 
     public function __construct(
         private readonly LlmChat $chat,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     /**
@@ -45,7 +45,7 @@ class RewriteFormDescriptionAction
         ])->implode("\n");
 
         $content = $this->chat->send(new ChatRequestData(
-            model: $this->models->model(LlmRole::Fast),
+            model: $this->models->model(LlmTask::FormText),
             messages: [
                 ChatMessageData::system(prompt('forms/rewrite-description')),
                 ChatMessageData::user($context),

@@ -9,10 +9,10 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Services\EvalAgentRunner;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Exceptions;
 
@@ -222,9 +222,9 @@ it('returns an error result when the agent has no model and no model can answer'
     $agent->setRelation('llm', null);
 
     // No default model either.
-    $noModels = new AgentModel(new class extends ModelRoles
+    $noModels = new AgentModel(new class extends TaskModels
     {
-        public function find(LlmRole $role): ?Llm
+        public function find(LlmTask $task): ?Llm
         {
             return null;
         }

@@ -117,6 +117,21 @@ it('bails before the pipeline when the placeholder cannot be posted', function (
     expect($client->updates)->toBeEmpty();
 });
 
+it('refuses to answer for a deactivated workspace and creates no channel', function (): void {
+    $app = slackHandleApp();
+    deactivateWorkspaceOf($app->agent);
+    $client = new FakeSlackClient;
+    $runner = new StubChannelReplyRunner('should never be sent');
+
+    slackHandle($client, $runner, $app, 'C123CHAN', 'hello');
+
+    expect($client->posted)->toHaveCount(1)
+        ->and($client->posted[0]['markdown'])->toBe('Sorry — this assistant is unavailable right now. Please try again later.')
+        ->and($client->updates)->toBeEmpty()
+        ->and($runner->received())->toBeNull()
+        ->and(SlackChannel::query()->count())->toBe(0);
+});
+
 it('refuses to answer on a protected agent and creates no channel', function (): void {
     $app = slackHandleApp(public: false);
     $client = new FakeSlackClient;

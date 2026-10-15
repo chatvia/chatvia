@@ -37,6 +37,8 @@ const dateForm = useForm({
     date_format: (props.user.date_format as DateFormatKey) ?? 'iso',
 });
 
+const selectedFormat = computed(() => props.dateFormats.find((option) => option.value === dateForm.date_format));
+
 // Live preview of today's date in the currently selected format.
 const datePreview = computed(() => formatDateWith(dateForm.date_format, new Date()));
 
@@ -60,7 +62,10 @@ const submitDateFormat = () => {
                     <Label for="date_format">{{ t('account.profile.date_format') }}</Label>
                     <Select v-model="dateForm.date_format">
                         <SelectTrigger id="date_format" class="w-full sm:w-80">
-                            <SelectValue :placeholder="t('account.profile.date_format_placeholder')" />
+                            <!-- Only the example once chosen: the copied item text would run the label into it. -->
+                            <SelectValue :placeholder="t('account.profile.date_format_placeholder')">
+                                {{ selectedFormat?.example ?? t('account.profile.date_format_placeholder') }}
+                            </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="option in props.dateFormats" :key="option.value" :value="option.value">

@@ -6,15 +6,15 @@ namespace Domain\Llm\Operations\Query;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Illuminate\Support\Str;
 
 /**
  * Writes a short title for a conversation from its first messages, with the
- * Fast model ({@see LlmRole}). The reply is cleaned to one short line; it is
- * empty when the model wrote nothing.
+ * Titles model ({@see LlmTask::Titles}). The reply is cleaned to one short
+ * line; it is empty when the model wrote nothing.
  */
 class TitleGenerator
 {
@@ -30,13 +30,13 @@ class TitleGenerator
 
     public function __construct(
         private readonly LlmChat $chat,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     public function generate(string $messages): string
     {
         return self::clean($this->chat->send(new ChatRequestData(
-            model: $this->models->model(LlmRole::Fast),
+            model: $this->models->model(LlmTask::Titles),
             messages: [
                 ChatMessageData::system(prompt('conversation/title')),
                 ChatMessageData::user('The text is: '.$messages),

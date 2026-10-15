@@ -3,7 +3,7 @@
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Operations\Query\TitleGenerator;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Http\Client\Response;
 
@@ -32,7 +32,7 @@ it('gives the model room to reason before it writes the title', function (): voi
         return new Response(new Psr7Response(200, [], json_encode(['choices' => [['message' => ['content' => "Sunday Opening Hours\n\n"]]]])));
     });
 
-    $title = new TitleGenerator(app(LlmChat::class)->using($provider), app(ModelRoles::class))
+    $title = new TitleGenerator(app(LlmChat::class)->using($provider), app(TaskModels::class))
         ->generate("When are you open on Sunday?\nFrom nine to five.");
 
     expect($title)->toBe('Sunday Opening Hours')

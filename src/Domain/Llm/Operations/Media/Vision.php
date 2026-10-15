@@ -4,14 +4,14 @@ namespace Domain\Llm\Operations\Media;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Enums\LlmRole;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\LlmChat;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Services\TaskModels;
 use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Laravel\Facades\Image;
 
 /**
- * Describes an image in words with the Vision model (LlmRole::Vision),
+ * Describes an image in words with the Image descriptions model (LlmTask::Images),
  * so images inside documents can be embedded and found by search. The model
  * answers `no_info` for images that carry no information (logos, decoration);
  * those get no description.
@@ -23,7 +23,7 @@ class Vision
 
     public function __construct(
         private readonly LlmChat $chat,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     /**
@@ -37,7 +37,7 @@ class Vision
         }
 
         $description = $this->chat->send(new ChatRequestData(
-            model: $this->models->model(LlmRole::Vision),
+            model: $this->models->model(LlmTask::Images),
             messages: [
                 ChatMessageData::userWithAttachment(prompt('image/describe'), [
                     'type' => 'image_url',

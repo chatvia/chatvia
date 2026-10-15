@@ -16,7 +16,7 @@ beforeEach(function (): void {
     config([
         'chatvia.ai.pricing.chunker_input_per_million_tokens' => 1.0,
         'chatvia.ai.pricing.chunker_output_per_million_tokens' => 2.0,
-        'chatvia.ai.roles.smart' => testLlm('smart-model')->external_name,
+        'chatvia.ai.tasks.enhancement' => testLlm('smart-model')->external_name,
     ]);
 });
 
@@ -56,7 +56,7 @@ it('prices the call from the provider usage tokens', function (): void {
 });
 
 it('prices the call with the model\'s catalog prices when it has them', function (): void {
-    config(['chatvia.ai.roles.smart' => testLlm('priced-model', attributes: [
+    config(['chatvia.ai.tasks.enhancement' => testLlm('priced-model', attributes: [
         'input_price_per_1m_tokens' => 3.0,
         'output_price_per_1m_tokens' => 10.0,
     ])->external_name]);

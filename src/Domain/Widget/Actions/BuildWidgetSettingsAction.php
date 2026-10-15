@@ -2,6 +2,7 @@
 
 namespace Domain\Widget\Actions;
 
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AppearanceTextResolver;
 use Domain\Agent\ValueObjects\TranslatableText;
@@ -43,6 +44,7 @@ class BuildWidgetSettingsAction
         private readonly DocumentLlm $documentLlm,
         private readonly VoiceAvailability $voice,
         private readonly Transcriber $transcriber,
+        private readonly WorkspaceActivation $activation,
     ) {}
 
     public function execute(Agent $agent, ?string $visitorLocale = null): WidgetSettingsData
@@ -59,13 +61,15 @@ class BuildWidgetSettingsAction
         $text = $this->appearanceText->resolve($appearance, $locale);
         [$bubbles, $bubbleTranslations] = $this->bubbles($agent, $locale);
         $showsBranding = $this->showsBranding();
+        $isActive = $this->activation->isActive($agent->workspace_id);
 
         return new WidgetSettingsData(
             protected: $agent->is_public === false,
             // Per-surface switches: the embed does not mount when its own
-            // surface (bubble → widget, bar → bar) is turned off.
-            widget_enabled: $agent->surfaceEnabled(ConversationSource::Widget),
-            bar_enabled: $agent->surfaceEnabled(ConversationSource::Bar),
+            // surface (bubble → widget, bar → bar) is turned off, or at all
+            // while the workspace is deactivated.
+            widget_enabled: $isActive && $agent->surfaceEnabled(ConversationSource::Widget),
+            bar_enabled: $isActive && $agent->surfaceEnabled(ConversationSource::Bar),
             title: (string) ($text['chat_window_title'] ?? ''),
             logo_url: (string) ($appearance['logo'] ?? ''),
             avatar_url: $appearance['avatar'] ?? null,

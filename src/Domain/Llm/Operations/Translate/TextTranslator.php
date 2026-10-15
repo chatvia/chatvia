@@ -6,9 +6,9 @@ namespace Domain\Llm\Operations\Translate;
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
-use Domain\Llm\Enums\LlmRole;
-use Domain\Llm\Services\ModelRoles;
+use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Services\StructuredCompletion;
+use Domain\Llm\Services\TaskModels;
 
 /**
  * One structured-JSON LLM call that localizes a set of short UI strings into
@@ -22,7 +22,7 @@ class TextTranslator
 {
     public function __construct(
         private readonly StructuredCompletion $completion,
-        private readonly ModelRoles $models,
+        private readonly TaskModels $models,
     ) {}
 
     /**
@@ -37,7 +37,7 @@ class TextTranslator
         }
 
         $reply = $this->completion->send(new ChatRequestData(
-            model: $this->models->model(LlmRole::Fast),
+            model: $this->models->model(LlmTask::Translation),
             messages: [
                 ChatMessageData::system(prompt('translate/strings')),
                 ChatMessageData::user(json_encode(

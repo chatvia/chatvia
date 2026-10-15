@@ -1618,7 +1618,9 @@
                 "avatar_upload_error": "Avatarin lataaminen epäonnistui",
                 "logo_upload_error": "Logon lataaminen epäonnistui",
                 "avatar_remove_error": "Avatarin poistaminen epäonnistui",
-                "logo_remove_error": "Logon poistaminen epäonnistui"
+                "logo_remove_error": "Logon poistaminen epäonnistui",
+                "replies_saved": "Vastausasetukset tallennettu",
+                "replies_error": "Vastausasetuksia ei voitu tallentaa"
             },
             "settings": {
                 "composer_title": "Kirjoittajan asetukset",
@@ -1668,7 +1670,11 @@
                 "voice_conversation_help_2": "Jokainen puhuttu vastaus lasketaan yhdeksi viestiksi. Puhelu maksaa paljon enemmän kuin kirjoitettu keskustelu.",
                 "voice_label": "Ääni",
                 "voice_default": "Oletus ({voice})",
-                "voice_input_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa puheentunnistuksen käyttöön hallintapaneelissa."
+                "voice_input_unavailable": "Ei käytössä tällä palvelimella. Ylläpitäjä voi ottaa puheentunnistuksen käyttöön hallintapaneelissa.",
+                "replies_title": "Vastaukset",
+                "replies_description": "Valitse, mitä jokaisen vastauksen alla näytetään.",
+                "show_sources_label": "Näytä lähteet",
+                "show_sources_hint": "Näytä jokaisen vastauksen alla painike, joka luettelee vastauksessa käytetyn tiedon."
             },
             "bubbles_title": "Chat-kuplat",
             "bubbles_description": "Pikaviestikehotukset, jotka näytetään widget-kuplan vieressä. Lisää painamalla Enter.",

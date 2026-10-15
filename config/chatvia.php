@@ -295,13 +295,25 @@ return [
 
     'ai' => [
         // The catalog models (aliases, `llms.external_name`) behind the app's
-        // own LLM calls, picked in the admin panel (Settings → AI models). A role
-        // that is unset uses the chat model (chatvia.agent.default_model).
-        // Every call goes to its model's provider. See LlmRole.
-        'roles' => [
-            'fast' => null,
-            'smart' => null,
-            'vision' => null,
+        // own LLM calls, picked in the admin panel (Settings → AI models). A task
+        // that is unset uses `default`, then the chat model
+        // (chatvia.agent.default_model). Every call goes to its model's
+        // provider. See LlmTask.
+        'tasks' => [
+            'default' => null,
+            'follow_up' => null,
+            'tool_routing' => null,
+            'guardrails' => null,
+            'titles' => null,
+            'conversation_analysis' => null,
+            'starters' => null,
+            'translation' => null,
+            'form_text' => null,
+            'chat_address' => null,
+            'enhancement' => null,
+            'tables' => null,
+            'images' => null,
+            'eval_judge' => null,
         ],
 
         // Which service handles each ingestion and retrieval step (Settings →

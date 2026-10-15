@@ -38,7 +38,9 @@ final class VoiceTurnFactory
             actorUserId: $call->actor_user_id,
             actorName: $call->actor_name,
             saveUserMessageImmediately: true,
-            streamSources: true,
+            // The transcript lists the sources under a spoken answer, when the
+            // agent shows them.
+            streamSources: $agent->showsSources(),
             source: $call->source,
             ipAddress: $call->ip_address,
             country: $call->country,

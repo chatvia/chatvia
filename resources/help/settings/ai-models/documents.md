@@ -9,6 +9,10 @@ Each list shows whether a service is connected. A service that is not connected 
 - Excel, CSV, old office files (.doc, .ppt), RTF, text, Markdown and ebooks are always read by the app itself. Excel keeps its tables this way; Azure would lose them.
 - PDFs locked with a password are refused at upload: no reader can open them.
 - **Summaries and PDF chat** — Mistral's models read each document whole. They write a short summary of every source, and answer questions about PDF files attached in a chat. **Off** turns both off. Only Mistral can do this.
-- **Mistral OCR model** (under **Advanced**) — Leave it blank for the default.
+- Under **Advanced** — The Mistral model names, typed by hand. Leave them blank for the defaults.
+  - **Mistral OCR model** — Reads the documents.
+  - **Summary model** — Writes the short summary of each source.
+  - **Analysis model** — Finds each document's type, language, audience and likely questions.
+  - **PDF chat model** — Answers questions about PDF files attached in a chat. It must read PDFs and use tools.
 
 **Tip:** Settings → Knowledge → File types shows which service reads each file type.

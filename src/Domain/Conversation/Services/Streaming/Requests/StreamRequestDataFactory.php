@@ -60,8 +60,9 @@ class StreamRequestDataFactory
             actorUserId: $staff?->id,
             actorName: $chatter?->name ?? $staff?->name,
             saveUserMessageImmediately: $request->boolean('save_user_message_immediately'),
-            // The sources list under each answer (labels and public links only).
-            streamSources: true,
+            // The sources list under each answer (labels and public links
+            // only), when the agent shows it.
+            streamSources: $agent->showsSources(),
             ipAddress: $request->ip(),
             country: $request->country(),
             userAgent: $request->userAgent(),
@@ -103,8 +104,9 @@ class StreamRequestDataFactory
             actorUserId: $account instanceof User ? $account->id : null,
             actorName: $account?->name,
             saveUserMessageImmediately: true,
-            // The sources list under each answer (labels and public links only).
-            streamSources: true,
+            // The sources list under each answer (labels and public links
+            // only), when the agent shows it.
+            streamSources: $agent->showsSources(),
             streamLanguage: false,
             source: $isPlayground ? 'playground' : null,
             ipAddress: $request->ip(),

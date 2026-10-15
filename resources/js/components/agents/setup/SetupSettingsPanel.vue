@@ -1,8 +1,9 @@
 <script setup lang="ts">
 /**
  * Setup → Settings: agent-wide switches that aren't tied to one surface —
- * composer options (with voice conversations and the agent's voice), the
- * chat log, and which conversation analytics run.
+ * composer options (with voice conversations and the agent's voice), reply
+ * options (the sources under an answer), the chat log, and which
+ * conversation analytics run.
  * Each group is its own form with its own Save button.
  */
 import SetupSaveFooter from '@/components/agents/setup/SetupSaveFooter.vue';
@@ -22,6 +23,9 @@ const {
     isSavingComposer,
     saveComposer,
     voice,
+    repliesForm,
+    isSavingReplies,
+    saveReplies,
     chatlogForm,
     isSavingChatlog,
     saveChatlog,
@@ -119,6 +123,23 @@ const help = computed(() => ({
                 </div>
             </div>
             <SetupSaveFooter submit :saving="isSavingComposer" />
+        </form>
+
+        <Separator />
+
+        <!-- Reply options — what chatters see under an answer. -->
+        <form @submit.prevent="saveReplies" class="space-y-3">
+            <SetupSectionHeading :title="t('agents.setup.settings.replies_title')" :description="t('agents.setup.settings.replies_description')" />
+            <div class="divide-y rounded-md border">
+                <SetupSwitchRow
+                    id="show-sources"
+                    v-model="repliesForm.show_sources"
+                    :label="t('agents.setup.settings.show_sources_label')"
+                    :hint="t('agents.setup.settings.show_sources_hint')"
+                    :disabled="locked"
+                />
+            </div>
+            <SetupSaveFooter submit :saving="isSavingReplies" />
         </form>
 
         <Separator />

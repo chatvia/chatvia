@@ -7,6 +7,7 @@ use App\Http\Chat\HostedChatViewer;
 use App\Http\Middleware\Auth\LogoutDeactivatedUser;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Services\WorkspaceActivation;
 use Closure;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
@@ -19,9 +20,10 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Access control for the hosted chat (`chat` group). In order:
  *
- *  1. The agent's Hosted Chat surface must be on; otherwise the visitor sees
- *     the not-found page (an unknown agent never gets here:
- *     {@see ResolveHostedChatAgent} answers first).
+ *  1. The agent's Hosted Chat surface must be on and its workspace switched on
+ *     ({@see WorkspaceActivation}); otherwise the visitor sees the not-found
+ *     page (an unknown agent never gets here: {@see ResolveHostedChatAgent}
+ *     answers first).
  *  2. Puts the agent's workspace id on the request (`agent_workspace_id`) for the
  *     message-capacity gate and the usage endpoint.
  *  3. A protected agent (`is_public = false`) needs a signed-in chatter or
@@ -41,14 +43,20 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureChatIsAccessible
 {
+    public function __construct(
+        private readonly WorkspaceActivation $activation,
+    ) {}
+
     public function handle(Request $request, Closure $next): Response|InertiaResponse
     {
         $agent = HostedChatAgent::from($request);
 
-        // A disabled Hosted Chat surface looks as if the agent did not exist.
-        // The widget and bar surfaces are gated separately (widget settings
-        // and EnsureWidgetIsAccessible).
-        if (! $agent instanceof Agent || ! $agent->surfaceEnabled(ConversationSource::HostedChat)) {
+        // A disabled Hosted Chat surface, or a deactivated workspace, looks as
+        // if the agent did not exist. The widget and bar surfaces are gated
+        // separately (widget settings and EnsureWidgetIsAccessible).
+        if (! $agent instanceof Agent
+            || ! $agent->surfaceEnabled(ConversationSource::HostedChat)
+            || ! $this->activation->isActive($agent->workspace_id)) {
             return Inertia::render('agents/chat/AgentNotFound');
         }
 

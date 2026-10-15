@@ -220,7 +220,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('sources/text', [AgentTextController::class, 'store'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.store');
         Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.show');
         Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.update');
-        Route::post('sources/text/{id}/unlink', DetachAgentTextController::class)->name('sources.text.unlink');
+        Route::post('sources/text/{id}/unlink', DetachAgentTextController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.text.unlink');
 
         Route::get('sources/qa', [AgentQaController::class, 'index'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.index');
         Route::post('sources/qa', [AgentQaController::class, 'store'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.store');
@@ -456,17 +456,17 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         // Linking / Unlinking Source Files
         Route::get('sources/trained-files', [AgentTrainedFileController::class, 'index'])->name('sources.list');
-        Route::post('sources/trained-files/{fileId}/link', [AgentTrainedFileController::class, 'store'])->name('sources.files.link');
-        Route::post('sources/trained-files/{file}/unlink', [AgentTrainedFileController::class, 'destroy'])->name('sources.files.unlink');
+        Route::post('sources/trained-files/{fileId}/link', [AgentTrainedFileController::class, 'store'])->middleware('agent.permission:agent.sources.train.files')->name('sources.files.link');
+        Route::post('sources/trained-files/{file}/unlink', [AgentTrainedFileController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.files.unlink');
 
         // Text Sources
         Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->name('sources.texts.list');
-        Route::post('sources/trained-texts/{textId}/link', AgentSourcesLinkTextController::class)->name('sources.texts.link');
+        Route::post('sources/trained-texts/{textId}/link', AgentSourcesLinkTextController::class)->middleware('agent.permission:agent.sources.train.text')->name('sources.texts.link');
 
         // Website Sources (cross-agent shared pool)
         Route::get('sources/trained-websites', [AgentTrainedWebsiteController::class, 'index'])->name('sources.trained-websites.index');
-        Route::post('sources/trained-websites/{websiteId}/link', [AgentTrainedWebsiteController::class, 'store'])->name('sources.trained-websites.link');
-        Route::post('sources/trained-websites/{websiteId}/unlink', [AgentTrainedWebsiteController::class, 'destroy'])->name('sources.trained-websites.unlink');
+        Route::post('sources/trained-websites/{websiteId}/link', [AgentTrainedWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.trained-websites.link');
+        Route::post('sources/trained-websites/{websiteId}/unlink', [AgentTrainedWebsiteController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.trained-websites.unlink');
 
         // Delete Agent
         Route::delete('/', [AgentController::class, 'destroy'])->middleware('agent.permission:agent.delete')->name('delete');

@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Aucun micro n'a été trouvé.",
             "busy": "La voix est occupée pour le moment. Réessayez dans un instant.",
             "failed": "L'appel vocal n'a pas pu démarrer. Veuillez réessayer."
+        },
+        "transcript": "Transcription de l'appel",
+        "tools": {
+            "knowledge": "Base de connaissances",
+            "running": "En cours…",
+            "done": "Terminé",
+            "held": "En attente de votre accord",
+            "failed": "Échec",
+            "cancelled": "Arrêté"
         }
     }
 }

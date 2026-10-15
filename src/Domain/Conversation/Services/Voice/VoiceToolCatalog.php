@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Voice;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Voice\VoiceToolLabelData;
 use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
+use Domain\Integration\Tool\Registry\ToolDisplayResolver;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Illuminate\Support\Str;
 
@@ -35,6 +37,7 @@ final readonly class VoiceToolCatalog
         private ToolRegistry $registry,
         private SurfaceToolFilter $surfaceFilter,
         private ConnectorCatalog $catalog,
+        private ToolDisplayResolver $display,
     ) {}
 
     /**
@@ -69,6 +72,29 @@ final readonly class VoiceToolCatalog
         }
 
         return $tools;
+    }
+
+    /**
+     * How the call view names each tool, as the typed chat does. First-party
+     * plumbing (forms, leads) is left out: the typed chat hides it too.
+     *
+     * @param  array<string, ToolEntry>  $tools
+     * @return array<string, VoiceToolLabelData>
+     */
+    public function labels(Agent $agent, array $tools): array
+    {
+        $labels = [];
+
+        foreach ($tools as $name => $entry) {
+            $tool = $entry->toolName();
+            $display = $this->display->resolve($agent, $tool);
+
+            if (! $display->isBuiltin) {
+                $labels[$name] = new VoiceToolLabelData($display->kind, $display->label, $display->iconUrl, $tool->isMcp() ? $tool->tool : null);
+            }
+        }
+
+        return $labels;
     }
 
     /**

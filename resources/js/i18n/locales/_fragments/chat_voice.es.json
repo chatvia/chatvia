@@ -14,6 +14,15 @@
         "unmute": "Encender el micrófono",
         "end": "Finalizar llamada",
         "close": "Cerrar",
+        "transcript": "Transcripción de la llamada",
+        "tools": {
+            "knowledge": "Base de conocimiento",
+            "running": "En curso…",
+            "done": "Hecho",
+            "held": "Espera tu confirmación",
+            "failed": "Falló",
+            "cancelled": "Detenido"
+        },
         "errors": {
             "not_supported": "Este navegador no puede hacer llamadas de voz.",
             "microphone_denied": "Permite el acceso al micrófono para hablar con el agente.",

@@ -336,7 +336,11 @@ through Chatvia:
    - runs the tools (`VoiceToolRunner`, through the same access policy,
      dispatcher and audit as a typed turn). While a real search or tool
      runs, the agent says a short "let me check" (an out-of-band response,
-     never saved), and the reply follows once it has been said;
+     never saved), and the reply follows once it has been said. Each tool
+     answer's item id carries how the call ended (`VoiceToolOutcome`:
+     `tool_{done|failed|held|cancelled}_…`), and the start response names the
+     tools (`VoiceCallStartedData::$tools`), so the call view shows the live
+     transcript with a chip per tool;
    - saves both sides as messages (`VoiceTurnRecorder` →
      `AssistantReplyRecorder`). The reply counts against the limit and
      carries `metadata.voice`.

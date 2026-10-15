@@ -3792,6 +3792,15 @@
             "microphone_not_found": "마이크를 찾을 수 없습니다.",
             "busy": "지금은 음성이 혼잡합니다. 잠시 후 다시 시도하세요.",
             "failed": "음성 통화를 시작할 수 없습니다. 다시 시도하세요."
+        },
+        "transcript": "통화 기록",
+        "tools": {
+            "knowledge": "지식 베이스",
+            "running": "실행 중…",
+            "done": "완료",
+            "held": "승인 대기 중",
+            "failed": "실패",
+            "cancelled": "중단됨"
         }
     }
 }

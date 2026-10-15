@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Ingen mikrofon hittades.",
             "busy": "Röst är upptaget just nu. Försök igen om en stund.",
             "failed": "Röstsamtalet kunde inte starta. Försök igen."
+        },
+        "transcript": "Samtalsutskrift",
+        "tools": {
+            "knowledge": "Kunskapsbas",
+            "running": "Arbetar…",
+            "done": "Klart",
+            "held": "Väntar på ditt OK",
+            "failed": "Misslyckades",
+            "cancelled": "Stoppad"
         }
     }
 }

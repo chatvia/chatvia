@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Fant ingen mikrofon.",
             "busy": "Stemme er opptatt akkurat nå. Prøv igjen om litt.",
             "failed": "Stemmesamtalen kunne ikke starte. Prøv igjen."
+        },
+        "transcript": "Utskrift av samtalen",
+        "tools": {
+            "knowledge": "Kunnskapsbase",
+            "running": "Jobber…",
+            "done": "Ferdig",
+            "held": "Venter på ditt OK",
+            "failed": "Mislyktes",
+            "cancelled": "Stoppet"
         }
     }
 }

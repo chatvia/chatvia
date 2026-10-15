@@ -14,6 +14,15 @@
         "unmute": "Activer le micro",
         "end": "Terminer l'appel",
         "close": "Fermer",
+        "transcript": "Transcription de l'appel",
+        "tools": {
+            "knowledge": "Base de connaissances",
+            "running": "En cours…",
+            "done": "Terminé",
+            "held": "En attente de votre accord",
+            "failed": "Échec",
+            "cancelled": "Arrêté"
+        },
         "errors": {
             "not_supported": "Ce navigateur ne peut pas passer d'appels vocaux.",
             "microphone_denied": "Autorisez l'accès au micro pour parler avec l'agent.",

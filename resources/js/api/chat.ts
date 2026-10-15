@@ -46,6 +46,19 @@ export interface VoiceCallStarted {
     max_seconds: number;
     /** Seconds to wait for the server to join the call before giving up. */
     join_timeout: number;
+    /** How the call view names the call's tools, by name; a tool missing here gets no chip. An empty map arrives as `[]`. */
+    tools: Record<string, VoiceToolLabel> | [];
+    /** The knowledge search's name: a search with a query gets a chip too. */
+    knowledge_tool: string;
+}
+
+/** A tool a voice call offers, as the call view names it (Domain\Conversation\Data\Voice\VoiceToolLabelData). */
+export interface VoiceToolLabel {
+    kind: 'mcp' | 'function';
+    label: string;
+    icon_url: string | null;
+    /** A connector tool's own name (`update_order`); null for a function, whose label already says it. */
+    action: string | null;
 }
 
 /** Open a voice call for the browser's WebRTC offer; without a conversation, a new one is opened. */

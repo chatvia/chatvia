@@ -14,6 +14,15 @@
         "unmute": "Włącz mikrofon",
         "end": "Zakończ rozmowę",
         "close": "Zamknij",
+        "transcript": "Zapis rozmowy",
+        "tools": {
+            "knowledge": "Baza wiedzy",
+            "running": "W toku…",
+            "done": "Gotowe",
+            "held": "Czeka na Twoją zgodę",
+            "failed": "Nie powiodło się",
+            "cancelled": "Przerwano"
+        },
         "errors": {
             "not_supported": "Ta przeglądarka nie obsługuje rozmów głosowych.",
             "microphone_denied": "Zezwól na dostęp do mikrofonu, aby rozmawiać z agentem.",

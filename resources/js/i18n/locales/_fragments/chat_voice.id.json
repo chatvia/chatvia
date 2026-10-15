@@ -14,6 +14,15 @@
         "unmute": "Nyalakan mikrofon",
         "end": "Akhiri panggilan",
         "close": "Tutup",
+        "transcript": "Transkrip panggilan",
+        "tools": {
+            "knowledge": "Basis pengetahuan",
+            "running": "Sedang berjalan…",
+            "done": "Selesai",
+            "held": "Menunggu persetujuan Anda",
+            "failed": "Gagal",
+            "cancelled": "Dihentikan"
+        },
         "errors": {
             "not_supported": "Browser ini tidak dapat melakukan panggilan suara.",
             "microphone_denied": "Izinkan akses mikrofon untuk berbicara dengan agen.",

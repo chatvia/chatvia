@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Nie znaleziono mikrofonu.",
             "busy": "Głos jest teraz zajęty. Spróbuj ponownie za chwilę.",
             "failed": "Nie udało się rozpocząć rozmowy głosowej. Spróbuj ponownie."
+        },
+        "transcript": "Zapis rozmowy",
+        "tools": {
+            "knowledge": "Baza wiedzy",
+            "running": "W toku…",
+            "done": "Gotowe",
+            "held": "Czeka na Twoją zgodę",
+            "failed": "Nie powiodło się",
+            "cancelled": "Przerwano"
         }
     }
 }

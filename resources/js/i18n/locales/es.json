@@ -3917,6 +3917,15 @@
             "microphone_not_found": "No se encontró ningún micrófono.",
             "busy": "La voz está ocupada ahora mismo. Inténtalo de nuevo en un momento.",
             "failed": "No se pudo iniciar la llamada de voz. Inténtalo de nuevo."
+        },
+        "transcript": "Transcripción de la llamada",
+        "tools": {
+            "knowledge": "Base de conocimiento",
+            "running": "En curso…",
+            "done": "Hecho",
+            "held": "Espera tu confirmación",
+            "failed": "Falló",
+            "cancelled": "Detenido"
         }
     }
 }

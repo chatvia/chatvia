@@ -14,6 +14,15 @@
         "unmute": "打开麦克风",
         "end": "结束通话",
         "close": "关闭",
+        "transcript": "通话记录",
+        "tools": {
+            "knowledge": "知识库",
+            "running": "进行中…",
+            "done": "完成",
+            "held": "等待您确认",
+            "failed": "失败",
+            "cancelled": "已停止"
+        },
         "errors": {
             "not_supported": "此浏览器无法进行语音通话。",
             "microphone_denied": "请允许使用麦克风，以便与助手交谈。",

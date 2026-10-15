@@ -14,6 +14,15 @@
         "unmute": "Mikrofon einschalten",
         "end": "Anruf beenden",
         "close": "Schließen",
+        "transcript": "Gesprächsverlauf",
+        "tools": {
+            "knowledge": "Wissensdatenbank",
+            "running": "Läuft…",
+            "done": "Erledigt",
+            "held": "Wartet auf dein OK",
+            "failed": "Fehlgeschlagen",
+            "cancelled": "Abgebrochen"
+        },
         "errors": {
             "not_supported": "Dieser Browser kann keine Sprachanrufe führen.",
             "microphone_denied": "Erlaube den Zugriff auf das Mikrofon, um mit dem Agenten zu sprechen.",

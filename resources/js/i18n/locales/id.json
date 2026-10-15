@@ -3792,6 +3792,15 @@
             "microphone_not_found": "Mikrofon tidak ditemukan.",
             "busy": "Suara sedang sibuk. Silakan coba lagi sebentar lagi.",
             "failed": "Panggilan suara tidak dapat dimulai. Silakan coba lagi."
+        },
+        "transcript": "Transkrip panggilan",
+        "tools": {
+            "knowledge": "Basis pengetahuan",
+            "running": "Sedang berjalan…",
+            "done": "Selesai",
+            "held": "Menunggu persetujuan Anda",
+            "failed": "Gagal",
+            "cancelled": "Dihentikan"
         }
     }
 }

@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Kein Mikrofon gefunden.",
             "busy": "Die Sprachfunktion ist gerade ausgelastet. Bitte versuche es gleich noch einmal.",
             "failed": "Der Sprachanruf konnte nicht starten. Bitte versuche es erneut."
+        },
+        "transcript": "Gesprächsverlauf",
+        "tools": {
+            "knowledge": "Wissensdatenbank",
+            "running": "Läuft…",
+            "done": "Erledigt",
+            "held": "Wartet auf dein OK",
+            "failed": "Fehlgeschlagen",
+            "cancelled": "Abgebrochen"
         }
     }
 }

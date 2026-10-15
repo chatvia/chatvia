@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Mikrofonia ei löytynyt.",
             "busy": "Puhe on juuri nyt varattu. Yritä hetken kuluttua uudelleen.",
             "failed": "Puhelua ei voitu aloittaa. Yritä uudelleen."
+        },
+        "transcript": "Puhelun tekstiversio",
+        "tools": {
+            "knowledge": "Tietopankki",
+            "running": "Käynnissä…",
+            "done": "Valmis",
+            "held": "Odottaa hyväksyntääsi",
+            "failed": "Epäonnistui",
+            "cancelled": "Keskeytetty"
         }
     }
 }

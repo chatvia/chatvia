@@ -323,11 +323,10 @@ it('controllers expose only resource methods or __invoke', function (): void {
 const EXTERNAL_ID_LOOKUP_ALLOWLIST = [
     // Scoped in the query itself: the visitor's session and the agent.
     'src/Domain/Conversation/Actions/Conversations/FindWidgetConversationAction.php',
-    'src/Domain/Widget/Services/BroadcastAuthorizer.php',
-    // The turn's own session or conversation, whose id was verified when the
-    // turn started; they read the session's conversations or the
-    // conversation's surface and id.
     'src/Domain/Conversation/Services/Memory/ChatMemory.php',
+    'src/Domain/Widget/Services/BroadcastAuthorizer.php',
+    // The turn's own conversation, whose id was checked when the turn
+    // started; they read only its surface and id.
     'src/Domain/Conversation/Services/Tooling/Routing/ApprovalToolFilter.php',
     'src/Domain/Conversation/Services/Tooling/Routing/StickyToolResolver.php',
     'src/Domain/Conversation/Services/Tooling/Routing/SurfaceToolFilter.php',

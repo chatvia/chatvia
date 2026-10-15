@@ -360,8 +360,11 @@ class ChatMemory
      */
     private function loadConversationsFromDatabase(): array
     {
+        // Scoped to the agent: a session id replayed through another agent's
+        // widget must not list that session's conversations.
         $session = Session::query()
             ->where('external_id', $this->scope()->sessionId)
+            ->where('agent_id', $this->scope()->agent->id)
             ->first();
 
         if ($session === null) {

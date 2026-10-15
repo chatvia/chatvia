@@ -73,6 +73,23 @@ class WidgetVerification
     }
 
     /**
+     * Whether the session id is already taken by another agent's session. A
+     * visitor's widget picks a fresh id on its first visit, so only a replayed
+     * id can be another agent's, and nothing may be read or started in it.
+     */
+    public function isSessionOfAnotherAgent(?string $sessionId, Agent $agent): bool
+    {
+        if (! $sessionId || ! Str::isUuid($sessionId)) {
+            return false;
+        }
+
+        return Session::query()
+            ->where('external_id', $sessionId)
+            ->where('agent_id', '!=', $agent->id)
+            ->exists();
+    }
+
+    /**
      * Resolve a chat conversation by its external id, with the same agent (and
      * protected-agent chatter) scoping as {@see verifySessionExternalId()}.
      *

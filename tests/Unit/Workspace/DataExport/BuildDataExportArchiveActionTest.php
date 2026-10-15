@@ -75,7 +75,6 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
     Event::fake([DataExportReady::class]);
     Storage::fake('local');
     Storage::fake();
-    Storage::fake('public');
 
     $agent = Agent::factory()->create(['auth_secret' => 'cvsk_secret']);
     $owner = $agent->workspace->owner;
@@ -89,7 +88,7 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
         Message::factory()->count(2)->create(['chat_conversation_id' => $conversation->id]);
 
         $path = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id.'/attachments/'.$conversation->id.'.txt';
-        Storage::disk('public')->put($path, 'attachment-'.$conversation->id);
+        Storage::disk(Attachment::DISK)->put($path, 'attachment-'.$conversation->id);
         Attachment::create([
             'chat_conversation_id' => $conversation->id,
             'filepath' => $path,

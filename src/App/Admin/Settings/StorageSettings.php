@@ -8,38 +8,32 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * Where the app keeps its files: on this server, or in S3-compatible object
- * storage, with that service's address, keys and the bucket of the private
- * files (knowledge files, backups) and of the public ones (chat attachments,
- * chunk images). {@see StorageDisks} builds the disks from `chatvia.storage`.
+ * storage, with that service's address, keys and bucket. They fill
+ * `filesystems.storage` and the `s3` disk; {@see StorageDisks} then builds
+ * the `private` disk from them.
  */
 class StorageSettings extends AdminSettings
 {
-    #[ConfigKey('chatvia.storage.driver')]
+    #[ConfigKey('filesystems.storage')]
     public ?string $driver = null;
 
-    #[ConfigKey('chatvia.storage.s3.endpoint')]
+    #[ConfigKey('filesystems.disks.s3.endpoint')]
     public ?string $s3_endpoint = null;
 
-    #[ConfigKey('chatvia.storage.s3.region')]
+    #[ConfigKey('filesystems.disks.s3.region')]
     public ?string $s3_region = null;
 
-    #[ConfigKey('chatvia.storage.s3.key')]
+    #[ConfigKey('filesystems.disks.s3.key')]
     public ?string $s3_key = null;
 
-    #[ConfigKey('chatvia.storage.s3.secret'), ShouldBeEncrypted]
+    #[ConfigKey('filesystems.disks.s3.secret'), ShouldBeEncrypted]
     public ?string $s3_secret = null;
 
-    #[ConfigKey('chatvia.storage.s3.use_path_style_endpoint')]
+    #[ConfigKey('filesystems.disks.s3.use_path_style_endpoint')]
     public ?bool $s3_path_style = null;
 
-    #[ConfigKey('chatvia.storage.s3.private_bucket')]
-    public ?string $private_bucket = null;
-
-    #[ConfigKey('chatvia.storage.s3.public_bucket')]
-    public ?string $public_bucket = null;
-
-    #[ConfigKey('chatvia.storage.s3.public_url')]
-    public ?string $public_url = null;
+    #[ConfigKey('filesystems.disks.s3.bucket')]
+    public ?string $s3_bucket = null;
 
     public static function group(): string
     {

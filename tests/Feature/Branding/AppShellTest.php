@@ -3,7 +3,7 @@
 /**
  * The app shell must not carry one operator's identity (tracking code,
  * social handle, website) into another install, and must not load web fonts
- * from a third-party CDN. Everything comes from config.
+ * from a third-party CDN.
  */
 it('adds the tracking code only when one is set, and only in production', function (): void {
     $snippet = '<script defer src="https://stats.acme.example/js/script.js"></script>';
@@ -20,13 +20,12 @@ it('adds the tracking code only when one is set, and only in production', functi
     expect(trim(view('partials.tracking-code')->render()))->toBe('');
 });
 
-it('serves the app shell with self-hosted fonts and the configured brand only', function (): void {
-    config(['chatvia.brand.name' => 'Acme Chat']);
+it('serves the app shell with self-hosted fonts and the product name only', function (): void {
 
     $this->get('/login')
         ->assertOk()
         ->assertSee('fonts/inter/inter.css', false)
-        ->assertSee('<meta property="og:site_name" content="Acme Chat" />', false)
+        ->assertSee('<meta property="og:site_name" content="Chatvia" />', false)
         ->assertSee('images/favicons/favicon.svg', false)
         ->assertDontSee('fonts.googleapis.com', false)
         ->assertDontSee('fonts.gstatic.com', false)

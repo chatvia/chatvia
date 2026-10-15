@@ -4,18 +4,6 @@ declare(strict_types=1);
 
 use PlatformCommunity\Flysystem\BunnyCDN\BunnyCDNRegion;
 
-/*
-| The app writes to three named disks: `private` (knowledge files, backups),
-| `public` (chat attachments, chunk images) and `assets` (profile photos,
-| widget logos). `private` and `public` are on this server unless
-| S3-compatible storage is chosen in the admin panel (Settings → Storage; see
-| chatvia.storage). `assets` uses Bunny CDN when BUNNYCDN_STORAGE_ZONE is set
-| (or FILESYSTEM_ASSETS_DRIVER says so), and the local disk otherwise. A fresh
-| install works without any cloud account.
-*/
-
-$appUrl = rtrim((string) env('APP_URL', 'http://localhost'), '/');
-
 return [
 
     /*
@@ -23,9 +11,9 @@ return [
     | Default Filesystem Disk
     |--------------------------------------------------------------------------
     |
-    | The `private` disk: knowledge files and the other files that are not
-    | public. It follows Settings → Storage (this server, or the private
-    | bucket of an S3-compatible service; App\Admin\Settings\StorageDisks).
+    | The `private` disk holds every file that is not public: knowledge files,
+    | chat attachments, images from knowledge files and backups. Its files
+    | are opened only through signed links.
     |
     */
 
@@ -33,14 +21,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | File Storage
+    |--------------------------------------------------------------------------
+    |
+    | Where the `private` disk keeps its files: "local" (this server) or "s3"
+    | (the S3-compatible service of the `s3` disk below, such as AWS S3,
+    | Scaleway, Cloudflare R2 or MinIO). Both are set in the admin panel
+    | (Settings → Storage). Switching moves no files.
+    |
+    | Supported: "local", "s3"
+    |
+    */
+
+    'storage' => 'local',
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
-    | Below you may configure as many filesystem disks as necessary, and you
-    | may even configure multiple disks for the same driver. Examples for
-    | most supported storage drivers are configured here for reference.
+    | The disks the app writes to. `private` stays on this server until the
+    | storage above is "s3"; App\Admin\Settings\StorageDisks then gives it the
+    | `s3` disk's settings. `assets` (profile photos, widget logos) uses Bunny
+    | CDN when BUNNYCDN_STORAGE_ZONE is set, and this server otherwise.
+    | `local` keeps data exports.
     |
-    | Supported drivers: "local", "ftp", "sftp", "s3"
+    | Supported drivers: "local", "s3", "bunnycdn"
     |
     */
 
@@ -54,25 +60,25 @@ return [
             'report' => false,
         ],
 
-        // The local disks. When S3-compatible storage is chosen (Settings →
-        // Storage, or SCALEWAY_* in .env), App\Admin\Settings\StorageDisks
-        // replaces these two with that service's disks (chatvia.storage).
         'private' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'url' => $appUrl.'/private-storage',
+            'url' => env('APP_URL').'/private-storage',
             'serve' => true,
             'throw' => true,
             'report' => true,
         ],
 
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => $appUrl.'/storage',
+        's3' => [
+            'driver' => 's3',
+            'key' => null,
+            'secret' => null,
+            'region' => null,
+            'bucket' => null,
+            'endpoint' => null,
+            'use_path_style_endpoint' => false,
             'throw' => true,
             'report' => true,
-            'visibility' => 'public',
         ],
 
         'assets' => env('FILESYSTEM_ASSETS_DRIVER', filled(env('BUNNYCDN_STORAGE_ZONE')) ? 'bunnycdn' : 'local') === 'bunnycdn' ? [
@@ -86,7 +92,7 @@ return [
         ] : [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => $appUrl.'/storage',
+            'url' => env('APP_URL').'/storage',
             'throw' => true,
             'report' => true,
             'visibility' => 'public',
@@ -102,6 +108,7 @@ return [
     | Here you may configure the symbolic links that will be created when the
     | `storage:link` Artisan command is executed. The array keys should be
     | the locations of the links and the values should be their targets.
+    | The link serves the `assets` disk while it is on this server.
     |
     */
 

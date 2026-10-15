@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { useBrand } from '@/composables/useBrand';
+import type { SharedData } from '@/types';
+import { usePage } from '@inertiajs/vue3';
 import { useI18n } from 'vue-i18n';
 
 /**
- * The small "Powered by …" credit under the hosted chat. It always links to
- * chatvia.ai (fixed here, not a setting); the label comes from
- * `config('chatvia.brand.powered_by')`, and the credit is hidden only when
- * the install hides it with a license.
+ * The small "Powered by Chatvia" credit under the hosted chat, linked to
+ * chatvia.ai. It is hidden only when the install hides it with a license
+ * (`config('chatvia.powered_by')`, shared as `poweredBy`).
  */
 const { t } = useI18n();
-const { brand } = useBrand();
+const page = usePage<SharedData>();
 </script>
 
 <template>
-    <div v-if="brand.powered_by.enabled" class="mt-2 flex items-center justify-center">
+    <div v-if="page.props.poweredBy === true" class="mt-2 flex items-center justify-center">
         <a
             href="https://chatvia.ai"
             target="_blank"
@@ -23,7 +23,7 @@ const { brand } = useBrand();
         >
             <!-- Decorative: the label next to it already names the product. -->
             <AppLogoIcon aria-hidden="true" class="h-3.5 w-3.5" />
-            {{ t('chat.powered_by', { label: brand.powered_by.label }) }}
+            {{ t('chat.powered_by', { label: 'Chatvia' }) }}
         </a>
     </div>
 </template>

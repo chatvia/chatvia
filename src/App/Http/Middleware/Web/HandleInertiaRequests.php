@@ -35,9 +35,6 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            // Product name and links (config/chatvia.php `brand`). A self-hosted
-            // install sets its own; an empty URL hides the link that uses it.
-            'brand' => config('chatvia.brand'),
             // The Cloudflare Turnstile bot check of the public forms (Settings →
             // Security): its site key and the forms it protects, or null.
             'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),

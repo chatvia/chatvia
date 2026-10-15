@@ -17,8 +17,8 @@ use Illuminate\Support\Str;
 
 /**
  * HTTP coverage for the composer-X delete endpoint. Proves that clicking the
- * remove chip in the composer wipes both the DB row AND the S3 object on the
- * public disk — plus the negative cases that keep the route from becoming a
+ * remove chip in the composer wipes both the DB row AND the stored file —
+ * plus the negative cases that keep the route from becoming a
  * delete-anyone's-file hole.
  */
 function attachmentDeleteAgent(bool $isPublic = true): Agent
@@ -45,7 +45,7 @@ function makeAttachment(Agent $agent, ?Conversation $conversation = null, ?int $
     $uuid = (string) Str::uuid();
     $filepath = sprintf('workspaces/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $convPart, $uuid);
 
-    Storage::disk('public')->put($filepath, 'fake pdf bytes');
+    Storage::disk(Attachment::DISK)->put($filepath, 'fake pdf bytes');
 
     return Attachment::create([
         'chat_conversation_id' => $conversation?->id,
@@ -76,14 +76,14 @@ function makeConversation(Agent $agent, ?Chatter $chatter = null): Conversation
 }
 
 beforeEach(function (): void {
-    Storage::fake('public');
+    Storage::fake(Attachment::DISK);
 });
 
 it('deletes an orphan attachment (Home.vue pending flow) and wipes its S3 object', function (): void {
     $agent = attachmentDeleteAgent();
     $attachment = makeAttachment($agent);
 
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 
     $response = $this->delete(
         "/chat/{$agent->external_id}/messages/attachments/{$attachment->external_id}",
@@ -91,7 +91,7 @@ it('deletes an orphan attachment (Home.vue pending flow) and wipes its S3 object
 
     $response->assertNoContent();
     expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk('public')->assertMissing($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
 it('deletes a conversation-bound attachment on a public agent and wipes its S3 object', function (): void {
@@ -105,7 +105,7 @@ it('deletes a conversation-bound attachment on a public agent and wipes its S3 o
 
     $response->assertNoContent();
     expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk('public')->assertMissing($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
 it('refuses to delete an attachment already bound to a sent message (composer-only guard)', function (): void {
@@ -125,7 +125,7 @@ it('refuses to delete an attachment already bound to a sent message (composer-on
 
     $response->assertForbidden();
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
 it('refuses to delete an orphan attachment that lives under a different agent\'s upload bucket', function (): void {
@@ -141,7 +141,7 @@ it('refuses to delete an orphan attachment that lives under a different agent\'s
 
     $response->assertForbidden();
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
 it('refuses to delete a conversation-bound attachment whose conversation belongs to another agent', function (): void {
@@ -157,7 +157,7 @@ it('refuses to delete a conversation-bound attachment whose conversation belongs
 
     $response->assertForbidden();
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
 it('refuses to delete on a private agent when the auth user does not own the conversation', function (): void {
@@ -184,7 +184,7 @@ it('refuses to delete on a private agent when the auth user does not own the con
 
     $response->assertForbidden();
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
 it('lets the rightful owner delete on a private agent', function (): void {
@@ -206,7 +206,7 @@ it('lets the rightful owner delete on a private agent', function (): void {
 
     $response->assertNoContent();
     expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk('public')->assertMissing($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
 it('returns 404 for a non-existent attachment external_id (route-model binding)', function (): void {

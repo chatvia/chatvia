@@ -200,7 +200,7 @@ class ManageBrandSettings extends AdminSettingsPage
     /** Whether the credit shows now, after the license check. */
     private function creditShows(): bool
     {
-        return config('chatvia.brand.powered_by.enabled') !== false;
+        return config('chatvia.powered_by') !== false;
     }
 
     /** Whether the saved key allows hiding the credit; the switch is greyed out until it does. */

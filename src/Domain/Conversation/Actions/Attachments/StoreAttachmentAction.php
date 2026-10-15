@@ -31,7 +31,7 @@ class StoreAttachmentAction
         $filepath = $directory.'/'.$filename;
 
         Storage::disk(Attachment::DISK)
-            ->putFileAs($directory, $data->file, $filename, ['visibility' => 'public']);
+            ->putFileAs($directory, $data->file, $filename);
 
         return Attachment::create([
             'chat_conversation_id' => $data->conversationId,

@@ -283,7 +283,6 @@ class AnalyticsChatRunner
     private function systemPrompt(Workspace $workspace): string
     {
         return trim(prompt('analytics/chat-system', [
-            'brand' => (string) config('chatvia.brand.name'),
             'workspace' => $workspace->name,
             'today' => now()->toFormattedDateString(),
         ]));

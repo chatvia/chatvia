@@ -129,8 +129,7 @@ class PurgeAgentAction
 
     /**
      * The agent's whole storage subtree, keyed entity-first by external id:
-     * chat attachments (public disk) and anything else written for the agent
-     * alone. Knowledge sources live in their own folders, outside this one.
+     * chat attachments and anything else written for the agent alone. Knowledge sources live in their own folders, outside this one.
      */
     private function wipeStorage(Agent $agent): void
     {
@@ -138,7 +137,6 @@ class PurgeAgentAction
 
         try {
             Storage::deleteDirectory($prefix);
-            Storage::disk('public')->deleteDirectory($prefix);
             // Setting images (widget logo, avatar) are on the CDN-backed disk.
             Storage::disk('assets')->deleteDirectory($prefix);
         } catch (Throwable $e) {

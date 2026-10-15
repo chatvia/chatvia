@@ -31,7 +31,7 @@ class AccountDeletionConfirmationNotification extends Notification
         return (new MailMessage)
             ->subject(__('Confirm your account deletion'))
             ->greeting(__('Hi :name,', ['name' => $this->name]))
-            ->line(__('We received a request to permanently delete your :app account.', ['app' => config('chatvia.brand.name')]))
+            ->line(__('We received a request to permanently delete your :app account.', ['app' => 'Chatvia']))
             ->line(__('Click the button below to confirm. Nothing is deleted until you confirm again on the page that opens.'))
             ->action(__('Confirm account deletion'), $this->url)
             ->line(__('This link will expire in 30 minutes.'))

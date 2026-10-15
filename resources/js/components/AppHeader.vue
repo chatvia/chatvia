@@ -16,7 +16,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
-import { useBrand } from '@/composables/useBrand';
+import { apiDocsUrl } from '@/lib/apiDocs';
 import { getInitials } from '@/composables/useInitials';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import { dashboard } from '@/routes';
@@ -25,7 +25,7 @@ import { chat as askYourData } from '@/routes/analytics';
 import { index as teamsIndex } from '@/routes/teams';
 import type { Auth, BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, BotMessageSquare, Code2, LayoutGrid, Menu, Sparkles, Users } from 'lucide-vue-next';
+import { BotMessageSquare, Code2, LayoutGrid, Menu, Sparkles, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -41,7 +41,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth as Auth);
-const { brand, apiDocsUrl } = useBrand();
 
 const isCurrentRoute = computed(() => (url: string) => {
     const currentUrl = page.url;
@@ -105,26 +104,13 @@ const mainNavItems = computed<NavItem[]>(() => {
     return items;
 });
 
-const rightNavItems = computed<NavItem[]>(() => {
-    const items: NavItem[] = [];
-
-    // Hidden when the install has no docs site configured.
-    if (brand.value.docs_url) {
-        items.push({
-            title: t('app.header.documentation'),
-            href: brand.value.docs_url,
-            icon: BookOpen,
-        });
-    }
-
-    items.push({
+const rightNavItems = computed<NavItem[]>(() => [
+    {
         title: t('app.header.api'),
         href: apiDocsUrl(),
         icon: Code2,
-    });
-
-    return items;
-});
+    },
+]);
 </script>
 
 <template>

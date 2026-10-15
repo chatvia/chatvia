@@ -2,19 +2,14 @@
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue';
 import { Toaster } from '@/components/ui/sonner';
-import { useBrand } from '@/composables/useBrand';
 import { home } from '@/routes';
-import { computed } from 'vue';
 
 defineProps<{
     title?: string;
     description?: string;
 }>();
 
-const { brand } = useBrand();
-
-// The logo leads to the brand's website (config/chatvia.php) when one is set.
-const logoHref = computed(() => brand.value.website_url ?? home.url());
+const logoHref = home.url();
 </script>
 
 <template>

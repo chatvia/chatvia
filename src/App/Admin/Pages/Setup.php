@@ -205,7 +205,7 @@ class Setup extends SimplePage
             'storage_driver' => app(StorageSettings::class)->driver === 's3' ? 's3' : 'local',
             'mailer' => $mailer === MailProvider::Sendmail ? MailProvider::Log->value : $mailer->value,
             'from_address' => config('mail.from.address'),
-            'from_name' => config('chatvia.brand.name'),
+            'from_name' => 'Chatvia',
         ]);
     }
 
@@ -217,12 +217,12 @@ class Setup extends SimplePage
 
     public function getTitle(): string|Htmlable
     {
-        return 'Set up '.config('chatvia.brand.name');
+        return 'Set up Chatvia';
     }
 
     public function getHeading(): string|Htmlable
     {
-        return 'Welcome to '.config('chatvia.brand.name');
+        return 'Welcome to Chatvia';
     }
 
     public function getSubheading(): string|Htmlable|null
@@ -323,7 +323,7 @@ class Setup extends SimplePage
 
         Notification::make()
             ->success()
-            ->title(config('chatvia.brand.name').' is ready')
+            ->title('Chatvia is ready')
             ->body("New agents answer with {$model->descriptive_name}.")
             ->send();
 
@@ -531,16 +531,11 @@ class Setup extends SimplePage
                             ->password()
                             ->revealable()
                             ->autocomplete('new-password')
-                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3' && blank(config('chatvia.storage.s3.secret')))
+                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3' && blank(config('filesystems.disks.s3.secret')))
                             ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        TextInput::make('private_bucket')
-                            ->label('Private bucket')
-                            ->helperText('Knowledge files and backups. Keep this bucket private.')
-                            ->required(fn (Get $get): bool => $get('storage_driver') === 's3')
-                            ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
-                        TextInput::make('public_bucket')
-                            ->label('Public bucket')
-                            ->helperText('Chat attachments and chunk images. Anyone with a file\'s link can open it.')
+                        TextInput::make('s3_bucket')
+                            ->label('Bucket')
+                            ->helperText('Every file of the app goes here. Keep this bucket private.')
                             ->required(fn (Get $get): bool => $get('storage_driver') === 's3')
                             ->visible(fn (Get $get): bool => $get('storage_driver') === 's3'),
                         Toggle::make('s3_path_style')
@@ -600,8 +595,7 @@ class Setup extends SimplePage
             ->description('Check and finish')
             ->icon(Heroicon::OutlinedCheckBadge)
             ->schema([
-                View::make('filament.setup.complete')
-                    ->viewData(['brand' => config('chatvia.brand.name')]),
+                View::make('filament.setup.complete'),
                 Section::make('Your choices')
                     ->description('What Finish setup saves.')
                     ->icon(Heroicon::OutlinedClipboardDocumentCheck)
@@ -1263,14 +1257,13 @@ class Setup extends SimplePage
             endpoint: $storage->endpoint,
             region: $storage->region,
             key: $storage->key,
-            secret: $storage->secret ?? config('chatvia.storage.s3.secret'),
+            secret: $storage->secret ?? config('filesystems.disks.s3.secret'),
             pathStyle: $storage->pathStyle,
-            privateBucket: $storage->privateBucket,
-            publicBucket: $storage->publicBucket,
+            bucket: $storage->bucket,
         ));
 
         if ($error !== null) {
-            throw ValidationException::withMessages(['data.private_bucket' => $error]);
+            throw ValidationException::withMessages(['data.s3_bucket' => $error]);
         }
     }
 
@@ -1360,8 +1353,7 @@ class Setup extends SimplePage
             key: $this->filled($state, 's3_key'),
             secret: $this->filled($state, 's3_secret'),
             pathStyle: (bool) ($state['s3_path_style'] ?? false),
-            privateBucket: $this->filled($state, 'private_bucket'),
-            publicBucket: $this->filled($state, 'public_bucket'),
+            bucket: $this->filled($state, 's3_bucket'),
         );
     }
 

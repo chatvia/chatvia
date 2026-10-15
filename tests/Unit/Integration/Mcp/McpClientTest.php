@@ -345,10 +345,8 @@ class McpClientTest extends TestCase
         Http::assertNotSent(fn (ClientRequest $request): bool => $request->hasHeader('X-Chatvia-Workspace-Id'));
     }
 
-    public function test_initialize_introduces_the_client_by_the_brand_name(): void
+    public function test_initialize_introduces_the_client_as_chatvia(): void
     {
-        config(['chatvia.brand.name' => 'Acme Chat']);
-
         Http::fake(function ($request) {
             $body = $request->data();
             $method = $body['method'] ?? '';
@@ -371,6 +369,6 @@ class McpClientTest extends TestCase
         app(McpClient::class)->fetchTools($this->server());
 
         Http::assertSent(fn (ClientRequest $request): bool => ($request->data()['method'] ?? null) === 'initialize'
-            && $request->data()['params']['clientInfo']['name'] === 'acme-chat');
+            && $request->data()['params']['clientInfo']['name'] === 'chatvia');
     }
 }

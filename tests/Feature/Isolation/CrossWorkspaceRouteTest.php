@@ -46,7 +46,6 @@ use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     Storage::fake();
-    Storage::fake('public');
     $this->withoutMiddleware(ThrottleRequests::class);
 
     $this->ownerA = User::factory()->create();

@@ -9,9 +9,9 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Filesystem\FilesystemManager;
 
 /**
- * Builds the `private` and `public` disks from `chatvia.storage` (set in
- * Settings → Storage): the S3-compatible service when it is chosen, else the
- * local disks of config/filesystems.php. A disk's config is a whole array
+ * Builds the `private` disk from `filesystems.storage` (set in Settings →
+ * Storage): the `s3` disk when S3-compatible storage is chosen, else the
+ * local disk of config/filesystems.php. A disk's config is a whole array
  * whose shape depends on its driver, so it is replaced as one, and a disk a
  * long-running process already opened is dropped so the next use opens it
  * again. {@see SettingsConfig} runs this after every apply.
@@ -19,7 +19,7 @@ use Illuminate\Filesystem\FilesystemManager;
 final class StorageDisks
 {
     /** The disks that follow the storage setting. */
-    public const array DISKS = ['private', 'public'];
+    public const array DISKS = ['private'];
 
     /** @var array<string, array<string, mixed>>|null The local disks of config/filesystems.php. */
     private ?array $local = null;
@@ -66,33 +66,16 @@ final class StorageDisks
      */
     public function disks(): array
     {
-        if ($this->config->get('chatvia.storage.driver') !== 's3') {
+        if ($this->config->get('filesystems.storage') !== 's3') {
             return $this->localDisks();
         }
 
-        /** @var array<string, mixed> $s3 */
-        $s3 = (array) $this->config->get('chatvia.storage.s3');
-
-        $service = [
-            'driver' => 's3',
-            'key' => $s3['key'] ?? null,
-            'secret' => $s3['secret'] ?? null,
-            'region' => $s3['region'] ?? null,
-            'endpoint' => $s3['endpoint'] ?? null,
-            'use_path_style_endpoint' => (bool) ($s3['use_path_style_endpoint'] ?? false),
-            'throw' => true,
-            'report' => true,
-        ];
-
-        return [
-            'private' => $service + ['bucket' => $s3['private_bucket'] ?? null, 'url' => $s3['private_url'] ?? null],
-            'public' => $service + ['bucket' => $s3['public_bucket'] ?? null, 'url' => $s3['public_url'] ?? null, 'visibility' => 'public'],
-        ];
+        return ['private' => (array) $this->config->get('filesystems.disks.s3')];
     }
 
     /**
-     * The local disks of config/filesystems.php, read before this class first
-     * replaces them.
+     * The local disk of config/filesystems.php, read before this class first
+     * replaces it.
      *
      * @return array<string, array<string, mixed>>
      */

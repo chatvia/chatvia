@@ -156,14 +156,13 @@ it('refuses to send an hmac request without a signing secret', function (): void
         ->and($function->fresh()->last_error)->toBe('missing hmac signing secret');
 });
 
-it('names the configured brand in the User-Agent', function (): void {
-    config(['chatvia.brand.name' => 'Acme Chat']);
+it('names Chatvia in the User-Agent', function (): void {
     [$agent] = htdFunction();
     Http::fake(['*' => Http::response('{"ok":true}', 200)]);
 
     (new HttpToolDispatcher)->dispatch($agent, ToolCallData::named('lookup_order', '{}'));
 
-    Http::assertSent(fn ($request): bool => $request->header('User-Agent') === ['AcmeChat/Tools']);
+    Http::assertSent(fn ($request): bool => $request->header('User-Agent') === ['Chatvia/Tools']);
 });
 
 it('connects to the webhook address it checked, not a fresh DNS answer', function (): void {

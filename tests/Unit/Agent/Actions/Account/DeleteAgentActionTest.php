@@ -68,7 +68,6 @@ it('switches off the agent messaging channels', function (): void {
 
 it('removes the agent with its data and storage once the purge has run', function (): void {
     Storage::fake();
-    Storage::fake('public');
 
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
@@ -77,7 +76,7 @@ it('removes the agent with its data and storage once the purge has run', functio
     Session::factory()->create(['agent_id' => $agent->id]);
     $kept = Session::factory()->create(['agent_id' => $other->id]);
     Storage::put($prefix.$agent->external_id.'/notes.txt', 'x');
-    Storage::disk('public')->put($prefix.$agent->external_id.'/attachments/a.png', 'x');
+    Storage::disk('private')->put($prefix.$agent->external_id.'/attachments/a.png', 'x');
     Storage::put($prefix.$other->external_id.'/notes.txt', 'x');
 
     // The queue runs synchronously in tests, so the purge follows the delete.
@@ -88,7 +87,7 @@ it('removes the agent with its data and storage once the purge has run', functio
         ->and(Session::find($kept->id))->not->toBeNull();
 
     Storage::assertMissing($prefix.$agent->external_id.'/notes.txt');
-    Storage::disk('public')->assertMissing($prefix.$agent->external_id.'/attachments/a.png');
+    Storage::disk('private')->assertMissing($prefix.$agent->external_id.'/attachments/a.png');
     Storage::assertExists($prefix.$other->external_id.'/notes.txt');
 });
 

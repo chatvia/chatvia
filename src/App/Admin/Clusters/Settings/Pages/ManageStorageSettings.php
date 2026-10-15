@@ -62,7 +62,7 @@ class ManageStorageSettings extends AdminSettingsPage
             return ['On this server', 'gray'];
         }
 
-        return ['S3-compatible storage', filled($this->valueInUse('private_bucket')) && filled($this->valueInUse('public_bucket')) ? 'success' : 'warning'];
+        return ['S3-compatible storage', filled($this->valueInUse('s3_bucket')) ? 'success' : 'warning'];
     }
 
     protected function showsValueInUse(string $property): bool
@@ -80,7 +80,7 @@ class ManageStorageSettings extends AdminSettingsPage
                 ->label('Test the connection')
                 ->icon(Heroicon::OutlinedSignal)
                 ->color('gray')
-                ->modalDescription('Writes a small file to the private and the public storage with the saved settings, reads it back and deletes it. Save your changes first.')
+                ->modalDescription('Writes a small file with the saved settings, reads it back and deletes it. Save your changes first.')
                 ->modalSubmitActionLabel('Test')
                 ->action(function (): void {
                     $failures = array_filter(array_map($this->checkDisk(...), StorageDisks::DISKS));
@@ -101,7 +101,7 @@ class ManageStorageSettings extends AdminSettingsPage
         $s3 = fn (Get $get): bool => $this->usesS3($get);
 
         return [
-            SettingsCard::make('location', 'Where files are kept', 'Knowledge files and backups, chat attachments and chunk images.', Heroicon::OutlinedArchiveBox, fn (): array => [
+            SettingsCard::make('location', 'Where files are kept', 'Knowledge files, chat attachments, chunk images and backups.', Heroicon::OutlinedArchiveBox, fn (): array => [
                 $this->choice('driver', 'Store files in', self::DRIVERS,
                     help: 'This server needs no account. S3-compatible storage (AWS S3, Scaleway, Cloudflare R2, MinIO…) keeps files off the server and scales with them.')
                     ->live(),
@@ -121,19 +121,14 @@ class ManageStorageSettings extends AdminSettingsPage
                 $this->secret('s3_secret', 'Secret access key')
                     ->required(fn (Get $get): bool => $this->usesS3($get) && ! $this->isSaved('s3_secret'))
                     ->visible($s3),
-                $this->text('private_bucket', 'Private bucket', help: 'Knowledge files and backups. Keep this bucket private.')
-                    ->required($s3)
-                    ->visible($s3),
-                $this->text('public_bucket', 'Public bucket', help: 'Chat attachments and chunk images. Anyone with a file\'s link can open it.')
+                $this->text('s3_bucket', 'Bucket', help: 'Every file of the app goes here. Keep this bucket private.')
                     ->required($s3)
                     ->visible($s3),
             ])->advancedFields(fn (): array => [
                 $this->toggle('s3_path_style', 'Use path-style addresses',
                     help: 'Puts the bucket in the path instead of the host name. MinIO and some other servers need it.'),
-                $this->url('public_url', 'Public files address',
-                    help: 'Where the public bucket\'s files are served from, for example a CDN. Leave empty to use the bucket\'s own address.'),
             ], visible: $s3)
-                ->properties('driver', 's3_endpoint', 's3_region', 's3_key', 's3_secret', 's3_path_style', 'private_bucket', 'public_bucket', 'public_url')
+                ->properties('driver', 's3_endpoint', 's3_region', 's3_key', 's3_secret', 's3_path_style', 's3_bucket')
                 ->summary(fn (): string => self::DRIVERS[(string) $this->valueInUse('driver')] ?? self::DRIVERS['local']),
         ];
     }

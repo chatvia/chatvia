@@ -202,8 +202,7 @@ final readonly class CompleteSetupAction
             's3_region' => $storage->region,
             's3_key' => $storage->key,
             's3_path_style' => $storage->pathStyle,
-            'private_bucket' => $storage->privateBucket,
-            'public_bucket' => $storage->publicBucket,
+            's3_bucket' => $storage->bucket,
         ] as $property => $value) {
             $this->set($this->storage, $property, StorageSettings::cast($property, $value));
         }

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
  * upload + S3 write path is exercised end-to-end against a fake disk; PdfInfo is
  * stubbed so the body doesn't need real pages (same approach as MaxPdfPagesTest).
  */
-beforeEach(fn () => Storage::fake('public'));
+beforeEach(fn () => Storage::fake('private'));
 
 function realPdfUpload(): UploadedFile
 {
@@ -56,7 +56,7 @@ it('stores the page count for a PDF upload', function (): void {
 
     expect($attachment->pages)->toBe(7)
         ->and($attachment->mime_type)->toBe('application/pdf');
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk('private')->assertExists($attachment->filepath);
 });
 
 it('leaves pages null for a non-PDF upload', function (): void {

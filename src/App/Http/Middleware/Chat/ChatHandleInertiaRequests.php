@@ -11,7 +11,7 @@ use Inertia\Middleware;
 
 /**
  * Inertia root for the hosted chat (`chat` group): the props every chat page
- * shares — product branding, the signed-in user, the current route and the
+ * shares — the "Powered by" switch, the signed-in user, the current route and the
  * per-chat upload limit. The dashboard has its own root middleware
  * ({@see HandleInertiaRequests}), which also runs on chat pages.
  */
@@ -31,9 +31,9 @@ class ChatHandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            // Product name and links (config/chatvia.php `brand`) — drives the
-            // "Powered by" credit under the hosted chat.
-            'brand' => config('chatvia.brand'),
+            // Whether the "Powered by Chatvia" credit shows under the hosted
+            // chat (Settings → Branding).
+            'poweredBy' => config('chatvia.powered_by') === true,
             // The bot check of the chatter sign-in forms (Settings → Security).
             'turnstile' => fn (): ?array => app(BotCheck::class)->forPages(),
             'auth' => [

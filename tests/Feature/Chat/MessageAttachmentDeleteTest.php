@@ -61,7 +61,7 @@ function messageConversation(Agent $agent, Chatter|User|null $viewer = null): Co
 function messageAttachment(Agent $agent, Conversation $conversation, Message $message): Attachment
 {
     $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $conversation->external_id, Str::uuid());
-    Storage::disk('public')->put($filepath, 'fake');
+    Storage::disk(Attachment::DISK)->put($filepath, 'fake');
 
     return Attachment::create([
         'chat_conversation_id' => $conversation->id,
@@ -74,7 +74,7 @@ function messageAttachment(Agent $agent, Conversation $conversation, Message $me
 }
 
 beforeEach(function (): void {
-    Storage::fake('public');
+    Storage::fake(Attachment::DISK);
 });
 
 it('deletes a sent-message attachment on a public agent and wipes the S3 object', function (): void {
@@ -94,7 +94,7 @@ it('deletes a sent-message attachment on a public agent and wipes the S3 object'
 
     $response->assertNoContent();
     expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk('public')->assertMissing($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
     // The Message survives the cascade (chat_message_id is nullOnDelete).
     expect(Message::find($message->id))->not->toBeNull();
 });
@@ -117,7 +117,7 @@ it('refuses when the URL conversation id does not match the attachment row', fun
 
     $response->assertForbidden();
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
 it('refuses on a private agent when the requester does not own the conversation', function (): void {
@@ -163,7 +163,7 @@ it('lets the rightful owner delete on a private agent', function (): void {
 
     $response->assertNoContent();
     expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk('public')->assertMissing($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
 it('lets a staff member delete on a private agent they opened from the dashboard', function (): void {

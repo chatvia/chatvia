@@ -7,9 +7,8 @@ With **S3-compatible storage**, more fields show:
 - **Endpoint** — The service's address. Leave it empty for AWS S3.
 - **Region** — Where your storage is, for example fr-par or eu-west-1. Use auto for Cloudflare R2.
 - **Access key ID** and **Secret access key** — The key pair you create at the service. The secret is stored encrypted and never shown again. Leave it blank to keep it.
-- **Private bucket** — The bucket (a named storage space) for knowledge files and backups. Keep it private.
-- **Public bucket** — For chat attachments and images from knowledge files. Anyone with a file's link can open it.
-- Under **Advanced**: **Use path-style addresses** (MinIO and some other services need it) and **Public files address** (where public files are served from, for example a CDN). Leave them as they are unless your service needs them.
+- **Bucket** — The bucket (a named storage space) for every file of the app. Keep it private: the app opens files through its own signed links.
+- Under **Advanced**: **Use path-style addresses**. MinIO and some other services need it. Leave it off unless your service needs it.
 
 **Switching moves no files.** Files you already have stay in the old place, and the app can no longer find them. Choose before people add files, or copy the files to the new place first.
 

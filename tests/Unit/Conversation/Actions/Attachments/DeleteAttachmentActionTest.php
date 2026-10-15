@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
  * cleanup hook fires on a real delete.
  */
 beforeEach(function (): void {
-    Storage::fake('public');
+    Storage::fake(Attachment::DISK);
     $this->action = new DeleteAttachmentAction;
 });
 
@@ -46,7 +46,7 @@ function buildAttachment(?int $messageId = null): Attachment
     ]);
 
     $filepath = sprintf('users/%s/agents/%s/attachments/%s/%s.pdf', $agent->workspaceExternalId(), $agent->external_id, $conversation->external_id, Str::uuid());
-    Storage::disk('public')->put($filepath, 'fake pdf');
+    Storage::disk(Attachment::DISK)->put($filepath, 'fake pdf');
 
     return Attachment::create([
         'chat_conversation_id' => $conversation->id,
@@ -64,7 +64,7 @@ it('deletes the row and wipes the S3 object when the attachment is composer-stag
     expect($this->action->execute($attachment))->toBeTrue();
 
     expect(Attachment::find($attachment->id))->toBeNull();
-    Storage::disk('public')->assertMissing($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($attachment->filepath);
 });
 
 it('returns false and leaves the row intact when the attachment was bound between authorize and execute', function (): void {
@@ -83,7 +83,7 @@ it('returns false and leaves the row intact when the attachment was bound betwee
     expect($this->action->execute($attachment))->toBeFalse();
 
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });
 
 it('keeps the S3 object when the surrounding delete rolls back', function (): void {
@@ -99,5 +99,5 @@ it('keeps the S3 object when the surrounding delete rolls back', function (): vo
     }
 
     expect(Attachment::find($attachment->id))->not->toBeNull();
-    Storage::disk('public')->assertExists($attachment->filepath);
+    Storage::disk(Attachment::DISK)->assertExists($attachment->filepath);
 });

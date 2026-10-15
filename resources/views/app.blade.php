@@ -41,7 +41,7 @@
             }
         </style>
 
-        <title data-inertia>{{ config('chatvia.brand.name') }}</title>
+        <title data-inertia>Chatvia</title>
 
         {{-- Fonts are self-hosted: a third-party font CDN would receive every
              visitor's IP address. Arabic / Farsi text uses the system font. --}}

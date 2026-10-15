@@ -34,23 +34,11 @@ export interface CurrentTeam {
     is_owner: boolean;
 }
 
-// Product name and links from config/chatvia.php `brand`. URLs arrive as set
-// in the environment: null (or an empty string) means "hide that link". Read
-// them through the `useBrand()` composable, which turns empty strings into null.
-export interface Brand {
-    name: string;
-    website_url: string | null;
-    docs_url: string | null;
-    api_docs_url: string | null;
-    powered_by: {
-        enabled: boolean;
-        label: string | null;
-    };
-}
-
 export interface SharedData extends PageProps {
     name: string;
-    brand?: Brand;
+    // Whether the "Powered by Chatvia" credit shows under the hosted chat
+    // (Settings → Branding). Shared on hosted chat pages only.
+    poweredBy?: boolean;
     // The Cloudflare Turnstile bot check of the public forms (Settings →
     // Security), or null while it is not set up. Read through useBotCheck().
     turnstile: { site_key: string; forms: string[] } | null;

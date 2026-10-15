@@ -11,8 +11,8 @@ use Throwable;
 
 /**
  * Checks S3-compatible storage before it is saved: writes a small file to
- * the private and the public bucket, reads it back and deletes it, with the
- * address and keys typed in the admin setup.
+ * the bucket, reads it back and deletes it, with the address and keys typed
+ * in the admin setup.
  */
 final class StorageCheck
 {
@@ -23,34 +23,28 @@ final class StorageCheck
             return null;
         }
 
-        foreach (['private' => $storage->privateBucket, 'public' => $storage->publicBucket] as $name => $bucket) {
-            $path = 'chatvia-storage-test-'.Str::random(12).'.txt';
-            $content = 'Chatvia storage test '.now()->toIso8601String();
+        $path = 'chatvia-storage-test-'.Str::random(12).'.txt';
+        $content = 'Chatvia storage test '.now()->toIso8601String();
 
-            try {
-                $disk = Storage::build([
-                    'driver' => 's3',
-                    'key' => $storage->key,
-                    'secret' => $storage->secret,
-                    'region' => $storage->region,
-                    'endpoint' => $storage->endpoint,
-                    'use_path_style_endpoint' => $storage->pathStyle,
-                    'bucket' => $bucket,
-                    'throw' => true,
-                ]);
+        try {
+            $disk = Storage::build([
+                'driver' => 's3',
+                'key' => $storage->key,
+                'secret' => $storage->secret,
+                'region' => $storage->region,
+                'endpoint' => $storage->endpoint,
+                'use_path_style_endpoint' => $storage->pathStyle,
+                'bucket' => $storage->bucket,
+                'throw' => true,
+            ]);
 
-                $disk->put($path, $content);
-                $read = $disk->get($path);
-                $disk->delete($path);
-            } catch (Throwable $e) {
-                return "The {$name} bucket failed: ".Str::limit($e->getMessage(), 300);
-            }
-
-            if ($read !== $content) {
-                return "The {$name} bucket returned other content than was written.";
-            }
+            $disk->put($path, $content);
+            $read = $disk->get($path);
+            $disk->delete($path);
+        } catch (Throwable $e) {
+            return 'The bucket failed: '.Str::limit($e->getMessage(), 300);
         }
 
-        return null;
+        return $read === $content ? null : 'The bucket returned other content than was written.';
     }
 }

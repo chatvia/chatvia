@@ -1,65 +1,25 @@
 <?php
 
 declare(strict_types=1);
+
 use Domain\Conversation\Services\ConversationRetention;
 use Domain\Knowledge\Source\File\Enums\KnowledgeFileType;
 
-/*
-|--------------------------------------------------------------------------
-| Chatvia
-|--------------------------------------------------------------------------
-|
-| Single home for Chatvia's app-specific configuration. Each top-level key
-| below is a bounded area (agent, ai, vector, analytics, sse, hmac, widget),
-| kept in one file so there's one place to look. Reference values with the
-| `chatvia.` prefix, e.g. config('chatvia.ai.reranker'),
-| config('chatvia.vector.search.mode').
-|
-*/
 return [
 
     /*
     |--------------------------------------------------------------------------
-    | Chatvia's site
+    | Powered By Credit
     |--------------------------------------------------------------------------
     |
-    | https://chatvia.ai: where licenses are sold and activated, and the base
-    | for any other link the app makes to Chatvia's own site. Set CHATVIA_URI
-    | in .env (no trailing slash) only to test against a local copy of it.
+    | Whether the "Powered by Chatvia" credit, linked to https://chatvia.ai,
+    | shows under hosted chats and widgets. It is switched off in the admin
+    | panel (Settings → Branding), and only with a license key (see License
+    | below); the value here is the default.
     |
     */
 
-    'uri' => env('CHATVIA_URI', 'https://chatvia.ai'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Brand
-    |--------------------------------------------------------------------------
-    |
-    | Everything that names or links to the product. Installs cannot change
-    | these. Only `powered_by.enabled` is set in the admin panel (Settings →
-    | Branding); the value here is the default while nothing is saved there.
-    | Turning the credit off works only with a license key (see License
-    | below). An empty URL hides its link.
-    |
-    | - name: product name in the UI, emails, file names and outbound headers.
-    | - website_url / docs_url / api_docs_url: links shown in the app.
-    | - powered_by: the "Powered by …" credit under hosted chats and widgets.
-    |   It always links to https://chatvia.ai, fixed in the hosted chat and
-    |   the widget, not here.
-    |
-    */
-
-    'brand' => [
-        'name' => 'Chatvia',
-        'website_url' => null,
-        'docs_url' => null,
-        'api_docs_url' => null,
-        'powered_by' => [
-            'enabled' => true,
-            'label' => 'Chatvia',
-        ],
-    ],
+    'powered_by' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -67,25 +27,19 @@ return [
     |--------------------------------------------------------------------------
     |
     | A license key allows hiding the "Powered by" credit. chatvia.ai sells
-    | and signs keys (Ed25519). A key as bought names no domain: saving it
-    | in the admin panel activates it at chatvia.ai for the host of `app.url`
-    | (one domain per key), and the activated key is then checked offline.
-    | Once a day the install asks chatvia.ai whether the key is still active
-    | there (the buyer can deactivate it to move it); an answer of "no"
+    | and signs keys (Ed25519). A key as bought names no domain: saving it in
+    | the admin panel (Settings → Branding) activates it at chatvia.ai for the
+    | host of `app.url`, one domain per key, and the install then checks it
+    | offline. Once a day the install asks chatvia.ai whether the key is
+    | still active there (the buyer can deactivate it to move it): "no"
     | removes the key, no answer keeps it. Without a valid key the credit
-    | always shows, whatever the switch says.
+    | always shows.
     |
-    | - key: the activated key, set in the admin panel (Settings → Branding).
-    | - public_key: checks the keys. Fixed here, never in .env or the panel:
-    |   whoever sets it could sign their own keys. While it is empty, no key
-    |   is valid.
-    | - buy_url / manage_url: where to buy a license and where to see or
-    |   deactivate it, linked from Settings → Branding.
-    | - api_url: where keys are activated, released and checked.
-    |
-    | All three are on Chatvia's site (CHATVIA_URI, see `uri` above). A site of
-    | your own can't make keys this install accepts: they must be signed for
-    | public_key.
+    | `public_key` checks the keys. It is fixed here, never in .env or the
+    | admin panel, because whoever sets it could sign their own keys. While
+    | it is empty, no key is valid. `buy_url`, `manage_url` and `api_url`
+    | are on Chatvia's own site: set CHATVIA_URI (no trailing slash) only to
+    | test against a local copy of it.
     |
     */
 
@@ -99,12 +53,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Tracking code
+    | Tracking Code
     |--------------------------------------------------------------------------
     |
-    | Set in the admin panel (Settings → Platform). HTML, such as the script of
-    | an analytics service, added to the <head> of every page of the app, in
-    | production only. Nothing is added while it is empty.
+    | HTML, such as the script of an analytics service, added to the <head>
+    | of every page in production. Set in the admin panel (Settings →
+    | Platform). Nothing is added while it is empty.
     |
     */
 
@@ -112,16 +66,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Sign-up and message limits
+    | Sign-up And Message Limits
     |--------------------------------------------------------------------------
-    |
-    | Set in the admin panel (Settings → Workspaces). The values here are the
-    | defaults while nothing is saved there.
     |
     | `registration_enabled` opens the sign-up form at /register.
     | `message_limits.new_workspace` is the monthly limit on agent replies a
-    | new workspace starts with (0 means no limit). A platform admin changes
-    | the limit of one workspace on its page in the admin panel.
+    | new workspace starts with (0 means no limit); a platform admin changes
+    | one workspace's limit on its page. Both are set in the admin panel
+    | (Settings → Workspaces); the values here are the defaults.
     |
     */
 
@@ -133,45 +85,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | File storage
+    | Admin Panel
     |--------------------------------------------------------------------------
     |
-    | Where the `private` disk (knowledge files, backups) and the `public` disk
-    | (chat attachments, chunk images) keep their files: on this server, or in
-    | S3-compatible object storage (AWS S3, Scaleway, Cloudflare R2, MinIO,
-    | ...). Set in the admin panel (Settings → Storage); the values below are
-    | the defaults while nothing is saved there, so an install configured in
-    | .env keeps working. App\Admin\Settings\StorageDisks builds the two
-    | disks from this.
-    |
-    */
-
-    'storage' => [
-        'driver' => env('FILESYSTEM_PRIVATE_DRIVER', filled(env('SCALEWAY_BUCKET')) ? 's3' : 'local'),
-        's3' => [
-            'key' => env('SCALEWAY_ACCESS_KEY_ID'),
-            'secret' => env('SCALEWAY_SECRET_ACCESS_KEY'),
-            'region' => env('SCALEWAY_DEFAULT_REGION'),
-            'endpoint' => env('SCALEWAY_ENDPOINT'),
-            'use_path_style_endpoint' => (bool) env('SCALEWAY_USE_PATH_STYLE_ENDPOINT', false),
-            'private_bucket' => env('SCALEWAY_BUCKET'),
-            'private_url' => env('SCALEWAY_URL'),
-            'public_bucket' => env('SCALEWAY_BUCKET_PUBLIC'),
-            'public_url' => env('SCALEWAY_PUBLIC_URL'),
-        ],
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Admin panel
-    |--------------------------------------------------------------------------
-    |
-    | How the setup of a new install ended: `completed` or `skipped` (AI,
-    | models, documents, storage and email). While it is empty, every admin
-    | panel page leads to the setup; a skipped one can be finished later from
-    | Settings. And whether the panel shows its Logs page (Settings → Platform
-    | → Development). Saved by the admin panel (PlatformSettings), never in
-    | .env.
+    | `setup_status` is how the setup of a new install ended: "completed" or
+    | "skipped". While it is empty, every admin panel page leads to the
+    | setup; a skipped one can be finished later from Settings.
+    | `logs_page_enabled` shows the panel's Logs page (Settings → Platform →
+    | Development). Both are saved by the admin panel.
     |
     */
 
@@ -182,11 +103,12 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Demo seed
+    | Demo Seed
     |--------------------------------------------------------------------------
     |
-    | Login for the demo admin account that `php artisan db:seed` creates on a
-    | local or staging database. The demo seeders never run in production.
+    | The login of the demo admin account that `php artisan db:seed` creates
+    | on a local or staging database. The demo seeders never run in
+    | production.
     |
     */
 
@@ -197,15 +119,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Languages (shared)
+    | Languages
     |--------------------------------------------------------------------------
     |
-    | The unified language list. Both the widget (chatvia.widget.available_languages)
-    | and the hosted-chat selector read from this — set it once here. It is also the
-    | allow-list for a user's saved dashboard locale (UpdatePreferencesRequest /
-    | SetLocale), so every dashboard UI language (resources/js/i18n SUPPORTED_LOCALES)
-    | must appear here. Ordered EU-first to match the dashboard switcher; 'auto' (let
-    | the agent detect the visitor's language) stays first.
+    | The languages of the widget and hosted chat language pickers, and the
+    | allowed values of a user's dashboard language, so every dashboard
+    | language (SUPPORTED_LOCALES in resources/js/i18n) must be listed here.
+    | EU languages come first, like the dashboard switcher; "auto" (the agent
+    | detects the visitor's language) stays first of all.
     |
     */
 
@@ -238,121 +159,118 @@ return [
     | Agent
     |--------------------------------------------------------------------------
     |
-    | Per-agent runtime limits: file uploads, the tool-call loop, approvals, and
-    | the LLM new agents are seeded with.
+    | `files.upload`: the largest PDF a chatter may attach (in KB), how many
+    | at once, and its most pages. The document LLM reads the whole PDF, so
+    | the page cap bounds cost and time (MaxPdfPages checks it at upload).
+    |
+    | `tools`: the most tool-call rounds one turn may run, so a model that
+    | keeps asking for tools cannot loop forever; the switch for tool
+    | approval (off runs every tool at once, whatever a tool's own
+    | `requires_approval` says); and how many minutes an approval stays
+    | open before it expires.
+    |
+    | `tools.routing`: which tools one turn gets. The hybrid tool search
+    | ranks the candidates, and the relevance gate drops those a reranker
+    | scores below the bar, so a greeting ships no tools at all. Off ships
+    | the top search hits every time. The bars are on each model's own
+    | scale: null uses the measured bars (RerankModelCatalog, and for the
+    | similarity check without a reranker, EmbeddingProvider), and writes
+    | can get a stricter bar than reads. Set them only to try other values
+    | against tests/Eval/ToolRoutingEvalTest. `connector_classifier`
+    | (experimental, off) asks the Fast model which connectors the turn is
+    | about and drops write tools of the others; it costs one LLM call per
+    | turn with tools. `rerank_candidates` is how many search hits go to the
+    | reranker.
+    |
+    | `default_model` is the chat model (an LLM catalog alias) new agents
+    | start with and the analytics assistant uses; unset, or not usable,
+    | means the first usable model. `history_messages` is how many recent
+    | messages each turn replays to the model. Both are set in the admin
+    | panel (Settings → AI models).
     |
     */
 
     'agent' => [
         'files' => [
             'upload' => [
-                // The largest PDF a chatter may attach (25 MB).
                 'max_file_size_in_kb' => 25600,
                 'max_files' => 1,
-
-                // Hard cap on PDF pages for a single chat attachment. The whole
-                // document is sent to the document LLM for Q&A, so this bounds
-                // cost and latency. Enforced at upload via MaxPdfPages.
                 'max_pdf_pages' => 10,
             ],
         ],
 
         'tools' => [
-            // Hard cap on how many tool-call rounds the chat stream loop will run
-            // for a single user turn. Each round = one LLM call that may emit
-            // tool_calls, dispatch them, and feed results back. Prevents runaway
-            // loops if a model keeps requesting tools indefinitely.
             'max_iterations' => (int) env('AGENT_TOOL_MAX_ITERATIONS', 5),
-
-            // Global kill-switch for human-in-the-loop tool approval. When false,
-            // every tool runs immediately regardless of the per-connector /
-            // per-tool `requires_approval` flags — used to disable the whole
-            // feature fast without touching data.
             'approval_enabled' => (bool) env('AGENT_TOOL_APPROVAL_ENABLED', true),
-
-            // How long a pending tool-approval checkpoint stays resumable before
-            // it is considered expired (the visitor walked away). Minutes.
             'approval_ttl_minutes' => (int) env('AGENT_TOOL_APPROVAL_TTL_MINUTES', 1440),
 
-            // Per-turn tool routing. The hybrid search (ToolHybridSearch) recalls
-            // candidate tools and ranks them by RRF — great for ordering, but RRF
-            // is a rank-fusion score with no absolute "is this relevant" meaning,
-            // so the top tool scores about the same for "hi" as for a real request.
-            // The relevance gate adds the missing signal: a reranker scores each
-            // candidate against the user's message and anything below the threshold
-            // is dropped. When nothing clears the bar (a greeting, a thank-you), the
-            // turn ships ZERO tools — the `tools` array is omitted entirely, so the
-            // model can't see, list, or advertise an off-topic tool. This is the
-            // tool-side mirror of chatvia.vector.search.relevance_threshold, which
-            // already keeps greetings from pulling in irrelevant knowledge chunks.
             'routing' => [
-                // Master switch. Off = recall-only (every tool-bearing turn ships
-                // its top hybrid hits, the old availability-driven behaviour).
                 'relevance_gate' => (bool) env('AGENT_TOOL_RELEVANCE_GATE', true),
-
-                // The reranker score (0..1) a tool must reach to ship. Each
-                // reranking model scores on its own scale, so null (the
-                // default) uses the model's measured thresholds
-                // (RerankModelCatalog). A wrong READ is cheap (the user re-asks);
-                // a wrong WRITE executes, so writes can get a stricter bar. Set
-                // these only to try other values against the offline eval
-                // (tests/Eval/ToolRoutingEvalTest). See ToolRelevanceGate.
                 'relevance_threshold_read' => env('AGENT_TOOL_RELEVANCE_THRESHOLD_READ'),
                 'relevance_threshold_write' => env('AGENT_TOOL_RELEVANCE_THRESHOLD_WRITE'),
-
-                // Without a reranker (or when it fails), tools are gated by the
-                // similarity of their embedding to the message instead: the
-                // bars of the embedding model in use (EmbeddingProvider), or
-                // these when set. A model that was never measured gets no gate.
                 'similarity_threshold_read' => env('AGENT_TOOL_SIMILARITY_THRESHOLD_READ'),
                 'similarity_threshold_write' => env('AGENT_TOOL_SIMILARITY_THRESHOLD_WRITE'),
-
-                // EXPERIMENTAL (off by default). A small "middle model" connector
-                // router: after the relevance gate, a cheap structured LLM call
-                // (the Fast model, Settings → AI models) picks which
-                // connector(s) the turn is about, and write tools from connectors
-                // it didn't pick are dropped. A reasoning model can separate
-                // "ticket → support" from "issue → tracker" where the embedding
-                // reranker's scores bunched. Costs a serial LLM hop per tool-bearing
-                // turn; measure it against tests/Eval before turning on. Fails open.
                 'connector_classifier' => (bool) env('AGENT_TOOL_CONNECTOR_CLASSIFIER', false),
-
-                // How many hybrid-search candidates to send to the reranker. Caps
-                // the rerank payload/latency; past the top dozen the cross-encoder
-                // rarely promotes a tool the RRF recall didn't already surface.
                 'rerank_candidates' => (int) env('AGENT_TOOL_RERANK_CANDIDATES', 12),
             ],
         ],
 
-        // The chat model (LlmRole::Chat): the catalog model, by its alias
-        // (`llms.external_name`), that new agents start with and the
-        // analytics assistant uses. Set in the admin panel (Settings → AI models).
-        // Unset, or not usable, means the first usable model of the catalog.
         'default_model' => null,
 
-        // How many recent conversation messages (user + assistant turns) to
-        // replay into the LLM context on each turn. Caps the history window so
-        // it stays bounded as a chat grows — older messages are dropped. Raise
-        // it to give the model more follow-up context, lower it to save tokens.
-        'history_messages' => (int) env('AGENT_HISTORY_MESSAGES', 3),
+        'history_messages' => 3,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | AI / LLM
+    | AI Services
     |--------------------------------------------------------------------------
     |
-    | Provider selection, the model assigned to each internal task, query
-    | rewriting, ingestion pricing, and the chunk-enhance switch.
+    | Everything here is set in the admin panel (Settings → AI models and
+    | Settings → Knowledge); the values are the defaults.
+    |
+    | `tasks`: the catalog model (alias) behind each of the app's own LLM
+    | calls (LlmTask). An unset task uses `default`, then the chat model.
+    |
+    | The service of each step; "auto" picks the first one whose key is set
+    | in Settings → AI providers, and "none" when there is none:
+    |
+    | - document_parser: reads PDFs, Word, slides and images. "mistral",
+    |   "azure" or "none" (those files cannot be uploaded).
+    | - reranker: scores search results and tools against the question.
+    |   "openrouter", "cohere", "custom" (a self-hosted /rerank server) or
+    |   "none" (a similarity check instead). `rerank` holds its model, the
+    |   custom server and the timeout in seconds (RerankModelCatalog).
+    | - transcriber: speech to text for voice input and audio sources.
+    |   "scaleway", "openai" or "none".
+    | - voice: live voice calls (the OpenAI Realtime API). "openai" or
+    |   "none". Each agent still turns it on.
+    | - document_llm: reads whole PDFs for summaries and chat with PDF
+    |   files. "mistral" or "none" (those two features are off).
+    |
+    | `tokenizer` is the tiktoken encoding of every token count. `chunking`
+    | is how text is split: the unit ("tokens" or "characters"), the size
+    | (null is 400 tokens or 1,600 characters), the overlap, and the strategy
+    | for each kind of content (ContentKind, SplitStrategy).
+    |
+    | `models`: the embedding provider ("qwen", "openai", "google",
+    | "cohere", "mistral" or "jina"; it must return `embeddings.dimensions`
+    | dimensions), and the document_llm models (names of that provider, not
+    | catalog models) for summaries, analysis and chat with PDF files. The
+    | last one needs function calling so tools still work in PDF chats.
+    |
+    | `query.rewriter` turns a follow-up ("and the price?") into a full
+    | question for the knowledge search: one Fast-model call per follow-up.
+    | `pricing` holds the per-million-token prices of the stored ingestion
+    | cost: embeddings, source summaries, and the chunk step's model when
+    | its catalog entry has no price. `chunker.enhance` adds an AI step
+    | per chunk (a summary and likely questions, then a new embedding) for
+    | files and web pages, and a summary of the whole source; it finds far
+    | more of the right passages and costs one Smart-model call per chunk.
+    | `chunker.enhance_text` does the same for text sources.
     |
     */
 
     'ai' => [
-        // The catalog models (aliases, `llms.external_name`) behind the app's
-        // own LLM calls, picked in the admin panel (Settings → AI models). A task
-        // that is unset uses `default`, then the chat model
-        // (chatvia.agent.default_model). Every call goes to its model's
-        // provider. See LlmTask.
         'tasks' => [
             'default' => null,
             'follow_up' => null,
@@ -370,35 +288,8 @@ return [
             'eval_judge' => null,
         ],
 
-        // Which service handles each ingestion and retrieval step (Settings →
-        // AI models). `auto` picks the first provider whose key is set in
-        // Settings → AI providers, and "off" when none is — so an install
-        // works without those accounts. See
-        // https://chatvia.ai/docs/guide/self-hosting/ai-providers.
-        //
-        // - document_parser: reads PDFs, Word, slides and images. mistral
-        //   (Mistral OCR) | azure (Azure Document Intelligence) | none (those
-        //   files cannot be uploaded; spreadsheets and CSV are still read by
-        //   the app). auto = mistral, else azure, when connected.
-        // - reranker: scores search results and tools against the question
-        //   (a cross-encoder). openrouter | cohere | custom (a self-hosted
-        //   /rerank server) | none (a basic similarity check instead). auto =
-        //   openrouter, else cohere, when connected, else none.
-        // - transcriber: speech-to-text for voice input and audio sources.
-        //   scaleway | openai (both Whisper) | none. auto = scaleway, else
-        //   openai, when connected.
-        // - voice: live voice conversations in the hosted chat and the widget
-        //   (speech to speech, the OpenAI Realtime API). openai | none. auto =
-        //   openai when connected. Each agent still opts in (Setup → Settings →
-        //   Composer options).
-        // - document_llm: the LLM that reads whole PDFs, for document summaries
-        //   and chat with PDF files. mistral | none. auto = mistral when it is
-        //   connected. With none, those two features are off.
-        'document_parser' => env('AI_DOCUMENT_PARSER', 'auto'),
-        'reranker' => env('AI_RERANKER', 'auto'),
-
-        // The reranker's model and a self-hosted reranker's address (Settings
-        // → AI). The models to choose from: RerankModelCatalog.
+        'document_parser' => 'auto',
+        'reranker' => 'auto',
         'rerank' => [
             'openrouter_model' => 'cohere/rerank-4-pro',
             'custom' => [
@@ -408,20 +299,12 @@ return [
             ],
             'timeout' => 10,
         ],
-        'transcriber' => env('AI_TRANSCRIBER', 'auto'),
+        'transcriber' => 'auto',
         'voice' => 'auto',
-        'document_llm' => env('AI_DOCUMENT_LLM', 'auto'),
+        'document_llm' => 'auto',
 
-        // The tokenizer (a tiktoken encoding) every token count uses: chunk
-        // sizes in tokens, the stored size of each chunk, estimates. Set in
-        // the admin panel (Settings → Knowledge).
         'tokenizer' => 'cl100k_base',
 
-        // How text is split into chunks (Settings → Knowledge); these are the
-        // defaults. The size and overlap are in the unit: tokens (of the
-        // tokenizer above) or characters. A null size is the unit's default,
-        // 400 tokens or 1,600 characters. The strategy for each kind of
-        // content: Domain\Knowledge\Ingestion\Enums\ContentKind and SplitStrategy.
         'chunking' => [
             'unit' => 'tokens',
             'size' => null,
@@ -434,87 +317,63 @@ return [
         ],
 
         'models' => [
-            // Embedding provider: qwen (Qwen3 on Scaleway), openai, google
-            // (Gemini), cohere, mistral or jina. The database stores 1024-dimension vectors, so the
-            // provider must return exactly 1024 dimensions.
-            'embedding' => env('AI_EMBEDDING_PROVIDER', 'qwen'),
-
-            // Read whole PDF documents through the document_llm above. These
-            // are model names of that provider, not catalog models.
-            'summary' => env('AI_SUMMARY_MODEL', 'mistral-large-latest'),
-            'analysis' => env('AI_ANALYSIS_MODEL', 'mistral-large-latest'),
-            // Answers questions about PDF files attached to a chat. Needs both
-            // PDF reading and function calling so tools still work in PDF chats.
-            'document_chat' => env('AI_DOCUMENT_CHAT_MODEL', env('MISTRAL_QA_MODEL', 'mistral-medium-latest')),
+            'embedding' => 'qwen',
+            'summary' => 'mistral-large-latest',
+            'analysis' => 'mistral-large-latest',
+            'document_chat' => 'mistral-medium-latest',
         ],
 
         'query' => [
             'rewriter' => [
-                // Turns a follow-up ("and the price?") into a full question for
-                // the knowledge search, from the chat before it. One Fast-model
-                // call per follow-up; the first message of a chat needs none.
-                'enabled' => env('QUERY_REWRITER_ENABLED', true),
+                'enabled' => true,
             ],
         ],
 
         'pricing' => [
             'chunker_input_per_million_tokens' => 0.90,
             'chunker_output_per_million_tokens' => 0.90,
-            // Per-million-token prices used for the stored ingestion cost.
             'embedding_per_million_tokens' => 0.10,
             'summary_input_per_million_tokens' => 2.0,
             'summary_output_per_million_tokens' => 8.0,
         ],
 
         'chunker' => [
-            // An extra AI step per chunk (a summary and likely questions,
-            // then a new embedding) for uploaded files and crawled pages, and
-            // a summary of the whole source. It finds far more of the right
-            // passages ("contextual retrieval"), so it is on by default; it
-            // costs one Smart-model call per chunk while training.
-            'enhance' => env('CHUNKER_ENHANCE', true),
-            // The same step for text sources. Pasted texts are short, so it
-            // costs little and is on by default. Turn both off to ingest
-            // without any model calls.
-            'enhance_text' => env('CHUNKER_ENHANCE_TEXT', true),
+            'enhance' => true,
+            'enhance_text' => true,
         ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Embedding storage
+    | Embedding Storage
     |--------------------------------------------------------------------------
     |
-    | How the database stores embeddings (Domain\Knowledge\Embedding\Services\
-    | EmbeddingStorage). Set these before the first migration and never change
-    | them afterwards: the embedding columns and their indexes are created with
-    | them, and `php artisan app:check-embedding-storage` stops a start whose
-    | values no longer match the database.
+    | How the database stores embeddings (EmbeddingStorage). Set these before
+    | the first migration and never change them: the embedding columns and
+    | their indexes are created with them, and `php artisan
+    | app:check-embedding-storage` stops a start whose values no longer
+    | match the database.
+    |
+    | `type` "halfvec" takes 2 bytes per dimension, half the space of
+    | "vector", with almost the same search quality. The embedding provider
+    | must return `dimensions` dimensions: 1024 works with every provider.
     |
     */
 
     'embeddings' => [
-        // halfvec: 2 bytes per dimension, half the space of vector (4 bytes),
-        // with almost the same search quality.
         'type' => env('EMBEDDING_VECTOR_TYPE', 'halfvec'),
-
-        // The embedding provider must return this many dimensions. 1024 works
-        // with every provider; Mistral only returns 1024, Jina at most 1024,
-        // Cohere 256, 512, 1024 or 1536, OpenAI up to 1536 (3072 with
-        // text-embedding-3-large), Gemini 128 to 3072, Qwen3 up to 4096, and
-        // OpenRouter what its model returns.
         'dimensions' => env('EMBEDDING_DIMENSIONS', 1024),
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Knowledge
+    | Knowledge File Types
     |--------------------------------------------------------------------------
     |
     | The file types workspaces may upload as knowledge sources, as
-    | KnowledgeFileType values (PDF, Word, images, audio…). Set in the admin
-    | panel (Settings → Knowledge); every type is on by default. Files already
-    | uploaded keep working when their type is turned off.
+    | KnowledgeFileType values. Set in the admin panel (Settings →
+    | Knowledge); every type is on by default. Files already uploaded keep
+    | working when their type is turned off.
     |
     */
 
@@ -524,87 +383,52 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Vector search (VectorChord / RAG)
+    | Knowledge Search
     |--------------------------------------------------------------------------
     |
-    | Hybrid-search tuning and the vchordrq build/probe parameters.
-    | NOTE: HybridChunkSearch reads the whole `chatvia.vector` array.
+    | `mode` is "default", "high_accuracy" or "high_speed"; it picks the
+    | `probes_percent` and `epsilon` the vector indexes search with. `hybrid`
+    | adds keyword (BM25) search to meaning (vector) search.
+    |
+    | `relevance_check` leaves out weak matches: with a reranker, chunks it
+    | scores below `relevance_threshold`; without one, chunks whose meaning
+    | is too far from the question (`similarity_threshold`). Null uses the
+    | model's measured bar. `qa_similarity_threshold` is how close a message
+    | must be to a saved Q&A question to get its answer by meaning.
+    |
+    | `max_chunks` and `max_context_tokens` cap what one question adds to the
+    | prompt (the best chunk always goes in). These and the settings above
+    | are set in the admin panel (Settings → Knowledge).
+    |
+    | `rerank_candidates` is how many hits go to the reranker; keep it well
+    | above `max_chunks`. Agents with at most `exact_max_chunks` chunks are
+    | searched exactly, without the indexes (0 always uses them). A search
+    | slower than `slow_log_ms` is logged (0 turns it off). `build_threads`
+    | and `build_memory_mb` are for `php artisan vector:reindex`, which
+    | partitions the indexes once chunks pass 100k rows.
     |
     */
 
     'vector' => [
         'search' => [
-            // Search accuracy mode: 'default', 'high_accuracy', or 'high_speed'
-            'mode' => env('VECTOR_SEARCH_MODE', 'default'),
-
-            // Knowledge search combines meaning (vector) and keyword (BM25)
-            // search; off means meaning only. Set in the admin panel
-            // (Settings → Knowledge), on by default. Keyword data is always
-            // stored, so it can change at any time.
+            'mode' => 'default',
             'hybrid' => true,
-
-            // The relevance check ("Leave out weak matches"): with a reranker
-            // (Settings → AI models), chunks it scores below
-            // relevance_threshold are dropped; without one (or when it fails),
-            // chunks whose meaning is too far from the question
-            // (similarity_threshold). So greetings pull in nothing. Off means
-            // every question gets the top max_chunks, however well they match.
-            'relevance_check' => env('VECTOR_SEARCH_RELEVANCE_CHECK', true),
-
-            // The reranker score (0..1) a chunk must reach. Null (the default)
-            // uses the reranking model's measured threshold (RerankModelCatalog).
+            'relevance_check' => true,
             'relevance_threshold' => env('VECTOR_SEARCH_RELEVANCE_THRESHOLD'),
-
-            // Without a reranker: the cosine similarity a chunk must reach.
-            // Null uses the embedding model's measured value
-            // (EmbeddingProvider); a model never measured gets no check.
-            'similarity_threshold' => env('VECTOR_SEARCH_SIMILARITY_THRESHOLD'),
-
-            // The cosine similarity a message must reach to a saved Q&A
-            // question to get its answer by meaning (a whole-question match
-            // needs none). Null uses the embedding model's measured value; a
-            // model never measured matches Q&A only as whole questions.
-            'qa_similarity_threshold' => env('VECTOR_SEARCH_QA_SIMILARITY_THRESHOLD'),
-
+            'similarity_threshold' => null,
+            'qa_similarity_threshold' => null,
             'max_chunks' => env('VECTOR_SEARCH_MAX_CHUNKS', 5),
-
-            // The most tokens of knowledge one question may add to the prompt:
-            // lower-ranked chunks past it are left out (the best one always
-            // goes in).
-            'max_context_tokens' => env('VECTOR_SEARCH_MAX_CONTEXT_TOKENS', 3000),
-
-            // Hybrid SQL normally runs in ~200ms; when the phase exceeds this
-            // (cold index / autovacuum / checkpoint) KnowledgeBase logs a
-            // warning with the full phase breakdown — independent of LOG_LEVEL,
-            // so spikes are catchable in prod. Set to 0 to disable.
+            'max_context_tokens' => 3000,
             'slow_log_ms' => 2000,
-
-            // Size of the candidate pool fed to the reranker. Must stay
-            // comfortably above max_chunks — the reranker's value is promoting a
-            // chunk the rough first-stage RRF under-ranked, so a pool == max_chunks
-            // makes it a no-op reorder. Latency is dominated by the rerank
-            // round-trip, not the doc count, so trim only if debug rerank_ms
-            // justifies it. Ignored when rerank is off (pool is max_chunks * 2).
             'rerank_candidates' => env('VECTOR_SEARCH_RERANK_CANDIDATES', 25),
-
-            // Agents that reach at most this many chunks are searched exactly:
-            // every one of their chunks is scored, with no approximate index and
-            // no other workspace's rows involved (full recall). Larger agents go
-            // through the vector and BM25 indexes. 0 always uses the indexes.
             'exact_max_chunks' => 10_000,
 
-            // vchordrq.probes, as a percentage of the index's partitions
-            // ("lists"). The vector indexes start flat (no partitions, no probes)
-            // and vector:reindex partitions them once chunks pass 100k rows,
-            // storing the default value on each index. Higher = better recall on
-            // the indexed path, slower search.
             'probes_percent' => [
                 'default' => 3,
                 'high_accuracy' => 6,
                 'high_speed' => 1.5,
             ],
 
-            // vchordrq.epsilon — early-stop radius for the residual-quantized search.
             'epsilon' => [
                 'default' => 1.9,
                 'high_accuracy' => 2.5,
@@ -612,12 +436,7 @@ return [
             ],
         ],
 
-        // Threads used by vector:reindex (vchordrq build_threads). nproc is too
-        // fragile to call from PHP, so pin it per environment.
         'build_threads' => env('VECTORCHORD_BUILD_THREADS', 4),
-
-        // Memory vector:reindex lets one k-means build use, in MB. Larger
-        // indexes sample fewer vectors per partition to stay inside it.
         'build_memory_mb' => 2048,
     ],
 
@@ -626,37 +445,31 @@ return [
     | Analytics
     |--------------------------------------------------------------------------
     |
-    | Master switch, the (optionally separate) storage connection, the queue
-    | listeners run on, rollup sentinels, and the conversation-analysis pass.
+    | `enabled` off drops analytics events before they reach the queue.
+    | `connection` is the database connection of the analytics_* tables
+    | (null is the default one; config/database.php has an "analytics"
+    | connection for a separate database). `queue` keeps analytics work off
+    | the `messages` queue so it never slows a reply.
+    |
+    | The hourly rollup keys cannot hold NULL, so an unknown country or
+    | model is stored as `unknown_country_code` or
+    | `unknown_llm_external_name`.
+    |
+    | `analysis`: app:analyze-conversations reads each conversation once,
+    | `scan_age_hours` after it starts, and retries a run that saved nothing
+    | up to `max_attempts` runs. A new topic shows once it comes up in
+    | `min_occurrences` conversations, with at most `max_examples` examples.
     |
     */
 
     'analytics' => [
-        // When disabled, dispatched analytics events are silently dropped before
-        // hitting the queue (CI runs, local debugging, partial outages).
         'enabled' => env('ANALYTICS_ENABLED', true),
-
-        // Database connection for the analytics_* tables. A pre-wired "analytics"
-        // connection lives in config/database.php; point DB_ANALYTICS_DATABASE at
-        // a separate Postgres database to isolate analytics writes. Null = default.
         'connection' => env('ANALYTICS_DB_CONNECTION'),
-
-        // Listeners run on this queue. Keep it separate from the chat-critical
-        // `messages` queue so analytics backlog never blocks a user reply.
         'queue' => env('ANALYTICS_QUEUE', 'analytics'),
 
-        // Postgres composite primary keys reject NULL, so the hourly rollup uses
-        // these placeholders when a dimension is unknown at write time. Read paths
-        // translate them back to "Unknown" / NULL in responses.
         'unknown_country_code' => '--',
         'unknown_llm_external_name' => '',
 
-        // The scheduled app:analyze-conversations pass analyzes each conversation
-        // once, `scan_age_hours` after creation, over its full transcript. A run
-        // that saves nothing (unusable model answer, provider error) is retried
-        // by the next pass, at most `max_attempts` runs in all.
-        // Emergent topics surface once they recur across `min_occurrences`
-        // conversations; `max_examples` caps the examples returned per label.
         'analysis' => [
             'scan_age_hours' => env('ANALYSIS_SCAN_AGE_HOURS', 6),
             'max_attempts' => 5,
@@ -667,117 +480,84 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Governance (tool-call audit + access)
+    | Tool-Call Audit
     |--------------------------------------------------------------------------
     |
-    | The Governed MCP Gateway records an immutable row in the dedicated
-    | agent_activity table for every agent tool call, and can gate/rate-limit
-    | calls at dispatch. Audit is on by default and silent; arguments/results
-    | are redacted + size-capped before storage.
+    | Every agent tool call is saved in the agent_activity table, its
+    | arguments and result cut to `max_arg_bytes` and `max_result_bytes`
+    | (hashed before the cut) and the values of `redact_keys` replaced.
+    | `audit_enabled` off saves nothing. Rows older than `retention_days` are
+    | pruned daily. Each agent may call one tool `tool_rate_limit` times per
+    | `tool_rate_window_seconds`. The retention and the rate limit are set in
+    | the admin panel (Settings → Security).
     |
     */
 
     'governance' => [
-        // Master switch for tool-call audit. When false, RecordToolCallAudit
-        // drops the event before it touches the DB (CI, local debugging).
         'audit_enabled' => env('GOVERNANCE_AUDIT_ENABLED', true),
-
-        // How long audit rows (agent_activity) are kept before the daily
-        // app:prune-agent-activity sweep removes them.
-        'retention_days' => (int) env('GOVERNANCE_RETENTION_DAYS', 90),
-
-        // Size caps (bytes) for the stored tool arguments / result text. The
-        // full raw args are hashed (sha256) BEFORE truncation, for integrity.
+        'retention_days' => 90,
         'max_arg_bytes' => 4096,
         'max_result_bytes' => 8192,
-
-        // Argument keys whose values are replaced with "[redacted]" before the
-        // audit row is written (defends against secrets/PII echoed in args).
         'redact_keys' => ['password', 'token', 'secret', 'authorization', 'api_key', 'apikey', 'access_token'],
-
-        // Per-agent-per-tool rate limit: max tool calls allowed per window.
-        // Generous by default so it stays invisible until a customer tightens it.
-        'tool_rate_limit' => (int) env('GOVERNANCE_TOOL_RATE_LIMIT', 60),
-        'tool_rate_window_seconds' => (int) env('GOVERNANCE_TOOL_RATE_WINDOW', 60),
+        'tool_rate_limit' => 60,
+        'tool_rate_window_seconds' => 60,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Security audit (Enterprise Security & Compliance)
+    | Security Audit Log
     |--------------------------------------------------------------------------
     |
-    | The workspace-scoped security audit log records an immutable row in the
-    | dedicated security_audit_log table for auth, membership, configuration,
-    | and data operations. A structural clone of the governance tool-call audit:
-    | on by default, silent, metadata redacted + size-capped before storage and
-    | hashed (sha256) over the RAW payload for tamper-evidence.
+    | Sign-ins, membership, configuration and data operations are saved in
+    | the security_audit_log table, the metadata cut to `max_metadata_bytes`
+    | (hashed before the cut) and the values of `redact_keys` replaced.
+    | Rows are kept `retention_days`; a workspace may keep them for a shorter
+    | time, but never under `retention_floor_days`. `enabled`, the retention
+    | and the floor are set in the admin panel (Settings → Security).
     |
     */
 
     'security_audit' => [
-        // Master switch. When false, RecordSecurityEvent drops the event before
-        // it touches the DB (CI, local debugging).
-        'enabled' => env('SECURITY_AUDIT_ENABLED', true),
-
-        // Default retention (days) for security_audit_log rows. A workspace may
-        // SHORTEN this via WorkspaceSecurityPolicy.retention_audit_days but not
-        // below `retention_floor_days`; the daily app:prune-security-audit-log
-        // sweep enforces both.
-        'retention_days' => (int) env('SECURITY_AUDIT_RETENTION_DAYS', 365),
-
-        // Hard floor (days) for per-workspace retention overrides — some regimes
-        // mandate a minimum audit window. Overrides clamp up to this.
-        'retention_floor_days' => (int) env('SECURITY_AUDIT_RETENTION_FLOOR_DAYS', 30),
-
-        // Size cap (bytes) for the stored metadata. The full raw metadata is
-        // hashed (sha256) BEFORE truncation, for integrity.
+        'enabled' => true,
+        'retention_days' => 365,
+        'retention_floor_days' => 30,
         'max_metadata_bytes' => 8192,
-
-        // Metadata keys whose values are replaced with "[redacted]" before the
-        // audit row is written (defends against secrets/PII echoed in payloads).
         'redact_keys' => ['password', 'token', 'secret', 'authorization', 'api_key', 'apikey', 'access_token', 'webhook_secret'],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Data retention
+    | Data Retention
     |--------------------------------------------------------------------------
     |
-    | `conversations_days` is how long conversations are kept. Both values are
-    | set in the admin panel (Settings → Workspaces); these are the defaults.
-    | A workspace may SHORTEN it via
-    | WorkspaceSecurityPolicy.retention_conversations_days (never longer) but
-    | not below the floor; the daily app:prune-expired-conversations sweep
-    | enforces the override. Audit-log retention lives under `security_audit`.
+    | Conversations are kept `conversations_days`; a workspace may keep them
+    | for a shorter time, never under `conversations_floor_days`. Both are
+    | set in the admin panel (Settings → Workspaces).
+    |
+    | A workspace may also set how long leads and analytics are kept and when
+    | chat sessions are anonymized (Settings → Security); nothing is deleted
+    | while one is blank. These are the shortest windows it may pick, and
+    | `max_days` the longest.
     |
     */
 
     'retention' => [
         'conversations_days' => ConversationRetention::DEFAULT_DAYS,
-        'conversations_floor_days' => (int) env('CONVERSATION_RETENTION_FLOOR_DAYS', 1),
-
-        // Optional windows a workspace sets in Settings → Security; nothing is
-        // deleted while one is blank. Daily jobs enforce them:
-        // app:prune-leads, app:prune-workspace-analytics and
-        // app:anonymize-chat-sessions. Analytics keep at least a month so the
-        // charts stay useful. "Anonymize after" may not be longer than the
-        // conversation retention (the chats are gone by then).
+        'conversations_floor_days' => 1,
         'leads_floor_days' => 1,
         'analytics_floor_days' => 30,
         'anonymize_floor_days' => 1,
-        // The longest leads or analytics window a workspace may set (ten years).
         'max_days' => 3650,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | SIEM webhook (Enterprise — advanced compliance)
+    | SIEM Webhook
     |--------------------------------------------------------------------------
     |
-    | Best-effort fan-out of the security-audit stream to a workspace's SIEM
-    | endpoint. Delivered (HMAC-signed) by the queued SendSecurityEventToSiem
-    | listener; after `max_failures` consecutive failures the webhook auto-
-    | disables so a dead endpoint stops generating retried jobs.
+    | The security audit log is also sent, signed, to a workspace's SIEM
+    | endpoint. After `max_failures` failures in a row the webhook turns
+    | itself off.
     |
     */
 
@@ -787,99 +567,78 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Agent evaluation (eval suites)
+    | Agent Evaluation
     |--------------------------------------------------------------------------
     |
-    | Per-agent eval suites run each test case through the agent's REAL pipeline
-    | (system prompt + RAG + tools) off-request and score it. Runs are queued so
-    | a suite never blocks a chat reply.
+    | Eval suites run each test case through the agent's real pipeline on
+    | `queue`, off the chat queue. A run has at most `max_cases_per_run`
+    | cases, and each stored answer is cut to `max_output_bytes`.
     |
     */
 
     'evals' => [
-        // Queue the per-case eval jobs run on — off the chat-critical `messages` queue.
         'queue' => env('EVALS_QUEUE', 'analytics'),
-
-        // Hard cap on cases per run, so a misconfigured suite can't burn the
-        // workspace's LLM budget.
         'max_cases_per_run' => (int) env('EVALS_MAX_CASES', 100),
-
-        // Size cap (bytes) for the stored actual_output; a sha256 of the raw is kept.
         'max_output_bytes' => 8192,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Guardrails (#? AI Safety)
+    | Guardrails
     |--------------------------------------------------------------------------
     |
-    | Input + output safety guards on the live chat: PII (regex redaction),
-    | prompt-injection, off-topic/blocked-topics, and toxicity (one open-weight
-    | classifier call). Injection hidden in knowledge chunks is caught by the
-    | rules in InjectionPatternDetector. Per-agent toggles live in the
-    | `guardrails` model-settings group; triggers are logged to the immutable
-    | `guardrail_events` table.
+    | The safety checks of the live chat (personal data, prompt injection,
+    | blocked topics, toxicity). Each agent has its own settings; `enabled`
+    | off runs no check at all. Triggers are saved in the guardrail_events
+    | table on `queue`, with a snippet cut to `max_snippet_bytes`, and kept
+    | `retention_days`. `enabled` and the retention are set in the admin
+    | panel (Settings → Security).
     |
     */
 
     'guardrails' => [
-        // Master switch — when false, no guard runs and the chat path is untouched.
-        'enabled' => env('GUARDRAILS_ENABLED', true),
-
-        // Queue the audit-logging listener runs on (off the chat-critical path).
+        'enabled' => true,
         'queue' => env('GUARDRAILS_QUEUE', 'analytics'),
-
-        // Retention for the immutable guardrail_events log.
-        'retention_days' => (int) env('GUARDRAILS_RETENTION_DAYS', 90),
-
-        // The redacted snippet stored on a trigger is capped to this many bytes;
-        // the full original text is hashed (sha256) before truncation, never stored raw.
+        'retention_days' => 90,
         'max_snippet_bytes' => 2048,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | SSE streaming
+    | Voice Conversations
     |--------------------------------------------------------------------------
     |
-    | The request-id idempotency store. Streams keyed by a client request_id are
-    | remembered in `dedupe.store` for `ttl_seconds`; a replay with the same id
-    | re-streams the snapshot instead of re-running the LLM.
+    | Live voice calls with an agent (`ai.voice`). The browser talks to the
+    | voice service directly, and a `voice` queue worker joins each call to
+    | search the knowledge, run tools and save the transcript.
     |
-    */
-
-    /*
-    |--------------------------------------------------------------------------
-    | Voice conversations
-    |--------------------------------------------------------------------------
-    |
-    | Live voice calls with an agent (the OpenAI Realtime API, see
-    | chatvia.ai.voice). The browser talks to OpenAI directly; a `voice` queue
-    | worker joins each call to search the knowledge, run tools and save the
-    | transcript, so the number of calls at once is the `voice` Horizon
-    | supervisor's worker count (Settings → Platform → Queue workers).
+    | `max_call_minutes` is set in the admin panel (Settings → AI models),
+    | at most 25 so the job ends before the queue retries it. A call offers
+    | at most `max_tools` agent tools, fixed when it starts. The browser
+    | waits `join_timeout` seconds for the worker before it gives up.
     |
     */
 
     'voice' => [
-        // The longest call, in minutes (Settings → AI models). At most 25: the
-        // worker's job must end before the queue retries it (redis-long's
-        // retry_after, 1900 seconds).
         'max_call_minutes' => 10,
-
-        // The most agent tools a call offers, after knowledge search. A voice
-        // session's tools are fixed when it starts (no per-message routing),
-        // so a long tool list is cut here.
         'max_tools' => 20,
-
-        // How long the browser waits for the worker to join before it gives
-        // up with "busy", in seconds. The call's slot is held this long too.
         'join_timeout' => 20,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Stream Replays
+    |--------------------------------------------------------------------------
+    |
+    | A chat stream is remembered by the client's request id for
+    | `ttl_seconds` in the `store` cache store (null is the default store),
+    | so a retry with the same id replays the answer instead of asking the
+    | model again.
+    |
+    */
+
     'sse' => [
         'dedupe' => [
-            // Cache driver name from config/cache.php; null = default store.
             'store' => env('SSE_DEDUPE_STORE'),
             'ttl_seconds' => 600,
         ],
@@ -887,75 +646,60 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Widget (embeddable chat)
+    | Widget
     |--------------------------------------------------------------------------
     |
-    | The embed script URL and the language picker — which
-    | reads the shared `chatvia.languages` list above (no duplicate copy).
+    | `script_url_embed` is the widget's embed.js: a path on this server
+    | (the copy `npm run shakomako:build` puts in public/shakomako) or a full
+    | address, such as a CDN or the widget dev server. `reverb` is the public
+    | address of the WebSocket server, sent to the widget for live-agent
+    | handoff; empty means the server of the widget API.
+    |
+    | Every widget may load on this install's own host and on
+    | `extra_allowed_origins` (comma-separated hosts), on top of each
+    | agent's own sites. `stream_per_agent_per_minute` and `_per_hour` cap
+    | the replies one agent's widgets may stream, whatever the visitor's
+    | session or IP. The script, the extra hosts and the caps are set in the
+    | admin panel (Settings → Platform).
     |
     */
 
     'widget' => [
-        // The widget's embed.js: a path on this server or a full address. By
-        // default the copy this server builds into public/shakomako
-        // (`npm run shakomako:build`). The admin panel (Settings → Platform)
-        // can point it elsewhere, e.g. the widget dev server
-        // (http://localhost:3000/dist/embed.js) or a CDN. Read it through
-        // url(), which turns a path into a full address.
         'script_url_embed' => '/shakomako/embed.js',
 
-        // Public address of the Reverb (WebSocket) server for live-agent
-        // handoff, sent to the widget with its settings, so a widget build
-        // needs no Reverb settings of its own. The same values the dashboard
-        // is built with. Empty values mean "the server the widget API is on"
-        // (the Docker image forwards /app/ to Reverb).
         'reverb' => [
             'host' => env('VITE_REVERB_HOST'),
             'port' => env('VITE_REVERB_PORT'),
             'scheme' => env('VITE_REVERB_SCHEME'),
         ],
 
-        // Hosts every agent's widget may load on, on top of each agent's own
-        // allowed sites. Always this install's own host (from APP_URL), where
-        // the dashboard playground and hosted chat embed the widget, plus the
-        // extra hosts set in the admin panel (Settings → Platform), a
-        // comma-separated list such as "example.com,app.example.com", empty by
-        // default. An install never trusts an outside domain unless told to.
         'always_allowed_origins' => array_values(array_filter([
             strtolower((string) parse_url((string) env('APP_URL', ''), PHP_URL_HOST)),
         ])),
-        'extra_allowed_origins' => env('WIDGET_ALWAYS_ALLOWED_ORIGINS', ''),
+        'extra_allowed_origins' => '',
 
-        // Global per-agent ceilings for the LLM-cost widget stream, keyed on the
-        // server-resolved agent so a client cannot multiply its budget (and burn
-        // the owner's quota/spend) by rotating X-SESSION-ID or source IPs.
-        'stream_per_agent_per_minute' => (int) env('WIDGET_STREAM_PER_AGENT_PER_MINUTE', 120),
-        'stream_per_agent_per_hour' => (int) env('WIDGET_STREAM_PER_AGENT_PER_HOUR', 1500),
+        'stream_per_agent_per_minute' => 120,
+        'stream_per_agent_per_hour' => 1500,
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Security headers
+    | Security Headers
     |--------------------------------------------------------------------------
     |
-    | `csp` controls the ContentSecurityPolicy middleware:
-    |   - off          send no security headers at all
-    |   - report-only  send the policy as Content-Security-Policy-Report-Only:
-    |                  browsers only report what it would block, nothing breaks
-    |   - enforce      send Content-Security-Policy, plus X-Frame-Options and
-    |                  (production over HTTPS) HSTS
-    | `csp_report_uri` is an optional endpoint that receives the violation
-    | reports (the `report-uri` directive).
+    | `csp` is "off" (no security headers), "report-only" (browsers only
+    | report what the policy would block) or "enforce" (the policy, plus
+    | X-Frame-Options and, in production over HTTPS, HSTS). `csp_report_uri`
+    | receives the reports. `turnstile` lists the public forms that ask for
+    | the Cloudflare Turnstile bot check once its keys are saved. All are set
+    | in the admin panel (Settings → Security).
     |
     */
 
     'security' => [
-        'csp' => env('CSP_MODE', 'report-only'),
-        'csp_report_uri' => env('CSP_REPORT_URI'),
+        'csp' => 'report-only',
+        'csp_report_uri' => null,
 
-        // Which public forms ask for the Cloudflare Turnstile bot check once
-        // its keys (services.turnstile) are saved. Set in the admin panel
-        // (Settings → Security). See App\Http\Auth\BotCheck.
         'turnstile' => [
             'sign_up' => true,
             'sign_in' => false,
@@ -965,15 +709,13 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Unfinished features
+    | Unfinished Features
     |--------------------------------------------------------------------------
     |
-    | Install-wide switches for features that are not finished yet. While a
-    | switch is off, the feature's routes answer 404 (EnsureFeatureFlagIsOn)
-    | and the dashboard hides its entry points (shared as `features`).
-    |
-    | - youtube_sources: add YouTube videos as knowledge sources. Added
-    |   videos are saved but not ingested yet.
+    | Switches for features that are not finished. While one is off, the
+    | feature's routes answer 404 and the dashboard hides it.
+    | `youtube_sources` adds YouTube videos as knowledge sources; added
+    | videos are saved but not ingested yet.
     |
     */
 

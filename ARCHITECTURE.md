@@ -821,7 +821,7 @@ unless a row names another page, its setting is on **Settings → AI models**.
 | Speech to text | `Transcriber` | `scaleway`, `openai`, `none` | `chatvia.ai.transcriber` |
 | Voice calls | `RealtimeCalls` | `openai` (the Realtime API), `none` (the voice button is hidden) | `chatvia.ai.voice`, `services.openai.realtime_*`, `chatvia.voice.*` |
 | Summaries and PDF chat (whole PDFs) | `DocumentLlm` | `mistral`, `none` | `chatvia.ai.document_llm` |
-| Files | Laravel disks `private`, `public`, `assets` | local or S3-compatible (`private`, `public`; built by `StorageDisks`), Bunny CDN or local (`assets`) | `chatvia.storage` (Settings → Storage; `SCALEWAY_*` in `.env` as optional presets), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
+| Files | Laravel disks `private`, `assets` | local or S3-compatible (`private`; given the `s3` disk by `StorageDisks`), Bunny CDN or local (`assets`) | `filesystems.storage` + `filesystems.disks.s3` (Settings → Storage), `BUNNYCDN_STORAGE_ZONE` (`.env` only) |
 
 Everything an admin may want to change lives in the admin panel under
 **Settings**, not in `.env`: API keys and OAuth apps, the AI services, models
@@ -832,8 +832,9 @@ can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
 (error reports must work before the database loads), `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
 install), `TRUSTED_PROXIES`, and `CHATVIA_URI` (Chatvia's own site,
-chatvia.ai by default, read as `config('chatvia.uri')`: where license keys are
-sold and activated; set it only to test against a local copy of the site). The license public key stays fixed in
+chatvia.ai by default, the base of the `chatvia.license.*` URLs: where license
+keys are sold and activated; set it only to test against a local copy of the
+site). The license public key stays fixed in
 `config/chatvia.php`: whoever could set it could sign their own keys. Program paths (pdfinfo, pandoc, ffmpeg,
 WeasyPrint…) are in **Settings → Platform → Programs** (`ServerProgram`). The
 panel accepts only a program's own name or a full path that ends in it and
@@ -843,9 +844,10 @@ behind a setting still read `env()`, as an optional preset (Docker and Sail
 use a few, for example `MAIL_HOST` for Mailpit); a value saved in the admin
 panel always wins.
 
-The default disk is `private`, so knowledge files (and anything else stored
-without naming a disk) follow **Settings → Storage**: this server or
-S3-compatible storage.
+The default disk is `private`, so knowledge files, chat attachments (and
+anything else stored without naming a disk) follow **Settings → Storage**:
+this server or S3-compatible storage. Nothing on it has a public address:
+chunk images and chat attachments open through signed app routes.
 
 How it works:
 

@@ -27,7 +27,6 @@ use Illuminate\Support\Facades\Storage;
  */
 beforeEach(function (): void {
     Storage::fake();
-    Storage::fake('public');
     Storage::fake('assets');
     config(['cache.stores.chat' => ['driver' => 'array']]);
 });
@@ -80,7 +79,7 @@ it('removes the agent chats, leads, sources, settings, memory and files, then th
 
     $prefix = 'workspaces/'.$agent->workspaceExternalId().'/agents/'.$agent->external_id;
     Storage::put($prefix.'/notes.txt', 'x');
-    Storage::disk('public')->put($prefix.'/attachments/a.png', 'x');
+    Storage::disk(Attachment::DISK)->put($prefix.'/attachments/a.png', 'x');
     Storage::disk('assets')->put($prefix.'/settings/appearance/logo.png', 'x');
     Storage::put($file->filepath, 'x');
     Storage::put(KnowledgeStoragePath::forSource($file, 'images').'/page.jpg', 'x');
@@ -99,7 +98,7 @@ it('removes the agent chats, leads, sources, settings, memory and files, then th
         ->and(Cache::driver('chat')->tags([$tag])->has('memory'))->toBeFalse();
 
     Storage::assertMissing($prefix.'/notes.txt');
-    Storage::disk('public')->assertMissing($prefix.'/attachments/a.png');
+    Storage::disk(Attachment::DISK)->assertMissing($prefix.'/attachments/a.png');
     Storage::disk('assets')->assertMissing($prefix.'/settings/appearance/logo.png');
     expect(Storage::allFiles(KnowledgeStoragePath::forSource($file)))->toBe([]);
 });

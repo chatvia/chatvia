@@ -139,22 +139,20 @@ class BuildWidgetSettingsAction
      */
     private function showsBranding(): bool
     {
-        return (((array) config('chatvia.brand.powered_by'))['enabled'] ?? false) === true;
+        return config('chatvia.powered_by') === true;
     }
 
     /**
-     * The credit's label comes from `chatvia.brand.powered_by`; its link is
-     * always chatvia.ai, fixed here and in the widget, never a setting. The
-     * `enabled` flag mirrors `chatvia_branding` so cached widget bundles that
-     * only read this block still obey it.
+     * The credit's label and its link to chatvia.ai are fixed here and in
+     * the widget, never a setting. The `enabled` flag mirrors
+     * `chatvia_branding` so cached widget bundles that only read this block
+     * still obey it.
      */
     private function branding(bool $enabled): WidgetSettingsBrandingData
     {
-        $poweredBy = (array) config('chatvia.brand.powered_by');
-
         return new WidgetSettingsBrandingData(
             enabled: $enabled,
-            name: 'Powered by '.(($poweredBy['label'] ?? null) ?: config('chatvia.brand.name')),
+            name: 'Powered by Chatvia',
             url: 'https://chatvia.ai',
             logo_url: asset('images/logo.svg'),
         );

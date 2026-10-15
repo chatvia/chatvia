@@ -31,9 +31,9 @@ use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function (): void {
     // Deleting a chatter wipes its avatar tree on the assets disk and its
-    // attachment files on the public bucket; fake both so the delete tests
+    // attachment files on the private disk; fake both so the delete tests
     // stay hermetic and never reach real S3.
-    Storage::fake('public');
+    Storage::fake('private');
     Storage::fake('assets');
 
     $this->owner = User::factory()->create();

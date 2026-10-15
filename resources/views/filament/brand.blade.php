@@ -12,6 +12,6 @@
             <circle cx="53" cy="30" r="6" />
         </svg>
     </span>
-    <span class="cv-brand__name">{{ config('chatvia.brand.name') }}</span>
+    <span class="cv-brand__name">Chatvia</span>
     <span class="cv-brand__tag">Admin</span>
 </span>

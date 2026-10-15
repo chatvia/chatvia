@@ -420,7 +420,7 @@ class McpClient
     private function clientInfo(): array
     {
         return [
-            'name' => Str::slug((string) config('chatvia.brand.name')) ?: 'chatvia',
+            'name' => 'chatvia',
             'version' => self::CLIENT_VERSION,
         ];
     }

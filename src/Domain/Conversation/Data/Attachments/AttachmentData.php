@@ -10,8 +10,7 @@ use Spatie\LaravelData\Data;
  * Public-shape attachment returned to the widget and hosted chat. `id` is
  * the external_id (UUID) used to claim orphan rows in
  * {@see CreateConversationAction}.
- * `url` is publicly fetchable — Mistral and other URL-consuming services
- * hit it server-side.
+ * `url` is the signed link that opens the file.
  */
 class AttachmentData extends Data
 {

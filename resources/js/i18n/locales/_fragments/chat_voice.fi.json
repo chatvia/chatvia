@@ -14,6 +14,15 @@
         "unmute": "Ota mikrofoni käyttöön",
         "end": "Lopeta puhelu",
         "close": "Sulje",
+        "transcript": "Puhelun tekstiversio",
+        "tools": {
+            "knowledge": "Tietopankki",
+            "running": "Käynnissä…",
+            "done": "Valmis",
+            "held": "Odottaa hyväksyntääsi",
+            "failed": "Epäonnistui",
+            "cancelled": "Keskeytetty"
+        },
         "errors": {
             "not_supported": "Tällä selaimella ei voi soittaa puheluita.",
             "microphone_denied": "Salli mikrofonin käyttö, jotta voit puhua agentin kanssa.",

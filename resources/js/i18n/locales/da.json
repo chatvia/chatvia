@@ -3917,6 +3917,15 @@
             "microphone_not_found": "Der blev ikke fundet nogen mikrofon.",
             "busy": "Stemme er optaget lige nu. Prøv igen om et øjeblik.",
             "failed": "Stemmeopkaldet kunne ikke starte. Prøv igen."
+        },
+        "transcript": "Udskrift af samtalen",
+        "tools": {
+            "knowledge": "Vidensbase",
+            "running": "Arbejder…",
+            "done": "Færdig",
+            "held": "Venter på dit OK",
+            "failed": "Mislykkedes",
+            "cancelled": "Stoppet"
         }
     }
 }

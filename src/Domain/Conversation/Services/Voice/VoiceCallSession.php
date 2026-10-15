@@ -7,7 +7,9 @@ namespace Domain\Conversation\Services\Voice;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Voice\VoiceCallData;
+use Domain\Conversation\Data\Voice\VoiceToolResultData;
 use Domain\Conversation\Enums\VoiceCallRefusal;
+use Domain\Conversation\Enums\VoiceToolOutcome;
 use Domain\Conversation\Models\Conversation;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Knowledge\Ingestion\Models\Chunk;
@@ -30,7 +32,8 @@ use Illuminate\Support\Facades\Log;
  *   talk), as a typed turn always searches: left to choose, the model
  *   answered questions blind.
  * - It runs the tools the model calls ({@see VoiceToolRunner}) and asks for
- *   the next part of the reply. While a real search or tool runs, the agent
+ *   the next part of the reply. Each answer's item id says how the call
+ *   ended ({@see VoiceToolOutcome}), for the tool chips in the call view. While a real search or tool runs, the agent
  *   says a short "let me check" (not saved), and the reply follows once it
  *   has been said.
  * - A tool that needs a person's approval is held: the agent asks, and the
@@ -342,7 +345,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         if ($turn->refused || $turn->replyStored) {
             // Every call gets an answer, so the conversation stays valid.
             foreach ($calls as $call) {
-                $this->sendToolOutput($call['call_id'], self::CANCELLED_RESULT);
+                $this->cancelToolCall($call['call_id']);
             }
 
             return;
@@ -450,7 +453,7 @@ final class VoiceCallSession implements RealtimeCallHandler
      *
      * @param  array{call_id: string, name: string, arguments: string}  $call
      */
-    private function runTool(VoiceTurn $turn, array $call): string
+    private function runTool(VoiceTurn $turn, array $call): VoiceToolResultData
     {
         if (! $this->isGated($call)) {
             return $this->toolRunner->run($turn, $this->tools, $call['call_id'], $call['name'], $call['arguments']);
@@ -459,7 +462,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         if ($this->isHeld($turn, $call)) {
             $this->approvals->hold($call['name'], $call['arguments']);
 
-            return VoiceToolRunner::CONFIRM_FIRST_RESULT;
+            return new VoiceToolResultData(VoiceToolRunner::CONFIRM_FIRST_RESULT, VoiceToolOutcome::Held);
         }
 
         $this->approvals->release($call['name'], $call['arguments']);
@@ -508,7 +511,7 @@ final class VoiceCallSession implements RealtimeCallHandler
 
         if ($turn->refused || $this->hangingUp) {
             foreach ($calls as $call) {
-                $this->sendToolOutput($call['call_id'], self::CANCELLED_RESULT);
+                $this->cancelToolCall($call['call_id']);
             }
 
             return;
@@ -522,7 +525,7 @@ final class VoiceCallSession implements RealtimeCallHandler
     {
         foreach ($this->turns as $turn) {
             foreach ($turn->parkedCalls as $call) {
-                $this->sendToolOutput($call['call_id'], self::CANCELLED_RESULT);
+                $this->cancelToolCall($call['call_id']);
             }
 
             $turn->parkedCalls = [];
@@ -579,12 +582,23 @@ final class VoiceCallSession implements RealtimeCallHandler
         $this->waitingToolChoice = null;
     }
 
-    private function sendToolOutput(string $callId, string $output): void
+    private function sendToolOutput(string $callId, VoiceToolResultData $result): void
     {
         $this->send([
             'type' => 'conversation.item.create',
-            'item' => ['type' => 'function_call_output', 'call_id' => $callId, 'output' => $output],
+            'item' => [
+                'id' => $result->outcome->itemId(),
+                'type' => 'function_call_output',
+                'call_id' => $callId,
+                'output' => $result->output,
+            ],
         ]);
+    }
+
+    /** Answer a call of a turn that will not go on, so the conversation stays valid. */
+    private function cancelToolCall(string $callId): void
+    {
+        $this->sendToolOutput($callId, new VoiceToolResultData(self::CANCELLED_RESULT, VoiceToolOutcome::Cancelled));
     }
 
     /**

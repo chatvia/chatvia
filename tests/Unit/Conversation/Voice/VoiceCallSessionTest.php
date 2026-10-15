@@ -207,7 +207,10 @@ it('says "let me check" while it searches, then asks for the rest of the reply',
     $output = $connection->ofType('conversation.item.create')[0]['item'];
     expect($output['type'])->toBe('function_call_output')
         ->and($output['call_id'])->toBe('fc_1')
-        ->and($output['output'])->toContain('Nine to five, Monday to Friday.');
+        ->and($output['output'])->toContain('Nine to five, Monday to Friday.')
+        // The call view reads how the call ended off the id; the provider allows 32 characters.
+        ->and($output['id'])->toStartWith('tool_done_')
+        ->and(strlen($output['id']))->toBeLessThanOrEqual(32);
 
     // The answer waits until "let me check" has been said.
     $session->received(['type' => 'response.created', 'response' => ['id' => 'resp_filler', 'metadata' => ['notice' => '1', 'filler' => '1']]]);
@@ -243,7 +246,10 @@ it('refuses a tool the call did not offer', function (): void {
     $this->session->received(['type' => 'response.created', 'response' => ['id' => 'resp_1', 'metadata' => ['turn' => 'item_1']]]);
     $this->session->received(toolCallResponse('resp_1', 'delete_everything', '{}'));
 
-    expect($this->connection->ofType('conversation.item.create')[0]['item']['output'])->toContain('is not one of the tools');
+    $output = $this->connection->ofType('conversation.item.create')[0]['item'];
+
+    expect($output['output'])->toContain('is not one of the tools')
+        ->and($output['id'])->toStartWith('tool_failed_');
 });
 
 it('goes on after "let me check" even when it never finishes', function (): void {
@@ -370,6 +376,45 @@ describe('actions that need approval', function (): void {
         expect(app(VoiceToolCatalog::class)->for($this->agent, $this->conversation->external_id))->toHaveKey($this->tool);
     });
 
+    it('names them for the call view', function (): void {
+        $catalog = app(VoiceToolCatalog::class);
+        $labels = $catalog->labels($this->agent, $catalog->for($this->agent, $this->conversation->external_id));
+
+        expect($labels)->toHaveKey($this->tool)
+            ->and($labels[$this->tool]->kind)->toBe(ToolKind::Mcp)
+            ->and($labels[$this->tool]->label)->toBe('stripe')
+            ->and($labels[$this->tool]->action)->toBe('send_stripe_feedback');
+    });
+
+    it('tells the call view a held action is not done yet, and when a run failed', function (): void {
+        $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::error('Stripe is down.'));
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        visitorSays($this->session, 'item_2', 'Yes, send it.');
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+
+        [$held, $failed] = array_column($this->connection->ofType('conversation.item.create'), 'item');
+
+        expect($held['id'])->toStartWith('tool_held_')
+            ->and($failed['id'])->toStartWith('tool_failed_');
+    });
+
+    it('answers a waiting yes the visitor talked over as cancelled', function (): void {
+        $this->dispatcher->shouldNotReceive('dispatch');
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_2']);
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+        $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_3']);
+
+        $output = array_last($this->connection->ofType('conversation.item.create'))['item'];
+
+        expect($output['call_id'])->toBe('fc_2')
+            ->and($output['id'])->toStartWith('tool_cancelled_');
+    });
+
     it('holds the action and has the model ask first', function (): void {
         $this->dispatcher->shouldNotReceive('dispatch');
 
@@ -395,7 +440,8 @@ describe('actions that need approval', function (): void {
         $this->session->received(toolCallResponse('resp_2', $this->tool, '{ "feedback": "Thank you!" }', 'fc_2', 'item_2'));
 
         $outputs = $this->connection->ofType('conversation.item.create');
-        expect(array_last($outputs)['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.']);
+        expect(array_last($outputs)['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.'])
+            ->and(array_last($outputs)['item']['id'])->toStartWith('tool_done_');
         Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $event): bool => $event->approvalOutcome === 'approved'
             && $event->gated
             && $event->decidedAt !== null

@@ -3792,6 +3792,15 @@
             "microphone_not_found": "Không tìm thấy micrô.",
             "busy": "Giọng nói đang bận. Vui lòng thử lại sau giây lát.",
             "failed": "Không thể bắt đầu cuộc gọi thoại. Vui lòng thử lại."
+        },
+        "transcript": "Bản ghi cuộc gọi",
+        "tools": {
+            "knowledge": "Cơ sở kiến thức",
+            "running": "Đang chạy…",
+            "done": "Xong",
+            "held": "Đang chờ bạn đồng ý",
+            "failed": "Thất bại",
+            "cancelled": "Đã dừng"
         }
     }
 }

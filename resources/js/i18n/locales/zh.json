@@ -3792,6 +3792,15 @@
             "microphone_not_found": "未找到麦克风。",
             "busy": "语音服务正忙，请稍后再试。",
             "failed": "无法开始语音通话，请重试。"
+        },
+        "transcript": "通话记录",
+        "tools": {
+            "knowledge": "知识库",
+            "running": "进行中…",
+            "done": "完成",
+            "held": "等待您确认",
+            "failed": "失败",
+            "cancelled": "已停止"
         }
     }
 }

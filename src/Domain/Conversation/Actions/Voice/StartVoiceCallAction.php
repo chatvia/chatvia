@@ -15,6 +15,7 @@ use Domain\Conversation\Services\Voice\VoiceAvailability;
 use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
 use Domain\Conversation\Services\Voice\VoiceSessionConfig;
+use Domain\Conversation\Services\Voice\VoiceToolCatalog;
 use Domain\Conversation\Services\Voice\VoiceTurnGate;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Enums\RealtimeVoice;
@@ -45,6 +46,7 @@ class StartVoiceCallAction
         private readonly VoiceSessionConfig $sessionConfig,
         private readonly VoiceCallSlots $slots,
         private readonly VoiceCallStore $store,
+        private readonly VoiceToolCatalog $tools,
     ) {}
 
     public function execute(VoiceCallerData $caller, string $offerSdp): VoiceCallStartedData
@@ -80,9 +82,10 @@ class StartVoiceCallAction
         }
 
         $voice = RealtimeVoice::forSetting($agent->settings('appearance')->get('voice'));
+        $tools = $this->tools->for($agent, $caller->conversationId);
 
         try {
-            $opened = $this->calls->create($offerSdp, $this->sessionConfig->build($caller, $voice), $this->safetyId($caller));
+            $opened = $this->calls->create($offerSdp, $this->sessionConfig->build($caller, $voice, $tools), $this->safetyId($caller));
         } catch (RealtimeCallFailedException $e) {
             $this->slots->release($callId);
             report($e);
@@ -101,6 +104,8 @@ class StartVoiceCallAction
             conversation_id: $caller->conversationId,
             max_seconds: $call->max_seconds,
             join_timeout: $joinTimeout,
+            tools: $this->tools->labels($agent, $tools),
+            knowledge_tool: VoiceToolCatalog::KNOWLEDGE_TOOL,
         );
     }
 

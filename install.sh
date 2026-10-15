@@ -1,31 +1,52 @@
 #!/usr/bin/env bash
 #
-# Chatvia installer: runs Chatvia on this machine with Docker.
+# Chatvia installer: runs Chatvia on this machine.
 #
 #   curl -fsSL https://chatvia.ai/install.sh | bash
 #
-# It checks Docker (and offers to install it), asks a few questions, writes
-# compose.yaml, .env and the `manage` tool into the install folder, saves
-# PostgreSQL's settings to postgres/postgresql.conf there, starts Chatvia and
-# prints where to sign in. Run it again in the same folder (or ./manage
-# upgrade) to upgrade.
+# It installs Chatvia in one of two ways (on Linux it asks which):
 #
-# .env always names one exact version, like 1.4.2: the installer looks up
-# which release "latest" (or 1.4) is and saves that.
+# - With Docker (the default, and the only way on macOS). It checks Docker
+#   (and offers to install it), asks a few questions, writes compose.yaml,
+#   .env and the `manage` tool into the install folder, saves PostgreSQL's
+#   settings to postgres/postgresql.conf there, starts Chatvia and prints
+#   where to sign in. Run it again in the same folder (or ./manage upgrade)
+#   to upgrade. .env always names one exact version, like 1.4.2: the
+#   installer looks up which release "latest" (or 1.4) is and saves that.
+#
+# - Complete installation: everything directly on a fresh Ubuntu 26.04
+#   server, without Docker. It installs and sets up PostgreSQL with the
+#   search extensions, Redis, PHP-FPM, nginx, a Let's Encrypt certificate,
+#   Supervisor, cron and the firewall, creates the `chatvia` user, and
+#   deploys the newest release with Deployer into /var/www/chatvia. It runs
+#   as root (it starts itself again with sudo). Run it again to upgrade, or
+#   to finish an install that stopped.
 #
 # Options (each also works as an environment variable):
-#   --dir PATH          install folder               CHATVIA_DIR (~/chatvia)
+#   --docker            install with Docker, without asking  CHATVIA_INSTALL=docker
+#   --complete          complete installation, without asking CHATVIA_INSTALL=complete
 #   --email EMAIL       first admin's e-mail         CHATVIA_ADMIN_EMAIL
-#   --port PORT         port on this machine         CHATVIA_PORT (8899, or the next free one)
-#   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
 #   --version VERSION   latest, 1.4 or 1.4.2         CHATVIA_VERSION (latest: the newest)
-#   --image NAME        image name, without version  CHATVIA_IMAGE (ghcr.io/chatvia/chatvia)
-#   --no-pull           use the image already on this machine (a local build)
 #   --yes               no questions: use the options and the defaults
 #   --upgrade           upgrade an existing install without asking
-#   --no-start          upgrade: get the version ready, but start nothing
 #   --dry-run           show what would happen and change nothing
 #   -h, --help          show this help
+#
+# Only with Docker:
+#   --dir PATH          install folder               CHATVIA_DIR (~/chatvia)
+#   --port PORT         port on this machine         CHATVIA_PORT (8899, or the next free one)
+#   --url URL           address people open          CHATVIA_URL (http://localhost:PORT)
+#   --image NAME        image name, without version  CHATVIA_IMAGE (ghcr.io/chatvia/chatvia)
+#   --no-pull           use the image already on this machine (a local build)
+#   --no-start          upgrade: get the version ready, but start nothing
+#
+# Only with the complete installation:
+#   --domain NAME       domain name or IP address people open   CHATVIA_DOMAIN
+#   --no-https          no Let's Encrypt certificate (HTTP only) CHATVIA_HTTPS=no
+#   --no-firewall       leave the firewall (ufw) as it is        CHATVIA_FIREWALL=no
+#   --force             install on a server that is not fresh    CHATVIA_FORCE=1
+#   --version also takes a branch, like main, to install code that is not
+#   a release yet.
 #
 # Only as environment variables:
 #   CHATVIA_ADMIN_PASSWORD        the first admin's password (else a random one)
@@ -33,6 +54,9 @@
 #   CHATVIA_EMBEDDING_DIMENSIONS  1024 (default)
 #   CHATVIA_COMPOSE_URL           where to download compose.yaml from
 #   CHATVIA_MANAGE_URL            where to download the manage tool from
+#   CHATVIA_REPO                  complete: the Git repository to deploy
+#   CHATVIA_SWAP                  complete: yes or no to add swap (else: when memory is low)
+#   CHATVIA_INSTALLER_URL         complete: where to download this installer to run it with sudo
 #   NO_COLOR                      plain output
 #
 # Everything runs inside main(), called on the last line, so a download that
@@ -49,6 +73,29 @@ readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12
+readonly INSTALLER_URL="https://chatvia.ai/install.sh"
+
+# The complete installation. The extension versions are the ones in the
+# tensorchord/vchord-suite image that the Docker install uses.
+readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/self-hosting/ubuntu"
+readonly NATIVE_UBUNTU="26.04"
+readonly NATIVE_REPO="https://github.com/chatvia/chatvia.git"
+readonly NATIVE_USER="chatvia"
+readonly NATIVE_HOME="/home/chatvia"
+readonly NATIVE_ROOT="/var/www/chatvia"
+readonly NATIVE_DEPLOY_DIR="/home/chatvia/deploy"
+readonly NATIVE_CONF="/etc/chatvia/install.conf"
+readonly NATIVE_LOG="/var/log/chatvia-install.log"
+readonly NATIVE_BACKUPS="/var/backups/chatvia"
+readonly NATIVE_PHP="8.5"
+readonly NATIVE_PG="18"
+readonly VCHORD_VERSION="1.1.1"
+readonly VCHORD_BM25_VERSION="0.3.0"
+readonly PG_TOKENIZER_VERSION="0.1.1"
+readonly DEPLOYER_VERSION="^8.0"
+readonly MIN_NODE_VERSION="22.18.0"
+# Less memory than this, and no swap: the frontend build may run out.
+readonly SWAP_BELOW_KB=3500000
 
 #------------------------------------------------------------------------------
 # Output
@@ -1412,19 +1459,7 @@ collect_settings() {
         return
     fi
 
-    ask ADMIN_EMAIL 'Admin e-mail' --default "${CHATVIA_ADMIN_EMAIL:-}" \
-        --placeholder 'you@example.com' --hint 'The first admin account signs in with it.' \
-        --check valid_email
-
-    choose 'Admin password' \
-        'Create a strong one for me  — shown once at the end' \
-        'I will type my own'
-    if [ "$CHOICE" = 0 ]; then
-        ADMIN_PASS=$(random_password)
-        PASSWORD_GENERATED=1
-    else
-        ask_secret ADMIN_PASS 'Your password'
-    fi
+    ask_admin
 
     ask APP_PORT 'Port on this computer' --default "$default_port" \
         --check valid_port --status port_status
@@ -1439,9 +1474,32 @@ collect_settings() {
             --hint 'The full address people open, without a path.' --check valid_url
     fi
 
+    ask_setup
+}
+
+# The first admin's e-mail and password. Shared by both kinds of install.
+ask_admin() {
+    ask ADMIN_EMAIL 'Admin e-mail' --default "${CHATVIA_ADMIN_EMAIL:-}" \
+        --placeholder 'you@example.com' --hint 'The first admin account signs in with it.' \
+        --check valid_email
+
+    choose 'Admin password' \
+        'Create a strong one for me  — shown once at the end' \
+        'I will type my own'
+    if [ "$CHOICE" = 0 ]; then
+        ADMIN_PASS=$(random_password)
+        PASSWORD_GENERATED=1
+    else
+        ask_secret ADMIN_PASS 'Your password'
+    fi
+}
+
+# Recommended settings, or the search storage and the version. Shared by
+# both kinds of install.
+ask_setup() {
     choose 'Setup' \
         'Recommended settings  — best for almost everyone' \
-        'Custom  — choose how search data is stored'
+        'Custom  — choose how search data is stored, and the version'
     if [ "$CHOICE" = 0 ]; then
         EMBEDDING_TYPE=halfvec
         EMBEDDING_DIMENSIONS=1024
@@ -1470,8 +1528,9 @@ collect_settings() {
         *) EMBEDDING_DIMENSIONS=2048 ;;
     esac
 
-    ask CHATVIA_VERSION 'Chatvia version' --default "$CHATVIA_VERSION" \
-        --hint 'latest, or a version number like 1.2.0'
+    local hint='latest, or a version number like 1.2.0'
+    if [ "$MODE" = complete ]; then hint="$hint, or a branch like main (not a release)"; fi
+    ask CHATVIA_VERSION 'Chatvia version' --default "$CHATVIA_VERSION" --hint "$hint"
 }
 
 show_summary() {
@@ -1562,11 +1621,17 @@ env_value() {
 
 # env_with KEY VALUE: .env with the line KEY= changed (or added), on stdout.
 env_with() {
-    awk -v key="$1" -v value="$2" '
+    file_with "$INSTALL_DIR/.env" "$1" "$2"
+}
+
+# file_with FILE KEY VALUE: FILE with the line KEY= changed (or added), on
+# stdout.
+file_with() {
+    awk -v key="$2" -v value="$3" '
         index($0, key "=") == 1 { if (!done) print key "=" value; done = 1; next }
         { print }
         END { if (!done) print key "=" value }
-    ' "$INSTALL_DIR/.env"
+    ' "$1"
 }
 
 # set_env_value KEY VALUE: changes the line in .env, or adds it.

@@ -14,6 +14,15 @@
         "unmute": "Turn microphone on",
         "end": "End call",
         "close": "Close",
+        "transcript": "Call transcript",
+        "tools": {
+            "knowledge": "Knowledge base",
+            "running": "Working…",
+            "done": "Done",
+            "held": "Waiting for your OK",
+            "failed": "Failed",
+            "cancelled": "Stopped"
+        },
         "errors": {
             "not_supported": "This browser can't make voice calls.",
             "microphone_denied": "Allow microphone access to talk with the agent.",

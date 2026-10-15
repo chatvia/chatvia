@@ -3925,6 +3925,15 @@
             "microphone_not_found": "No microphone was found.",
             "busy": "Voice is busy right now. Please try again in a moment.",
             "failed": "The voice call could not start. Please try again."
+        },
+        "transcript": "Call transcript",
+        "tools": {
+            "knowledge": "Knowledge base",
+            "running": "Working…",
+            "done": "Done",
+            "held": "Waiting for your OK",
+            "failed": "Failed",
+            "cancelled": "Stopped"
         }
     }
 }

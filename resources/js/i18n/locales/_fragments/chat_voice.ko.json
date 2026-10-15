@@ -14,6 +14,15 @@
         "unmute": "마이크 켜기",
         "end": "통화 종료",
         "close": "닫기",
+        "transcript": "통화 기록",
+        "tools": {
+            "knowledge": "지식 베이스",
+            "running": "실행 중…",
+            "done": "완료",
+            "held": "승인 대기 중",
+            "failed": "실패",
+            "cancelled": "중단됨"
+        },
         "errors": {
             "not_supported": "이 브라우저에서는 음성 통화를 할 수 없습니다.",
             "microphone_denied": "에이전트와 대화하려면 마이크 접근을 허용하세요.",

@@ -14,6 +14,15 @@
         "unmute": "Slå på mikrofonen",
         "end": "Avslutt samtalen",
         "close": "Lukk",
+        "transcript": "Utskrift av samtalen",
+        "tools": {
+            "knowledge": "Kunnskapsbase",
+            "running": "Jobber…",
+            "done": "Ferdig",
+            "held": "Venter på ditt OK",
+            "failed": "Mislyktes",
+            "cancelled": "Stoppet"
+        },
         "errors": {
             "not_supported": "Denne nettleseren kan ikke ta stemmesamtaler.",
             "microphone_denied": "Gi tilgang til mikrofonen for å snakke med agenten.",

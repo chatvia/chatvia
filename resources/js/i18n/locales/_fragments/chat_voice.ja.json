@@ -14,6 +14,15 @@
         "unmute": "マイクをオンにする",
         "end": "通話を終了",
         "close": "閉じる",
+        "transcript": "通話の文字起こし",
+        "tools": {
+            "knowledge": "ナレッジベース",
+            "running": "実行中…",
+            "done": "完了",
+            "held": "承認待ち",
+            "failed": "失敗",
+            "cancelled": "中止"
+        },
         "errors": {
             "not_supported": "このブラウザでは音声通話ができません。",
             "microphone_denied": "エージェントと話すにはマイクへのアクセスを許可してください。",

@@ -33,6 +33,8 @@ let smoothLevel = 0;
 let base: Rgb = [79, 70, 229];
 let reducedMotion = false;
 let motionQuery: MediaQueryList | null = null;
+// The call view shrinks the orb once the transcript starts, so follow the canvas's own size.
+let sizeObserver: ResizeObserver | null = null;
 
 /** Turns any CSS color (oklch, hex, rgb…) into RGB by painting one pixel. */
 function toRgb(color: string): Rgb | null {
@@ -181,7 +183,8 @@ onMounted(() => {
 
     readColor();
     resize();
-    window.addEventListener('resize', resize);
+    sizeObserver = new ResizeObserver(resize);
+    if (canvas.value) sizeObserver.observe(canvas.value);
     frame = requestAnimationFrame(draw);
 });
 
@@ -190,7 +193,7 @@ watch(() => props.mode, readColor);
 
 onBeforeUnmount(() => {
     if (frame !== null) cancelAnimationFrame(frame);
-    window.removeEventListener('resize', resize);
+    sizeObserver?.disconnect();
     motionQuery?.removeEventListener('change', onMotionChange);
 });
 </script>

@@ -70,7 +70,8 @@ it('opens a hosted-chat call in a new conversation and sends a worker to join it
     $response = $this->postJson($this->chat.'/voice', ['sdp' => 'v=0 offer'])
         ->assertOk()
         ->assertJsonPath('sdp', 'v=0 answer')
-        ->assertJsonStructure(['sdp', 'call_id', 'conversation_id', 'max_seconds', 'join_timeout']);
+        ->assertJsonStructure(['sdp', 'call_id', 'conversation_id', 'max_seconds', 'join_timeout', 'tools', 'knowledge_tool'])
+        ->assertJsonPath('knowledge_tool', 'search_knowledge');
 
     $conversation = Conversation::query()->where('external_id', $response->json('conversation_id'))->firstOrFail();
     expect($conversation->agent_id)->toBe($this->agent->id);

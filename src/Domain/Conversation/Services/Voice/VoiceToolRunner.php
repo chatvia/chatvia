@@ -8,6 +8,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
+use Domain\Conversation\Data\Voice\VoiceToolResultData;
+use Domain\Conversation\Enums\VoiceToolOutcome;
 use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\KnowledgeEnricher;
@@ -25,7 +27,8 @@ use Illuminate\Support\Str;
 
 /**
  * Runs a tool the model calls during a voice call, on the server, and
- * returns the text the model reads back. Knowledge search goes through the
+ * returns the text the model reads back with how the call ended (for the
+ * tool's chip in the call view). Knowledge search goes through the
  * typed turn's lookup (Q&A, search, relevance check, injection scan); every
  * other tool goes through the same governance as a typed turn — the access
  * decision, the rate limit, the dispatcher and the audit log.
@@ -73,10 +76,10 @@ final readonly class VoiceToolRunner
     /**
      * @param  array<string, ToolEntry>  $tools  the call's tools, by name
      */
-    public function run(VoiceTurn $turn, array $tools, string $callId, string $name, string $arguments): string
+    public function run(VoiceTurn $turn, array $tools, string $callId, string $name, string $arguments): VoiceToolResultData
     {
         if ($name === VoiceToolCatalog::KNOWLEDGE_TOOL) {
-            return $this->searchKnowledge($turn, $arguments);
+            return new VoiceToolResultData($this->searchKnowledge($turn, $arguments), VoiceToolOutcome::Done);
         }
 
         $context = $turn->context;
@@ -96,13 +99,13 @@ final readonly class VoiceToolRunner
                 label: null,
             ), ToolCallOutcome::NotOffered, ToolDispatchResult::error($message));
 
-            return $message;
+            return new VoiceToolResultData($message, VoiceToolOutcome::Failed);
         }
 
         $decision = $this->access->decide($agent, ToolName::parse($name));
 
         if ($decision === ToolAccessDecision::RequiresApproval) {
-            return self::NEEDS_APPROVAL_RESULT;
+            return new VoiceToolResultData(self::NEEDS_APPROVAL_RESULT, VoiceToolOutcome::Held);
         }
 
         $call = $this->pendingCall($agent, $callId, $name, $arguments, $decision);
@@ -110,7 +113,7 @@ final readonly class VoiceToolRunner
         if ($decision === ToolAccessDecision::Deny) {
             $this->audit->record($context, $call, ToolCallOutcome::RateLimited, ToolDispatchResult::error(ToolLoopRunner::RATE_LIMITED_RESULT));
 
-            return ToolLoopRunner::RATE_LIMITED_RESULT;
+            return new VoiceToolResultData(ToolLoopRunner::RATE_LIMITED_RESULT, VoiceToolOutcome::Failed);
         }
 
         return $this->dispatch($turn, $call, ToolCallOutcome::Auto);
@@ -122,14 +125,14 @@ final readonly class VoiceToolRunner
      * record of the yes. Like an approved typed call it is not rate limited:
      * the person in the loop is the limit.
      */
-    public function runApproved(VoiceTurn $turn, string $callId, string $name, string $arguments): string
+    public function runApproved(VoiceTurn $turn, string $callId, string $name, string $arguments): VoiceToolResultData
     {
         $call = $this->pendingCall($turn->context->requestData->agent, $callId, $name, $arguments, ToolAccessDecision::RequiresApproval);
 
         return $this->dispatch($turn, $call, ToolCallOutcome::Approved, $turn->words);
     }
 
-    private function dispatch(VoiceTurn $turn, PendingToolCallData $call, ToolCallOutcome $outcome, ?string $decisionNote = null): string
+    private function dispatch(VoiceTurn $turn, PendingToolCallData $call, ToolCallOutcome $outcome, ?string $decisionNote = null): VoiceToolResultData
     {
         $context = $turn->context;
         $startedAt = microtime(true);
@@ -152,7 +155,10 @@ final readonly class VoiceToolRunner
             decisionNote: $decisionNote,
         );
 
-        return Str::limit($result->text, self::MAX_RESULT_LENGTH);
+        return new VoiceToolResultData(
+            Str::limit($result->text, self::MAX_RESULT_LENGTH),
+            $result->isError ? VoiceToolOutcome::Failed : VoiceToolOutcome::Done,
+        );
     }
 
     private function pendingCall(Agent $agent, string $callId, string $name, string $arguments, ToolAccessDecision $access): PendingToolCallData

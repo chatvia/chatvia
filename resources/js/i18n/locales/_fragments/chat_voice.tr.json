@@ -14,6 +14,15 @@
         "unmute": "Mikrofonu aç",
         "end": "Görüşmeyi bitir",
         "close": "Kapat",
+        "transcript": "Görüşme dökümü",
+        "tools": {
+            "knowledge": "Bilgi bankası",
+            "running": "Çalışıyor…",
+            "done": "Tamamlandı",
+            "held": "Onayınızı bekliyor",
+            "failed": "Başarısız",
+            "cancelled": "Durduruldu"
+        },
         "errors": {
             "not_supported": "Bu tarayıcı sesli görüşme yapamıyor.",
             "microphone_denied": "Ajanla konuşmak için mikrofon erişimine izin verin.",

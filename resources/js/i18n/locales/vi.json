@@ -1243,7 +1243,7 @@
                 "soon": "Sắp ra mắt",
                 "connect_first": "Hãy kết nối MCP này trong Cài đặt trước",
                 "column_always": "Luôn bật",
-                "always_hint": "Cung cấp các công cụ của trình kết nối này ở mọi lượt, kể cả khi tin nhắn không rõ ràng cần đến chúng. Mỗi trợ lý AI có tối đa 10 công cụ luôn bật.",
+                "always_hint": "Theo mặc định, trợ lý AI chỉ chọn những công cụ mà mỗi tin nhắn cần. Bật tùy chọn này để gửi các công cụ của trình kết nối này kèm mọi tin nhắn, kể cả khi tin nhắn có vẻ không cần đến chúng. Mỗi trợ lý AI có tối đa 10 công cụ luôn bật.",
                 "always_failed": "Không cập nhật được cài đặt luôn bật"
             },
             "functions": {

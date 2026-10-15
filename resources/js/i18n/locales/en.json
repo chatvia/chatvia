@@ -1357,7 +1357,7 @@
                 "soon": "Soon",
                 "connect_first": "Connect this MCP in Settings first",
                 "column_always": "Always on",
-                "always_hint": "Offer this connector's tools on every turn, even when the message doesn't obviously need them. At most 10 always-on tools per agent.",
+                "always_hint": "By default, the agent picks only the tools each message needs. Turn this on to send this connector's tools with every message, even when the message doesn't seem to need them. At most 10 always-on tools per agent.",
                 "always_failed": "Failed to update the always-on setting"
             },
             "functions": {

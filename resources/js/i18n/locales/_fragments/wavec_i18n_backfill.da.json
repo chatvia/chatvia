@@ -14,7 +14,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Altid aktiv",
-                "always_hint": "Tilbyd denne forbindelses værktøjer i hver tur, også når beskeden ikke tydeligt har brug for dem. Højst 10 altid aktive værktøjer pr. agent.",
+                "always_hint": "Som standard vælger agenten kun de værktøjer, hver besked har brug for. Slå dette til for at sende denne forbindelses værktøjer med hver besked, også når beskeden ikke ser ud til at have brug for dem. Højst 10 altid aktive værktøjer pr. agent.",
                 "always_failed": "Det lykkedes ikke at opdatere indstillingen “Altid aktiv”"
             }
         },

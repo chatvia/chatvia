@@ -14,7 +14,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Alltid på",
-                "always_hint": "Erbjud den här kopplingens verktyg i varje tur, även när meddelandet inte uppenbart behöver dem. Högst 10 alltid aktiva verktyg per agent.",
+                "always_hint": "Som standard väljer agenten bara de verktyg som varje meddelande behöver. Slå på detta för att skicka den här kopplingens verktyg med varje meddelande, även när meddelandet inte verkar behöva dem. Högst 10 alltid aktiva verktyg per agent.",
                 "always_failed": "Det gick inte att uppdatera inställningen Alltid på"
             }
         },

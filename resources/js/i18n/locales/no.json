@@ -1357,7 +1357,7 @@
                 "soon": "Snart",
                 "connect_first": "Koble til dette MCP-et i innstillingene først",
                 "column_always": "Alltid på",
-                "always_hint": "Tilby verktøyene til denne koblingen i hver runde, selv når meldingen ikke åpenbart trenger dem. Maks 10 alltid aktive verktøy per agent.",
+                "always_hint": "Som standard velger agenten bare verktøyene hver melding trenger. Slå på dette for å sende verktøyene til denne koblingen med hver melding, selv når meldingen ikke ser ut til å trenge dem. Maks 10 alltid aktive verktøy per agent.",
                 "always_failed": "Kunne ikke oppdatere Alltid på-innstillingen"
             },
             "functions": {

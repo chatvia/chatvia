@@ -14,7 +14,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Selalu aktif",
-                "always_hint": "Tawarkan alat konektor ini di setiap giliran, bahkan saat pesan tidak jelas membutuhkannya. Maksimal 10 alat selalu aktif per agen.",
+                "always_hint": "Secara default, agen hanya memilih alat yang dibutuhkan setiap pesan. Aktifkan ini untuk mengirim alat konektor ini bersama setiap pesan, bahkan saat pesan tidak tampak membutuhkannya. Maksimal 10 alat selalu aktif per agen.",
                 "always_failed": "Gagal memperbarui pengaturan selalu aktif"
             }
         },

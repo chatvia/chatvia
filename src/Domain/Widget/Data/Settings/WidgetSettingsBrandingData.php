@@ -9,8 +9,7 @@ use Spatie\TypeScriptTransformer\Attributes\TypeScript;
 
 /**
  * "Powered by …" branding block embedded in the widget settings payload. The
- * label and link come from `chatvia.brand.powered_by`; `url` is empty when no
- * link is configured.
+ * label comes from `chatvia.brand.powered_by`; `url` is always chatvia.ai.
  */
 #[TypeScript]
 class WidgetSettingsBrandingData extends Data

@@ -17,10 +17,11 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
 
 /**
- * The "Powered by Chatvia" credit. Hiding it needs a license key activated
- * for this install's domain ({@see CreditLicense}): the page activates a new
- * key at chatvia.ai before it saves it ({@see LicenseActivation}), and does
- * not turn the credit off without a valid one.
+ * Settings → Branding: the "Powered by Chatvia" credit, and a link to hire
+ * the developer. Hiding the credit needs a license key activated for this
+ * install's domain ({@see CreditLicense}): the page activates a new key at
+ * chatvia.ai before it saves it ({@see LicenseActivation}), and does not
+ * turn the credit off without a valid one.
  */
 class ManageBrandSettings extends AdminSettingsPage
 {
@@ -28,10 +29,10 @@ class ManageBrandSettings extends AdminSettingsPage
     protected static string $settings = BrandSettings::class;
 
     #[\Override]
-    protected static ?string $title = 'Brand';
+    protected static ?string $title = 'Branding';
 
     #[\Override]
-    protected static ?string $slug = 'brand';
+    protected static ?string $slug = 'branding';
 
     #[\Override]
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
@@ -41,7 +42,7 @@ class ManageBrandSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'The "Powered by Chatvia" credit.';
+        return 'The "Powered by Chatvia" credit, and help from the developer.';
     }
 
     public static function overviewGroup(): string
@@ -82,14 +83,32 @@ class ManageBrandSettings extends AdminSettingsPage
                 $this->secret('license_key', 'License key', 'Paste the whole key from your email. Saving it activates the license at chatvia.ai.', required: false),
                 $this->licenseCallout(),
             ])->summary(fn (): string => $this->summary()),
+            SettingsCard::make('hire_me', 'Hire me', 'Custom features, setup and support from the developer of Chatvia.', Heroicon::OutlinedBriefcase, fn (): array => [
+                $this->hireMeCallout(),
+            ])->summary(fn (): string => 'mayahi.net'),
         ];
+    }
+
+    /** The developer's services, for installs that want help with Chatvia. */
+    private function hireMeCallout(): Callout
+    {
+        return Callout::make('Need help with Chatvia?')
+            ->description('I build Chatvia. I can add custom features, set it up on your servers, connect it to your own systems, and help your team run it.')
+            ->icon(Heroicon::OutlinedSparkles)
+            ->color('gray')
+            ->actions([
+                Action::make('hireMe')
+                    ->label('See my services')
+                    ->url('https://mayahi.net/services')
+                    ->openUrlInNewTab(),
+            ]);
     }
 
     #[\Override]
     protected function forgetDescription(string $property, string $label): string
     {
         return $property === 'license_key'
-            ? 'The "Powered by Chatvia" credit shows again under every hosted chat and widget. The key is deactivated at chatvia.ai, so you can use it on another domain.'
+            ? 'The "Powered by Chatvia" credit shows again under every hosted chat and widget. The key is revoked at chatvia.ai, so you can use it on another install.'
             : parent::forgetDescription($property, $label);
     }
 

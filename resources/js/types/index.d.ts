@@ -45,7 +45,6 @@ export interface Brand {
     powered_by: {
         enabled: boolean;
         label: string | null;
-        url: string | null;
     };
 }
 

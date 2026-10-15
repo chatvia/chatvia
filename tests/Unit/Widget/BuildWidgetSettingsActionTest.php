@@ -96,19 +96,19 @@ it('keeps the legacy plain-string bubble list working', function (): void {
 
 it('builds the powered-by credit from the brand config', function (): void {
     config([
-        'chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => 'https://acme.example'],
+        'chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat'],
     ]);
 
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 
     expect($settings->branding->enabled)->toBeTrue()
         ->and($settings->branding->name)->toBe('Powered by Acme Chat')
-        ->and($settings->branding->url)->toBe('https://acme.example')
+        ->and($settings->branding->url)->toBe('https://chatvia.ai')
         ->and($settings->chatvia_branding)->toBeTrue();
 });
 
 it('shows the powered-by credit even when an agent saved it hidden', function (): void {
-    config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => 'https://acme.example']]);
+    config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat']]);
 
     // Agents cannot hide the credit, whatever their settings hold.
     $agent = createAgent(User::factory()->create());
@@ -120,17 +120,16 @@ it('shows the powered-by credit even when an agent saved it hidden', function ()
         ->and($settings->chatvia_branding)->toBeTrue();
 });
 
-it('sends an empty credit link when no powered-by url is configured', function (): void {
-    config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => null]]);
+it('always links the powered-by credit to chatvia.ai', function (): void {
+    config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => 'https://acme.example'], 'chatvia.uri' => 'http://elsewhere.test']);
 
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 
-    expect($settings->branding->url)->toBe('')
-        ->and($settings->branding->name)->not->toContain('chatvia.ai');
+    expect($settings->branding->url)->toBe('https://chatvia.ai');
 });
 
 it('hides the powered-by credit when the install turns it off', function (): void {
-    config(['chatvia.brand.powered_by' => ['enabled' => false, 'label' => 'Acme Chat', 'url' => 'https://acme.example']]);
+    config(['chatvia.brand.powered_by' => ['enabled' => false, 'label' => 'Acme Chat']]);
 
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 

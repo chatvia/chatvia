@@ -143,7 +143,8 @@ class BuildWidgetSettingsAction
     }
 
     /**
-     * The credit's label and link come from `chatvia.brand.powered_by`. The
+     * The credit's label comes from `chatvia.brand.powered_by`; its link is
+     * always chatvia.ai, fixed here and in the widget, never a setting. The
      * `enabled` flag mirrors `chatvia_branding` so cached widget bundles that
      * only read this block still obey it.
      */
@@ -154,8 +155,7 @@ class BuildWidgetSettingsAction
         return new WidgetSettingsBrandingData(
             enabled: $enabled,
             name: 'Powered by '.(($poweredBy['label'] ?? null) ?: config('chatvia.brand.name')),
-            // Empty when no URL is set: the widget then shows plain text.
-            url: (string) ($poweredBy['url'] ?? ''),
+            url: 'https://chatvia.ai',
             logo_url: asset('images/logo.svg'),
         );
     }

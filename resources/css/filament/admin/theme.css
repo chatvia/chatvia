@@ -725,6 +725,20 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     }
 }
 
+/*
+ * Links in a callout's footer, with a thin line between them. Filament wraps
+ * each link in a `display: contents` box, so the line goes on the link itself.
+ */
+.cv-link-dividers .fi-callout-footer > .fi-sc {
+    column-gap: 0;
+}
+
+.cv-link-dividers .fi-callout-footer > .fi-sc > .fi-sc-action + .fi-sc-action > .fi-link {
+    margin-inline-start: 0.75rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 1px solid var(--cv-border-strong);
+}
+
 .fi-empty-state:not(.fi-empty-state-not-contained) {
     border-radius: var(--cv-radius-card);
     background-color: var(--cv-card);

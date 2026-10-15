@@ -290,7 +290,7 @@ return [
     | The most workers each supervisor runs at once. Horizon starts a
     | supervisor with half of it, keeps at least minProcesses per pool, and
     | each worker is a PHP process of about 80 MB, so production fits a small
-    | server: 17 workers at most, 6 when idle. The admin panel raises them
+    | server: 16 workers at most, 6 when idle. The admin panel raises them
     | (Settings, Platform, Queue workers) after a restart of Horizon.
     */
     'environments' => [
@@ -308,7 +308,7 @@ return [
                 'maxProcesses' => 1,
             ],
             'voice' => [
-                'maxProcesses' => 4,
+                'maxProcesses' => 3,
             ],
         ],
 

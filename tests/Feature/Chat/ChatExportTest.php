@@ -51,8 +51,7 @@ it('exports a conversation as Markdown, message by message', function (): void {
         ->assertDownload();
 
     expect(ceDownloaded($response))
-        ->toContain('Show me **bold** text')
-        ->toContain("---\nHere is a [link](https://shop.test).");
+        ->toContain("Show me **bold** text\n\n---\n\nHere is a [link](https://shop.test).");
 });
 
 it('exports a conversation as plain text, with the Markdown rendered away', function (): void {
@@ -71,7 +70,7 @@ it('exports a single message of the conversation', function (): void {
     $response = $this->get("{$this->base}/conversations/{$this->conversationId}/export?type=markdown&messageId=answer-1")
         ->assertOk();
 
-    expect(ceDownloaded($response))->toBe('Here is a [link](https://shop.test).');
+    expect(ceDownloaded($response))->toBe("Here is a [link](https://shop.test).\n");
 });
 
 it('answers 404 for a message the conversation does not have', function (): void {

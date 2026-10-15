@@ -21,8 +21,12 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 readonly class ChatExportController
 {
-    /** Separator between messages in the text and Markdown files. */
-    private const string MESSAGE_SEPARATOR = "---\n";
+    /**
+     * Separator between messages in the text and Markdown files: a line of
+     * its own with a blank line on each side, so Markdown reads it as a rule
+     * and not as the underline of a heading.
+     */
+    private const string MESSAGE_SEPARATOR = "\n\n---\n\n";
 
     public function __construct(
         private ChatMemory $memory,
@@ -98,7 +102,9 @@ readonly class ChatExportController
      */
     private function download(array $messages, callable $render, string $filename): BinaryFileResponse
     {
-        $content = collect($messages)->map($render)->implode(self::MESSAGE_SEPARATOR);
+        $content = collect($messages)
+            ->map(static fn (array $message): string => trim($render($message)))
+            ->implode(self::MESSAGE_SEPARATOR)."\n";
 
         return response()->download(create_temp_file($filename, $content), $filename);
     }

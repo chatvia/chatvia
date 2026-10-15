@@ -32,7 +32,7 @@ use Livewire\Attributes\Url;
 class SettingsOverview extends Page
 {
     /** The groups of tiles, in order. The Settings search lists its finds in this order too. */
-    public const array GROUPS = ['Sign-in and people', 'AI and knowledge', 'Connections', 'Brand and platform'];
+    public const array GROUPS = ['Access and security', 'AI and knowledge', 'Connections', 'Platform and brand'];
 
     #[\Override]
     protected static ?string $cluster = SettingsCluster::class;

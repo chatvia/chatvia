@@ -167,15 +167,16 @@ abstract class AdminSettingsPage extends Page
     /** The heading of the page's group on the overview. */
     public static function overviewGroup(): string
     {
-        return 'Brand and platform';
+        return 'Platform and brand';
     }
 
     /**
      * The status of the page's tile on the overview, and its tone: the tile
      * shows a dot in the tone, and the status when the dot is pointed at. A
-     * service that is half set up comes first. A page of optional services
-     * (sign-in buttons, channels) says how many are set up; any other page
-     * how many options differ from the defaults.
+     * service that is half set up comes first. A page whose everyday cards
+     * are all optional services (sign-in buttons, channels, connectors) says
+     * how many are set up; any other page how many options differ from the
+     * defaults.
      *
      * @return array{0: string, 1: string}
      */
@@ -186,9 +187,10 @@ abstract class AdminSettingsPage extends Page
         }
 
         $cards = $this->visibleCards();
-        $services = array_filter($cards, fn (SettingsCard $card): bool => $card->required !== []);
+        $everyday = array_filter($cards, fn (SettingsCard $card): bool => ! $card->advanced);
+        $services = array_filter($everyday, fn (SettingsCard $card): bool => $card->required !== []);
 
-        if ($services !== [] && count($services) === count($cards)) {
+        if ($services !== [] && count($services) === count($everyday)) {
             $ready = count(array_filter($services, fn (SettingsCard $card): bool => $this->statusOf($card) === SettingStatus::Configured));
 
             return $ready === 0 ? ['Optional: none set up yet', 'gray'] : ["{$ready} set up", 'success'];

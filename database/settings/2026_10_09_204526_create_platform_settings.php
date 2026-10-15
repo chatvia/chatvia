@@ -24,12 +24,6 @@ return new class extends SettingsMigration
             $group->add('tracking_code');
             $group->addEncrypted('ip2location_api_key');
             $group->add('ip2location_endpoint');
-            $group->add('perplexity_base_url');
-            $group->add('perplexity_agent_model');
-            $group->add('perplexity_ask_model');
-            $group->add('perplexity_research_model');
-            $group->add('openweather_base_url');
-            $group->add('exchange_rate_base_url');
             $group->add('horizon_notify_email');
             $group->add('chat_workers');
             $group->add('ingestion_workers');

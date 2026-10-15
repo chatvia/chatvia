@@ -18,9 +18,16 @@ return new class extends SettingsMigration
             $group->add('turnstile_sign_up');
             $group->add('turnstile_sign_in');
             $group->add('turnstile_password_reset');
+            $group->add('guardrails_enabled');
+            $group->add('guardrail_retention_days');
+            $group->add('tool_audit_retention_days');
+            $group->add('tool_rate_limit');
+            $group->add('tool_rate_window_seconds');
             $group->add('csp_mode');
             $group->add('csp_report_uri');
             $group->add('security_audit_enabled');
+            $group->add('security_audit_retention_days');
+            $group->add('security_audit_retention_floor_days');
         });
     }
 

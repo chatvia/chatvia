@@ -3,10 +3,11 @@
 use App\Admin\Clusters\Settings\Pages\ManageAiModelSettings;
 use App\Admin\Clusters\Settings\Pages\ManageAiProviderSettings;
 use App\Admin\Clusters\Settings\Pages\ManageChannelSettings;
+use App\Admin\Clusters\Settings\Pages\ManageConnectorSettings;
 use App\Admin\Clusters\Settings\Pages\ManageKnowledgeSettings;
-use App\Admin\Clusters\Settings\Pages\ManageLimitSettings;
 use App\Admin\Clusters\Settings\Pages\ManageMailSettings;
 use App\Admin\Clusters\Settings\Pages\ManagePlatformSettings;
+use App\Admin\Clusters\Settings\Pages\ManageSecuritySettings;
 use App\Admin\Clusters\Settings\Pages\ManageSignInSettings;
 use App\Admin\Clusters\Settings\Pages\ManageStorageSettings;
 use App\Admin\Clusters\Settings\Pages\ManageWorkspaceSettings;
@@ -15,6 +16,7 @@ use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Settings\AiProviderSettings;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\ChannelSettings;
+use App\Admin\Settings\ConnectorSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SignInSettings;
@@ -77,7 +79,7 @@ it('shows every settings page, and the overview links to each one', function ():
     }
 
     expect(collect(SettingsCluster::getClusteredComponents())->map(fn (string $page): string => $page::getSlug())->sort()->values()->all())
-        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'limits', 'overview', 'platform', 'security', 'sign-in', 'storage', 'workspaces']);
+        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'overview', 'platform', 'security', 'sign-in', 'storage', 'workspaces']);
 });
 
 it('shows a card for every service, with its status', function (): void {
@@ -98,6 +100,36 @@ it('shows a card for every service, with its status', function (): void {
     $settings->save();
 
     $this->get(SettingsOverview::getUrl())->assertSee('2 set up');
+});
+
+it('groups the overview tiles by topic', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(SettingsOverview::getUrl())
+        ->assertSeeInOrder([
+            'Access and security', 'Sign-in', 'Workspaces', 'Security',
+            'AI and knowledge', 'AI providers', 'AI models', 'Knowledge',
+            'Connections', 'Channels', 'Connectors',
+            'Platform and brand', 'Platform', 'Email', 'Storage', 'Branding',
+        ]);
+});
+
+it('keeps the services behind the built-in tools on Connectors, under Advanced', function (): void {
+    $this->actingAs($this->admin, 'admin')
+        ->get(ManageConnectorSettings::getUrl())
+        ->assertOk()
+        ->assertSeeInOrder(['GitHub', 'Technical options. The defaults suit most installs.', 'Perplexity', 'OpenWeather', 'ExchangeRate-API']);
+
+    $this->get(ManagePlatformSettings::getUrl())->assertDontSee(['Perplexity', 'OpenWeather', 'ExchangeRate-API']);
+
+    settingsPage($this->admin, ManageConnectorSettings::class)
+        ->fillForm(['perplexity_base_url' => 'https://perplexity.example.com', 'github_client_id' => 'id', 'github_client_secret' => 'secret'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    // The tile still counts the OAuth apps set up; the advanced addresses are not services.
+    expect(storedSetting(ConnectorSettings::class, 'perplexity_base_url'))->toBe('https://perplexity.example.com')
+        ->and(config('services.perplexity.base_url'))->toBe('https://perplexity.example.com')
+        ->and(app(ManageConnectorSettings::class)->overviewStatus())->toBe(['1 set up', 'success']);
 });
 
 it('marks a page of optional services that has none set up as optional', function (): void {
@@ -407,7 +439,7 @@ it('shows the S3 fields only while S3-compatible storage is chosen', function ()
 });
 
 it('refuses a security log floor above the days to keep it', function (): void {
-    settingsPage($this->admin, ManageLimitSettings::class)
+    settingsPage($this->admin, ManageSecuritySettings::class)
         ->fillForm(['security_audit_retention_days' => 30, 'security_audit_retention_floor_days' => 60])
         ->call('save')
         ->assertHasFormErrors(['security_audit_retention_floor_days']);

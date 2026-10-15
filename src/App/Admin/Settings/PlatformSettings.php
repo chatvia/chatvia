@@ -8,10 +8,9 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 
 /**
  * Install-wide options that fit nowhere else: the default language, the
- * chat widget, the tracking code, visitor location,
- * the services behind the built-in tools, where Horizon sends alerts, how
- * many queue workers it may run, where the programs that read files are,
- * and when the admin setup of the install was completed.
+ * chat widget, the tracking code, visitor location, where Horizon sends
+ * alerts, how many queue workers it may run, where the programs that read
+ * files are, and when the admin setup of the install was completed.
  */
 class PlatformSettings extends AdminSettings
 {
@@ -42,24 +41,6 @@ class PlatformSettings extends AdminSettings
 
     #[ConfigKey('services.ip2location.endpoint')]
     public ?string $ip2location_endpoint = null;
-
-    #[ConfigKey('services.perplexity.base_url')]
-    public ?string $perplexity_base_url = null;
-
-    #[ConfigKey('services.perplexity.agent_model')]
-    public ?string $perplexity_agent_model = null;
-
-    #[ConfigKey('services.perplexity.ask_model')]
-    public ?string $perplexity_ask_model = null;
-
-    #[ConfigKey('services.perplexity.research_model')]
-    public ?string $perplexity_research_model = null;
-
-    #[ConfigKey('services.openweather.base_url')]
-    public ?string $openweather_base_url = null;
-
-    #[ConfigKey('services.exchange_rate.base_url')]
-    public ?string $exchange_rate_base_url = null;
 
     #[ConfigKey('horizon.notify_email')]
     public ?string $horizon_notify_email = null;

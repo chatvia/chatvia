@@ -307,8 +307,11 @@ theme.
 - Almost every setting moved from `.env` to the admin panel, under
   **Settings**, so an install can be set up without editing files. One page
   per topic: AI providers, AI models, Knowledge, Workspaces, Sign-in,
-  Security, Email, Channels, Connectors, Brand, Platform, Storage and
-  Retention & limits. This covers API keys and OAuth apps, the AI services, models and
+  Security, Email, Channels, Connectors, Brand, Platform and Storage. Each
+  log's retention is set next to what it records (Security for the
+  guardrail, tool-call and security logs; Workspaces for conversations), and
+  the services behind the built-in Perplexity, Weather and Currency tools are
+  under Connectors. This covers API keys and OAuth apps, the AI services, models and
   addresses, e-mail (SMTP or Resend, with a test e-mail button), file
   storage, brand, default language, the content security policy, the chat
   widget, the tracking code, Horizon alerts, log retention and the tool rate limit.

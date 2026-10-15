@@ -21,9 +21,9 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
 
 /**
- * Install-wide options: default language, the chat widget,
- * the tracking code, visitor location, the built-in tools, alerts, the
- * number of queue workers, and where the programs that read files are.
+ * Install-wide options: default language, the chat widget, the tracking
+ * code, visitor location, alerts, the number of queue workers, and where the
+ * programs that read files are.
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
@@ -62,12 +62,12 @@ class ManagePlatformSettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Language, widget, tracking code, the built-in tools, queue workers and programs.';
+        return 'Language, widget, tracking code, visitor location, queue workers and programs.';
     }
 
     public static function overviewGroup(): string
     {
-        return 'Brand and platform';
+        return 'Platform and brand';
     }
 
     protected function cards(): array
@@ -94,21 +94,6 @@ class ManagePlatformSettings extends AdminSettingsPage
             ])->advancedFields(fn (): array => [
                 $this->url('ip2location_endpoint', 'Address'),
             ])->required('ip2location_api_key')->console('https://www.ip2location.io/dashboard'),
-            SettingsCard::make('perplexity', 'Perplexity', 'The service behind the Perplexity tool (web search). Each workspace adds its own API key.', Heroicon::OutlinedGlobeAlt, fn (): array => [
-                $this->url('perplexity_base_url', 'Address'),
-                $this->text('perplexity_agent_model', 'Search model',
-                    help: 'Used to search the web, fetch a page, search finance data, find people and run code.'),
-                $this->text('perplexity_ask_model', 'Ask model',
-                    help: 'Used to "ask": a full answer with reasons, from web sources.'),
-                $this->text('perplexity_research_model', 'Research model',
-                    help: 'Used to "research": a deep look across many sources. It is slower.'),
-            ])->advanced(),
-            SettingsCard::make('openweather', 'OpenWeather', 'The service behind the Weather tool. Each workspace adds its own API key.', Heroicon::OutlinedCloud, fn (): array => [
-                $this->url('openweather_base_url', 'Address'),
-            ])->advanced(),
-            SettingsCard::make('exchange_rate', 'ExchangeRate-API', 'The service behind the Currency tool. Each workspace adds its own API key.', Heroicon::OutlinedBanknotes, fn (): array => [
-                $this->url('exchange_rate_base_url', 'Address'),
-            ])->advanced(),
             SettingsCard::make('alerts', 'Alerts', 'Where the queue sends its alerts.', Heroicon::OutlinedBellAlert, fn (): array => [
                 $this->email('horizon_notify_email', 'Alert email',
                     help: 'Gets an email when jobs wait too long in the queue. Applies after Horizon restarts.'),

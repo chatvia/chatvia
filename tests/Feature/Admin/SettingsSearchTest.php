@@ -68,9 +68,9 @@ it('marks the words searched in an escaped text', function (): void {
 
 it('shows the finds in place of the tiles on the overview, and says when there are none', function (): void {
     Livewire::test(SettingsOverview::class)
-        ->assertSee('Sign-in and people')
+        ->assertSee('Access and security')
         ->set('search', 'chunk size')
-        ->assertDontSee('Sign-in and people')
+        ->assertDontSee('Access and security')
         ->assertSee(['1 result', 'Settings › Knowledge'])
         ->assertSeeHtml(['<mark>Chunk</mark> <mark>size</mark>', ManageKnowledgeSettings::getUrl().'#knowledge-splitting'])
         ->set('search', 'qqqq')

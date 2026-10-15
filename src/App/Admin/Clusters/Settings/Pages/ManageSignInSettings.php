@@ -38,7 +38,7 @@ class ManageSignInSettings extends AdminSettingsPage
 
     public static function overviewGroup(): string
     {
-        return 'Sign-in and people';
+        return 'Access and security';
     }
 
     protected function cards(): array

@@ -607,7 +607,7 @@ steps without Docker. In short:
   Other sites load it, so nginx must allow any origin for `/shakomako/` (see
   [The chat widget](#the-chat-widget)).
 - How long the logs are kept (tool calls, guardrails and security events) is
-  set in the admin panel (**Settings → Retention & limits**).
+  set in the admin panel (**Settings → Security**).
 - Go through the security settings in `.env.example` (for example
   `TRUSTED_PROXIES` and `SESSION_SECURE_COOKIE`) and set each one for your
   environment. The content security policy and the sign-in bot check are in

@@ -619,8 +619,8 @@ class Setup extends SimplePage
                                 'Settings → AI models' => 'More chat models, and the models for app tasks.',
                                 'Settings → Branding' => 'The "Powered by Chatvia" credit under hosted chats and widgets.',
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
-                                'Settings → Sign-in and Security' => 'Sign-in with other accounts, and the bot check on public forms.',
-                                'Settings → Retention & limits' => 'Tool call limits, guardrails and the security log.',
+                                'Settings → Sign-in' => 'Sign-in with other accounts.',
+                                'Settings → Security' => 'The bot check on public forms, guardrails, tool call limits and the security log.',
                             ]]),
                     ]),
             ]);

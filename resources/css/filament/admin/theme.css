@@ -140,8 +140,10 @@ html.fi:root {
             margin-inline-end: 0.5rem;
             border-radius: var(--cv-radius-panel);
             background-color: var(--cv-surface);
+            /* The strong border: the panel and the canvas are both near-white,
+               so the normal border grey barely shows between them. */
             box-shadow:
-                0 0 0 1px var(--cv-border),
+                0 0 0 1px var(--cv-border-strong),
                 var(--cv-shadow-sm);
         }
     }

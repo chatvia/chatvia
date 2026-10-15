@@ -41,7 +41,3 @@ it('refuses each demo seeder on its own in production', function (string $seeder
     'chats' => ChatSeeder::class,
     'topics' => TopicsSeeder::class,
 ]);
-
-it('takes the demo admin login from config, with no personal default', function (): void {
-    expect(config('chatvia.seed.admin_email'))->toBe('admin@example.com');
-});

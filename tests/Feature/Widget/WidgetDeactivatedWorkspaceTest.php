@@ -2,7 +2,7 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Models\Session;
-use Domain\Widget\WidgetHeaders;
+use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * A deactivated workspace's agents stop answering in the Chat Widget and the
@@ -11,18 +11,11 @@ use Domain\Widget\WidgetHeaders;
  * `widget_disabled`. Reactivating the workspace brings them back.
  */
 beforeEach(function (): void {
-    config(['chatvia.widget.always_allowed_origins' => []]);
-
     $this->agent = Agent::factory()->create(['is_public' => true]);
-    $this->agent->setSetting('sites', ['customer.example'], 'widget');
+    EmbeddedWidget::allowSite($this->agent);
 
-    $this->headers = [WidgetHeaders::AGENT_ID => $this->agent->external_id, 'Origin' => 'https://customer.example'];
-    $boot = $this->withHeaders($this->headers)->postJson('/widget/sessions/init')->assertSuccessful()->json();
-    $this->chatHeaders = [
-        ...$this->headers,
-        WidgetHeaders::SESSION_ID => $boot['session_id'],
-        WidgetHeaders::CONVERSATION_ID => $boot['conversation_id'],
-    ];
+    $this->headers = EmbeddedWidget::headers($this->agent);
+    $this->chatHeaders = EmbeddedWidget::chatHeaders($this->agent);
 });
 
 it('tells both embeds not to mount once the workspace is deactivated', function (): void {

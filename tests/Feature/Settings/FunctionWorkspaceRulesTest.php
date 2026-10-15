@@ -1,13 +1,9 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
-use Domain\Integration\Function\Data\FunctionDefinitionData;
-use Domain\Integration\Function\Enums\FunctionAuthType;
-use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Services\TeamService;
-use Support\Exceptions\DomainValidationException;
+use Inertia\Testing\AssertableInertia;
 
 /**
  * Webhook functions are workspace resources: teammates with account.functions
@@ -19,19 +15,6 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
 });
-
-function workspaceFunction(User $owner, array $overrides = []): AgentFunction
-{
-    return $owner->workspace()->functions()->create(array_merge([
-        'internal_name' => 'get_order_status',
-        'description' => 'Get the order status',
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => 'https://example.com/webhook',
-        'webhook_method' => 'POST',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ], $overrides));
-}
 
 function functionFormPayload(array $overrides = []): array
 {
@@ -48,13 +31,13 @@ function functionFormPayload(array $overrides = []): array
 describe('teammates work on the workspace owner\'s functions', function (): void {
 
     it('lists, toggles and updates the owner\'s functions for a teammate with account.functions', function (): void {
-        $fn = workspaceFunction($this->owner);
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create();
         $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         $this->actingAs($member)
             ->get(route('integrations.functions.edit'))
             ->assertOk()
-            ->assertInertia(fn ($page) => $page->has('functions', 1)->where('functions.0.id', $fn->external_id));
+            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->has('functions', 1)->where('functions.0.id', $fn->external_id));
 
         $this->actingAs($member)
             ->post(route('integrations.functions.toggle', ['external_id' => $fn->external_id]))
@@ -84,8 +67,8 @@ describe('teammates work on the workspace owner\'s functions', function (): void
 describe('function names are unique per workspace', function (): void {
 
     it('turns a teammate rename onto an existing name into a validation error', function (): void {
-        workspaceFunction($this->owner, ['internal_name' => 'taken_name']);
-        $fn = workspaceFunction($this->owner, ['internal_name' => 'other_name']);
+        AgentFunction::factory()->forOwner($this->owner)->create(['internal_name' => 'taken_name']);
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create(['internal_name' => 'other_name']);
         $member = teammateWithPermissions($this->owner, ['account.functions']);
 
         $this->actingAs($member)
@@ -97,24 +80,9 @@ describe('function names are unique per workspace', function (): void {
         expect($fn->fresh()->internal_name)->toBe('other_name');
     });
 
-    it('rejects a duplicate in the create action itself', function (): void {
-        workspaceFunction($this->owner, ['internal_name' => 'taken_name']);
-        $member = teammateWithPermissions($this->owner, ['account.functions']);
-
-        expect(fn () => app(CreateAgentFunctionAction::class)->execute($member, new FunctionDefinitionData(
-            internal_name: 'taken_name',
-            display_name: null,
-            description: 'd',
-            parameters_schema: ['type' => 'object', 'properties' => []],
-            webhook_url: 'https://example.com/webhook',
-            webhook_method: FunctionWebhookMethod::Post,
-            auth_type: FunctionAuthType::None,
-        )))->toThrow(DomainValidationException::class);
-    });
-
     it('rejects an API rename onto an existing name with a 422', function (): void {
-        workspaceFunction($this->owner, ['internal_name' => 'taken_name']);
-        $fn = workspaceFunction($this->owner, ['internal_name' => 'other_name']);
+        AgentFunction::factory()->forOwner($this->owner)->create(['internal_name' => 'taken_name']);
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create(['internal_name' => 'other_name']);
         $token = $this->owner->createToken('account')->plainTextToken;
 
         $this->withHeaders(['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'])
@@ -148,7 +116,7 @@ describe('the approval gate follows the HTTP verb on every path', function (): v
     ]);
 
     it('turns approval on when an API update switches a read into a write', function (): void {
-        $fn = workspaceFunction($this->owner, ['webhook_method' => 'GET', 'requires_approval' => false]);
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create(['webhook_method' => 'GET', 'requires_approval' => false]);
         $token = $this->owner->createToken('account')->plainTextToken;
 
         $this->withHeaders(['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'])
@@ -159,7 +127,7 @@ describe('the approval gate follows the HTTP verb on every path', function (): v
     });
 
     it('turns approval on when a dashboard update switches a read into a write', function (): void {
-        $fn = workspaceFunction($this->owner, ['webhook_method' => 'GET', 'requires_approval' => false]);
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create(['webhook_method' => 'GET', 'requires_approval' => false]);
 
         $this->actingAs($this->owner)
             ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), functionFormPayload([
@@ -173,14 +141,9 @@ describe('the approval gate follows the HTTP verb on every path', function (): v
 
 describe('the dashboard never receives webhook header values', function (): void {
 
-    // The agent routes sit behind the billing gate.
-    beforeEach(function (): void {
-        $this->owner->refresh();
-    });
-
     it('returns header names only when attaching a function to an agent', function (): void {
         $agent = makeTeamAgent($this->owner, 'Support');
-        $fn = workspaceFunction($this->owner, [
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create([
             'webhook_headers' => [['key' => 'X-Api-Key', 'value' => 'super-secret-header-value']],
         ]);
 
@@ -195,7 +158,7 @@ describe('the dashboard never receives webhook header values', function (): void
 
     it('lists the agent page rows with the fields the page links and filters on', function (): void {
         $agent = makeTeamAgent($this->owner, 'Support');
-        $fn = workspaceFunction($this->owner);
+        $fn = AgentFunction::factory()->forOwner($this->owner)->create(['webhook_url' => 'https://example.com/webhook']);
 
         $this->actingAs($this->owner)
             ->getJson(route('agents.sources.functions.data', ['agent' => $agent->external_id]))

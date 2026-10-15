@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
  * `pulse` and `spectra` connections at the testing database (phpunit.xml).
  */
 
-function databaseExists(string $name): bool
+function ctdDatabaseExists(string $name): bool
 {
     return (bool) DB::scalar('select exists (select 1 from pg_database where datname = ?)', [$name]);
 }
@@ -32,7 +32,7 @@ it('creates a tool database when the server does not have it', function (string 
             ->expectsOutputToContain("Created the {$tool} database \"{$name}\".")
             ->assertSuccessful();
 
-        expect(databaseExists($name))->toBeTrue();
+        expect(ctdDatabaseExists($name))->toBeTrue();
     } finally {
         DB::purge($connection);
         DB::connectUsing('tool-cleanup', [...config("database.connections.{$connection}"), 'database' => 'postgres'], force: true)
@@ -40,7 +40,7 @@ it('creates a tool database when the server does not have it', function (string 
         DB::purge('tool-cleanup');
     }
 
-    expect(databaseExists($name))->toBeFalse();
+    expect(ctdDatabaseExists($name))->toBeFalse();
 })->with([
     'Pulse' => ['pulse', 'Pulse'],
     'Spectra' => ['spectra', 'Spectra'],

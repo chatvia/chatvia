@@ -1,30 +1,25 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Whatsapp\Jobs\HandleWhatsappMessageJob;
 use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
-use Illuminate\Testing\TestResponse;
+use Tests\Support\Channel\MetaWebhook;
 
 /**
- * The webhook is public and unauthenticated, so its security IS the test
- * surface. With one Chatvia Meta app there's a single app-level Callback URL:
- * GET is Meta's verify handshake (echo hub.challenge only for the app-level
- * verify token); POSTed events must carry a valid X-Hub-Signature-256 HMAC
- * (keyed with the shared app secret) and are routed to the agent by the phone
- * number id that received the message; messages are processed once (wamid
- * dedup — Meta re-delivers for up to 7 days); statuses/non-text types never
- * dispatch; and POST always answers 200.
+ * The WhatsApp webhook routes a signed event to the agent by the phone number
+ * id that received it, processes each message once (Meta re-delivers for up
+ * to 7 days), never queues statuses or non-text types, and always answers
+ * 200. The handshake and the signature check are covered for every Meta
+ * channel in MetaWebhookTest.
  */
 beforeEach(function (): void {
     Bus::fake();
     Cache::flush();
-    $this->verifyToken = Str::random(32);
     $this->appSecret = 'c1d2e3f4a5b6c1d2e3f4a5b6c1d2e3f4';
     config([
-        'services.meta.whatsapp.webhook_verify_token' => $this->verifyToken,
         'services.meta.whatsapp.app_secret' => $this->appSecret,
     ]);
     $agent = Agent::factory()->create();
@@ -80,32 +75,8 @@ function whatsappText(string $body = 'hello', string $wamid = 'wamid.AAA1', stri
     ];
 }
 
-function postWhatsappEvent(array $payload, ?string $signWith): TestResponse
-{
-    $headers = [];
-
-    if ($signWith !== null) {
-        $body = json_encode($payload);
-        $headers = ['X-Hub-Signature-256' => 'sha256='.hash_hmac('sha256', $body, $signWith)];
-    }
-
-    return test()->postJson(route('whatsapp.webhook'), $payload, $headers);
-}
-
-it('echoes the challenge on a valid GET verify handshake', function (): void {
-    $response = $this->get(route('whatsapp.webhook.verify').'?hub.mode=subscribe&hub.verify_token='.$this->verifyToken.'&hub.challenge=challenge-456');
-
-    $response->assertOk();
-    expect($response->getContent())->toBe('challenge-456');
-});
-
-it('refuses the GET handshake for a wrong verify token', function (): void {
-    $this->get(route('whatsapp.webhook.verify').'?hub.mode=subscribe&hub.verify_token=wrong&hub.challenge=x')
-        ->assertForbidden();
-});
-
 it('dispatches a job for a valid, signed message — with the sender name from the payload', function (): void {
-    postWhatsappEvent(whatsappEnvelope([whatsappText()]), $this->appSecret)
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()]), $this->appSecret)
         ->assertOk()
         ->assertJson(['ok' => true]);
 
@@ -116,20 +87,8 @@ it('dispatches a job for a valid, signed message — with the sender name from t
         && $job->number->is($this->number));
 });
 
-it('ignores a request with a bad signature', function (): void {
-    postWhatsappEvent(whatsappEnvelope([whatsappText()]), 'wrong-app-secret-000000000000')->assertOk();
-
-    Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
-});
-
-it('ignores a request with no signature at all', function (): void {
-    postWhatsappEvent(whatsappEnvelope([whatsappText()]), null)->assertOk();
-
-    Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
-});
-
 it('drops events for a phone number id no agent has connected', function (): void {
-    postWhatsappEvent(whatsappEnvelope([whatsappText()], phoneNumberId: '000000000000000'), $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()], phoneNumberId: '000000000000000'), $this->appSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
 });
@@ -137,14 +96,14 @@ it('drops events for a phone number id no agent has connected', function (): voi
 it('ignores a disabled number', function (): void {
     $this->number->update(['enabled' => false]);
 
-    postWhatsappEvent(whatsappEnvelope([whatsappText()]), $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()]), $this->appSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
 });
 
 it('processes each wamid at most once', function (): void {
-    postWhatsappEvent(whatsappEnvelope([whatsappText(wamid: 'wamid.DUP')]), $this->appSecret)->assertOk();
-    postWhatsappEvent(whatsappEnvelope([whatsappText(wamid: 'wamid.DUP')]), $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText(wamid: 'wamid.DUP')]), $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText(wamid: 'wamid.DUP')]), $this->appSecret)->assertOk();
 
     Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 1);
 });
@@ -169,7 +128,7 @@ it('ignores status updates (delivery receipts for our own sends)', function (): 
         ],
     ];
 
-    postWhatsappEvent($payload, $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, $payload, $this->appSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
 });
@@ -177,7 +136,7 @@ it('ignores status updates (delivery receipts for our own sends)', function (): 
 it('ignores non-text message types (media, reactions)', function (): void {
     $image = ['from' => '4915551234567', 'id' => 'wamid.IMG', 'type' => 'image', 'image' => ['id' => 'media-1']];
 
-    postWhatsappEvent(whatsappEnvelope([$image]), $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([$image]), $this->appSecret)->assertOk();
 
     Bus::assertNotDispatched(HandleWhatsappMessageJob::class);
 });
@@ -188,7 +147,7 @@ it('handles every message in a batched delivery', function (): void {
         whatsappText('second', 'wamid.B2', '222'),
     ]);
 
-    postWhatsappEvent($batch, $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, $batch, $this->appSecret)->assertOk();
 
     Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 2);
 });
@@ -211,7 +170,7 @@ it('walks every entry and change in one delivery — not just the first', functi
         ],
     ];
 
-    postWhatsappEvent($payload, $this->appSecret)->assertOk();
+    MetaWebhook::post(MetaApp::Whatsapp, $payload, $this->appSecret)->assertOk();
 
     Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 3);
 });

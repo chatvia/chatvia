@@ -23,15 +23,18 @@ beforeEach(function (): void {
     $this->agent = createAgent($this->owner);
     $this->agent->update(['is_public' => true]);
 
-    $this->app->instance(MetaOAuthClient::class, new FakeInstagramOAuthClient);
+    $this->oauth = new FakeInstagramOAuthClient;
+    $this->app->instance(MetaOAuthClient::class, $this->oauth);
 });
 
 it('redirect stashes the pending connection in the session and bounces to Facebook', function (): void {
     $res = $this->actingAs($this->owner)->get(route('agents.channels.instagram.redirect', $this->agent));
 
-    $res->assertRedirectContains('facebook.com/dialog/oauth');
-    expect(session('instagram_oauth.agent_id'))->toBe($this->agent->id)
-        ->and(session('instagram_oauth.state'))->toBeString();
+    // The state sent to Facebook is the one stashed for the callback to check.
+    $state = session('instagram_oauth.state');
+    expect($state)->toBeString()->toHaveLength(48)
+        ->and(session('instagram_oauth.agent_id'))->toBe($this->agent->id);
+    $res->assertRedirect('https://www.facebook.com/dialog/oauth?state='.$state);
 });
 
 it('callback with a matching state holds the granted accounts for the picker', function (): void {
@@ -46,6 +49,18 @@ it('callback with a matching state holds the granted accounts for the picker', f
         ->and(session('instagram_oauth_pages.pages'))->toHaveCount(1);
     // Not connected until the workspace actually picks an account.
     expect(AgentInstagramAccount::query()->count())->toBe(0);
+});
+
+it('callback whose code exchange fails stores no accounts and says why', function (): void {
+    $this->oauth->userToken = null;
+
+    $res = $this->actingAs($this->owner)
+        ->withSession(['instagram_oauth' => ['agent_id' => $this->agent->id, 'state' => 'good-state']])
+        ->get(route('channels.instagram.callback', ['code' => 'CODE', 'state' => 'good-state']));
+
+    $res->assertRedirect(route('agents.channels', ['agent' => $this->agent, 'open' => 'instagram']))
+        ->assertSessionHasErrors(['instagram' => 'No Instagram professional accounts came back. Make sure your Instagram account is Professional and linked to a Facebook Page you manage, then reconnect.']);
+    expect(session('instagram_oauth_pages'))->toBeNull();
 });
 
 it('callback with a mismatched state bails without storing accounts', function (): void {

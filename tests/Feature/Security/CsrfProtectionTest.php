@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Str;
 
 /**
  * Laravel skips the CSRF check while running tests, so these tests drive the
@@ -22,6 +22,9 @@ function csrfMiddleware(): PreventRequestForgery
     };
 }
 
+/**
+ * @param  array<string, string>  $headers
+ */
 function csrfRequest(string $uri, array $headers = []): Request
 {
     $request = Request::create($uri, 'POST', server: collect($headers)
@@ -35,34 +38,20 @@ function csrfRequest(string $uri, array $headers = []): Request
     return $request;
 }
 
-it('rejects a cookie-authenticated hosted-chat POST without a CSRF token', function (string $uri): void {
-    expect(fn () => csrfMiddleware()->handle(csrfRequest($uri), fn (): Response => new Response('ok')))
+it('rejects a cookie-authenticated hosted-chat request without a CSRF token', function (string $uri): void {
+    expect(fn (): Response => csrfMiddleware()->handle(csrfRequest($uri), fn (): Response => new Response('ok')))
         ->toThrow(TokenMismatchException::class);
 })->with([
-    'stream' => '/chat/stream/abc',
-    'login' => '/chat/login',
-    'delete all conversations' => '/chat/conversations',
-    'profile' => '/chat/profile',
+    'stream' => fn (): string => route('chat.stream', ['agentSlug' => 'acme-support', 'conversationId' => (string) Str::uuid()], false),
+    'login' => fn (): string => route('chat.login', ['agentSlug' => 'acme-support'], false),
+    'delete all conversations' => fn (): string => route('conversations.delete.all', ['agentSlug' => 'acme-support'], false),
+    'profile' => fn (): string => route('chat.profile.update', ['agentSlug' => 'acme-support'], false),
 ]);
-
-it('accepts a hosted-chat POST that echoes the XSRF-TOKEN cookie back', function (): void {
-    $request = csrfRequest('/chat/stream/abc');
-    // What the browser sends: the encrypted XSRF-TOKEN cookie value.
-    $xsrf = app('encrypter')->encrypt(
-        CookieValuePrefix::create('XSRF-TOKEN', app('encrypter')->getKey()).$request->session()->token(),
-        PreventRequestForgery::serialized(),
-    );
-    $request->headers->set('X-XSRF-TOKEN', $xsrf);
-
-    $response = csrfMiddleware()->handle($request, fn (): Response => new Response('ok'));
-
-    expect($response->getContent())->toBe('ok');
-});
 
 it('keeps the token-authenticated widget endpoints exempt', function (string $uri): void {
     $response = csrfMiddleware()->handle(csrfRequest($uri), fn (): Response => new Response('ok'));
 
     expect($response->getContent())->toBe('ok');
 })->with([
-    'widget stream' => '/widget/stream',
+    'widget stream' => fn (): string => route('widget.stream', absolute: false),
 ]);

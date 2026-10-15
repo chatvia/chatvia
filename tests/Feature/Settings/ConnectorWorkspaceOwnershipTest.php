@@ -2,49 +2,21 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
-use Spatie\Permission\PermissionRegistrar;
 
 /**
- * Connectors belong to the workspace owner. A teammate with
- * account.connectors must see and manage the owner's connectors, and rows
- * previously saved under a teammate are moved to the owner by a data
- * migration.
+ * Connectors belong to the workspace. A teammate with account.connectors must
+ * see and manage the owner's connectors.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
 
-    $team = $this->owner->primaryTeam();
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: ['account.connectors'],
-        allAgents: true,
-        agentExternalIds: [],
-    ));
-    $this->member = User::factory()->employee($this->owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($this->member->id, ['role_id' => $role->id]);
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->member = teammateWithPermissions($this->owner, ['account.connectors']);
 });
 
-function ownerConnector(User $owner, string $slug = 'crm'): AgentMcpServer
-{
-    return $owner->workspace()->mcpServers()->create([
-        'name' => 'CRM',
-        'slug' => $slug,
-        'url' => 'https://crm.example.test/mcp',
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-}
-
 it('shows the owner\'s connectors to a teammate', function (): void {
-    $server = ownerConnector($this->owner);
+    $server = AgentMcpServer::factory()->forOwner($this->owner)->create(['slug' => 'crm']);
 
     $this->actingAs($this->member)
         ->getJson(route('integrations.connectors.data'))
@@ -53,7 +25,7 @@ it('shows the owner\'s connectors to a teammate', function (): void {
 });
 
 it('lets a teammate manage an owner connector by slug instead of 404ing', function (): void {
-    $server = ownerConnector($this->owner);
+    $server = AgentMcpServer::factory()->forOwner($this->owner)->create(['slug' => 'crm']);
 
     $this->actingAs($this->member)
         ->postJson(route('integrations.connectors.enable', ['slug' => 'crm']))

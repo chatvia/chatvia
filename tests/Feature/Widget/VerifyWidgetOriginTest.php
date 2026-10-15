@@ -5,8 +5,8 @@ use Domain\Agent\Models\Agent;
 /**
  * Every widget API route — except the version probe and agents/verify — must be
  * called from one of the agent's allowed sites (VerifyWidgetOrigin, applied to
- * the widget route group). The check no longer depends on the X-AGENT-ID header
- * being present.
+ * the widget route group), whether or not the call sends the X-AGENT-ID
+ * header.
  */
 beforeEach(function (): void {
     config(['chatvia.widget.always_allowed_origins' => []]);

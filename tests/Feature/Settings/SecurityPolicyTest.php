@@ -11,7 +11,7 @@ use Inertia\Testing\AssertableInertia;
 
 /*
 |--------------------------------------------------------------------------
-| Workspace Security & Compliance — network access control (Phase 1)
+| Workspace Security & Compliance — network access control
 |--------------------------------------------------------------------------
 |
 | The page is gated by the `account.security` team permission (owner always
@@ -32,7 +32,6 @@ it('shows the security settings with the install retention as the ceiling', func
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->component('workspace/security/Security')
-            ->missing('entitled')
             ->where('limits.conversations_max', 200)
             ->has('countries'));
 });
@@ -104,7 +103,7 @@ it('rejects a country rule that would lock the saver out — and never blames th
 
 it('rejects a country rule that would lock the saver out while the IP allowlist is off', function (): void {
     // The gate enforces the country rule even when the IP allowlist is off, so
-    // this save must be checked too (it used to be skipped).
+    // this save must be checked too.
     Cache::put('security:geoip:127.0.0.1', 'us', now()->addDay());
 
     $this->actingAs($this->owner)

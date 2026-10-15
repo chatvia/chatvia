@@ -12,9 +12,9 @@ beforeEach(function (): void {
     app(TeamService::class)->createDefaultTeam($this->user);
 });
 
-function makeFunction(User $user, array $overrides = []): AgentFunction
+function fnsFunction(User $user, array $overrides = []): AgentFunction
 {
-    return $user->workspace()->functions()->create(array_merge([
+    return AgentFunction::factory()->forOwner($user)->create(array_merge([
         'internal_name' => 'get_order_status',
         'description' => 'Get the order status',
         'parameters_schema' => ['type' => 'object', 'properties' => ['order_id' => ['type' => 'string']]],
@@ -26,7 +26,7 @@ function makeFunction(User $user, array $overrides = []): AgentFunction
     ], $overrides));
 }
 
-function updatePayload(array $overrides = []): array
+function fnsUpdatePayload(array $overrides = []): array
 {
     return array_merge([
         'internal_name' => 'get_order_status',
@@ -39,10 +39,10 @@ function updatePayload(array $overrides = []): array
 }
 
 it('updates basic fields', function (): void {
-    $fn = makeFunction($this->user);
+    $fn = fnsFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'description' => 'Brand new description',
             'webhook_method' => 'GET',
         ]))
@@ -54,13 +54,13 @@ it('updates basic fields', function (): void {
 });
 
 it('keeps the existing secret when auth_value is left blank', function (): void {
-    $fn = makeFunction($this->user, [
+    $fn = fnsFunction($this->user, [
         'auth_type' => 'bearer',
         'auth_config' => ['token' => 'secret-123'],
     ]);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'description' => 'Edited without touching the token',
             'auth_type' => 'bearer',
             'auth_value' => '',
@@ -73,13 +73,13 @@ it('keeps the existing secret when auth_value is left blank', function (): void 
 });
 
 it('replaces the secret when a new auth_value is provided', function (): void {
-    $fn = makeFunction($this->user, [
+    $fn = fnsFunction($this->user, [
         'auth_type' => 'bearer',
         'auth_config' => ['token' => 'old-token'],
     ]);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'auth_type' => 'bearer',
             'auth_value' => 'new-token',
         ]))
@@ -89,10 +89,10 @@ it('replaces the secret when a new auth_value is provided', function (): void {
 });
 
 it('requires a credential when switching to an auth type with no stored secret', function (): void {
-    $fn = makeFunction($this->user);
+    $fn = fnsFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'auth_type' => 'bearer',
             'auth_value' => '',
         ]))
@@ -100,11 +100,11 @@ it('requires a credential when switching to an auth type with no stored secret',
 });
 
 it('rejects a duplicate name from another function', function (): void {
-    makeFunction($this->user, ['internal_name' => 'existing_fn']);
-    $fn = makeFunction($this->user, ['internal_name' => 'editable_fn']);
+    fnsFunction($this->user, ['internal_name' => 'existing_fn']);
+    $fn = fnsFunction($this->user, ['internal_name' => 'editable_fn']);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'internal_name' => 'existing_fn',
         ]))
         ->assertSessionHasErrors('internal_name');
@@ -112,15 +112,15 @@ it('rejects a duplicate name from another function', function (): void {
 
 it('hides a function of another workspace from an update', function (): void {
     $other = User::factory()->create();
-    $fn = makeFunction($other);
+    $fn = fnsFunction($other);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload())
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload())
         ->assertNotFound();
 });
 
 it('toggles the enabled flag', function (): void {
-    $fn = makeFunction($this->user, ['is_enabled' => true]);
+    $fn = fnsFunction($this->user, ['is_enabled' => true]);
 
     $this->actingAs($this->user)
         ->post(route('integrations.functions.toggle', ['external_id' => $fn->external_id]))
@@ -131,7 +131,7 @@ it('toggles the enabled flag', function (): void {
 
 it('rejects a parameters schema that is not an object schema on create', function (): void {
     $this->actingAs($this->user)
-        ->post(route('integrations.functions.store'), updatePayload([
+        ->post(route('integrations.functions.store'), fnsUpdatePayload([
             'internal_name' => 'new_fn',
             'parameters_schema' => json_encode(['type' => 'string']),
         ]))
@@ -142,7 +142,7 @@ it('rejects a parameters schema that is not an object schema on create', functio
 
 it('creates a function with a well-formed object schema', function (): void {
     $this->actingAs($this->user)
-        ->post(route('integrations.functions.store'), updatePayload([
+        ->post(route('integrations.functions.store'), fnsUpdatePayload([
             'internal_name' => 'new_fn',
             'parameters_schema' => json_encode([
                 'type' => 'object',
@@ -156,10 +156,10 @@ it('creates a function with a well-formed object schema', function (): void {
 });
 
 it('rejects an edited schema with an invalid property name', function (): void {
-    $fn = makeFunction($this->user);
+    $fn = fnsFunction($this->user);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'parameters_schema' => json_encode(['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]]),
         ]))
         ->assertSessionHasErrors('parameters_schema');
@@ -167,10 +167,10 @@ it('rejects an edited schema with an invalid property name', function (): void {
 
 it('saves other fields when a stored schema that fails the shape rules is sent back unchanged', function (): void {
     $stored = ['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]];
-    $fn = makeFunction($this->user, ['parameters_schema' => $stored]);
+    $fn = fnsFunction($this->user, ['parameters_schema' => $stored]);
 
     $this->actingAs($this->user)
-        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), updatePayload([
+        ->patch(route('integrations.functions.update', ['external_id' => $fn->external_id]), fnsUpdatePayload([
             'description' => 'Edited without touching the schema',
             'parameters_schema' => json_encode($stored, JSON_PRETTY_PRINT),
         ]))

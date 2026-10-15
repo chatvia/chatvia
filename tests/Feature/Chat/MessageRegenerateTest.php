@@ -3,13 +3,12 @@
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Chatter\Models\Chatter;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatViewerData;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Str;
 
 /**
@@ -20,38 +19,12 @@ use Illuminate\Support\Str;
  * private-agent ownership failure stays a 403 — so a stale tab regenerating a
  * thread deleted elsewhere reports the honest status instead of "forbidden".
  */
-function regenerateAgent(bool $isPublic = true): Agent
-{
-    $owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($owner);
-
-    $owner->refresh();
-
-    return Agent::create([
-        'workspace_id' => $owner->workspace()->id,
-        'team_id' => $owner->primaryTeam()->id,
-        'name' => 'Regenerate Bot',
-        'external_id' => Str::random(14),
-        'slug' => Str::lower(Str::random(12)),
-        'system_instructions' => 'You are a helpful assistant.',
-        'is_public' => $isPublic,
-    ]);
-}
-
+/** A hosted-chat conversation of the agent, in a session of the chatter (or of a visitor). */
 function regenerateConversation(Agent $agent, ?Chatter $chatter = null): Conversation
 {
-    $session = Session::create([
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'chatter_id' => $chatter?->id,
-    ]);
-
-    return Conversation::create([
-        'workspace_id' => $session->workspace_id,
-        'chat_session_id' => $session->id,
-        'agent_id' => $session->agent_id,
-        'source' => 'hosted_chat',
-        'is_visible' => true,
+    return Conversation::factory()->create([
+        'chat_session_id' => Session::factory()->create(['agent_id' => $agent->id, 'chatter_id' => $chatter?->id])->id,
+        'source' => ConversationSource::HostedChat,
         'title' => 'Test chat',
     ]);
 }
@@ -66,7 +39,7 @@ function regeneratePayload(Conversation $conversation): array
 }
 
 it('returns 404 (not 403) when the conversation has been soft-deleted', function (): void {
-    $agent = regenerateAgent();
+    $agent = Agent::factory()->create(['is_public' => true]);
     $conversation = regenerateConversation($agent);
     $conversation->forceFill(['deleted_at' => now()])->saveQuietly();
 
@@ -79,7 +52,7 @@ it('returns 404 (not 403) when the conversation has been soft-deleted', function
 });
 
 it('returns 404 for a conversation id that does not exist', function (): void {
-    $agent = regenerateAgent();
+    $agent = Agent::factory()->create(['is_public' => true]);
 
     $response = $this->postJson(
         "/chat/{$agent->external_id}/messages/regenerate",
@@ -94,10 +67,10 @@ it('returns 404 for a conversation id that does not exist', function (): void {
 });
 
 it('returns 404 when the conversation belongs to another agent', function (): void {
-    $otherAgent = regenerateAgent();
+    $otherAgent = Agent::factory()->create(['is_public' => true]);
     $conversation = regenerateConversation($otherAgent);
 
-    $requesterAgent = regenerateAgent();
+    $requesterAgent = Agent::factory()->create(['is_public' => true]);
 
     $response = $this->postJson(
         "/chat/{$requesterAgent->external_id}/messages/regenerate",
@@ -110,7 +83,7 @@ it('returns 404 when the conversation belongs to another agent', function (): vo
 it('returns 403 on a private agent when the auth user does not own the conversation', function (): void {
     // Positive control: the conversation exists and belongs to the agent (so it
     // gets PAST the 404 "gone" branch); only the ownership gate refuses it.
-    $agent = regenerateAgent(isPublic: false);
+    $agent = Agent::factory()->create(['is_public' => false]);
     $owner = Chatter::factory()->grantedTo($agent)->create();
 
     $intruder = app(CreateChatterAction::class)->execute(new CreateChatterData($agent->workspace, $agent, 'Intruder'))->refresh();

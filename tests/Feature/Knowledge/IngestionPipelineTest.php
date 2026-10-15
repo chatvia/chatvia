@@ -2,9 +2,6 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Embedding\Contracts\Reranker;
-use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Domain\Knowledge\Ingestion\Actions\Chunks\CreateSourceChunksAction;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Chunking\ChunkPagesData;
@@ -26,8 +23,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * End-to-end coverage for the knowledge ingestion pipeline (review §10: no
- * upload→chunk→embed→retrieve test). Text sources are the simplest real path:
+ * End-to-end coverage for the knowledge ingestion pipeline, from upload to
+ * chunk, embedding and retrieval. Text sources are the simplest real path:
  *
  *   POST agents.sources.text.store
  *     → CreateAgentSourceTextAction (storage write, pivot attach)
@@ -35,8 +32,8 @@ use Illuminate\Support\Str;
  *     → CreateSourceChunksAction → Chunk rows (plaintext, morph-aliased)
  *     → KnowledgeBase::search (4-channel hybrid RRF over pgvector + bm25)
  *
- * The embeddings provider is faked at the container boundary (house style — no
- * external call); the summary job is the only queue entry faked in the deep
+ * The embeddings provider is TestCase's default fake (deterministic, a
+ * different vector per text, no external call); the summary job is the only queue entry faked in the deep
  * test and text enhancement is off there, so the chunking batch runs for real
  * on the sync queue without a model call.
  *
@@ -44,45 +41,6 @@ use Illuminate\Support\Str;
  * extensions): chunks.embedding is vector(1024) and the retrieval test executes
  * the live HybridChunkSearch SQL.
  */
-function ingestionPipelineEmbeddingFake(): void
-{
-    // Deterministic per-text vectors (seeded off the content) so distinct
-    // chunks don't collapse to identical embeddings and hide ranking bugs.
-    app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
-    {
-        public function embed(string $text, bool $returnAsText = false): string|array
-        {
-            $base = 0.05 + (crc32($text) % 97) / 1000;
-            $vector = array_fill(0, 1024, $base);
-
-            return $returnAsText ? '['.implode(',', $vector).']' : $vector;
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
-        {
-            return $this->embed($text, $returnAsText);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'fake-embed-model';
-        }
-    });
-
-    // No reranking service here: results keep their unranked order.
-    app()->instance(Reranker::class, new NullReranker);
-}
-
 /**
  * A workspace owner with its default team.
  */
@@ -139,7 +97,6 @@ function ingestionPipelineSeedChunk(User $owner, Agent $agent, string $content):
 
 beforeEach(function (): void {
     Storage::fake();
-    ingestionPipelineEmbeddingFake();
 });
 
 it('creates an owned text source, stores the content, attaches it to the agent and queues ingestion', function (): void {
@@ -266,13 +223,13 @@ it('retrieves ingested chunks for the owning agent only via hybrid search', func
     $results = app(KnowledgeBase::class)->search($agent, 'What is the refund policy?');
 
     expect($results)->not->toBeEmpty()
-        ->and(collect($results)->pluck('chunkable_id')->map(fn ($id): int => (int) $id)->unique()->all())->toBe([$source->id])
+        ->and(collect($results)->pluck('chunkable_id')->map(fn (int|string $id): int => (int) $id)->unique()->all())->toBe([$source->id])
         ->and(collect($results)->pluck('chunkable_type')->unique()->all())->toBe(['source_text'])
         ->and($results[0]->chunk)->toContain('refund'); // decrypted for the LLM consumer
 
     $otherResults = app(KnowledgeBase::class)->search($otherAgent, 'What is the refund policy?');
 
-    expect(collect($otherResults)->pluck('chunkable_id')->map(fn ($id): int => (int) $id)->unique()->all())->toBe([$otherSource->id]);
+    expect(collect($otherResults)->pluck('chunkable_id')->map(fn (int|string $id): int => (int) $id)->unique()->all())->toBe([$otherSource->id]);
 });
 
 it('searches by meaning only when hybrid search is turned off', function (): void {

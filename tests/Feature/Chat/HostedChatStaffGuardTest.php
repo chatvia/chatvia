@@ -21,8 +21,6 @@ use Illuminate\Support\Str;
  * conversations.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-
     $this->owner = User::factory()->create();
     $this->agent = createAgent($this->owner, ['slug' => Str::lower(Str::random(12)), 'is_public' => false]);
 });

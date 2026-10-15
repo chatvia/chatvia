@@ -4,69 +4,14 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
-use Domain\Integration\Mcp\Services\InternalMcpSignature;
 use Domain\Integration\Mcp\Services\Routing\BuiltinToolRouter;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Registry\ToolRegistry;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Domain\Knowledge\Embedding\Contracts\Reranker;
-use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\Mcp\InternalMcp;
 
 /**
- * Fake embeddings so `app:sync-builtin-mcp`'s inline indexing + the router's
- * query embedding don't reach the real provider. BM25 (a DB-side tokenizer)
- * still does the meaningful ranking.
- */
-function bindFakeEmbeddings(): void
-{
-    app()->instance(EmbeddingsProviderInterface::class, new class implements EmbeddingsProviderInterface
-    {
-        public function embed(string $text, bool $returnAsText = false): array
-        {
-            return array_fill(0, 1024, 0.1);
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): array
-        {
-            return array_fill(0, 1024, 0.1);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'fake-embed';
-        }
-    });
-
-    // No reranking service here: results keep their unranked order.
-    app()->instance(Reranker::class, new NullReranker);
-}
-
-/**
- * Signature + identity headers for a POST to one of our internal MCP routes,
- * signed exactly as McpClient signs it (postJson sends json_encode($payload)).
- *
- * @param  array<string, mixed>  $payload
- * @param  array<string, string>  $identity
- * @return array<string, string>
- */
-function signedInternalMcpHeaders(string $path, array $payload, array $identity): array
-{
-    return array_merge($identity, InternalMcpSignature::headers('POST', $path, (string) json_encode($payload), $identity));
-}
-
-/**
- * Provision + attach the (now opt-in) charts connector to an agent the way a
+ * Provision + attach the opt-in charts connector to an agent the way a
  * workspace would: an account-level row sharing the central catalog, a
  * membership for each synced charts tool, and the agent pivot. Assumes
  * `app:sync-builtin-mcp` has already populated the shared `connector_tools`
@@ -102,8 +47,6 @@ function attachCharts(Agent $agent): AgentMcpServer
 }
 
 it('catalogs the built-in servers as global rows and indexes their tools', function (): void {
-    bindFakeEmbeddings();
-
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
     $globals = AgentMcpServer::query()->whereNull('workspace_id')->get();
@@ -125,16 +68,13 @@ it('catalogs the built-in servers as global rows and indexes their tools', funct
 });
 
 it('is idempotent — re-running keeps two global rows', function (): void {
-    bindFakeEmbeddings();
-
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
     expect(AgentMcpServer::query()->whereNull('workspace_id')->count())->toBe(2);
 });
 
-it('routes a question to the relevant global tools + a name→url map', function (): void {
-    bindFakeEmbeddings();
+it('routes a message-count question to the message stats tool, with its dispatch URL', function (): void {
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
     $result = app(BuiltinToolRouter::class)->route(
@@ -143,9 +83,9 @@ it('routes a question to the relevant global tools + a name→url map', function
         6,
     );
 
-    expect($result['definitions'])->not->toBeEmpty();
-
     $names = array_map(static fn (array $d): string => $d['function']['name'], $result['definitions']);
+
+    expect(collect($names)->contains(fn (string $name): bool => str_ends_with($name, 'get-message-stats-tool')))->toBeTrue();
 
     // Every returned tool has a dispatch URL pointing at an internal /mcp/ route.
     foreach ($names as $name) {
@@ -155,7 +95,6 @@ it('routes a question to the relevant global tools + a name→url map', function
 });
 
 it('does not make charts ambient — an unattached agent gets neither charts nor forms', function (): void {
-    bindFakeEmbeddings();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
     $agent = Agent::factory()->create(); // nothing attached
@@ -165,13 +104,12 @@ it('does not make charts ambient — an unattached agent gets neither charts nor
         app(ToolRegistry::class)->for($agent),
     );
 
-    // Charts is now opt-in (like forms): not attached → not in the pool.
+    // Charts is opt-in (like forms): not attached → not in the pool.
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeFalse();
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__forms__')))->toBeFalse();
 });
 
 it('surfaces charts tools once the agent attaches the connector', function (): void {
-    bindFakeEmbeddings();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
     $agent = Agent::factory()->create();
@@ -185,38 +123,49 @@ it('surfaces charts tools once the agent attaches the connector', function (): v
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeTrue();
 });
 
+/** A bar chart call the tool accepts. */
+function registryBarChartCall(): array
+{
+    return InternalMcp::toolCall('render-bar-chart-tool', [
+        'categories' => ['Mon', 'Tue'],
+        'series' => [['name' => 'Visitors', 'data' => [10, 20]]],
+        'summary' => 'Visitors per day.',
+    ]);
+}
+
 it('403s an unattached agent on the charts route, allows it once attached', function (): void {
-    bindFakeEmbeddings();
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
     $agent = Agent::factory()->create();
 
     $identity = ['X-Chatvia-Agent-Id' => $agent->external_id];
-    $call = fn (string $tool): array => ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => $tool, 'arguments' => (object) []]];
+    $chart = registryBarChartCall();
+    $findForms = InternalMcp::toolCall('find-forms', ['intent' => 'book a demo']);
 
-    // Charts is opt-in now: an agent that hasn't enabled it is gated like any other connector.
-    $this->withHeaders(signedInternalMcpHeaders('/mcp/charts', $call('render-bar-chart'), $identity))
-        ->postJson('/mcp/charts', $call('render-bar-chart'))->assertStatus(403);
+    // Charts is opt-in: an agent that hasn't enabled it is gated like any other connector.
+    $this->withHeaders(InternalMcp::signedHeaders('/mcp/charts', $chart, $identity))
+        ->postJson('/mcp/charts', $chart)->assertStatus(403);
     // Forms (also opt-in, not attached) → still gated.
-    $this->withHeaders(signedInternalMcpHeaders('/mcp/forms', $call('find-forms'), $identity))
-        ->postJson('/mcp/forms', $call('find-forms'))->assertStatus(403);
+    $this->withHeaders(InternalMcp::signedHeaders('/mcp/forms', $findForms, $identity))
+        ->postJson('/mcp/forms', $findForms)->assertStatus(403);
 
-    // Once charts is attached, the per-agent enablement check passes (no longer 403).
+    // Once charts is attached, the per-agent enablement check passes and the tool runs.
     attachCharts($agent);
-    $charts = $this->withHeaders(signedInternalMcpHeaders('/mcp/charts', $call('render-bar-chart'), $identity))
-        ->postJson('/mcp/charts', $call('render-bar-chart'));
-    expect($charts->getStatusCode())->not->toBeIn([401, 403]);
+    $this->withHeaders(InternalMcp::signedHeaders('/mcp/charts', $chart, $identity))
+        ->postJson('/mcp/charts', $chart)
+        ->assertOk()
+        ->assertJsonPath('result.isError', false);
 });
 
-it('still authorizes the analytics chat (workspace mode) on the charts route', function (): void {
-    bindFakeEmbeddings();
+it('authorizes the analytics chat (workspace mode) on the charts route', function (): void {
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
-    // The owner "Ask your data" chat reaches /mcp/charts via a signed workspace
-    // id, NOT the removed global-builtin carve-out — this must keep working.
+    // The owner "Ask your data" chat reaches /mcp/charts with a signed
+    // workspace id and no agent.
     $workspace = Agent::factory()->create()->workspace;
-    $call = ['jsonrpc' => '2.0', 'id' => '1', 'method' => 'tools/call', 'params' => ['name' => 'render-bar-chart', 'arguments' => (object) []]];
-    $headers = signedInternalMcpHeaders('/mcp/charts', $call, ['X-Chatvia-Workspace-Id' => $workspace->external_id]);
+    $chart = registryBarChartCall();
+    $headers = InternalMcp::signedHeaders('/mcp/charts', $chart, ['X-Chatvia-Workspace-Id' => $workspace->external_id]);
 
-    $resp = $this->withHeaders($headers)->postJson('/mcp/charts', $call);
-    expect($resp->getStatusCode())->not->toBeIn([401, 403]);
+    $this->withHeaders($headers)->postJson('/mcp/charts', $chart)
+        ->assertOk()
+        ->assertJsonPath('result.isError', false);
 });

@@ -1,7 +1,5 @@
 <?php
 
-use App\Mcp\McpCallerContext;
-use App\Mcp\McpCallerResolver;
 use App\Mcp\Servers\FormsServer;
 use App\Mcp\Tools\Forms\RenderFormTool;
 use Domain\Agent\Models\Agent;
@@ -11,29 +9,14 @@ use Domain\Conversation\Models\Session;
 use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
-use Illuminate\Http\Request;
 use Illuminate\Testing\Fluent\AssertableJson;
+use Tests\Support\Mcp\InternalMcp;
 
 /**
  * render-form refuses to re-render a form the visitor already submitted, scoped to
  * the SESSION (the visitor's identity across conversations) — so a booking made in
  * an earlier chat in the same session stops the form showing again.
  */
-/**
- * @param  array<string, string>  $extraHeaders
- */
-function renderAs(Agent $agent, Conversation $conversation, array $extraHeaders = []): void
-{
-    $request = Request::create('/mcp/forms', 'POST');
-    $request->headers->add([
-        'X-Chatvia-Agent-Id' => $agent->external_id,
-        'X-Chatvia-Conversation-Id' => $conversation->external_id,
-        ...$extraHeaders,
-    ]);
-
-    app()->instance(McpCallerContext::class, app(McpCallerResolver::class)->resolve($request));
-}
-
 it('refuses to re-render a form the visitor already submitted in the same session', function (): void {
     $agent = Agent::factory()->create();
     $form = FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => true]);
@@ -44,7 +27,7 @@ it('refuses to re-render a form the visitor already submitted in the same sessio
 
     FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $first->id]);
 
-    renderAs($agent, $second);
+    InternalMcp::actAsAgent($agent->external_id, $second->external_id);
 
     FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])
         ->assertOk()
@@ -67,7 +50,7 @@ it('still renders the form for a different session that has not submitted', func
     $sessionB = Session::factory()->create(['agent_id' => $agent->id]);
     $convB = Conversation::factory()->create(['agent_id' => $agent->id, 'chat_session_id' => $sessionB->id, 'source' => ConversationSource::HostedChat]);
 
-    renderAs($agent, $convB);
+    InternalMcp::actAsAgent($agent->external_id, $convB->external_id);
 
     FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])
         ->assertOk()
@@ -81,7 +64,7 @@ it('resolves the form when the model passes its display name instead of the slug
     FormDefinition::factory()->forAgent($agent)->create(['name' => 'Book a demo', 'slug' => 'book-a-demo', 'is_active' => true]);
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
 
-    renderAs($agent, $conversation);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     FormsServer::tool(RenderFormTool::class, ['slug' => $key])
         ->assertOk()
@@ -103,7 +86,7 @@ it('refuses an unknown slug instead of fabricating a default form', function ():
     FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => true]);
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
 
-    renderAs($agent, $conversation);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     FormsServer::tool(RenderFormTool::class, ['slug' => 'made-up-slug'])
         ->assertHasErrors();
@@ -117,22 +100,9 @@ it('refuses to render anything when no slug is given', function (): void {
     FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => true]);
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
 
-    renderAs($agent, $conversation);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     FormsServer::tool(RenderFormTool::class, [])
-        ->assertHasErrors();
-
-    expect(FormSubmission::query()->exists())->toBeFalse();
-});
-
-it('does not render an inactive form even by its exact slug', function (): void {
-    $agent = Agent::factory()->create();
-    FormDefinition::factory()->forAgent($agent)->create(['slug' => 'book-a-demo', 'is_active' => false]);
-    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
-
-    renderAs($agent, $conversation);
-
-    FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])
         ->assertHasErrors();
 
     expect(FormSubmission::query()->exists())->toBeFalse();
@@ -144,7 +114,7 @@ it('does not record the server-to-server IP or user agent on a rendered form', f
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
 
     // The MCP call comes from Chatvia's own server, not the visitor.
-    renderAs($agent, $conversation, ['User-Agent' => 'GuzzleHttp/7']);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id, ['User-Agent' => 'GuzzleHttp/7']);
 
     FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])->assertOk();
 

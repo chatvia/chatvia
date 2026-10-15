@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
@@ -79,4 +80,17 @@ it('reports the attached agent count via the connectors data endpoint', function
         ->getJson(route('integrations.connectors.data'))
         ->assertOk()
         ->assertJsonPath('custom.0.server.agents_count', 1);
+});
+
+it('answers 404 for another workspace\'s agent on attach and detach, and leaves it alone', function (): void {
+    $strangerAgent = createAgent(User::factory()->create(), ['name' => 'Not Yours']);
+    $strangerServer = AgentMcpServer::factory()->create(['workspace_id' => $strangerAgent->workspace_id, 'slug' => 'weather']);
+    $strangerAgent->mcpServers()->attach($strangerServer->id);
+    $route = ['slug' => $this->server->slug, 'agent' => $strangerAgent->external_id];
+
+    $this->actingAs($this->user)->postJson(route('integrations.connectors.agents.attach', $route))->assertNotFound();
+    $this->actingAs($this->user)->deleteJson(route('integrations.connectors.agents.detach', $route))->assertNotFound();
+
+    expect($this->server->agents()->whereKey($strangerAgent->id)->exists())->toBeFalse()
+        ->and($strangerServer->agents()->whereKey($strangerAgent->id)->exists())->toBeTrue();
 });

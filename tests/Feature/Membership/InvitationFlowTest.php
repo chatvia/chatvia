@@ -11,6 +11,7 @@ use Domain\Membership\Team\Events\TeamInvitationCreated;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Notifications\TeamInvitationNotification;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -29,8 +30,9 @@ use Illuminate\Support\Facades\URL;
  *                            SendAgentChatterInvitationEmail listener end to end;
  *                            an email known in another workspace becomes a
  *                            separate chatter and the answer never says so.
- *   teams.cancel-invitation — owner deletes the row; non-owner is forbidden;
- *                            an invitation of another team 404s (scoped lookup).
+ *   teams.cancel-invitation — owner deletes the row; a teammate is sent back
+ *                            to the dashboard; an invitation of another team
+ *                            404s (scoped lookup).
  */
 
 /**
@@ -164,17 +166,17 @@ describe('teams.invite', function (): void {
         // The invitee has no User row yet, so the mail is routed on demand.
         Notification::assertSentOnDemand(
             TeamInvitationNotification::class,
-            fn ($notification, array $channels, object $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'invitee@example.com',
+            fn (TeamInvitationNotification $notification, array $channels, AnonymousNotifiable $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'invitee@example.com',
         );
     });
 });
 
 describe('teams.invitation.show', function (): void {
     it('redirects a non-integer invitation id to login instead of 500ing', function (): void {
-        // The id is a bigint; vulnerability scanners probe `/invitation/.env`,
-        // which used to reach Postgres and throw a 22P02 QueryException (500).
-        // Invitation::resolveRouteBinding() now misses cleanly → ->missing()
-        // redirects, all before the `signed` middleware ever runs.
+        // The id is a bigint; vulnerability scanners probe `/invitation/.env`.
+        // Invitation::resolveRouteBinding() misses cleanly instead of sending
+        // it to Postgres (a 22P02 error, a 500), and ->missing() redirects, all
+        // before the `signed` middleware runs.
         $this->get('/invitation/.env')
             ->assertRedirect(route('login'));
 
@@ -246,7 +248,7 @@ describe('agents.chatters.store', function (): void {
 
         Notification::assertSentOnDemand(
             AgentChatterInvitationNotification::class,
-            fn ($notification, array $channels, object $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'chatter@example.com',
+            fn (AgentChatterInvitationNotification $notification, array $channels, AnonymousNotifiable $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'chatter@example.com',
         );
     });
 
@@ -320,6 +322,17 @@ describe('teams.cancel-invitation', function (): void {
             ->assertSessionHasNoErrors();
 
         expect($this->team->invitations()->whereKey($this->invitation->id)->exists())->toBeFalse();
+    });
+
+    it('sends a teammate back to the dashboard and keeps the row', function (): void {
+        $teammate = teammateWithPermissions($this->owner, ['team.invite'], $this->team);
+
+        $this->actingAs($teammate)
+            ->from('/')
+            ->delete(route('teams.cancel-invitation', [$this->team, $this->invitation->id]))
+            ->assertRedirect(route('dashboard'));
+
+        expect($this->team->invitations()->whereKey($this->invitation->id)->exists())->toBeTrue();
     });
 
     it('hides the invitation from another workspace and keeps the row', function (): void {

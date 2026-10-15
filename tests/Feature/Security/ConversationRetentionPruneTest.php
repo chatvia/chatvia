@@ -11,13 +11,14 @@ use Illuminate\Support\Facades\DB;
 | Conversation retention override (app:prune-expired-conversations)
 |--------------------------------------------------------------------------
 |
-| Enterprise workspaces can SHORTEN chat retention below their plan ceiling via
+| A workspace can SHORTEN chat retention below the install's retention
+| (`chatvia.retention.conversations_days`, ConversationRetention::days()) via
 | WorkspaceSecurityPolicy.retention_conversations_days. The daily sweep soft-
 | deletes conversations idle past that override window (anchored on updated_at),
-| on top of the existing plan-default expires_at sweep.
+| on top of the expires_at sweep.
 */
 
-function agedConversation(Agent $agent, int $daysIdle): Conversation
+function crpAgedConversation(Agent $agent, int $daysIdle): Conversation
 {
     $session = Session::factory()->create(['agent_id' => $agent->id]);
     $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id]);
@@ -32,8 +33,8 @@ it('prunes conversations idle past a workspace retention override', function ():
     $agent = Agent::factory()->create();
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 5]);
 
-    $old = agedConversation($agent, daysIdle: 30);
-    $recent = agedConversation($agent, daysIdle: 1);
+    $old = crpAgedConversation($agent, daysIdle: 30);
+    $recent = crpAgedConversation($agent, daysIdle: 1);
 
     $this->artisan('app:prune-expired-conversations')->assertSuccessful();
 
@@ -41,24 +42,24 @@ it('prunes conversations idle past a workspace retention override', function ():
         ->and($recent->fresh()->trashed())->toBeFalse();
 });
 
-it('clamps a stale over-plan override down to the current plan ceiling', function (): void {
+it('clamps an override longer than the install\'s retention down to it', function (): void {
+    config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
-    // A stale override left from a higher plan — far above any current ceiling.
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_conversations_days' => 9999]);
 
-    // Idle 400 days exceeds every plan ceiling but is well under the stale 9999.
-    $conversation = agedConversation($agent, daysIdle: 400);
+    // Idle 120 days: past the install's 90, well under the override's 9999.
+    $conversation = crpAgedConversation($agent, daysIdle: 120);
 
     $this->artisan('app:prune-expired-conversations')->assertSuccessful();
 
-    // Pruned because the override is clamped to the plan, not trusted verbatim.
+    // Pruned because the override is clamped to the install's retention, not trusted verbatim.
     expect($conversation->fresh()->trashed())->toBeTrue();
 });
 
 it('leaves conversations untouched when the workspace has no override', function (): void {
     $agent = Agent::factory()->create();
     // No policy override and no expires_at — age alone must not prune it.
-    $conversation = agedConversation($agent, daysIdle: 400);
+    $conversation = crpAgedConversation($agent, daysIdle: 400);
 
     $this->artisan('app:prune-expired-conversations')->assertSuccessful();
 

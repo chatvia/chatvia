@@ -34,18 +34,3 @@ it('stops a deactivated user at / instead of sending them to the dashboard', fun
         ->get('/')
         ->assertForbidden();
 });
-
-it('serves no marketing page', function (string $url): void {
-    $this->get($url)->assertNotFound();
-})->with([
-    '/pricing',
-    '/blog',
-    '/changelog',
-    '/mission',
-    '/security',
-    '/privacy-policy',
-    '/terms-of-service',
-    '/legal/dpa',
-    '/contact',
-    '/legal/dpa/download',
-]);

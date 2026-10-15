@@ -1,9 +1,6 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -12,17 +9,7 @@ use Inertia\Testing\AssertableInertia as Assert;
  * agent gets — "as if it doesn't exist".
  */
 beforeEach(function (): void {
-    $owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($owner);
-
-    $this->agent = Agent::create([
-        'workspace_id' => $owner->workspace()->id,
-        'team_id' => $owner->primaryTeam()->id,
-        'name' => 'Public Agent',
-        'external_id' => Str::random(14),
-        'slug' => Str::lower(Str::random(12)),
-        'is_public' => true,
-    ]);
+    $this->agent = Agent::factory()->create(['is_public' => true]);
     $this->chat = '/chat/'.$this->agent->slug;
 });
 

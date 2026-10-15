@@ -1,21 +1,15 @@
 <?php
 
-use App\Identity\Chatter\Actions\CreateChatterAction;
-use App\Identity\Chatter\Data\CreateChatterData;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 
 /**
  * Conversation search is a read: it must never create a chat session, and it
  * returns nothing when the visitor has no session yet.
  */
-beforeEach(function (): void {});
-
 it('returns no results and creates no session for a visitor without one', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
 
@@ -27,16 +21,12 @@ it('returns no results and creates no session for a visitor without one', functi
 });
 
 it('finds a signed-in chatter\'s conversation by title in their existing session', function (): void {
-    $owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($owner);
-    $agent = createAgent($owner, ['is_public' => false, 'slug' => Str::lower(Str::random(12))]);
-    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($owner->workspace(), $agent, 'Jane'));
+    $agent = Agent::factory()->create(['is_public' => false]);
+    $chatter = Chatter::factory()->grantedTo($agent)->create();
 
-    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
-    $conversation = Conversation::create([
+    $session = Session::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->create([
         'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
         'title' => 'Billing question',
         'is_visible' => true,
         'source' => ConversationSource::HostedChat,

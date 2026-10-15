@@ -1,7 +1,5 @@
 <?php
 
-use App\Mcp\McpCallerContext;
-use App\Mcp\McpCallerResolver;
 use App\Mcp\Servers\FormsServer;
 use App\Mcp\Tools\Forms\FindFormsTool;
 use App\Mcp\Tools\Forms\RenderFormTool;
@@ -12,8 +10,8 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
-use Illuminate\Http\Request;
 use Laravel\Mcp\Server\Testing\TestResponse;
+use Tests\Support\Mcp\InternalMcp;
 
 /**
  * find-forms and render-form are a contract with the LLM (their guidance
@@ -24,21 +22,6 @@ use Laravel\Mcp\Server\Testing\TestResponse;
 pest()->beforeEach(function (): void {
     $this->travelTo(CarbonImmutable::create(2026, 6, 15, 12, 30, 0));
 });
-
-/**
- * Act as the tool loop for this agent (and conversation), or with no identity
- * at all — resolved from the identity headers exactly as the middleware does.
- */
-function formCaller(?string $agentExternalId, ?string $conversationExternalId = null): void
-{
-    $request = Request::create('/mcp/forms', 'POST');
-    $request->headers->add(array_filter([
-        'X-Chatvia-Agent-Id' => $agentExternalId,
-        'X-Chatvia-Conversation-Id' => $conversationExternalId,
-    ]));
-
-    app()->instance(McpCallerContext::class, app(McpCallerResolver::class)->resolve($request));
-}
 
 function formToolResult(TestResponse $response): string
 {
@@ -67,7 +50,7 @@ function seedFormAgent(ConversationSource $source = ConversationSource::Widget):
 
 it('renders a form artifact', function (): void {
     ['agent' => $agent, 'conversation' => $conversation] = seedFormAgent();
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])))->toMatchSnapshot();
 });
@@ -75,7 +58,7 @@ it('renders a form artifact', function (): void {
 it('renders the default success message when the form has none', function (): void {
     ['agent' => $agent, 'conversation' => $conversation, 'form' => $form] = seedFormAgent();
     $form->update(['success_message' => null, 'subtitle' => null]);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'Book a demo'])))->toMatchSnapshot();
 });
@@ -83,7 +66,7 @@ it('renders the default success message when the form has none', function (): vo
 it('acknowledges a form already submitted in the session', function (): void {
     ['agent' => $agent, 'conversation' => $conversation, 'form' => $form] = seedFormAgent();
     FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $conversation->id]);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])))->toMatchSnapshot();
 });
@@ -92,7 +75,7 @@ it('names the active slugs when the requested form does not exist', function ():
     ['agent' => $agent, 'conversation' => $conversation] = seedFormAgent();
     FormDefinition::factory()->forAgent($agent)->create(['name' => 'Get a quote', 'slug' => 'get-a-quote', 'is_active' => true]);
     FormDefinition::factory()->forAgent($agent)->create(['name' => 'Old form', 'slug' => 'old-form', 'is_active' => false]);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'newsletter'])))->toMatchSnapshot();
 });
@@ -100,14 +83,15 @@ it('names the active slugs when the requested form does not exist', function ():
 it('steers back to conversation when the agent has no active form', function (): void {
     ['agent' => $agent, 'conversation' => $conversation, 'form' => $form] = seedFormAgent();
     $form->update(['is_active' => false]);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
-    expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])))->toMatchSnapshot();
+    expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])))->toMatchSnapshot()
+        ->and(FormSubmission::query()->where('form_definition_id', $form->id)->exists())->toBeFalse();
 });
 
 it('refuses to render on a messaging channel', function (): void {
     ['agent' => $agent, 'conversation' => $conversation] = seedFormAgent(ConversationSource::Telegram);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])))->toMatchSnapshot();
 });
@@ -123,7 +107,7 @@ it('explains each missing render-form identity', function (?string $agent, ?stri
         default => $value,
     };
 
-    formCaller($resolve($agent), $resolve($conversation));
+    InternalMcp::actAsAgent($resolve($agent), $resolve($conversation));
 
     expect(formToolResult(FormsServer::tool(RenderFormTool::class, ['slug' => 'book-a-demo'])))->toMatchSnapshot();
 })->with([
@@ -135,14 +119,14 @@ it('explains each missing render-form identity', function (?string $agent, ?stri
 
 it('finds matching forms', function (): void {
     ['agent' => $agent, 'conversation' => $conversation] = seedFormAgent();
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, ['intent' => 'I want to book a demo'])))->toMatchSnapshot();
 });
 
 it('finds forms without a conversation', function (): void {
     ['agent' => $agent] = seedFormAgent();
-    formCaller($agent->external_id);
+    InternalMcp::actAsAgent($agent->external_id);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, ['intent' => 'book a demo please'])))->toMatchSnapshot();
 });
@@ -150,28 +134,28 @@ it('finds forms without a conversation', function (): void {
 it('flags forms the visitor already submitted', function (): void {
     ['agent' => $agent, 'conversation' => $conversation, 'form' => $form] = seedFormAgent();
     FormSubmission::factory()->forDefinition($form)->submitted()->create(['chat_conversation_id' => $conversation->id]);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, ['intent' => 'book a demo'])))->toMatchSnapshot();
 });
 
 it('finds nothing for an agent without forms', function (): void {
     $agent = Agent::factory()->create();
-    formCaller($agent->external_id);
+    InternalMcp::actAsAgent($agent->external_id);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, ['intent' => 'book a demo'])))->toMatchSnapshot();
 });
 
 it('finds nothing on a messaging channel', function (): void {
     ['agent' => $agent, 'conversation' => $conversation] = seedFormAgent(ConversationSource::Slack);
-    formCaller($agent->external_id, $conversation->external_id);
+    InternalMcp::actAsAgent($agent->external_id, $conversation->external_id);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, ['intent' => 'book a demo'])))->toMatchSnapshot();
 });
 
 it('explains each missing find-forms identity or input', function (?string $agent, array $arguments): void {
     seedFormAgent();
-    formCaller($agent);
+    InternalMcp::actAsAgent($agent);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, $arguments)))->toMatchSnapshot();
 })->with([
@@ -181,7 +165,7 @@ it('explains each missing find-forms identity or input', function (?string $agen
 
 it('validates the find-forms intent', function (): void {
     ['agent' => $agent] = seedFormAgent();
-    formCaller($agent->external_id);
+    InternalMcp::actAsAgent($agent->external_id);
 
     expect(formToolResult(FormsServer::tool(FindFormsTool::class, [])))->toMatchSnapshot();
 });

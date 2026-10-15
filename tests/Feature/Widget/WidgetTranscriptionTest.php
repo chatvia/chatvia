@@ -6,35 +6,18 @@ use Domain\Llm\Exceptions\TranscriptionNotConfiguredException;
 use Domain\Widget\WidgetHeaders;
 use Illuminate\Http\UploadedFile;
 use Mockery\MockInterface;
+use Tests\Support\Widget\EmbeddedWidget;
 
 /**
  * The widget composer's mic: POST /widget/transcribe writes a voice note down
  * for a session of the agent, while the owner allows voice input.
  */
 beforeEach(function (): void {
-    config(['chatvia.widget.always_allowed_origins' => []]);
-
     $this->agent = Agent::factory()->create(['is_public' => true]);
-    $this->agent->setSetting('sites', ['customer.example'], 'widget');
+    EmbeddedWidget::allowSite($this->agent);
 });
 
-/**
- * @param  array<string, string>  $extra
- * @return array<string, string>
- */
-function transcribeHeaders(Agent $agent, array $extra = []): array
-{
-    return [WidgetHeaders::AGENT_ID => $agent->external_id, 'Origin' => 'https://customer.example', ...$extra];
-}
-
-/** The widget's headers with a fresh session of the agent. */
-function transcribeSessionHeaders(Agent $agent): array
-{
-    $boot = test()->withHeaders(transcribeHeaders($agent))->postJson('/widget/sessions/init')->assertSuccessful()->json();
-
-    return transcribeHeaders($agent, [WidgetHeaders::SESSION_ID => $boot['session_id']]);
-}
-
+/** @return array{audio: UploadedFile} */
 function transcribeRecording(): array
 {
     return ['audio' => UploadedFile::fake()->create('recording.webm', 12, 'audio/webm')];
@@ -45,7 +28,7 @@ it('writes the voice note down for a session of the agent', function (): void {
         $mock->shouldReceive('execute')->once()->withArgs(fn (string $path, string $extension): bool => $extension === 'webm')->andReturn('Hello there');
     });
 
-    $this->withHeaders(transcribeSessionHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
         ->postJson('/widget/transcribe', transcribeRecording())
         ->assertOk()
         ->assertExactJson(['text' => 'Hello there']);
@@ -54,7 +37,7 @@ it('writes the voice note down for a session of the agent', function (): void {
 it('refuses a call without a session of the agent', function (?string $sessionId): void {
     $this->mock(TranscribeAudioAction::class)->shouldNotReceive('execute');
 
-    $this->withHeaders(transcribeHeaders($this->agent, $sessionId === null ? [] : [WidgetHeaders::SESSION_ID => $sessionId]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, $sessionId === null ? [] : [WidgetHeaders::SESSION_ID => $sessionId]))
         ->postJson('/widget/transcribe', transcribeRecording())
         ->assertForbidden();
 })->with([
@@ -64,11 +47,11 @@ it('refuses a call without a session of the agent', function (?string $sessionId
 
 it('refuses a session of another agent', function (): void {
     $other = Agent::factory()->create(['is_public' => true]);
-    $other->setSetting('sites', ['customer.example'], 'widget');
-    $otherSession = transcribeSessionHeaders($other)[WidgetHeaders::SESSION_ID];
+    EmbeddedWidget::allowSite($other);
+    $otherSession = EmbeddedWidget::boot($other)['session_id'];
     $this->mock(TranscribeAudioAction::class)->shouldNotReceive('execute');
 
-    $this->withHeaders(transcribeHeaders($this->agent, [WidgetHeaders::SESSION_ID => $otherSession]))
+    $this->withHeaders(EmbeddedWidget::headers($this->agent, [WidgetHeaders::SESSION_ID => $otherSession]))
         ->postJson('/widget/transcribe', transcribeRecording())
         ->assertForbidden();
 });
@@ -77,13 +60,13 @@ it('refuses while the owner has turned voice input off', function (): void {
     $this->agent->setSetting('allow_voice_input', false, 'appearance');
     $this->mock(TranscribeAudioAction::class)->shouldNotReceive('execute');
 
-    $this->withHeaders(transcribeSessionHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
         ->postJson('/widget/transcribe', transcribeRecording())
         ->assertForbidden();
 });
 
 it('needs a recording', function (): void {
-    $this->withHeaders(transcribeSessionHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
         ->postJson('/widget/transcribe', [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors('audio');
@@ -92,7 +75,7 @@ it('needs a recording', function (): void {
 it('answers 503 while no speech-to-text service is set up', function (): void {
     $this->mock(TranscribeAudioAction::class)->shouldReceive('execute')->andThrow(new TranscriptionNotConfiguredException);
 
-    $this->withHeaders(transcribeSessionHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
         ->postJson('/widget/transcribe', transcribeRecording())
         ->assertServiceUnavailable();
 });
@@ -100,7 +83,7 @@ it('answers 503 while no speech-to-text service is set up', function (): void {
 it('answers 500 when the speech-to-text service fails', function (): void {
     $this->mock(TranscribeAudioAction::class)->shouldReceive('execute')->andThrow(new RuntimeException('provider down'));
 
-    $this->withHeaders(transcribeSessionHeaders($this->agent))
+    $this->withHeaders(EmbeddedWidget::chatHeaders($this->agent))
         ->postJson('/widget/transcribe', transcribeRecording())
         ->assertInternalServerError();
 });

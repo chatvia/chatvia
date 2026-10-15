@@ -398,6 +398,34 @@ return [
 
         'capture_request_id' => true,
 
+        /*
+        |--------------------------------------------------------------------------
+        | One Trace Per Request
+        |--------------------------------------------------------------------------
+        |
+        | When enabled, every AI call made during the same HTTP request, queued
+        | job, or Artisan command shares one trace id. Queued jobs dispatched
+        | during a request keep the trace of that request. The dashboard then
+        | shows all calls of a trace as one chain. When disabled, each AI call
+        | gets its own trace id unless you set one with Spectra::withTraceId().
+        |
+        */
+
+        'trace_per_request' => env('SPECTRA_TRACE_PER_REQUEST', true),
+
+        /*
+        |--------------------------------------------------------------------------
+        | Use Incoming Traceparent
+        |--------------------------------------------------------------------------
+        |
+        | When the incoming HTTP request has a W3C "traceparent" header (sent by
+        | an OpenTelemetry-aware proxy, gateway, or caller), Spectra uses its
+        | trace id. Spectra's spans then join that distributed trace.
+        |
+        */
+
+        'use_traceparent' => env('SPECTRA_USE_TRACEPARENT', true),
+
     ],
 
     /*

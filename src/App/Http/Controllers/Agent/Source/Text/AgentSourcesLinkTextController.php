@@ -15,7 +15,8 @@ class AgentSourcesLinkTextController
 {
     public function __invoke(LinkSourceTextRequest $request, Agent $agent, int $textId, AttachSourceToAgentAction $attach): JsonResponse
     {
-        $text = SourceText::query()->findOrFail($textId);
+        // Another workspace's text answers like an unknown id.
+        $text = SourceText::query()->where('workspace_id', $agent->workspace_id)->findOrFail($textId);
 
         abort_if($request->user()->cannot('view', $text), 403);
 

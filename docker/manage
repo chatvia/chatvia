@@ -82,6 +82,7 @@ setup_output() {
             S_ACTIVE='*' S_DONE='o' S_WARN='!' S_FAIL='x' S_INFO='*'
             S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_ARROW='->' S_UP='^'
             S_UP_DOWN='up/down' S_LEFT_RIGHT='left/right'
+            # shellcheck disable=SC1003 # the last spinner frame is a backslash
             SPINNER=('|' '/' '-' '\') UNICODE=0
             ;;
     esac
@@ -650,6 +651,7 @@ random_password() {
 }
 
 # A path with the home folder shown as ~, for display.
+# shellcheck disable=SC2088 # a literal ~ is the point
 pretty_path() {
     case $1 in
         "$HOME") printf '~' ;;
@@ -2116,7 +2118,7 @@ remove_old_images() {
     local replaced=$1 name tag id source removed=0
     name=$(image_name)
     while IFS= read -r tag; do
-        is_exact_version "$tag" && is_exact_version "$replaced" || continue
+        if ! is_exact_version "$tag" || ! is_exact_version "$replaced"; then continue; fi
         if version_at_least "$tag" "$replaced"; then continue; fi
         if docker_cmd image rm "$name:$tag" >>"$LOG" 2>&1; then removed=$((removed + 1)); fi
     done < <(docker_cmd image ls --format '{{.Tag}}' "$name" 2>/dev/null)

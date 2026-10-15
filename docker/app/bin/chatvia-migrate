@@ -19,6 +19,7 @@ cd "${APP_BASE_DIR:-/var/www/chatvia}"
 # Connects through Laravel, so the settings come from the same place as the
 # app's: environment variables, then the image's .env.
 database_is_ready() {
+    # shellcheck disable=SC2016 # PHP code: the $ signs are PHP's
     php -r '
         require "vendor/autoload.php";
         $app = require "bootstrap/app.php";

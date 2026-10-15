@@ -137,6 +137,7 @@ setup_output() {
             S_ACTIVE='*' S_DONE='o' S_WARN='!' S_FAIL='x' S_INFO='*'
             S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_ARROW='->' S_UP='^'
             S_UP_DOWN='up/down' S_LEFT_RIGHT='left/right'
+            # shellcheck disable=SC1003 # the last spinner frame is a backslash
             SPINNER=('|' '/' '-' '\') UNICODE=0
             ;;
     esac
@@ -731,6 +732,7 @@ valid_url() {
 folder_state() {
     local dir=$1
     if [ -e "$dir" ] && [ ! -d "$dir" ]; then
+        # shellcheck disable=SC2209 # the state "file", not the command
         STATE=file
     elif [ -f "$dir/.env" ] && grep -q '^# Chatvia settings, written by the installer' "$dir/.env" 2>/dev/null; then
         # This installer marks .env when it finishes.
@@ -808,6 +810,7 @@ complete_folder() {
         done
         if [ "$count" -gt 6 ]; then CHOICES="$CHOICES+$((count - 6)) more"; fi
     fi
+    # shellcheck disable=SC2088 # the typed ~ stays a ~
     case $typed in
         "~" | "~/"*) COMPLETED="~${common#"$HOME"}" ;;
         *) COMPLETED=$common ;;
@@ -848,6 +851,7 @@ random_password() {
 }
 
 # A path with the home folder shown as ~, for display.
+# shellcheck disable=SC2088 # a literal ~ is the point
 pretty_path() {
     case $1 in
         "$HOME") printf '~' ;;
@@ -856,6 +860,7 @@ pretty_path() {
     esac
 }
 
+# shellcheck disable=SC2088 # matches a typed ~, which the shell did not expand
 expand_home() {
     case $1 in
         "~") printf '%s' "$HOME" ;;
@@ -1110,6 +1115,7 @@ require_local_image() {
     local ref
     ref=$(image_ref)
     if ! docker_cmd image inspect "$ref" >/dev/null 2>&1; then
+        # shellcheck disable=SC2016 # the command is shown, not run
         die "The image $ref is not on this machine." \
             'Build it first (docker build --build-arg SHAKOMAKO_VERSION=$(npm run -s shakomako:version) -t NAME:VERSION .), or run without --no-pull.'
     fi

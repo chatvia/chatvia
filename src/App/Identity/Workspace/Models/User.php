@@ -239,6 +239,15 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     }
 
     /**
+     * Whether either two-step sign-in is on: the dashboard's (Fortify) or
+     * the admin panel's (an authenticator app).
+     */
+    public function usesTwoFactor(): bool
+    {
+        return $this->hasEnabledTwoFactorAuthentication() || filled($this->getAppAuthenticationSecret());
+    }
+
+    /**
      * Filament panel gate (FilamentUser contract). Only platform staff
      * (`is_admin`) may reach the admin panel; everyone else, and a
      * deactivated admin, is rejected at the panel door.

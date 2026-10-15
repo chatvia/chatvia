@@ -36,13 +36,16 @@ function conventionPhpFiles(string $relativeDir): array
     return $files;
 }
 
-/** Files whose path contains /<segment>/, across Domain + the Identity carve-out. */
+/**
+ * Files whose path contains /<segment>/ anywhere under src/: the Domain, the
+ * Identity carve-out and the admin panel's own Actions, Jobs and Listeners.
+ */
 function conventionFilesInSegment(string $segment): array
 {
     $needle = DIRECTORY_SEPARATOR.$segment.DIRECTORY_SEPARATOR;
 
     return array_values(array_filter(
-        [...conventionPhpFiles('src/Domain'), ...conventionPhpFiles('src/App/Identity')],
+        conventionPhpFiles('src'),
         fn (string $path): bool => str_contains($path, $needle),
     ));
 }
@@ -70,6 +73,25 @@ function conventionOffenders(array $files, string $pattern): array
     return $offenders;
 }
 
+/**
+ * Qualified class names in $path's code (imports and references, not comments
+ * or strings) that match $pattern.
+ *
+ * @return list<string>
+ */
+function conventionQualifiedNames(string $path, string $pattern): array
+{
+    $names = [];
+
+    foreach (PhpToken::tokenize((string) file_get_contents($path)) as $token) {
+        if ($token->is([T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED]) && preg_match($pattern, $token->text) === 1) {
+            $names[] = $token->text;
+        }
+    }
+
+    return $names;
+}
+
 // --- Dependency direction ------------------------------------------------
 
 it('the Domain layer does not import the HTTP request object', function (): void {
@@ -79,13 +101,18 @@ it('the Domain layer does not import the HTTP request object', function (): void
         'src/Domain/Conversation/Services/Streaming/Requests/StreamRequestDataFactory.php',
     ];
 
-    // Aliased imports (`use Illuminate\Http\Request as HttpRequest;`) count too.
-    $offenders = array_values(array_diff(
-        conventionOffenders(conventionPhpFiles('src/Domain'), '/use Illuminate\\\\Http\\\\Request( as \w+)?;/'),
-        $allowed,
-    ));
+    // Imports (aliased or not) and fully-qualified references in code count;
+    // comments do not.
+    $root = realpath(__DIR__.'/../../').DIRECTORY_SEPARATOR;
+    $offenders = [];
 
-    expect($offenders)->toBe([]);
+    foreach (conventionPhpFiles('src/Domain') as $path) {
+        if (conventionQualifiedNames($path, '/^\\\\?Illuminate\\\\Http\\\\Request$/') !== []) {
+            $offenders[] = str_replace($root, '', $path);
+        }
+    }
+
+    expect(array_values(array_diff($offenders, $allowed)))->toBe([]);
 });
 
 it('the Domain layer never imports from App except the Identity carve-out', function (): void {
@@ -93,8 +120,8 @@ it('the Domain layer never imports from App except the Identity carve-out', func
     $offenders = [];
 
     foreach (conventionPhpFiles('src/Domain') as $path) {
-        if (preg_match('/^use App\\\\(?!Identity\\\\)/m', (string) file_get_contents($path)) === 1) {
-            $offenders[] = str_replace($root, '', $path);
+        foreach (conventionQualifiedNames($path, '/^\\\\?App\\\\(?!Identity\\\\)/') as $name) {
+            $offenders[] = str_replace($root, '', $path).' → '.$name;
         }
     }
 
@@ -289,21 +316,35 @@ it('controllers expose only resource methods or __invoke', function (): void {
 /**
  * Inline Conversation::where('external_id', …) and Session::where('external_id', …)
  * lookups skip the agent-scoping that {@see WidgetVerification}
- * exists to centralise. Some legacy call sites enforce ownership via middleware
- * or a separate whereHas — those are listed below — but a NEW callsite must go
- * through WidgetVerification so the cross-tenant defence is grep-able in one place.
+ * exists to centralise. A call site that has to look one up some other way is
+ * listed below with its reason; a new one goes through WidgetVerification, so
+ * the cross-tenant defence stays in one place.
  */
 const EXTERNAL_ID_LOOKUP_ALLOWLIST = [
-    // Empty: every lookup by external id is scoped to the caller's session or
-    // agent (see ConversationQueryBuilder::inSession and WidgetVerification).
+    // Scoped in the query itself: the visitor's session and the agent.
+    'src/Domain/Conversation/Actions/Conversations/FindWidgetConversationAction.php',
+    'src/Domain/Widget/Services/BroadcastAuthorizer.php',
+    // The turn's own session or conversation, whose id was verified when the
+    // turn started; they read the session's conversations or the
+    // conversation's surface and id.
+    'src/Domain/Conversation/Services/Memory/ChatMemory.php',
+    'src/Domain/Conversation/Services/Tooling/Routing/ApprovalToolFilter.php',
+    'src/Domain/Conversation/Services/Tooling/Routing/StickyToolResolver.php',
+    'src/Domain/Conversation/Services/Tooling/Routing/SurfaceToolFilter.php',
 ];
 
 it('Conversation/Session external_id lookups go through WidgetVerification', function (): void {
-    $sources = [...conventionPhpFiles('src/Domain'), ...conventionPhpFiles('src/App/Http/Controllers')];
+    // WidgetVerification is where these lookups belong.
+    $sources = array_values(array_filter(
+        [...conventionPhpFiles('src/Domain'), ...conventionPhpFiles('src/App/Http/Controllers')],
+        fn (string $path): bool => ! str_ends_with($path, 'src/Domain/Widget/Services/WidgetVerification.php'),
+    ));
 
+    // The chain may be split over lines: Conversation::query()
+    //     ->where('external_id', …).
     $offenders = conventionOffenders(
         $sources,
-        '/(?:Conversation|Session)::(?:where|query\(\)->where)\([\'"]external_id[\'"]/',
+        '/(?:Conversation|Session)::(?:query\(\)\s*->\s*)?(?:where|firstWhere)\(\s*[\'"]external_id[\'"]/',
     );
 
     $newOffenders = array_values(array_diff($offenders, EXTERNAL_ID_LOOKUP_ALLOWLIST));
@@ -471,8 +512,8 @@ it('empty checks use filled()/blank(), not hand-written comparisons with an empt
 
 it('every listener is registered in a service provider', function (): void {
     // This app has no event auto-discovery, so an unregistered listener can be
-    // correct and unit-tested yet silently never fire (the SendTeamInvitationEmail
-    // bug). Every Listeners/ class must appear in a provider's registration.
+    // correct and unit-tested yet never fire. Every Listeners/ class must be
+    // passed to Event::listen() (or Event::subscribe()) in a provider.
     $providerContent = implode("\n", array_map(
         fn (string $path): string => (string) file_get_contents($path),
         conventionPhpFiles('src/App/Providers'),
@@ -481,10 +522,11 @@ it('every listener is registered in a service provider', function (): void {
     $listeners = conventionFilesInSegment('Listeners');
     expect($listeners)->not->toBe([]);
 
+    // A use line or a comment naming the listener is not a registration.
     $unregistered = [];
     foreach ($listeners as $path) {
         $shortName = basename($path, '.php');
-        if (! str_contains($providerContent, $shortName)) {
+        if (preg_match('/Event::(?:listen|subscribe)\([^;]*\b'.preg_quote($shortName, '/').'::class/', $providerContent) !== 1) {
             $unregistered[] = $shortName;
         }
     }

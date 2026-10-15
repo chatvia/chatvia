@@ -19,6 +19,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Laravel\Pulse\Facades\Pulse;
 
 /**
  * Seeds 30 days of "historical" analytics events that have NO backing rows in
@@ -60,8 +61,10 @@ class AnalyticsDemoSeeder extends Seeder
             return;
         }
 
-        // The seeder fires tens of thousands of upserts.
+        // The seeder fires tens of thousands of upserts. Pulse would keep an
+        // entry for each of them until the end of the run.
         $this->ensureMemoryLimit('512M');
+        Pulse::stopRecording();
 
         $agents = Agent::query()->orderBy('id')->get();
 

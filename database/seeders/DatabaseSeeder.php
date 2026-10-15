@@ -8,6 +8,7 @@ use Database\Seeders\Demo\SkipsInProduction;
 use Domain\Agent\Models\Agent;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\Seeder;
+use Laravel\Pulse\Facades\Pulse;
 
 /**
  * `php artisan db:seed`, for a local or staging database only: a starter LLM
@@ -22,8 +23,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        // The demo seeders write tens of thousands of rows.
+        // The demo seeders write tens of thousands of rows. Pulse would keep
+        // an entry for each of their queries until the end of the run.
         ini_set('memory_limit', '1G');
+        Pulse::stopRecording();
 
         // Everything here is demo data with a well-known login.
         if ($this->skipInProduction()) {

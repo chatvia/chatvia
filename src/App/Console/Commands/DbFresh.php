@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\DB;
  * refuses to remove them and the wipe aborts halfway. The fix is to drop
  * those extensions first (which cleanly removes everything they planted),
  * run the standard migration cycle, and reinstall the extensions afterwards
- * so the schema is ready to use.
+ * so the schema is ready to use. Pulse's own database is wiped too (and
+ * created first when it is missing).
  *
  * Mirrors the logic in tests/RefreshTestDatabases.php — kept in sync there.
  */
@@ -50,6 +51,15 @@ class DbFresh extends Command
 
         $this->components->info('Wiping the database');
         $this->call('db:wipe', ['--force' => true]);
+
+        // Pulse keeps its tables in a database of its own, which the wipe
+        // above does not reach.
+        $this->components->info('Wiping the Pulse database');
+        if ($this->call('app:create-pulse-database') !== self::SUCCESS) {
+            return self::FAILURE;
+        }
+
+        $this->call('db:wipe', ['--database' => 'pulse', '--force' => true]);
 
         $this->components->info('Reinstalling Postgres extensions');
         foreach (self::EXTENSIONS_UP as $extension) {

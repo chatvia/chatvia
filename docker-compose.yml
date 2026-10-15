@@ -10,7 +10,8 @@
 #      docker compose down -v    stop them and delete all data
 #
 # 2. Everything in Docker with Laravel Sail: add COMPOSE_PROFILES=sail to .env.
-#    The "sail" profile adds the app, Horizon, the scheduler and Reverb.
+#    The "sail" profile adds the app, Horizon, the scheduler, Reverb and
+#    Pulse's server stats.
 #
 #      vendor/bin/sail up -d     start everything
 #      vendor/bin/sail npm run dev
@@ -120,6 +121,13 @@ services:
     ports:
       - "${FORWARD_REVERB_PORT:-8080}:8080"
 
+  # Pulse's server stats (/pulse): CPU, memory, disk and Reverb connections.
+  pulse:
+    <<: *sail-app
+    environment:
+      <<: *sail-environment
+      SUPERVISOR_PHP_COMMAND: "/usr/bin/php -d variables_order=EGPCS /var/www/html/artisan pulse:check"
+
   postgres:
     # PostgreSQL 18 with pgvector, VectorChord (vchord), VectorChord-bm25 and
     # pg_tokenizer. Same image and tag as CI (.github/workflows/tests.yml); keep
@@ -141,8 +149,10 @@ services:
     volumes:
       # PostgreSQL 18 images keep their data under /var/lib/postgresql/18/.
       - pgdata:/var/lib/postgresql
-      # Creates the `testing` database on first start (empty volume only).
+      # Creates the `testing` and `pulse` databases on first start (empty
+      # volume only).
       - ./docker/postgres/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql:ro
+      - ./docker/postgres/create-pulse-database.sql:/docker-entrypoint-initdb.d/20-create-pulse-database.sql:ro
     shm_size: 256mb
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]

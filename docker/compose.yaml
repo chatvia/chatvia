@@ -1,5 +1,6 @@
 # Chatvia: the whole stack in Docker. Web app, queue workers, scheduler,
-# WebSocket server, PostgreSQL (with the search extensions) and Redis.
+# WebSocket server, server stats, PostgreSQL (with the search extensions) and
+# Redis.
 #
 #   docker compose up -d          start (the first start sets everything up)
 #   docker compose logs migrate   the first admin's password, on the first start
@@ -142,6 +143,17 @@ services:
     healthcheck:
       test: ["CMD", "healthcheck-reverb"]
       start_period: 30s
+
+  # Pulse's server stats (/pulse): CPU, memory and disk of this machine, and
+  # the open Reverb connections, every 15 seconds. PULSE_SERVER_NAME is the
+  # name on the Servers card; without it, each new container would show up as
+  # another server.
+  pulse:
+    <<: *app
+    command: ["php", "artisan", "pulse:check"]
+    environment:
+      PULSE_SERVER_NAME: ${PULSE_SERVER_NAME:-chatvia}
+    depends_on: *depends-on-migrate
 
 volumes:
   storage:

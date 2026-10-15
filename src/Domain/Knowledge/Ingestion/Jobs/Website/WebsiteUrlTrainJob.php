@@ -42,6 +42,8 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
     public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
     {
+        // Inside its batch the batch's own queue wins, so
+        // StartWebsiteIngestionAction names the same one.
         $this->onQueue('ingestion.website');
     }
 

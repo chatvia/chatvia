@@ -43,7 +43,8 @@ class MediaChunkIngestionJob implements ShouldBeUnique, ShouldQueue
         public PageGroupData $group,
     ) {
         // A long-running ingestion queue: a page group with enhancement can
-        // outlast the default queue's 90-second hand-over.
+        // outlast the hand-over on `default`. Inside its batch the batch's
+        // own queue wins, so DispatchSourceIngestionBatchAction names it too.
         $this->onQueue('ingestion.chunks');
     }
 

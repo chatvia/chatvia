@@ -63,8 +63,13 @@ class DispatchSourceIngestionBatchAction
         $sourceId = $source->getKey();
         $agentExternalId = $agent->external_id;
 
+        // A batch pushes every job onto its own queue and ignores the one the
+        // job names, so the batch names the long-running ingestion queue.
+        // Without it the jobs land on `default`, whose chat workers hand a
+        // long job that is still running to a second worker.
         $batch = Bus::batch($jobs->all())
             ->name('Ingestion '.$sourceType.' ID: '.$sourceId)
+            ->onQueue('ingestion.chunks')
             ->allowFailures()
             ->finally(static function () use ($sourceType, $sourceId, $agentExternalId): void {
                 $source = Relation::getMorphedModel($sourceType)::find($sourceId);

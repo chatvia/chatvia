@@ -69,5 +69,13 @@ it('takes the answers only once', function (): void {
     Event::assertDispatchedTimes(FormSubmitted::class, 1);
 });
 
-it('refuses a form rendered in another visitor\'s conversation')
-    ->todo(note: 'SubmitInlineFormController (hosted chat) checks only that the form is the agent\'s, not that its conversation is in the visitor\'s chat session.');
+it('answers 404 for a form rendered in another visitor\'s conversation', function (): void {
+    // A new browser: another visitor, in a chat session of their own.
+    $this->flushSession();
+    $this->postJson("{$this->base}/conversations/create", ['message' => 'Hello'])->assertSuccessful();
+
+    ifsSubmit($this->base, $this->form)->assertNotFound();
+
+    expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Pending);
+    Event::assertNotDispatched(FormSubmitted::class);
+});

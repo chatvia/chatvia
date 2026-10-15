@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
  */
 class UpdateMcpInvocationCounters implements ShouldQueue
 {
+    // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
         return (string) config('chatvia.analytics.queue', 'analytics');

@@ -7,8 +7,10 @@ use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
+use Illuminate\Events\CallQueuedListener;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\WebhookSignature;
 
@@ -117,6 +119,19 @@ it('throws on a non-2xx response so the queue retries', function (): void {
 
     expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id)))
         ->toThrow(RequestException::class);
+});
+
+it('retries a failed delivery with a growing pause', function (): void {
+    Queue::fake();
+
+    event(siemEvent(1));
+
+    Queue::assertPushed(
+        CallQueuedListener::class,
+        fn (CallQueuedListener $job): bool => $job->class === SendSecurityEventToSiem::class
+            && $job->tries === 3
+            && $job->backoff === [10, 60, 300],
+    );
 });
 
 it('auto-disables the webhook once consecutive failures hit the threshold', function (): void {

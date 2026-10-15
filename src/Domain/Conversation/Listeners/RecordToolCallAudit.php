@@ -20,6 +20,7 @@ class RecordToolCallAudit implements ShouldQueue
         private readonly RecordToolCallAuditAction $action,
     ) {}
 
+    // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
         return (string) config('chatvia.analytics.queue', 'analytics');

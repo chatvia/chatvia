@@ -27,6 +27,8 @@ use Domain\Analytics\Events\SourceRetrieved;
 use Domain\Integration\Mcp\Events\McpToolInvoked;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Events\Dispatcher;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Tries;
 use Throwable;
 
 /**
@@ -43,13 +45,12 @@ use Throwable;
  * idempotent on its event row. Retries ride out lock timeouts and deadlocks
  * on the busy rollup rows instead of dropping the event.
  */
+// A failed write leaves nothing behind, so another try is always safe.
+#[Tries(5)]
+// Longer and longer waits, so a locked rollup row is free by the next try.
+#[Backoff(5, 30, 120)]
 class RecordAnalytics implements ShouldQueue
 {
-    public int $tries = 5;
-
-    /** @var list<int> */
-    public array $backoff = [5, 30, 120];
-
     public function __construct(
         private readonly RecordMessageSentAction $recordMessageSent,
         private readonly RecordFeedbackGivenAction $recordFeedbackGiven,
@@ -60,6 +61,7 @@ class RecordAnalytics implements ShouldQueue
         private readonly RecordMcpToolInvocationAction $recordMcpToolInvocation,
     ) {}
 
+    // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
         return (string) config('chatvia.analytics.queue');

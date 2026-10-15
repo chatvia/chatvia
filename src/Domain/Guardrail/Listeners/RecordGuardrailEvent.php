@@ -20,6 +20,7 @@ class RecordGuardrailEvent implements ShouldQueue
         private readonly RecordGuardrailEventAction $action,
     ) {}
 
+    // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
         return (string) config('chatvia.guardrails.queue', 'analytics');

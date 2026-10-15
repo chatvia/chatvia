@@ -146,9 +146,14 @@ class BuildDataExportArchiveAction
             $this->discard($zip);
             $localDisk->delete($zipRelativePath);
 
+            // The archive is gone, so nothing may point at it, also when
+            // the failure came after the "ready" values were set.
             $export->update([
                 'status' => DataExportStatus::Failed,
                 'error_message' => Str::limit($e->getMessage(), 1000),
+                'file_path' => null,
+                'file_size' => null,
+                'expires_at' => null,
             ]);
 
             throw $e;

@@ -224,6 +224,9 @@ it('marks the export failed, leaves no archive or temp files, and rethrows when 
 
     expect($export->status)->toBe(DataExportStatus::Failed)
         ->and($export->error_message)->toBe('Database went away')
+        ->and($export->file_path)->toBeNull()
+        ->and($export->file_size)->toBeNull()
+        ->and($export->expires_at)->toBeNull()
         ->and(Storage::disk('local')->allFiles('users/'.$owner->external_id.'/data-exports'))->toBe([])
         ->and(Storage::disk('local')->allFiles('data-exports/tmp'))->toBe([]);
 

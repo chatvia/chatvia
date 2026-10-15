@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
  * Workspace analytics retention: every analytics table loses that workspace's
  * rows older than its window; other workspaces and newer rows stay.
  */
-const WORKSPACE_ANALYTICS_TABLES = [
+const PWA_TABLES = [
     'analytics_events',
     'analytics_agent_hourly_rollups',
     'analytics_conversation_metrics',
@@ -25,7 +25,7 @@ const WORKSPACE_ANALYTICS_TABLES = [
 ];
 
 /** One row in every analytics table for the workspace, dated $daysAgo. */
-function seedWorkspaceAnalytics(int $workspaceId, int $daysAgo, int $agentId = 920001): void
+function pwaSeed(int $workspaceId, int $daysAgo, int $agentId = 920001): void
 {
     $db = app(AnalyticsDatabase::class);
     $at = now()->subDays($daysAgo)->startOfHour();
@@ -46,63 +46,63 @@ function seedWorkspaceAnalytics(int $workspaceId, int $daysAgo, int $agentId = 9
 }
 
 /** @return array<string, int> rows per analytics table for the workspace */
-function workspaceAnalyticsCounts(int $workspaceId): array
+function pwaCounts(int $workspaceId): array
 {
     $db = app(AnalyticsDatabase::class);
 
-    return collect(WORKSPACE_ANALYTICS_TABLES)
+    return collect(PWA_TABLES)
         ->mapWithKeys(fn (string $table): array => [$table => $db->table($table)->where('workspace_id', $workspaceId)->count()])
         ->all();
 }
 
-function analyticsRetention(int $workspaceId, ?int $days): void
+function pwaRetention(int $workspaceId, ?int $days): void
 {
     WorkspaceSecurityPolicy::forWorkspace($workspaceId)->update(['retention_analytics_days' => $days]);
 }
 
 it('deletes the workspace\'s older rows from every analytics table, feedback included', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
-    analyticsRetention($workspace, 60);
-    seedWorkspaceAnalytics($workspace, daysAgo: 90);
-    seedWorkspaceAnalytics($workspace, daysAgo: 10, agentId: 920002);
+    pwaRetention($workspace, 60);
+    pwaSeed($workspace, daysAgo: 90);
+    pwaSeed($workspace, daysAgo: 10, agentId: 920002);
 
     $other = User::factory()->create()->workspace()->id; // no analytics retention set
-    seedWorkspaceAnalytics($other, daysAgo: 90, agentId: 920003);
+    pwaSeed($other, daysAgo: 90, agentId: 920003);
 
     $deleted = app(PruneWorkspaceAnalyticsAction::class)->execute();
 
-    expect($deleted)->toBe(count(WORKSPACE_ANALYTICS_TABLES))
-        ->and(workspaceAnalyticsCounts($workspace))->each->toBe(1)
-        ->and(workspaceAnalyticsCounts($other))->each->toBe(1);
+    expect($deleted)->toBe(count(PWA_TABLES))
+        ->and(pwaCounts($workspace))->each->toBe(1)
+        ->and(pwaCounts($other))->each->toBe(1);
 });
 
 it('deletes in small batches and is idempotent', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
-    analyticsRetention($workspace, 30);
+    pwaRetention($workspace, 30);
     foreach ([40, 50, 60] as $index => $daysAgo) {
-        seedWorkspaceAnalytics($workspace, $daysAgo, agentId: 921000 + $index);
+        pwaSeed($workspace, $daysAgo, agentId: 921000 + $index);
     }
 
-    expect(app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2))->toBe(3 * count(WORKSPACE_ANALYTICS_TABLES))
+    expect(app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2))->toBe(3 * count(PWA_TABLES))
         ->and(app(PruneWorkspaceAnalyticsAction::class)->execute(batchSize: 2))->toBe(0)
-        ->and(workspaceAnalyticsCounts($workspace))->each->toBe(0);
+        ->and(pwaCounts($workspace))->each->toBe(0);
 });
 
 it('never uses a window below the configured floor', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
-    analyticsRetention($workspace, 5); // below the 30-day floor
-    seedWorkspaceAnalytics($workspace, daysAgo: 20);
+    pwaRetention($workspace, 5); // below the 30-day floor
+    pwaSeed($workspace, daysAgo: 20);
 
     expect(app(PruneWorkspaceAnalyticsAction::class)->execute())->toBe(0)
-        ->and(workspaceAnalyticsCounts($workspace))->each->toBe(1);
+        ->and(pwaCounts($workspace))->each->toBe(1);
 });
 
 it('runs from the app:prune-workspace-analytics command', function (): void {
     $workspace = User::factory()->create()->workspace()->id;
-    analyticsRetention($workspace, 30);
-    seedWorkspaceAnalytics($workspace, daysAgo: 45);
+    pwaRetention($workspace, 30);
+    pwaSeed($workspace, daysAgo: 45);
 
     $this->artisan('app:prune-workspace-analytics', ['--batch' => 1])->assertSuccessful();
 
-    expect(workspaceAnalyticsCounts($workspace))->each->toBe(0);
+    expect(pwaCounts($workspace))->each->toBe(0);
 });

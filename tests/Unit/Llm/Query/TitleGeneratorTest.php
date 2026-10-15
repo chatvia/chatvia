@@ -10,7 +10,7 @@ use Illuminate\Http\Client\Response;
 /**
  * Conversation titles: the model's reply is cleaned to one short line, and the
  * call leaves a reasoning model room to think — with a tight token cap it
- * stops before writing anything and every title came back empty.
+ * stops before writing anything and the title is empty.
  */
 it('cleans the reply to a short title', function (): void {
     expect(TitleGenerator::clean("**Title:** \"Sunday Opening Hours.\"\n\nThe visitor asked when…"))->toBe('Sunday Opening Hours')

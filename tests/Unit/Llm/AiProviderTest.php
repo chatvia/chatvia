@@ -87,7 +87,7 @@ it('reads a model list, and tells a refused key from a server it cannot reach', 
         ->and($refused->message('Office', 'https://llm.test/v1'))->toBe('Office refused the API key. Check that you copied all of it.');
 
     Http::swap(new Factory(app('events')));
-    Http::fake(fn () => throw new ConnectionException('down'));
+    Http::fake(fn (): never => throw new ConnectionException('down'));
 
     expect(app(ModelListing::class)->list(LlmProvider::factory()->make(['base_url' => 'https://llm.test/v1']))->status)->toBe(ModelListStatus::Unreachable);
 });

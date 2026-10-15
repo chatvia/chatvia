@@ -5,7 +5,6 @@ use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Http\Client\Request;
@@ -17,9 +16,10 @@ use Illuminate\Support\Facades\Http;
  * to the agent's allowed set, drop suggestions that duplicate existing topics,
  * and never throw on malformed output — it returns null so nothing is saved.
  *
+ * @param  list<string>  $names
  * @return array{0: Agent, 1: array<string, int>}
  */
-function agentWithTopics(array $names): array
+function cazAgentWithTopics(array $names): array
 {
     $agent = Agent::factory()->create();
     $ids = [];
@@ -38,7 +38,7 @@ function agentWithTopics(array $names): array
 }
 
 it('keeps only topic ids the agent actually has', function (): void {
-    [$agent, $ids] = agentWithTopics(['Billing', 'Bug Report']);
+    [$agent, $ids] = cazAgentWithTopics(['Billing', 'Bug Report']);
 
     fakeLlmCompletion(json_encode([
         'topic_ids' => [$ids['Billing'], 999999], // 999999 is not attached to this agent
@@ -58,7 +58,7 @@ it('keeps only topic ids the agent actually has', function (): void {
 });
 
 it('drops a suggested label that duplicates an existing topic name', function (): void {
-    [$agent] = agentWithTopics(['Billing']);
+    [$agent] = cazAgentWithTopics(['Billing']);
 
     fakeLlmCompletion(json_encode([
         'topic_ids' => [],
@@ -74,7 +74,7 @@ it('drops a suggested label that duplicates an existing topic name', function ()
 });
 
 it('returns null instead of a guessed result when the model output is not valid JSON', function (string $content): void {
-    [$agent] = agentWithTopics(['Billing']);
+    [$agent] = cazAgentWithTopics(['Billing']);
 
     fakeLlmCompletion($content);
 
@@ -87,17 +87,10 @@ it('returns null instead of a guessed result when the model output is not valid 
 ]);
 
 it('shows the model the pending labels of recent conversations only', function (): void {
-    [$agent] = agentWithTopics([]);
+    [$agent] = cazAgentWithTopics([]);
 
     $conversation = function (Agent $agent, string $label, int $daysAgo): void {
-        $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
-        $conversation = Conversation::create([
-            'workspace_id' => $agent->workspace_id,
-            'chat_session_id' => $session->id,
-            'agent_id' => $agent->id,
-            'source' => 'widget',
-        ]);
-        $conversation->forceFill(['created_at' => now()->subDays($daysAgo)])->saveQuietly();
+        $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'created_at' => now()->subDays($daysAgo)]);
 
         ConversationTopic::create(['chat_conversation_id' => $conversation->id, 'suggested_label' => $label]);
     };

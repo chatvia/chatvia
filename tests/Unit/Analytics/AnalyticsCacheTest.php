@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
  * the agent and the date range, so another agent, another set of agents or
  * another range is computed on its own.
  */
-function cachedRollup(Agent $agent, string $bucketHour, array $values): void
+function acRollup(Agent $agent, string $bucketHour, array $values): void
 {
     DB::connection(config('chatvia.analytics.connection'))
         ->table('analytics_agent_hourly_rollups')
@@ -44,10 +44,10 @@ it('reuses the dashboard numbers within five minutes and recounts on a new day',
     $owner = User::factory()->create();
     $agent = createAgent($owner);
 
-    cachedRollup($agent, '2026-06-15 10:00:00+00', ['conversations_started' => 2, 'assistant_messages' => 3]);
+    acRollup($agent, '2026-06-15 10:00:00+00', ['conversations_started' => 2, 'assistant_messages' => 3]);
     $first = app(GetDashboardStatsAction::class)->execute($owner, null);
 
-    cachedRollup($agent, '2026-06-15 11:00:00+00', ['conversations_started' => 5, 'assistant_messages' => 7]);
+    acRollup($agent, '2026-06-15 11:00:00+00', ['conversations_started' => 5, 'assistant_messages' => 7]);
     $this->travel(4)->minutes();
     $second = app(GetDashboardStatsAction::class)->execute($owner, null);
 
@@ -66,13 +66,13 @@ it('keeps the agent totals of each agent apart', function (): void {
     $one = createAgent($owner);
     $two = createAgent($owner);
 
-    cachedRollup($one, '2026-06-15 10:00:00+00', ['assistant_messages' => 4]);
-    cachedRollup($two, '2026-06-15 10:00:00+00', ['assistant_messages' => 9]);
+    acRollup($one, '2026-06-15 10:00:00+00', ['assistant_messages' => 4]);
+    acRollup($two, '2026-06-15 10:00:00+00', ['assistant_messages' => 9]);
 
     $totals = app(AgentTotalsQuery::class);
     $first = $totals->get($one)->assistantMessages;
 
-    cachedRollup($one, '2026-06-15 11:00:00+00', ['assistant_messages' => 1]);
+    acRollup($one, '2026-06-15 11:00:00+00', ['assistant_messages' => 1]);
 
     expect($first)->toBe(4)
         ->and($totals->get($one)->assistantMessages)->toBe(4)
@@ -82,8 +82,8 @@ it('keeps the agent totals of each agent apart', function (): void {
 it('caches the daily series per date range', function (): void {
     $agent = createAgent(User::factory()->create());
 
-    cachedRollup($agent, '2026-06-10 10:00:00+00', ['assistant_messages' => 2]);
-    cachedRollup($agent, '2026-06-12 10:00:00+00', ['assistant_messages' => 5]);
+    acRollup($agent, '2026-06-10 10:00:00+00', ['assistant_messages' => 2]);
+    acRollup($agent, '2026-06-12 10:00:00+00', ['assistant_messages' => 5]);
 
     $daily = app(AgentDailyCountsQuery::class);
     $narrow = DateRangeData::fromDates('2026-06-10', '2026-06-10');
@@ -98,15 +98,15 @@ it('caches the agents list totals per set of agents', function (): void {
     $one = createAgent($owner);
     $two = createAgent($owner);
 
-    cachedRollup($one, '2026-06-15 10:00:00+00', ['user_messages' => 1, 'assistant_messages' => 1]);
-    cachedRollup($two, '2026-06-15 10:00:00+00', ['user_messages' => 3, 'assistant_messages' => 3]);
+    acRollup($one, '2026-06-15 10:00:00+00', ['user_messages' => 1, 'assistant_messages' => 1]);
+    acRollup($two, '2026-06-15 10:00:00+00', ['user_messages' => 3, 'assistant_messages' => 3]);
 
     $totals = app(AgentMessageTotalsQuery::class);
     $workspaceId = $one->workspace_id;
 
     expect($totals->get($workspaceId, [$one->id]))->toBe([$one->id => 2]);
 
-    cachedRollup($one, '2026-06-15 11:00:00+00', ['user_messages' => 5]);
+    acRollup($one, '2026-06-15 11:00:00+00', ['user_messages' => 5]);
 
     // Same set (in any order) → cached; a new set → counted now.
     expect($totals->get($workspaceId, [$one->id]))->toBe([$one->id => 2])

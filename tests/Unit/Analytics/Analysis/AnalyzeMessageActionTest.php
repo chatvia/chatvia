@@ -5,41 +5,26 @@ use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;
 use Domain\Analytics\Enums\SentimentEnum;
 use Domain\Analytics\Enums\ToneEnum;
 use Domain\Analytics\Events\MessageAnalyzed;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Models\Session;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
 
 /**
  * AnalyzeMessageAction is the per-message branch of analytics (the per-
- * conversation branch uses ConversationAnalyzer::analyze directly via
- * AnalyzeConversationAction). It must:
- *  - call ConversationAnalyzer::analyzeMessage for user messages with no
- *    sentiment+tone yet, on an agent whose team has the capability AND has
- *    the dimension toggled on,
+ * conversation branch is AnalyzeConversationAction). It must:
+ *  - call ConversationAnalyzer::analyzeMessage for a user message with no
+ *    sentiment+tone yet, on an agent with at least one dimension switched on,
  *  - skip non-user messages and already-analysed ones,
  *  - skip when neither sentiment nor tone is wanted,
  *  - dispatch MessageAnalyzed with only the wanted dimensions populated.
  */
 function amaMakeMessage(Agent $agent, string $role = 'user'): Message
 {
-    // Conversation links to its agent via the session (chat_session_id);
-    // there is no agent_id column on chat_conversations. Pin source + title —
-    // the factory's random picks are irrelevant to this test.
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-    $conversation = Conversation::factory()->create([
-        'chat_session_id' => $session->id,
-        'source' => ConversationSource::Widget,
-        'title' => null,
-    ]);
+    $factory = $role === 'user' ? Message::factory()->fromUser() : Message::factory()->fromAssistant();
 
-    return Message::create([
-        'external_id' => (string) Str::uuid(),
-        'workspace_id' => $conversation->workspace_id,
-        'chat_conversation_id' => $conversation->id,
-        'role' => $role,
+    return $factory->create([
+        'chat_conversation_id' => Conversation::factory()->create(['agent_id' => $agent->id])->id,
         'content' => 'I am really frustrated with my invoice this month.',
     ]);
 }
@@ -47,12 +32,12 @@ function amaMakeMessage(Agent $agent, string $role = 'user'): Message
 /**
  * Sentiment + tone are opt-in (the `analytics` settings group defaults them to
  * false — see config/model-settings.php), so an agent that should be analyzed
- * needs both dimensions switched on explicitly.
+ * needs the dimensions switched on explicitly.
  */
-function amaEnableAnalytics(Agent $agent): void
+function amaEnableAnalytics(Agent $agent, bool $sentiment = true, bool $tone = true): void
 {
-    $agent->setSetting('sentiment', true, 'analytics');
-    $agent->setSetting('tone', true, 'analytics');
+    $agent->setSetting('sentiment', $sentiment, 'analytics');
+    $agent->setSetting('tone', $tone, 'analytics');
 }
 
 it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnalyzed', function (): void {
@@ -80,23 +65,24 @@ it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnal
 
 it('skips assistant messages without calling the LLM', function (): void {
     Event::fake([MessageAnalyzed::class]);
+    Http::fake();
 
     $agent = Agent::factory()->create();
     amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent, role: 'assistant');
 
-    // No HTTP fake configured — if analyzeMessage were called the HTTP layer
-    // would explode.
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
     $message->refresh();
     expect($message->sentiment)->toBeNull()
         ->and($message->tone)->toBeNull();
+    Http::assertNothingSent();
     Event::assertNotDispatched(MessageAnalyzed::class);
 });
 
 it('is idempotent: skips a message that already has sentiment AND tone', function (): void {
     Event::fake([MessageAnalyzed::class]);
+    Http::fake();
 
     $agent = Agent::factory()->create();
     amaEnableAnalytics($agent);
@@ -111,8 +97,50 @@ it('is idempotent: skips a message that already has sentiment AND tone', functio
     $message->refresh();
     expect($message->sentiment)->toBe(SentimentEnum::POSITIVE->value)
         ->and($message->tone)->toBe(ToneEnum::SATISFIED->value);
+    Http::assertNothingSent();
     Event::assertNotDispatched(MessageAnalyzed::class);
 });
+
+it('makes no LLM call when the agent wants neither sentiment nor tone', function (): void {
+    Event::fake([MessageAnalyzed::class]);
+    Http::fake();
+
+    $agent = Agent::factory()->create();
+    amaEnableAnalytics($agent, sentiment: false, tone: false);
+    $message = amaMakeMessage($agent);
+
+    app(AnalyzeMessageAction::class)->execute($message->external_id);
+
+    expect($message->refresh()->sentiment)->toBeNull()
+        ->and($message->tone)->toBeNull();
+    Http::assertNothingSent();
+    Event::assertNotDispatched(MessageAnalyzed::class);
+});
+
+it('stores both dimensions but rolls up only the wanted one', function (bool $sentiment, bool $tone): void {
+    // The one call returns both, so both are saved (the idempotency guard needs
+    // both); the event carries null for the dimension the agent switched off,
+    // which keeps it out of the daily rollup.
+    Event::fake([MessageAnalyzed::class]);
+
+    $agent = Agent::factory()->create();
+    amaEnableAnalytics($agent, sentiment: $sentiment, tone: $tone);
+    $message = amaMakeMessage($agent);
+
+    fakeLlmCompletion(json_encode(['sentiment' => 'negative', 'tone' => 'frustrated']));
+
+    app(AnalyzeMessageAction::class)->execute($message->external_id);
+
+    expect($message->refresh()->sentiment)->toBe(SentimentEnum::NEGATIVE->value)
+        ->and($message->tone)->toBe(ToneEnum::FRUSTRATED->value);
+
+    Event::assertDispatched(MessageAnalyzed::class, fn (MessageAnalyzed $event): bool => $event->agentId === $agent->id
+        && $event->sentiment === ($sentiment ? SentimentEnum::NEGATIVE->value : null)
+        && $event->tone === ($tone ? ToneEnum::FRUSTRATED->value : null));
+})->with([
+    'sentiment only' => [true, false],
+    'tone only' => [false, true],
+]);
 
 it('saves nothing and rolls nothing up on a malformed analyzer response', function (): void {
     // A guessed NEUTRAL/NEUTRAL would be counted in the daily rollups as if the

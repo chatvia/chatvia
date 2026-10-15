@@ -3,23 +3,24 @@
 use Domain\Analytics\Actions\Recording\RecordMessageSentAction;
 use Domain\Analytics\Data\Recording\MessageSentRecordData;
 use Domain\Analytics\Events\MessageSent;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Regression: the queued analytics listener runs on an at-least-once queue,
- * and a redelivered job used to replay the whole transaction — a duplicate
- * analytics_events row plus double-counted conversation metrics and hourly
- * rollups (which feed the customer-visible "messages used" figure). The
- * message_sent partial unique + insertOrIgnore gate makes replays no-ops.
+ * The queued analytics listener runs on an at-least-once queue, so a job can
+ * be delivered twice. A replay must change nothing: no second analytics_events
+ * row and no double count in the conversation metrics and hourly rollups
+ * (which feed the customer-visible "messages used" figure). The message_sent
+ * partial unique index + insertOrIgnore make replays no-ops.
  */
-function analyticsDb()
+function rmsAnalyticsDb(): ConnectionInterface
 {
     return DB::connection(config('chatvia.analytics.connection'));
 }
 
-function recordMessageSent(int $agentId, string $convId, string $msgId, string $sessionId, ?int $chatterId = null): void
+function rmsRecord(int $agentId, string $convId, string $msgId, string $sessionId, ?int $chatterId = null): void
 {
     app(RecordMessageSentAction::class)->execute(MessageSentRecordData::fromEvent(new MessageSent(
         agentId: $agentId,
@@ -44,18 +45,18 @@ it('records a redelivered message_sent exactly once across events, metrics and r
     $msgId = (string) Str::uuid();
     $sessionId = (string) Str::uuid();
 
-    recordMessageSent($agentId, $convId, $msgId, $sessionId);
-    recordMessageSent($agentId, $convId, $msgId, $sessionId); // queue redelivery
+    rmsRecord($agentId, $convId, $msgId, $sessionId);
+    rmsRecord($agentId, $convId, $msgId, $sessionId); // queue redelivery
 
-    $events = analyticsDb()->table('analytics_events')
+    $events = rmsAnalyticsDb()->table('analytics_events')
         ->where('event_type', 'message_sent')
         ->where('message_external_id', $msgId);
 
-    $metrics = analyticsDb()->table('analytics_conversation_metrics')
+    $metrics = rmsAnalyticsDb()->table('analytics_conversation_metrics')
         ->where('conversation_external_id', $convId)
         ->first();
 
-    $rollup = analyticsDb()->table('analytics_agent_hourly_rollups')
+    $rollup = rmsAnalyticsDb()->table('analytics_agent_hourly_rollups')
         ->where('agent_id', $agentId)
         ->first();
 
@@ -73,10 +74,10 @@ it('stores the chatter a message was sent by, and none for an anonymous one', fu
     $chatterMsg = (string) Str::uuid();
     $anonymousMsg = (string) Str::uuid();
 
-    recordMessageSent(960002, $convId, $chatterMsg, $sessionId, chatterId: 960102);
-    recordMessageSent(960002, $convId, $anonymousMsg, $sessionId);
+    rmsRecord(960002, $convId, $chatterMsg, $sessionId, chatterId: 960102);
+    rmsRecord(960002, $convId, $anonymousMsg, $sessionId);
 
-    $chatterOf = fn (string $msgId): mixed => analyticsDb()->table('analytics_events')
+    $chatterOf = fn (string $msgId): mixed => rmsAnalyticsDb()->table('analytics_events')
         ->where('message_external_id', $msgId)
         ->value('chatter_id');
 

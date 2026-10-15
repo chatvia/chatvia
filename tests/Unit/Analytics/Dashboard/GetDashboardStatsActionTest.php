@@ -11,9 +11,9 @@ use Illuminate\Support\Str;
 
 /**
  * GetDashboardStatsAction aggregates the whole dashboard payload from the
- * analytics rollup + events stream, keyed on the workspace owner's id. These
+ * analytics rollup + events stream, keyed on the viewer's workspace. These
  * tests pin the structure and the representative scoping rules: only the
- * owner's agents/rollups count, active sessions are 24h-distinct, and the
+ * workspace's agents/rollups count, active sessions are 24h-distinct, and the
  * messages panel reads the workspace's monthly message limit when it has one.
  */
 function gdsRollup(Agent $agent, string $bucketHour, array $values = []): void

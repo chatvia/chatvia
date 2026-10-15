@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
  */
 it('gives the model a generic message and logs the failure without the workspace', function (): void {
     $workspace = User::factory()->create()->workspace();
-    Http::fake(fn () => throw new RuntimeException('connect to http://10.0.0.7:8080/internal?token=secret failed'));
+    Http::fake(fn (): never => throw new RuntimeException('connect to http://10.0.0.7:8080/internal?token=secret failed'));
     Log::spy();
 
     $result = app(AnalyticsToolDispatcher::class)->dispatch(

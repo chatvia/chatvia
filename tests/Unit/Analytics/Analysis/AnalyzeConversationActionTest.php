@@ -3,15 +3,15 @@
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Analysis\AnalyzeConversationAction;
 use Domain\Analytics\Events\ConversationTopicAssigned;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Support\Localization\Language\Models\Language;
 
 /**
  * AnalyzeConversationAction is the end-of-life pass: one LLM call over the full
@@ -20,17 +20,9 @@ use Illuminate\Support\Facades\Http;
  * assignment also dispatches ConversationTopicAssigned, which rolls up
  * analytics_agent_topic_daily.
  */
-function conversationFor(Agent $agent, int $userMessages = 3): Conversation
+function acaConversation(Agent $agent, int $userMessages = 3): Conversation
 {
-    $session = Session::factory()->create(['agent_id' => $agent->id]);
-
-    $conversation = Conversation::factory()->create([
-        'chat_session_id' => $session->id,
-        'source' => ConversationSource::Widget,
-        // Pinned: the factory's random title can overflow the stale test DB's
-        // varchar(255) once encrypted (the in-repo migration declares text).
-        'title' => null,
-    ]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
 
     for ($i = 0; $i < $userMessages; $i++) {
         Message::factory()->fromUser()->create([
@@ -52,8 +44,11 @@ function acaEnableTopics(Agent $agent): void
     $agent->setSetting('topics', true, 'analytics');
 }
 
-/** @return array<string, int> */
-function attachTopics(Agent $agent, array $names): array
+/**
+ * @param  list<string>  $names
+ * @return array<string, int>
+ */
+function acaAttachTopics(Agent $agent, array $names): array
 {
     $ids = [];
 
@@ -75,8 +70,8 @@ it('assigns multiple topics, records a suggestion, sets fields and stamps analyz
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    $ids = attachTopics($agent, ['Billing', 'Bug Report']);
-    $conversation = conversationFor($agent);
+    $ids = acaAttachTopics($agent, ['Billing', 'Bug Report']);
+    $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
         'topic_ids' => [$ids['Billing'], $ids['Bug Report'], 999999],
@@ -89,9 +84,13 @@ it('assigns multiple topics, records a suggestion, sets fields and stamps analyz
     app(AnalyzeConversationAction::class)->execute($conversation);
     $conversation->refresh();
 
+    $english = Language::query()->where('code', 'en')->value('id');
+
     expect($conversation->analyzed_at)->not->toBeNull()
         ->and($conversation->sentiment)->toBe('negative')
-        ->and($conversation->tone)->toBe('frustrated');
+        ->and($conversation->tone)->toBe('frustrated')
+        ->and($english)->not->toBeNull()
+        ->and($conversation->language_id)->toBe($english);
 
     $committed = ConversationTopic::query()
         ->where('chat_conversation_id', $conversation->id)
@@ -116,8 +115,8 @@ it('is idempotent — a second run changes nothing', function (): void {
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    $ids = attachTopics($agent, ['Billing']);
-    $conversation = conversationFor($agent);
+    $ids = acaAttachTopics($agent, ['Billing']);
+    $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
         'topic_ids' => [$ids['Billing']],
@@ -134,20 +133,17 @@ it('is idempotent — a second run changes nothing', function (): void {
     Event::assertDispatchedTimes(ConversationTopicAssigned::class, 1);
 });
 
-it('stores the full analysis regardless of plan capabilities', function (): void {
+it('stores sentiment and tone but no topics when the agent has topics switched off', function (): void {
     Event::fake([ConversationTopicAssigned::class]);
 
-    // Starter plan — no analytics capabilities. The single call still runs and
-    // everything it returns is stored; capability only gates the analytics
-    // screens (route middleware), not the analysis itself.
     $agent = Agent::factory()->create();
-    acaEnableTopics($agent);
-    $ids = attachTopics($agent, ['Billing']);
-    $conversation = conversationFor($agent);
+    $agent->setSetting('topics', false, 'analytics');
+    $ids = acaAttachTopics($agent, ['Billing']);
+    $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
         'topic_ids' => [$ids['Billing']],
-        'suggested_topics' => ['Some Theme'],
+        'suggested_topics' => ['Refund Requests'],
         'sentiment' => 'negative',
         'tone' => 'frustrated',
         'language' => 'en',
@@ -156,33 +152,30 @@ it('stores the full analysis regardless of plan capabilities', function (): void
     app(AnalyzeConversationAction::class)->execute($conversation);
     $conversation->refresh();
 
-    expect($conversation->sentiment)->toBe('negative')
+    expect($conversation->analyzed_at)->not->toBeNull()
+        ->and($conversation->sentiment)->toBe('negative')
         ->and($conversation->tone)->toBe('frustrated')
-        ->and(ConversationTopic::query()
-            ->where('chat_conversation_id', $conversation->id)
-            ->where('topic_id', $ids['Billing'])
-            ->exists())->toBeTrue()
-        ->and(ConversationTopic::query()
-            ->where('chat_conversation_id', $conversation->id)
-            ->where('suggested_label', 'Some Theme')
-            ->exists())->toBeTrue();
-
-    Event::assertDispatched(ConversationTopicAssigned::class);
+        ->and(ConversationTopic::query()->where('chat_conversation_id', $conversation->id)->exists())->toBeFalse();
+    Event::assertNotDispatched(ConversationTopicAssigned::class);
 });
 
-it('stamps analyzed_at and skips analysis when there are no user messages', function (): void {
+it('stamps analyzed_at without a model call or a counted attempt when there are no user messages', function (): void {
+    Http::fake();
+
     $agent = Agent::factory()->create();
-    $conversation = conversationFor($agent, userMessages: 0);
-    Message::factory()->create([
+    $conversation = acaConversation($agent, userMessages: 0);
+    Message::factory()->fromAssistant()->create([
         'chat_conversation_id' => $conversation->id,
-        'role' => 'assistant',
         'content' => 'Hello, how can I help?',
     ]);
 
     app(AnalyzeConversationAction::class)->execute($conversation);
 
-    expect($conversation->refresh()->analyzed_at)->not->toBeNull()
+    $conversation->refresh();
+    expect($conversation->analyzed_at)->not->toBeNull()
+        ->and($conversation->analysis_attempts)->toBe(0)
         ->and(ConversationTopic::where('chat_conversation_id', $conversation->id)->count())->toBe(0);
+    Http::assertNothingSent();
 });
 
 it('rolls the assigned topic into analytics_agent_topic_daily', function (): void {
@@ -190,8 +183,8 @@ it('rolls the assigned topic into analytics_agent_topic_daily', function (): voi
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    $ids = attachTopics($agent, ['Billing']);
-    $conversation = conversationFor($agent);
+    $ids = acaAttachTopics($agent, ['Billing']);
+    $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
         'topic_ids' => [$ids['Billing']],
@@ -221,8 +214,8 @@ it('leaves the conversation pending when the model output cannot be parsed', fun
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    attachTopics($agent, ['Billing']);
-    $conversation = conversationFor($agent);
+    acaAttachTopics($agent, ['Billing']);
+    $conversation = acaConversation($agent);
 
     fakeLlmCompletion('Sorry, I could not analyze that.');
 
@@ -237,29 +230,19 @@ it('leaves the conversation pending when the model output cannot be parsed', fun
     Event::assertNotDispatched(ConversationTopicAssigned::class);
 });
 
-it('counts every run that calls the model, also one that throws', function (): void {
+it('counts the attempt of a run whose model call cannot connect, and lets the error through', function (): void {
+    // ConversationAnalyzer forgives only an HTTP error answer. A connection
+    // failure fails the job; the conversation stays pending, so the scheduled
+    // scan tries again until its attempts are used up.
     $agent = Agent::factory()->create();
-    $conversation = conversationFor($agent);
+    $conversation = acaConversation($agent);
 
     Http::fake(['*' => Http::failedConnection()]);
-    config(['services.scalewayai.api_key' => 'test-key']);
 
-    try {
+    expect(function () use ($conversation): void {
         app(AnalyzeConversationAction::class)->execute($conversation);
-    } catch (Throwable) {
-        // A provider outage may surface as an exception or as a null analysis.
-    }
+    })->toThrow(ConnectionException::class);
 
     expect($conversation->refresh()->analysis_attempts)->toBe(1)
         ->and($conversation->analyzed_at)->toBeNull();
-});
-
-it('does not count a conversation with nothing to analyse', function (): void {
-    $agent = Agent::factory()->create();
-    $conversation = conversationFor($agent, userMessages: 0);
-
-    app(AnalyzeConversationAction::class)->execute($conversation);
-
-    expect($conversation->refresh()->analysis_attempts)->toBe(0)
-        ->and($conversation->analyzed_at)->not->toBeNull();
 });

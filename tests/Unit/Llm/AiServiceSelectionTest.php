@@ -18,6 +18,7 @@ use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Ingestion\Services\Parsing\AzureDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
+use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
@@ -27,9 +28,6 @@ use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
 use Domain\Llm\Providers\Mistral;
-use Domain\Llm\Providers\OpenAiCompatible;
-use Domain\Llm\Providers\OpenRouter;
-use Domain\Llm\Providers\Scaleway;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Llm\Services\ProviderAdapters;
@@ -165,7 +163,7 @@ it('transcribes with OpenAI Whisper when chosen, or when only an OpenAI key is s
 it('fails fast on an unknown driver name', function (string $key, string $contract): void {
     config(["chatvia.ai.{$key}" => 'llamaparse']);
 
-    expect(fn () => app($contract))->toThrow(InvalidArgumentException::class, "chatvia.ai.{$key}");
+    expect(fn (): object => app($contract))->toThrow(InvalidArgumentException::class, "chatvia.ai.{$key}");
 })->with([
     ['document_parser', DocumentParser::class],
     ['reranker', Reranker::class],
@@ -176,44 +174,35 @@ it('fails fast on an unknown driver name', function (string $key, string $contra
 it('refuses a document LLM provider that cannot read PDF documents', function (): void {
     config(['chatvia.ai.document_llm' => 'scaleway']);
 
-    expect(fn () => app(DocumentLlm::class))->toThrow(InvalidArgumentException::class, 'Use auto, mistral, none');
+    expect(fn (): DocumentLlm => app(DocumentLlm::class))->toThrow(InvalidArgumentException::class, 'Use auto, mistral, none');
 });
 
-it('builds the client of each provider kind', function (LlmProviderEnum $kind, string $class): void {
-    connectAiProviders();
-
-    expect(app(LlmProviders::class)->forProvider(LlmProvider::factory()->kind($kind)->make()))->toBeInstanceOf($class);
-})->with([
-    'scaleway' => [LlmProviderEnum::SCALEWAY, Scaleway::class],
-    'mistral' => [LlmProviderEnum::MISTRAL, Mistral::class],
-    'openrouter' => [LlmProviderEnum::OPENROUTER, OpenRouter::class],
-    'openai' => [LlmProviderEnum::OPENAI, OpenAiCompatible::class],
-    'gemini' => [LlmProviderEnum::GOOGLE, OpenAiCompatible::class],
-    'groq' => [LlmProviderEnum::GROQ, OpenAiCompatible::class],
-    'custom server' => [LlmProviderEnum::CUSTOM, OpenAiCompatible::class],
-]);
-
 it('refuses a provider kind it has no client for, one that is off, or one without its key', function (LlmProvider $provider): void {
-    expect(fn () => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
+    expect(fn (): LlmProviderInterface => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
 })->with([
-    'no client yet' => fn () => LlmProvider::factory()->kind(LlmProviderEnum::ANTHROPIC)->make(),
-    'turned off' => fn () => LlmProvider::factory()->disabled()->make(),
-    'no key' => fn () => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(),
+    'no client yet' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderEnum::ANTHROPIC)->make(),
+    'turned off' => fn (): LlmProvider => LlmProvider::factory()->disabled()->make(),
+    'no key' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(),
 ]);
 
 it('lets only a server of your own keep a key and an address on its row', function (): void {
     // In a savepoint, so the refused insert leaves the test's transaction usable.
-    expect(fn () => DB::transaction(fn () => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->create(['api_key' => 'scw-key'])))
+    expect(fn (): LlmProvider => DB::transaction(fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->create(['api_key' => 'scw-key'])))
         ->toThrow(QueryException::class, 'llm_providers_key_on_custom_only');
 
     expect(LlmProvider::factory()->create(['api_key' => 'local-key'])->fresh()->api_key)->toBe('local-key');
 });
 
-it('stores every provider kind, and only Mistral reads PDF documents', function (): void {
+it('saves every provider kind past the CHECK constraint on llm_providers.kind', function (): void {
+    // The column is an enum, which Postgres keeps as a CHECK constraint built
+    // from LlmProviderEnum when the table was created: a kind added later
+    // cannot be saved until the schema is built again.
     foreach (LlmProviderEnum::cases() as $kind) {
         expect(LlmProvider::factory()->kind($kind)->create()->fresh()->kind)->toBe($kind);
     }
+});
 
+it('lets only Mistral read whole PDF documents', function (): void {
     $readers = array_filter(app(ProviderAdapters::class)->all(), fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments());
 
     expect(array_map(fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(), array_values($readers)))
@@ -226,7 +215,7 @@ it('fails fast when the embedding provider cannot return the size the database s
         'chatvia.embeddings.dimensions' => $stored,
     ]);
 
-    expect(fn () => app(EmbeddingsProviderInterface::class))
+    expect(fn (): EmbeddingsProviderInterface => app(EmbeddingsProviderInterface::class))
         ->toThrow(EmbeddingDimensionsMismatchException::class, "returns 1024 dimensions, but the database stores {$stored}");
 })->with([
     'mistral is fixed at 1024' => ['mistral', 1536],

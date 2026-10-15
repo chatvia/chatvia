@@ -14,10 +14,7 @@ use Illuminate\Support\Facades\Http;
  * gracefully instead of failing the chat turn.
  */
 beforeEach(function (): void {
-    config([
-        'services.scalewayai.api_key' => 'test-key',
-        'chatvia.ai.query.rewriter.enabled' => true,
-    ]);
+    config(['chatvia.ai.query.rewriter.enabled' => true]);
 });
 
 function fakeRewriterReply(?string $content): void

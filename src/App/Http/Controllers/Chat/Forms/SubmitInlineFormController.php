@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Chat\Forms;
 
 use App\Http\Chat\HostedChatAgent;
+use App\Http\Chat\HostedChatSession;
 use App\Http\Requests\Chat\Forms\SubmitInlineFormRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\SubmitFormAction;
@@ -14,8 +15,9 @@ use Illuminate\Http\JsonResponse;
 
 /**
  * Dashboard / Hosted Chat / Command Bar inline-form submit. Authenticates via
- * the `chat` middleware group's agent ({@see HostedChatAgent}); the unguessable form instance
- * is bound to its agent + conversation here before persisting.
+ * the `chat` middleware group's agent ({@see HostedChatAgent}). The form must
+ * be the agent's and its conversation in the visitor's own chat session, so a
+ * replayed form id cannot answer another visitor's form.
  */
 class SubmitInlineFormController
 {
@@ -24,11 +26,12 @@ class SubmitInlineFormController
         FormSubmission $formInstance,
         #[HostedChatAgent] ?Agent $agent,
         SubmitFormAction $action,
+        HostedChatSession $session,
     ): JsonResponse {
         abort_unless($agent instanceof Agent && $formInstance->agent_id === $agent->id, 404);
 
         $conversation = $formInstance->conversation;
-        abort_unless($conversation !== null, 404);
+        abort_unless($conversation !== null && $conversation->session?->external_id === $session->find($agent), 404);
 
         try {
             $result = $action->execute(new SubmitFormData(

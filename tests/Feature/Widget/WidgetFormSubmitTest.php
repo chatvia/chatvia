@@ -90,8 +90,12 @@ it('takes the answers only once', function (): void {
     Event::assertDispatchedTimes(FormSubmitted::class, 1);
 });
 
-it('refuses a form rendered in another anonymous visitor\'s conversation')
-    ->todo(note: 'For an anonymous visitor, WidgetVerification::verifyConversationId() checks only the agent of the form\'s conversation, not the X-SESSION-ID of the caller.');
+it('refuses a form rendered in another anonymous visitor\'s conversation', function (): void {
+    wfsSubmit($this->form, EmbeddedWidget::chatHeaders($this->agent))->assertForbidden();
+
+    expect($this->form->fresh()->status)->toBe(FormSubmissionStatus::Pending);
+    Event::assertNotDispatched(FormSubmitted::class);
+});
 
 it('refuses a form rendered in another chatter\'s conversation on a protected agent', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);

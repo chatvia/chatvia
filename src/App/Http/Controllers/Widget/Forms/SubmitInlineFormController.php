@@ -6,20 +6,20 @@ use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Requests\Chat\Forms\SubmitInlineFormRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\FindWidgetConversationAction;
 use Domain\Conversation\Models\Conversation;
 use Domain\Form\Actions\SubmitFormAction;
 use Domain\Form\Data\SubmitFormData;
 use Domain\Form\Enums\FormClaimFailure;
 use Domain\Form\Exceptions\FormNotClaimableException;
 use Domain\Form\Models\FormSubmission;
-use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
 
 /**
  * Inline-form submit from the embedded widget. The form's conversation must
- * belong to this agent (and, on a protected agent, to the signed-in chatter),
- * checked through {@see WidgetVerification} like every other widget call, so a
- * visitor cannot submit into someone else's thread.
+ * be in the caller's widget session with this agent (and, on a protected
+ * agent, the signed-in chatter's), as for the widget's other session-scoped
+ * calls, so a visitor cannot submit into someone else's thread.
  */
 class SubmitInlineFormController
 {
@@ -30,12 +30,13 @@ class SubmitInlineFormController
         #[WidgetAgent] Agent $agent,
         FormSubmission $formInstance,
         SubmitFormAction $action,
-        WidgetVerification $verification,
+        FindWidgetConversationAction $findConversation,
     ): JsonResponse {
         abort_unless($formInstance->agent_id === $agent->id, JsonResponse::HTTP_NOT_FOUND);
 
-        $conversation = $verification->verifyConversationId(
-            $formInstance->conversation?->external_id,
+        $conversation = $findConversation->execute(
+            (string) $formInstance->conversation?->external_id,
+            (string) $this->widgetSessionId($request),
             $agent,
             $this->widgetViewer($request),
         );

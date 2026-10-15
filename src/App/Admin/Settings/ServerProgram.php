@@ -31,17 +31,21 @@ enum ServerProgram: string
         return $this->value.'_path';
     }
 
-    /** What the app runs it for, shown under its field. */
+    /**
+     * What the app runs it for, shown under its field. It also says when the
+     * program is needed, and when a document reader (Mistral OCR or Azure)
+     * does the work instead, so a "Not found" can be judged.
+     */
     public function purpose(): string
     {
         return match ($this) {
-            self::Pdfinfo => 'Counts the pages of PDF files. Part of poppler.',
-            self::Pdftotext => 'Reads the text of PDF files. Part of poppler.',
-            self::Pandoc => 'Reads Word (.docx), ODT, RTF, EPUB and FB2 files.',
-            self::Catdoc => 'Reads old Word files (.doc).',
-            self::Catppt => 'Reads old PowerPoint files (.ppt). Part of catdoc.',
-            self::Ffmpeg => 'Prepares audio and video for speech to text.',
-            self::Ffprobe => 'Measures how long audio and video files are. Part of ffmpeg.',
+            self::Pdfinfo => 'Counts the pages of PDF files and finds locked ones. Needed for PDF files, with any document reader. Part of poppler.',
+            self::Pdftotext => 'Only a backup: the document reader (Mistral OCR or Azure) reads PDF files. This program reads a PDF only if it is trained again after the reader is turned off. Part of poppler.',
+            self::Pandoc => 'Reads EPUB, FB2 and RTF files, which no document reader reads. Also counts the pages of Word (.docx) files.',
+            self::Catdoc => 'Reads old Word files (.doc). Mistral OCR and Azure do not read them, so this program is needed for them.',
+            self::Catppt => 'Reads old PowerPoint files (.ppt). Mistral OCR and Azure do not read them, so this program is needed for them. Part of catdoc.',
+            self::Ffmpeg => 'Prepares audio and video files, and voice notes in the hosted chat, for speech to text. Needed only when speech to text is on.',
+            self::Ffprobe => 'Measures how long audio and video files are. Needed only when speech to text is on. Part of ffmpeg.',
             self::Weasyprint => 'Makes PDFs: chat exports, and the PDF of an office file for its summary.',
         };
     }

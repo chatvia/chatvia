@@ -10,7 +10,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Sempre ativo",
-                "always_hint": "Por padrão, o agente escolhe apenas as ferramentas de que cada mensagem precisa. Ative para enviar as ferramentas deste conector com cada mensagem, mesmo quando a mensagem não parece precisar delas. No máximo 10 ferramentas sempre ativas por agente.",
+                "always_hint": "Por padrão, o agente escolhe apenas as ferramentas de que cada mensagem precisa. Ative para enviar as ferramentas deste conector com cada mensagem, mesmo quando a mensagem não parece precisar delas. Quanto mais ferramentas sempre ativas, maior a chance de o agente escolher a errada, e as respostas ficam mais lentas e mais caras.",
                 "always_failed": "Falha ao atualizar a definição “Sempre ativo”"
             }
         },

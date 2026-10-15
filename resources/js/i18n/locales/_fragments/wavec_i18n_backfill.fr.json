@@ -10,7 +10,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Toujours actif",
-                "always_hint": "Par défaut, l'agent choisit uniquement les outils dont chaque message a besoin. Activez cette option pour envoyer les outils de ce connecteur avec chaque message, même lorsque le message ne semble pas en avoir besoin. 10 outils toujours actifs au maximum par agent.",
+                "always_hint": "Par défaut, l'agent choisit uniquement les outils dont chaque message a besoin. Activez cette option pour envoyer les outils de ce connecteur avec chaque message, même lorsque le message ne semble pas en avoir besoin. Plus il y a d'outils toujours actifs, plus l'agent risque de choisir le mauvais, et plus les réponses sont lentes et coûteuses.",
                 "always_failed": "Échec de la mise à jour du paramètre « Toujours actif »"
             }
         },

@@ -27,7 +27,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Luôn bật",
-                "always_hint": "Theo mặc định, trợ lý AI chỉ chọn những công cụ mà mỗi tin nhắn cần. Bật tùy chọn này để gửi các công cụ của trình kết nối này kèm mọi tin nhắn, kể cả khi tin nhắn có vẻ không cần đến chúng. Mỗi trợ lý AI có tối đa 10 công cụ luôn bật.",
+                "always_hint": "Theo mặc định, trợ lý AI chỉ chọn những công cụ mà mỗi tin nhắn cần. Bật tùy chọn này để gửi các công cụ của trình kết nối này kèm mọi tin nhắn, kể cả khi tin nhắn có vẻ không cần đến chúng. Càng nhiều công cụ luôn bật, trợ lý AI càng dễ chọn nhầm công cụ, và phản hồi sẽ chậm hơn, tốn kém hơn.",
                 "always_failed": "Không cập nhật được cài đặt luôn bật"
             }
         },

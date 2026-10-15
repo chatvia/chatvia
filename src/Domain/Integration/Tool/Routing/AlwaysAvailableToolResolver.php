@@ -3,7 +3,6 @@
 namespace Domain\Integration\Tool\Routing;
 
 use Domain\Agent\Models\Agent;
-use Domain\Integration\Mcp\Actions\Agent\SetConnectorAlwaysAvailableAction;
 use Domain\Integration\Tool\Data\ToolEntry;
 
 /**
@@ -13,10 +12,9 @@ use Domain\Integration\Tool\Data\ToolEntry;
  *
  * A dedicated tutor or CRM agent wants its own tools present even on a turn
  * like "hi" or "how do you say hello", where a reranker scoring tool
- * descriptions against the message would drop them. Pinning trades a few
- * hundred tokens per turn for that certainty, which is why the set is capped
- * at SetConnectorAlwaysAvailableAction::MAX_TOOLS — enforced when pinning,
- * and re-applied here in case a pinned connector's catalog grew afterwards.
+ * descriptions against the message would drop them. Every pinned tool
+ * ships, however many there are: the workspace chose to pay the extra
+ * tokens per turn for that certainty.
  */
 class AlwaysAvailableToolResolver
 {
@@ -36,11 +34,9 @@ class AlwaysAvailableToolResolver
             return [];
         }
 
-        $pinned = array_values(array_filter(
+        return array_values(array_filter(
             $pool,
             static fn (ToolEntry $entry): bool => $entry->isFromAnyServer($slugs),
         ));
-
-        return array_slice($pinned, 0, SetConnectorAlwaysAvailableAction::MAX_TOOLS);
     }
 }

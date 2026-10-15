@@ -1360,7 +1360,7 @@
                 "soon": "Wkrótce",
                 "connect_first": "Najpierw połącz ten MCP w Ustawieniach",
                 "column_always": "Zawsze włączone",
-                "always_hint": "Domyślnie agent wybiera tylko narzędzia potrzebne do danej wiadomości. Włącz tę opcję, aby wysyłać narzędzia tego konektora z każdą wiadomością, nawet gdy wiadomość ich nie wymaga. Maksymalnie 10 zawsze włączonych narzędzi na agenta.",
+                "always_hint": "Domyślnie agent wybiera tylko narzędzia potrzebne do danej wiadomości. Włącz tę opcję, aby wysyłać narzędzia tego konektora z każdą wiadomością, nawet gdy wiadomość ich nie wymaga. Im więcej narzędzi jest zawsze włączonych, tym większe ryzyko, że agent wybierze niewłaściwe, a odpowiedzi będą wolniejsze i droższe.",
                 "always_failed": "Nie udało się zaktualizować ustawienia „Zawsze włączone”"
             },
             "functions": {

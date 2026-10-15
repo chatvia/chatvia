@@ -1360,7 +1360,7 @@
                 "soon": "Snart",
                 "connect_first": "Tilslut denne MCP i Indstillinger først",
                 "column_always": "Altid aktiv",
-                "always_hint": "Som standard vælger agenten kun de værktøjer, hver besked har brug for. Slå dette til for at sende denne forbindelses værktøjer med hver besked, også når beskeden ikke ser ud til at have brug for dem. Højst 10 altid aktive værktøjer pr. agent.",
+                "always_hint": "Som standard vælger agenten kun de værktøjer, hver besked har brug for. Slå dette til for at sende denne forbindelses værktøjer med hver besked, også når beskeden ikke ser ud til at have brug for dem. Jo flere værktøjer der altid er aktive, jo større er risikoen for, at agenten vælger det forkerte, og svarene bliver langsommere og dyrere.",
                 "always_failed": "Det lykkedes ikke at opdatere indstillingen “Altid aktiv”"
             },
             "functions": {

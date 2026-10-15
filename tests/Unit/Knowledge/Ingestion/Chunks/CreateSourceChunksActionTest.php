@@ -95,6 +95,7 @@ it('stores a group of pages with one embedding request and one insert', function
         ->and($chunk->chunkable_type)->toBe((new SourceFile)->getMorphClass())
         ->and($chunk->chunkable_id)->toBe($file->id)
         ->and($chunk->is_enhanced)->toBeFalse()
+        ->and($chunk->chunked_using_model)->toBeNull()
         ->and($chunk->external_id)->not->toBeNull()
         ->and($chunk->tokens)->toBeGreaterThan(0);
 });
@@ -142,6 +143,8 @@ it('creates nothing on a re-run with the same pages', function (): void {
 
 it('enhances a page before storing it, so the chunk row is written once', function (): void {
     cscFakeChunker();
+    $model = testLlm('enhance-model');
+    config(['chatvia.ai.tasks.enhancement' => $model->external_name]);
     $embeddings = cscCountingEmbeddings();
     $agent = Agent::factory()->create();
     $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
@@ -157,6 +160,7 @@ it('enhances a page before storing it, so the chunk row is written once', functi
 
     expect($updates)->toBe(0)
         ->and($chunk->is_enhanced)->toBeTrue()
+        ->and($chunk->chunked_using_model)->toBe($model->external_name)
         ->and($chunk->summary)->toBe('A page about oceans.')
         ->and($chunk->questions)->toBe("Which ocean is largest?\nHow deep is it?")
         ->and($chunk->questions_embedding)->not->toBeNull()

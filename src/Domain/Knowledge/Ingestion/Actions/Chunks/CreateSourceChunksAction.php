@@ -127,7 +127,7 @@ class CreateSourceChunksAction
                 'chunk' => $page->content,
                 'summary' => $enhancement?->summary,
                 'is_enhanced' => $enhancement !== null,
-                'chunked_using_model' => $data->chunkedUsingModel,
+                'chunked_using_model' => $enhancement?->model,
                 'cost_in_micro_cents' => CostCalculator::centsToMicroCents($enhancement->costInCents ?? 0.0),
                 'tokens' => $tokens[$position],
                 'embedding' => $this->vectorLiteral($vectors[$position]),

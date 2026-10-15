@@ -45,6 +45,7 @@ class EnhanceChunkAction
             embeddingText: $embeddingText,
             summary: $enhancement->summary,
             questions: $questions !== '' ? $questions : null,
+            model: $enhancement->model,
             metadata: $visuals?->toMetadata(),
             costInCents: $enhancement->cost + $this->embeddingCost($embeddingText) + $this->embeddingCost($questions),
         );

@@ -1,15 +1,16 @@
 {{--
-    The outline of a Settings page: a link to each card's section, with a dot
-    for a service's status, the advanced cards last under their own heading,
-    and buttons that open or close every section. It stays in view beside
-    the sections on wide screens and is a row of links above them on narrow
-    ones. A link opens its section if it is closed, and the link of the
-    section in view is highlighted. A page opened on a section (a find of
-    the Settings search) opens it, scrolls to it and rings it for a moment. Styled by the panel theme
-    (resources/css/filament/admin/theme.css), which also holds the rules for
-    the cards themselves (`cv-settings-card`).
+    The outline of a Settings page: a link to each card's section, with the
+    card's icon (or its service's logo) and, for a service, a dot for its
+    status; the advanced cards last under their own heading, and buttons
+    that open or close every section. It stays in view beside the sections
+    on wide screens and is a row of links above them on narrow ones. A link
+    opens its section if it is closed, and the link of the section in view
+    is highlighted. A page opened on a section (a find of the Settings
+    search) opens it, scrolls to it and rings it for a moment. Styled by the
+    panel theme (resources/css/filament/admin/theme.css), which also holds
+    the rules for the cards themselves (`cv-settings-card`).
 
-    @var list<array{id: string, title: string, status: string, tone: string, advanced: bool}> $items
+    @var list<array{id: string, title: string, icon: string|\Filament\Support\Icons\Heroicon, status: string, tone: ?string, advanced: bool}> $items
 --}}
 @php($ids = array_column($items, 'id'))
 @php($firstAdvanced = array_search(true, array_column($items, 'advanced'), true))
@@ -74,8 +75,15 @@
                     x-bind:class="{ 'cv-outline__link--active': active === @js($item['id']) }"
                     x-bind:aria-current="active === @js($item['id']) ? 'location' : null"
                 >
-                    <span class="cv-outline__dot cv-outline__dot--{{ $item['tone'] }}" aria-hidden="true"></span>
+                    <x-filament::icon
+                        :icon="$item['icon']"
+                        @class(['cv-outline__icon', 'cv-outline__icon--logo' => is_string($item['icon'])])
+                        aria-hidden="true"
+                    />
                     <span class="cv-outline__title">{{ $item['title'] }}</span>
+                    @if ($item['tone'] !== null)
+                        <span class="cv-outline__dot cv-outline__dot--{{ $item['tone'] }}" aria-hidden="true"></span>
+                    @endif
                 </a>
             </li>
         @endforeach

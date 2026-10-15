@@ -517,7 +517,11 @@ abstract class AdminSettingsPage extends Page
     }
 
     /**
-     * @return array{id: string, title: string, status: string, tone: string, advanced: bool}
+     * A card's link in the outline: its icon, and a status dot for a service.
+     * A group of options gets a dot only when its summary has a color (a
+     * change that waits), not for a plain grey summary.
+     *
+     * @return array{id: string, title: string, icon: string|Heroicon, status: string, tone: ?string, advanced: bool}
      */
     private function outlineItem(SettingsCard $card): array
     {
@@ -526,8 +530,9 @@ abstract class AdminSettingsPage extends Page
         return [
             'id' => $this->sectionId($card),
             'title' => $card->title,
+            'icon' => $card->icon,
             'status' => $status,
-            'tone' => $card->required === [] ? 'options' : $tone,
+            'tone' => $card->required !== [] || $tone !== 'gray' ? $tone : null,
             'advanced' => $card->advanced,
         ];
     }

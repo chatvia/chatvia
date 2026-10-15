@@ -29,6 +29,12 @@ return new class extends SettingsMigration
             $group->addEncrypted('box_client_secret');
             $group->add('asana_client_id');
             $group->addEncrypted('asana_client_secret');
+            $group->add('perplexity_base_url');
+            $group->add('perplexity_agent_model');
+            $group->add('perplexity_ask_model');
+            $group->add('perplexity_research_model');
+            $group->add('openweather_base_url');
+            $group->add('exchange_rate_base_url');
         });
     }
 

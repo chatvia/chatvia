@@ -43,7 +43,7 @@ class ManageMailSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
     #[\Override]
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 12;
 
     public static function description(): string
     {
@@ -52,7 +52,7 @@ class ManageMailSettings extends AdminSettingsPage
 
     public static function overviewGroup(): string
     {
-        return 'Connections';
+        return 'Platform and brand';
     }
 
     protected function getHeaderActions(): array

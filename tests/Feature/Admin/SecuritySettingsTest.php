@@ -11,8 +11,8 @@ use Livewire\Livewire;
 
 /**
  * Settings → Security: the Cloudflare Turnstile keys and the forms they
- * protect, the security headers (moved here from Platform), and the security
- * audit log switch.
+ * protect, the guardrails, the tool-call log and rate limit, the security
+ * headers, and the security audit log with how long it is kept.
  */
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
@@ -53,4 +53,27 @@ it('holds the security headers and the audit log switch', function (): void {
         ->get(ManagePlatformSettings::getUrl())
         ->assertOk()
         ->assertDontSee('Content Security Policy');
+});
+
+it('holds the guardrails, the tool-call limits and every log\'s retention', function (): void {
+    Livewire::actingAs($this->admin, 'admin')->test(ManageSecuritySettings::class)
+        ->fillForm([
+            'guardrails_enabled' => false,
+            'guardrail_retention_days' => 30,
+            'tool_audit_retention_days' => 60,
+            'tool_rate_limit' => 5,
+            'tool_rate_window_seconds' => 120,
+            'security_audit_retention_days' => 400,
+            'security_audit_retention_floor_days' => 90,
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(config('chatvia.guardrails.enabled'))->toBeFalse()
+        ->and(config('chatvia.guardrails.retention_days'))->toBe(30)
+        ->and(config('chatvia.governance.retention_days'))->toBe(60)
+        ->and(config('chatvia.governance.tool_rate_limit'))->toBe(5)
+        ->and(config('chatvia.governance.tool_rate_window_seconds'))->toBe(120)
+        ->and(config('chatvia.security_audit.retention_days'))->toBe(400)
+        ->and(config('chatvia.security_audit.retention_floor_days'))->toBe(90);
 });

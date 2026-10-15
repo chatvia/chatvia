@@ -8,7 +8,6 @@ use App\Admin\Settings\BrandSettings;
 use App\Admin\Settings\ChannelSettings;
 use App\Admin\Settings\ConnectorSettings;
 use App\Admin\Settings\KnowledgeSettings;
-use App\Admin\Settings\LimitSettings;
 use App\Admin\Settings\MailSettings;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SecuritySettings;
@@ -45,7 +44,6 @@ return [
         BrandSettings::class,
         WorkspaceSettings::class,
         PlatformSettings::class,
-        LimitSettings::class,
         StorageSettings::class,
         SecuritySettings::class,
     ],

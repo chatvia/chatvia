@@ -9,7 +9,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
 /**
  * The OAuth apps of the connectors whose services do not support dynamic
  * client registration, read from `connectors.{slug}.oauth_client_*` in
- * config/connectors.php.
+ * config/connectors.php, and the services behind the built-in Perplexity,
+ * Weather and Currency connectors (each workspace adds its own API key).
  */
 class ConnectorSettings extends AdminSettings
 {
@@ -60,6 +61,24 @@ class ConnectorSettings extends AdminSettings
 
     #[ConfigKey('connectors.asana.oauth_client_secret'), ShouldBeEncrypted]
     public ?string $asana_client_secret = null;
+
+    #[ConfigKey('services.perplexity.base_url')]
+    public ?string $perplexity_base_url = null;
+
+    #[ConfigKey('services.perplexity.agent_model')]
+    public ?string $perplexity_agent_model = null;
+
+    #[ConfigKey('services.perplexity.ask_model')]
+    public ?string $perplexity_ask_model = null;
+
+    #[ConfigKey('services.perplexity.research_model')]
+    public ?string $perplexity_research_model = null;
+
+    #[ConfigKey('services.openweather.base_url')]
+    public ?string $openweather_base_url = null;
+
+    #[ConfigKey('services.exchange_rate.base_url')]
+    public ?string $exchange_rate_base_url = null;
 
     public static function group(): string
     {

@@ -8,12 +8,16 @@ use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
 use App\Admin\Settings\SecuritySettings;
 use BackedEnum;
+use Closure;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 
 /**
- * The install's protections: the bot check (Cloudflare Turnstile) of the
- * sign-up, sign-in and password reset forms, the security headers, and the
- * security audit log.
+ * The install's protections and their logs: the bot check (Cloudflare
+ * Turnstile) of the sign-up, sign-in and password reset forms, the
+ * guardrails, the tool-call log and rate limit, the security audit log, and
+ * the security headers. Each log's retention sits on the card of what it
+ * records.
  */
 class ManageSecuritySettings extends AdminSettingsPage
 {
@@ -47,12 +51,12 @@ class ManageSecuritySettings extends AdminSettingsPage
 
     public static function description(): string
     {
-        return 'Bot check on the sign-in forms, security headers and the audit log.';
+        return 'Bot check, guardrails, tool-call limits, the audit log and security headers.';
     }
 
     public static function overviewGroup(): string
     {
-        return 'Sign-in and people';
+        return 'Access and security';
     }
 
     /**
@@ -81,16 +85,40 @@ class ManageSecuritySettings extends AdminSettingsPage
             ])->required('turnstile_site_key', 'turnstile_secret_key')
                 ->console('https://dash.cloudflare.com/?to=/:account/turnstile')
                 ->summary(fn (): string => $this->turnstileSummary()),
+            SettingsCard::make('guardrails', 'Guardrails', 'The safety checks on every chat: personal data, prompt injection, off-topic and toxicity.', Heroicon::OutlinedShieldExclamation, fn (): array => [
+                $this->toggle('guardrails_enabled', 'Guardrails',
+                    help: 'When off, no check runs on any agent, whatever the agent\'s own settings.'),
+                $this->integer('guardrail_retention_days', 'Days to keep the guardrail log', min: 1),
+            ])->summary(fn (): string => ($this->valueInUse('guardrails_enabled') ? 'On' : 'Off').' · log kept '.$this->valueInUse('guardrail_retention_days').' days'),
+            SettingsCard::make('tool_calls', 'Tool calls', 'Every tool call of an agent is logged and rate limited.', Heroicon::OutlinedWrenchScrewdriver, fn (): array => [
+                $this->integer('tool_audit_retention_days', 'Days to keep the tool-call log', min: 1),
+            ])->advancedFields(fn (): array => [
+                $this->integer('tool_rate_limit', 'Calls per tool',
+                    help: 'How many times an agent may call one tool in the time window.', min: 1),
+                $this->integer('tool_rate_window_seconds', 'Time window (seconds)', help: 'The length of the time window the calls are counted in.', min: 1),
+            ])->summary(fn (): string => sprintf('%s calls per %s seconds · log kept %s days',
+                $this->valueInUse('tool_rate_limit'), $this->valueInUse('tool_rate_window_seconds'), $this->valueInUse('tool_audit_retention_days'))),
+            SettingsCard::make('audit', 'Security audit log', 'A record of sign-ins, membership, configuration and data changes in every workspace.', Heroicon::OutlinedClipboardDocumentList, fn (): array => [
+                $this->toggle('security_audit_enabled', 'Keep the security audit log',
+                    help: 'Workspaces see their own log.'),
+                $this->integer('security_audit_retention_days', 'Days to keep the security log',
+                    help: 'A workspace may choose fewer days.', min: 1),
+                $this->integer('security_audit_retention_floor_days', 'Fewest days a workspace may choose', min: 1)
+                    // A floor above the days would leave a workspace no value to choose.
+                    ->rule(fn (Get $get): Closure => function (string $attribute, mixed $value, Closure $fail) use ($get): void {
+                        $days = SecuritySettings::cast('security_audit_retention_days', $get('security_audit_retention_days')) ?? $this->defaultValue('security_audit_retention_days');
+
+                        if (is_numeric($value) && is_numeric($days) && (int) $value > (int) $days) {
+                            $fail('The fewest days cannot be more than the days to keep the security log.');
+                        }
+                    }),
+            ])->summary(fn (): string => ($this->valueInUse('security_audit_enabled') ? 'On' : 'Off').' · kept '.$this->valueInUse('security_audit_retention_days').' days'),
             SettingsCard::make('headers', 'Security headers', 'The Content Security Policy of every page.', Heroicon::OutlinedCodeBracketSquare, fn (): array => [
                 $this->choice('csp_mode', 'Content Security Policy', self::CSP_MODES,
                     help: 'Enforce also sends X-Frame-Options and, over HTTPS, HSTS.'),
                 $this->url('csp_report_uri', 'Report address', help: 'Optional. Receives the reports of blocked content.'),
             ])->summary(fn (): string => self::CSP_MODES[(string) $this->valueInUse('csp_mode')] ?? $this->shown($this->valueInUse('csp_mode')))
                 ->advanced(),
-            SettingsCard::make('audit', 'Security audit log', 'A record of sign-ins, membership and configuration changes in every workspace.', Heroicon::OutlinedClipboardDocumentList, fn (): array => [
-                $this->toggle('security_audit_enabled', 'Keep the security audit log',
-                    help: 'Workspaces see their own log. How long it is kept is under Retention & limits.'),
-            ])->summary(fn (): string => $this->valueInUse('security_audit_enabled') ? 'On' : 'Off'),
         ];
     }
 

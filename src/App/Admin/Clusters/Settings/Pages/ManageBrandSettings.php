@@ -39,7 +39,7 @@ class ManageBrandSettings extends AdminSettingsPage
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
 
     #[\Override]
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 15;
 
     public static function description(): string
     {
@@ -48,7 +48,7 @@ class ManageBrandSettings extends AdminSettingsPage
 
     public static function overviewGroup(): string
     {
-        return 'Brand and platform';
+        return 'Platform and brand';
     }
 
     /**

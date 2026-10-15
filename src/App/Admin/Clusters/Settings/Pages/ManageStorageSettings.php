@@ -53,7 +53,7 @@ class ManageStorageSettings extends AdminSettingsPage
 
     public static function overviewGroup(): string
     {
-        return 'Brand and platform';
+        return 'Platform and brand';
     }
 
     public function overviewStatus(): array

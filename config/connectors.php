@@ -30,7 +30,9 @@ return [
         'name' => 'Perplexity',
         // Shown as the transient activity line in the chat while a tool from
         // this connector runs (SSE tool `start`). Keep it a short present-tense
-        // phrase. Falls back to "Connecting to {name}…" in the widget when null.
+        // phrase, and set it only when every tool of the connector does that one
+        // thing: a connector whose tools search, create and update leaves it out,
+        // so the chat shows the translated "Connecting to {name}…" instead.
         'activity_label' => 'Searching the web…',
         'description' => 'Search the live web with Perplexity Sonar — news, prices, recent events — with cited sources.',
         'category' => 'Utilities',
@@ -154,7 +156,6 @@ return [
     'stripe' => [
         'slug' => 'stripe',
         'name' => 'Stripe',
-        'activity_label' => 'Searching Stripe…',
         'description' => 'Search transactions, customers, products, and payments in your Stripe account.',
         'category' => 'Payments',
         'icon' => 'stripe',
@@ -168,7 +169,6 @@ return [
     'github' => [
         'slug' => 'github',
         'name' => 'GitHub',
-        'activity_label' => 'Searching GitHub…',
         'description' => 'Read repos, issues, PRs, and code from any account you have access to.',
         'category' => 'Developer Tools',
         'icon' => 'github',
@@ -191,7 +191,6 @@ return [
     'notion' => [
         'slug' => 'notion',
         'name' => 'Notion',
-        'activity_label' => 'Searching Notion…',
         'description' => 'Read pages, databases, and comments from your Notion workspace.',
         'category' => 'Productivity',
         'icon' => 'notion',
@@ -205,7 +204,6 @@ return [
     'linear' => [
         'slug' => 'linear',
         'name' => 'Linear',
-        'activity_label' => 'Searching Linear…',
         'description' => 'Search issues, projects, and cycles across your Linear workspace.',
         'category' => 'Productivity',
         'icon' => 'linear',
@@ -219,7 +217,6 @@ return [
     'atlassian' => [
         'slug' => 'atlassian',
         'name' => 'Atlassian',
-        'activity_label' => 'Searching Atlassian…',
         'description' => 'Jira issues, Confluence pages, and workflows from your Atlassian sites.',
         'category' => 'Productivity',
         'icon' => 'atlassian',
@@ -240,7 +237,6 @@ return [
     'gmail' => [
         'slug' => 'gmail',
         'name' => 'Gmail',
-        'activity_label' => 'Searching Gmail…',
         'description' => 'Search messages, read threads, and draft replies from your Gmail inbox.',
         'category' => 'Communication',
         'icon' => 'gmail',
@@ -265,7 +261,6 @@ return [
     'google-calendar' => [
         'slug' => 'google-calendar',
         'name' => 'Google Calendar',
-        'activity_label' => 'Checking your calendar…',
         'description' => 'Read and create events across your Google Calendars.',
         'category' => 'Productivity',
         'icon' => 'google-calendar',
@@ -284,7 +279,6 @@ return [
     'google-drive' => [
         'slug' => 'google-drive',
         'name' => 'Google Drive',
-        'activity_label' => 'Searching Google Drive…',
         'description' => 'Read files and folders from your Google Drive.',
         'category' => 'Productivity',
         'icon' => 'google-drive',
@@ -304,7 +298,6 @@ return [
     'slack' => [
         'slug' => 'slack',
         'name' => 'Slack',
-        'activity_label' => 'Searching Slack…',
         'description' => 'Search messages, post replies, and read channel history across your Slack workspace.',
         'category' => 'Communication',
         'icon' => 'slack',
@@ -326,7 +319,6 @@ return [
     'calendly' => [
         'slug' => 'calendly',
         'name' => 'Calendly',
-        'activity_label' => 'Checking Calendly…',
         'description' => 'Let visitors book meetings on your Calendly, and let agents read your scheduled events.',
         'category' => 'Productivity',
         'icon' => 'calendly',
@@ -342,7 +334,6 @@ return [
     'todoist' => [
         'slug' => 'todoist',
         'name' => 'Todoist',
-        'activity_label' => 'Checking Todoist…',
         'description' => 'Manage tasks, projects, and labels across your Todoist account.',
         'category' => 'Productivity',
         'icon' => 'todoist',
@@ -358,7 +349,6 @@ return [
     'zapier' => [
         'slug' => 'zapier',
         'name' => 'Zapier',
-        'activity_label' => 'Running Zapier…',
         'description' => 'Trigger Zapier actions across 9,000+ connected apps.',
         'category' => 'Automation',
         'icon' => 'zapier',
@@ -376,7 +366,6 @@ return [
     'zendesk' => [
         'slug' => 'zendesk',
         'name' => 'Zendesk',
-        'activity_label' => 'Searching Zendesk…',
         'description' => 'Read tickets, users, and Help Center articles from your Zendesk Support account.',
         'category' => 'Communication',
         'icon' => 'zendesk',
@@ -400,7 +389,6 @@ return [
     'hubspot' => [
         'slug' => 'hubspot',
         'name' => 'HubSpot',
-        'activity_label' => 'Searching HubSpot…',
         'description' => 'Read and update contacts, companies, deals, and tickets in your HubSpot CRM.',
         'category' => 'Sales',
         'icon' => 'hubspot',
@@ -425,7 +413,6 @@ return [
     'salesforce' => [
         'slug' => 'salesforce',
         'name' => 'Salesforce',
-        'activity_label' => 'Searching Salesforce…',
         'description' => 'Read and update accounts, contacts, opportunities, and cases from your Salesforce org.',
         'category' => 'Sales',
         'icon' => 'salesforce',
@@ -451,7 +438,6 @@ return [
     'box' => [
         'slug' => 'box',
         'name' => 'Box',
-        'activity_label' => 'Searching Box…',
         'description' => 'Search and read files, folders, and metadata from your Box account.',
         'category' => 'Productivity',
         'icon' => 'box',
@@ -474,7 +460,6 @@ return [
     'asana' => [
         'slug' => 'asana',
         'name' => 'Asana',
-        'activity_label' => 'Searching Asana…',
         'description' => 'Read and update tasks, projects, and portfolios across your Asana workspace.',
         'category' => 'Productivity',
         'icon' => 'asana',
@@ -497,7 +482,6 @@ return [
     'sentry' => [
         'slug' => 'sentry',
         'name' => 'Sentry',
-        'activity_label' => 'Checking Sentry…',
         'description' => 'Read issues, errors, and releases from your Sentry projects.',
         'category' => 'Developer Tools',
         'icon' => 'sentry',
@@ -513,7 +497,6 @@ return [
     'fireflies' => [
         'slug' => 'fireflies',
         'name' => 'Fireflies',
-        'activity_label' => 'Searching Fireflies…',
         'description' => 'Search meeting transcripts, summaries, and action items from Fireflies.ai.',
         'category' => 'Productivity',
         'icon' => 'fireflies',
@@ -533,7 +516,6 @@ return [
     'amplitude' => [
         'slug' => 'amplitude',
         'name' => 'Amplitude',
-        'activity_label' => 'Querying Amplitude…',
         'description' => 'Query product analytics — events, charts, and cohorts — from your Amplitude project.',
         'category' => 'Analytics',
         'icon' => 'amplitude',

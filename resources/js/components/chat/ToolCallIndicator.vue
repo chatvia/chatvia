@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * "Calling <service>…" indicator shown while an assistant turn runs MCP or
+ * "Connecting to <service>…" indicator shown while an assistant turn runs MCP or
  * webhook tools: the branded icons of the calls in flight, overlapped like a
  * stack, plus a shimmering label for the newest call.
  */

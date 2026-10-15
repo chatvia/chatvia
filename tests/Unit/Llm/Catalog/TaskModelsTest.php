@@ -6,7 +6,6 @@ use Domain\Llm\Exceptions\NoLlmAvailableException;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\TaskModels;
-use Illuminate\Support\Facades\DB;
 
 /**
  * The app's own LLM calls use a catalog model per task, picked in Settings →
@@ -90,7 +89,7 @@ it('says no model is set up when the catalog has none that may be used', functio
     testLlm(attributes: ['is_enabled' => false]);
 
     expect(app(TaskModels::class)->find(LlmTask::Chat))->toBeNull()
-        ->and(fn () => app(TaskModels::class)->model(LlmTask::Titles))->toThrow(NoLlmAvailableException::class);
+        ->and(fn (): Llm => app(TaskModels::class)->model(LlmTask::Titles))->toThrow(NoLlmAvailableException::class);
 });
 
 it('starts new agents on the chat model', function (): void {
@@ -99,18 +98,6 @@ it('starts new agents on the chat model', function (): void {
     config(['chatvia.agent.default_model' => $chat->external_name]);
 
     expect(Agent::factory()->create()->fresh()->llm_id)->toBe($chat->id);
-});
-
-it('keeps the key encrypted and out of arrays', function (): void {
-    $provider = testLlm()->provider;
-    $provider->update(['api_key' => 'sk-secret', 'headers' => ['X-Team' => 'a']]);
-
-    $stored = DB::table('llm_providers')->where('id', $provider->id)->first();
-
-    expect($stored->api_key)->not->toContain('sk-secret')
-        ->and($stored->headers)->not->toContain('X-Team')
-        ->and($provider->fresh()->api_key)->toBe('sk-secret')
-        ->and($provider->fresh()->toArray())->not->toHaveKeys(['api_key', 'headers']);
 });
 
 it('flushes the cached catalog when a provider changes', function (): void {

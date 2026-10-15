@@ -4,24 +4,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Analysis\QueuePendingConversationAnalysisAction;
 use Domain\Analytics\Jobs\AnalyzeConversationJob;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Queue;
 
-function pendingAnalysisConversation(Agent $agent, array $attributes = []): Conversation
+/** @param  array<string, mixed>  $attributes */
+function qpcaConversation(Agent $agent, array $attributes = []): Conversation
 {
-    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
-
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => 'widget',
-        'is_visible' => true,
-    ]);
-
-    $conversation->forceFill($attributes)->save();
-
-    return $conversation;
+    return Conversation::factory()->create(['agent_id' => $agent->id, 'is_visible' => true, ...$attributes]);
 }
 
 it('queues only old conversations that are not analysed yet', function (): void {
@@ -29,17 +18,32 @@ it('queues only old conversations that are not analysed yet', function (): void 
     config(['chatvia.analytics.analysis.scan_age_hours' => 6]);
     $agent = Agent::factory()->create();
 
-    $pending = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(7)]);
-    $tooYoung = pendingAnalysisConversation($agent, ['created_at' => now()->subHour()]);
-    $analysed = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(7), 'analyzed_at' => now()]);
+    $pending = qpcaConversation($agent, ['created_at' => now()->subHours(7)]);
+    $tooYoung = qpcaConversation($agent, ['created_at' => now()->subHour()]);
+    $analysed = qpcaConversation($agent, ['created_at' => now()->subHours(7), 'analyzed_at' => now()]);
 
-    // The seeded test database may hold other pending conversations, so only
-    // this agent's rows are asserted on.
-    $queued = app(QueuePendingConversationAnalysisAction::class)->execute(chunkSize: 1);
+    app(QueuePendingConversationAnalysisAction::class)->execute();
 
-    expect($queued)->toBeGreaterThanOrEqual(1);
     Queue::assertPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($pending));
     Queue::assertNotPushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->is($tooYoung) || $job->conversation->is($analysed));
+});
+
+it('walks every chunk and counts every conversation it queues', function (): void {
+    Queue::fake();
+    config(['chatvia.analytics.analysis.scan_age_hours' => 6]);
+    $agent = Agent::factory()->create();
+
+    $pending = Collection::times(3, fn (): Conversation => qpcaConversation($agent, ['created_at' => now()->subHours(7)]));
+
+    $queued = app(QueuePendingConversationAnalysisAction::class)->execute(chunkSize: 1);
+
+    // The seeded test database may hold other pending conversations, so only
+    // this agent's jobs are compared one by one.
+    $ours = Queue::pushed(AnalyzeConversationJob::class, fn (AnalyzeConversationJob $job): bool => $job->conversation->agent_id === $agent->id);
+
+    expect($ours->map(fn (AnalyzeConversationJob $job): int => $job->conversation->id)->sort()->values()->all())
+        ->toBe($pending->pluck('id')->sort()->values()->all())
+        ->and($queued)->toBe(Queue::pushed(AnalyzeConversationJob::class)->count());
 });
 
 it('stops queueing a conversation once its analysis attempts are used up', function (): void {
@@ -47,8 +51,8 @@ it('stops queueing a conversation once its analysis attempts are used up', funct
     config(['chatvia.analytics.analysis.scan_age_hours' => 6, 'chatvia.analytics.analysis.max_attempts' => 3]);
     $agent = Agent::factory()->create();
 
-    $retry = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(9), 'analysis_attempts' => 2]);
-    $exhausted = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(9), 'analysis_attempts' => 3]);
+    $retry = qpcaConversation($agent, ['created_at' => now()->subHours(9), 'analysis_attempts' => 2]);
+    $exhausted = qpcaConversation($agent, ['created_at' => now()->subHours(9), 'analysis_attempts' => 3]);
 
     app(QueuePendingConversationAnalysisAction::class)->execute();
 
@@ -61,7 +65,7 @@ it('skips hidden conversations, which were never used', function (): void {
     config(['chatvia.analytics.analysis.scan_age_hours' => 6]);
     $agent = Agent::factory()->create();
 
-    $hidden = pendingAnalysisConversation($agent, ['created_at' => now()->subHours(7), 'is_visible' => false]);
+    $hidden = qpcaConversation($agent, ['created_at' => now()->subHours(7), 'is_visible' => false]);
 
     app(QueuePendingConversationAnalysisAction::class)->execute();
 

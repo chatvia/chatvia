@@ -15,10 +15,7 @@ use Illuminate\Support\Facades\Http;
  * `services.scalewayai.endpoint`.
  */
 beforeEach(function (): void {
-    config([
-        'services.scalewayai.api_key' => 'test-key',
-        'services.scalewayai.endpoint' => 'https://api.scaleway.test/project-x/v1/',
-    ]);
+    config(['services.scalewayai.endpoint' => 'https://api.scaleway.test/project-x/v1/']);
 });
 
 it('builds the chat completion URL from the provider\'s address', function (): void {
@@ -65,11 +62,13 @@ it('sends the configured embedding and transcription models', function (): void 
 
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/embeddings') && $request['model'] === 'embed-model-x');
     Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), '/audio/transcriptions')
-        && collect($request->data())->contains(fn ($part): bool => ($part['name'] ?? null) === 'model' && ($part['contents'] ?? null) === 'whisper-x'));
+        && collect($request->data())->contains(fn (array $part): bool => ($part['name'] ?? null) === 'model' && ($part['contents'] ?? null) === 'whisper-x'));
 });
 
-it('has no account-specific default endpoint', function (): void {
-    $config = require base_path('config/services.php');
+it('defaults to the generic endpoint, not one Scaleway project\'s', function (): void {
+    // Read from the file's text, so an endpoint set in this machine's
+    // environment cannot hide the default.
+    preg_match("/env\\('SCALEWAYAI_API_ENDPOINT', '([^']*)'\\)/", (string) file_get_contents(config_path('services.php')), $default);
 
-    expect($config['scalewayai']['endpoint'] ?? '')->not->toMatch('/[0-9a-f]{8}-[0-9a-f]{4}-/');
-})->skip(fn (): bool => getenv('SCALEWAYAI_API_ENDPOINT') !== false || isset($_ENV['SCALEWAYAI_API_ENDPOINT']), 'endpoint set in the environment');
+    expect($default[1] ?? null)->toBe('https://api.scaleway.ai/v1');
+});

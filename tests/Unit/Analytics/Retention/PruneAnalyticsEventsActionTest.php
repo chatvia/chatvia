@@ -5,7 +5,7 @@ use Domain\Analytics\Enums\AnalyticsEventType;
 use Domain\Analytics\Services\AnalyticsDatabase;
 use Illuminate\Support\Str;
 
-function pruneEvent(AnalyticsEventType $type, string $occurredAt): void
+function paeEvent(AnalyticsEventType $type, string $occurredAt): void
 {
     app(AnalyticsDatabase::class)->table('analytics_events')->insert([
         'agent_id' => 910001,
@@ -17,9 +17,9 @@ function pruneEvent(AnalyticsEventType $type, string $occurredAt): void
 }
 
 it('deletes old message events but keeps feedback and recent rows', function (): void {
-    pruneEvent(AnalyticsEventType::MessageSent, now()->subDays(400)->toDateTimeString());
-    pruneEvent(AnalyticsEventType::MessageSent, now()->subDays(10)->toDateTimeString());
-    pruneEvent(AnalyticsEventType::FeedbackGiven, now()->subDays(400)->toDateTimeString());
+    paeEvent(AnalyticsEventType::MessageSent, now()->subDays(400)->toDateTimeString());
+    paeEvent(AnalyticsEventType::MessageSent, now()->subDays(10)->toDateTimeString());
+    paeEvent(AnalyticsEventType::FeedbackGiven, now()->subDays(400)->toDateTimeString());
 
     $deleted = app(PruneAnalyticsEventsAction::class)->execute(now()->subDays(395));
 

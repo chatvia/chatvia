@@ -2,6 +2,7 @@
 
 use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
+use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
@@ -39,7 +40,7 @@ it('refuses a model whose provider is turned off', function (): void {
     $model = testLlm();
     $model->provider->update(['is_enabled' => false]);
 
-    expect(fn () => app(LlmChat::class)->send(new ChatRequestData($model->fresh(), [ChatMessageData::user('Hi')])))
+    expect(fn (): ChatResponseData => app(LlmChat::class)->send(new ChatRequestData($model->fresh(), [ChatMessageData::user('Hi')])))
         ->toThrow(LlmProviderUnavailableException::class);
 
     Http::assertNothingSent();
@@ -104,5 +105,5 @@ it('decodes a structured reply and fails loudly only when asked to', function ()
     $reply = $completion->send($request);
 
     expect($reply->data)->toBeNull()
-        ->and(fn () => $reply->requireData())->toThrow(InvalidStructuredReplyException::class);
+        ->and(fn (): array => $reply->requireData())->toThrow(InvalidStructuredReplyException::class);
 });

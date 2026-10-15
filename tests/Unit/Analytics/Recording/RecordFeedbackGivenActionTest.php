@@ -3,6 +3,7 @@
 use Domain\Analytics\Actions\Recording\RecordFeedbackGivenAction;
 use Domain\Analytics\Data\Recording\FeedbackRecordData;
 use Domain\Analytics\Events\FeedbackGiven;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -12,14 +13,14 @@ use Illuminate\Support\Str;
  * step as a visitor switches or clears their reaction, carrying the chatter
  * of the rated message's session (none for an anonymous or staff session).
  */
-function feedbackRows(string $messageId)
+function rfgRows(string $messageId): Builder
 {
     return DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
         ->where('event_type', 'feedback_given')
         ->where('message_external_id', $messageId);
 }
 
-function giveFeedback(int $agentId, string $convId, string $msgId, ?string $feedback, ?int $chatterId = null): void
+function rfgGive(int $agentId, string $convId, string $msgId, ?string $feedback, ?int $chatterId = null): void
 {
     app(RecordFeedbackGivenAction::class)->execute(FeedbackRecordData::fromEvent(new FeedbackGiven(
         agentId: $agentId,
@@ -38,25 +39,25 @@ it('stores exactly one feedback row per message and overwrites on switch', funct
     $convId = (string) Str::uuid();
     $msgId = (string) Str::uuid();
 
-    giveFeedback(950001, $convId, $msgId, 'positive');
-    expect(feedbackRows($msgId)->count())->toBe(1)
-        ->and(feedbackRows($msgId)->value('feedback'))->toBe('positive');
+    rfgGive(950001, $convId, $msgId, 'positive');
+    expect(rfgRows($msgId)->count())->toBe(1)
+        ->and(rfgRows($msgId)->value('feedback'))->toBe('positive');
 
     // Switch 👍 → 👎: still ONE row, now negative — no lifetime double-count.
-    giveFeedback(950001, $convId, $msgId, 'negative');
-    expect(feedbackRows($msgId)->count())->toBe(1)
-        ->and(feedbackRows($msgId)->value('feedback'))->toBe('negative');
+    rfgGive(950001, $convId, $msgId, 'negative');
+    expect(rfgRows($msgId)->count())->toBe(1)
+        ->and(rfgRows($msgId)->value('feedback'))->toBe('negative');
 });
 
 it('removes the row when feedback is cleared', function (): void {
     $convId = (string) Str::uuid();
     $msgId = (string) Str::uuid();
 
-    giveFeedback(950002, $convId, $msgId, 'positive');
-    expect(feedbackRows($msgId)->count())->toBe(1);
+    rfgGive(950002, $convId, $msgId, 'positive');
+    expect(rfgRows($msgId)->count())->toBe(1);
 
-    giveFeedback(950002, $convId, $msgId, null);
-    expect(feedbackRows($msgId)->count())->toBe(0);
+    rfgGive(950002, $convId, $msgId, null);
+    expect(rfgRows($msgId)->count())->toBe(0);
 });
 
 it('counts current feedback as a snapshot, not a lifetime tally', function (): void {
@@ -66,11 +67,11 @@ it('counts current feedback as a snapshot, not a lifetime tally', function (): v
     $cleared = (string) Str::uuid();
     $kept = (string) Str::uuid();
 
-    giveFeedback($agentId, $convId, $switched, 'positive');
-    giveFeedback($agentId, $convId, $switched, 'negative'); // switched → negative only
-    giveFeedback($agentId, $convId, $cleared, 'positive');
-    giveFeedback($agentId, $convId, $cleared, null);         // cleared → counts nothing
-    giveFeedback($agentId, $convId, $kept, 'positive');      // stays positive
+    rfgGive($agentId, $convId, $switched, 'positive');
+    rfgGive($agentId, $convId, $switched, 'negative'); // switched → negative only
+    rfgGive($agentId, $convId, $cleared, 'positive');
+    rfgGive($agentId, $convId, $cleared, null);         // cleared → counts nothing
+    rfgGive($agentId, $convId, $kept, 'positive');      // stays positive
 
     $rows = DB::connection(config('chatvia.analytics.connection'))->table('analytics_events')
         ->where('event_type', 'feedback_given')
@@ -85,9 +86,9 @@ it('keeps the chatter of the rated message on the feedback row', function (): vo
     $chatterMsg = (string) Str::uuid();
     $anonymousMsg = (string) Str::uuid();
 
-    giveFeedback(950004, $convId, $chatterMsg, 'positive', chatterId: 950104);
-    giveFeedback(950004, $convId, $anonymousMsg, 'negative');
+    rfgGive(950004, $convId, $chatterMsg, 'positive', chatterId: 950104);
+    rfgGive(950004, $convId, $anonymousMsg, 'negative');
 
-    expect(feedbackRows($chatterMsg)->value('chatter_id'))->toBe(950104)
-        ->and(feedbackRows($anonymousMsg)->value('chatter_id'))->toBeNull();
+    expect(rfgRows($chatterMsg)->value('chatter_id'))->toBe(950104)
+        ->and(rfgRows($anonymousMsg)->value('chatter_id'))->toBeNull();
 });

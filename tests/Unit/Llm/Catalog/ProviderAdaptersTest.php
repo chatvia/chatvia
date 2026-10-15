@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Http;
  * models; what a list leaves out, the adapter may know). Adding a listed
  * model to the catalog keeps its alias unique across providers.
  */
-function adapterFor(LlmProviderEnum $kind): ProviderAdapter
+function padAdapter(LlmProviderEnum $kind): ProviderAdapter
 {
     return app(ProviderAdapters::class)->for($kind);
 }
@@ -31,11 +31,11 @@ function adapterFor(LlmProviderEnum $kind): ProviderAdapter
  * @param  list<array<string, mixed>>  $rows
  * @return array<string, RemoteModelData>
  */
-function listedModels(LlmProviderEnum $kind, array $rows): array
+function padListedModels(LlmProviderEnum $kind, array $rows): array
 {
     Http::fake(['*' => Http::response(['data' => $rows])]);
 
-    return adapterFor($kind)->models(LlmProvider::factory()->kind($kind)->make())->keyBy('id')->all();
+    return padAdapter($kind)->models(LlmProvider::factory()->kind($kind)->make())->keyBy('id')->all();
 }
 
 it('has an adapter for every kind but Anthropic, in picker order', function (): void {
@@ -47,18 +47,20 @@ it('has an adapter for every kind but Anthropic, in picker order', function (): 
 it('builds each kind\'s chat client at its own or default address', function (LlmProviderEnum $kind, string $client, string $address): void {
     $provider = LlmProvider::factory()->kind($kind)->make();
 
-    expect(adapterFor($kind)->client($provider))->toBeInstanceOf($client)
-        ->and(adapterFor($kind)->baseUrl($provider))->toBe($address);
+    expect(padAdapter($kind)->client($provider))->toBeInstanceOf($client)
+        ->and(padAdapter($kind)->baseUrl($provider))->toBe($address);
 })->with([
     [LlmProviderEnum::OPENROUTER, OpenRouter::class, 'https://openrouter.ai/api/v1'],
     [LlmProviderEnum::OPENAI, OpenAiCompatible::class, 'https://api.openai.com/v1'],
+    [LlmProviderEnum::GOOGLE, OpenAiCompatible::class, 'https://generativelanguage.googleapis.com/v1beta/openai'],
+    [LlmProviderEnum::GROQ, OpenAiCompatible::class, 'https://api.groq.com/openai/v1'],
     [LlmProviderEnum::MISTRAL, Mistral::class, 'https://api.mistral.ai/v1'],
     [LlmProviderEnum::SCALEWAY, Scaleway::class, 'https://api.scaleway.ai/v1'],
     [LlmProviderEnum::CUSTOM, OpenAiCompatible::class, 'https://llm.test/v1'],
 ]);
 
 it('reads names, context, prices and features from OpenRouter', function (): void {
-    $models = listedModels(LlmProviderEnum::OPENROUTER, [[
+    $models = padListedModels(LlmProviderEnum::OPENROUTER, [[
         'id' => 'mistralai/mistral-small',
         'name' => 'Mistral Small',
         'context_length' => 128_000,
@@ -82,7 +84,7 @@ it('reads names, context, prices and features from OpenRouter', function (): voi
 });
 
 it('reads the capabilities Mistral reports and drops its embedding models', function (): void {
-    $models = listedModels(LlmProviderEnum::MISTRAL, [
+    $models = padListedModels(LlmProviderEnum::MISTRAL, [
         ['id' => 'mistral-large-latest', 'max_context_length' => 131_072, 'capabilities' => ['completion_chat' => true, 'function_calling' => true, 'vision' => false]],
         ['id' => 'mistral-embed', 'capabilities' => ['completion_chat' => false]],
     ]);
@@ -93,7 +95,7 @@ it('reads the capabilities Mistral reports and drops its embedding models', func
 });
 
 it('fills in what Scaleway\'s bare list leaves out, and drops its non-chat models', function (): void {
-    $models = listedModels(LlmProviderEnum::SCALEWAY, [
+    $models = padListedModels(LlmProviderEnum::SCALEWAY, [
         ['id' => 'mistral-small-3.2-24b-instruct-2506', 'object' => 'model', 'owned_by' => 'scaleway'],
         ['id' => 'bge-multilingual-gemma2', 'object' => 'model', 'owned_by' => 'scaleway'],
         ['id' => 'qwen3-embedding-8b', 'object' => 'model', 'owned_by' => 'scaleway'],
@@ -110,13 +112,13 @@ it('lists a Scaleway project at its own address', function (): void {
     Http::fake(['*' => Http::response(['data' => []])]);
     $provider = LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(['base_url' => 'https://api.scaleway.ai/project-x/v1/']);
 
-    adapterFor(LlmProviderEnum::SCALEWAY)->models($provider);
+    padAdapter(LlmProviderEnum::SCALEWAY)->models($provider);
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.scaleway.ai/project-x/v1/models');
 });
 
 it('keeps only the chat models of a bare list, named as chat calls take them', function (LlmProviderEnum $kind, array $rows, array $kept): void {
-    expect(array_keys(listedModels($kind, $rows)))->toBe($kept);
+    expect(array_keys(padListedModels($kind, $rows)))->toBe($kept);
 })->with([
     'gemini drops its prefix' => [LlmProviderEnum::GOOGLE, [['id' => 'models/gemini-chat'], ['id' => 'models/text-embedding-004']], ['gemini-chat']],
     'openai drops speech' => [LlmProviderEnum::OPENAI, [['id' => 'gpt-chat'], ['id' => 'whisper-1'], ['id' => 'tts-1']], ['gpt-chat']],
@@ -124,13 +126,13 @@ it('keeps only the chat models of a bare list, named as chat calls take them', f
 ]);
 
 it('reads the context size a vLLM server lists', function (): void {
-    expect(listedModels(LlmProviderEnum::CUSTOM, [['id' => 'qwen3:8b', 'max_model_len' => 32_768]])['qwen3:8b']->contextWindow)->toBe(32_768);
+    expect(padListedModels(LlmProviderEnum::CUSTOM, [['id' => 'qwen3:8b', 'max_model_len' => 32_768]])['qwen3:8b']->contextWindow)->toBe(32_768);
 });
 
 it('fails on a refused key', function (): void {
     Http::fake(['*' => Http::response(['error' => 'unauthorized'], 401)]);
 
-    expect(fn (): Collection => adapterFor(LlmProviderEnum::OPENAI)->models(LlmProvider::factory()->kind(LlmProviderEnum::OPENAI)->make()))
+    expect(fn (): Collection => padAdapter(LlmProviderEnum::OPENAI)->models(LlmProvider::factory()->kind(LlmProviderEnum::OPENAI)->make()))
         ->toThrow(RequestException::class);
 });
 
@@ -143,7 +145,7 @@ it('calls with the key and address of the provider\'s account', function (): voi
         'services.groq.api_key' => null,
     ]);
 
-    $mistral = adapterFor(LlmProviderEnum::MISTRAL);
+    $mistral = padAdapter(LlmProviderEnum::MISTRAL);
     $row = $mistral->standalone();
 
     expect($mistral->account())->toBe(AiProvider::Mistral)
@@ -151,13 +153,13 @@ it('calls with the key and address of the provider\'s account', function (): voi
         ->and($mistral->baseUrl($row))->toBe('https://mistral.test/v1')
         ->and($mistral->isConnected($row))->toBeTrue()
         // Gemini's account address is the native API its embeddings call; chat keeps its own.
-        ->and(adapterFor(LlmProviderEnum::GOOGLE)->baseUrl(adapterFor(LlmProviderEnum::GOOGLE)->standalone()))->toBe('https://generativelanguage.googleapis.com/v1beta/openai')
-        ->and(adapterFor(LlmProviderEnum::GROQ)->isConnected(adapterFor(LlmProviderEnum::GROQ)->standalone()))->toBeFalse()
+        ->and(padAdapter(LlmProviderEnum::GOOGLE)->baseUrl(padAdapter(LlmProviderEnum::GOOGLE)->standalone()))->toBe('https://generativelanguage.googleapis.com/v1beta/openai')
+        ->and(padAdapter(LlmProviderEnum::GROQ)->isConnected(padAdapter(LlmProviderEnum::GROQ)->standalone()))->toBeFalse()
         // A key typed but not saved yet (a check before saving) wins.
         ->and($mistral->apiKey(new LlmProvider(['kind' => LlmProviderEnum::MISTRAL, 'api_key' => 'typed'])))->toBe('typed')
         // A server of your own has no account: its row holds its key, and it may have none.
-        ->and(adapterFor(LlmProviderEnum::CUSTOM)->account())->toBeNull()
-        ->and(adapterFor(LlmProviderEnum::CUSTOM)->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
+        ->and(padAdapter(LlmProviderEnum::CUSTOM)->account())->toBeNull()
+        ->and(padAdapter(LlmProviderEnum::CUSTOM)->isConnected(LlmProvider::factory()->make(['api_key' => null])))->toBeTrue();
 });
 
 it('adds a model to the catalog under a unique alias', function (): void {

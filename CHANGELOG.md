@@ -289,6 +289,14 @@ theme.
 
 ### Self-hosting
 
+- **Pulse** shows the app's health at `/pulse`: slow requests, queries and
+  jobs, exceptions, queues, cache, Reverb connections and messages, and the
+  servers' CPU, memory and disk. It opens for admins signed in to the admin
+  panel, like Horizon. Pulse keeps its data in a database of its own
+  (`DB_PULSE_DATABASE`, by default `pulse`), so its many small writes stay
+  out of the app's database and its backups; the Docker stack creates it,
+  and runs `pulse:check` in a new `pulse` container. Data older than 7 days
+  is removed.
 - Docker upgrades: `.env` names the exact version an install runs (the
   installer turns `latest` into the release number). `./manage upgrade`
   shows the change and the release notes, backs up, downloads everything

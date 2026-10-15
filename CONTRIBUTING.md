@@ -26,6 +26,7 @@ docker compose up -d          # PostgreSQL (with the search extensions), Redis, 
 composer install
 npm ci
 cp .env.example .env && php artisan key:generate
+php artisan app:create-pulse-database   # Pulse's own database, when missing
 php artisan migrate --seed
 composer dev                  # app server, queue worker, logs and Vite
 ```

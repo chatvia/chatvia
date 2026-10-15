@@ -13,6 +13,7 @@ use App\Providers\FilesystemServiceProvider;
 use App\Providers\FortifyServiceProvider;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\HttpMacroServiceProvider;
+use App\Providers\PulseServiceProvider;
 use App\Providers\RateLimitServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 
@@ -30,5 +31,6 @@ return [
     AdminPanelProvider::class,
     FortifyServiceProvider::class,
     HorizonServiceProvider::class,
+    PulseServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
 ];

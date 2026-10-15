@@ -41,6 +41,10 @@
         <env name="DB_DATABASE" value="testing"/>
         <env name="DB_USERNAME" value="chatvia"/>
         <env name="DB_PASSWORD" value="password"/>
+        <!-- Pulse records nothing in tests. Its tables go in the testing
+             database, so the suite needs no second database. -->
+        <env name="DB_PULSE_DATABASE" value="testing"/>
+        <env name="PULSE_ENABLED" value="false"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

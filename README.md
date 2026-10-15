@@ -276,14 +276,18 @@ kept are set later in the admin panel (**Settings → Workspaces**), not in
 ### 4. Create the database schema and demo data
 
 ```bash
+php artisan app:create-pulse-database
 php artisan migrate --seed
 php artisan storage:link
 ```
 
-The first migration installs the PostgreSQL extensions. The seeders load the
-list of AI models and, outside production, create a demo admin account
-(`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, by default `admin@example.com` /
-`password`) with sample data; see `database/seeders/DatabaseSeeder.php`.
+The first command creates Pulse's own database (`DB_PULSE_DATABASE`, by
+default `pulse`) when it is missing; the Docker services create it on their
+first start. The first migration installs the PostgreSQL extensions. The
+seeders load the list of AI models and, outside production, create a demo
+admin account (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, by default
+`admin@example.com` / `password`) with sample data; see
+`database/seeders/DatabaseSeeder.php`.
 
 ### 5. Add your API keys
 
@@ -308,6 +312,7 @@ During development you need these processes:
 | Queues | `php artisan horizon` | runs background jobs (ingestion, AI replies on channels, analytics, exports) |
 | WebSockets | `php artisan reverb:start` | live updates, for example ingestion progress |
 | Scheduler | `php artisan schedule:work` | cleanup and other scheduled tasks |
+| Server stats (optional) | `php artisan pulse:check` | CPU, memory and disk on Pulse's Servers card (`/pulse`) |
 
 `composer dev` starts the web server, a simple queue worker, the log viewer
 (`php artisan pail`) and Vite together. Its worker only reads the `default`
@@ -324,9 +329,9 @@ public agents.
 ## Develop with Laravel Sail
 
 [Laravel Sail](https://laravel.com/docs/sail) runs everything in Docker: the
-app, Horizon, the scheduler and Reverb, next to the PostgreSQL, Redis and
-Mailpit services above. You only need Docker. The image has every system tool
-(pandoc, catdoc, poppler, ffmpeg, WeasyPrint) installed.
+app, Horizon, the scheduler, Reverb and Pulse's server stats, next to the
+PostgreSQL, Redis and Mailpit services above. You only need Docker. The image
+has every system tool (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) installed.
 
 Sail is for development only. It uses `docker-compose.yml` (project
 `chatvia-dev`) and `docker/sail/Dockerfile`; the production image, its compose
@@ -363,6 +368,7 @@ file and CI do not use either.
    vendor/bin/sail artisan key:generate
    vendor/bin/sail npm ci
    vendor/bin/sail npm run shakomako:build
+   vendor/bin/sail artisan app:create-pulse-database
    vendor/bin/sail artisan migrate --seed
    vendor/bin/sail artisan storage:link
    ```
@@ -383,6 +389,7 @@ file and CI do not use either.
 | `horizon` | queued jobs | |
 | `scheduler` | scheduled tasks | |
 | `reverb` | WebSockets | `ws://localhost:8080` |
+| `pulse` | Pulse's server stats (`pulse:check`) | |
 | `postgres`, `redis`, `mailpit` | as above | as above |
 
 ### Where the settings live
@@ -574,7 +581,8 @@ steps without Docker. In short:
   Redis, Reverb and so on). Mail, storage, API keys and the AI services are
   set in the admin panel, under **Settings**.
 - Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
-- Run `php artisan migrate --seed --force` (in production the seeders load
+- Run `php artisan app:create-pulse-database`, then
+  `php artisan migrate --seed --force` (in production the seeders load
   only the list of AI models, no demo data), create the first admin with
   `php artisan admin:create-user <email> <name>`, add your API keys in the
   admin panel, then run `php artisan app:sync-builtin-mcp`.
@@ -587,11 +595,12 @@ steps without Docker. In short:
 - Cache the configuration, events, routes and views with
   `php artisan config:cache`, `event:cache`, `route:cache` and `view:cache`.
   Run them again after each deploy and after each change to `.env`.
-- Keep `php artisan horizon` and `php artisan reverb:start` running under a
-  process manager (for example Supervisor or systemd), and run
-  `php artisan schedule:run` every minute from cron. With more than one app
-  server, you can run the scheduler on each of them: each task runs on one
-  server only, as long as all servers use the same Redis.
+- Keep `php artisan horizon`, `php artisan reverb:start` and
+  `php artisan pulse:check` running under a process manager (for example
+  Supervisor or systemd), and run `php artisan schedule:run` every minute from
+  cron. With more than one app server, you can run the scheduler on each of
+  them: each task runs on one server only, as long as all servers use the same
+  Redis. Run `pulse:check` on each server, so Pulse shows all of them.
 - Redis also keeps the sign-in sessions. If Redis loses its data, everyone has
   to sign in again.
 - Build the widget with `npm run shakomako:build`.

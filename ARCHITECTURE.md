@@ -39,7 +39,8 @@ command bar, messaging apps and a REST API.
 | Queues | `php artisan horizon` | Ingestion, channel replies, analytics, exports, embeddings, and live voice calls (one worker per call). Several named queues (see `config/horizon.php`). |
 | WebSockets | `php artisan reverb:start` | Live updates: ingestion progress, handoff messages, typing, eval progress. |
 | Scheduler | `php artisan schedule:run` (cron, every minute) | Pruning, analysis, usage caches, backups (see `routes/console.php`). |
-| PostgreSQL 18 | | All data, plus vector search (`vchord`, `pgvector`) and keyword search (`vchord_bm25`, `pg_tokenizer`). |
+| Server stats | `php artisan pulse:check` | CPU, memory, disk and Reverb connections for Pulse's Servers card. |
+| PostgreSQL 18 | | All data, plus vector search (`vchord`, `pgvector`) and keyword search (`vchord_bm25`, `pg_tokenizer`). Pulse (`/pulse`) keeps its data in a database of its own (the `pulse` connection, `DB_PULSE_DATABASE`), which `app:create-pulse-database` creates. |
 | Redis | | Queues, cache, rate limits, the live chat memory, login sessions (their own database). |
 
 ### Repository map
@@ -251,9 +252,9 @@ dashboard.
 
 | Folder | Holds |
 |---|---|
-| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. Its Logs page (saade/filament-laravel-log, registered in `AdminPanelProvider`) reads and clears the files in `storage/logs`, for the same staff as Horizon (`StaffToolsAccess`). |
+| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. Its Logs page (saade/filament-laravel-log, registered in `AdminPanelProvider`) reads and clears the files in `storage/logs`, for the same staff as Horizon and Pulse (`StaffToolsAccess`). |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
-| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, TypeScript transformer. |
+| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, Pulse, TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
 
 ---

@@ -4,11 +4,12 @@
 # serves requests. Every step is safe to repeat.
 #
 #   1. wait for PostgreSQL
-#   2. run the migrations (the first one installs the search extensions)
-#   3. check the embedding storage settings still match the database
-#   4. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
+#   2. create Pulse's own database (DB_PULSE_DATABASE) when it is missing
+#   3. run the migrations (the first one installs the search extensions)
+#   4. check the embedding storage settings still match the database
+#   5. create the first admin from ADMIN_EMAIL / ADMIN_PASSWORD, while the
 #      install has no admin yet
-#   5. add the built-in tools to the tool catalog (needs an embedding API key;
+#   6. add the built-in tools to the tool catalog (needs an embedding API key;
 #      on a new install the admin setup adds them when it finishes)
 set -eu
 
@@ -35,6 +36,9 @@ until database_is_ready; do
     fi
     sleep 2
 done
+
+# Pulse (/pulse) keeps its data in a database of its own, next to the app's.
+php artisan app:create-pulse-database --no-interaction
 
 php artisan migrate --force --no-interaction
 

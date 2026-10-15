@@ -12,6 +12,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\View\PanelsRenderHook;
@@ -42,10 +43,21 @@ use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
  * skipped ({@see RequireSetup}).
  *
  * Logs reads and clears the files in storage/logs, so it opens only for the
- * same staff as Horizon ({@see StaffToolsAccess}).
+ * same staff as Horizon ({@see StaffToolsAccess}), and only once an admin
+ * turns it on (Settings → Platform → Development).
+ *
+ * Tools, Logs and Settings sit below a divider in the sidebar, apart from
+ * the pages about the install's data ({@see SYSTEM_NAVIGATION_GROUP}).
+ * Settings comes last.
  */
 class AdminPanelProvider extends PanelProvider
 {
+    /**
+     * The sidebar group of the pages that run the install itself. It has no
+     * heading: the theme draws a line above it.
+     */
+    public const string SYSTEM_NAVIGATION_GROUP = 'system';
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -75,6 +87,10 @@ class AdminPanelProvider extends PanelProvider
             ->topbar(false)
             // The sidebar's search finds the Settings sections and options too.
             ->globalSearch(AdminGlobalSearchProvider::class)
+            ->navigationGroups([
+                self::SYSTEM_NAVIGATION_GROUP => NavigationGroup::make()
+                    ->extraSidebarAttributes(['class' => 'cv-sidebar-group--divided']),
+            ])
             ->discoverClusters(in: app_path('Admin/Clusters'), for: 'App\Admin\Clusters')
             ->discoverResources(in: app_path('Admin/Resources'), for: 'App\Admin\Resources')
             ->discoverPages(in: app_path('Admin/Pages'), for: 'App\Admin\Pages')
@@ -82,7 +98,9 @@ class AdminPanelProvider extends PanelProvider
             // The log files are the whole install's, not one workspace's.
             ->plugin(
                 FilamentLaravelLogPlugin::make()
-                    ->authorize(fn (): bool => app(StaffToolsAccess::class)->allows())
+                    ->authorize(fn (): bool => config('chatvia.admin.logs_page_enabled') === true
+                        && app(StaffToolsAccess::class)->allows())
+                    ->navigationGroup(self::SYSTEM_NAVIGATION_GROUP)
                     ->navigationSort(99)
             )
             ->middleware([

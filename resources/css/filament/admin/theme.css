@@ -237,6 +237,14 @@ html.fi:root {
     row-gap: 0.125rem;
 }
 
+/* The pages that run the install (Tools, Logs, Settings) sit below a line,
+ * drawn halfway down the gap between the groups. */
+.fi-sidebar-group.cv-sidebar-group--divided {
+    margin-top: -0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--cv-border);
+}
+
 .fi-sidebar-item-btn,
 .fi-sidebar-group-dropdown-trigger-btn,
 .fi-sidebar-database-notifications-btn {
@@ -2232,6 +2240,88 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
 .cv-tile__status--primary {
     --cv-tile-dot: var(--cv-primary);
+}
+
+/* -------------------------------------------------------------------------
+ * Chatvia views: the Tools cards
+ * ---------------------------------------------------------------------- */
+
+/* Cards of one width, centered on the page however many there are. */
+.cv-tools {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 20rem));
+    justify-content: center;
+    gap: 1.25rem;
+    padding-block: 0.5rem;
+}
+
+.cv-tool {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    text-align: center;
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-card);
+}
+
+.dark .cv-tool {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.cv-tool__icon {
+    display: grid;
+    place-items: center;
+    padding: 0.75rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+/* The tool's own logo, in its own colours. */
+.cv-tool__logo {
+    width: 1.75rem;
+    height: 1.75rem;
+    object-fit: contain;
+}
+
+.cv-tool__title {
+    margin-top: 1.125rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.5rem;
+    color: var(--cv-text);
+}
+
+.cv-tool__tagline {
+    margin-top: 0.125rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--cv-text-subtle);
+}
+
+/* The description takes the free height, so the buttons line up. */
+.cv-tool__description {
+    flex: 1;
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--cv-text-muted);
+    text-wrap: pretty;
+}
+
+.cv-tool__action {
+    margin-top: 1.5rem;
+}
+
+.cv-tool--unavailable .cv-tool__logo {
+    opacity: 0.55;
+    filter: grayscale(1);
 }
 
 /* -------------------------------------------------------------------------

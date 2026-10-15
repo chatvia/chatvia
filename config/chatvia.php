@@ -163,18 +163,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Admin setup
+    | Admin panel
     |--------------------------------------------------------------------------
     |
     | How the setup of a new install ended: `completed` or `skipped` (AI,
     | models, documents, storage and email). While it is empty, every admin
     | panel page leads to the setup; a skipped one can be finished later from
-    | Settings. Saved by the admin panel (PlatformSettings), never in .env.
+    | Settings. And whether the panel shows its Logs page (Settings → Platform
+    | → Development). Saved by the admin panel (PlatformSettings), never in
+    | .env.
     |
     */
 
     'admin' => [
         'setup_status' => null,
+        'logs_page_enabled' => false,
     ],
 
     /*

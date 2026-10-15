@@ -33,18 +33,18 @@ use Laravel\Mcp\Server\Tool;
 Interactive chart rendering for the chat. Each chart type has its own tool with
 a typed schema — pick the right one for the data:
 
-- render-bar-chart     — categorical comparisons (stacked, grouped, horizontal)
-- render-line-chart    — trends over ordered categories or time
-- render-pie-chart     — share-of-whole (pie or donut)
-- render-combo-chart   — bar + line with dual y-axes (revenue vs %)
-- render-scatter-chart — distributions / correlations (with optional bubble sizing)
-- render-radar-chart   — multi-axis comparisons (spider chart)
-- render-heatmap-chart — 2D intensity matrix (e.g. month × hour)
-- render-gauge-chart   — single KPI on a scale (percent, score, progress)
-- render-sankey-chart  — flow diagrams (budgets, journeys, supply chains)
-- render-treemap-chart — hierarchical share-of-whole (nested rectangles)
-- render-sunburst-chart — hierarchical proportions (concentric rings)
-- render-candlestick-chart — OHLC financial time-series (stocks, crypto, forex)
+- render-bar-chart-tool         — categorical comparisons (stacked, grouped, horizontal)
+- render-line-chart-tool        — trends over ordered categories or time
+- render-pie-chart-tool         — share-of-whole (pie or donut)
+- render-combo-chart-tool       — bar + line with dual y-axes (revenue vs %)
+- render-scatter-chart-tool     — distributions / correlations (with optional bubble sizing)
+- render-radar-chart-tool       — multi-axis comparisons (spider chart)
+- render-heatmap-chart-tool     — 2D intensity matrix (e.g. month × hour)
+- render-gauge-chart-tool       — single KPI on a scale (percent, score, progress)
+- render-sankey-chart-tool      — flow diagrams (budgets, journeys, supply chains)
+- render-treemap-chart-tool     — hierarchical share-of-whole (nested rectangles)
+- render-sunburst-chart-tool    — hierarchical proportions (concentric rings)
+- render-candlestick-chart-tool — OHLC financial time-series (stocks, crypto, forex)
   with built-in zoom/pan slider for long series
 
 Each tool accepts a clean JSON shape (categories, series, etc.) and a one-line

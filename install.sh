@@ -94,8 +94,9 @@ readonly VCHORD_BM25_VERSION="0.3.0"
 readonly PG_TOKENIZER_VERSION="0.1.1"
 readonly DEPLOYER_VERSION="^8.0"
 readonly MIN_NODE_VERSION="22.18.0"
-# Less memory than this, and no swap: the frontend build may run out.
-readonly SWAP_BELOW_KB=3500000
+# Less memory than this (a 4 GB server), and no swap: the frontend build
+# (up to 3 GB) may run out next to the running app.
+readonly SWAP_BELOW_KB=6000000
 
 #------------------------------------------------------------------------------
 # Output
@@ -2061,10 +2062,11 @@ native_install() {
 
 native_warning() {
     warn "$(bold 'The complete installation sets up this whole server for Chatvia.')"
-    info 'It installs PostgreSQL, Redis, PHP, nginx, Supervisor and Certbot,'
-    info 'changes their settings for Chatvia, takes over ports 80 and 443, and'
-    info 'turns on the firewall. Other sites, databases and programs on this'
-    info 'server may stop working, and none of it is easy to undo.'
+    info 'It installs PostgreSQL, Redis, PHP, nginx, Node.js, Supervisor (for'
+    info 'Horizon, Reverb and Pulse), cron (for the scheduler), Certbot and'
+    info 'Deployer, changes their settings for Chatvia, takes over ports 80 and'
+    info '443, and turns on the firewall. Other sites, databases and programs on'
+    info 'this server may stop working, and none of it is easy to undo.'
     info "$(bold 'We strongly recommend a fresh server or VPS with nothing else on it.')"
     if [ "$INTERACTIVE" = 1 ] && ! confirm 'Is this a fresh server that Chatvia can have to itself?' n; then
         outro 'Nothing was changed. On a server that runs other things, install with Docker.'
@@ -2124,10 +2126,12 @@ native_collect_settings() {
             ADMIN_PASS=$(random_password)
             PASSWORD_GENERATED=1
         fi
-        DOMAIN=${CHATVIA_DOMAIN:-$SERVER_IP}
+        DOMAIN=$(printf '%s' "${CHATVIA_DOMAIN:-$SERVER_IP}" | tr '[:upper:]' '[:lower:]')
         [ -n "$DOMAIN" ] || die 'Set the address: --domain chat.example.com (or CHATVIA_DOMAIN).'
         valid_host "$DOMAIN" || die "$INVALID"
         case ${CHATVIA_HTTPS:-yes} in no | false | 0) HTTPS=no ;; *) HTTPS=yes ;; esac
+        if is_ip "$DOMAIN"; then HTTPS=no; fi
+        native_check_dns
         case ${CHATVIA_FIREWALL:-yes} in no | false | 0) FIREWALL=no ;; *) FIREWALL=yes ;; esac
         case ${CHATVIA_SWAP:-auto} in
             yes | true | 1) SWAP=yes ;;
@@ -2143,12 +2147,14 @@ native_collect_settings() {
         ask DOMAIN 'Domain name or IP address' --default "${CHATVIA_DOMAIN:-}" --placeholder 'chat.example.com' \
             --hint "Where people open Chatvia. Point the domain's DNS record at this server${SERVER_IP:+ ($SERVER_IP)} first." \
             --check valid_host
+        DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
         HTTPS=no
         if ! is_ip "$DOMAIN"; then
             choose 'HTTPS' \
                 "Get a free certificate from Let's Encrypt  — renews by itself (recommended)" \
                 'No HTTPS for now  — you can get a certificate later'
             if [ "$CHOICE" = 0 ]; then HTTPS=yes; fi
+            native_check_dns
         fi
         FIREWALL=no
         if confirm "Turn on the firewall? Only SSH, HTTP and HTTPS can come in." y; then FIREWALL=yes; fi
@@ -2160,9 +2166,7 @@ native_collect_settings() {
         ask_setup
     fi
 
-    DOMAIN=$(printf '%s' "$DOMAIN" | tr '[:upper:]' '[:lower:]')
     if is_ip "$DOMAIN"; then HTTPS=no; fi
-    native_check_dns
     if [ "$HTTPS" = yes ]; then APP_URL="https://$DOMAIN"; else APP_URL="http://$DOMAIN"; fi
     native_resolve_version
 }
@@ -2275,7 +2279,7 @@ native_run_steps() {
     fi
     run_step 'Updating the system packages' native_update_system || native_failed
     run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
-    run_step 'Checking Node.js' native_check_node || native_failed
+    run_step 'Installing Node.js 22' native_install_node || native_failed
     run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
     run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
     run_step "Creating the $NATIVE_USER user" native_create_user || native_failed
@@ -2300,6 +2304,7 @@ native_run_steps() {
             "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log" \
             'Then run this installer again to finish.'
     fi
+    run_step 'Checking that every part runs' native_check_parts || native_failed
     if [ "$DRY_RUN" = 0 ]; then
         printf '\n# Install finished on %s.\n' "$(date '+%Y-%m-%d')" >>"$NATIVE_CONF"
     fi
@@ -2342,14 +2347,13 @@ native_update_system() {
 
 native_install_packages() {
     local php=php$NATIVE_PHP
-    # Node.js and npm build the frontend and the chat widget. Poppler,
-    # pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes PDF
-    # exports, and the Noto fonts give it every script.
+    # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
+    # PDF exports, and the Noto fonts give it every script. Node.js is the
+    # next step.
     apt_get install \
         git curl unzip ca-certificates cron ufw \
         "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
         "$php-curl" "$php-zip" "$php-gd" "$php-xml" composer \
-        nodejs npm \
         nginx redis-server supervisor certbot python3-certbot-nginx \
         "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk
@@ -2357,21 +2361,37 @@ native_install_packages() {
     composer --version
 }
 
-# The frontend build and Shakomako need Node.js 22.18 or newer. Ubuntu's own
-# is; should it not be, Node.js 22 comes from NodeSource instead.
-native_check_node() {
-    local version
-    version=$(node -v 2>/dev/null) || version=''
-    version=${version#v}
-    if [ -n "$version" ] && version_at_least "$version" "$MIN_NODE_VERSION"; then
-        echo "Node.js $version"
+# Node.js builds the frontend and Shakomako, the chat widget. Shakomako's
+# build runs TypeScript files directly, with Node's own type stripping
+# (22.18 or newer), which Ubuntu's nodejs package is built without. So
+# Node.js 22 comes from NodeSource, pinned above Ubuntu's.
+native_install_node() {
+    if node_can_build; then
+        echo "Node.js $(node -v) is installed."
         return 0
     fi
-    echo "Node.js ${version:-is missing}: installing Node.js 22 from NodeSource."
-    curl -fsSL https://deb.nodesource.com/setup_22.x -o "$WORK_DIR/nodesource.sh"
-    bash "$WORK_DIR/nodesource.sh"
+    install -d -m 755 /etc/apt/keyrings
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key -o /etc/apt/keyrings/nodesource.asc
+    echo 'deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_22.x nodistro main' \
+        >/etc/apt/sources.list.d/nodesource.list
+    printf '%s\n' '# Written by the Chatvia installer: Node.js from NodeSource, not Ubuntu.' \
+        'Package: nodejs' 'Pin: origin deb.nodesource.com' 'Pin-Priority: 1001' >/etc/apt/preferences.d/nodesource
+    apt_get update
     apt_get install nodejs
-    node -v
+    node_can_build || {
+        echo "Node.js $(node -v 2>/dev/null) cannot run TypeScript files." >&2
+        return 1
+    }
+    echo "Node.js $(node -v), npm $(npm -v)"
+}
+
+# Node.js 22.18 or newer, with type stripping.
+node_can_build() {
+    local version
+    version=$(node -v 2>/dev/null) || return 1
+    version_at_least "${version#v}" "$MIN_NODE_VERSION" || return 1
+    printf 'const ok: number = 1;\n' >"$WORK_DIR/check.ts"
+    node "$WORK_DIR/check.ts" >/dev/null 2>&1
 }
 
 # VectorChord, VectorChord-bm25 and pg_tokenizer come as packages from
@@ -2784,6 +2804,7 @@ EOF
 # user is one for this deploy only.
 native_first_deploy() {
     local status=0
+    native_unlock_stale
     psql_admin -c "ALTER ROLE $NATIVE_USER SUPERUSER"
     native_dep deploy "$(native_target)" || status=$?
     psql_admin -c "ALTER ROLE $NATIVE_USER NOSUPERUSER" || status=1
@@ -2795,11 +2816,21 @@ native_first_deploy() {
 # it for one more try.
 native_upgrade_deploy() {
     local output
+    native_unlock_stale
     native_dep deploy "$(native_target)" && return 0
     output=$(tail -n 300 "$LOG")
     [[ $output == *'permission denied to create extension'* ]] || return 1
     echo 'A migration installs a PostgreSQL extension: deploying again, as a superuser this time.'
     native_first_deploy
+}
+
+# A deploy that was killed (Ctrl-C, or out of memory) leaves Deployer's lock
+# behind, and the next one would stop at it. Removed while no deploy runs.
+native_unlock_stale() {
+    if [ -f "$NATIVE_ROOT/.dep/deploy.lock" ] && ! pgrep -u "$NATIVE_USER" -f 'vendor/bin/dep' >/dev/null; then
+        echo 'Removing the lock of a deploy that did not finish.'
+        native_dep deploy:unlock
+    fi
 }
 
 # Supervisor keeps Horizon (the queues), Reverb (live updates) and Pulse's
@@ -2898,11 +2929,55 @@ native_configure_firewall() {
     ufw status verbose
 }
 
-# Asks the site for /up through nginx on this server, as visitors would.
-native_app_is_up() {
+# native_curl ARGS...: curl to the address people open, through nginx on
+# this server, as visitors would.
+native_curl() {
     local host=${APP_URL#*://} port=80
     case $APP_URL in https://*) port=443 ;; esac
-    curl -fsS -o /dev/null --max-time 5 --resolve "$host:$port:127.0.0.1" "$APP_URL/up"
+    curl -sS --resolve "$host:$port:127.0.0.1" "$@"
+}
+
+native_app_is_up() {
+    native_curl -f -o /dev/null --max-time 5 "$APP_URL/up"
+}
+
+native_horizon_is_up() {
+    as_chatvia "$NATIVE_ROOT/current" php artisan horizon:status
+}
+
+# Every part of Chatvia, checked once more at the end: the services, the
+# queue workers, live updates through nginx, Pulse and the scheduler.
+native_check_parts() {
+    local service code
+    for service in postgresql redis-server "php$NATIVE_PHP-fpm" nginx supervisor cron; do
+        if ! systemctl is-active --quiet "$service"; then
+            echo "$service is not running." >&2
+            return 1
+        fi
+    done
+    if ! native_programs_running; then
+        supervisorctl status >&2
+        return 1
+    fi
+    wait_until 60 native_horizon_is_up || {
+        echo 'Horizon does not run.' >&2
+        return 1
+    }
+    # Reverb answers a WebSocket handshake with 101.
+    code=$(native_curl -o /dev/null -w '%{http_code}' --max-time 3 \
+        -H 'Connection: Upgrade' -H 'Upgrade: websocket' -H 'Sec-WebSocket-Version: 13' \
+        -H 'Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==' \
+        "$APP_URL/app/$(env_value REVERB_APP_KEY)?protocol=7" 2>/dev/null) || true
+    if [ "$code" != 101 ]; then
+        echo "Reverb does not answer through nginx at /app/ (HTTP ${code:-no answer})." >&2
+        return 1
+    fi
+    if [ ! -f /etc/cron.d/chatvia ]; then
+        echo 'The scheduler is not in cron.' >&2
+        return 1
+    fi
+    as_chatvia "$NATIVE_ROOT/current" php artisan schedule:list
+    echo 'Every part runs.'
 }
 
 native_show_finish() {
@@ -2937,6 +3012,18 @@ native_show_finish() {
     info '   the models, and email.'
     info "$((n + 2)). Then add the built-in tools, like charts, forms and web search:"
     info "   sudo -u $NATIVE_USER php $NATIVE_ROOT/current/artisan app:sync-builtin-mcp"
+
+    section 'Running on this server'
+    info "Web app       nginx and PHP-FPM $NATIVE_PHP $(dim "($APP_URL)")"
+    info "Queues        Horizon $(dim '(Supervisor: chatvia-horizon)')"
+    info "Live updates  Reverb $(dim '(Supervisor: chatvia-reverb, through nginx at /app/)')"
+    info "Server stats  Pulse $(dim '(Supervisor: chatvia-pulse)')"
+    info "Scheduler     every minute $(dim '(cron: /etc/cron.d/chatvia)')"
+    info "Database      PostgreSQL $NATIVE_PG $(dim '(vchord, vchord_bm25, pg_tokenizer, pgvector)')"
+    info "Cache         Redis $(dim '(with a password, kept on disk)')"
+    if [ "$HTTPS" = yes ]; then info "HTTPS         Let's Encrypt $(dim '(renews by itself)')"; fi
+    if [ "$FIREWALL" = yes ]; then info "Firewall      ufw $(dim '(SSH, HTTP and HTTPS only)')"; fi
+    info "Deploys       Deployer $(dim "(user $NATIVE_USER, in $NATIVE_DEPLOY_DIR)")"
 
     section 'Good to know'
     info "Settings     $NATIVE_ROOT/shared/.env"
@@ -3035,6 +3122,8 @@ native_upgrade() {
     run_step 'Waiting for the web app' wait_until 120 native_app_is_up ||
         die 'The web app did not answer within 2 minutes.' \
             "See why: sudo tail -n 50 $NATIVE_ROOT/shared/storage/logs/laravel-$(date +%F).log"
+    run_step 'Checking that every part runs' native_check_parts ||
+        die 'Chatvia runs, but not every part of it.' "See why: $LOG"
     ok "$(bold "Chatvia $new is running.")"
     outro "Open $(accent "$APP_URL")"
 }

@@ -475,13 +475,13 @@ This command needs git and Node. It:
 
 1. finds the newest release of the widget: the highest `vX.Y.Z` tag in its
    repository;
-2. downloads that release into `node_modules/.cache/shakomako/<version>`. It
-   does this only once per release;
+2. downloads that release into `storage/framework/shakomako/<version>`. It
+   does this only once per release, and keeps only the newest one there;
 3. installs the widget's packages and builds it;
 4. replaces `public/shakomako` with the new build.
 
 The version is not written anywhere in this repository. To download a release
-again, delete `node_modules/.cache/shakomako`.
+again, delete `storage/framework/shakomako`.
 
 ### Which release is built
 

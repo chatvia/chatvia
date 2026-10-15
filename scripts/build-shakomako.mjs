@@ -11,16 +11,19 @@
  * The newest release is its highest vX.Y.Z tag; pre-release tags and untagged
  * commits are never built. The image workflow uses --print-version to pass the
  * same release to the Docker build. A release is cloned once into
- * node_modules/.cache.
+ * storage/framework/shakomako, and only the newest build is kept there. Not
+ * into node_modules: Node does not strip the types of TypeScript files under
+ * it, and the widget's build runs its rollup.config.ts directly.
  */
 
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const target = path.join(root, 'public/shakomako');
+const cache = path.join(root, 'storage/framework/shakomako');
 
 function dockerfileArg(name) {
     const match = readFileSync(path.join(root, 'Dockerfile'), 'utf8').match(new RegExp(`^ARG ${name}=(\\S+)$`, 'm'));
@@ -83,7 +86,7 @@ if (process.env.SHAKOMAKO_PATH) {
     }
 } else {
     const version = release();
-    source = path.join(root, 'node_modules/.cache/shakomako', version);
+    source = path.join(cache, version);
     console.log(`Building Shakomako ${version}.`);
 
     if (!existsSync(path.join(source, 'package.json'))) {
@@ -105,5 +108,14 @@ run('npm', ['run', 'build'], source);
 
 rmSync(target, { recursive: true, force: true });
 cpSync(path.join(source, 'dist'), target, { recursive: true });
+
+// Earlier releases in the cache are not needed again.
+if (!process.env.SHAKOMAKO_PATH) {
+    for (const entry of readdirSync(cache)) {
+        if (path.join(cache, entry) !== source) {
+            rmSync(path.join(cache, entry), { recursive: true, force: true });
+        }
+    }
+}
 
 console.log(`Built Shakomako into ${path.relative(root, target)}.`);

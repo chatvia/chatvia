@@ -74,3 +74,30 @@ it('keeps the server identity and instructions stable', function (string $path):
 it('keeps every tool definition stable', function (string $path): void {
     expect(contractJson(contractToolList($path)))->toMatchSnapshot();
 })->with('builtin mcp routes');
+
+it('names only tools the server has in its instructions', function (string $path): void {
+    $instructions = (string) (contractRpc($path, 'initialize', [
+        'protocolVersion' => '2025-06-18',
+        'capabilities' => (object) [],
+        'clientInfo' => ['name' => 'contract-test', 'version' => '1.0.0'],
+    ])['result']['instructions'] ?? '');
+
+    // Tool names are kebab-case and end in -tool (render-bar-chart-tool); a
+    // name the model reads here must be one it can call.
+    preg_match_all('/\b[a-z]+(?:-[a-z]+)*-tool\b/', $instructions, $named);
+    $toolNames = array_column(contractToolList($path), 'name');
+
+    expect(array_values(array_diff(array_unique($named[0]), $toolNames)))->toBe([]);
+})->with('builtin mcp routes');
+
+it('lists every charts tool by its name in the charts instructions', function (): void {
+    $instructions = (string) contractRpc('/mcp/charts', 'initialize', [
+        'protocolVersion' => '2025-06-18',
+        'capabilities' => (object) [],
+        'clientInfo' => ['name' => 'contract-test', 'version' => '1.0.0'],
+    ])['result']['instructions'];
+
+    foreach (array_column(contractToolList('/mcp/charts'), 'name') as $name) {
+        expect($instructions)->toContain("- {$name} ");
+    }
+});

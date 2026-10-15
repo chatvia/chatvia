@@ -49,6 +49,16 @@ enum ConversationSource: string
     }
 
     /**
+     * Only the hosted chat shows the Approve / Deny prompt for a tool call that
+     * needs a person's approval (and has the route that resumes the turn).
+     * Elsewhere such a call would pause the turn for good.
+     */
+    public function showsToolApprovals(): bool
+    {
+        return $this === self::HostedChat;
+    }
+
+    /**
      * Web surfaces render rich inline artifacts (charts, forms); messaging
      * channels can only show text, so artifact-emitting tools fall back there.
      */

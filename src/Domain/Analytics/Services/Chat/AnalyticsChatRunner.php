@@ -76,7 +76,8 @@ class AnalyticsChatRunner
 
     /**
      * Stream the model, run the tools it asks for, and repeat until it answers
-     * without a tool call (or the iteration cap is hit).
+     * without a tool call. After the last allowed round it answers once more
+     * with tools off, so the reply never ends on tool results alone.
      *
      * @return Generator<int, StreamEvent>
      */
@@ -86,7 +87,7 @@ class AnalyticsChatRunner
         $messages = $this->buildMessages($workspace, $data);
         $model = $this->models->model(LlmTask::Chat);
         $provider = $this->providers->for($model);
-        $maxIterations = (int) config('chatvia.agent.tools.max_iterations', 5);
+        $maxIterations = max(1, (int) config('chatvia.agent.tools.max_iterations', 5));
 
         for ($iteration = 0; $iteration < $maxIterations; $iteration++) {
             $assistantText = '';
@@ -103,7 +104,7 @@ class AnalyticsChatRunner
             $calls = array_map(EmittedToolCallData::fromStreamBuffer(...), array_values($pending));
 
             if ($calls === []) {
-                break;
+                return;
             }
 
             $messages[] = [
@@ -116,6 +117,18 @@ class AnalyticsChatRunner
                 yield from $this->runToolCall($workspace, $routes, $messages, $assistantId, $call);
             }
         }
+
+        // Out of rounds while the model still wanted tools. Any call it makes
+        // anyway is left in $pending and never run.
+        $assistantText = '';
+        $pending = [];
+        $response = $provider->stream($model->internal_name, $messages, [
+            'temperature' => 0.2,
+            'tools' => $tools,
+            'tool_choice' => 'none',
+        ]);
+
+        yield from $this->consume($response, $assistantId, $assistantText, $pending);
     }
 
     /**

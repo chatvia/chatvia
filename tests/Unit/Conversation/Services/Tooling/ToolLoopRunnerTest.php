@@ -59,12 +59,20 @@ beforeEach(function (): void {
 
 // --- fakes -------------------------------------------------------------------
 
-function tlrProvider(): LlmProviderInterface
+/**
+ * A provider stub. Pass an ArrayObject to collect the settings of every
+ * completion the runner asks for.
+ */
+function tlrProvider(?ArrayObject $settingsSeen = null): LlmProviderInterface
 {
-    return new class implements LlmProviderInterface
+    return new class($settingsSeen) implements LlmProviderInterface
     {
+        public function __construct(private readonly ?ArrayObject $settingsSeen) {}
+
         public function stream(string $model, array $messages, array $settings = []): ResponseInterface
         {
+            $this->settingsSeen?->append($settings);
+
             // The fake transformer ignores the upstream response; return a stub.
             return new Response;
         }
@@ -478,27 +486,72 @@ it('pauses the whole turn and persists a pending checkpoint when a tool call nee
     expect($last->data['reason'])->toBe('awaiting_approval');
 });
 
-it('stops at the configured max_iterations cap instead of looping unbounded', function (): void {
+it('stops at the configured max_iterations cap and then answers without tools', function (): void {
     config(['chatvia.agent.tools.max_iterations' => 2]);
 
     $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
     $dispatcher = tlrDispatcher();
+    $settingsSeen = new ArrayObject;
 
     // Every model turn keeps requesting another ungated tool — only the cap stops it.
     $counter = 0;
     $transformer = tlrTransformer(function (ChatContext $ctx) use (&$counter) {
-        $ctx->pendingToolCalls[] = ['id' => 'call_'.$counter++, 'name' => 'loop_tool', 'arguments' => '{}'];
+        $ctx->pendingToolCalls[] = ['id' => 'call_'.$counter, 'name' => 'loop_tool', 'arguments' => '{}'];
+        $ctx->streamedMessage .= 'answer '.$counter++;
         yield StreamEvent::delta($ctx->assistantMessageId, 'x');
     });
     $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
 
     $llmMessages = [['role' => 'user', 'content' => 'go']];
-    $generator = $runner->run($context, tlrProvider(), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('loop_tool'));
+    $generator = $runner->run($context, tlrProvider($settingsSeen), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('loop_tool'));
     iterator_to_array($generator, preserve_keys: false);
     $paused = $generator->getReturn();
 
+    // Two tool rounds, then one more completion that may not call tools. The
+    // call the model still asks for on it is dropped, never run.
     expect($paused)->toBeFalse()
-        ->and($dispatcher->calls)->toHaveCount(2); // exactly max_iterations dispatches, then stop
+        ->and($dispatcher->calls)->toHaveCount(2)
+        ->and($settingsSeen)->toHaveCount(3)
+        ->and(array_column($settingsSeen->getArrayCopy(), 'tool_choice'))->toBe(['auto', 'auto', 'none'])
+        ->and($settingsSeen[2]['tools'])->toBe(tlrTools('loop_tool'))
+        ->and($context->pendingToolCalls)->toBe([])
+        ->and($context->streamedMessage)->toBe('answer 2');
+});
+
+it('answers without tools at once when a resumed turn has no rounds left', function (): void {
+    config(['chatvia.agent.tools.max_iterations' => 2]);
+
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $dispatcher = tlrDispatcher();
+    $settingsSeen = new ArrayObject;
+    $transformer = tlrTransformer(function (ChatContext $ctx) {
+        $ctx->streamedMessage .= 'done';
+        yield StreamEvent::delta($ctx->assistantMessageId, 'done');
+    });
+    $runner = tlrRunner($transformer, $dispatcher, tlrApprovalPolicy(false));
+
+    $llmMessages = [['role' => 'user', 'content' => 'go']];
+    $generator = $runner->run($context, tlrProvider($settingsSeen), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('loop_tool'), startIteration: 2);
+    iterator_to_array($generator, preserve_keys: false);
+
+    expect($settingsSeen)->toHaveCount(1)
+        ->and($settingsSeen[0]['tool_choice'])->toBe('none')
+        ->and($dispatcher->calls)->toBe([])
+        ->and($context->streamedMessage)->toBe('done');
+});
+
+it('runs at least one round when the cap is set below one', function (): void {
+    config(['chatvia.agent.tools.max_iterations' => 0]);
+
+    $context = tlrContext(Agent::factory()->create(), Llm::factory()->create());
+    $settingsSeen = new ArrayObject;
+    $runner = tlrRunner(tlrNoopTransformer(), tlrDispatcher(), tlrApprovalPolicy(false));
+
+    $llmMessages = [['role' => 'user', 'content' => 'go']];
+    iterator_to_array($runner->run($context, tlrProvider($settingsSeen), 'gpt-4', $llmMessages, toolDefinitions: tlrTools('loop_tool')), preserve_keys: false);
+
+    expect($settingsSeen)->toHaveCount(1)
+        ->and($settingsSeen[0]['tool_choice'])->toBe('auto');
 });
 
 // --- the offered tool set: the model may only call what it was given -------

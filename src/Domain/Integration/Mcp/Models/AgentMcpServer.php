@@ -108,10 +108,11 @@ class AgentMcpServer extends Model implements AttachableToAgents
     use HasExternalId;
 
     /**
-     * How long one MCP request may take before it times out. Long-running
-     * tools (deep research, code execution) need minutes, not seconds.
+     * How long one MCP request may take before it times out. A visitor waits
+     * for the reply while a tool runs, so a slow server must not hold the chat
+     * (and a server worker) for minutes; the model hears the call failed.
      */
-    public const int DEFAULT_TIMEOUT_MS = 300_000;
+    public const int DEFAULT_TIMEOUT_MS = 60_000;
 
     /** How early before expiry an OAuth access token counts as stale. */
     private const int TOKEN_EXPIRY_MARGIN_SECONDS = 30;

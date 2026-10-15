@@ -53,6 +53,35 @@ it('streams the answer through the runner and persists nothing', function (): vo
     expect(DB::table('chat_messages')->count())->toBe($before['messages']);
 });
 
+it('answers without tools once the model has used its last tool round', function (): void {
+    config(['chatvia.agent.tools.max_iterations' => 1]);
+    $workspace = User::factory()->create()->workspace();
+
+    $settingsSeen = [];
+    $mock = Mockery::mock(LlmProviderInterface::class);
+    $mock->shouldReceive('stream')->twice()->andReturnUsing(function (string $model, array $messages, array $settings) use (&$settingsSeen): Psr7Response {
+        $settingsSeen[] = $settings;
+
+        return new Psr7Response(200, [], count($settingsSeen) === 1
+            ? 'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"no_such_tool","arguments":"{}"}}]}}]}'."\n\n".'data: [DONE]'."\n\n"
+            : 'data: {"choices":[{"delta":{"content":"Here is what I found."}}]}'."\n\n".'data: [DONE]'."\n\n");
+    });
+    bindFakeLlmProvider($mock);
+
+    $events = iterator_to_array(app(AnalyticsChatRunner::class)->events(
+        $workspace,
+        new AnalyticsChatRequestData(message: 'how many messages this cycle?'),
+    ), preserve_keys: false);
+
+    $text = collect($events)
+        ->filter(fn ($e): bool => $e->type === EventType::Delta)
+        ->map(fn ($e): mixed => $e->data['text'])
+        ->implode('');
+
+    expect($text)->toContain('Here is what I found.')
+        ->and(array_column($settingsSeen, 'tool_choice'))->toBe(['auto', 'none']);
+});
+
 it('serves a 200 SSE stream to the workspace owner', function (): void {
     $owner = User::factory()->create(['email_verified_at' => now()]);
     fakeChatProvider("data: [DONE]\n\n");

@@ -63,6 +63,10 @@ it('holds the guardrails, the tool-call limits and every log\'s retention', func
             'tool_audit_retention_days' => 60,
             'tool_rate_limit' => 5,
             'tool_rate_window_seconds' => 120,
+            'tool_max_rounds' => 8,
+            'tool_result_max_chars' => 20000,
+            'tool_approval_enabled' => false,
+            'tool_approval_ttl_minutes' => 30,
             'security_audit_retention_days' => 400,
             'security_audit_retention_floor_days' => 90,
         ])
@@ -74,6 +78,21 @@ it('holds the guardrails, the tool-call limits and every log\'s retention', func
         ->and(config('chatvia.governance.retention_days'))->toBe(60)
         ->and(config('chatvia.governance.tool_rate_limit'))->toBe(5)
         ->and(config('chatvia.governance.tool_rate_window_seconds'))->toBe(120)
+        ->and(config('chatvia.agent.tools.max_iterations'))->toBe(8)
+        ->and(config('chatvia.agent.tools.max_result_chars'))->toBe(20000)
+        ->and(config('chatvia.agent.tools.approval_enabled'))->toBeFalse()
+        ->and(config('chatvia.agent.tools.approval_ttl_minutes'))->toBe(30)
         ->and(config('chatvia.security_audit.retention_days'))->toBe(400)
         ->and(config('chatvia.security_audit.retention_floor_days'))->toBe(90);
 });
+
+it('keeps the tool rounds per answer between 1 and 20, and a result limit of at least 1,000 characters', function (int $rounds, int $chars, array $errors): void {
+    Livewire::actingAs($this->admin, 'admin')->test(ManageSecuritySettings::class)
+        ->fillForm(['tool_max_rounds' => $rounds, 'tool_result_max_chars' => $chars])
+        ->call('save')
+        ->assertHasFormErrors($errors);
+})->with([
+    'no rounds' => [0, 64000, ['tool_max_rounds']],
+    'too many rounds' => [21, 64000, ['tool_max_rounds']],
+    'tiny results' => [5, 999, ['tool_result_max_chars']],
+]);

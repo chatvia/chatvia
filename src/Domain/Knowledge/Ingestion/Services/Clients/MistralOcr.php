@@ -10,14 +10,16 @@ use Domain\Llm\Services\ProviderAdapters;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Symfony\Component\Mime\MimeTypes;
 
 /**
  * Client for Mistral's hosted OCR API. Turns PDFs, office files and images into
  * one PageData per page, with the images and tables found on each page. Used
  * through MistralDocumentParser; the model is `services.mistral.ocr_model`.
+ *
+ * The file goes inside the request as a data: URL, never as a link to this
+ * site: Mistral cannot open a link to a local or private install.
  */
 class MistralOcr
 {
@@ -36,24 +38,22 @@ class MistralOcr
     }
 
     /**
-     * OCR a PDF or office file that Mistral can fetch from the URL.
+     * OCR a local PDF, office file or image. The data: URL is about a third
+     * larger than the file; it is built inside the call, not kept here, so
+     * read() can free it once the request is sent.
      *
      * @return Collection<int,PageData>
      */
-    public function fromUrl(string $url): Collection
+    public function fromFile(string $file): Collection
     {
-        return $this->read(['type' => 'document_url', 'document_url' => $url]);
-    }
+        if (! file_exists($file)) {
+            throw new InvalidArgumentException('File does not exist');
+        }
 
-    /**
-     * OCR an image that Mistral can fetch from the URL (images go under
-     * `image_url`, not `document_url`).
-     *
-     * @return Collection<int,PageData>
-     */
-    public function fromImageUrl(string $url): Collection
-    {
-        return $this->read(['type' => 'image_url', 'image_url' => $url]);
+        // Images go under `image_url`, not `document_url`.
+        return $this->read(SourceFileTypes::isImage($file)
+            ? ['type' => 'image_url', 'image_url' => $this->dataUrl($file)]
+            : ['type' => 'document_url', 'document_url' => $this->dataUrl($file)]);
     }
 
     /**
@@ -93,6 +93,9 @@ class MistralOcr
                 'include_image_base64' => true,
             ])->throw();
 
+        // The file is sent: free its copy before the pages are decoded.
+        unset($document);
+
         /** @var list<array{index: int, markdown: string, images: list<array{image_base64: string}>|null, tables: list<array{content: string}>|null, hyperlinks?: list<mixed>}> $pages */
         $pages = $response->json('pages');
 
@@ -126,33 +129,11 @@ class MistralOcr
         });
     }
 
-    /**
-     * OCR a local file by uploading a short-lived copy that Mistral can fetch.
-     *
-     * The copy is written to the given folder (the source's `tmp/` folder),
-     * so deleting the source or its workspace wipes a copy a crash left
-     * behind, and it is removed as soon as the OCR call returns or fails.
-     *
-     * @return Collection<int,PageData>
-     */
-    public function fromFile(string $file, string $storageDirectory): Collection
+    /** The file as a data: URL, typed by its extension (which also chose Mistral to read it). */
+    private function dataUrl(string $file): string
     {
-        if (! file_exists($file)) {
-            throw new InvalidArgumentException('File does not exist');
-        }
+        $mimeType = MimeTypes::getDefault()->getMimeTypes(file_extension($file))[0] ?? 'application/octet-stream';
 
-        $extension = pathinfo($file, PATHINFO_EXTENSION);
-
-        $filePath = rtrim($storageDirectory, '/').'/'.Str::uuid()->toString().'.'.$extension;
-
-        Storage::put($filePath, file_get_contents($file));
-
-        try {
-            $tempUrl = Storage::temporaryUrl($filePath, now()->addHour());
-
-            return SourceFileTypes::isImage($file) ? $this->fromImageUrl($tempUrl) : $this->fromUrl($tempUrl);
-        } finally {
-            Storage::delete($filePath);
-        }
+        return 'data:'.$mimeType.';base64,'.base64_encode((string) file_get_contents($file));
     }
 }

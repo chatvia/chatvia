@@ -74,7 +74,6 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
-use Support\Http\SafeUrl;
 
 /**
  * The setup of a new install: everything the app needs to work, in five
@@ -97,8 +96,7 @@ use Support\Http\SafeUrl;
  *    audio and video files cannot be uploaded and voice messages stay
  *    audio.
  * 6. Storage: this server (the default) or S3-compatible storage (checked
- *    with a test file). Mistral downloads each file from a temporary link,
- *    so with this server the site must be reachable from the internet.
+ *    with a test file).
  * 7. Mailer: none (the default) or a mail service. Without one nobody
  *    receives sign-up, password or invitation emails.
  * 8. Final: "Complete", the choices made, and where the rest (chunking,
@@ -173,9 +171,6 @@ class Setup extends SimplePage
 
     /** Whether the admin agreed to go on without a document reader, so Next does not warn again. */
     public bool $noReaderConfirmed = false;
-
-    /** Whether the site's address is reachable from the internet, worked out once per request. */
-    private ?bool $siteIsPublic = null;
 
     /** The embedding columns as the database has them, read once per request. */
     private ?EmbeddingColumnData $storedColumn = null;
@@ -405,7 +400,7 @@ class Setup extends SimplePage
                                 self::NOT_NOW => 'Not now',
                             ])
                             ->descriptions([
-                                AiProvider::Mistral->value => 'Reads scans, images and tables, also the pictures inside Word and PowerPoint files. Mistral downloads each file from a temporary link.',
+                                AiProvider::Mistral->value => 'Reads scans, images and tables, also the pictures inside Word and PowerPoint files. Each file is sent to Mistral directly.',
                                 AiProvider::Azure->value => 'Reads scans, images and tables; skips the pictures inside Word and PowerPoint files. Each file is sent to Azure directly. Use the standard tier (S0): the free one reads only 2 pages of each file.',
                                 self::NOT_NOW => 'People cannot upload PDF, Word, slides or images. Text, Markdown, spreadsheets (Excel, CSV) and ebooks still work: the app reads them itself.',
                             ])
@@ -517,22 +512,6 @@ class Setup extends SimplePage
                             ])
                             ->required()
                             ->live(),
-                        Callout::make('Mistral reads the files through a signed link')
-                            ->description(fn (): string => sprintf(
-                                'Files stay on this server. To read one, the app gives Mistral a signed link to a short-lived copy (%s/private-storage/…). The link works for one hour and only for that file; the copy is deleted when Mistral is done. So this site must stay reachable from the internet.',
-                                $this->siteUrl(),
-                            ))
-                            ->icon(Heroicon::OutlinedLink)
-                            ->info()
-                            ->visible(fn (Get $get): bool => $this->mistralReadsFromHere($get) && $this->siteIsPublic()),
-                        Callout::make('Mistral cannot reach this site')
-                            ->description(fn (): string => sprintf(
-                                'Mistral reads each file through a signed link to this site, but %s cannot be reached from the internet, so reading PDFs and other documents fails. Use S3-compatible storage, choose Azure in the Documents step, or give this site a public address.',
-                                $this->siteUrl(),
-                            ))
-                            ->icon(Heroicon::OutlinedExclamationTriangle)
-                            ->warning()
-                            ->visible(fn (Get $get): bool => $this->mistralReadsFromHere($get) && ! $this->siteIsPublic()),
                         TextInput::make('s3_endpoint')
                             ->label('Endpoint')
                             ->url()
@@ -1609,34 +1588,6 @@ class Setup extends SimplePage
             ->visible(fn (Get $get): bool => $account($get) instanceof AiProvider
                 && ! $this->reusesEarlierKey($choice, $get)
                 && ! $this->usesSavedKey($choice, $get));
-    }
-
-    /** Whether Mistral reads the documents from files kept on this server. */
-    private function mistralReadsFromHere(Get $get): bool
-    {
-        return $get('storage_driver') === 'local' && $get('document_reader') === AiProvider::Mistral->value;
-    }
-
-    /** The address of this site, which signed links to its files use. */
-    private function siteUrl(): string
-    {
-        return rtrim((string) config('app.url'), '/');
-    }
-
-    /**
-     * Whether the site's address looks reachable from the internet: its host
-     * resolves only to public addresses (not localhost, a .test name or a
-     * private network). It cannot prove that a firewall lets Mistral in.
-     */
-    private function siteIsPublic(): bool
-    {
-        if ($this->siteIsPublic !== null) {
-            return $this->siteIsPublic;
-        }
-
-        $addresses = SafeUrl::resolve((string) parse_url($this->siteUrl(), PHP_URL_HOST));
-
-        return $this->siteIsPublic = $addresses !== [] && array_all($addresses, SafeUrl::isPublicIp(...));
     }
 
     /**

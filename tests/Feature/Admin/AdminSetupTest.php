@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
-use Support\Http\SafeUrl;
 
 /**
  * The admin setup of a new install: every panel page leads to it until it is
@@ -53,10 +52,6 @@ beforeEach(function (): void {
     foreach (AiProvider::cases() as $provider) {
         config([$provider->apiKeyConfig() => null]);
     }
-});
-
-afterEach(function (): void {
-    SafeUrl::resolveHostsUsing(null);
 });
 
 function setupNotDone(): void
@@ -561,8 +556,6 @@ it('stops on the documents step when Azure refuses the key', function (): void {
 });
 
 it('reads documents with the Mistral key of the first step', function (): void {
-    // This site is on a private address: Mistral cannot fetch its signed links.
-    SafeUrl::resolveHostsUsing(fn (): array => ['127.0.0.1']);
     Http::fake([
         'api.mistral.ai/v1/models' => Http::response(['data' => [['id' => 'mistral-medium-latest', 'capabilities' => ['completion_chat' => true, 'function_calling' => true]]]]),
         'api.mistral.ai/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, 1024, 0.1)]]]),
@@ -578,8 +571,6 @@ it('reads documents with the Mistral key of the first step', function (): void {
         ->assertFormFieldHidden('document_api_key')
         ->goToWizardStep(4)
         ->assertHasNoFormErrors()
-        // Mistral downloads files from a link to this site.
-        ->assertSee('Mistral cannot reach this site')
         ->call('complete')
         ->assertHasNoFormErrors();
 
@@ -707,27 +698,6 @@ it('uses a saved key without asking for it again', function (): void {
         ->assertFormFieldHidden('embedding_api_key')
         ->assertFormFieldHidden('transcription_api_key')
         ->assertSee(['Uses your saved Cohere key', 'Uses your saved OpenAI key', 'You can change it in Settings']);
-});
-
-it('explains how Mistral reads files kept on this server', function (): void {
-    SafeUrl::resolveHostsUsing(fn (): array => ['8.8.8.8']);
-
-    setupPage($this->admin)
-        ->fillForm(['document_reader' => 'mistral', 'storage_driver' => 'local'])
-        ->assertSee(['Mistral reads the files through a signed link', '/private-storage/', 'works for one hour'])
-        ->assertDontSee('Mistral cannot reach this site')
-        ->fillForm(['storage_driver' => 's3'])
-        ->assertDontSee('Mistral reads the files through a signed link');
-});
-
-it('warns when Mistral cannot reach files kept on this server', function (): void {
-    SafeUrl::resolveHostsUsing(fn (): array => ['127.0.0.1']);
-
-    setupPage($this->admin)
-        ->fillForm(['document_reader' => 'mistral', 'storage_driver' => 'local'])
-        ->assertSee(['Mistral cannot reach this site', 'cannot be reached from the internet'])
-        ->fillForm(['document_reader' => 'azure'])
-        ->assertDontSee('Mistral cannot reach this site');
 });
 
 it('stops on the speech step when the service refuses its key', function (): void {

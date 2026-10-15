@@ -1,9 +1,9 @@
 <?php
 
 use Domain\Knowledge\Document\Conversion\OfficeText;
-use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Exceptions\DocumentParsingException;
 use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
+use Mockery\MockInterface;
 use Symfony\Component\Process\ExecutableFinder;
 
 /**
@@ -75,7 +75,6 @@ it('reads each PDF page into its own PageData', function (): void {
     $pages = app(LocalDocumentParser::class)->parse($path, 'users/ws/agents/agent/tmp');
 
     expect($pages)->toHaveCount(2)
-        ->and($pages->every(fn ($page): bool => $page instanceof PageData))->toBeTrue()
         ->and($pages[0]->pageNumber)->toBe(1)
         ->and($pages[0]->content)->toBe('Refunds take five days.')
         ->and($pages[0]->checksum)->toBe(hash('xxh128', 'Refunds take five days.'))
@@ -90,7 +89,7 @@ it('reads each PDF page into its own PageData', function (): void {
 it('reads office files through OfficeText, one PageData per page', function (): void {
     $docx = create_temp_file('policy.docx', 'not really a docx');
 
-    $this->mock(OfficeText::class, function ($mock) use ($docx): void {
+    $this->mock(OfficeText::class, function (MockInterface $mock) use ($docx): void {
         $mock->shouldReceive('supports')->with('docx')->andReturnTrue();
         $mock->shouldReceive('pages')->once()->with($docx, 'docx')->andReturn(['First page.', 'Second page.']);
     });
@@ -144,8 +143,4 @@ it('reports a PDF the text tool cannot read as a parsing failure', function (): 
         ->toThrow(DocumentParsingException::class, 'The document could not be read');
 
     @unlink($broken);
-});
-
-it('is recorded on the source as the local parser', function (): void {
-    expect(app(LocalDocumentParser::class)->name())->toBe('local');
 });

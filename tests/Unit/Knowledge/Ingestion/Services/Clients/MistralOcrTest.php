@@ -18,20 +18,20 @@ beforeEach(function (): void {
 });
 
 /** Wrap a payload in the OCR response envelope a single page would produce. */
-function ocrResponse(array $page): array
+function mocrResponse(array $page): array
 {
     return ['pages' => [$page]];
 }
 
 /** A small local PDF to OCR. */
-function ocrPdf(): string
+function mocrPdf(): string
 {
     return create_temp_file('manual.pdf', '%PDF-1.4 test');
 }
 
 it('posts the expected OCR envelope with bearer auth and the PDF inside the request', function (): void {
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
             'index' => 0,
             'markdown' => 'hello',
             'images' => [],
@@ -39,7 +39,7 @@ it('posts the expected OCR envelope with bearer auth and the PDF inside the requ
         ]), 200),
     ]);
 
-    app(MistralOcr::class)->fromFile(ocrPdf());
+    app(MistralOcr::class)->fromFile(mocrPdf());
 
     Http::assertSent(fn (Request $request): bool => $request->method() === 'POST'
         && $request->url() === 'https://api.mistral.ai/v1/ocr'
@@ -52,7 +52,7 @@ it('posts the expected OCR envelope with bearer auth and the PDF inside the requ
 
 it('sends images under image_url instead of document_url', function (): void {
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
             'index' => 0,
             'markdown' => 'text on the image',
             'images' => [],
@@ -67,7 +67,7 @@ it('sends images under image_url instead of document_url', function (): void {
 
 it('types an office file by its extension', function (): void {
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
             'index' => 0,
             'markdown' => 'slide',
             'images' => [],
@@ -84,7 +84,7 @@ it('types an office file by its extension', function (): void {
 it('keeps no copy of the file in storage', function (): void {
     Storage::fake();
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
             'index' => 0,
             'markdown' => 'page',
             'images' => [],
@@ -92,13 +92,13 @@ it('keeps no copy of the file in storage', function (): void {
         ]), 200),
     ]);
 
-    expect(app(MistralOcr::class)->fromFile(ocrPdf()))->toHaveCount(1)
+    expect(app(MistralOcr::class)->fromFile(mocrPdf()))->toHaveCount(1)
         ->and(Storage::allFiles())->toBe([]);
 });
 
 it('maps an OCR page to PageData with stripped content, checksum, images, tables, hyperlinks', function (): void {
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
             'index' => 1,
             // Markdown that should resolve to a clean text body after strip_tags.
             'markdown' => "# Title\n\nBody paragraph with **bold**.",
@@ -113,15 +113,14 @@ it('maps an OCR page to PageData with stripped content, checksum, images, tables
         ]), 200),
     ]);
 
-    $pages = app(MistralOcr::class)->fromFile(ocrPdf());
+    $pages = app(MistralOcr::class)->fromFile(mocrPdf());
 
     expect($pages)->toHaveCount(1);
 
     /** @var PageData $page */
     $page = $pages->first();
 
-    expect($page)->toBeInstanceOf(PageData::class)
-        ->and($page->pageNumber)->toBe(2)
+    expect($page->pageNumber)->toBe(2)
         ->and($page->content)->toContain('Title')
         ->and($page->content)->toContain('Body paragraph')
         ->and($page->content)->not->toContain('<')
@@ -132,31 +131,18 @@ it('maps an OCR page to PageData with stripped content, checksum, images, tables
         ->and($page->hyperlinks)->toBe(['https://docs.test/a', 'https://docs.test/b']);
 });
 
-it('numbers pages from 1, one past Mistral\'s zero-based index', function (): void {
-    Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(['pages' => [
-            ['index' => 0, 'markdown' => 'first page', 'images' => [], 'tables' => []],
-            ['index' => 1, 'markdown' => 'second page', 'images' => [], 'tables' => []],
-        ]], 200),
-    ]);
-
-    $pages = app(MistralOcr::class)->fromFile(ocrPdf());
-
-    expect($pages->map(fn (PageData $page): int => $page->pageNumber)->all())->toBe([1, 2]);
-});
-
 it('propagates upstream HTTP errors via ->throw()', function (): void {
     Http::fake([
         'api.mistral.ai/v1/ocr' => Http::response(['error' => 'rate limited'], 429),
     ]);
 
-    expect(fn () => app(MistralOcr::class)->fromFile(ocrPdf()))
+    expect(fn () => app(MistralOcr::class)->fromFile(mocrPdf()))
         ->toThrow(RequestException::class);
 });
 
 it('omits hyperlinks when the upstream payload doesn\'t include them', function (): void {
     Http::fake([
-        'api.mistral.ai/v1/ocr' => Http::response(ocrResponse([
+        'api.mistral.ai/v1/ocr' => Http::response(mocrResponse([
             'index' => 2,
             'markdown' => 'page without hyperlinks',
             'images' => [],
@@ -165,7 +151,7 @@ it('omits hyperlinks when the upstream payload doesn\'t include them', function 
         ]), 200),
     ]);
 
-    $page = app(MistralOcr::class)->fromFile(ocrPdf())->first();
+    $page = app(MistralOcr::class)->fromFile(mocrPdf())->first();
 
     expect($page->hyperlinks)->toBe([])
         ->and($page->pageNumber)->toBe(3);

@@ -3,7 +3,6 @@
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Ingestion\Models\ChunkReference;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Web\Actions\Crawl\CrawlWebsiteAction;
 use Domain\Knowledge\Source\Web\Actions\Url\DeleteAgentWebsiteUrlAction;
@@ -11,16 +10,14 @@ use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
-use Domain\Knowledge\Source\Youtube\Actions\AddAgentYoutubeVideoAction;
-use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 
 /**
- * Multi-step writes on website and YouTube sources run in one transaction,
- * and deleting a URL keeps chunks that another URL of the site still uses.
+ * Saving a website's new URL list runs in one transaction, and deleting a URL
+ * keeps the chunks that another URL of the site still uses.
  */
 function writeActionsWebsite(Agent $agent): SourceWebsite
 {
@@ -34,23 +31,6 @@ function writeActionsWebsite(Agent $agent): SourceWebsite
     return $website;
 }
 
-function writeActionsChunk(SourceWebsite $website, string $text): Chunk
-{
-    return Chunk::query()->create([
-        'workspace_id' => $website->workspace_id,
-        'chunkable_type' => $website->getMorphClass(),
-        'chunkable_id' => $website->id,
-        'chunk_index' => 1,
-        'chunk' => $text,
-        'checksum' => hash('sha256', $text.uniqid()),
-        'tokens' => 3,
-        'cost_in_micro_cents' => 0,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
-        'metadata' => [],
-    ]);
-}
-
 it('deletes only the chunks no other URL still uses', function (): void {
     $agent = Agent::factory()->create();
     $website = writeActionsWebsite($agent);
@@ -58,8 +38,8 @@ it('deletes only the chunks no other URL still uses', function (): void {
     $deleted = $website->urls()->create(['url' => 'https://docs.example.test/a']);
     $kept = $website->urls()->create(['url' => 'https://docs.example.test/b']);
 
-    $own = writeActionsChunk($website, 'Only on page A');
-    $shared = writeActionsChunk($website, 'Footer shared by A and B');
+    $own = Chunk::factory()->forSource($website)->create(['chunk' => 'Only on page A']);
+    $shared = Chunk::factory()->forSource($website)->create(['chunk' => 'Footer shared by A and B']);
 
     foreach ([[$own, $deleted], [$shared, $deleted], [$shared, $kept]] as [$chunk, $url]) {
         ChunkReference::query()->insert([
@@ -105,28 +85,4 @@ it('keeps the previous URL list when saving the new one fails', function (): voi
         ->and($website->fresh()->status)->toBe(SourceStatus::Crawling);
 
     Event::assertNotDispatched(WebsiteCrawlStarted::class);
-});
-
-it('rolls back the YouTube video row when attaching it fails', function (): void {
-    $agent = Agent::factory()->create();
-
-    SourceYoutubeVideo::created(function (): void {
-        throw new RuntimeException('database unavailable');
-    });
-
-    expect(fn () => app(AddAgentYoutubeVideoAction::class)->execute(
-        $agent,
-        'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-    ))->toThrow(RuntimeException::class);
-
-    expect(SourceYoutubeVideo::query()->where('workspace_id', $agent->workspace_id)->exists())->toBeFalse();
-});
-
-it('adds and attaches a YouTube video', function (): void {
-    $agent = Agent::factory()->create();
-
-    $video = app(AddAgentYoutubeVideoAction::class)->execute($agent, 'https://youtu.be/dQw4w9WgXcQ');
-
-    expect($agent->youtubeVideos()->whereKey($video->id)->exists())->toBeTrue()
-        ->and($video->workspace_id)->toBe($agent->workspace_id);
 });

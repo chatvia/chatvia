@@ -3,6 +3,7 @@
 use Domain\Knowledge\Ingestion\Actions\Chunks\EnhanceChunkAction;
 use Domain\Knowledge\Ingestion\Data\Chunking\EnhanceChunkData;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -13,16 +14,10 @@ use Illuminate\Support\Facades\Storage;
  * text to embed and its questions are returned for their own embedding.
  * Document pages also describe their images and tables.
  */
-const ECA_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWNgIB0AAAA0AAEjQ4N1AAAAAElFTkSuQmCC';
-
 beforeEach(function (): void {
     Storage::fake();
 
-    config([
-        'services.scalewayai.api_key' => 'test-key',
-    ]);
-
-    Http::fake(function (Request $request) {
+    Http::fake(function (Request $request): PromiseInterface {
         $body = $request->data();
 
         if (isset($body['response_format'])) {
@@ -54,11 +49,13 @@ it('prepends the summary to the text to embed and returns the questions', functi
 });
 
 it('describes the images and tables of a document page and returns them as metadata', function (): void {
+    // A 4x4 PNG.
+    $png = 'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWNgIB0AAAA0AAEjQ4N1AAAAAElFTkSuQmCC';
     $page = new PageData(
         pageNumber: 1,
         content: 'Depths of the oceans.',
         checksum: md5(uniqid()),
-        imagesBase64: [ECA_PNG],
+        imagesBase64: [$png],
         tables: ["| Ocean | Depth |\n|---|---|\n| Pacific | 10994 |", '  '],
     );
 

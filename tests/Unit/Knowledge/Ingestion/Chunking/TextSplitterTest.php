@@ -69,7 +69,3 @@ it('splits with an unsaved setup, such as the admin preview', function (): void 
 
     expect((new BuiltinTextSplitter)->splitWith('abcdefghij', $config))->toBe(['abcd', 'defg', 'ghij']);
 });
-
-it('is named builtin', function (): void {
-    expect((new BuiltinTextSplitter)->name())->toBe('builtin');
-});

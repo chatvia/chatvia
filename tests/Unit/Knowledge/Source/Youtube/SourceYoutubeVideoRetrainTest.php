@@ -1,16 +1,15 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Youtube\Actions\DeleteAgentYoutubeVideoAction;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 
 /**
- * Regression: retrain() and DeleteAgentYoutubeVideoAction filtered chunks by
- * a nonexistent chunks.agent_id column — Postgres validates columns at parse
- * time, so both endpoints threw SQLSTATE 42703 on EVERY call (even with zero
- * chunks). retrain() also reset a nonexistent error_message column (the real
- * column is failure_reason). Chunks are per-source; the agent filter is gone.
+ * A retrain clears every chunk of the video, the summary chunk (index 0)
+ * included, and puts it back to pending. Removing a video from an agent
+ * deletes it only when no other agent uses it.
  */
 function retrainTestVideo(Agent $agent): SourceYoutubeVideo
 {
@@ -23,14 +22,19 @@ function retrainTestVideo(Agent $agent): SourceYoutubeVideo
     ]);
 }
 
-it('retrains without referencing a nonexistent agent_id column on chunks', function (): void {
+it('retrains by deleting every chunk, the summary included, and waiting again', function (): void {
     $agent = Agent::factory()->create();
     $video = retrainTestVideo($agent);
+    Chunk::factory()->forSource($video)->summary()->create();
+    Chunk::factory()->forSource($video)->create();
+    $otherVideo = Chunk::factory()->forSource(retrainTestVideo($agent))->create();
 
     $video->retrain();
 
     $video->refresh();
-    expect($video->status)->toBe(SourceStatus::Pending)
+    expect(Chunk::query()->ofSource($video)->exists())->toBeFalse()
+        ->and(Chunk::query()->find($otherVideo->id))->not->toBeNull()
+        ->and($video->status)->toBe(SourceStatus::Pending)
         ->and($video->failure_reason)->toBeNull();
 });
 

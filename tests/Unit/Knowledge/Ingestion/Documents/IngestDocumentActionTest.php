@@ -6,9 +6,11 @@ use Domain\Knowledge\Ingestion\Actions\Documents\IngestDocumentAction;
 use Domain\Knowledge\Ingestion\Contracts\DocumentParser;
 use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
+use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Chunking\BuiltinTextSplitter;
 use Domain\Knowledge\Source\File\Events\FileIngestionProgressed;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
+use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
@@ -91,8 +93,8 @@ it('reads the stored pages back on a retry instead of parsing the file again', f
     app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
 
     expect($parser->calls)->toBe(0);
-    Bus::assertBatched(fn ($batch): bool => $batch->name === "Ingestion {$sourceFile->getMorphClass()} ID: {$sourceFile->id}"
-        && $batch->jobs->flatMap(fn ($job): array => $job->group->pages)->pluck('content')->all() === ['Stored page one', 'Stored page two']);
+    Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->name === "Ingestion {$sourceFile->getMorphClass()} ID: {$sourceFile->id}"
+        && $batch->jobs->flatMap(fn (DocumentChunkIngestionJob $job): array => $job->group->pages)->pluck('content')->all() === ['Stored page one', 'Stored page two']);
 });
 
 it('reads the document with the configured parser and records the parser name', function (): void {
@@ -143,11 +145,12 @@ it('reads the document with the configured parser and records the parser name', 
 
     Storage::assertExists($fresh->parser_filepath);
     // Plain pages share one chunk job.
-    Bus::assertBatched(fn ($batch): bool => $batch->jobs->count() === 1 && count($batch->jobs->first()->group->pages) === 2);
+    Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->jobs->count() === 1 && count($batch->jobs->first()->group->pages) === 2);
 });
 
 it('reads a file again with another document reader instead of reusing the cached pages', function (): void {
     Bus::fake();
+    Storage::fake();
     $agent = Agent::factory()->create();
 
     $parserNamed = fn (string $name): DocumentParser => new class($name) implements DocumentParser
@@ -218,8 +221,8 @@ it('splits a page longer than the chunk size into parts that keep its page numbe
 
     app()->make(IngestDocumentAction::class, ['parser' => $parser])->execute($sourceFile, $agent);
 
-    Bus::assertBatched(function ($batch): bool {
-        $pages = $batch->jobs->flatMap(fn ($job): array => $job->group->pages);
+    Bus::assertBatched(function (PendingBatch $batch): bool {
+        $pages = $batch->jobs->flatMap(fn (DocumentChunkIngestionJob $job): array => $job->group->pages);
 
         return $pages->count() === 4
             && $pages->pluck('pageNumber')->all() === [1, 2, 2, 2]

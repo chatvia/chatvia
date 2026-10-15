@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Domain\Knowledge\Retrieval\Queries\HybridChunkSearch;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 function vchordAccuracyStatements(string $mode, array $search): array
 {
     $statements = [];
-    DB::listen(function ($query) use (&$statements): void {
+    DB::listen(function (QueryExecuted $query) use (&$statements): void {
         $statements[] = $query->sql;
     });
 
@@ -29,7 +30,7 @@ function vchordAccuracyStatements(string $mode, array $search): array
     return array_values(array_filter($statements, fn (string $sql): bool => str_starts_with($sql, 'SET LOCAL')));
 }
 
-function seedVectorIndexLists(array $embedding, array $questions): void
+function vchordSeedIndexLists(array $embedding, array $questions): void
 {
     Cache::put('vector-index:lists:chunks_embedding_vchordrq_optimized', $embedding, 60);
     Cache::put('vector-index:lists:chunks_questions_embedding_vchordrq', $questions, 60);
@@ -51,7 +52,7 @@ it('casts epsilon to a number and sets no probes while the indexes are flat', fu
 });
 
 it('probes a share of the partitions, enough for the larger index', function (): void {
-    seedVectorIndexLists([2000], [1000]);
+    vchordSeedIndexLists([2000], [1000]);
 
     $statements = vchordAccuracyStatements('default', [
         'probes_percent' => ['default' => '3; DROP TABLE chunks'],
@@ -65,7 +66,7 @@ it('probes a share of the partitions, enough for the larger index', function ():
 });
 
 it('uses the share of the requested mode and falls back to the default mode', function (): void {
-    seedVectorIndexLists([2000], [2000]);
+    vchordSeedIndexLists([2000], [2000]);
     $search = [
         'probes_percent' => ['default' => 3, 'high_accuracy' => 6],
         'epsilon' => ['default' => 1.9, 'high_accuracy' => 2.5],
@@ -81,7 +82,7 @@ it('uses the share of the requested mode and falls back to the default mode', fu
 });
 
 it('never probes fewer than one partition, nor sets an epsilon outside its range', function (): void {
-    seedVectorIndexLists([1024], [1024]);
+    vchordSeedIndexLists([1024], [1024]);
 
     expect(vchordAccuracyStatements('default', [
         'probes_percent' => ['default' => 0],
@@ -95,7 +96,7 @@ it('never probes fewer than one partition, nor sets an epsilon outside its range
 it('leaves probes to each index when one is flat and the other partitioned', function (): void {
     // One GUC value cannot fit both shapes; each index then uses the default
     // probes stored on it when it was built.
-    seedVectorIndexLists([2000], []);
+    vchordSeedIndexLists([2000], []);
 
     expect(vchordAccuracyStatements('default', [
         'probes_percent' => ['default' => 3],

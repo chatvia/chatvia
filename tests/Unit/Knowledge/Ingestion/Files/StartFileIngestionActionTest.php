@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Bus;
  * transcribed, text files and ebooks are split directly, and everything else
  * goes through the document parser.
  */
-beforeEach(fn () => Bus::fake());
+beforeEach(function (): void {
+    Bus::fake();
+});
 
 it('queues each file type on its own pipeline', function (string $filename, string $mimeType, string $jobClass): void {
     $agent = Agent::factory()->create();

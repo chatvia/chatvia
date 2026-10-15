@@ -1,7 +1,6 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Website\CompleteWebsiteIngestionAction;
 use Domain\Knowledge\Ingestion\Actions\Website\StartWebsiteIngestionAction;
 use Domain\Knowledge\Ingestion\Jobs\SummaryIngestionJob;
@@ -22,6 +21,7 @@ use Domain\Knowledge\Source\Web\Data\Crawler\CrawlerData;
 use Domain\Knowledge\Source\Web\Events\WebsiteCrawlStarted;
 use Domain\Knowledge\Source\Web\Events\WebsiteIngestionProgressed;
 use Domain\Knowledge\Source\Web\Jobs\Crawler\WebsiteCrawlerJob;
+use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
@@ -55,18 +55,7 @@ function wsaWebsite(Agent $agent, string $status = 'ingested', array $options = 
 
 function wsaChunk(SourceWebsite $website, string $text, array $urls): Chunk
 {
-    $chunk = Chunk::query()->create([
-        'workspace_id' => $website->workspace_id,
-        'chunkable_type' => $website->getMorphClass(),
-        'chunkable_id' => $website->id,
-        'chunk_index' => 1,
-        'chunk' => $text,
-        'tokens' => 3,
-        'embedding' => app(EmbeddingsProviderInterface::class)->embed($text, true),
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
-        'checksum' => hash('sha256', $text),
-        'cost_in_micro_cents' => 0,
-    ]);
+    $chunk = Chunk::factory()->forSource($website)->create(['chunk' => $text]);
 
     foreach ($urls as $url) {
         ChunkReference::query()->insert(['chunk_id' => $chunk->id, 'referenceable_type' => $url->getMorphClass(), 'referenceable_id' => $url->id]);
@@ -122,7 +111,7 @@ it('re-crawls in place: gone pages leave with the chunks only they used, found p
         'https://docs.example.test/new-a',
         'https://docs.example.test/new-b',
     ])
-        ->and($urls->every(fn ($url): bool => $url->status === SourceStatus::Pending && $url->created_at !== null))->toBeTrue()
+        ->and($urls->every(fn (AgentWebsiteUrl $url): bool => $url->status === SourceStatus::Pending && $url->created_at !== null))->toBeTrue()
         ->and($kept->fresh()->checksum)->toBe('kept-checksum')
         ->and($gone->fresh())->toBeNull()
         ->and(Chunk::query()->find($onlyGone->id))->toBeNull()

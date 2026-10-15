@@ -1,8 +1,8 @@
 <?php
 
 use Database\Factories\AgentFileFactory;
-use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Ingestion\Actions\Sources\CreateSourceSummaryAction;
+use Domain\Knowledge\Ingestion\Models\Chunk;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -24,36 +24,6 @@ beforeEach(function (): void {
         'chatvia.ai.pricing.summary_output_per_million_tokens' => 8.0,
         'chatvia.ai.pricing.embedding_per_million_tokens' => 0.0,
     ]);
-
-    app()->bind(EmbeddingsProviderInterface::class, fn (): EmbeddingsProviderInterface => new class implements EmbeddingsProviderInterface
-    {
-        public function embed(string $text, bool $returnAsText = false): string|array
-        {
-            $vector = array_fill(0, 1024, 0.1);
-
-            return $returnAsText ? '['.implode(',', $vector).']' : $vector;
-        }
-
-        public function embedQuery(string $text, bool $returnAsText = false): string|array
-        {
-            return $this->embed($text, $returnAsText);
-        }
-
-        public function embedBatch(array $texts): array
-        {
-            return array_map(fn (string $text): array => (array) $this->embed($text), $texts);
-        }
-
-        public function getDimensions(): int
-        {
-            return 1024;
-        }
-
-        public function getModelName(): string
-        {
-            return 'fake-embed';
-        }
-    });
 });
 
 it('prices the summary chunk from the provider usage of both calls', function (): void {
@@ -110,6 +80,22 @@ it('skips the summary, without any LLM call, when no LLM can read PDF documents'
 
     expect(app(CreateSourceSummaryAction::class)->execute($source))->toBeNull()
         ->and($source->summary()->exists())->toBeFalse();
+
+    Http::assertNothingSent();
+});
+
+it('skips a source that already has its summary, so a retry does not pay for it twice', function (): void {
+    Http::fake();
+
+    $source = AgentFileFactory::new()->create([
+        'filepath' => 'users/x/agents/y/files/manual.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+    Storage::put($source->filepath, '%PDF-1.4 test');
+    $summary = Chunk::factory()->forSource($source)->summary()->create(['chunk' => 'The summary written before.']);
+
+    expect(app(CreateSourceSummaryAction::class)->execute($source))->toBeNull()
+        ->and($source->summary()->pluck('id')->all())->toBe([$summary->id]);
 
     Http::assertNothingSent();
 });

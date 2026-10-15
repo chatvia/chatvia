@@ -3,14 +3,12 @@
 use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Ingestion\Jobs\Text\TextIngestionJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Knowledge\Source\Text\Actions\CreateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\DeleteAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Actions\UpdateAgentSourceTextAction;
 use Domain\Knowledge\Source\Text\Models\SourceText;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Support\Exceptions\DomainValidationException;
@@ -21,22 +19,13 @@ use Support\Exceptions\DomainValidationException;
  * update deletes the old file only after the row points at the new one. A
  * workspace holds each text once, and new content gets a new summary.
  */
-function textWriterOwner(): User
-{
-    $owner = User::factory()->create();
-
-    app(TeamService::class)->createDefaultTeam($owner);
-
-    return User::query()->findOrFail($owner->id);
-}
-
 beforeEach(function (): void {
     Storage::fake();
     Bus::fake();
 });
 
 it('replaces the file only after the row points at the new one', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
 
     $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
@@ -58,7 +47,7 @@ it('replaces the file only after the row points at the new one', function (): vo
 });
 
 it('stores the text in its own folder, outside the agent, and deleting the text removes the folder', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
 
     $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
@@ -72,7 +61,7 @@ it('stores the text in its own folder, outside the agent, and deleting the text 
 });
 
 it('keeps the old file and row when the update fails', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
 
     $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
@@ -93,7 +82,7 @@ it('keeps the old file and row when the update fails', function (): void {
 });
 
 it('leaves no row and no file when creating the text fails half way', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
 
     // Fails after the INSERT, before the pivot attach.
@@ -110,28 +99,12 @@ it('leaves no row and no file when creating the text fails half way', function (
     Bus::assertNotDispatched(TextIngestionJob::class);
 });
 
-function textWriterChunk(SourceText $text, int $index): Chunk
-{
-    return Chunk::query()->create([
-        'workspace_id' => $text->workspace_id,
-        'chunkable_type' => $text->getMorphClass(),
-        'chunkable_id' => $text->id,
-        'chunk_index' => $index,
-        'chunk' => "chunk {$index}",
-        'tokens' => 2,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression("chunk {$index}"),
-        'checksum' => md5(uniqid()),
-        'cost_in_micro_cents' => 0,
-    ]);
-}
-
 it('deletes the summary chunk with the others when the content changes, so the summary is written again', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
     $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
-    textWriterChunk($text, 0);
-    textWriterChunk($text, 1);
+    Chunk::factory()->forSource($text)->summary()->create();
+    Chunk::factory()->forSource($text)->create();
 
     app(UpdateAgentSourceTextAction::class)->execute($agent, $text, 'A new text about our product.');
 
@@ -139,11 +112,11 @@ it('deletes the summary chunk with the others when the content changes, so the s
 });
 
 it('deletes the summary chunk when a text is retrained', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
     $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
-    textWriterChunk($text, 0);
-    textWriterChunk($text, 1);
+    Chunk::factory()->forSource($text)->summary()->create();
+    Chunk::factory()->forSource($text)->create();
 
     $text->retrain();
 
@@ -152,7 +125,7 @@ it('deletes the summary chunk when a text is retrained', function (): void {
 });
 
 it('does nothing when the content did not change', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
     $text = app(CreateAgentSourceTextAction::class)->execute($agent, 'The original text about our product.');
 
@@ -161,7 +134,7 @@ it('does nothing when the content did not change', function (): void {
 });
 
 it('refuses a text another text of the workspace already has', function (): void {
-    $owner = textWriterOwner();
+    $owner = User::factory()->create();
     $agent = createAgent($owner);
     $otherAgent = createAgent($owner);
     app(CreateAgentSourceTextAction::class)->execute($otherAgent, 'A text the workspace already has.');

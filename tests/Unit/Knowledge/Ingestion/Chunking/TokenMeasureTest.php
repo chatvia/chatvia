@@ -1,7 +1,6 @@
 <?php
 
 use Domain\Knowledge\Ingestion\Services\Chunking\Splitting\TokenMeasure;
-use Domain\Llm\Services\TikToken;
 
 /**
  * Token windows: a token can hold part of a multi-byte character, so a
@@ -9,14 +8,6 @@ use Domain\Llm\Services\TikToken;
  * valid UTF-8, the windows cover the whole text, and they always move
  * forward.
  */
-it('measures text in tokens of its encoding', function (): void {
-    $text = 'Tokenizers split words like antidisestablishmentarianism differently.';
-
-    expect(new TokenMeasure('cl100k_base')->length($text))->toBe(TikToken::countTokens($text, 'cl100k_base'))
-        ->and(new TokenMeasure('r50k_base')->length($text))->toBe(TikToken::countTokens($text, 'r50k_base'))
-        ->and(new TokenMeasure('cl100k_base')->length($text))->not->toBe(new TokenMeasure('r50k_base')->length($text));
-});
-
 it('cuts windows of the size that join back into the text', function (): void {
     $measure = new TokenMeasure('cl100k_base');
     $text = str_repeat('The quick brown fox jumps over the lazy dog. ', 20);

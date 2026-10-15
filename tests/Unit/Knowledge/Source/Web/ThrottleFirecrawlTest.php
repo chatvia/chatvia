@@ -16,7 +16,7 @@ it('passes straight through when the rate is disabled (0), never touching the li
     $job = new stdClass;
     $ran = null;
 
-    (new ThrottleFirecrawl)->handle($job, function ($passed) use (&$ran): void {
+    (new ThrottleFirecrawl)->handle($job, function (object $passed) use (&$ran): void {
         $ran = $passed;
     });
 
@@ -30,7 +30,7 @@ it('runs the job when the limiter grants a slot', function (): void {
     $builder->shouldReceive('allow')->with(60)->andReturnSelf();
     $builder->shouldReceive('every')->with(60)->andReturnSelf();
     // Limiter has budget → invoke the success callback.
-    $builder->shouldReceive('then')->andReturnUsing(fn ($onAllow) => $onAllow());
+    $builder->shouldReceive('then')->andReturnUsing(fn (Closure $onAllow): mixed => $onAllow());
 
     Redis::shouldReceive('throttle')->with('firecrawl:requests')->andReturn($builder);
 
@@ -50,12 +50,12 @@ it('releases the job back to the queue (without running it) when the budget is s
     $builder->shouldReceive('allow')->andReturnSelf();
     $builder->shouldReceive('every')->andReturnSelf();
     // Budget exhausted → invoke the failure callback instead of the job.
-    $builder->shouldReceive('then')->andReturnUsing(fn ($onAllow, $onThrottled) => $onThrottled());
+    $builder->shouldReceive('then')->andReturnUsing(fn (Closure $onAllow, Closure $onThrottled): mixed => $onThrottled());
 
     Redis::shouldReceive('throttle')->andReturn($builder);
 
     $job = Mockery::mock();
-    $job->shouldReceive('release')->once()->withArgs(fn ($delay): bool => is_int($delay) && $delay > 0);
+    $job->shouldReceive('release')->once()->withArgs(fn (mixed $delay): bool => is_int($delay) && $delay > 0);
 
     $ran = false;
 

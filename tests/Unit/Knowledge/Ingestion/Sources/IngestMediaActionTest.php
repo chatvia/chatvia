@@ -7,6 +7,7 @@ use Domain\Knowledge\Ingestion\Contracts\TextSplitter;
 use Domain\Knowledge\Ingestion\Enums\ContentKind;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Services\Media\AudioCompressor;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
 use Domain\Llm\Contracts\Transcriber;
 use Illuminate\Bus\PendingBatch;
@@ -61,10 +62,10 @@ it('chunks the stored transcript, not the audio file, on a retry', function (): 
 
     app(IngestMediaAction::class)->execute($sourceFile, $agent);
 
+    /** @var FakeTextSplitter $splitter */
     $splitter = app(TextSplitter::class);
 
-    expect($splitter)->toBeInstanceOf(FakeTextSplitter::class)
-        ->and($splitter->kinds)->toBe([ContentKind::Transcript]);
+    expect($splitter->kinds)->toBe([ContentKind::Transcript]);
 
     Bus::assertBatched(function (PendingBatch $batch): bool {
         $job = $batch->jobs->first();
@@ -113,4 +114,47 @@ it('stores a new transcript in the source folder', function (): void {
 
     expect($fresh->parser_filepath)->toStartWith(KnowledgeStoragePath::forSource($sourceFile).'/')
         ->and(Storage::get($fresh->parser_filepath))->toBe('Hello from a new transcript.');
+});
+
+it('fails on a blank transcript instead of chunking nothing', function (): void {
+    Storage::fake();
+    Bus::fake();
+
+    $agent = Agent::factory()->create();
+    $sourceFile = AgentFileFactory::new()->create([
+        'workspace_id' => $agent->workspace_id,
+        'status' => 'uploaded',
+        'mime_type' => 'audio/mpeg',
+        'parser_filepath' => 'users/x/agents/y/audio/transcript.txt',
+    ]);
+    Storage::put($sourceFile->parser_filepath, "  \n\t ");
+
+    expect(function () use ($sourceFile, $agent): void {
+        app(IngestMediaAction::class)->execute($sourceFile, $agent);
+    })->toThrow(RuntimeException::class, 'The transcript is empty: there is nothing to chunk.');
+
+    Bus::assertNothingBatched();
+});
+
+it('leaves a file that is already ingested alone', function (): void {
+    Storage::fake();
+    Bus::fake();
+
+    $agent = Agent::factory()->create();
+    $sourceFile = AgentFileFactory::new()->create([
+        'workspace_id' => $agent->workspace_id,
+        'status' => 'ingested',
+        'mime_type' => 'audio/mpeg',
+    ]);
+    $this->mock(Transcriber::class)->shouldNotReceive('transcribe', 'name');
+
+    app(IngestMediaAction::class)->execute($sourceFile, $agent, 'queue-job-uuid');
+
+    $fresh = $sourceFile->fresh();
+
+    expect($fresh->status)->toBe(SourceStatus::Completed)
+        ->and($fresh->internal_ingestion_job_id)->toBeNull()
+        ->and($fresh->parser_filepath)->toBeNull();
+
+    Bus::assertNothingBatched();
 });

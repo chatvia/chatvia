@@ -2,8 +2,10 @@
 
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Ingestion\Services\Chunking\Chunker;
+use Illuminate\Http\Client\Request;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Chunker::enhancePage() asks the Smart model for a page summary + questions.
@@ -52,7 +54,7 @@ it('prices the call from the provider usage tokens', function (): void {
     expect($chunk->cost)->toEqualWithDelta(1.2, 1e-9)
         ->and($chunk->summary)->toBe('A page about oceans.');
 
-    Http::assertSent(fn ($request): bool => $request['model'] === 'smart-model');
+    Http::assertSent(fn (Request $request): bool => $request['model'] === 'smart-model');
 });
 
 it('prices the call with the model\'s catalog prices when it has them', function (): void {
@@ -80,13 +82,18 @@ it('estimates the cost when the provider reports no usage', function (): void {
     expect($chunk->cost)->toBeGreaterThan(0.0);
 });
 
-it('does not log the model output', function (): void {
+it('does not log the model output, at any level', function (): void {
     Http::fake(['*' => Http::response(chunkerResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
-    Log::spy();
+
+    // Every log write, whatever its level or channel, raises MessageLogged.
+    $logged = [];
+    Event::listen(MessageLogged::class, function (MessageLogged $event) use (&$logged): void {
+        $logged[] = $event->message.' '.json_encode($event->context);
+    });
 
     app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Secret customer page.', checksum: 'c'));
 
-    Log::shouldNotHaveReceived('info');
+    expect(implode("\n", $logged))->not->toContain('A page about oceans.');
 });
 
 it('asks for the summary and questions in the page\'s own language', function (): void {
@@ -94,7 +101,7 @@ it('asks for the summary and questions in the page\'s own language', function ()
 
     app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Dania er syv år gammel.', checksum: 'c'));
 
-    Http::assertSent(fn ($request): bool => str_contains(
+    Http::assertSent(fn (Request $request): bool => str_contains(
         $request['messages'][0]['content'],
         'Write the summary and every question in the language of TargetPage',
     ));

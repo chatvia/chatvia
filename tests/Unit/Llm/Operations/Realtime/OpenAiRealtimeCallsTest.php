@@ -80,6 +80,7 @@ it('fails the call when the answer has no call id or no SDP', function (string $
         ->toThrow(RealtimeCallFailedException::class, 'OpenAI answered the voice call without an answer or a call id.');
 })->with([
     'no Location header' => ['answer', []],
+    'a Location without the id' => ['answer', ['Location' => '/v1/realtime/calls']],
     'an empty answer' => ['', ['Location' => '/v1/realtime/calls/rtc_abc123']],
 ]);
 

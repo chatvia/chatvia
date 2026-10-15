@@ -68,8 +68,9 @@ class OpenAiRealtimeCalls implements RealtimeCalls
             ));
         }
 
-        // `/v1/realtime/calls/rtc_…`: the last segment is the call's id.
-        $callId = Str::afterLast(rtrim((string) $response->header('Location'), '/'), '/');
+        // `/v1/realtime/calls/rtc_…`: the segment after calls/ is the call's id.
+        $location = rtrim((string) $response->header('Location'), '/');
+        $callId = str_contains($location, '/calls/') ? Str::afterLast($location, '/') : '';
 
         if (blank($callId) || blank($response->body())) {
             throw new RealtimeCallFailedException('OpenAI answered the voice call without an answer or a call id.');

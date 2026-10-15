@@ -178,7 +178,14 @@ then tag the widget release: every build takes the newest release.
   every run.
 - Fix the code, not the test. Do not weaken an assertion to make a test pass.
 - Tests must not call real external services. Use `Http::fake()` and the fakes
-  in `tests/Support/`.
+  in `tests/Support/`. `TestCase` calls `Http::preventStrayRequests()`, so a
+  request that no fake answers fails the test instead of going out.
+- Put a unit test in the folder of the context it tests, following the source
+  (`tests/Unit/Knowledge/Retrieval/…` for `src/Domain/Knowledge/Retrieval/…`;
+  App code under `tests/Unit/{Admin,Http,Identity,Mcp}/…`). Use the factories
+  and the helpers in `tests/Pest.php` rather than building models by hand. A
+  helper function you declare in a test file is global, so give it a short
+  prefix of its own (`cscChunk()`), or two files will clash.
 
 ## Code conventions (short version)
 

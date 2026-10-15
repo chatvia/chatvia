@@ -1,13 +1,12 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Channel\Data\MetaPageData;
-use Domain\Channel\Enums\MetaApp;
 use Domain\Channel\Messenger\Models\AgentMessengerPage;
 use Domain\Channel\Messenger\Services\MessengerClient;
 use Domain\Channel\Services\MetaOAuthClient;
 use Domain\Membership\Team\Services\TeamService;
 use Tests\Support\Messenger\FakeMessengerClient;
+use Tests\Support\Messenger\FakeMessengerOAuthClient;
 
 /**
  * The Messenger connect flow is OAuth (Facebook Login for Business): redirect →
@@ -17,29 +16,6 @@ use Tests\Support\Messenger\FakeMessengerClient;
  * original "redirected home, nothing connected" bug). These tests pin that
  * stash, the CSRF state check, and the final connect.
  */
-class FakeMetaOAuthClient extends MetaOAuthClient
-{
-    /** @var list<array{id: string, name: string, access_token: string}> */
-    public array $pagesList = [['id' => 'PAGE-1', 'name' => 'Acme Support', 'access_token' => 'EAAG-page-token']];
-
-    public ?string $userToken = 'USER-LONG-TOKEN';
-
-    public function authorizeUrl(MetaApp $app, string $state, string $scopes): string
-    {
-        return 'https://www.facebook.com/dialog/oauth?state='.$state;
-    }
-
-    public function exchangeCodeForUserToken(MetaApp $app, string $code): ?string
-    {
-        return $this->userToken;
-    }
-
-    public function pages(string $userToken): array
-    {
-        return array_map(MetaPageData::from(...), $this->pagesList);
-    }
-}
-
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
@@ -48,7 +24,7 @@ beforeEach(function (): void {
     $this->agent = createAgent($this->owner);
     $this->agent->update(['is_public' => true]);
 
-    $this->app->instance(MetaOAuthClient::class, new FakeMetaOAuthClient);
+    $this->app->instance(MetaOAuthClient::class, new FakeMessengerOAuthClient);
 });
 
 it('redirect stashes the pending connection in the session and bounces to Facebook', function (): void {

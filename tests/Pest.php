@@ -66,6 +66,17 @@ pest()->in('Architecture');
 */
 
 /**
+ * The owner's first team, created when the workspace has none yet. Read
+ * from the database, not through primaryTeam(), which the User remembers:
+ * after createAgent() made the team, a later helper call on the same User
+ * would see the remembered "no team" and make a second one.
+ */
+function ownerTeam(User $owner): Team
+{
+    return $owner->ownedTeams()->oldest('id')->first() ?? app(TeamService::class)->createDefaultTeam($owner);
+}
+
+/**
  * Create a minimal agent in the user's workspace for unit tests, ensuring the
  * user has a primary team. Pass any column override via `$overrides`.
  *
@@ -73,7 +84,7 @@ pest()->in('Architecture');
  */
 function createAgent(User $user, array $overrides = []): Agent
 {
-    $team = $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
+    $team = ownerTeam($user);
 
     return Agent::create(array_merge([
         'workspace_id' => $user->workspace()->id,
@@ -88,7 +99,7 @@ function createAgent(User $user, array $overrides = []): Agent
 
 function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
 {
-    $team ??= $user->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($user);
+    $team ??= ownerTeam($user);
 
     return Agent::create([
         'workspace_id' => $user->workspace()->id,
@@ -111,7 +122,7 @@ function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
  */
 function teammateWithPermissions(User $owner, array $permissions, ?Team $team = null, bool $allAgents = true, array $agentExternalIds = []): User
 {
-    $team ??= $owner->primaryTeam() ?? app(TeamService::class)->createDefaultTeam($owner);
+    $team ??= ownerTeam($owner);
 
     $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
         team: $team,
@@ -251,4 +262,66 @@ function jobQueue(object|string $job): ?string
 function jobTimeout(object|string $job): ?int
 {
     return jobSetting($job, Timeout::class, 'timeout');
+}
+
+/**
+ * A setting as the next request reads it. Settings classes are scoped
+ * instances, so the cached copy is forgotten first and the value comes from
+ * storage.
+ *
+ * @param  class-string  $class  a settings class (App\Admin\Settings)
+ */
+function savedSetting(string $class, string $property): mixed
+{
+    app()->forgetScopedInstances();
+
+    return app($class)->{$property};
+}
+
+/**
+ * Save settings as the admin panel does (saving copies every saved setting
+ * into config again), then forget the scoped instances so the next read sees
+ * the new values.
+ *
+ * @param  class-string  $class  a settings class (App\Admin\Settings)
+ * @param  array<string, mixed>  $values
+ */
+function saveSettings(string $class, array $values): void
+{
+    app($class)->fill($values)->save();
+
+    app()->forgetScopedInstances();
+}
+
+/**
+ * One hourly analytics rollup row of the agent (no country, no model), with
+ * the given counters.
+ *
+ * @param  array<string, mixed>  $values
+ */
+function analyticsRollup(Agent $agent, string $bucketHour, array $values = []): void
+{
+    DB::connection(config('chatvia.analytics.connection'))
+        ->table('analytics_agent_hourly_rollups')
+        ->insert([
+            'agent_id' => $agent->id,
+            'workspace_id' => $agent->workspace_id,
+            'bucket_hour' => $bucketHour,
+            'country_code' => '--',
+            'llm_external_name' => '',
+            ...$values,
+        ]);
+}
+
+/**
+ * The test, with its next API requests sent as this bearer token. Use it when
+ * one test calls the API as several people: the app (and its auth guards)
+ * lives on across requests in a test, so a guard would keep the first
+ * caller it resolved. Forgetting the guards makes each token count.
+ */
+function withApiToken(string $token): TestCase
+{
+    app('auth')->forgetGuards();
+
+    return test()->withToken($token);
 }

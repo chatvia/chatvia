@@ -237,8 +237,8 @@ html.fi:root {
     row-gap: 0.125rem;
 }
 
-/* The pages that run the install (Tools, Logs, Settings) sit below a line,
- * drawn halfway down the gap between the groups. */
+/* The pages that run the install (Tools, Status, Logs, Settings) sit below
+ * a line, drawn halfway down the gap between the groups. */
 .fi-sidebar-group.cv-sidebar-group--divided {
     margin-top: -0.75rem;
     padding-top: 0.75rem;
@@ -2322,6 +2322,440 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 .cv-tool--unavailable .cv-tool__logo {
     opacity: 0.55;
     filter: grayscale(1);
+}
+
+/* -------------------------------------------------------------------------
+ * Chatvia views: the Status page
+ * ---------------------------------------------------------------------- */
+
+.cv-status {
+    display: grid;
+    gap: 2.25rem;
+}
+
+/* The banner: the overall state, tinted in its tone. */
+.cv-status-summary {
+    --cv-tone: var(--cv-text-subtle);
+
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+    padding: 1.5rem;
+    border-radius: var(--cv-radius-card);
+    background:
+        radial-gradient(120% 160% at 0% 0%, color-mix(in oklab, var(--cv-tone) 13%, transparent), transparent 60%),
+        var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-card);
+}
+
+.dark .cv-status-summary {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+.cv-status-summary__mark {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: color-mix(in oklab, var(--cv-tone) 15%, transparent);
+    box-shadow: 0 0 0 0.375rem color-mix(in oklab, var(--cv-tone) 6%, transparent);
+    color: var(--cv-tone);
+
+    & .fi-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+}
+
+.cv-status-summary--checking .cv-status-summary__mark .fi-icon,
+.cv-status--checking .cv-status-summary__again .fi-icon {
+    animation: cv-status-spin 1s linear infinite;
+}
+
+.cv-status-summary__body {
+    flex: 1;
+    min-width: 12rem;
+}
+
+.cv-status-summary__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.625rem;
+    color: var(--cv-text);
+}
+
+.cv-status-summary__text {
+    margin-top: 0.125rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    color: var(--cv-text-muted);
+}
+
+.cv-status-section__heading {
+    margin: 0 0 0.875rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--cv-text-subtle);
+}
+
+.cv-status-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+}
+
+.cv-status-grid--wide {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+}
+
+.cv-service,
+.cv-status-list,
+.cv-env {
+    border-radius: var(--cv-radius-card);
+    background-color: var(--cv-card);
+    box-shadow:
+        0 0 0 1px var(--cv-border),
+        var(--cv-shadow-card);
+    transition:
+        opacity 200ms ease,
+        box-shadow 200ms ease;
+}
+
+.dark :is(.cv-service, .cv-status-list, .cv-env) {
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+}
+
+/* While "Check again" runs, the old results fade a little. */
+.cv-status--checking :is(.cv-service, .cv-status-list, .cv-env) {
+    opacity: 0.65;
+}
+
+.cv-service {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    padding: 1.125rem 1.25rem 1.25rem;
+}
+
+/* A service that is down, or needs a look, gets an edge in its tone. */
+.cv-service[data-state='down'] {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--danger-500) 45%, var(--cv-border)),
+        var(--cv-shadow-card);
+}
+
+.cv-service[data-state='warning'] {
+    box-shadow:
+        0 0 0 1px color-mix(in oklab, var(--warning-500) 45%, var(--cv-border)),
+        var(--cv-shadow-card);
+}
+
+.cv-service__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.cv-service__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    padding: 0.4375rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    color: var(--cv-nav-text);
+
+    & .fi-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+.cv-service__name {
+    flex: 1;
+    min-width: 0;
+}
+
+.cv-service__title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.375rem;
+    color: var(--cv-text);
+}
+
+.cv-service__description,
+.cv-service__summary {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    color: var(--cv-text-muted);
+    text-wrap: pretty;
+}
+
+.cv-service__summary {
+    color: var(--cv-text);
+}
+
+/* The state as a badge with a dot. */
+.cv-state {
+    --cv-tone: var(--cv-text-subtle);
+
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.5rem 0.125rem 0.4375rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: color-mix(in oklab, var(--cv-tone) 12%, transparent);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    color: color-mix(in oklab, var(--cv-tone) 70%, var(--cv-text));
+}
+
+.cv-state__dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-tone);
+}
+
+/* A running service's dot beats, like a heart; a check that waits blinks. */
+.cv-state--success .cv-state__dot {
+    animation: cv-status-beat 2.4s ease-out infinite;
+}
+
+.cv-state--checking .cv-state__dot {
+    animation: cv-status-blink 1s ease-in-out infinite;
+}
+
+.cv-status-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin-top: auto;
+}
+
+.cv-status-fact {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.0625rem 0.5rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    color: var(--cv-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* A line that waits for its check. */
+.cv-skeleton {
+    display: block;
+    width: 75%;
+    height: 0.75rem;
+    border-radius: var(--cv-radius-pill);
+    background: linear-gradient(90deg, var(--cv-chip) 0%, color-mix(in oklab, var(--cv-border-strong) 60%, var(--cv-chip)) 50%, var(--cv-chip) 100%);
+    background-size: 200% 100%;
+    animation: cv-status-shimmer 1.4s linear infinite;
+}
+
+.cv-skeleton--short {
+    width: 6rem;
+}
+
+/* The AI and other services: one card, a row each. */
+.cv-status-list {
+    overflow: hidden;
+}
+
+.cv-status-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    padding: 0.875rem 1.25rem;
+
+    & + & {
+        border-top: 1px solid var(--cv-border);
+    }
+}
+
+.cv-status-row[data-state='down'] .cv-service__description {
+    color: color-mix(in oklab, var(--danger-500) 80%, var(--cv-text));
+}
+
+.cv-status-row[data-state='warning'] .cv-service__description {
+    color: color-mix(in oklab, var(--warning-600) 85%, var(--cv-text));
+}
+
+.cv-status-row__providers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+}
+
+.cv-provider-logo {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--cv-radius-control);
+    background-color: var(--cv-chip);
+    box-shadow: inset 0 0 0 1px var(--cv-border);
+    color: var(--cv-nav-text);
+
+    & .fi-icon {
+        width: 1rem;
+        height: 1rem;
+        object-fit: contain;
+    }
+}
+
+@media (max-width: 40rem) {
+    .cv-status-row {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    .cv-status-row > .cv-state {
+        grid-row: 1;
+        grid-column: 3;
+    }
+
+    .cv-status-row__providers {
+        grid-column: 2 / -1;
+        justify-content: flex-start;
+    }
+}
+
+/* The environment, as `php artisan about` tells it. */
+.cv-env {
+    padding: 1.125rem 1.25rem 0.5rem;
+}
+
+.cv-env__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--cv-text);
+
+    & .fi-icon {
+        width: 1.125rem;
+        height: 1.125rem;
+        color: var(--cv-text-subtle);
+    }
+}
+
+.cv-env__facts {
+    margin-top: 0.625rem;
+}
+
+.cv-env__fact {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+
+    & + & {
+        border-top: 1px dashed var(--cv-border);
+    }
+
+    & dt {
+        color: var(--cv-text-muted);
+    }
+}
+
+.cv-env__value {
+    min-width: 0;
+    font-weight: 500;
+    text-align: end;
+    overflow-wrap: anywhere;
+    color: var(--cv-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.cv-env__value--success,
+.cv-env__value--warning,
+.cv-env__value--danger {
+    padding: 0 0.5rem;
+    border-radius: var(--cv-radius-pill);
+    background-color: color-mix(in oklab, var(--cv-tone) 12%, transparent);
+    color: color-mix(in oklab, var(--cv-tone) 70%, var(--cv-text));
+}
+
+/* Each tone colours a badge, a banner or a value through --cv-tone: green
+ * for running, amber for a look, red for down. These come after the grey
+ * default of each, so they win. */
+.cv-state--success,
+.cv-status-summary--success,
+.cv-env__value--success {
+    --cv-tone: var(--success-500);
+}
+
+.cv-state--warning,
+.cv-status-summary--warning,
+.cv-env__value--warning {
+    --cv-tone: var(--warning-500);
+}
+
+.cv-state--danger,
+.cv-status-summary--danger,
+.cv-env__value--danger {
+    --cv-tone: var(--danger-500);
+}
+
+@keyframes cv-status-beat {
+    0% {
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--cv-tone) 55%, transparent);
+    }
+
+    70%,
+    100% {
+        box-shadow: 0 0 0 0.375rem transparent;
+    }
+}
+
+@keyframes cv-status-blink {
+    50% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes cv-status-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes cv-status-shimmer {
+    to {
+        background-position: -200% 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cv-status *,
+    .cv-status *::before {
+        animation: none !important;
+    }
 }
 
 /* -------------------------------------------------------------------------

@@ -32,7 +32,7 @@ class Tools extends Page
     protected static string|UnitEnum|null $navigationGroup = AdminPanelProvider::SYSTEM_NAVIGATION_GROUP;
 
     #[\Override]
-    protected static ?int $navigationSort = 98;
+    protected static ?int $navigationSort = 97;
 
     #[\Override]
     protected static ?string $slug = 'tools';

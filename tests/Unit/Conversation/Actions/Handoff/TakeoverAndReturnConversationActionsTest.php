@@ -1,5 +1,6 @@
 <?php
 
+use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Handoff\ReturnConversationToAiAction;
 use Domain\Conversation\Actions\Handoff\TakeoverConversationAction;
@@ -8,7 +9,9 @@ use Domain\Conversation\Enums\HandoffStatus;
 use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
+use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 /**
@@ -23,9 +26,9 @@ use Illuminate\Support\Str;
  * final persisted state is 'ai'; downstream consumers see 'returned' on the
  * Reverb channel.
  */
-function freshHandoffConversation(string $initialStatus = 'pending', ?int $handoffUserId = null): Conversation
+function freshHandoffConversation(string $initialStatus = 'pending', ?int $handoffUserId = null, ?Agent $agent = null): Conversation
 {
-    $agent = Agent::factory()->create();
+    $agent ??= Agent::factory()->create();
     $session = Session::factory()->create(['agent_id' => $agent->id]);
 
     /** @var Conversation $conversation */
@@ -38,6 +41,19 @@ function freshHandoffConversation(string $initialStatus = 'pending', ?int $hando
     ]);
 
     return $conversation;
+}
+
+/**
+ * An agent on its owner's team, so teammates of that team can reach it.
+ *
+ * @return array{0: User, 1: Agent}
+ */
+function teamHandoffAgent(): array
+{
+    $owner = User::factory()->workspace()->create();
+    $team = app(TeamService::class)->createDefaultTeam($owner);
+
+    return [$owner, makeTeamAgent($owner, 'Support', $team)];
 }
 
 beforeEach(function (): void {
@@ -61,17 +77,34 @@ it('TakeoverConversationAction transitions pending → human and broadcasts admi
         && $e->adminName === $admin->name);
 });
 
-it('TakeoverConversationAction returns false when the conversation is already with a different admin', function (): void {
-    // Seed an existing human handoff under a different real user. The
-    // canBeTakenOverBy guard refuses unless the caller is that same user.
-    $incumbent = Agent::factory()->create()->workspace->owner;
-    $conversation = freshHandoffConversation('human', handoffUserId: $incumbent->id);
-    $usurper = Agent::factory()->create()->workspace->owner; // a different workspace user
+it('TakeoverConversationAction returns false when the conversation is already with a different operator', function (): void {
+    // Both teammates can reach the agent, so only the "held by someone
+    // else" rule can refuse the second one.
+    [$owner, $agent] = teamHandoffAgent();
+    $incumbent = teammateWithPermissions($owner, []);
+    $other = teammateWithPermissions($owner, []);
+    $conversation = freshHandoffConversation('human', handoffUserId: $incumbent->id, agent: $agent);
 
-    $result = app(TakeoverConversationAction::class)->execute($conversation, $usurper);
+    expect(Gate::forUser($other)->allows('access-agent', $agent))->toBeTrue();
+
+    $result = app(TakeoverConversationAction::class)->execute($conversation, $other);
 
     expect($result)->toBeFalse()
         ->and($conversation->fresh()->handoff_user_id)->toBe($incumbent->id);
+
+    Event::assertNotDispatched(HandedOff::class);
+});
+
+it('TakeoverConversationAction returns false for an operator who cannot reach the agent', function (): void {
+    [$owner, $agent] = teamHandoffAgent();
+    $outsider = teammateWithPermissions($owner, [], allAgents: false);
+    $conversation = freshHandoffConversation('pending', agent: $agent);
+
+    $result = app(TakeoverConversationAction::class)->execute($conversation, $outsider);
+
+    expect($result)->toBeFalse()
+        ->and($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Pending)
+        ->and($conversation->fresh()->handoff_user_id)->toBeNull();
 
     Event::assertNotDispatched(HandedOff::class);
 });

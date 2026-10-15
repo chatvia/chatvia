@@ -35,11 +35,25 @@ it('sets the new password and uses up the token', function (): void {
         ->and(fn () => resetChatterPassword($this->chatter, $token, 'again-123456'))->toThrow(DomainValidationException::class);
 });
 
+it('rotates the remember-me token, so other browsers are no longer remembered', function (): void {
+    $this->chatter->forceFill(['remember_token' => 'remembered-browser-token'])->save();
+    $token = $this->tokens->create($this->chatter);
+
+    resetChatterPassword($this->chatter, $token);
+
+    expect($this->chatter->fresh()->remember_token)->toBeString()
+        ->not->toBe('remembered-browser-token')
+        ->toHaveLength(60);
+});
+
 it('refuses a wrong token', function (): void {
     $this->tokens->create($this->chatter);
 
+    $this->chatter->forceFill(['remember_token' => 'remembered-browser-token'])->save();
+
     expect(fn () => resetChatterPassword($this->chatter, 'not-the-token'))->toThrow(DomainValidationException::class)
-        ->and(Hash::check('old-password', $this->chatter->fresh()->password))->toBeTrue();
+        ->and(Hash::check('old-password', $this->chatter->fresh()->password))->toBeTrue()
+        ->and($this->chatter->fresh()->remember_token)->toBe('remembered-browser-token');
 });
 
 it('refuses an expired token', function (): void {

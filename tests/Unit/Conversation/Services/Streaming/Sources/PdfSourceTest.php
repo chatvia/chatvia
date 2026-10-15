@@ -1,16 +1,12 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Conversation\Data\Messages\UserTurnData;
-use Domain\Conversation\Data\Turn\StreamRequestData;
-use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\PdfSource;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
-use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Guardrail\Data\GuardResultData;
@@ -18,7 +14,6 @@ use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
-use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\DocumentLlm;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -27,7 +22,8 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Tests\Support\Conversation\NoToolSelector;
+use Tests\Support\Conversation\TestChatContext;
 
 /**
  * Chat with a PDF sends the PDF itself inside the streamed request, as a
@@ -47,35 +43,6 @@ beforeEach(function (): void {
     app()->instance(Client::class, new Client(['handler' => $stack]));
 });
 
-function pdfSourceContext(): ChatContext
-{
-    $agent = Agent::factory()->create();
-    $llm = Llm::factory()->create();
-
-    $requestData = new StreamRequestData(
-        agent: $agent,
-        message: new StreamRequestMessageData(model: $llm, message: 'Hvad handler den om?'),
-        externalSessionId: (string) Str::uuid(),
-        conversationId: (string) Str::uuid(),
-        requestId: 'req_'.Str::random(12),
-    );
-
-    return new ChatContext(
-        requestData: $requestData,
-        payload: UserTurnData::from([
-            'external_session_id' => $requestData->externalSessionId,
-            'external_conversation_id' => $requestData->conversationId,
-            'external_message_id' => (string) Str::uuid(),
-            'model' => $llm->external_name,
-            'message' => 'Hvad handler den om?',
-            'sent_at' => now(),
-        ]),
-        llmMessages: [['role' => 'user', 'content' => 'Hvad handler den om?']],
-        userMessageId: (string) Str::uuid(),
-        assistantMessageId: (string) Str::uuid(),
-    );
-}
-
 /** The PDF source on Mistral, with the real tool loop and no tools, guards or saving. */
 function pdfSource(): PdfSource
 {
@@ -88,15 +55,7 @@ function pdfSource(): PdfSource
             public function recordCompletedReply(ChatContext $context): void {}
         },
         new RequestDedupeStore,
-        new class extends ToolSelector
-        {
-            public function __construct() {}
-
-            public function selectForTurn(Agent $agent, string $message, ?string $conversationId): array
-            {
-                return [];
-            }
-        },
+        new NoToolSelector,
         app(ToolLoopRunner::class),
         new class extends GuardrailService
         {
@@ -123,7 +82,7 @@ function pdfSource(): PdfSource
  */
 function pdfTurn(Attachment $pdf): array
 {
-    $events = pdfSource()->events(pdfSourceContext(), [['role' => 'user', 'content' => 'Hvad handler den om?']], collect([$pdf]));
+    $events = pdfSource()->events(TestChatContext::make(message: 'Hvad handler den om?'), [['role' => 'user', 'content' => 'Hvad handler den om?']], collect([$pdf]));
 
     return iterator_to_array($events, preserve_keys: false);
 }

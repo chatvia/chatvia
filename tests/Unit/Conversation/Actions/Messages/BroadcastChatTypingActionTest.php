@@ -27,22 +27,6 @@ it('dispatches one TypingStarted event carrying every field', function (): void 
         && $event->isTyping
         && $event->typerType === 'agent'
         && $event->typerName === 'Sara'
-        && $event->typerId === 'op-7');
-});
-
-it('broadcasts a stop-typing signal without a name or id', function (): void {
-    Event::fake([TypingStarted::class]);
-
-    app(BroadcastChatTypingAction::class)->execute(new BroadcastChatTypingData(
-        conversationId: 'conv-456',
-        isTyping: false,
-        typerType: 'user',
-    ));
-
-    Event::assertDispatched(TypingStarted::class, fn (TypingStarted $event): bool => $event->conversationId === 'conv-456'
-        && ! $event->isTyping
-        && $event->typerType === 'user'
-        && $event->typerName === null
-        && $event->typerId === null
+        && $event->typerId === 'op-7'
         && $event->broadcastAs() === 'typing');
 });

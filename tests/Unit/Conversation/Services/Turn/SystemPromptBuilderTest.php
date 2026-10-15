@@ -45,10 +45,9 @@ it('omits the identity block when no chatter is signed in', function (): void {
     expect(systemPromptFor($agent, null))->not->toContain('signed-in user');
 });
 
-// Forms are NOT listed in the system prompt — the agent discovers them at runtime
-// through the Forms MCP server (find-forms → render-form), and the web-only channel
-// gate lives in those tools. That behaviour is covered by FindFormsToolTest, so the
-// former system-prompt forms-block assertions were removed when the listing moved.
+// Forms are not listed in the system prompt: the agent finds them at runtime
+// through the Forms MCP server (find-forms → render-form), and the web-only
+// channel gate lives in those tools (covered by FindFormsToolTest).
 
 it('puts the system prompt first and replaces a trailing visitor message with the enriched one', function (): void {
     $agent = Agent::factory()->create();

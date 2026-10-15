@@ -8,6 +8,7 @@ use Domain\Conversation\Events\HandedOff;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Queries\PendingHandoffsQuery;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
@@ -115,11 +116,43 @@ it('PendingHandoffsQuery returns only pending+visible conversations for the give
         )))->toBeTrue();
 });
 
-it('PendingHandoffsQuery returns an empty Collection when the agent has no pending handoffs', function (): void {
+it('PendingHandoffsQuery lists the most recently updated conversation first', function (): void {
+    $this->freezeSecond();
     $agent = Agent::factory()->create();
-    newHandoffSession($agent, 'ai'); // exists but not pending
+    $session = Session::factory()->create(['agent_id' => $agent->id]);
+    $pending = fn (int $minutesAgo): Conversation => Conversation::factory()->create([
+        'chat_session_id' => $session->id,
+        'source' => ConversationSource::Widget,
+        'handoff_status' => 'pending',
+        'is_visible' => true,
+        'updated_at' => now()->subMinutes($minutesAgo),
+    ]);
+
+    $older = $pending(30);
+    $newest = $pending(1);
+    $middle = $pending(10);
+
+    expect(app(PendingHandoffsQuery::class)->get($agent)->pluck('id')->all())
+        ->toBe([$newest->id, $middle->id, $older->id]);
+});
+
+it('PendingHandoffsQuery lists at most its limit and leaves out the oldest', function (): void {
+    $this->freezeSecond();
+    $agent = Agent::factory()->create();
+    $session = Session::factory()->create(['agent_id' => $agent->id]);
+
+    $conversations = Conversation::factory()
+        ->count(PendingHandoffsQuery::LIMIT + 1)
+        ->sequence(fn (Sequence $sequence): array => ['updated_at' => now()->subMinutes($sequence->index)])
+        ->create([
+            'chat_session_id' => $session->id,
+            'source' => ConversationSource::Widget,
+            'handoff_status' => 'pending',
+            'is_visible' => true,
+        ]);
 
     $rows = app(PendingHandoffsQuery::class)->get($agent);
 
-    expect($rows)->toHaveCount(0);
+    expect($rows)->toHaveCount(PendingHandoffsQuery::LIMIT)
+        ->and($rows->pluck('id'))->not->toContain($conversations->last()->id);
 });

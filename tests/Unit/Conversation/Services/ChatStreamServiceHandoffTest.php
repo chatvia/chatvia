@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Event;
  * own conversation.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Event::fake([MessagePosted::class]);
     Bus::fake();
 });
@@ -44,7 +43,7 @@ function heldConversation(): array
     return [$agent, $session, $conversation];
 }
 
-function streamFor(Agent $agent, string $sessionId, string $conversationId): array
+function heldConversationStream(Agent $agent, string $sessionId, string $conversationId): array
 {
     return iterator_to_array(app(ChatStreamService::class)->stream(new StreamRequestData(
         agent: $agent,
@@ -57,7 +56,7 @@ function streamFor(Agent $agent, string $sessionId, string $conversationId): arr
 it('relays the visitor message to the operator holding the conversation', function (): void {
     [$agent, $session, $conversation] = heldConversation();
 
-    $events = streamFor($agent, $session->external_id, $conversation->external_id);
+    $events = heldConversationStream($agent, $session->external_id, $conversation->external_id);
 
     expect($events[1]->type)->toBe(EventType::Meta)
         ->and($events[1]->data['value']['status'])->toBe('human');
@@ -67,15 +66,15 @@ it('relays the visitor message to the operator holding the conversation', functi
 });
 
 it('does not relay into a conversation of another visitor session', function (): void {
-    // Regression: the stream looked the conversation up by its id alone, so a
-    // visitor who knew another conversation's id could post into it.
+    // The conversation is looked up inside the visitor's own session, so a
+    // visitor who knows another conversation's id cannot post into it.
     [$agent, , $conversation] = heldConversation();
     $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
     // The relay check runs before the per-turn gates, so refusing here stops
     // the unrelayed turn before it calls the model.
     test()->mock(AgentChatRateLimiter::class)->shouldReceive('visitorExceeded')->andReturnFalse()->getMock()->shouldReceive('exceeded')->andReturnTrue();
 
-    streamFor($agent, $otherSession->external_id, $conversation->external_id);
+    heldConversationStream($agent, $otherSession->external_id, $conversation->external_id);
 
     Event::assertNotDispatched(MessagePosted::class);
 });

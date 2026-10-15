@@ -15,7 +15,6 @@ use Illuminate\Support\Str;
  * queue — unless the agent's chat log is switched off.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Bus::fake();
 });
 

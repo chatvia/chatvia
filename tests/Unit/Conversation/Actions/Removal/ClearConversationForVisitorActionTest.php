@@ -6,13 +6,11 @@ use Domain\Conversation\Actions\Removal\ClearConversationForVisitorAction;
 use Domain\Conversation\Actions\Removal\ClearSessionConversationsForVisitorAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Enums\ConversationSource;
-use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Services\WidgetVerification;
-use Illuminate\Support\Str;
 
 /**
  * The widget "clear chats" path is a VIEW RESET, not erasure: it hides the
@@ -21,12 +19,6 @@ use Illuminate\Support\Str;
  * chat log). Contrast AdminDeleteConversationActionTest, which is the erasing
  * owner/admin path that nulls content and soft-deletes.
  */
-beforeEach(function (): void {
-    // ChatCache pins Cache::driver('chat') (redis in config); point it at the
-    // array store for tests — same override the other Memory unit tests use.
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 /**
  * @return array{0: Agent, 1: Session, 2: Conversation, 3: Message}
  */
@@ -45,11 +37,8 @@ function visitorClearSetup(): array
         'is_visible' => true,
     ]);
 
-    $message = Message::create([
-        'external_id' => (string) Str::uuid(),
-        'workspace_id' => $conversation->workspace_id,
+    $message = Message::factory()->fromUser()->create([
         'chat_conversation_id' => $conversation->id,
-        'role' => MessageRole::User,
         'content' => 'What are your opening hours?',
     ]);
 
@@ -72,6 +61,21 @@ it('hides a cleared conversation from the visitor but keeps the customer record 
         ->and($fresh->cleared_at)->not->toBeNull()
         ->and($fresh->deleted_by)->toBe('user')
         ->and($message->fresh()->content)->toBe('What are your opening hours?');
+});
+
+it('does not clear a conversation of another session or agent', function (): void {
+    [$agent, , $conversation] = visitorClearSetup();
+    $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
+    $clear = app(ClearConversationForVisitorAction::class);
+
+    // The conversation id replayed from another visitor's session, and under another agent.
+    $clear->execute(new ChatScopeData($agent, $otherSession->external_id, $conversation->external_id));
+    $clear->execute(new ChatScopeData(Agent::factory()->create(), $conversation->session->external_id, $conversation->external_id));
+
+    $fresh = $conversation->fresh();
+
+    expect($fresh->cleared_at)->toBeNull()
+        ->and($fresh->deleted_by)->toBeNull();
 });
 
 it('drops a cleared conversation from the visitor session rebuild', function (): void {

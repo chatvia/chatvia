@@ -17,10 +17,6 @@ use Illuminate\Support\Str;
  * A rename lands in the live list and in the database, so a rebuild of the
  * list from the database keeps the name.
  */
-beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 function renameScope(): ChatScopeData
 {
     $scope = new ChatScopeData(Agent::factory()->create(), (string) Str::uuid());

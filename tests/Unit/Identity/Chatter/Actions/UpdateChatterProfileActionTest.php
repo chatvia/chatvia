@@ -77,16 +77,19 @@ it('checks the current password against this chatter only, not another account w
     expect(Hash::check('current-pass', $chatter->fresh()->password))->toBeTrue();
 });
 
-it('leaves the chatter untouched when no values are supplied', function (): void {
+it('does not save the chatter when no values are supplied', function (): void {
     $chatter = Chatter::factory()->create(['name' => 'Stable']);
-    $originalUpdatedAt = $chatter->updated_at;
+    $saves = 0;
+    Chatter::saving(function () use (&$saves): void {
+        $saves++;
+    });
 
     app(UpdateChatterProfileAction::class)->execute(new UpdateChatterProfileData(
         user: $chatter,
     ));
 
-    expect($chatter->fresh()->name)->toBe('Stable')
-        ->and($chatter->fresh()->updated_at->equalTo($originalUpdatedAt))->toBeTrue();
+    expect($saves)->toBe(0)
+        ->and($chatter->fresh()->name)->toBe('Stable');
 });
 
 it('stores the uploaded photo under the chatter folder and sets the profile image path', function (): void {

@@ -31,7 +31,7 @@ use Illuminate\Support\Str;
  * commit. Only a chatter session counts against a chatter limit and names a
  * chatter to analytics; a staff preview session (`user_id`) does neither.
  */
-function userTurn(array $overrides = []): UserTurnData
+function storeUserTurn(array $overrides = []): UserTurnData
 {
     return UserTurnData::from(array_merge([
         'external_session_id' => (string) Str::uuid(),
@@ -53,7 +53,7 @@ beforeEach(function (): void {
 
 it('stores a visitor message and announces it to analytics', function (): void {
     $agent = Agent::factory()->create();
-    $turn = userTurn();
+    $turn = storeUserTurn();
 
     $message = app(StoreUserMessageAction::class)->execute($agent, $turn);
 
@@ -74,7 +74,7 @@ it('stores a visitor message and announces it to analytics', function (): void {
 });
 
 it('makes a hidden conversation visible with the full retention window on its first message', function (): void {
-    config(['chatvia.retention.conversations_days' => 90, 'cache.stores.chat' => ['driver' => 'array']]);
+    config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
     $scope = new ChatScopeData($agent, (string) Str::uuid());
     $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget);
@@ -83,7 +83,7 @@ it('makes a hidden conversation visible with the full retention window on its fi
     expect($started->is_visible)->toBeFalse()
         ->and($started->expires_at->isSameDay(now()->addDays(Conversation::HIDDEN_LIFETIME_DAYS)))->toBeTrue();
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'external_session_id' => $scope->sessionId,
         'external_conversation_id' => $conversationId,
     ]));
@@ -94,13 +94,13 @@ it('makes a hidden conversation visible with the full retention window on its fi
 });
 
 it('brings back an empty conversation that expired while the widget stayed open', function (): void {
-    config(['chatvia.retention.conversations_days' => 90, 'cache.stores.chat' => ['driver' => 'array']]);
+    config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
     $scope = new ChatScopeData($agent, (string) Str::uuid());
     $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget);
     Conversation::query()->where('external_id', $conversationId)->sole()->delete();
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'external_session_id' => $scope->sessionId,
         'external_conversation_id' => $conversationId,
     ]));
@@ -111,7 +111,6 @@ it('brings back an empty conversation that expired while the widget stayed open'
 });
 
 it('refuses a message to a conversation someone deleted, without reusing its id', function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     $agent = Agent::factory()->create();
     $scope = new ChatScopeData($agent, (string) Str::uuid());
     $conversationId = app(StartConversationAction::class)->execute($scope, ConversationSource::Widget);
@@ -119,7 +118,7 @@ it('refuses a message to a conversation someone deleted, without reusing its id'
     $conversation->update(['deleted_by' => 'user']);
     $conversation->delete();
 
-    expect(fn () => app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    expect(fn () => app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'external_session_id' => $scope->sessionId,
         'external_conversation_id' => $conversationId,
     ])))->toThrow(ModelNotFoundException::class);
@@ -130,7 +129,7 @@ it('refuses a message to a conversation someone deleted, without reusing its id'
 it('gives a conversation created by its first message the full retention window', function (): void {
     config(['chatvia.retention.conversations_days' => 90]);
     $agent = Agent::factory()->create();
-    $turn = userTurn();
+    $turn = storeUserTurn();
 
     app(StoreUserMessageAction::class)->execute($agent, $turn);
 
@@ -147,9 +146,9 @@ it('backfills the chatter onto a session that was started without one', function
     $chatter = Chatter::factory()->grantedTo($agent)->create();
 
     $sessionExternalId = (string) Str::uuid();
-    Session::create(['external_id' => $sessionExternalId, 'workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
+    Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id]);
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'external_session_id' => $sessionExternalId,
         'chatter_id' => $chatter->id,
     ]));
@@ -167,9 +166,9 @@ it('never puts a chatter on a staff preview session', function (): void {
     $chatter = Chatter::factory()->grantedTo($agent)->create();
 
     $sessionExternalId = (string) Str::uuid();
-    Session::create(['external_id' => $sessionExternalId, 'workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $agent->workspace->owner->id]);
+    Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id, 'user_id' => $agent->workspace->owner->id]);
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'external_session_id' => $sessionExternalId,
         'chatter_id' => $chatter->id,
     ]));
@@ -187,7 +186,7 @@ it('asks for the location with the request-resolved country', function (): void 
 
     $agent = Agent::factory()->create();
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'ip_address' => '203.0.113.10',
         'country' => 'iq',
     ]));
@@ -204,7 +203,7 @@ it('counts a chatter message against their monthly limit', function (): void {
     app(SetMessageLimitAction::class)->execute($chatter, 5);
     app(SetMessageLimitAction::class)->execute($agent->workspace, 5);
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn(['chatter_id' => $chatter->id]));
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn(['chatter_id' => $chatter->id]));
 
     // The chatter's own limit counts it; the workspace's limit counts replies.
     expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(1)
@@ -215,7 +214,7 @@ it('does not count an anonymous visitor message against any limit', function ():
     $agent = Agent::factory()->create();
     app(SetMessageLimitAction::class)->execute($agent->workspace, 5);
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn());
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn());
 
     expect(MessageLimit::query()->where('workspace_id', $agent->workspace_id)->value('messages_used'))->toBe(0);
 });
@@ -223,16 +222,16 @@ it('does not count an anonymous visitor message against any limit', function ():
 it('never counts a staff preview message against a chatter limit with the same id', function (): void {
     // The staff account and a chatter share an integer id, so reading the
     // session's user_id as a chatter id would count against the chatter.
-    $owner = User::factory()->workspace()->create(['id' => 987_654_324]);
+    $owner = User::factory()->workspace()->create(['id' => sharedStaffAndChatterId()]);
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $owner->id]);
     app(SetMessageLimitAction::class)->execute($chatter, 5);
     app(SetMessageLimitAction::class)->execute($owner->workspace(), 5);
 
     $sessionExternalId = (string) Str::uuid();
-    Session::create(['external_id' => $sessionExternalId, 'workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $owner->id]);
+    Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id, 'user_id' => $owner->id]);
 
-    app(StoreUserMessageAction::class)->execute($agent, userTurn(['external_session_id' => $sessionExternalId]));
+    app(StoreUserMessageAction::class)->execute($agent, storeUserTurn(['external_session_id' => $sessionExternalId]));
 
     expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(0)
         ->and(MessageLimit::query()->where('workspace_id', $owner->workspace()->id)->value('messages_used'))->toBe(0);
@@ -241,7 +240,7 @@ it('never counts a staff preview message against a chatter limit with the same i
 it('names the chatter of a chatter session to analytics', function (): void {
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
-    $turn = userTurn(['chatter_id' => $chatter->id]);
+    $turn = storeUserTurn(['chatter_id' => $chatter->id]);
 
     app(StoreUserMessageAction::class)->execute($agent, $turn);
 
@@ -252,13 +251,13 @@ it('names the chatter of a chatter session to analytics', function (): void {
 it('names no chatter to analytics for a staff preview session', function (): void {
     // Same integer id again: the staff viewer must not be reported as the
     // chatter who happens to share it.
-    $owner = User::factory()->workspace()->create(['id' => 987_654_325]);
+    $owner = User::factory()->workspace()->create(['id' => sharedStaffAndChatterId()]);
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
     Chatter::factory()->grantedTo($agent)->create(['id' => $owner->id]);
 
     $sessionExternalId = (string) Str::uuid();
-    Session::create(['external_id' => $sessionExternalId, 'workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $owner->id]);
-    $turn = userTurn(['external_session_id' => $sessionExternalId]);
+    Session::factory()->create(['external_id' => $sessionExternalId, 'agent_id' => $agent->id, 'user_id' => $owner->id]);
+    $turn = storeUserTurn(['external_session_id' => $sessionExternalId]);
 
     app(StoreUserMessageAction::class)->execute($agent, $turn);
 
@@ -268,7 +267,7 @@ it('names no chatter to analytics for a staff preview session', function (): voi
 
 it('ties the files uploaded into the conversation to the message', function (): void {
     $agent = Agent::factory()->create();
-    $turn = userTurn();
+    $turn = storeUserTurn();
 
     // First message creates the session and conversation.
     app(StoreUserMessageAction::class)->execute($agent, $turn);
@@ -282,7 +281,7 @@ it('ties the files uploaded into the conversation to the message', function (): 
         'size_bytes' => 8,
     ]);
 
-    $message = app(StoreUserMessageAction::class)->execute($agent, userTurn([
+    $message = app(StoreUserMessageAction::class)->execute($agent, storeUserTurn([
         'external_session_id' => $turn->external_session_id,
         'external_conversation_id' => $turn->external_conversation_id,
     ]));
@@ -298,10 +297,10 @@ it('writes nothing and queues nothing when one of its writes fails', function ()
 
     // An existing message already owns this external id, so the message
     // insert fails AFTER the session and conversation rows were written.
-    $taken = $action->execute($agent, userTurn());
+    $taken = $action->execute($agent, storeUserTurn());
     Event::fake([MessageSent::class, SessionLocationUnknown::class]);
 
-    $turn = userTurn([
+    $turn = storeUserTurn([
         'external_message_id' => $taken->external_id,
         'ip_address' => '203.0.113.7',
     ]);

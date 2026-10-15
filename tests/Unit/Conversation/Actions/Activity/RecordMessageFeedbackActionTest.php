@@ -16,34 +16,25 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Event::fake([FeedbackGiven::class]);
 });
 
 function feedbackScope(): ChatScopeData
 {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'external_id' => (string) Str::uuid(),
-        'source' => ConversationSource::HostedChat,
-        'title' => 'Feedback chat',
-    ]);
+    $session = ChatSession::factory()->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->withTitle('Feedback chat')->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
 
     return new ChatScopeData($agent, $session->external_id, $conversation->external_id);
 }
 
 function feedbackMessage(ChatScopeData $scope, string $externalId): Message
 {
-    return Message::create([
-        'workspace_id' => $scope->agent->workspace_id,
+    return Message::factory()->fromAssistant()->create([
         'external_id' => $externalId,
         'chat_conversation_id' => Conversation::query()->where('external_id', $scope->conversationId)->value('id'),
-        'role' => MessageRole::Assistant,
         'content' => 'Hello!',
+        'feedback' => null,
     ]);
 }
 
@@ -103,8 +94,8 @@ it('clears a rating with null', function (): void {
 });
 
 it('cannot rate a message of a conversation outside the scope', function (): void {
-    // Regression: the database path looked the message up by its id alone,
-    // so a visitor could rate any message whose id they knew.
+    // The database path must look the message up inside the visitor's own
+    // conversation, never by its id alone.
     $victim = feedbackScope();
     $messageId = (string) Str::uuid();
     feedbackMessage($victim, $messageId);

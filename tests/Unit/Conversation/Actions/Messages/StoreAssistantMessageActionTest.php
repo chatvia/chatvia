@@ -15,12 +15,11 @@ use Domain\Conversation\Models\MessageSource;
 use Domain\Conversation\Services\ChatLog\ChatLogWriter;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Models\Llm;
-use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
-use Psr\Http\Message\ResponseInterface;
+use Tests\Support\CannedLlmProvider;
 use Tests\Support\FakeLlmProviders;
 
 /**
@@ -29,59 +28,6 @@ use Tests\Support\FakeLlmProviders;
  * workspace's token log land in one transaction; analytics and the
  * conversation title follow the commit.
  */
-/**
- * Minimal LlmProviderInterface stub for cost-tracking branches.
- *
- *  - $supportsCost flips supportsCostTracking()
- *  - $usage is the dollar/token shape returned by getGenerationCost()
- *    so individual tests pin precise prompt/completion/cost expectations
- */
-function fakeLlmProvider(bool $supportsCost = false, ?array $usage = null): LlmProviderInterface
-{
-    return new readonly class($supportsCost, $usage) implements LlmProviderInterface
-    {
-        public function __construct(
-            private bool $supportsCost,
-            private ?array $usage,
-        ) {}
-
-        public function stream(string $model, array $messages, array $settings = []): ResponseInterface
-        {
-            throw new RuntimeException('stream() not used in StoreAssistantMessageAction tests');
-        }
-
-        public function client(): PendingRequest
-        {
-            throw new RuntimeException('client() not used in StoreAssistantMessageAction tests');
-        }
-
-        public function completion(array $data): never
-        {
-            throw new RuntimeException('completion() not used in StoreAssistantMessageAction tests');
-        }
-
-        public function headers(): array
-        {
-            return [];
-        }
-
-        public function getGenerationCost(string $generationId): ?array
-        {
-            return $this->usage;
-        }
-
-        public function getCompletionEndpoint(): string
-        {
-            return '';
-        }
-
-        public function supportsCostTracking(): bool
-        {
-            return $this->supportsCost;
-        }
-    };
-}
-
 function storeAssistantAction(LlmProviderInterface $provider): StoreAssistantMessageAction
 {
     return new StoreAssistantMessageAction(new FakeLlmProviders($provider), app(ChatLogWriter::class));
@@ -129,7 +75,7 @@ it('computes microcent cost from total_cost dollars (sub-cent precision boundary
     // 0.00000123 dollars × 100_000_000 microcents/dollar = 123 microcents.
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create(['external_name' => 'gpt-test-cost']);
-    $provider = fakeLlmProvider(supportsCost: true, usage: [
+    $provider = CannedLlmProvider::costing([
         'tokens_prompt' => 42,
         'tokens_completion' => 17,
         'total_cost' => 0.00000123,
@@ -159,7 +105,7 @@ it('rounds microcent cost half-up at the integer boundary', function (): void {
         ['dollars' => 0.00000123456, 'expected' => 123],
         ['dollars' => 0.00000123567, 'expected' => 124],
     ] as $case) {
-        $provider = fakeLlmProvider(supportsCost: true, usage: [
+        $provider = CannedLlmProvider::costing([
             'tokens_prompt' => 1,
             'tokens_completion' => 1,
             'total_cost' => $case['dollars'],
@@ -175,7 +121,7 @@ it('leaves cost and tokens null when the provider does not support cost tracking
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create(['external_name' => 'gpt-no-cost-tracking']);
 
-    $message = storeAssistantAction(fakeLlmProvider(supportsCost: false))
+    $message = storeAssistantAction(new CannedLlmProvider)
         ->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
 
     expect($message->cost_in_micro_cents)->toBeNull()
@@ -188,7 +134,7 @@ it('prefers inline stream usage over the provider cost lookup', function (): voi
     $llm = Llm::factory()->create(['external_name' => 'gpt-inline-usage']);
 
     // The provider WOULD return different numbers if asked.
-    $provider = fakeLlmProvider(supportsCost: true, usage: [
+    $provider = CannedLlmProvider::costing([
         'tokens_prompt' => 999,
         'tokens_completion' => 999,
         'total_cost' => 1.23,
@@ -209,7 +155,7 @@ it('keeps tool artifacts and tool names in the message metadata', function (): v
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
 
-    $message = storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+    $message = storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
         'artifacts' => [['kind' => 'echarts_option', 'data' => ['series' => []]]],
         'tool_calls' => ['mcp__charts__render'],
     ]));
@@ -224,7 +170,7 @@ it('stores the knowledge the answer was given, in its order', function (): void 
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
 
-    $message = storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
+    $message = storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, seedUserTurn($agent), [
         'sources' => [
             new MessageSourceData(rank: 0, chunk_id: null, sourceable_type: 'source_website', sourceable_id: 7, score: 0.91, label: 'Returns', url: 'https://shop.test/returns'),
             new MessageSourceData(rank: 1, chunk_id: null, sourceable_type: 'source_file', sourceable_id: 8, score: 0.42, label: 'manual.pdf', page: 3),
@@ -241,7 +187,7 @@ it('stores no sources for an answer given no knowledge', function (): void {
     $agent = Agent::factory()->create();
     $llm = Llm::factory()->create();
 
-    $message = storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
+    $message = storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, seedUserTurn($agent)));
 
     expect($message->sources)->toBeEmpty();
 });
@@ -254,7 +200,7 @@ it('queues the title at once for a channel, where nobody watches it', function (
     // A Telegram conversation (the channel runner starts it with that source).
     Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null, 'source' => ConversationSource::Telegram]);
 
-    storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, $userTurn));
+    storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, $userTurn));
 
     Bus::assertDispatched(GenerateConversationTitleJob::class, fn (GenerateConversationTitleJob $job): bool => $job->delay === null);
 });
@@ -266,7 +212,7 @@ it('only queues a delayed fallback where the browser asks for the title itself',
 
     Conversation::query()->where('external_id', $userTurn->external_conversation_id)->update(['title' => null, 'source' => $source]);
 
-    storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, $userTurn));
+    storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, $userTurn));
 
     Bus::assertDispatched(GenerateConversationTitleJob::class, fn (GenerateConversationTitleJob $job): bool => $job->delay !== null);
 })->with([
@@ -282,7 +228,7 @@ it('leaves titling to the hosted chat client', function (): void {
     expect(Conversation::query()->firstWhere('external_id', $userTurn->external_conversation_id)->source)
         ->toBe(ConversationSource::HostedChat);
 
-    storeAssistantAction(fakeLlmProvider())->execute($agent, assistantTurn($llm, $userTurn));
+    storeAssistantAction(new CannedLlmProvider)->execute($agent, assistantTurn($llm, $userTurn));
 
     Bus::assertNotDispatched(GenerateConversationTitleJob::class);
 });

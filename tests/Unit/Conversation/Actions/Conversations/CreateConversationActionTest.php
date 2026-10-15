@@ -4,6 +4,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\CreateConversationAction;
 use Domain\Conversation\Data\Conversations\CreateConversationData;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Attachment;
@@ -15,12 +16,11 @@ use Illuminate\Support\Str;
 
 /**
  * CreateConversationAction is the single entry point for materialising a
- * conversation from the hosted-chat surface. The attachment-cap behaviour
- * exercised below is the load-bearing security invariant flagged by the
- * architect review: a script that bypassed the composer could otherwise
- * upload N orphans pre-conversation and smuggle them all in here, defeating
- * MaxConversationAttachments on every subsequent turn AND racking up Mistral
- * OCR costs.
+ * conversation from the hosted-chat surface. The attachment cap matters for
+ * security: a script that bypassed the composer could otherwise upload many
+ * orphans before the conversation exists and claim them all here, defeating
+ * MaxConversationAttachments on every later turn and running up document
+ * reading costs.
  */
 function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
 {
@@ -51,8 +51,6 @@ function cccBuildOrphanAttachment(int $count, ?Agent $agent = null): array
 
 it('caps the number of attachments bound to a new conversation at config(chatvia.agent.files.upload.max_files)', function (): void {
     config(['chatvia.agent.files.upload.max_files' => 3]);
-    // Skip the LLM round-trip in QueryRewriter — irrelevant to the cap.
-    config(['chatvia.ai.query.rewriter.enabled' => false]);
 
     [$agent, , $orphanIds] = cccBuildOrphanAttachment(50);
 
@@ -109,7 +107,6 @@ it('does NOT re-bind attachments that already belong to a different conversation
 });
 
 it('records the first message masked and starts a hosted-chat conversation in the visitor session', function (): void {
-    config(['chatvia.ai.query.rewriter.enabled' => false, 'cache.stores.chat' => ['driver' => 'array']]);
     Bus::fake();
 
     $agent = Agent::factory()->create();
@@ -117,7 +114,7 @@ it('records the first message masked and starts a hosted-chat conversation in th
 
     $conversationId = app(CreateConversationAction::class)->execute(new CreateConversationData(
         scope: new ChatScopeData($agent, $sessionId),
-        message: 'Where is my order?',
+        message: 'Where is my order? Mail me at dana@example.com',
     ));
 
     $conversation = Conversation::query()->firstWhere('external_id', $conversationId);
@@ -128,7 +125,9 @@ it('records the first message masked and starts a hosted-chat conversation in th
     expect($conversation->source)->toBe(ConversationSource::HostedChat)
         ->and($conversation->session->external_id)->toBe($sessionId)
         ->and($history)->toHaveCount(1)
-        ->and($history[0]['content'])->toBe('Where is my order?');
+        ->and($history[0]['content'])->toBe('Where is my order? Mail me at [EMAIL_1]');
 
-    Bus::assertDispatched(StoreMessageJob::class);
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof UserTurnData
+        && $job->payload->message === 'Where is my order? Mail me at [EMAIL_1]'
+        && $job->payload->message_for_llm === 'Where is my order? Mail me at [EMAIL_1]');
 });

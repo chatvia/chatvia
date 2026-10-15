@@ -27,7 +27,14 @@ beforeEach(function (): void {
     Bus::fake();
 });
 
-function scoringFixtures(string $value = 'paris'): array
+/**
+ * A running eval run of a new agent and one active case scored by the given
+ * scorer.
+ *
+ * @param  array<string, mixed>  $config
+ * @return array{0: EvalRun, 1: EvalCase}
+ */
+function scoringFixtures(string $scorerType = 'contains', array $config = ['value' => 'paris']): array
 {
     $agent = Agent::factory()->create();
     $agent->update(['llm_id' => Llm::factory()->create()->id]);
@@ -47,15 +54,15 @@ function scoringFixtures(string $value = 'paris'): array
         'workspace_id' => $agent->workspace_id,
         'name' => 'capital',
         'input' => 'Capital of France?',
-        'scorer_type' => 'contains',
-        'scorer_config' => ['value' => $value],
+        'scorer_type' => $scorerType,
+        'scorer_config' => $config,
         'active' => true,
     ]);
 
     return [$run, $case];
 }
 
-function fakeRunner(AgentRunResultData $data): EvalAgentRunner
+function secaRunner(AgentRunResultData $data): EvalAgentRunner
 {
     $mock = Mockery::mock(EvalAgentRunner::class);
     $mock->shouldReceive('run')->andReturn($data);
@@ -66,7 +73,7 @@ function fakeRunner(AgentRunResultData $data): EvalAgentRunner
 it('records a passing result with the captured run state', function (): void {
     [$run, $case] = scoringFixtures();
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: 'The capital is Paris.',
         sources: ['World Atlas'],
         toolsCalled: ['geo_lookup'],
@@ -88,39 +95,18 @@ it('records a passing result with the captured run state', function (): void {
 });
 
 it('scores a tool_call case from the captured (never executed) tool call', function (): void {
-    $agent = Agent::factory()->create();
-    $agent->update(['llm_id' => Llm::factory()->create()->id]);
+    [$run, $case] = scoringFixtures('tool_call', ['tool' => 'send_email', 'arguments' => '{"to": "support@acme.com"}']);
 
-    $run = EvalRun::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'status' => EvalRunStatus::Running,
-        'total_cases' => 1,
-        'started_at' => now(),
-    ]);
-
-    $case = EvalCase::create([
-        'agent_id' => $agent->id,
-        'agent_name' => $agent->name,
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'emails support',
-        'input' => 'Email the support team.',
-        'scorer_type' => 'tool_call',
-        'scorer_config' => ['tool' => 'send_email', 'arguments' => '{"to": "support@acme.com"}'],
-        'active' => true,
-    ]);
-
-    // The runner captures the intended call (extra "subject" arg is ignored) and
-    // never executes it — the result carries no text answer, only the tool call.
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    // The runner captures the intended call and never executes it: the result
+    // carries no text answer, only the tool call.
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: '',
         sources: [],
         toolsCalled: ['send_email'],
         tokens: 12,
         latencyMs: 30,
         traceId: 'trace-tool',
-        toolCalls: [['name' => 'send_email', 'arguments' => '{"to": "support@acme.com", "subject": "Help"}']],
+        toolCalls: [['name' => 'send_email', 'arguments' => '{"to": "support@acme.com"}']],
     )));
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
@@ -131,9 +117,9 @@ it('scores a tool_call case from the captured (never executed) tool call', funct
 });
 
 it('records a failing result when the scorer rejects the answer', function (): void {
-    [$run, $case] = scoringFixtures('berlin');
+    [$run, $case] = scoringFixtures(config: ['value' => 'berlin']);
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: 'The capital is Paris.',
         sources: [],
         toolsCalled: [],
@@ -150,7 +136,7 @@ it('records a failing result when the scorer rejects the answer', function (): v
 it('records a failing result (not an exception) when the agent run errored', function (): void {
     [$run, $case] = scoringFixtures();
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: '',
         sources: [],
         toolsCalled: [],
@@ -171,7 +157,7 @@ it('counts one message against the workspace limit for a case that produced an a
     [$run, $case] = scoringFixtures();
     app(SetMessageLimitAction::class)->execute($run->agent->workspace, 10);
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: 'The capital is Paris.',
         sources: [],
         toolsCalled: [],
@@ -189,7 +175,7 @@ it('does not count a message when the agent run errored (no answer produced)', f
     [$run, $case] = scoringFixtures();
     app(SetMessageLimitAction::class)->execute($run->agent->workspace, 10);
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: '',
         sources: [],
         toolsCalled: [],
@@ -232,7 +218,7 @@ it('broadcasts the scored case with the run external id and running pass/fail ta
     // (NOT NULL) external_id to the result row written by the action.
     Event::fake([EvalCaseScored::class]);
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: 'The capital is Paris.',
         sources: [],
         toolsCalled: [],
@@ -265,7 +251,7 @@ it('caps a multibyte answer on a character boundary so the result row is stored'
     config(['chatvia.evals.max_output_bytes' => 9]);
     [$run, $case] = scoringFixtures();
 
-    app()->instance(EvalAgentRunner::class, fakeRunner(new AgentRunResultData(
+    app()->instance(EvalAgentRunner::class, secaRunner(new AgentRunResultData(
         answer: $answer,
         sources: [],
         toolsCalled: [],

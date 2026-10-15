@@ -42,42 +42,23 @@ function deleteChatterTestInvitation(Agent $agent, string $email): AgentChatterI
     ]);
 }
 
-it('hard-deletes the chatter row', function (): void {
-    $chatter = Chatter::factory()->create();
-
-    app(DeleteChatterAction::class)->execute($chatter);
-
-    expect(Chatter::whereKey($chatter->id)->exists())->toBeFalse();
-});
-
-it('drops the chatter agent grants', function (): void {
+it('deletes the chatter and its agent grants, and leaves the other chatters of the workspace alone', function (): void {
     $workspace = User::factory()->workspace()->create();
     $agent = createAgent($workspace);
     $chatter = Chatter::factory()->grantedTo($agent)->create();
-
-    app(DeleteChatterAction::class)->execute($chatter);
-
-    expect(DB::table('agent_chatter')->where('chatter_id', $chatter->id)->exists())->toBeFalse()
-        ->and(Agent::whereKey($agent->id)->exists())->toBeTrue();
-});
-
-it('does not affect other chatters belonging to the same workspace', function (): void {
-    $workspace = User::factory()->workspace()->create();
-    $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
-    $sibling = Chatter::factory()->ofWorkspace($workspace)->create();
+    $sibling = Chatter::factory()->grantedTo($agent)->create();
 
     app(DeleteChatterAction::class)->execute($chatter);
 
     expect(Chatter::whereKey($chatter->id)->exists())->toBeFalse()
+        ->and(DB::table('agent_chatter')->where('chatter_id', $chatter->id)->exists())->toBeFalse()
         ->and(Chatter::whereKey($sibling->id)->exists())->toBeTrue()
+        ->and(DB::table('agent_chatter')->where('chatter_id', $sibling->id)->where('agent_id', $agent->id)->exists())->toBeTrue()
+        ->and(Agent::whereKey($agent->id)->exists())->toBeTrue()
         ->and(User::whereKey($workspace->id)->exists())->toBeTrue();
 });
 
 it('flushes the deleted chatter chat memory (session + ownership marker) and leaves siblings intact', function (): void {
-    // The chat cache is Redis in config; array driver exercises the tagged
-    // flush without a live Redis (mirrors the memory unit tests).
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-
     $workspace = User::factory()->workspace()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
     $sibling = Chatter::factory()->ofWorkspace($workspace)->create();
@@ -87,19 +68,13 @@ it('flushes the deleted chatter chat memory (session + ownership marker) and lea
     // The chatter's session + conversation, seeded exactly as the app writes:
     // session-data under [workspace, agent, session]; ownership marker (forever)
     // under [conversation, workspace].
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'Chatter chat',
-    ]);
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->withTitle('Chatter chat')->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
     Cache::driver('chat')->tags(ChatCache::sessionTags($workspace->external_id, $agent->external_id, $session->external_id))->forever($session->external_id, ['conversations' => []]);
     ChatCache::rememberOwner($conversation->external_id, $viewer, $workspace->external_id);
 
     // A sibling's session in the same workspace must survive.
-    $siblingSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $sibling->id]);
+    $siblingSession = ChatSession::factory()->forChatter($sibling)->create(['agent_id' => $agent->id]);
     Cache::driver('chat')->tags(ChatCache::sessionTags($workspace->external_id, $agent->external_id, $siblingSession->external_id))->forever($siblingSession->external_id, ['conversations' => []]);
 
     expect(ChatCache::isOwnedBy($conversation->external_id, $viewer, $workspace->external_id))->toBeTrue();
@@ -114,23 +89,16 @@ it('flushes the deleted chatter chat memory (session + ownership marker) and lea
 });
 
 it('keeps the sessions of a staff account whose id equals the chatter id', function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-
     $workspace = User::factory()->workspace()->create();
-    $staff = User::factory()->employee($workspace)->create();
     // Chatter and staff ids come from different tables and can be equal.
-    $chatter = Chatter::factory()->ofWorkspace($workspace)->create(['id' => $staff->id]);
+    $sharedId = sharedStaffAndChatterId();
+    $staff = User::factory()->employee($workspace)->create(['id' => $sharedId]);
+    $chatter = Chatter::factory()->ofWorkspace($workspace)->create(['id' => $sharedId]);
     $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
 
-    $chatterSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
-    $staffSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $staff->id]);
-    $staffConversation = Conversation::create([
-        'chat_session_id' => $staffSession->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'Staff preview',
-    ]);
+    $chatterSession = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $staffSession = ChatSession::factory()->create(['agent_id' => $agent->id, 'user_id' => $staff->id]);
+    $staffConversation = Conversation::factory()->withTitle('Staff preview')->create(['chat_session_id' => $staffSession->id, 'source' => ConversationSource::HostedChat]);
     $staffViewer = ChatViewerData::staff($staff->id);
     ChatCache::rememberOwner($staffConversation->external_id, $staffViewer, $workspace->external_id);
 
@@ -144,21 +112,12 @@ it('keeps the sessions of a staff account whose id equals the chatter id', funct
 });
 
 it('wipes the deleted chatter conversation attachment files on S3', function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-    Storage::fake(Attachment::DISK);
-
     $workspace = User::factory()->workspace()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
     $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
 
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'With attachment',
-    ]);
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->withTitle('With attachment')->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
 
     $filepath = "users/{$workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
     Storage::disk(Attachment::DISK)->put($filepath, 'data');
@@ -179,8 +138,6 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
 });
 
 it('wipes the deleted chatter profile photo on S3', function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-
     $chatter = Chatter::factory()->create();
     $other = Chatter::factory()->create();
 
@@ -199,32 +156,18 @@ it('wipes the deleted chatter profile photo on S3', function (): void {
 });
 
 it('deletes leads captured from the chatter conversations and leaves other chatters leads intact', function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-
     $workspace = User::factory()->workspace()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
     $sibling = Chatter::factory()->ofWorkspace($workspace)->create();
     $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
 
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'Lead chat',
-    ]);
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->withTitle('Lead chat')->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
     $lead = FormSubmission::factory()->forAgent($agent)->create(['chat_conversation_id' => $conversation->id]);
 
     // A sibling chatter's lead on a different conversation must survive.
-    $siblingSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $sibling->id]);
-    $siblingConversation = Conversation::create([
-        'chat_session_id' => $siblingSession->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'Sibling chat',
-    ]);
+    $siblingSession = ChatSession::factory()->forChatter($sibling)->create(['agent_id' => $agent->id]);
+    $siblingConversation = Conversation::factory()->withTitle('Sibling chat')->create(['chat_session_id' => $siblingSession->id, 'source' => ConversationSource::HostedChat]);
     $siblingLead = FormSubmission::factory()->forAgent($agent)->create(['chat_conversation_id' => $siblingConversation->id]);
 
     app(DeleteChatterAction::class)->execute($chatter);

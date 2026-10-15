@@ -7,6 +7,7 @@ use Domain\Conversation\Services\Tooling\Routing\ApprovalToolFilter;
 use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
+use Illuminate\Support\Str;
 
 /**
  * Only the hosted chat can ask a person to approve a tool call, so every other

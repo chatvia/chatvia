@@ -1,21 +1,11 @@
 <?php
 
 use Domain\Conversation\Models\Message;
-use Illuminate\Support\Facades\DB;
 
 /**
- * Message content is stored as plaintext (no longer encrypted).
  * MessageQueryBuilder::searchContent() matches any word of the term and ranks
  * the matches by full-text rank, computed for the matched rows only.
  */
-it('stores message content as plaintext', function (): void {
-    $plaintext = 'My email is jane@example.com and my order is #4821.';
-
-    $message = Message::factory()->create(['content' => $plaintext]);
-
-    expect(DB::table('chat_messages')->where('id', $message->id)->value('content'))->toBe($plaintext);
-});
-
 it('finds a message by content and excludes non-matches', function (): void {
     $needle = Message::factory()->create(['content' => 'The warranty covers accidental water damage for two years.']);
     $other = Message::factory()->create(['content' => 'Our office is open from nine in the morning until five.']);

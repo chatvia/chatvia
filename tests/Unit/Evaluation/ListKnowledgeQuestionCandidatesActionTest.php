@@ -10,9 +10,6 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
  * The "From knowledge" picker contract: QA pairs are split per-line and deduped
  * case-insensitively, and questions already used as a case input are flagged so
  * the UI can disable them.
- *
- * REQUIRES the migrated + seeded test DB (createAgent reuses the seeded demo
- * user, like the sibling eval action tests).
  */
 it('lists QA-pair questions, deduped, and flags ones already used as a case input', function (): void {
     $agent = createAgent(User::factory()->create());

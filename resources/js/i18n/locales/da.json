@@ -3701,7 +3701,8 @@
             "outcome_approved": "godkendt",
             "outcome_denied": "afvist",
             "outcome_rate_limited": "hastighedsbegrænset",
-            "outcome_not_offered": "ikke tilbudt"
+            "outcome_not_offered": "ikke tilbudt",
+            "detail_spoken_approval": "Mundtlig godkendelse"
         },
         "attach_file": {
             "title": "Vælg fra allerede trænede filer",

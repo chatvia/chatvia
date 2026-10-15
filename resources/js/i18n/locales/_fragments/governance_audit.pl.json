@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "nieoferowane"
+            "outcome_not_offered": "nieoferowane",
+            "detail_spoken_approval": "Zgoda ustna"
         }
     }
 }

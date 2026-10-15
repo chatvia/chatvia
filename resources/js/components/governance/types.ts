@@ -25,6 +25,8 @@ export interface AuditRow {
     arguments: unknown;
     result_text: string | null;
     conversation_external_id: string | null;
+    /** What the visitor said when they approved out loud (a voice call's yes). */
+    decision_note: string | null;
 }
 
 /**

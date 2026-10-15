@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "未提供"
+            "outcome_not_offered": "未提供",
+            "detail_spoken_approval": "口头批准"
         }
     }
 }

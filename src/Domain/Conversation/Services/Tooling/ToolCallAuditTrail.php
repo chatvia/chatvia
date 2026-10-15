@@ -31,6 +31,7 @@ class ToolCallAuditTrail
         ToolDispatchResult $result,
         ?int $latencyMs = null,
         bool $decidedByPerson = false,
+        ?string $decisionNote = null,
     ): void {
         $request = $context->requestData;
         $agent = $request->agent;
@@ -67,6 +68,7 @@ class ToolCallAuditTrail
             gated: $outcome->wasGated(),
             approvalOutcome: $outcome->value,
             decidedAt: $decidedByPerson ? now()->toIso8601String() : null,
+            decisionNote: $decisionNote,
         );
     }
 }

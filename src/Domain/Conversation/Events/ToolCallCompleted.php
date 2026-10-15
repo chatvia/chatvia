@@ -52,5 +52,8 @@ final readonly class ToolCallCompleted
         public string $approvalOutcome,     // a ToolCallOutcome value
         public ?string $decidedAt = null,
         public ?int $chatterId = null,   // set when a gated call was resolved
+        // What the person said when they decided out loud (a voice call's
+        // yes), as stored after the guardrails.
+        public ?string $decisionNote = null,
     ) {}
 }

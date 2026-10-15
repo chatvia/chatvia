@@ -87,6 +87,17 @@ it('records decided_at for a gated approved call', function (): void {
         ->and($row->decided_at)->not->toBeNull();
 });
 
+it('keeps what the person said when they approved out loud, capped', function (): void {
+    $agent = Agent::factory()->create();
+    $base = ['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id, 'approvalOutcome' => 'approved', 'gated' => true];
+
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => 'Yes, send it.']));
+    expect(AgentActivity::query()->latest('id')->first()->toAuditArray()['decision_note'])->toBe('Yes, send it.');
+
+    app(RecordToolCallAuditAction::class)->execute(auditEvent([...$base, 'decisionNote' => str_repeat('y', 5000)]));
+    expect(strlen((string) AgentActivity::query()->latest('id')->first()->decision_note))->toBe(1000);
+});
+
 it('caps an oversized result and flags truncation', function (): void {
     config(['chatvia.governance.max_result_bytes' => 10]);
     $agent = Agent::factory()->create();

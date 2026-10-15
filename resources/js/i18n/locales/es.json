@@ -3701,7 +3701,8 @@
             "outcome_approved": "aprobado",
             "outcome_denied": "denegado",
             "outcome_rate_limited": "límite de tasa alcanzado",
-            "outcome_not_offered": "no ofrecida"
+            "outcome_not_offered": "no ofrecida",
+            "detail_spoken_approval": "Aprobación verbal"
         },
         "attach_file": {
             "title": "Elegir entre archivos ya entrenados",

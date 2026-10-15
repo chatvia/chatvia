@@ -3576,7 +3576,8 @@
             "outcome_approved": "disetujui",
             "outcome_denied": "ditolak",
             "outcome_rate_limited": "dibatasi laju",
-            "outcome_not_offered": "tidak ditawarkan"
+            "outcome_not_offered": "tidak ditawarkan",
+            "detail_spoken_approval": "Persetujuan lisan"
         },
         "attach_file": {
             "title": "Pilih dari File yang Sudah Dilatih",

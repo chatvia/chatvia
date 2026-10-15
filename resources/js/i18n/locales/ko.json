@@ -3576,7 +3576,8 @@
             "outcome_approved": "승인됨",
             "outcome_denied": "거부됨",
             "outcome_rate_limited": "속도 제한됨",
-            "outcome_not_offered": "제공되지 않음"
+            "outcome_not_offered": "제공되지 않음",
+            "detail_spoken_approval": "음성 승인"
         },
         "attach_file": {
             "title": "이미 학습된 파일에서 선택",

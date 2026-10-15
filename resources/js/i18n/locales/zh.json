@@ -3576,7 +3576,8 @@
             "outcome_approved": "已批准",
             "outcome_denied": "已拒绝",
             "outcome_rate_limited": "已限流",
-            "outcome_not_offered": "未提供"
+            "outcome_not_offered": "未提供",
+            "detail_spoken_approval": "口头批准"
         },
         "attach_file": {
             "title": "从已训练的文件中选择",

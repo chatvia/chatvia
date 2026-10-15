@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "ikke tilbudt"
+            "outcome_not_offered": "ikke tilbudt",
+            "detail_spoken_approval": "Mundtlig godkendelse"
         }
     }
 }

@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "पेश नहीं किया गया"
+            "outcome_not_offered": "पेश नहीं किया गया",
+            "detail_spoken_approval": "मौखिक स्वीकृति"
         }
     }
 }

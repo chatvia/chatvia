@@ -3576,7 +3576,8 @@
             "outcome_approved": "đã duyệt",
             "outcome_denied": "bị từ chối",
             "outcome_rate_limited": "bị giới hạn tần suất",
-            "outcome_not_offered": "không được cung cấp"
+            "outcome_not_offered": "không được cung cấp",
+            "detail_spoken_approval": "Phê duyệt bằng lời nói"
         },
         "attach_file": {
             "title": "Chọn từ các tệp đã được huấn luyện",

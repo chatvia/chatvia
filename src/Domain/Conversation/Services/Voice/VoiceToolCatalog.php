@@ -9,7 +9,6 @@ use Domain\Conversation\Services\Tooling\Routing\SurfaceToolFilter;
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Data\ToolName;
 use Domain\Integration\Tool\Registry\ToolRegistry;
@@ -18,9 +17,10 @@ use Illuminate\Support\Str;
 /**
  * The tools a voice call offers: knowledge search first (a call has no
  * reference material pasted into the question, so the model looks things up
- * itself), then the agent's own tools that may run without a person's
- * approval — there is nothing to click in a call. Tools whose result has to
- * be seen (charts, forms: connectors marked `voice: false`) and tools the
+ * itself), then the agent's own tools. A tool that needs a person's approval
+ * is offered too: there is nothing to click in a call, so the visitor says
+ * yes out loud ({@see VoiceToolApprovals}). Tools whose result has to be
+ * seen (charts, forms: connectors marked `voice: false`) and tools the
  * surface does not allow are left out.
  *
  * A call's tools are fixed when it starts (there is no per-message routing),
@@ -34,7 +34,6 @@ final readonly class VoiceToolCatalog
     public function __construct(
         private ToolRegistry $registry,
         private SurfaceToolFilter $surfaceFilter,
-        private ToolApprovalPolicy $approvals,
         private ConnectorCatalog $catalog,
     ) {}
 
@@ -62,8 +61,7 @@ final readonly class VoiceToolCatalog
             if ($entry->name === self::KNOWLEDGE_TOOL
                 || isset($tools[$entry->name])
                 || ! $entry->toolName()->isValidForLlm()
-                || ($screenOnly !== [] && Str::startsWith($entry->name, $screenOnly))
-                || $this->approvals->requiresApproval($agent, $entry->toolName())) {
+                || ($screenOnly !== [] && Str::startsWith($entry->name, $screenOnly))) {
                 continue;
             }
 

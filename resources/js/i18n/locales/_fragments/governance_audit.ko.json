@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "제공되지 않음"
+            "outcome_not_offered": "제공되지 않음",
+            "detail_spoken_approval": "음성 승인"
         }
     }
 }

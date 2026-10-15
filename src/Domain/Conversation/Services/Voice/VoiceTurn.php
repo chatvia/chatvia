@@ -17,7 +17,10 @@ use Domain\Conversation\Services\ChatContext;
  */
 final class VoiceTurn
 {
-    /** What the visitor said, once it is written down. */
+    /**
+     * What the visitor said, once it is written down and masked by the
+     * guardrails; blank when it could not be written down.
+     */
     public ?string $words = null;
 
     /** The visitor's words were stored (or the turn was refused). */
@@ -31,6 +34,17 @@ final class VoiceTurn
 
     /** How many times the agent called tools and went on in this turn. */
     public int $toolRounds = 0;
+
+    /**
+     * Tool calls that confirm a held action, waiting for the visitor's
+     * words: a yes counts only once it is written down.
+     *
+     * @var list<array{call_id: string, name: string, arguments: string}>
+     */
+    public array $parkedCalls = [];
+
+    /** When the calls were parked, else null. */
+    public ?float $parkedAt = null;
 
     /** When the reply was ready to save (waiting for the visitor's words), else null. */
     public ?float $replyReadyAt = null;

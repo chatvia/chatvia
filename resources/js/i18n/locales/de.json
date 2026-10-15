@@ -3701,7 +3701,8 @@
             "outcome_approved": "genehmigt",
             "outcome_denied": "abgelehnt",
             "outcome_rate_limited": "ratenlimitiert",
-            "outcome_not_offered": "nicht angeboten"
+            "outcome_not_offered": "nicht angeboten",
+            "detail_spoken_approval": "Mündliche Zustimmung"
         },
         "attach_file": {
             "title": "Aus bereits trainierten Dateien auswählen",

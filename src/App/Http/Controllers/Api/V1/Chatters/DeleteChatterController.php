@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Api\V1\Chatters;
 
 use App\Identity\Chatter\Actions\DeleteChatterAction;
-use App\Identity\Workspace\Models\User;
+use App\Identity\Chatter\Models\Chatter;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
@@ -13,6 +12,7 @@ use Illuminate\Http\Response;
  * every artefact tied to it — agent grants, chat sessions, conversations and
  * uploaded attachments. To remove access to specific agents WITHOUT deleting
  * the chatter, use `DELETE /api/v1/chatters/{chatter}/agents` instead.
+ * `workspace.scope` turns another workspace's chatter into a 404.
  */
 #[Group('Chatters', weight: 90)]
 class DeleteChatterController
@@ -24,16 +24,9 @@ class DeleteChatterController
      * `POST /api/v1/chatters`) and everything tied to them. This cannot be
      * undone.
      */
-    public function __invoke(Request $request, string $chatter, DeleteChatterAction $action): Response
+    public function __invoke(Chatter $chatter, DeleteChatterAction $action): Response
     {
-        /** @var User $account */
-        $account = $request->user();
-
-        // Scope to the caller's workspace — only your own chatters resolve, so a
-        // foreign or unknown id 404s rather than touching another account.
-        $target = $account->workspace()->chatters()->where('external_id', $chatter)->firstOrFail();
-
-        $action->execute($target);
+        $action->execute($chatter);
 
         return response()->noContent();
     }

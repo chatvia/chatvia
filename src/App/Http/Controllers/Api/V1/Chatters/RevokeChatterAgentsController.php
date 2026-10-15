@@ -2,23 +2,20 @@
 
 namespace App\Http\Controllers\Api\V1\Chatters;
 
-use App\Http\Controllers\Api\V1\Chatters\Concerns\ResolvesWorkspaceAgents;
-use App\Identity\Workspace\Data\Account\RevokeChatterAgentsData;
-use App\Identity\Workspace\Models\User;
+use App\Http\Requests\Api\V1\Chatter\RevokeApiChatterAgentsRequest;
+use App\Identity\Chatter\Models\Chatter;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
  * Revoke a chatter's access to one or more of your agents by removing their
  * `agent_chatter` grants. The chatter account itself is untouched — to delete the
  * chatter entirely use `DELETE /api/v1/chatters/{chatter}`.
+ * `workspace.scope` turns another workspace's chatter into a 404.
  */
 #[Group('Chatters', weight: 90)]
 class RevokeChatterAgentsController
 {
-    use ResolvesWorkspaceAgents;
-
     /**
      * Revoke chatter agent access
      *
@@ -26,21 +23,10 @@ class RevokeChatterAgentsController
      * chatter keeps access to any agent not listed. Revoking is idempotent — an
      * agent the chatter wasn't granted is simply ignored.
      */
-    public function __invoke(Request $request, string $chatter, RevokeChatterAgentsData $payload): Response
+    public function __invoke(RevokeApiChatterAgentsRequest $request, Chatter $chatter): Response
     {
-        /** @var User $account */
-        $account = $request->user();
-        $workspace = $account->workspace();
-
-        // Scope to the caller's workspace — an unknown or foreign chatter 404s.
-        $target = $workspace->chatters()->where('external_id', $chatter)->firstOrFail();
-
-        // The same ownership guard as creating a chatter: a foreign or unknown
-        // agent id fails loudly instead of silently doing nothing.
-        $agents = $this->workspaceAgentsOrFail($workspace, $payload->agent_ids);
-
         // A single pivot detach — no Action needed.
-        $target->agents()->detach($agents->modelKeys());
+        $chatter->agents()->detach($request->agents()->modelKeys());
 
         return response()->noContent();
     }

@@ -104,7 +104,6 @@
     "That doesn’t look like a Slack signing secret (find it under Basic Information in your Slack app).": "Dette ser ikke ut som en Slack-signing secret (finn den under Basic Information i Slack-appen din).",
     "That doesn’t look like a Telegram bot token — it should look like 123456789:ABCdef… (get one from @BotFather).": "Dette ser ikke ut som et Telegram-bot-token — det skal se ut som 123456789:ABCdef… (hent et hos @BotFather).",
     "That doesn’t look like a tenant ID — it’s the Directory (tenant) ID GUID in your app registration. Leave it empty for a multi-tenant bot.": "Dette ser ikke ut som en tenant ID — det er GUID-en Directory (tenant) ID i app-registreringen din. La feltet stå tomt for en bot med flere leietakere.",
-    "Unknown agent(s): :ids.": "Ukjente agenter: :ids.",
     ":provider connected.": ":provider er koblet til.",
     ":provider disconnected.": ":provider er koblet fra.",
     "No account found!": "Fant ingen konto!",

@@ -271,6 +271,14 @@ class AgentMcpServer extends Model implements AttachableToAgents
     }
 
     /**
+     * Whether the workspace added this server by URL (see {@see self::custom()}).
+     */
+    public function isCustom(): bool
+    {
+        return $this->connector_slug === null;
+    }
+
+    /**
      * A slug-safe form of a name: lowercase letters, digits and underscores,
      * at most 40 characters (the column width).
      */

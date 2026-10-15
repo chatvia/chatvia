@@ -67,14 +67,14 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
             // your agents' chat. The link carries an opaque token consumed on first use.
             Route::post('chatters/sign', [ChatterSignInLinkController::class, 'store'])->name('chatters.sign');
             // Delete a chatter entirely — account, agent grants and chat history.
-            Route::delete('chatters/{chatter}', DeleteChatterController::class)->name('chatters.destroy');
+            Route::delete('chatters/{chatter:external_id}', DeleteChatterController::class)->name('chatters.destroy');
             // Revoke a chatter's access to specific agents (the chatter account is kept).
-            Route::delete('chatters/{chatter}/agents', RevokeChatterAgentsController::class)->name('chatters.agents.revoke');
+            Route::delete('chatters/{chatter:external_id}/agents', RevokeChatterAgentsController::class)->name('chatters.agents.revoke');
         });
 
         // Teams are owner-only (the dashboard blocks teammates from team
         // management via DenyIfTeammate). `update` and the role endpoints
-        // additionally re-check ownership through TeamPolicy in their controllers.
+        // additionally re-check ownership through TeamPolicy in their Form Requests.
         Route::middleware('api.owner')->group(function (): void {
             Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
             Route::post('teams', [TeamController::class, 'store'])->name('teams.store');

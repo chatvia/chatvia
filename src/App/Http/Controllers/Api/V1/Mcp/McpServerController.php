@@ -8,7 +8,6 @@ use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Support\Pagination\CursorPage;
 
 /**
@@ -16,6 +15,9 @@ use Support\Pagination\CursorPage;
  * here you can list, inspect, and delete them, and attach them to agents via
  * `POST /api/v1/agents/{id}/mcps`. Built-in catalog connectors are never
  * exposed here — only your custom entries. Auth secrets are never returned.
+ *
+ * `workspace.scope` turns another workspace's server into a 404; a catalog
+ * connector (the workspace's own or a built-in one) is a 404 here as well.
  */
 #[Group(name: 'Connectors', weight: 50)]
 class McpServerController
@@ -47,9 +49,11 @@ class McpServerController
      *
      * @return array{data: McpServerData}
      */
-    public function show(Request $request, string $mcp): array
+    public function show(AgentMcpServer $mcp): array
     {
-        return ['data' => McpServerData::fromModel($this->findCustom($request, $mcp))];
+        abort_unless($mcp->isCustom(), 404);
+
+        return ['data' => McpServerData::fromModel($mcp)];
     }
 
     /**
@@ -57,24 +61,12 @@ class McpServerController
      *
      * Also removes it from every agent it's attached to.
      */
-    public function destroy(Request $request, string $mcp): JsonResponse
+    public function destroy(AgentMcpServer $mcp): JsonResponse
     {
-        $this->findCustom($request, $mcp)->delete();
+        abort_unless($mcp->isCustom(), 404);
+
+        $mcp->delete();
 
         return response()->json(null, 204);
-    }
-
-    private function findCustom(Request $request, string $externalId): AgentMcpServer
-    {
-        /** @var User $user */
-        $user = $request->user();
-
-        /** @var AgentMcpServer $server */
-        $server = $user->workspace()->mcpServers()
-            ->custom()
-            ->where('external_id', $externalId)
-            ->firstOrFail();
-
-        return $server;
     }
 }

@@ -179,7 +179,22 @@ describe('POST /api/v1/chatters', function (): void {
                 'password' => 'super-secret-pw',
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['agent_ids']);
+            ->assertJsonValidationErrors(['agent_ids.0']);
+    });
+
+    it('rejects a deleted agent', function (): void {
+        $deleted = createAgent($this->user);
+        $deleted->delete();
+
+        $this->withHeaders(apiHeaders($this->token))
+            ->postJson('/api/v1/chatters', [
+                'name' => 'Jane',
+                'agent_ids' => [$deleted->external_id],
+                'email' => 'jane@example.test',
+                'password' => 'super-secret-pw',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['agent_ids.0']);
     });
 
     it('rejects the whole request when any agent is foreign and creates no chatter', function (): void {
@@ -194,7 +209,8 @@ describe('POST /api/v1/chatters', function (): void {
                 'password' => 'super-secret-pw',
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['agent_ids']);
+            ->assertJsonValidationErrors(['agent_ids.1'])
+            ->assertJsonMissingValidationErrors(['agent_ids.0']);
 
         expect(Chatter::where('email', 'jane@example.test')->where('workspace_id', $this->user->workspace()->id)->exists())->toBeFalse();
     });
@@ -262,7 +278,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
                 'agent_ids' => [$foreignAgent->external_id],
             ])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['agent_ids']);
+            ->assertJsonValidationErrors(['agent_ids.0']);
 
         expect($chatter->agents()->whereKey($this->agent->id)->exists())->toBeTrue();
     });

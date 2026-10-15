@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 
 /**
  * Read and delete chat conversations attached to an agent.
+ * `can.access.agent` turns a conversation of another agent into a 404.
  */
 #[Group(name: 'Conversations', weight: 80)]
 class ConversationController
@@ -48,8 +49,6 @@ class ConversationController
      */
     public function show(Agent $agent, Conversation $conversation): array
     {
-        abort_unless($conversation->belongsToAgent($agent), 404);
-
         return ['data' => ConversationDetailData::fromModel($conversation)];
     }
 
@@ -58,8 +57,6 @@ class ConversationController
      */
     public function destroy(Request $request, Agent $agent, Conversation $conversation, AdminDeleteConversationAction $deleteConversation): JsonResponse
     {
-        abort_unless($conversation->belongsToAgent($agent), 404);
-
         $deleteConversation->execute($agent, $conversation, $request->user());
 
         return response()->json(null, 204);

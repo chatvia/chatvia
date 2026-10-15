@@ -2,14 +2,15 @@
 
 namespace App\Http\Requests\Api\V1\Agent;
 
+use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Data\AttachAgentFunctionData;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Public API: validates attaching one of the workspace's functions to an agent
- * by the function's id. The `agent.sources.train.functions` permission is
- * checked by the route middleware.
+ * Attach one of your workspace's functions to an agent, named by the
+ * function's `id`. An id that is not one of your functions fails validation.
  */
 class AttachAgentFunctionRequest extends FormRequest
 {
@@ -19,20 +20,25 @@ class AttachAgentFunctionRequest extends FormRequest
     }
 
     /**
+     * `bail` stops at a malformed id, so it never reaches the uuid column.
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'function_id' => ['required', 'string', 'uuid'],
+            // ID of the function to attach.
+            'function_id' => ['bail', 'required', 'string', 'uuid', WorkspaceRule::exists('functions', $this->user()->workspace(), 'external_id')],
         ];
     }
 
     public function toData(Agent $agent): AttachAgentFunctionData
     {
-        return new AttachAgentFunctionData(
-            agent: $agent,
-            function_id: $this->string('function_id')->toString(),
-        );
+        /** @var AgentFunction $function */
+        $function = $this->user()->workspace()->functions()
+            ->where('external_id', $this->string('function_id')->toString())
+            ->firstOrFail();
+
+        return new AttachAgentFunctionData(agent: $agent, function: $function);
     }
 }

@@ -3,16 +3,14 @@
 namespace App\Http\Controllers\Api\V1\Team;
 
 use App\Http\Requests\Api\V1\CursorPageRequest;
+use App\Http\Requests\Api\V1\Team\StoreApiTeamRequest;
+use App\Http\Requests\Api\V1\Team\UpdateApiTeamRequest;
 use App\Http\Resources\Api\V1\Team\TeamData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Actions\Team\UpdateTeamAction;
-use Domain\Membership\Team\Data\CreateTeamData;
-use Domain\Membership\Team\Data\TeamPayloadData;
-use Domain\Membership\Team\Data\UpdateTeamData;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Support\Pagination\CursorPage;
 
 /**
@@ -50,13 +48,9 @@ class TeamController
     /**
      * Create team
      */
-    public function store(Request $request, TeamPayloadData $payload, CreateTeamAction $action): JsonResponse
+    public function store(StoreApiTeamRequest $request, CreateTeamAction $action): JsonResponse
     {
-        $workspace = $request->user()->workspace();
-
-        return response()->json(['data' => TeamData::fromModel($action->execute(
-            new CreateTeamData(workspace: $workspace, name: $payload->name),
-        ))], 201);
+        return response()->json(['data' => TeamData::fromModel($action->execute($request->toData()))], 201);
     }
 
     /**
@@ -64,13 +58,8 @@ class TeamController
      *
      * @return array{data: TeamData}
      */
-    public function update(Request $request, Team $team, TeamPayloadData $payload, UpdateTeamAction $action): array
+    public function update(UpdateApiTeamRequest $request, Team $team, UpdateTeamAction $action): array
     {
-        // Same gate as the web side (UpdateTeamRequest): TeamPolicy::update.
-        abort_unless($request->user()->can('update', $team), 403);
-
-        return ['data' => TeamData::fromModel($action->execute(
-            new UpdateTeamData(team: $team, name: $payload->name),
-        ))];
+        return ['data' => TeamData::fromModel($action->execute($request->toData($team)))];
     }
 }

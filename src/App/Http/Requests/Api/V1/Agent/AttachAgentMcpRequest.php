@@ -2,14 +2,15 @@
 
 namespace App\Http\Requests\Api\V1\Agent;
 
+use App\Http\Rules\WorkspaceRule;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Data\Agent\AttachAgentMcpData;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Public API: validates attaching one of the workspace's MCP servers to an
- * agent by the server's id. The `agent.sources.train.connectors` permission is
- * checked by the route middleware.
+ * Attach one of your workspace's MCP servers to an agent, named by the
+ * server's `id`. An id that is not one of your servers fails validation.
  */
 class AttachAgentMcpRequest extends FormRequest
 {
@@ -19,20 +20,25 @@ class AttachAgentMcpRequest extends FormRequest
     }
 
     /**
+     * `bail` stops at a malformed id, so it never reaches the uuid column.
+     *
      * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'mcp_id' => ['required', 'string', 'uuid'],
+            // ID of the MCP server to attach.
+            'mcp_id' => ['bail', 'required', 'string', 'uuid', WorkspaceRule::exists('mcp_servers', $this->user()->workspace(), 'external_id')],
         ];
     }
 
     public function toData(Agent $agent): AttachAgentMcpData
     {
-        return new AttachAgentMcpData(
-            agent: $agent,
-            mcp_id: $this->string('mcp_id')->toString(),
-        );
+        /** @var AgentMcpServer $server */
+        $server = $this->user()->workspace()->mcpServers()
+            ->where('external_id', $this->string('mcp_id')->toString())
+            ->firstOrFail();
+
+        return new AttachAgentMcpData(agent: $agent, server: $server);
     }
 }

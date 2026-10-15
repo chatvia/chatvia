@@ -12,7 +12,8 @@ use Illuminate\Http\JsonResponse;
 use Support\Pagination\CursorPage;
 
 /**
- * Attach / detach MCP servers to a specific agent.
+ * Attach / detach MCP servers to a specific agent. `can.access.agent` turns a
+ * server of another workspace into a 404.
  */
 #[Group(name: 'Connectors', weight: 50)]
 class AgentMcpAttachmentController
@@ -42,28 +43,19 @@ class AgentMcpAttachmentController
     public function store(AttachAgentMcpRequest $request, Agent $agent): JsonResponse
     {
         $data = $request->toData($agent);
-        $server = $this->resolveServer($data->agent, $data->mcp_id);
 
-        $data->agent->attachConnector($server);
+        $data->agent->attachConnector($data->server);
 
-        return response()->json(['data' => McpServerData::fromModel($server->fresh())], 201);
+        return response()->json(['data' => McpServerData::fromModel($data->server)], 201);
     }
 
     /**
      * Detach connector from agent
      */
-    public function destroy(Agent $agent, string $mcp): JsonResponse
+    public function destroy(Agent $agent, AgentMcpServer $mcp): JsonResponse
     {
-        $agent->detachConnector($this->resolveServer($agent, $mcp));
+        $agent->detachConnector($mcp);
 
         return response()->json(null, 204);
-    }
-
-    private function resolveServer(Agent $agent, string $externalId): AgentMcpServer
-    {
-        return AgentMcpServer::query()
-            ->where('workspace_id', $agent->workspace_id)
-            ->where('external_id', $externalId)
-            ->firstOrFail();
     }
 }

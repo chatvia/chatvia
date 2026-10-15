@@ -19,7 +19,6 @@ use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\Support\FakeEmbeddingsProvider;
 
@@ -53,10 +52,6 @@ use Tests\Support\FakeEmbeddingsProvider;
  * the scoreboard. The number it prints is the thing you're trying to move.
  */
 beforeEach(function (): void {
-    if (! Schema::hasTable('connector_tools') || ! Schema::hasColumn('connector_tools', 'scope')) {
-        $this->markTestSkipped('schema out of date — run migrate:fresh on the testing DB.');
-    }
-
     // API keys live in the admin panel, not in .env, so the key passed on the
     // command line (SCALEWAYAI_API_KEY=… pest --testsuite=Eval) is put into
     // config here.

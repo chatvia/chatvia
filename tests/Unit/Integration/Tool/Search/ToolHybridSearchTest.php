@@ -13,7 +13,6 @@ use Domain\Integration\Tool\Enums\ToolSearchPool;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Pgvector\Laravel\Vector;
 
@@ -24,12 +23,6 @@ use Pgvector\Laravel\Vector;
  * tool surfaces iff one of the agent's attached servers advertises it with an
  * unblocked membership.
  */
-pest()->beforeEach(function (): void {
-    if (! Schema::hasTable('connector_tools') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog')) {
-        $this->markTestSkipped('schema out of date — run migrate:fresh on the testing DB.');
-    }
-});
-
 function hybridSearch(Agent $agent): array
 {
     $zeroVector = array_fill(0, 1024, 0.0);

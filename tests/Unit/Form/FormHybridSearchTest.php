@@ -4,7 +4,6 @@ use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Services\FormHybridSearch;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Exercises the real two-channel RRF query (vchordrq + BM25) against Postgres,
@@ -12,12 +11,6 @@ use Illuminate\Support\Facades\Schema;
  * inline by the observer (sync queue + FakeEmbeddingsProvider) on create, so the
  * dense + sparse columns are populated without touching the network.
  */
-pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-});
-
 function makeForm(Agent $agent, string $name, string $slug, ?string $description = null): FormDefinition
 {
     return FormDefinition::factory()->forAgent($agent)->create([

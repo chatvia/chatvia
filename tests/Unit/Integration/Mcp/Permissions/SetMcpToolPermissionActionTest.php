@@ -9,7 +9,6 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Integration\Mcp\Models\McpTool;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * SetMcpToolPermissionAction writes to the tool-approval surface that gates
@@ -119,7 +118,7 @@ it('flips the membership permission for a preset connector tool', function (): v
         ->and($result->permission)->toBe(McpToolPermission::Blocked)
         ->and(McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $catalogTool->id)->first()->permission)
         ->toBe(McpToolPermission::Blocked);
-})->skip(fn (): bool => ! Schema::hasTable('mcp_server_tool') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog'), 'schema out of date — run migrate:fresh.');
+});
 
 it('throws for a connector tool the preset server does not advertise (no membership)', function (): void {
     [$server] = smtPresetServerWithTool();
@@ -127,4 +126,4 @@ it('throws for a connector tool the preset server does not advertise (no members
 
     expect(fn () => app(SetMcpToolPermissionAction::class)->execute($server, new McpToolPermissionData($foreignCatalogTool->id, McpToolPermission::Blocked)))
         ->toThrow(McpToolNotFoundException::class);
-})->skip(fn (): bool => ! Schema::hasTable('mcp_server_tool') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog'), 'schema out of date — run migrate:fresh.');
+});

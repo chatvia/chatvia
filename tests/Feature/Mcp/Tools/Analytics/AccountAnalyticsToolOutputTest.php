@@ -34,7 +34,6 @@ use Domain\Form\Models\FormSubmission;
 use Illuminate\Database\Connection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Laravel\Mcp\Server\Testing\TestResponse;
@@ -45,12 +44,6 @@ use Laravel\Mcp\Server\Testing\TestResponse;
  * result over one fixed, fully seeded workspace (two agents, a billing cycle, a
  * second workspace as noise), so moving the queries can't change a number.
  */
-pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-});
-
 /** @return array{workspace: Workspace, alpha: Agent, beta: Agent} */
 function seedAnalyticsWorkspace(): array
 {

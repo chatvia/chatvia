@@ -9,7 +9,6 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
 use Domain\Integration\Mcp\Models\McpTool;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * SetMcpToolsScopePermissionAction is the "apply to the whole section" bulk
@@ -113,4 +112,4 @@ it('flips the memberships for a preset connector scope', function (): void {
         ->toBe(McpToolPermission::Approval)
         ->and(McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $write->id)->first()->permission)
         ->toBe(McpToolPermission::Allow);
-})->skip(fn (): bool => ! Schema::hasTable('mcp_server_tool') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog'), 'schema out of date — run migrate:fresh.');
+});

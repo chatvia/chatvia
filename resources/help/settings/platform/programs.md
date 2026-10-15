@@ -1,9 +1,10 @@
 The app runs some programs on this server to read uploaded files and to make PDFs. You only need the programs for the file types you use.
 
-- **pdfinfo** and **pdftotext** (poppler) — PDF files.
-- **pandoc** — Word (.docx), ODT, RTF, EPUB and FB2 files.
-- **catdoc** and **catppt** — Old Word (.doc) and PowerPoint (.ppt) files.
-- **ffmpeg** and **ffprobe** — Audio and video files.
+- **pdfinfo** (poppler) — PDF files: it counts their pages and finds locked ones. Needed for PDF files, with any document reader.
+- **pdftotext** (poppler) — Only a backup. The document reader (Mistral OCR or Azure, in Settings → AI models) reads PDF files. pdftotext reads a PDF only if it is trained again after the reader is turned off.
+- **pandoc** — EPUB, FB2 and RTF files. No document reader reads them. It also counts the pages of Word (.docx) files.
+- **catdoc** and **catppt** — Old Word (.doc) and PowerPoint (.ppt) files. Mistral OCR and Azure do not read them, so you need these programs for them.
+- **ffmpeg** and **ffprobe** — Audio and video files, and voice notes in the hosted chat. Needed only when speech to text is on.
 - **weasyprint** — Chat exports as PDF, and summaries of office files.
 
 Leave a field empty to find the program by its name in the PATH (the list of folders where the server looks for programs). If a program is not found, click **Detect**: it runs `which` on the server, also in the usual folders (such as /opt/homebrew/bin), and puts the full path it finds in the field. Then save. You can also type the full path yourself, such as /opt/homebrew/bin/pdfinfo.

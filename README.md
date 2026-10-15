@@ -128,11 +128,14 @@ explains how to work on it.
 - **Redis** 7 or newer
 - **System tools** for some file types. You only need the ones for the
   features you use:
-  - [pandoc](https://pandoc.org/): Word (`.docx`), ODT, RTF, EPUB and FB2 files
+  - [pandoc](https://pandoc.org/): EPUB, FB2 and RTF files, and the page count of Word (`.docx`) files
   - [catdoc](https://www.wagner.pp.ru/~vitus/software/catdoc/) (`catdoc`, `catppt`): old Word (`.doc`)
-    and PowerPoint (`.ppt`) files. PowerPoint (`.pptx`) and Excel (`.xlsx`) files need no extra program.
-  - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files
-  - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): audio and video
+    and PowerPoint (`.ppt`) files. The document readers (Mistral OCR, Azure) do not read them.
+    PowerPoint (`.pptx`) and Excel (`.xlsx`) files need no extra program.
+  - [poppler](https://poppler.freedesktop.org/) (`pdfinfo`, `pdftotext`): PDF files. `pdfinfo`
+    counts their pages. `pdftotext` is only a backup: the document reader reads PDF files.
+  - [ffmpeg](https://ffmpeg.org/) (`ffmpeg`, `ffprobe`): audio, video and hosted-chat voice notes,
+    when speech to text is on
   - [WeasyPrint](https://weasyprint.org/) (`weasyprint`): exporting a chat as PDF, and summaries
     of office files
 

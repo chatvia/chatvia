@@ -69,6 +69,7 @@ class Chunker
         return new ChunkEnhancementData(
             summary: (string) ($data['summary'] ?? ''),
             questions: array_values(array_filter((array) ($data['questions'] ?? []), is_string(...))),
+            model: $model->external_name,
             cost: $this->costCalculator->costInCentsFromUsage(
                 usage: $usage,
                 // The model's catalog prices when the admin set them.

@@ -19,6 +19,6 @@ interface TextSplitter
      */
     public function split(string $text, ContentKind $kind): array;
 
-    /** Short name saved with the source and its chunks. */
+    /** Short name saved with the source it splits. */
     public function name(): string;
 }

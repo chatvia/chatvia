@@ -11,9 +11,8 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Spatie\LaravelData\Data;
 
 /**
- * Pages of one source to store as chunks: how they are enhanced, the storage
- * folder for the images of document pages, and the splitter that cut them
- * (null when the caller does not record one).
+ * Pages of one source to store as chunks: how they are enhanced and the
+ * storage folder for the images of document pages.
  */
 final class ChunkPagesData extends Data
 {
@@ -22,6 +21,5 @@ final class ChunkPagesData extends Data
         public PageGroupData $group,
         public ChunkEnhancement $enhancement,
         public ?string $imageDirectory = null,
-        public ?string $chunkedUsingModel = null,
     ) {}
 }

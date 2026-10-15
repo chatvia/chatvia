@@ -91,7 +91,6 @@ class TrainWebsiteUrlAction
             source: $website,
             group: new PageGroupData($pages),
             enhancement: ChunkEnhancement::for($website),
-            chunkedUsingModel: $this->splitter->name(),
         ));
 
         $this->linkChunks($websiteUrl, $website, array_map(static fn (PageData $page): string => $page->checksum, $pages));

@@ -289,6 +289,10 @@ theme.
 
 ### Self-hosting
 
+- `npm run shakomako:build` keeps its copy of the widget in
+  `storage/framework/shakomako` instead of `node_modules/.cache`: Node does
+  not run TypeScript files under `node_modules`, so the TypeScript widget
+  did not build there.
 - **Pulse** shows the app's health at `/pulse`: slow requests, queries and
   jobs, exceptions, queues, cache, Reverb connections and messages, and the
   servers' CPU, memory and disk. It opens for admins signed in to the admin

@@ -29,6 +29,9 @@ export default defineConfig(
             'vendor',
             'node_modules',
             'public',
+            // App data, and the copy of the chat widget that
+            // `npm run shakomako:build` builds (storage/framework/shakomako).
+            'storage',
             'bootstrap/ssr',
             'tailwind.config.js',
             'resources/js/components/ui/*',

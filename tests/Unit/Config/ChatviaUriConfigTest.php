@@ -20,7 +20,20 @@ function chatviaConfigWith(?string $uri): mixed
     try {
         return require base_path('config/chatvia.php');
     } finally {
-        [$_SERVER['CHATVIA_URI'], $_ENV['CHATVIA_URI']] = $old;
+        // Put the variable back as it was, absent when it was absent.
+        [$server, $env] = $old;
+
+        if ($server === null) {
+            unset($_SERVER['CHATVIA_URI']);
+        } else {
+            $_SERVER['CHATVIA_URI'] = $server;
+        }
+
+        if ($env === null) {
+            unset($_ENV['CHATVIA_URI']);
+        } else {
+            $_ENV['CHATVIA_URI'] = $env;
+        }
     }
 }
 

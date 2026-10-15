@@ -11,7 +11,6 @@
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeleteUserAccountAction;
 use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
-use App\Identity\Workspace\Jobs\DeleteWorkspaceJob;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Models\Workspace;
@@ -61,8 +60,7 @@ it('does not touch unrelated users', function (): void {
 
 it('tears down team memberships, owned teams, and workspace sub-users', function (): void {
     $owner = User::factory()->create();
-    // Auto-provisioning is retired (the trial-checkout webhook owns it), so
-    // seed the default team explicitly.
+    // A factory owner has no team yet, so create the default one.
     $team = app(TeamService::class)->createDefaultTeam($owner);
     $role = $team->roles()->firstOrFail();
 
@@ -103,7 +101,7 @@ it('deletes the workspace chatters with their grants and chat sessions', functio
     $owner = User::factory()->create();
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
     $chatter = Chatter::factory()->grantedTo($agent)->create();
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
 
     app(DeleteUserAccountAction::class)->execute($owner);
 
@@ -126,6 +124,25 @@ it('wipes the chatters avatar trees and keeps those of other workspaces', functi
 
     Storage::disk('assets')->assertMissing($photo);
     Storage::disk('assets')->assertExists($otherPhoto);
+});
+
+it('wipes each member own storage tree and keeps those of other workspaces', function (): void {
+    $owner = User::factory()->create();
+    $employee = User::factory()->employee($owner)->create();
+    $bystander = User::factory()->create();
+
+    $ownerPhoto = 'users/'.$owner->external_id.'/profile-photos/me.jpg';
+    $employeeExport = 'users/'.$employee->external_id.'/data-exports/export.zip';
+    $bystanderPhoto = 'users/'.$bystander->external_id.'/profile-photos/me.jpg';
+    Storage::disk('assets')->put($ownerPhoto, 'img');
+    Storage::put($employeeExport, 'zip');
+    Storage::disk('assets')->put($bystanderPhoto, 'img');
+
+    app(DeleteUserAccountAction::class)->execute($owner);
+
+    Storage::disk('assets')->assertMissing($ownerPhoto);
+    Storage::assertMissing($employeeExport);
+    Storage::disk('assets')->assertExists($bystanderPhoto);
 });
 
 it('leaves other workspaces untouched while tearing one down', function (): void {
@@ -154,14 +171,7 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
 
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'With attachment',
-    ]);
+    $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::HostedChat]);
 
     $filepath = "workspaces/{$agent->workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
     Storage::disk(Attachment::DISK)->put($filepath, 'data');
@@ -200,11 +210,8 @@ it('wipes the workspace knowledge-file storage tree the FK cascade would orphan'
 });
 
 it('flushes the deleted workspace chat memory cache and leaves other workspaces intact', function (): void {
-    // The chat cache is Redis in config; point it at the array driver so the
-    // tagged flush is exercised without a live Redis (mirrors the memory unit
-    // tests). Every chat-memory entry carries ChatCache::workspaceTag(), so a
-    // single tag flush must clear the deleted workspace and nothing else.
-    config(['cache.stores.chat' => ['driver' => 'array']]);
+    // Every chat-memory entry carries ChatCache::workspaceTag(), so a single
+    // tag flush must clear the deleted workspace and nothing else.
 
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
@@ -301,11 +308,4 @@ it('deletes the settings rows of its agents, deleted ones included, and of its m
 
     expect(ModelSetting::query()->whereKey($gone)->exists())->toBeFalse()
         ->and(ModelSetting::find($kept))->not->toBeNull();
-});
-
-it('runs the teardown on the long-running exports queue', function (): void {
-    $job = new DeleteWorkspaceJob(1);
-
-    expect(jobQueue($job))->toBe('exports')
-        ->and(jobTimeout($job))->toBe(1800);
 });

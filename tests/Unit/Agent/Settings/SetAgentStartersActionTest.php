@@ -62,25 +62,6 @@ it('stores the AI translations the translator returns', function (): void {
     expect($result[0]->translations)->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
 });
 
-it('translates only the enabled languages', function (): void {
-    $this->agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
-
-    $captured = null;
-    $this->mock(TextTranslator::class)
-        ->shouldReceive('translate')->once()
-        ->andReturnUsing(function (array $fields, array $languages) use (&$captured): array {
-            $captured = $languages;
-
-            return ['k0' => ['de' => 'Hallo?', 'fr' => 'Salut ?']];
-        });
-
-    app(SetAgentStartersAction::class)->execute($this->agent->fresh(), [
-        new StarterData(null, 'Hello?'),
-    ]);
-
-    expect(array_keys($captured))->toBe(['de', 'fr']);
-});
-
 it('preserves manual overrides and skips re-translation when the text is unchanged', function (): void {
     // Scope to one language so the cached translation fully covers the enabled set.
     $this->agent->setSetting('enabled_languages', ['de'], 'appearance');

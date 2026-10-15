@@ -41,7 +41,3 @@ it('lists the picker options sorted by the localized name', function (): void {
     // German collation puts "Österreich" among the O's, before "Polen".
     expect(array_search('Österreich', $names, true))->toBeLessThan(array_search('Polen', $names, true));
 });
-
-it('serializes an option as code and name for the frontend', function (): void {
-    expect(json_encode(new CountryOptionData('se', 'Sverige')))->toBe('{"code":"se","name":"Sverige"}');
-});

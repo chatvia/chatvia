@@ -6,6 +6,7 @@ use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamAgentAccess;
 use Domain\Membership\Team\Services\TeamService;
+use Support\Exceptions\DomainValidationException;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -13,12 +14,11 @@ beforeEach(function (): void {
 });
 
 /*
- * Regression: `agents.access-all` is a meta-permission represented to the UI as
- * the "All Agents" toggle, NOT as a member of the permissions list. The edit
- * form round-trips the full permission list back on save, so when the user
- * unchecks "All Agents" the payload STILL carries `agents.access-all`. The
- * action must derive the permission's presence purely from allAgents — anything
- * less leaves the role silently seeing every agent.
+ * `agents.access-all` is a meta-permission shown in the UI as the "All Agents"
+ * toggle, not as an entry of the permissions list. The edit form sends the
+ * full permission list back on save, so when the user unchecks "All Agents"
+ * the payload still carries `agents.access-all`. The permission must follow
+ * allAgents alone, or the role would quietly keep seeing every agent.
  */
 it('drops agents.access-all when scoping an all-agents role, even if the payload still carries it', function (): void {
     $kept = makeTeamAgent($this->owner, 'Kept', $this->team);
@@ -55,30 +55,48 @@ it('drops agents.access-all when scoping an all-agents role, even if the payload
         ->and($roleAgents->pluck('id')->all())->not->toContain($dropped->id);
 });
 
-it('grants agents.access-all when switching a scoped role back to all agents', function (): void {
-    $agent = makeTeamAgent($this->owner, 'Bot', $this->team);
-
+it('renames the role', function (): void {
     $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
         team: $this->team,
-        name: 'Scoped',
-        permissions: ['agent.chat.view'],
-        allAgents: false,
-        agentExternalIds: [$agent->external_id],
-    ));
-
-    expect($role->hasPermissionTo('agents.access-all'))->toBeFalse()
-        ->and($role->agents()->pluck('agents.id')->all())->toBe([$agent->id]);
-
-    $updated = app(UpdateTeamRoleAction::class)->execute($role, new SaveTeamRoleData(
-        team: $this->team,
-        name: 'Scoped',
+        name: 'Support',
         permissions: ['agent.chat.view'],
         allAgents: true,
         agentExternalIds: [],
     ));
 
-    // Flipping to all-agents grants the meta-permission and clears the now-moot
-    // per-agent pivot (access-all supersedes a scoped list).
-    expect($updated->hasPermissionTo('agents.access-all'))->toBeTrue()
-        ->and($updated->agents()->pluck('agents.id')->all())->toBe([]);
+    $updated = app(UpdateTeamRoleAction::class)->execute($role, new SaveTeamRoleData(
+        team: $this->team,
+        name: 'Customer care',
+        permissions: ['agent.chat.view'],
+        allAgents: true,
+        agentExternalIds: [],
+    ));
+
+    expect($updated->name)->toBe('Customer care')
+        ->and($role->fresh()->name)->toBe('Customer care');
+});
+
+it('keeps the old name and grants when the new grants are rejected', function (): void {
+    $agent = makeTeamAgent($this->owner, 'Bot', $this->team);
+    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
+        team: $this->team,
+        name: 'Support',
+        permissions: ['agent.chat.view'],
+        allAgents: false,
+        agentExternalIds: [$agent->external_id],
+    ));
+
+    expect(fn () => app(UpdateTeamRoleAction::class)->execute($role, new SaveTeamRoleData(
+        team: $this->team,
+        name: 'Renamed',
+        permissions: [],
+        allAgents: false,
+        agentExternalIds: ['not-an-agent'],
+    )))->toThrow(DomainValidationException::class);
+
+    $fresh = $role->fresh();
+
+    expect($fresh->name)->toBe('Support')
+        ->and($fresh->hasPermissionTo('agent.chat.view'))->toBeTrue()
+        ->and($fresh->agents()->pluck('agents.id')->all())->toBe([$agent->id]);
 });

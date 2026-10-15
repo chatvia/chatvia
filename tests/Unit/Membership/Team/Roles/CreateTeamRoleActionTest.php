@@ -13,7 +13,7 @@ beforeEach(function (): void {
     $this->team = app(TeamService::class)->createDefaultTeam($this->owner);
 });
 
-function saveRoleData(object $test, string $name, array $agentIds = [], bool $allAgents = false): SaveTeamRoleData
+function ctrRoleData(object $test, string $name, array $agentIds = [], bool $allAgents = false): SaveTeamRoleData
 {
     return new SaveTeamRoleData(
         team: $test->team,
@@ -27,7 +27,7 @@ function saveRoleData(object $test, string $name, array $agentIds = [], bool $al
 it('creates a scoped role with its code, permissions and agents', function (): void {
     $agent = makeTeamAgent($this->owner, 'Bot', $this->team);
 
-    $role = app(CreateTeamRoleAction::class)->execute(saveRoleData($this, 'Support Desk', [$agent->external_id]));
+    $role = app(CreateTeamRoleAction::class)->execute(ctrRoleData($this, 'Support Desk', [$agent->external_id]));
 
     expect($role->code)->toBe('support_desk')
         ->and($role->guard_name)->toBe(Permission::GUARD_NAME)
@@ -37,9 +37,9 @@ it('creates a scoped role with its code, permissions and agents', function (): v
 });
 
 it('rejects a second role with the same name', function (): void {
-    app(CreateTeamRoleAction::class)->execute(saveRoleData($this, 'Support', allAgents: true));
+    app(CreateTeamRoleAction::class)->execute(ctrRoleData($this, 'Support', allAgents: true));
 
-    expect(fn () => app(CreateTeamRoleAction::class)->execute(saveRoleData($this, 'Support', allAgents: true)))
+    expect(fn () => app(CreateTeamRoleAction::class)->execute(ctrRoleData($this, 'Support', allAgents: true)))
         ->toThrow(DomainValidationException::class, 'A role with this name already exists.');
 });
 
@@ -48,7 +48,7 @@ it('creates nothing when a chosen agent is not in the team', function (): void {
     $foreignAgent = makeTeamAgent($stranger, 'Elsewhere');
 
     try {
-        app(CreateTeamRoleAction::class)->execute(saveRoleData($this, 'Scoped', [$foreignAgent->external_id]));
+        app(CreateTeamRoleAction::class)->execute(ctrRoleData($this, 'Scoped', [$foreignAgent->external_id]));
         $this->fail('Expected the foreign agent to be rejected.');
     } catch (DomainValidationException $e) {
         expect($e->field)->toBe('agent_ids');

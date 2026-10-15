@@ -75,14 +75,8 @@ it('detaches the employee from conversations they handled without deleting the c
     $chatter = Chatter::factory()->ofWorkspace($owner)->create();
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
 
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'source' => ConversationSource::HostedChat,
-        'title' => 'Handled by employee',
-    ]);
+    $session = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
     // Set the handoff actor directly so the test does not depend on the
     // conversation model's handoff mass-assignment rules.
     DB::table('chat_conversations')->where('id', $conversation->id)->update(['handoff_user_id' => $employee->id]);
@@ -101,8 +95,8 @@ it('leaves the workspace chatters and their sessions alone, even one whose id eq
     $twin = Chatter::factory()->ofWorkspace($owner)->create(['id' => $employee->id]);
     $agent = Agent::factory()->create(['workspace_id' => $owner->workspace()->id]);
 
-    $chatterSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $twin->id]);
-    $staffSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'user_id' => $employee->id]);
+    $chatterSession = ChatSession::factory()->forChatter($twin)->create(['agent_id' => $agent->id]);
+    $staffSession = ChatSession::factory()->create(['agent_id' => $agent->id, 'user_id' => $employee->id]);
 
     app(DeleteEmployeeAction::class)->execute($employee);
 

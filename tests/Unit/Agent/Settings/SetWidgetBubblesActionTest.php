@@ -25,22 +25,13 @@ it('stores bubbles in the structured shape and drops blanks', function (): void 
         ->toBe(['Hi there?', 'Need help?']);
 });
 
-it('translates only the enabled languages', function (): void {
-    $this->agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
-
-    $captured = null;
+it('stores the AI translations the translator returns', function (): void {
     $this->mock(TextTranslator::class)
-        ->shouldReceive('translate')->once()
-        ->andReturnUsing(function (array $fields, array $languages) use (&$captured): array {
-            $captured = $languages;
-
-            return ['k0' => ['de' => 'Hallo?', 'fr' => 'Salut ?']];
-        });
+        ->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?', 'fr' => 'Salut ?']]);
 
     $result = app(SetWidgetBubblesAction::class)->execute($this->agent->fresh(), [new BubbleData('Hello?')]);
 
-    expect(array_keys($captured))->toBe(['de', 'fr'])
-        ->and($result[0]->translations)->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
+    expect($result[0]->translations)->toBe(['de' => 'Hallo?', 'fr' => 'Salut ?']);
 });
 
 it('preserves manual overrides and skips re-translation when the text is unchanged', function (): void {

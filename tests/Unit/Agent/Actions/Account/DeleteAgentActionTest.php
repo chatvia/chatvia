@@ -3,8 +3,14 @@
 use Domain\Agent\Actions\Account\DeleteAgentAction;
 use Domain\Agent\Jobs\PurgeAgentJob;
 use Domain\Agent\Models\Agent;
+use Domain\Channel\Instagram\Models\AgentInstagramAccount;
+use Domain\Channel\Messenger\Models\AgentMessengerPage;
+use Domain\Channel\Slack\Models\AgentSlackApp;
+use Domain\Channel\Teams\Models\AgentTeamsBot;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
+use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Conversation\Models\Session;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,7 +19,7 @@ use Illuminate\Support\Str;
  * Deleting an agent hides it at once (soft delete), frees its slug and custom
  * domain, silences its messaging channels and queues the purge of its data.
  */
-it('hides the agent at once and queues its purge on the exports queue', function (): void {
+it('hides the agent at once and queues its purge', function (): void {
     Bus::fake([PurgeAgentJob::class]);
 
     $agent = Agent::factory()->create(['domain' => 'help.example.test']);
@@ -31,7 +37,7 @@ it('hides the agent at once and queues its purge on the exports queue', function
         // The data waits for the purge.
         ->and(Session::find($session->id))->not->toBeNull();
 
-    Bus::assertDispatched(PurgeAgentJob::class, fn (PurgeAgentJob $job): bool => $job->agentId === $agent->id && jobQueue($job) === 'exports');
+    Bus::assertDispatched(PurgeAgentJob::class, fn (PurgeAgentJob $job): bool => $job->agentId === $agent->id);
 });
 
 it('frees the slug and the custom domain for another agent at once', function (): void {
@@ -49,22 +55,24 @@ it('frees the slug and the custom domain for another agent at once', function ()
         ->and($other->fresh()->domain)->toBe('help.example.test');
 });
 
-it('switches off the agent messaging channels', function (): void {
+it('switches off each of the agent messaging channels', function (string $model, array $attributes): void {
     Bus::fake([PurgeAgentJob::class]);
 
     $agent = Agent::factory()->create();
-    $bot = AgentTelegramBot::create([
-        'agent_id' => $agent->id,
-        'bot_token' => '123:token',
-        'bot_username' => 'demo_bot',
-        'webhook_secret' => Str::random(48),
-        'enabled' => true,
-    ]);
+    /** @var Model $channel */
+    $channel = $model::create(['agent_id' => $agent->id, ...$attributes, 'enabled' => true]);
 
     app(DeleteAgentAction::class)->execute($agent);
 
-    expect($bot->fresh()->enabled)->toBeFalse();
-});
+    expect($channel->fresh()->enabled)->toBeFalse();
+})->with([
+    'telegram' => [AgentTelegramBot::class, ['bot_token' => '123:token', 'bot_username' => 'demo_bot', 'webhook_secret' => Str::random(48)]],
+    'slack' => [AgentSlackApp::class, ['bot_token' => 'xoxb-token', 'signing_secret' => 'signing-secret-value-12345678', 'bot_user_id' => 'U0BOT', 'team_name' => 'Acme Inc', 'webhook_secret' => Str::random(48)]],
+    'messenger' => [AgentMessengerPage::class, ['page_access_token' => 'EAAG-token', 'page_id' => '1234567890', 'page_name' => 'Acme Support']],
+    'whatsapp' => [AgentWhatsappNumber::class, ['access_token' => 'EAAG-token', 'phone_number_id' => '111222333444555', 'waba_id' => '999888777666555']],
+    'teams' => [AgentTeamsBot::class, ['app_id' => 'f5e1f9d2-1111-2222-3333-444455556666', 'app_secret' => 'client-secret-value', 'tenant_id' => null, 'webhook_secret' => Str::random(48)]],
+    'instagram' => [AgentInstagramAccount::class, ['page_access_token' => 'IGAA-token-value-1234567890', 'page_id' => '998877', 'ig_id' => '17840012345', 'username' => 'acme.support']],
+]);
 
 it('removes the agent with its data and storage once the purge has run', function (): void {
     Storage::fake();

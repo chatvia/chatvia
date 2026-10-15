@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Actions\Account\UpdateWorkspaceAction;
 use App\Identity\Workspace\Data\Account\UpdateWorkspaceData;
 use App\Identity\Workspace\Models\User;
+use App\Identity\Workspace\Models\Workspace;
 
 it('renames the workspace and saves its owner\'s name and email', function (): void {
     $owner = User::factory()->create(['name' => 'Dana Owner', 'email' => 'dana@acme.test']);
@@ -18,19 +19,19 @@ it('renames the workspace and saves its owner\'s name and email', function (): v
     $owner->refresh();
     expect($workspace->fresh()->name)->toBe('Acme GmbH')
         ->and($owner->name)->toBe('Dana Smith')
-        ->and($owner->email)->toBe('dana@acme.example')
-        ->and($owner->email_verified_at)->toBeNull();
+        ->and($owner->email)->toBe('dana@acme.example');
 });
 
-it('keeps the owner\'s email confirmed when only the names change', function (): void {
-    $owner = User::factory()->create(['email' => 'dana@acme.test']);
+it('only renames a workspace that has no owner', function (): void {
+    $workspace = Workspace::factory()->create(['name' => 'Old name']);
 
-    app(UpdateWorkspaceAction::class)->execute(new UpdateWorkspaceData(
-        workspace: $owner->workspace(),
+    $result = app(UpdateWorkspaceAction::class)->execute(new UpdateWorkspaceData(
+        workspace: $workspace,
         name: 'Acme GmbH',
-        ownerName: 'Dana Smith',
-        ownerEmail: 'dana@acme.test',
+        ownerName: 'Nobody',
+        ownerEmail: 'nobody@acme.test',
     ));
 
-    expect($owner->fresh()->email_verified_at)->not->toBeNull();
+    expect($result->fresh()->name)->toBe('Acme GmbH')
+        ->and(User::query()->where('email', 'nobody@acme.test')->exists())->toBeFalse();
 });

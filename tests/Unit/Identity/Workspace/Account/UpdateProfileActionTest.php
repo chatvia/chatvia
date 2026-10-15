@@ -3,6 +3,8 @@
 use App\Identity\Workspace\Actions\Account\UpdateProfileAction;
 use App\Identity\Workspace\Data\Account\UpdateProfileData;
 use App\Identity\Workspace\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 it('updates name and email and returns the user', function (): void {
     $user = User::factory()->create([
@@ -13,12 +15,30 @@ it('updates name and email and returns the user', function (): void {
     $result = app(UpdateProfileAction::class)->execute(new UpdateProfileData(
         user: $user,
         name: 'New',
-        email: 'old@example.test',
+        email: 'new@example.test',
     ));
 
-    expect($result)->toBeInstanceOf(User::class)
-        ->and($result->name)->toBe('New')
-        ->and($user->fresh()->name)->toBe('New');
+    expect($result->name)->toBe('New')
+        ->and($result->email)->toBe('new@example.test')
+        ->and($user->fresh()->only(['name', 'email']))->toBe(['name' => 'New', 'email' => 'new@example.test']);
+});
+
+it('stores a new photo under the user own folder', function (): void {
+    Storage::fake(User::PROFILE_IMAGE_DISK);
+    $user = User::factory()->create();
+
+    app(UpdateProfileAction::class)->execute(new UpdateProfileData(
+        user: $user,
+        name: $user->name,
+        email: $user->email,
+        photo: UploadedFile::fake()->image('me.png', 400, 300),
+    ));
+
+    $path = $user->fresh()->profile_image_path;
+
+    expect($path)->toStartWith('users/'.$user->external_id.'/profile-photos/')
+        ->and($path)->toEndWith('.jpg');
+    Storage::disk(User::PROFILE_IMAGE_DISK)->assertExists($path);
 });
 
 it('clears email_verified_at when the email changes', function (): void {

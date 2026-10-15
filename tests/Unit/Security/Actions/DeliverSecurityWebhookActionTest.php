@@ -2,12 +2,14 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Security\Actions\DeliverSecurityWebhookAction;
+use Domain\Security\Actions\RecordSiemDeliveryFailureAction;
 use Domain\Security\Data\SecurityActorData;
 use Domain\Security\Enums\SecurityAuditAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Listeners\SendSecurityEventToSiem;
 use Domain\Security\Models\WorkspaceSecurityPolicy;
 use Illuminate\Events\CallQueuedListener;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -15,8 +17,11 @@ use Support\Exceptions\UnsafeUrlException;
 use Support\Http\WebhookSignature;
 
 /**
- * SIEM webhook delivery — HMAC-signed POST, enabled + allowlist gating, and
- * the listener's failure tracking.
+ * SIEM webhook delivery: what the action decides (whether to send, with the
+ * policy's URL, secret and the event name; the failure counter reset on
+ * success, and kept on a refused URL) and the listener's retry and failure
+ * hand-over. Signing, redirects and the SSRF list are SignedWebhookSender's
+ * and are tested there.
  */
 function siemEvent(int $workspaceId): SecurityEventOccurred
 {
@@ -40,34 +45,24 @@ function enableSiem(User $workspace, array $overrides = []): WorkspaceSecurityPo
     return $policy;
 }
 
-it('delivers a signed POST and resets the failure counter', function (): void {
+it('delivers to the policy URL with its secret and resets the failure counter', function (): void {
     Http::fake(['*' => Http::response('', 200)]);
     $workspace = User::factory()->create();
     $policy = enableSiem($workspace, ['webhook_failures' => 4]);
 
     app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
 
-    Http::assertSent(fn ($request): bool => $request->url() === 'https://siem.example.com/ingest'
-        && str_starts_with($request->header('X-Chatvia-Signature')[0], 'sha256='));
+    Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://siem.example.com/ingest'
+        && $request->header('X-Chatvia-Signature')[0] === 'sha256='.WebhookSignature::sign($request->body(), 'shh-secret')
+        && $request->header('X-Chatvia-Event')[0] === SecurityAuditAction::PolicyChanged->value);
 
     expect($policy->fresh()->webhook_failures)->toBe(0)
         ->and($policy->fresh()->webhook_last_delivered_at)->not->toBeNull();
 });
 
-it('signs the exact body it sends with the shared webhook signature', function (): void {
-    Http::fake(['*' => Http::response('', 200)]);
-    $workspace = User::factory()->create();
-    enableSiem($workspace);
-
-    app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id));
-
-    Http::assertSent(fn ($request): bool => $request->header('X-Chatvia-Signature')[0] === 'sha256='.WebhookSignature::sign($request->body(), 'shh-secret')
-        && $request->header('X-Chatvia-Event')[0] === SecurityAuditAction::PolicyChanged->value);
-});
-
 it('re-checks the stored URL at send time and refuses an internal target', function (): void {
-    // A URL saved while it looked public (or written before the save-time
-    // check existed) must still be refused when it now points inside.
+    // A URL saved while it looked public must still be refused when it now
+    // points inside, and the refusal does not count as a delivery.
     app()['env'] = 'production';
     Http::fake();
     $workspace = User::factory()->create();
@@ -79,17 +74,6 @@ it('re-checks the stored URL at send time and refuses an internal target', funct
     Http::assertNothingSent();
     expect($policy->fresh()->webhook_failures)->toBe(1)
         ->and($policy->fresh()->webhook_last_delivered_at)->toBeNull();
-});
-
-it('treats a redirect as a failed delivery so the queue retries', function (): void {
-    Http::fake(['*' => Http::response('', 301, ['Location' => 'http://10.0.0.5/'])]);
-    $workspace = User::factory()->create();
-    enableSiem($workspace);
-
-    expect(fn () => app(DeliverSecurityWebhookAction::class)->execute(siemEvent($workspace->workspace()->id)))
-        ->toThrow(RequestException::class);
-
-    Http::assertSentCount(1);
 });
 
 it('does not deliver when the webhook is disabled', function (): void {
@@ -134,14 +118,9 @@ it('retries a failed delivery with a growing pause', function (): void {
     );
 });
 
-it('auto-disables the webhook once consecutive failures hit the threshold', function (): void {
-    config(['chatvia.siem.max_failures' => 3]);
-    $workspace = User::factory()->create();
-    $policy = enableSiem($workspace, ['webhook_failures' => 2]);
+it('hands a delivery that ran out of retries to the failure counter', function (): void {
+    $this->mock(RecordSiemDeliveryFailureAction::class)
+        ->shouldReceive('execute')->once()->with(42);
 
-    app(SendSecurityEventToSiem::class)->failed(siemEvent($workspace->workspace()->id), new RuntimeException('boom'));
-
-    $policy->refresh();
-    expect($policy->webhook_failures)->toBe(3)
-        ->and($policy->webhook_enabled)->toBeFalse();
+    app(SendSecurityEventToSiem::class)->failed(siemEvent(42), new RuntimeException('boom'));
 });

@@ -18,14 +18,3 @@ it('hashes and stores the new password', function (): void {
     expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue()
         ->and(Hash::check('old-password', $user->fresh()->password))->toBeFalse();
 });
-
-it('does not store the new password in plain text', function (): void {
-    $user = User::factory()->create();
-
-    app(UpdatePasswordAction::class)->execute(new UpdatePasswordData(
-        user: $user,
-        password: 'plain-text-secret',
-    ));
-
-    expect($user->fresh()->password)->not->toBe('plain-text-secret');
-});

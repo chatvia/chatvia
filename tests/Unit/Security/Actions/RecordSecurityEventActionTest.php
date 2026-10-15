@@ -8,12 +8,10 @@ use Domain\Security\Events\SecurityEventOccurred;
 use Domain\Security\Models\SecurityAuditLog;
 
 /**
- * The recorder writes one immutable row per security event into
- * `security_audit_log`. Guarantees under test: denormalized causer name/email
- * are stored, sensitive metadata keys are redacted, oversized payloads are
- * capped, a sha256 of the RAW payload is kept, and the row is insert-only.
- *
- * REQUIRES the migrated test DB (the security_audit_log table).
+ * The recorder writes one row per security event into `security_audit_log`.
+ * Guarantees under test: denormalized causer name/email are stored, sensitive
+ * metadata keys are redacted, oversized payloads are capped, a sha256 of the
+ * RAW payload is kept, and the row has no updated_at.
  */
 it('writes one row with denormalized causer, redacted metadata + raw hash', function (): void {
     $user = User::factory()->create();
@@ -64,7 +62,7 @@ it('caps oversized metadata and flags truncation, hashing the raw payload', func
         ->and($row->metadata_sha256)->toBe(hash('sha256', $event->metadata)); // hash over RAW, pre-cap
 });
 
-it('keeps the audit log insert-only (no updated_at)', function (): void {
+it('writes a row without an updated_at column', function (): void {
     $user = User::factory()->create();
 
     $row = app(RecordSecurityEventAction::class)->execute(SecurityEventOccurred::for(

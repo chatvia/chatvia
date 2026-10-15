@@ -10,12 +10,12 @@ use Support\Enums\CreatedVia;
 use Support\Exceptions\DomainValidationException;
 
 /**
- * CreateApiAgentAction is the public-API (`POST /api/v1/agents`), money-gated,
- * transactional agent-creation path. It resolves the target team + (optional)
- * reusable prompt by their external ids, mints the agent stamped `source = api`,
- * and seeds the topics the workspace can use — all inside one transaction. The team/prompt
- * resolvers fail with a 422-mapped DomainValidationException, so an unknown id must
- * never create a half-built agent.
+ * CreateApiAgentAction is the public API's (`POST /api/v1/agents`) agent
+ * creation. It resolves the target team and (optional) reusable prompt by
+ * their external ids, makes the agent stamped `source = api`, and seeds the
+ * topics the workspace can use, all in one transaction. The team and prompt
+ * resolvers fail with a 422-mapped DomainValidationException, so an unknown
+ * id must never create a half-built agent.
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();

@@ -11,10 +11,7 @@ use Illuminate\Support\Facades\Validator;
  */
 function pdfUploadForLockCheck(): UploadedFile
 {
-    $path = tempnam(sys_get_temp_dir(), 'pdf').'.pdf';
-    file_put_contents($path, "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF");
-
-    return new UploadedFile($path, 'manual.pdf', 'application/pdf', null, true);
+    return UploadedFile::fake()->createWithContent('manual.pdf', "%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n%%EOF");
 }
 
 it('refuses a PDF locked with a password', function (): void {

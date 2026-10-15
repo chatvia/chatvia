@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Hash;
  * answer is the same as for a brand-new email, so it never reveals that the
  * email exists elsewhere. Its idempotency stops forwarded-link replay.
  */
-function inviteWorkspaceAndAgent(): array
+function iacWorkspaceAndAgent(): array
 {
     $workspace = User::factory()->create();
 
@@ -31,7 +31,7 @@ function inviteWorkspaceAndAgent(): array
     return [$workspace, $agent];
 }
 
-function invite(Agent $agent, string $email): AgentChatterInvitationData
+function iacInvite(Agent $agent, string $email): AgentChatterInvitationData
 {
     return app(InviteAgentChatterAction::class)->execute(new InviteAgentChatterData(
         agent: $agent,
@@ -40,7 +40,7 @@ function invite(Agent $agent, string $email): AgentChatterInvitationData
 }
 
 /** The chatters of the workspace with the email, compared without case. */
-function workspaceChattersWithEmail(User $workspace, string $email): Builder
+function iacWorkspaceChatters(User $workspace, string $email): Builder
 {
     return Chatter::query()
         ->where('workspace_id', $workspace->workspace()->id)
@@ -49,11 +49,11 @@ function workspaceChattersWithEmail(User $workspace, string $email): Builder
 
 it('provisions a new chatter, attaches the agent pivot, and dispatches AgentChatterInvited', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
 
-    $result = invite($agent, 'new@example.com');
+    $result = iacInvite($agent, 'new@example.com');
 
-    $chatter = workspaceChattersWithEmail($workspace, 'new@example.com')->first();
+    $chatter = iacWorkspaceChatters($workspace, 'new@example.com')->first();
 
     expect($chatter)->toBeInstanceOf(Chatter::class)
         ->and($chatter->workspace_id)->toBe($workspace->workspace()->id)
@@ -69,33 +69,33 @@ it('provisions a new chatter, attaches the agent pivot, and dispatches AgentChat
 
 it('stores the invited email in lower case', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
 
-    $result = invite($agent, '  New.Person@Example.COM ');
+    $result = iacInvite($agent, '  New.Person@Example.COM ');
 
     expect($result->email)->toBe('new.person@example.com')
-        ->and(workspaceChattersWithEmail($workspace, 'new.person@example.com')->value('email'))->toBe('new.person@example.com');
+        ->and(iacWorkspaceChatters($workspace, 'new.person@example.com')->value('email'))->toBe('new.person@example.com');
 });
 
 it('rejects inviting to a public agent', function (): void {
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
     $agent->update(['is_public' => true]);
 
-    expect(fn (): AgentChatterInvitationData => invite($agent, 'new@example.com'))
+    expect(fn (): AgentChatterInvitationData => iacInvite($agent, 'new@example.com'))
         ->toThrow(AgentChatterInvitationRejectedException::class);
 
-    expect(workspaceChattersWithEmail($workspace, 'new@example.com')->exists())->toBeFalse();
+    expect(iacWorkspaceChatters($workspace, 'new@example.com')->exists())->toBeFalse();
 });
 
 it('invites the email of a staff account as a separate chatter and leaves the staff account alone', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
     $staff = User::factory()->employee($workspace)->create(['email' => 'boss@example.com']);
     $staffPassword = $staff->password;
 
-    $result = invite($agent, 'boss@example.com');
+    $result = iacInvite($agent, 'boss@example.com');
 
-    $chatter = workspaceChattersWithEmail($workspace, 'boss@example.com')->first();
+    $chatter = iacWorkspaceChatters($workspace, 'boss@example.com')->first();
 
     expect($result->email)->toBe('boss@example.com')
         ->and($chatter)->toBeInstanceOf(Chatter::class)
@@ -110,7 +110,7 @@ it('invites the email of a staff account as a separate chatter and leaves the st
 
 it('invites an email used by a chatter of another workspace as a new, separate chatter', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
 
     $otherWorkspace = User::factory()->create();
     $foreign = Chatter::factory()->ofWorkspace($otherWorkspace)->create([
@@ -118,9 +118,9 @@ it('invites an email used by a chatter of another workspace as a new, separate c
         'password' => Hash::make('foreign-pass'),
     ]);
 
-    $result = invite($agent, 'foreign@example.com');
+    $result = iacInvite($agent, 'foreign@example.com');
 
-    $chatter = workspaceChattersWithEmail($workspace, 'foreign@example.com')->first();
+    $chatter = iacWorkspaceChatters($workspace, 'foreign@example.com')->first();
 
     expect($result->email)->toBe('foreign@example.com')
         ->and($chatter)->toBeInstanceOf(Chatter::class)
@@ -134,49 +134,56 @@ it('invites an email used by a chatter of another workspace as a new, separate c
         ->and($foreign->fresh()->workspace_id)->toBe($otherWorkspace->workspace()->id);
 });
 
-it('answers the same way whether or not the email exists elsewhere', function (): void {
+it('treats an email known elsewhere like a new one', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [, $agent] = inviteWorkspaceAndAgent();
-    Chatter::factory()->create(['email' => 'known@example.com']);
-    User::factory()->workspace()->create(['email' => 'known-staff@example.com']);
+    [$workspace, $agent] = iacWorkspaceAndAgent();
+    $foreign = Chatter::factory()->create(['email' => 'known@example.com']);
+    $staff = User::factory()->workspace()->create(['email' => 'known-staff@example.com']);
+    $foreignBefore = $foreign->only(['workspace_id', 'password', 'email_verified_at']);
+    $staffBefore = $staff->only(['password', 'email_verified_at']);
 
-    $fresh = invite($agent, 'unknown@example.com');
-    $knownChatter = invite($agent, 'known@example.com');
-    $knownStaff = invite($agent, 'known-staff@example.com');
+    foreach (['unknown@example.com', 'known@example.com', 'known-staff@example.com'] as $email) {
+        $result = iacInvite($agent, $email);
+        $chatter = iacWorkspaceChatters($workspace, $email)->sole();
 
-    // Same shape, no error, nothing hinting at the other accounts.
-    foreach ([$fresh, $knownChatter, $knownStaff] as $result) {
-        expect($result)->toBeInstanceOf(AgentChatterInvitationData::class)
-            ->and(array_keys($result->toArray()))->toBe(array_keys($fresh->toArray()));
+        // Each email gets a new, pending chatter of this workspace with the grant.
+        expect($result->email)->toBe($email)
+            ->and($chatter->id)->not->toBe($foreign->id)
+            ->and($chatter->password)->toBeNull()
+            ->and($chatter->email_verified_at)->toBeNull()
+            ->and($agent->chatters()->whereKey($chatter->id)->exists())->toBeTrue();
     }
+
+    expect($foreign->fresh()->only(['workspace_id', 'password', 'email_verified_at']))->toEqual($foreignBefore)
+        ->and($staff->fresh()->only(['password', 'email_verified_at']))->toEqual($staffBefore);
 
     Event::assertDispatchedTimes(AgentChatterInvited::class, 3);
 });
 
 it('is idempotent: re-inviting the same email rotates the token and keeps one pending row + one chatter', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
 
-    invite($agent, 'repeat@example.com');
+    iacInvite($agent, 'repeat@example.com');
     $firstToken = AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'repeat@example.com')->value('token');
 
-    invite($agent, 'Repeat@Example.com');
+    iacInvite($agent, 'Repeat@Example.com');
 
     $rows = AgentChatterInvitation::query()->where('agent_id', $agent->id)->where('email', 'repeat@example.com');
 
     expect($rows->count())->toBe(1)
         ->and($rows->value('token'))->not->toBe($firstToken)
-        ->and(workspaceChattersWithEmail($workspace, 'repeat@example.com')->count())->toBe(1);
+        ->and(iacWorkspaceChatters($workspace, 'repeat@example.com')->count())->toBe(1);
 });
 
 it('reuses an existing chatter already under the same workspace, without case', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agent] = inviteWorkspaceAndAgent();
+    [$workspace, $agent] = iacWorkspaceAndAgent();
 
     $existing = Chatter::factory()->ofWorkspace($workspace)->create(['email' => 'existing@example.com']);
 
-    invite($agent, 'EXISTING@example.com');
+    iacInvite($agent, 'EXISTING@example.com');
 
-    expect(workspaceChattersWithEmail($workspace, 'existing@example.com')->count())->toBe(1)
+    expect(iacWorkspaceChatters($workspace, 'existing@example.com')->count())->toBe(1)
         ->and($agent->chatters()->whereKey($existing->id)->exists())->toBeTrue();
 });

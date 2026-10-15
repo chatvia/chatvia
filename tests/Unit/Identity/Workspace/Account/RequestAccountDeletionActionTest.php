@@ -24,21 +24,20 @@ it('dispatches AccountDeletionRequested with a signed confirmation link for the 
     );
 });
 
-it('mints a confirmation link that passes signature validation', function (): void {
+it('mints a confirmation link that is valid for 30 minutes', function (): void {
     Event::fake();
-
+    $this->freezeTime();
     $user = User::factory()->create();
 
     app(RequestAccountDeletionAction::class)->execute($user);
 
-    $url = null;
-    Event::assertDispatched(AccountDeletionRequested::class, function (AccountDeletionRequested $event) use (&$url): bool {
-        $url = $event->url;
+    $url = Event::dispatched(AccountDeletionRequested::class)->sole()[0]->url;
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
 
-        return true;
-    });
+    expect((int) $query['expires'])->toBe(now()->addMinutes(30)->getTimestamp())
+        ->and(URL::hasValidSignature(Request::create($url)))->toBeTrue();
 
-    $request = Request::create($url);
+    $this->travel(31)->minutes();
 
-    expect(URL::hasValidSignature($request))->toBeTrue();
+    expect(URL::hasValidSignature(Request::create($url)))->toBeFalse();
 });

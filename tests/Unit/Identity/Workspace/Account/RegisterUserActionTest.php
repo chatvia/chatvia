@@ -1,14 +1,11 @@
 <?php
 
-use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Identity\Workspace\Actions\Account\RegisterUserAction;
 use App\Identity\Workspace\Data\Account\RegisterUserData;
-use App\Identity\Workspace\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
 
 it('creates a user who owns a new workspace and dispatches the Registered event', function (): void {
     Event::fake([Registered::class]);
@@ -17,14 +14,16 @@ it('creates a user who owns a new workspace and dispatches the Registered event'
         name: 'Ada Lovelace',
         email: 'ada@example.test',
         password: 'secret-password',
-        registered_ip: '127.0.0.1',
+        registered_ip: '203.0.113.7',
+        registered_country_code: 'de',
     ));
 
-    expect($user)->toBeInstanceOf(User::class)
-        ->and($user->name)->toBe('Ada Lovelace')
+    expect($user->name)->toBe('Ada Lovelace')
         ->and($user->email)->toBe('ada@example.test')
         ->and($user->isWorkspaceOwner())->toBeTrue()
-        ->and($user->registered_ip)->toBe('127.0.0.1')
+        ->and($user->fresh()->registered_ip)->toBe('203.0.113.7')
+        ->and($user->fresh()->registered_country_code)->toBe('de')
+        ->and($user->password)->not->toBe('secret-password')
         ->and(Hash::check('secret-password', $user->password))->toBeTrue();
 
     Event::assertDispatched(Registered::class);
@@ -62,6 +61,7 @@ it('gives a new workspace no message limit by default', function (): void {
 
 it('gives a new workspace the monthly message limit set in the admin panel', function (): void {
     Event::fake([Registered::class]);
+    $this->travelTo('2026-03-17 10:00:00');
     config(['chatvia.message_limits.new_workspace' => 500]);
 
     $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
@@ -75,37 +75,7 @@ it('gives a new workspace the monthly message limit set in the admin panel', fun
 
     expect($limit->monthly_limit)->toBe(500)
         ->and($limit->messages_used)->toBe(0)
-        ->and($limit->period_starts_at->equalTo(now()->startOfMonth()))->toBeTrue();
-});
-
-it('hashes the password before storing it', function (): void {
-    Event::fake([Registered::class]);
-
-    $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
-        name: 'Linus',
-        email: 'linus@example.test',
-        password: 'PlainTextPassword',
-        registered_ip: '127.0.0.1',
-    ));
-
-    expect($user->password)->not->toBe('PlainTextPassword')
-        ->and(Hash::check('PlainTextPassword', $user->password))->toBeTrue();
-});
-
-it('stores the country passed in the DTO without any outbound geo-IP call', function (): void {
-    Event::fake([Registered::class]);
-    Http::preventStrayRequests();
-
-    $user = app(RegisterUserAction::class)->execute(new RegisterUserData(
-        name: 'Ada',
-        email: 'ada-country@example.test',
-        password: 'secret-password',
-        registered_ip: '203.0.113.7',
-        registered_country_code: 'de',
-    ));
-
-    expect($user->fresh()->registered_country_code)->toBe('de');
-    Http::assertNothingSent();
+        ->and($limit->period_starts_at->toDateTimeString())->toBe('2026-03-01 00:00:00');
 });
 
 it('dispatches Registered only after the transaction has committed', function (): void {
@@ -123,16 +93,4 @@ it('dispatches Registered only after the transaction has committed', function ()
     ));
 
     expect($levels)->toBe([$baseline]);
-});
-
-it('reads the visitor country from the Cloudflare header, not from an IP lookup', function (): void {
-    Http::preventStrayRequests();
-
-    $request = RegisterUserRequest::create('/register', 'POST', [
-        'name' => 'Ada',
-        'email' => 'ada@example.test',
-        'password' => 'secret-password',
-    ], server: ['HTTP_CF_IPCOUNTRY' => 'DE', 'REMOTE_ADDR' => '203.0.113.7']);
-
-    expect($request->toData()->registered_country_code)->toBe('de');
 });

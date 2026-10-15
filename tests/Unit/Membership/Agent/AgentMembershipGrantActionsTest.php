@@ -12,7 +12,7 @@ use Domain\Membership\Agent\Actions\RevokeAgentMembershipAction;
  * attach/detach behaviour is pinned here, as is the rule that a chatter is
  * only ever granted agents of its own workspace.
  */
-function membershipFixtures(): array
+function amgFixtures(): array
 {
     $workspace = User::factory()->create();
     $agent = Agent::factory()->create(['workspace_id' => $workspace->workspace()->id]);
@@ -21,8 +21,8 @@ function membershipFixtures(): array
     return [$agent, $chatter];
 }
 
-it('grants a chatter access idempotently', function (): void {
-    [$agent, $chatter] = membershipFixtures();
+it('grants and revokes a chatter access idempotently', function (): void {
+    [$agent, $chatter] = amgFixtures();
 
     $grant = app(GrantAgentMembershipAction::class);
     $grant->execute($agent, $chatter);
@@ -30,24 +30,20 @@ it('grants a chatter access idempotently', function (): void {
 
     expect($agent->chatters()->whereKey($chatter->id)->count())->toBe(1)
         ->and($chatter->canAccessAgent($agent))->toBeTrue();
+
+    $revoke = app(RevokeAgentMembershipAction::class);
+    $revoke->execute($agent, $chatter);
+    $revoke->execute($agent, $chatter);
+
+    expect($agent->chatters()->whereKey($chatter->id)->exists())->toBeFalse();
 });
 
 it('refuses to grant a chatter an agent of another workspace', function (): void {
-    [, $chatter] = membershipFixtures();
+    [, $chatter] = amgFixtures();
     $foreignAgent = Agent::factory()->forOwner(User::factory()->create())->create();
 
     expect(fn () => app(GrantAgentMembershipAction::class)->execute($foreignAgent, $chatter))
         ->toThrow(DomainException::class);
 
     expect($foreignAgent->chatters()->whereKey($chatter->id)->exists())->toBeFalse();
-});
-
-it('revokes a chatter access without touching the account', function (): void {
-    [$agent, $chatter] = membershipFixtures();
-
-    app(GrantAgentMembershipAction::class)->execute($agent, $chatter);
-    app(RevokeAgentMembershipAction::class)->execute($agent, $chatter);
-
-    expect($agent->chatters()->whereKey($chatter->id)->exists())->toBeFalse()
-        ->and(Chatter::query()->whereKey($chatter->id)->exists())->toBeTrue();
 });

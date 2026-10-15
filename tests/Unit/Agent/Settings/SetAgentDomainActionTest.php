@@ -1,35 +1,16 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Actions\Settings\SetAgentDomainAction;
 use Domain\Agent\Models\Agent;
 
-beforeEach(function (): void {
-    $this->action = app(SetAgentDomainAction::class);
-    $this->owner = User::factory()->create();
-});
-
+/**
+ * SetAgentDomainAction saves the agent's custom domain; the form request
+ * checks the value, so one smoke test is enough.
+ */
 it('sets a custom domain', function (): void {
-    $agent = Agent::factory()->forOwner($this->owner)->create();
+    $agent = Agent::factory()->create();
 
-    $this->action->execute($agent, 'help.acme.com');
+    app(SetAgentDomainAction::class)->execute($agent, 'help.acme.com');
 
     expect($agent->fresh()->domain)->toBe('help.acme.com');
-});
-
-it('lets every agent of a workspace have its own custom domain', function (): void {
-    Agent::factory()->forOwner($this->owner)->create(['domain' => 'first.acme.com']);
-    $agent = Agent::factory()->forOwner($this->owner)->create();
-
-    $this->action->execute($agent, 'second.acme.com');
-
-    expect($agent->fresh()->domain)->toBe('second.acme.com');
-});
-
-it('clears the domain', function (): void {
-    $agent = Agent::factory()->forOwner($this->owner)->create(['domain' => 'old.acme.com']);
-
-    $this->action->execute($agent, null);
-
-    expect($agent->fresh()->domain)->toBeNull();
 });

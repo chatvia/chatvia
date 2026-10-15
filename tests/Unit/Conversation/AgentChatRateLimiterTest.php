@@ -107,3 +107,25 @@ it('counts in a fixed window that refused turns do not extend', function (): voi
     $this->travel(31)->seconds();
     expect($this->limiter->exceeded($agent))->toBeFalse();
 });
+
+it('caps each visitor on their own, without counting toward the agent cap', function (): void {
+    $agent = Agent::factory()->create();
+    $agent->setSetting(key: 'visitor_rate_limit_per_minute', value: 2, group: 'security');
+    $agent->setSetting(key: 'chat_rate_limit_per_minute', value: 3, group: 'security');
+
+    expect($this->limiter->visitorExceeded($agent, 'session-a'))->toBeFalse()
+        ->and($this->limiter->visitorExceeded($agent, 'session-a'))->toBeFalse()
+        ->and($this->limiter->visitorExceeded($agent, 'session-a'))->toBeTrue()
+        // Another visitor still gets through.
+        ->and($this->limiter->visitorExceeded($agent, 'session-b'))->toBeFalse()
+        // The refused visitor messages never reached the agent bucket.
+        ->and($this->limiter->exceeded($agent))->toBeFalse();
+});
+
+it('does not cap a turn without a visitor', function (): void {
+    $agent = Agent::factory()->create();
+    $agent->setSetting(key: 'visitor_rate_limit_per_minute', value: 1, group: 'security');
+
+    expect($this->limiter->visitorExceeded($agent, ''))->toBeFalse()
+        ->and($this->limiter->visitorExceeded($agent, ''))->toBeFalse();
+});

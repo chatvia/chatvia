@@ -6,13 +6,19 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\ChatContext;
+use Domain\Guardrail\Services\GuardrailService;
 
 /**
- * Assembles what the LLM receives for a turn: the system prompt (the agent's
- * instructions, the grounding rules, who the visitor is on protected agents,
- * and the business's contact details), then the recent history, then the
- * visitor's message with any retrieved reference material. A voice call gets
- * its own instructions ({@see voicePrompt()}).
+ * Assembles what the LLM receives for a turn: the system prompt (the
+ * guardrails' leak marker, the agent's instructions, the grounding rules, who
+ * the visitor is on protected agents, and the business's contact details),
+ * then the recent history, then the visitor's message with any retrieved
+ * reference material. A voice call gets its own instructions
+ * ({@see voicePrompt()}).
+ *
+ * The leak marker comes first, so a model tricked into dumping its prompt
+ * repeats it and the output guard can replace the answer
+ * ({@see GuardrailService::leakMarker()}).
  *
  * Forms are not listed here: the agent discovers them through the Forms MCP
  * server (find-forms → render-form), so a form only enters the context when
@@ -20,6 +26,10 @@ use Domain\Conversation\Services\ChatContext;
  */
 class SystemPromptBuilder
 {
+    public function __construct(
+        private readonly GuardrailService $guardrails,
+    ) {}
+
     /**
      * The OpenAI-shaped message list for the turn. When the history already
      * ends with the visitor's message it is replaced by the enriched one.
@@ -45,9 +55,11 @@ class SystemPromptBuilder
     public function systemPrompt(StreamRequestData $data): string
     {
         $agent = $data->agent;
+        $marker = $data->guardrailsEnabled ? $this->guardrails->leakMarker($agent) : null;
 
         return $this->withCallerAndBusiness(
-            rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding'),
+            ($marker !== null ? trim(prompt('guardrails/leak-marker', ['marker' => $marker]))."\n\n" : '')
+                .rtrim($agent->resolveSystemInstructions())."\n\n".prompt('knowledge/grounding'),
             $agent,
             $data->chatterName,
         );

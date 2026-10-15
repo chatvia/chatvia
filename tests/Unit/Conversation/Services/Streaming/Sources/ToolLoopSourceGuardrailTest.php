@@ -45,7 +45,7 @@ function tlsGuard(): GuardrailService
     {
         public function __construct() {}
 
-        public function inspectOutput(Agent $agent, string $text): GuardResultData
+        public function inspectOutput(Agent $agent, string $text, ?string $language = null): GuardResultData
         {
             if (! str_contains($text, 'a@b.com')) {
                 return GuardResultData::clean($text);
@@ -244,3 +244,22 @@ it('ends a PDF turn with a clear error, saving nothing, when no LLM can read PDF
         ->and($events[1]->data['message'])->not->toContain('Mistral')
         ->and($replyRecorder->saved->getArrayCopy())->toBe([]);
 });
+
+it('holds the answer until the output guards checked it, then sends it in one piece', function (string $source): void {
+    $context = tlsContext();
+    $context->requestData->agent->setSetting('check_before_showing', true, 'guardrails');
+    $runner = tlsRunner(function (ChatContext $ctx) {
+        $ctx->appendStreamedMessage('Mail me at a@b.com');
+        yield StreamEvent::delta($ctx->assistantMessageId, 'Mail me at a@b.com');
+
+        return false;
+    });
+
+    [$stream] = tlsStream($source, $context, $runner);
+    $events = collect(iterator_to_array($stream, preserve_keys: false));
+    $deltas = $events->filter(fn (StreamEvent $e): bool => $e->type === EventType::Delta)->values();
+
+    expect($deltas)->toHaveCount(1)
+        ->and($deltas[0]->data['text'])->toBe('Mail me at [EMAIL]')
+        ->and($events->contains(fn (StreamEvent $e): bool => $e->type === EventType::Replace))->toBeFalse();
+})->with('tool loop sources');

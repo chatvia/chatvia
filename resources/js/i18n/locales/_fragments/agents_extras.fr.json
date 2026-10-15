@@ -1,7 +1,7 @@
 {
     "agents": {
         "guardrails": {
-            "blocked_topics_dialog_description": "Ajoutez les sujets que l'agent doit refuser d'aborder. Un sujet par ligne est recommandé — restez court et précis.",
+            "blocked_topics_dialog_description": "Sujets dont l’agent ne doit pas parler. Une courte description et quelques exemples de questions aident la vérification à les reconnaître.",
             "topic_placeholder_first": "ex. Politique",
             "topic_placeholder_more": "Ajouter un autre sujet",
             "remove_topic": "Supprimer le sujet",
@@ -10,7 +10,119 @@
             "snippet": "Extrait",
             "detail": "Détail",
             "by_user": "Par {name}",
-            "conversation_trace": "Conversation {conversation} · Trace {trace}"
+            "conversation_trace": "Conversation {conversation} · Trace {trace}",
+            "filter_labels": {
+                "email": "Adresse e-mail",
+                "credit_card": "Carte bancaire",
+                "us_ssn": "Numéro de sécurité sociale américain",
+                "german_ssn": "Numéro de sécurité sociale allemand",
+                "danish_cpr": "Numéro CPR danois",
+                "phone": "Numéro de téléphone",
+                "iban": "Compte bancaire (IBAN)",
+                "uk_nino": "Numéro d’assurance nationale britannique",
+                "ip_address": "Adresse IP"
+            },
+            "outcome_labels": {
+                "blocked": "Bloqué",
+                "redacted": "Masqué",
+                "flagged": "Signalé",
+                "skipped": "Ignoré"
+            },
+            "stage_labels": {
+                "input": "Message",
+                "source": "Connaissances",
+                "output": "Réponse",
+                "tool": "Résultat d’outil"
+            },
+            "severity_labels": {
+                "none": "Aucune",
+                "low": "Faible",
+                "medium": "Moyenne",
+                "high": "Élevée"
+            },
+            "allowlist_title": "Ne jamais masquer",
+            "allowlist_description": "Valeurs que l’agent peut toujours afficher, comme votre e-mail ou numéro de support. Commencez par {'@'} pour autoriser tout un domaine e-mail, par exemple {'@'}acme.com. L’e-mail et le téléphone du profil de l’entreprise sont toujours autorisés.",
+            "allowlist_placeholder_first": "ex. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Ajouter une autre valeur",
+            "add_allowlist_value": "Ajouter une valeur",
+            "remove_allowlist_value": "Supprimer la valeur",
+            "allowlist_count": "{count} valeur jamais masquée | {count} valeurs jamais masquées",
+            "all_guards": "Toutes les protections",
+            "all_outcomes": "Tous les résultats",
+            "refusal_message_help": "Affiché lorsqu’une protection bloque un message. À l’enregistrement, il est traduit dans les langues de votre agent. Laissez vide pour utiliser le message par défaut.",
+            "guard_labels": {
+                "prompt_leak": "Fuite du prompt"
+            },
+            "mode_labels": {
+                "block": "Bloquer",
+                "monitor": "Journaliser seulement"
+            },
+            "sensitivity_labels": {
+                "high": "Élevée : bloque le plus",
+                "medium": "Moyenne",
+                "low": "Faible : bloque le moins"
+            },
+            "pii_action_labels": {
+                "mask": "Masquer",
+                "block": "Bloquer le message"
+            },
+            "topic_action_labels": {
+                "refuse": "Le message de refus",
+                "reply": "Une réponse propre",
+                "handoff": "Une personne de votre équipe"
+            },
+            "detail_labels": {
+                "topic": "Sujet",
+                "types": "Données",
+                "count": "Trouvés",
+                "categories": "Catégories",
+                "tool": "Outil",
+                "pattern": "Règle",
+                "reason": "Raison"
+            },
+            "pii_action": "Action",
+            "pii_action_help": "Masquer cache les données et la conversation continue. Bloquer arrête le message et demande au visiteur de ne pas les partager. Les réponses sont toujours masquées.",
+            "custom_patterns_title": "Vos propres motifs",
+            "custom_patterns_description": "Trouvez d’autres données personnelles, comme un numéro client, avec une expression régulière.",
+            "custom_pattern_name": "Nom",
+            "custom_pattern_name_placeholder": "ex. Numéro client",
+            "custom_pattern": "Motif",
+            "custom_pattern_placeholder": "ex. CLI-[0-9]+",
+            "add_custom_pattern": "Ajouter un motif",
+            "remove_custom_pattern": "Supprimer le motif",
+            "topic_name": "Sujet",
+            "topic_description": "Description",
+            "topic_description_placeholder": "Ce que couvre le sujet (facultatif)",
+            "topic_examples": "Exemples de questions",
+            "topic_examples_placeholder": "Exemples de questions, une par ligne (facultatif)",
+            "topic_action": "Ce que reçoit le visiteur",
+            "topic_handoff_help": "Fonctionne dans le widget de chat quand le chat en direct est activé. Ailleurs, le visiteur reçoit le message de refus.",
+            "topic_handoff_reply_placeholder": "Message pendant la mise en relation (facultatif)",
+            "topic_reply_placeholder": "La réponse que lit le visiteur",
+            "topic_reply": "Réponse",
+            "mode": "Action",
+            "sensitivity": "Sensibilité",
+            "mode_help": "« Journaliser seulement » enregistre ce qu’une protection trouve sans bloquer, pour que vous puissiez vérifier avant que cela touche les visiteurs.",
+            "check_before_showing": "Vérifier les réponses avant de les afficher",
+            "check_before_showing_help": "Le visiteur ne voit une réponse qu’après la vérification des protections. Les réponses apparaissent un peu plus tard, en une fois.",
+            "alert_owner": "M’avertir des attaques par e-mail",
+            "alert_owner_help": "Recevez un e-mail quand l’agent bloque une tentative de contourner ses instructions, ou quand la vérification de sécurité ne peut pas s’exécuter. Au plus un e-mail par heure.",
+            "test_title": "Tester un message",
+            "test_description": "Voyez ce qu’un visiteur recevrait avec les réglages ci-dessus, avant d’enregistrer. Rien n’est conservé.",
+            "test_placeholder": "Saisissez un message à tester",
+            "test_samples": "Essayez :",
+            "test_run": "Tester",
+            "test_error": "Impossible de tester le message. Veuillez réessayer.",
+            "test_blocked": "Bloqué",
+            "test_allowed": "Autorisé",
+            "test_handoff": "La conversation irait à votre équipe.",
+            "test_visitor_sees": "Le visiteur voit",
+            "test_model_reads": "L’agent lit",
+            "test_guards": "Protections",
+            "test_no_guards": "Aucune protection n’a rien trouvé.",
+            "detail_topic": "Sujet : {topic}",
+            "classifier_unavailable": "La vérification de sécurité n’a pas pu s’exécuter, le texte n’a donc pas été vérifié.",
+            "open_conversation": "Ouvrir la conversation"
         },
         "leads": {
             "settings": "Paramètres",

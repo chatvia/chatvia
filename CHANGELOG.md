@@ -187,6 +187,49 @@ theme.
 - Chat lookups (stream, feedback, rename) are scoped to the caller's own
   session, and malformed widget requests are answered with a client error
   instead of a server error.
+- **Guardrails are on by default** for new agents.
+- **Personal-data masking no longer hides normal support data.** Order,
+  invoice and tracking numbers, dates, times and IP addresses are no longer
+  taken for phone numbers. The email and phone in the business profile are
+  never masked, and a new **Never mask** list (in Manage filters) allows
+  more values or a whole email domain.
+- The refusal message is translated into the agent's languages when you save
+  it, and a blocked visitor sees it in their own language.
+- The prompt-injection check reads a message together with the chat before
+  it, and the message is marked as data so it cannot instruct the check.
+- Knowledge chunks are dropped only for clear injection text. Before, help
+  text such as "You are now logged in" removed the chunk from answers.
+- When the safety check cannot run, the Activity log shows **Skipped**, so
+  you can see the message was not checked. Activity can be filtered by guard
+  and outcome.
+- The Chat Widget now shows the checked answer. Before, it kept showing the
+  streamed text when a guardrail masked or replaced the answer.
+- **Tool and MCP results are checked for prompt injection** before the agent
+  reads them. A result with instructions aimed at the agent is withheld.
+- **Answers are checked too**: an answer about a blocked topic or outside the
+  allowed scope is replaced with the refusal, and an answer that repeats the
+  agent's hidden instructions is stopped (a secret marker at the top of the
+  system prompt shows the leak).
+- **Blocked topics** have a description, example questions and a response:
+  the refusal message, a reply of their own (translated), or a hand-off to a
+  person from the team (Chat Widget with live chat on).
+- **Personal data**: new filters for bank accounts (IBAN), UK National
+  Insurance numbers and IP addresses, your own patterns (regular
+  expressions), and a choice per type to mask the data or block the message.
+- Each guard can **log only** instead of blocking, and prompt injection and
+  toxicity have a **sensitivity** setting (low, medium, high).
+- **Test a message** on the Guardrails page shows what a visitor would get
+  with the settings on the page, before you save.
+- **Check answers before showing them**: the visitor sees the answer only
+  after the guards checked it (it then appears all at once).
+- **Email alerts** about blocked attacks and checks that could not run (at
+  most one an hour), and blocked attacks are written to the security audit
+  log (and so to the SIEM webhook).
+- The Activity log shows what a guard found in plain words and links to the
+  conversation.
+- **A rate limit per visitor** (Security → Rate limiting), so one person
+  cannot use up the agent's limit for everyone. The default is 8 messages a
+  minute; it also applies on the messaging channels.
 
 ### Open source
 

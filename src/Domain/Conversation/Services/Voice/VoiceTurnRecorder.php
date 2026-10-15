@@ -65,7 +65,7 @@ final readonly class VoiceTurnRecorder
         $context->resetStreamedMessage();
         $context->appendStreamedMessage($turn->spoken);
 
-        $guard = $this->guardrails->inspectOutput($context->requestData->agent, $turn->spoken);
+        $guard = $this->guardrails->inspectOutput($context->requestData->agent, $turn->spoken, $context->queryLanguage);
 
         if ($guard->triggered()) {
             $context->resetStreamedMessage();

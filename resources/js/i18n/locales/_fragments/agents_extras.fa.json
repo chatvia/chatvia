@@ -1,7 +1,7 @@
 {
     "agents": {
         "guardrails": {
-            "blocked_topics_dialog_description": "موضوعاتی را اضافه کنید که عامل باید از بحث درباره آن‌ها خودداری کند. هر موضوع در یک خط بهتر است — کوتاه و مشخص بنویسید.",
+            "blocked_topics_dialog_description": "موضوعاتی که عامل نباید درباره‌شان صحبت کند. یک توضیح کوتاه و چند پرسش نمونه به بررسی کمک می‌کند آن‌ها را بشناسد.",
             "topic_placeholder_first": "مثلاً سیاست",
             "topic_placeholder_more": "موضوع دیگری اضافه کنید",
             "remove_topic": "حذف موضوع",
@@ -10,7 +10,119 @@
             "snippet": "خلاصه",
             "detail": "جزئیات",
             "by_user": "توسط {name}",
-            "conversation_trace": "مکالمه {conversation} · ردیابی {trace}"
+            "conversation_trace": "مکالمه {conversation} · ردیابی {trace}",
+            "filter_labels": {
+                "email": "نشانی ایمیل",
+                "credit_card": "کارت اعتباری",
+                "us_ssn": "شماره تأمین اجتماعی آمریکا",
+                "german_ssn": "شماره بیمه اجتماعی آلمان",
+                "danish_cpr": "شماره CPR دانمارک",
+                "phone": "شماره تلفن",
+                "iban": "حساب بانکی (IBAN)",
+                "uk_nino": "شماره بیمه ملی بریتانیا",
+                "ip_address": "نشانی IP"
+            },
+            "outcome_labels": {
+                "blocked": "مسدود شد",
+                "redacted": "پوشانده شد",
+                "flagged": "علامت‌گذاری شد",
+                "skipped": "رد شد"
+            },
+            "stage_labels": {
+                "input": "پیام",
+                "source": "دانش",
+                "output": "پاسخ",
+                "tool": "نتیجه ابزار"
+            },
+            "severity_labels": {
+                "none": "هیچ",
+                "low": "کم",
+                "medium": "متوسط",
+                "high": "زیاد"
+            },
+            "allowlist_title": "هرگز نپوشان",
+            "allowlist_description": "مقادیری که عامل همیشه می‌تواند نشان دهد، مانند ایمیل یا شماره تلفن پشتیبانی. با {'@'} شروع کنید تا کل یک دامنه ایمیل مجاز شود، مثلاً {'@'}acme.com. ایمیل و تلفن نمایه کسب‌وکار همیشه مجاز هستند.",
+            "allowlist_placeholder_first": "مثلاً support{'@'}acme.com",
+            "allowlist_placeholder_more": "افزودن مقدار دیگر",
+            "add_allowlist_value": "افزودن مقدار",
+            "remove_allowlist_value": "حذف مقدار",
+            "allowlist_count": "{count} مقدار هرگز پوشانده نمی‌شود | {count} مقدار هرگز پوشانده نمی‌شوند",
+            "all_guards": "همه محافظ‌ها",
+            "all_outcomes": "همه نتایج",
+            "refusal_message_help": "وقتی یک محافظ پیامی را مسدود کند نشان داده می‌شود. هنگام ذخیره به زبان‌های عامل ترجمه می‌شود. برای استفاده از پیام پیش‌فرض خالی بگذارید.",
+            "guard_labels": {
+                "prompt_leak": "نشت دستورالعمل"
+            },
+            "mode_labels": {
+                "block": "مسدود کردن",
+                "monitor": "فقط ثبت"
+            },
+            "sensitivity_labels": {
+                "high": "زیاد: بیشترین مسدودسازی",
+                "medium": "متوسط",
+                "low": "کم: کمترین مسدودسازی"
+            },
+            "pii_action_labels": {
+                "mask": "پوشاندن",
+                "block": "مسدود کردن پیام"
+            },
+            "topic_action_labels": {
+                "refuse": "پیام رد",
+                "reply": "پاسخ اختصاصی",
+                "handoff": "یکی از اعضای تیم شما"
+            },
+            "detail_labels": {
+                "topic": "موضوع",
+                "types": "داده",
+                "count": "تعداد",
+                "categories": "دسته‌ها",
+                "tool": "ابزار",
+                "pattern": "قاعده",
+                "reason": "دلیل"
+            },
+            "pii_action": "چه اتفاقی بیفتد",
+            "pii_action_help": "پوشاندن داده را پنهان می‌کند و گفتگو ادامه می‌یابد. مسدود کردن پیام را متوقف می‌کند و از بازدیدکننده می‌خواهد آن را به اشتراک نگذارد. پاسخ‌ها همیشه پوشانده می‌شوند.",
+            "custom_patterns_title": "الگوهای خودتان",
+            "custom_patterns_description": "داده‌های شخصی دیگر، مانند شماره مشتری، را با یک عبارت منظم پیدا کنید.",
+            "custom_pattern_name": "نام",
+            "custom_pattern_name_placeholder": "مثلاً شماره مشتری",
+            "custom_pattern": "الگو",
+            "custom_pattern_placeholder": "مثلاً CUST-[0-9]+",
+            "add_custom_pattern": "افزودن الگو",
+            "remove_custom_pattern": "حذف الگو",
+            "topic_name": "موضوع",
+            "topic_description": "توضیح",
+            "topic_description_placeholder": "موضوع شامل چه چیزی است (اختیاری)",
+            "topic_examples": "پرسش‌های نمونه",
+            "topic_examples_placeholder": "پرسش‌های نمونه، هر کدام در یک خط (اختیاری)",
+            "topic_action": "بازدیدکننده چه دریافت می‌کند",
+            "topic_handoff_help": "در ابزارک گفتگو، وقتی گفتگوی زنده روشن است، کار می‌کند. در جاهای دیگر بازدیدکننده پیام رد را می‌بیند.",
+            "topic_handoff_reply_placeholder": "پیام هنگام اتصال (اختیاری)",
+            "topic_reply_placeholder": "پاسخی که بازدیدکننده می‌خواند",
+            "topic_reply": "پاسخ",
+            "mode": "چه اتفاقی می‌افتد",
+            "sensitivity": "حساسیت",
+            "mode_help": "«فقط ثبت» آنچه را محافظ پیدا می‌کند بدون مسدود کردن ثبت می‌کند تا پیش از اثر گذاشتن بر بازدیدکنندگان آن را بررسی کنید.",
+            "check_before_showing": "بررسی پاسخ‌ها پیش از نمایش",
+            "check_before_showing_help": "بازدیدکننده پاسخ را فقط پس از بررسی محافظ‌ها می‌بیند. پاسخ‌ها کمی دیرتر و یکجا نمایش داده می‌شوند.",
+            "alert_owner": "درباره حمله‌ها به من ایمیل بزن",
+            "alert_owner_help": "وقتی عامل تلاشی برای دور زدن دستورالعمل‌هایش را مسدود می‌کند یا بررسی امنیتی نمی‌تواند اجرا شود، ایمیل دریافت کنید. حداکثر یک ایمیل در ساعت.",
+            "test_title": "آزمایش یک پیام",
+            "test_description": "ببینید بازدیدکننده با تنظیمات بالا پیش از ذخیره چه دریافت می‌کند. چیزی ذخیره نمی‌شود.",
+            "test_placeholder": "پیامی برای آزمایش بنویسید",
+            "test_samples": "امتحان کنید:",
+            "test_run": "آزمایش",
+            "test_error": "آزمایش پیام ممکن نشد. لطفاً دوباره تلاش کنید.",
+            "test_blocked": "مسدود شد",
+            "test_allowed": "مجاز",
+            "test_handoff": "گفتگو به تیم شما منتقل می‌شد.",
+            "test_visitor_sees": "بازدیدکننده می‌بیند",
+            "test_model_reads": "عامل می‌خواند",
+            "test_guards": "محافظ‌ها",
+            "test_no_guards": "هیچ محافظی چیزی پیدا نکرد.",
+            "detail_topic": "موضوع: {topic}",
+            "classifier_unavailable": "بررسی امنیتی نتوانست اجرا شود، پس متن بررسی نشد.",
+            "open_conversation": "باز کردن گفتگو"
         },
         "leads": {
             "settings": "تنظیمات",

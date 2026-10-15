@@ -605,7 +605,7 @@
             "allowed_scope_placeholder": "e.g. Answer questions about our products, pricing, and shipping only.",
             "allowed_scope_help": "Describe what the agent is allowed to help with. Leave empty to allow any on-topic question.",
             "refusal_message": "Refusal message",
-            "refusal_message_placeholder": "I'm not able to help with that.",
+            "refusal_message_placeholder": "Sorry, I can’t help with that request.",
             "save": "Save",
             "saved": "Guardrails saved",
             "save_error": "Could not save guardrails. Please try again.",
@@ -628,7 +628,7 @@
                 "severity": "Severity",
                 "when": "When"
             },
-            "blocked_topics_dialog_description": "Add topics the agent should refuse to discuss. One topic per line works best — keep them short and specific.",
+            "blocked_topics_dialog_description": "Topics the agent must not discuss. A short description and a few example questions help the check find them.",
             "topic_placeholder_first": "e.g. Politics",
             "topic_placeholder_more": "Add another topic",
             "remove_topic": "Remove topic",
@@ -639,15 +639,125 @@
             "by_user": "By {name}",
             "conversation_trace": "Conversation {conversation} · Trace {trace}",
             "injection_label": "Prompt injection detection",
-            "injection_help": "Detect and block attempts to override the agent's instructions or extract its system prompt.",
+            "injection_help": "Detect and block attempts to override the agent's instructions or reveal them, in messages, knowledge and tool results.",
             "toxicity_label": "Toxicity filtering",
             "toxicity_help": "Detect and block toxic, hateful, or abusive language in messages.",
             "guard_labels": {
                 "prompt_injection": "Prompt injection",
                 "pii": "PII",
                 "blocked_topic": "Blocked topic",
-                "toxicity": "Toxicity"
-            }
+                "toxicity": "Toxicity",
+                "prompt_leak": "Prompt leak"
+            },
+            "filter_labels": {
+                "email": "Email address",
+                "credit_card": "Credit card",
+                "us_ssn": "US Social Security Number",
+                "german_ssn": "German social-insurance number",
+                "danish_cpr": "Danish CPR number",
+                "phone": "Phone number",
+                "iban": "Bank account (IBAN)",
+                "uk_nino": "UK National Insurance number",
+                "ip_address": "IP address"
+            },
+            "outcome_labels": {
+                "blocked": "Blocked",
+                "redacted": "Redacted",
+                "flagged": "Flagged",
+                "skipped": "Skipped"
+            },
+            "stage_labels": {
+                "input": "Message",
+                "source": "Knowledge",
+                "output": "Answer",
+                "tool": "Tool result"
+            },
+            "severity_labels": {
+                "none": "None",
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High"
+            },
+            "allowlist_title": "Never mask",
+            "allowlist_description": "Values the agent may always show, like your support email or phone number. Start with {'@'} to allow a whole email domain, for example {'@'}acme.com. The email and phone in the business profile are always allowed.",
+            "allowlist_placeholder_first": "e.g. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Add another value",
+            "add_allowlist_value": "Add value",
+            "remove_allowlist_value": "Remove value",
+            "allowlist_count": "{count} value never masked | {count} values never masked",
+            "all_guards": "All guards",
+            "all_outcomes": "All outcomes",
+            "refusal_message_help": "Shown when a guard blocks a message. Saving translates it into your agent's languages. Leave it empty to use the default message.",
+            "mode_labels": {
+                "block": "Block",
+                "monitor": "Log only"
+            },
+            "sensitivity_labels": {
+                "high": "High: blocks the most",
+                "medium": "Medium",
+                "low": "Low: blocks the least"
+            },
+            "pii_action_labels": {
+                "mask": "Mask",
+                "block": "Block message"
+            },
+            "topic_action_labels": {
+                "refuse": "The refusal message",
+                "reply": "A reply of its own",
+                "handoff": "A person from your team"
+            },
+            "detail_labels": {
+                "topic": "Topic",
+                "types": "Data",
+                "count": "Found",
+                "categories": "Categories",
+                "tool": "Tool",
+                "pattern": "Rule",
+                "reason": "Reason"
+            },
+            "pii_action": "What to do",
+            "pii_action_help": "Mask hides the data and the chat goes on. Block stops the message and asks the visitor not to share it. Answers are always masked.",
+            "custom_patterns_title": "Your own patterns",
+            "custom_patterns_description": "Find other personal data, such as a customer number, with a regular expression.",
+            "custom_pattern_name": "Name",
+            "custom_pattern_name_placeholder": "e.g. Customer number",
+            "custom_pattern": "Pattern",
+            "custom_pattern_placeholder": "e.g. CUST-[0-9]+",
+            "add_custom_pattern": "Add pattern",
+            "remove_custom_pattern": "Remove pattern",
+            "topic_name": "Topic",
+            "topic_description": "Description",
+            "topic_description_placeholder": "What the topic covers (optional)",
+            "topic_examples": "Example questions",
+            "topic_examples_placeholder": "Example questions, one per line (optional)",
+            "topic_action": "What the visitor gets",
+            "topic_handoff_help": "Works in the Chat Widget when live chat is on. Elsewhere the visitor gets the refusal message.",
+            "topic_handoff_reply_placeholder": "Message while we connect them (optional)",
+            "topic_reply_placeholder": "The reply the visitor reads",
+            "topic_reply": "Reply",
+            "mode": "What happens",
+            "sensitivity": "Sensitivity",
+            "mode_help": "Log only records what a guard finds without blocking, so you can check it before it affects visitors.",
+            "check_before_showing": "Check answers before showing them",
+            "check_before_showing_help": "The visitor sees an answer only after the guards checked it. Answers appear a little later, all at once.",
+            "alert_owner": "Email me about attacks",
+            "alert_owner_help": "Get an email when the agent blocks an attempt to override its instructions, or when the safety check cannot run. At most one email per hour.",
+            "test_title": "Test a message",
+            "test_description": "See what a visitor would get with the settings above, before you save. Nothing is stored.",
+            "test_placeholder": "Type a message to test",
+            "test_samples": "Try:",
+            "test_run": "Test",
+            "test_error": "Could not test the message. Please try again.",
+            "test_blocked": "Blocked",
+            "test_allowed": "Allowed",
+            "test_handoff": "The chat would go to your team.",
+            "test_visitor_sees": "The visitor sees",
+            "test_model_reads": "The agent reads",
+            "test_guards": "Guards",
+            "test_no_guards": "No guard found anything.",
+            "detail_topic": "Topic: {topic}",
+            "classifier_unavailable": "The safety check could not run, so the text was not checked.",
+            "open_conversation": "Open conversation"
         },
         "persona": {
             "title": "Persona",
@@ -918,15 +1028,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Rate limiting",
-                "subtitle": "Limit how many messages a single visitor can send per minute.",
-                "card_description": "Protect your agent from abuse by capping message frequency per visitor.",
-                "messages_per_minute": "Messages per minute",
-                "default_hint": "Leave empty to use the platform default.",
+                "subtitle": "Limit how many messages your agent answers per minute, and how many one visitor can send.",
+                "card_description": "Protect your agent from abuse and unexpected costs.",
+                "messages_per_minute": "Messages per minute (all visitors)",
+                "default_hint": "The most messages the agent answers per minute, across all visitors.",
                 "notify_label": "Notify me when limit is hit",
-                "notify_hint": "Receive an email when a visitor reaches the rate limit.",
+                "notify_hint": "Receive an email when the agent reaches this limit.",
                 "save": "Save",
                 "saved": "Rate limit saved",
-                "save_error": "Could not save rate limit. Please try again."
+                "save_error": "Could not save rate limit. Please try again.",
+                "visitor_messages_per_minute": "Messages per minute (one visitor)",
+                "visitor_hint": "The most messages one visitor can send per minute. A visitor over it has to wait, while others keep chatting."
             }
         },
         "tone": {

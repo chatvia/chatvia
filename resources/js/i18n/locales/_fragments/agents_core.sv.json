@@ -333,7 +333,7 @@
                 "when": "När"
             },
             "injection_label": "Identifiering av prompt-injektion",
-            "injection_help": "Identifiera och blockera försök att åsidosätta agentens instruktioner eller extrahera dess systemprompt.",
+            "injection_help": "Upptäcker och blockerar försök att kringgå eller avslöja agentens instruktioner, i meddelanden, kunskap och verktygsresultat.",
             "toxicity_label": "Toxicitetsfiltrering",
             "toxicity_help": "Identifiera och blockera toxiskt, hatiskt eller kränkande språk i meddelanden.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Hastighetsbegränsning",
-                "subtitle": "Begränsa hur många meddelanden en enskild besökare kan skicka per minut.",
-                "card_description": "Skydda din agent från missbruk genom att begränsa meddelandefrekvensen per besökare.",
-                "messages_per_minute": "Meddelanden per minut",
-                "default_hint": "Lämna tomt för att använda plattformens standard.",
+                "subtitle": "Begränsa hur många meddelanden din agent svarar på per minut och hur många en besökare kan skicka.",
+                "card_description": "Skydda din agent mot missbruk och oväntade kostnader.",
+                "messages_per_minute": "Meddelanden per minut (alla besökare)",
+                "default_hint": "Flest meddelanden som agenten svarar på per minut, för alla besökare.",
                 "notify_label": "Meddela mig när gränsen nås",
-                "notify_hint": "Få ett e-postmeddelande när en besökare når hastighetsgränsen.",
+                "notify_hint": "Få ett mejl när agenten når den här gränsen.",
                 "save": "Spara",
                 "saved": "Hastighetsgräns sparad",
-                "save_error": "Det gick inte att spara hastighetsgränsen. Försök igen."
+                "save_error": "Det gick inte att spara hastighetsgränsen. Försök igen.",
+                "visitor_messages_per_minute": "Meddelanden per minut (en besökare)",
+                "visitor_hint": "Flest meddelanden som en besökare kan skicka per minut. Den som går över får vänta, medan andra chattar vidare."
             }
         },
         "tone": {

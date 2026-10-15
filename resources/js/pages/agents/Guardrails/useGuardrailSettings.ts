@@ -17,38 +17,83 @@ interface Options {
     defaultFilters: string[];
 }
 
-/** The two simple on/off guards shown under the PII guard. */
+/** The two classifier guards shown under the PII guard, each with a mode and a sensitivity. */
 export const GUARDS = [
     {
         key: 'injection' as const,
+        mode: 'injection_mode' as const,
+        sensitivity: 'injection_sensitivity' as const,
         label: 'agents.guardrails.injection_label',
         help: 'agents.guardrails.injection_help',
     },
-    { key: 'toxicity' as const, label: 'agents.guardrails.toxicity_label', help: 'agents.guardrails.toxicity_help' },
+    {
+        key: 'toxicity' as const,
+        mode: 'toxicity_mode' as const,
+        sensitivity: 'toxicity_sensitivity' as const,
+        label: 'agents.guardrails.toxicity_label',
+        help: 'agents.guardrails.toxicity_help',
+    },
 ];
+
+/**
+ * A deep copy of the form's fields, so the form never shares arrays with the
+ * props. Only the fields the form edits are kept; the stored translations stay
+ * on the server, which makes them on save.
+ */
+function copy(settings: GuardSettings): GuardSettings {
+    return {
+        enabled: settings.enabled,
+        filters: [...settings.filters],
+        pii_actions: { ...settings.pii_actions },
+        custom_patterns: settings.custom_patterns.map(({ name, pattern, action }) => ({ name, pattern, action })),
+        allowlist: [...settings.allowlist],
+        injection: settings.injection,
+        injection_mode: settings.injection_mode,
+        injection_sensitivity: settings.injection_sensitivity,
+        toxicity: settings.toxicity,
+        toxicity_mode: settings.toxicity_mode,
+        toxicity_sensitivity: settings.toxicity_sensitivity,
+        blocked_topics: settings.blocked_topics.map(({ name, description, examples, action, reply }) => ({
+            name,
+            description,
+            examples: [...examples],
+            action,
+            reply,
+        })),
+        allowed_scope: settings.allowed_scope,
+        topics_mode: settings.topics_mode,
+        refusal_message: settings.refusal_message,
+        check_before_showing: settings.check_before_showing,
+        alert_owner: settings.alert_owner,
+    };
+}
+
+/** The form data as the server expects it: trimmed, blanks dropped. */
+export function payload(d: GuardSettings): GuardSettings {
+    return {
+        ...copy(d),
+        allowlist: d.allowlist.map((value) => value.trim()).filter(Boolean),
+        blocked_topics: d.blocked_topics
+            .map((topic) => ({
+                ...topic,
+                name: topic.name.trim(),
+                description: topic.description?.trim() || null,
+                examples: topic.examples.map((example) => example.trim()).filter(Boolean),
+                reply: topic.reply?.trim() || null,
+            }))
+            .filter((topic) => topic.name !== ''),
+        custom_patterns: d.custom_patterns
+            .map((pattern) => ({ ...pattern, name: pattern.name.trim() }))
+            .filter((pattern) => pattern.name !== '' && pattern.pattern !== ''),
+    };
+}
 
 export function useGuardrailSettings(props: Options, canManage: Ref<boolean>) {
     const { t } = useI18n();
 
-    const form = useForm({
-        enabled: props.settings.enabled,
-        filters: [...props.settings.filters],
-        injection: props.settings.injection,
-        toxicity: props.settings.toxicity,
-        blocked_topics: [...props.settings.blocked_topics],
-        allowed_scope: props.settings.allowed_scope,
-        refusal_message: props.settings.refusal_message,
-    });
+    const form = useForm<GuardSettings>(copy(props.settings));
 
-    form.transform((d) => ({
-        enabled: d.enabled,
-        filters: [...d.filters],
-        injection: d.injection,
-        toxicity: d.toxicity,
-        blocked_topics: d.blocked_topics.map((topic) => topic.trim()).filter(Boolean),
-        allowed_scope: d.allowed_scope,
-        refusal_message: d.refusal_message,
-    }));
+    form.transform((d) => payload(d));
 
     const save = () => {
         form.post(updateGuardrails.url(props.agent.external_id), {
@@ -60,7 +105,7 @@ export function useGuardrailSettings(props: Options, canManage: Ref<boolean>) {
 
     // Toggle a boolean field — bound to the whole row's click so the label and
     // description area are part of the hit target, not just the switch.
-    const toggle = (key: 'enabled' | 'injection' | 'toxicity') => {
+    const toggle = (key: 'enabled' | 'injection' | 'toxicity' | 'check_before_showing' | 'alert_owner') => {
         if (canManage.value) form[key] = !form[key];
     };
 

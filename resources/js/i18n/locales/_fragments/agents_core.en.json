@@ -310,7 +310,7 @@
             "allowed_scope_placeholder": "e.g. Answer questions about our products, pricing, and shipping only.",
             "allowed_scope_help": "Describe what the agent is allowed to help with. Leave empty to allow any on-topic question.",
             "refusal_message": "Refusal message",
-            "refusal_message_placeholder": "I'm not able to help with that.",
+            "refusal_message_placeholder": "Sorry, I can’t help with that request.",
             "save": "Save",
             "saved": "Guardrails saved",
             "save_error": "Could not save guardrails. Please try again.",
@@ -334,7 +334,7 @@
                 "when": "When"
             },
             "injection_label": "Prompt injection detection",
-            "injection_help": "Detect and block attempts to override the agent's instructions or extract its system prompt.",
+            "injection_help": "Detect and block attempts to override the agent's instructions or reveal them, in messages, knowledge and tool results.",
             "toxicity_label": "Toxicity filtering",
             "toxicity_help": "Detect and block toxic, hateful, or abusive language in messages.",
             "guard_labels": {
@@ -486,15 +486,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Rate limiting",
-                "subtitle": "Limit how many messages a single visitor can send per minute.",
-                "card_description": "Protect your agent from abuse by capping message frequency per visitor.",
-                "messages_per_minute": "Messages per minute",
-                "default_hint": "Leave empty to use the platform default.",
+                "subtitle": "Limit how many messages your agent answers per minute, and how many one visitor can send.",
+                "card_description": "Protect your agent from abuse and unexpected costs.",
+                "messages_per_minute": "Messages per minute (all visitors)",
+                "default_hint": "The most messages the agent answers per minute, across all visitors.",
                 "notify_label": "Notify me when limit is hit",
-                "notify_hint": "Receive an email when a visitor reaches the rate limit.",
+                "notify_hint": "Receive an email when the agent reaches this limit.",
                 "save": "Save",
                 "saved": "Rate limit saved",
-                "save_error": "Could not save rate limit. Please try again."
+                "save_error": "Could not save rate limit. Please try again.",
+                "visitor_messages_per_minute": "Messages per minute (one visitor)",
+                "visitor_hint": "The most messages one visitor can send per minute. A visitor over it has to wait, while others keep chatting."
             }
         },
         "tone": {

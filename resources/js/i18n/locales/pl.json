@@ -628,7 +628,7 @@
                 "severity": "Stopień ważności",
                 "when": "Kiedy"
             },
-            "blocked_topics_dialog_description": "Dodaj tematy, których agent powinien odmówić omawiania. Najlepiej sprawdza się jeden temat w wierszu — zachowaj je krótkie i konkretne.",
+            "blocked_topics_dialog_description": "Tematy, o których agent nie może rozmawiać. Krótki opis i kilka przykładowych pytań pomagają kontroli je rozpoznać.",
             "topic_placeholder_first": "np. Polityka",
             "topic_placeholder_more": "Dodaj kolejny temat",
             "remove_topic": "Usuń temat",
@@ -639,15 +639,125 @@
             "by_user": "Przez {name}",
             "conversation_trace": "Konwersacja {conversation} · Ślad {trace}",
             "injection_label": "Wykrywanie wstrzykiwania promptów",
-            "injection_help": "Wykrywaj i blokuj próby przesłonięcia instrukcji agenta lub wyciągnięcia jego promptu systemowego.",
+            "injection_help": "Wykrywa i blokuje próby obejścia lub ujawnienia instrukcji agenta w wiadomościach, wiedzy i wynikach narzędzi.",
             "toxicity_label": "Filtrowanie toksyczności",
             "toxicity_help": "Wykrywaj i blokuj toksyczne, nienawistne lub obraźliwe treści w wiadomościach.",
             "guard_labels": {
                 "prompt_injection": "Wstrzykiwanie promptu",
                 "pii": "PII",
                 "blocked_topic": "Zablokowany temat",
-                "toxicity": "Toksyczność"
-            }
+                "toxicity": "Toksyczność",
+                "prompt_leak": "Wyciek promptu"
+            },
+            "filter_labels": {
+                "email": "Adres e-mail",
+                "credit_card": "Karta kredytowa",
+                "us_ssn": "Amerykański numer SSN",
+                "german_ssn": "Niemiecki numer ubezpieczenia społecznego",
+                "danish_cpr": "Duński numer CPR",
+                "phone": "Numer telefonu",
+                "iban": "Konto bankowe (IBAN)",
+                "uk_nino": "Brytyjski numer National Insurance",
+                "ip_address": "Adres IP"
+            },
+            "outcome_labels": {
+                "blocked": "Zablokowano",
+                "redacted": "Zamaskowano",
+                "flagged": "Oznaczono",
+                "skipped": "Pominięto"
+            },
+            "stage_labels": {
+                "input": "Wiadomość",
+                "source": "Wiedza",
+                "output": "Odpowiedź",
+                "tool": "Wynik narzędzia"
+            },
+            "severity_labels": {
+                "none": "Brak",
+                "low": "Niska",
+                "medium": "Średnia",
+                "high": "Wysoka"
+            },
+            "allowlist_title": "Nigdy nie maskuj",
+            "allowlist_description": "Wartości, które agent zawsze może pokazać, np. e-mail lub telefon wsparcia. Zacznij od {'@'}, aby zezwolić na całą domenę e-mail, np. {'@'}acme.com. E-mail i telefon z profilu firmy są zawsze dozwolone.",
+            "allowlist_placeholder_first": "np. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Dodaj kolejną wartość",
+            "add_allowlist_value": "Dodaj wartość",
+            "remove_allowlist_value": "Usuń wartość",
+            "allowlist_count": "{count} wartość nigdy nie jest maskowana | Wartości nigdy niemaskowane: {count}",
+            "all_guards": "Wszystkie zabezpieczenia",
+            "all_outcomes": "Wszystkie wyniki",
+            "refusal_message_help": "Wyświetlana, gdy zabezpieczenie zablokuje wiadomość. Po zapisaniu zostaje przetłumaczona na języki agenta. Zostaw puste, aby użyć domyślnej wiadomości.",
+            "mode_labels": {
+                "block": "Blokuj",
+                "monitor": "Tylko zapisuj"
+            },
+            "sensitivity_labels": {
+                "high": "Wysoka: blokuje najwięcej",
+                "medium": "Średnia",
+                "low": "Niska: blokuje najmniej"
+            },
+            "pii_action_labels": {
+                "mask": "Maskuj",
+                "block": "Blokuj wiadomość"
+            },
+            "topic_action_labels": {
+                "refuse": "Wiadomość odmowy",
+                "reply": "Własna odpowiedź",
+                "handoff": "Osoba z Twojego zespołu"
+            },
+            "detail_labels": {
+                "topic": "Temat",
+                "types": "Dane",
+                "count": "Znaleziono",
+                "categories": "Kategorie",
+                "tool": "Narzędzie",
+                "pattern": "Reguła",
+                "reason": "Powód"
+            },
+            "pii_action": "Co zrobić",
+            "pii_action_help": "Maskowanie ukrywa dane, a czat trwa dalej. Blokowanie zatrzymuje wiadomość i prosi odwiedzającego, by ich nie udostępniał. Odpowiedzi są zawsze maskowane.",
+            "custom_patterns_title": "Własne wzorce",
+            "custom_patterns_description": "Znajduj inne dane osobowe, np. numer klienta, za pomocą wyrażenia regularnego.",
+            "custom_pattern_name": "Nazwa",
+            "custom_pattern_name_placeholder": "np. Numer klienta",
+            "custom_pattern": "Wzorzec",
+            "custom_pattern_placeholder": "np. KL-[0-9]+",
+            "add_custom_pattern": "Dodaj wzorzec",
+            "remove_custom_pattern": "Usuń wzorzec",
+            "topic_name": "Temat",
+            "topic_description": "Opis",
+            "topic_description_placeholder": "Czego dotyczy temat (opcjonalnie)",
+            "topic_examples": "Przykładowe pytania",
+            "topic_examples_placeholder": "Przykładowe pytania, jedno w wierszu (opcjonalnie)",
+            "topic_action": "Co dostaje odwiedzający",
+            "topic_handoff_help": "Działa w widżecie czatu, gdy czat na żywo jest włączony. W innych miejscach odwiedzający dostaje wiadomość odmowy.",
+            "topic_handoff_reply_placeholder": "Wiadomość podczas łączenia (opcjonalnie)",
+            "topic_reply_placeholder": "Odpowiedź, którą czyta odwiedzający",
+            "topic_reply": "Odpowiedź",
+            "mode": "Co się dzieje",
+            "sensitivity": "Czułość",
+            "mode_help": "„Tylko zapisuj” rejestruje, co znajdzie zabezpieczenie, bez blokowania, aby można było to sprawdzić, zanim wpłynie na odwiedzających.",
+            "check_before_showing": "Sprawdzaj odpowiedzi przed pokazaniem",
+            "check_before_showing_help": "Odwiedzający widzi odpowiedź dopiero po sprawdzeniu przez zabezpieczenia. Odpowiedzi pojawiają się nieco później i od razu w całości.",
+            "alert_owner": "Powiadamiaj mnie e-mailem o atakach",
+            "alert_owner_help": "Otrzymuj e-mail, gdy agent zablokuje próbę obejścia jego instrukcji lub gdy kontrola bezpieczeństwa nie może się uruchomić. Najwyżej jeden e-mail na godzinę.",
+            "test_title": "Przetestuj wiadomość",
+            "test_description": "Zobacz, co dostałby odwiedzający przy powyższych ustawieniach, zanim zapiszesz. Nic nie jest zapisywane.",
+            "test_placeholder": "Wpisz wiadomość do przetestowania",
+            "test_samples": "Wypróbuj:",
+            "test_run": "Testuj",
+            "test_error": "Nie udało się przetestować wiadomości. Spróbuj ponownie.",
+            "test_blocked": "Zablokowano",
+            "test_allowed": "Dozwolono",
+            "test_handoff": "Czat trafiłby do Twojego zespołu.",
+            "test_visitor_sees": "Odwiedzający widzi",
+            "test_model_reads": "Agent czyta",
+            "test_guards": "Zabezpieczenia",
+            "test_no_guards": "Żadne zabezpieczenie niczego nie znalazło.",
+            "detail_topic": "Temat: {topic}",
+            "classifier_unavailable": "Kontrola bezpieczeństwa nie mogła się uruchomić, więc tekst nie został sprawdzony.",
+            "open_conversation": "Otwórz rozmowę"
         },
         "persona": {
             "title": "Persona",
@@ -918,15 +1028,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Ograniczanie liczby żądań",
-                "subtitle": "Ogranicz liczbę wiadomości, które pojedynczy odwiedzający może wysłać na minutę.",
-                "card_description": "Chroń agenta przed nadużyciami, ograniczając częstotliwość wiadomości na odwiedzającego.",
-                "messages_per_minute": "Wiadomości na minutę",
-                "default_hint": "Pozostaw puste, aby użyć domyślnej wartości platformy.",
+                "subtitle": "Ogranicz, na ile wiadomości agent odpowiada na minutę i ile może wysłać jeden odwiedzający.",
+                "card_description": "Chroń agenta przed nadużyciami i nieoczekiwanymi kosztami.",
+                "messages_per_minute": "Wiadomości na minutę (wszyscy odwiedzający)",
+                "default_hint": "Najwięcej wiadomości, na które agent odpowiada na minutę, łącznie dla wszystkich odwiedzających.",
                 "notify_label": "Powiadamiaj mnie po osiągnięciu limitu",
-                "notify_hint": "Otrzymuj e-mail, gdy odwiedzający osiągnie limit liczby żądań.",
+                "notify_hint": "Otrzymuj e-mail, gdy agent osiągnie ten limit.",
                 "save": "Zapisz",
                 "saved": "Limit zapisany",
-                "save_error": "Nie udało się zapisać limitu. Spróbuj ponownie."
+                "save_error": "Nie udało się zapisać limitu. Spróbuj ponownie.",
+                "visitor_messages_per_minute": "Wiadomości na minutę (jeden odwiedzający)",
+                "visitor_hint": "Najwięcej wiadomości, które jeden odwiedzający może wysłać na minutę. Kto go przekroczy, musi poczekać, a inni rozmawiają dalej."
             }
         },
         "tone": {

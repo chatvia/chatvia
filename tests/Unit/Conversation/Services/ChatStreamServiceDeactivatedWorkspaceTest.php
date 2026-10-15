@@ -60,7 +60,7 @@ it('lets the turn through again once the workspace is reactivated', function ():
     deactivateWorkspaceOf($agent);
     reactivateWorkspaceOf($agent);
     // The next gate refuses every turn, so a turn past this one ends there.
-    $this->mock(AgentChatRateLimiter::class)->shouldReceive('exceeded')->andReturnTrue();
+    $this->mock(AgentChatRateLimiter::class)->shouldReceive('visitorExceeded')->andReturnFalse()->getMock()->shouldReceive('exceeded')->andReturnTrue();
 
     expect(array_column(deactivatedStreamErrors($agent), 'code'))->toBe([ErrorCode::RateLimited->value]);
 });

@@ -47,6 +47,8 @@ enum SecurityAuditAction: string
     case ScimUserDeprovisioned = 'scim.user.deprovisioned';
     case ScimGroupChanged = 'scim.group.changed';
 
+    case GuardrailAttackBlocked = 'guardrail.attack_blocked';
+
     public function label(): string
     {
         return match ($this) {
@@ -74,6 +76,7 @@ enum SecurityAuditAction: string
             self::ScimUserProvisioned => 'User provisioned (SCIM)',
             self::ScimUserDeprovisioned => 'User deprovisioned (SCIM)',
             self::ScimGroupChanged => 'Group changed (SCIM)',
+            self::GuardrailAttackBlocked => 'Attack blocked by guardrails',
         };
     }
 
@@ -107,6 +110,8 @@ enum SecurityAuditAction: string
             self::DataExported,
             self::DataDeletionRequested,
             self::AuditExported => SecurityAuditCategory::Data,
+
+            self::GuardrailAttackBlocked => SecurityAuditCategory::Threat,
         };
     }
 }

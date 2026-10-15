@@ -628,7 +628,7 @@
                 "severity": "Gravedad",
                 "when": "Cuándo"
             },
-            "blocked_topics_dialog_description": "Agrega temas que el agente debe negarse a tratar. Un tema por línea funciona mejor — mantenlos cortos y específicos.",
+            "blocked_topics_dialog_description": "Temas de los que el agente no debe hablar. Una breve descripción y algunas preguntas de ejemplo ayudan a la comprobación a reconocerlos.",
             "topic_placeholder_first": "ej. Política",
             "topic_placeholder_more": "Agregar otro tema",
             "remove_topic": "Eliminar tema",
@@ -639,15 +639,125 @@
             "by_user": "Por {name}",
             "conversation_trace": "Conversación {conversation} · Traza {trace}",
             "injection_label": "Detección de inyección de instrucciones",
-            "injection_help": "Detecta y bloquea intentos de anular las instrucciones del agente o extraer su instrucción de sistema.",
+            "injection_help": "Detecta y bloquea los intentos de saltarse o revelar las instrucciones del agente, en mensajes, conocimiento y resultados de herramientas.",
             "toxicity_label": "Filtrado de toxicidad",
             "toxicity_help": "Detecta y bloquea lenguaje tóxico, de odio o abusivo en los mensajes.",
             "guard_labels": {
                 "prompt_injection": "Inyección de instrucciones",
                 "pii": "PII",
                 "blocked_topic": "Tema bloqueado",
-                "toxicity": "Toxicidad"
-            }
+                "toxicity": "Toxicidad",
+                "prompt_leak": "Filtración del prompt"
+            },
+            "filter_labels": {
+                "email": "Correo electrónico",
+                "credit_card": "Tarjeta de crédito",
+                "us_ssn": "Número de Seguro Social de EE. UU.",
+                "german_ssn": "Número de la seguridad social alemana",
+                "danish_cpr": "Número CPR danés",
+                "phone": "Número de teléfono",
+                "iban": "Cuenta bancaria (IBAN)",
+                "uk_nino": "Número de Seguro Nacional del Reino Unido",
+                "ip_address": "Dirección IP"
+            },
+            "outcome_labels": {
+                "blocked": "Bloqueado",
+                "redacted": "Ocultado",
+                "flagged": "Marcado",
+                "skipped": "Omitido"
+            },
+            "stage_labels": {
+                "input": "Mensaje",
+                "source": "Conocimiento",
+                "output": "Respuesta",
+                "tool": "Resultado de herramienta"
+            },
+            "severity_labels": {
+                "none": "Ninguna",
+                "low": "Baja",
+                "medium": "Media",
+                "high": "Alta"
+            },
+            "allowlist_title": "No ocultar nunca",
+            "allowlist_description": "Valores que el agente siempre puede mostrar, como tu correo o teléfono de soporte. Empieza con {'@'} para permitir todo un dominio de correo, por ejemplo {'@'}acme.com. El correo y el teléfono del perfil de la empresa siempre están permitidos.",
+            "allowlist_placeholder_first": "p. ej. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Añadir otro valor",
+            "add_allowlist_value": "Añadir valor",
+            "remove_allowlist_value": "Quitar valor",
+            "allowlist_count": "{count} valor nunca se oculta | {count} valores nunca se ocultan",
+            "all_guards": "Todas las protecciones",
+            "all_outcomes": "Todos los resultados",
+            "refusal_message_help": "Se muestra cuando una protección bloquea un mensaje. Al guardar, se traduce a los idiomas de tu agente. Déjalo vacío para usar el mensaje predeterminado.",
+            "mode_labels": {
+                "block": "Bloquear",
+                "monitor": "Solo registrar"
+            },
+            "sensitivity_labels": {
+                "high": "Alta: bloquea más",
+                "medium": "Media",
+                "low": "Baja: bloquea menos"
+            },
+            "pii_action_labels": {
+                "mask": "Ocultar",
+                "block": "Bloquear mensaje"
+            },
+            "topic_action_labels": {
+                "refuse": "El mensaje de rechazo",
+                "reply": "Una respuesta propia",
+                "handoff": "Una persona de tu equipo"
+            },
+            "detail_labels": {
+                "topic": "Tema",
+                "types": "Datos",
+                "count": "Encontrados",
+                "categories": "Categorías",
+                "tool": "Herramienta",
+                "pattern": "Regla",
+                "reason": "Motivo"
+            },
+            "pii_action": "Qué hacer",
+            "pii_action_help": "Ocultar esconde los datos y el chat sigue. Bloquear detiene el mensaje y pide al visitante que no los comparta. Las respuestas siempre se ocultan.",
+            "custom_patterns_title": "Tus propios patrones",
+            "custom_patterns_description": "Encuentra otros datos personales, como un número de cliente, con una expresión regular.",
+            "custom_pattern_name": "Nombre",
+            "custom_pattern_name_placeholder": "p. ej. Número de cliente",
+            "custom_pattern": "Patrón",
+            "custom_pattern_placeholder": "p. ej. CLI-[0-9]+",
+            "add_custom_pattern": "Añadir patrón",
+            "remove_custom_pattern": "Quitar patrón",
+            "topic_name": "Tema",
+            "topic_description": "Descripción",
+            "topic_description_placeholder": "Qué abarca el tema (opcional)",
+            "topic_examples": "Preguntas de ejemplo",
+            "topic_examples_placeholder": "Preguntas de ejemplo, una por línea (opcional)",
+            "topic_action": "Qué recibe el visitante",
+            "topic_handoff_help": "Funciona en el widget de chat cuando el chat en vivo está activado. En otros sitios, el visitante recibe el mensaje de rechazo.",
+            "topic_handoff_reply_placeholder": "Mensaje mientras lo conectamos (opcional)",
+            "topic_reply_placeholder": "La respuesta que lee el visitante",
+            "topic_reply": "Respuesta",
+            "mode": "Qué pasa",
+            "sensitivity": "Sensibilidad",
+            "mode_help": "«Solo registrar» anota lo que encuentra una protección sin bloquear, para que puedas revisarlo antes de que afecte a los visitantes.",
+            "check_before_showing": "Comprobar las respuestas antes de mostrarlas",
+            "check_before_showing_help": "El visitante ve una respuesta solo después de que las protecciones la revisen. Las respuestas aparecen un poco más tarde y de una vez.",
+            "alert_owner": "Avisarme de ataques por correo",
+            "alert_owner_help": "Recibe un correo cuando el agente bloquee un intento de saltarse sus instrucciones, o cuando la comprobación de seguridad no pueda ejecutarse. Como máximo un correo por hora.",
+            "test_title": "Probar un mensaje",
+            "test_description": "Mira qué recibiría un visitante con los ajustes de arriba, antes de guardar. No se guarda nada.",
+            "test_placeholder": "Escribe un mensaje para probar",
+            "test_samples": "Prueba:",
+            "test_run": "Probar",
+            "test_error": "No se pudo probar el mensaje. Inténtalo de nuevo.",
+            "test_blocked": "Bloqueado",
+            "test_allowed": "Permitido",
+            "test_handoff": "El chat pasaría a tu equipo.",
+            "test_visitor_sees": "El visitante ve",
+            "test_model_reads": "El agente lee",
+            "test_guards": "Protecciones",
+            "test_no_guards": "Ninguna protección encontró nada.",
+            "detail_topic": "Tema: {topic}",
+            "classifier_unavailable": "La comprobación de seguridad no pudo ejecutarse, así que el texto no se revisó.",
+            "open_conversation": "Abrir conversación"
         },
         "persona": {
             "title": "Personalidad",
@@ -918,15 +1028,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Limitación de velocidad",
-                "subtitle": "Limita cuántos mensajes puede enviar un solo visitante por minuto.",
-                "card_description": "Protege tu agente del abuso limitando la frecuencia de mensajes por visitante.",
-                "messages_per_minute": "Mensajes por minuto",
-                "default_hint": "Déjalo vacío para usar el valor predeterminado de la plataforma.",
+                "subtitle": "Limita cuántos mensajes responde tu agente por minuto y cuántos puede enviar un visitante.",
+                "card_description": "Protege a tu agente contra abusos y costes inesperados.",
+                "messages_per_minute": "Mensajes por minuto (todos los visitantes)",
+                "default_hint": "El máximo de mensajes que el agente responde por minuto, entre todos los visitantes.",
                 "notify_label": "Notificarme cuando se alcance el límite",
-                "notify_hint": "Recibe un correo cuando un visitante alcance el límite de velocidad.",
+                "notify_hint": "Recibe un correo cuando el agente alcance este límite.",
                 "save": "Guardar",
                 "saved": "Límite de velocidad guardado",
-                "save_error": "No se pudo guardar el límite de velocidad. Por favor, inténtalo de nuevo."
+                "save_error": "No se pudo guardar el límite de velocidad. Por favor, inténtalo de nuevo.",
+                "visitor_messages_per_minute": "Mensajes por minuto (un visitante)",
+                "visitor_hint": "El máximo de mensajes que un visitante puede enviar por minuto. Quien lo supera tiene que esperar, mientras los demás siguen chateando."
             }
         },
         "tone": {

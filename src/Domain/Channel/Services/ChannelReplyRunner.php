@@ -18,6 +18,7 @@ use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\QaSource;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -52,6 +53,7 @@ class ChannelReplyRunner
         private readonly AgentChatRateLimiter $rateLimiter,
         private readonly AgentModel $models,
         private readonly WorkspaceActivation $activation,
+        private readonly GuardrailService $guardrails,
     ) {}
 
     /**
@@ -62,7 +64,7 @@ class ChannelReplyRunner
         $agent = $turn->agent;
         $agent->loadMissing(['agentPrompt', 'llm']);
 
-        $refusal = $this->refusal($agent);
+        $refusal = $this->refusal($agent, $turn->sessionExternalId);
 
         if ($refusal !== null) {
             return ChannelLocale::text($agent, $refusal);
@@ -86,9 +88,10 @@ class ChannelReplyRunner
 
     /**
      * The fixed message (an English translation key) to send instead of
-     * running the turn, or null when the turn may run.
+     * running the turn, or null when the turn may run. `$visitorKey` names
+     * the chat on the channel, for the per-visitor cap.
      */
-    private function refusal(Agent $agent): ?string
+    private function refusal(Agent $agent, string $visitorKey): ?string
     {
         // A deactivated workspace's agents answer nowhere; the web chat sends
         // the same text. ChannelAccessGate normally stops the turn earlier.
@@ -112,6 +115,11 @@ class ChannelReplyRunner
         // The web SSE surface applies this in ChatStreamService; channels reach
         // the pipeline directly, so the cap is enforced here too — otherwise a
         // visitor could bypass it by messaging through Telegram/Slack/etc.
+        // The visitor's own cap comes first, as on the web.
+        if ($this->rateLimiter->visitorExceeded($agent, $visitorKey)) {
+            return 'You are sending messages too quickly. Please wait a moment and try again.';
+        }
+
         if ($this->rateLimiter->exceeded($agent)) {
             return 'This assistant is receiving too many messages right now. Please try again in a moment.';
         }
@@ -149,8 +157,12 @@ class ChannelReplyRunner
             default => $this->llmSource->events($context, $this->chatService->prepareLlmMessages($context)),
         };
 
+        // An answer held until the output guards checked it is not shown in
+        // pieces (Slack and Teams edit the message as it grows) either.
+        $showProgress = $onProgress instanceof Closure && ! $this->guardrails->holdsAnswers($agent);
+
         foreach ($events as $_event) {
-            if ($onProgress instanceof Closure) {
+            if ($showProgress) {
                 $onProgress($context->streamedMessage);
             }
         }

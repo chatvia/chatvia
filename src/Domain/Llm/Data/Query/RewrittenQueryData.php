@@ -20,4 +20,10 @@ final class RewrittenQueryData extends Data
     {
         return new self(language: null, query: $query);
     }
+
+    /** This rewrite, with the given language when the model detected none. */
+    public function orLanguage(?string $language): self
+    {
+        return $this->language === null ? new self($language, $this->query) : $this;
+    }
 }

@@ -276,5 +276,17 @@
     "The voice call could not start. Please try again.": "تماس صوتی شروع نشد. لطفاً دوباره امتحان کنید.",
     "Our time for this call is up. You can keep chatting in the text box.": "زمان این تماس تمام شد. می‌توانید در کادر متن ادامه دهید.",
     "Sorry, I can't help with that.": "متأسفم، نمی‌توانم در این مورد کمک کنم.",
-    "(Voice message that could not be transcribed)": "(پیام صوتی که به متن تبدیل نشد)"
+    "(Voice message that could not be transcribed)": "(پیام صوتی که به متن تبدیل نشد)",
+    "For your safety, please do not share this kind of personal data in the chat.": "برای امنیت خودتان، لطفاً این نوع اطلاعات شخصی را در گفتگو به اشتراک نگذارید.",
+    "Let me connect you with someone from our team.": "شما را به یکی از اعضای تیم ما وصل می‌کنم.",
+    "You are sending messages too quickly. Please wait a moment and try again.": "پیام‌ها را خیلی سریع می‌فرستید. لطفاً کمی صبر کنید و دوباره تلاش کنید.",
+    "This is not a valid pattern.": "این الگو معتبر نیست.",
+    "The pattern must not match empty text.": "الگو نباید با متن خالی تطبیق داشته باشد.",
+    "Guardrails on \":name\" need your attention": "محافظ‌های «:name» به توجه شما نیاز دارند",
+    "Your agent \":name\" blocked an attempt to override its instructions or reveal them.": "عامل شما «:name» تلاشی برای دور زدن یا فاش کردن دستورالعمل‌هایش را مسدود کرد.",
+    "One attempt is usually nothing to worry about. Many in a short time may be someone testing your agent.": "یک تلاش معمولاً جای نگرانی ندارد. تلاش‌های زیاد در زمان کوتاه ممکن است یعنی کسی عامل شما را آزمایش می‌کند.",
+    "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "بررسی امنیتی عامل شما «:name» نتوانست اجرا شود، پس به برخی پیام‌ها بدون آن پاسخ داده شد.",
+    "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "این زمانی رخ می‌دهد که مدل هوش مصنوعی محافظ‌ها در دسترس نباشد. اگر تکرار شد، مدل را در پنل مدیریت بررسی کنید.",
+    "Open the guardrails activity": "باز کردن فعالیت محافظ‌ها",
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "حداکثر یک ایمیل از این نوع در ساعت دریافت می‌کنید. می‌توانید این هشدارها را در صفحه محافظ‌ها خاموش کنید."
 }

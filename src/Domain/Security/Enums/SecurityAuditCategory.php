@@ -14,6 +14,7 @@ enum SecurityAuditCategory: string
     case Membership = 'membership';
     case Config = 'config';
     case Data = 'data';
+    case Threat = 'threat';
 
     public function label(): string
     {
@@ -22,6 +23,7 @@ enum SecurityAuditCategory: string
             self::Membership => 'Membership & roles',
             self::Config => 'Configuration',
             self::Data => 'Data',
+            self::Threat => 'Threats',
         };
     }
 }

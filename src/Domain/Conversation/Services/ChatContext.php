@@ -108,6 +108,13 @@ class ChatContext
 
     public ?string $guardRefusal = null;
 
+    /**
+     * Set with $guardBlocked when the message was about a blocked topic that
+     * hands the conversation to a person: what the visitor reads when the
+     * handoff starts (they get $guardRefusal when it cannot).
+     */
+    public ?string $guardHandoffMessage = null;
+
     private readonly float $startTime;
 
     private ?float $endTime = null;

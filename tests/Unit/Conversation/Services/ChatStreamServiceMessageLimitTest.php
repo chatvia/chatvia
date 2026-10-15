@@ -61,7 +61,7 @@ function reachedLimit(array $owner): void
  */
 function refuseTurnsPastTheMessageLimits(): void
 {
-    test()->mock(AgentChatRateLimiter::class)->shouldReceive('exceeded')->andReturnTrue();
+    test()->mock(AgentChatRateLimiter::class)->shouldReceive('visitorExceeded')->andReturnFalse()->getMock()->shouldReceive('exceeded')->andReturnTrue();
 }
 
 it('refuses the turn when the workspace reached its monthly limit', function (): void {

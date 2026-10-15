@@ -40,7 +40,9 @@ use Domain\Form\Listeners\PushSubmissionToCrm;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Observers\FormDefinitionObserver;
 use Domain\Guardrail\Events\GuardrailTriggered;
+use Domain\Guardrail\Listeners\RecordGuardrailAttack;
 use Domain\Guardrail\Listeners\RecordGuardrailEvent;
+use Domain\Guardrail\Listeners\SendGuardrailAlert;
 use Domain\Integration\Connector\Services\OAuth\OAuthTokenRefresher;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Function\Observers\AgentFunctionObserver;
@@ -307,6 +309,8 @@ class DomainServiceProvider extends ServiceProvider
         Event::listen(AccountDeletionRequested::class, SendAccountDeletionConfirmationEmail::class);
         Event::listen(ToolCallCompleted::class, RecordToolCallAudit::class);
         Event::listen(GuardrailTriggered::class, RecordGuardrailEvent::class);
+        Event::listen(GuardrailTriggered::class, SendGuardrailAlert::class);
+        Event::listen(GuardrailTriggered::class, RecordGuardrailAttack::class);
         Event::listen(McpToolInvoked::class, UpdateMcpInvocationCounters::class);
         Event::listen(AgentToolsChanged::class, ForgetAgentToolPool::class);
         Event::listen(AgentRateLimitExceeded::class, SendAgentRateLimitNotification::class);

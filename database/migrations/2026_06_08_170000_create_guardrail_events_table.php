@@ -25,9 +25,9 @@ return new class extends Migration
             $table->uuid('message_id')->nullable();
             $table->string('trace_id')->nullable();
 
-            $table->enum('stage', ['input', 'source', 'output']);
-            $table->enum('guard_type', ['prompt_injection', 'pii', 'blocked_topic', 'toxicity']);
-            $table->enum('outcome', ['blocked', 'redacted', 'flagged']);
+            $table->enum('stage', ['input', 'source', 'tool', 'output']);
+            $table->enum('guard_type', ['prompt_injection', 'pii', 'blocked_topic', 'toxicity', 'prompt_leak']);
+            $table->enum('outcome', ['blocked', 'redacted', 'flagged', 'skipped']);
 
             $table->enum('severity', ['none', 'low', 'medium', 'high'])->nullable();
 

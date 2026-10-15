@@ -333,7 +333,7 @@
                 "when": "Tidspunkt"
             },
             "injection_label": "Oppdagelse av prompt-injeksjon",
-            "injection_help": "Oppdag og blokker forsøk på å overstyre agentens instruksjoner eller hente ut systemprompten.",
+            "injection_help": "Oppdager og blokkerer forsøk på å omgå eller avsløre agentens instruksjoner, i meldinger, kunnskap og verktøyresultater.",
             "toxicity_label": "Toksisitetsfiltrering",
             "toxicity_help": "Oppdag og blokker giftig, hatefullt eller fornærmelig språk i meldinger.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Hastighetsbegrensning",
-                "subtitle": "Begrens hvor mange meldinger en enkelt besøkende kan sende per minutt.",
-                "card_description": "Beskytt agenten din mot misbruk ved å begrense meldingsfrekvensen per besøkende.",
-                "messages_per_minute": "Meldinger per minutt",
-                "default_hint": "La stå tom for å bruke plattformstandarden.",
+                "subtitle": "Begrens hvor mange meldinger agenten din svarer på per minutt, og hvor mange én besøkende kan sende.",
+                "card_description": "Beskytt agenten din mot misbruk og uventede kostnader.",
+                "messages_per_minute": "Meldinger per minutt (alle besøkende)",
+                "default_hint": "Flest meldinger agenten svarer på per minutt, for alle besøkende.",
                 "notify_label": "Varsle meg når grensen nås",
-                "notify_hint": "Motta en e-post når en besøkende når hastighetsbegrensningen.",
+                "notify_hint": "Få en e-post når agenten når denne grensen.",
                 "save": "Lagre",
                 "saved": "Hastighetsbegrensning lagret",
-                "save_error": "Kunne ikke lagre hastighetsbegrensning. Prøv igjen."
+                "save_error": "Kunne ikke lagre hastighetsbegrensning. Prøv igjen.",
+                "visitor_messages_per_minute": "Meldinger per minutt (én besøkende)",
+                "visitor_hint": "Flest meldinger én besøkende kan sende per minutt. Den som går over, må vente, mens andre chatter videre."
             }
         },
         "tone": {

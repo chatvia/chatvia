@@ -276,5 +276,17 @@
     "The voice call could not start. Please try again.": "Não foi possível iniciar a chamada de voz. Tente novamente.",
     "Our time for this call is up. You can keep chatting in the text box.": "O tempo desta chamada terminou. Pode continuar a escrever na caixa de texto.",
     "Sorry, I can't help with that.": "Desculpe, não posso ajudar com isso.",
-    "(Voice message that could not be transcribed)": "(Mensagem de voz que não foi possível transcrever)"
+    "(Voice message that could not be transcribed)": "(Mensagem de voz que não foi possível transcrever)",
+    "For your safety, please do not share this kind of personal data in the chat.": "Para sua segurança, não partilhe este tipo de dados pessoais no chat.",
+    "Let me connect you with someone from our team.": "Vou ligá-lo a alguém da nossa equipa.",
+    "You are sending messages too quickly. Please wait a moment and try again.": "Está a enviar mensagens demasiado depressa. Aguarde um momento e tente novamente.",
+    "This is not a valid pattern.": "Este padrão não é válido.",
+    "The pattern must not match empty text.": "O padrão não pode corresponder a texto vazio.",
+    "Guardrails on \":name\" need your attention": "As proteções de «:name» precisam da sua atenção",
+    "Your agent \":name\" blocked an attempt to override its instructions or reveal them.": "O seu agente «:name» bloqueou uma tentativa de contornar ou revelar as suas instruções.",
+    "One attempt is usually nothing to worry about. Many in a short time may be someone testing your agent.": "Uma tentativa isolada normalmente não é preocupante. Muitas em pouco tempo podem indicar que alguém está a testar o seu agente.",
+    "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "A verificação de segurança do seu agente «:name» não pôde correr, por isso algumas mensagens foram respondidas sem ela.",
+    "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "Isto acontece quando o modelo de IA das proteções não está acessível. Verifique o modelo no painel de administração se continuar.",
+    "Open the guardrails activity": "Abrir a atividade das proteções",
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Recebe no máximo um email destes por hora. Pode desativar estes alertas na página Proteções."
 }

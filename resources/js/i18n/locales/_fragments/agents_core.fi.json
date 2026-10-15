@@ -333,7 +333,7 @@
                 "when": "Milloin"
             },
             "injection_label": "Kehoteinjektiohavaitseminen",
-            "injection_help": "Havaitse ja estä yritykset ohittaa agentin ohjeet tai poimia sen järjestelmäkehote.",
+            "injection_help": "Tunnistaa ja estää yritykset ohittaa tai paljastaa agentin ohjeet viesteissä, tietopohjassa ja työkalujen tuloksissa.",
             "toxicity_label": "Myrkyllisyyden suodatus",
             "toxicity_help": "Havaitse ja estä myrkyllinen, vihamielinen tai loukkaava kieli viesteissä.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Nopeusrajoitus",
-                "subtitle": "Rajoita yksittäisen kävijän lähettämien viestien määrää minuutissa.",
-                "card_description": "Suojaa agenttisi väärinkäytöltä rajoittamalla viestifrekvenssiä kävijäkohtaisesti.",
-                "messages_per_minute": "Viestejä minuutissa",
-                "default_hint": "Jätä tyhjäksi käyttääksesi alustan oletusarvoa.",
+                "subtitle": "Rajoita, moneenko viestiin agenttisi vastaa minuutissa ja montako yksi kävijä voi lähettää.",
+                "card_description": "Suojaa agenttiasi väärinkäytöltä ja odottamattomilta kuluilta.",
+                "messages_per_minute": "Viestejä minuutissa (kaikki kävijät)",
+                "default_hint": "Enimmäismäärä viestejä, joihin agentti vastaa minuutissa kaikille kävijöille.",
                 "notify_label": "Ilmoita minulle, kun raja saavutetaan",
-                "notify_hint": "Vastaanota sähköposti, kun kävijä saavuttaa nopeusrajan.",
+                "notify_hint": "Saat sähköpostin, kun agentti saavuttaa tämän rajan.",
                 "save": "Tallenna",
                 "saved": "Nopeusrajoitus tallennettu",
-                "save_error": "Nopeusrajoituksen tallentaminen epäonnistui. Yritä uudelleen."
+                "save_error": "Nopeusrajoituksen tallentaminen epäonnistui. Yritä uudelleen.",
+                "visitor_messages_per_minute": "Viestejä minuutissa (yksi kävijä)",
+                "visitor_hint": "Enimmäismäärä viestejä, jonka yksi kävijä voi lähettää minuutissa. Rajan ylittäjä joutuu odottamaan, kun muut jatkavat."
             }
         },
         "tone": {

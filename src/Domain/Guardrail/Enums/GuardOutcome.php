@@ -11,12 +11,15 @@ namespace Domain\Guardrail\Enums;
  *  - Blocked:  the turn was stopped (input refused / answer suppressed).
  *  - Redacted: the offending span was masked but the turn continued.
  *  - Flagged:  allowed through, recorded for review only.
+ *  - Skipped:  the guard could not run (the safety model failed), so the text
+ *              was let through unchecked. Logged so the owner can see it.
  */
 enum GuardOutcome: string
 {
     case Blocked = 'blocked';
     case Redacted = 'redacted';
     case Flagged = 'flagged';
+    case Skipped = 'skipped';
 
     public function label(): string
     {
@@ -24,6 +27,7 @@ enum GuardOutcome: string
             self::Blocked => 'Blocked',
             self::Redacted => 'Redacted',
             self::Flagged => 'Flagged',
+            self::Skipped => 'Skipped',
         };
     }
 }

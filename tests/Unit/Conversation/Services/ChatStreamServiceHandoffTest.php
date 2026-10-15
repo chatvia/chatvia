@@ -73,7 +73,7 @@ it('does not relay into a conversation of another visitor session', function ():
     $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
     // The relay check runs before the per-turn gates, so refusing here stops
     // the unrelayed turn before it calls the model.
-    test()->mock(AgentChatRateLimiter::class)->shouldReceive('exceeded')->andReturnTrue();
+    test()->mock(AgentChatRateLimiter::class)->shouldReceive('visitorExceeded')->andReturnFalse()->getMock()->shouldReceive('exceeded')->andReturnTrue();
 
     streamFor($agent, $otherSession->external_id, $conversation->external_id);
 

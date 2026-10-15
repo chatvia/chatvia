@@ -16,6 +16,7 @@ class AgentSecuritySettingsData extends Data
     public function __construct(
         public int $chat_rate_limit_per_minute,
         public bool $notify_owner_on_rate_limit,
+        public int $visitor_rate_limit_per_minute = 8,
     ) {}
 
     /**
@@ -26,6 +27,7 @@ class AgentSecuritySettingsData extends Data
         return [
             'chat_rate_limit_per_minute' => $this->chat_rate_limit_per_minute,
             'notify_owner_on_rate_limit' => $this->notify_owner_on_rate_limit,
+            'visitor_rate_limit_per_minute' => $this->visitor_rate_limit_per_minute,
         ];
     }
 }

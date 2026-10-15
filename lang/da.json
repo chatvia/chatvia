@@ -276,5 +276,17 @@
     "The voice call could not start. Please try again.": "Stemmeopkaldet kunne ikke starte. Prøv igen.",
     "Our time for this call is up. You can keep chatting in the text box.": "Tiden for dette opkald er gået. Du kan fortsætte i tekstfeltet.",
     "Sorry, I can't help with that.": "Beklager, det kan jeg ikke hjælpe med.",
-    "(Voice message that could not be transcribed)": "(Stemmebesked, der ikke kunne skrives ned)"
+    "(Voice message that could not be transcribed)": "(Stemmebesked, der ikke kunne skrives ned)",
+    "For your safety, please do not share this kind of personal data in the chat.": "Af hensyn til din sikkerhed må du ikke dele denne type personlige oplysninger i chatten.",
+    "Let me connect you with someone from our team.": "Jeg forbinder dig med en fra vores team.",
+    "You are sending messages too quickly. Please wait a moment and try again.": "Du sender beskeder for hurtigt. Vent et øjeblik, og prøv igen.",
+    "This is not a valid pattern.": "Dette er ikke et gyldigt mønster.",
+    "The pattern must not match empty text.": "Mønsteret må ikke matche tom tekst.",
+    "Guardrails on \":name\" need your attention": "Beskyttelserne på \":name\" kræver din opmærksomhed",
+    "Your agent \":name\" blocked an attempt to override its instructions or reveal them.": "Din agent \":name\" blokerede et forsøg på at omgå eller afsløre sine instruktioner.",
+    "One attempt is usually nothing to worry about. Many in a short time may be someone testing your agent.": "Ét forsøg er som regel ikke noget at bekymre sig om. Mange på kort tid kan betyde, at nogen tester din agent.",
+    "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "Sikkerhedstjekket for din agent \":name\" kunne ikke køre, så nogle beskeder blev besvaret uden det.",
+    "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "Det sker, når AI-modellen til beskyttelserne ikke kan nås. Tjek modellen i adminpanelet, hvis det bliver ved.",
+    "Open the guardrails activity": "Åbn aktiviteten for beskyttelserne",
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Du får højst én sådan e-mail i timen. Du kan slå disse advarsler fra på siden Beskyttelser."
 }

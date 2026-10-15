@@ -19,8 +19,8 @@ use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Services\RelevanceThresholds;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Tests\Support\FakeEmbeddingsProvider;
 
 /**
  * OFFLINE EVAL — not a pass/fail gate. It measures the live tool router against a
@@ -52,12 +52,18 @@ use Tests\Support\FakeEmbeddingsProvider;
  * the scoreboard. The number it prints is the thing you're trying to move.
  */
 beforeEach(function (): void {
-    // API keys live in the admin panel, not in .env, so the key passed on the
-    // command line (SCALEWAYAI_API_KEY=… pest --testsuite=Eval) is put into
+    // The eval calls the real embeddings and reranker, so it runs only with a
+    // key on the command line, and skips before any request without one.
+    // API keys live in the admin panel, not in .env, so the key is put into
     // config here.
-    if (filled($key = env('SCALEWAYAI_API_KEY'))) {
-        config(['services.scalewayai.api_key' => $key]);
+    $key = env('SCALEWAYAI_API_KEY');
+
+    if (blank($key)) {
+        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… vendor/bin/pest --testsuite=Eval');
     }
+
+    config(['services.scalewayai.api_key' => $key]);
+    Http::allowStrayRequests();
 
     // Swap the offline fake (bound in TestCase) for the real, config-selected
     // provider, then pin that one instance so the helpers, hybrid search and the
@@ -65,13 +71,7 @@ beforeEach(function (): void {
     app()->forgetInstance(EmbeddingsProviderInterface::class);
     $provider = app(EmbeddingsProviderInterface::class);
 
-    if ($provider instanceof FakeEmbeddingsProvider) {
-        $this->markTestSkipped('real embeddings provider not bound; cannot run a semantic eval against the fake.');
-    }
-
-    // Health probe — the real provider needs an API key + network. No key (normal
-    // CI) → skip cleanly rather than fail. This is also why the eval is excluded
-    // from the default suite without any group plumbing.
+    // Health probe: a wrong key or no network skips cleanly rather than fail.
     try {
         $provider->embedQuery('health check');
     } catch (Throwable $e) {

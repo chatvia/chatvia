@@ -2,10 +2,13 @@
 
 namespace Domain\Knowledge\Ingestion\Models;
 
+use Database\Factories\ChunkFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Ingestion\QueryBuilders\ChunkQueryBuilder;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -78,9 +81,11 @@ use Support\Concerns\HasExternalId;
  * @mixin \Eloquent
  */
 #[Guarded(['id'])]
+#[UseFactory(ChunkFactory::class)]
 class Chunk extends Model
 {
-    use HasExternalId;
+    /** @use HasFactory<ChunkFactory> */
+    use HasExternalId, HasFactory;
 
     /** @return ChunkQueryBuilder<self> */
     public function newEloquentBuilder($query): ChunkQueryBuilder

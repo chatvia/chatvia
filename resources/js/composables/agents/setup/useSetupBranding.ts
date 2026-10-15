@@ -1,8 +1,7 @@
 /**
- * The Branding section: theme color, "Powered by" badge, avatar and logo
- * images, and the privacy-policy link (all in the `appearance` group).
- * Colors and the badge share one form; the privacy link has its own form and
- * Save button so it doesn't ride the color writes. Images upload on pick with
+ * The Branding section: theme color, avatar and logo images, and the
+ * privacy-policy link (all in the `appearance` group). The privacy link has
+ * its own form and Save button so it doesn't ride the color writes. Images upload on pick with
  * an optimistic preview that is rolled back if the upload fails.
  */
 import { deleteAppearanceImage, uploadAppearanceImage, type AppearanceImage } from '@/api/agentSetup';
@@ -21,24 +20,16 @@ export function useSetupBranding({ agentId, reloadPreview }: SetupSectionDeps, a
     const brandingForm = useForm({
         color_theme: appearance.string('color_theme', 'black'),
         color_shade: appearance.number('color_shade', 700),
-        // Only used by workspaces that may hide the badge; hidden by default.
-        show_branding: appearance.boolean('show_branding', false),
     });
     const isSavingBranding = ref(false);
 
-    const postBranding = (successKey: string): void =>
+    const saveColors = (): void =>
         submitSetupForm(brandingForm, 'post', settingsUrl(), {
             saving: isSavingBranding,
-            success: () => t(successKey),
-            error: () => t('agents.setup.toasts.colors_error'),
+            success: t('agents.setup.toasts.colors_saved'),
+            error: t('agents.setup.toasts.colors_error'),
             onSuccess: reloadPreview,
         });
-    const saveColors = (): void => postBranding('agents.setup.toasts.colors_saved');
-    // The badge switch saves on change (no extra Save button).
-    const saveBadgeVisibility = (value: boolean): void => {
-        brandingForm.show_branding = value;
-        postBranding('agents.setup.toasts.branding_saved');
-    };
 
     // When set, the chat surfaces show a "By chatting, you agree to our privacy
     // policy" notice linking here.
@@ -104,7 +95,6 @@ export function useSetupBranding({ agentId, reloadPreview }: SetupSectionDeps, a
         brandingForm,
         isSavingBranding,
         saveColors,
-        saveBadgeVisibility,
         privacyForm,
         isSavingPrivacy,
         savePrivacyUrl,

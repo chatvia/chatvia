@@ -39,7 +39,6 @@ interface Props {
     enableChatExpand?: boolean;
     /** On the iframe-embed pages rather than the full hosted chat. */
     embedded?: boolean;
-    chatviaBranding?: boolean;
     /** Owner's pinned chat language ('auto' = detect from the visitor). */
     locale?: string;
     /** Whether to show the visitor language switcher in the header. */
@@ -68,7 +67,6 @@ const props = withDefaults(defineProps<Props>(), {
     defaultTheme: 'auto',
     enableChatExpand: true,
     embedded: false,
-    chatviaBranding: true,
     locale: 'auto',
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
@@ -233,8 +231,7 @@ onMounted(async () => {
                             @startVoice="isVoiceOpen = true"
                         />
 
-                        <!-- Hidden when the workspace owns the remove-branding add-on -->
-                        <PoweredByFooter :show="chatviaBranding" />
+                        <PoweredByFooter />
                     </div>
                 </div>
 

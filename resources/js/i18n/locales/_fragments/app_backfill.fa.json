@@ -63,15 +63,6 @@
             "forms": "فرم‌ها",
             "forms_tooltip": "فرم‌هایی بسازید که عامل شما در گفتگو نمایش می‌دهد"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "برندینگ به‌روزرسانی شد"
-            },
-            "sections": {
-                "branding_badge": "نمایش نشان «Powered by Chatvia»",
-                "branding_badge_hint": "نشان Chatvia را در گفتگو و ویجت این عامل نمایش دهید."
-            }
-        },
         "deploy": {
             "enabled": "فعال",
             "disabled": "غیرفعال",

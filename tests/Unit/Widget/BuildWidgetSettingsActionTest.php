@@ -99,10 +99,7 @@ it('builds the powered-by credit from the brand config', function (): void {
         'chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => 'https://acme.example'],
     ]);
 
-    $agent = createAgent(User::factory()->create());
-    $agent->setSetting('show_branding', true, 'appearance');
-
-    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+    $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 
     expect($settings->branding->enabled)->toBeTrue()
         ->and($settings->branding->name)->toBe('Powered by Acme Chat')
@@ -110,13 +107,17 @@ it('builds the powered-by credit from the brand config', function (): void {
         ->and($settings->chatvia_branding)->toBeTrue();
 });
 
-it('hides the powered-by credit until the agent turns it on', function (): void {
+it('shows the powered-by credit even when an agent saved it hidden', function (): void {
     config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => 'https://acme.example']]);
 
-    $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
+    // Agents cannot hide the credit, whatever their settings hold.
+    $agent = createAgent(User::factory()->create());
+    $agent->setSetting('show_branding', false, 'appearance');
 
-    expect($settings->branding->enabled)->toBeFalse()
-        ->and($settings->chatvia_branding)->toBeFalse();
+    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
+
+    expect($settings->branding->enabled)->toBeTrue()
+        ->and($settings->chatvia_branding)->toBeTrue();
 });
 
 it('sends an empty credit link when no powered-by url is configured', function (): void {

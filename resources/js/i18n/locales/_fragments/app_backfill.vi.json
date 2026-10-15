@@ -63,15 +63,6 @@
             "forms": "Biểu mẫu",
             "forms_tooltip": "Tạo các biểu mẫu mà trợ lý AI của bạn hiển thị trong cuộc trò chuyện"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Đã cập nhật thương hiệu"
-            },
-            "sections": {
-                "branding_badge": "Hiển thị huy hiệu \"Powered by Chatvia\"",
-                "branding_badge_hint": "Hiển thị huy hiệu Chatvia trên trang trò chuyện và widget của trợ lý AI này."
-            }
-        },
         "deploy": {
             "enabled": "Đã bật",
             "disabled": "Đã tắt",

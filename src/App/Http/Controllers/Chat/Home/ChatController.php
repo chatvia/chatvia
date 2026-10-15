@@ -22,7 +22,6 @@ final class ChatController
             ...$props->for($agent),
             'agent_id' => $agent?->id,
             'conversation_id' => $conversationId,
-            'chatviaBranding' => $agent?->showsChatviaBranding() ?? true,
         ]);
     }
 }

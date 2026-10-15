@@ -63,15 +63,6 @@
             "forms": "フォーム",
             "forms_tooltip": "エージェントがチャットに表示するフォームを作成"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "ブランディングを更新しました"
-            },
-            "sections": {
-                "branding_badge": "「Powered by Chatvia」バッジを表示",
-                "branding_badge_hint": "このエージェントのチャットとウィジェットに Chatvia バッジを表示します。"
-            }
-        },
         "deploy": {
             "enabled": "有効",
             "disabled": "無効",

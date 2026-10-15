@@ -58,7 +58,7 @@ class BuildWidgetSettingsAction
         $locale = $this->effectiveLocale($widget, $visitorLocale);
         $text = $this->appearanceText->resolve($appearance, $locale);
         [$bubbles, $bubbleTranslations] = $this->bubbles($agent, $locale);
-        $showsBranding = $this->showsBranding($agent);
+        $showsBranding = $this->showsBranding();
 
         return new WidgetSettingsData(
             protected: $agent->is_public === false,
@@ -130,15 +130,12 @@ class BuildWidgetSettingsAction
     }
 
     /**
-     * Whether the "Powered by" credit shows: the install must have it on, and
-     * the workspace must not hold the "remove branding" add-on (which hides
-     * it for every agent).
+     * Whether the "Powered by" credit shows: the install's switch (Settings →
+     * Brand) decides for every agent.
      */
-    private function showsBranding(Agent $agent): bool
+    private function showsBranding(): bool
     {
-        $installShowsCredit = (((array) config('chatvia.brand.powered_by'))['enabled'] ?? false) === true;
-
-        return $installShowsCredit && $agent->showsChatviaBranding();
+        return (((array) config('chatvia.brand.powered_by'))['enabled'] ?? false) === true;
     }
 
     /**

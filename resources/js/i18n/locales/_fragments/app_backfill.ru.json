@@ -63,15 +63,6 @@
             "forms": "Формы",
             "forms_tooltip": "Создавайте формы, которые ваш агент показывает в чате"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Брендинг обновлён"
-            },
-            "sections": {
-                "branding_badge": "Показывать значок «Powered by Chatvia»",
-                "branding_badge_hint": "Показывать значок Chatvia в чате и виджете этого агента."
-            }
-        },
         "deploy": {
             "enabled": "Включено",
             "disabled": "Отключено",

@@ -63,15 +63,6 @@
             "forms": "Formularze",
             "forms_tooltip": "Twórz formularze, które agent wyświetla w czacie"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Zaktualizowano branding"
-            },
-            "sections": {
-                "branding_badge": "Pokaż plakietkę „Powered by Chatvia”",
-                "branding_badge_hint": "Wyświetlaj plakietkę Chatvia w czacie i widżecie tego agenta."
-            }
-        },
         "deploy": {
             "enabled": "Włączone",
             "disabled": "Wyłączone",

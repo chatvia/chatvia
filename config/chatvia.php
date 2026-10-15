@@ -23,10 +23,10 @@ return [
     | Brand
     |--------------------------------------------------------------------------
     |
-    | Everything that names or links to the product, so a self-hosted install
-    | can show its own name and links instead of Chatvia's. Leave a URL empty
-    | to hide the link that uses it. Set in the admin panel (Settings → Brand);
-    | the values here are the defaults while nothing is saved there.
+    | Everything that names or links to the product. Installs cannot change
+    | these: removing the credit is a paid option. Only `powered_by.enabled`
+    | is set in the admin panel (Settings → Brand); the value here is the
+    | default while nothing is saved there. An empty URL hides its link.
     |
     | - name: product name in the UI, emails, file names and outbound headers.
     | - website_url / docs_url / api_docs_url: links shown in the app.
@@ -35,14 +35,14 @@ return [
     */
 
     'brand' => [
-        'name' => env('BRAND_NAME', env('APP_NAME', 'Chatvia')),
-        'website_url' => env('BRAND_WEBSITE_URL'),
-        'docs_url' => env('BRAND_DOCS_URL'),
-        'api_docs_url' => env('BRAND_API_DOCS_URL'),
+        'name' => 'Chatvia',
+        'website_url' => null,
+        'docs_url' => null,
+        'api_docs_url' => null,
         'powered_by' => [
-            'enabled' => (bool) env('BRAND_POWERED_BY_ENABLED', true),
-            'label' => env('BRAND_POWERED_BY_LABEL', 'Chatvia'),
-            'url' => env('BRAND_POWERED_BY_URL'),
+            'enabled' => true,
+            'label' => 'Chatvia',
+            'url' => null,
         ],
     ],
 

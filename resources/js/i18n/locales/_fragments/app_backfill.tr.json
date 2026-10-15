@@ -63,15 +63,6 @@
             "forms": "Formlar",
             "forms_tooltip": "Asistanınızın sohbette gösterdiği formları oluşturun"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Marka güncellendi"
-            },
-            "sections": {
-                "branding_badge": "\"Powered by Chatvia\" rozetini göster",
-                "branding_badge_hint": "Chatvia rozetini bu asistanın sohbetinde ve widget'ında göster."
-            }
-        },
         "deploy": {
             "enabled": "Etkin",
             "disabled": "Devre dışı",

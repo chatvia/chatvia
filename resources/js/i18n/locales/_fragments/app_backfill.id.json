@@ -63,15 +63,6 @@
             "forms": "Formulir",
             "forms_tooltip": "Buat formulir yang ditampilkan agen Anda di dalam obrolan"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Branding diperbarui"
-            },
-            "sections": {
-                "branding_badge": "Tampilkan lencana \"Powered by Chatvia\"",
-                "branding_badge_hint": "Tampilkan lencana Chatvia pada obrolan dan widget agen ini."
-            }
-        },
         "deploy": {
             "enabled": "Aktif",
             "disabled": "Nonaktif",

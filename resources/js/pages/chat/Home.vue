@@ -33,7 +33,6 @@ interface Props {
     /** On the iframe-embed pages, so the first message opens the embed conversation page. */
     embedded?: boolean;
     agent_id?: number | null;
-    chatviaBranding?: boolean;
     /** Owner's pinned chat language ('auto' = detect from the visitor). */
     locale?: string;
     /** Whether to show the visitor language switcher in the header. */
@@ -64,7 +63,6 @@ const props = withDefaults(defineProps<Props>(), {
     enableChatExpand: true,
     embedded: false,
     agent_id: null,
-    chatviaBranding: true,
     locale: 'auto',
     enableLanguageSwitcher: false,
     enabledLanguages: () => [],
@@ -195,8 +193,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
                             </button>
                         </div>
 
-                        <!-- Hidden when the workspace owns the remove-branding add-on -->
-                        <PoweredByFooter :show="chatviaBranding" />
+                        <PoweredByFooter />
                     </div>
                 </div>
 

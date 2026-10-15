@@ -8,10 +8,9 @@ import { computed, type ComputedRef } from 'vue';
 const urlOrNull = (value: string | null | undefined): string | null => (value && value.trim() !== '' ? value : null);
 
 /**
- * Product name and links shared from `config('chatvia.brand')`, so a
- * self-hosted install shows its own name and hides links it has not set.
- * Every URL is either a non-empty string or null — render the link only when
- * it is not null.
+ * Product name and links shared from `config('chatvia.brand')`. Every URL is
+ * either a non-empty string or null — render the link only when it is not
+ * null.
  */
 export function useBrand(): { brand: ComputedRef<Brand>; apiDocsUrl: (operation?: string) => string } {
     const page = usePage<SharedData>();

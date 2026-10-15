@@ -63,15 +63,6 @@
             "forms": "Formulare",
             "forms_tooltip": "Erstellen Sie Formulare, die Ihr Agent im Chat anzeigt"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Branding aktualisiert"
-            },
-            "sections": {
-                "branding_badge": "Badge „Powered by Chatvia“ anzeigen",
-                "branding_badge_hint": "Zeigt das Chatvia-Badge im Chat und Widget dieses Agenten an."
-            }
-        },
         "deploy": {
             "enabled": "Aktiviert",
             "disabled": "Deaktiviert",

@@ -52,9 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            // A closure: the panel is built while Filament's provider boots,
-            // before the brand name saved in Settings → Brand is applied.
-            ->brandName(fn (): string => config('chatvia.brand.name').' Admin')
+            ->brandName(config('chatvia.brand.name').' Admin')
             ->brandLogo(fn (): Factory|\Illuminate\Contracts\View\View => view('filament.brand'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('images/favicons/favicon.svg'))

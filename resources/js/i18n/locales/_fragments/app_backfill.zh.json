@@ -63,15 +63,6 @@
             "forms": "表单",
             "forms_tooltip": "构建智能体在聊天中展示的表单"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "品牌已更新"
-            },
-            "sections": {
-                "branding_badge": "显示 \"Powered by Chatvia\" 徽标",
-                "branding_badge_hint": "在该智能体的聊天和挂件上显示 Chatvia 徽标。"
-            }
-        },
         "deploy": {
             "enabled": "已启用",
             "disabled": "已停用",

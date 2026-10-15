@@ -232,7 +232,7 @@ other connector (`config/connectors.php`).
 
 Chatvia has no landing, pricing, blog or legal pages. `/` (route `home`,
 `HomeController`) sends guests to the login form and signed-in users to their
-dashboard. Link your own website in the admin panel (**Settings → Brand**).
+dashboard.
 
 ### Other App folders
 
@@ -909,7 +909,7 @@ Switches for a self-hosted install:
 | Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
-| Brand (admin panel, **Settings → Brand**) | Product name, links and the "Powered by" line. |
+| Brand (admin panel, **Settings → Brand**) | Shows or hides the "Powered by Chatvia" credit. Removing it requires a payment of $399. The product name and links are fixed. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: <https://chatvia.ai/docs/guide/self-hosting/>.

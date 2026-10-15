@@ -26,7 +26,7 @@ return [
     ],
 
     'ui' => [
-        // Set from the brand name (Settings → Brand) in ApiDocsServiceProvider.
+        // Set from the brand name in ApiDocsServiceProvider.
         'title' => null,
         'theme' => 'light',
         'hide_try_it' => false,

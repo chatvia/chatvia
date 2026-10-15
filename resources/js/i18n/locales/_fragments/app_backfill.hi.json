@@ -63,15 +63,6 @@
             "forms": "फ़ॉर्म",
             "forms_tooltip": "ऐसे फ़ॉर्म बनाएं जो आपका एजेंट चैट में दिखाता है"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "ब्रांडिंग अपडेट की गई"
-            },
-            "sections": {
-                "branding_badge": "\"Powered by Chatvia\" बैज दिखाएं",
-                "branding_badge_hint": "इस एजेंट की चैट और विजेट पर Chatvia बैज दिखाएं।"
-            }
-        },
         "deploy": {
             "enabled": "सक्षम",
             "disabled": "अक्षम",

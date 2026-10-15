@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Den här åtgärden kan göra ändringar i {provider}, så den behöver ditt godkännande först.",
+        "explain": "Den här åtgärden kan göra ändringar, så den behöver ditt godkännande först.",
+        "approved": "Godkänd",
+        "denied": "Nekad",
+        "show_details": "Visa detaljer",
+        "hide_details": "Dölj detaljer"
+    }
+}

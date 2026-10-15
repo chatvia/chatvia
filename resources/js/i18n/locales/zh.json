@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "需要批准",
-        "prompt": "是否继续?",
         "mcp_tool": "MCP 工具",
         "function": "函数",
         "approve": "批准",
         "deny": "拒绝",
-        "details": "详情",
-        "arguments": "参数"
+        "explain_in": "此操作可能会更改 {provider} 中的内容，因此需要你先批准。",
+        "explain": "此操作可能会更改内容，因此需要你先批准。",
+        "approved": "已批准",
+        "denied": "已拒绝",
+        "show_details": "显示详情",
+        "hide_details": "隐藏详情"
     },
     "composer": {
         "default_placeholder": "消息…",

@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Denne handlingen kan gjøre endringer i {provider}, så den trenger godkjenningen din først.",
+        "explain": "Denne handlingen kan gjøre endringer, så den trenger godkjenningen din først.",
+        "approved": "Godkjent",
+        "denied": "Avvist",
+        "show_details": "Vis detaljer",
+        "hide_details": "Skjul detaljer"
+    }
+}

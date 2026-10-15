@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Kræver godkendelse",
-        "prompt": "Vil du fortsætte?",
         "mcp_tool": "MCP-værktøj",
         "function": "Funktion",
         "approve": "Godkend",
         "deny": "Afvis",
-        "details": "Detaljer",
-        "arguments": "Argumenter"
+        "explain_in": "Denne handling kan foretage ændringer i {provider}, så den kræver din godkendelse først.",
+        "explain": "Denne handling kan foretage ændringer, så den kræver din godkendelse først.",
+        "approved": "Godkendt",
+        "denied": "Afvist",
+        "show_details": "Vis detaljer",
+        "hide_details": "Skjul detaljer"
     },
     "composer": {
         "default_placeholder": "Skriv en besked...",

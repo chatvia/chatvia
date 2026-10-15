@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Requer aprovação",
-        "prompt": "Deseja continuar?",
         "mcp_tool": "Ferramenta MCP",
         "function": "Função",
         "approve": "Aprovar",
         "deny": "Recusar",
-        "details": "Detalhes",
-        "arguments": "Argumentos"
+        "explain_in": "Esta ação pode fazer alterações em {provider}, por isso precisa primeiro da sua aprovação.",
+        "explain": "Esta ação pode fazer alterações, por isso precisa primeiro da sua aprovação.",
+        "approved": "Aprovado",
+        "denied": "Recusado",
+        "show_details": "Mostrar detalhes",
+        "hide_details": "Ocultar detalhes"
     },
     "composer": {
         "default_placeholder": "Mensagem...",

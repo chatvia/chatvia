@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Bu işlem {provider} içinde değişiklik yapabilir, bu yüzden önce onayınız gerekir.",
+        "explain": "Bu işlem değişiklik yapabilir, bu yüzden önce onayınız gerekir.",
+        "approved": "Onaylandı",
+        "denied": "Reddedildi",
+        "show_details": "Ayrıntıları göster",
+        "hide_details": "Ayrıntıları gizle"
+    }
+}

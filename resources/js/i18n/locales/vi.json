@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Cần phê duyệt",
-        "prompt": "Bạn có muốn tiếp tục không?",
         "mcp_tool": "Công cụ MCP",
         "function": "Hàm",
         "approve": "Phê duyệt",
         "deny": "Từ chối",
-        "details": "Chi tiết",
-        "arguments": "Đối số"
+        "explain_in": "Hành động này có thể thay đổi dữ liệu trong {provider}, vì vậy cần bạn phê duyệt trước.",
+        "explain": "Hành động này có thể thay đổi dữ liệu, vì vậy cần bạn phê duyệt trước.",
+        "approved": "Đã phê duyệt",
+        "denied": "Đã từ chối",
+        "show_details": "Hiện chi tiết",
+        "hide_details": "Ẩn chi tiết"
     },
     "composer": {
         "default_placeholder": "Tin nhắn…",

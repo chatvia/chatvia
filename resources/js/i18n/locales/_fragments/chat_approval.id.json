@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "Tindakan ini dapat membuat perubahan di {provider}, jadi perlu persetujuan Anda terlebih dahulu.",
+        "explain": "Tindakan ini dapat membuat perubahan, jadi perlu persetujuan Anda terlebih dahulu.",
+        "approved": "Disetujui",
+        "denied": "Ditolak",
+        "show_details": "Tampilkan detail",
+        "hide_details": "Sembunyikan detail"
+    }
+}

@@ -1,7 +1,6 @@
 {
     "approval": {
         "badge": "Odottaa hyväksyntää",
-        "prompt": "Haluatko jatkaa?",
         "mcp_tool": "MCP-työkalu",
         "function": "Funktio",
         "approve": "Hyväksy",

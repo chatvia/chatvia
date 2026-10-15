@@ -1,8 +1,4 @@
 {
-    "approval": {
-        "details": "Detaljer",
-        "arguments": "Argument"
-    },
     "messages": {
         "responding": "Assistenten svarar…",
         "response_complete": "Svaret är klart",

@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "承認が必要",
-        "prompt": "続行しますか?",
         "mcp_tool": "MCP ツール",
         "function": "関数",
         "approve": "承認",
         "deny": "拒否",
-        "details": "詳細",
-        "arguments": "引数"
+        "explain_in": "この操作は {provider} に変更を加える可能性があるため、まず承認が必要です。",
+        "explain": "この操作は変更を加える可能性があるため、まず承認が必要です。",
+        "approved": "承認済み",
+        "denied": "拒否済み",
+        "show_details": "詳細を表示",
+        "hide_details": "詳細を隠す"
     },
     "composer": {
         "default_placeholder": "メッセージ…",

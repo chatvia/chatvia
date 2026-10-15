@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "En attente d'approbation",
-        "prompt": "Souhaitez-vous continuer ?",
         "mcp_tool": "Outil MCP",
         "function": "Fonction",
         "approve": "Approuver",
         "deny": "Refuser",
-        "details": "Détails",
-        "arguments": "Arguments"
+        "explain_in": "Cette action peut apporter des modifications dans {provider}, elle nécessite donc d'abord votre approbation.",
+        "explain": "Cette action peut apporter des modifications, elle nécessite donc d'abord votre approbation.",
+        "approved": "Approuvé",
+        "denied": "Refusé",
+        "show_details": "Afficher les détails",
+        "hide_details": "Masquer les détails"
     },
     "composer": {
         "default_placeholder": "Message...",

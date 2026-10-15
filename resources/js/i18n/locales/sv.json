@@ -13,13 +13,16 @@
     },
     "approval": {
         "badge": "Kräver godkännande",
-        "prompt": "Vill du fortsätta?",
         "mcp_tool": "MCP-verktyg",
         "function": "Funktion",
         "approve": "Godkänn",
         "deny": "Neka",
-        "details": "Detaljer",
-        "arguments": "Argument"
+        "explain_in": "Den här åtgärden kan göra ändringar i {provider}, så den behöver ditt godkännande först.",
+        "explain": "Den här åtgärden kan göra ändringar, så den behöver ditt godkännande först.",
+        "approved": "Godkänd",
+        "denied": "Nekad",
+        "show_details": "Visa detaljer",
+        "hide_details": "Dölj detaljer"
     },
     "composer": {
         "default_placeholder": "Meddelande...",

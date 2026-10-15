@@ -1,0 +1,10 @@
+{
+    "approval": {
+        "explain_in": "이 작업은 {provider}에서 변경을 할 수 있으므로 먼저 승인이 필요합니다.",
+        "explain": "이 작업은 변경을 할 수 있으므로 먼저 승인이 필요합니다.",
+        "approved": "승인됨",
+        "denied": "거부됨",
+        "show_details": "세부 정보 보기",
+        "hide_details": "세부 정보 숨기기"
+    }
+}

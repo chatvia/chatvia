@@ -170,6 +170,18 @@ it('trains the pending URLs in one batch and records the batch', function (): vo
     Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->jobs->count() === 2 && $batch->jobs->first() instanceof WebsiteUrlTrainJob);
 });
 
+it('runs the website batch on the website ingestion queue', function (): void {
+    // A batch pushes its jobs onto its own queue, not the one each job names.
+    $agent = Agent::factory()->create();
+    $website = wsaWebsite($agent, 'crawled');
+    $website->urls()->create(['url' => 'https://docs.example.test/a']);
+
+    app(StartWebsiteIngestionAction::class)->execute($website, $agent);
+
+    Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->queue() === 'ingestion.website'
+        && $batch->jobs->every(fn (WebsiteUrlTrainJob $job): bool => $job->queue === $batch->queue()));
+});
+
 it('finishes a website: ingested, text file saved, URL placeholders taken off the chunk count', function (): void {
     Storage::fake();
     config(['chatvia.ai.chunker.enhance' => true]);

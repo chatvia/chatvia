@@ -33,8 +33,11 @@ class StartWebsiteIngestionAction
         $websiteId = $website->id;
         $agentId = $agent->id;
 
+        // A batch pushes every job onto its own queue and ignores the one the
+        // job names, so the batch names the website ingestion queue.
         $batch = Bus::batch($jobs->all())
             ->name("Website Ingestion: agent={$agentId} website={$websiteId}")
+            ->onQueue('ingestion.website')
             ->before(static function (Batch $batch) use ($websiteId): void {
                 SourceWebsite::query()
                     ->whereKey($websiteId)

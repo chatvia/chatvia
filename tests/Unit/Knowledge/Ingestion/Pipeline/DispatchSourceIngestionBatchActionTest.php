@@ -15,6 +15,7 @@ use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 
 /**
  * The one batch pipeline shared by document, text-file, media and text
@@ -50,6 +51,22 @@ it('marks the source as ingesting with its page count, queues the summary and st
     Bus::assertBatched(fn (PendingBatch $pending): bool => $pending->jobs->count() === 3
         && $pending->allowsFailures()
         && str_contains((string) $pending->name, (string) $file->id));
+});
+
+it('pushes every chunk job onto the long-running ingestion queue', function (): void {
+    // A real batch on a fake queue: a batch pushes its jobs onto its own
+    // queue and ignores the one each job names, so this shows where they land.
+    Queue::fake();
+    config(['chatvia.ai.chunker.enhance' => true]);
+
+    $agent = Agent::factory()->create();
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+
+    app(DispatchSourceIngestionBatchAction::class)->execute($file, $agent, DocumentChunkIngestionJob::forPages($agent, $file, dsibPages(2)));
+
+    Queue::assertPushedOn('ingestion.chunks', DocumentChunkIngestionJob::class);
+    Queue::assertPushed(DocumentChunkIngestionJob::class, 2);
+    Queue::assertPushedOn('ingestion.summary', SummaryIngestionJob::class);
 });
 
 it('stores plain pages 32 to a job, with text-only neighbours', function (): void {

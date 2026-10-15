@@ -2346,9 +2346,7 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     gap: 1rem 1.25rem;
     padding: 1.5rem;
     border-radius: var(--cv-radius-card);
-    background:
-        radial-gradient(120% 160% at 0% 0%, color-mix(in oklab, var(--cv-tone) 13%, transparent), transparent 60%),
-        var(--cv-card);
+    background: radial-gradient(120% 160% at 0% 0%, color-mix(in oklab, var(--cv-tone) 13%, transparent), transparent 60%), var(--cv-card);
     box-shadow:
         0 0 0 1px var(--cv-border),
         var(--cv-shadow-card);

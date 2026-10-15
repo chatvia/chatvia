@@ -26,7 +26,7 @@ use Domain\Knowledge\Source\Qa\Data\QaEntryData;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Llm\Operations\Query\QueryRewriter;
 use Illuminate\Support\Facades\DB;
-use Tests\Support\FakeEmbeddingsProvider;
+use Illuminate\Support\Facades\Http;
 
 /**
  * OFFLINE EVAL — not a pass/fail gate. It measures knowledge retrieval against
@@ -49,20 +49,27 @@ use Tests\Support\FakeEmbeddingsProvider;
  * EVAL_ENRICH=1 (enrich chunks with the Smart model first; needs a chat model).
  */
 beforeEach(function (): void {
-    if (filled($key = env('SCALEWAYAI_API_KEY'))) {
-        config(['services.scalewayai.api_key' => $key]);
+    // The eval calls the real embeddings and reranker, so it runs only with a
+    // key on the command line, and skips before any request without one.
+    $scaleway = env('SCALEWAYAI_API_KEY');
+    $cohere = env('COHERE_API_KEY');
+
+    if (blank($scaleway) && blank($cohere)) {
+        $this->markTestSkipped('needs a real key: SCALEWAYAI_API_KEY=… (or COHERE_API_KEY=…) vendor/bin/pest --testsuite=Eval');
     }
 
-    if (filled($key = env('COHERE_API_KEY'))) {
-        config(['services.cohere.api_key' => $key]);
+    if (filled($scaleway)) {
+        config(['services.scalewayai.api_key' => $scaleway]);
     }
+
+    if (filled($cohere)) {
+        config(['services.cohere.api_key' => $cohere]);
+    }
+
+    Http::allowStrayRequests();
 
     app()->forgetInstance(EmbeddingsProviderInterface::class);
     $provider = app(EmbeddingsProviderInterface::class);
-
-    if ($provider instanceof FakeEmbeddingsProvider) {
-        $this->markTestSkipped('real embeddings provider not bound; cannot run a semantic eval against the fake.');
-    }
 
     try {
         $provider->embedQuery('health check');

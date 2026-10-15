@@ -3,8 +3,6 @@
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentAccessPolicy;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +11,7 @@ use Illuminate\Support\Facades\Gate;
 /*
  * The one agent-access rule for staff accounts: the `access-agent` Gate
  * (dashboard) and User::canAccessAgent() (hosted chat) both ask
- * AgentAccessPolicy, so they can no longer disagree. One case per staff
+ * AgentAccessPolicy, so the two always agree. One case per staff
  * account type, plus the cross-tenant case. Chatters are not users: they are
  * checked by Chatter::canAccessAgent() against their own grants.
  */
@@ -26,22 +24,6 @@ beforeEach(function (): void {
     $this->policy = app(AgentAccessPolicy::class);
 });
 
-function aapTeammate(User $owner, $team, bool $allAgents, ?int $currentTeamId): User
-{
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: $allAgents ? 'All agents' : 'No agents',
-        permissions: [],
-        allAgents: $allAgents,
-        agentExternalIds: [],
-    ));
-
-    $teammate = User::factory()->employee($owner)->create(['current_team_id' => $currentTeamId]);
-    $team->members()->attach($teammate->id, ['role_id' => $role->id]);
-
-    return $teammate->fresh();
-}
-
 it('lets the workspace owner manage and chat with their own agent', function (): void {
     expect($this->policy->canManage($this->owner, $this->agent))->toBeTrue()
         ->and($this->policy->canChat($this->owner, $this->agent))->toBeTrue()
@@ -50,8 +32,7 @@ it('lets the workspace owner manage and chat with their own agent', function ():
 });
 
 it('keeps the owner of another workspace out, even with a current team of their own', function (): void {
-    // Regression: owning *a* team used to be enough for the chat check, so
-    // any workspace owner could chat with another tenant's private agent.
+    // Owning a team of their own gives them no reach into this workspace.
     $intruder = User::factory()->workspace()->create();
     $intruderTeam = app(TeamService::class)->createDefaultTeam($intruder);
     $intruder->update(['current_team_id' => $intruderTeam->id]);
@@ -64,21 +45,23 @@ it('keeps the owner of another workspace out, even with a current team of their 
 });
 
 it('lets a teammate whose role reaches the agent manage and chat with it', function (): void {
-    $teammate = aapTeammate($this->owner, $this->team, allAgents: true, currentTeamId: $this->team->id);
+    $teammate = teammateWithPermissions($this->owner, [], $this->team);
 
     expect($this->policy->canManage($teammate, $this->agent))->toBeTrue()
         ->and($this->policy->canChat($teammate, $this->agent))->toBeTrue();
 });
 
 it('uses the teammate\'s first team when no current team is selected yet', function (): void {
-    $teammate = aapTeammate($this->owner, $this->team, allAgents: true, currentTeamId: null);
+    $teammate = teammateWithPermissions($this->owner, [], $this->team);
+    $teammate->update(['current_team_id' => null]);
+    $teammate = $teammate->fresh();
 
     expect($this->policy->canManage($teammate, $this->agent))->toBeTrue()
         ->and($teammate->canAccessAgent($this->agent))->toBeTrue();
 });
 
 it('refuses a teammate whose role does not reach the agent', function (): void {
-    $teammate = aapTeammate($this->owner, $this->team, allAgents: false, currentTeamId: $this->team->id);
+    $teammate = teammateWithPermissions($this->owner, [], $this->team, allAgents: false);
 
     expect($this->policy->canManage($teammate, $this->agent))->toBeFalse()
         ->and($this->policy->canChat($teammate, $this->agent))->toBeFalse();
@@ -108,7 +91,7 @@ it('refuses a chatter an agent of another workspace, which the database will not
 });
 
 it('never lets a chatter grant open the agent for a staff account with the same id', function (): void {
-    $teammate = aapTeammate($this->owner, $this->team, allAgents: false, currentTeamId: $this->team->id);
+    $teammate = teammateWithPermissions($this->owner, [], $this->team, allAgents: false);
     // Chatter and staff ids come from different tables and can be equal.
     Chatter::factory()->grantedTo($this->agent)->create(['id' => $teammate->id]);
 

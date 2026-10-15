@@ -16,10 +16,11 @@ use Illuminate\Support\Facades\Notification;
  * InviteWorkspaceChatterAction is the workspace-page entry point: it provisions
  * one chatter and grants several agents at once, reusing InviteAgentChatterAction
  * (first agent) + GrantAgentMembershipAction (the rest). These tests pin the
- * multi-agent grant, that a single invitation is minted, and that an email
- * known in another workspace becomes a separate chatter of this one.
+ * multi-agent grant, that a single invitation is minted, and that the email
+ * goes out only after the commit. How an email known elsewhere is handled is
+ * InviteAgentChatterAction's rule and is tested there.
  */
-function workspaceWithAgents(int $count = 2): array
+function iwcWorkspaceWithAgents(int $count = 2): array
 {
     $workspace = User::factory()->create();
     $agents = Agent::factory()->count($count)->create(['workspace_id' => $workspace->workspace()->id]);
@@ -29,7 +30,7 @@ function workspaceWithAgents(int $count = 2): array
 
 it('provisions the chatter and grants every selected agent', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agents] = workspaceWithAgents(3);
+    [$workspace, $agents] = iwcWorkspaceWithAgents(3);
 
     $invitation = app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
         email: 'new@example.com',
@@ -57,7 +58,7 @@ it('provisions the chatter and grants every selected agent', function (): void {
 
 it('grants the selected agents to an existing chatter under the same workspace', function (): void {
     Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agents] = workspaceWithAgents(2);
+    [$workspace, $agents] = iwcWorkspaceWithAgents(2);
 
     $existing = Chatter::factory()->ofWorkspace($workspace)->create(['email' => 'member@example.com']);
 
@@ -71,47 +72,9 @@ it('grants the selected agents to an existing chatter under the same workspace',
         ->and($agents[1]->chatters()->whereKey($existing->id)->exists())->toBeTrue();
 });
 
-it('creates a separate chatter when the email is a chatter of another workspace', function (): void {
-    Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agents] = workspaceWithAgents(2);
-
-    [, $otherAgents] = workspaceWithAgents(1);
-    $foreign = Chatter::factory()->grantedTo($otherAgents->first())->create(['email' => 'shared@example.com']);
-
-    $invitation = app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
-        email: 'shared@example.com',
-        agents: $agents,
-    ));
-
-    $chatter = $workspace->workspace()->chatters()->where('email', 'shared@example.com')->sole();
-
-    expect($invitation->email)->toBe('shared@example.com')
-        ->and($chatter->id)->not->toBe($foreign->id)
-        ->and($agents[0]->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
-        ->and($agents[1]->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
-        // The other workspace's chatter keeps only its own grant.
-        ->and($foreign->fresh()->agents()->pluck('agents.id')->all())->toBe([$otherAgents->first()->id]);
-});
-
-it('creates a chatter for the email of a staff account', function (): void {
-    Event::fake([AgentChatterInvited::class]);
-    [$workspace, $agents] = workspaceWithAgents(2);
-    User::factory()->employee($workspace)->create(['email' => 'teammate@example.com']);
-
-    app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
-        email: 'teammate@example.com',
-        agents: $agents,
-    ));
-
-    $chatter = $workspace->workspace()->chatters()->where('email', 'teammate@example.com')->sole();
-
-    expect($agents[0]->chatters()->whereKey($chatter->id)->exists())->toBeTrue()
-        ->and($agents[1]->chatters()->whereKey($chatter->id)->exists())->toBeTrue();
-});
-
 it('sends the invitation email with the token link once the transaction commits', function (): void {
     Notification::fake();
-    [, $agents] = workspaceWithAgents(2);
+    [, $agents] = iwcWorkspaceWithAgents(2);
 
     $result = app(InviteWorkspaceChatterAction::class)->execute(new InviteWorkspaceChatterData(
         email: 'new@example.com',
@@ -127,7 +90,7 @@ it('sends the invitation email with the token link once the transaction commits'
 
 it('sends no invitation email when a later step fails and the transaction rolls back', function (): void {
     Notification::fake();
-    [, $agents] = workspaceWithAgents(2);
+    [, $agents] = iwcWorkspaceWithAgents(2);
 
     $grant = Mockery::mock(GrantAgentMembershipAction::class);
     $grant->shouldReceive('execute')->andThrow(new RuntimeException('grant failed'));

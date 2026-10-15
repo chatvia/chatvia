@@ -1,21 +1,14 @@
 <?php
 
-use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Policies\AgentPolicy;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Facades\Gate;
 
 /**
- * AgentPolicy matrix. The view/update/delete abilities follow the dashboard
- * access rule (the same as the `access-agent` Gate); create needs the target
- * team's owner.
- *
- *  - Admin             → only their own agents (no cross-workspace reach)
- *  - Workspace owner   → only their own agents
- *  - Unrelated user    → denied, even with the id of a chatter granted the agent
- * Chatters are not users and never reach the dashboard policy at all.
+ * AgentPolicy: nobody lists every agent, create needs the target team's
+ * owner, and view/update/delete hand over to the dashboard access rule
+ * (AgentAccessPolicy::canManage(), whose cases have their own test).
  */
 beforeEach(function (): void {
     $this->policy = app(AgentPolicy::class);
@@ -44,41 +37,15 @@ it('create is a not-found when no team is selected', function (): void {
         ->and($response->status())->toBe(404);
 });
 
-it('view/update/delete grant the workspace owner access to their own agents', function (): void {
+it('view/update/delete follow the dashboard access rule', function (): void {
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
+    $intruder = Agent::factory()->create()->workspace->owner; // different workspace
 
     expect($this->policy->view($owner, $agent))->toBeTrue()
         ->and($this->policy->update($owner, $agent))->toBeTrue()
-        ->and($this->policy->delete($owner, $agent))->toBeTrue();
-});
-
-it('view/update/delete deny an unrelated workspace owner', function (): void {
-    $agent = Agent::factory()->create();
-    $intruder = Agent::factory()->create()->workspace->owner; // different workspace
-
-    expect($this->policy->view($intruder, $agent))->toBeFalse()
-        ->and($this->policy->update($intruder, $agent))->toBeFalse()
-        ->and($this->policy->delete($intruder, $agent))->toBeFalse();
-});
-
-it('agrees with the access-agent Gate, including for staff', function (): void {
-    $agent = Agent::factory()->create();
-    $admin = User::factory()->admin()->create();
-    $intruder = Agent::factory()->create()->workspace->owner;
-
-    expect($this->policy->view($admin, $agent))->toBe(Gate::forUser($admin)->allows('access-agent', $agent))
-        ->and($this->policy->view($admin, $agent))->toBeFalse()
-        ->and($this->policy->view($intruder, $agent))->toBe(Gate::forUser($intruder)->allows('access-agent', $agent));
-});
-
-it('denies a staff account whose id equals a chatter granted the agent', function (): void {
-    $agent = Agent::factory()->create();
-    $intruder = Agent::factory()->create()->workspace->owner; // different workspace
-    // Chatter and staff ids come from different tables and can be equal.
-    Chatter::factory()->grantedTo($agent)->create(['id' => $intruder->id]);
-
-    expect($this->policy->view($intruder, $agent))->toBeFalse()
+        ->and($this->policy->delete($owner, $agent))->toBeTrue()
+        ->and($this->policy->view($intruder, $agent))->toBeFalse()
         ->and($this->policy->update($intruder, $agent))->toBeFalse()
         ->and($this->policy->delete($intruder, $agent))->toBeFalse();
 });

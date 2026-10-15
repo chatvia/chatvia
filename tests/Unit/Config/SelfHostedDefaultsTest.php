@@ -122,9 +122,24 @@ it('resolves helper binaries from PATH by default, never from .env', function ()
     ])->and(configFileWith('laravel-pdf.php', ['WEASYPRINT_BIN_PATH' => '/bin/sh'])['weasyprint']['binary'])->toBe('weasyprint');
 });
 
-it('ships no other app\'s Reverb credentials', function (): void {
-    expect(config('reverb.apps.apps'))->toHaveCount(1)
-        ->and(file_get_contents(config_path('reverb.php')))->not->toContain('HEJLY');
+it('ships no Reverb credentials of its own: the one app reads them from env', function (): void {
+    $set = configFileWith('reverb.php', [
+        'REVERB_APP_KEY' => 'key-from-env',
+        'REVERB_APP_SECRET' => 'secret-from-env',
+        'REVERB_APP_ID' => 'id-from-env',
+        'REVERB_EXTRA_APP_ID' => null,
+    ])['apps']['apps'];
+    $unset = configFileWith('reverb.php', [
+        'REVERB_APP_KEY' => null,
+        'REVERB_APP_SECRET' => null,
+        'REVERB_APP_ID' => null,
+        'REVERB_EXTRA_APP_ID' => null,
+    ])['apps']['apps'];
+
+    expect($set)->toHaveCount(1)
+        ->and([$set[0]['key'], $set[0]['secret'], $set[0]['app_id']])->toBe(['key-from-env', 'secret-from-env', 'id-from-env'])
+        ->and($unset)->toHaveCount(1)
+        ->and([$unset[0]['key'], $unset[0]['secret'], $unset[0]['app_id']])->toBe([null, null, null]);
 });
 
 it('sends Horizon alerts nowhere unless an inbox is configured', function (): void {

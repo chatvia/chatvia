@@ -5,27 +5,18 @@ use Domain\Agent\Actions\Account\UpdateAgentAction;
 use Domain\Agent\Data\Account\UpdateAgentData;
 use Domain\Agent\Models\Agent;
 use Domain\Agent\Prompt\Models\AgentPrompt;
-use Illuminate\Support\Str;
 
 /**
  * UpdateAgentAction owns the agent_prompt_id ↔ system_instructions
  * mutual-exclusion rule (a library prompt and a custom instruction
  * string can never both be set). Test each branch concretely.
  */
-function makeOwnedPrompt(User $user, string $name = 'My Prompt'): AgentPrompt
+function uaaOwnedPrompt(User $user): AgentPrompt
 {
-    /** @var AgentPrompt $prompt */
-    $prompt = AgentPrompt::create([
-        'external_id' => (string) Str::uuid(),
-        'workspace_id' => $user->workspace()->id,
-        'name' => $name,
-        'prompt' => 'You are a helpful assistant.',
-    ]);
-
-    return $prompt;
+    return AgentPrompt::factory()->create(['workspace_id' => $user->workspace()->id]);
 }
 
-function dataFor(Agent $agent, array $overrides = []): UpdateAgentData
+function uaaData(Agent $agent, array $overrides = []): UpdateAgentData
 {
     return new UpdateAgentData(...array_merge([
         'agent' => $agent,
@@ -42,16 +33,16 @@ function dataFor(Agent $agent, array $overrides = []): UpdateAgentData
 it('updates name when name is supplied', function (): void {
     $agent = Agent::factory()->create(['name' => 'Original']);
 
-    $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, ['name' => 'Renamed']));
+    $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, ['name' => 'Renamed']));
 
     expect($updated->name)->toBe('Renamed');
 });
 
 it('switching to a library prompt clears system_instructions', function (): void {
     $agent = Agent::factory()->create(['system_instructions' => 'Old custom text']);
-    $prompt = makeOwnedPrompt($agent->workspace->owner);
+    $prompt = uaaOwnedPrompt($agent->workspace->owner);
 
-    $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, [
+    $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, [
         'changePrompt' => true,
         'promptExternalId' => $prompt->external_id,
     ]));
@@ -62,10 +53,10 @@ it('switching to a library prompt clears system_instructions', function (): void
 
 it('switching to custom system_instructions clears agent_prompt_id', function (): void {
     $agent = Agent::factory()->create();
-    $prompt = makeOwnedPrompt($agent->workspace->owner);
+    $prompt = uaaOwnedPrompt($agent->workspace->owner);
     $agent->update(['agent_prompt_id' => $prompt->id]);
 
-    $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, [
+    $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, [
         'changeSystemInstructions' => true,
         'systemInstructions' => 'New custom instructions',
     ]));
@@ -76,10 +67,10 @@ it('switching to custom system_instructions clears agent_prompt_id', function ()
 
 it('clearing the library prompt by sending null clears both prompt and instructions', function (): void {
     $agent = Agent::factory()->create();
-    $prompt = makeOwnedPrompt($agent->workspace->owner);
+    $prompt = uaaOwnedPrompt($agent->workspace->owner);
     $agent->update(['agent_prompt_id' => $prompt->id]);
 
-    $updated = app(UpdateAgentAction::class)->execute(dataFor($agent, [
+    $updated = app(UpdateAgentAction::class)->execute(uaaData($agent, [
         'changePrompt' => true,
         'promptExternalId' => null, // explicit null = "no prompt selected"
     ]));

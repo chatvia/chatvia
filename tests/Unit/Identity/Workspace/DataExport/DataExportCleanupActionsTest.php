@@ -47,7 +47,7 @@ it('prunes expired exports and failed ones older than a week, keeping the rest',
     ]);
     $oldFailure->forceFill(['created_at' => now()->subDays(8)])->save();
 
-    expect(app(PruneExpiredDataExportsAction::class)->execute())->toBeGreaterThanOrEqual(2)
+    expect(app(PruneExpiredDataExportsAction::class)->execute())->toBe(2)
         ->and($expired->fresh()->status)->toBe(DataExportStatus::Expired)
         ->and($expired->fresh()->file_path)->toBeNull()
         ->and($oldFailure->fresh()->status)->toBe(DataExportStatus::Expired)

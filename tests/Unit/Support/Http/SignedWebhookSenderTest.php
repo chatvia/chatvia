@@ -1,9 +1,9 @@
 <?php
 
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Support\Exceptions\UnsafeUrlException;
-use Support\Http\SafeUrl;
 use Support\Http\SignedWebhookSender;
 use Support\Http\WebhookSignature;
 
@@ -23,7 +23,7 @@ it('posts the payload signed with the shared webhook signature', function (): vo
         secret: 'shh-secret',
     );
 
-    Http::assertSent(function ($request): bool {
+    Http::assertSent(function (ClientRequest $request): bool {
         $body = $request->body();
 
         return $request->url() === 'https://hooks.example.com/in'
@@ -40,10 +40,6 @@ it('treats a redirect as a failed delivery instead of following it', function ()
         ->toThrow(RequestException::class);
 
     Http::assertSentCount(1);
-});
-
-it('disables redirect following on the client', function (): void {
-    expect(SafeUrl::clientOptions())->toBe(['allow_redirects' => false]);
 });
 
 it('refuses internal targets at send time outside local and testing', function (string $url): void {

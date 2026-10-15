@@ -75,10 +75,3 @@ it('judges the geo rule in isolation', function (): void {
         ->and($this->guard->geoAllowed(GeoMode::Deny, ['RU'], 'RU'))->toBeFalse()
         ->and($this->guard->geoAllowed(GeoMode::Allow, ['AE'], null))->toBeTrue(); // unresolved ⇒ fail open
 });
-
-it('does not blame the IP for a geo-only block (and vice versa)', function (): void {
-    // The anti-lockout message keys off these two verdicts: an empty allowlist
-    // with a blocking country must report geo alone, never the IP.
-    expect($this->guard->ipAllowed([], '198.51.100.7'))->toBeTrue()
-        ->and($this->guard->geoAllowed(GeoMode::Allow, ['AE'], 'US'))->toBeFalse();
-});

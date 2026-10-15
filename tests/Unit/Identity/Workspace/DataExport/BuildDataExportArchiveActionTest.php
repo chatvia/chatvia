@@ -14,9 +14,11 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 it('packages user data into a zip and marks the export ready', function (): void {
     Event::fake([DataExportReady::class]);
+    Storage::fake('local');
 
     $user = User::factory()->create();
 
@@ -38,17 +40,7 @@ it('packages user data into a zip and marks the export ready', function (): void
 
     expect(Storage::disk('local')->exists($export->file_path))->toBeTrue();
 
-    $absolute = Storage::disk('local')->path($export->file_path);
-    $zip = new ZipArchive;
-    expect($zip->open($absolute))->toBeTrue();
-
-    $entries = [];
-    for ($i = 0; $i < $zip->numFiles; $i++) {
-        $entries[] = $zip->getNameIndex($i);
-    }
-    $zip->close();
-
-    expect($entries)->toContain('README.txt')
+    expect(bdeEntries($export))->toContain('README.txt')
         ->toContain('profile.json')
         ->toContain('agents.json')
         ->toContain('conversations.json')
@@ -61,7 +53,7 @@ it('packages user data into a zip and marks the export ready', function (): void
 /**
  * Read one entry of the export archive.
  */
-function exportEntry(DataExport $export, string $name): string|false
+function bdeEntry(DataExport $export, string $name): string|false
 {
     $zip = new ZipArchive;
     $zip->open(Storage::disk('local')->path($export->file_path));
@@ -69,6 +61,35 @@ function exportEntry(DataExport $export, string $name): string|false
     $zip->close();
 
     return $contents;
+}
+
+/**
+ * The names of every entry in the export archive.
+ *
+ * @return list<string>
+ */
+function bdeEntries(DataExport $export): array
+{
+    $zip = new ZipArchive;
+    expect($zip->open(Storage::disk('local')->path($export->file_path)))->toBeTrue();
+
+    $entries = [];
+    for ($i = 0; $i < $zip->numFiles; $i++) {
+        $entries[] = (string) $zip->getNameIndex($i);
+    }
+    $zip->close();
+
+    return $entries;
+}
+
+/** A pending export for the user. */
+function bdeExport(User $user): DataExport
+{
+    return DataExport::create([
+        'user_id' => $user->id,
+        'status' => DataExportStatus::Pending,
+        'download_token' => Str::random(64),
+    ]);
 }
 
 it('streams a workspace bigger than one batch, with explicit columns and short queries', function (): void {
@@ -122,10 +143,10 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
     $export->refresh();
     expect($export->status)->toBe(DataExportStatus::Ready);
 
-    $exportedConversations = json_decode(exportEntry($export, 'conversations.json'), true, flags: JSON_THROW_ON_ERROR);
-    $exportedMessages = json_decode(exportEntry($export, 'messages.json'), true, flags: JSON_THROW_ON_ERROR);
-    $agents = json_decode(exportEntry($export, 'agents.json'), true, flags: JSON_THROW_ON_ERROR);
-    $knowledge = json_decode(exportEntry($export, 'knowledge-sources.json'), true, flags: JSON_THROW_ON_ERROR);
+    $exportedConversations = json_decode(bdeEntry($export, 'conversations.json'), true, flags: JSON_THROW_ON_ERROR);
+    $exportedMessages = json_decode(bdeEntry($export, 'messages.json'), true, flags: JSON_THROW_ON_ERROR);
+    $agents = json_decode(bdeEntry($export, 'agents.json'), true, flags: JSON_THROW_ON_ERROR);
+    $knowledge = json_decode(bdeEntry($export, 'knowledge-sources.json'), true, flags: JSON_THROW_ON_ERROR);
 
     expect(collect($exportedConversations)->pluck('id')->sort()->values()->all())->toBe($conversations->modelKeys())
         ->and($exportedConversations[0]['title'])->toBe('Hello')
@@ -149,12 +170,62 @@ it('streams a workspace bigger than one batch, with explicit columns and short q
     foreach ($attachments as $attachment) {
         $conversationId = $attachment->chat_conversation_id;
 
-        expect(exportEntry($export, "attachments/conversations/{$conversationId}/{$attachment->id}-{$conversationId}.txt"))
+        expect(bdeEntry($export, "attachments/conversations/{$conversationId}/{$attachment->id}-{$conversationId}.txt"))
             ->toBe('attachment-'.$conversationId);
     }
 
-    expect(exportEntry($export, "attachments/knowledge/{$file->id}-manual.txt"))->toBe('knowledge-bytes');
+    expect(bdeEntry($export, "attachments/knowledge/{$file->id}-manual.txt"))->toBe('knowledge-bytes');
 
     // No query carries more parameters than one batch of ids (plus a few).
     expect($maxBindings)->toBeLessThanOrEqual(6);
+});
+
+it('gives a teammate their personal data only, never the workspace data', function (): void {
+    Event::fake([DataExportReady::class]);
+    Storage::fake('local');
+
+    $agent = Agent::factory()->create();
+    Conversation::factory()->create(['agent_id' => $agent->id]);
+    $teammate = User::factory()->employee($agent->workspace->owner)->create();
+
+    $export = bdeExport($teammate);
+    app(BuildDataExportArchiveAction::class)->execute($export);
+
+    $entries = bdeEntries($export->refresh());
+
+    expect($export->status)->toBe(DataExportStatus::Ready)
+        ->and($entries)->toContain('README.txt', 'profile.json', 'teams.json', 'api-keys.json')
+        ->and($entries)->not->toContain('agents.json')
+        ->and($entries)->not->toContain('conversations.json')
+        ->and($entries)->not->toContain('messages.json')
+        ->and($entries)->not->toContain('knowledge-sources.json')
+        ->and($entries)->not->toContain('message-limit.json')
+        ->and(json_decode(bdeEntry($export, 'profile.json'), true, flags: JSON_THROW_ON_ERROR)['id'])->toBe($teammate->id);
+});
+
+it('marks the export failed, leaves no archive or temp files, and rethrows when a step fails', function (): void {
+    Event::fake([DataExportReady::class]);
+    Storage::fake('local');
+
+    $owner = Agent::factory()->create()->workspace->owner;
+    // The last step fails, after the archive was written to disk.
+    DataExport::updating(static function (DataExport $export): void {
+        if ($export->status === DataExportStatus::Ready) {
+            throw new RuntimeException('Database went away');
+        }
+    });
+
+    $export = bdeExport($owner);
+
+    expect(fn () => app(BuildDataExportArchiveAction::class)->execute($export))
+        ->toThrow(RuntimeException::class, 'Database went away');
+
+    $export->refresh();
+
+    expect($export->status)->toBe(DataExportStatus::Failed)
+        ->and($export->error_message)->toBe('Database went away')
+        ->and(Storage::disk('local')->allFiles('users/'.$owner->external_id.'/data-exports'))->toBe([])
+        ->and(Storage::disk('local')->allFiles('data-exports/tmp'))->toBe([]);
+
+    Event::assertNotDispatched(DataExportReady::class);
 });

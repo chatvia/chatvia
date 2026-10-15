@@ -25,8 +25,8 @@ it('grants a team owner every permission on their own agent', function (): void 
 });
 
 it('denies a team owner any permission on another workspace agent', function (): void {
-    // Regression: a team owner used to get every permission on ANY agent while
-    // they had a current team — including another workspace's agent.
+    // A team owner's every-permission shortcut covers their own agents only,
+    // never another workspace's agent.
     $otherOwner = User::factory()->workspace()->create();
     app(TeamService::class)->createDefaultTeam($otherOwner);
     $otherAgent = createAgent($otherOwner);

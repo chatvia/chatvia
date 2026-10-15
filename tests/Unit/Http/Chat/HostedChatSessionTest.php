@@ -17,12 +17,6 @@ use Illuminate\Support\Facades\Session;
  * A chatter's session is linked by `chatter_id`, a staff member's by
  * `user_id`, so equal ids from the two tables never share a session.
  */
-beforeEach(function (): void {
-    // Tagged-cache API works under the array driver, keeping these unit
-    // tests Redis-free.
-    config(['cache.stores.chat' => ['driver' => 'array']]);
-});
-
 it('reattaches an authenticated chatter to their existing session for the agent', function (): void {
     // ChatLogoutController invalidates the chat session, so cs:session:* is
     // gone on the next login. Without this lookup the chatter
@@ -31,11 +25,7 @@ it('reattaches an authenticated chatter to their existing session for the agent'
     $agent = Agent::factory()->create();
     $chatter = Chatter::factory()->grantedTo($agent)->create();
 
-    $existing = ChatSession::create([
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'chatter_id' => $chatter->id,
-    ]);
+    $existing = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
 
     HostedChatViewer::signIn($chatter);
     Session::flush(); // post-logout Laravel session state
@@ -55,7 +45,7 @@ it('reattaches signed-in staff to their own session, never a chatter\'s with the
     $staff = User::factory()->create(['id' => $id]);
     $chatter = Chatter::factory()->grantedTo($agent)->create(['id' => $id]);
 
-    $chatterSession = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id, 'chatter_id' => $chatter->id]);
+    $chatterSession = ChatSession::factory()->forChatter($chatter)->create(['agent_id' => $agent->id]);
 
     HostedChatViewer::signIn($staff);
     Session::flush();
@@ -70,7 +60,7 @@ it('reattaches signed-in staff to their own session, never a chatter\'s with the
 
 it('honours an in-memory cs:session marker for the agent on the same request', function (): void {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
+    $session = ChatSession::factory()->create(['agent_id' => $agent->id]);
     Session::put('cs:session:'.$agent->id, $session->external_id);
 
     // Plant under the same [workspace, agent, session] tag set the reader uses

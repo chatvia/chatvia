@@ -2,11 +2,9 @@
 
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
-use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Services\TeamService;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -39,22 +37,8 @@ it('signs the JWT with the expected sub/aud/exp claims', function (): void {
 });
 
 it('encodes and decodes a member whose role grants this agent', function (): void {
-    $team = $this->owner->primaryTeam();
-    app(PermissionRegistrar::class)->setPermissionsTeamId($team->id);
-
     // A role scoped to a single agent (the "specific agent" grant).
-    $role = Role::create([
-        'name' => 'Support',
-        'code' => 'support',
-        'team_id' => $team->id,
-        'guard_name' => 'web',
-    ]);
-    $role->agents()->attach($this->agent->id);
-
-    $member = User::factory()->employee($this->owner)->create([
-        'current_team_id' => $team->id,
-    ]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
+    $member = teammateWithPermissions($this->owner, [], allAgents: false, agentExternalIds: [$this->agent->external_id]);
 
     $token = $this->service->issue($member, $this->agent)['token'];
 
@@ -74,6 +58,41 @@ it('rejects a managed user with no permission to the agent', function (): void {
     $token = $this->service->issue($stranger, $this->agent)['token'];
 
     expect($this->service->verify($token, $this->agent))->toBeNull();
+});
+
+it('accepts a customer-signed JWT that lives up to 24 hours and refuses a longer one', function (): void {
+    $this->freezeTime();
+    $secret = $this->agent->ensureAuthSecret();
+    $jwt = fn (int $lifetime): string => JWT::encode([
+        'sub' => $this->owner->external_id,
+        'aud' => $this->agent->external_id,
+        'exp' => now()->addSeconds($lifetime)->getTimestamp(),
+    ], $secret, 'HS256');
+
+    expect($this->service->verify($jwt(AgentSignInTokenService::MAX_TTL_SECONDS), $this->agent)?->id)->toBe($this->owner->id)
+        ->and($this->service->verify($jwt(AgentSignInTokenService::MAX_TTL_SECONDS + 1), $this->agent))->toBeNull();
+});
+
+it('keeps the lifetime of an issued token between one minute and 24 hours', function (): void {
+    $this->freezeTime();
+
+    expect($this->service->issue($this->owner, $this->agent, ttlSeconds: 5)['expires_at']->getTimestamp())
+        ->toBe(now()->addSeconds(AgentSignInTokenService::MIN_TTL_SECONDS)->getTimestamp())
+        ->and($this->service->issue($this->owner, $this->agent, ttlSeconds: 999_999)['expires_at']->getTimestamp())
+        ->toBe(now()->addSeconds(AgentSignInTokenService::MAX_TTL_SECONDS)->getTimestamp());
+});
+
+it('hands back the playground context tag of a token that carries one', function (): void {
+    $tagged = $this->service->issue($this->owner, $this->agent, ctx: AgentSignInTokenService::CTX_PLAYGROUND)['token'];
+    $plain = $this->service->issue($this->owner, $this->agent)['token'];
+    $hmac = $this->service->issueHmac($this->owner, $this->agent)['token'];
+
+    $claims = $this->service->verifyWithClaims($tagged, $this->agent);
+
+    expect($claims['user']->id)->toBe($this->owner->id)
+        ->and($claims['ctx'])->toBe('playground')
+        ->and($this->service->verifyWithClaims($plain, $this->agent)['ctx'])->toBeNull()
+        ->and($this->service->verifyWithClaims($hmac, $this->agent)['ctx'])->toBeNull();
 });
 
 describe('compact HMAC credential', function (): void {
@@ -109,21 +128,7 @@ describe('compact HMAC credential', function (): void {
     });
 
     it('encodes and decodes a member whose role grants this agent', function (): void {
-        $team = $this->owner->primaryTeam();
-        app(PermissionRegistrar::class)->setPermissionsTeamId($team->id);
-
-        $role = Role::create([
-            'name' => 'Support',
-            'code' => 'support',
-            'team_id' => $team->id,
-            'guard_name' => 'web',
-        ]);
-        $role->agents()->attach($this->agent->id);
-
-        $member = User::factory()->employee($this->owner)->create([
-            'current_team_id' => $team->id,
-        ]);
-        $team->members()->attach($member->id, ['role_id' => $role->id]);
+        $member = teammateWithPermissions($this->owner, [], allAgents: false, agentExternalIds: [$this->agent->external_id]);
 
         $token = $this->service->issueHmac($member, $this->agent)['token'];
 
@@ -229,12 +234,4 @@ it('rejects a validly-signed token whose sub is not a UUID instead of throwing',
 
     expect($this->service->verify($jwt, $this->agent))->toBeNull()
         ->and($this->service->verify($hmac, $this->agent))->toBeNull();
-});
-
-it('accepts both a JWT and an HMAC credential against the same agent (no scheme conflict)', function (): void {
-    $jwt = $this->service->issue($this->owner, $this->agent)['token'];
-    $hmac = $this->service->issueHmac($this->owner, $this->agent)['token'];
-
-    expect($this->service->verify($jwt, $this->agent)?->id)->toBe($this->owner->id)
-        ->and($this->service->verify($hmac, $this->agent)?->id)->toBe($this->owner->id);
 });

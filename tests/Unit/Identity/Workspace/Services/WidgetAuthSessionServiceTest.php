@@ -2,6 +2,7 @@
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WidgetAuthSessionService;
@@ -15,8 +16,8 @@ beforeEach(function (): void {
     $this->service = app(WidgetAuthSessionService::class);
 
     // A stable fingerprint baseline — issue and resolve from the same
-    // (ip, ua) tuple so the IP/UA pinning check (SEC-W-10) never trips
-    // inside the round-trip tests.
+    // (ip, ua) tuple so the IP/UA pinning check never trips inside the
+    // round-trip tests.
     $this->request = Request::create('/widget', 'POST', server: [
         'REMOTE_ADDR' => '203.0.113.10',
         'HTTP_USER_AGENT' => 'Mozilla/5.0 (Test) Chrome/123 Safari/537',
@@ -24,9 +25,9 @@ beforeEach(function (): void {
 });
 
 it('round-trips the agent owner (not just chatters)', function (): void {
-    // Regression: the exchange mints sessions via AgentSignInTokenService::verify,
-    // whose valid subject includes the owner — so resolve() must not filter by
-    // user type, or the owner's own session never resolves.
+    // The exchange mints sessions via AgentSignInTokenService::verify, whose
+    // valid subject includes the owner, so resolve() must not filter by user
+    // type, or the owner's own session never resolves.
     $session = $this->service->issue($this->owner, $this->agent, $this->request);
 
     $resolved = $this->service->resolve($session['token'], $this->agent, $this->request);
@@ -42,6 +43,29 @@ it('round-trips a chatter', function (): void {
 
     expect($this->service->resolve($session['token'], $this->agent, $this->request)?->id)
         ->toBe($chatter->id);
+});
+
+it('keeps a chatter and a staff account with the same id apart', function (): void {
+    // Chatter and staff ids come from different tables and can be equal.
+    $id = sharedStaffAndChatterId();
+    $staff = User::factory()->employee($this->owner)->create(['id' => $id]);
+    $chatter = Chatter::factory()->ofWorkspace($this->owner)->create(['id' => $id]);
+
+    $asChatter = $this->service->resolve($this->service->issue($chatter, $this->agent, $this->request)['token'], $this->agent, $this->request);
+    $asStaff = $this->service->resolve($this->service->issue($staff, $this->agent, $this->request)['token'], $this->agent, $this->request);
+
+    expect($asChatter)->toBeInstanceOf(Chatter::class)
+        ->and($asChatter->id)->toBe($id)
+        ->and($asStaff)->toBeInstanceOf(User::class)
+        ->and($asStaff->id)->toBe($id);
+});
+
+it('never resolves a chatter of another workspace', function (): void {
+    $foreign = Chatter::factory()->ofWorkspace(User::factory()->create())->create();
+
+    $session = $this->service->issue($foreign, $this->agent, $this->request);
+
+    expect($this->service->resolve($session['token'], $this->agent, $this->request))->toBeNull();
 });
 
 it('rejects a still-cached token the moment the user is deactivated', function (): void {
@@ -68,8 +92,8 @@ it('returns null for an unknown token', function (): void {
 });
 
 it('rejects a token replayed from a different ip / user-agent', function (): void {
-    // Defence-in-depth (SEC-W-10): the cached payload pins the token to the
-    // (ip, ua) it was issued under. A different machine reusing the token
+    // Defence in depth: the cached payload pins the token to the (ip, ua) it
+    // was issued under. A different machine reusing the token
     // (XSS exfiltration scenario) must NOT resolve.
     $session = $this->service->issue($this->owner, $this->agent, $this->request);
 

@@ -92,22 +92,13 @@ it('sends no dashboard link to a chatter', function (): void {
     Notification::assertNothingSent();
 });
 
-it('silently no-ops when the user cannot access the scoped agent', function (): void {
-    Notification::fake();
-    $workspace = User::factory()->workspace()->create();
-    $otherWorkspace = User::factory()->workspace()->create();
-    Chatter::factory()->ofWorkspace($otherWorkspace)->create([
-        'email' => 'outsider@example.test',
-    ]);
-    $agent = createAgent($workspace);
+it('silently no-ops for a staff account that cannot reach the scoped agent', function (): void {
+    $agent = createAgent(User::factory()->workspace()->create());
+    // A staff account is found by email in any workspace; the owner of another
+    // workspace is found and then refused by canAccessAgent().
+    User::factory()->workspace()->create(['email' => 'outsider@example.test']);
 
-    app(SendMagicLinkAction::class)->execute(
-        new SendMagicLinkData(email: 'outsider@example.test'),
-        redirectUrl: '/dashboard',
-        agent: $agent,
-    );
-
-    Notification::assertNothingSent();
+    expect(sentMagicLinkSignIn('outsider@example.test', $agent))->toBeNull();
 });
 
 it('silently no-ops for a chatter of the workspace who was not granted the agent', function (): void {

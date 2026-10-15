@@ -78,5 +78,5 @@ it('stops the master with a status every process manager restarts', function ():
     $master = Mockery::mock(MasterSupervisor::class);
     $master->expects('terminate')->with(1);
 
-    (new RestartMasterSupervisor)->process($master, []);
+    (new RestartMasterSupervisor)->process($master);
 });

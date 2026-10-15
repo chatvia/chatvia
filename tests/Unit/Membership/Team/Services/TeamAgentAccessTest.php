@@ -14,7 +14,7 @@ beforeEach(function (): void {
     $this->member = User::factory()->employee($this->owner)->create();
 });
 
-function joinWithRole(object $test, bool $allAgents, array $agentIds = []): void
+function taaJoinWithRole(object $test, bool $allAgents, array $agentIds = []): void
 {
     $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
         team: $test->team,
@@ -36,7 +36,7 @@ it('lets the owner reach every agent of the team', function (): void {
 });
 
 it('limits a scoped role to its own agents', function (): void {
-    joinWithRole($this, allAgents: false, agentIds: [$this->granted->external_id]);
+    taaJoinWithRole($this, allAgents: false, agentIds: [$this->granted->external_id]);
     $access = app(TeamAgentAccess::class);
 
     expect($access->canAccess($this->member, $this->team, $this->granted))->toBeTrue()
@@ -45,7 +45,7 @@ it('limits a scoped role to its own agents', function (): void {
 });
 
 it('lets an all-agents role reach every agent of the team but none outside it', function (): void {
-    joinWithRole($this, allAgents: true);
+    taaJoinWithRole($this, allAgents: true);
     $outside = makeTeamAgent(User::factory()->create(), 'Outside');
     $access = app(TeamAgentAccess::class);
 
@@ -61,8 +61,8 @@ it('gives a user without a role in the team nothing', function (): void {
 });
 
 it('never lets a team owner reach another workspace agent', function (): void {
-    // Regression: the owner shortcut used to pass for ANY agent while the
-    // owner had a current team, including other tenants' agents.
+    // The owner shortcut covers the owner's own agents only, never another
+    // workspace's agent, whatever team is current.
     $otherOwner = User::factory()->create();
     $foreignAgent = makeTeamAgent($otherOwner, 'Foreign');
     $access = app(TeamAgentAccess::class);

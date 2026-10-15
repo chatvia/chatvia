@@ -101,6 +101,11 @@ it('pops each long job through a connection whose retry_after outlasts the job',
     [JoinVoiceCallJob::class, 'voice'],
 ]);
 
+it('runs the export and clean-up jobs on the exports queue for up to 30 minutes', function (string $job): void {
+    expect(jobQueue($job))->toBe('exports')
+        ->and(jobTimeout($job))->toBe(1800);
+})->with([PrepareDataExportJob::class, DeleteWorkspaceJob::class, PurgeAgentJob::class]);
+
 it('runs the same supervisors in every environment', function (): void {
     expect(config('horizon.environments'))->toBe(['*' => []]);
 });

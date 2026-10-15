@@ -1,5 +1,6 @@
 <?php
 
+use GuzzleHttp\Promise\PromiseInterface;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Support\Exceptions\UnsafeUrlException;
@@ -55,7 +56,7 @@ it('sends a webhook to the address that was checked, even if DNS changes afterwa
     });
 
     $pinned = null;
-    Http::fake(function (ClientRequest $request, array $options) use (&$pinned) {
+    Http::fake(function (ClientRequest $request, array $options) use (&$pinned): PromiseInterface {
         $pinned = $options['curl'][CURLOPT_RESOLVE] ?? null;
 
         return Http::response('', 200);

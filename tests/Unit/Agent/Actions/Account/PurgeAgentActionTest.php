@@ -12,8 +12,13 @@ use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\ChatCache;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
+use Domain\Knowledge\Source\Enums\SourceStatus;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Services\KnowledgeStoragePath;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
+use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -28,7 +33,6 @@ use Illuminate\Support\Facades\Storage;
 beforeEach(function (): void {
     Storage::fake();
     Storage::fake('assets');
-    config(['cache.stores.chat' => ['driver' => 'array']]);
 });
 
 /** A conversation of the agent with two messages and one attachment row. */
@@ -48,7 +52,7 @@ function purgeTestConversation(Agent $agent): Conversation
 }
 
 /** Count the DELETE statements run against one table while $callback runs. */
-function countDeletes(string $table, Closure $callback): int
+function pgaCountDeletes(string $table, Closure $callback): int
 {
     $count = 0;
 
@@ -61,6 +65,30 @@ function countDeletes(string $table, Closure $callback): int
     $callback();
 
     return $count;
+}
+
+/**
+ * A source of one of the four kinds the purge handles, in the agent's
+ * workspace and linked to the given agents.
+ */
+function pgaSource(string $kind, Agent ...$agents): Model
+{
+    $workspaceId = $agents[0]->workspace_id;
+
+    $source = match ($kind) {
+        'file' => AgentFileFactory::new()->create(['workspace_id' => $workspaceId]),
+        'website' => SourceWebsite::create(['workspace_id' => $workspaceId, 'url' => 'https://docs.example.test/'.uniqid(), 'status' => SourceStatus::Completed->value]),
+        'text' => SourceText::create(['workspace_id' => $workspaceId, 'filepath' => 'texts/'.uniqid().'.txt', 'excerpt' => 'Opening hours', 'length' => 1, 'checksum' => md5(uniqid())]),
+        'youtube' => SourceYoutubeVideo::create(['workspace_id' => $workspaceId, 'url' => 'https://www.youtube.com/watch?v='.uniqid(), 'length' => 1, 'status' => SourceStatus::Completed->value]),
+    };
+
+    $relation = ['file' => 'files', 'website' => 'websites', 'text' => 'texts', 'youtube' => 'youtubeVideos'][$kind];
+
+    foreach ($agents as $agent) {
+        $agent->{$relation}()->attach($source->getKey());
+    }
+
+    return $source;
 }
 
 it('removes the agent chats, leads, sources, settings, memory and files, then the agent', function (): void {
@@ -116,8 +144,8 @@ it('deletes conversations and sessions in small batches', function (): void {
     $purge = new PurgeAgentAction(conversationBatch: 2, rowBatch: 3);
 
     $conversationDeletes = 0;
-    $sessionDeletes = countDeletes('chat_sessions', function () use ($purge, $agent, &$conversationDeletes): void {
-        $conversationDeletes = countDeletes('chat_conversations', fn () => $purge->execute($agent));
+    $sessionDeletes = pgaCountDeletes('chat_sessions', function () use ($purge, $agent, &$conversationDeletes): void {
+        $conversationDeletes = pgaCountDeletes('chat_conversations', fn () => $purge->execute($agent));
     });
 
     // 5 rows in batches of 2 → 3 batches, then 1 that finds nothing; 7 in batches of 3 → 3 + 1.
@@ -175,21 +203,33 @@ it('keeps the files of a source another agent still uses', function (): void {
     Storage::assertExists([$shared->filepath, $shared->parser_filepath, $folder.'/images/page.jpg']);
 });
 
-it('deletes a source shared only with another deleted agent', function (): void {
+it('deletes the agent own source of each kind and keeps one another agent uses', function (string $kind): void {
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
 
-    $shared = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
-    $agent->files()->attach($shared->id);
-    $other->files()->attach($shared->id);
+    $own = pgaSource($kind, $agent);
+    $shared = pgaSource($kind, $agent, $other);
+
+    $agent->delete();
+    app(PurgeAgentAction::class)->execute($agent);
+
+    expect($own::query()->find($own->getKey()))->toBeNull()
+        ->and($shared::query()->find($shared->getKey()))->not->toBeNull();
+})->with(['file', 'website', 'text', 'youtube']);
+
+it('deletes a source of each kind shared only with another deleted agent', function (string $kind): void {
+    $agent = Agent::factory()->create();
+    $other = Agent::factory()->create(['workspace_id' => $agent->workspace_id]);
+
+    $shared = pgaSource($kind, $agent, $other);
 
     // Both agents were deleted; the other one's purge has not run yet.
     $other->delete();
     $agent->delete();
     app(PurgeAgentAction::class)->execute($agent);
 
-    expect(SourceFile::find($shared->id))->toBeNull();
-});
+    expect($shared::query()->find($shared->getKey()))->toBeNull();
+})->with(['file', 'website', 'text', 'youtube']);
 
 it('finishes the purge when run again after a failure', function (): void {
     $agent = Agent::factory()->create();
@@ -226,7 +266,7 @@ it('refuses to purge an agent that is not deleted', function (): void {
     expect(Conversation::find($conversation->id))->not->toBeNull();
 });
 
-it('runs from a job on the exports queue that skips a live or purged agent', function (): void {
+it('runs from a job that skips a live or purged agent', function (): void {
     $live = Agent::factory()->create();
     $conversation = purgeTestConversation($live);
 
@@ -236,8 +276,6 @@ it('runs from a job on the exports queue that skips a live or purged agent', fun
     // A live agent is never purged, and an id that is gone is a no-op.
     new PurgeAgentJob(PHP_INT_MAX)->handle(app(PurgeAgentAction::class));
 
-    expect(jobQueue($job))->toBe('exports')
-        ->and(jobTimeout($job))->toBe(1800)
-        ->and(Agent::find($live->id))->not->toBeNull()
+    expect(Agent::find($live->id))->not->toBeNull()
         ->and(Conversation::find($conversation->id))->not->toBeNull();
 });

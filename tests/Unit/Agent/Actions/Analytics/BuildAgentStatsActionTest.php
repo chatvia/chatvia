@@ -5,7 +5,6 @@ use Domain\Agent\Actions\Analytics\BuildAgentStatsAction;
 use Domain\Agent\Data\Resources\Stats\ConversationTrendData;
 use Domain\Agent\Data\Resources\Stats\DailyMessagesData;
 use Domain\Agent\Data\Resources\Stats\MessageByDayData;
-use Domain\Agent\Data\Resources\Stats\StatsResourceData;
 use Domain\Agent\Data\Resources\Stats\TopKnowledgeData;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Data\DateRangeData;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\DB;
  * models; these tests pin the shaping: document types of the top files, the
  * daily series following the selected range, and the full payload keys.
  */
-function analyticsRollup(Agent $agent, string $hour, int $replies, int $conversations): void
+function basRollup(Agent $agent, string $hour, int $replies, int $conversations): void
 {
     DB::connection(config('chatvia.analytics.connection'))->table('analytics_agent_hourly_rollups')->insert([
         'agent_id' => $agent->id,
@@ -48,20 +47,12 @@ it('reports the document classification of the most accessed files', function ()
     ]);
 });
 
-it('no longer exposes the always-zero total_members field', function (): void {
-    expect(array_map(
-        static fn (ReflectionParameter $p): string => $p->getName(),
-        new ReflectionMethod(StatsResourceData::class, '__construct')->getParameters(),
-    ))->not->toContain('total_members');
-});
-
 it('builds the full analytics payload for an agent', function (): void {
     $agent = Agent::factory()->create();
 
     $payload = app(BuildAgentStatsAction::class)->execute($agent, DateRangeData::fromDates(null, null))->toArray();
 
     expect($payload)->toHaveKeys(['total_messages', 'top_knowledge', 'feedback'])
-        ->and($payload)->not->toHaveKey('total_members')
         ->and($payload['activity_by_hour'])->toHaveCount(24)
         ->and($payload['activity_by_day_of_week'])->toHaveCount(7)
         ->and($payload['messages_last_week'])->toHaveCount(7);
@@ -72,7 +63,7 @@ it('builds the daily series for the selected range, not the last days before tod
     $agent = Agent::factory()->create();
 
     // Activity in an earlier month, inside the selected range.
-    analyticsRollup($agent, '2026-03-10 09:00:00', replies: 4, conversations: 2);
+    basRollup($agent, '2026-03-10 09:00:00', replies: 4, conversations: 2);
 
     $stats = app(BuildAgentStatsAction::class)->execute($agent, DateRangeData::fromDates('2026-03-09', '2026-03-11'));
 

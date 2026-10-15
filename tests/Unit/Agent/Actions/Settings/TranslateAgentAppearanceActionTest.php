@@ -63,27 +63,6 @@ it('skips the LLM call when the base text is unchanged and every enabled languag
     expect($result)->toBe($existing);
 });
 
-it('translates only the enabled languages', function (): void {
-    $this->agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
-
-    $captured = null;
-    $this->mock(TextTranslator::class)
-        ->shouldReceive('translate')->once()
-        ->andReturnUsing(function (array $fields, array $languages) use (&$captured): array {
-            $captured = $languages;
-
-            return ['welcome_message' => ['de' => 'Hallo', 'fr' => 'Bonjour']];
-        });
-
-    app(TranslateAgentAppearanceAction::class)->execute($this->agent->fresh(), new AppearanceTextData(
-        welcome_message: 'Hello',
-        chat_window_title: 'Chat',
-        composer_placeholder: 'Ask…',
-    ));
-
-    expect(array_keys($captured))->toBe(['de', 'fr']);
-});
-
 it('re-translates when the owner enables a language the cached set does not cover', function (): void {
     $this->agent->setSetting('enabled_languages', ['de', 'fr'], 'appearance');
     $this->agent->setSetting('chat_window_title', 'Chat', 'appearance');

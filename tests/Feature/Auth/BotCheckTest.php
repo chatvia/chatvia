@@ -115,14 +115,14 @@ it('checks the hosted chat sign-in forms too, and gives the chat sign-in page th
     Turnstile::fake();
     $agent = Agent::factory()->create(['is_public' => false]);
 
-    $this->get("/chat/{$agent->slug}/login")->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+    $this->get(route('chat.login.show', $agent->slug))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
         ->component('auth/LoginChatter')
         ->where('turnstile.site_key', '1x00000000000000000000AA'));
 
-    $this->post("/chat/{$agent->slug}/login", ['email' => 'ada@example.com', 'password' => 'password'])
+    $this->post(route('chat.login', $agent->slug), ['email' => 'ada@example.com', 'password' => 'password'])
         ->assertSessionHasErrors(BotCheck::FIELD);
-    $this->post("/chat/{$agent->slug}/magic-link", ['email' => 'ada@example.com'])
+    $this->post(route('chat.magic-link.send', $agent->slug), ['email' => 'ada@example.com'])
         ->assertSessionHasErrors(BotCheck::FIELD);
-    $this->post("/chat/{$agent->slug}/magic-link", ['email' => 'ada@example.com', BotCheck::FIELD => Turnstile::dummy()])
+    $this->post(route('chat.magic-link.send', $agent->slug), ['email' => 'ada@example.com', BotCheck::FIELD => Turnstile::dummy()])
         ->assertSessionHasNoErrors();
 });

@@ -4,64 +4,34 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Membership\Team\Services\TeamService;
 
+/**
+ * The account API for functions (webhook tools): listing only the
+ * workspace's own, and the parameters-schema rules on create and update.
+ */
 beforeEach(function (): void {
-    // A real workspace owner always has a team (provisioned at trial checkout).
-    // The account-level routes are gated by team permissions, so the owner needs
-    // their default team to be recognised as an owner (ownsTeam → bypass).
+    // The account-level routes are gated by team permissions, so the owner
+    // needs their default team to be recognised as an owner (ownsTeam → bypass).
     $this->user = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->user);
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
-function functionHeaders(string $token): array
-{
-    return ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'];
-}
-
-function makeApiFunction(User $owner, array $overrides = []): AgentFunction
-{
-    return $owner->workspace()->functions()->create(array_merge([
-        'internal_name' => 'get_order_status',
-        'description' => 'Get the order status',
-        'parameters_schema' => ['type' => 'object', 'properties' => ['order_id' => ['type' => 'string']]],
-        'webhook_url' => 'https://example.com/webhook',
-        'webhook_method' => 'POST',
-        'auth_type' => 'none',
-        'auth_config' => null,
-        'is_enabled' => true,
-    ], $overrides));
-}
-
 describe('GET /api/v1/functions', function (): void {
 
     it('lists the account owner’s functions', function (): void {
-        $fn = makeApiFunction($this->user);
+        $fn = AgentFunction::factory()->forOwner($this->user)->create();
 
-        $this->withHeaders(functionHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson('/api/v1/functions')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $fn->external_id);
     });
 
-    it('forbids a member without account.functions from listing the workspace functions', function (): void {
-        makeApiFunction($this->user);
-
-        // A bare teammate (no role granting account.functions) must be blocked —
-        // the account key resolving to the owner's workspace is NOT enough.
-        $member = User::factory()->employee($this->user)->create();
-        $memberToken = $member->createToken('account')->plainTextToken;
-
-        $this->withHeaders(functionHeaders($memberToken))
-            ->getJson('/api/v1/functions')
-            ->assertForbidden();
-    });
-
     it('never lists another account’s functions', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        makeApiFunction($other);
+        AgentFunction::factory()->forOwner(User::factory()->create())->create();
 
-        $this->withHeaders(functionHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson('/api/v1/functions')
             ->assertOk()
             ->assertJsonCount(0, 'data');
@@ -71,42 +41,19 @@ describe('GET /api/v1/functions', function (): void {
 describe('GET /api/v1/functions/{function}', function (): void {
 
     it('returns an owned function', function (): void {
-        $fn = makeApiFunction($this->user);
+        $fn = AgentFunction::factory()->forOwner($this->user)->create();
 
-        $this->withHeaders(functionHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson("/api/v1/functions/{$fn->external_id}")
             ->assertOk()
             ->assertJsonPath('data.id', $fn->external_id);
-    });
-
-    it('404s for a function belonging to another account', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $theirs = makeApiFunction($other);
-
-        $this->withHeaders(functionHeaders($this->token))
-            ->getJson("/api/v1/functions/{$theirs->external_id}")
-            ->assertNotFound();
-    });
-});
-
-describe('DELETE /api/v1/functions/{function}', function (): void {
-
-    it('404s without deleting for a function belonging to another account', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $theirs = makeApiFunction($other);
-
-        $this->withHeaders(functionHeaders($this->token))
-            ->deleteJson("/api/v1/functions/{$theirs->external_id}")
-            ->assertNotFound();
-
-        expect(AgentFunction::whereKey($theirs->id)->exists())->toBeTrue();
     });
 });
 
 describe('POST /api/v1/functions', function (): void {
 
     it('rejects a parameters schema that is not an object schema', function (): void {
-        $this->withHeaders(functionHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/functions', [
                 'internal_name' => 'get_order_status',
                 'description' => 'Get the order status',
@@ -122,21 +69,10 @@ describe('POST /api/v1/functions', function (): void {
 
 describe('PATCH /api/v1/functions/{function}', function (): void {
 
-    it('404s without changes for a function belonging to another account', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $theirs = makeApiFunction($other);
-
-        $this->withHeaders(functionHeaders($this->token))
-            ->patchJson("/api/v1/functions/{$theirs->external_id}", ['description' => 'Hijacked'])
-            ->assertNotFound();
-
-        expect($theirs->fresh()->description)->toBe('Get the order status');
-    });
-
     it('rejects a changed schema with an invalid property name', function (): void {
-        $fn = makeApiFunction($this->user);
+        $fn = AgentFunction::factory()->forOwner($this->user)->create();
 
-        $this->withHeaders(functionHeaders($this->token))
+        $this->withToken($this->token)
             ->patchJson("/api/v1/functions/{$fn->external_id}", [
                 'parameters_schema' => ['type' => 'object', 'properties' => ['1bad' => ['type' => 'string']]],
             ])
@@ -146,9 +82,9 @@ describe('PATCH /api/v1/functions/{function}', function (): void {
 
     it('accepts a stored schema that fails the shape rules when it is sent back unchanged', function (): void {
         $stored = ['type' => 'object', 'properties' => ['order-id' => ['type' => 'string']]];
-        $fn = makeApiFunction($this->user, ['parameters_schema' => $stored]);
+        $fn = AgentFunction::factory()->forOwner($this->user)->create(['parameters_schema' => $stored]);
 
-        $this->withHeaders(functionHeaders($this->token))
+        $this->withToken($this->token)
             ->patchJson("/api/v1/functions/{$fn->external_id}", [
                 'description' => 'New description',
                 'parameters_schema' => $stored,

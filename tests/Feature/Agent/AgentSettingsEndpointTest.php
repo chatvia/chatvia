@@ -12,7 +12,7 @@ beforeEach(function (): void {
 });
 
 it('returns 404 for a settings group without validation rules', function (): void {
-    // `leads` has defaults but no rules; validating it used to throw a 500.
+    // `leads` has defaults but no rules, so there is nothing to validate it with.
     $this->actingAs($this->owner)
         ->postJson(route('agents.settings.update', ['agent' => $this->agent->external_id, 'group' => 'leads']), ['fields' => []])
         ->assertNotFound();

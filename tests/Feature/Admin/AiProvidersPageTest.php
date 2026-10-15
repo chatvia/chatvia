@@ -42,13 +42,6 @@ function providersPage(User $admin): Testable
     return Livewire::actingAs($admin, 'admin')->test(ManageAiProviderSettings::class);
 }
 
-function providerSetting(string $property): mixed
-{
-    app()->forgetScopedInstances();
-
-    return app(AiProviderSettings::class)->{$property};
-}
-
 it('stores each key once, and the chat models and the reranker use it', function (): void {
     Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b', 'architecture' => ['output_modalities' => ['text']]]]])]);
 
@@ -63,7 +56,7 @@ it('stores each key once, and the chat models and the reranker use it', function
         new RemoteModelData('openai/gpt-oss-120b', 'gpt-oss-120b'),
     );
 
-    expect(providerSetting('openrouter_api_key'))->toBe('sk-or-test')
+    expect(savedSetting(AiProviderSettings::class, 'openrouter_api_key'))->toBe('sk-or-test')
         ->and(config('services.openrouter.api_key'))->toBe('sk-or-test')
         ->and($model->provider->api_key)->toBeNull()
         ->and($model->isAvailable())->toBeTrue()
@@ -81,7 +74,7 @@ it('refuses a key the provider refuses, and saves nothing', function (): void {
         ->call('save')
         ->assertHasFormErrors(['scaleway_api_key' => 'Scaleway AI refused the API key. Check that you copied all of it.']);
 
-    expect(providerSetting('scaleway_api_key'))->toBeNull();
+    expect(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
 });
 
 it('checks a provider without chat models with a test embedding', function (): void {
@@ -102,7 +95,7 @@ it('saves a key it cannot check, with a warning', function (): void {
         ->assertHasNoFormErrors()
         ->assertNotified('Saved, but the key could not be checked');
 
-    expect(providerSetting('groq_api_key'))->toBe('gsk-test');
+    expect(savedSetting(AiProviderSettings::class, 'groq_api_key'))->toBe('gsk-test');
 });
 
 it('marks what each provider is used for', function (): void {
@@ -128,7 +121,7 @@ it('says how many agents stop answering before a key is removed', function (): v
         ->assertMountedActionModalSee('1 agent answer with Scaleway AI models and stop answering until a key is added again.')
         ->callMountedAction();
 
-    expect(providerSetting('scaleway_api_key'))->toBeNull();
+    expect(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
 });
 
 it('adds, changes and removes a server of your own', function (): void {

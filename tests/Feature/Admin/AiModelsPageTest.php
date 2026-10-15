@@ -5,12 +5,10 @@ use App\Admin\Settings\Actions\RemoveLlmModelAction;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
 use App\Identity\Workspace\Models\User;
-use Database\Factories\AgentFileFactory;
 use Domain\Agent\Actions\Settings\ReplaceAgentModelAction;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Jobs\ReembedToolVectorsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
@@ -45,15 +43,8 @@ function modelsPage(User $admin): Testable
     return Livewire::actingAs($admin, 'admin')->test(ManageAiModelSettings::class);
 }
 
-function aiSetting(string $property): mixed
-{
-    app()->forgetScopedInstances();
-
-    return app(AiSettings::class)->{$property};
-}
-
 /** OpenRouter connected, listing two chat models. */
-function fakeOpenRouterModels(): void
+function modelsFakeOpenRouter(): void
 {
     connectAiProviders(AiProvider::OpenRouter);
     Http::fake(['openrouter.ai/api/v1/models' => Http::response(['data' => [
@@ -75,7 +66,7 @@ function fakeOpenRouterModels(): void
 }
 
 it('adds a model from a connected provider\'s list', function (): void {
-    fakeOpenRouterModels();
+    modelsFakeOpenRouter();
 
     modelsPage($this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick']])
@@ -91,7 +82,7 @@ it('adds a model from a connected provider\'s list', function (): void {
 });
 
 it('adds several models at once', function (): void {
-    fakeOpenRouterModels();
+    modelsFakeOpenRouter();
 
     modelsPage($this->admin)
         ->callAction(TestAction::make('addModel')->table(), data: ['source' => 'account:openrouter', 'models' => ['meta-llama/llama-4-maverick', 'qwen/qwen3-235b-a22b']])
@@ -103,7 +94,7 @@ it('adds several models at once', function (): void {
 });
 
 it('lists the first provider\'s models as soon as the form opens', function (): void {
-    fakeOpenRouterModels();
+    modelsFakeOpenRouter();
 
     modelsPage($this->admin)
         ->mountAction(TestAction::make('addModel')->table())
@@ -112,7 +103,7 @@ it('lists the first provider\'s models as soon as the form opens', function (): 
 });
 
 it('keeps Add off until a model is picked', function (): void {
-    fakeOpenRouterModels();
+    modelsFakeOpenRouter();
 
     $page = modelsPage($this->admin)->mountAction(TestAction::make('addModel')->table());
 
@@ -167,10 +158,10 @@ it('removes a model, moving its agents and the tasks that used it', function ():
 
     expect($agent->fresh()->llm_id)->toBe($new->id)
         ->and($old->fresh()->is_enabled)->toBeFalse()
-        ->and(aiSetting('default_agent_model'))->toBe($new->external_name)
-        ->and(aiSetting('task_model'))->toBeNull()
-        ->and(aiSetting('titles_model'))->toBeNull()
-        ->and(aiSetting('images_model'))->toBe($new->external_name);
+        ->and(savedSetting(AiSettings::class, 'default_agent_model'))->toBe($new->external_name)
+        ->and(savedSetting(AiSettings::class, 'task_model'))->toBeNull()
+        ->and(savedSetting(AiSettings::class, 'titles_model'))->toBeNull()
+        ->and(savedSetting(AiSettings::class, 'images_model'))->toBe($new->external_name);
 });
 
 it('keeps the last model agents use', function (): void {
@@ -221,29 +212,11 @@ it('shows how many models agents can use on the overview, or a warning', functio
     expect(app(ManageAiModelSettings::class)->overviewStatus())->toBe(['1 model for agents', 'success']);
 });
 
-/** One trained chunk, so documents are stored as vectors. */
-function storedVectors(): void
-{
-    $file = AgentFileFactory::new()->create();
-
-    Chunk::query()->create([
-        'workspace_id' => $file->workspace_id,
-        'chunkable_type' => $file->getMorphClass(),
-        'chunkable_id' => $file->id,
-        'chunk_index' => 1,
-        'chunk' => 'Trained text.',
-        'tokens' => 2,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression('Trained text.'),
-        'checksum' => md5('Trained text.'),
-        'cost_in_micro_cents' => 0,
-    ]);
-}
-
 it('warns and asks before it changes the embedding model of stored documents, then re-indexes', function (): void {
     connectAiProviders(AiProvider::OpenAi);
-    storedVectors();
-    $before = aiSetting('openai_embedding_model');
+    // One trained chunk, so documents are stored as vectors.
+    Chunk::factory()->create();
+    $before = savedSetting(AiSettings::class, 'openai_embedding_model');
     Bus::fake();
 
     $page = modelsPage($this->admin)
@@ -253,13 +226,13 @@ it('warns and asks before it changes the embedding model of stored documents, th
         ->assertActionMounted('changeEmbeddings')
         ->assertMountedActionModalSee(['Change the embedding model?', 'Saving starts this re-index in the background queue', 'Save and re-index']);
 
-    expect(aiSetting('openai_embedding_model'))->toBe($before);
+    expect(savedSetting(AiSettings::class, 'openai_embedding_model'))->toBe($before);
     Bus::assertNotDispatchedAfterResponse(ReindexEmbeddingsJob::class);
 
     $page->callMountedAction()->assertNotified('Settings saved. Re-index started');
 
-    expect(aiSetting('embedding_provider'))->toBe('openai')
-        ->and(aiSetting('openai_embedding_model'))->toBe('text-embedding-3-large');
+    expect(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('openai')
+        ->and(savedSetting(AiSettings::class, 'openai_embedding_model'))->toBe('text-embedding-3-large');
     Bus::assertDispatchedAfterResponse(ReindexEmbeddingsJob::class);
 });
 
@@ -276,11 +249,12 @@ it('changes the embedding model without asking while nothing is stored as vector
         ->assertActionNotMounted('changeEmbeddings')
         ->assertNotified('Settings saved');
 
-    expect(aiSetting('openai_embedding_model'))->toBe('text-embedding-3-large');
+    expect(savedSetting(AiSettings::class, 'openai_embedding_model'))->toBe('text-embedding-3-large');
 });
 
 it('starts a re-index by hand and shows its progress', function (): void {
-    storedVectors();
+    // One trained chunk, so documents are stored as vectors.
+    Chunk::factory()->create();
     Bus::fake();
 
     modelsPage($this->admin)

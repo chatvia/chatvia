@@ -19,7 +19,7 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
     $this->agent = createAgent($this->owner);
-    $this->headers = ['Authorization' => 'Bearer '.$this->owner->createToken('account')->plainTextToken, 'Accept' => 'application/json'];
+    $this->token = $this->owner->createToken('account')->plainTextToken;
 
     $session = Session::factory()->create(['agent_id' => $this->agent->id]);
     $this->conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $this->agent->id, 'is_visible' => true]);
@@ -29,7 +29,7 @@ it('wraps a conversation in the data envelope with its messages by public id', f
     $question = Message::factory()->create(['chat_conversation_id' => $this->conversation->id, 'role' => 'user', 'content' => 'When do you open?']);
     $answer = Message::factory()->create(['chat_conversation_id' => $this->conversation->id, 'role' => 'assistant', 'content' => 'At nine.']);
 
-    $this->withHeaders($this->headers)
+    $this->withToken($this->token)
         ->getJson("/api/v1/agents/{$this->agent->external_id}/conversations/{$this->conversation->external_id}")
         ->assertOk()
         ->assertJsonPath('data.id', $this->conversation->external_id)
@@ -39,8 +39,17 @@ it('wraps a conversation in the data envelope with its messages by public id', f
         ->assertJsonPath('data.messages.1.content', 'At nine.');
 });
 
-it('404s a conversation id that is not a UUID', function (): void {
-    $this->withHeaders($this->headers)
-        ->getJson("/api/v1/agents/{$this->agent->external_id}/conversations/{$this->conversation->id}")
-        ->assertNotFound();
+it('deletes a conversation: wipes its messages, records who deleted it and stops showing it', function (): void {
+    $message = Message::factory()->create(['chat_conversation_id' => $this->conversation->id, 'role' => 'user', 'content' => 'My card number is 4242']);
+    $uri = "/api/v1/agents/{$this->agent->external_id}/conversations/{$this->conversation->external_id}";
+
+    $this->withToken($this->token)->deleteJson($uri)->assertNoContent();
+
+    $deleted = Conversation::withTrashed()->findOrFail($this->conversation->id);
+
+    expect($deleted->trashed())->toBeTrue()
+        ->and($deleted->deleted_by)->toBe((string) $this->owner->id)
+        ->and($message->fresh()->content)->toBeNull();
+
+    $this->withToken($this->token)->getJson($uri)->assertNotFound();
 });

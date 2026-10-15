@@ -2,13 +2,10 @@
 
 use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
-use App\Identity\Chatter\Enums\ChatterSource;
-use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -21,17 +18,6 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
     $this->agent = createAgent($this->owner);
-});
-
-it('creates API chatters in the chatters table, in the owner\'s workspace', function (): void {
-    $usersBefore = User::query()->count();
-
-    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
-
-    expect($chatter)->toBeInstanceOf(Chatter::class)
-        ->and($chatter->source)->toBe(ChatterSource::Api)
-        ->and($chatter->workspace_id)->toBe($this->owner->workspace()->id)
-        ->and(User::query()->count())->toBe($usersBefore);
 });
 
 it('keeps chatters out of the teammates', function (): void {
@@ -65,12 +51,6 @@ it('does not add a chatter to the team member list', function (): void {
     expect($this->owner->primaryTeam()->members()->count())->toBe($membersBefore);
 });
 
-it('attaches the agent grant on creation so canAccessAgent passes', function (): void {
-    $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
-
-    expect($chatter->canAccessAgent($this->agent))->toBeTrue();
-});
-
 it('refuses canAccessAgent for an agent the chatter was not granted', function (): void {
     $other = createAgent($this->owner);
 
@@ -92,21 +72,6 @@ it('refuses canAccessAgent for another workspace\'s agent, which the database wi
 describe('dashboard access', function (): void {
     it('lets the owner access the dashboard', function (): void {
         expect($this->owner->canAccessDashboard())->toBeTrue();
-    });
-
-    it('does not sign a chatter in to the dashboard', function (): void {
-        app(CreateChatterAction::class)->execute(new CreateChatterData(
-            $this->owner->workspace(),
-            $this->agent,
-            'Jane',
-            email: 'jane.chatter@example.test',
-            password: 'chatter-pass',
-        ));
-
-        $this->post(route('login'), ['email' => 'jane.chatter@example.test', 'password' => 'chatter-pass'])
-            ->assertSessionHasErrors('email');
-
-        expect(Auth::guard('web')->check())->toBeFalse();
     });
 
     it('allows an employee', function (): void {

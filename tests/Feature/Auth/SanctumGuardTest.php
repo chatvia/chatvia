@@ -12,11 +12,13 @@ it('pins the sanctum guard to the users provider', function (): void {
         ->and(config('auth.providers.users.model'))->toBe(User::class);
 });
 
-it('still accepts an account API key', function (): void {
+it('stops accepting an account API key once the account is deactivated', function (): void {
     $owner = User::factory()->create();
-    $token = $owner->createToken('test')->plainTextToken;
+    $token = $owner->createToken('account')->plainTextToken;
 
-    $this->withToken($token)
-        ->getJson('/api/v1/agents')
-        ->assertOk();
+    withApiToken($token)->getJson(route('api.v1.teams.index'))->assertOk();
+
+    $owner->update(['deactivated_at' => now()]);
+
+    withApiToken($token)->getJson(route('api.v1.teams.index'))->assertUnauthorized();
 });

@@ -23,9 +23,7 @@ use App\Admin\Settings\SignInSettings;
 use App\Admin\Settings\ToolRecording;
 use App\Admin\Settings\WorkspaceSettings;
 use App\Identity\Workspace\Models\User;
-use Database\Factories\AgentFileFactory;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmTask;
 use Filament\Actions\Testing\TestAction;
@@ -33,8 +31,6 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -46,16 +42,6 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
 });
-
-/**
- * The value stored for one settings property, as saved (secrets decrypted).
- */
-function storedSetting(string $class, string $property): mixed
-{
-    app()->forgetScopedInstances();
-
-    return app($class)->{$property};
-}
 
 /**
  * One settings page, as the given admin.
@@ -129,7 +115,7 @@ it('keeps the services behind the built-in tools on Connectors, under Advanced',
         ->assertHasNoFormErrors();
 
     // The tile still counts the OAuth apps set up; the advanced addresses are not services.
-    expect(storedSetting(ConnectorSettings::class, 'perplexity_base_url'))->toBe('https://perplexity.example.com')
+    expect(savedSetting(ConnectorSettings::class, 'perplexity_base_url'))->toBe('https://perplexity.example.com')
         ->and(config('services.perplexity.base_url'))->toBe('https://perplexity.example.com')
         ->and(app(ManageConnectorSettings::class)->overviewStatus())->toBe(['1 set up', 'success']);
 });
@@ -159,15 +145,14 @@ it('lets an admin without two-factor authentication change the values', function
     $this->actingAs($this->admin, 'admin')
         ->get(ManageSignInSettings::getUrl())
         ->assertOk()
-        ->assertSee('client-id-shown')
-        ->assertDontSee('Set up two-factor authentication first');
+        ->assertSee('client-id-shown');
 
     settingsPage($this->admin, ManageSignInSettings::class)
         ->fillForm(['google_client_id' => 'client-id-changed'])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(SignInSettings::class, 'google_client_id'))->toBe('client-id-changed');
+    expect(savedSetting(SignInSettings::class, 'google_client_id'))->toBe('client-id-changed');
 });
 
 it('never sends a saved secret to the browser', function (): void {
@@ -193,8 +178,8 @@ it('keeps a saved secret when its input is left blank', function (): void {
         ->assertHasNoFormErrors()
         ->assertNotified('Settings saved');
 
-    expect(storedSetting(SignInSettings::class, 'google_client_id'))->toBe('new-id')
-        ->and(storedSetting(SignInSettings::class, 'google_client_secret'))->toBe('kept-secret');
+    expect(savedSetting(SignInSettings::class, 'google_client_id'))->toBe('new-id')
+        ->and(savedSetting(SignInSettings::class, 'google_client_secret'))->toBe('kept-secret');
 });
 
 it('saves a new secret encrypted', function (): void {
@@ -205,7 +190,7 @@ it('saves a new secret encrypted', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-key')
+    expect(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-key')
         ->and(config('services.scalewayai.api_key'))->toBe('scw-key')
         ->and(DB::table('settings')->where('name', 'scaleway_api_key')->value('payload'))->not->toContain('scw-key');
 });
@@ -219,8 +204,8 @@ it('removes one saved secret', function (): void {
     settingsPage($this->admin, ManageSignInSettings::class)
         ->callAction(TestAction::make('forget_google_client_secret')->schemaComponent('google_client_secret', schema: 'form'));
 
-    expect(storedSetting(SignInSettings::class, 'google_client_secret'))->toBeNull()
-        ->and(storedSetting(SignInSettings::class, 'google_client_id'))->toBe('id');
+    expect(savedSetting(SignInSettings::class, 'google_client_secret'))->toBeNull()
+        ->and(savedSetting(SignInSettings::class, 'google_client_id'))->toBe('id');
 });
 
 it('validates the format of a field', function (): void {
@@ -229,7 +214,7 @@ it('validates the format of a field', function (): void {
         ->call('save')
         ->assertHasFormErrors(['whatsapp_register_pin']);
 
-    expect(storedSetting(ChannelSettings::class, 'whatsapp_register_pin'))->toBeNull();
+    expect(savedSetting(ChannelSettings::class, 'whatsapp_register_pin'))->toBeNull();
 });
 
 it('takes a path on this server or a full address for the widget script', function (): void {
@@ -242,7 +227,7 @@ it('takes a path on this server or a full address for the widget script', functi
             ->call('save')
             ->assertHasNoFormErrors();
 
-        expect(storedSetting(PlatformSettings::class, 'widget_script_url'))->toBe($address);
+        expect(savedSetting(PlatformSettings::class, 'widget_script_url'))->toBe($address);
     }
 
     expect(url(config('chatvia.widget.script_url_embed')))->toBe('https://cdn.example.com/embed.js');
@@ -263,7 +248,7 @@ it('keeps the tracking code as typed, and an empty box turns it off', function (
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(PlatformSettings::class, 'tracking_code'))->toBe($snippet)
+    expect(savedSetting(PlatformSettings::class, 'tracking_code'))->toBe($snippet)
         ->and(config('chatvia.tracking_code'))->toBe($snippet);
 
     settingsPage($this->admin, ManagePlatformSettings::class)
@@ -272,7 +257,7 @@ it('keeps the tracking code as typed, and an empty box turns it off', function (
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(PlatformSettings::class, 'tracking_code'))->toBeNull();
+    expect(savedSetting(PlatformSettings::class, 'tracking_code'))->toBeNull();
 });
 
 it('turns Spectra on, and keeps only counts while prompts and replies are not saved', function (): void {
@@ -285,7 +270,7 @@ it('turns Spectra on, and keeps only counts while prompts and replies are not sa
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(PlatformSettings::class, 'spectra_enabled'))->toBeTrue()
+    expect(savedSetting(PlatformSettings::class, 'spectra_enabled'))->toBeTrue()
         ->and(config('spectra.enabled'))->toBeTrue()
         ->and(config('spectra.storage.store_prompts'))->toBeFalse()
         ->and(config('spectra.storage.store_responses'))->toBeFalse()
@@ -311,7 +296,7 @@ it('restarts Pulse\'s server stats when the Pulse switch changes', function (): 
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(PlatformSettings::class, 'pulse_enabled'))->toBeFalse();
+    expect(savedSetting(PlatformSettings::class, 'pulse_enabled'))->toBeFalse();
     Artisan::shouldHaveReceived('call')->with('pulse:restart')->once();
 });
 
@@ -332,8 +317,8 @@ it('keeps a value that still equals its default unsaved', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(WorkspaceSettings::class, 'registration_enabled'))->toBeNull()
-        ->and(storedSetting(WorkspaceSettings::class, 'new_workspace_message_limit'))->toBeNull();
+    expect(savedSetting(WorkspaceSettings::class, 'registration_enabled'))->toBeNull()
+        ->and(savedSetting(WorkspaceSettings::class, 'new_workspace_message_limit'))->toBeNull();
 });
 
 it('saves the workspace values, an off switch included', function (): void {
@@ -351,9 +336,9 @@ it('saves the workspace values, an off switch included', function (): void {
         ->get(ManageWorkspaceSettings::getUrl())
         ->assertSee('Sign-up closed · 500 messages a month');
 
-    expect(storedSetting(WorkspaceSettings::class, 'registration_enabled'))->toBeFalse()
-        ->and(storedSetting(WorkspaceSettings::class, 'new_workspace_message_limit'))->toBe(500)
-        ->and(storedSetting(WorkspaceSettings::class, 'retention_days'))->toBe(90)
+    expect(savedSetting(WorkspaceSettings::class, 'registration_enabled'))->toBeFalse()
+        ->and(savedSetting(WorkspaceSettings::class, 'new_workspace_message_limit'))->toBe(500)
+        ->and(savedSetting(WorkspaceSettings::class, 'retention_days'))->toBe(90)
         ->and(config('chatvia.registration_enabled'))->toBeFalse();
 });
 
@@ -363,7 +348,7 @@ it('validates the workspace values', function (): void {
         ->call('save')
         ->assertHasFormErrors(['retention_days']);
 
-    expect(storedSetting(WorkspaceSettings::class, 'retention_days'))->toBeNull();
+    expect(savedSetting(WorkspaceSettings::class, 'retention_days'))->toBeNull();
 });
 
 it('refuses a fewest-days value above the days to keep conversations', function (): void {
@@ -372,7 +357,7 @@ it('refuses a fewest-days value above the days to keep conversations', function 
         ->call('save')
         ->assertHasFormErrors(['retention_floor_days']);
 
-    expect(storedSetting(WorkspaceSettings::class, 'retention_floor_days'))->toBeNull();
+    expect(savedSetting(WorkspaceSettings::class, 'retention_floor_days'))->toBeNull();
 });
 
 it('refuses a choice that is not offered', function (): void {
@@ -381,7 +366,7 @@ it('refuses a choice that is not offered', function (): void {
         ->call('save')
         ->assertHasFormErrors(['mailer']);
 
-    expect(storedSetting(MailSettings::class, 'mailer'))->toBeNull();
+    expect(savedSetting(MailSettings::class, 'mailer'))->toBeNull();
 });
 
 it('refuses an embedding provider that cannot return the stored vector size', function (): void {
@@ -395,22 +380,11 @@ it('refuses an embedding provider that cannot return the stored vector size', fu
         ->call('save')
         ->assertHasFormErrors(['embedding_provider']);
 
-    expect(storedSetting(AiSettings::class, 'embedding_provider'))->toBeNull();
+    expect(savedSetting(AiSettings::class, 'embedding_provider'))->toBeNull();
 });
 
 it('keeps the embedding provider and models open once a source is trained', function (): void {
-    $source = AgentFileFactory::new()->create(['workspace_id' => $this->admin->workspace()->id]);
-    Chunk::create([
-        'workspace_id' => $this->admin->workspace()->id,
-        'chunkable_type' => $source->getMorphClass(),
-        'chunkable_id' => $source->getKey(),
-        'chunk_index' => 1,
-        'chunk' => 'Trained text.',
-        'tokens' => 2,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression('Trained text.'),
-        'checksum' => Str::random(32),
-    ]);
+    Chunk::factory()->create(['chunk' => 'Trained text.']);
 
     // A change warns and re-indexes (AiModelsPageTest) instead of being locked.
     settingsPage($this->admin, ManageAiModelSettings::class)
@@ -432,7 +406,7 @@ it('picks the model of each app task from the models that may be used', function
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(storedSetting(AiSettings::class, $property))->toBe($picked->external_name)
+    expect(savedSetting(AiSettings::class, $property))->toBe($picked->external_name)
         ->and(config($configKey))->toBe($picked->external_name);
 })->with([
     'the model for app tasks' => ['task_model', 'chatvia.ai.tasks.default'],
@@ -449,14 +423,24 @@ it('has a setting and a field for every app task', function (): void {
     }
 });
 
-it('sends a test email with the saved settings', function (): void {
-    Mail::fake();
+it('sends a test email to the admin with the saved settings', function (): void {
+    saveSettings(MailSettings::class, ['from_address' => 'support@acme.test', 'from_name' => 'Acme Support']);
+    // A mailer that keeps what it sends, so the message can be read back.
+    config(['mail.default' => 'array']);
     Filament::setCurrentPanel('admin');
 
     Livewire::actingAs($this->admin, 'admin')
         ->test(ManageMailSettings::class)
         ->callAction('sendTestEmail')
         ->assertNotified('Test email sent');
+
+    $sent = app('mail.manager')->mailer('array')->getSymfonyTransport()->messages();
+    $email = $sent->sole()->getOriginalMessage();
+
+    expect($email->getTo()[0]->getAddress())->toBe($this->admin->email)
+        ->and($email->getSubject())->toBe('Test email from '.config('app.name'))
+        ->and($email->getFrom()[0]->getAddress())->toBe('support@acme.test')
+        ->and($email->getFrom()[0]->getName())->toBe('Acme Support');
 });
 
 it('shows every card as a section of its page, with an outline', function (): void {

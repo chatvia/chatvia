@@ -3,10 +3,8 @@
 use App\Admin\Settings\Actions\ReindexEmbeddingsAction;
 use App\Admin\Settings\AiSettings;
 use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
-use Database\Factories\AgentFileFactory;
 use Domain\Integration\Tool\Jobs\ReembedToolVectorsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Testing\Fakes\PendingBatchFake;
 
@@ -15,7 +13,7 @@ use Illuminate\Support\Testing\Fakes\PendingBatchFake;
  * embedding service or model in use (from any place that saves the AI
  * settings) embeds everything again: knowledge and tools, in the queue.
  */
-function embeddingSettings(string $provider, string $openAiModel = 'text-embedding-3-small'): AiSettings
+function reindexEmbeddingSettings(string $provider, string $openAiModel = 'text-embedding-3-small'): AiSettings
 {
     $settings = app(AiSettings::class);
     $settings->embedding_provider = $provider;
@@ -27,7 +25,7 @@ function embeddingSettings(string $provider, string $openAiModel = 'text-embeddi
 
 it('re-indexes everything after the response when the embedding model in use changes', function (): void {
     Bus::fake();
-    $settings = embeddingSettings('openai');
+    $settings = reindexEmbeddingSettings('openai');
     Bus::fake();
 
     $settings->openai_embedding_model = 'text-embedding-3-large';
@@ -38,7 +36,7 @@ it('re-indexes everything after the response when the embedding model in use cha
 
 it('re-indexes when the embedding service changes', function (): void {
     Bus::fake();
-    $settings = embeddingSettings('openai');
+    $settings = reindexEmbeddingSettings('openai');
     Bus::fake();
 
     $settings->embedding_provider = 'openrouter';
@@ -49,7 +47,7 @@ it('re-indexes when the embedding service changes', function (): void {
 
 it('leaves the vectors alone when another service\'s model or another setting changes', function (): void {
     Bus::fake();
-    $settings = embeddingSettings('openai');
+    $settings = reindexEmbeddingSettings('openai');
     Bus::fake();
 
     $settings->jina_embedding_model = 'jina-embeddings-v4';
@@ -61,19 +59,7 @@ it('leaves the vectors alone when another service\'s model or another setting ch
 
 it('re-embeds the tools and queues the knowledge as one batch', function (): void {
     Bus::fake();
-    $file = AgentFileFactory::new()->create();
-    Chunk::query()->create([
-        'workspace_id' => $file->workspace_id,
-        'chunkable_type' => $file->getMorphClass(),
-        'chunkable_id' => $file->id,
-        'chunk_index' => 1,
-        'chunk' => 'Stored text.',
-        'tokens' => 2,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression('Stored text.'),
-        'checksum' => md5('Stored text.'),
-        'cost_in_micro_cents' => 0,
-    ]);
+    Chunk::factory()->create(['chunk' => 'Stored text.']);
 
     expect(app(ReindexEmbeddingsAction::class)->execute())->not->toBeNull();
 

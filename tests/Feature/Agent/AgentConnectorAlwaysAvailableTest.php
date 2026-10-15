@@ -4,50 +4,28 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Registry\ToolRegistry;
-use Domain\Membership\Team\Services\TeamService;
 use Illuminate\Support\Facades\DB;
 
-/** A workspace owner with the default team a signed-up account gets. */
-function workspaceOwnerWithTeam(): User
-{
-    $user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($user);
-
-    return $user->refresh();
-}
-
+/**
+ * The "always on" switch of a connector attached to an agent: its tools go
+ * out on every turn, without the relevance routing picking them.
+ */
 beforeEach(function (): void {
-    $this->user = workspaceOwnerWithTeam();
+    $this->user = User::factory()->create();
     $this->agent = makeTeamAgent($this->user, 'Tutor Bot');
 
-    $this->server = $this->user->workspace()->mcpServers()->create([
+    $this->server = AgentMcpServer::factory()->forOwner($this->user)->create([
         'name' => 'Hejly AI Tutor',
         'slug' => 'hejly-tutor',
         'url' => 'https://hejly.test/mcp/tutor',
-        'transport' => 'streamable_http',
         'auth_type' => 'bearer',
-        'is_enabled' => true,
     ]);
     $this->agent->attachConnector($this->server);
     app(ToolRegistry::class)->forget($this->agent->id);
 });
 
-function tutorTools(AgentMcpServer $server, int $count): void
-{
-    foreach (range(1, $count) as $i) {
-        McpTool::create([
-            'mcp_server_id' => $server->id,
-            'name' => "tool_{$i}",
-            'description' => "Tool {$i}",
-            'input_schema' => ['type' => 'object', 'properties' => []],
-            'permission' => 'allow',
-            'fetched_at' => now(),
-        ]);
-    }
-}
-
 it('marks an attached connector always-on and reports it on the connectors list', function (): void {
-    tutorTools($this->server, 3);
+    McpTool::factory()->count(3)->allowed()->create(['mcp_server_id' => $this->server->id]);
 
     $this->actingAs($this->user)
         ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
@@ -65,7 +43,7 @@ it('marks an attached connector always-on and reports it on the connectors list'
 });
 
 it('turns always-on on however many tools the connector has', function (): void {
-    tutorTools($this->server, 25);
+    McpTool::factory()->count(25)->allowed()->create(['mcp_server_id' => $this->server->id]);
 
     $this->actingAs($this->user)
         ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
@@ -75,23 +53,19 @@ it('turns always-on on however many tools the connector has', function (): void 
     expect(DB::table('agent_mcp_server')->where('agent_id', $this->agent->id)->value('always_available'))->toBeTruthy();
 });
 
-it('validates the flag and 404s for a connector not attached to the agent', function (): void {
+it('validates the flag', function (): void {
     $this->actingAs($this->user)
         ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['always_available']);
-
-    $this->actingAs($this->user)
-        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'nope']), ['always_available' => true])
-        ->assertNotFound();
 });
 
-it('hides the flag from another workspace with a 404', function (): void {
-    $stranger = workspaceOwnerWithTeam();
+it('404s for a connector of the workspace that is not attached to the agent', function (): void {
+    $unattached = AgentMcpServer::factory()->forOwner($this->user)->create(['slug' => 'not-attached']);
 
-    $this->actingAs($stranger)
-        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
+    $this->actingAs($this->user)
+        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => $unattached->slug]), ['always_available' => true])
         ->assertNotFound();
 
-    expect(DB::table('agent_mcp_server')->where('agent_id', $this->agent->id)->value('always_available'))->toBeFalsy();
+    expect($this->agent->mcpServers()->whereKey($unattached->id)->exists())->toBeFalse();
 });

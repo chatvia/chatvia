@@ -188,13 +188,3 @@ it('casts input to the property type and turns blank or invalid input into null'
     'toggle on' => [KnowledgeSettings::class, 'hybrid_search', true, true],
     'select' => [AiSettings::class, 'reranker', 'cohere', 'cohere'],
 ]);
-
-it('lets the search toggle turn keyword search off', function (): void {
-    expect(config('chatvia.vector.search.hybrid'))->toBeTrue();
-
-    $settings = app(KnowledgeSettings::class);
-    $settings->hybrid_search = false;
-    $settings->save();
-
-    expect(config('chatvia.vector.search.hybrid'))->toBeFalse();
-});

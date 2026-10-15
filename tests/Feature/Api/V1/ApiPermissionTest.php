@@ -4,14 +4,18 @@ use App\Identity\Chatter\Actions\CreateChatterAction;
 use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Session;
+use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
+use Domain\Knowledge\Source\Text\Models\SourceText;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Spatie\Permission\PermissionRegistrar;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +28,8 @@ use Spatie\Permission\PermissionRegistrar;
 |   • a teammate WITHOUT the relevant permission can never issue the request.
 |
 | Every test contrasts owner / member-without / member-with so the gate under
-| test is the permission — not tenancy or agent access. This is the API half of
-| the production sign-off: "a team member without the permission will never be
-| able to issue a certain request."
+| test is the permission — not tenancy or agent access. Another workspace's
+| records are covered by tests/Feature/Isolation.
 */
 
 beforeEach(function (): void {
@@ -42,62 +45,17 @@ beforeEach(function (): void {
     $this->agent = createAgent($this->owner);
 });
 
-function permHeaders(string $token): array
-{
-    // Reset the auth guard before each request. Laravel reuses one app (and one
-    // sanctum guard) across requests in a single test, caching the FIRST resolved
-    // user — so a second identity in the same test would otherwise be silently
-    // evaluated as the first. Called right before every request via withHeaders().
-    // Production resolves the user per request, so this only affects tests.
-    app('auth')->forgetGuards();
-
-    return ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'];
-}
-
 /**
- * A teammate of $owner, attached to their team under a role granting exactly
- * $permissions (all-agents access by default). `current_team_id` is set so the
- * permission helpers resolve the right team for a token-only (sessionless)
- * request. Returns the bearer token minted in the teammate's name.
+ * A bearer token of a teammate of $owner whose role grants exactly
+ * $permissions (all agents unless $agentIds lists the ones it reaches).
  *
  * @param  list<string>  $permissions
  * @param  list<string>  $agentIds  external ids when $allAgents is false
  */
 function permMemberToken(User $owner, array $permissions, bool $allAgents = true, array $agentIds = []): string
 {
-    $team = $owner->primaryTeam();
-
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(10),
-        permissions: $permissions,
-        allAgents: $allAgents,
-        agentExternalIds: $agentIds,
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    // Spatie caches the permission→role map for the whole process. We create a
-    // role and hit it in the same test, so reset the cache or the next request
-    // resolves against a stale map (production reloads per request — not a bug).
-    app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-    return $member->createToken('account')->plainTextToken;
-}
-
-function permMakeMcp(User $owner): AgentMcpServer
-{
-    return AgentMcpServer::create([
-        'workspace_id' => $owner->workspace()->id,
-        'connector_slug' => null,
-        'name' => 'Server '.Str::random(6),
-        'slug' => Str::random(10),
-        'url' => 'https://mcp.example.test',
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    return teammateWithPermissions($owner, $permissions, allAgents: $allAgents, agentExternalIds: $agentIds)
+        ->createToken('account')->plainTextToken;
 }
 
 // ---------------------------------------------------------------------------
@@ -107,16 +65,16 @@ function permMakeMcp(User $owner): AgentMcpServer
 describe('account-level functions (account.functions)', function (): void {
 
     it('lets the owner read and the gate is open to write', function (): void {
-        $this->withHeaders(permHeaders($this->ownerToken))->getJson('/api/v1/functions')->assertOk();
+        withApiToken($this->ownerToken)->getJson('/api/v1/functions')->assertOk();
         // owner passes the gate, then hits validation on an empty body
-        $this->withHeaders(permHeaders($this->ownerToken))->postJson('/api/v1/functions', [])->assertStatus(422);
+        withApiToken($this->ownerToken)->postJson('/api/v1/functions', [])->assertStatus(422);
     });
 
     it('forbids a member WITHOUT account.functions (read AND write)', function (): void {
         $token = permMemberToken($this->owner, []);
 
-        $this->withHeaders(permHeaders($token))->getJson('/api/v1/functions')->assertForbidden();
-        $this->withHeaders(permHeaders($token))->postJson('/api/v1/functions', [
+        withApiToken($token)->getJson('/api/v1/functions')->assertForbidden();
+        withApiToken($token)->postJson('/api/v1/functions', [
             'internal_name' => 'x', 'description' => 'y', 'webhook_url' => 'https://e.test/x',
         ])->assertForbidden();
     });
@@ -124,37 +82,37 @@ describe('account-level functions (account.functions)', function (): void {
     it('lets a member WITH account.functions through the gate', function (): void {
         $token = permMemberToken($this->owner, ['account.functions']);
 
-        $this->withHeaders(permHeaders($token))->getJson('/api/v1/functions')->assertOk();
+        withApiToken($token)->getJson('/api/v1/functions')->assertOk();
         // passes the gate, then fails validation — proves the 403 is gone
-        $this->withHeaders(permHeaders($token))->postJson('/api/v1/functions', [])->assertStatus(422);
+        withApiToken($token)->postJson('/api/v1/functions', [])->assertStatus(422);
     });
 });
 
 describe('account-level MCP servers (account.connectors)', function (): void {
 
     it('lets the owner list and delete', function (): void {
-        $mcp = permMakeMcp($this->owner);
+        $mcp = AgentMcpServer::factory()->forOwner($this->owner)->create();
 
-        $this->withHeaders(permHeaders($this->ownerToken))->getJson('/api/v1/mcps')->assertOk();
-        $this->withHeaders(permHeaders($this->ownerToken))->deleteJson("/api/v1/mcps/{$mcp->external_id}")->assertNoContent();
+        withApiToken($this->ownerToken)->getJson('/api/v1/mcps')->assertOk();
+        withApiToken($this->ownerToken)->deleteJson("/api/v1/mcps/{$mcp->external_id}")->assertNoContent();
     });
 
     it('forbids a member WITHOUT account.connectors (list AND delete)', function (): void {
-        $mcp = permMakeMcp($this->owner);
+        $mcp = AgentMcpServer::factory()->forOwner($this->owner)->create();
         $token = permMemberToken($this->owner, []);
 
-        $this->withHeaders(permHeaders($token))->getJson('/api/v1/mcps')->assertForbidden();
-        $this->withHeaders(permHeaders($token))->deleteJson("/api/v1/mcps/{$mcp->external_id}")->assertForbidden();
+        withApiToken($token)->getJson('/api/v1/mcps')->assertForbidden();
+        withApiToken($token)->deleteJson("/api/v1/mcps/{$mcp->external_id}")->assertForbidden();
 
         expect(AgentMcpServer::whereKey($mcp->id)->exists())->toBeTrue();
     });
 
     it('lets a member WITH account.connectors through the gate', function (): void {
-        $mcp = permMakeMcp($this->owner);
+        $mcp = AgentMcpServer::factory()->forOwner($this->owner)->create();
         $token = permMemberToken($this->owner, ['account.connectors']);
 
-        $this->withHeaders(permHeaders($token))->getJson('/api/v1/mcps')->assertOk();
-        $this->withHeaders(permHeaders($token))->deleteJson("/api/v1/mcps/{$mcp->external_id}")->assertNoContent();
+        withApiToken($token)->getJson('/api/v1/mcps')->assertOk();
+        withApiToken($token)->deleteJson("/api/v1/mcps/{$mcp->external_id}")->assertNoContent();
     });
 });
 
@@ -166,7 +124,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     ];
 
     it('lets the owner create a chatter', function () use ($chatterBody): void {
-        $this->withHeaders(permHeaders($this->ownerToken))
+        withApiToken($this->ownerToken)
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
             ->assertCreated();
     });
@@ -174,7 +132,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     it('forbids a member WITHOUT account.chatters.manage', function () use ($chatterBody): void {
         $token = permMemberToken($this->owner, []);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
             ->assertForbidden();
     });
@@ -182,7 +140,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
     it('lets a member WITH account.chatters.manage create a chatter, keyed to the owner workspace', function () use ($chatterBody): void {
         $token = permMemberToken($this->owner, ['account.chatters.manage']);
 
-        $id = $this->withHeaders(permHeaders($token))
+        $id = withApiToken($token)
             ->postJson('/api/v1/chatters', $chatterBody($this->agent))
             ->assertCreated()
             ->json('data.id');
@@ -194,7 +152,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, []);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
             ->assertForbidden();
 
@@ -205,7 +163,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, ['account.chatters.manage']);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
             ->assertNoContent();
 
@@ -216,7 +174,7 @@ describe('account-level chatters (account.chatters.manage)', function (): void {
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->owner->workspace(), $this->agent, 'Jane'));
         $token = permMemberToken($this->owner, []);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', ['agent_ids' => [$this->agent->external_id]])
             ->assertForbidden();
 
@@ -233,13 +191,13 @@ describe('owner-only operations (api.owner)', function (): void {
     it('forbids a member from creating an agent — even with broad agent perms', function (): void {
         $token = permMemberToken($this->owner, ['agent.setup', 'agent.delete']);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->postJson('/api/v1/agents', ['name' => 'Sneaky', 'team_id' => $this->owner->primaryTeam()->external_id, 'is_public' => false])
             ->assertForbidden();
     });
 
     it('lets the owner create an agent', function (): void {
-        $this->withHeaders(permHeaders($this->ownerToken))
+        withApiToken($this->ownerToken)
             ->postJson('/api/v1/agents', ['name' => 'Support Bot', 'team_id' => $this->owner->primaryTeam()->external_id, 'is_public' => false])
             ->assertCreated();
     });
@@ -247,12 +205,12 @@ describe('owner-only operations (api.owner)', function (): void {
     it('forbids a member from listing or creating teams', function (): void {
         $token = permMemberToken($this->owner, ['account.chatters.manage', 'agent.setup']);
 
-        $this->withHeaders(permHeaders($token))->getJson('/api/v1/teams')->assertForbidden();
-        $this->withHeaders(permHeaders($token))->postJson('/api/v1/teams', ['name' => 'X'])->assertForbidden();
+        withApiToken($token)->getJson('/api/v1/teams')->assertForbidden();
+        withApiToken($token)->postJson('/api/v1/teams', ['name' => 'X'])->assertForbidden();
     });
 
     it('lets the owner list teams', function (): void {
-        $this->withHeaders(permHeaders($this->ownerToken))->getJson('/api/v1/teams')->assertOk();
+        withApiToken($this->ownerToken)->getJson('/api/v1/teams')->assertOk();
     });
 });
 
@@ -265,13 +223,13 @@ describe('per-agent: update is gated by agent.setup', function (): void {
     it('owner and member-with pass; member-without is forbidden', function (): void {
         $uri = "/api/v1/agents/{$this->agent->external_id}";
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, [])))
+        withApiToken(permMemberToken($this->owner, []))
             ->patchJson($uri, ['is_public' => true])->assertForbidden();
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, ['agent.setup'])))
+        withApiToken(permMemberToken($this->owner, ['agent.setup']))
             ->patchJson($uri, ['is_public' => true])->assertOk();
 
-        $this->withHeaders(permHeaders($this->ownerToken))
+        withApiToken($this->ownerToken)
             ->patchJson($uri, ['is_public' => true])->assertOk();
     });
 });
@@ -282,7 +240,7 @@ describe('per-agent: delete is gated by agent.delete', function (): void {
         // The contrast with agent.setup proves it's specifically agent.delete.
         $token = permMemberToken($this->owner, ['agent.setup']);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->deleteJson("/api/v1/agents/{$this->agent->external_id}")
             ->assertForbidden();
 
@@ -292,7 +250,7 @@ describe('per-agent: delete is gated by agent.delete', function (): void {
     it('lets a member WITH agent.delete delete the agent', function (): void {
         $token = permMemberToken($this->owner, ['agent.delete']);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->deleteJson("/api/v1/agents/{$this->agent->external_id}")
             ->assertNoContent();
 
@@ -300,7 +258,7 @@ describe('per-agent: delete is gated by agent.delete', function (): void {
     });
 
     it('lets the owner delete the agent', function (): void {
-        $this->withHeaders(permHeaders($this->ownerToken))
+        withApiToken($this->ownerToken)
             ->deleteJson("/api/v1/agents/{$this->agent->external_id}")
             ->assertNoContent();
     });
@@ -311,34 +269,34 @@ describe('per-agent: training + chat are gated by their permission', function ()
     it('gates file training by agent.sources.train.files', function (): void {
         $uri = "/api/v1/agents/{$this->agent->external_id}/sources/files";
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, [])))
+        withApiToken(permMemberToken($this->owner, []))
             ->postJson($uri, [])->assertForbidden();
 
         // with the permission the gate opens; the empty body then fails validation
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, ['agent.sources.train.files'])))
+        withApiToken(permMemberToken($this->owner, ['agent.sources.train.files']))
             ->postJson($uri, [])->assertStatus(422);
     });
 
     it('gates MCP attach by agent.sources.train.connectors', function (): void {
         $uri = "/api/v1/agents/{$this->agent->external_id}/mcps";
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, [])))
+        withApiToken(permMemberToken($this->owner, []))
             ->postJson($uri, [])->assertForbidden();
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, ['agent.sources.train.connectors'])))
+        withApiToken(permMemberToken($this->owner, ['agent.sources.train.connectors']))
             ->postJson($uri, [])->assertStatus(422);
     });
 
     it('gates conversation history by agent.chat.view', function (): void {
         $uri = "/api/v1/agents/{$this->agent->external_id}/conversations";
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, [])))
+        withApiToken(permMemberToken($this->owner, []))
             ->getJson($uri)->assertForbidden();
 
-        $this->withHeaders(permHeaders(permMemberToken($this->owner, ['agent.chat.view'])))
+        withApiToken(permMemberToken($this->owner, ['agent.chat.view']))
             ->getJson($uri)->assertOk();
 
-        $this->withHeaders(permHeaders($this->ownerToken))->getJson($uri)->assertOk();
+        withApiToken($this->ownerToken)->getJson($uri)->assertOk();
     });
 
     it('lets any member who can access the agent read it (no extra permission)', function (): void {
@@ -346,43 +304,114 @@ describe('per-agent: training + chat are gated by their permission', function ()
         // matching the dashboard's open agent read pages.
         $token = permMemberToken($this->owner, []);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->getJson("/api/v1/agents/{$this->agent->external_id}")->assertOk();
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->getJson("/api/v1/agents/{$this->agent->external_id}/sources")->assertOk();
     });
 });
 
 // ---------------------------------------------------------------------------
-// Agent-access isolation + tenancy — gated by can.access.agent
+// Agent-access isolation — gated by can.access.agent
 // ---------------------------------------------------------------------------
 
-describe('agent access isolation + tenancy', function (): void {
+describe('agent access isolation', function (): void {
 
     it('forbids a member from an agent their role does not grant', function (): void {
         $granted = $this->agent;
-        $ungranted = createAgent($this->owner, ['name' => 'Other', 'external_id' => Str::random(20), 'slug' => Str::random(14)]);
+        $ungranted = createAgent($this->owner, ['name' => 'Other']);
 
         // Access to ONLY the granted agent, with the chat permission.
         $token = permMemberToken($this->owner, ['agent.chat.view'], allAgents: false, agentIds: [$granted->external_id]);
 
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->getJson("/api/v1/agents/{$granted->external_id}/conversations")->assertOk();
 
         // Same permission, but no access to this agent → blocked at can.access.agent.
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->getJson("/api/v1/agents/{$ungranted->external_id}/conversations")->assertForbidden();
-        $this->withHeaders(permHeaders($token))
+        withApiToken($token)
             ->getJson("/api/v1/agents/{$ungranted->external_id}")->assertForbidden();
     });
+});
 
-    it('hides another workspace’s agent (owner token)', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $otherAgent = createAgent($other);
+describe('per-agent: every other mutating route is gated by its own permission', function (): void {
 
-        $this->withHeaders(permHeaders($this->ownerToken))
-            ->getJson("/api/v1/agents/{$otherAgent->external_id}")->assertNotFound();
-        $this->withHeaders(permHeaders($this->ownerToken))
-            ->patchJson("/api/v1/agents/{$otherAgent->external_id}", ['is_public' => true])->assertNotFound();
+    beforeEach(function (): void {
+        Storage::fake();
+        Bus::fake();
     });
+
+    it('forbids a member without the permission and lets one with it through', function (string $method, string $permission, int $allowed, Closure $request): void {
+        // Every other agent permission, so only the one under test is missing.
+        $others = array_values(array_filter(
+            array_keys(config('team-permissions.permissions')),
+            fn (string $code): bool => str_starts_with($code, 'agent.') && $code !== $permission,
+        ));
+
+        [$uri, $body, $untouched] = $request($this->agent);
+
+        withApiToken(permMemberToken($this->owner, $others))
+            ->json($method, "/api/v1/agents/{$this->agent->external_id}/{$uri}", $body)
+            ->assertForbidden();
+
+        expect($untouched())->toBeTrue();
+
+        // Through the gate: done, or refused by validation for an empty body.
+        withApiToken(permMemberToken($this->owner, [$permission]))
+            ->json($method, "/api/v1/agents/{$this->agent->external_id}/{$uri}", $body)
+            ->assertStatus($allowed);
+    })->with([
+        'add a text' => ['POST', 'agent.sources.train.text', 422, fn (Agent $agent): array => [
+            'sources/texts', [], fn (): bool => $agent->texts()->doesntExist(),
+        ]],
+        'add a web page' => ['POST', 'agent.sources.train.web', 422, fn (Agent $agent): array => [
+            'sources/urls', [], fn (): bool => $agent->websites()->doesntExist(),
+        ]],
+        'delete a file' => ['DELETE', 'agent.sources.delete', 204, function (Agent $agent): array {
+            $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+            $agent->files()->attach($file->id);
+
+            return ["sources/files/{$file->external_id}", [], fn (): bool => $agent->files()->whereKey($file->id)->exists()];
+        }],
+        'delete a text' => ['DELETE', 'agent.sources.delete', 204, function (Agent $agent): array {
+            $text = SourceText::query()->create([
+                'workspace_id' => $agent->workspace_id,
+                'filepath' => 'workspaces/test/texts/'.Str::uuid()->toString().'.txt',
+                'excerpt' => 'Our refund policy',
+                'length' => 1,
+                'checksum' => md5(Str::uuid()->toString()),
+            ]);
+            $agent->texts()->attach($text->id);
+
+            return ["sources/texts/{$text->external_id}", [], fn (): bool => $agent->texts()->whereKey($text->id)->exists()];
+        }],
+        'delete a web page' => ['DELETE', 'agent.sources.delete', 204, function (Agent $agent): array {
+            $website = SourceWebsite::query()->create(['workspace_id' => $agent->workspace_id, 'url' => 'https://docs.example.test/', 'status' => 'ingested']);
+            $agent->websites()->attach($website->id);
+
+            return ["sources/urls/{$website->external_id}", [], fn (): bool => $agent->websites()->whereKey($website->id)->exists()];
+        }],
+        'detach an MCP server' => ['DELETE', 'agent.sources.train.connectors', 204, function (Agent $agent): array {
+            $server = AgentMcpServer::factory()->attachedTo($agent)->create();
+
+            return ["mcps/{$server->external_id}", [], fn (): bool => $agent->mcpServers()->whereKey($server->id)->exists()];
+        }],
+        'attach a function' => ['POST', 'agent.sources.train.functions', 201, function (Agent $agent): array {
+            $function = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id]);
+
+            return ['functions', ['function_id' => $function->external_id], fn (): bool => $agent->functions()->doesntExist()];
+        }],
+        'detach a function' => ['DELETE', 'agent.sources.train.functions', 204, function (Agent $agent): array {
+            $function = AgentFunction::factory()->attachedTo($agent)->create();
+
+            return ["functions/{$function->external_id}", [], fn (): bool => $agent->functions()->whereKey($function->id)->exists()];
+        }],
+        'delete a conversation' => ['DELETE', 'agent.chat.delete', 204, function (Agent $agent): array {
+            $session = Session::factory()->create(['agent_id' => $agent->id]);
+            $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'agent_id' => $agent->id]);
+
+            return ["conversations/{$conversation->external_id}", [], fn (): bool => Conversation::query()->whereKey($conversation->id)->exists()];
+        }],
+    ]);
 });

@@ -8,8 +8,6 @@ use Inertia\Testing\AssertableInertia;
  * Eloquent model (which carries owner ids, metadata and model settings).
  */
 beforeEach(function (): void {
-    // Agent::factory()->create() gives the owner an active subscription so the agent route
-    // group's subscription gate lets the request reach the controller.
     $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->workspace->owner;
 });

@@ -36,7 +36,7 @@ beforeEach(function (): void {
     ]);
 });
 
-function storeForm(User $user, Agent $agent, string $name = 'Contact', string $fieldKey = 'email'): TestResponse
+function formCapabilityStore(User $user, Agent $agent, string $name = 'Contact', string $fieldKey = 'email'): TestResponse
 {
     return test()->actingAs($user)->post(route('agents.forms.store', $agent->external_id), [
         'name' => $name,
@@ -49,13 +49,13 @@ function storeForm(User $user, Agent $agent, string $name = 'Contact', string $f
 it('enables the Forms capability when the first form is created', function (): void {
     expect($this->agent->isFormsEnabled())->toBeFalse();
 
-    storeForm($this->user, $this->agent)->assertRedirect();
+    formCapabilityStore($this->user, $this->agent)->assertRedirect();
 
     expect($this->agent->isFormsEnabled())->toBeTrue();
 });
 
 it('disables the Forms capability when the last form is deleted', function (): void {
-    storeForm($this->user, $this->agent)->assertRedirect();
+    formCapabilityStore($this->user, $this->agent)->assertRedirect();
     $form = FormDefinition::query()->forAgent($this->agent)->firstOrFail();
     expect($this->agent->isFormsEnabled())->toBeTrue();
 
@@ -67,8 +67,8 @@ it('disables the Forms capability when the last form is deleted', function (): v
 });
 
 it('keeps the Forms capability enabled while other forms remain', function (): void {
-    storeForm($this->user, $this->agent, 'Contact', 'email');
-    storeForm($this->user, $this->agent, 'Booking', 'date');
+    formCapabilityStore($this->user, $this->agent, 'Contact', 'email');
+    formCapabilityStore($this->user, $this->agent, 'Booking', 'date');
     $first = FormDefinition::query()->forAgent($this->agent)->orderBy('id')->firstOrFail();
 
     $this->actingAs($this->user)
@@ -98,7 +98,7 @@ it('still saves the form and reports the error when enabling Forms fails', funct
         ->shouldReceive('execute')
         ->andThrow(new McpException('tools/list failed'));
 
-    storeForm($this->user, $this->agent)->assertRedirect();
+    formCapabilityStore($this->user, $this->agent)->assertRedirect();
 
     expect(FormDefinition::query()->forAgent($this->agent)->count())->toBe(1);
     Exceptions::assertReported(McpException::class);

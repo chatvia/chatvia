@@ -119,5 +119,24 @@ it('does not stamp last_login_at when the login stops at the 2FA challenge', fun
     $this->post(route('login'), ['email' => 'twofa@example.test', 'password' => 'right-password'])
         ->assertRedirect(route('two-factor.login'));
 
-    expect($user->fresh()->last_login_at)->toBeNull();
+    $this->assertGuest();
+    expect(session('login.id'))->toBe($user->id)
+        ->and($user->fresh()->last_login_at)->toBeNull();
+});
+
+it('signs in at once when a two-factor secret was set up but never confirmed', function (): void {
+    // Two-factor sign-in starts only once the user confirms a code
+    // (`confirm` in config/fortify.php), so a half-finished setup cannot lock
+    // them out.
+    $user = User::factory()->create([
+        'email' => 'halfway@example.test',
+        'password' => Hash::make('right-password'),
+        'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP'),
+        'two_factor_confirmed_at' => null,
+    ]);
+
+    $this->post(route('login'), ['email' => 'halfway@example.test', 'password' => 'right-password'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertAuthenticatedAs($user);
 });

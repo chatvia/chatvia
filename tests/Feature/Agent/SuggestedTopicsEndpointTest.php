@@ -2,34 +2,26 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
-use Domain\Conversation\Models\Session;
 use Domain\Conversation\Topic\Models\ConversationTopic;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The suggestions endpoint groups emergent (un-promoted) topic labels and
- * attaches example conversations. The examples used to be fetched with one
- * query per label (unbounded N+1); they now come from a single
- * window-function query — this pins the grouped shape and the per-label cap.
+ * attaches example conversations: the grouped shape, the per-label cap, and
+ * one query for the examples of every label.
  */
 function suggestedTopicsConversation(Agent $agent, string $title): Conversation
 {
-    $session = Session::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
-
-    return Conversation::create([
-        'workspace_id' => $session->workspace_id,
-        'chat_session_id' => $session->id,
-        'agent_id' => $session->agent_id,
-        'source' => 'widget',
-        'title' => $title,
-    ]);
+    return Conversation::factory()->withTitle($title)->create(['agent_id' => $agent->id, 'source' => ConversationSource::Widget]);
 }
 
-it('returns grouped suggestions with examples from a single batched query', function (): void {
+it('returns grouped suggestions with capped examples', function (): void {
     config(['chatvia.analytics.analysis.min_occurrences' => 2]);
     config(['chatvia.analytics.analysis.max_examples' => 2]);
 
-    // Pro plan grants the `topics` capability the route is gated behind.
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
 
@@ -114,4 +106,34 @@ it('only counts conversations from the suggestion window', function (): void {
     expect($response)->toHaveCount(1)
         ->and($response[0]['count'])->toBe(2)
         ->and(array_column($response[0]['examples'], 'title'))->toEqualCanonicalizing(['Recent one', 'Recent two']);
+});
+
+it('reads the examples of every label with the same number of queries', function (): void {
+    config(['chatvia.analytics.analysis.min_occurrences' => 1]);
+
+    $agent = Agent::factory()->create();
+    $owner = $agent->workspace->owner;
+    $queries = 0;
+    DB::listen(function (QueryExecuted $query) use (&$queries): void {
+        $queries++;
+    });
+
+    $countQueries = function () use ($owner, $agent, &$queries): int {
+        $queries = 0;
+        $this->actingAs($owner)->getJson(route('agents.topics.suggestions', $agent))->assertOk();
+
+        return $queries;
+    };
+
+    ConversationTopic::create(['chat_conversation_id' => suggestedTopicsConversation($agent, 'Refund')->id, 'suggested_label' => 'refunds']);
+    $countQueries();
+    $oneLabel = $countQueries();
+
+    foreach (['shipping', 'returns'] as $label) {
+        ConversationTopic::create(['chat_conversation_id' => suggestedTopicsConversation($agent, ucfirst($label))->id, 'suggested_label' => $label]);
+    }
+    $threeLabels = $countQueries();
+
+    expect($threeLabels)->toBe($oneLabel)
+        ->and($this->actingAs($owner)->getJson(route('agents.topics.suggestions', $agent))->json('suggestions'))->toHaveCount(3);
 });

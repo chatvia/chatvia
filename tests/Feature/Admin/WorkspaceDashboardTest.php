@@ -14,7 +14,6 @@ use App\Identity\Workspace\Models\DataExport;
 use App\Identity\Workspace\Models\MessageLimit;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WorkspaceActivation;
-use Domain\Agent\Models\Agent;
 use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Conversation\Enums\ConversationSource;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -34,19 +33,6 @@ use Support\Localization\Country\Models\Country;
  * reset the owner's password, deactivate, reactivate, delete, turn off
  * two-step sign-in, export).
  */
-function wdRollup(Agent $agent, string $bucketHour, array $values = []): void
-{
-    DB::connection(config('chatvia.analytics.connection'))
-        ->table('analytics_agent_hourly_rollups')
-        ->insert(array_merge([
-            'agent_id' => $agent->id,
-            'workspace_id' => $agent->workspace_id,
-            'bucket_hour' => $bucketHour,
-            'country_code' => '--',
-            'llm_external_name' => '',
-        ], $values));
-}
-
 beforeEach(function (): void {
     // A future month no seeded row falls in.
     $this->travelTo(Carbon::parse('2031-03-20 15:30:00', 'UTC'));
@@ -62,7 +48,7 @@ beforeEach(function (): void {
     $this->workspace->update(['name' => 'Acme Corp']);
 });
 
-function viewWorkspace(): Testable
+function workspaceDashboardPage(): Testable
 {
     return Livewire::actingAs(test()->admin, 'admin')
         ->test(ViewWorkspace::class, ['record' => test()->workspace->getRouteKey()]);
@@ -85,16 +71,16 @@ it('shows the owner\'s account details on the overview', function (): void {
 });
 
 it('opens on the Overview tab, with Analytics next to it', function (): void {
-    $page = viewWorkspace()->assertSet('activeRelationManager', null);
+    $page = workspaceDashboardPage()->assertSet('activeRelationManager', null);
 
     expect(array_keys($page->instance()->getTabComponents()))->toBe(['', 'analytics', 0, 1]);
 });
 
 it('shows this month\'s numbers, the limit and the tool calls', function (): void {
     $agent = createAgent($this->owner);
-    wdRollup($agent, '2031-03-10 10:00:00', ['user_messages' => 600, 'assistant_messages' => 634, 'conversations_started' => 77]);
+    analyticsRollup($agent, '2031-03-10 10:00:00', ['user_messages' => 600, 'assistant_messages' => 634, 'conversations_started' => 77]);
     // Last month: not counted.
-    wdRollup($agent, '2031-02-10 10:00:00', ['user_messages' => 5, 'assistant_messages' => 5]);
+    analyticsRollup($agent, '2031-02-10 10:00:00', ['user_messages' => 5, 'assistant_messages' => 5]);
 
     $analytics = DB::connection(config('chatvia.analytics.connection'));
     $analytics->table('analytics_agent_function_daily')->insert([
@@ -143,7 +129,7 @@ it('lists the workspace\'s agents with model, channels, knowledge and traffic', 
         ['agent_id' => $agent->id, 'sourceable_type' => 'source_text', 'sourceable_id' => 1],
         ['agent_id' => $agent->id, 'sourceable_type' => 'source_text', 'sourceable_id' => 2],
     ]);
-    wdRollup($agent, '2031-03-18 09:00:00', ['user_messages' => 10, 'assistant_messages' => 12, 'conversations_started' => 3]);
+    analyticsRollup($agent, '2031-03-18 09:00:00', ['user_messages' => 10, 'assistant_messages' => 12, 'conversations_started' => 3]);
 
     $quiet = createAgent($this->owner, ['name' => 'Quiet Bot']);
     $elsewhere = createAgent(User::factory()->create(), ['name' => 'Other Bot']);
@@ -186,7 +172,7 @@ it('deactivates the workspace with a reason and reactivates it', function (): vo
     $teammate = User::factory()->employee($this->owner)->create();
     $chatter = Chatter::factory()->ofWorkspace($this->owner)->create();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->assertActionHidden('reactivate')
         ->callAction('deactivate', data: ['reason' => 'Unpaid invoice'])
         ->assertHasNoActionErrors()
@@ -201,7 +187,7 @@ it('deactivates the workspace with a reason and reactivates it', function (): vo
         ->and($chatter->fresh()->deactivated_at)->not->toBeNull()
         ->and($activation->isActive($workspaceId))->toBeFalse();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('reactivate')
         ->assertHasNoActionErrors();
 
@@ -212,7 +198,7 @@ it('deactivates the workspace with a reason and reactivates it', function (): vo
 });
 
 it('needs a reason to deactivate', function (): void {
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('deactivate', data: ['reason' => ''])
         ->assertHasActionErrors(['reason' => 'required']);
 
@@ -234,7 +220,7 @@ it('disables deactivate and delete for a workspace with platform staff in it', f
 });
 
 it('edits the workspace name and the owner\'s name and email', function (): void {
-    viewWorkspace()
+    workspaceDashboardPage()
         ->assertActionVisible('edit')
         ->mountAction('edit')
         ->assertActionDataSet([
@@ -255,7 +241,7 @@ it('edits the workspace name and the owner\'s name and email', function (): void
 });
 
 it('keeps the owner\'s email confirmed when it does not change', function (): void {
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('edit', data: ['name' => 'Acme GmbH', 'owner_name' => 'Dana Owner', 'owner_email' => 'dana@acme.test'])
         ->assertHasNoActionErrors();
 
@@ -265,11 +251,11 @@ it('keeps the owner\'s email confirmed when it does not change', function (): vo
 it('does not give the owner an email another account uses', function (): void {
     User::factory()->create(['email' => 'taken@acme.test']);
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('edit', data: ['name' => 'Acme Corp', 'owner_name' => 'Dana Owner', 'owner_email' => 'taken@acme.test'])
         ->assertHasActionErrors(['owner_email' => 'unique']);
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('edit', data: ['name' => '', 'owner_name' => 'Dana Owner', 'owner_email' => 'Dana@Acme.test'])
         ->assertHasActionErrors(['name' => 'required', 'owner_email' => 'lowercase']);
 
@@ -279,14 +265,14 @@ it('does not give the owner an email another account uses', function (): void {
 it('emails the owner a password reset link', function (): void {
     Notification::fake();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('sendPasswordResetLink')
         ->assertHasNoActionErrors()
         ->assertNotified('Password reset link sent');
 
     Notification::assertSentTo($this->owner, ResetPassword::class);
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('sendPasswordResetLink')
         ->assertNotified('No link sent');
 
@@ -294,11 +280,11 @@ it('emails the owner a password reset link', function (): void {
 });
 
 it('sets a new password for the owner', function (): void {
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('setPassword', data: ['password' => ''])
         ->assertHasActionErrors(['password' => 'required']);
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('setPassword', data: ['password' => 'a-new-secret-1'])
         ->assertHasNoActionErrors()
         ->assertNotified('Password changed');
@@ -309,13 +295,13 @@ it('sets a new password for the owner', function (): void {
 it('deletes the workspace only after its name is typed', function (): void {
     Queue::fake();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('delete', data: ['confirm_name' => 'Acme'])
         ->assertHasActionErrors(['confirm_name']);
 
     Queue::assertNothingPushed();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('delete', data: ['confirm_name' => 'Acme Corp'])
         ->assertHasNoActionErrors()
         ->assertRedirect(WorkspaceResource::getUrl('index'));
@@ -323,7 +309,7 @@ it('deletes the workspace only after its name is typed', function (): void {
     Queue::assertPushed(DeleteWorkspaceJob::class, fn (DeleteWorkspaceJob $job): bool => $job->userId === $this->owner->id);
     expect($this->owner->fresh()->deactivation_reason)->toBe(DeleteAccountAction::DELETION_REASON);
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->assertSee('Being deleted')
         ->assertActionHidden('delete')
         ->assertActionHidden('reactivate')
@@ -334,7 +320,7 @@ it('deletes the workspace only after its name is typed', function (): void {
 });
 
 it('turns off the owner\'s two-step sign-in', function (): void {
-    viewWorkspace()->assertActionHidden('disableTwoFactor');
+    workspaceDashboardPage()->assertActionHidden('disableTwoFactor');
 
     $this->owner->forceFill([
         'two_factor_secret' => encrypt('secret'),
@@ -342,7 +328,7 @@ it('turns off the owner\'s two-step sign-in', function (): void {
         'app_authentication_secret' => 'app-secret',
     ])->save();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('disableTwoFactor')
         ->assertHasNoActionErrors();
 
@@ -355,7 +341,7 @@ it('turns off the owner\'s two-step sign-in', function (): void {
 it('starts a data export for the owner once at a time', function (): void {
     Queue::fake();
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('exportData')
         ->assertHasNoActionErrors()
         ->assertNotified('Export started');
@@ -363,7 +349,7 @@ it('starts a data export for the owner once at a time', function (): void {
     expect(DataExport::query()->where('user_id', $this->owner->id)->count())->toBe(1);
     Queue::assertPushed(PrepareDataExportJob::class);
 
-    viewWorkspace()
+    workspaceDashboardPage()
         ->callAction('exportData')
         ->assertNotified('An export is already being prepared or can be downloaded');
 
@@ -371,6 +357,6 @@ it('starts a data export for the owner once at a time', function (): void {
 });
 
 it('links to the dashboard filtered to the workspace', function (): void {
-    viewWorkspace()
+    workspaceDashboardPage()
         ->assertActionHasUrl('openDashboard', Dashboard::getUrl(['filters' => ['workspace' => $this->workspace->id]]));
 });

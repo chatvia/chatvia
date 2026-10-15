@@ -9,30 +9,18 @@ use App\Admin\Widgets\PlatformStatsOverview;
 use App\Admin\Widgets\TopAgentsTable;
 use App\Admin\Widgets\TopWorkspacesTable;
 use App\Identity\Workspace\Models\User;
-use Domain\Agent\Models\Agent;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
+
+use function Livewire\invade;
 
 /**
  * The admin panel's dashboard: platform-wide stats, charts and the busiest
  * workspaces and agents, filtered by period and optionally one workspace.
- * The welcome card with its sign-out button is gone (sign-out lives in the
- * user menu).
+ * It has no welcome card: signing out is in the user menu.
  */
-function adRollup(Agent $agent, string $bucketHour, array $values = []): void
-{
-    DB::connection(config('chatvia.analytics.connection'))
-        ->table('analytics_agent_hourly_rollups')
-        ->insert(array_merge([
-            'agent_id' => $agent->id,
-            'workspace_id' => $agent->workspace_id,
-            'bucket_hour' => $bucketHour,
-            'country_code' => '--',
-            'llm_external_name' => '',
-        ], $values));
-}
-
 beforeEach(function (): void {
     // A future month no seeded row falls in.
     $this->travelTo(Carbon::parse('2031-03-20 15:30:00', 'UTC'));
@@ -40,10 +28,10 @@ beforeEach(function (): void {
     $this->acme = User::factory()->workspace()->create(['name' => 'Acme Corp', 'email' => 'owner@acme.test']);
     $this->bot = createAgent($this->acme, ['name' => 'Acme Helper']);
 
-    adRollup($this->bot, '2031-03-10 10:00:00', ['user_messages' => 600, 'assistant_messages' => 634, 'conversations_started' => 77]);
+    analyticsRollup($this->bot, '2031-03-10 10:00:00', ['user_messages' => 600, 'assistant_messages' => 634, 'conversations_started' => 77]);
 });
 
-it('opens on the dashboard without the welcome card', function (): void {
+it('opens on the dashboard, with no welcome card', function (): void {
     $this->actingAs($this->admin, 'admin')
         ->get('/admin')
         ->assertOk()
@@ -144,12 +132,55 @@ it('lists the busiest workspaces and agents', function (): void {
         ->assertSee('Acme Corp');
 });
 
-it('renders the charts', function (string $widget): void {
-    Livewire::actingAs($this->admin, 'admin')
-        ->test($widget, ['pageFilters' => [DashboardFilters::PERIOD => 'last_7_days']])
-        ->assertOk();
-})->with([
-    'messages' => MessagesChart::class,
-    'channels' => ChannelsChart::class,
-    'growth' => GrowthChart::class,
-]);
+it('charts the AI replies and visitor messages of each day', function (): void {
+    $data = invade(Livewire::actingAs($this->admin, 'admin')
+        ->test(MessagesChart::class, ['pageFilters' => [DashboardFilters::PERIOD => 'this_month']])
+        ->instance())->getData();
+
+    // One bucket per day of March up to today (the 20th); the traffic is on the 10th.
+    $replies = array_fill(0, 20, 0);
+    $replies[9] = 634;
+    $visitors = array_fill(0, 20, 0);
+    $visitors[9] = 600;
+
+    expect($data['labels'])->toHaveCount(20)
+        ->and($data['labels'][9])->toBe('Mar 10')
+        ->and($data['datasets'][0]['label'])->toBe('AI replies')
+        ->and($data['datasets'][0]['data'])->toBe($replies)
+        ->and($data['datasets'][1]['label'])->toBe('Visitor messages')
+        ->and($data['datasets'][1]['data'])->toBe($visitors);
+});
+
+it('charts the conversations of the period by channel, busiest first', function (): void {
+    foreach ([ConversationSource::Widget, ConversationSource::Widget, ConversationSource::Telegram] as $source) {
+        Conversation::factory()->create(['agent_id' => $this->bot->id, 'source' => $source, 'is_visible' => true]);
+    }
+
+    $data = invade(Livewire::actingAs($this->admin, 'admin')
+        ->test(ChannelsChart::class, ['pageFilters' => [DashboardFilters::PERIOD => 'this_month']])
+        ->instance())->getData();
+
+    expect($data['labels'])->toBe(['Chat Widget', 'Telegram'])
+        ->and($data['datasets'][0]['data'])->toBe([2, 1]);
+
+    // Last month had none, so the chart shows its empty state.
+    $lastMonth = invade(Livewire::actingAs($this->admin, 'admin')
+        ->test(ChannelsChart::class, ['pageFilters' => [DashboardFilters::PERIOD => 'last_month']])
+        ->instance())->getData();
+
+    expect($lastMonth)->toBe([]);
+});
+
+it('charts the new workspaces and agents of each day', function (): void {
+    $data = invade(Livewire::actingAs($this->admin, 'admin')
+        ->test(GrowthChart::class, ['pageFilters' => [DashboardFilters::PERIOD => 'this_month']])
+        ->instance())->getData();
+
+    // Today: the admin's and Acme's workspaces, and Acme's agent.
+    expect($data['datasets'][0]['label'])->toBe('New workspaces')
+        ->and($data['datasets'][0]['data'][19])->toBe(2)
+        ->and(array_sum($data['datasets'][0]['data']))->toBe(2)
+        ->and($data['datasets'][1]['label'])->toBe('New agents')
+        ->and($data['datasets'][1]['data'][19])->toBe(1)
+        ->and(array_sum($data['datasets'][1]['data']))->toBe(1);
+});

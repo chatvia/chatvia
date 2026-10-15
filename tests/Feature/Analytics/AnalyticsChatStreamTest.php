@@ -4,15 +4,17 @@ use App\Identity\Workspace\Models\User;
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Analytics\Services\Chat\AnalyticsChatRunner;
 use Domain\Conversation\Services\Streaming\Sse\EventType;
+use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use GuzzleHttp\Psr7\Response as Psr7Response;
 use Illuminate\Support\Facades\DB;
+use Inertia\Testing\AssertableInertia;
 
 /**
  * Bind a fake chat provider that returns a canned OpenAI-style SSE stream so the
  * runner streams a final answer without a real LLM call or any tool round.
  */
-function fakeChatProvider(string $sse): void
+function analyticsChatProvider(string $sse): void
 {
     $mock = Mockery::mock(LlmProviderInterface::class);
     $mock->shouldReceive('stream')->andReturn(new Psr7Response(200, [], $sse));
@@ -23,7 +25,7 @@ function fakeChatProvider(string $sse): void
 it('streams the answer through the runner and persists nothing', function (): void {
     $workspace = User::factory()->create()->workspace();
 
-    fakeChatProvider(
+    analyticsChatProvider(
         'data: {"choices":[{"delta":{"content":"You received 15 messages this cycle."}}]}'."\n\n".
         'data: [DONE]'."\n\n"
     );
@@ -40,12 +42,12 @@ it('streams the answer through the runner and persists nothing', function (): vo
     ));
 
     $text = collect($events)
-        ->filter(fn ($e): bool => $e->type === EventType::Delta)
-        ->map(fn ($e): mixed => $e->data['text'])
+        ->filter(fn (StreamEvent $event): bool => $event->type === EventType::Delta)
+        ->map(fn (StreamEvent $event): mixed => $event->data['text'])
         ->implode('');
 
     expect($text)->toContain('You received 15 messages this cycle.');
-    expect(collect($events)->contains(fn ($e): bool => $e->type === EventType::Done))->toBeTrue();
+    expect(collect($events)->contains(fn (StreamEvent $event): bool => $event->type === EventType::Done))->toBeTrue();
 
     // Ephemeral: not a single new conversation/session/message row.
     expect(DB::table('chat_conversations')->count())->toBe($before['conversations']);
@@ -74,8 +76,8 @@ it('answers without tools once the model has used its last tool round', function
     ), preserve_keys: false);
 
     $text = collect($events)
-        ->filter(fn ($e): bool => $e->type === EventType::Delta)
-        ->map(fn ($e): mixed => $e->data['text'])
+        ->filter(fn (StreamEvent $event): bool => $event->type === EventType::Delta)
+        ->map(fn (StreamEvent $event): mixed => $event->data['text'])
         ->implode('');
 
     expect($text)->toContain('Here is what I found.')
@@ -84,7 +86,7 @@ it('answers without tools once the model has used its last tool round', function
 
 it('serves a 200 SSE stream to the workspace owner', function (): void {
     $owner = User::factory()->create(['email_verified_at' => now()]);
-    fakeChatProvider("data: [DONE]\n\n");
+    analyticsChatProvider("data: [DONE]\n\n");
 
     $response = $this->actingAs($owner)->post(
         route('analytics.chat.stream'),
@@ -106,5 +108,16 @@ it('forbids non-owner team members', function (): void {
 });
 
 it('redirects guests to login', function (): void {
-    $this->post(route('analytics.chat.stream'), ['message' => 'hi'])->assertRedirect();
+    $this->post(route('analytics.chat.stream'), ['message' => 'hi'])->assertRedirect(route('login'));
+});
+
+it('opens the page, which holds no data, for a teammate too; only the stream is the owner\'s', function (): void {
+    $owner = User::factory()->create(['email_verified_at' => now()]);
+    $employee = User::factory()->employee($owner)->create(['email_verified_at' => now()]);
+
+    foreach ([$owner, $employee] as $user) {
+        $this->actingAs($user)
+            ->get(route('analytics.chat'))
+            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('AnalyticsChat'));
+    }
 });

@@ -20,33 +20,9 @@ beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
 
     // A document reader and speech to text, so every type can be read.
-    useReaders(['mistral_api_key' => 'mistral-test', 'scaleway_api_key' => 'scw-test'], ['document_parser' => 'mistral', 'transcriber' => 'scaleway']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-test', 'scaleway_api_key' => 'scw-test']);
+    saveSettings(AiSettings::class, ['document_parser' => 'mistral', 'transcriber' => 'scaleway']);
 });
-
-/**
- * Save provider keys and AI choices as the admin panel does: saving a page
- * copies every saved setting into config again.
- *
- * @param  array<string, string|null>  $keys
- * @param  array<string, string>  $choices
- */
-function useReaders(array $keys, array $choices): void
-{
-    $providers = app(AiProviderSettings::class);
-    $ai = app(AiSettings::class);
-
-    foreach ($keys as $property => $value) {
-        $providers->{$property} = $value;
-    }
-
-    foreach ($choices as $property => $value) {
-        $ai->{$property} = $value;
-    }
-
-    $providers->save();
-    $ai->save();
-    app()->forgetScopedInstances();
-}
 
 function savedFileTypes(): ?array
 {
@@ -107,7 +83,8 @@ it('says what reads each file type with Mistral OCR', function (): void {
 });
 
 it('says what reads each file type with Azure, which leaves Excel to the app', function (): void {
-    useReaders(['mistral_api_key' => null, 'azure_api_key' => 'az-key', 'azure_endpoint' => 'https://docs.cognitiveservices.azure.com'], ['document_parser' => 'azure']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => null, 'azure_api_key' => 'az-key', 'azure_endpoint' => 'https://docs.cognitiveservices.azure.com']);
+    saveSettings(AiSettings::class, ['document_parser' => 'azure']);
 
     ingestionPage($this->admin)
         ->assertSee(['Read by Azure Document Intelligence', '.doc, .rtf by the app · .docx by Azure Document Intelligence']);
@@ -117,7 +94,7 @@ it('says what reads each file type with Azure, which leaves Excel to the app', f
 });
 
 it('greys out the types nothing can read, and keeps them saved', function (): void {
-    useReaders([], ['document_parser' => 'none', 'transcriber' => 'none']);
+    saveSettings(AiSettings::class, ['document_parser' => 'none', 'transcriber' => 'none']);
 
     ingestionPage($this->admin)
         ->assertSee(['Needs a document reader (Settings', 'Needs speech to text (Settings', '6 cannot be read yet'])

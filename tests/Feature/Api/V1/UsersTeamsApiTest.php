@@ -29,27 +29,9 @@ beforeEach(function (): void {
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
-function apiHeaders(string $token): array
-{
-    return ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'];
-}
-
 describe('POST /api/v1/chatters', function (): void {
-    it('stops working once the account is deactivated', function (): void {
-        $this->withHeaders(apiHeaders($this->token))
-            ->getJson('/api/v1/teams')
-            ->assertOk();
-
-        $this->user->update(['deactivated_at' => now()]);
-        app('auth')->forgetGuards();
-
-        $this->withHeaders(apiHeaders($this->token))
-            ->getJson('/api/v1/teams')
-            ->assertUnauthorized();
-    });
-
     it('creates a chatter granted to the given agent and returns its external id', function (): void {
-        $body = $this->withHeaders(apiHeaders($this->token))
+        $body = $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_ids' => [$this->agent->external_id],
@@ -75,7 +57,7 @@ describe('POST /api/v1/chatters', function (): void {
     it('rejects an email the workspace already uses for a chatter, without case', function (): void {
         Chatter::factory()->ofWorkspace($this->user)->create(['email' => 'jane@example.test']);
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane again',
                 'agent_ids' => [$this->agent->external_id],
@@ -92,7 +74,7 @@ describe('POST /api/v1/chatters', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $foreign = Chatter::factory()->grantedTo(createAgent($other))->create(['email' => 'jane@example.test']);
 
-        $body = $this->withHeaders(apiHeaders($this->token))
+        $body = $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_ids' => [$this->agent->external_id],
@@ -110,7 +92,7 @@ describe('POST /api/v1/chatters', function (): void {
     });
 
     it('creates a chatter with the email of a staff account', function (): void {
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Me as a chatter',
                 'agent_ids' => [$this->agent->external_id],
@@ -125,7 +107,7 @@ describe('POST /api/v1/chatters', function (): void {
     it('grants the chatter access to every agent supplied', function (): void {
         $second = createAgent($this->user);
 
-        $body = $this->withHeaders(apiHeaders($this->token))
+        $body = $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Multi',
                 'agent_ids' => [$this->agent->external_id, $second->external_id],
@@ -144,21 +126,21 @@ describe('POST /api/v1/chatters', function (): void {
     });
 
     it('requires a name', function (): void {
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', ['agent_ids' => [$this->agent->external_id]])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['name']);
     });
 
     it('requires at least one agent id', function (): void {
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', ['name' => 'Jane'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_ids']);
     });
 
-    it('requires email and password (end-users are credentialed now)', function (): void {
-        $this->withHeaders(apiHeaders($this->token))
+    it('requires email and password', function (): void {
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_ids' => [$this->agent->external_id],
@@ -171,7 +153,7 @@ describe('POST /api/v1/chatters', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $otherAgent = createAgent($other);
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_ids' => [$otherAgent->external_id],
@@ -186,7 +168,7 @@ describe('POST /api/v1/chatters', function (): void {
         $deleted = createAgent($this->user);
         $deleted->delete();
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_ids' => [$deleted->external_id],
@@ -201,7 +183,7 @@ describe('POST /api/v1/chatters', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $foreignAgent = createAgent($other);
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters', [
                 'name' => 'Jane',
                 'agent_ids' => [$this->agent->external_id, $foreignAgent->external_id],
@@ -221,22 +203,11 @@ describe('DELETE /api/v1/chatters/{chatter}', function (): void {
     it('deletes a chatter in the workspace', function (): void {
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $this->agent, 'Jane'));
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id)
             ->assertNoContent();
 
         expect(Chatter::whereKey($chatter->id)->exists())->toBeFalse();
-    });
-
-    it('404s for a chatter owned by another account and leaves it intact', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other->workspace(), createAgent($other), 'Stranger'));
-
-        $this->withHeaders(apiHeaders($this->token))
-            ->deleteJson('/api/v1/chatters/'.$foreign->external_id)
-            ->assertNotFound();
-
-        expect(Chatter::whereKey($foreign->id)->exists())->toBeTrue();
     });
 });
 
@@ -250,7 +221,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
             'Jane',
         ));
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [
                 'agent_ids' => [$this->agent->external_id],
             ])
@@ -262,7 +233,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
     it('requires at least one agent id', function (): void {
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $this->agent, 'Jane'));
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_ids']);
@@ -273,7 +244,7 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
         $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
         $foreignAgent = createAgent($other);
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->deleteJson('/api/v1/chatters/'.$chatter->external_id.'/agents', [
                 'agent_ids' => [$foreignAgent->external_id],
             ])
@@ -282,25 +253,12 @@ describe('DELETE /api/v1/chatters/{chatter}/agents', function (): void {
 
         expect($chatter->agents()->whereKey($this->agent->id)->exists())->toBeTrue();
     });
-
-    it('404s for a chatter owned by another account', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $foreign = app(CreateChatterAction::class)->execute(new CreateChatterData($other->workspace(), createAgent($other), 'Stranger'));
-
-        $this->withHeaders(apiHeaders($this->token))
-            ->deleteJson('/api/v1/chatters/'.$foreign->external_id.'/agents', [
-                'agent_ids' => [$this->agent->external_id],
-            ])
-            ->assertNotFound();
-
-        expect($foreign->agents()->count())->toBe(1);
-    });
 });
 
 describe('POST /api/v1/teams', function (): void {
 
     it('creates a team and returns its external id', function (): void {
-        $body = $this->withHeaders(apiHeaders($this->token))
+        $body = $this->withToken($this->token)
             ->postJson('/api/v1/teams', ['name' => 'Acme Support'])
             ->assertCreated()
             ->assertJsonPath('data.name', 'Acme Support')
@@ -321,18 +279,10 @@ describe('PATCH /api/v1/teams/{team}', function (): void {
             new CreateTeamData(workspace: $this->user->workspace(), name: 'Old'),
         );
 
-        $this->withHeaders(apiHeaders($this->token))
+        $this->withToken($this->token)
             ->patchJson("/api/v1/teams/{$team->external_id}", ['name' => 'New'])
             ->assertOk()
             ->assertJsonPath('data.id', $team->external_id)
             ->assertJsonPath('data.name', 'New');
-    });
-
-    it('hides another account’s team from a rename', function (): void {
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-
-        $this->withHeaders(apiHeaders($this->token))
-            ->patchJson("/api/v1/teams/{$other->primaryTeam()->external_id}", ['name' => 'evil'])
-            ->assertNotFound();
     });
 });

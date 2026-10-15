@@ -14,7 +14,6 @@ use Domain\Conversation\Topic\Models\Topic;
  */
 
 beforeEach(function (): void {
-    // Pro plan grants the `topics` capability the route is gated behind.
     $this->agent = Agent::factory()->create();
     $this->owner = $this->agent->workspace->owner;
 });

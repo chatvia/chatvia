@@ -139,7 +139,7 @@ class AgentsRelationManager extends RelationManager
     {
         $surfaces = array_filter(
             [ConversationSource::HostedChat, ConversationSource::Widget, ConversationSource::Bar],
-            fn (ConversationSource $surface): bool => $agent->surfaceEnabled($surface),
+            $agent->surfaceEnabled(...),
         );
 
         $channels = array_filter(

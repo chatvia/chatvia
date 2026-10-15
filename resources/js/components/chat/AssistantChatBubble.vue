@@ -129,7 +129,7 @@ async function deleteMessage() {
                 :content="message.content ?? ''"
                 :artifacts="props.artifacts"
                 :is-streaming="isStreaming ?? false"
-                :is-rtl="isRTL ?? false"
+                :isRTL="isRTL ?? false"
                 :message-id="message.id ? String(message.id) : undefined"
             />
             <!-- Empty body: dots while the model thinks, or the branded tool-call

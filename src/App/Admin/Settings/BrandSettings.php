@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings;
 
+use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
+
 /**
  * Whether the "Powered by Chatvia" credit shows under hosted chats and
- * widgets. The product name and links are fixed in `config/chatvia.php`.
+ * widgets, and the license key that allows hiding it ({@see CreditLicense}).
+ * The product name and links are fixed in `config/chatvia.php`.
  */
 class BrandSettings extends AdminSettings
 {
     #[ConfigKey('chatvia.brand.powered_by.enabled')]
     public ?bool $powered_by_enabled = null;
+
+    #[ConfigKey('chatvia.license.key'), ShouldBeEncrypted]
+    public ?string $license_key = null;
 
     public static function group(): string
     {

@@ -884,8 +884,11 @@ abstract class AdminSettingsPage extends Page
             ->modalSubmitActionLabel('Remove')
             ->action(function () use ($property, $label): void {
                 $settings = $this->settings();
+                $previous = $settings->{$property};
                 $settings->{$property} = null;
                 $settings->save();
+
+                $this->forgotten($property, $previous);
 
                 Notification::make()->success()->title("{$label} removed")->send();
             });
@@ -896,6 +899,9 @@ abstract class AdminSettingsPage extends Page
     {
         return 'The features that use it stop working until you add a new value.';
     }
+
+    /** Runs after a saved secret was removed, for a page that must tell a service. */
+    protected function forgotten(string $property, mixed $previous): void {}
 
     private function defaultText(string $property): ?string
     {

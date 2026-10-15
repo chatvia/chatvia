@@ -24,9 +24,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | Everything that names or links to the product. Installs cannot change
-    | these: removing the credit is a paid option. Only `powered_by.enabled`
-    | is set in the admin panel (Settings → Brand); the value here is the
-    | default while nothing is saved there. An empty URL hides its link.
+    | these. Only `powered_by.enabled` is set in the admin panel (Settings →
+    | Brand); the value here is the default while nothing is saved there.
+    | Turning the credit off works only with a license key (see License
+    | below). An empty URL hides its link.
     |
     | - name: product name in the UI, emails, file names and outbound headers.
     | - website_url / docs_url / api_docs_url: links shown in the app.
@@ -44,6 +45,37 @@ return [
             'label' => 'Chatvia',
             'url' => null,
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | License
+    |--------------------------------------------------------------------------
+    |
+    | A license key allows hiding the "Powered by" credit. chatvia.ai sells
+    | and signs keys (Ed25519). A key as bought names no domain: saving it
+    | in the admin panel activates it at chatvia.ai for the host of `app.url`
+    | (one domain per key), and the activated key is then checked offline.
+    | Once a day the install asks chatvia.ai whether the key is still active
+    | there (the buyer can deactivate it to move it); an answer of "no"
+    | removes the key, no answer keeps it. Without a valid key the credit
+    | always shows, whatever the switch says.
+    |
+    | - key: the activated key, set in the admin panel (Settings → Brand).
+    | - public_key: checks the keys. Fixed here, never in .env or the panel.
+    |   While it is empty, no key is valid.
+    | - buy_url / manage_url: where to buy a license and where to see or
+    |   deactivate it, linked from Settings → Brand.
+    | - api_url: where keys are activated, released and checked.
+    |
+    */
+
+    'license' => [
+        'key' => null,
+        'public_key' => null,
+        'buy_url' => 'https://chatvia.ai/license',
+        'manage_url' => 'https://chatvia.ai/license/manage',
+        'api_url' => 'https://chatvia.ai/api/licenses',
     ],
 
     /*

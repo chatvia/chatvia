@@ -59,6 +59,14 @@ Schedule::command('app:prune-analytics-events')->dailyAt('04:45')->withoutOverla
 // and trained again once their interval has passed.
 Schedule::command('app:refresh-websites')->hourlyAt(20)->withoutOverlapping()->onOneServer();
 
+// Asks chatvia.ai whether the saved license key is still active (nothing to
+// ask without one). The minute comes from the app URL, so installs spread out
+// over the hour instead of calling at the same moment.
+Schedule::command('app:check-license')
+    ->dailyAt(sprintf('06:%02d', crc32((string) config('app.url')) % 60))
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // Per-workspace retention (Settings → Security → Retention), only for the
 // workspaces that set a window. Visitor details are cleared after the
 // conversation prune has removed orphan sessions; the analytics sweep runs

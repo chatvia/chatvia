@@ -12,6 +12,7 @@ use App\Admin\Settings\WorkspaceSettings;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Spatie\LaravelSettings\SettingsRepositories\SettingsRepository;
+use Tests\Support\LicenseKeys;
 
 /**
  * The values saved in the admin panel are stored with spatie/laravel-settings
@@ -95,12 +96,51 @@ it('builds a default callback on the https app URL, whatever the request scheme'
         ->toBe('https://chat.example.com/auth/google/callback');
 });
 
-it('fills the config key a property names', function (): void {
+it('hides the credit only with a license key activated for this domain', function (?string $key, bool $shown): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'https://chat.acme.com']);
+
     $settings = app(BrandSettings::class);
     $settings->powered_by_enabled = false;
+    $settings->license_key = $key;
+    $settings->save();
+
+    expect(config('chatvia.brand.powered_by.enabled'))->toBe($shown);
+})->with([
+    'activated for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), false],
+    'no key' => [null, true],
+    'a key as bought, not activated' => [LicenseKeys::BOUGHT_KEY, true],
+    'activated for another domain' => fn (): array => [LicenseKeys::activatedFor('chat.other.com'), true],
+    'not a key' => ['cvl1.forged.key', true],
+]);
+
+it('keeps the credit on when the domain no longer matches the key', function (): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'https://chat.acme.com']);
+
+    $settings = app(BrandSettings::class);
+    $settings->powered_by_enabled = false;
+    $settings->license_key = LicenseKeys::activatedFor('chat.acme.com');
     $settings->save();
 
     expect(config('chatvia.brand.powered_by.enabled'))->toBeFalse();
+
+    config(['app.url' => 'https://chat.moved.com']);
+    settingsConfig()->apply();
+
+    expect(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
+});
+
+it('shows the credit when it is on, with or without a key', function (): void {
+    LicenseKeys::trust();
+    config(['app.url' => 'https://chat.acme.com']);
+
+    $settings = app(BrandSettings::class);
+    $settings->powered_by_enabled = true;
+    $settings->license_key = LicenseKeys::activatedFor('chat.acme.com');
+    $settings->save();
+
+    expect(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
 });
 
 it('stores secrets encrypted and other values in plain JSON', function (): void {

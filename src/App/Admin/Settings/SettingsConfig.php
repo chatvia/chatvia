@@ -65,6 +65,15 @@ final class SettingsConfig
             }
         }
 
+        // Hiding the credit needs a license key for this install's domain,
+        // however the switch was turned off (panel, app:setting or config).
+        $credit = 'chatvia.brand.powered_by.enabled';
+
+        if (($values[$credit] ?? $this->config->get($credit)) !== true
+            && ! $this->container->make(CreditLicense::class)->allowsHidingCredit($values['chatvia.license.key'] ?? null)) {
+            $values[$credit] = true;
+        }
+
         $hash = md5(serialize($values));
 
         if ($hash === $this->appliedHash) {

@@ -926,7 +926,7 @@ Switches for a self-hosted install:
 | Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
-| Brand (admin panel, **Settings → Brand**) | Shows or hides the "Powered by Chatvia" credit. Removing it requires a payment of $399. The product name and links are fixed. |
+| Brand (admin panel, **Settings → Brand**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `app:check-license` asks chatvia.ai daily whether the key is still active and removes it if the buyer deactivated it there. The product name and links are fixed. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: <https://chatvia.ai/docs/guide/self-hosting/>.

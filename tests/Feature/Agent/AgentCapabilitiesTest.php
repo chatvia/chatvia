@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Services\TeamService;
 use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -14,15 +15,7 @@ beforeEach(function (): void {
 
     // Pre-provision the account-level Charts row so enabling is a pure attach
     // (no remote tools/list during the test).
-    $this->charts = $this->user->workspace()->mcpServers()->create([
-        'connector_slug' => 'charts',
-        'category' => 'builtin',
-        'name' => 'Interactive charts',
-        'slug' => 'charts',
-        'url' => config('app.url').'/mcp/charts',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    $this->charts = AgentMcpServer::factory()->forOwner($this->user)->builtin('charts')->create(['name' => 'Interactive charts']);
 });
 
 it('renders the capabilities page with charts and forms (leads folded into forms)', function (): void {

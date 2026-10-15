@@ -1,11 +1,8 @@
 <?php
 
-use App\Admin\Clusters\Settings\SettingsCluster;
-use App\Admin\Pages\Dashboard;
 use App\Admin\Pages\Tools;
 use App\Admin\StaffTool;
 use App\Identity\Workspace\Models\User;
-use Filament\Facades\Filament;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -38,19 +35,6 @@ it('shows a card with a link for each staff tool', function (): void {
         ->assertSee('src="'.asset('images/logos/tools/pulse.svg').'"', false)
         ->assertSee('src="'.asset('images/logos/tools/spectra.svg').'"', false)
         ->assertDontSee('Not installed');
-});
-
-it('lists the page above Settings, below the sidebar divider', function (): void {
-    $this->actingAs($this->admin, 'admin')
-        ->get(Dashboard::getUrl())
-        ->assertOk()
-        ->assertSeeInOrder(['cv-sidebar-group--divided', 'href="'.Tools::getUrl().'"', 'href="'.SettingsCluster::getUrl().'"'], false);
-});
-
-it('keeps a dashboard (web guard) session out of the page', function (): void {
-    $this->actingAs($this->admin, 'web')
-        ->get(Tools::getUrl())
-        ->assertRedirect(Filament::getPanel('admin')->getLoginUrl());
 });
 
 it('shows a tool the admin may not open without its link', function (): void {

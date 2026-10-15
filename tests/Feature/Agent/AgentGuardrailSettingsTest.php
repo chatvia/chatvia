@@ -11,6 +11,7 @@ use Domain\Guardrail\Enums\TopicResponse;
 use Domain\Guardrail\Models\GuardrailEvent;
 use Domain\Guardrail\Services\GuardrailClassifier;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Inertia\Testing\AssertableInertia;
 
 /**
  * The Guardrails page: the form saves topics with their response, custom
@@ -112,7 +113,7 @@ it('filters the activity log by guard and outcome', function (): void {
     $this->actingAs($this->owner)
         ->get(route('agents.guardrails', ['agent' => $this->agent->external_id, 'outcome' => 'skipped']))
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
             ->where('filters.outcome', 'skipped')
             ->where('triggers.total', 1)
             ->where('triggers.data.0.guard_type', 'toxicity'));

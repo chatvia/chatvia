@@ -26,11 +26,6 @@ function bootedToolRecording(bool $pulse = true, bool $spectra = true): ToolReco
     return $tools;
 }
 
-function savePlatform(array $values): void
-{
-    app(PlatformSettings::class)->fill($values)->save();
-}
-
 it('records Pulse and not Spectra while nothing is saved', function (): void {
     bootedToolRecording();
 
@@ -41,7 +36,7 @@ it('records Pulse and not Spectra while nothing is saved', function (): void {
 it('follows the saved switches', function (): void {
     bootedToolRecording();
 
-    savePlatform(['pulse_enabled' => false, 'spectra_enabled' => true]);
+    saveSettings(PlatformSettings::class, ['pulse_enabled' => false, 'spectra_enabled' => true]);
 
     expect(config('spectra.enabled'))->toBeTrue();
     Pulse::shouldHaveReceived('stopRecording')->once();
@@ -50,7 +45,7 @@ it('follows the saved switches', function (): void {
 it('keeps a tool that .env leaves out from recording', function (): void {
     $tools = bootedToolRecording(pulse: false, spectra: false);
 
-    savePlatform(['pulse_enabled' => true, 'spectra_enabled' => true]);
+    saveSettings(PlatformSettings::class, ['pulse_enabled' => true, 'spectra_enabled' => true]);
 
     expect(config('spectra.enabled'))->toBeFalse()
         ->and($tools->pulseInstalled())->toBeFalse()
@@ -62,7 +57,7 @@ it('leaves Pulse alone when another setting is saved', function (): void {
     bootedToolRecording();
 
     // The demo seeders stop Pulse while they run; a save must not start it.
-    savePlatform(['tracking_code' => '<script></script>']);
+    saveSettings(PlatformSettings::class, ['tracking_code' => '<script></script>']);
 
     // Only the start at boot.
     Pulse::shouldHaveReceived('startRecording')->once();

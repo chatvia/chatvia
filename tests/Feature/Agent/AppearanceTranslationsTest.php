@@ -2,12 +2,13 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Translate\TextTranslator;
-use Domain\Widget\Actions\BuildWidgetSettingsAction;
+use Mockery\MockInterface;
 
 /**
  * The Setup appearance-text endpoints: saving auto-translates the three strings
- * into every supported language, manual overrides persist separately, and the
- * chat surfaces serve the localized copy by visitor language.
+ * into every supported language and manual overrides persist separately. How
+ * the chat surfaces pick a language is in
+ * tests/Unit/Agent/Services/AppearanceTextResolverTest.php.
  */
 beforeEach(function (): void {
     $this->agent = Agent::factory()->create();
@@ -21,7 +22,7 @@ it('saves the base text and returns the AI translations', function (): void {
         'composer_placeholder' => ['de' => 'Frag mich etwas …'],
     ];
 
-    $this->mock(TextTranslator::class, fn ($m) => $m->shouldReceive('translate')->once()->andReturn($map));
+    $this->mock(TextTranslator::class, fn (MockInterface $mock): mixed => $mock->shouldReceive('translate')->once()->andReturn($map));
 
     $this->actingAs($this->owner)
         ->postJson(route('agents.appearance.text', $this->agent->external_id), [
@@ -72,22 +73,4 @@ it('persists the owner-selected UI languages through the appearance settings end
 
     expect($fresh->settings('appearance')->get('enabled_languages'))->toBe(['de', 'fr'])
         ->and(array_keys($fresh->enabledLanguages()))->toBe(['de', 'fr']);
-});
-
-it('serves the localized welcome message in the widget payload', function (): void {
-    $this->agent->setSetting('welcome_message', 'Hello', 'appearance');
-    $this->agent->setSetting('text_translations', ['welcome_message' => ['de' => 'Hallo']], 'appearance');
-
-    $settings = app(BuildWidgetSettingsAction::class)->execute($this->agent->fresh(), 'de-DE,de;q=0.9');
-
-    expect($settings->welcome_message)->toBe('Hallo');
-});
-
-it('keeps the base welcome message when the visitor language has no translation', function (): void {
-    $this->agent->setSetting('welcome_message', 'Hello', 'appearance');
-    $this->agent->setSetting('text_translations', ['welcome_message' => ['de' => 'Hallo']], 'appearance');
-
-    $settings = app(BuildWidgetSettingsAction::class)->execute($this->agent->fresh(), 'it-IT');
-
-    expect($settings->welcome_message)->toBe('Hello');
 });

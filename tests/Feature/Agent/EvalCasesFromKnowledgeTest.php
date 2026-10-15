@@ -5,10 +5,8 @@ use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 use Inertia\ResponseFactory;
 use Inertia\Testing\AssertableInertia;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -18,18 +16,7 @@ function evalKnowledgeChunkFor(Agent $agent, string $text, ?string $questions = 
     $source = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
     $source->agents()->attach($agent->id);
 
-    return Chunk::create([
-        'workspace_id' => $agent->workspace_id,
-        'chunkable_type' => $source->getMorphClass(),
-        'chunkable_id' => $source->getKey(),
-        'chunk_index' => 1,
-        'chunk' => $text,
-        'questions' => $questions,
-        'tokens' => 1,
-        'embedding' => '['.implode(',', array_fill(0, 1024, 0)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression($text),
-        'checksum' => Str::random(32),
-    ]);
+    return Chunk::factory()->forSource($source)->create(['chunk' => $text, 'questions' => $questions]);
 }
 
 beforeEach(function (): void {

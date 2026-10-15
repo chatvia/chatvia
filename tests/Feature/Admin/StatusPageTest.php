@@ -11,6 +11,7 @@ use App\Admin\Status\ServiceChecks;
 use App\Admin\Status\ServiceState;
 use App\Identity\Workspace\Models\User;
 use Filament\Facades\Filament;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -45,12 +46,6 @@ it('lists the page below Tools and above Settings', function (): void {
         ->get(Dashboard::getUrl())
         ->assertOk()
         ->assertSeeInOrder(['cv-sidebar-group--divided', 'href="'.Tools::getUrl().'"', 'href="'.Status::getUrl().'"', 'href="'.SettingsCluster::getUrl().'"'], false);
-});
-
-it('keeps a dashboard (web guard) session out of the page', function (): void {
-    $this->actingAs($this->admin, 'web')
-        ->get(Status::getUrl())
-        ->assertRedirect(Filament::getPanel('admin')->getLoginUrl());
 });
 
 it('checks every service, then the outside services', function (): void {
@@ -143,7 +138,7 @@ it('finds Reverb running with no open channels, and says when it refuses the key
     expect($refused->state)->toBe(ServiceState::Down)
         ->and($refused->summary)->toContain('refused the request (401)');
 
-    Http::assertSent(fn ($request): bool => str_contains($request->url(), 'reverb.test')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'reverb.test')
         && str_contains($request->url(), '/apps/test-app-id/channels?')
         && str_contains($request->url(), 'auth_signature='));
 });

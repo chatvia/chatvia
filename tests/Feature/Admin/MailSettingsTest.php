@@ -24,13 +24,6 @@ function mailPage(User $admin): Testable
     return Livewire::actingAs($admin, 'admin')->test(ManageMailSettings::class);
 }
 
-function mailSetting(string $property): mixed
-{
-    app()->forgetScopedInstances();
-
-    return app(MailSettings::class)->{$property};
-}
-
 it('offers every mailer Laravel ships with, each with a mail.mailers entry', function (): void {
     expect(array_column(MailProvider::cases(), 'value'))->toBe(['smtp', 'ses', 'mailgun', 'postmark', 'resend', 'cloudflare', 'sendmail', 'log']);
 
@@ -67,8 +60,8 @@ it('saves the provider picked and its settings, and the mailer uses them', funct
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(mailSetting('mailer'))->toBe('mailgun')
-        ->and(mailSetting('mailgun_secret'))->toBe('key-123')
+    expect(savedSetting(MailSettings::class, 'mailer'))->toBe('mailgun')
+        ->and(savedSetting(MailSettings::class, 'mailgun_secret'))->toBe('key-123')
         ->and(config('mail.default'))->toBe('mailgun')
         ->and(config('services.mailgun'))->toMatchArray(['domain' => 'mg.example.com', 'secret' => 'key-123', 'endpoint' => 'api.eu.mailgun.net']);
 
@@ -85,7 +78,7 @@ it('asks for the picked provider\'s required settings only', function (): void {
         ->assertHasFormErrors(['postmark_token'])
         ->assertHasNoFormErrors(['smtp_host', 'mailgun_domain']);
 
-    expect(mailSetting('mailer'))->toBeNull();
+    expect(savedSetting(MailSettings::class, 'mailer'))->toBeNull();
 });
 
 it('keeps a mailer from .env that is not in the list', function (): void {
@@ -99,6 +92,6 @@ it('keeps a mailer from .env that is not in the list', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(mailSetting('mailer'))->toBeNull()
-        ->and(mailSetting('from_address'))->toBe('chat@example.com');
+    expect(savedSetting(MailSettings::class, 'mailer'))->toBeNull()
+        ->and(savedSetting(MailSettings::class, 'from_address'))->toBe('chat@example.com');
 });

@@ -34,7 +34,7 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
     $this->agent = createAgent($this->owner);
-    $this->headers = ['Authorization' => 'Bearer '.$this->owner->createToken('account')->plainTextToken, 'Accept' => 'application/json'];
+    $this->token = $this->owner->createToken('account')->plainTextToken;
     $this->uri = "/api/v1/agents/{$this->agent->external_id}/sources";
 });
 
@@ -57,7 +57,7 @@ it('adds a file and answers 201 with its public id', function (): void {
     connectAiProviders(AiProvider::Mistral);
     $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAADElEQVQImWNgIB0AAAA0AAEjQ4N1AAAAAElFTkSuQmCC');
 
-    $response = $this->withHeaders($this->headers)
+    $response = $this->withToken($this->token)
         ->post($this->uri.'/files', ['file' => UploadedFile::fake()->createWithContent('cover.png', $png)])
         ->assertCreated()
         ->assertJsonPath('data.kind', 'file')
@@ -69,7 +69,7 @@ it('adds a file and answers 201 with its public id', function (): void {
 });
 
 it('answers an unsupported file with the standard 422 field error', function (): void {
-    $this->withHeaders($this->headers)
+    $this->withToken($this->token)
         ->post($this->uri.'/files', ['file' => UploadedFile::fake()->createWithContent('tool.exe', 'MZ')])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['file' => 'Unsupported file type.']);
@@ -78,7 +78,7 @@ it('answers an unsupported file with the standard 422 field error', function ():
 });
 
 it('adds a text and answers 201 with its public id', function (): void {
-    $response = $this->withHeaders($this->headers)
+    $response = $this->withToken($this->token)
         ->postJson($this->uri.'/texts', ['content' => str_repeat('Refunds take five business days. ', 20)])
         ->assertCreated()
         ->assertJsonPath('data.kind', 'text');
@@ -92,7 +92,7 @@ it('adds a website and answers 201 with its public id', function (): void {
     Http::fake(['https://docs.example.test/*' => Http::response('<html></html>', 200)]);
     SafeUrl::resolveHostsUsing(fn (): array => ['93.184.216.34']);
 
-    $response = $this->withHeaders($this->headers)
+    $response = $this->withToken($this->token)
         ->postJson($this->uri.'/urls', ['url' => 'https://docs.example.test/start'])
         ->assertCreated()
         ->assertJsonPath('data.kind', 'url')
@@ -105,7 +105,7 @@ it('lists sources by their public ids', function (): void {
     $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
     $this->agent->files()->attach($file->id);
 
-    $this->withHeaders($this->headers)->getJson($this->uri)
+    $this->withToken($this->token)->getJson($this->uri)
         ->assertOk()
         ->assertJsonPath('data.0.id', $file->external_id)
         ->assertJsonPath('data.0.kind', 'file')
@@ -121,29 +121,20 @@ it('deletes each kind of source by its public id', function (): void {
     $this->agent->texts()->attach($text->id);
     $this->agent->websites()->attach($website->id);
 
-    $this->withHeaders($this->headers)->deleteJson("{$this->uri}/files/{$file->external_id}")->assertNoContent();
-    $this->withHeaders($this->headers)->deleteJson("{$this->uri}/texts/{$text->external_id}")->assertNoContent();
-    $this->withHeaders($this->headers)->deleteJson("{$this->uri}/urls/{$website->external_id}")->assertNoContent();
+    $this->withToken($this->token)->deleteJson("{$this->uri}/files/{$file->external_id}")->assertNoContent();
+    $this->withToken($this->token)->deleteJson("{$this->uri}/texts/{$text->external_id}")->assertNoContent();
+    $this->withToken($this->token)->deleteJson("{$this->uri}/urls/{$website->external_id}")->assertNoContent();
 
     expect($this->agent->files()->exists())->toBeFalse()
         ->and($this->agent->texts()->exists())->toBeFalse()
         ->and($this->agent->websites()->exists())->toBeFalse();
 });
 
-it('no longer takes the integer key in a delete', function (): void {
-    $text = sourcesApiText($this->agent->workspace_id);
-    $this->agent->texts()->attach($text->id);
-
-    $this->withHeaders($this->headers)->deleteJson("{$this->uri}/texts/{$text->id}")->assertNotFound();
-
-    expect($this->agent->texts()->whereKey($text->id)->exists())->toBeTrue();
-});
-
 it('404s a source of another agent of the same workspace', function (): void {
     $text = sourcesApiText($this->agent->workspace_id);
     createAgent($this->owner)->texts()->attach($text->id);
 
-    $this->withHeaders($this->headers)->deleteJson("{$this->uri}/texts/{$text->external_id}")->assertNotFound();
+    $this->withToken($this->token)->deleteJson("{$this->uri}/texts/{$text->external_id}")->assertNotFound();
 
     expect(SourceText::query()->whereKey($text->id)->exists())->toBeTrue();
 });

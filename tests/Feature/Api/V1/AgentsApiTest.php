@@ -9,8 +9,8 @@ use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
+use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
@@ -21,15 +21,10 @@ beforeEach(function (): void {
     $this->token = $this->user->createToken('account')->plainTextToken;
 });
 
-function authHeaders(string $token): array
-{
-    return ['Authorization' => 'Bearer '.$token, 'Accept' => 'application/json'];
-}
-
 describe('POST /api/v1/agents', function (): void {
 
     it('creates a knowledge-base agent and returns just the agent', function (): void {
-        $response = $this->withHeaders(authHeaders($this->token))
+        $response = $this->withToken($this->token)
             ->postJson('/api/v1/agents', [
                 'name' => 'Support Bot',
                 'team_id' => $this->user->primaryTeam()->external_id,
@@ -40,7 +35,7 @@ describe('POST /api/v1/agents', function (): void {
             ->assertJsonPath('data.source', 'api')
             ->assertJsonStructure(['data' => ['id', 'url', 'permanent_url']]);
 
-        // No per-agent token is minted anymore — the account key is the only key.
+        // The account key is the only key: no agent token comes back.
         expect($response->json())->not->toHaveKey('token');
     });
 
@@ -49,7 +44,7 @@ describe('POST /api/v1/agents', function (): void {
             new CreateTeamData(workspace: $this->user->workspace(), name: 'Side Team'),
         );
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/agents', ['name' => 'Team Bot', 'team_id' => $team->external_id, 'is_public' => false])
             ->assertCreated()
             ->assertJsonPath('data.name', 'Team Bot');
@@ -58,14 +53,14 @@ describe('POST /api/v1/agents', function (): void {
     });
 
     it('requires team_id', function (): void {
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/agents', ['name' => 'Bot'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['team_id']);
     });
 
     it('requires an explicit is_public choice (agents default to protected)', function (): void {
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/agents', [
                 'name' => 'Bot',
                 'team_id' => $this->user->primaryTeam()->external_id,
@@ -75,21 +70,16 @@ describe('POST /api/v1/agents', function (): void {
     });
 
     it('rejects a team_id the caller does not own', function (): void {
-        // Factory users get no default team anymore — provision one explicitly.
-        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $otherUser = tap(User::factory()->create(), fn (User $u): Team => app(TeamService::class)->createDefaultTeam($u));
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/agents', ['name' => 'Bot', 'team_id' => $otherUser->primaryTeam()->external_id, 'is_public' => false])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['team_id']);
     });
 
-    it('rejects unauthenticated requests', function (): void {
-        $this->postJson('/api/v1/agents', ['name' => 'x'])->assertUnauthorized();
-    });
-
     it('validates name', function (): void {
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/agents', [
                 'name' => 'x',
                 'team_id' => $this->user->primaryTeam()->external_id,
@@ -103,10 +93,10 @@ describe('GET /api/v1/agents', function (): void {
 
     it('lists agents across all teams and nests the team object', function (): void {
         $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->user->workspace(), name: 'Team B'));
-        createAgentForUser($this->user, 'In Primary');
-        createAgentInTeam($this->user, $teamB->id, 'In B');
+        makeTeamAgent($this->user, 'In Primary');
+        makeTeamAgent($this->user, 'In B', $teamB);
 
-        $body = $this->withHeaders(authHeaders($this->token))
+        $body = $this->withToken($this->token)
             ->getJson('/api/v1/agents')
             ->assertOk()
             ->assertJsonCount(2, 'data')
@@ -118,10 +108,10 @@ describe('GET /api/v1/agents', function (): void {
 
     it('filters agents by team_id', function (): void {
         $teamB = app(CreateTeamAction::class)->execute(new CreateTeamData(workspace: $this->user->workspace(), name: 'Team B'));
-        createAgentForUser($this->user, 'In Primary');
-        createAgentInTeam($this->user, $teamB->id, 'In B');
+        makeTeamAgent($this->user, 'In Primary');
+        makeTeamAgent($this->user, 'In B', $teamB);
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson('/api/v1/agents?team_id='.$teamB->external_id)
             ->assertOk()
             ->assertJsonCount(1, 'data')
@@ -134,9 +124,9 @@ describe('GET /api/v1/agents', function (): void {
 describe('PATCH /api/v1/agents/{agent}', function (): void {
 
     it('patches metadata + flags', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->patchJson("/api/v1/agents/{$agent->external_id}", [
                 'metadata' => ['external_user_id' => 'cus_42'],
                 'is_public' => true,
@@ -145,163 +135,109 @@ describe('PATCH /api/v1/agents/{agent}', function (): void {
             ->assertJsonPath('data.metadata.external_user_id', 'cus_42')
             ->assertJsonPath('data.is_public', true);
     });
-
-    it('hides an agent owned by another account', function (): void {
-        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $otherAgent = createAgentForUser($otherUser);
-
-        $this->withHeaders(authHeaders($this->token))
-            ->patchJson("/api/v1/agents/{$otherAgent->external_id}", ['name' => 'evil'])
-            ->assertNotFound();
-    });
 });
 
 describe('DELETE /api/v1/agents/{agent}', function (): void {
 
     it('deletes the caller’s own agent', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->deleteJson("/api/v1/agents/{$agent->external_id}")
             ->assertNoContent();
 
         expect(Agent::whereKey($agent->id)->exists())->toBeFalse();
     });
-
-    it('hides another account’s agent from delete', function (): void {
-        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $otherAgent = createAgentForUser($otherUser);
-
-        $this->withHeaders(authHeaders($this->token))
-            ->deleteJson("/api/v1/agents/{$otherAgent->external_id}")
-            ->assertNotFound();
-
-        expect(Agent::whereKey($otherAgent->id)->exists())->toBeTrue();
-    });
 });
 
 describe('Account-level MCPs + attach/detach', function (): void {
 
-    it('lists only custom (non-connector) MCPs at the account level', function (): void {
-        AgentMcpServer::create([
-            'workspace_id' => $this->user->workspace()->id,
-            'name' => 'Custom one',
-            'slug' => 'custom_one',
-            'url' => 'https://example.com/mcp',
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-            'connector_slug' => null,
-        ]);
-
-        AgentMcpServer::create([
-            'workspace_id' => $this->user->workspace()->id,
-            'name' => 'Built-in Slack',
-            'slug' => 'slack',
-            'url' => 'https://slack.example.com',
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-            'connector_slug' => 'slack',
-        ]);
-
-        $this->withHeaders(authHeaders($this->token))
-            ->getJson('/api/v1/mcps')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Custom one');
-    });
-
     it('attaches an account MCP to an agent then detaches it', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
 
-        $mcp = AgentMcpServer::create([
-            'workspace_id' => $this->user->workspace()->id,
-            'name' => 'Linear',
-            'slug' => 'linear',
-            'url' => 'https://mcp.linear.app',
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-            'connector_slug' => null,
-        ]);
+        $mcp = AgentMcpServer::factory()->forOwner($this->user)->create(['name' => 'Linear']);
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
             ->assertCreated();
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Linear');
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->deleteJson("/api/v1/agents/{$agent->external_id}/mcps/{$mcp->external_id}")
             ->assertNoContent();
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
             ->assertOk()
             ->assertJsonCount(0, 'data');
     });
 
     it('attaches a catalog connector by id (not just custom servers)', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
 
         // A catalog-backed server (connector_slug set). The attach endpoint
         // accepts any server connected to the account, not only custom ones.
-        $mcp = AgentMcpServer::create([
-            'workspace_id' => $this->user->workspace()->id,
-            'name' => 'Weather',
-            'slug' => 'weather',
-            'url' => 'https://chatvia.test/mcp/weather',
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-            'connector_slug' => 'weather',
-        ]);
+        $mcp = AgentMcpServer::factory()->forOwner($this->user)->builtin('weather')->create();
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $mcp->external_id])
             ->assertCreated();
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->getJson("/api/v1/agents/{$agent->external_id}/mcps")
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Weather');
     });
 
+    it('attaches an account function to an agent then detaches it', function (): void {
+        $agent = makeTeamAgent($this->user, 'Test Agent');
+        $function = AgentFunction::factory()->forOwner($this->user)->create();
+
+        $this->withToken($this->token)
+            ->postJson("/api/v1/agents/{$agent->external_id}/functions", ['function_id' => $function->external_id])
+            ->assertCreated()
+            ->assertJsonPath('data.id', $function->external_id);
+
+        expect($agent->functions()->pluck('functions.id')->all())->toBe([$function->id]);
+
+        $this->withToken($this->token)
+            ->getJson("/api/v1/agents/{$agent->external_id}/functions")
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $function->external_id);
+
+        $this->withToken($this->token)
+            ->deleteJson("/api/v1/agents/{$agent->external_id}/functions/{$function->external_id}")
+            ->assertNoContent();
+
+        expect($agent->functions()->exists())->toBeFalse()
+            ->and(AgentFunction::whereKey($function->id)->exists())->toBeTrue();
+    });
+
     it('rejects attaching another account’s MCP server or function', function (): void {
-        $agent = createAgentForUser($this->user);
-        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+        $agent = makeTeamAgent($this->user, 'Test Agent');
+        $other = User::factory()->create();
 
-        $theirMcp = AgentMcpServer::create([
-            'workspace_id' => $other->workspace()->id,
-            'name' => 'Theirs',
-            'slug' => 'theirs',
-            'url' => 'https://mcp.example.test',
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-        ]);
-        $theirFunction = AgentFunction::query()->create([
-            'workspace_id' => $other->workspace()->id,
-            'internal_name' => 'theirs',
-            'description' => 'Not yours',
-            'parameters_schema' => ['type' => 'object', 'properties' => []],
-            'webhook_url' => 'https://example.com/hook',
-            'webhook_method' => 'POST',
-        ]);
+        $theirMcp = AgentMcpServer::factory()->forOwner($other)->create();
+        $theirFunction = AgentFunction::factory()->forOwner($other)->create();
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $theirMcp->external_id])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['mcp_id']);
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/functions", ['function_id' => $theirFunction->external_id])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['function_id']);
 
         // A malformed id fails validation too, before any database lookup.
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => 'not-an-id'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['mcp_id']);
@@ -311,45 +247,10 @@ describe('Account-level MCPs + attach/detach', function (): void {
     });
 });
 
-describe('Account-level MCPs', function (): void {
-
-    it('lists and deletes a custom MCP (created in the dashboard, not via the API)', function (): void {
-        $headers = authHeaders($this->token);
-
-        $mcp = AgentMcpServer::create([
-            'workspace_id' => $this->user->workspace()->id,
-            'name' => 'Linear',
-            'slug' => 'linear',
-            'url' => 'https://mcp.linear.app',
-            'transport' => 'streamable_http',
-            'auth_type' => 'bearer',
-            'auth_value' => 'lin_api_xxx',
-            'connector_slug' => null,
-        ]);
-
-        $this->withHeaders($headers)
-            ->getJson('/api/v1/mcps')
-            ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.name', 'Linear');
-
-        $this->withHeaders($headers)
-            ->deleteJson('/api/v1/mcps/'.$mcp->external_id)
-            ->assertNoContent();
-
-        $this->withHeaders($headers)
-            ->getJson('/api/v1/mcps')
-            ->assertOk()
-            ->assertJsonCount(0, 'data');
-    });
-});
-
 describe('Account-level Functions CRUD', function (): void {
 
     it('creates and deletes an account function via /api/v1/functions', function (): void {
-        $headers = authHeaders($this->token);
-
-        $created = $this->withHeaders($headers)
+        $created = $this->withToken($this->token)
             ->postJson('/api/v1/functions', [
                 'internal_name' => 'get_order_status',
                 'description' => 'Look up an order by id',
@@ -362,12 +263,12 @@ describe('Account-level Functions CRUD', function (): void {
         expect($created['internal_name'])->toBe('get_order_status');
         expect($created['webhook']['method'])->toBe('POST');
 
-        $this->withHeaders($headers)
+        $this->withToken($this->token)
             ->getJson('/api/v1/functions')
             ->assertOk()
             ->assertJsonCount(1, 'data');
 
-        $this->withHeaders($headers)
+        $this->withToken($this->token)
             ->deleteJson('/api/v1/functions/'.$created['id'])
             ->assertNoContent();
     });
@@ -376,10 +277,10 @@ describe('Account-level Functions CRUD', function (): void {
 describe('POST /api/v1/chatters/sign', function (): void {
 
     it('returns a ready-to-open url for a chatter', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
         $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
 
-        $response = $this->withHeaders(authHeaders($this->token))
+        $response = $this->withToken($this->token)
             ->postJson('/api/v1/chatters/sign', [
                 'agent_id' => $agent->external_id,
                 'user_id' => $endUser->external_id,
@@ -402,17 +303,17 @@ describe('POST /api/v1/chatters/sign', function (): void {
     });
 
     it('requires an agent_id and user_id', function (): void {
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters/sign', [])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['agent_id', 'user_id']);
     });
 
     it('rejects ttl_seconds beyond the max', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
         $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters/sign', [
                 'agent_id' => $agent->external_id,
                 'user_id' => $endUser->external_id,
@@ -423,10 +324,9 @@ describe('POST /api/v1/chatters/sign', function (): void {
     });
 
     it('404s when minting a link for another account’s agent', function (): void {
-        $otherUser = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
-        $otherAgent = createAgentForUser($otherUser);
+        $otherAgent = createAgent(User::factory()->create());
 
-        $this->withHeaders(authHeaders($this->token))
+        $this->withToken($this->token)
             ->postJson('/api/v1/chatters/sign', ['agent_id' => $otherAgent->external_id, 'user_id' => 'x'])
             ->assertNotFound();
     });
@@ -435,7 +335,7 @@ describe('POST /api/v1/chatters/sign', function (): void {
 describe('AgentSignInTokenService', function (): void {
 
     it('issues a token resolving to the agent + user, multi-use until expiry', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
         $endUser = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
         $service = app(AgentSignInTokenService::class);
 
@@ -448,29 +348,8 @@ describe('AgentSignInTokenService', function (): void {
     });
 
     it('returns null for an unknown token', function (): void {
-        $agent = createAgentForUser($this->user);
+        $agent = makeTeamAgent($this->user, 'Test Agent');
 
         expect(app(AgentSignInTokenService::class)->verify('nope', $agent))->toBeNull();
     });
 });
-
-/**
- * Test helper — creates an agent in the user's primary team.
- */
-function createAgentForUser(User $user, string $name = 'Test Agent'): Agent
-{
-    return createAgentInTeam($user, $user->primaryTeam()->id, $name);
-}
-
-function createAgentInTeam(User $user, int $teamId, string $name = 'Test Agent'): Agent
-{
-    return Agent::create([
-        'workspace_id' => $user->workspace()->id,
-        'team_id' => $teamId,
-        'name' => $name,
-        'external_id' => Str::random(14),
-        'slug' => Str::random(14),
-        'is_public' => false,
-        'source' => 'api',
-    ]);
-}

@@ -48,7 +48,7 @@ function savedVoice(): ?string
 }
 
 /** Whether a request went to OpenAI (the page lists OpenRouter's models too). */
-function openAiCall(Request $request): bool
+function voiceOpenAiCall(Request $request): bool
 {
     return str_contains($request->url(), 'api.openai.com');
 }
@@ -114,7 +114,7 @@ it('checks the OpenAI key before it turns voice on', function (): void {
         ->assertHasNoFormErrors();
 
     expect(savedVoice())->toBe('openai')
-        ->and(Http::recorded(openAiCall(...)))->toHaveCount(1);
+        ->and(Http::recorded(voiceOpenAiCall(...)))->toHaveCount(1);
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.openai.com/v1/models'
         && $request->hasHeader('Authorization', 'Bearer test-key'));
 });
@@ -141,7 +141,7 @@ it('does not call OpenAI again when voice is unchanged', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    Http::assertNotSent(openAiCall(...));
+    Http::assertNotSent(voiceOpenAiCall(...));
 });
 
 it('refuses OpenAI before it is connected', function (): void {
@@ -153,7 +153,7 @@ it('refuses OpenAI before it is connected', function (): void {
         ->call('save')
         ->assertHasFormErrors(['voice' => 'OpenAI is not connected. Add its key in AI providers first.']);
 
-    Http::assertNotSent(openAiCall(...));
+    Http::assertNotSent(voiceOpenAiCall(...));
 });
 
 it('refuses a call longer than the queue allows', function (): void {

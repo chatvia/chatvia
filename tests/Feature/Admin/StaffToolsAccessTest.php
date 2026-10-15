@@ -12,31 +12,26 @@ use Illuminate\Support\Facades\Gate;
  * panel itself.
  */
 
-const STAFF_TOOL_GATES = ['viewHorizon', 'viewPulse', 'viewSpectra'];
-
-function staffAdmin(): User
-{
-    return User::factory()->admin()->create()->fresh();
-}
+dataset('staff tool gates', ['viewHorizon', 'viewPulse', 'viewSpectra']);
 
 it('refuses an admin signed in on the web guard only', function (string $gate): void {
-    $this->actingAs(staffAdmin(), 'web');
+    $this->actingAs(User::factory()->admin()->create()->fresh(), 'web');
 
     expect(Gate::allows($gate))->toBeFalse();
-})->with(STAFF_TOOL_GATES);
+})->with('staff tool gates');
 
 it('allows an admin signed in to the admin panel, with or without two-factor', function (string $gate): void {
-    Auth::guard('admin')->login(staffAdmin());
+    Auth::guard('admin')->login(User::factory()->admin()->create()->fresh());
     expect(Gate::allows($gate))->toBeTrue();
 
-    $withTwoFactor = staffAdmin();
+    $withTwoFactor = User::factory()->admin()->create()->fresh();
     $withTwoFactor->saveAppAuthenticationSecret('JBSWY3DPEHPK3PXP');
     Auth::guard('admin')->login($withTwoFactor);
     expect(Gate::allows($gate))->toBeTrue();
-})->with(STAFF_TOOL_GATES);
+})->with('staff tool gates');
 
 it('refuses a deactivated admin and a non-admin on the panel guard', function (): void {
-    $deactivated = staffAdmin();
+    $deactivated = User::factory()->admin()->create()->fresh();
     $deactivated->update(['deactivated_at' => now()]);
     Auth::guard('admin')->login($deactivated);
     expect(app(StaffToolsAccess::class)->allows())->toBeFalse();

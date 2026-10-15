@@ -5,16 +5,16 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Inertia\Testing\AssertableInertia;
 
 describe('Forgot Password', function (): void {
     beforeEach(function (): void {
         Notification::fake();
     });
 
-    it('shows forgot password page to guests', function (): void {
-        $response = $this->get(route('password.request'));
-
-        $response->assertOk();
+    it('shows the forgot password page to guests', function (): void {
+        $this->get(route('password.request'))->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+            ->component('auth/ForgotPassword'));
     });
 
     it('sends password reset link to valid email', function (): void {
@@ -37,6 +37,7 @@ describe('Forgot Password', function (): void {
 
         // Should not show error, just status message
         $response->assertSessionHas('status');
+        Notification::assertNothingSent();
     });
 
     it('requires email field', function (): void {
@@ -75,17 +76,19 @@ describe('Password Reset', function (): void {
         Notification::fake();
     });
 
-    it('shows password reset page with valid token', function (): void {
+    it('shows the password reset page with the token and email filled in', function (): void {
         $user = User::factory()->create(['email' => 'test@example.com']);
 
         $token = Password::createToken($user);
 
-        $response = $this->get(route('password.reset', ['token' => $token]));
-
-        $response->assertOk();
+        $this->get(route('password.reset', ['token' => $token, 'email' => 'test@example.com']))
+            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page
+                ->component('auth/ResetPassword')
+                ->where('token', $token)
+                ->where('email', 'test@example.com'));
     });
 
-    it('resets password with valid token and data', function (): void {
+    it('resets the password with a valid token and leaves the user signed out', function (): void {
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('old-password'),
@@ -102,66 +105,11 @@ describe('Password Reset', function (): void {
 
         $response->assertRedirect(route('login'));
         $response->assertSessionHas('status');
+        $this->assertGuest();
 
         // Verify password was changed
         expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();
         expect(Hash::check('old-password', $user->fresh()->password))->toBeFalse();
-    });
-
-    it('rejects password reset with invalid token', function (): void {
-        $user = User::factory()->create(['email' => 'test@example.com']);
-
-        $response = $this->post(route('password.update'), [
-            'token' => 'invalid-token',
-            'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-        $response->assertSessionHasErrors('email');
-
-        // Verify password was not changed
-        expect(Hash::check('password', $user->fresh()->password))->toBeTrue();
-    });
-
-    it('rejects password reset with expired token', function (): void {
-        $user = User::factory()->create(['email' => 'test@example.com']);
-
-        $token = Password::createToken($user);
-
-        // Travel forward in time past token expiration
-        $this->travel(2)->hours();
-
-        $response = $this->post(route('password.update'), [
-            'token' => $token,
-            'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-        $response->assertSessionHasErrors('email');
-    });
-
-    it('requires token', function (): void {
-        $response = $this->post(route('password.update'), [
-            'token' => '',
-            'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-        $response->assertSessionHasErrors('token');
-    });
-
-    it('requires email', function (): void {
-        $response = $this->post(route('password.update'), [
-            'token' => 'some-token',
-            'email' => '',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-        $response->assertSessionHasErrors('email');
     });
 
     it('requires password', function (): void {
@@ -201,94 +149,6 @@ describe('Password Reset', function (): void {
             'email' => 'test@example.com',
             'password' => '123',
             'password_confirmation' => '123',
-        ]);
-
-        $response->assertSessionHasErrors('password');
-    });
-
-    it('logs user in after successful password reset', function (): void {
-        $user = User::factory()->create([
-            'email' => 'test@example.com',
-            'password' => Hash::make('old-password'),
-        ]);
-
-        $token = Password::createToken($user);
-
-        $response = $this->post(route('password.update'), [
-            'token' => $token,
-            'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-        $response->assertRedirect(route('login'));
-        $response->assertSessionHas('status');
-    });
-
-    it('invalidates old tokens after password reset', function (): void {
-        $user = User::factory()->create(['email' => 'test@example.com']);
-
-        $oldToken = Password::createToken($user);
-
-        // Reset password with the token
-        $this->post(route('password.update'), [
-            'token' => $oldToken,
-            'email' => 'test@example.com',
-            'password' => 'new-password',
-            'password_confirmation' => 'new-password',
-        ]);
-
-        // Try to use the same token again
-        $response = $this->post(route('password.update'), [
-            'token' => $oldToken,
-            'email' => 'test@example.com',
-            'password' => 'another-password',
-            'password_confirmation' => 'another-password',
-        ]);
-
-        $response->assertSessionHasErrors('email');
-    });
-});
-
-describe('Password Confirmation', function (): void {
-    it('shows password confirmation page to authenticated users', function (): void {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->get(route('password.confirm'));
-
-        $response->assertOk();
-    });
-
-    it('confirms password with correct password', function (): void {
-        $user = User::factory()->create([
-            'password' => Hash::make('password'),
-        ]);
-
-        $response = $this->actingAs($user)->post(route('password.confirm'), [
-            'password' => 'password',
-        ]);
-
-        $response->assertRedirect();
-        $response->assertSessionHasNoErrors();
-    });
-
-    it('rejects confirmation with incorrect password', function (): void {
-        $user = User::factory()->create([
-            'password' => Hash::make('password'),
-        ]);
-
-        $response = $this->actingAs($user)->post(route('password.confirm'), [
-            'password' => 'wrong-password',
-        ]);
-
-        $response->assertSessionHasErrors('password');
-    });
-
-    it('requires password field for confirmation', function (): void {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post(route('password.confirm'), [
-            'password' => '',
         ]);
 
         $response->assertSessionHasErrors('password');

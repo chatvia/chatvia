@@ -11,11 +11,9 @@ use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageSettings;
 use App\Identity\Workspace\Models\User;
-use Database\Factories\AgentFileFactory;
 use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Models\Llm;
@@ -43,9 +41,7 @@ beforeEach(function (): void {
 
     Filament::setCurrentPanel('admin');
     Queue::fake([SyncBuiltinConnectorsJob::class]);
-    fakeOpenRouterEmbeddingModels();
-    // The setup reads lists and checks keys over HTTP: none may leave the test.
-    Http::preventStrayRequests();
+    setupFakeOpenRouterEmbeddingModels();
     setupNotDone();
 
     // A new install: no key is saved yet.
@@ -61,20 +57,13 @@ function setupNotDone(): void
     $platform->save();
 }
 
-function setupSetting(string $class, string $property): mixed
-{
-    app()->forgetScopedInstances();
-
-    return app($class)->{$property};
-}
-
 function setupPage(User $admin): Testable
 {
     return Livewire::actingAs($admin, 'admin')->test(Setup::class);
 }
 
 /** The Scaleway model list, and its embeddings of a given size. */
-function fakeScaleway(int $dimensions): void
+function setupFakeScaleway(int $dimensions): void
 {
     Http::fake([
         'api.scaleway.ai/*/models' => Http::response(['data' => [['id' => 'gpt-oss-120b'], ['id' => 'mistral-small-3.2-24b-instruct-2506']]]),
@@ -86,7 +75,7 @@ function fakeScaleway(int $dimensions): void
  * OpenRouter's public list of embedding models (two, and a batch one it
  * hides). The setup opens on OpenRouter, so it reads the list at once.
  */
-function fakeOpenRouterEmbeddingModels(): void
+function setupFakeOpenRouterEmbeddingModels(): void
 {
     Http::fake([
         'openrouter.ai/api/v1/embeddings/models' => Http::response(['data' => [
@@ -98,7 +87,7 @@ function fakeOpenRouterEmbeddingModels(): void
 }
 
 /** The OpenRouter model list (one chat model, one that cannot chat), its embeddings and its reranking. */
-function fakeOpenRouter(int $dimensions): void
+function setupFakeOpenRouter(int $dimensions): void
 {
     Http::fake([
         'openrouter.ai/api/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, $dimensions, 0.1)]]]),
@@ -122,7 +111,7 @@ function fakeOpenRouter(int $dimensions): void
 }
 
 /** The Groq model list, and Cohere embeddings and reranking. */
-function fakeGroqAndCohere(int $dimensions): void
+function setupFakeGroqAndCohere(int $dimensions): void
 {
     Http::fake([
         'api.groq.com/openai/v1/models' => Http::response(['data' => [['id' => 'openai/gpt-oss-120b']]]),
@@ -153,7 +142,7 @@ it('warns that the app does not work before the setup is skipped', function (): 
         ->callMountedAction()
         ->assertRedirect(Filament::getUrl());
 
-    expect(setupSetting(PlatformSettings::class, 'setup_status'))->toBe('skipped');
+    expect(savedSetting(PlatformSettings::class, 'setup_status'))->toBe('skipped');
 });
 
 it('can be finished after a skip, from Settings', function (): void {
@@ -181,7 +170,7 @@ it('starts on OpenRouter, lists the providers by name, and says what each provid
 });
 
 it('checks the key with the provider\'s model list before the next step', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -207,7 +196,7 @@ it('stops on the first step when the provider refuses the key', function (): voi
 });
 
 it('saves the Scaleway key once, for chat and for embeddings', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     // A demo agent made before any model was added.
     $agent = createAgent(User::factory()->create());
     $agent->forceFill(['llm_id' => null])->saveQuietly();
@@ -220,7 +209,7 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->assertHasNoFormErrors()
         ->assertRedirect(Filament::getUrl());
 
-    $model = Llm::query()->where('external_name', setupSetting(AiSettings::class, 'default_agent_model'))->sole();
+    $model = Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->sole();
     $provider = $model->provider;
 
     expect($provider->kind)->toBe(LlmProviderEnum::SCALEWAY)
@@ -229,11 +218,11 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
         ->and($provider->base_url)->toBeNull()
         ->and($model->internal_name)->toBe('mistral-small-3.2-24b-instruct-2506')
         ->and($model->context_window)->toBe(128_000)
-        ->and(setupSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-test')
+        ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-test')
         // The default embedding service and model stay unsaved.
-        ->and(setupSetting(AiSettings::class, 'embedding_provider'))->toBeNull()
-        ->and(setupSetting(AiSettings::class, 'scaleway_embedding_model'))->toBeNull()
-        ->and(setupSetting(PlatformSettings::class, 'setup_status'))->toBe('completed')
+        ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBeNull()
+        ->and(savedSetting(AiSettings::class, 'scaleway_embedding_model'))->toBeNull()
+        ->and(savedSetting(PlatformSettings::class, 'setup_status'))->toBe('completed')
         ->and($model->isAvailable())->toBeTrue()
         // It gets the default model.
         ->and($agent->refresh()->llm_id)->toBe($model->id);
@@ -242,7 +231,7 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
 });
 
 it('makes the embeddings with the OpenRouter key, with a model from its list', function (): void {
-    fakeOpenRouter($this->dimensions);
+    setupFakeOpenRouter($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter'])
@@ -263,14 +252,14 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    $model = Llm::query()->where('external_name', setupSetting(AiSettings::class, 'default_agent_model'))->sole();
+    $model = Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->sole();
 
     expect($model->provider->kind)->toBe(LlmProviderEnum::OPENROUTER)
         ->and($model->descriptive_name)->toBe('Llama 4 Maverick')
         ->and($model->features)->toBe(['vision' => true, 'function_calling' => true])
-        ->and(setupSetting(AiProviderSettings::class, 'openrouter_api_key'))->toBe('sk-or-test')
-        ->and(setupSetting(AiSettings::class, 'embedding_provider'))->toBe('openrouter')
-        ->and(setupSetting(AiSettings::class, 'openrouter_embedding_model'))->toBe('qwen/qwen3-embedding-8b');
+        ->and(savedSetting(AiProviderSettings::class, 'openrouter_api_key'))->toBe('sk-or-test')
+        ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('openrouter')
+        ->and(savedSetting(AiSettings::class, 'openrouter_embedding_model'))->toBe('qwen/qwen3-embedding-8b');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/embeddings'
         && $request->header('Authorization') === ['Bearer sk-or-test']
@@ -279,7 +268,7 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
 });
 
 it('asks for an embedding service when the provider makes no embeddings', function (): void {
-    fakeGroqAndCohere($this->dimensions);
+    setupFakeGroqAndCohere($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'groq'])
@@ -294,10 +283,10 @@ it('asks for an embedding service when the provider makes no embeddings', functi
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiProviderSettings::class, 'groq_api_key'))->toBe('gsk-test')
-        ->and(setupSetting(AiProviderSettings::class, 'cohere_api_key'))->toBe('co-test')
-        ->and(setupSetting(AiSettings::class, 'embedding_provider'))->toBe('cohere')
-        ->and(setupSetting(AiSettings::class, 'cohere_embedding_model'))->toBe('embed-multilingual-v3.0');
+    expect(savedSetting(AiProviderSettings::class, 'groq_api_key'))->toBe('gsk-test')
+        ->and(savedSetting(AiProviderSettings::class, 'cohere_api_key'))->toBe('co-test')
+        ->and(savedSetting(AiSettings::class, 'embedding_provider'))->toBe('cohere')
+        ->and(savedSetting(AiSettings::class, 'cohere_embedding_model'))->toBe('embed-multilingual-v3.0');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.cohere.com/v2/embed'
         && $request->header('Authorization') === ['Bearer co-test']);
@@ -316,7 +305,7 @@ it('stops on the first step when the embedding service refuses its key', functio
 });
 
 it('stops on Finish when the embedding model returns another vector size', function (): void {
-    fakeScaleway($this->dimensions + 8);
+    setupFakeScaleway($this->dimensions + 8);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -324,12 +313,12 @@ it('stops on Finish when the embedding model returns another vector size', funct
         ->call('complete')
         ->assertHasFormErrors(['embedding_model']);
 
-    expect(setupSetting(PlatformSettings::class, 'setup_status'))->toBeNull()
-        ->and(setupSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
+    expect(savedSetting(PlatformSettings::class, 'setup_status'))->toBeNull()
+        ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBeNull();
 });
 
 it('starts the reranker on OpenRouter with the key of the first step, from its live list', function (): void {
-    fakeOpenRouter($this->dimensions);
+    setupFakeOpenRouter($this->dimensions);
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'openrouter', 'api_key' => 'sk-or-test'])
@@ -347,8 +336,8 @@ it('starts the reranker on OpenRouter with the key of the first step, from its l
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('openrouter')
-        ->and(setupSetting(AiSettings::class, 'openrouter_rerank_model'))->toBe('qwen/qwen3-reranker-8b');
+    expect(savedSetting(AiSettings::class, 'reranker'))->toBe('openrouter')
+        ->and(savedSetting(AiSettings::class, 'openrouter_rerank_model'))->toBe('qwen/qwen3-reranker-8b');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://openrouter.ai/api/v1/rerank'
         && $request->header('Authorization') === ['Bearer sk-or-test']
@@ -356,7 +345,7 @@ it('starts the reranker on OpenRouter with the key of the first step, from its l
 });
 
 it('starts the reranker on "Not now" for another provider, and checks Cohere with its own key', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['api.cohere.com/v2/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]])]);
 
     setupPage($this->admin)
@@ -372,9 +361,9 @@ it('starts the reranker on "Not now" for another provider, and checks Cohere wit
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('cohere')
-        ->and(setupSetting(AiSettings::class, 'cohere_rerank_model'))->toBe('rerank-v4.0-fast')
-        ->and(setupSetting(AiProviderSettings::class, 'cohere_api_key'))->toBe('co-test');
+    expect(savedSetting(AiSettings::class, 'reranker'))->toBe('cohere')
+        ->and(savedSetting(AiSettings::class, 'cohere_rerank_model'))->toBe('rerank-v4.0-fast')
+        ->and(savedSetting(AiProviderSettings::class, 'cohere_api_key'))->toBe('co-test');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.cohere.com/v2/rerank'
         && $request->header('Authorization') === ['Bearer co-test']
@@ -382,7 +371,7 @@ it('starts the reranker on "Not now" for another provider, and checks Cohere wit
 });
 
 it('reranks with the Cohere key typed for the embeddings', function (): void {
-    fakeGroqAndCohere($this->dimensions);
+    setupFakeGroqAndCohere($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'groq', 'api_key' => 'gsk-test', 'embedding_provider' => 'cohere', 'embedding_api_key' => 'co-test'])
@@ -393,14 +382,14 @@ it('reranks with the Cohere key typed for the embeddings', function (): void {
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('cohere');
+    expect(savedSetting(AiSettings::class, 'reranker'))->toBe('cohere');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.cohere.com/v2/rerank'
         && $request->header('Authorization') === ['Bearer co-test']);
 });
 
 it('stops on the models step when the reranker refuses its key', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['api.cohere.com/v2/rerank' => Http::response(['message' => 'invalid api token'], 401)]);
 
     setupPage($this->admin)
@@ -413,7 +402,7 @@ it('stops on the models step when the reranker refuses its key', function (): vo
 });
 
 it('reranks with a server of your own', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['reranker.example.com/v1/rerank' => Http::response(['results' => [['index' => 0, 'relevance_score' => 0.9]]])]);
 
     setupPage($this->admin)
@@ -425,10 +414,10 @@ it('reranks with a server of your own', function (): void {
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'reranker'))->toBe('custom')
-        ->and(setupSetting(AiSettings::class, 'rerank_custom_url'))->toBe('https://reranker.example.com/v1')
-        ->and(setupSetting(AiSettings::class, 'rerank_custom_model'))->toBe('Qwen/Qwen3-Reranker-4B')
-        ->and(setupSetting(AiSettings::class, 'rerank_custom_key'))->toBe('own-key');
+    expect(savedSetting(AiSettings::class, 'reranker'))->toBe('custom')
+        ->and(savedSetting(AiSettings::class, 'rerank_custom_url'))->toBe('https://reranker.example.com/v1')
+        ->and(savedSetting(AiSettings::class, 'rerank_custom_model'))->toBe('Qwen/Qwen3-Reranker-4B')
+        ->and(savedSetting(AiSettings::class, 'rerank_custom_key'))->toBe('own-key');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://reranker.example.com/v1/rerank'
         && $request->header('Authorization') === ['Bearer own-key']);
@@ -458,21 +447,9 @@ it('adds a server of your own and takes a typed model name when it lists none', 
 });
 
 it('keeps the embedding service once sources are trained', function (): void {
-    $file = AgentFileFactory::new()->create();
-    Chunk::query()->create([
-        'workspace_id' => $file->workspace_id,
-        'chunkable_type' => $file->getMorphClass(),
-        'chunkable_id' => $file->id,
-        'chunk_index' => 1,
-        'chunk' => 'Trained text.',
-        'tokens' => 2,
-        'embedding' => '['.implode(',', array_fill(0, $this->dimensions, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression('Trained text.'),
-        'checksum' => md5('Trained text.'),
-        'cost_in_micro_cents' => 0,
-    ]);
-    fakeOpenRouter($this->dimensions);
-    $provider = setupSetting(AiSettings::class, 'embedding_provider');
+    Chunk::factory()->create(['chunk' => 'Trained text.']);
+    setupFakeOpenRouter($this->dimensions);
+    $provider = savedSetting(AiSettings::class, 'embedding_provider');
 
     setupPage($this->admin)
         ->assertSee('Embeddings are already set up')
@@ -483,11 +460,11 @@ it('keeps the embedding service once sources are trained', function (): void {
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'embedding_provider'))->toBe($provider);
+    expect(savedSetting(AiSettings::class, 'embedding_provider'))->toBe($provider);
 });
 
 it('lets agents use several chat models, one of them the default', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -499,11 +476,11 @@ it('lets agents use several chat models, one of them the default', function (): 
     $added = Llm::query()->whereIn('internal_name', ['gpt-oss-120b', 'mistral-small-3.2-24b-instruct-2506'])->where('is_enabled', true)->get();
 
     expect($added)->toHaveCount(2)
-        ->and(Llm::query()->where('external_name', setupSetting(AiSettings::class, 'default_agent_model'))->value('internal_name'))->toBe('mistral-small-3.2-24b-instruct-2506');
+        ->and(Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->value('internal_name'))->toBe('mistral-small-3.2-24b-instruct-2506');
 });
 
 it('reads documents with Azure, with its key and endpoint checked', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0]])]);
 
     setupPage($this->admin)
@@ -519,13 +496,13 @@ it('reads documents with Azure, with its key and endpoint checked', function ():
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiProviderSettings::class, 'azure_api_key'))->toBe('az-key')
-        ->and(setupSetting(AiProviderSettings::class, 'azure_endpoint'))->toBe('https://docs.cognitiveservices.azure.com')
-        ->and(setupSetting(AiSettings::class, 'document_parser'))->toBe('azure');
+    expect(savedSetting(AiProviderSettings::class, 'azure_api_key'))->toBe('az-key')
+        ->and(savedSetting(AiProviderSettings::class, 'azure_endpoint'))->toBe('https://docs.cognitiveservices.azure.com')
+        ->and(savedSetting(AiSettings::class, 'document_parser'))->toBe('azure');
 });
 
 it('warns before going on without a document reader, and goes on once agreed', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -546,7 +523,7 @@ it('warns before going on without a document reader, and goes on once agreed', f
 });
 
 it('stops on the documents step when Azure refuses the key', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['error' => ['code' => '401']], 401)]);
 
     setupPage($this->admin)
@@ -560,7 +537,6 @@ it('reads documents with the Mistral key of the first step', function (): void {
         'api.mistral.ai/v1/models' => Http::response(['data' => [['id' => 'mistral-medium-latest', 'capabilities' => ['completion_chat' => true, 'function_calling' => true]]]]),
         'api.mistral.ai/v1/embeddings' => Http::response(['data' => [['index' => 0, 'embedding' => array_fill(0, 1024, 0.1)]]]),
     ]);
-    config(['chatvia.embeddings.dimensions' => 1024]);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'mistral', 'api_key' => 'mistral-test'])
@@ -574,8 +550,8 @@ it('reads documents with the Mistral key of the first step', function (): void {
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiProviderSettings::class, 'mistral_api_key'))->toBe('mistral-test')
-        ->and(setupSetting(AiSettings::class, 'document_parser'))->toBe('mistral');
+    expect(savedSetting(AiProviderSettings::class, 'mistral_api_key'))->toBe('mistral-test')
+        ->and(savedSetting(AiSettings::class, 'document_parser'))->toBe('mistral');
 })->skip(fn (): bool => app(EmbeddingStorage::class)->dimensions() !== 1024, 'Mistral embeddings are 1024 dimensions only.');
 
 it('starts every optional service on "Not now" and storage on this server, whatever .env suggests', function (): void {
@@ -589,7 +565,7 @@ it('starts every optional service on "Not now" and storage on this server, whate
 });
 
 it('turns the services left at "Not now" off, so Automatic does not turn them on', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -597,14 +573,14 @@ it('turns the services left at "Not now" off, so Automatic does not turn them on
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'transcriber'))->toBe('none')
-        ->and(setupSetting(AiSettings::class, 'document_parser'))->toBe('none')
-        ->and(setupSetting(AiSettings::class, 'reranker'))->toBe('none')
-        ->and(setupSetting(KnowledgeSettings::class, 'firecrawl_api_key'))->toBeNull();
+    expect(savedSetting(AiSettings::class, 'transcriber'))->toBe('none')
+        ->and(savedSetting(AiSettings::class, 'document_parser'))->toBe('none')
+        ->and(savedSetting(AiSettings::class, 'reranker'))->toBe('none')
+        ->and(savedSetting(KnowledgeSettings::class, 'firecrawl_api_key'))->toBeNull();
 });
 
 it('imports websites with Firecrawl, with its key checked', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['api.firecrawl.dev/v2/team/credit-usage' => Http::response(['success' => true, 'data' => ['remainingCredits' => 500]])]);
 
     setupPage($this->admin)
@@ -623,14 +599,14 @@ it('imports websites with Firecrawl, with its key checked', function (): void {
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(KnowledgeSettings::class, 'firecrawl_api_key'))->toBe('fc-test');
+    expect(savedSetting(KnowledgeSettings::class, 'firecrawl_api_key'))->toBe('fc-test');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.firecrawl.dev/v2/team/credit-usage'
         && $request->header('Authorization') === ['Bearer fc-test']);
 });
 
 it('stops on the websites step when Firecrawl refuses the key', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['api.firecrawl.dev/*' => Http::response(['success' => false, 'error' => 'Unauthorized: Invalid token'], 401)]);
 
     setupPage($this->admin)
@@ -640,7 +616,7 @@ it('stops on the websites step when Firecrawl refuses the key', function (): voi
 });
 
 it('turns speech to text on with the key of the first step', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -655,11 +631,11 @@ it('turns speech to text on with the key of the first step', function (): void {
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'transcriber'))->toBe('scaleway');
+    expect(savedSetting(AiSettings::class, 'transcriber'))->toBe('scaleway');
 });
 
 it('asks for the key of a speech service on another account, and checks it', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['api.openai.com/v1/models' => Http::response(['data' => [['id' => 'whisper-1']]])]);
 
     setupPage($this->admin)
@@ -674,8 +650,8 @@ it('asks for the key of a speech service on another account, and checks it', fun
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(AiSettings::class, 'transcriber'))->toBe('openai')
-        ->and(setupSetting(AiProviderSettings::class, 'openai_api_key'))->toBe('sk-openai');
+    expect(savedSetting(AiSettings::class, 'transcriber'))->toBe('openai')
+        ->and(savedSetting(AiProviderSettings::class, 'openai_api_key'))->toBe('sk-openai');
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.openai.com/v1/models'
         && $request->header('Authorization') === ['Bearer sk-openai']);
@@ -701,7 +677,7 @@ it('uses a saved key without asking for it again', function (): void {
 });
 
 it('stops on the speech step when the service refuses its key', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
     Http::fake(['api.openai.com/*' => Http::response(['error' => ['message' => 'Incorrect API key']], 401)]);
 
     setupPage($this->admin)
@@ -711,19 +687,14 @@ it('stops on the speech step when the service refuses its key', function (): voi
 });
 
 it('keeps the storage and the mailer an admin saved in Settings', function (): void {
-    $storage = app(StorageSettings::class);
-    $storage->driver = 's3';
-    $storage->save();
-    $mail = app(MailSettings::class);
-    $mail->mailer = 'smtp';
-    $mail->save();
-    app()->forgetScopedInstances();
+    saveSettings(StorageSettings::class, ['driver' => 's3']);
+    saveSettings(MailSettings::class, ['mailer' => 'smtp']);
 
     setupPage($this->admin)->assertFormSet(['storage_driver' => 's3', 'mailer' => 'smtp']);
 });
 
 it('asks for S3 details, and stops when the storage does not work', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
@@ -741,7 +712,7 @@ it('asks for S3 details, and stops when the storage does not work', function ():
 });
 
 it('sends email with the provider set up, or warns that nobody gets email', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     $page = setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -752,14 +723,14 @@ it('sends email with the provider set up, or warns that nobody gets email', func
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(MailSettings::class, 'mailer'))->toBe('smtp')
-        ->and(setupSetting(MailSettings::class, 'smtp_host'))->toBe('smtp.example.com')
-        ->and(setupSetting(MailSettings::class, 'smtp_password'))->toBe('mail-secret')
-        ->and(setupSetting(MailSettings::class, 'from_address'))->toBe('support@acme.test');
+    expect(savedSetting(MailSettings::class, 'mailer'))->toBe('smtp')
+        ->and(savedSetting(MailSettings::class, 'smtp_host'))->toBe('smtp.example.com')
+        ->and(savedSetting(MailSettings::class, 'smtp_password'))->toBe('mail-secret')
+        ->and(savedSetting(MailSettings::class, 'from_address'))->toBe('support@acme.test');
 });
 
 it('ends on a final step with the choices made, and where the defaults are changed', function (): void {
-    fakeScaleway($this->dimensions);
+    setupFakeScaleway($this->dimensions);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test'])
@@ -787,19 +758,5 @@ it('ends on a final step with the choices made, and where the defaults are chang
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    expect(setupSetting(PlatformSettings::class, 'setup_status'))->toBe('completed');
-});
-
-it('can be skipped', function (): void {
-    setupPage($this->admin)
-        ->callAction('skip')
-        ->assertRedirect(Filament::getUrl());
-
-    expect(setupSetting(PlatformSettings::class, 'setup_status'))->toBe('skipped');
-});
-
-it('does not ask for two-factor authentication', function (): void {
-    setupPage($this->admin)
-        ->assertDontSee('Set up two-factor authentication first')
-        ->assertSee('Finish setup');
+    expect(savedSetting(PlatformSettings::class, 'setup_status'))->toBe('completed');
 });

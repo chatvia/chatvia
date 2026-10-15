@@ -1,12 +1,8 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
-use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
-use Domain\Membership\Team\Models\Team;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
@@ -29,29 +25,9 @@ function broadcastAuthAs(User $user, string $channelName): TestResponse
     ]);
 }
 
-/**
- * An employee on the given team whose role either can or cannot access the
- * team's agents (allAgents toggles the agents.access-all grant).
- */
-function teammateOnTeam(User $owner, Team $team, bool $allAgents): User
-{
-    $role = app(CreateTeamRoleAction::class)->execute(new SaveTeamRoleData(
-        team: $team,
-        name: 'Role-'.Str::random(8),
-        permissions: [],
-        allAgents: $allAgents,
-        agentExternalIds: [],
-    ));
-
-    $member = User::factory()->employee($owner)->create(['current_team_id' => $team->id]);
-    $team->members()->attach($member->id, ['role_id' => $role->id]);
-
-    return $member;
-}
-
 beforeEach(function (): void {
     Broadcast::driver()->getChannels()->each(
-        fn (callable $callback, string $channel) => Broadcast::driver('reverb')->channel($channel, $callback),
+        fn (callable $callback, string $channel): mixed => Broadcast::driver('reverb')->channel($channel, $callback),
     );
     config(['broadcasting.default' => 'reverb']);
 
@@ -66,39 +42,42 @@ it('denies unauthenticated subscription attempts', function (): void {
     ])->assertForbidden();
 });
 
+// Every agent channel in routes/channels.php: each one answers to agent access.
+dataset('agent channels', ['crawler', 'crawler.progress', 'files.progress', 'texts.progress', 'ingestion.text', 'web.ingestion.url', 'evals']);
+
 describe('agent-scoped private channels', function (): void {
-    it('authorizes the owning workspace', function (): void {
-        broadcastAuthAs($this->owner, "private-agents.{$this->agent->external_id}.files.progress")
+    it('authorizes the owning workspace', function (string $channel): void {
+        broadcastAuthAs($this->owner, "private-agents.{$this->agent->external_id}.{$channel}")
             ->assertOk()
             ->assertJsonStructure(['auth']);
-    });
+    })->with('agent channels');
 
-    it('authorizes a teammate whose role grants agent access', function (): void {
-        $teammate = teammateOnTeam($this->owner, $this->agent->team, allAgents: true);
+    it('authorizes a teammate whose role grants agent access', function (string $channel): void {
+        $teammate = teammateWithPermissions($this->owner, [], $this->agent->team);
 
-        broadcastAuthAs($teammate, "private-agents.{$this->agent->external_id}.crawler")
+        broadcastAuthAs($teammate, "private-agents.{$this->agent->external_id}.{$channel}")
             ->assertOk()
             ->assertJsonStructure(['auth']);
-    });
+    })->with('agent channels');
 
-    it('denies a teammate whose role grants no agent access', function (): void {
-        $teammate = teammateOnTeam($this->owner, $this->agent->team, allAgents: false);
+    it('denies a teammate whose role grants no agent access', function (string $channel): void {
+        $teammate = teammateWithPermissions($this->owner, [], $this->agent->team, allAgents: false);
 
-        broadcastAuthAs($teammate, "private-agents.{$this->agent->external_id}.crawler")
+        broadcastAuthAs($teammate, "private-agents.{$this->agent->external_id}.{$channel}")
             ->assertForbidden();
-    });
+    })->with('agent channels');
 
-    it('denies an unrelated workspace', function (): void {
+    it('denies an unrelated workspace', function (string $channel): void {
         $outsider = User::factory()->create();
 
-        broadcastAuthAs($outsider, "private-agents.{$this->agent->external_id}.files.progress")
+        broadcastAuthAs($outsider, "private-agents.{$this->agent->external_id}.{$channel}")
             ->assertForbidden();
-    });
+    })->with('agent channels');
 
-    it('denies a nonexistent agent', function (): void {
-        broadcastAuthAs($this->owner, 'private-agents.no-such-agent.files.progress')
+    it('denies a nonexistent agent', function (string $channel): void {
+        broadcastAuthAs($this->owner, "private-agents.no-such-agent.{$channel}")
             ->assertForbidden();
-    });
+    })->with('agent channels');
 });
 
 describe('the per-user notification channel', function (): void {
@@ -118,14 +97,8 @@ describe('the per-user notification channel', function (): void {
 
 describe('the chat presence channel', function (): void {
     it('authorizes a workspace member on a conversation of their agent', function (): void {
-        // Source + title pinned: the factory's random pick can land on a case
-        // newer than the chat_conversations source CHECK in the seeded test
-        // DB, and a random title can overflow its stale varchar(255) once
-        // encrypted.
         $conversation = Conversation::factory()->create([
             'chat_session_id' => Session::factory()->create(['agent_id' => $this->agent->id])->id,
-            'source' => ConversationSource::Widget,
-            'title' => null,
         ]);
 
         broadcastAuthAs($this->owner, "presence-chat.{$conversation->external_id}")
@@ -135,7 +108,7 @@ describe('the chat presence channel', function (): void {
 
     it('denies a conversation belonging to another workspace agent', function (): void {
         // The factory chain provisions its own session → agent → workspace.
-        $foreign = Conversation::factory()->create(['source' => ConversationSource::Widget, 'title' => null]);
+        $foreign = Conversation::factory()->create();
 
         broadcastAuthAs($this->owner, "presence-chat.{$foreign->external_id}")
             ->assertForbidden();

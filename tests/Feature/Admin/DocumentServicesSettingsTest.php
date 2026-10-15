@@ -21,43 +21,13 @@ use Livewire\Livewire;
 beforeEach(function (): void {
     $this->admin = User::factory()->admin()->create()->fresh();
 
-    documentServices(['mistral_api_key' => null, 'azure_api_key' => null, 'azure_endpoint' => null], ['document_parser' => null, 'document_llm' => null]);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => null, 'azure_api_key' => null, 'azure_endpoint' => null]);
+    saveSettings(AiSettings::class, ['document_parser' => null, 'document_llm' => null]);
 });
-
-/**
- * Saves provider keys and AI choices, as the admin panel does.
- *
- * @param  array<string, ?string>  $keys
- * @param  array<string, ?string>  $choices
- */
-function documentServices(array $keys, array $choices = []): void
-{
-    $providers = app(AiProviderSettings::class);
-    $ai = app(AiSettings::class);
-
-    foreach ($keys as $property => $value) {
-        $providers->{$property} = $value;
-    }
-
-    foreach ($choices as $property => $value) {
-        $ai->{$property} = $value;
-    }
-
-    $providers->save();
-    $ai->save();
-    app()->forgetScopedInstances();
-}
 
 function documentsPage(User $admin): Testable
 {
     return Livewire::actingAs($admin, 'admin')->test(ManageAiModelSettings::class);
-}
-
-function documentSetting(string $property): ?string
-{
-    app()->forgetScopedInstances();
-
-    return app(AiSettings::class)->{$property};
 }
 
 /** Whether a request went to Mistral or Azure (the page lists OpenRouter's models too). */
@@ -75,7 +45,7 @@ function documentFields(Testable $page): array
 }
 
 it('shows the service in use, marked connected, with no Automatic', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
 
     $page = documentsPage($this->admin)->assertFormSet(['document_parser' => 'mistral', 'document_llm' => 'mistral']);
     $fields = documentFields($page);
@@ -97,7 +67,8 @@ it('shows Off when nothing is connected', function (): void {
 });
 
 it('reads a test image with Mistral OCR before it saves Mistral OCR', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key'], ['document_parser' => 'none']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiSettings::class, ['document_parser' => 'none']);
     Http::fake(['api.mistral.ai/v1/ocr' => Http::response(['pages' => [['index' => 0, 'markdown' => 'Chatvia OCR check']]])]);
 
     documentsPage($this->admin)
@@ -105,7 +76,7 @@ it('reads a test image with Mistral OCR before it saves Mistral OCR', function (
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(documentSetting('document_parser'))->toBe('mistral');
+    expect(savedSetting(AiSettings::class, 'document_parser'))->toBe('mistral');
 
     // One call, though a save reads the form twice.
     expect(Http::recorded(documentServiceCall(...)))->toHaveCount(1);
@@ -117,7 +88,8 @@ it('reads a test image with Mistral OCR before it saves Mistral OCR', function (
 });
 
 it('refuses Mistral OCR when Mistral refuses the key', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key'], ['document_parser' => 'none']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiSettings::class, ['document_parser' => 'none']);
     Http::fake(['api.mistral.ai/v1/ocr' => Http::response(['message' => 'Unauthorized'], 401)]);
 
     documentsPage($this->admin)
@@ -125,11 +97,12 @@ it('refuses Mistral OCR when Mistral refuses the key', function (): void {
         ->call('save')
         ->assertHasFormErrors(['document_parser' => 'Mistral refused the key. Check it in AI providers.']);
 
-    expect(documentSetting('document_parser'))->toBe('none');
+    expect(savedSetting(AiSettings::class, 'document_parser'))->toBe('none');
 });
 
 it('says why Mistral OCR failed', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key'], ['document_parser' => 'none']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiSettings::class, ['document_parser' => 'none']);
     Http::fake(['api.mistral.ai/v1/ocr' => Http::response(['message' => 'Invalid model: mistral-ocr-nope'], 400)]);
 
     $page = documentsPage($this->admin)
@@ -141,7 +114,8 @@ it('says why Mistral OCR failed', function (): void {
 });
 
 it('checks the Azure resource before it saves Azure', function (): void {
-    documentServices(['azure_api_key' => 'az-key', 'azure_endpoint' => 'https://docs.cognitiveservices.azure.com'], ['document_parser' => 'none']);
+    saveSettings(AiProviderSettings::class, ['azure_api_key' => 'az-key', 'azure_endpoint' => 'https://docs.cognitiveservices.azure.com']);
+    saveSettings(AiSettings::class, ['document_parser' => 'none']);
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['customDocumentModels' => ['count' => 0, 'limit' => 5000]])]);
 
     documentsPage($this->admin)
@@ -149,12 +123,13 @@ it('checks the Azure resource before it saves Azure', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(documentSetting('document_parser'))->toBe('azure');
+    expect(savedSetting(AiSettings::class, 'document_parser'))->toBe('azure');
     Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/documentintelligence/info'));
 });
 
 it('refuses Azure when its endpoint does not answer', function (): void {
-    documentServices(['azure_api_key' => 'az-key', 'azure_endpoint' => 'https://docs.cognitiveservices.azure.com'], ['document_parser' => 'none']);
+    saveSettings(AiProviderSettings::class, ['azure_api_key' => 'az-key', 'azure_endpoint' => 'https://docs.cognitiveservices.azure.com']);
+    saveSettings(AiSettings::class, ['document_parser' => 'none']);
     Http::fake(['docs.cognitiveservices.azure.com/*' => Http::response(['error' => ['code' => '404']], 404)]);
 
     documentsPage($this->admin)
@@ -162,7 +137,7 @@ it('refuses Azure when its endpoint does not answer', function (): void {
         ->call('save')
         ->assertHasFormErrors(['document_parser' => 'Azure answered with an error (404). Check the endpoint.']);
 
-    expect(documentSetting('document_parser'))->toBe('none');
+    expect(savedSetting(AiSettings::class, 'document_parser'))->toBe('none');
 });
 
 it('refuses a service that is not connected', function (): void {
@@ -180,7 +155,8 @@ it('refuses a service that is not connected', function (): void {
 });
 
 it('does not call a service again when it is unchanged', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key'], ['document_parser' => 'mistral', 'document_llm' => 'mistral']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiSettings::class, ['document_parser' => 'mistral', 'document_llm' => 'mistral']);
     Http::fake();
 
     documentsPage($this->admin)
@@ -191,7 +167,8 @@ it('does not call a service again when it is unchanged', function (): void {
 });
 
 it('checks the Mistral key before it turns on summaries and PDF chat', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key'], ['document_llm' => 'none']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiSettings::class, ['document_llm' => 'none']);
     Http::fake(['api.mistral.ai/v1/models' => Http::response(['data' => [['id' => 'mistral-medium-latest', 'capabilities' => ['completion_chat' => true]]]])]);
 
     documentsPage($this->admin)
@@ -199,12 +176,13 @@ it('checks the Mistral key before it turns on summaries and PDF chat', function 
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(documentSetting('document_llm'))->toBe('mistral')
+    expect(savedSetting(AiSettings::class, 'document_llm'))->toBe('mistral')
         ->and(app(DocumentLlm::class)->isAvailable())->toBeTrue();
 });
 
 it('turns summaries and PDF chat off without a call', function (): void {
-    documentServices(['mistral_api_key' => 'mistral-key'], ['document_llm' => 'mistral']);
+    saveSettings(AiProviderSettings::class, ['mistral_api_key' => 'mistral-key']);
+    saveSettings(AiSettings::class, ['document_llm' => 'mistral']);
     Http::fake();
 
     documentsPage($this->admin)
@@ -212,7 +190,7 @@ it('turns summaries and PDF chat off without a call', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(documentSetting('document_llm'))->toBe('none')
+    expect(savedSetting(AiSettings::class, 'document_llm'))->toBe('none')
         ->and(app(DocumentLlm::class)->isAvailable())->toBeFalse();
     Http::assertNotSent(documentServiceCall(...));
 });

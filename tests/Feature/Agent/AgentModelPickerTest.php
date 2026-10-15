@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Collection;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -30,7 +31,7 @@ it('lists the available models and preselects the default while the agent has no
         ->assertInertia(fn (Assert $page): Assert => $page
             ->where('selectedModel', $this->default->external_name)
             ->where('defaultModel', $this->default->external_name)
-            ->where('catalog', fn ($catalog): bool => collect($catalog)->pluck('id')->contains($this->other->external_name)));
+            ->where('catalog', fn (Collection $catalog): bool => $catalog->pluck('id')->contains($this->other->external_name)));
 });
 
 it('saves the model and the temperature', function (): void {

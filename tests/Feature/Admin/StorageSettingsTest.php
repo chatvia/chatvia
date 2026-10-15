@@ -9,6 +9,8 @@ use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -79,9 +81,20 @@ it('moves the private disk to S3-compatible storage once it is saved, also for a
     expect(app(StorageSettings::class)->s3_secret)->toBe('minio-secret');
 });
 
-it('keeps knowledge files and chat attachments on the private disk, so they follow the storage setting', function (): void {
-    expect(config('filesystems.default'))->toBe('private')
-        ->and(Attachment::DISK)->toBe('private');
+it('moves knowledge files and chat attachments with the storage setting', function (): void {
+    expect(Storage::disk()->getAdapter())->toBeInstanceOf(LocalFilesystemAdapter::class)
+        ->and(Storage::disk(Attachment::DISK)->getAdapter())->toBeInstanceOf(LocalFilesystemAdapter::class);
+
+    config([
+        'filesystems.storage' => 's3',
+        'filesystems.disks.s3.region' => 'fr-par',
+        'filesystems.disks.s3.bucket' => 'files',
+    ]);
+    app(StorageDisks::class)->apply();
+
+    // Knowledge files go to the default disk, attachments to their own.
+    expect(Storage::disk()->getAdapter())->toBeInstanceOf(AwsS3V3Adapter::class)
+        ->and(Storage::disk(Attachment::DISK)->getAdapter())->toBeInstanceOf(AwsS3V3Adapter::class);
 });
 
 it('goes back to this server in a process that started on S3-compatible storage', function (): void {

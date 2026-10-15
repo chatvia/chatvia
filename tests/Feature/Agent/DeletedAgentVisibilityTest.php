@@ -42,19 +42,17 @@ it('leaves the deleted agent out of the dashboard list', function (): void {
 it('shows the not-found page on the deleted agent hosted chat', function (string $address): void {
     $segment = $address === 'slug' ? $this->slug : $this->deleted->external_id;
 
-    $this->get('/chat/'.$segment)
+    $this->get(route('chat.home', $segment))
         ->assertInertia(fn (Assert $page): Assert => $page->component('agents/chat/AgentNotFound'));
 })->with(['slug', 'external id']);
 
 it('answers 404 in the API and leaves the agent out of its list', function (): void {
-    $headers = ['Authorization' => 'Bearer '.$this->owner->createToken('api')->plainTextToken, 'Accept' => 'application/json'];
+    $this->withToken($this->owner->createToken('api')->plainTextToken);
 
-    $this->withHeaders($headers)
-        ->getJson('/api/v1/agents/'.$this->deleted->external_id)
+    $this->getJson(route('api.v1.agents.show', $this->deleted->external_id))
         ->assertNotFound();
 
-    $this->withHeaders($headers)
-        ->getJson('/api/v1/agents')
+    $this->getJson(route('api.v1.agents.index'))
         ->assertOk()
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.id', $this->kept->external_id);

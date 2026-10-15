@@ -15,11 +15,11 @@ use Illuminate\Support\Facades\Event;
 /**
  * The dashboard side of a live chat: an operator takes a conversation over,
  * replies, types, reads, and hands it back. Agent access and the takeover
- * permission come from route middleware; a conversation of another agent is
- * refused.
+ * permission come from route middleware; replying, typing and handing back
+ * need no permission of their own, only holding the conversation, which
+ * takes the takeover permission. A conversation of another agent is refused.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Event::fake([HandedOff::class, MessagePosted::class, TypingStarted::class]);
 
     $this->owner = User::factory()->create();
@@ -122,10 +122,81 @@ it('hides a conversation that belongs to another agent', function (): void {
 });
 
 it('reports a conflict when another operator already holds the conversation', function (): void {
-    $colleague = User::factory()->create();
+    $colleague = User::factory()->employee($this->owner)->create();
     $conversation = pendingHandoff($this, 'human', heldBy: $colleague->id);
 
     $this->actingAs($this->owner)
         ->postJson(handoffRoute('agents.handoff.takeover', $this, $conversation))
         ->assertStatus(409);
+});
+
+describe('teammates', function (): void {
+    it('refuses the takeover to a teammate without agent.chat.takeover', function (): void {
+        $teammate = teammateWithPermissions($this->owner, ['agent.chat.view']);
+        $conversation = pendingHandoff($this);
+
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.takeover', $this, $conversation))
+            ->assertForbidden();
+
+        expect($conversation->fresh())
+            ->handoff_status->toBe(HandoffStatus::Pending)
+            ->handoff_user_id->toBeNull();
+        Event::assertNotDispatched(HandedOff::class);
+    });
+
+    it('lets a teammate with agent.chat.takeover take over, reply, type and hand back', function (): void {
+        $teammate = teammateWithPermissions($this->owner, ['agent.chat.view', 'agent.chat.takeover']);
+        $conversation = pendingHandoff($this);
+
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.takeover', $this, $conversation))
+            ->assertSuccessful();
+
+        expect($conversation->fresh()->handoff_user_id)->toBe($teammate->id);
+
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.message', $this, $conversation), ['content' => 'On it.'])
+            ->assertSuccessful();
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.typing', $this, $conversation), ['is_typing' => true])
+            ->assertSuccessful();
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.return', $this, $conversation))
+            ->assertSuccessful();
+
+        expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
+    });
+
+    // The waiting list (visitor name, email and last message) and mark-read
+    // carry no permission of their own today: agent access is enough.
+    it('lets a teammate without permissions see the waiting list and mark it read, but not act on a conversation someone else holds', function (): void {
+        $teammate = teammateWithPermissions($this->owner, []);
+        $waiting = pendingHandoff($this);
+        $held = pendingHandoff($this, 'human', heldBy: $this->owner->id);
+
+        $this->actingAs($teammate)
+            ->getJson(route('agents.handoff.pending', ['agent' => $this->agent->external_id]))
+            ->assertOk()
+            ->assertJsonPath('pending.0.conversation_id', $waiting->external_id);
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.mark-read', $this, $waiting))
+            ->assertSuccessful()
+            ->assertJsonPath('marked_count', 0);
+
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.message', $this, $held), ['content' => 'Hello'])
+            ->assertForbidden();
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.typing', $this, $held), ['is_typing' => true])
+            ->assertForbidden();
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.return', $this, $held))
+            ->assertConflict();
+
+        expect($held->fresh())
+            ->handoff_status->toBe(HandoffStatus::Human)
+            ->handoff_user_id->toBe($this->owner->id);
+        Event::assertNotDispatched(MessagePosted::class);
+    });
 });

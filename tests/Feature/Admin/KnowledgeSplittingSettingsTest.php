@@ -25,19 +25,12 @@ beforeEach(function (): void {
     Http::preventStrayRequests();
 });
 
-function chunkingSetting(string $property): mixed
-{
-    app()->forgetScopedInstances();
-
-    return app(KnowledgeSettings::class)->{$property};
-}
-
 function chunkingPage(User $admin): Testable
 {
     return Livewire::actingAs($admin, 'admin')->test(ManageKnowledgeSettings::class);
 }
 
-function previewAction(): TestAction
+function chunkingPreviewAction(): TestAction
 {
     return TestAction::make('runPreview')->schemaComponent('preview-actions', schema: 'form');
 }
@@ -92,8 +85,8 @@ it('saves the unit, the size, the strategies and the tokenizer, and the splitter
 
     $markdown = ChunkingConfigData::forKind(ContentKind::Markdown);
 
-    expect(chunkingSetting('chunk_unit'))->toBe('characters')
-        ->and(chunkingSetting('chunk_size'))->toBe(1200)
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_unit'))->toBe('characters')
+        ->and(savedSetting(KnowledgeSettings::class, 'chunk_size'))->toBe(1200)
         ->and($markdown->unit)->toBe(ChunkSizeUnit::Characters)
         ->and($markdown->size)->toBe(1200)
         ->and($markdown->overlap)->toBe(100)
@@ -113,16 +106,16 @@ it('limits the size by its unit', function (): void {
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect(chunkingSetting('chunk_size'))->toBe(9000);
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_size'))->toBe(9000);
 });
 
 it('keeps the defaults unsaved when they are not changed', function (): void {
     chunkingPage($this->admin)->call('save')->assertHasNoFormErrors();
 
-    expect(chunkingSetting('chunk_unit'))->toBeNull()
-        ->and(chunkingSetting('chunk_size'))->toBeNull()
-        ->and(chunkingSetting('markdown_strategy'))->toBeNull()
-        ->and(chunkingSetting('tokenizer'))->toBeNull();
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_unit'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'chunk_size'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'markdown_strategy'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'tokenizer'))->toBeNull();
 });
 
 it('refuses an overlap that is not smaller than the chunk size', function (): void {
@@ -131,7 +124,7 @@ it('refuses an overlap that is not smaller than the chunk size', function (): vo
         ->call('save')
         ->assertHasFormErrors(['chunk_overlap']);
 
-    expect(chunkingSetting('chunk_size'))->toBeNull();
+    expect(savedSetting(KnowledgeSettings::class, 'chunk_size'))->toBeNull();
 });
 
 it('previews a kind of content with the unsaved options, in the unit on the page', function (): void {
@@ -143,14 +136,14 @@ it('previews a kind of content with the unsaved options, in the unit on the page
             'preview_kind' => 'transcript',
             'preview_text' => 'Returns within 30 days. Refunds take five days.',
         ])
-        ->callAction(previewAction())
+        ->callAction(chunkingPreviewAction())
         ->assertSee('2 chunks, split as Transcript with Whole sentences')
         ->assertSee('23 to 23 characters, 23 on average.')
         ->assertSee('Refunds take five days.');
 
     // A preview saves nothing.
-    expect(chunkingSetting('transcript_strategy'))->toBeNull()
-        ->and(chunkingSetting('chunk_unit'))->toBeNull();
+    expect(savedSetting(KnowledgeSettings::class, 'transcript_strategy'))->toBeNull()
+        ->and(savedSetting(KnowledgeSettings::class, 'chunk_unit'))->toBeNull();
 });
 
 it('opens the whole chunk in a modal from its card', function (): void {
@@ -158,7 +151,7 @@ it('opens the whole chunk in a modal from its card', function (): void {
 
     chunkingPage($this->admin)
         ->fillForm(['chunk_size' => 1000, 'preview_kind' => 'text', 'preview_text' => $long])
-        ->callAction(previewAction())
+        ->callAction(chunkingPreviewAction())
         // The card shows only the start of the chunk.
         ->assertSee('View whole chunk')
         ->assertDontSee('The last line of the chunk.')
@@ -168,7 +161,7 @@ it('opens the whole chunk in a modal from its card', function (): void {
 
 it('previews the sample as Markdown, one section per heading, by default', function (): void {
     chunkingPage($this->admin)
-        ->callAction(previewAction())
+        ->callAction(chunkingPreviewAction())
         ->assertSee('split as Markdown with One section per heading')
         ->assertSee('tokens');
 });
@@ -195,7 +188,7 @@ it('shows the sample of the kind to split as', function (): void {
 it('keeps the admin\'s own text when the kind changes, and clears the last result', function (): void {
     $page = chunkingPage($this->admin)
         ->fillForm(['preview_text' => 'My own text. It stays.'])
-        ->callAction(previewAction())
+        ->callAction(chunkingPreviewAction())
         ->assertSee('1 chunk, split as Markdown');
 
     $page->fillForm(['preview_kind' => 'transcript'])
@@ -208,7 +201,7 @@ it('keeps the admin\'s own text when the kind changes, and clears the last resul
 it('shows why a preview failed', function (): void {
     chunkingPage($this->admin)
         ->fillForm(['chunk_size' => 0, 'chunk_overlap' => 500])
-        ->callAction(previewAction())
+        ->callAction(chunkingPreviewAction())
         ->assertSee('The text could not be split')
         ->assertSee('The overlap must be smaller than the chunk size.');
 });

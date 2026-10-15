@@ -43,3 +43,9 @@ it('keeps a deactivated admin out of the panel', function (): void {
         ->get('/admin')
         ->assertForbidden();
 });
+
+it('keeps an account that is not an admin out of the panel, even on the panel guard', function (): void {
+    $this->actingAs(User::factory()->create()->fresh(), 'admin')
+        ->get('/admin')
+        ->assertForbidden();
+});

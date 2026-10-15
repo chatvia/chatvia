@@ -28,32 +28,8 @@ beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);
     $this->agent = createAgent($this->owner);
-    $this->headers = ['Authorization' => 'Bearer '.$this->owner->createToken('account')->plainTextToken, 'Accept' => 'application/json'];
+    $this->token = $this->owner->createToken('account')->plainTextToken;
 });
-
-function pagedFunction(Agent $agent): AgentFunction
-{
-    return AgentFunction::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'internal_name' => 'lookup_'.Str::lower(Str::random(6)),
-        'description' => 'Looks up an order',
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => 'https://example.com/hook',
-        'webhook_method' => 'POST',
-    ]);
-}
-
-function pagedMcpServer(Agent $agent): AgentMcpServer
-{
-    return AgentMcpServer::query()->create([
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'Tools '.Str::random(4),
-        'slug' => 'tools-'.Str::lower(Str::random(6)),
-        'url' => 'https://mcp.example.test/tools',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-}
 
 /**
  * Three records of one list, made oldest first, and the list's URI.
@@ -70,20 +46,10 @@ function pagedRecords(string $list, User $owner, Agent $agent): array
             $owner->primaryTeam()->external_id,
             ...array_map(fn (string $name): string => app(CreateTeamAction::class)->execute(new CreateTeamData($owner->workspace(), $name))->external_id, ['Sales', 'Support']),
         ],
-        'functions' => array_map(fn (): string => pagedFunction($agent)->external_id, range(1, 3)),
-        'mcps' => array_map(fn (): string => pagedMcpServer($agent)->external_id, range(1, 3)),
-        'agent functions' => array_map(function () use ($agent): string {
-            $function = pagedFunction($agent);
-            $agent->functions()->attach($function->id);
-
-            return $function->external_id;
-        }, range(1, 3)),
-        'agent mcps' => array_map(function () use ($agent): string {
-            $server = pagedMcpServer($agent);
-            $agent->mcpServers()->attach($server->id);
-
-            return $server->external_id;
-        }, range(1, 3)),
+        'functions' => array_map(fn (): string => AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id])->external_id, range(1, 3)),
+        'mcps' => array_map(fn (): string => AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id])->external_id, range(1, 3)),
+        'agent functions' => array_map(fn (): string => AgentFunction::factory()->attachedTo($agent)->create()->external_id, range(1, 3)),
+        'agent mcps' => array_map(fn (): string => AgentMcpServer::factory()->attachedTo($agent)->create()->external_id, range(1, 3)),
     };
 
     $uri = match ($list) {
@@ -100,14 +66,14 @@ dataset('paged lists', ['agents', 'teams', 'functions', 'mcps', 'agent functions
 it('pages a list newest first and walks it with the cursor', function (string $list): void {
     [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);
 
-    $first = $this->withHeaders($this->headers)->getJson($uri.'?per_page=2')
+    $first = $this->withToken($this->token)->getJson($uri.'?per_page=2')
         ->assertOk()
         ->assertJsonStructure(['data', 'next_cursor']);
 
     expect(array_column($first->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2))
         ->and($first->json('next_cursor'))->toBeString();
 
-    $second = $this->withHeaders($this->headers)
+    $second = $this->withToken($this->token)
         ->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $first->json('next_cursor')]))
         ->assertOk();
 
@@ -118,16 +84,16 @@ it('pages a list newest first and walks it with the cursor', function (string $l
 it('defaults to 25 items and clamps per_page to 1–100', function (string $list): void {
     [$uri] = pagedRecords($list, $this->owner, $this->agent);
 
-    $this->withHeaders($this->headers)->getJson($uri)->assertOk()->assertJsonCount(3, 'data')->assertJsonPath('next_cursor', null);
-    $this->withHeaders($this->headers)->getJson($uri.'?per_page=0')->assertOk()->assertJsonCount(1, 'data');
-    $this->withHeaders($this->headers)->getJson($uri.'?per_page=500')->assertOk()->assertJsonCount(3, 'data');
+    $this->withToken($this->token)->getJson($uri)->assertOk()->assertJsonCount(3, 'data')->assertJsonPath('next_cursor', null);
+    $this->withToken($this->token)->getJson($uri.'?per_page=0')->assertOk()->assertJsonCount(1, 'data');
+    $this->withToken($this->token)->getJson($uri.'?per_page=500')->assertOk()->assertJsonCount(3, 'data');
 })->with('paged lists');
 
 it('starts again at the first page for a cursor it did not hand out', function (string $list): void {
     [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);
 
     // The column the list's own cursor carries, e.g. `agents.id`.
-    $handedOut = Cursor::fromEncoded($this->withHeaders($this->headers)->getJson($uri.'?per_page=1')->json('next_cursor'));
+    $handedOut = Cursor::fromEncoded($this->withToken($this->token)->getJson($uri.'?per_page=1')->json('next_cursor'));
     $column = array_key_first($handedOut->toArray());
 
     $foreign = [
@@ -139,14 +105,14 @@ it('starts again at the first page for a cursor it did not hand out', function (
     ];
 
     foreach ($foreign as $cursor) {
-        $page = $this->withHeaders($this->headers)->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $cursor]))->assertOk();
+        $page = $this->withToken($this->token)->getJson($uri.'?'.http_build_query(['per_page' => 2, 'cursor' => $cursor]))->assertOk();
 
         expect(array_column($page->json('data'), 'id'))->toBe(array_slice($newestFirst, 0, 2));
     }
 })->with('paged lists');
 
 it('rejects a per_page that is not a number', function (): void {
-    $this->withHeaders($this->headers)->getJson('/api/v1/agents?per_page=many')
+    $this->withToken($this->token)->getJson('/api/v1/agents?per_page=many')
         ->assertUnprocessable()
         ->assertJsonValidationErrors('per_page');
 });
@@ -190,7 +156,7 @@ it('pages the sources of every kind together, newest first', function (): void {
     $cursor = null;
 
     do {
-        $page = $this->withHeaders($this->headers)
+        $page = $this->withToken($this->token)
             ->getJson($uri.'?'.http_build_query(array_filter(['per_page' => 2, 'cursor' => $cursor])))
             ->assertOk();
 
@@ -217,7 +183,7 @@ it('starts the source list again at the first page for a cursor it did not hand 
     $this->agent->files()->attach($file->id);
 
     foreach ([new Cursor(['created_at' => 'yesterday', 'sourceable_id' => 1, 'sourceable_type' => 'source_file'])->encode(), new Cursor(['id' => 1])->encode()] as $cursor) {
-        $this->withHeaders($this->headers)
+        $this->withToken($this->token)
             ->getJson("/api/v1/agents/{$this->agent->external_id}/sources?".http_build_query(['cursor' => $cursor]))
             ->assertOk()
             ->assertJsonPath('data.0.id', $file->external_id);

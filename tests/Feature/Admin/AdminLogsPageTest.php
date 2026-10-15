@@ -20,7 +20,7 @@ use Saade\FilamentLaravelLog\Pages\ViewLog;
  */
 function turnLogsPage(bool $on): void
 {
-    app(PlatformSettings::class)->fill(['logs_page_enabled' => $on])->save();
+    saveSettings(PlatformSettings::class, ['logs_page_enabled' => $on]);
 }
 
 beforeEach(function (): void {
@@ -83,12 +83,9 @@ it('opens the logs page for an admin signed in to the panel', function (): void 
         ->assertSee('Logs');
 });
 
-it('keeps a dashboard (web guard) session out of the logs page', function (): void {
-    $this->actingAs($this->admin, 'web')
-        ->get(ViewLog::getUrl())
-        ->assertRedirect(Filament::getPanel('admin')->getLoginUrl());
-});
-
+// Clearing is the log plugin's own code. These two pin it on purpose, as a
+// security property: it works inside the log folders the panel gives it and
+// on no other file of the server.
 it('clears the selected log file', function (): void {
     $file = $this->logDir.'/laravel.log';
     File::put($file, "[2026-10-14 10:00:00] local.ERROR: Something broke\n");

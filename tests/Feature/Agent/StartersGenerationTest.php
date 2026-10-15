@@ -3,6 +3,7 @@
 use Domain\Agent\Models\Agent;
 use Domain\Llm\Operations\Starters\StarterGenerator;
 use Domain\Llm\Operations\Translate\TextTranslator;
+use Mockery\MockInterface;
 
 /**
  * The Setup → Starters endpoints: saving auto-translates each starter and
@@ -15,7 +16,7 @@ beforeEach(function (): void {
 });
 
 it('saves starters and returns their AI translations', function (): void {
-    $this->mock(TextTranslator::class, fn ($m) => $m->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?']]));
+    $this->mock(TextTranslator::class, fn (MockInterface $mock): mixed => $mock->shouldReceive('translate')->once()->andReturn(['k0' => ['de' => 'Hallo?']]));
 
     $this->actingAs($this->owner)
         ->putJson(route('agents.starters.update', $this->agent->external_id), [
@@ -27,7 +28,7 @@ it('saves starters and returns their AI translations', function (): void {
 });
 
 it('suggests starters from the knowledge base', function (): void {
-    $this->mock(StarterGenerator::class, fn ($m) => $m->shouldReceive('generate')->once()
+    $this->mock(StarterGenerator::class, fn (MockInterface $mock): mixed => $mock->shouldReceive('generate')->once()
         ->andReturn(['What are your opening hours?', 'How do I get a refund?']));
 
     $this->actingAs($this->owner)

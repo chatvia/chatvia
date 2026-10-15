@@ -24,6 +24,7 @@ class SaveAgentSecuritySettingsRequest extends FormRequest
         return [
             'chat_rate_limit_per_minute' => ['required', 'integer', 'min:1', 'max:1000'],
             'notify_owner_on_rate_limit' => ['required', 'boolean'],
+            'visitor_rate_limit_per_minute' => ['nullable', 'integer', 'min:1', 'max:1000'],
         ];
     }
 
@@ -32,6 +33,7 @@ class SaveAgentSecuritySettingsRequest extends FormRequest
         return new AgentSecuritySettingsData(
             chat_rate_limit_per_minute: $this->integer('chat_rate_limit_per_minute'),
             notify_owner_on_rate_limit: $this->boolean('notify_owner_on_rate_limit'),
+            visitor_rate_limit_per_minute: $this->integer('visitor_rate_limit_per_minute', 8),
         );
     }
 }

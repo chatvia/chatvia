@@ -276,5 +276,17 @@
     "The voice call could not start. Please try again.": "تعذّر بدء المكالمة الصوتية. يرجى المحاولة مرة أخرى.",
     "Our time for this call is up. You can keep chatting in the text box.": "انتهى وقت هذه المكالمة. يمكنك متابعة الدردشة في مربع الكتابة.",
     "Sorry, I can't help with that.": "عذرًا، لا أستطيع المساعدة في ذلك.",
-    "(Voice message that could not be transcribed)": "(رسالة صوتية تعذّر تحويلها إلى نص)"
+    "(Voice message that could not be transcribed)": "(رسالة صوتية تعذّر تحويلها إلى نص)",
+    "For your safety, please do not share this kind of personal data in the chat.": "حفاظًا على أمانك، يُرجى عدم مشاركة هذا النوع من البيانات الشخصية في المحادثة.",
+    "Let me connect you with someone from our team.": "سأوصلك بأحد أعضاء فريقنا.",
+    "You are sending messages too quickly. Please wait a moment and try again.": "أنت ترسل الرسائل بسرعة كبيرة. يُرجى الانتظار قليلًا والمحاولة مرة أخرى.",
+    "This is not a valid pattern.": "هذا ليس نمطًا صالحًا.",
+    "The pattern must not match empty text.": "يجب ألا يطابق النمط نصًا فارغًا.",
+    "Guardrails on \":name\" need your attention": "حمايات «:name» تحتاج إلى انتباهك",
+    "Your agent \":name\" blocked an attempt to override its instructions or reveal them.": "حظر وكيلك «:name» محاولة لتجاوز تعليماته أو كشفها.",
+    "One attempt is usually nothing to worry about. Many in a short time may be someone testing your agent.": "محاولة واحدة عادةً لا تدعو للقلق. أما محاولات كثيرة في وقت قصير فقد تعني أن أحدًا يختبر وكيلك.",
+    "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "تعذر تشغيل فحص الأمان لوكيلك «:name»، لذا أُجيب عن بعض الرسائل بدونه.",
+    "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "يحدث هذا عندما يتعذر الوصول إلى نموذج الذكاء الاصطناعي الخاص بالحمايات. تحقق من النموذج في لوحة الإدارة إذا تكرر ذلك.",
+    "Open the guardrails activity": "فتح نشاط الحمايات",
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "تصلك رسالة واحدة من هذا النوع على الأكثر كل ساعة. يمكنك إيقاف هذه التنبيهات من صفحة الحمايات."
 }

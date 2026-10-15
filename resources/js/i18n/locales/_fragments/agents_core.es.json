@@ -333,7 +333,7 @@
                 "when": "Cuándo"
             },
             "injection_label": "Detección de inyección de instrucciones",
-            "injection_help": "Detecta y bloquea intentos de anular las instrucciones del agente o extraer su instrucción de sistema.",
+            "injection_help": "Detecta y bloquea los intentos de saltarse o revelar las instrucciones del agente, en mensajes, conocimiento y resultados de herramientas.",
             "toxicity_label": "Filtrado de toxicidad",
             "toxicity_help": "Detecta y bloquea lenguaje tóxico, de odio o abusivo en los mensajes.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Limitación de velocidad",
-                "subtitle": "Limita cuántos mensajes puede enviar un solo visitante por minuto.",
-                "card_description": "Protege tu agente del abuso limitando la frecuencia de mensajes por visitante.",
-                "messages_per_minute": "Mensajes por minuto",
-                "default_hint": "Déjalo vacío para usar el valor predeterminado de la plataforma.",
+                "subtitle": "Limita cuántos mensajes responde tu agente por minuto y cuántos puede enviar un visitante.",
+                "card_description": "Protege a tu agente contra abusos y costes inesperados.",
+                "messages_per_minute": "Mensajes por minuto (todos los visitantes)",
+                "default_hint": "El máximo de mensajes que el agente responde por minuto, entre todos los visitantes.",
                 "notify_label": "Notificarme cuando se alcance el límite",
-                "notify_hint": "Recibe un correo cuando un visitante alcance el límite de velocidad.",
+                "notify_hint": "Recibe un correo cuando el agente alcance este límite.",
                 "save": "Guardar",
                 "saved": "Límite de velocidad guardado",
-                "save_error": "No se pudo guardar el límite de velocidad. Por favor, inténtalo de nuevo."
+                "save_error": "No se pudo guardar el límite de velocidad. Por favor, inténtalo de nuevo.",
+                "visitor_messages_per_minute": "Mensajes por minuto (un visitante)",
+                "visitor_hint": "El máximo de mensajes que un visitante puede enviar por minuto. Quien lo supera tiene que esperar, mientras los demás siguen chateando."
             }
         },
         "tone": {

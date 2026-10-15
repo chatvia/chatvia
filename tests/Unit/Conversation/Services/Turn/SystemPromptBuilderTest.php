@@ -6,6 +6,7 @@ use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Turn\SystemPromptBuilder;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Str;
 
@@ -81,4 +82,19 @@ it('puts the system prompt first and replaces a trailing visitor message with th
 
     expect(array_column($messages, 'role'))->toBe(['system', 'user', 'assistant', 'user'])
         ->and($messages[3]['content'])->toBe('Hi [with reference material]');
+});
+
+it('opens the system prompt with the guardrails leak marker', function (): void {
+    $agent = Agent::factory()->create();
+    $marker = app(GuardrailService::class)->leakMarker($agent);
+
+    expect($marker)->toStartWith('CV-')
+        ->and(systemPromptFor($agent, null))->toStartWith("Internal reference: {$marker}.");
+});
+
+it('leaves the leak marker out when the injection guard is off', function (): void {
+    $agent = Agent::factory()->create();
+    $agent->setSetting('injection', false, 'guardrails');
+
+    expect(systemPromptFor($agent->fresh(), null))->not->toContain('Internal reference');
 });

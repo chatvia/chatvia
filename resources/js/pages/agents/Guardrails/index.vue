@@ -1,25 +1,30 @@
 <script setup lang="ts">
 // Guardrails page for one agent: a Configuration tab with the safety settings
-// (PII redaction, injection and toxicity checks, blocked topics, allowed scope,
-// refusal message) and an Activity tab with the trigger log.
+// (PII redaction, injection and toxicity checks with their mode and
+// sensitivity, blocked topics, allowed scope, refusal message, holding answers
+// until checked, alert emails) and a "Test a message" card, and an Activity
+// tab with the trigger log.
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { Ban, History, LoaderCircle, MessageSquareOff, Save, ShieldAlert, Target } from 'lucide-vue-next';
+import { Ban, History, LoaderCircle, MessageSquareOff, Save, ShieldAlert, Target, UserRound } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import BlockedTopicsDialog from './BlockedTopicsDialog.vue';
+import GuardrailTestCard from './GuardrailTestCard.vue';
 import GuardrailTriggerLog from './GuardrailTriggerLog.vue';
+import { FILTER_LABELS, labelFor, MODE_LABELS, SENSITIVITY_LABELS } from './labels';
 import PiiFiltersDialog from './PiiFiltersDialog.vue';
-import type { GuardrailTriggerPage, GuardSettings, PiiFilterOption } from './types';
+import type { GuardMode, GuardrailLogFilters, GuardrailTriggerPage, GuardSensitivity, GuardSettings, PiiFilterOption } from './types';
 import { GUARDS, useGuardrailSettings } from './useGuardrailSettings';
 
 const { t } = useI18n();
@@ -32,16 +37,22 @@ interface Props {
     triggers: GuardrailTriggerPage;
     guardTypes: string[];
     outcomes: string[];
+    filters: GuardrailLogFilters;
 }
 
 const props = defineProps<Props>();
 
 const { hasPermission } = useTeamPermissions();
 const canManage = computed(() => hasPermission('agent.guardrails.manage'));
+const canViewChats = computed(() => hasPermission('agent.chat.view'));
 
-const activeTab = ref<'config' | 'activity'>('config');
+// A filtered log link opens on the Activity tab.
+const activeTab = ref<'config' | 'activity'>(props.filters.guard_type || props.filters.outcome ? 'activity' : 'config');
 
 const { form, save, toggle, piiEnabled, togglePii, selectedFilters } = useGuardrailSettings(props, canManage);
+
+const MODES: GuardMode[] = ['block', 'monitor'];
+const SENSITIVITIES: GuardSensitivity[] = ['high', 'medium', 'low'];
 
 // The PII filters and blocked topics are shown as badges on the card; each
 // list is edited in its own dialog that commits on "Done".
@@ -106,9 +117,23 @@ const topicsOpen = ref(false);
                                         </div>
 
                                         <div v-if="piiEnabled" class="flex flex-wrap items-center gap-2">
-                                            <Badge v-for="filter in selectedFilters" :key="filter.key" variant="secondary" class="font-normal">{{
-                                                filter.label
-                                            }}</Badge>
+                                            <Badge
+                                                v-for="filter in selectedFilters"
+                                                :key="filter.key"
+                                                :variant="form.pii_actions[filter.key] === 'block' ? 'destructive' : 'secondary'"
+                                                class="font-normal"
+                                                >{{ labelFor(t, FILTER_LABELS, filter.key) }}</Badge
+                                            >
+                                            <Badge
+                                                v-for="pattern in form.custom_patterns"
+                                                :key="pattern.name"
+                                                :variant="pattern.action === 'block' ? 'destructive' : 'outline'"
+                                                class="font-normal"
+                                                >{{ pattern.name }}</Badge
+                                            >
+                                            <span v-if="form.allowlist.length" class="text-muted-foreground text-sm">{{
+                                                t('agents.guardrails.allowlist_count', { count: form.allowlist.length }, form.allowlist.length)
+                                            }}</span>
                                             <Button
                                                 v-if="canManage"
                                                 type="button"
@@ -122,27 +147,70 @@ const topicsOpen = ref(false);
                                         </div>
                                     </div>
 
-                                    <div
-                                        v-for="guard in GUARDS"
-                                        :key="guard.key"
-                                        class="flex items-start justify-between gap-4"
-                                        :class="{ 'cursor-pointer': canManage }"
-                                        @click="toggle(guard.key)"
-                                    >
-                                        <div>
-                                            <Label class="pointer-events-none text-sm font-medium">{{ t(guard.label) }}</Label>
-                                            <p class="text-muted-foreground text-sm">{{ t(guard.help) }}</p>
+                                    <div v-for="guard in GUARDS" :key="guard.key" class="space-y-2">
+                                        <div
+                                            class="flex items-start justify-between gap-4"
+                                            :class="{ 'cursor-pointer': canManage }"
+                                            @click="toggle(guard.key)"
+                                        >
+                                            <div>
+                                                <Label class="pointer-events-none text-sm font-medium">{{ t(guard.label) }}</Label>
+                                                <p class="text-muted-foreground text-sm">{{ t(guard.help) }}</p>
+                                            </div>
+                                            <Switch v-model="form[guard.key]" :disabled="!canManage" class="pointer-events-none" />
                                         </div>
-                                        <Switch v-model="form[guard.key]" :disabled="!canManage" class="pointer-events-none" />
+                                        <!-- What the guard does, and how easily it blocks. -->
+                                        <div v-if="form[guard.key]" class="flex flex-wrap items-center gap-2">
+                                            <Select v-model="form[guard.mode]" :disabled="!canManage">
+                                                <SelectTrigger class="h-8 w-44" :aria-label="t('agents.guardrails.mode')">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem v-for="mode in MODES" :key="mode" :value="mode">{{
+                                                        t(MODE_LABELS[mode])
+                                                    }}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Select v-model="form[guard.sensitivity]" :disabled="!canManage">
+                                                <SelectTrigger class="h-8 w-48" :aria-label="t('agents.guardrails.sensitivity')">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem v-for="level in SENSITIVITIES" :key="level" :value="level">{{
+                                                        t(SENSITIVITY_LABELS[level])
+                                                    }}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
+                                    <p class="text-muted-foreground text-xs">{{ t('agents.guardrails.mode_help') }}</p>
 
                                     <!-- Blocked topics -->
                                     <div class="space-y-1.5 pt-2">
-                                        <Label>{{ t('agents.guardrails.blocked_topics') }}</Label>
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <Label>{{ t('agents.guardrails.blocked_topics') }}</Label>
+                                            <Select v-model="form.topics_mode" :disabled="!canManage">
+                                                <SelectTrigger class="h-8 w-44" :aria-label="t('agents.guardrails.mode')">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem v-for="mode in MODES" :key="mode" :value="mode">{{
+                                                        t(MODE_LABELS[mode])
+                                                    }}</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <Badge v-for="topic in form.blocked_topics" :key="topic" variant="secondary" class="font-normal">{{
-                                                topic
-                                            }}</Badge>
+                                            <Badge
+                                                v-for="topic in form.blocked_topics"
+                                                :key="topic.name"
+                                                variant="secondary"
+                                                class="gap-1 font-normal"
+                                            >
+                                                <UserRound v-if="topic.action === 'handoff'" class="h-3 w-3" />
+                                                <MessageSquareOff v-else-if="topic.action === 'reply'" class="h-3 w-3" />
+                                                {{ topic.name }}
+                                            </Badge>
                                             <span v-if="!form.blocked_topics.length" class="text-muted-foreground text-sm">{{
                                                 t('agents.guardrails.no_blocked_topics')
                                             }}</span>
@@ -192,6 +260,35 @@ const topicsOpen = ref(false);
                                                 :placeholder="t('agents.guardrails.refusal_message_placeholder')"
                                             />
                                         </div>
+                                        <p class="text-muted-foreground text-xs">{{ t('agents.guardrails.refusal_message_help') }}</p>
+                                    </div>
+
+                                    <!-- Hold answers until checked -->
+                                    <div
+                                        class="flex items-start justify-between gap-4 pt-2"
+                                        :class="{ 'cursor-pointer': canManage }"
+                                        @click="toggle('check_before_showing')"
+                                    >
+                                        <div>
+                                            <Label class="pointer-events-none text-sm font-medium">{{
+                                                t('agents.guardrails.check_before_showing')
+                                            }}</Label>
+                                            <p class="text-muted-foreground text-sm">{{ t('agents.guardrails.check_before_showing_help') }}</p>
+                                        </div>
+                                        <Switch v-model="form.check_before_showing" :disabled="!canManage" class="pointer-events-none" />
+                                    </div>
+
+                                    <!-- Alert emails -->
+                                    <div
+                                        class="flex items-start justify-between gap-4"
+                                        :class="{ 'cursor-pointer': canManage }"
+                                        @click="toggle('alert_owner')"
+                                    >
+                                        <div>
+                                            <Label class="pointer-events-none text-sm font-medium">{{ t('agents.guardrails.alert_owner') }}</Label>
+                                            <p class="text-muted-foreground text-sm">{{ t('agents.guardrails.alert_owner_help') }}</p>
+                                        </div>
+                                        <Switch v-model="form.alert_owner" :disabled="!canManage" class="pointer-events-none" />
                                     </div>
                                 </div>
 
@@ -204,18 +301,35 @@ const topicsOpen = ref(false);
                                 </div>
                             </CardContent>
                         </Card>
+
+                        <GuardrailTestCard v-if="canManage && form.enabled" class="mt-6" :agent-id="props.agent.external_id" :settings="form" />
                     </TabsContent>
 
                     <!-- Trigger log -->
                     <TabsContent value="activity" class="mt-6">
-                        <GuardrailTriggerLog :triggers="props.triggers" />
+                        <GuardrailTriggerLog
+                            :agent="props.agent"
+                            :triggers="props.triggers"
+                            :guard-types="props.guardTypes"
+                            :outcomes="props.outcomes"
+                            :filters="props.filters"
+                            :can-view-chats="canViewChats"
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
         </div>
 
         <!-- Manage PII filters -->
-        <PiiFiltersDialog v-model:open="filtersOpen" v-model="form.filters" :available-filters="props.availableFilters" :can-manage="canManage" />
+        <PiiFiltersDialog
+            v-model:open="filtersOpen"
+            v-model="form.filters"
+            v-model:actions="form.pii_actions"
+            v-model:patterns="form.custom_patterns"
+            v-model:allowlist="form.allowlist"
+            :available-filters="props.availableFilters"
+            :can-manage="canManage"
+        />
 
         <!-- Manage blocked topics -->
         <BlockedTopicsDialog v-model:open="topicsOpen" v-model="form.blocked_topics" />

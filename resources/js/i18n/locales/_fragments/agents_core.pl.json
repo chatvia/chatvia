@@ -333,7 +333,7 @@
                 "when": "Kiedy"
             },
             "injection_label": "Wykrywanie wstrzykiwania promptów",
-            "injection_help": "Wykrywaj i blokuj próby przesłonięcia instrukcji agenta lub wyciągnięcia jego promptu systemowego.",
+            "injection_help": "Wykrywa i blokuje próby obejścia lub ujawnienia instrukcji agenta w wiadomościach, wiedzy i wynikach narzędzi.",
             "toxicity_label": "Filtrowanie toksyczności",
             "toxicity_help": "Wykrywaj i blokuj toksyczne, nienawistne lub obraźliwe treści w wiadomościach.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Ograniczanie liczby żądań",
-                "subtitle": "Ogranicz liczbę wiadomości, które pojedynczy odwiedzający może wysłać na minutę.",
-                "card_description": "Chroń agenta przed nadużyciami, ograniczając częstotliwość wiadomości na odwiedzającego.",
-                "messages_per_minute": "Wiadomości na minutę",
-                "default_hint": "Pozostaw puste, aby użyć domyślnej wartości platformy.",
+                "subtitle": "Ogranicz, na ile wiadomości agent odpowiada na minutę i ile może wysłać jeden odwiedzający.",
+                "card_description": "Chroń agenta przed nadużyciami i nieoczekiwanymi kosztami.",
+                "messages_per_minute": "Wiadomości na minutę (wszyscy odwiedzający)",
+                "default_hint": "Najwięcej wiadomości, na które agent odpowiada na minutę, łącznie dla wszystkich odwiedzających.",
                 "notify_label": "Powiadamiaj mnie po osiągnięciu limitu",
-                "notify_hint": "Otrzymuj e-mail, gdy odwiedzający osiągnie limit liczby żądań.",
+                "notify_hint": "Otrzymuj e-mail, gdy agent osiągnie ten limit.",
                 "save": "Zapisz",
                 "saved": "Limit zapisany",
-                "save_error": "Nie udało się zapisać limitu. Spróbuj ponownie."
+                "save_error": "Nie udało się zapisać limitu. Spróbuj ponownie.",
+                "visitor_messages_per_minute": "Wiadomości na minutę (jeden odwiedzający)",
+                "visitor_hint": "Najwięcej wiadomości, które jeden odwiedzający może wysłać na minutę. Kto go przekroczy, musi poczekać, a inni rozmawiają dalej."
             }
         },
         "tone": {

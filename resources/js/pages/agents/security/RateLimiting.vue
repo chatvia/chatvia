@@ -18,16 +18,19 @@ interface Props {
     securitySettings: {
         chat_rate_limit_per_minute: number;
         notify_owner_on_rate_limit: boolean;
+        visitor_rate_limit_per_minute: number;
     };
 }
 
 const props = defineProps<Props>();
 
 // Per-agent chat rate limit — caps answered messages per minute across all
-// visitors, with an optional email alert to the owner when it trips.
+// visitors, with an optional email alert to the owner when it trips — and a
+// smaller cap per visitor, so one person cannot use up the agent's cap.
 const form = useForm({
     chat_rate_limit_per_minute: props.securitySettings.chat_rate_limit_per_minute,
     notify_owner_on_rate_limit: props.securitySettings.notify_owner_on_rate_limit,
+    visitor_rate_limit_per_minute: props.securitySettings.visitor_rate_limit_per_minute,
 });
 
 const save = () => {
@@ -75,6 +78,22 @@ const save = () => {
                                 {{ form.errors.chat_rate_limit_per_minute }}
                             </p>
                             <p v-else class="text-muted-foreground text-xs">{{ t('agents.security.rate_limiting.default_hint') }}</p>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <Label for="visitor-rate-limit">{{ t('agents.security.rate_limiting.visitor_messages_per_minute') }}</Label>
+                            <Input
+                                id="visitor-rate-limit"
+                                v-model.number="form.visitor_rate_limit_per_minute"
+                                type="number"
+                                min="1"
+                                max="1000"
+                                class="max-w-[160px]"
+                            />
+                            <p v-if="form.errors.visitor_rate_limit_per_minute" class="text-destructive text-xs">
+                                {{ form.errors.visitor_rate_limit_per_minute }}
+                            </p>
+                            <p v-else class="text-muted-foreground text-xs">{{ t('agents.security.rate_limiting.visitor_hint') }}</p>
                         </div>
 
                         <label for="notify-rate-limit" class="flex cursor-pointer items-center justify-between rounded-lg border p-4">

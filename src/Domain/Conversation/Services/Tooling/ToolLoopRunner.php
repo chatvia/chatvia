@@ -12,6 +12,8 @@ use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Streaming\Sse\ToolCallPhase;
 use Domain\Conversation\Services\Streaming\Transformers\StreamTransformer;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
+use Domain\Guardrail\Services\GuardrailRecorder;
+use Domain\Guardrail\Services\GuardrailService;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolCallData;
@@ -32,7 +34,8 @@ use Illuminate\Support\Facades\Log;
  *
  * Every tool-call decision — auto, approved, denied, rate limited or not
  * offered — is announced for the governance audit ({@see ToolCallAuditTrail},
- * {@see ToolCallCompleted}) off the hot path.
+ * {@see ToolCallCompleted}) off the hot path. A tool's result passes the
+ * injection guard before the model reads it ({@see GuardrailService::scanToolResult()}).
  *
  * Shared by every source that needs the loop — `LlmSource` runs it on the
  * agent's configured provider, `PdfSource` on the document LLM with a
@@ -61,6 +64,8 @@ class ToolLoopRunner
         private readonly ToolAccessPolicy $accessPolicy,
         private readonly ToolApprovalStore $approvalStore,
         private readonly ToolCallAuditTrail $auditTrail,
+        private readonly GuardrailService $guardrails,
+        private readonly GuardrailRecorder $guardrailRecorder,
     ) {}
 
     /**
@@ -428,7 +433,8 @@ class ToolLoopRunner
         $latencyMs = (int) round((microtime(true) - $startedAt) * 1000);
 
         $context->toolCallNames[] = $call->name;
-        $this->appendToolResult($llmMessages, $call->toolCallId, $result->text);
+        $resultText = $this->guardedResult($context, $call->name, $result->text);
+        $this->appendToolResult($llmMessages, $call->toolCallId, $resultText);
 
         if ($result->artifacts !== []) {
             $context->artifacts = [...$context->artifacts, ...$result->artifacts];
@@ -439,7 +445,7 @@ class ToolLoopRunner
             phase: ToolCallPhase::End,
             toolCallId: $call->toolCallId,
             name: $call->name,
-            result: $result->text,
+            result: $resultText,
             artifacts: $result->artifacts !== [] ? $result->artifacts : null,
         );
 
@@ -467,6 +473,29 @@ class ToolLoopRunner
         $this->appendToolResult($llmMessages, $call->toolCallId, $message);
 
         $this->auditTrail->record($context, $call, $outcome, ToolDispatchResult::text($message));
+    }
+
+    /**
+     * The tool result the model may read: as returned, or a notice in its
+     * place when it carries instructions aimed at the model (logged). A turn
+     * that opts out of guards (evals) gets the result as it is.
+     */
+    private function guardedResult(ChatContext $context, string $toolName, string $result): string
+    {
+        if (! $context->requestData->guardrailsEnabled) {
+            return $result;
+        }
+
+        $scan = $this->guardrails->scanToolResult($context->requestData->agent, $toolName, $result);
+
+        if (! $scan->triggered()) {
+            return $result;
+        }
+
+        // The log keeps the result with its personal data masked.
+        $this->guardrailRecorder->record($context, $this->guardrails->redactPii($context->requestData->agent, $result), $scan);
+
+        return $scan->text;
     }
 
     /**

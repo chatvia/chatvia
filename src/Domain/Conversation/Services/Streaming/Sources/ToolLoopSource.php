@@ -11,6 +11,7 @@ use Domain\Conversation\Services\Streaming\Exceptions\UpstreamStreamClosed;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Domain\Conversation\Services\Streaming\Sources\Concerns\InjectsToolSystemNote;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
+use Domain\Conversation\Services\Streaming\Sse\EventType;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
@@ -31,6 +32,11 @@ use Throwable;
  * approval resume, and the finish step — which always runs the output
  * guardrails before the answer is saved. A subclass only says which provider
  * and model to stream from and how to word its errors.
+ *
+ * When the agent's guardrails hold answers ("check before showing"), the text
+ * deltas are not sent while the model writes: the finished, checked answer is
+ * sent in one piece, so a visitor never sees text the output guards would
+ * have changed. Tool activity still shows as it happens.
  */
 abstract class ToolLoopSource
 {
@@ -190,7 +196,7 @@ abstract class ToolLoopSource
      */
     private function loopThenFinish(ChatContext $context, array $llmMessages, array $toolDefinitions, int $startIteration): Generator
     {
-        $paused = yield from $this->runner->run(
+        $paused = yield from $this->held($context, $this->runner->run(
             context: $context,
             provider: $this->provider($context),
             modelName: $this->modelName($context),
@@ -198,7 +204,7 @@ abstract class ToolLoopSource
             toolDefinitions: $toolDefinitions,
             extraSettings: $context->requestData->agent->llmSettings(),
             startIteration: $startIteration,
-        );
+        ));
 
         if (! $paused) {
             yield from $this->finishTurn($context);
@@ -239,9 +245,14 @@ abstract class ToolLoopSource
 
         // The corrected text becomes the persisted + replayed message; a
         // `replace` event tells the client to swap what it already streamed.
+        // A held answer was never streamed: it is sent now, in one piece.
         $corrected = $this->applyOutputGuard($context);
 
-        if ($corrected !== null) {
+        if ($this->holdsAnswer($context)) {
+            if ($context->streamedMessage !== '') {
+                yield StreamEvent::delta($assistantId, $context->streamedMessage);
+            }
+        } elseif ($corrected !== null) {
             yield StreamEvent::replace($assistantId, $corrected);
         }
 
@@ -254,6 +265,34 @@ abstract class ToolLoopSource
         $this->rememberForReplay($context);
 
         yield StreamEvent::done($assistantId, 'complete', $context->getResponseTimeMs());
+    }
+
+    /**
+     * The tool loop's events without the text deltas when the answer is held
+     * until the output guards have checked it; else unchanged. Passes on the
+     * loop's result (whether it paused for approval).
+     *
+     * @param  Generator<int, StreamEvent, mixed, bool>  $events
+     * @return Generator<int, StreamEvent, mixed, bool>
+     */
+    private function held(ChatContext $context, Generator $events): Generator
+    {
+        if (! $this->holdsAnswer($context)) {
+            return yield from $events;
+        }
+
+        foreach ($events as $event) {
+            if ($event->type !== EventType::Delta) {
+                yield $event;
+            }
+        }
+
+        return $events->getReturn();
+    }
+
+    private function holdsAnswer(ChatContext $context): bool
+    {
+        return $context->requestData->guardrailsEnabled && $this->guardrails->holdsAnswers($context->requestData->agent);
     }
 
     /**
@@ -278,9 +317,10 @@ abstract class ToolLoopSource
     }
 
     /**
-     * Output guardrails: redact PII / replace a toxic answer. When a guard
-     * fires, the streamed text is swapped for the corrected one and the event
-     * is recorded. Returns the corrected text, or null when nothing changed.
+     * Output guardrails: redact PII / replace a toxic answer (a refusal in the
+     * visitor's language). Every verdict is recorded; when the text changed,
+     * the streamed text is swapped for the corrected one. Returns the
+     * corrected text, or null when nothing changed.
      */
     private function applyOutputGuard(ChatContext $context): ?string
     {
@@ -290,17 +330,23 @@ abstract class ToolLoopSource
             return null;
         }
 
-        $guard = $this->guardrails->inspectOutput($context->requestData->agent, $original);
+        $guard = $this->guardrails->inspectOutput($context->requestData->agent, $original, $context->queryLanguage);
 
         if (! $guard->triggered()) {
             return null;
         }
 
-        $context->resetStreamedMessage();
-        $context->appendStreamedMessage($guard->text);
         // Record the corrected (masked / safe) text — the audit snippet must
         // not store the raw answer's PII.
         $this->guardrailRecorder->record($context, $guard->text, $guard);
+
+        // A guard that was only skipped leaves the answer as it is.
+        if ($guard->text === $original) {
+            return null;
+        }
+
+        $context->resetStreamedMessage();
+        $context->appendStreamedMessage($guard->text);
 
         return $guard->text;
     }

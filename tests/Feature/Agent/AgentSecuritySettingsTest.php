@@ -36,3 +36,16 @@ it('rejects a rate limit outside the allowed range', function (): void {
         ])
         ->assertSessionHasErrors('chat_rate_limit_per_minute');
 });
+
+it('saves the per-visitor rate limit', function (): void {
+    $this->actingAs($this->owner)
+        ->from(route('agents.security.rate-limit', $this->agent->external_id))
+        ->post(route('agents.security.settings.update', $this->agent->external_id), [
+            'chat_rate_limit_per_minute' => 50,
+            'notify_owner_on_rate_limit' => false,
+            'visitor_rate_limit_per_minute' => 5,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($this->agent->fresh()->settings('security')->get('visitor_rate_limit_per_minute'))->toBe(5);
+});

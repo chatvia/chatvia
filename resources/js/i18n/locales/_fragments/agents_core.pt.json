@@ -333,7 +333,7 @@
                 "when": "Quando"
             },
             "injection_label": "Deteção de injeção de prompt",
-            "injection_help": "Detete e bloqueie tentativas de substituir as instruções do agente ou de extrair o seu prompt de sistema.",
+            "injection_help": "Deteta e bloqueia tentativas de contornar ou revelar as instruções do agente, em mensagens, no conhecimento e em resultados de ferramentas.",
             "toxicity_label": "Filtragem de toxicidade",
             "toxicity_help": "Detete e bloqueie linguagem tóxica, de ódio ou abusiva nas mensagens.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Limitação de taxa",
-                "subtitle": "Limite o número de mensagens que um único visitante pode enviar por minuto.",
-                "card_description": "Proteja o seu agente de abusos limitando a frequência de mensagens por visitante.",
-                "messages_per_minute": "Mensagens por minuto",
-                "default_hint": "Deixe em branco para utilizar o valor padrão da plataforma.",
+                "subtitle": "Limite quantas mensagens o seu agente responde por minuto e quantas um visitante pode enviar.",
+                "card_description": "Proteja o seu agente contra abusos e custos inesperados.",
+                "messages_per_minute": "Mensagens por minuto (todos os visitantes)",
+                "default_hint": "O máximo de mensagens que o agente responde por minuto, entre todos os visitantes.",
                 "notify_label": "Notificar-me quando o limite for atingido",
-                "notify_hint": "Receba um e-mail quando um visitante atingir o limite de taxa.",
+                "notify_hint": "Receba um email quando o agente atingir este limite.",
                 "save": "Guardar",
                 "saved": "Limite de taxa guardado",
-                "save_error": "Não foi possível guardar o limite de taxa. Por favor tente novamente."
+                "save_error": "Não foi possível guardar o limite de taxa. Por favor tente novamente.",
+                "visitor_messages_per_minute": "Mensagens por minuto (um visitante)",
+                "visitor_hint": "O máximo de mensagens que um visitante pode enviar por minuto. Quem o ultrapassa tem de esperar, enquanto os outros continuam."
             }
         },
         "tone": {

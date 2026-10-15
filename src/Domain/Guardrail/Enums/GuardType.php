@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace Domain\Guardrail\Enums;
 
 /**
- * The four safety guards. PII is regex-based; the other three are resolved by a
- * single open-weight classifier call.
+ * The safety guards. PII is regex-based; injection, blocked topics and
+ * toxicity are resolved by a single open-weight classifier call (injection in
+ * knowledge and tool results by rules); a prompt leak is an answer that
+ * repeats the system prompt's marker.
  */
 enum GuardType: string
 {
@@ -14,6 +16,7 @@ enum GuardType: string
     case Pii = 'pii';
     case BlockedTopic = 'blocked_topic';
     case Toxicity = 'toxicity';
+    case PromptLeak = 'prompt_leak';
 
     public function label(): string
     {
@@ -22,6 +25,7 @@ enum GuardType: string
             self::Pii => 'PII',
             self::BlockedTopic => 'Blocked topic',
             self::Toxicity => 'Toxicity',
+            self::PromptLeak => 'Prompt leak',
         };
     }
 }

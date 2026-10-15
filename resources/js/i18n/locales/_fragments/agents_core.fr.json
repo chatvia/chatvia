@@ -333,7 +333,7 @@
                 "when": "Quand"
             },
             "injection_label": "Détection d'injection de prompt",
-            "injection_help": "Détectez et bloquez les tentatives de contournement des instructions de l'agent ou d'extraction de son prompt système.",
+            "injection_help": "Détecte et bloque les tentatives de contourner les instructions de l’agent ou de les révéler, dans les messages, les connaissances et les résultats d’outils.",
             "toxicity_label": "Filtrage de la toxicité",
             "toxicity_help": "Détectez et bloquez le langage toxique, haineux ou abusif dans les messages.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Limitation de débit",
-                "subtitle": "Limitez le nombre de messages qu'un seul visiteur peut envoyer par minute.",
-                "card_description": "Protégez votre agent des abus en plafonnant la fréquence des messages par visiteur.",
-                "messages_per_minute": "Messages par minute",
-                "default_hint": "Laissez vide pour utiliser la valeur par défaut de la plateforme.",
+                "subtitle": "Limitez le nombre de messages auxquels votre agent répond par minute, et le nombre qu’un visiteur peut envoyer.",
+                "card_description": "Protégez votre agent contre les abus et les coûts imprévus.",
+                "messages_per_minute": "Messages par minute (tous les visiteurs)",
+                "default_hint": "Le nombre maximal de messages auxquels l’agent répond par minute, tous visiteurs confondus.",
                 "notify_label": "M'avertir lorsque la limite est atteinte",
-                "notify_hint": "Recevez un e-mail lorsqu'un visiteur atteint la limite de débit.",
+                "notify_hint": "Recevez un e-mail quand l’agent atteint cette limite.",
                 "save": "Enregistrer",
                 "saved": "Limite de débit enregistrée",
-                "save_error": "Impossible d'enregistrer la limite de débit. Veuillez réessayer."
+                "save_error": "Impossible d'enregistrer la limite de débit. Veuillez réessayer.",
+                "visitor_messages_per_minute": "Messages par minute (un visiteur)",
+                "visitor_hint": "Le nombre maximal de messages qu’un visiteur peut envoyer par minute. Au-delà, il doit attendre, pendant que les autres continuent."
             }
         },
         "tone": {

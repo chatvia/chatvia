@@ -190,17 +190,28 @@ return [
                 'address' => null,
                 'opening_hours' => null,
             ],
-            // Per-agent AI-safety guards (Setup → Guardrails). Off by default so
-            // existing agents are untouched; the owner opts in. PII redaction is
-            // regex; injection/toxicity/topic use one open-weight classifier call.
+            // Per-agent AI-safety guards (Guardrails page). On by default, so a
+            // new agent is protected from the start. PII redaction is regex (the
+            // filter list defaults to PiiFilterType::defaults()); injection,
+            // toxicity and topics use one open-weight classifier call.
             'guardrails' => [
-                'enabled' => false,
-                'pii' => true,            // redact emails/phones/cards/SSNs in input + output
-                'injection' => true,      // block prompt-injection in input; strip from RAG sources
-                'toxicity' => true,       // block toxic input; redact toxic output
-                'blocked_topics' => [],   // topics to refuse; empty = no topic guard
+                'enabled' => true,
+                'pii_actions' => [],      // filter key => mask|block; a missing key masks
+                'custom_patterns' => [],  // owner patterns: {name, pattern, action}
+                'allowlist' => [],        // values the PII filters never mask (besides the business contacts)
+                'injection' => true,      // injection in messages, knowledge, tool results; prompt leaks in answers
+                'injection_mode' => 'block',       // block | monitor (log only)
+                'injection_sensitivity' => 'high', // block from a low-risk finding up
+                'toxicity' => true,       // toxic messages and answers
+                'toxicity_mode' => 'block',
+                'toxicity_sensitivity' => 'medium', // block from a medium finding up
+                'blocked_topics' => [],   // {name, description, examples, action, reply, reply_translations}
                 'allowed_scope' => '',    // optional: only answer within this described scope
-                'refusal_message' => 'Sorry, I can’t help with that request.',
+                'topics_mode' => 'block',
+                'refusal_message' => '',  // empty = the generic refusal, from the language files
+                'refusal_translations' => [], // AI translations of refusal_message, locale => text
+                'check_before_showing' => false, // hold the answer until the output guards passed
+                'alert_owner' => false,   // email the owner about blocked attacks and skipped checks
             ],
             // Per-agent chat throttle (Security page). Caps how many messages the
             // agent will answer per minute (aggregate across all visitors) before
@@ -208,6 +219,9 @@ return [
             // Optionally email the workspace owner the first time it trips.
             'security' => [
                 'chat_rate_limit_per_minute' => 20,
+                // Cap per visitor (one chat session or channel chat) per minute,
+                // so one person cannot use up the agent's cap for everyone.
+                'visitor_rate_limit_per_minute' => 8,
                 'notify_owner_on_rate_limit' => false,
             ],
         ],
@@ -294,16 +308,6 @@ return [
             'sentiment' => ['nullable', 'boolean'],
             'tone' => ['nullable', 'boolean'],
             'topics' => ['nullable', 'boolean'],
-        ],
-        'guardrails' => [
-            'enabled' => ['nullable', 'boolean'],
-            'pii' => ['nullable', 'boolean'],
-            'injection' => ['nullable', 'boolean'],
-            'toxicity' => ['nullable', 'boolean'],
-            'blocked_topics' => ['nullable', 'array'],
-            'blocked_topics.*' => ['string', 'max:120'],
-            'allowed_scope' => ['nullable', 'string', 'max:2000'],
-            'refusal_message' => ['nullable', 'string', 'max:500'],
         ],
         'security' => [
             'chat_rate_limit_per_minute' => ['nullable', 'integer', 'min:1', 'max:1000'],

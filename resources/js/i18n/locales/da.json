@@ -628,7 +628,7 @@
                 "severity": "Alvorlighed",
                 "when": "Tidspunkt"
             },
-            "blocked_topics_dialog_description": "Tilføj emner, som agenten skal afvise at diskutere. Ét emne pr. linje fungerer bedst — hold dem korte og specifikke.",
+            "blocked_topics_dialog_description": "Emner, agenten ikke må tale om. En kort beskrivelse og nogle eksempelspørgsmål hjælper kontrollen med at genkende dem.",
             "topic_placeholder_first": "f.eks. Politik",
             "topic_placeholder_more": "Tilføj endnu et emne",
             "remove_topic": "Fjern emne",
@@ -639,15 +639,125 @@
             "by_user": "Af {name}",
             "conversation_trace": "Samtale {conversation} · Spor {trace}",
             "injection_label": "Registrering af prompt-injektion",
-            "injection_help": "Registrér og blokér forsøg på at tilsidesætte agentens instruktioner eller udtrække dens systemprompt.",
+            "injection_help": "Finder og blokerer forsøg på at omgå eller afsløre agentens instruktioner, i beskeder, viden og værktøjsresultater.",
             "toxicity_label": "Toksicitetsfiltrering",
             "toxicity_help": "Registrér og blokér toxisk, hadefuldt eller krænkende sprog i beskeder.",
             "guard_labels": {
                 "prompt_injection": "Prompt-injektion",
                 "pii": "PII",
                 "blocked_topic": "Blokeret emne",
-                "toxicity": "Toksicitet"
-            }
+                "toxicity": "Toksicitet",
+                "prompt_leak": "Prompt-læk"
+            },
+            "filter_labels": {
+                "email": "E-mailadresse",
+                "credit_card": "Kreditkort",
+                "us_ssn": "Amerikansk personnummer (SSN)",
+                "german_ssn": "Tysk socialsikringsnummer",
+                "danish_cpr": "Dansk CPR-nummer",
+                "phone": "Telefonnummer",
+                "iban": "Bankkonto (IBAN)",
+                "uk_nino": "Britisk National Insurance-nummer",
+                "ip_address": "IP-adresse"
+            },
+            "outcome_labels": {
+                "blocked": "Blokeret",
+                "redacted": "Maskeret",
+                "flagged": "Markeret",
+                "skipped": "Sprunget over"
+            },
+            "stage_labels": {
+                "input": "Besked",
+                "source": "Viden",
+                "output": "Svar",
+                "tool": "Værktøjsresultat"
+            },
+            "severity_labels": {
+                "none": "Ingen",
+                "low": "Lav",
+                "medium": "Middel",
+                "high": "Høj"
+            },
+            "allowlist_title": "Maskér aldrig",
+            "allowlist_description": "Værdier, som agenten altid må vise, fx din support-e-mail eller dit telefonnummer. Start med {'@'} for at tillade et helt e-maildomæne, fx {'@'}acme.com. E-mail og telefon fra virksomhedsprofilen er altid tilladt.",
+            "allowlist_placeholder_first": "fx support{'@'}acme.com",
+            "allowlist_placeholder_more": "Tilføj en værdi mere",
+            "add_allowlist_value": "Tilføj værdi",
+            "remove_allowlist_value": "Fjern værdi",
+            "allowlist_count": "{count} værdi maskeres aldrig | {count} værdier maskeres aldrig",
+            "all_guards": "Alle beskyttelser",
+            "all_outcomes": "Alle resultater",
+            "refusal_message_help": "Vises, når en beskyttelse blokerer en besked. Når du gemmer, oversættes den til agentens sprog. Lad feltet være tomt for at bruge standardbeskeden.",
+            "mode_labels": {
+                "block": "Bloker",
+                "monitor": "Log kun"
+            },
+            "sensitivity_labels": {
+                "high": "Høj: blokerer mest",
+                "medium": "Middel",
+                "low": "Lav: blokerer mindst"
+            },
+            "pii_action_labels": {
+                "mask": "Maskér",
+                "block": "Bloker besked"
+            },
+            "topic_action_labels": {
+                "refuse": "Afvisningsbeskeden",
+                "reply": "Et eget svar",
+                "handoff": "En person fra dit team"
+            },
+            "detail_labels": {
+                "topic": "Emne",
+                "types": "Data",
+                "count": "Fundet",
+                "categories": "Kategorier",
+                "tool": "Værktøj",
+                "pattern": "Regel",
+                "reason": "Årsag"
+            },
+            "pii_action": "Hvad der sker",
+            "pii_action_help": "Maskér skjuler dataene, og chatten fortsætter. Bloker stopper beskeden og beder den besøgende om ikke at dele dem. Svar bliver altid maskeret.",
+            "custom_patterns_title": "Dine egne mønstre",
+            "custom_patterns_description": "Find andre personlige oplysninger, fx et kundenummer, med et regulært udtryk.",
+            "custom_pattern_name": "Navn",
+            "custom_pattern_name_placeholder": "fx Kundenummer",
+            "custom_pattern": "Mønster",
+            "custom_pattern_placeholder": "fx KUNDE-[0-9]+",
+            "add_custom_pattern": "Tilføj mønster",
+            "remove_custom_pattern": "Fjern mønster",
+            "topic_name": "Emne",
+            "topic_description": "Beskrivelse",
+            "topic_description_placeholder": "Hvad emnet dækker (valgfrit)",
+            "topic_examples": "Eksempelspørgsmål",
+            "topic_examples_placeholder": "Eksempelspørgsmål, ét pr. linje (valgfrit)",
+            "topic_action": "Hvad den besøgende får",
+            "topic_handoff_help": "Virker i chatwidgetten, når livechat er slået til. Andre steder får den besøgende afvisningsbeskeden.",
+            "topic_handoff_reply_placeholder": "Besked, mens vi forbinder (valgfrit)",
+            "topic_reply_placeholder": "Svaret, den besøgende læser",
+            "topic_reply": "Svar",
+            "mode": "Hvad der sker",
+            "sensitivity": "Følsomhed",
+            "mode_help": "\"Log kun\" registrerer, hvad en beskyttelse finder, uden at blokere, så du kan tjekke det, før det påvirker besøgende.",
+            "check_before_showing": "Tjek svar, før de vises",
+            "check_before_showing_help": "Den besøgende ser først et svar, når beskyttelserne har tjekket det. Svar vises lidt senere og på én gang.",
+            "alert_owner": "Send mig en e-mail om angreb",
+            "alert_owner_help": "Få en e-mail, når agenten blokerer et forsøg på at omgå sine instruktioner, eller når sikkerhedstjekket ikke kan køre. Højst én e-mail i timen.",
+            "test_title": "Test en besked",
+            "test_description": "Se, hvad en besøgende ville få med indstillingerne ovenfor, før du gemmer. Intet bliver gemt.",
+            "test_placeholder": "Skriv en besked at teste",
+            "test_samples": "Prøv:",
+            "test_run": "Test",
+            "test_error": "Beskeden kunne ikke testes. Prøv igen.",
+            "test_blocked": "Blokeret",
+            "test_allowed": "Tilladt",
+            "test_handoff": "Chatten ville gå til dit team.",
+            "test_visitor_sees": "Den besøgende ser",
+            "test_model_reads": "Agenten læser",
+            "test_guards": "Beskyttelser",
+            "test_no_guards": "Ingen beskyttelse fandt noget.",
+            "detail_topic": "Emne: {topic}",
+            "classifier_unavailable": "Sikkerhedstjekket kunne ikke køre, så teksten blev ikke tjekket.",
+            "open_conversation": "Åbn samtale"
         },
         "persona": {
             "title": "Persona",
@@ -918,15 +1028,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Hastighedsbegrænsning",
-                "subtitle": "Begræns, hvor mange beskeder en enkelt besøgende kan sende pr. minut.",
-                "card_description": "Beskyt din agent mod misbrug ved at begrænse beskedfrekvensen pr. besøgende.",
-                "messages_per_minute": "Beskeder pr. minut",
-                "default_hint": "Lad feltet være tomt for at bruge platformens standard.",
+                "subtitle": "Begræns, hvor mange beskeder din agent besvarer pr. minut, og hvor mange én besøgende kan sende.",
+                "card_description": "Beskyt din agent mod misbrug og uventede omkostninger.",
+                "messages_per_minute": "Beskeder pr. minut (alle besøgende)",
+                "default_hint": "Det højeste antal beskeder, agenten besvarer pr. minut, for alle besøgende.",
                 "notify_label": "Giv mig besked, når grænsen nås",
-                "notify_hint": "Modtag en e-mail, når en besøgende når hastighedsgrænsen.",
+                "notify_hint": "Få en e-mail, når agenten når denne grænse.",
                 "save": "Gem",
                 "saved": "Hastighedsgrænse gemt",
-                "save_error": "Kunne ikke gemme hastighedsgrænsen. Prøv igen."
+                "save_error": "Kunne ikke gemme hastighedsgrænsen. Prøv igen.",
+                "visitor_messages_per_minute": "Beskeder pr. minut (én besøgende)",
+                "visitor_hint": "Det højeste antal beskeder, én besøgende kan sende pr. minut. Den, der går over, må vente, mens andre chatter videre."
             }
         },
         "tone": {

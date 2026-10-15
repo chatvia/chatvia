@@ -812,8 +812,10 @@ return [
     |
     | Input + output safety guards on the live chat: PII (regex redaction),
     | prompt-injection, off-topic/blocked-topics, and toxicity (one open-weight
-    | classifier call). Per-agent toggles live in the `guardrails` model-settings
-    | group; triggers are logged to the immutable `guardrail_events` table.
+    | classifier call). Injection hidden in knowledge chunks is caught by the
+    | rules in InjectionPatternDetector. Per-agent toggles live in the
+    | `guardrails` model-settings group; triggers are logged to the immutable
+    | `guardrail_events` table.
     |
     */
 
@@ -830,20 +832,6 @@ return [
         // The redacted snippet stored on a trigger is capped to this many bytes;
         // the full original text is hashed (sha256) before truncation, never stored raw.
         'max_snippet_bytes' => 2048,
-
-        // Phrases that mark a likely prompt-injection inside retrieved RAG source
-        // content (a cheap rules pass; the LLM classifier handles the user message).
-        'injection_markers' => [
-            'ignore previous instructions',
-            'ignore the above',
-            'disregard previous',
-            'disregard all previous',
-            'forget previous instructions',
-            'you are now',
-            'new instructions:',
-            'override your instructions',
-            'system prompt:',
-        ],
     ],
 
     /*

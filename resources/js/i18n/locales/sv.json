@@ -628,7 +628,7 @@
                 "severity": "Allvarlighetsgrad",
                 "when": "När"
             },
-            "blocked_topics_dialog_description": "Lägg till ämnen som agenten ska vägra diskutera. Ett ämne per rad fungerar bäst — håll dem korta och specifika.",
+            "blocked_topics_dialog_description": "Ämnen som agenten inte får prata om. En kort beskrivning och några exempelfrågor hjälper kontrollen att känna igen dem.",
             "topic_placeholder_first": "t.ex. Politik",
             "topic_placeholder_more": "Lägg till ett ämne till",
             "remove_topic": "Ta bort ämne",
@@ -639,15 +639,125 @@
             "by_user": "Av {name}",
             "conversation_trace": "Konversation {conversation} · Spårning {trace}",
             "injection_label": "Identifiering av prompt-injektion",
-            "injection_help": "Identifiera och blockera försök att åsidosätta agentens instruktioner eller extrahera dess systemprompt.",
+            "injection_help": "Upptäcker och blockerar försök att kringgå eller avslöja agentens instruktioner, i meddelanden, kunskap och verktygsresultat.",
             "toxicity_label": "Toxicitetsfiltrering",
             "toxicity_help": "Identifiera och blockera toxiskt, hatiskt eller kränkande språk i meddelanden.",
             "guard_labels": {
                 "prompt_injection": "Prompt-injektion",
                 "pii": "PII",
                 "blocked_topic": "Blockerat ämne",
-                "toxicity": "Toxicitet"
-            }
+                "toxicity": "Toxicitet",
+                "prompt_leak": "Promptläcka"
+            },
+            "filter_labels": {
+                "email": "E-postadress",
+                "credit_card": "Kreditkort",
+                "us_ssn": "Amerikanskt personnummer (SSN)",
+                "german_ssn": "Tyskt socialförsäkringsnummer",
+                "danish_cpr": "Danskt CPR-nummer",
+                "phone": "Telefonnummer",
+                "iban": "Bankkonto (IBAN)",
+                "uk_nino": "Brittiskt National Insurance-nummer",
+                "ip_address": "IP-adress"
+            },
+            "outcome_labels": {
+                "blocked": "Blockerad",
+                "redacted": "Maskerad",
+                "flagged": "Flaggad",
+                "skipped": "Överhoppad"
+            },
+            "stage_labels": {
+                "input": "Meddelande",
+                "source": "Kunskap",
+                "output": "Svar",
+                "tool": "Verktygsresultat"
+            },
+            "severity_labels": {
+                "none": "Ingen",
+                "low": "Låg",
+                "medium": "Medel",
+                "high": "Hög"
+            },
+            "allowlist_title": "Maskera aldrig",
+            "allowlist_description": "Värden som agenten alltid får visa, t.ex. din support-e-post eller ditt telefonnummer. Börja med {'@'} för att tillåta en hel e-postdomän, t.ex. {'@'}acme.com. E-post och telefon i företagsprofilen är alltid tillåtna.",
+            "allowlist_placeholder_first": "t.ex. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Lägg till ett värde till",
+            "add_allowlist_value": "Lägg till värde",
+            "remove_allowlist_value": "Ta bort värde",
+            "allowlist_count": "{count} värde maskeras aldrig | {count} värden maskeras aldrig",
+            "all_guards": "Alla skydd",
+            "all_outcomes": "Alla resultat",
+            "refusal_message_help": "Visas när ett skydd blockerar ett meddelande. När du sparar översätts det till agentens språk. Lämna tomt för att använda standardmeddelandet.",
+            "mode_labels": {
+                "block": "Blockera",
+                "monitor": "Logga bara"
+            },
+            "sensitivity_labels": {
+                "high": "Hög: blockerar mest",
+                "medium": "Medel",
+                "low": "Låg: blockerar minst"
+            },
+            "pii_action_labels": {
+                "mask": "Maskera",
+                "block": "Blockera meddelande"
+            },
+            "topic_action_labels": {
+                "refuse": "Avvisningsmeddelandet",
+                "reply": "Ett eget svar",
+                "handoff": "En person i ditt team"
+            },
+            "detail_labels": {
+                "topic": "Ämne",
+                "types": "Data",
+                "count": "Hittade",
+                "categories": "Kategorier",
+                "tool": "Verktyg",
+                "pattern": "Regel",
+                "reason": "Orsak"
+            },
+            "pii_action": "Vad som händer",
+            "pii_action_help": "Maskera döljer uppgifterna och chatten fortsätter. Blockera stoppar meddelandet och ber besökaren att inte dela dem. Svar maskeras alltid.",
+            "custom_patterns_title": "Egna mönster",
+            "custom_patterns_description": "Hitta andra personuppgifter, till exempel ett kundnummer, med ett reguljärt uttryck.",
+            "custom_pattern_name": "Namn",
+            "custom_pattern_name_placeholder": "t.ex. Kundnummer",
+            "custom_pattern": "Mönster",
+            "custom_pattern_placeholder": "t.ex. KUND-[0-9]+",
+            "add_custom_pattern": "Lägg till mönster",
+            "remove_custom_pattern": "Ta bort mönster",
+            "topic_name": "Ämne",
+            "topic_description": "Beskrivning",
+            "topic_description_placeholder": "Vad ämnet omfattar (valfritt)",
+            "topic_examples": "Exempelfrågor",
+            "topic_examples_placeholder": "Exempelfrågor, en per rad (valfritt)",
+            "topic_action": "Vad besökaren får",
+            "topic_handoff_help": "Fungerar i chattwidgeten när livechatten är på. På andra ställen får besökaren avvisningsmeddelandet.",
+            "topic_handoff_reply_placeholder": "Meddelande medan vi kopplar (valfritt)",
+            "topic_reply_placeholder": "Svaret som besökaren läser",
+            "topic_reply": "Svar",
+            "mode": "Vad som händer",
+            "sensitivity": "Känslighet",
+            "mode_help": "”Logga bara” sparar vad ett skydd hittar utan att blockera, så att du kan kontrollera det innan det påverkar besökare.",
+            "check_before_showing": "Kontrollera svar innan de visas",
+            "check_before_showing_help": "Besökaren ser ett svar först när skydden har kontrollerat det. Svar visas lite senare och på en gång.",
+            "alert_owner": "Mejla mig om attacker",
+            "alert_owner_help": "Få ett mejl när agenten blockerar ett försök att kringgå sina instruktioner, eller när säkerhetskontrollen inte kan köras. Högst ett mejl i timmen.",
+            "test_title": "Testa ett meddelande",
+            "test_description": "Se vad en besökare skulle få med inställningarna ovan, innan du sparar. Inget sparas.",
+            "test_placeholder": "Skriv ett meddelande att testa",
+            "test_samples": "Prova:",
+            "test_run": "Testa",
+            "test_error": "Meddelandet kunde inte testas. Försök igen.",
+            "test_blocked": "Blockerat",
+            "test_allowed": "Tillåtet",
+            "test_handoff": "Chatten skulle gå till ditt team.",
+            "test_visitor_sees": "Besökaren ser",
+            "test_model_reads": "Agenten läser",
+            "test_guards": "Skydd",
+            "test_no_guards": "Inget skydd hittade något.",
+            "detail_topic": "Ämne: {topic}",
+            "classifier_unavailable": "Säkerhetskontrollen kunde inte köras, så texten kontrollerades inte.",
+            "open_conversation": "Öppna konversationen"
         },
         "persona": {
             "title": "Persona",
@@ -918,15 +1028,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Hastighetsbegränsning",
-                "subtitle": "Begränsa hur många meddelanden en enskild besökare kan skicka per minut.",
-                "card_description": "Skydda din agent från missbruk genom att begränsa meddelandefrekvensen per besökare.",
-                "messages_per_minute": "Meddelanden per minut",
-                "default_hint": "Lämna tomt för att använda plattformens standard.",
+                "subtitle": "Begränsa hur många meddelanden din agent svarar på per minut och hur många en besökare kan skicka.",
+                "card_description": "Skydda din agent mot missbruk och oväntade kostnader.",
+                "messages_per_minute": "Meddelanden per minut (alla besökare)",
+                "default_hint": "Flest meddelanden som agenten svarar på per minut, för alla besökare.",
                 "notify_label": "Meddela mig när gränsen nås",
-                "notify_hint": "Få ett e-postmeddelande när en besökare når hastighetsgränsen.",
+                "notify_hint": "Få ett mejl när agenten når den här gränsen.",
                 "save": "Spara",
                 "saved": "Hastighetsgräns sparad",
-                "save_error": "Det gick inte att spara hastighetsgränsen. Försök igen."
+                "save_error": "Det gick inte att spara hastighetsgränsen. Försök igen.",
+                "visitor_messages_per_minute": "Meddelanden per minut (en besökare)",
+                "visitor_hint": "Flest meddelanden som en besökare kan skicka per minut. Den som går över får vänta, medan andra chattar vidare."
             }
         },
         "tone": {

@@ -333,7 +333,7 @@
                 "when": "Tidspunkt"
             },
             "injection_label": "Registrering af prompt-injektion",
-            "injection_help": "Registrér og blokér forsøg på at tilsidesætte agentens instruktioner eller udtrække dens systemprompt.",
+            "injection_help": "Finder og blokerer forsøg på at omgå eller afsløre agentens instruktioner, i beskeder, viden og værktøjsresultater.",
             "toxicity_label": "Toksicitetsfiltrering",
             "toxicity_help": "Registrér og blokér toxisk, hadefuldt eller krænkende sprog i beskeder.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Hastighedsbegrænsning",
-                "subtitle": "Begræns, hvor mange beskeder en enkelt besøgende kan sende pr. minut.",
-                "card_description": "Beskyt din agent mod misbrug ved at begrænse beskedfrekvensen pr. besøgende.",
-                "messages_per_minute": "Beskeder pr. minut",
-                "default_hint": "Lad feltet være tomt for at bruge platformens standard.",
+                "subtitle": "Begræns, hvor mange beskeder din agent besvarer pr. minut, og hvor mange én besøgende kan sende.",
+                "card_description": "Beskyt din agent mod misbrug og uventede omkostninger.",
+                "messages_per_minute": "Beskeder pr. minut (alle besøgende)",
+                "default_hint": "Det højeste antal beskeder, agenten besvarer pr. minut, for alle besøgende.",
                 "notify_label": "Giv mig besked, når grænsen nås",
-                "notify_hint": "Modtag en e-mail, når en besøgende når hastighedsgrænsen.",
+                "notify_hint": "Få en e-mail, når agenten når denne grænse.",
                 "save": "Gem",
                 "saved": "Hastighedsgrænse gemt",
-                "save_error": "Kunne ikke gemme hastighedsgrænsen. Prøv igen."
+                "save_error": "Kunne ikke gemme hastighedsgrænsen. Prøv igen.",
+                "visitor_messages_per_minute": "Beskeder pr. minut (én besøgende)",
+                "visitor_hint": "Det højeste antal beskeder, én besøgende kan sende pr. minut. Den, der går over, må vente, mens andre chatter videre."
             }
         },
         "tone": {

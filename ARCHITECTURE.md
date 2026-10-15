@@ -446,9 +446,18 @@ LLM judge) grade the answers.
 ### Guardrail
 
 Checks on the visitor's message and on the agent's answer: personal data (PII)
-is found with regex filters and redacted; prompt injection, off-topic and toxic
-content are judged by one classifier call. Every decision is logged as a
-`GuardrailEvent`.
+is found with regex filters (plus the owner's own patterns) and masked or, if
+the owner chose, the message is blocked (the business contacts and the agent's
+"never mask" list excepted); prompt injection, off-topic and toxic content are
+judged by one classifier call, which also sees the earlier messages and names
+the language for the refusal. Each guard blocks or only logs, with a
+sensitivity for injection and toxicity. Knowledge chunks and tool results pass
+a rules check for injection (`InjectionPatternDetector`); answers are checked
+for topics, toxicity and a leaked system prompt (a marker the
+`SystemPromptBuilder` puts first). A blocked topic can refuse, reply or hand
+the chat to the team. Every decision is logged as a `GuardrailEvent`,
+including a check that was skipped because the classifier failed; attacks
+also go to the security audit log, and the owner can get alert emails.
 
 ### Security
 

@@ -1,7 +1,7 @@
 {
     "agents": {
         "guardrails": {
-            "blocked_topics_dialog_description": "أضف المواضيع التي يجب على الوكيل رفض مناقشتها. يُفضّل موضوع واحد في كل سطر — اجعلها قصيرة ومحددة.",
+            "blocked_topics_dialog_description": "مواضيع يجب ألا يتحدث عنها الوكيل. وصف قصير وبعض الأسئلة الأمثلة يساعدان الفحص على التعرف عليها.",
             "topic_placeholder_first": "مثال: السياسة",
             "topic_placeholder_more": "أضف موضوعاً آخر",
             "remove_topic": "إزالة الموضوع",
@@ -10,7 +10,119 @@
             "snippet": "مقتطف",
             "detail": "التفاصيل",
             "by_user": "بواسطة {name}",
-            "conversation_trace": "المحادثة {conversation} · التتبع {trace}"
+            "conversation_trace": "المحادثة {conversation} · التتبع {trace}",
+            "filter_labels": {
+                "email": "البريد الإلكتروني",
+                "credit_card": "بطاقة الائتمان",
+                "us_ssn": "رقم الضمان الاجتماعي الأمريكي",
+                "german_ssn": "رقم التأمين الاجتماعي الألماني",
+                "danish_cpr": "رقم CPR الدنماركي",
+                "phone": "رقم الهاتف",
+                "iban": "الحساب البنكي (IBAN)",
+                "uk_nino": "رقم التأمين الوطني البريطاني",
+                "ip_address": "عنوان IP"
+            },
+            "outcome_labels": {
+                "blocked": "محظور",
+                "redacted": "مخفي",
+                "flagged": "مُعلَّم",
+                "skipped": "تم تخطيه"
+            },
+            "stage_labels": {
+                "input": "الرسالة",
+                "source": "المعرفة",
+                "output": "الإجابة",
+                "tool": "نتيجة أداة"
+            },
+            "severity_labels": {
+                "none": "لا شيء",
+                "low": "منخفض",
+                "medium": "متوسط",
+                "high": "مرتفع"
+            },
+            "allowlist_title": "لا تُخفِ أبدًا",
+            "allowlist_description": "قيم يمكن للوكيل عرضها دائمًا، مثل بريد الدعم أو رقم الهاتف. ابدأ بـ {'@'} للسماح بنطاق بريد كامل، مثل {'@'}acme.com. البريد والهاتف في ملف النشاط التجاري مسموح بهما دائمًا.",
+            "allowlist_placeholder_first": "مثال: support{'@'}acme.com",
+            "allowlist_placeholder_more": "أضف قيمة أخرى",
+            "add_allowlist_value": "إضافة قيمة",
+            "remove_allowlist_value": "إزالة القيمة",
+            "allowlist_count": "{count} قيمة لا تُخفى أبدًا | {count} قيم لا تُخفى أبدًا",
+            "all_guards": "كل الحمايات",
+            "all_outcomes": "كل النتائج",
+            "refusal_message_help": "تظهر عندما تحظر حماية رسالة ما. عند الحفظ تُترجم إلى لغات الوكيل. اتركها فارغة لاستخدام الرسالة الافتراضية.",
+            "guard_labels": {
+                "prompt_leak": "تسريب التعليمات"
+            },
+            "mode_labels": {
+                "block": "حظر",
+                "monitor": "تسجيل فقط"
+            },
+            "sensitivity_labels": {
+                "high": "عالية: تحظر أكثر",
+                "medium": "متوسطة",
+                "low": "منخفضة: تحظر أقل"
+            },
+            "pii_action_labels": {
+                "mask": "إخفاء",
+                "block": "حظر الرسالة"
+            },
+            "topic_action_labels": {
+                "refuse": "رسالة الرفض",
+                "reply": "رد خاص به",
+                "handoff": "شخص من فريقك"
+            },
+            "detail_labels": {
+                "topic": "الموضوع",
+                "types": "البيانات",
+                "count": "العدد",
+                "categories": "الفئات",
+                "tool": "الأداة",
+                "pattern": "القاعدة",
+                "reason": "السبب"
+            },
+            "pii_action": "ماذا يحدث",
+            "pii_action_help": "الإخفاء يخفي البيانات وتستمر المحادثة. الحظر يوقف الرسالة ويطلب من الزائر عدم مشاركتها. الإجابات تُخفى دائمًا.",
+            "custom_patterns_title": "أنماطك الخاصة",
+            "custom_patterns_description": "اعثر على بيانات شخصية أخرى، مثل رقم العميل، باستخدام تعبير نمطي.",
+            "custom_pattern_name": "الاسم",
+            "custom_pattern_name_placeholder": "مثال: رقم العميل",
+            "custom_pattern": "النمط",
+            "custom_pattern_placeholder": "مثال: CUST-[0-9]+",
+            "add_custom_pattern": "إضافة نمط",
+            "remove_custom_pattern": "إزالة النمط",
+            "topic_name": "الموضوع",
+            "topic_description": "الوصف",
+            "topic_description_placeholder": "ما يشمله الموضوع (اختياري)",
+            "topic_examples": "أسئلة أمثلة",
+            "topic_examples_placeholder": "أسئلة أمثلة، سؤال في كل سطر (اختياري)",
+            "topic_action": "ما يحصل عليه الزائر",
+            "topic_handoff_help": "يعمل في أداة الدردشة عند تفعيل الدردشة المباشرة. في الأماكن الأخرى يحصل الزائر على رسالة الرفض.",
+            "topic_handoff_reply_placeholder": "رسالة أثناء التوصيل (اختياري)",
+            "topic_reply_placeholder": "الرد الذي يقرؤه الزائر",
+            "topic_reply": "الرد",
+            "mode": "ماذا يحدث",
+            "sensitivity": "الحساسية",
+            "mode_help": "«تسجيل فقط» يسجل ما تجده الحماية دون حظر، حتى تتحقق منه قبل أن يؤثر على الزوار.",
+            "check_before_showing": "فحص الإجابات قبل عرضها",
+            "check_before_showing_help": "لا يرى الزائر الإجابة إلا بعد أن تفحصها الحمايات. تظهر الإجابات بعد قليل ودفعة واحدة.",
+            "alert_owner": "أرسل لي بريدًا عن الهجمات",
+            "alert_owner_help": "احصل على بريد عندما يحظر الوكيل محاولة لتجاوز تعليماته، أو عندما يتعذر تشغيل فحص الأمان. بريد واحد على الأكثر كل ساعة.",
+            "test_title": "اختبار رسالة",
+            "test_description": "شاهد ما سيحصل عليه الزائر بالإعدادات أعلاه قبل الحفظ. لا يُحفظ أي شيء.",
+            "test_placeholder": "اكتب رسالة لاختبارها",
+            "test_samples": "جرّب:",
+            "test_run": "اختبار",
+            "test_error": "تعذر اختبار الرسالة. يُرجى المحاولة مرة أخرى.",
+            "test_blocked": "محظورة",
+            "test_allowed": "مسموحة",
+            "test_handoff": "ستنتقل المحادثة إلى فريقك.",
+            "test_visitor_sees": "يرى الزائر",
+            "test_model_reads": "يقرأ الوكيل",
+            "test_guards": "الحمايات",
+            "test_no_guards": "لم تجد أي حماية شيئًا.",
+            "detail_topic": "الموضوع: {topic}",
+            "classifier_unavailable": "تعذر تشغيل فحص الأمان، لذا لم يُفحص النص.",
+            "open_conversation": "فتح المحادثة"
         },
         "leads": {
             "settings": "الإعدادات",

@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\RateLimiter;
  * the cap the turn is refused and, if the owner opted in, an alert event is
  * dispatched. A limit of 0 disables the cap.
  *
+ * Each visitor also has a smaller cap of their own ({@see visitorExceeded()}),
+ * checked first: a visitor over it is refused without counting toward the
+ * agent's bucket, so one person sending a flood cannot use up the agent's cap
+ * for everyone else.
+ *
  * Shared by every chat surface so the cap applies uniformly regardless of where
  * a message arrives: the web SSE stream ({@see ChatStreamService}) and the
  * messaging channels ({@see ChannelReplyRunner} —
@@ -26,6 +31,22 @@ use Illuminate\Support\Facades\RateLimiter;
  */
 class AgentChatRateLimiter
 {
+    /**
+     * Record this message against the visitor's own bucket (a chat session,
+     * or a chat on a messaging channel) and report whether the visitor is
+     * over their cap. A visitor limit of 0 disables it.
+     */
+    public function visitorExceeded(Agent $agent, string $visitorKey): bool
+    {
+        $limit = $this->config($agent)['visitor_limit'];
+
+        if ($limit <= 0 || $visitorKey === '') {
+            return false;
+        }
+
+        return RateLimiter::increment('agent-visitor-chat-rate:'.$agent->id.':'.sha1($visitorKey), self::WINDOW_SECONDS) > $limit;
+    }
+
     /** How long the per-agent security config is cached (seconds). */
     private const int CONFIG_TTL = 300;
 
@@ -75,7 +96,7 @@ class AgentChatRateLimiter
      * The agent's cap + alert flag from the `security` settings group, cached so
      * the chat hot path doesn't query model_settings on every turn.
      *
-     * @return array{limit: int, notify: bool}
+     * @return array{limit: int, visitor_limit: int, notify: bool}
      */
     private function config(Agent $agent): array
     {
@@ -84,6 +105,7 @@ class AgentChatRateLimiter
 
             return [
                 'limit' => (int) $security->get('chat_rate_limit_per_minute', 20),
+                'visitor_limit' => (int) $security->get('visitor_rate_limit_per_minute', 8),
                 'notify' => (bool) $security->get('notify_owner_on_rate_limit', false),
             ];
         });

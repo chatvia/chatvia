@@ -333,7 +333,7 @@
                 "when": "Zeitpunkt"
             },
             "injection_label": "Prompt-Injection-Erkennung",
-            "injection_help": "Versuche erkennen und blockieren, die Anweisungen des Agenten zu überschreiben oder seinen System-Prompt zu extrahieren.",
+            "injection_help": "Erkennt und blockiert Versuche, die Anweisungen des Agenten zu umgehen oder offenzulegen – in Nachrichten, im Wissen und in Tool-Ergebnissen.",
             "toxicity_label": "Toxizitätsfilterung",
             "toxicity_help": "Toxische, hasserfüllte oder beleidigende Sprache in Nachrichten erkennen und blockieren.",
             "guard_labels": {
@@ -485,15 +485,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Ratenbegrenzung",
-                "subtitle": "Begrenzen Sie, wie viele Nachrichten ein einzelner Besucher pro Minute senden kann.",
-                "card_description": "Schützen Sie Ihren Agenten vor Missbrauch, indem Sie die Nachrichtenhäufigkeit pro Besucher begrenzen.",
-                "messages_per_minute": "Nachrichten pro Minute",
-                "default_hint": "Leer lassen, um den Plattformstandard zu verwenden.",
+                "subtitle": "Begrenzen Sie, wie viele Nachrichten Ihr Agent pro Minute beantwortet und wie viele ein einzelner Besucher senden kann.",
+                "card_description": "Schützen Sie Ihren Agenten vor Missbrauch und unerwarteten Kosten.",
+                "messages_per_minute": "Nachrichten pro Minute (alle Besucher)",
+                "default_hint": "Die meisten Nachrichten, die der Agent pro Minute beantwortet, über alle Besucher.",
                 "notify_label": "Benachrichtigung bei Erreichen des Limits",
-                "notify_hint": "Erhalten Sie eine E-Mail, wenn ein Besucher das Ratenlimit erreicht.",
+                "notify_hint": "Erhalten Sie eine E-Mail, wenn der Agent dieses Limit erreicht.",
                 "save": "Speichern",
                 "saved": "Ratenlimit gespeichert",
-                "save_error": "Ratenlimit konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+                "save_error": "Ratenlimit konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+                "visitor_messages_per_minute": "Nachrichten pro Minute (ein Besucher)",
+                "visitor_hint": "Die meisten Nachrichten, die ein Besucher pro Minute senden kann. Wer darüber liegt, muss warten, während andere weiterchatten."
             }
         },
         "tone": {

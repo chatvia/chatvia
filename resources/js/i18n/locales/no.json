@@ -628,7 +628,7 @@
                 "severity": "Alvorlighetsgrad",
                 "when": "Tidspunkt"
             },
-            "blocked_topics_dialog_description": "Legg til emner agenten skal nekte å diskutere. Ett emne per linje fungerer best – hold dem korte og spesifikke.",
+            "blocked_topics_dialog_description": "Emner agenten ikke skal snakke om. En kort beskrivelse og noen eksempelspørsmål hjelper kontrollen med å kjenne dem igjen.",
             "topic_placeholder_first": "f.eks. Politikk",
             "topic_placeholder_more": "Legg til et annet emne",
             "remove_topic": "Fjern emne",
@@ -639,15 +639,125 @@
             "by_user": "Av {name}",
             "conversation_trace": "Samtale {conversation} · Spor {trace}",
             "injection_label": "Oppdagelse av prompt-injeksjon",
-            "injection_help": "Oppdag og blokker forsøk på å overstyre agentens instruksjoner eller hente ut systemprompten.",
+            "injection_help": "Oppdager og blokkerer forsøk på å omgå eller avsløre agentens instruksjoner, i meldinger, kunnskap og verktøyresultater.",
             "toxicity_label": "Toksisitetsfiltrering",
             "toxicity_help": "Oppdag og blokker giftig, hatefullt eller fornærmelig språk i meldinger.",
             "guard_labels": {
                 "prompt_injection": "Prompt-injeksjon",
                 "pii": "PII",
                 "blocked_topic": "Blokkert emne",
-                "toxicity": "Toksisitet"
-            }
+                "toxicity": "Toksisitet",
+                "prompt_leak": "Promptlekkasje"
+            },
+            "filter_labels": {
+                "email": "E-postadresse",
+                "credit_card": "Kredittkort",
+                "us_ssn": "Amerikansk personnummer (SSN)",
+                "german_ssn": "Tysk trygdenummer",
+                "danish_cpr": "Dansk CPR-nummer",
+                "phone": "Telefonnummer",
+                "iban": "Bankkonto (IBAN)",
+                "uk_nino": "Britisk National Insurance-nummer",
+                "ip_address": "IP-adresse"
+            },
+            "outcome_labels": {
+                "blocked": "Blokkert",
+                "redacted": "Maskert",
+                "flagged": "Flagget",
+                "skipped": "Hoppet over"
+            },
+            "stage_labels": {
+                "input": "Melding",
+                "source": "Kunnskap",
+                "output": "Svar",
+                "tool": "Verktøyresultat"
+            },
+            "severity_labels": {
+                "none": "Ingen",
+                "low": "Lav",
+                "medium": "Middels",
+                "high": "Høy"
+            },
+            "allowlist_title": "Masker aldri",
+            "allowlist_description": "Verdier agenten alltid kan vise, for eksempel support-e-posten eller telefonnummeret ditt. Start med {'@'} for å tillate et helt e-postdomene, for eksempel {'@'}acme.com. E-post og telefon fra bedriftsprofilen er alltid tillatt.",
+            "allowlist_placeholder_first": "f.eks. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Legg til en verdi til",
+            "add_allowlist_value": "Legg til verdi",
+            "remove_allowlist_value": "Fjern verdi",
+            "allowlist_count": "{count} verdi maskeres aldri | {count} verdier maskeres aldri",
+            "all_guards": "Alle beskyttelser",
+            "all_outcomes": "Alle resultater",
+            "refusal_message_help": "Vises når en beskyttelse blokkerer en melding. Når du lagrer, oversettes den til agentens språk. La feltet stå tomt for å bruke standardmeldingen.",
+            "mode_labels": {
+                "block": "Blokker",
+                "monitor": "Bare logg"
+            },
+            "sensitivity_labels": {
+                "high": "Høy: blokkerer mest",
+                "medium": "Middels",
+                "low": "Lav: blokkerer minst"
+            },
+            "pii_action_labels": {
+                "mask": "Masker",
+                "block": "Blokker melding"
+            },
+            "topic_action_labels": {
+                "refuse": "Avvisningsmeldingen",
+                "reply": "Et eget svar",
+                "handoff": "En person fra teamet ditt"
+            },
+            "detail_labels": {
+                "topic": "Emne",
+                "types": "Data",
+                "count": "Funnet",
+                "categories": "Kategorier",
+                "tool": "Verktøy",
+                "pattern": "Regel",
+                "reason": "Årsak"
+            },
+            "pii_action": "Hva som skjer",
+            "pii_action_help": "Masker skjuler dataene, og chatten fortsetter. Blokker stopper meldingen og ber den besøkende om ikke å dele dem. Svar blir alltid maskert.",
+            "custom_patterns_title": "Egne mønstre",
+            "custom_patterns_description": "Finn andre personopplysninger, for eksempel et kundenummer, med et regulært uttrykk.",
+            "custom_pattern_name": "Navn",
+            "custom_pattern_name_placeholder": "f.eks. Kundenummer",
+            "custom_pattern": "Mønster",
+            "custom_pattern_placeholder": "f.eks. KUNDE-[0-9]+",
+            "add_custom_pattern": "Legg til mønster",
+            "remove_custom_pattern": "Fjern mønster",
+            "topic_name": "Emne",
+            "topic_description": "Beskrivelse",
+            "topic_description_placeholder": "Hva emnet dekker (valgfritt)",
+            "topic_examples": "Eksempelspørsmål",
+            "topic_examples_placeholder": "Eksempelspørsmål, ett per linje (valgfritt)",
+            "topic_action": "Hva den besøkende får",
+            "topic_handoff_help": "Fungerer i chatwidgeten når livechat er på. Andre steder får den besøkende avvisningsmeldingen.",
+            "topic_handoff_reply_placeholder": "Melding mens vi kobler til (valgfritt)",
+            "topic_reply_placeholder": "Svaret den besøkende leser",
+            "topic_reply": "Svar",
+            "mode": "Hva som skjer",
+            "sensitivity": "Følsomhet",
+            "mode_help": "«Bare logg» registrerer hva en beskyttelse finner uten å blokkere, så du kan sjekke det før det påvirker besøkende.",
+            "check_before_showing": "Sjekk svar før de vises",
+            "check_before_showing_help": "Den besøkende ser et svar først etter at beskyttelsene har sjekket det. Svar vises litt senere, alt på en gang.",
+            "alert_owner": "Send meg e-post om angrep",
+            "alert_owner_help": "Få en e-post når agenten blokkerer et forsøk på å omgå instruksjonene sine, eller når sikkerhetssjekken ikke kan kjøre. Høyst én e-post i timen.",
+            "test_title": "Test en melding",
+            "test_description": "Se hva en besøkende ville fått med innstillingene over, før du lagrer. Ingenting lagres.",
+            "test_placeholder": "Skriv en melding å teste",
+            "test_samples": "Prøv:",
+            "test_run": "Test",
+            "test_error": "Meldingen kunne ikke testes. Prøv igjen.",
+            "test_blocked": "Blokkert",
+            "test_allowed": "Tillatt",
+            "test_handoff": "Chatten ville gått til teamet ditt.",
+            "test_visitor_sees": "Den besøkende ser",
+            "test_model_reads": "Agenten leser",
+            "test_guards": "Beskyttelser",
+            "test_no_guards": "Ingen beskyttelse fant noe.",
+            "detail_topic": "Emne: {topic}",
+            "classifier_unavailable": "Sikkerhetssjekken kunne ikke kjøre, så teksten ble ikke sjekket.",
+            "open_conversation": "Åpne samtalen"
         },
         "persona": {
             "title": "Persona",
@@ -918,15 +1028,17 @@
         "security": {
             "rate_limiting": {
                 "title": "Hastighetsbegrensning",
-                "subtitle": "Begrens hvor mange meldinger en enkelt besøkende kan sende per minutt.",
-                "card_description": "Beskytt agenten din mot misbruk ved å begrense meldingsfrekvensen per besøkende.",
-                "messages_per_minute": "Meldinger per minutt",
-                "default_hint": "La stå tom for å bruke plattformstandarden.",
+                "subtitle": "Begrens hvor mange meldinger agenten din svarer på per minutt, og hvor mange én besøkende kan sende.",
+                "card_description": "Beskytt agenten din mot misbruk og uventede kostnader.",
+                "messages_per_minute": "Meldinger per minutt (alle besøkende)",
+                "default_hint": "Flest meldinger agenten svarer på per minutt, for alle besøkende.",
                 "notify_label": "Varsle meg når grensen nås",
-                "notify_hint": "Motta en e-post når en besøkende når hastighetsbegrensningen.",
+                "notify_hint": "Få en e-post når agenten når denne grensen.",
                 "save": "Lagre",
                 "saved": "Hastighetsbegrensning lagret",
-                "save_error": "Kunne ikke lagre hastighetsbegrensning. Prøv igjen."
+                "save_error": "Kunne ikke lagre hastighetsbegrensning. Prøv igjen.",
+                "visitor_messages_per_minute": "Meldinger per minutt (én besøkende)",
+                "visitor_hint": "Flest meldinger én besøkende kan sende per minutt. Den som går over, må vente, mens andre chatter videre."
             }
         },
         "tone": {

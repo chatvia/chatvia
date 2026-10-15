@@ -1,7 +1,7 @@
 {
     "agents": {
         "guardrails": {
-            "blocked_topics_dialog_description": "Fügen Sie Themen hinzu, die der Agent ablehnen soll zu besprechen. Ein Thema pro Zeile ist am übersichtlichsten – halten Sie sie kurz und präzise.",
+            "blocked_topics_dialog_description": "Themen, über die der Agent nicht sprechen darf. Eine kurze Beschreibung und einige Beispielfragen helfen der Prüfung, sie zu erkennen.",
             "topic_placeholder_first": "z. B. Politik",
             "topic_placeholder_more": "Weiteres Thema hinzufügen",
             "remove_topic": "Thema entfernen",
@@ -10,7 +10,119 @@
             "snippet": "Ausschnitt",
             "detail": "Detail",
             "by_user": "Von {name}",
-            "conversation_trace": "Konversation {conversation} · Ablaufverfolgung {trace}"
+            "conversation_trace": "Konversation {conversation} · Ablaufverfolgung {trace}",
+            "filter_labels": {
+                "email": "E-Mail-Adresse",
+                "credit_card": "Kreditkarte",
+                "us_ssn": "US-Sozialversicherungsnummer",
+                "german_ssn": "Deutsche Sozialversicherungsnummer",
+                "danish_cpr": "Dänische CPR-Nummer",
+                "phone": "Telefonnummer",
+                "iban": "Bankkonto (IBAN)",
+                "uk_nino": "Britische Sozialversicherungsnummer (NINO)",
+                "ip_address": "IP-Adresse"
+            },
+            "outcome_labels": {
+                "blocked": "Blockiert",
+                "redacted": "Maskiert",
+                "flagged": "Markiert",
+                "skipped": "Übersprungen"
+            },
+            "stage_labels": {
+                "input": "Nachricht",
+                "source": "Wissen",
+                "output": "Antwort",
+                "tool": "Tool-Ergebnis"
+            },
+            "severity_labels": {
+                "none": "Keine",
+                "low": "Niedrig",
+                "medium": "Mittel",
+                "high": "Hoch"
+            },
+            "allowlist_title": "Nie maskieren",
+            "allowlist_description": "Werte, die der Agent immer zeigen darf, z. B. Ihre Support-E-Mail oder Telefonnummer. Beginnen Sie mit {'@'}, um eine ganze E-Mail-Domain zu erlauben, z. B. {'@'}acme.com. E-Mail und Telefon aus dem Unternehmensprofil sind immer erlaubt.",
+            "allowlist_placeholder_first": "z. B. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Weiteren Wert hinzufügen",
+            "add_allowlist_value": "Wert hinzufügen",
+            "remove_allowlist_value": "Wert entfernen",
+            "allowlist_count": "{count} Wert wird nie maskiert | {count} Werte werden nie maskiert",
+            "all_guards": "Alle Schutzregeln",
+            "all_outcomes": "Alle Ergebnisse",
+            "refusal_message_help": "Wird angezeigt, wenn eine Schutzregel eine Nachricht blockiert. Beim Speichern wird sie in die Sprachen Ihres Agenten übersetzt. Leer lassen, um die Standardnachricht zu verwenden.",
+            "guard_labels": {
+                "prompt_leak": "Prompt-Leck"
+            },
+            "mode_labels": {
+                "block": "Blockieren",
+                "monitor": "Nur protokollieren"
+            },
+            "sensitivity_labels": {
+                "high": "Hoch: blockiert am meisten",
+                "medium": "Mittel",
+                "low": "Niedrig: blockiert am wenigsten"
+            },
+            "pii_action_labels": {
+                "mask": "Maskieren",
+                "block": "Nachricht blockieren"
+            },
+            "topic_action_labels": {
+                "refuse": "Die Ablehnungsnachricht",
+                "reply": "Eine eigene Antwort",
+                "handoff": "Eine Person aus Ihrem Team"
+            },
+            "detail_labels": {
+                "topic": "Thema",
+                "types": "Daten",
+                "count": "Gefunden",
+                "categories": "Kategorien",
+                "tool": "Tool",
+                "pattern": "Regel",
+                "reason": "Grund"
+            },
+            "pii_action": "Was passiert",
+            "pii_action_help": "Maskieren verbirgt die Daten und der Chat geht weiter. Blockieren stoppt die Nachricht und bittet den Besucher, die Daten nicht zu teilen. Antworten werden immer maskiert.",
+            "custom_patterns_title": "Eigene Muster",
+            "custom_patterns_description": "Finden Sie weitere persönliche Daten, zum Beispiel eine Kundennummer, mit einem regulären Ausdruck.",
+            "custom_pattern_name": "Name",
+            "custom_pattern_name_placeholder": "z. B. Kundennummer",
+            "custom_pattern": "Muster",
+            "custom_pattern_placeholder": "z. B. KD-[0-9]+",
+            "add_custom_pattern": "Muster hinzufügen",
+            "remove_custom_pattern": "Muster entfernen",
+            "topic_name": "Thema",
+            "topic_description": "Beschreibung",
+            "topic_description_placeholder": "Worum es bei dem Thema geht (optional)",
+            "topic_examples": "Beispielfragen",
+            "topic_examples_placeholder": "Beispielfragen, eine pro Zeile (optional)",
+            "topic_action": "Was der Besucher bekommt",
+            "topic_handoff_help": "Funktioniert im Chat-Widget, wenn der Live-Chat aktiv ist. Anderswo bekommt der Besucher die Ablehnungsnachricht.",
+            "topic_handoff_reply_placeholder": "Nachricht während der Weiterleitung (optional)",
+            "topic_reply_placeholder": "Die Antwort, die der Besucher liest",
+            "topic_reply": "Antwort",
+            "mode": "Was passiert",
+            "sensitivity": "Empfindlichkeit",
+            "mode_help": "„Nur protokollieren“ zeichnet auf, was eine Schutzregel findet, ohne zu blockieren. So können Sie es prüfen, bevor es Besucher betrifft.",
+            "check_before_showing": "Antworten vor dem Anzeigen prüfen",
+            "check_before_showing_help": "Der Besucher sieht eine Antwort erst, nachdem die Schutzregeln sie geprüft haben. Antworten erscheinen etwas später und auf einmal.",
+            "alert_owner": "Mich per E-Mail über Angriffe informieren",
+            "alert_owner_help": "Erhalten Sie eine E-Mail, wenn der Agent einen Versuch blockiert, seine Anweisungen zu umgehen, oder wenn die Sicherheitsprüfung nicht laufen kann. Höchstens eine E-Mail pro Stunde.",
+            "test_title": "Nachricht testen",
+            "test_description": "Sehen Sie vor dem Speichern, was ein Besucher mit den Einstellungen oben bekäme. Es wird nichts gespeichert.",
+            "test_placeholder": "Nachricht zum Testen eingeben",
+            "test_samples": "Probieren:",
+            "test_run": "Testen",
+            "test_error": "Die Nachricht konnte nicht getestet werden. Bitte versuchen Sie es erneut.",
+            "test_blocked": "Blockiert",
+            "test_allowed": "Erlaubt",
+            "test_handoff": "Der Chat ginge an Ihr Team.",
+            "test_visitor_sees": "Der Besucher sieht",
+            "test_model_reads": "Der Agent liest",
+            "test_guards": "Schutzregeln",
+            "test_no_guards": "Keine Schutzregel hat etwas gefunden.",
+            "detail_topic": "Thema: {topic}",
+            "classifier_unavailable": "Die Sicherheitsprüfung konnte nicht laufen, daher wurde der Text nicht geprüft.",
+            "open_conversation": "Unterhaltung öffnen"
         },
         "leads": {
             "settings": "Einstellungen",

@@ -276,5 +276,17 @@
     "The voice call could not start. Please try again.": "Puhelua ei voitu aloittaa. Yritä uudelleen.",
     "Our time for this call is up. You can keep chatting in the text box.": "Tämän puhelun aika on loppunut. Voit jatkaa kirjoittamalla tekstikenttään.",
     "Sorry, I can't help with that.": "Valitettavasti en voi auttaa siinä.",
-    "(Voice message that could not be transcribed)": "(Puheviesti, jota ei voitu kirjoittaa auki)"
+    "(Voice message that could not be transcribed)": "(Puheviesti, jota ei voitu kirjoittaa auki)",
+    "For your safety, please do not share this kind of personal data in the chat.": "Älä turvallisuutesi vuoksi jaa tällaisia henkilötietoja chatissa.",
+    "Let me connect you with someone from our team.": "Yhdistän sinut tiimimme jäseneen.",
+    "You are sending messages too quickly. Please wait a moment and try again.": "Lähetät viestejä liian nopeasti. Odota hetki ja yritä uudelleen.",
+    "This is not a valid pattern.": "Tämä ei ole kelvollinen malli.",
+    "The pattern must not match empty text.": "Malli ei saa vastata tyhjää tekstiä.",
+    "Guardrails on \":name\" need your attention": "Agentin \":name\" suojaukset vaativat huomiotasi",
+    "Your agent \":name\" blocked an attempt to override its instructions or reveal them.": "Agenttisi \":name\" esti yrityksen ohittaa tai paljastaa sen ohjeet.",
+    "One attempt is usually nothing to worry about. Many in a short time may be someone testing your agent.": "Yksittäinen yritys ei yleensä ole huolestuttava. Monta lyhyessä ajassa voi tarkoittaa, että joku testaa agenttiasi.",
+    "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "Agenttisi \":name\" turvatarkistus ei voinut toimia, joten joihinkin viesteihin vastattiin ilman sitä.",
+    "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "Näin käy, kun suojausten tekoälymalliin ei saada yhteyttä. Tarkista malli hallintapaneelista, jos tämä toistuu.",
+    "Open the guardrails activity": "Avaa suojausten toiminta",
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Saat enintään yhden tällaisen sähköpostin tunnissa. Voit poistaa nämä ilmoitukset käytöstä Suojaukset-sivulla."
 }

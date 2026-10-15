@@ -1,7 +1,7 @@
 {
     "agents": {
         "guardrails": {
-            "blocked_topics_dialog_description": "Lisää aiheet, joista agentin tulisi kieltäytyä keskustelemasta. Yksi aihe per rivi toimii parhaiten — pidä ne lyhyinä ja täsmällisinä.",
+            "blocked_topics_dialog_description": "Aiheet, joista agentti ei saa puhua. Lyhyt kuvaus ja muutama esimerkkikysymys auttavat tarkistusta tunnistamaan ne.",
             "topic_placeholder_first": "esim. Politiikka",
             "topic_placeholder_more": "Lisää toinen aihe",
             "remove_topic": "Poista aihe",
@@ -10,7 +10,119 @@
             "snippet": "Katkelma",
             "detail": "Yksityiskohta",
             "by_user": "Käyttäjältä {name}",
-            "conversation_trace": "Keskustelu {conversation} · Jäljitys {trace}"
+            "conversation_trace": "Keskustelu {conversation} · Jäljitys {trace}",
+            "filter_labels": {
+                "email": "Sähköpostiosoite",
+                "credit_card": "Luottokortti",
+                "us_ssn": "Yhdysvaltain sosiaaliturvatunnus",
+                "german_ssn": "Saksan sosiaalivakuutusnumero",
+                "danish_cpr": "Tanskan CPR-numero",
+                "phone": "Puhelinnumero",
+                "iban": "Pankkitili (IBAN)",
+                "uk_nino": "Britannian National Insurance -numero",
+                "ip_address": "IP-osoite"
+            },
+            "outcome_labels": {
+                "blocked": "Estetty",
+                "redacted": "Peitetty",
+                "flagged": "Merkitty",
+                "skipped": "Ohitettu"
+            },
+            "stage_labels": {
+                "input": "Viesti",
+                "source": "Tietopohja",
+                "output": "Vastaus",
+                "tool": "Työkalun tulos"
+            },
+            "severity_labels": {
+                "none": "Ei mitään",
+                "low": "Matala",
+                "medium": "Keskitaso",
+                "high": "Korkea"
+            },
+            "allowlist_title": "Älä koskaan peitä",
+            "allowlist_description": "Arvot, jotka agentti saa aina näyttää, kuten tuen sähköposti tai puhelinnumero. Aloita merkillä {'@'} salliaksesi koko sähköpostiverkkotunnuksen, esim. {'@'}acme.com. Yritysprofiilin sähköposti ja puhelin ovat aina sallittuja.",
+            "allowlist_placeholder_first": "esim. support{'@'}acme.com",
+            "allowlist_placeholder_more": "Lisää toinen arvo",
+            "add_allowlist_value": "Lisää arvo",
+            "remove_allowlist_value": "Poista arvo",
+            "allowlist_count": "{count} arvoa ei koskaan peitetä | {count} arvoa ei koskaan peitetä",
+            "all_guards": "Kaikki suojaukset",
+            "all_outcomes": "Kaikki tulokset",
+            "refusal_message_help": "Näytetään, kun suojaus estää viestin. Tallennettaessa se käännetään agentin kielille. Jätä tyhjäksi käyttääksesi oletusviestiä.",
+            "guard_labels": {
+                "prompt_leak": "Kehotteen vuoto"
+            },
+            "mode_labels": {
+                "block": "Estä",
+                "monitor": "Vain kirjaus"
+            },
+            "sensitivity_labels": {
+                "high": "Korkea: estää eniten",
+                "medium": "Keskitaso",
+                "low": "Matala: estää vähiten"
+            },
+            "pii_action_labels": {
+                "mask": "Peitä",
+                "block": "Estä viesti"
+            },
+            "topic_action_labels": {
+                "refuse": "Kieltäytymisviesti",
+                "reply": "Oma vastaus",
+                "handoff": "Tiimisi jäsen"
+            },
+            "detail_labels": {
+                "topic": "Aihe",
+                "types": "Tiedot",
+                "count": "Löydetty",
+                "categories": "Luokat",
+                "tool": "Työkalu",
+                "pattern": "Sääntö",
+                "reason": "Syy"
+            },
+            "pii_action": "Mitä tapahtuu",
+            "pii_action_help": "Peitä piilottaa tiedot, ja keskustelu jatkuu. Estä pysäyttää viestin ja pyytää kävijää olemaan jakamatta tietoja. Vastaukset peitetään aina.",
+            "custom_patterns_title": "Omat mallit",
+            "custom_patterns_description": "Löydä muita henkilötietoja, kuten asiakasnumero, säännöllisellä lausekkeella.",
+            "custom_pattern_name": "Nimi",
+            "custom_pattern_name_placeholder": "esim. Asiakasnumero",
+            "custom_pattern": "Malli",
+            "custom_pattern_placeholder": "esim. AS-[0-9]+",
+            "add_custom_pattern": "Lisää malli",
+            "remove_custom_pattern": "Poista malli",
+            "topic_name": "Aihe",
+            "topic_description": "Kuvaus",
+            "topic_description_placeholder": "Mitä aihe kattaa (valinnainen)",
+            "topic_examples": "Esimerkkikysymykset",
+            "topic_examples_placeholder": "Esimerkkikysymykset, yksi riville (valinnainen)",
+            "topic_action": "Mitä kävijä saa",
+            "topic_handoff_help": "Toimii chat-widgetissä, kun livechat on päällä. Muualla kävijä saa kieltäytymisviestin.",
+            "topic_handoff_reply_placeholder": "Viesti yhdistämisen aikana (valinnainen)",
+            "topic_reply_placeholder": "Vastaus, jonka kävijä lukee",
+            "topic_reply": "Vastaus",
+            "mode": "Mitä tapahtuu",
+            "sensitivity": "Herkkyys",
+            "mode_help": "”Vain kirjaus” tallentaa, mitä suojaus löytää, estämättä mitään, jotta voit tarkistaa sen ennen kuin se vaikuttaa kävijöihin.",
+            "check_before_showing": "Tarkista vastaukset ennen näyttämistä",
+            "check_before_showing_help": "Kävijä näkee vastauksen vasta, kun suojaukset ovat tarkistaneet sen. Vastaukset näkyvät hieman myöhemmin ja kerralla.",
+            "alert_owner": "Ilmoita hyökkäyksistä sähköpostilla",
+            "alert_owner_help": "Saat sähköpostin, kun agentti estää yrityksen ohittaa sen ohjeet tai kun turvatarkistus ei voi toimia. Enintään yksi sähköposti tunnissa.",
+            "test_title": "Testaa viesti",
+            "test_description": "Katso, mitä kävijä saisi yllä olevilla asetuksilla, ennen tallentamista. Mitään ei tallenneta.",
+            "test_placeholder": "Kirjoita testattava viesti",
+            "test_samples": "Kokeile:",
+            "test_run": "Testaa",
+            "test_error": "Viestiä ei voitu testata. Yritä uudelleen.",
+            "test_blocked": "Estetty",
+            "test_allowed": "Sallittu",
+            "test_handoff": "Keskustelu siirtyisi tiimillesi.",
+            "test_visitor_sees": "Kävijä näkee",
+            "test_model_reads": "Agentti lukee",
+            "test_guards": "Suojaukset",
+            "test_no_guards": "Mikään suojaus ei löytänyt mitään.",
+            "detail_topic": "Aihe: {topic}",
+            "classifier_unavailable": "Turvatarkistus ei voinut toimia, joten tekstiä ei tarkistettu.",
+            "open_conversation": "Avaa keskustelu"
         },
         "leads": {
             "settings": "Asetukset",

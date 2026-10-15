@@ -45,11 +45,15 @@ class TurnContextFactory
         $history = $memory->getLlmMessages();
 
         // The guard runs first: a blocked turn needs no rewrite, and the
-        // rewrite reads the masked text, never a raw identifier.
-        $guard = $this->inspectInput($data);
-        $rewritten = $guard->blocked
+        // rewrite reads the masked text, never a raw identifier. The guard's
+        // classifier also names the language, which a first message (no
+        // rewrite) or a blocked one would otherwise lack.
+        $earlierTurns = $this->earlierTurns($history, $data);
+        $guard = $this->inspectInput($data, $earlierTurns);
+        $rewritten = ($guard->blocked
             ? RewrittenQueryData::unchanged($guard->text)
-            : $this->queryRewriter->rewrite($guard->text, $this->earlierTurns($history, $data));
+            : $this->queryRewriter->rewrite($guard->text, $earlierTurns)
+        )->orLanguage($guard->language);
         $turn = $this->userTurn($data, $guard, $rewritten);
 
         // A follow-up message is recorded now. The first message of a new
@@ -78,6 +82,7 @@ class TurnContextFactory
         // snippet cannot itself hold PII.
         $context->guardBlocked = $guard->blocked;
         $context->guardRefusal = $guard->refusalMessage;
+        $context->guardHandoffMessage = $guard->handoffMessage;
         $this->guardrailRecorder->record($context, $turn->message, $guard);
 
         return $context;
@@ -133,8 +138,9 @@ class TurnContextFactory
 
     /**
      * The chat before this message, so the rewriter can turn a follow-up such
-     * as "and the price?" into a full question. The first message of a new
-     * conversation is already in the history: it has no chat before it.
+     * as "and the price?" into a full question and the guard can read it in
+     * context. The first message of a new conversation is already in the
+     * history: it has no chat before it.
      *
      * @param  list<array{role: string, content: mixed}>  $history
      * @return list<array{role: string, content: mixed}>
@@ -151,11 +157,13 @@ class TurnContextFactory
     /**
      * Input guardrails. A turn that opts out of guards (evals) gets the
      * message back untouched.
+     *
+     * @param  list<array{role: string, content: mixed}>  $earlierTurns
      */
-    private function inspectInput(StreamRequestData $data): GuardResultData
+    private function inspectInput(StreamRequestData $data, array $earlierTurns): GuardResultData
     {
         return $data->guardrailsEnabled
-            ? $this->guardrails->inspectInput($data->agent, $data->message->message)
+            ? $this->guardrails->inspectInput($data->agent, $data->message->message, $earlierTurns)
             : GuardResultData::clean($data->message->message);
     }
 

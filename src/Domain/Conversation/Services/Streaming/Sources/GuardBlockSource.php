@@ -2,6 +2,8 @@
 
 namespace Domain\Conversation\Services\Streaming\Sources;
 
+use Domain\Conversation\Enums\HandoffStatus;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Streaming\Exceptions\ClientDisconnected;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
@@ -15,6 +17,10 @@ use Throwable;
  * {@see QaSource}, but the refusal is recorded for the history only and never
  * billed — no model ran. The block itself was already logged when the turn's
  * context was built.
+ *
+ * When a blocked topic handed the conversation to a person, the visitor reads
+ * the topic's handoff message instead, and a `handoff` meta event (status
+ * pending) switches the widget to waiting for the team.
  */
 class GuardBlockSource
 {
@@ -25,10 +31,12 @@ class GuardBlockSource
     /**
      * @return Generator<int, StreamEvent>
      */
-    public function events(ChatContext $context): Generator
+    public function events(ChatContext $context, ?Conversation $handedOff = null): Generator
     {
         $assistantId = $context->assistantMessageId;
-        $refusal = $context->guardRefusal ?? __('Sorry, I can’t help with that request.');
+        $refusal = ($handedOff instanceof Conversation ? $context->guardHandoffMessage : null)
+            ?? $context->guardRefusal
+            ?? __('Sorry, I can’t help with that request.');
 
         $context->appendStreamedMessage($refusal);
 
@@ -46,6 +54,14 @@ class GuardBlockSource
 
             $context->markEndTime();
             $this->replyRecorder->recordRefusal($context);
+
+            if ($handedOff instanceof Conversation) {
+                yield StreamEvent::meta($assistantId, 'handoff', [
+                    'status' => HandoffStatus::Pending->value,
+                    'conversation_id' => $handedOff->external_id,
+                    'external_conversation_id' => $handedOff->external_id,
+                ]);
+            }
 
             yield StreamEvent::done($assistantId, 'complete', $context->getResponseTimeMs());
         } catch (ClientDisconnected) {

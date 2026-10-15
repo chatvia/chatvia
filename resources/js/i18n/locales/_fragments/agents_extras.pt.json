@@ -1,7 +1,7 @@
 {
     "agents": {
         "guardrails": {
-            "blocked_topics_dialog_description": "Adicione tópicos que o agente deve recusar discutir. Um tópico por linha funciona melhor — mantenha-os curtos e específicos.",
+            "blocked_topics_dialog_description": "Temas de que o agente não deve falar. Uma breve descrição e algumas perguntas de exemplo ajudam a verificação a reconhecê-los.",
             "topic_placeholder_first": "ex. Política",
             "topic_placeholder_more": "Adicionar outro tópico",
             "remove_topic": "Remover tópico",
@@ -10,7 +10,119 @@
             "snippet": "Excerto",
             "detail": "Detalhe",
             "by_user": "Por {name}",
-            "conversation_trace": "Conversa {conversation} · Rastreio {trace}"
+            "conversation_trace": "Conversa {conversation} · Rastreio {trace}",
+            "filter_labels": {
+                "email": "Endereço de e-mail",
+                "credit_card": "Cartão de crédito",
+                "us_ssn": "Número de Segurança Social dos EUA",
+                "german_ssn": "Número de segurança social alemão",
+                "danish_cpr": "Número CPR dinamarquês",
+                "phone": "Número de telefone",
+                "iban": "Conta bancária (IBAN)",
+                "uk_nino": "Número de Seguro Nacional do Reino Unido",
+                "ip_address": "Endereço IP"
+            },
+            "outcome_labels": {
+                "blocked": "Bloqueado",
+                "redacted": "Ocultado",
+                "flagged": "Sinalizado",
+                "skipped": "Ignorado"
+            },
+            "stage_labels": {
+                "input": "Mensagem",
+                "source": "Conhecimento",
+                "output": "Resposta",
+                "tool": "Resultado de ferramenta"
+            },
+            "severity_labels": {
+                "none": "Nenhuma",
+                "low": "Baixa",
+                "medium": "Média",
+                "high": "Alta"
+            },
+            "allowlist_title": "Nunca ocultar",
+            "allowlist_description": "Valores que o agente pode sempre mostrar, como o e-mail ou telefone de suporte. Comece com {'@'} para permitir um domínio de e-mail inteiro, por exemplo {'@'}acme.com. O e-mail e o telefone do perfil da empresa são sempre permitidos.",
+            "allowlist_placeholder_first": "ex.: support{'@'}acme.com",
+            "allowlist_placeholder_more": "Adicionar outro valor",
+            "add_allowlist_value": "Adicionar valor",
+            "remove_allowlist_value": "Remover valor",
+            "allowlist_count": "{count} valor nunca ocultado | {count} valores nunca ocultados",
+            "all_guards": "Todas as proteções",
+            "all_outcomes": "Todos os resultados",
+            "refusal_message_help": "Mostrada quando uma proteção bloqueia uma mensagem. Ao guardar, é traduzida para os idiomas do seu agente. Deixe em branco para usar a mensagem predefinida.",
+            "guard_labels": {
+                "prompt_leak": "Fuga do prompt"
+            },
+            "mode_labels": {
+                "block": "Bloquear",
+                "monitor": "Só registar"
+            },
+            "sensitivity_labels": {
+                "high": "Alta: bloqueia mais",
+                "medium": "Média",
+                "low": "Baixa: bloqueia menos"
+            },
+            "pii_action_labels": {
+                "mask": "Ocultar",
+                "block": "Bloquear mensagem"
+            },
+            "topic_action_labels": {
+                "refuse": "A mensagem de recusa",
+                "reply": "Uma resposta própria",
+                "handoff": "Uma pessoa da sua equipa"
+            },
+            "detail_labels": {
+                "topic": "Tema",
+                "types": "Dados",
+                "count": "Encontrados",
+                "categories": "Categorias",
+                "tool": "Ferramenta",
+                "pattern": "Regra",
+                "reason": "Motivo"
+            },
+            "pii_action": "O que fazer",
+            "pii_action_help": "Ocultar esconde os dados e a conversa continua. Bloquear para a mensagem e pede ao visitante que não os partilhe. As respostas são sempre ocultadas.",
+            "custom_patterns_title": "Os seus próprios padrões",
+            "custom_patterns_description": "Encontre outros dados pessoais, como um número de cliente, com uma expressão regular.",
+            "custom_pattern_name": "Nome",
+            "custom_pattern_name_placeholder": "ex.: Número de cliente",
+            "custom_pattern": "Padrão",
+            "custom_pattern_placeholder": "ex.: CLI-[0-9]+",
+            "add_custom_pattern": "Adicionar padrão",
+            "remove_custom_pattern": "Remover padrão",
+            "topic_name": "Tema",
+            "topic_description": "Descrição",
+            "topic_description_placeholder": "O que o tema abrange (opcional)",
+            "topic_examples": "Perguntas de exemplo",
+            "topic_examples_placeholder": "Perguntas de exemplo, uma por linha (opcional)",
+            "topic_action": "O que o visitante recebe",
+            "topic_handoff_help": "Funciona no widget de chat quando o chat ao vivo está ativo. Noutros locais, o visitante recebe a mensagem de recusa.",
+            "topic_handoff_reply_placeholder": "Mensagem enquanto o ligamos (opcional)",
+            "topic_reply_placeholder": "A resposta que o visitante lê",
+            "topic_reply": "Resposta",
+            "mode": "O que acontece",
+            "sensitivity": "Sensibilidade",
+            "mode_help": "«Só registar» guarda o que uma proteção encontra sem bloquear, para poder verificar antes de afetar os visitantes.",
+            "check_before_showing": "Verificar as respostas antes de as mostrar",
+            "check_before_showing_help": "O visitante só vê uma resposta depois de as proteções a verificarem. As respostas aparecem um pouco mais tarde, de uma só vez.",
+            "alert_owner": "Avisar-me de ataques por email",
+            "alert_owner_help": "Receba um email quando o agente bloquear uma tentativa de contornar as suas instruções, ou quando a verificação de segurança não puder correr. No máximo um email por hora.",
+            "test_title": "Testar uma mensagem",
+            "test_description": "Veja o que um visitante receberia com as definições acima, antes de guardar. Nada é guardado.",
+            "test_placeholder": "Escreva uma mensagem para testar",
+            "test_samples": "Experimente:",
+            "test_run": "Testar",
+            "test_error": "Não foi possível testar a mensagem. Tente novamente.",
+            "test_blocked": "Bloqueada",
+            "test_allowed": "Permitida",
+            "test_handoff": "A conversa iria para a sua equipa.",
+            "test_visitor_sees": "O visitante vê",
+            "test_model_reads": "O agente lê",
+            "test_guards": "Proteções",
+            "test_no_guards": "Nenhuma proteção encontrou nada.",
+            "detail_topic": "Tema: {topic}",
+            "classifier_unavailable": "A verificação de segurança não pôde correr, por isso o texto não foi verificado.",
+            "open_conversation": "Abrir conversa"
         },
         "leads": {
             "settings": "Definições",

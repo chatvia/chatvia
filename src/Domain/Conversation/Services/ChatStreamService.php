@@ -4,11 +4,14 @@ namespace Domain\Conversation\Services;
 
 use App\Identity\Workspace\Services\MessageAllowance;
 use App\Identity\Workspace\Services\WorkspaceActivation;
+use Domain\Conversation\Actions\Handoff\RequestHandoffAction;
 use Domain\Conversation\Actions\Handoff\SendVisitorHandoffMessageAction;
 use Domain\Conversation\Data\Approval\ResolveToolApprovalData;
 use Domain\Conversation\Data\Handoff\SendVisitorHandoffMessageData;
 use Domain\Conversation\Data\Turn\ReplaySnapshotData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
+use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Exceptions\HandoffUnavailableException;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
@@ -58,6 +61,7 @@ readonly class ChatStreamService
         private ToolApprovalStore $approvalStore,
         private AgentChatRateLimiter $rateLimiter,
         private WorkspaceActivation $activation,
+        private RequestHandoffAction $requestHandoff,
     ) {}
 
     /**
@@ -178,6 +182,12 @@ readonly class ChatStreamService
             return $this->errorSource->events(ErrorCode::ChatterMessageLimitReached, __('You have reached your monthly message limit.'));
         }
 
+        // The visitor's own messages-per-minute cap, checked first so a
+        // flood from one visitor does not use up the agent's cap.
+        if ($this->rateLimiter->visitorExceeded($data->agent, $data->externalSessionId)) {
+            return $this->errorSource->events(ErrorCode::RateLimited, __('You are sending messages too quickly. Please wait a moment and try again.'));
+        }
+
         // The agent's owner-configured messages-per-minute cap, across all
         // visitors. Retryable; the owner may be alerted by email.
         if ($this->rateLimiter->exceeded($data->agent)) {
@@ -198,7 +208,7 @@ readonly class ChatStreamService
 
         // An input guardrail refused the message: no model call, not counted.
         if ($context->guardBlocked) {
-            return $this->guardBlockSource->events($context);
+            return $this->guardBlockSource->events($context, $this->guardHandoff($context, $conversation ?? $this->conversation($data)));
         }
 
         if ($context->hasQaMatch()) {
@@ -218,6 +228,29 @@ readonly class ChatStreamService
         }
 
         return $this->llmSource->events($context, $llmMessages);
+    }
+
+    /**
+     * Hand the conversation to a person when the message was about a blocked
+     * topic set to do so. Live chat is widget-only, so this needs the Chat
+     * Widget, a recorded conversation and the agent's live chat on; otherwise
+     * the visitor gets the refusal. Returns the conversation handed off.
+     */
+    private function guardHandoff(ChatContext $context, ?Conversation $conversation): ?Conversation
+    {
+        if ($context->guardHandoffMessage === null
+            || ! $conversation instanceof Conversation
+            || $context->requestData->source !== ConversationSource::Widget->value) {
+            return null;
+        }
+
+        try {
+            $this->requestHandoff->execute($conversation);
+        } catch (HandoffUnavailableException) {
+            return null;
+        }
+
+        return $conversation;
     }
 
     /**

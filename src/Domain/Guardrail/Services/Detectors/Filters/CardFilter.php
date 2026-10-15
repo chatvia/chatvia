@@ -10,8 +10,9 @@ final class CardFilter extends PiiFilter
 {
     protected function pattern(): string
     {
-        // Candidate card: 13–19 digits with optional space/dash grouping.
-        return '/\b(?:\d[ \-]?){13,19}\b/';
+        // Candidate card: 13–19 digits with optional space/dash grouping,
+        // starting and ending on a digit so the space after it stays.
+        return '/\b\d(?:[ \-]?\d){12,18}\b/';
     }
 
     protected function label(): string

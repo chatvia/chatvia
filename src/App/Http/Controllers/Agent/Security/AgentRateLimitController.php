@@ -24,6 +24,7 @@ class AgentRateLimitController
             'securitySettings' => [
                 'chat_rate_limit_per_minute' => (int) $security->get('chat_rate_limit_per_minute', 20),
                 'notify_owner_on_rate_limit' => (bool) $security->get('notify_owner_on_rate_limit', false),
+                'visitor_rate_limit_per_minute' => (int) $security->get('visitor_rate_limit_per_minute', 8),
             ],
         ]);
     }

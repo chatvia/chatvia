@@ -19,13 +19,18 @@ use Domain\Llm\Services\DocumentLlm;
 use Generator;
 use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use League\Flysystem\UnableToReadFile;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
  * Streams chat completions through the configured document-reading LLM
  * ({@see DocumentLlm}) with every PDF attached to the conversation injected as
- * a `document_url` chunk on the latest user turn.
+ * a `document_url` chunk on the latest user turn. The PDF goes inside the
+ * request as a data: URL rather than a link to this site: a model handed a
+ * link it cannot open (a local or private install) answers about the link
+ * instead of the document.
  *
  * Activated by {@see ChatStreamService} whenever
  * the current conversation has any PDF attachments. The agent's configured
@@ -38,6 +43,8 @@ use Throwable;
  * {@see ToolLoopSource}, so MCP / webhook tools still fire (and pause for
  * approval) inside PDF conversations. A resumed turn stays on the document LLM
  * so the PDF context (already in the snapshot's latest user turn) keeps flowing.
+ * The snapshot holds the PDF itself; a chat allows one PDF of at most 10 pages
+ * (`chatvia.agent.files.upload`), so it stays small.
  */
 class PdfSource extends ToolLoopSource
 {
@@ -64,22 +71,21 @@ class PdfSource extends ToolLoopSource
     public function events(ChatContext $context, array $llmMessages, Collection $pdfs): Generator
     {
         if (! $this->documentLlm->isAvailable()) {
-            yield StreamEvent::start($context->assistantMessageId, [
-                'assistant_message_id' => $context->assistantMessageId,
-                'user_message_id' => $context->userMessageId,
-                'request_id' => $context->requestData->requestId,
-                'language' => $context->queryLanguage,
-                'replayed' => false,
-            ]);
-            yield StreamEvent::error($context->assistantMessageId, ErrorCode::Internal, __('Chatting with PDF files is not available.'));
-            yield StreamEvent::done($context->assistantMessageId, 'error');
+            yield from $this->refuse($context, __('Chatting with PDF files is not available.'));
 
             return;
         }
 
-        $documentUrls = $pdfs->pluck('url')->filter()->values()->all();
+        $documentUrls = $pdfs->map(fn (Attachment $pdf): ?string => $this->dataUrl($pdf));
 
-        yield from $this->streamTurn($context, $this->withDocumentUrls($llmMessages, $documentUrls));
+        // Answering without the PDF would mislead, so a file storage cannot read ends the turn.
+        if ($documentUrls->contains(null)) {
+            yield from $this->refuse($context, $this->turnFailedMessage());
+
+            return;
+        }
+
+        yield from $this->streamTurn($context, $this->withDocumentUrls($llmMessages, $documentUrls->values()->all()));
     }
 
     protected function provider(ChatContext $context): LlmProviderInterface
@@ -118,9 +124,41 @@ class PdfSource extends ToolLoopSource
     }
 
     /**
+     * End the turn with an error before any answer is streamed.
+     *
+     * @return Generator<int, StreamEvent>
+     */
+    private function refuse(ChatContext $context, string $message): Generator
+    {
+        yield StreamEvent::start($context->assistantMessageId, [
+            'assistant_message_id' => $context->assistantMessageId,
+            'user_message_id' => $context->userMessageId,
+            'request_id' => $context->requestData->requestId,
+            'language' => $context->queryLanguage,
+            'replayed' => false,
+        ]);
+        yield StreamEvent::error($context->assistantMessageId, ErrorCode::Internal, $message);
+        yield StreamEvent::done($context->assistantMessageId, 'error');
+    }
+
+    /** The stored PDF as a data: URL, or null when storage cannot read it. */
+    private function dataUrl(Attachment $pdf): ?string
+    {
+        try {
+            $contents = Storage::disk(Attachment::DISK)->get($pdf->filepath);
+        } catch (UnableToReadFile $e) {
+            report($e);
+
+            return null;
+        }
+
+        return $contents === null ? null : 'data:application/pdf;base64,'.base64_encode($contents);
+    }
+
+    /**
      * Rewrite the last user turn so its `content` is a list of typed chunks
      * with every attached PDF appended as a `document_url`. The provider reads
-     * documents fresh on every request (no server-side state), so the URLs
+     * documents fresh on every request (no server-side state), so the PDFs
      * travel on each new turn rather than only the first.
      *
      * @param  array<int, array<string, mixed>>  $messages

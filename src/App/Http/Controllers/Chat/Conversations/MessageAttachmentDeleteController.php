@@ -23,9 +23,9 @@ use Illuminate\Http\Response;
  * via this endpoint.
  *
  * The deleting hook on {@see Attachment::booted()} wipes the underlying S3
- * object. The Mistral document_url retry path for any past assistant turn
- * that referenced this file will return 404 — that's the UX the user
- * confirmed in the AlertDialog ("the assistant won't have access anymore").
+ * object. Later turns no longer send the file to the document LLM — that's
+ * the UX the user confirmed in the AlertDialog ("the assistant won't have
+ * access anymore").
  */
 class MessageAttachmentDeleteController
 {

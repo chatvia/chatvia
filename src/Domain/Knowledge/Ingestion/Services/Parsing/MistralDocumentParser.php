@@ -31,14 +31,14 @@ class MistralDocumentParser implements DocumentParser
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
         if (DocumentReaders::readsItself('mistral', $extension)) {
-            return $this->ocr->fromFile($filePath, $storageDirectory);
+            return $this->ocr->fromFile($filePath);
         }
 
         if (SourceFileTypes::isImage($filePath)) {
             $png = $this->images->png($filePath);
 
             try {
-                return $this->ocr->fromFile($png, $storageDirectory);
+                return $this->ocr->fromFile($png);
             } finally {
                 @unlink($png);
             }

@@ -18,11 +18,11 @@ use Throwable;
 
 /**
  * Visitor- or member-uploaded file attached to a conversation. Used for PDF
- * Q&A (Mistral document_url chat); the shape is generic enough to back image
- * or audio attachments too.
+ * Q&A (the document LLM gets the file inside each request); the shape is
+ * generic enough to back image or audio attachments too.
  *
- * Stored on the public object-storage disk so Mistral and other URL-consuming
- * MCP tools can fetch the file directly. Deleting a row (including via the
+ * Stored on the public object-storage disk so URL-consuming MCP tools can
+ * fetch the file directly. Deleting a row (including via the
  * conversation cascade in {@see Conversation::booted}) wipes the
  * underlying S3 object once the delete commits.
  *
@@ -58,9 +58,9 @@ class Attachment extends Model
 
     /**
      * Public bucket every chat attachment lives on. Hardcoded rather than a
-     * per-row column because we always want public URLs (Mistral et al.
-     * fetch them server-side); a private disk would need pre-signing per
-     * request, which is wasted overhead for the use case.
+     * per-row column because we always want public URLs (MCP tools fetch
+     * them server-side); a private disk would need pre-signing per request,
+     * which is wasted overhead for the use case.
      */
     public const DISK = 'public';
 

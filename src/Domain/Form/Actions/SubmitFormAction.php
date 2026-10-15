@@ -42,8 +42,9 @@ class SubmitFormAction
             $values = array_intersect_key($data->values, array_flip(array_column($definition->schema, 'key')));
             $checksum = FormSubmission::checksum($values);
 
+            // Only a message of the form's own conversation is linked or written.
             $message = $data->assistantMessageExternalId !== null
-                ? Message::query()->where('external_id', $data->assistantMessageExternalId)->first()
+                ? $data->conversation->messages()->where('external_id', $data->assistantMessageExternalId)->first()
                 : null;
 
             // The visitor may send the same answers again (e.g. a second render

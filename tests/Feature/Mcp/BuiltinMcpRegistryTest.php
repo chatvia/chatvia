@@ -12,7 +12,6 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
 use Domain\Knowledge\Embedding\Rerank\NullReranker;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Fake embeddings so `app:sync-builtin-mcp`'s inline indexing + the router's
@@ -123,7 +122,7 @@ it('catalogs the built-in servers as global rows and indexes their tools', funct
     // inline embed step.
     expect(ConnectorTool::where('connector_slug', 'account-analytics')->whereNull('embedding')->count())->toBe(0)
         ->and(ConnectorTool::where('connector_slug', 'account-analytics')->whereNull('embedding_bm25')->count())->toBe(0);
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});
 
 it('is idempotent — re-running keeps two global rows', function (): void {
     bindFakeEmbeddings();
@@ -132,7 +131,7 @@ it('is idempotent — re-running keeps two global rows', function (): void {
     $this->artisan('app:sync-builtin-mcp')->assertSuccessful();
 
     expect(AgentMcpServer::query()->whereNull('workspace_id')->count())->toBe(2);
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});
 
 it('routes a question to the relevant global tools + a name→url map', function (): void {
     bindFakeEmbeddings();
@@ -153,7 +152,7 @@ it('routes a question to the relevant global tools + a name→url map', function
         expect($result['routes'])->toHaveKey($name);
         expect($result['routes'][$name])->toContain('/mcp/');
     }
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});
 
 it('does not make charts ambient — an unattached agent gets neither charts nor forms', function (): void {
     bindFakeEmbeddings();
@@ -169,7 +168,7 @@ it('does not make charts ambient — an unattached agent gets neither charts nor
     // Charts is now opt-in (like forms): not attached → not in the pool.
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeFalse();
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__forms__')))->toBeFalse();
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});
 
 it('surfaces charts tools once the agent attaches the connector', function (): void {
     bindFakeEmbeddings();
@@ -184,7 +183,7 @@ it('surfaces charts tools once the agent attaches the connector', function (): v
     );
 
     expect(collect($names)->contains(fn (string $n): bool => str_starts_with($n, 'mcp__charts__')))->toBeTrue();
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});
 
 it('403s an unattached agent on the charts route, allows it once attached', function (): void {
     bindFakeEmbeddings();
@@ -206,7 +205,7 @@ it('403s an unattached agent on the charts route, allows it once attached', func
     $charts = $this->withHeaders(signedInternalMcpHeaders('/mcp/charts', $call('render-bar-chart'), $identity))
         ->postJson('/mcp/charts', $call('render-bar-chart'));
     expect($charts->getStatusCode())->not->toBeIn([401, 403]);
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});
 
 it('still authorizes the analytics chat (workspace mode) on the charts route', function (): void {
     bindFakeEmbeddings();
@@ -220,4 +219,4 @@ it('still authorizes the analytics chat (workspace mode) on the charts route', f
 
     $resp = $this->withHeaders($headers)->postJson('/mcp/charts', $call);
     expect($resp->getStatusCode())->not->toBeIn([401, 403]);
-})->skip(fn (): bool => ! Schema::hasColumn('mcp_servers', 'category'), 'mcp_servers.category not migrated yet — run migrate:fresh.');
+});

@@ -3,13 +3,6 @@
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\EmbedFormDefinitionAction;
 use Domain\Form\Models\FormDefinition;
-use Illuminate\Support\Facades\Schema;
-
-pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-});
 
 it('writes the dense and sparse vectors for a form', function (): void {
     $agent = Agent::factory()->create();

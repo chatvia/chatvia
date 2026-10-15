@@ -10,7 +10,6 @@ use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Rendering a form resolves the model's request against the agent's REAL
@@ -18,10 +17,6 @@ use Illuminate\Support\Facades\Schema;
  * and otherwise issues a pending form instance the visitor submits into.
  */
 pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-
     $this->travelTo(CarbonImmutable::create(2026, 6, 15, 12, 0, 0));
 
     $this->agent = Agent::factory()->create();

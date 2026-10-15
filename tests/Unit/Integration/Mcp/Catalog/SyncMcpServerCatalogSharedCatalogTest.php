@@ -13,7 +13,6 @@ use Domain\Integration\Mcp\Services\McpClient;
 use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * The preset/builtin path stores each connector's tool definitions + embeddings
@@ -27,12 +26,6 @@ use Illuminate\Support\Facades\Schema;
  * Zendesk) is tenant-specific and keeps per-server `mcp_tools` rows, so one
  * workspace can never write tool text another workspace's agents read.
  */
-pest()->beforeEach(function (): void {
-    if (! Schema::hasTable('connector_tools') || ! Schema::hasColumn('mcp_servers', 'uses_central_catalog')) {
-        $this->markTestSkipped('schema out of date — run migrate:fresh on the testing DB.');
-    }
-});
-
 function presetServer(string $connectorSlug, string $url, McpServerCategory $category = McpServerCategory::Integration): AgentMcpServer
 {
     $user = User::factory()->create();

@@ -8,17 +8,12 @@ use Domain\Form\Data\FormMatchData;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Domain\Form\Queries\FindFormsForAgentQuery;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Form discovery returns the agent's matching forms as DTOs, flagging the ones
  * this visitor's session already submitted.
  */
 pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-
     $this->agent = Agent::factory()->create();
     $this->demo = FormDefinition::factory()->forAgent($this->agent)->create([
         'name' => 'Book a demo', 'slug' => 'book-a-demo', 'is_active' => true,

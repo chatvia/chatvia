@@ -12,7 +12,6 @@ use Domain\Form\Enums\FormSubmissionStatus;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 /**
@@ -20,12 +19,6 @@ use Illuminate\Testing\Fluent\AssertableJson;
  * the SESSION (the visitor's identity across conversations) — so a booking made in
  * an earlier chat in the same session stops the form showing again.
  */
-pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-});
-
 /**
  * @param  array<string, string>  $extraHeaders
  */

@@ -13,7 +13,6 @@ use Domain\Conversation\Models\Session;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Mcp\Server\Testing\TestResponse;
 
 /**
@@ -23,10 +22,6 @@ use Laravel\Mcp\Server\Testing\TestResponse;
  * random form_instance_id masked.
  */
 pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-
     $this->travelTo(CarbonImmutable::create(2026, 6, 15, 12, 30, 0));
 });
 

@@ -11,7 +11,6 @@ use Domain\Conversation\Models\Session;
 use Domain\Form\Models\FormDefinition;
 use Domain\Form\Models\FormSubmission;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 /**
@@ -20,12 +19,6 @@ use Illuminate\Testing\Fluent\AssertableJson;
  * the system prompt). Forms are embedded inline by the observer on create, so the
  * dense + sparse columns are populated without touching the network.
  */
-pest()->beforeEach(function (): void {
-    if (! Schema::hasColumn('form_definitions', 'embedding')) {
-        $this->markTestSkipped('schema out of date — migrate the testing DB.');
-    }
-});
-
 function asAgent(Agent $agent, ?Conversation $conversation = null): void
 {
     $request = Request::create('/mcp/forms', 'POST');

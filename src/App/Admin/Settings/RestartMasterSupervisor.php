@@ -16,10 +16,7 @@ use Laravel\Horizon\MasterSupervisor;
  */
 final class RestartMasterSupervisor
 {
-    /**
-     * @param  array<string, mixed>  $options
-     */
-    public function process(MasterSupervisor $master, array $options): void
+    public function process(MasterSupervisor $master): void
     {
         $master->terminate(1);
     }

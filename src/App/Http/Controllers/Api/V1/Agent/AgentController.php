@@ -53,7 +53,7 @@ class AgentController
         $page = CursorPage::newestFirst($query, $request->perPage(), $request->cursor());
 
         return [
-            'data' => array_map(fn (Agent $agent): AgentData => AgentData::fromModel($agent), $page->items()),
+            'data' => array_map(AgentData::fromModel(...), $page->items()),
             'next_cursor' => $page->nextCursor()?->encode(),
         ];
     }

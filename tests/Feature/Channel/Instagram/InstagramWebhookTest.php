@@ -91,7 +91,7 @@ it('dispatches a job for a valid, signed message', function (): void {
         ->assertOk()
         ->assertJson(['ok' => true]);
 
-    Bus::assertDispatched(HandleInstagramMessageJob::class, fn ($job): bool => $job->igsid === '5550001234' && $job->text === 'hello' && $job->account->is($this->account));
+    Bus::assertDispatched(HandleInstagramMessageJob::class, fn (HandleInstagramMessageJob $job): bool => $job->igsid === '5550001234' && $job->text === 'hello' && $job->account->is($this->account));
 });
 
 it('ignores a request with a bad signature', function (): void {

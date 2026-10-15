@@ -32,7 +32,7 @@ class AgentMcpAttachmentController
         $page = CursorPage::newestFirst($agent->mcpServers(), $request->perPage(), $request->cursor());
 
         return [
-            'data' => array_map(fn (AgentMcpServer $s): McpServerData => McpServerData::fromModel($s), $page->items()),
+            'data' => array_map(McpServerData::fromModel(...), $page->items()),
             'next_cursor' => $page->nextCursor()?->encode(),
         ];
     }

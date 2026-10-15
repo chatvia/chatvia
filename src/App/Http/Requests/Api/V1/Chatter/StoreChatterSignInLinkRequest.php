@@ -61,7 +61,6 @@ class StoreChatterSignInLinkRequest extends FormRequest
 
         $workspace = $this->workspaceUser()->workspace();
 
-        /** @var Chatter|User */
         return $workspace->chatters()->where('external_id', $id)->first()
             ?? $workspace->members()->where('users.external_id', $id)->firstOrFail();
     }

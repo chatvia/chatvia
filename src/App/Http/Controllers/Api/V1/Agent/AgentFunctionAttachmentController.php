@@ -32,7 +32,7 @@ class AgentFunctionAttachmentController
         $page = CursorPage::newestFirst($agent->functions(), $request->perPage(), $request->cursor());
 
         return [
-            'data' => array_map(fn (AgentFunction $f): FunctionData => FunctionData::fromModel($f), $page->items()),
+            'data' => array_map(FunctionData::fromModel(...), $page->items()),
             'next_cursor' => $page->nextCursor()?->encode(),
         ];
     }

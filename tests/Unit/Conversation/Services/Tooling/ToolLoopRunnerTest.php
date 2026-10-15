@@ -65,9 +65,9 @@ beforeEach(function (): void {
  */
 function tlrProvider(?ArrayObject $settingsSeen = null): LlmProviderInterface
 {
-    return new class($settingsSeen) implements LlmProviderInterface
+    return new readonly class($settingsSeen) implements LlmProviderInterface
     {
-        public function __construct(private readonly ?ArrayObject $settingsSeen) {}
+        public function __construct(private ?ArrayObject $settingsSeen) {}
 
         public function stream(string $model, array $messages, array $settings = []): ResponseInterface
         {

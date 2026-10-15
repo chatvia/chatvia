@@ -218,14 +218,14 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         Route::get('sources/text', [AgentTextController::class, 'index'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.index');
         Route::post('sources/text', [AgentTextController::class, 'store'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.store');
-        Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->name('sources.text.show');
-        Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->name('sources.text.update');
+        Route::get('sources/text/{id}', [AgentTextController::class, 'show'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.show');
+        Route::patch('sources/text/{id}', [AgentTextController::class, 'update'])->middleware('agent.permission:agent.sources.train.text')->name('sources.text.update');
         Route::post('sources/text/{id}/unlink', DetachAgentTextController::class)->name('sources.text.unlink');
 
         Route::get('sources/qa', [AgentQaController::class, 'index'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.index');
         Route::post('sources/qa', [AgentQaController::class, 'store'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.store');
-        Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->name('sources.qa.show');
-        Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->name('sources.qa.update');
+        Route::get('sources/qa/{id}', [AgentQaController::class, 'show'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.show');
+        Route::patch('sources/qa/{id}', [AgentQaController::class, 'update'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qa.update');
         Route::delete('sources/qa/{id}', [AgentQaController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.qa.destroy');
 
         // Functions (LLM tool calls — webhook-backed). Functions are owned at
@@ -251,7 +251,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::delete('sources/connectors/{slug}', AgentConnectorDisconnectController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.detach');
         // "Always on": the connector's tools ship on every turn of this agent,
-        // bypassing the relevance router (capped at 10 tools per agent).
+        // bypassing the relevance router, however many tools it has.
         Route::put('sources/connectors/{slug}/always-available', AgentConnectorAlwaysAvailableController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.always_available');
         Route::get('sources/connectors/{slug}/tools', AgentConnectorToolController::class)->name('sources.connectors.tools');
@@ -269,12 +269,12 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('sources/websites', [AgentWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.store');
         Route::delete('sources/websites/{website}', [AgentWebsiteController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.websites.destroy');
         Route::patch('sources/websites/{website}', [AgentWebsiteController::class, 'update'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.update');
-        Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->name('sources.websites.train');
+        Route::post('sources/websites/{website}/train', TrainAgentWebsiteController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.train');
 
-        Route::get('sources/websites/{website}/links', [AgentWebsiteLinkController::class, 'index'])->name('sources.websites.links.index');
-        Route::delete('sources/websites/{website}/links/{link}', [AgentWebsiteLinkController::class, 'destroy'])->name('sources.websites.links.destroy');
-        Route::post('sources/websites/{website}/links/{link}/retrain', RetrainAgentWebsiteLinkController::class)->name('sources.websites.links.retrain');
-        Route::post('sources/websites/{website}/links/bulk-destroy', BulkDestroyAgentWebsiteLinksController::class)->name('sources.websites.links.bulk-destroy');
+        Route::get('sources/websites/{website}/links', [AgentWebsiteLinkController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.links.index');
+        Route::delete('sources/websites/{website}/links/{link}', [AgentWebsiteLinkController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.websites.links.destroy');
+        Route::post('sources/websites/{website}/links/{link}/retrain', RetrainAgentWebsiteLinkController::class)->middleware('agent.permission:agent.sources.train.web')->name('sources.websites.links.retrain');
+        Route::post('sources/websites/{website}/links/bulk-destroy', BulkDestroyAgentWebsiteLinksController::class)->middleware('agent.permission:agent.sources.delete')->name('sources.websites.links.bulk-destroy');
 
         // Starters API endpoint (used by Widget and Embed components)
         Route::put('starters', [AgentStarterController::class, 'update'])

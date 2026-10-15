@@ -36,7 +36,8 @@ return new class extends Migration
             $table->string('error_type')->nullable()->after('status_code');
             $table->text('error_message')->nullable()->after('error_type');
 
-            $table->string('conversation_id')->nullable()->after('trace_id');
+            $table->string('parent_span_id', 16)->nullable()->after('trace_id');
+            $table->string('conversation_id')->nullable()->after('parent_span_id');
             $table->unsignedInteger('conversation_turn')->nullable()->after('conversation_id');
 
             $table->string('request_source', 20)->nullable()->after('metadata');
@@ -74,6 +75,7 @@ return new class extends Migration
                 'currency',
                 'error_type',
                 'error_message',
+                'parent_span_id',
                 'conversation_id',
                 'conversation_turn',
                 'request_source',

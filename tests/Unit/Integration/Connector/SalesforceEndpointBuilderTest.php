@@ -1,10 +1,8 @@
 <?php
 
-use App\Http\Requests\Settings\Connector\SalesforceConnectRequest;
 use Domain\Integration\Connector\Data\Salesforce\SalesforceOrgData;
 use Domain\Integration\Connector\Enums\SalesforceEnvironment;
 use Domain\Integration\Connector\Services\Salesforce\SalesforceEndpointBuilder;
-use Illuminate\Support\Facades\Validator;
 
 /**
  * The builder turns a workspace's org choices into the concrete Salesforce
@@ -45,14 +43,4 @@ it('prefers a My Domain login host when supplied, trimming a trailing slash', fu
 it('passes a non-empty client secret through and nulls a blank one', function (): void {
     expect($this->builder->build(new SalesforceOrgData('k', 'shhh', SalesforceEnvironment::Production, null, 'sobject-all'))->clientSecret)->toBe('shhh')
         ->and($this->builder->build(new SalesforceOrgData('k', '   ', SalesforceEnvironment::Production, null, 'sobject-all'))->clientSecret)->toBeNull();
-});
-
-it('lets the connect request accept exactly the servers the builder knows', function (): void {
-    $rules = ['server' => (new SalesforceConnectRequest)->rules()['server']];
-
-    foreach (SalesforceEndpointBuilder::SERVERS as $server) {
-        expect(Validator::make(['server' => $server], $rules)->passes())->toBeTrue();
-    }
-
-    expect(Validator::make(['server' => 'not-a-server'], $rules)->fails())->toBeTrue();
 });

@@ -2,8 +2,8 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Models\AgentFunction;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Actions\Assignment\ListToolAgentAssignmentAction;
-use Domain\Membership\Team\Services\TeamService;
 
 /**
  * The "Manage agents" sheet splits every workspace agent into the ones that
@@ -12,13 +12,12 @@ use Domain\Membership\Team\Services\TeamService;
  */
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->owner);
     $this->support = makeTeamAgent($this->owner, 'Support Bot');
     $this->sales = makeTeamAgent($this->owner, 'Sales Bot');
 });
 
 it('splits the workspace agents for an MCP server', function (): void {
-    $server = $this->owner->workspace()->mcpServers()->create(['name' => 'CRM', 'slug' => 'crm', 'url' => 'https://crm.example.test/mcp', 'auth_type' => 'none']);
+    $server = AgentMcpServer::factory()->forOwner($this->owner)->create();
     $this->support->attachConnector($server);
 
     $result = app(ListToolAgentAssignmentAction::class)->execute($this->owner, $server);
@@ -28,13 +27,7 @@ it('splits the workspace agents for an MCP server', function (): void {
 });
 
 it('splits the workspace agents for a webhook function, also for a teammate', function (): void {
-    $function = AgentFunction::query()->create([
-        'workspace_id' => $this->owner->workspace()->id,
-        'internal_name' => 'lookup',
-        'description' => 'd',
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => 'https://example.com/hook',
-    ]);
+    $function = AgentFunction::factory()->forOwner($this->owner)->create();
     $this->sales->attachFunction($function);
     $teammate = User::factory()->employee($this->owner)->create();
 

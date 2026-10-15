@@ -1,15 +1,11 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
-use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Registry\ToolRegistry;
-use Domain\Membership\Team\Services\TeamService;
-use Illuminate\Support\Str;
 
 /**
  * The pool cache (ToolRegistry, 1h TTL) must not outlive an attach/detach —
@@ -17,21 +13,6 @@ use Illuminate\Support\Str;
  * bust the cache themselves. Without that, enabling a connector for an agent
  * takes up to an hour to reach any surface served by the cached pool.
  */
-function registryCacheAgent(): Agent
-{
-    $user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($user);
-
-    return Agent::create([
-        'workspace_id' => $user->workspace()->id,
-        'team_id' => $user->primaryTeam()->id,
-        'name' => 'Registry Cache Agent',
-        'external_id' => Str::random(14),
-        'slug' => Str::lower(Str::random(12)),
-        'is_public' => false,
-        'source' => 'api',
-    ]);
-}
 
 /**
  * @param  array<int, ToolEntry>  $pool
@@ -43,26 +24,10 @@ function registryPoolNames(array $pool): array
 }
 
 it('reflects a connector attach and detach immediately despite the warm pool cache', function (): void {
-    $agent = registryCacheAgent();
+    $agent = Agent::factory()->create();
 
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'Cache Test Server',
-        'slug' => 'cachetest',
-        'url' => 'https://mcp.example.test',
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-
-    McpTool::create([
-        'mcp_server_id' => $server->id,
-        'name' => 'do_thing',
-        'description' => 'Does a thing',
-        'input_schema' => ['type' => 'object', 'properties' => []],
-        'permission' => McpToolPermission::Allow,
-        'fetched_at' => now(),
-    ]);
+    $server = AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'cachetest']);
+    McpTool::factory()->for($server, 'mcpServer')->allowed()->create(['name' => 'do_thing']);
 
     $registry = app(ToolRegistry::class);
 
@@ -77,19 +42,9 @@ it('reflects a connector attach and detach immediately despite the warm pool cac
 });
 
 it('reflects a function attach and detach immediately despite the warm pool cache', function (): void {
-    $agent = registryCacheAgent();
+    $agent = Agent::factory()->create();
 
-    $function = new AgentFunction;
-    $function->workspace_id = $agent->workspace_id;
-    $function->internal_name = 'cache_write_thing';
-    $function->description = 'Writes a thing';
-    $function->parameters_schema = ['type' => 'object', 'properties' => []];
-    $function->webhook_url = 'https://hooks.example.test/fn';
-    $function->webhook_method = 'POST';
-    $function->auth_type = 'none';
-    $function->requires_approval = false;
-    $function->is_enabled = true;
-    $function->save();
+    $function = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'cache_write_thing']);
 
     $registry = app(ToolRegistry::class);
 
@@ -104,25 +59,10 @@ it('reflects a function attach and detach immediately despite the warm pool cach
 });
 
 it('drops the cached pool when an attached connector is deleted', function (): void {
-    $agent = registryCacheAgent();
+    $agent = Agent::factory()->create();
 
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'Doomed Server',
-        'slug' => 'doomed',
-        'url' => 'https://mcp.example.test',
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-    McpTool::create([
-        'mcp_server_id' => $server->id,
-        'name' => 'do_thing',
-        'description' => 'Does a thing',
-        'input_schema' => ['type' => 'object', 'properties' => []],
-        'permission' => McpToolPermission::Allow,
-        'fetched_at' => now(),
-    ]);
+    $server = AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'doomed']);
+    McpTool::factory()->for($server, 'mcpServer')->allowed()->create(['name' => 'do_thing']);
     $agent->attachConnector($server);
 
     $registry = app(ToolRegistry::class);
@@ -136,19 +76,10 @@ it('drops the cached pool when an attached connector is deleted', function (): v
 });
 
 it('drops the cached pool when an attached function is deleted from Settings', function (): void {
-    $agent = registryCacheAgent();
+    $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
 
-    $function = new AgentFunction;
-    $function->workspace_id = $agent->workspace_id;
-    $function->internal_name = 'doomed_fn';
-    $function->description = 'Goes away';
-    $function->parameters_schema = ['type' => 'object', 'properties' => []];
-    $function->webhook_url = 'https://hooks.example.test/fn';
-    $function->webhook_method = 'POST';
-    $function->auth_type = 'none';
-    $function->is_enabled = true;
-    $function->save();
+    $function = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'doomed_fn']);
     $agent->attachFunction($function);
 
     $registry = app(ToolRegistry::class);

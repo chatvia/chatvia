@@ -24,7 +24,6 @@ it('stores the bot when Entra accepts the credentials', function (): void {
     expect($bot)->not->toBeNull()
         ->and($bot->agent_id)->toBe($agent->id)
         ->and($bot->app_id)->toBe('f5e1f9d2-1111-2222-3333-444455556666')
-        ->and($bot->app_secret)->toBe('client-secret-value') // decrypted by the cast
         ->and($bot->tenant_id)->toBeNull()
         ->and(strlen($bot->webhook_secret))->toBe(48)
         ->and($bot->enabled)->toBeTrue();

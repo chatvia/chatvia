@@ -1,9 +1,9 @@
 <?php
 
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
-use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
@@ -11,9 +11,8 @@ use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Data\ToolSearchHitData;
 use Domain\Integration\Tool\Enums\ToolSearchPool;
 use Domain\Integration\Tool\Search\ToolHybridSearch;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Pgvector\Laravel\Vector;
 
 /**
@@ -23,19 +22,29 @@ use Pgvector\Laravel\Vector;
  * tool surfaces iff one of the agent's attached servers advertises it with an
  * unblocked membership.
  */
-function hybridSearch(Agent $agent): array
-{
-    $zeroVector = array_fill(0, 1024, 0.0);
 
-    return app(ToolHybridSearch::class)->search($agent, 'capture a new lead', $zeroVector);
+/**
+ * A vector of the install's size with every value zero.
+ *
+ * @return list<float>
+ */
+function toolSearchZeroVector(): array
+{
+    return array_fill(0, app(EmbeddingStorage::class)->dimensions(), 0.0);
 }
 
-function catalogToolWithMembership(AgentMcpServer $server, string $name, McpToolPermission $permission = McpToolPermission::Allow): ConnectorTool
+/** @return list<ToolSearchHitData> */
+function toolSearchForLead(Agent $agent): array
+{
+    return app(ToolHybridSearch::class)->search($agent, 'capture a new lead', toolSearchZeroVector());
+}
+
+function toolSearchCatalogTool(AgentMcpServer $server, string $name, McpToolPermission $permission = McpToolPermission::Allow): ConnectorTool
 {
     $tool = ConnectorTool::factory()->create([
         'connector_slug' => $server->connector_slug,
         'name' => $name,
-        'embedding' => new Vector(array_fill(0, 1024, 0.0)),
+        'embedding' => new Vector(toolSearchZeroVector()),
     ]);
 
     McpServerTool::create([
@@ -50,80 +59,44 @@ function catalogToolWithMembership(AgentMcpServer $server, string $name, McpTool
 it('returns an empty result set for an agent with no tools at all', function (): void {
     $agent = Agent::factory()->create();
 
-    expect(hybridSearch($agent))->toBe([]);
+    expect(toolSearchForLead($agent))->toBe([]);
 });
 
 it('surfaces a preset catalog tool through the agent-attached server, compiled with that server slug', function (): void {
     $agent = Agent::factory()->create();
 
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'connector_slug' => 'leads',
-        'uses_central_catalog' => true,
-        'name' => 'Leads',
-        'slug' => 'leads',
-        'url' => 'https://example.test/mcp/leads',
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-    catalogToolWithMembership($server, 'capture_lead');
+    $server = AgentMcpServer::factory()->preset('leads')->attachedTo($agent)->create();
+    toolSearchCatalogTool($server, 'capture_lead');
 
-    DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
-
-    $results = hybridSearch($agent);
+    $results = toolSearchForLead($agent);
 
     expect($results)->toHaveCount(1)
         ->and($results[0]->entry->name)->toBe('mcp__leads__capture_lead')
         ->and($results[0]->pool)->toBe(ToolSearchPool::McpPreset);
 
     // Another agent without the server attached sees nothing.
-    expect(hybridSearch(Agent::factory()->create()))->toBe([]);
+    expect(toolSearchForLead(Agent::factory()->create()))->toBe([]);
 });
 
 it('hides a catalog tool whose membership this workspace blocked', function (): void {
     $agent = Agent::factory()->create();
 
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'connector_slug' => 'leads',
-        'uses_central_catalog' => true,
-        'name' => 'Leads',
-        'slug' => 'leads',
-        'url' => 'https://example.test/mcp/leads',
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-    catalogToolWithMembership($server, 'capture_lead', McpToolPermission::Blocked);
+    $server = AgentMcpServer::factory()->preset('leads')->attachedTo($agent)->create();
+    toolSearchCatalogTool($server, 'capture_lead', McpToolPermission::Blocked);
 
-    DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
-
-    expect(hybridSearch($agent))->toBe([]);
+    expect(toolSearchForLead($agent))->toBe([]);
 });
 
 it('excludes the tools of an always-on connector from recall — they ship on every turn anyway', function (): void {
     $agent = Agent::factory()->create();
 
     $make = function (string $slug, bool $alwaysAvailable) use ($agent): void {
-        $server = AgentMcpServer::create([
-            'workspace_id' => $agent->workspace_id,
-            'connector_slug' => $slug,
-            'uses_central_catalog' => true,
-            'name' => ucfirst($slug),
-            'slug' => $slug,
-            'url' => "https://example.test/mcp/{$slug}",
-            'transport' => 'streamable_http',
-            'auth_type' => 'none',
-            'is_enabled' => true,
-        ]);
-        catalogToolWithMembership($server, 'capture_lead');
-        DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id, 'always_available' => $alwaysAvailable]);
+        toolSearchCatalogTool(AgentMcpServer::factory()->preset($slug)->attachedTo($agent, $alwaysAvailable)->create(), 'capture_lead');
     };
     $make('leads', alwaysAvailable: false);
     $make('tutor', alwaysAvailable: true);
 
-    $names = array_map(fn (ToolSearchHitData $hit): string => $hit->entry->name, hybridSearch($agent));
+    $names = array_map(fn (ToolSearchHitData $hit): string => $hit->entry->name, toolSearchForLead($agent));
 
     expect($names)->toBe(['mcp__leads__capture_lead']);
 });
@@ -131,7 +104,7 @@ it('excludes the tools of an always-on connector from recall — they ship on ev
 /** A unit vector at similarity `$similarity` to the query (axis 0), leaning on axis `$axis`. */
 function toolSearchVector(float $similarity, int $axis): array
 {
-    $vector = array_fill(0, 1024, 0.0);
+    $vector = toolSearchZeroVector();
     $vector[0] = $similarity;
     $vector[$axis] = sqrt(1 - $similarity ** 2);
 
@@ -140,31 +113,15 @@ function toolSearchVector(float $similarity, int $axis): array
 
 function toolSearchCustomServer(Agent $agent, string $slug, bool $enabled = true): AgentMcpServer
 {
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'uses_central_catalog' => false,
-        'name' => ucfirst($slug),
-        'slug' => $slug,
-        'url' => "https://example.test/mcp/{$slug}",
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => $enabled,
-    ]);
-    DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
-
-    return $server;
+    return AgentMcpServer::factory()->attachedTo($agent)->create(['slug' => $slug, 'is_enabled' => $enabled]);
 }
 
 function toolSearchCustomTool(AgentMcpServer $server, string $name, array $vector, McpToolPermission $permission = McpToolPermission::Allow): void
 {
-    McpTool::query()->create([
-        'mcp_server_id' => $server->id,
+    McpTool::factory()->for($server, 'mcpServer')->read()->create([
         'name' => $name,
         'description' => "Tool {$name}",
-        'input_schema' => ['type' => 'object', 'properties' => []],
-        'scope' => McpToolScope::Read,
         'permission' => $permission,
-        'fetched_at' => now(),
     ])->forceFill([
         'embedding' => new Vector($vector),
         'embedding_bm25' => Bm25Tokenizer::expression("Tool {$name}"),
@@ -173,19 +130,14 @@ function toolSearchCustomTool(AgentMcpServer $server, string $name, array $vecto
 
 function toolSearchFunction(int $workspaceId, string $name, array $vector, string $description, bool $enabled = true): AgentFunction
 {
-    // Without events: the observer would queue a real embedding. The id and
-    // secret are what its creating hooks would fill in.
-    $function = AgentFunction::withoutEvents(fn (): AgentFunction => AgentFunction::query()->create([
-        'external_id' => (string) Str::uuid7(),
-        'webhook_secret' => Str::random(48),
+    $function = AgentFunction::factory()->create([
         'workspace_id' => $workspaceId,
         'internal_name' => $name,
         'description' => $description,
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => "https://example.test/hooks/{$name}",
-        'webhook_method' => 'GET',
+        'webhook_method' => FunctionWebhookMethod::Get,
         'is_enabled' => $enabled,
-    ]));
+    ]);
+    // Replace the vectors the create-time embed job wrote with the test's own.
     $function->forceFill([
         'embedding' => new Vector($vector),
         'embedding_bm25' => Bm25Tokenizer::expression($name.' '.$description),

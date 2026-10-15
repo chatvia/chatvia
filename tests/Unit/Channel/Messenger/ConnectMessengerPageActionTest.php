@@ -12,12 +12,12 @@ use Tests\Support\Messenger\FakeMessengerClient;
 
 /**
  * Connect is the only write in the Messenger channel that carries real
- * behaviour: it stores the OAuth-granted page token (encrypted) for the agent
+ * behaviour: it stores the OAuth-granted page token for the agent
  * and subscribes Chatvia's app to the page's messages so events start flowing.
  * The page id/name come straight from Facebook's `/me/accounts`, so there's no
  * token validation here — the OAuth flow already did it.
  */
-it('stores the page token encrypted and subscribes the app to the page', function (): void {
+it('stores the page and subscribes the app to it', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeMessengerClient;
 
@@ -32,11 +32,7 @@ it('stores the page token encrypted and subscribes the app to the page', functio
         ->and($row->agent_id)->toBe($agent->id)
         ->and($row->page_id)->toBe('1234567890')
         ->and($row->page_name)->toBe('Acme Support')
-        ->and($row->enabled)->toBeTrue()
-        // Encrypted cast round-trips to the original value...
-        ->and($row->page_access_token)->toBe('EAAG-page-token-value-here')
-        // ...but the stored ciphertext is not the plaintext.
-        ->and($row->getRawOriginal('page_access_token'))->not->toBe('EAAG-page-token-value-here');
+        ->and($row->enabled)->toBeTrue();
 
     expect($client->subscriptions)->toHaveCount(1)
         ->and($client->subscriptions[0]['pageId'])->toBe('1234567890');

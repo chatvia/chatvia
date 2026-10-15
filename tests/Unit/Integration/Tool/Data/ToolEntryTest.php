@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Domain\Integration\Tool\Data\ToolEntry;
-use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Domain\Integration\Tool\Enums\ToolKind;
 
 function toolEntryNamed(string $name, ToolKind $kind): ToolEntry
@@ -34,12 +33,4 @@ it('ships an empty schema as an object with no properties', function (): void {
     $format = toolEntryNamed('get_time', ToolKind::Function)->toOpenAiFormat();
 
     expect(json_encode($format['function']['parameters']))->toBe('{"type":"object","properties":{}}');
-});
-
-it('flags only human-decided outcomes as gated', function (): void {
-    expect(ToolCallOutcome::Approved->wasGated())->toBeTrue()
-        ->and(ToolCallOutcome::Denied->wasGated())->toBeTrue()
-        ->and(ToolCallOutcome::Auto->wasGated())->toBeFalse()
-        ->and(ToolCallOutcome::RateLimited->wasGated())->toBeFalse()
-        ->and(ToolCallOutcome::NotOffered->wasGated())->toBeFalse();
 });

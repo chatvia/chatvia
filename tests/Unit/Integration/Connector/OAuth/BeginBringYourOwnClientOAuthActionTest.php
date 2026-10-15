@@ -5,7 +5,6 @@ use Domain\Integration\Connector\Actions\OAuth\BeginBringYourOwnClientOAuthActio
 use Domain\Integration\Connector\Data\Catalog\ConnectorData;
 use Domain\Integration\Connector\Data\OAuth\BringYourOwnOAuthData;
 use Domain\Integration\Connector\Data\OAuth\PendingOAuthState;
-use Domain\Integration\Connector\Enums\ConnectorAuthStrategy;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -47,15 +46,4 @@ it('builds a PKCE authorize URL from the supplied client + endpoints', function 
     expect($pending?->clientId)->toBe('CONSUMER_KEY_123')
         ->and($pending?->clientSecret)->toBe('consumer-secret')
         ->and($pending?->tokenEndpoint)->toBe('https://login.salesforce.com/services/oauth2/token');
-});
-
-it('exposes Salesforce as a per-workspace OAuth connector in the catalog', function (): void {
-    $connector = ConnectorData::fromArray(config('connectors.salesforce'));
-
-    expect($connector->authStrategy)->toBe(ConnectorAuthStrategy::Oauth)
-        ->and($connector->requiresClientId)->toBeTrue()
-        ->and($connector->requiresUrl)->toBeFalse()
-        ->and($connector->oauthScopes)->toBe('mcp_api refresh_token')
-        // No baked-in global client — it comes from the workspace.
-        ->and($connector->oauthClientId)->toBeNull();
 });

@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Mcp\Actions\Catalog\ReconcileToolMembershipsAction;
 use Domain\Integration\Mcp\Actions\Catalog\UpsertConnectorToolsAction;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
@@ -9,13 +8,20 @@ use Domain\Integration\Mcp\Enums\McpToolScope;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\ConnectorTool;
 use Domain\Integration\Mcp\Models\McpServerTool;
+use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 
 /**
  * The two shared-catalog writes used by both the per-workspace sync and the
  * deploy-time builtin sync: catalog rows are stored once per connector, and
  * memberships follow the catalog without overwriting a workspace's choice.
  */
-function catalogDefinitions(): array
+
+/**
+ * A read tool, a write tool and an entry with no name (dropped on the way in).
+ *
+ * @return list<McpToolDefinitionData>
+ */
+function ctwDefinitions(): array
 {
     return McpToolDefinitionData::listFrom([
         ['name' => 'read_thing', 'description' => 'reads', 'annotations' => ['readOnlyHint' => true]],
@@ -25,8 +31,8 @@ function catalogDefinitions(): array
 }
 
 it('stores each tool once, with its scope and default permission', function (): void {
-    $tools = app(UpsertConnectorToolsAction::class)->execute('weather', catalogDefinitions());
-    app(UpsertConnectorToolsAction::class)->execute('weather', catalogDefinitions());
+    $tools = app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());
+    app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());
 
     expect($tools)->toHaveCount(2)
         ->and(ConnectorTool::where('connector_slug', 'weather')->count())->toBe(2)
@@ -39,17 +45,17 @@ it('stores each tool once, with its scope and default permission', function (): 
 });
 
 it('never gates a first-party builtin, even its write tools', function (): void {
-    $tools = app(UpsertConnectorToolsAction::class)->execute('forms', catalogDefinitions());
+    $tools = app(UpsertConnectorToolsAction::class)->execute('forms', ctwDefinitions());
 
     expect($tools->pluck('default_permission')->unique()->all())->toBe([McpToolPermission::Allow]);
 });
 
 it('clears the embedding only when the description changes', function (): void {
-    [$read] = app(UpsertConnectorToolsAction::class)->execute('weather', catalogDefinitions());
+    [$read] = app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());
     ConnectorTool::whereKey($read->id)->update(['embedding_bm25' => null]);
-    $read->forceFill(['embedding' => array_fill(0, 1024, 0.1)])->save();
+    $read->forceFill(['embedding' => array_fill(0, app(EmbeddingStorage::class)->dimensions(), 0.1)])->save();
 
-    app(UpsertConnectorToolsAction::class)->execute('weather', catalogDefinitions());
+    app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());
     expect($read->fresh()->embedding)->not->toBeNull();
 
     app(UpsertConnectorToolsAction::class)->execute('weather', McpToolDefinitionData::listFrom([
@@ -59,15 +65,8 @@ it('clears the embedding only when the description changes', function (): void {
 });
 
 it('adds and drops memberships to match the catalog, keeping the workspace choice', function (): void {
-    $server = AgentMcpServer::create([
-        'workspace_id' => Workspace::factory()->create()->id,
-        'connector_slug' => 'weather',
-        'name' => 'Weather',
-        'slug' => 'weather',
-        'url' => 'https://weather.example.test/mcp',
-        'auth_type' => 'none',
-    ]);
-    $tools = app(UpsertConnectorToolsAction::class)->execute('weather', catalogDefinitions());
+    $server = AgentMcpServer::factory()->preset('weather')->create();
+    $tools = app(UpsertConnectorToolsAction::class)->execute('weather', ctwDefinitions());
 
     app(ReconcileToolMembershipsAction::class)->execute($server, $tools);
     McpServerTool::where('mcp_server_id', $server->id)->where('connector_tool_id', $tools[1]->id)

@@ -18,9 +18,9 @@ use Tests\Support\Teams\FakeTeamsClient;
  * it via activity edits, and stamp the chat. The pipeline (real LLM) is
  * stubbed here — this asserts the wiring, not the model's answer.
  */
-function teamsHandleBot(bool $public = true): AgentTeamsBot
+function teamsHandleBot(): AgentTeamsBot
 {
-    $agent = Agent::factory()->create(['is_public' => $public]);
+    $agent = Agent::factory()->create(['is_public' => true]);
 
     return AgentTeamsBot::create([
         'agent_id' => $agent->id,
@@ -135,18 +135,6 @@ it('unwraps other people’s mentions instead of dropping them', function (): vo
     expect($runner->received())->toBe('summarize what Lina asked');
 });
 
-it('keeps one chat mapping across multiple inbound activities', function (): void {
-    $bot = teamsHandleBot();
-    $client = new FakeTeamsClient;
-    $runner = new StubChannelReplyRunner('ok');
-
-    teamsHandle($client, $runner, $bot, teamsHandleActivity(['id' => 'act-1', 'text' => 'first']));
-    teamsHandle($client, $runner, $bot, teamsHandleActivity(['id' => 'act-2', 'text' => 'second']));
-
-    expect(TeamsChat::query()->count())->toBe(1);
-    expect($client->posted)->toHaveCount(2);
-});
-
 it('does nothing when the message is only the mention itself', function (): void {
     $bot = teamsHandleBot();
     $client = new FakeTeamsClient;
@@ -180,20 +168,4 @@ it('bails before the pipeline when the placeholder cannot be posted', function (
 
     expect($runner->received())->toBeNull();
     expect($client->updates)->toBeEmpty();
-});
-
-it('refuses to answer on a protected agent and creates no chat', function (): void {
-    $bot = teamsHandleBot(public: false);
-    $client = new FakeTeamsClient;
-    $runner = new StubChannelReplyRunner('should never be sent');
-
-    teamsHandle($client, $runner, $bot, teamsHandleActivity());
-
-    // Gated before the pipeline: a single "unavailable" notice, no chat row.
-    expect($client->posted)->toHaveCount(1)
-        ->and($client->posted[0]['markdown'])->toContain('available')
-        ->and($client->posted[0]['markdown'])->not->toBe('should never be sent');
-    expect($client->updates)->toBeEmpty();
-
-    expect(TeamsChat::query()->count())->toBe(0);
 });

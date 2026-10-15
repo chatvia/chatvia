@@ -11,7 +11,7 @@ use Domain\Security\Models\WorkspaceSecurityPolicy;
  * Lead retention: only submitted leads older than the workspace's own window
  * are deleted; other workspaces, recent leads and pending forms stay.
  */
-function retainedLead(Agent $agent, int $daysAgo, FormSubmissionStatus $status = FormSubmissionStatus::Submitted): FormSubmission
+function pwlLead(Agent $agent, int $daysAgo, FormSubmissionStatus $status = FormSubmissionStatus::Submitted): FormSubmission
 {
     $definition = FormDefinition::factory()->forAgent($agent)->create();
 
@@ -22,20 +22,20 @@ function retainedLead(Agent $agent, int $daysAgo, FormSubmissionStatus $status =
     ]);
 }
 
-function leadRetention(Agent $agent, ?int $days): void
+function pwlSetRetention(Agent $agent, ?int $days): void
 {
     WorkspaceSecurityPolicy::forWorkspace($agent->workspace_id)->update(['retention_leads_days' => $days]);
 }
 
 it('deletes only that workspace\'s submitted leads past its window', function (): void {
     $agent = Agent::factory()->create();
-    leadRetention($agent, 30);
-    $old = retainedLead($agent, 45);
-    $recent = retainedLead($agent, 10);
-    $pending = retainedLead($agent, 45, FormSubmissionStatus::Pending);
+    pwlSetRetention($agent, 30);
+    $old = pwlLead($agent, 45);
+    $recent = pwlLead($agent, 10);
+    $pending = pwlLead($agent, 45, FormSubmissionStatus::Pending);
 
     $other = Agent::factory()->create(); // no lead retention set
-    $otherOld = retainedLead($other, 400);
+    $otherOld = pwlLead($other, 400);
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(1)
         ->and(FormSubmission::query()->whereKey($old->id)->exists())->toBeFalse()
@@ -46,11 +46,11 @@ it('deletes only that workspace\'s submitted leads past its window', function ()
 
 it('deletes in batches until nothing is left, and a second run deletes nothing', function (): void {
     $agent = Agent::factory()->create();
-    leadRetention($agent, 7);
+    pwlSetRetention($agent, 7);
     foreach (range(1, 5) as $i) {
-        retainedLead($agent, 10 + $i);
+        pwlLead($agent, 10 + $i);
     }
-    $kept = retainedLead($agent, 1);
+    $kept = pwlLead($agent, 1);
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute(batchSize: 2))->toBe(5)
         ->and(app(PruneWorkspaceLeadsAction::class)->execute(batchSize: 2))->toBe(0)
@@ -60,8 +60,8 @@ it('deletes in batches until nothing is left, and a second run deletes nothing',
 it('never uses a window below the configured floor', function (): void {
     config(['chatvia.retention.leads_floor_days' => 30]);
     $agent = Agent::factory()->create();
-    leadRetention($agent, 1); // saved before the floor was raised
-    $lead = retainedLead($agent, 10);
+    pwlSetRetention($agent, 1); // saved before the floor was raised
+    $lead = pwlLead($agent, 10);
 
     expect(app(PruneWorkspaceLeadsAction::class)->execute())->toBe(0)
         ->and(FormSubmission::query()->whereKey($lead->id)->exists())->toBeTrue();
@@ -69,8 +69,8 @@ it('never uses a window below the configured floor', function (): void {
 
 it('runs from the app:prune-leads command', function (): void {
     $agent = Agent::factory()->create();
-    leadRetention($agent, 30);
-    $old = retainedLead($agent, 60);
+    pwlSetRetention($agent, 30);
+    $old = pwlLead($agent, 60);
 
     $this->artisan('app:prune-leads', ['--batch' => 1])->assertSuccessful();
 

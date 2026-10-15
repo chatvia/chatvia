@@ -1,53 +1,35 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
 use Domain\Integration\Function\Models\AgentFunction;
-use Illuminate\Support\Str;
 use Spatie\LaravelData\Optional;
 
 /**
- * UpdateAgentFunctionAction patches an AgentFunction (a webhook tool). The
- * two behaviours pinned here are the ones the architect audit flagged as
- * security-relevant and historically drift-prone:
- *  - When the caller omits `requires_approval` the stored value must not
- *    be reset to false silently (an API consumer's partial PATCH must not
- *    accidentally clear the approval gate the user set in the dashboard).
- *  - When `auth_type` changes (e.g. bearer → hmac) the stored secret of the
- *    previous type must be cleared and replaced from the submitted value.
+ * UpdateAgentFunctionAction patches a webhook function. Two of its rules guard
+ * security:
+ *  - An update that omits `requires_approval` keeps the stored value, so an
+ *    API consumer's partial PATCH cannot clear the approval gate the user set
+ *    in the dashboard.
+ *  - When `auth_type` changes (e.g. bearer → hmac) the previous type's secret
+ *    is dropped and the new one comes from the submitted value.
  */
-function uafBuildFunction(array $overrides = []): array
+function uafFunction(): AgentFunction
 {
-    $owner = User::factory()->create();
-
-    $function = new AgentFunction;
-    $function->workspace_id = $owner->workspace()->id;
-    $function->external_id = (string) Str::uuid();
-    $function->internal_name = 'write_thing';
-    $function->display_name = 'Write Thing';
-    $function->description = 'Writes a thing';
-    $function->parameters_schema = ['type' => 'object', 'properties' => []];
-    $function->webhook_url = 'https://hooks.example.test/fn';
-    $function->webhook_method = 'POST';
-    $function->auth_type = 'bearer';
-    $function->auth_config = ['token' => 'stored-secret-xxx'];
-    $function->requires_approval = true;
-    $function->is_enabled = true;
-
-    foreach ($overrides as $k => $v) {
-        $function->{$k} = $v;
-    }
-
-    $function->save();
-
-    return [$owner, $function];
+    return AgentFunction::factory()->requiringApproval()->create([
+        'internal_name' => 'write_thing',
+        'display_name' => 'Write Thing',
+        'description' => 'Writes a thing',
+        'webhook_url' => 'https://hooks.example.test/fn',
+        'auth_type' => FunctionAuthType::Bearer,
+        'auth_config' => ['token' => 'stored-secret-xxx'],
+    ]);
 }
 
 it('preserves requires_approval when the caller omits the field', function (): void {
-    [$owner, $function] = uafBuildFunction();
+    $function = uafFunction();
 
     $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
@@ -69,7 +51,7 @@ it('preserves requires_approval when the caller omits the field', function (): v
 });
 
 it('updates requires_approval when the caller explicitly sends false', function (): void {
-    [$owner, $function] = uafBuildFunction();
+    $function = uafFunction();
 
     $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
@@ -90,7 +72,7 @@ it('updates requires_approval when the caller explicitly sends false', function 
 });
 
 it('CLEARS the stored secret when auth_type changes (bearer → hmac) without a fresh value', function (): void {
-    [$owner, $function] = uafBuildFunction();
+    $function = uafFunction();
 
     $data = new FunctionDefinitionData(
         internal_name: 'write_thing',
@@ -108,14 +90,14 @@ it('CLEARS the stored secret when auth_type changes (bearer → hmac) without a 
     app(UpdateAgentFunctionAction::class)->execute($function, $data);
 
     $function->refresh();
-    // The OLD bearer token must not survive the auth_type change.
+    // The old bearer token does not survive the auth_type change: the hmac
+    // secret starts empty until the user enters one.
     expect($function->auth_type)->toBe(FunctionAuthType::Hmac)
-        ->and($function->auth_config)
-        ->not->toHaveKey('token');
+        ->and($function->auth_config)->toBe(['secret' => '']);
 });
 
 it('REPLACES the stored secret when auth_type changes AND a new value is provided', function (): void {
-    [$owner, $function] = uafBuildFunction();
+    $function = uafFunction();
 
     $data = new FunctionDefinitionData(
         internal_name: 'write_thing',

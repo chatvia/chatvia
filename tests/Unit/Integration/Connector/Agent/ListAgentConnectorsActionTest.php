@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\Workspace;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Connector\Actions\Agent\ListAgentConnectorsAction;
 use Domain\Integration\Connector\Data\Agent\AgentConnectorRowData;
@@ -16,29 +15,14 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
  * servers with their per-agent attachment. "Always on" only counts for a
  * server the agent actually uses.
  */
-function agentConnectorServer(int $workspaceId, ?string $connectorSlug, string $slug): AgentMcpServer
-{
-    return AgentMcpServer::create([
-        'workspace_id' => $workspaceId,
-        'connector_slug' => $connectorSlug,
-        'name' => ucfirst($slug),
-        'slug' => $slug,
-        'url' => 'https://mcp.example.test/'.$slug,
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-}
-
 it('gives each featured connector its state for the agent', function (): void {
     $agent = Agent::factory()->create();
     [$attachedSlug, $connectedSlug, $availableSlug] = app(ConnectorCatalog::class)->connectors()->keys()->take(3)->all();
 
-    $attached = agentConnectorServer($agent->workspace_id, $attachedSlug, $attachedSlug);
-    $connected = agentConnectorServer($agent->workspace_id, $connectedSlug, $connectedSlug);
-    $agent->mcpServers()->attach($attached->id, ['always_available' => true]);
+    $attached = AgentMcpServer::factory()->preset($attachedSlug)->attachedTo($agent, alwaysAvailable: true)->create();
+    $connected = AgentMcpServer::factory()->preset($connectedSlug)->create(['workspace_id' => $agent->workspace_id]);
     // Another workspace connecting the third connector must not leak in.
-    agentConnectorServer(Workspace::factory()->create()->id, $availableSlug, $availableSlug);
+    AgentMcpServer::factory()->preset($availableSlug)->create();
 
     $rows = app(ListAgentConnectorsAction::class)->execute($agent)->featured->toCollection()
         ->keyBy(fn (AgentConnectorRowData $row): string => $row->connector->slug);
@@ -55,12 +39,10 @@ it('gives each featured connector its state for the agent', function (): void {
 
 it('lists the workspace\'s custom servers with their attachment to this agent', function (): void {
     $agent = Agent::factory()->create();
-    $used = agentConnectorServer($agent->workspace_id, null, 'used-custom');
-    $alwaysOn = agentConnectorServer($agent->workspace_id, null, 'always-custom');
-    $unused = agentConnectorServer($agent->workspace_id, null, 'unused-custom');
-    agentConnectorServer(Workspace::factory()->create()->id, null, 'foreign-custom');
-    $agent->mcpServers()->attach($used->id, ['always_available' => false]);
-    $agent->mcpServers()->attach($alwaysOn->id, ['always_available' => true]);
+    $used = AgentMcpServer::factory()->attachedTo($agent)->create();
+    $alwaysOn = AgentMcpServer::factory()->attachedTo($agent, alwaysAvailable: true)->create();
+    $unused = AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id]);
+    AgentMcpServer::factory()->create();
 
     $rows = app(ListAgentConnectorsAction::class)->execute($agent)->custom->toCollection()
         ->keyBy(fn (AgentCustomConnectorRowData $row): string => $row->external_id);

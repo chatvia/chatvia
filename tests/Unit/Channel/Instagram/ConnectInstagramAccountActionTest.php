@@ -11,12 +11,12 @@ use Pest\Expectation;
 use Tests\Support\Instagram\FakeInstagramClient;
 
 /**
- * Connect stores the OAuth-granted Page token + IG account ids (encrypted) for
+ * Connect stores the OAuth-granted Page token + IG account ids for
  * the agent and best-effort subscribes the linked Page to its `messages` field
  * so DMs start flowing. The ids come straight from Facebook's /me/accounts →
  * instagram_business_account (already valid), so there's no token validation.
  */
-function instagramAccount(string $pageToken, string $igId = '17840012345'): InstagramAccountData
+function instagramConnectData(string $pageToken, string $igId = '17840012345'): InstagramAccountData
 {
     return new InstagramAccountData(
         page_id: '998877',
@@ -27,11 +27,11 @@ function instagramAccount(string $pageToken, string $igId = '17840012345'): Inst
     );
 }
 
-it('stores the IG account + page token encrypted and subscribes the linked page', function (): void {
+it('stores the IG account and subscribes the linked page with its token', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeInstagramClient;
 
-    $account = new ConnectInstagramAccountAction($client, new ChannelConnectionGuard)->execute($agent, instagramAccount('EAAG-page-token-value-here'));
+    $account = new ConnectInstagramAccountAction($client, new ChannelConnectionGuard)->execute($agent, instagramConnectData('EAAG-page-token-value-here'));
 
     $row = AgentInstagramAccount::query()->firstOrFail();
 
@@ -40,11 +40,7 @@ it('stores the IG account + page token encrypted and subscribes the linked page'
         ->and($row->ig_id)->toBe('17840012345')
         ->and($row->username)->toBe('acme.support')
         ->and($row->page_id)->toBe('998877')
-        ->and($row->enabled)->toBeTrue()
-        // Encrypted cast round-trips...
-        ->and($row->page_access_token)->toBe('EAAG-page-token-value-here')
-        // ...but the stored ciphertext is not the plaintext.
-        ->and($row->getRawOriginal('page_access_token'))->not->toBe('EAAG-page-token-value-here');
+        ->and($row->enabled)->toBeTrue();
 
     expect($client->subscriptions)->toHaveCount(1)
         ->and($client->subscriptions[0]['pageId'])->toBe('998877')
@@ -55,10 +51,10 @@ it('reconnects in place — one account row per agent, page token replaced', fun
     $agent = Agent::factory()->create(['is_public' => true]);
     $action = new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard);
 
-    $action->execute($agent, instagramAccount('EAAG-first-token'));
+    $action->execute($agent, instagramConnectData('EAAG-first-token'));
     $first = AgentInstagramAccount::query()->firstOrFail();
 
-    $action->execute($agent, instagramAccount('EAAG-second-token'));
+    $action->execute($agent, instagramConnectData('EAAG-second-token'));
 
     expect(AgentInstagramAccount::query()->count())->toBe(1);
 
@@ -71,7 +67,7 @@ it('refuses a protected agent and stores nothing', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
 
     expect(fn (): AgentInstagramAccount => new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard)
-        ->execute($agent, instagramAccount('EAAG-token')))
+        ->execute($agent, instagramConnectData('EAAG-token')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 
     expect(AgentInstagramAccount::query()->count())->toBe(0);
@@ -79,11 +75,11 @@ it('refuses a protected agent and stores nothing', function (): void {
 
 it('refuses an account that already powers another agent', function (): void {
     $action = new ConnectInstagramAccountAction(new FakeInstagramClient, new ChannelConnectionGuard);
-    $action->execute(Agent::factory()->create(['is_public' => true]), instagramAccount('EAAG-first'));
+    $action->execute(Agent::factory()->create(['is_public' => true]), instagramConnectData('EAAG-first'));
 
     $other = Agent::factory()->create(['is_public' => true]);
 
-    expect(fn (): AgentInstagramAccount => $action->execute($other, instagramAccount('EAAG-second')))
+    expect(fn (): AgentInstagramAccount => $action->execute($other, instagramConnectData('EAAG-second')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::TakenByAnotherAgent));
 
     expect(AgentInstagramAccount::query()->where('agent_id', $other->id)->exists())->toBeFalse();

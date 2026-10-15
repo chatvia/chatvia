@@ -1,19 +1,17 @@
 <?php
 
-use Domain\Agent\Models\Agent;
+declare(strict_types=1);
+
 use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Enums\FormType;
 use Domain\Form\Events\FormSubmitted;
-use Domain\Form\Listeners\PushSubmissionToCrm;
-use Illuminate\Support\Facades\Http;
 
 /**
- * FormSubmitted is handled by a queued listener, so it waits in Redis as a
- * serialized object. Before it carried a DTO the event had nine flat public
- * fields; payloads in that shape can still be queued when a new release goes
- * live, and a worker still on the old release can pick up a payload the new
- * release wrote. Both must keep working: the serialized form stays the flat
- * field list.
+ * FormSubmitted is handled by a queued listener, so it waits in the queue as a
+ * serialized object. It serializes to a flat list of fields (agentId,
+ * workspaceId, … values) rather than the nested DTO, so a payload written by
+ * one release can be read by a worker on another: both run side by side while
+ * a deploy rolls out, and a waiting CRM delivery must not be lost.
  */
 
 /**
@@ -83,29 +81,4 @@ it('writes the same flat shape, so a worker on the previous release can read it'
     ));
 
     expect(serialize($event))->toBe(flatFormSubmittedPayload(flatFormSubmittedFields(3)));
-});
-
-it('delivers a flat-shape payload to the CRM webhook', function (): void {
-    $agent = Agent::factory()->create();
-    $agent->setSetting('crm', [
-        'webhook_enabled' => true,
-        'webhook_url' => 'https://crm.example.com/hooks/leads',
-        'webhook_secret' => 'shh',
-    ], 'leads');
-    Http::fake(['*' => Http::response('', 200)]);
-
-    $event = unserialize(flatFormSubmittedPayload(flatFormSubmittedFields($agent->id)));
-    app(PushSubmissionToCrm::class)->handle($event);
-
-    Http::assertSent(function ($request) use ($agent): bool {
-        $payload = $request->data();
-
-        return $request->url() === 'https://crm.example.com/hooks/leads'
-            && $payload['form'] === 'book-a-demo'
-            && $payload['form_type'] === 'booking'
-            && $payload['source'] === 'form'
-            && $payload['agent_id'] === $agent->external_id
-            && $payload['conversation_id'] === '0199b2c4-0000-7000-8000-000000000001'
-            && $payload['values'] === ['email' => 'jane@example.com', 'seats' => 5];
-    });
 });

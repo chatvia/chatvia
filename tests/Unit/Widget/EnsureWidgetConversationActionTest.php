@@ -9,8 +9,8 @@ use Illuminate\Support\Str;
 
 /**
  * The widget lists the visitor's conversations on boot and renders the newest
- * one, so a session without any gets one started (write side), while the
- * list itself is a plain read (ListWidgetConversationsQuery).
+ * one, so a session without any gets one started. The list itself is
+ * ListWidgetConversationsQuery (ListWidgetConversationsQueryTest).
  */
 it('starts one widget conversation for a session that has none', function (): void {
     $agent = Agent::factory()->create();
@@ -36,12 +36,4 @@ it('leaves a session that already has a conversation alone', function (): void {
 
     expect($ensure->execute($agent, $sessionId))->toBeFalse()
         ->and(app(ListWidgetConversationsQuery::class)->get($agent, $sessionId))->toHaveCount(1);
-});
-
-it('lists nothing and writes nothing for a session it has never seen', function (): void {
-    $agent = Agent::factory()->create();
-    $before = Conversation::query()->count();
-
-    expect(app(ListWidgetConversationsQuery::class)->get($agent, (string) Str::uuid()))->toBe([])
-        ->and(Conversation::query()->count())->toBe($before);
 });

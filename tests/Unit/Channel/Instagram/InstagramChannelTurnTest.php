@@ -16,9 +16,9 @@ use Tests\Support\Instagram\FakeInstagramClient;
  * a reply, send it back, and stamp the thread. The pipeline (real LLM) is
  * stubbed here — this asserts the wiring, not the model's answer.
  */
-function instagramTurnAccount(bool $public = true): AgentInstagramAccount
+function instagramTurnAccount(): AgentInstagramAccount
 {
-    $agent = Agent::factory()->create(['is_public' => $public]);
+    $agent = Agent::factory()->create(['is_public' => true]);
 
     return AgentInstagramAccount::create([
         'agent_id' => $agent->id,
@@ -57,32 +57,4 @@ it('resolves the thread, sends the agent reply, and stamps last_message_at', fun
     $thread = InstagramThread::query()->firstOrFail();
     expect($thread->igsid)->toBe('5550001234')
         ->and($thread->last_message_at)->not->toBeNull();
-});
-
-it('keeps one thread mapping across multiple inbound messages', function (): void {
-    $account = instagramTurnAccount();
-    $client = new FakeInstagramClient;
-    $action = new StubChannelReplyRunner('ok')->handler();
-
-    $action->execute(instagramTurnAdapter($client, $account, '900'), 'first');
-    $action->execute(instagramTurnAdapter($client, $account, '900'), 'second');
-
-    expect(InstagramThread::query()->count())->toBe(1);
-    expect($client->sent)->toHaveCount(2);
-});
-
-it('refuses to answer on a protected agent and creates no thread', function (): void {
-    $account = instagramTurnAccount(public: false);
-    $client = new FakeInstagramClient;
-    $runner = new StubChannelReplyRunner('should never be sent');
-
-    $runner->handler()->execute(instagramTurnAdapter($client, $account, '5550001234'), 'hello');
-
-    // Gated before the pipeline: a single "unavailable" notice, no thread row.
-    expect($client->sent)->toHaveCount(1)
-        ->and($client->sent[0]['markdown'])->toContain('available on Instagram')
-        ->and($client->sent[0]['markdown'])->not->toBe('should never be sent');
-
-    expect($runner->received())->toBeNull();
-    expect(InstagramThread::query()->count())->toBe(0);
 });

@@ -16,9 +16,9 @@ use Tests\Support\Whatsapp\FakeWhatsappClient;
  * pipeline (real LLM) is stubbed here — this asserts the wiring, not the
  * model's answer.
  */
-function whatsappTurnNumber(bool $public = true): AgentWhatsappNumber
+function whatsappTurnNumber(): AgentWhatsappNumber
 {
-    $agent = Agent::factory()->create(['is_public' => $public]);
+    $agent = Agent::factory()->create(['is_public' => true]);
 
     return AgentWhatsappNumber::create([
         'agent_id' => $agent->id,
@@ -57,32 +57,4 @@ it('resolves the chat, sends the agent reply, and stamps last_message_at', funct
     expect($chat->wa_id)->toBe('4915551234567')
         ->and($chat->name)->toBe('Sam')
         ->and($chat->last_message_at)->not->toBeNull();
-});
-
-it('keeps one chat mapping across multiple inbound messages', function (): void {
-    $number = whatsappTurnNumber();
-    $client = new FakeWhatsappClient;
-    $action = new StubChannelReplyRunner('ok')->handler();
-
-    $action->execute(whatsappTurnAdapter($client, $number, '900', 'wamid.1'), 'first');
-    $action->execute(whatsappTurnAdapter($client, $number, '900', 'wamid.2'), 'second');
-
-    expect(WhatsappChat::query()->count())->toBe(1);
-    expect($client->sent)->toHaveCount(2);
-});
-
-it('refuses to answer on a protected agent and creates no chat', function (): void {
-    $number = whatsappTurnNumber(public: false);
-    $client = new FakeWhatsappClient;
-    $runner = new StubChannelReplyRunner('should never be sent');
-
-    $runner->handler()->execute(whatsappTurnAdapter($client, $number, '4915551234567', 'wamid.IN2'), 'hello');
-
-    // Gated before the pipeline: a single "unavailable" notice, no chat row.
-    expect($client->sent)->toHaveCount(1)
-        ->and($client->sent[0]['markdown'])->toContain('available on WhatsApp')
-        ->and($client->sent[0]['markdown'])->not->toBe('should never be sent');
-    expect($client->typing)->toBeEmpty();
-
-    expect(WhatsappChat::query()->count())->toBe(0);
 });

@@ -4,23 +4,11 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Connector\Actions\Agent\DisableAgentCapabilityAction;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
-
-    $server = $this->user->workspace()->mcpServers()->create([
-        'connector_slug' => 'forms',
-        'category' => 'builtin',
-        'name' => 'Forms',
-        'slug' => 'forms',
-        'url' => config('app.url').'/mcp/forms',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-    $this->agent->mcpServers()->attach($server->id);
+    AgentMcpServer::factory()->builtin('forms')->attachedTo($this->agent)->create();
 });
 
 it('detaches the capability from the agent', function (): void {

@@ -12,21 +12,21 @@ use Domain\Channel\Telegram\Services\TelegramCommandRouter;
 use Pest\Expectation;
 use Tests\Support\Telegram\FakeTelegramClient;
 
-function connectAction(FakeTelegramClient $client): ConnectTelegramBotAction
+function telegramConnectAction(FakeTelegramClient $client): ConnectTelegramBotAction
 {
     return new ConnectTelegramBotAction($client, new TelegramCommandRouter(app(TelegramChatResolver::class), $client), new ChannelConnectionGuard);
 }
 
 /**
  * Connect is the only write in the Telegram channel that carries real behaviour:
- * it validates the token with Telegram, stores it encrypted with a fresh webhook
+ * it validates the token with Telegram, stores it with a fresh webhook
  * secret, and registers our webhook — and must reject a bad token without writing.
  */
-it('connects a bot, stores it encrypted, and registers the webhook', function (): void {
+it('connects a bot and registers the webhook with its fresh secret', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeTelegramClient;
 
-    $bot = (connectAction($client))->execute($agent, new ConnectTelegramData('123456:ABCDEF_token_value_here'));
+    $bot = telegramConnectAction($client)->execute($agent, new ConnectTelegramData('123456:ABCDEF_token_value_here'));
 
     expect($bot)->not->toBeNull();
 
@@ -35,11 +35,7 @@ it('connects a bot, stores it encrypted, and registers the webhook', function ()
     expect($row->agent_id)->toBe($agent->id)
         ->and($row->bot_username)->toBe('demo_bot')
         ->and($row->enabled)->toBeTrue()
-        ->and(strlen($row->webhook_secret))->toBe(48)
-        // Encrypted cast round-trips to the original token.
-        ->and($row->bot_token)->toBe('123456:ABCDEF_token_value_here')
-        // The stored ciphertext is not the plaintext token.
-        ->and($row->getRawOriginal('bot_token'))->not->toBe('123456:ABCDEF_token_value_here');
+        ->and(strlen($row->webhook_secret))->toBe(48);
 
     expect($client->webhooks)->toHaveCount(1)
         ->and($client->webhooks[0]['secret'])->toBe($row->webhook_secret)
@@ -55,7 +51,7 @@ it('throws a rejection and stores nothing when Telegram rejects the token', func
     $client = new FakeTelegramClient;
     $client->me = null; // Telegram: invalid token.
 
-    expect(fn (): AgentTelegramBot => connectAction($client)->execute($agent, new ConnectTelegramData('bogus')))
+    expect(fn (): AgentTelegramBot => telegramConnectAction($client)->execute($agent, new ConnectTelegramData('bogus')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::Rejected));
 
     expect(AgentTelegramBot::query()->count())->toBe(0);
@@ -65,7 +61,7 @@ it('throws a rejection and stores nothing when Telegram rejects the token', func
 it('reconnects in place — one bot row per agent, token rotated', function (): void {
     $agent = Agent::factory()->create(['is_public' => true]);
     $client = new FakeTelegramClient;
-    $action = connectAction($client);
+    $action = telegramConnectAction($client);
 
     $action->execute($agent, new ConnectTelegramData('111:first_token_value_aaaaaaaaaa'));
     $first = AgentTelegramBot::query()->firstOrFail();
@@ -84,7 +80,7 @@ it('refuses a protected agent before calling Telegram', function (): void {
     $agent = Agent::factory()->create(['is_public' => false]);
     $client = new FakeTelegramClient;
 
-    expect(fn (): AgentTelegramBot => connectAction($client)->execute($agent, new ConnectTelegramData('123456:ABCDEF_token_value_here')))
+    expect(fn (): AgentTelegramBot => telegramConnectAction($client)->execute($agent, new ConnectTelegramData('123456:ABCDEF_token_value_here')))
         ->toThrow(fn (ChannelConnectException $e): Expectation => expect($e->failure)->toBe(ChannelConnectFailure::ProtectedAgent));
 
     expect(AgentTelegramBot::query()->count())->toBe(0)

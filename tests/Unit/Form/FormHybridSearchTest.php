@@ -11,7 +11,7 @@ use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
  * inline by the observer (sync queue + FakeEmbeddingsProvider) on create, so the
  * dense + sparse columns are populated without touching the network.
  */
-function makeForm(Agent $agent, string $name, string $slug, ?string $description = null): FormDefinition
+function fhsForm(Agent $agent, string $name, string $slug, ?string $description = null): FormDefinition
 {
     return FormDefinition::factory()->forAgent($agent)->create([
         'name' => $name,
@@ -29,9 +29,9 @@ it('returns an empty collection for an agent with no forms', function (): void {
 
 it('lists every active form wholesale when the catalog fits the prompt budget', function (): void {
     $agent = Agent::factory()->create();
-    makeForm($agent, 'Book a demo', 'book-demo');
-    makeForm($agent, 'Get a quote', 'get-quote');
-    makeForm($agent, 'Contact us', 'contact-us');
+    fhsForm($agent, 'Book a demo', 'book-demo');
+    fhsForm($agent, 'Get a quote', 'get-quote');
+    fhsForm($agent, 'Contact us', 'contact-us');
 
     $forms = app(FormHybridSearch::class)->forPrompt($agent, 'hello there');
 
@@ -41,7 +41,7 @@ it('lists every active form wholesale when the catalog fits the prompt budget', 
 
 it('omits inactive forms from the wholesale list', function (): void {
     $agent = Agent::factory()->create();
-    makeForm($agent, 'Live form', 'live-form');
+    fhsForm($agent, 'Live form', 'live-form');
     FormDefinition::factory()->forAgent($agent)->create([
         'name' => 'Archived form', 'slug' => 'archived-form', 'is_active' => false,
     ]);
@@ -55,11 +55,11 @@ it('caps an oversized catalog at PROMPT_LIMIT and keeps the form matching the vi
 
     // More forms than the prompt budget forces the hybrid-retrieval path.
     for ($i = 1; $i <= FormHybridSearch::PROMPT_LIMIT + 2; $i++) {
-        makeForm($agent, "General topic {$i}", "general-topic-{$i}", "Background information number {$i}");
+        fhsForm($agent, "General topic {$i}", "general-topic-{$i}", "Background information number {$i}");
     }
     // One form whose text lexically matches the message — the BM25 channel must
     // float it into the capped set.
-    makeForm($agent, 'Refund request', 'refund-request', 'Show this when the visitor wants a refund or their money back.');
+    fhsForm($agent, 'Refund request', 'refund-request', 'Show this when the visitor wants a refund or their money back.');
 
     $forms = app(FormHybridSearch::class)->forPrompt($agent, 'I would like a refund please');
 
@@ -69,8 +69,10 @@ it('caps an oversized catalog at PROMPT_LIMIT and keeps the form matching the vi
 
 it('falls back to the alphabetical slice when an oversized catalog has no embeddings', function (): void {
     $agent = Agent::factory()->create();
-    for ($i = 1; $i <= FormHybridSearch::PROMPT_LIMIT + 3; $i++) {
-        makeForm($agent, "Topic {$i}", "topic-{$i}");
+    // Created in reverse, so name order differs from insertion order.
+    for ($i = FormHybridSearch::PROMPT_LIMIT + 3; $i >= 1; $i--) {
+        $n = sprintf('%02d', $i);
+        fhsForm($agent, "Topic {$n}", "topic-{$n}");
     }
     // Wipe the embeddings the create-observer populated (mass update skips events)
     // so the hybrid channels return nothing and forPrompt must degrade.
@@ -78,12 +80,14 @@ it('falls back to the alphabetical slice when an oversized catalog has no embedd
 
     $forms = app(FormHybridSearch::class)->forPrompt($agent, 'anything at all');
 
-    expect($forms)->toHaveCount(FormHybridSearch::PROMPT_LIMIT);
+    expect($forms->pluck('slug')->all())->toBe([
+        'topic-01', 'topic-02', 'topic-03', 'topic-04', 'topic-05', 'topic-06', 'topic-07', 'topic-08',
+    ]);
 });
 
 it('search() returns an empty collection when the query embedder fails', function (): void {
     $agent = Agent::factory()->create();
-    makeForm($agent, 'Refund request', 'refund-request', 'Issue a refund.');
+    fhsForm($agent, 'Refund request', 'refund-request', 'Issue a refund.');
 
     // Re-bind the provider to throw on the query-side embed (a flaky embedder must
     // not break the chat turn — search() swallows it and returns empty).
@@ -96,8 +100,8 @@ it('search() returns an empty collection when the query embedder fails', functio
 it('search() returns forms in RRF score order, scoped to the agent', function (): void {
     $agent = Agent::factory()->create();
     $other = Agent::factory()->create();
-    makeForm($agent, 'Refund request', 'refund-request', 'Issue a refund to the customer.');
-    makeForm($other, 'Refund request', 'other-refund', 'Issue a refund to the customer.');
+    fhsForm($agent, 'Refund request', 'refund-request', 'Issue a refund to the customer.');
+    fhsForm($other, 'Refund request', 'other-refund', 'Issue a refund to the customer.');
 
     $forms = app(FormHybridSearch::class)->search($agent, 'refund', limit: 5);
 

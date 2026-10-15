@@ -1,8 +1,8 @@
 <?php
 
-use App\Identity\Workspace\Models\User;
 use Domain\Integration\Mcp\Actions\Catalog\SyncMcpServerCatalogAction;
 use Domain\Integration\Mcp\Data\McpToolDefinitionData;
+use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Mcp\Services\McpClient;
@@ -10,31 +10,24 @@ use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Mockery\MockInterface;
 
 /**
  * "Refresh tools" on a custom (per-server) connector must leave the catalog
  * exactly as the server advertises it NOW: tools it dropped disappear, tools it
  * added appear, tools whose wording changed get re-indexed, and every agent
- * using the connector sees the new pool on its next turn.
+ * using the connector sees the new pool on its next turn. A failed fetch keeps
+ * the last good catalog and shows the error on the server.
  */
-function customServer(): AgentMcpServer
-{
-    return AgentMcpServer::create([
-        'workspace_id' => User::factory()->create()->workspace()->id,
-        'connector_slug' => null,
-        'name' => 'Hejly AI Tutor',
-        'description' => 'Language tutor',
-        'slug' => 'hejly-tutor',
-        'url' => 'https://hejly.test/mcp/tutor',
-        'transport' => 'streamable_http',
-        'auth_type' => 'bearer',
-        'is_enabled' => true,
-    ]);
-}
-
-/** @param array<int, array{0: string, 1: string}> $tools name + description pairs */
-function advertise(array $tools): void
+/**
+ * Makes the mocked server advertise these tools on `tools/list`.
+ *
+ * @param  array<int, array{0: string, 1: string}>  $tools  name + description pairs
+ */
+function sotAdvertise(array $tools): void
 {
     $raw = array_map(fn (array $t): array => [
         'name' => $t[0],
@@ -43,19 +36,19 @@ function advertise(array $tools): void
         'annotations' => ['readOnlyHint' => true],
     ], $tools);
 
-    test()->mock(McpClient::class, fn ($mock) => $mock->shouldReceive('fetchTools')->andReturn(McpToolDefinitionData::listFrom($raw)));
+    test()->mock(McpClient::class, fn (MockInterface $mock) => $mock->shouldReceive('fetchTools')->andReturn(McpToolDefinitionData::listFrom($raw)));
 }
 
 beforeEach(function (): void {
     Queue::fake();
-    $this->server = customServer();
+    $this->server = AgentMcpServer::factory()->create(['slug' => 'hejly-tutor']);
 });
 
 it('drops tools the server no longer advertises and adds the new ones', function (): void {
-    advertise([['get-learner-profile', 'profile'], ['ask-tutor', 'ask'], ['correct-writing', 'correct']]);
+    sotAdvertise([['get-learner-profile', 'profile'], ['ask-tutor', 'ask'], ['correct-writing', 'correct']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
-    advertise([['ask-tutor', 'ask'], ['correct-writing', 'correct'], ['explain-grammar', 'grammar']]);
+    sotAdvertise([['ask-tutor', 'ask'], ['correct-writing', 'correct'], ['explain-grammar', 'grammar']]);
     $tools = app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
     expect($tools->pluck('name')->all())->toBe(['ask-tutor', 'correct-writing', 'explain-grammar'])
@@ -64,12 +57,12 @@ it('drops tools the server no longer advertises and adds the new ones', function
 });
 
 it('re-indexes a tool whose description changed and leaves untouched ones indexed', function (): void {
-    advertise([['ask-tutor', 'old wording'], ['correct-writing', 'correct']]);
+    sotAdvertise([['ask-tutor', 'old wording'], ['correct-writing', 'correct']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
     McpTool::query()->where('mcp_server_id', $this->server->id)->update(['embedding_bm25' => Bm25Tokenizer::expression('indexed')]);
     Queue::fake();
 
-    advertise([['ask-tutor', 'new wording'], ['correct-writing', 'correct']]);
+    sotAdvertise([['ask-tutor', 'new wording'], ['correct-writing', 'correct']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
     $bm25 = fn (string $name): ?string => McpTool::query()->where('mcp_server_id', $this->server->id)->where('name', $name)->value('embedding_bm25');
@@ -83,19 +76,19 @@ it('busts every attached agent\'s cached tool pool so the next turn sees the fre
     $agent = createAgent($this->server->workspace->owner);
     $agent->attachConnector($this->server);
 
-    advertise([['ask-tutor', 'ask']]);
+    sotAdvertise([['ask-tutor', 'ask']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
     $names = fn (): array => array_map(fn (ToolEntry $e): string => $e->name, app(ToolRegistry::class)->for($agent));
     expect($names())->toBe(['mcp__hejly-tutor__ask-tutor']);
 
-    advertise([['ask-tutor', 'ask'], ['correct-writing', 'correct']]);
+    sotAdvertise([['ask-tutor', 'ask'], ['correct-writing', 'correct']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
 
     expect($names())->toBe(['mcp__hejly-tutor__ask-tutor', 'mcp__hejly-tutor__correct-writing']);
 });
 
 it('re-indexes every tool when the server is renamed or re-described', function (): void {
-    advertise([['ask-tutor', 'ask']]);
+    sotAdvertise([['ask-tutor', 'ask']]);
     app(SyncMcpServerCatalogAction::class)->execute($this->server);
     McpTool::query()->where('mcp_server_id', $this->server->id)->update(['embedding_bm25' => Bm25Tokenizer::expression('indexed')]);
     Queue::fake();
@@ -112,4 +105,46 @@ it('re-indexes every tool when the server is renamed or re-described', function 
 
     expect(McpTool::query()->where('mcp_server_id', $this->server->id)->value('embedding_bm25'))->not->toBeNull();
     Queue::assertNothingPushed();
+});
+
+it('leaves out tools whose full name an LLM would reject', function (): void {
+    // `mcp__hejly-tutor__` (18 characters) plus the tool name must stay within
+    // the 64 letters, digits, `_` and `-` LLM providers accept.
+    sotAdvertise([
+        ['ask-tutor', 'ask'],
+        [str_repeat('a', 46), 'fits exactly'],
+        [str_repeat('b', 47), 'one character too long'],
+        ['ask.tutor', 'has a dot'],
+        ['ask tutor', 'has a space'],
+    ]);
+
+    $tools = app(SyncMcpServerCatalogAction::class)->execute($this->server);
+
+    expect($tools->pluck('name')->all())->toBe([str_repeat('a', 46), 'ask-tutor'])
+        ->and($this->server->fresh()->catalog_tools_count)->toBe(2);
+});
+
+it('keeps the last good catalog and stores the error when the tools cannot be fetched', function (): void {
+    sotAdvertise([['ask-tutor', 'ask']]);
+    app(SyncMcpServerCatalogAction::class)->execute($this->server);
+
+    $this->mock(McpClient::class, fn (MockInterface $mock) => $mock->shouldReceive('fetchTools')
+        ->andThrow(new McpException('MCP server returned HTTP 503: down', 503)));
+
+    expect(fn (): Collection => app(SyncMcpServerCatalogAction::class)->execute($this->server->fresh()))
+        ->toThrow(McpException::class, 'MCP server returned HTTP 503: down');
+
+    expect($this->server->fresh()->last_error)->toBe('MCP server returned HTTP 503: down')
+        ->and(McpTool::query()->where('mcp_server_id', $this->server->id)->pluck('name')->all())->toBe(['ask-tutor']);
+});
+
+it('skips a disabled server without calling it', function (): void {
+    $server = AgentMcpServer::factory()->disabled()->create();
+    McpTool::factory()->for($server, 'mcpServer')->create(['name' => 'ask-tutor']);
+
+    $tools = app(SyncMcpServerCatalogAction::class)->execute($server);
+
+    expect($tools)->toBeEmpty()
+        ->and(McpTool::query()->where('mcp_server_id', $server->id)->pluck('name')->all())->toBe(['ask-tutor']);
+    Http::assertNothingSent();
 });

@@ -3,6 +3,7 @@
 // hidden from teammates) and a narrow or wide content column.
 import Heading from '@/components/Heading.vue';
 import { useCurrentRoute } from '@/composables/useCurrentRoute';
+import { useSocialProviders } from '@/composables/useSocialProviders';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import account from '@/routes/account';
 import { Link } from '@inertiajs/vue3';
@@ -22,23 +23,32 @@ interface NavItem {
     // Account-wide actions only the workspace owner may perform — hidden from
     // employees/teammates even when they can reach the account area.
     ownerOnly?: boolean;
+    // Only when the admin has set up at least one sign-in provider
+    // (Settings → Sign-in); with none there is nothing to connect.
+    needsSocialProvider?: boolean;
     variant?: 'default' | 'danger';
 }
 
 const { isOwner } = useTeamPermissions();
 const { current } = useCurrentRoute();
+const { hasAny: hasAnySocialProvider } = useSocialProviders();
 
 const allItems: NavItem[] = [
     { title: 'account.nav.profile', name: 'account.profile.edit', href: account.profile.edit.url(), icon: User },
     { title: 'account.nav.password', name: 'account.password.edit', href: account.password.edit.url(), icon: Lock },
     { title: 'account.nav.two_factor', name: 'account.two-factor.edit', href: account.twoFactor.edit.url(), icon: Smartphone },
     { title: 'account.nav.passkeys', name: 'account.passkeys.edit', href: account.passkeys.edit.url(), icon: Fingerprint },
-    { title: 'account.nav.social', name: 'account.social.edit', href: account.social.edit.url(), icon: Share2 },
+    { title: 'account.nav.social', name: 'account.social.edit', href: account.social.edit.url(), icon: Share2, needsSocialProvider: true },
     { title: 'account.nav.data_export', name: 'account.data-export.edit', href: account.dataExport.edit.url(), icon: Download, ownerOnly: true },
     { title: 'account.nav.delete', name: 'account.delete', href: account.delete.url(), icon: Trash2, variant: 'danger', ownerOnly: true },
 ];
 
-const items = computed<NavItem[]>(() => allItems.filter((item) => !item.ownerOnly || isOwner.value));
+const items = computed<NavItem[]>(() =>
+    allItems.filter(
+        (item) =>
+            (!item.ownerOnly || isOwner.value) && (!item.needsSocialProvider || hasAnySocialProvider(['google', 'microsoft', 'slack', 'github'])),
+    ),
+);
 
 withDefaults(
     defineProps<{

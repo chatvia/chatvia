@@ -309,6 +309,6 @@ it('deletes the settings rows of its agents, deleted ones included, and of its m
 it('runs the teardown on the long-running exports queue', function (): void {
     $job = new DeleteWorkspaceJob(1);
 
-    expect($job->queue)->toBe('exports')
-        ->and($job->timeout)->toBe(1800);
+    expect(jobQueue($job))->toBe('exports')
+        ->and(jobTimeout($job))->toBe(1800);
 });

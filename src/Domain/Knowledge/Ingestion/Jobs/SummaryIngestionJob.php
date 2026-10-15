@@ -10,6 +10,12 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
 
@@ -17,24 +23,24 @@ use Throwable;
  * Writes the summary chunk of a source on its own queue, next to its chunk
  * batch. See CreateSourceSummaryAction.
  */
+#[Queue('ingestion.summary')]
+// A model call that fails once often works on the next try.
+#[Tries(3)]
+// Longer and longer waits, so a busy model service can catch up.
+#[Backoff(10, 60, 300)]
+// Below the `redis-long` connection's `retry_after`, so no second worker picks it up mid-run.
+#[Timeout(1800)]
+// Outlasts all three tries and their waits, yet frees a lock a dead worker left behind.
+#[UniqueFor(7200)]
+// A source deleted before the job runs needs no summary.
+#[DeleteWhenMissingModels]
 class SummaryIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable, SerializesModels;
 
-    public int $tries = 3;
-
-    /** @var array<int, int> */
-    public array $backoff = [10, 60, 300];
-
-    public bool $deleteWhenMissingModels = true;
-
-    public int $timeout = 1800;
-
     public function __construct(
         public SourceFile|SourceText|SourceWebsite $source,
-    ) {
-        $this->onQueue('ingestion.summary');
-    }
+    ) {}
 
     public function handle(CreateSourceSummaryAction $action): void
     {

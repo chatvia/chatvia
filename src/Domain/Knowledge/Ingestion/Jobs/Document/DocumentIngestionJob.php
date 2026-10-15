@@ -10,6 +10,10 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
@@ -19,22 +23,21 @@ use Throwable;
  * {@see IngestDocumentAction}. Word files run on their own queue because
  * reading them takes longer; the other formats share the OCR queue.
  */
+// One try: a failed parse goes straight to failed(), which marks the file failed.
+#[Tries(1)]
+// Below the `redis-long` connection's `retry_after`, so no second worker picks it up mid-run.
+#[Timeout(1800)]
+// Longer than a run, so a worker that dies mid-run cannot hold the lock for good.
+#[UniqueFor(3600)]
+// A file deleted before the job runs needs no ingestion.
+#[DeleteWhenMissingModels]
 class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public bool $deleteWhenMissingModels = true;
-
-    public int $tries = 1;
-
-    public int $backoff = 10;
-
-    public int $timeout = 1800;
-
-    public int $uniqueFor = 3600;
-
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
+        // Chosen per file, so an attribute cannot name it.
         $this->onQueue($sourceFile->isWordFile() ? 'ingestion.word' : 'ingestion.pdf');
     }
 
@@ -50,11 +53,6 @@ class DocumentIngestionJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return 'ingestion:files:'.$this->sourceFile->id;
-    }
-
-    public function uniqueFor(): int
-    {
-        return $this->uniqueFor;
     }
 
     /**

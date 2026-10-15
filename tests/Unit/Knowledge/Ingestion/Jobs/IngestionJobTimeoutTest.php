@@ -9,8 +9,8 @@ use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Queue\TimeoutExceededException;
 
 /**
- * The queue reads a job's limit from its `$timeout` property (it never calls a
- * `timeout()` method). When the limit is hit, the worker fails the job and
+ * The queue reads a job's limit from its `#[Timeout]` attribute (it never calls
+ * a `timeout()` method). When the limit is hit, the worker fails the job and
  * runs its failed() handler, which must mark the file as failed so the
  * dashboard does not show it as ingesting forever.
  */
@@ -20,7 +20,7 @@ it('marks the source file failed when a long ingestion job times out', function 
 
     $job = new $jobClass($file, $agent)->withFakeQueueInteractions();
 
-    expect($job->timeout)->toBe($timeout);
+    expect(jobTimeout($job))->toBe($timeout);
 
     $job->failed(new TimeoutExceededException($jobClass.' has timed out.'));
 

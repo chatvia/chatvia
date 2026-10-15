@@ -12,21 +12,27 @@ use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
 
 /**
  * Processes one inbound Telegram message off the webhook (so the webhook returns
  * 200 immediately while the agent — a real LLM turn — runs in the background).
- * Holds no logic; defers to {@see HandleTelegramUpdateAction}. `tries = 1`: an
- * agent turn bills a message, so it must never be retried.
+ * Holds no logic; defers to {@see HandleTelegramUpdateAction}.
  */
+// The chat queue: a reply never waits behind e-mails or embeddings.
+#[Queue('messages')]
+// An agent turn bills a message, so it must never be retried.
+#[Tries(1)]
+// A reply may call the model and the tools several times.
+#[Timeout(300)]
+// A bot disconnected before the job runs has no one to reply to.
+#[DeleteWhenMissingModels]
 class HandleTelegramUpdateJob implements ShouldQueue
 {
     use Queueable;
-
-    public int $tries = 1;
-
-    /** A reply may call the model and the tools several times. */
-    public int $timeout = 300;
 
     /**
      * @param  array{first_name?: string|null, username?: string|null}  $from
@@ -36,10 +42,7 @@ class HandleTelegramUpdateJob implements ShouldQueue
         public readonly string $chatId,
         public readonly string $text,
         public readonly array $from,
-    ) {
-        // The chat queue: a reply never waits behind e-mails or embeddings.
-        $this->onQueue('messages');
-    }
+    ) {}
 
     public function handle(HandleTelegramUpdateAction $action, TelegramClient $client, TelegramChatResolver $resolver): void
     {

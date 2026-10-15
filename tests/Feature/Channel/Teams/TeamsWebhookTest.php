@@ -81,7 +81,7 @@ it('dispatches a job for a verified message activity', function (): void {
     Bus::assertDispatched(HandleTeamsActivityJob::class, fn ($job): bool => $job->activity['conversation']['id'] === 'a:1conversation'
         && $job->activity['text'] === 'hello agent'
         && $job->bot->is($this->teamsBot)
-        && $job->queue === 'messages');
+        && jobQueue($job) === 'messages');
 });
 
 it('verifies the JWT against this bot’s App ID', function (): void {

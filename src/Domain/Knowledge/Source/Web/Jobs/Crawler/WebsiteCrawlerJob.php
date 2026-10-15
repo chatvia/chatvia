@@ -10,22 +10,25 @@ use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Throwable;
 
 /**
  * Discovers a website's pages off the request path. See
  * {@see CrawlWebsiteAction}.
  */
+#[Queue('ingestion.website')]
+// Longer than a run, so a worker that dies mid-run cannot hold the lock for good.
+#[UniqueFor(3600)]
+// A website deleted before the job runs needs no crawl.
+#[DeleteWhenMissingModels]
 class WebsiteCrawlerJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
-    public bool $deleteWhenMissingModels = true;
-
-    public function __construct(public SourceWebsite $website, public CrawlerData $data, public Agent $agent)
-    {
-        $this->onQueue('ingestion.website');
-    }
+    public function __construct(public SourceWebsite $website, public CrawlerData $data, public Agent $agent) {}
 
     public function handle(CrawlWebsiteAction $action): void
     {

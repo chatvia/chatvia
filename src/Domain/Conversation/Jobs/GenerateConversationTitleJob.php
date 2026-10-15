@@ -9,11 +9,13 @@ use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Queue;
 
 /**
  * Names a conversation from its first exchange, on the `messages` queue. The
  * title call's tokens are attributed to the agent's workspace.
  */
+#[Queue('messages')]
 class GenerateConversationTitleJob implements ShouldQueue
 {
     use Queueable;
@@ -22,9 +24,7 @@ class GenerateConversationTitleJob implements ShouldQueue
         public Agent $agent,
         public string $externalSessionId,
         public string $conversationId,
-    ) {
-        $this->onQueue('messages');
-    }
+    ) {}
 
     public function handle(GenerateConversationTitleAction $generateTitle): void
     {

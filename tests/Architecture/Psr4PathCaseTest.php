@@ -45,9 +45,13 @@ it('tracks every class file under the exact case of its namespace and class name
 
         $source = file_get_contents($root.'/'.$path);
 
+        // A class file this check cannot read is a finding too, so a file
+        // never slips past it unchecked.
         if ($source === false
             || preg_match('/^namespace\s+([^;]+);/m', $source, $namespace) !== 1
             || preg_match('/^(?:(?:final|abstract|readonly)\s+)*(?:class|interface|trait|enum)\s+(\w+)/m', $source, $class) !== 1) {
+            $mismatches[] = "{$path} (no namespace or class declaration found)";
+
             continue;
         }
 

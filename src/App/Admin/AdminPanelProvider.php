@@ -46,8 +46,8 @@ use Saade\FilamentLaravelLog\FilamentLaravelLogPlugin;
  * same staff as Horizon ({@see StaffToolsAccess}), and only once an admin
  * turns it on (Settings → Platform → Development).
  *
- * Tools, Logs and Settings sit below a divider in the sidebar, apart from
- * the pages about the install's data ({@see SYSTEM_NAVIGATION_GROUP}).
+ * Tools, Status, Logs and Settings sit below a divider in the sidebar, apart
+ * from the pages about the install's data ({@see SYSTEM_NAVIGATION_GROUP}).
  * Settings comes last.
  */
 class AdminPanelProvider extends PanelProvider

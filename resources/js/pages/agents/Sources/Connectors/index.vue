@@ -86,7 +86,6 @@ const alwaysLabel = (name: string): string => `${name} — ${t('agents.sources.c
                                             <Switch
                                                 :model-value="row.always_available"
                                                 :disabled="!row.is_attached"
-                                                :title="t('agents.sources.connectors.always_hint')"
                                                 :aria-label="alwaysLabel(row.name)"
                                                 @update:model-value="toggleCustomAlways(row)"
                                             />
@@ -142,7 +141,6 @@ const alwaysLabel = (name: string): string => `${name} — ${t('agents.sources.c
                                                 v-if="!row.connector.comingSoon"
                                                 :model-value="row.always_available"
                                                 :disabled="row.state !== 'attached'"
-                                                :title="t('agents.sources.connectors.always_hint')"
                                                 :aria-label="alwaysLabel(connectorName(row.connector))"
                                                 @update:model-value="toggleFeaturedAlways(row)"
                                             />

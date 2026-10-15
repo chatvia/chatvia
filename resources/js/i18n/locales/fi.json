@@ -1357,7 +1357,7 @@
                 "soon": "Pian",
                 "connect_first": "Yhdistä tämä MCP ensin Asetuksissa",
                 "column_always": "Aina päällä",
-                "always_hint": "Tarjoa tämän liittimen työkaluja joka vuorolla, vaikka viesti ei selvästi tarvitsisi niitä. Enintään 10 aina päällä olevaa työkalua agenttia kohden.",
+                "always_hint": "Oletuksena agentti valitsee vain ne työkalut, joita kukin viesti tarvitsee. Ota tämä käyttöön, jos haluat lähettää tämän liittimen työkalut jokaisen viestin mukana, vaikka viesti ei näyttäisi tarvitsevan niitä. Enintään 10 aina päällä olevaa työkalua agenttia kohden.",
                 "always_failed": "Aina päällä -asetuksen päivittäminen epäonnistui"
             },
             "functions": {

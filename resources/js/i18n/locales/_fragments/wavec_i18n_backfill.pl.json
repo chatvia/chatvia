@@ -14,7 +14,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Zawsze włączone",
-                "always_hint": "Udostępniaj narzędzia tego konektora w każdej turze rozmowy, nawet gdy wiadomość wyraźnie ich nie wymaga. Maksymalnie 10 zawsze włączonych narzędzi na agenta.",
+                "always_hint": "Domyślnie agent wybiera tylko narzędzia potrzebne do danej wiadomości. Włącz tę opcję, aby wysyłać narzędzia tego konektora z każdą wiadomością, nawet gdy wiadomość ich nie wymaga. Maksymalnie 10 zawsze włączonych narzędzi na agenta.",
                 "always_failed": "Nie udało się zaktualizować ustawienia „Zawsze włączone”"
             }
         },

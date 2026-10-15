@@ -14,7 +14,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Immer aktiv",
-                "always_hint": "Stellt die Tools dieses Connectors bei jeder Nachricht bereit, auch wenn sie dafür nicht offensichtlich gebraucht werden. Höchstens 10 immer aktive Tools pro Agent.",
+                "always_hint": "Standardmäßig wählt der Agent nur die Tools, die eine Nachricht braucht. Schalte dies ein, um die Tools dieses Connectors bei jeder Nachricht mitzusenden, auch wenn die Nachricht sie nicht zu brauchen scheint. Höchstens 10 immer aktive Tools pro Agent.",
                 "always_failed": "Die Einstellung „Immer aktiv“ konnte nicht aktualisiert werden"
             }
         },

@@ -14,7 +14,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Siempre activo",
-                "always_hint": "Ofrece las herramientas de este conector en cada turno, aunque el mensaje no parezca necesitarlas. Máximo 10 herramientas siempre activas por agente.",
+                "always_hint": "De forma predeterminada, el agente elige solo las herramientas que necesita cada mensaje. Actívalo para enviar las herramientas de este conector con cada mensaje, aunque el mensaje no parezca necesitarlas. Máximo 10 herramientas siempre activas por agente.",
                 "always_failed": "Error al actualizar la opción “Siempre activo”"
             }
         },

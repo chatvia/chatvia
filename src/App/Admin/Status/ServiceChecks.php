@@ -9,9 +9,10 @@ use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
 use App\Admin\Status\Data\ServiceStatusData;
-use GuzzleHttp\Client as GuzzleClient;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Number;
@@ -157,7 +158,7 @@ final readonly class ServiceChecks
 
     /**
      * Asks Reverb for its open channels, the way the app sends it a message:
-     * at the same address, with the app's own keys.
+     * at the same address, signed with the app's own keys.
      */
     private function realtime(): ServiceStatusData
     {
@@ -170,22 +171,25 @@ final readonly class ServiceChecks
         $config = (array) config('broadcasting.connections.reverb');
         $options = (array) ($config['options'] ?? []);
         $address = ($options['scheme'] ?? 'https').'://'.($options['host'] ?? 'localhost').':'.($options['port'] ?? 443);
-
-        $pusher = new Pusher(
-            (string) $config['key'],
-            (string) $config['secret'],
-            (string) $config['app_id'],
-            $options,
-            new GuzzleClient([...(array) ($config['client_options'] ?? []), 'timeout' => self::TIMEOUT_SECONDS, 'connect_timeout' => self::TIMEOUT_SECONDS]),
-        );
+        $path = '/apps/'.$config['app_id'].'/channels';
 
         try {
             $started = hrtime(true);
-            $channels = count((array) ($pusher->getChannels()->channels ?? []));
+            $response = Http::withOptions((array) ($config['client_options'] ?? []))
+                ->timeout(self::TIMEOUT_SECONDS)
+                ->connectTimeout(self::TIMEOUT_SECONDS)
+                ->get($address.$path, Pusher::build_auth_query_params((string) $config['key'], (string) $config['secret'], 'GET', $path));
             $time = $this->millisecondsSince($started);
-        } catch (Throwable) {
+        } catch (ConnectionException) {
             return new ServiceStatusData(ServiceState::Down, __('Reverb does not answer at :address. Start it with "php artisan reverb:start".', ['address' => $address]));
         }
+
+        if (! $response->successful()) {
+            return new ServiceStatusData(ServiceState::Down, __('Reverb answers at :address, but refused the request (:status). Check REVERB_APP_ID, REVERB_APP_KEY and REVERB_APP_SECRET.', ['address' => $address, 'status' => $response->status()]));
+        }
+
+        // No open channels come back as [], a list, not an object.
+        $channels = count((array) $response->json('channels', []));
 
         return new ServiceStatusData(ServiceState::Running, __('Reverb answers at :address.', ['address' => $address]), [
             __(':ms ms', ['ms' => $time]),

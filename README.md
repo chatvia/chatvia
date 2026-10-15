@@ -565,17 +565,30 @@ repository.
 
 ## Going to production
 
-The quickest way is Docker. On Linux or macOS, the installer checks Docker,
-asks a few questions and starts everything:
+The installer asks a few questions and starts everything:
 
 ```bash
 curl -fsSL https://chatvia.ai/install.sh | bash
 ```
 
-See [Run with Docker](https://chatvia.ai/docs/guide/self-hosting/docker).
+On Linux it asks how to install Chatvia (macOS always uses Docker):
+
+- **With Docker:** it checks Docker and runs Chatvia in containers. See
+  [Run with Docker](https://chatvia.ai/docs/guide/self-hosting/docker).
+- **Complete installation:** everything directly on a fresh Ubuntu 26.04
+  LTS server, without Docker. It installs PostgreSQL 18 with the search
+  extensions, Redis, PHP-FPM, nginx, a Let's Encrypt certificate,
+  Supervisor (Horizon, Reverb, Pulse), cron and the firewall, creates the
+  `chatvia` user, and deploys the newest release with Deployer into
+  `/var/www/chatvia`. It sets up the whole server, so use one that runs
+  nothing else. Run the installer again to upgrade (it backs up the
+  database first), or to finish an install that stopped.
+  `--complete --yes --email you@example.com --domain chat.example.com`
+  installs without questions; `--help` lists every option.
+
 The
 [self-hosting guide](https://chatvia.ai/docs/guide/self-hosting/) has the
-steps without Docker. In short:
+steps without Docker, done by hand. In short:
 
 - PHP-FPM behind nginx, with `APP_ENV=production` and `APP_DEBUG=false`.
 - `.env` only holds what the app needs to start (APP_KEY, the database,
@@ -652,6 +665,50 @@ After a change:
   in the same folder. This tests the upgrade.
 - **A fresh install:** run `docker compose down -v` in `~/chatvia-test` (this
   deletes its data), delete the folder, then run step 3 again.
+
+## Test the complete installation
+
+The complete installation (`install.sh --complete`) sets up a whole Ubuntu
+26.04 server. A throwaway VPS is the real test. On your machine, a container
+with systemd stands in for one:
+
+1. Build an image with systemd, from a folder with this `Dockerfile`:
+
+   ```dockerfile
+   FROM ubuntu:26.04
+   RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+         systemd systemd-sysv dbus curl ca-certificates git sudo openssh-server iproute2
+   STOPSIGNAL SIGRTMIN+3
+   CMD ["/sbin/init"]
+   ```
+
+   ```bash
+   docker build -t chatvia-server .
+   ```
+
+2. Start it, with this repository inside:
+
+   ```bash
+   docker run -d --name chatvia-server --privileged --cgroupns=host -v /sys/fs/cgroup:/sys/fs/cgroup:rw --tmpfs /run --tmpfs /run/lock -p 8088:80 -v "$PWD:/src/chatvia:ro" chatvia-server
+   ```
+
+3. Give it a copy of your commits to deploy, then run the installer from
+   this repository:
+
+   ```bash
+   docker exec chatvia-server bash -c 'git config --system --add safe.directory "*" && git clone -q --bare /src/chatvia /srv/chatvia.git'
+   ```
+
+   ```bash
+   docker exec -it -e CHATVIA_REPO=/srv/chatvia.git chatvia-server bash /src/chatvia/install.sh --complete --version main --domain 127.0.0.1
+   ```
+
+Chatvia then answers on <http://localhost:8088>. Run step 3's last command
+again to test an upgrade; to deploy newer commits, clone them again first.
+Without a widget release, add `-e SHAKOMAKO_VERSION=main` to it. The frontend
+build needs about 3 GB of memory next to the running app: give Docker enough,
+or the container's systemd stops the installer. `docker rm -f chatvia-server`
+removes everything.
 
 ## Contributing, security and license
 

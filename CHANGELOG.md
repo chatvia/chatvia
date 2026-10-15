@@ -289,6 +289,17 @@ theme.
 
 ### Self-hosting
 
+- **Complete installation without Docker.** On Linux, `install.sh` now asks
+  how to install: with Docker, as before, or everything directly on a fresh
+  Ubuntu 26.04 LTS server (`--complete`). It installs and sets up PostgreSQL
+  18 with the search extensions and the Pulse and Spectra databases, Redis
+  with a password, PHP-FPM behind nginx, Node.js 22, a Let's Encrypt
+  certificate, Horizon, Reverb and Pulse under Supervisor, the scheduler in
+  cron, and the firewall (the SSH ports stay open), creates the `chatvia`
+  user, and deploys the release with Deployer into its own folder under
+  `/var/www/chatvia`. It warns that it takes over the whole server, checks
+  at the end that every part runs, and runs again to upgrade (after a
+  database backup, without downtime) or to finish an install that stopped.
 - `npm run shakomako:build` keeps its copy of the widget in
   `storage/framework/shakomako` instead of `node_modules/.cache`: Node does
   not run TypeScript files under `node_modules`, so the TypeScript widget

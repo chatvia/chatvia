@@ -1,27 +1,20 @@
 <script setup lang="ts">
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { useBrand } from '@/composables/useBrand';
-import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 /**
  * The small "Powered by …" credit under the hosted chat. The label and link
  * come from `config('chatvia.brand.powered_by')`: the credit is hidden when the
- * install turns it off, and shows as plain text when no link is set.
+ * install turns it off (for every agent), and shows as plain text when no
+ * link is set.
  */
-const props = defineProps<{
-    // Per-agent switch: false when the workspace owns the remove-branding add-on.
-    show: boolean;
-}>();
-
 const { t } = useI18n();
 const { brand } = useBrand();
-
-const visible = computed(() => props.show && brand.value.powered_by.enabled);
 </script>
 
 <template>
-    <div v-if="visible" class="mt-2 flex items-center justify-center">
+    <div v-if="brand.powered_by.enabled" class="mt-2 flex items-center justify-center">
         <component
             :is="brand.powered_by.url ? 'a' : 'span'"
             :href="brand.powered_by.url ?? undefined"

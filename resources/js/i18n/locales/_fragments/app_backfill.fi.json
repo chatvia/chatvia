@@ -63,15 +63,6 @@
             "forms": "Lomakkeet",
             "forms_tooltip": "Luo lomakkeita, jotka agenttisi näyttää keskustelussa"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Brändäys päivitetty"
-            },
-            "sections": {
-                "branding_badge": "Näytä \"Powered by Chatvia\" -merkki",
-                "branding_badge_hint": "Näytä Chatvia-merkki tämän agentin keskustelussa ja widgetissä."
-            }
-        },
         "deploy": {
             "enabled": "Käytössä",
             "disabled": "Ei käytössä",

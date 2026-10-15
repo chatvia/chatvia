@@ -63,15 +63,6 @@
             "forms": "Skjemaer",
             "forms_tooltip": "Bygg skjemaer agenten din viser i chatten"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Merkevare oppdatert"
-            },
-            "sections": {
-                "branding_badge": "Vis «Powered by Chatvia»-merket",
-                "branding_badge_hint": "Vis Chatvia-merket på denne agentens chat og widget."
-            }
-        },
         "deploy": {
             "enabled": "Aktivert",
             "disabled": "Deaktivert",

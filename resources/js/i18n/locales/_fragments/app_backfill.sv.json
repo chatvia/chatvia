@@ -63,15 +63,6 @@
             "forms": "Formulär",
             "forms_tooltip": "Bygg formulär som din agent visar i chatten"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Varumärke uppdaterat"
-            },
-            "sections": {
-                "branding_badge": "Visa \"Powered by Chatvia\"-märket",
-                "branding_badge_hint": "Visa Chatvia-märket i den här agentens chatt och widget."
-            }
-        },
         "deploy": {
             "enabled": "Aktiverad",
             "disabled": "Inaktiverad",

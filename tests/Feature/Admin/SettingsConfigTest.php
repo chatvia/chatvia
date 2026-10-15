@@ -95,13 +95,12 @@ it('builds a default callback on the https app URL, whatever the request scheme'
         ->toBe('https://chat.example.com/auth/google/callback');
 });
 
-it('fills every config key a property names', function (): void {
+it('fills the config key a property names', function (): void {
     $settings = app(BrandSettings::class);
-    $settings->name = 'Acme Chat';
+    $settings->powered_by_enabled = false;
     $settings->save();
 
-    expect(config('chatvia.brand.name'))->toBe('Acme Chat')
-        ->and(config('app.name'))->toBe('Acme Chat');
+    expect(config('chatvia.brand.powered_by.enabled'))->toBeFalse();
 });
 
 it('stores secrets encrypted and other values in plain JSON', function (): void {

@@ -13,7 +13,7 @@ defineProps<{
 
 const { brand } = useBrand();
 
-// The logo leads to the brand's website (Settings → Brand) when one is set.
+// The logo leads to the brand's website (config/chatvia.php) when one is set.
 const logoHref = computed(() => brand.value.website_url ?? home.url());
 </script>
 

@@ -63,15 +63,6 @@
             "forms": "Formularer",
             "forms_tooltip": "Byg formularer, som din agent viser i chatten"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Branding opdateret"
-            },
-            "sections": {
-                "branding_badge": "Vis \"Powered by Chatvia\"-badge",
-                "branding_badge_hint": "Vis Chatvia-badget på denne agents chat og widget."
-            }
-        },
         "deploy": {
             "enabled": "Aktiveret",
             "disabled": "Deaktiveret",

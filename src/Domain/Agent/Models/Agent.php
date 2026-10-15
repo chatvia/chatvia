@@ -280,18 +280,6 @@ class Agent extends Model
     }
 
     /**
-     * Whether the "Powered by Chatvia" badge renders for this agent — on both
-     * the embedded widget and the hosted chat.
-     *
-     * Each agent chooses with the `show_branding` appearance setting
-     * (Setup → Branding), which defaults to hidden.
-     */
-    public function showsChatviaBranding(): bool
-    {
-        return (bool) $this->settings('appearance')->get('show_branding', false);
-    }
-
-    /**
      * Chatters granted access to this agent via `agent_chatter`. Staff reach
      * agents through teams and roles, not here.
      *

@@ -10,15 +10,6 @@
         "search_group_older": "أقدم"
     },
     "agents": {
-        "setup": {
-            "toasts": {
-                "branding_saved": "تم تحديث العلامة التجارية"
-            },
-            "sections": {
-                "branding_badge": "إظهار شارة \"Powered by Chatvia\"",
-                "branding_badge_hint": "اعرض شارة Chatvia على دردشة هذا الوكيل وأداته."
-            }
-        },
         "forms": {
             "maps_to_aria": "ماذا يعني ”التعيين إلى“؟",
             "maps_to_help_title": "التعيين إلى حقل جهة اتصال",

@@ -52,7 +52,7 @@ axios.interceptors.request.use((config) => {
 http.onRequest((config) => ({ ...config, headers: { ...config.headers, ...csrfHeaders() } }));
 
 /** Takes the agent segment and the CSRF token from each page the server sends. */
-// The brand name (Settings → Brand) for page titles. The server-rendered
+// The brand name for page titles. The server-rendered
 // <title> holds it until the first page's props arrive.
 let appName = document.title || 'Chatvia';
 

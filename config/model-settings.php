@@ -72,13 +72,6 @@ return [
                 // set in the admin panel (RealtimeVoice).
                 'allow_voice_conversation' => false,
                 'voice' => RealtimeVoice::DEFAULT,
-                // "Powered by Chatvia" badge. Only honoured for workspaces that
-                // can hide branding (plan white-label or the remove-branding
-                // add-on); everyone else always shows it regardless of this
-                // value — see Agent::showsChatviaBranding(). Defaults to hidden
-                // so the badge disappears the moment the entitlement is gained;
-                // the Setup → Branding toggle lets them opt back in.
-                'show_branding' => false,
                 // Per-locale copies of the three text strings above
                 // (chat_window_title / welcome_message / composer_placeholder).
                 // The base values stay the source/default; these hold the
@@ -238,7 +231,6 @@ return [
             'allow_voice_input' => ['nullable', 'boolean'],
             'allow_voice_conversation' => ['nullable', 'boolean'],
             'voice' => ['nullable', 'string', 'in:'.implode(',', RealtimeVoice::agentChoices())],
-            'show_branding' => ['nullable', 'boolean'],
             'text_translations' => ['nullable', 'array'],
             'text_overrides' => ['nullable', 'array'],
             'enabled_languages' => ['nullable', 'array'],

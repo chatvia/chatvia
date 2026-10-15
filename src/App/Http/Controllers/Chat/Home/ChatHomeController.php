@@ -20,7 +20,6 @@ class ChatHomeController
         return Inertia::render('chat/Home', [
             ...$props->for($agent),
             'agent_id' => $agent?->id,
-            'chatviaBranding' => $agent?->showsChatviaBranding() ?? true,
         ]);
     }
 }

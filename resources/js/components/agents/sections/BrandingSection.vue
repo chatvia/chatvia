@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
- * The Branding section's fields: theme color, avatar, logo, privacy-policy
- * link and the "Powered by" badge switch. Purely
- * presentational; the Setup page owns the forms and saves.
+ * The Branding section's fields: theme color, avatar, logo and
+ * privacy-policy link. Purely presentational; the Setup page owns the forms
+ * and saves.
  */
 import ColorThemePicker from '@/components/agents/ColorThemePicker.vue';
 import ImageUploadField from '@/components/agents/ImageUploadField.vue';
@@ -10,13 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { useBrand } from '@/composables/useBrand';
 import { Link2 } from 'lucide-vue-next';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
-const { brand } = useBrand();
 
 withDefaults(
     defineProps<{
@@ -24,7 +21,6 @@ withDefaults(
         colorShade: number;
         avatarPreview?: string | null;
         logoPreview?: string | null;
-        showBranding?: boolean;
         // Optional link to the workspace's own privacy policy. Surfaces a "By
         // chatting, you agree to our privacy policy" consent notice in the chat
         // when set. Saved on its own (own Save button), not with the colors.
@@ -37,7 +33,6 @@ withDefaults(
     {
         avatarPreview: null,
         logoPreview: null,
-        showBranding: false,
         privacyPolicyUrl: '',
         privacyError: undefined,
         savingPrivacy: false,
@@ -49,7 +44,6 @@ withDefaults(
 defineEmits<{
     'update:colorTheme': [value: string];
     'update:colorShade': [value: number];
-    'update:showBranding': [value: boolean];
     'update:privacyPolicyUrl': [value: string];
     privacyUrlApply: [];
     avatarSelect: [file: File];
@@ -137,19 +131,5 @@ defineEmits<{
             </div>
             <p v-if="privacyError" class="text-destructive text-sm">{{ privacyError }}</p>
         </div>
-
-        <!-- Show/hide the "Powered by" badge. Not shown at all when the
-             install turns the badge off (brand.powered_by). -->
-        <template v-if="brand.powered_by.enabled">
-            <Separator />
-
-            <div class="flex items-center justify-between gap-3">
-                <div>
-                    <Label>{{ t('agents.setup.sections.branding_badge') }}</Label>
-                    <p class="text-muted-foreground mt-1 text-xs">{{ t('agents.setup.sections.branding_badge_hint') }}</p>
-                </div>
-                <Switch :model-value="showBranding" :disabled="disabled" @update:model-value="$emit('update:showBranding', $event)" />
-            </div>
-        </template>
     </div>
 </template>

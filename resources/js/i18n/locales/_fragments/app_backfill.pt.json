@@ -63,15 +63,6 @@
             "forms": "Formulários",
             "forms_tooltip": "Crie formulários que o seu agente mostra na conversa"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "Marca atualizada"
-            },
-            "sections": {
-                "branding_badge": "Mostrar o distintivo \"Powered by Chatvia\"",
-                "branding_badge_hint": "Apresentar o distintivo do Chatvia na conversa e no widget deste agente."
-            }
-        },
         "deploy": {
             "enabled": "Ativado",
             "disabled": "Desativado",

@@ -63,15 +63,6 @@
             "forms": "양식",
             "forms_tooltip": "에이전트가 채팅에 표시하는 양식을 만드세요"
         },
-        "setup": {
-            "toasts": {
-                "branding_saved": "브랜딩이 업데이트되었습니다"
-            },
-            "sections": {
-                "branding_badge": "\"Powered by Chatvia\" 배지 표시",
-                "branding_badge_hint": "이 에이전트의 채팅 및 위젯에 Chatvia 배지를 표시합니다."
-            }
-        },
         "deploy": {
             "enabled": "사용",
             "disabled": "사용 안 함",

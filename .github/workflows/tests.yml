@@ -122,3 +122,33 @@ jobs:
 
       - name: Build assets
         run: npm run build
+
+  scripts:
+    name: Shell scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # The installer, the management tool it copies next to an install, and
+      # the scripts inside the image. ShellCheck comes with the runner.
+      - name: ShellCheck
+        run: shellcheck install.sh docker/manage docker/app/bin/* docker/app/entrypoint.d/*.sh
+
+  bash-3:
+    name: Installer on bash 3.2
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # macOS still ships bash 3.2 as /bin/bash, and the installer and the
+      # management tool run on it there. This only parses them: it catches
+      # syntax that needs a newer bash, not every runtime difference.
+      - name: Parse with bash 3.2
+        run: |
+          /bin/bash --version
+          /bin/bash -n install.sh
+          /bin/bash -n docker/manage

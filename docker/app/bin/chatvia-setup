@@ -21,6 +21,7 @@ if [ -s "$secrets_file" ]; then
 fi
 
 random_hex() {
+    # shellcheck disable=SC2016 # PHP code: the $ signs are PHP's
     php -r 'echo bin2hex(random_bytes((int) $argv[1]));' "$1"
 }
 

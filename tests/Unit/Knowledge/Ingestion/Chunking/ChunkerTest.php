@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
  * Its cost must come from the provider's reported token usage, priced with
  * the model's catalog prices (or the configured ones when it has none), and
  * the raw model output (derived from customer content) must not be written to
- * the logs.
+ * the logs. The summary and questions must stay in the page's own language.
  */
 beforeEach(function (): void {
     config([
@@ -87,4 +87,15 @@ it('does not log the model output', function (): void {
     app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Secret customer page.', checksum: 'c'));
 
     Log::shouldNotHaveReceived('info');
+});
+
+it('asks for the summary and questions in the page\'s own language', function (): void {
+    Http::fake(['*' => Http::response(chunkerResponse(['prompt_tokens' => 1, 'completion_tokens' => 1]))]);
+
+    app(Chunker::class)->enhancePage(new PageData(pageNumber: 1, content: 'Dania er syv år gammel.', checksum: 'c'));
+
+    Http::assertSent(fn ($request): bool => str_contains(
+        $request['messages'][0]['content'],
+        'Write the summary and every question in the language of TargetPage',
+    ));
 });

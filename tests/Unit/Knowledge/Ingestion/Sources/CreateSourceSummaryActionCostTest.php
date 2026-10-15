@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Storage;
  * The summary chunk's stored cost must come from the token counts the provider
  * reports for the analysis and summary calls (the prompt holds the whole
  * document), priced from config — not from the prompt text counted as output
- * at hard-coded prices.
+ * at hard-coded prices. The PDF goes inside the request, so the model reads
+ * the document even when it could not open a link to this site.
  */
 beforeEach(function (): void {
     Storage::fake();
-    Storage::disk()->buildTemporaryUrlsUsing(fn (string $path): string => 'https://files.test/'.$path);
 
     config([
         'services.mistral.api_key' => 'test-key',
@@ -154,4 +154,45 @@ it('reads the document with the configured summary and analysis models', functio
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://mistral.test/v1/chat/completions'
         && $request['model'] === 'analysis-model-x' && isset($request['response_format']));
     Http::assertSent(fn (Request $request): bool => $request['model'] === 'summary-model-x' && ! isset($request['response_format']));
+});
+
+it('sends the PDF itself, and asks for the summary in the detected language', function (): void {
+    Http::fake(function (Request $request) {
+        if (isset($request['response_format'])) {
+            return Http::response([
+                'choices' => [['message' => ['content' => json_encode([
+                    'questions' => ['q1', 'q2', 'q3', 'q4', 'q5'],
+                    'document_type' => 'other',
+                    'metadata' => [
+                        'complexity_level' => 'beginner',
+                        'target_audience' => 'general_public',
+                        'writing_style' => 'narrative',
+                        'estimated_reading_time_minutes' => 1,
+                        'key_topics' => ['familie'],
+                        'contains_sensitive_info' => false,
+                    ],
+                    'language' => 'da',
+                    'confidence_score' => 0.9,
+                ])]]],
+            ]);
+        }
+
+        return Http::response(['choices' => [['message' => ['content' => 'Resumé.']]]]);
+    });
+
+    $source = AgentFileFactory::new()->create([
+        'filepath' => 'users/x/agents/y/files/dania.pdf',
+        'mime_type' => 'application/pdf',
+    ]);
+    Storage::put($source->filepath, '%PDF-1.4 Dania');
+
+    app(CreateSourceSummaryAction::class)->execute($source);
+
+    $documents = Http::recorded()->map(fn (array $pair): mixed => $pair[0]['messages'][0]['content'][1]['document_url']);
+
+    expect($documents->all())->toBe(array_fill(0, 2, 'data:application/pdf;base64,'.base64_encode('%PDF-1.4 Dania')))
+        ->and($source->fresh()->language)->toBe('da');
+
+    Http::assertSent(fn (Request $request): bool => ! isset($request['response_format'])
+        && str_contains($request['messages'][0]['content'][0]['text'], 'The document is written in Danish.'));
 });

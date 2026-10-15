@@ -20,7 +20,8 @@ use Domain\Llm\Services\TikToken;
  * and the questions it answers, with the neighbouring pages as context. The
  * reply must follow a strict JSON schema. The summary is later prepended to the
  * chunk before embedding ("contextual retrieval"); the questions get their own
- * embedding.
+ * embedding. Both are written in the page's own language: the keyword (BM25)
+ * search only matches words in the language a chatter asks in.
  */
 class Chunker
 {
@@ -90,14 +91,14 @@ class Chunker
             'properties' => [
                 'summary' => [
                     'type' => 'string',
-                    'description' => '2-5 sentences capturing the target page\'s key ideas in natural language.',
+                    'description' => '2-5 sentences capturing the target page\'s key ideas in natural language, written in the target page\'s own language.',
                 ],
                 'questions' => [
                     'type' => 'array',
                     'items' => ['type' => 'string'],
                     'minItems' => 5,
                     'maxItems' => 7,
-                    'description' => '5-7 distinct questions the target page answers. Each question is its own array item — do NOT number them.',
+                    'description' => '5-7 distinct questions the target page answers, written in the target page\'s own language. Each question is its own array item — do NOT number them.',
                 ],
             ],
             'required' => ['summary', 'questions'],

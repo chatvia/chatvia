@@ -16,7 +16,8 @@ use Domain\Llm\Services\StructuredCompletion;
 
 /**
  * Classifies a whole document (type, language, audience, likely questions),
- * read as a PDF from a signed URL by the configured document-reading LLM
+ * read as a PDF from a URL (a `data:` URL holding the PDF itself, or a link the
+ * provider can open) by the configured document-reading LLM
  * (`chatvia.ai.models.analysis`). The reply must follow a strict JSON schema.
  */
 class ContentAnalyzer
@@ -63,7 +64,7 @@ class ContentAnalyzer
                     'items' => ['type' => 'string'],
                     'minItems' => 5,
                     'maxItems' => 7,
-                    'description' => 'Generate 5-7 distinct questions the document answers. Each question MUST be a separate array item — do NOT number them, do NOT join them into one string.',
+                    'description' => 'Generate 5-7 distinct questions the document answers, written in the document\'s own language. Each question MUST be a separate array item — do NOT number them, do NOT join them into one string.',
                 ],
                 'document_type' => [
                     'type' => 'string',

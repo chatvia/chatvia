@@ -1,6 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Database\Factories\AgentFileFactory;
 use Domain\Form\Models\FormDefinition;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Services\TeamService;
@@ -160,3 +161,46 @@ it('lets the owner through (owners hold every permission)', function (): void {
         ->getJson(route('agents.sources.text.index', $this->agent))
         ->assertOk();
 });
+
+// Linking a source the workspace already trained adds to what the agent
+// knows, so it needs that kind's training permission; unlinking takes
+// knowledge away, so it needs agent.sources.delete, as the dashboard's
+// remove dialog (unlink or delete) already does.
+it('gates linking a trained file by agent.sources.train.files and unlinking it by agent.sources.delete', function (): void {
+    $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
+    makeTeamAgent($this->owner, 'Other')->files()->attach($file->id);
+
+    $blocked = teammateWithPermissions($this->owner, []);
+    $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.files']);
+    $remover = teammateWithPermissions($this->owner, ['agent.sources.delete']);
+
+    $this->actingAs($blocked)->postJson(route('agents.sources.files.link', [$this->agent, $file->id]), ['file_id' => $file->id])->assertForbidden();
+    expect($this->agent->files()->whereKey($file->id)->exists())->toBeFalse();
+
+    $this->actingAs($trainer)->postJson(route('agents.sources.files.link', [$this->agent, $file->id]), ['file_id' => $file->id])->assertSuccessful();
+    expect($this->agent->files()->whereKey($file->id)->exists())->toBeTrue();
+
+    $this->actingAs($trainer)->postJson(route('agents.sources.files.unlink', [$this->agent, $file]))->assertForbidden();
+    expect($this->agent->files()->whereKey($file->id)->exists())->toBeTrue();
+
+    $this->actingAs($remover)->postJson(route('agents.sources.files.unlink', [$this->agent, $file]))->assertSuccessful();
+    expect($this->agent->files()->whereKey($file->id)->exists())->toBeFalse();
+});
+
+it('gates linking a trained text or website by its training permission and unlinking by agent.sources.delete', function (string $train, string $linkRoute, string $unlinkRoute, string $field): void {
+    $blocked = teammateWithPermissions($this->owner, []);
+    $trainer = teammateWithPermissions($this->owner, [$train]);
+    $remover = teammateWithPermissions($this->owner, ['agent.sources.delete']);
+
+    // The ids are looked up after the gate: a blocked teammate stops at it
+    // (403), a permitted one passes it and then fails the validation (422)
+    // or finds no such source on the agent (404).
+    $this->actingAs($blocked)->postJson(route($linkRoute, [$this->agent, 999999]), [$field => 999999])->assertForbidden();
+    $this->actingAs($trainer)->postJson(route($linkRoute, [$this->agent, 999999]), [$field => 999999])->assertUnprocessable();
+
+    $this->actingAs($trainer)->postJson(route($unlinkRoute, [$this->agent, 999999]))->assertForbidden();
+    $this->actingAs($remover)->postJson(route($unlinkRoute, [$this->agent, 999999]))->assertNotFound();
+})->with([
+    'text' => ['agent.sources.train.text', 'agents.sources.texts.link', 'agents.sources.text.unlink', 'text_id'],
+    'website' => ['agent.sources.train.web', 'agents.sources.trained-websites.link', 'agents.sources.trained-websites.unlink', 'website_id'],
+]);

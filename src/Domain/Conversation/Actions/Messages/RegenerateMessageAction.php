@@ -22,14 +22,23 @@ class RegenerateMessageAction
 
     public function execute(ChatScopeData $scope, string $assistantMessageId, string $userMessageId): ?RegeneratedTurnData
     {
-        $userMessage = $this->memory->withScope($scope)->getMessageById($userMessageId);
+        $memory = $this->memory->withScope($scope);
+        $userMessage = $memory->getMessageById($userMessageId);
 
         if (! $userMessage instanceof MessageData) {
             return null;
         }
 
         $this->deletePair->execute($scope, $assistantMessageId);
-        $this->deletePair->execute($scope, $userMessageId);
+
+        // When the answer never landed, the visitor message is still in the
+        // history: it goes on its own, never with the answer before it.
+        $messages = $memory->cachedMessages();
+        $remaining = array_values(array_filter($messages, static fn (array $message): bool => ($message['id'] ?? null) !== $userMessageId));
+
+        if (count($remaining) !== count($messages)) {
+            $memory->saveMessages($remaining);
+        }
 
         return new RegeneratedTurnData(
             userMessageContent: $userMessage->content,

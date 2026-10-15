@@ -20,55 +20,52 @@ use Illuminate\Support\Str;
  * answer, and deletes the files uploaded with them.
  */
 beforeEach(function (): void {
-    config(['cache.stores.chat' => ['driver' => 'array']]);
     Storage::fake(Attachment::DISK);
 });
 
-/** Message ids are uuids in the database, so the test names map onto them. */
-function pairId(string $name): string
-{
-    static $ids = [];
-
-    return $ids[$name] ??= (string) Str::uuid();
-}
-
 /**
- * @return array{0: ChatScopeData, 1: Conversation}
+ * A hosted-chat conversation whose live history holds the named messages, in
+ * order. Message ids are uuids in the database, so each name maps to a new one.
+ *
+ * @param  array<string, MessageRole>  $history  name => role
+ * @return array{0: ChatScopeData, 1: Conversation, 2: array<string, string>}
  */
-function messagePairConversation(): array
+function messagePairConversation(array $history = ['q1' => MessageRole::User, 'a1' => MessageRole::Assistant, 'q2' => MessageRole::User, 'a2' => MessageRole::Assistant]): array
 {
     $agent = Agent::factory()->create();
-    $session = ChatSession::create(['workspace_id' => $agent->workspace_id, 'agent_id' => $agent->id]);
-    $conversation = Conversation::create([
-        'chat_session_id' => $session->id,
-        'workspace_id' => $agent->workspace_id,
-        'agent_id' => $agent->id,
-        'external_id' => (string) Str::uuid(),
-        'source' => ConversationSource::HostedChat,
-    ]);
+    $session = ChatSession::factory()->create(['agent_id' => $agent->id]);
+    $conversation = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::HostedChat]);
 
     $scope = new ChatScopeData($agent, $session->external_id, $conversation->external_id);
     $memory = app(ChatMemory::class)->withScope($scope);
+    $ids = [];
 
-    foreach ([['q1', MessageRole::User], ['a1', MessageRole::Assistant], ['q2', MessageRole::User], ['a2', MessageRole::Assistant]] as [$id, $role]) {
-        $memory->appendMessage(new MessageData(id: pairId($id), role: $role, content: "text {$id}", type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
+    foreach ($history as $name => $role) {
+        $ids[$name] = (string) Str::uuid();
+        $memory->appendMessage(new MessageData(id: $ids[$name], role: $role, content: "text {$name}", type: MessageData::TYPE_TEXT, timestamp: now()->timestamp));
     }
 
-    return [$scope, $conversation];
+    return [$scope, $conversation, $ids];
+}
+
+/** @return list<string> */
+function messagePairHistoryIds(ChatScopeData $scope): array
+{
+    return array_column(app(ChatMemory::class)->withScope($scope)->getMessagesForConversation(), 'id');
 }
 
 it('removes the message and the one before it from the history', function (): void {
-    [$scope] = messagePairConversation();
+    [$scope, , $ids] = messagePairConversation();
 
-    app(DeleteMessagePairAction::class)->execute($scope, pairId('a2'));
+    app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
 
-    expect(array_column(app(ChatMemory::class)->withScope($scope)->getMessagesForConversation(), 'id'))->toBe([pairId('q1'), pairId('a1')]);
+    expect(messagePairHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
 });
 
 it('deletes the files uploaded with the removed messages', function (): void {
-    [$scope, $conversation] = messagePairConversation();
+    [$scope, $conversation, $ids] = messagePairConversation();
 
-    $question = Message::create(['external_id' => pairId('q2'), 'workspace_id' => $conversation->workspace_id, 'chat_conversation_id' => $conversation->id, 'role' => MessageRole::User, 'content' => 'text q2']);
+    $question = Message::factory()->fromUser()->create(['external_id' => $ids['q2'], 'chat_conversation_id' => $conversation->id, 'content' => 'text q2']);
     Storage::disk(Attachment::DISK)->put('users/x/attachments/doc.pdf', 'pdf');
     $upload = Attachment::create([
         'chat_conversation_id' => $conversation->id,
@@ -79,23 +76,33 @@ it('deletes the files uploaded with the removed messages', function (): void {
         'size_bytes' => 3,
     ]);
 
-    app(DeleteMessagePairAction::class)->execute($scope, pairId('a2'));
+    app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
 
     expect(Attachment::query()->find($upload->id))->toBeNull();
     Storage::disk(Attachment::DISK)->assertMissing('users/x/attachments/doc.pdf');
 });
 
 it('hands back the question for a regenerate and drops the last exchange', function (): void {
-    [$scope] = messagePairConversation();
+    [$scope, , $ids] = messagePairConversation();
 
-    $result = app(RegenerateMessageAction::class)->execute($scope, pairId('a2'), pairId('q2'));
+    $result = app(RegenerateMessageAction::class)->execute($scope, $ids['a2'], $ids['q2']);
 
     expect($result?->userMessageContent)->toBe('text q2')
-        ->and(array_column(app(ChatMemory::class)->withScope($scope)->getMessagesForConversation(), 'id'))->toBe([pairId('q1'), pairId('a1')]);
+        ->and(messagePairHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
+});
+
+it('drops only the question on a regenerate when its answer never landed', function (): void {
+    [$scope, , $ids] = messagePairConversation(['q1' => MessageRole::User, 'a1' => MessageRole::Assistant, 'q2' => MessageRole::User]);
+
+    $result = app(RegenerateMessageAction::class)->execute($scope, (string) Str::uuid(), $ids['q2']);
+
+    expect($result?->userMessageContent)->toBe('text q2')
+        ->and(messagePairHistoryIds($scope))->toBe([$ids['q1'], $ids['a1']]);
 });
 
 it('regenerates nothing when the question is not in the history', function (): void {
-    [$scope] = messagePairConversation();
+    [$scope, , $ids] = messagePairConversation();
 
-    expect(app(RegenerateMessageAction::class)->execute($scope, pairId('a2'), (string) Str::uuid()))->toBeNull();
+    expect(app(RegenerateMessageAction::class)->execute($scope, $ids['a2'], (string) Str::uuid()))->toBeNull()
+        ->and(messagePairHistoryIds($scope))->toBe(array_values($ids));
 });

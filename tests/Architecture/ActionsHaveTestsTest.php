@@ -15,8 +15,10 @@
  * test for an Action in the list, this test will tell you to remove it.
  *
  * Detection is name-based: an Action `Foo\BarAction` is considered tested
- * if any file under tests/ contains the whole-word `BarAction` (use of the
- * class, type-hint, or `BarAction::class` reference all count). Multi-Action
+ * if a test file (`*Test.php`) under tests/ contains the whole-word
+ * `BarAction` (use of the class, type-hint, or `BarAction::class` reference
+ * all count). Helpers such as tests/Pest.php and tests/Support/ do not count:
+ * an Action they call to set up other tests is not tested by that. Multi-Action
  * test files (e.g. TakeoverAndReturnConversationActionsTest covers two
  * Actions in one file) work without renaming.
  */
@@ -38,7 +40,7 @@ function allActionClassNames(): array
     return $files;
 }
 
-/** Is there a test file under tests/ that references this Action by name? */
+/** Is there a test file (`*Test.php`) under tests/ that references this Action by name? */
 function actionHasTest(string $actionShortName): bool
 {
     // Cache the discovery of every test file's text once per process. EXCLUDE
@@ -51,7 +53,7 @@ function actionHasTest(string $actionShortName): bool
         $combined = '';
         $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__.'/..'));
         foreach ($it as $file) {
-            if (! $file->isFile() || ! str_ends_with((string) $file, '.php')) {
+            if (! $file->isFile() || ! str_ends_with((string) $file, 'Test.php')) {
                 continue;
             }
             if (realpath($file->getPathname()) === $self) {

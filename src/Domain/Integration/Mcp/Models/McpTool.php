@@ -2,9 +2,11 @@
 
 namespace Domain\Integration\Mcp\Models;
 
+use Database\Factories\McpToolFactory;
 use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Enums\McpToolScope;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -42,6 +44,9 @@ use Pgvector\Laravel\Vector;
 #[Guarded(['id'])]
 class McpTool extends Model
 {
+    /** @use HasFactory<McpToolFactory> */
+    use HasFactory;
+
     protected function casts(): array
     {
         return [

@@ -3,6 +3,7 @@
 namespace Domain\Integration\Function\Models;
 
 use App\Identity\Workspace\Models\Workspace;
+use Database\Factories\AgentFunctionFactory;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Enums\FunctionAuthType;
 use Domain\Integration\Function\Enums\FunctionWebhookMethod;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Casts\ArrayObject;
 use Illuminate\Database\Eloquent\Casts\AsArrayObject;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -87,7 +89,8 @@ use Support\Concerns\HasExternalId;
 #[RouteKey('external_id')]
 class AgentFunction extends Model implements AttachableToAgents
 {
-    use HasExternalId;
+    /** @use HasFactory<AgentFunctionFactory> */
+    use HasExternalId, HasFactory;
 
     /** How long a webhook call may take when the function sets no timeout. */
     public const int DEFAULT_TIMEOUT_MS = 10_000;

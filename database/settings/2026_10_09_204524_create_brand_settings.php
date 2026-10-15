@@ -14,6 +14,7 @@ return new class extends SettingsMigration
     {
         $this->migrator->inGroup('brand', function (SettingsBlueprint $group): void {
             $group->add('powered_by_enabled');
+            $group->addEncrypted('license_key');
         });
     }
 

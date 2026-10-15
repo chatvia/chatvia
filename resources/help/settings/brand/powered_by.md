@@ -1,5 +1,8 @@
-Controls the small "Powered by …" line under hosted chats and chat widgets.
+Controls the small "Powered by Chatvia" line under hosted chats and chat widgets.
 
-- **Show the credit** — When off, the line is hidden for every agent. When on, each agent decides in its own setup (Branding) whether to show it. A new agent hides it until someone turns it on.
-- **Label** — The name after "Powered by". Leave it empty to use the name shown in the field.
-- **Link** — The address that opens when someone clicks the credit. Leave it empty to show the credit as plain text, with no link.
+- **Show the credit**: When on, the line shows under every agent. You can turn it off only with a valid license key. Without one, the line shows even when the switch is off.
+- **License key**: The key you get by email when you buy a license at chatvia.ai. A key costs $399, one time, and never expires.
+
+A key works on one domain at a time. When you save a key, this install sends it and its domain (the domain in `APP_URL`, such as `chat.example.com`) to chatvia.ai to activate it. A key that is active on another domain is refused. Saving the same key again on the same domain is fine.
+
+To move a key to another domain, remove it here (it is then deactivated at chatvia.ai), or deactivate it on the **Manage license** page at chatvia.ai/license. Once a day this install asks chatvia.ai whether its key is still active. If it is not, the key is removed and the credit shows again. If chatvia.ai can't be reached, nothing changes.

@@ -10,8 +10,8 @@ use Spatie\LaravelSettings\Attributes\ShouldBeEncrypted;
  * Install-wide options that fit nowhere else: the default language, the
  * chat widget, the tracking code, visitor location, where Horizon sends
  * alerts, how many queue workers it may run, where the programs that read
- * files are, whether the panel shows its Logs page, and when the admin setup
- * of the install was completed.
+ * files are, whether the panel shows its Logs page, whether Pulse and
+ * Spectra record, and when the admin setup of the install was completed.
  */
 class PlatformSettings extends AdminSettings
 {
@@ -96,6 +96,22 @@ class PlatformSettings extends AdminSettings
     // out of the panel until an admin turns it on.
     #[ConfigKey('chatvia.admin.logs_page_enabled')]
     public ?bool $logs_page_enabled = null;
+
+    // Whether Pulse and Spectra record (ToolRecording). Off for Spectra
+    // until an admin turns it on: it keeps what is sent to the AI.
+    #[ConfigKey('chatvia.pulse.recording')]
+    public ?bool $pulse_enabled = null;
+
+    #[ConfigKey('chatvia.spectra.recording')]
+    public ?bool $spectra_enabled = null;
+
+    // Off keeps only each call's counts, costs and times. Spectra reads
+    // these on every call.
+    #[ConfigKey('spectra.storage.store_prompts'), ConfigKey('spectra.storage.store_system_prompts'), ConfigKey('spectra.storage.store_responses'), ConfigKey('spectra.storage.store_tools'), ConfigKey('spectra.storage.store_request_data')]
+    public ?bool $spectra_store_content = null;
+
+    #[ConfigKey('chatvia.spectra.retention_days')]
+    public ?int $spectra_retention_days = null;
 
     public static function group(): string
     {

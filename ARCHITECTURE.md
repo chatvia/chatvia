@@ -40,7 +40,7 @@ command bar, messaging apps and a REST API.
 | WebSockets | `php artisan reverb:start` | Live updates: ingestion progress, handoff messages, typing, eval progress. |
 | Scheduler | `php artisan schedule:run` (cron, every minute) | Pruning, analysis, usage caches, backups (see `routes/console.php`). |
 | Server stats | `php artisan pulse:check` | CPU, memory, disk and Reverb connections for Pulse's Servers card. |
-| PostgreSQL 18 | | All data, plus vector search (`vchord`, `pgvector`) and keyword search (`vchord_bm25`, `pg_tokenizer`). Pulse (`/pulse`) keeps its data in a database of its own (the `pulse` connection, `DB_PULSE_DATABASE`), which `app:create-pulse-database` creates. |
+| PostgreSQL 18 | | All data, plus vector search (`vchord`, `pgvector`) and keyword search (`vchord_bm25`, `pg_tokenizer`). Pulse (`/pulse`) and Spectra (`/spectra`) each keep their data in a database of their own (the `pulse` and `spectra` connections, `DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`), which `app:create-tool-databases` creates. |
 | Redis | | Queues, cache, rate limits, the live chat memory, login sessions (their own database). |
 
 ### Repository map
@@ -252,9 +252,9 @@ dashboard.
 
 | Folder | Holds |
 |---|---|
-| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. Its Logs page (saade/filament-laravel-log, registered in `AdminPanelProvider`) reads and clears the files in `storage/logs`, for the same staff as Horizon and Pulse (`StaffToolsAccess`). |
+| `App\Admin` | The Filament admin panel at `/admin`. It signs in on its own `admin` guard; two-factor authentication is optional (an admin turns it on from the profile). Its Settings (credentials and install-wide options) are spatie/laravel-settings classes in `App\Admin\Settings`, edited on the pages of `App\Admin\Clusters\Settings`. Its dashboard (`App\Admin\Pages\Dashboard`, widgets in `App\Admin\Widgets`) shows activity across every workspace, filtered by period and workspace, read through `Domain\Analytics\Queries\Platform`. Its Logs page (saade/filament-laravel-log, registered in `AdminPanelProvider`) reads and clears the files in `storage/logs`, for the same staff as Horizon, Pulse and Spectra (`StaffToolsAccess`). Settings → Platform turns the recording of Pulse and Spectra on and off: both read their own `enabled` flag only while they boot, so `ToolRecording` (run after every settings apply) stops Pulse's recording and sets `spectra.enabled`, and `PULSE_ENABLED` / `SPECTRA_ENABLED` in `.env` stay the switch that leaves a tool out of the install. |
 | `App\Console\Commands` | Artisan commands. Keep `handle()` small: read the options, call an Action, print the result. |
-| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, Pulse, TypeScript transformer. |
+| `App\Providers` | Service providers. `DomainServiceProvider` binds contracts to drivers, registers observers and **every event listener**. `AppServiceProvider` holds framework settings (password policy, morph map, model strictness). Others: rate limiters, gates, filesystems, API docs, Horizon, Pulse, Spectra (its gate, and Spectra's Guzzle handler for the streamed replies), TypeScript transformer. |
 | `App\Rules` | Generic validation rules (for example `IpOrCidr`). |
 
 ---

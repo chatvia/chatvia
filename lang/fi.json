@@ -287,5 +287,8 @@
     "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "Agenttisi \":name\" turvatarkistus ei voinut toimia, joten joihinkin viesteihin vastattiin ilman sitä.",
     "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "Näin käy, kun suojausten tekoälymalliin ei saada yhteyttä. Tarkista malli hallintapaneelista, jos tämä toistuu.",
     "Open the guardrails activity": "Avaa suojausten toiminta",
-    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Saat enintään yhden tällaisen sähköpostin tunnissa. Voit poistaa nämä ilmoitukset käytöstä Suojaukset-sivulla."
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Saat enintään yhden tällaisen sähköpostin tunnissa. Voit poistaa nämä ilmoitukset käytöstä Suojaukset-sivulla.",
+    "Spectra": "Spectra",
+    "AI calls and their cost": "Tekoälykutsut ja niiden hinta",
+    "See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.": "Näe jokainen kutsu tekoälypalveluun: malli, tokenit, hinta ja kesto. Se tallentaa vain, kun Settings → Platform → Spectra on päällä."
 }

@@ -287,5 +287,8 @@
     "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "Sikkerhedstjekket for din agent \":name\" kunne ikke køre, så nogle beskeder blev besvaret uden det.",
     "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "Det sker, når AI-modellen til beskyttelserne ikke kan nås. Tjek modellen i adminpanelet, hvis det bliver ved.",
     "Open the guardrails activity": "Åbn aktiviteten for beskyttelserne",
-    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Du får højst én sådan e-mail i timen. Du kan slå disse advarsler fra på siden Beskyttelser."
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Du får højst én sådan e-mail i timen. Du kan slå disse advarsler fra på siden Beskyttelser.",
+    "Spectra": "Spectra",
+    "AI calls and their cost": "AI-kald og deres pris",
+    "See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.": "Se hvert kald til en AI-tjeneste: modellen, tokens, prisen og hvor lang tid det tog. Den registrerer kun, mens Settings → Platform → Spectra er slået til."
 }

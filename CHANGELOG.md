@@ -297,6 +297,18 @@ theme.
   out of the app's database and its backups; the Docker stack creates it,
   and runs `pulse:check` in a new `pulse` container. Data older than 7 days
   is removed.
+- **Spectra** logs every AI call at `/spectra`: the model, the tokens, the
+  cost and the time it took, also for streamed replies. It opens for the
+  same admins, and keeps its log in a database of its own
+  (`DB_SPECTRA_DATABASE`, by default `spectra`). `app:create-tool-databases`
+  creates the Pulse and Spectra databases (it replaces
+  `app:create-pulse-database`).
+- **Settings → Platform** turns Pulse and Spectra on and off. Pulse records
+  from the start; Spectra records only once an admin turns it on, because it
+  keeps what is sent to the AI. The Spectra card can also keep only counts,
+  costs and times (without prompts and replies), and sets how many days a
+  call is kept (30 by default). **Tools** links to Spectra next to Horizon
+  and Pulse.
 - Docker upgrades: `.env` names the exact version an install runs (the
   installer turns `latest` into the release number). `./manage upgrade`
   shows the change and the release notes, backs up, downloads everything

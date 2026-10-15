@@ -276,13 +276,14 @@ kept are set later in the admin panel (**Settings → Workspaces**), not in
 ### 4. Create the database schema and demo data
 
 ```bash
-php artisan app:create-pulse-database
+php artisan app:create-tool-databases
 php artisan migrate --seed
 php artisan storage:link
 ```
 
-The first command creates Pulse's own database (`DB_PULSE_DATABASE`, by
-default `pulse`) when it is missing; the Docker services create it on their
+The first command creates the databases of Pulse and Spectra
+(`DB_PULSE_DATABASE` and `DB_SPECTRA_DATABASE`, by default `pulse` and
+`spectra`) when they are missing; the Docker services create them on their
 first start. The first migration installs the PostgreSQL extensions. The
 seeders load the list of AI models and, outside production, create a demo
 admin account (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`, by default
@@ -368,7 +369,7 @@ file and CI do not use either.
    vendor/bin/sail artisan key:generate
    vendor/bin/sail npm ci
    vendor/bin/sail npm run shakomako:build
-   vendor/bin/sail artisan app:create-pulse-database
+   vendor/bin/sail artisan app:create-tool-databases
    vendor/bin/sail artisan migrate --seed
    vendor/bin/sail artisan storage:link
    ```
@@ -581,7 +582,7 @@ steps without Docker. In short:
   Redis, Reverb and so on). Mail, storage, API keys and the AI services are
   set in the admin panel, under **Settings**.
 - Build the frontend with `npm ci && npm run i18n:merge && npm run build`.
-- Run `php artisan app:create-pulse-database`, then
+- Run `php artisan app:create-tool-databases`, then
   `php artisan migrate --seed --force` (in production the seeders load
   only the list of AI models, no demo data), create the first admin with
   `php artisan admin:create-user <email> <name>`, add your API keys in the

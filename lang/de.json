@@ -287,5 +287,8 @@
     "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "Die Sicherheitsprüfung Ihres Agenten „:name“ konnte nicht laufen, daher wurden einige Nachrichten ohne sie beantwortet.",
     "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "Das passiert, wenn das KI-Modell für die Schutzregeln nicht erreichbar ist. Prüfen Sie das Modell im Admin-Bereich, wenn es öfter vorkommt.",
     "Open the guardrails activity": "Aktivität der Schutzregeln öffnen",
-    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Sie erhalten höchstens eine solche E-Mail pro Stunde. Sie können diese Hinweise auf der Seite „Schutzregeln“ ausschalten."
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "Sie erhalten höchstens eine solche E-Mail pro Stunde. Sie können diese Hinweise auf der Seite „Schutzregeln“ ausschalten.",
+    "Spectra": "Spectra",
+    "AI calls and their cost": "KI-Aufrufe und ihre Kosten",
+    "See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.": "Sehen Sie jeden Aufruf eines KI-Dienstes: das Modell, die Tokens, die Kosten und wie lange er gedauert hat. Es zeichnet nur auf, solange Settings → Platform → Spectra eingeschaltet ist."
 }

@@ -287,5 +287,8 @@
     "The safety check of your agent \":name\" could not run, so some messages were answered without it.": "بررسی امنیتی عامل شما «:name» نتوانست اجرا شود، پس به برخی پیام‌ها بدون آن پاسخ داده شد.",
     "This happens when the AI model for guardrails is not reachable. Check the model in the admin panel if it keeps happening.": "این زمانی رخ می‌دهد که مدل هوش مصنوعی محافظ‌ها در دسترس نباشد. اگر تکرار شد، مدل را در پنل مدیریت بررسی کنید.",
     "Open the guardrails activity": "باز کردن فعالیت محافظ‌ها",
-    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "حداکثر یک ایمیل از این نوع در ساعت دریافت می‌کنید. می‌توانید این هشدارها را در صفحه محافظ‌ها خاموش کنید."
+    "You get at most one such email per hour. You can turn these alerts off on the Guardrails page.": "حداکثر یک ایمیل از این نوع در ساعت دریافت می‌کنید. می‌توانید این هشدارها را در صفحه محافظ‌ها خاموش کنید.",
+    "Spectra": "Spectra",
+    "AI calls and their cost": "فراخوانی‌های هوش مصنوعی و هزینه‌ی آن‌ها",
+    "See every call to an AI service: the model, the tokens, the cost and how long it took. It records only while Settings → Platform → Spectra is on.": "هر فراخوانی یک سرویس هوش مصنوعی را ببینید: مدل، توکن‌ها، هزینه و مدت زمان آن. فقط وقتی Settings → Platform → Spectra روشن است ثبت می‌کند."
 }

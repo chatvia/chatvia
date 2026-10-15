@@ -6,12 +6,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 /*
- * Horizon and Pulse open only for staff signed in to the admin panel (its
- * own `admin` guard). A dashboard session on the shared `web` guard is not
- * enough. Two-factor authentication is optional, as for the panel itself.
+ * Horizon, Pulse and Spectra open only for staff signed in to the admin
+ * panel (its own `admin` guard). A dashboard session on the shared `web`
+ * guard is not enough. Two-factor authentication is optional, as for the
+ * panel itself.
  */
 
-const STAFF_TOOL_GATES = ['viewHorizon', 'viewPulse'];
+const STAFF_TOOL_GATES = ['viewHorizon', 'viewPulse', 'viewSpectra'];
 
 function staffAdmin(): User
 {

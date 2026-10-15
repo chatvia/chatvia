@@ -15,6 +15,7 @@ use App\Providers\HorizonServiceProvider;
 use App\Providers\HttpMacroServiceProvider;
 use App\Providers\PulseServiceProvider;
 use App\Providers\RateLimitServiceProvider;
+use App\Providers\SpectraServiceProvider;
 use App\Providers\TypeScriptTransformerServiceProvider;
 
 return [
@@ -32,5 +33,6 @@ return [
     FortifyServiceProvider::class,
     HorizonServiceProvider::class,
     PulseServiceProvider::class,
+    SpectraServiceProvider::class,
     TypeScriptTransformerServiceProvider::class,
 ];

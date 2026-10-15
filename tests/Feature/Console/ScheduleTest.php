@@ -18,6 +18,15 @@ it('schedules every recurring command from routes/console.php', function (): voi
     }
 });
 
+it('prunes the Spectra log after the days kept', function (): void {
+    $command = collect(app(Schedule::class)->events())
+        ->map(fn (Event $event): string => (string) $event->command)
+        ->first(fn (string $command): bool => str_contains($command, 'spectra:prune'));
+
+    // 30 days, the default of Settings → Platform → Spectra.
+    expect($command)->toContain('--hours=720');
+});
+
 it('runs every scheduled command on one server without overlapping', function (): void {
     foreach (app(Schedule::class)->events() as $event) {
         expect($event->withoutOverlapping)->toBeTrue((string) $event->command)

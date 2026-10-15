@@ -92,6 +92,9 @@ final class SettingsConfig
         // A disk's config is a whole array that depends on the storage chosen.
         $this->container->make(StorageDisks::class)->apply();
 
+        // Pulse and Spectra read their own switch only while they boot.
+        $this->container->make(ToolRecording::class)->apply();
+
         if ($this->appliedHash !== null) {
             $this->forgetResolvedClients();
         }

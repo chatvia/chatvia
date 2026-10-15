@@ -8,8 +8,9 @@ use App\Identity\Workspace\Models\User;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 
 /**
- * Who may open the staff tools (Horizon, Pulse and the admin panel's Logs
- * page): an active admin signed in to the admin panel's own `admin` guard.
+ * Who may open the staff tools (Horizon, Pulse, Spectra and the admin
+ * panel's Logs page): an active admin signed in to the admin panel's own
+ * `admin` guard.
  *
  * A session on the shared `web` guard does not count, so only the panel login
  * (which asks for the authenticator code when one is set up) can open these

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\StorageDisks;
+use App\Admin\Settings\ToolRecording;
 use Illuminate\Database\Events\MigrationsEnded;
 use Illuminate\Queue\Events\JobProcessing;
 use Illuminate\Support\Facades\Event;
@@ -31,6 +32,7 @@ class AdminSettingsServiceProvider extends ServiceProvider
     {
         $this->app->singleton(SettingsConfig::class);
         $this->app->singleton(StorageDisks::class);
+        $this->app->singleton(ToolRecording::class);
     }
 
     public function boot(): void

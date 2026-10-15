@@ -39,6 +39,10 @@ return new class extends SettingsMigration
             $group->add('ffprobe_path');
             $group->add('weasyprint_path');
             $group->add('logs_page_enabled');
+            $group->add('pulse_enabled');
+            $group->add('spectra_enabled');
+            $group->add('spectra_store_content');
+            $group->add('spectra_retention_days');
         });
     }
 

@@ -18,6 +18,7 @@ use Domain\Llm\Operations\Pricing\CostCalculator;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\TikToken;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 /**
  * Adds the summary chunk (chunk_index 0) of a source: one LLM call classifies
@@ -70,17 +71,21 @@ class CreateSourceSummaryAction
     }
 
     /**
-     * Classify and summarise the document. The model reads it as a PDF from a
-     * signed URL; withPdf() deletes a temporary converted PDF once both calls
-     * are done, and never touches a stored original PDF. The detected language
-     * and type are saved on the source.
+     * Classify and summarise the document. The PDF goes inside the request as
+     * a data: URL rather than a link to this site: a model handed a link it
+     * cannot open (a local or private install) summarises the link instead of
+     * the document. withPdf() deletes a temporary converted PDF once both
+     * calls are done, and never touches a stored original PDF. The detected
+     * language and type are saved on the source.
      *
      * @return array{0: AnalyzedDocumentData, 1: ChatResponseData}
      */
     private function readDocument(SourceFile|SourceText|SourceWebsite $source): array
     {
         return $source->withPdf($this->officePdf, function (string $pdfPath) use ($source): array {
-            $pdfUrl = Storage::temporaryUrl($pdfPath, now()->addDay());
+            $pdfUrl = 'data:application/pdf;base64,'.base64_encode(
+                Storage::get($pdfPath) ?? throw new RuntimeException("File not found in storage: {$pdfPath}"),
+            );
 
             $analyzed = $this->contentAnalyzer->analyze($pdfUrl);
 
@@ -89,7 +94,7 @@ class CreateSourceSummaryAction
                 'document_classification' => $analyzed->analysis->document_type,
             ]);
 
-            return [$analyzed, $this->summarizer->summarize($pdfUrl)];
+            return [$analyzed, $this->summarizer->summarize($pdfUrl, $analyzed->analysis->language)];
         });
     }
 

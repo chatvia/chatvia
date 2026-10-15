@@ -132,10 +132,10 @@ it('starts again at the first page for a cursor it did not hand out', function (
 
     $foreign = [
         'not-a-cursor',
-        (new Cursor(['other' => 1]))->encode(),
-        (new Cursor([$column => 'abc']))->encode(),
-        (new Cursor([$column => 1, 'other' => 1]))->encode(),
-        (new Cursor([$column => $handedOut->parameter($column)], pointsToNextItems: false))->encode(),
+        new Cursor(['other' => 1])->encode(),
+        new Cursor([$column => 'abc'])->encode(),
+        new Cursor([$column => 1, 'other' => 1])->encode(),
+        new Cursor([$column => $handedOut->parameter($column)], pointsToNextItems: false)->encode(),
     ];
 
     foreach ($foreign as $cursor) {
@@ -216,7 +216,7 @@ it('starts the source list again at the first page for a cursor it did not hand 
     $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
     $this->agent->files()->attach($file->id);
 
-    foreach ([(new Cursor(['created_at' => 'yesterday', 'sourceable_id' => 1, 'sourceable_type' => 'source_file']))->encode(), (new Cursor(['id' => 1]))->encode()] as $cursor) {
+    foreach ([new Cursor(['created_at' => 'yesterday', 'sourceable_id' => 1, 'sourceable_type' => 'source_file'])->encode(), new Cursor(['id' => 1])->encode()] as $cursor) {
         $this->withHeaders($this->headers)
             ->getJson("/api/v1/agents/{$this->agent->external_id}/sources?".http_build_query(['cursor' => $cursor]))
             ->assertOk()

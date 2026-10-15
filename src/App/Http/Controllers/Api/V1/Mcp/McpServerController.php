@@ -39,7 +39,7 @@ class McpServerController
         $page = CursorPage::newestFirst($user->workspace()->mcpServers()->custom(), $request->perPage(), $request->cursor());
 
         return [
-            'data' => array_map(fn (AgentMcpServer $server): McpServerData => McpServerData::fromModel($server), $page->items()),
+            'data' => array_map(McpServerData::fromModel(...), $page->items()),
             'next_cursor' => $page->nextCursor()?->encode(),
         ];
     }

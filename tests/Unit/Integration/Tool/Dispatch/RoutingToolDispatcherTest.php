@@ -42,7 +42,7 @@ it('cuts a result longer than the limit and tells the model it was cut', functio
     $artifacts = [['kind' => 'echarts_option', 'data' => []]];
     $dispatcher = routingDispatcher(new ToolDispatchResult(str_repeat('é', 1500), $artifacts), ToolDispatchResult::text('ok'));
 
-    $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__notion__fetch', '{}', null, null));
+    $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__notion__fetch', '{}'));
 
     expect($result->text)->toStartWith(str_repeat('é', 1000)."\n\n")
         ->and($result->text)->toEndWith(sprintf(RoutingToolDispatcher::CUT_NOTE, 1000))
@@ -56,14 +56,14 @@ it('leaves a result within the limit as it is', function (): void {
     $original = ToolDispatchResult::text(str_repeat('a', 1000));
     $dispatcher = routingDispatcher(ToolDispatchResult::text('mcp'), $original);
 
-    expect($dispatcher->dispatch(new Agent, ToolCallData::named('lookup_order', '{}', null, null)))->toBe($original);
+    expect($dispatcher->dispatch(new Agent, ToolCallData::named('lookup_order', '{}')))->toBe($original);
 });
 
 it('keeps an error flagged when it is cut', function (): void {
     config(['chatvia.agent.tools.max_result_chars' => 1000]);
     $dispatcher = routingDispatcher(ToolDispatchResult::error(str_repeat('x', 5000)), ToolDispatchResult::text('ok'));
 
-    $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__github__search', '{}', null, null));
+    $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__github__search', '{}'));
 
     expect($result->isError)->toBeTrue()
         ->and(mb_strlen($result->text))->toBeLessThan(1200);
@@ -73,7 +73,7 @@ it('never cuts below 1,000 characters, whatever the setting says', function (): 
     config(['chatvia.agent.tools.max_result_chars' => 10]);
     $dispatcher = routingDispatcher(ToolDispatchResult::text(str_repeat('a', 1500)), ToolDispatchResult::text('ok'));
 
-    $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__notion__fetch', '{}', null, null));
+    $result = $dispatcher->dispatch(new Agent, ToolCallData::named('mcp__notion__fetch', '{}'));
 
     expect($result->text)->toStartWith(str_repeat('a', 1000)."\n\n");
 });

@@ -40,7 +40,7 @@ class TeamController
         $page = CursorPage::newestFirst($teams, $request->perPage(), $request->cursor());
 
         return [
-            'data' => array_map(fn (Team $team): TeamData => TeamData::fromModel($team), $page->items()),
+            'data' => array_map(TeamData::fromModel(...), $page->items()),
             'next_cursor' => $page->nextCursor()?->encode(),
         ];
     }

@@ -5,8 +5,7 @@
  * Connectors themselves are connected in Workspace → Integrations.
  */
 import connectors from '@/routes/agents/sources/connectors';
-import { isAxiosError } from 'axios';
-import { del, errorMessage, get, post, put } from './http';
+import { del, get, post, put } from './http';
 
 export type AgentConnectors = Domain.Integration.Connector.Data.Agent.AgentConnectorsResourceData;
 export type FeaturedConnectorRow = Domain.Integration.Connector.Data.Agent.AgentConnectorRowData;
@@ -30,17 +29,4 @@ export async function detachConnector(agentId: string, slug: string): Promise<vo
 /** Ship (or stop shipping) an attached connector's tools on every turn. */
 export async function setConnectorAlwaysAvailable(agentId: string, slug: string, alwaysAvailable: boolean): Promise<void> {
     await put(connectors.always_available.url({ agent: agentId, slug }), { always_available: alwaysAvailable });
-}
-
-/**
- * The server's message when "always on" is refused with a 422 (the per-agent
- * cap on always-shipped tools), else the fallback. Other failures never show
- * the server text.
- */
-export function alwaysAvailableErrorMessage(error: unknown, fallback: string): string {
-    if (!isAxiosError(error) || error.response?.status !== 422) {
-        return fallback;
-    }
-
-    return errorMessage(error, '') || fallback;
 }

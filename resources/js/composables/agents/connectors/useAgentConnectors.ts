@@ -4,7 +4,6 @@
  * their "always on" flag, updating the row in place when the server agrees.
  */
 import {
-    alwaysAvailableErrorMessage,
     attachConnector,
     type CustomConnectorRow,
     detachConnector,
@@ -85,14 +84,13 @@ export function useAgentConnectors(agentId: MaybeRefOrGetter<string>) {
     }
 
     // "Always on": the connector's tools ship on every turn, bypassing the
-    // relevance router. The server caps it per agent; a breach comes back as a
-    // 422 whose message is shown as is.
+    // relevance router.
     async function setAlwaysAvailable(slug: string, value: boolean, onSuccess: () => void): Promise<void> {
         try {
             await setConnectorAlwaysAvailable(toValue(agentId), slug, value);
             onSuccess();
-        } catch (error: unknown) {
-            toast.error(alwaysAvailableErrorMessage(error, t('agents.sources.connectors.always_failed')));
+        } catch {
+            toast.error(t('agents.sources.connectors.always_failed'));
         }
     }
 

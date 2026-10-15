@@ -100,11 +100,11 @@ it('ignores an always-on flag on a disabled connector and ships nothing for an u
     expect(tsSelector([tsEntry('mcp__tutor__ask')], [])->selectForTurn($this->agent, 'hi', null))->toBe([]);
 });
 
-it('caps always-on tools at ten even if a pinned catalog grew', function (): void {
+it('ships every always-on tool, however many there are', function (): void {
     tsAttach($this->agent, 'big', alwaysAvailable: true);
     $pool = array_map(fn (int $i): ToolEntry => tsEntry("mcp__big__tool_{$i}"), range(1, 14));
 
-    expect(tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null))->toHaveCount(10);
+    expect(tsSelector($pool, [])->selectForTurn($this->agent, 'hi', null))->toHaveCount(14);
 });
 
 it('skips the router entirely when every tool in the pool is always-on', function (): void {

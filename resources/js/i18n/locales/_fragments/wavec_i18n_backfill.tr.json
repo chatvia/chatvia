@@ -27,7 +27,7 @@
         "sources": {
             "connectors": {
                 "column_always": "Her zaman açık",
-                "always_hint": "Varsayılan olarak asistan yalnızca her mesajın ihtiyaç duyduğu araçları seçer. Bunu açarsanız bu bağlayıcının araçları, mesaj bunlara ihtiyaç duymuyor gibi görünse bile her mesajla birlikte gönderilir. Asistan başına en fazla 10 araç her zaman açık olabilir.",
+                "always_hint": "Varsayılan olarak asistan yalnızca her mesajın ihtiyaç duyduğu araçları seçer. Bunu açarsanız bu bağlayıcının araçları, mesaj bunlara ihtiyaç duymuyor gibi görünse bile her mesajla birlikte gönderilir. Her zaman açık araç sayısı arttıkça asistanın yanlış aracı seçme olasılığı artar, yanıtlar da yavaşlar ve maliyet yükselir.",
                 "always_failed": "Her zaman açık ayarı güncellenemedi"
             }
         },

@@ -8,6 +8,8 @@ use Domain\Security\Actions\DeliverSecurityWebhookAction;
 use Domain\Security\Actions\RecordSiemDeliveryFailureAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\InteractsWithQueue;
 use Support\Exceptions\UnsafeUrlException;
 use Throwable;
@@ -25,28 +27,23 @@ use Throwable;
  * A URL that fails the SSRF check is failed at once: retrying cannot fix it,
  * and it still counts towards the auto-disable threshold.
  */
+// A SIEM endpoint that fails once often answers on the next try.
+#[Tries(3)]
+// Longer and longer waits, so a restarting endpoint has time to come back.
+#[Backoff(10, 60, 300)]
 class SendSecurityEventToSiem implements ShouldQueue
 {
     use InteractsWithQueue;
-
-    public int $tries = 3;
 
     public function __construct(
         private readonly DeliverSecurityWebhookAction $action,
         private readonly RecordSiemDeliveryFailureAction $recordFailure,
     ) {}
 
+    // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
         return (string) config('chatvia.analytics.queue', 'analytics');
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    public function backoff(): array
-    {
-        return [10, 60, 300];
     }
 
     public function handle(SecurityEventOccurred $event): void

@@ -20,6 +20,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class RecordGuardrailAttack implements ShouldQueue
 {
+    // The queue name comes from config, which an attribute cannot read.
     public function viaQueue(): string
     {
         return (string) config('chatvia.guardrails.queue', 'analytics');

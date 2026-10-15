@@ -11,7 +11,7 @@ use Domain\Knowledge\Embedding\Rerank\NullReranker;
  * Pure unit coverage for the gate's branching — no DB, no live API. The reranker
  * is mocked so each test pins an exact score distribution and asserts what ships.
  */
-function toolEntry(string $name, string $description = '', bool $mutates = true): ToolEntry
+function relevanceGateEntry(string $name, string $description = '', bool $mutates = true): ToolEntry
 {
     return new ToolEntry(
         kind: ToolKind::Function,
@@ -23,7 +23,7 @@ function toolEntry(string $name, string $description = '', bool $mutates = true)
     );
 }
 
-function gateWith(Reranker $reranker): ToolRelevanceGate
+function relevanceGateWith(Reranker $reranker): ToolRelevanceGate
 {
     return new ToolRelevanceGate($reranker);
 }
@@ -48,11 +48,11 @@ it('ships nothing when no candidate clears the threshold (the "Hi" case)', funct
     ]);
 
     $candidates = [
-        toolEntry('get_weather', 'Get the weather forecast for a city'),
-        toolEntry('create_event', 'Schedule a meeting on the calendar'),
+        relevanceGateEntry('get_weather', 'Get the weather forecast for a city'),
+        relevanceGateEntry('create_event', 'Schedule a meeting on the calendar'),
     ];
 
-    expect(gateWith($reranker)->gate('Hi', $candidates))->toBe([]);
+    expect(relevanceGateWith($reranker)->gate('Hi', $candidates))->toBe([]);
 });
 
 it('keeps only the tools above the threshold, in reranked order', function (): void {
@@ -65,10 +65,10 @@ it('keeps only the tools above the threshold, in reranked order', function (): v
         new RerankedDocumentData(0, 0.10),
     ]);
 
-    $events = toolEntry('create_event', 'Schedule a meeting on the calendar');
-    $weather = toolEntry('get_weather', 'Get the weather forecast for a city');
+    $events = relevanceGateEntry('create_event', 'Schedule a meeting on the calendar');
+    $weather = relevanceGateEntry('get_weather', 'Get the weather forecast for a city');
 
-    $kept = gateWith($reranker)->gate("What's the weather in Copenhagen tomorrow?", [$events, $weather]);
+    $kept = relevanceGateWith($reranker)->gate("What's the weather in Copenhagen tomorrow?", [$events, $weather]);
 
     expect($kept)->toHaveCount(1)
         ->and($kept[0]->name)->toBe('get_weather');
@@ -83,10 +83,10 @@ it('keeps multiple tools when several clear the threshold', function (): void {
         new RerankedDocumentData(1, 0.72),
     ]);
 
-    $commits = toolEntry('list_commits', 'List repository commits');
-    $heatmap = toolEntry('render_heatmap', 'Render a heatmap chart');
+    $commits = relevanceGateEntry('list_commits', 'List repository commits');
+    $heatmap = relevanceGateEntry('render_heatmap', 'Render a heatmap chart');
 
-    $kept = gateWith($reranker)->gate('fetch commits then render a heatmap', [$commits, $heatmap]);
+    $kept = relevanceGateWith($reranker)->gate('fetch commits then render a heatmap', [$commits, $heatmap]);
 
     expect($kept)->toHaveCount(2)
         ->and($kept[0]->name)->toBe('list_commits')
@@ -107,10 +107,10 @@ it('holds write tools to a stricter bar than read tools', function (): void {
         new RerankedDocumentData(1, 0.55),
     ]);
 
-    $write = toolEntry('create_refund', 'Refund a charge to a customer', mutates: true);
-    $read = toolEntry('get_charge', 'Retrieve a payment charge', mutates: false);
+    $write = relevanceGateEntry('create_refund', 'Refund a charge to a customer', mutates: true);
+    $read = relevanceGateEntry('get_charge', 'Retrieve a payment charge', mutates: false);
 
-    $kept = gateWith($reranker)->gate('do something about that charge', [$write, $read]);
+    $kept = relevanceGateWith($reranker)->gate('do something about that charge', [$write, $read]);
 
     // The read tool clears its looser bar; the borderline write tool is pruned.
     expect($kept)->toHaveCount(1)
@@ -125,7 +125,7 @@ it('treats the threshold as inclusive (>=)', function (): void {
         new RerankedDocumentData(0, 0.55),
     ]);
 
-    $kept = gateWith($reranker)->gate('exact boundary', [toolEntry('boundary_tool', 'right on the line')]);
+    $kept = relevanceGateWith($reranker)->gate('exact boundary', [relevanceGateEntry('boundary_tool', 'right on the line')]);
 
     expect($kept)->toHaveCount(1);
 });
@@ -136,18 +136,18 @@ it('passes candidates through unchanged when the reranker throws', function (): 
     $reranker->shouldReceive('model')->andReturn('test-reranker');
     $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('reranker down'));
 
-    $candidates = [toolEntry('get_weather', 'Get the weather forecast')];
+    $candidates = [relevanceGateEntry('get_weather', 'Get the weather forecast')];
 
-    expect(gateWith($reranker)->gate('anything', $candidates))->toBe($candidates);
+    expect(relevanceGateWith($reranker)->gate('anything', $candidates))->toBe($candidates);
 });
 
 it('passes candidates through with the no-op reranker of an install without a reranking service', function (): void {
     $candidates = [
-        toolEntry('get_weather', 'Get the weather forecast'),
-        toolEntry('create_event', 'Schedule a meeting on the calendar'),
+        relevanceGateEntry('get_weather', 'Get the weather forecast'),
+        relevanceGateEntry('create_event', 'Schedule a meeting on the calendar'),
     ];
 
-    expect(gateWith(new NullReranker)->gate('Hi', $candidates))->toBe($candidates);
+    expect(relevanceGateWith(new NullReranker)->gate('Hi', $candidates))->toBe($candidates);
 });
 
 it('is a no-op passthrough when the gate is disabled', function (): void {
@@ -156,9 +156,9 @@ it('is a no-op passthrough when the gate is disabled', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldNotReceive('rerank');
 
-    $candidates = [toolEntry('get_weather', 'Get the weather forecast')];
+    $candidates = [relevanceGateEntry('get_weather', 'Get the weather forecast')];
 
-    expect(gateWith($reranker)->gate('Hi', $candidates))->toBe($candidates);
+    expect(relevanceGateWith($reranker)->gate('Hi', $candidates))->toBe($candidates);
 });
 
 it('passes through when the reranker is disabled', function (): void {
@@ -166,16 +166,16 @@ it('passes through when the reranker is disabled', function (): void {
     $reranker->shouldReceive('isEnabled')->andReturnFalse();
     $reranker->shouldNotReceive('rerank');
 
-    $candidates = [toolEntry('get_weather', 'Get the weather forecast')];
+    $candidates = [relevanceGateEntry('get_weather', 'Get the weather forecast')];
 
-    expect(gateWith($reranker)->gate('Hi', $candidates))->toBe($candidates);
+    expect(relevanceGateWith($reranker)->gate('Hi', $candidates))->toBe($candidates);
 });
 
 it('returns [] for an empty candidate set without calling the reranker', function (): void {
     $reranker = Mockery::mock(Reranker::class);
     $reranker->shouldNotReceive('rerank');
 
-    expect(gateWith($reranker)->gate('Hi', []))->toBe([]);
+    expect(relevanceGateWith($reranker)->gate('Hi', []))->toBe([]);
 });
 
 it('only reranks up to the configured candidate cap', function (): void {
@@ -194,12 +194,12 @@ it('only reranks up to the configured candidate cap', function (): void {
         ]);
 
     $candidates = [
-        toolEntry('tool_a', 'a'),
-        toolEntry('tool_b', 'b'),
-        toolEntry('tool_c', 'c'),
+        relevanceGateEntry('tool_a', 'a'),
+        relevanceGateEntry('tool_b', 'b'),
+        relevanceGateEntry('tool_c', 'c'),
     ];
 
-    $kept = gateWith($reranker)->gate('anything', $candidates);
+    $kept = relevanceGateWith($reranker)->gate('anything', $candidates);
 
     expect($kept)->toHaveCount(2)
         ->and(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['tool_a', 'tool_b']);
@@ -214,11 +214,11 @@ it('falls back to the similarity check when the reranker fails', function (): vo
     $reranker->shouldReceive('model')->andReturn('test-reranker');
     $reranker->shouldReceive('rerank')->andThrow(new RuntimeException('down'));
 
-    $read = toolEntry('get_charge', 'Look up a charge', mutates: false);
-    $write = toolEntry('refund_charge', 'Refund a charge', mutates: true);
-    $far = toolEntry('get_weather', 'Get the weather', mutates: false);
+    $read = relevanceGateEntry('get_charge', 'Look up a charge', mutates: false);
+    $write = relevanceGateEntry('refund_charge', 'Refund a charge', mutates: true);
+    $far = relevanceGateEntry('get_weather', 'Get the weather', mutates: false);
 
-    $kept = gateWith($reranker)->gate('refund that charge', [$read, $write, $far], [
+    $kept = relevanceGateWith($reranker)->gate('refund that charge', [$read, $write, $far], [
         $read->sourceId => 0.55,
         $write->sourceId => 0.58,
         $far->sourceId => 0.12,
@@ -233,10 +233,10 @@ it('gates by similarity without a reranker, with the embedding model\'s bars', f
     config()->set('chatvia.agent.tools.routing.similarity_threshold_read');
     config()->set('chatvia.agent.tools.routing.similarity_threshold_write');
 
-    $near = toolEntry('get_weather', 'Get the weather', mutates: false);
-    $far = toolEntry('create_event', 'Schedule a meeting', mutates: false);
+    $near = relevanceGateEntry('get_weather', 'Get the weather', mutates: false);
+    $far = relevanceGateEntry('create_event', 'Schedule a meeting', mutates: false);
 
-    $kept = gateWith(new NullReranker)->gate('Hi', [$near, $far], [$near->sourceId => 0.9, $far->sourceId => 0.01]);
+    $kept = relevanceGateWith(new NullReranker)->gate('Hi', [$near, $far], [$near->sourceId => 0.9, $far->sourceId => 0.01]);
 
     expect(array_map(static fn (ToolEntry $e): string => $e->name, $kept))->toBe(['get_weather']);
 });
@@ -244,7 +244,7 @@ it('gates by similarity without a reranker, with the embedding model\'s bars', f
 it('passes the pool ungated when the embedding model was never measured', function (): void {
     config()->set('chatvia.ai.models.embedding', 'openai');
 
-    $candidates = [toolEntry('get_weather', 'Get the weather', mutates: false)];
+    $candidates = [relevanceGateEntry('get_weather', 'Get the weather', mutates: false)];
 
-    expect(gateWith(new NullReranker)->gate('Hi', $candidates, [$candidates[0]->sourceId => 0.01]))->toBe($candidates);
+    expect(relevanceGateWith(new NullReranker)->gate('Hi', $candidates, [$candidates[0]->sourceId => 0.01]))->toBe($candidates);
 });

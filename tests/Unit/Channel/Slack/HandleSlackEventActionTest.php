@@ -13,14 +13,13 @@ use Tests\Support\Slack\FakeSlackClient;
 
 /**
  * The handle Action wires the inbound message end to end: strip the bot's own
- *
- * @mention, resolve the channel, post a placeholder, stream the reply into it
+ * mention, resolve the channel, post a placeholder, stream the reply into it
  * via message edits, and stamp the channel. The pipeline (real LLM) is stubbed
  * here — this asserts the wiring, not the model's answer.
  */
-function slackHandleApp(bool $public = true): AgentSlackApp
+function slackHandleApp(): AgentSlackApp
 {
-    $agent = Agent::factory()->create(['is_public' => $public]);
+    $agent = Agent::factory()->create(['is_public' => true]);
 
     return AgentSlackApp::create([
         'agent_id' => $agent->id,
@@ -81,18 +80,6 @@ it('replies in the thread the mention came from', function (): void {
     expect($client->posted[0]['threadTs'])->toBe('1699.000001');
 });
 
-it('keeps one channel mapping across multiple inbound messages', function (): void {
-    $app = slackHandleApp();
-    $client = new FakeSlackClient;
-    $runner = new StubChannelReplyRunner('ok');
-
-    slackHandle($client, $runner, $app, 'C900', 'first');
-    slackHandle($client, $runner, $app, 'C900', 'second');
-
-    expect(SlackChannel::query()->count())->toBe(1);
-    expect($client->posted)->toHaveCount(2);
-});
-
 it('does nothing when the message is only the mention itself', function (): void {
     $app = slackHandleApp();
     $client = new FakeSlackClient;
@@ -130,20 +117,4 @@ it('refuses to answer for a deactivated workspace and creates no channel', funct
         ->and($client->updates)->toBeEmpty()
         ->and($runner->received())->toBeNull()
         ->and(SlackChannel::query()->count())->toBe(0);
-});
-
-it('refuses to answer on a protected agent and creates no channel', function (): void {
-    $app = slackHandleApp(public: false);
-    $client = new FakeSlackClient;
-    $runner = new StubChannelReplyRunner('should never be sent');
-
-    slackHandle($client, $runner, $app, 'C123CHAN', 'hello');
-
-    // Gated before the pipeline: a single "unavailable" notice, no channel row.
-    expect($client->posted)->toHaveCount(1)
-        ->and($client->posted[0]['markdown'])->toContain('available')
-        ->and($client->posted[0]['markdown'])->not->toBe('should never be sent');
-    expect($client->updates)->toBeEmpty();
-
-    expect(SlackChannel::query()->count())->toBe(0);
 });

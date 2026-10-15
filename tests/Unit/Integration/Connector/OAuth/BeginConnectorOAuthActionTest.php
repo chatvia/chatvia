@@ -25,7 +25,7 @@ beforeEach(function (): void {
 /**
  * @param  array<string, mixed>  $overrides
  */
-function beginOAuthConnector(array $overrides = []): ConnectorData
+function bcoConnector(array $overrides = []): ConnectorData
 {
     return ConnectorData::fromArray([
         'slug' => 'fixture',
@@ -47,7 +47,7 @@ function beginOAuthConnector(array $overrides = []): ConnectorData
  *
  * @param  array<string, mixed>  $metadata
  */
-function stubOAuthDiscovery(array $metadata, ?string $clientSecret = null): ConnectorOAuthClient
+function bcoStubDiscovery(array $metadata, ?string $clientSecret = null): ConnectorOAuthClient
 {
     test()->mock(McpOAuthDiscoverer::class)->shouldReceive('discover')
         ->andReturn(OAuthServerMetadata::fromArray('https://auth.example.test', $metadata));
@@ -67,7 +67,7 @@ function stubOAuthDiscovery(array $metadata, ?string $clientSecret = null): Conn
     return $client;
 }
 
-function pkceMetadata(): array
+function bcoPkceMetadata(): array
 {
     return [
         'authorization_endpoint' => 'https://auth.example.test/authorize',
@@ -77,10 +77,10 @@ function pkceMetadata(): array
 }
 
 it('returns the authorize URL with PKCE and caches the encrypted, bound state', function (): void {
-    stubOAuthDiscovery(pkceMetadata(), clientSecret: 'very-secret-value');
+    bcoStubDiscovery(bcoPkceMetadata(), clientSecret: 'very-secret-value');
     $user = User::factory()->create();
 
-    $url = app(BeginConnectorOAuthAction::class)->execute($user, beginOAuthConnector(), 'session-binding');
+    $url = app(BeginConnectorOAuthAction::class)->execute($user, bcoConnector(), 'session-binding');
 
     expect($url)->toStartWith('https://auth.example.test/authorize?');
 
@@ -110,7 +110,7 @@ it('refuses to start when the authorization server does not advertise S256 PKCE'
         ->andReturn(OAuthServerMetadata::fromArray('https://auth.example.test', $metadata));
     test()->mock(McpOAuthRegistrar::class)->shouldNotReceive('clientFor');
 
-    expect(fn (): string => app(BeginConnectorOAuthAction::class)->execute(User::factory()->create(), beginOAuthConnector(), 'binding'))
+    expect(fn (): string => app(BeginConnectorOAuthAction::class)->execute(User::factory()->create(), bcoConnector(), 'binding'))
         ->toThrow(McpOAuthException::class, 'PKCE');
 })->with([
     'methods missing' => [[
@@ -129,7 +129,7 @@ it('raises a misconfiguration when the pre-registered OAuth app credentials are 
 
     // Wired for a pre-registered OAuth app (authorization endpoint set) but the
     // operator never set the client id: reportable, not a user-facing error.
-    $connector = beginOAuthConnector([
+    $connector = bcoConnector([
         'oauth_authorization_endpoint' => 'https://auth.example.test/authorize',
         'oauth_token_endpoint' => 'https://auth.example.test/token',
         'oauth_client_id' => null,

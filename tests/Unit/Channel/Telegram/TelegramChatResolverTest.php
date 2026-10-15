@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
  * Session + Conversation, so a user keeps one ongoing conversation across
  * messages. First contact creates them; later messages reuse the same mapping.
  */
-function telegramBot(): AgentTelegramBot
+function telegramResolverBot(): AgentTelegramBot
 {
     $agent = Agent::factory()->create();
 
@@ -28,7 +28,7 @@ function telegramBot(): AgentTelegramBot
 }
 
 it('creates a Session + Conversation + mapping on first contact', function (): void {
-    $bot = telegramBot();
+    $bot = telegramResolverBot();
 
     $chat = app(TelegramChatResolver::class)->resolve($bot, 555, new TelegramSenderData('Sam', 'sam_t'));
 
@@ -47,7 +47,7 @@ it('creates a Session + Conversation + mapping on first contact', function (): v
 });
 
 it('reuses the same mapping for a returning chat', function (): void {
-    $bot = telegramBot();
+    $bot = telegramResolverBot();
     $resolver = app(TelegramChatResolver::class);
 
     $first = $resolver->resolve($bot, 555, new TelegramSenderData('Sam'));
@@ -58,7 +58,7 @@ it('reuses the same mapping for a returning chat', function (): void {
 });
 
 it('keeps separate conversations for different chats', function (): void {
-    $bot = telegramBot();
+    $bot = telegramResolverBot();
     $resolver = app(TelegramChatResolver::class);
 
     $a = $resolver->resolve($bot, 100);
@@ -70,7 +70,7 @@ it('keeps separate conversations for different chats', function (): void {
 });
 
 it('tags the conversation as a Telegram conversation', function (): void {
-    $bot = telegramBot();
+    $bot = telegramResolverBot();
 
     $chat = app(TelegramChatResolver::class)->resolve($bot, 777, new TelegramSenderData('Lee'));
 

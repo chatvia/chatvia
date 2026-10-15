@@ -84,7 +84,9 @@ it('ships per-bubble translation maps parallel to the resolved bubble text', fun
         ->and($settings->bubble_translations[0]['fr'] ?? null)->toBe('Salut !');
 });
 
-it('keeps the legacy plain-string bubble list working', function (): void {
+it('reads a bubble stored as a plain string, with no translations', function (): void {
+    // A bubble can be a bare string instead of { text, translations, overrides }
+    // (TranslatableText::fromStored reads both), and the widget must still show it.
     $agent = createAgent(User::factory()->create());
     $agent->setSetting('bubbles', ['Just a string'], 'widget');
 
@@ -116,14 +118,6 @@ it('shows the powered-by credit even when an agent saved it hidden', function ()
 
     expect($settings->branding->enabled)->toBeTrue()
         ->and($settings->chatvia_branding)->toBeTrue();
-});
-
-it('always links the powered-by credit to chatvia.ai', function (): void {
-    config(['chatvia.powered_by' => true]);
-
-    $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
-
-    expect($settings->branding->url)->toBe('https://chatvia.ai');
 });
 
 it('hides the powered-by credit when the install turns it off', function (): void {

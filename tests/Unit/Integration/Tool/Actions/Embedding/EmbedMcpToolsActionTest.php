@@ -1,7 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\Workspace;
-use Domain\Integration\Mcp\Enums\McpToolPermission;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Actions\Embedding\EmbedMcpToolsAction;
@@ -10,28 +8,12 @@ use Tests\Support\FakeEmbeddingsProvider;
 
 function embedTestServer(string $slug): AgentMcpServer
 {
-    return AgentMcpServer::create([
-        'workspace_id' => Workspace::factory()->create()->id,
-        'name' => 'Acme CRM',
-        'description' => 'Customer records',
-        'slug' => $slug,
-        'url' => "https://mcp.example.test/{$slug}",
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    return AgentMcpServer::factory()->create(['name' => 'Acme CRM', 'description' => 'Customer records', 'slug' => $slug]);
 }
 
 function embedTestMcpTool(AgentMcpServer $server, string $name): McpTool
 {
-    return McpTool::create([
-        'mcp_server_id' => $server->id,
-        'name' => $name,
-        'description' => "Does {$name}",
-        'input_schema' => ['type' => 'object', 'properties' => []],
-        'permission' => McpToolPermission::Allow,
-        'fetched_at' => now(),
-    ]);
+    return McpTool::factory()->for($server, 'mcpServer')->allowed()->create(['name' => $name, 'description' => "Does {$name}"]);
 }
 
 function mcpToolIsEmbedded(McpTool $tool): bool

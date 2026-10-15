@@ -3,29 +3,57 @@
 use Domain\Agent\Models\Agent;
 use Domain\Form\Actions\EmbedFormDefinitionAction;
 use Domain\Form\Models\FormDefinition;
+use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Illuminate\Support\Facades\Log;
 
-it('writes the dense and sparse vectors for a form', function (): void {
-    $agent = Agent::factory()->create();
-    $form = FormDefinition::factory()->forAgent($agent)->create([
+/**
+ * A form to embed, with the vectors the create-observer wrote cleared so each
+ * test starts from an unembedded row.
+ */
+function efdUnembeddedForm(): FormDefinition
+{
+    $form = FormDefinition::factory()->forAgent(Agent::factory()->create())->create([
         'name' => 'Refund request',
         'slug' => 'refund-request',
         'agent_instructions' => 'Show when the visitor wants their money back.',
     ]);
 
-    // Clear what the create-observer populated, then re-embed explicitly.
     $form->forceFill(['embedding' => null, 'embedding_bm25' => null])->saveQuietly();
 
-    app(EmbedFormDefinitionAction::class)->execute($form->id);
+    return $form;
+}
 
+/** @return array{has_vec: bool, has_bm25: bool} */
+function efdEmbeddedColumns(FormDefinition $form): array
+{
     $row = FormDefinition::query()
         ->whereKey($form->id)
         ->selectRaw('embedding IS NOT NULL AS has_vec, embedding_bm25 IS NOT NULL AS has_bm25')
         ->first();
 
-    expect((bool) $row->has_vec)->toBeTrue()
-        ->and((bool) $row->has_bm25)->toBeTrue();
+    return ['has_vec' => (bool) $row->has_vec, 'has_bm25' => (bool) $row->has_bm25];
+}
+
+it('writes the dense and sparse vectors for a form', function (): void {
+    $form = efdUnembeddedForm();
+
+    app(EmbedFormDefinitionAction::class)->execute($form->id);
+
+    expect(efdEmbeddedColumns($form))->toBe(['has_vec' => true, 'has_bm25' => true]);
 });
 
-it('is a no-op for a missing form id', function (): void {
-    app(EmbedFormDefinitionAction::class)->execute(999_999);
-})->throwsNoExceptions();
+it('leaves the form unembedded and logs when the embedder fails', function (): void {
+    $form = efdUnembeddedForm();
+    $failing = Mockery::mock(EmbeddingsProviderInterface::class);
+    $failing->shouldReceive('embed')->andThrow(new RuntimeException('embedder down'));
+    app()->instance(EmbeddingsProviderInterface::class, $failing);
+    Log::spy();
+
+    app(EmbedFormDefinitionAction::class)->execute($form->id);
+
+    expect(efdEmbeddedColumns($form))->toBe(['has_vec' => false, 'has_bm25' => false]);
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => $message === 'Form embedding failed'
+            && $context === ['form_definition_id' => $form->id, 'error' => 'embedder down'])
+        ->once();
+});

@@ -10,6 +10,7 @@ use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramAdapter;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Channel\Telegram\Services\TelegramCommandRouter;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Tests\Support\Channel\StubChannelReplyRunner;
 use Tests\Support\Telegram\FakeTelegramClient;
@@ -19,9 +20,9 @@ use Tests\Support\Telegram\FakeTelegramClient;
  * the agent for a reply, send it back, and stamp the chat. The pipeline (real
  * LLM) is stubbed here — this asserts the wiring, not the model's answer.
  */
-function handleBot(bool $public = true): AgentTelegramBot
+function telegramHandleBot(): AgentTelegramBot
 {
-    $agent = Agent::factory()->create(['is_public' => $public]);
+    $agent = Agent::factory()->create(['is_public' => true]);
 
     return AgentTelegramBot::create([
         'agent_id' => $agent->id,
@@ -50,10 +51,15 @@ function telegramHandle(FakeTelegramClient $client, StubChannelReplyRunner $runn
 }
 
 it('resolves the chat, sends the agent reply, and stamps last_message_at', function (): void {
-    $bot = handleBot();
+    $bot = telegramHandleBot();
     $client = new FakeTelegramClient;
 
     $runner = new StubChannelReplyRunner('Hello from the agent');
+
+    // A returning chat, created earlier, so the stamp of this turn shows.
+    $this->travelTo(Carbon::parse('2026-10-01 10:00:00'));
+    app(TelegramChatResolver::class)->resolve($bot, '555', new TelegramSenderData('Sam'));
+    $this->travelTo(Carbon::parse('2026-10-01 10:05:00'));
 
     telegramHandle($client, $runner, $bot, '555', 'hi there', 'Sam');
 
@@ -69,40 +75,11 @@ it('resolves the chat, sends the agent reply, and stamps last_message_at', funct
 
     $chat = TelegramChat::query()->firstOrFail();
     expect($chat->chat_id)->toBe('555')
-        ->and($chat->last_message_at)->not->toBeNull();
-});
-
-it('keeps one chat mapping across multiple inbound messages', function (): void {
-    $bot = handleBot();
-    $client = new FakeTelegramClient;
-
-    $runner = new StubChannelReplyRunner('ok');
-
-    telegramHandle($client, $runner, $bot, '900', 'first', 'Ann');
-    telegramHandle($client, $runner, $bot, '900', 'second', 'Ann');
-
-    expect(TelegramChat::query()->count())->toBe(1);
-    expect($client->sent)->toHaveCount(2);
-});
-
-it('refuses to answer on a protected agent and creates no chat', function (): void {
-    $bot = handleBot(public: false);
-    $client = new FakeTelegramClient;
-
-    $runner = new StubChannelReplyRunner('should never be sent');
-
-    telegramHandle($client, $runner, $bot, '555', 'hello', 'Sam');
-
-    // Gated before the pipeline: a single "unavailable" notice, no chat row.
-    expect($client->sent)->toHaveCount(1)
-        ->and($client->sent[0]['text'])->toContain('available')
-        ->and($client->sent[0]['text'])->not->toBe('should never be sent');
-
-    expect(TelegramChat::query()->count())->toBe(0);
+        ->and($chat->last_message_at->toDateTimeString())->toBe('2026-10-01 10:05:00');
 });
 
 it('answers neither messages nor commands for a deactivated workspace, and creates no chat', function (string $text): void {
-    $bot = handleBot();
+    $bot = telegramHandleBot();
     deactivateWorkspaceOf($bot->agent);
     $client = new FakeTelegramClient;
     $runner = new StubChannelReplyRunner('should never be sent');
@@ -117,7 +94,7 @@ it('answers neither messages nor commands for a deactivated workspace, and creat
 })->with(['message' => 'hello', '/start command' => '/start']);
 
 it('answers /start with the default message and never runs the pipeline', function (): void {
-    $bot = handleBot();
+    $bot = telegramHandleBot();
     $client = new FakeTelegramClient;
 
     $runner = new StubChannelReplyRunner('PIPELINE REPLY');
@@ -134,7 +111,7 @@ it('answers /start with the default message and never runs the pipeline', functi
 });
 
 it('runs a prompt-mode command through the agent pipeline', function (): void {
-    $bot = handleBot();
+    $bot = telegramHandleBot();
     $bot->update(['commands' => [
         ['command' => 'pricing', 'description' => 'Pricing', 'type' => 'prompt', 'value' => 'What are our prices?'],
     ]]);

@@ -4,6 +4,7 @@ use Domain\Integration\Builtin\Enums\WeatherUnits;
 use Domain\Integration\Builtin\Exceptions\WeatherLookupException;
 use Domain\Integration\Builtin\Services\OpenWeatherClient;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function (): void {
@@ -30,7 +31,7 @@ it('reads the current weather with the caller\'s key and units', function (): vo
         ->and($report->conditions)->toBe('snow')
         ->and($report->units)->toBe(WeatherUnits::Imperial);
 
-    Http::assertSent(fn ($request): bool => $request->url() === 'https://weather.example.test/data/2.5/weather?q=Oslo&appid=the-key&units=imperial');
+    Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://weather.example.test/data/2.5/weather?q=Oslo&appid=the-key&units=imperial');
 });
 
 it('fills the optional fields when the provider leaves them out', function (): void {

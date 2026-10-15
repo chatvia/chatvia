@@ -14,12 +14,12 @@ use Tests\Support\Telegram\FakeTelegramClient;
  * a canned message (no LLM/billing) or a prompt to run through the agent. Built-in
  * defaults (/start, /reset, /help) are merged with the agent's stored edits.
  */
-function commandRouter(): TelegramCommandRouter
+function telegramRouter(): TelegramCommandRouter
 {
     return new TelegramCommandRouter(app(TelegramChatResolver::class), new FakeTelegramClient);
 }
 
-function botWithCommands(array $commands = []): AgentTelegramBot
+function telegramRouterBot(array $commands = []): AgentTelegramBot
 {
     $agent = Agent::factory()->create(['is_public' => true]);
 
@@ -34,53 +34,53 @@ function botWithCommands(array $commands = []): AgentTelegramBot
 }
 
 it('lets a plain message fall through to the pipeline', function (): void {
-    expect(commandRouter()->handle(new AgentTelegramBot, new TelegramChat, 'how do I reset my password?'))->toBeNull();
+    expect(telegramRouter()->handle(new AgentTelegramBot, new TelegramChat, 'how do I reset my password?'))->toBeNull();
 });
 
 it('lets an unknown /command fall through to the pipeline', function (): void {
-    $bot = botWithCommands([['command' => 'pricing', 'description' => 'Plans', 'type' => 'message', 'value' => '€99']]);
+    $bot = telegramRouterBot([['command' => 'pricing', 'description' => 'Plans', 'type' => 'message', 'value' => '€99']]);
 
-    expect(commandRouter()->handle($bot, new TelegramChat, '/totally_unknown'))->toBeNull();
+    expect(telegramRouter()->handle($bot, new TelegramChat, '/totally_unknown'))->toBeNull();
 });
 
 it('answers /start with the default "Hello" message', function (): void {
-    $outcome = commandRouter()->handle(botWithCommands(), new TelegramChat, '/start');
+    $outcome = telegramRouter()->handle(telegramRouterBot(), new TelegramChat, '/start');
 
     expect($outcome->runThroughAgent)->toBeFalse()
         ->and($outcome->text)->toBe('Hello');
 });
 
 it('uses an edited /start message and interpolates {name}', function (): void {
-    $bot = botWithCommands([['command' => 'start', 'description' => 'Start', 'type' => 'message', 'value' => 'Hi {name}!']]);
+    $bot = telegramRouterBot([['command' => 'start', 'description' => 'Start', 'type' => 'message', 'value' => 'Hi {name}!']]);
 
-    $outcome = commandRouter()->handle($bot, new TelegramChat, '/start', new TelegramSenderData('Sam'));
+    $outcome = telegramRouter()->handle($bot, new TelegramChat, '/start', new TelegramSenderData('Sam'));
 
     expect($outcome->runThroughAgent)->toBeFalse()
         ->and($outcome->text)->toBe('Hi Sam!');
 });
 
 it('returns a prompt outcome for a prompt-mode command, stripping @botname and args', function (): void {
-    $bot = botWithCommands([['command' => 'pricing', 'description' => 'Pricing', 'type' => 'prompt', 'value' => 'Explain our pricing.']]);
+    $bot = telegramRouterBot([['command' => 'pricing', 'description' => 'Pricing', 'type' => 'prompt', 'value' => 'Explain our pricing.']]);
 
-    $outcome = commandRouter()->handle($bot, new TelegramChat, '/pricing@demo_bot now please');
+    $outcome = telegramRouter()->handle($bot, new TelegramChat, '/pricing@demo_bot now please');
 
     expect($outcome->runThroughAgent)->toBeTrue()
         ->and($outcome->text)->toBe('Explain our pricing.');
 });
 
 it('returns a message outcome for a message-mode command', function (): void {
-    $bot = botWithCommands([['command' => 'hours', 'description' => 'Hours', 'type' => 'message', 'value' => 'We are open 9–5.']]);
+    $bot = telegramRouterBot([['command' => 'hours', 'description' => 'Hours', 'type' => 'message', 'value' => 'We are open 9–5.']]);
 
-    $outcome = commandRouter()->handle($bot, new TelegramChat, '/hours');
+    $outcome = telegramRouter()->handle($bot, new TelegramChat, '/hours');
 
     expect($outcome->runThroughAgent)->toBeFalse()
         ->and($outcome->text)->toBe('We are open 9–5.');
 });
 
 it('auto-lists the commands for a blank /help', function (): void {
-    $bot = botWithCommands([['command' => 'pricing', 'description' => 'See our plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
+    $bot = telegramRouterBot([['command' => 'pricing', 'description' => 'See our plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
 
-    $outcome = commandRouter()->handle($bot, new TelegramChat, '/help');
+    $outcome = telegramRouter()->handle($bot, new TelegramChat, '/help');
 
     expect($outcome->runThroughAgent)->toBeFalse()
         ->and($outcome->text)->toContain('/pricing — See our plans')
@@ -88,9 +88,9 @@ it('auto-lists the commands for a blank /help', function (): void {
 });
 
 it('exposes built-ins (flagged) followed by custom commands for editing', function (): void {
-    $bot = botWithCommands([['command' => 'pricing', 'description' => 'Plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
+    $bot = telegramRouterBot([['command' => 'pricing', 'description' => 'Plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
 
-    $editing = commandRouter()->forEditing($bot);
+    $editing = telegramRouter()->forEditing($bot);
 
     expect(array_column($editing, 'command'))->toBe(['start', 'reset', 'help', 'pricing']);
     expect($editing[0])->toMatchArray(['command' => 'start', 'type' => 'message', 'value' => 'Hello', 'builtin' => true]);
@@ -98,7 +98,7 @@ it('exposes built-ins (flagged) followed by custom commands for editing', functi
 });
 
 it('registers a "/" menu of built-ins followed by custom commands', function (): void {
-    $bot = botWithCommands([['command' => 'pricing', 'description' => 'See our plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
+    $bot = telegramRouterBot([['command' => 'pricing', 'description' => 'See our plans', 'type' => 'prompt', 'value' => 'Explain pricing']]);
     $client = new FakeTelegramClient;
 
     new TelegramCommandRouter(app(TelegramChatResolver::class), $client)->sync($bot);
@@ -108,13 +108,13 @@ it('registers a "/" menu of built-ins followed by custom commands', function ():
 });
 
 it('rotates to a fresh conversation on /reset, keeping the session', function (): void {
-    $bot = botWithCommands();
+    $bot = telegramRouterBot();
     $chat = app(TelegramChatResolver::class)->resolve($bot, '4242', new TelegramSenderData('Ann'));
 
     $originalConversationId = $chat->chat_conversation_id;
     $sessionId = $chat->chat_session_id;
 
-    $outcome = commandRouter()->handle($bot, $chat, '/reset');
+    $outcome = telegramRouter()->handle($bot, $chat, '/reset');
 
     $chat->refresh();
     expect($outcome->runThroughAgent)->toBeFalse()
@@ -124,13 +124,13 @@ it('rotates to a fresh conversation on /reset, keeping the session', function ()
 });
 
 it('sends the built-in command texts in the language the owner pinned for the agent', function (): void {
-    $bot = botWithCommands([['command' => 'greet', 'description' => 'Greet', 'type' => 'message', 'value' => 'Hallo {name}!']]);
+    $bot = telegramRouterBot([['command' => 'greet', 'description' => 'Greet', 'type' => 'message', 'value' => 'Hallo {name}!']]);
     $bot->agent->setSetting(key: 'language', value: 'de', group: 'embed');
     $bot = $bot->fresh();
 
-    expect(commandRouter()->handle($bot, new TelegramChat, '/start')->text)->toBe('Hallo')
-        ->and(commandRouter()->handle($bot, new TelegramChat, '/help')->text)
+    expect(telegramRouter()->handle($bot, new TelegramChat, '/start')->text)->toBe('Hallo')
+        ->and(telegramRouter()->handle($bot, new TelegramChat, '/help')->text)
         ->toStartWith('Das kann ich für Sie tun:')
         ->toContain('/start — Unterhaltung starten')
-        ->and(commandRouter()->handle($bot, new TelegramChat, '/greet')->text)->toBe('Hallo zusammen!');
+        ->and(telegramRouter()->handle($bot, new TelegramChat, '/greet')->text)->toBe('Hallo zusammen!');
 });

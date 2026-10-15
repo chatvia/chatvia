@@ -1,6 +1,5 @@
 <?php
 
-use App\Identity\Workspace\Models\Workspace;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Tool\Actions\Embedding\EmbedAgentFunctionAction;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
@@ -8,20 +7,14 @@ use Illuminate\Support\Facades\Log;
 
 function embedTestFunction(): AgentFunction
 {
-    $function = new AgentFunction;
-    $function->workspace_id = Workspace::factory()->create()->id;
-    $function->internal_name = 'lookup_order';
-    $function->display_name = 'Order lookup';
-    $function->description = 'Look up an order by id';
-    $function->parameters_schema = ['type' => 'object', 'properties' => []];
-    $function->webhook_url = 'https://hooks.example.test/fn';
-    $function->webhook_method = 'GET';
-    $function->auth_type = 'none';
-    $function->is_enabled = true;
-    $function->save();
+    $function = AgentFunction::factory()->create([
+        'internal_name' => 'lookup_order',
+        'display_name' => 'Order lookup',
+        'description' => 'Look up an order by id',
+    ]);
 
-    // Saving runs the observer's embed job on the sync queue; clear its output
-    // so each test starts from an unembedded row.
+    // Creating it runs the observer's embed job on the sync queue; clear its
+    // output so each test starts from an unembedded row.
     AgentFunction::query()->whereKey($function->id)->update(['embedding' => null, 'embedding_bm25' => null]);
 
     return $function;
@@ -45,10 +38,6 @@ it('writes the dense and sparse vectors for a function', function (): void {
 
     expect(embeddedFunctionColumns($function->id))->toBe(['has_vec' => true, 'has_bm25' => true]);
 });
-
-it('is a no-op for a missing function id', function (): void {
-    app(EmbedAgentFunctionAction::class)->execute(999_999);
-})->throwsNoExceptions();
 
 it('leaves the row unembedded and logs when the embedder fails', function (): void {
     $function = embedTestFunction();

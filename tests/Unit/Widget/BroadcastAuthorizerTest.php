@@ -13,7 +13,7 @@ use Domain\Widget\Services\BroadcastAuthorizer;
  * conversation must belong to the visitor's session, and the session to the
  * agent the widget is for.
  */
-function widgetConversation(Agent $agent): Conversation
+function baConversation(Agent $agent): Conversation
 {
     $session = Session::factory()->create(['agent_id' => $agent->id]);
 
@@ -22,7 +22,7 @@ function widgetConversation(Agent $agent): Conversation
 
 it('signs the presence channel of a conversation in the visitor session', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = widgetConversation($agent);
+    $conversation = baConversation($agent);
     $sessionId = $conversation->session->external_id;
 
     $result = app(BroadcastAuthorizer::class)->authorize(
@@ -42,7 +42,7 @@ it('signs the presence channel of a conversation in the visitor session', functi
 
 it('refuses a channel that is not a conversation presence channel', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = widgetConversation($agent);
+    $conversation = baConversation($agent);
 
     expect(app(BroadcastAuthorizer::class)->authorize(
         'private-chat.'.$conversation->external_id,
@@ -54,7 +54,7 @@ it('refuses a channel that is not a conversation presence channel', function ():
 
 it('refuses a conversation from another session', function (): void {
     $agent = Agent::factory()->create();
-    $conversation = widgetConversation($agent);
+    $conversation = baConversation($agent);
     $otherSession = Session::factory()->create(['agent_id' => $agent->id]);
 
     expect(app(BroadcastAuthorizer::class)->authorize(
@@ -66,7 +66,7 @@ it('refuses a conversation from another session', function (): void {
 });
 
 it('refuses a conversation through another agent\'s widget', function (): void {
-    $conversation = widgetConversation(Agent::factory()->create());
+    $conversation = baConversation(Agent::factory()->create());
 
     expect(app(BroadcastAuthorizer::class)->authorize(
         'presence-chat.'.$conversation->external_id,

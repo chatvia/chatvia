@@ -7,25 +7,15 @@ use Domain\Integration\Connector\Data\Account\ConnectTokenConnectorData;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Mcp\Data\ProvisionedMcpServerData;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
-use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Support Bot');
     $this->charts = app(ConnectorCatalog::class)->capabilities()->get('charts');
 });
 
 it('attaches an already-provisioned capability without re-provisioning', function (): void {
-    $server = $this->user->workspace()->mcpServers()->create([
-        'connector_slug' => 'charts',
-        'category' => 'builtin',
-        'name' => 'Interactive charts',
-        'slug' => 'charts',
-        'url' => config('app.url').'/mcp/charts',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    $server = AgentMcpServer::factory()->forOwner($this->user)->builtin('charts')->create();
 
     // No workspace-level connect should happen — the row already exists, so
     // the connect action (which does a remote tools/list) must never run.
@@ -44,15 +34,7 @@ it('provisions the capability on first enable, then attaches it', function (): v
     // connects the capability. The persisted row carries a null connector_slug
     // so that query can't match it; the stubbed connect action hands it back
     // as the freshly connected server (keeps the test offline).
-    $provisioned = $this->user->workspace()->mcpServers()->create([
-        'connector_slug' => null,
-        'category' => 'builtin',
-        'name' => 'Interactive charts',
-        'slug' => 'charts',
-        'url' => config('app.url').'/mcp/charts',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
+    $provisioned = AgentMcpServer::factory()->forOwner($this->user)->builtin('charts')->create(['connector_slug' => null]);
 
     $this->mock(ConnectTokenConnectorAction::class)
         ->shouldReceive('execute')

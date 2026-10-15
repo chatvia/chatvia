@@ -1,11 +1,27 @@
 <?php
 
 use Domain\Integration\Connector\Data\OAuth\OAuthServerMetadata;
+use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Connector\Models\ConnectorOAuthClient;
 use Domain\Integration\Connector\Services\ConnectorCatalog;
 use Domain\Integration\Connector\Services\OAuth\McpOAuthRegistrar;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+
+/**
+ * Metadata of an authorization server that supports dynamic client
+ * registration (RFC 7591) at `/register`.
+ */
+function morDcrMetadata(): OAuthServerMetadata
+{
+    return OAuthServerMetadata::fromArray('https://auth.example.test', [
+        'authorization_endpoint' => 'https://auth.example.test/authorize',
+        'token_endpoint' => 'https://auth.example.test/token',
+        'registration_endpoint' => 'https://auth.example.test/register',
+        'code_challenge_methods_supported' => ['S256'],
+    ]);
+}
 
 /**
  * Dynamic client registration must keep secrets only in the encrypted
@@ -24,14 +40,7 @@ it('stores registration secrets only in the encrypted columns', function (): voi
         ], 201),
     ]);
 
-    $metadata = OAuthServerMetadata::fromArray('https://auth.example.test', [
-        'authorization_endpoint' => 'https://auth.example.test/authorize',
-        'token_endpoint' => 'https://auth.example.test/token',
-        'registration_endpoint' => 'https://auth.example.test/register',
-        'code_challenge_methods_supported' => ['S256'],
-    ]);
-
-    $client = app(McpOAuthRegistrar::class)->clientFor($metadata);
+    $client = app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata());
 
     expect($client->client_secret)->toBe('dcr-secret')
         ->and($client->registration_access_token)->toBe('dcr-rat')
@@ -43,29 +52,49 @@ it('stores registration secrets only in the encrypted columns', function (): voi
 });
 
 it('registers the client as Chatvia', function (): void {
-
     Http::fake([
         'auth.example.test/register' => Http::response(['client_id' => 'dcr-client'], 201),
     ]);
 
-    $metadata = OAuthServerMetadata::fromArray('https://auth.example.test', [
-        'authorization_endpoint' => 'https://auth.example.test/authorize',
-        'token_endpoint' => 'https://auth.example.test/token',
-        'registration_endpoint' => 'https://auth.example.test/register',
-        'code_challenge_methods_supported' => ['S256'],
-    ]);
+    app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata());
 
-    app(McpOAuthRegistrar::class)->clientFor($metadata);
-
-    Http::assertSent(fn ($request): bool => $request->url() === 'https://auth.example.test/register'
+    Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://auth.example.test/register'
         && $request['client_name'] === 'Chatvia');
 });
+
+it('reuses the client already registered with the authorization server', function (): void {
+    Http::fake();
+    $existing = ConnectorOAuthClient::query()->create([
+        'auth_server_url' => 'https://auth.example.test',
+        'client_id' => 'registered-before',
+        'token_endpoint' => 'https://auth.example.test/token',
+        'authorization_endpoint' => 'https://auth.example.test/authorize',
+    ]);
+
+    $client = app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata());
+
+    expect($client->is($existing))->toBeTrue()
+        ->and(ConnectorOAuthClient::query()->count())->toBe(1);
+    Http::assertNothingSent();
+});
+
+it('stores nothing when the registration is rejected or returns no client id', function (mixed $body, int $status, string $message): void {
+    Http::fake(['auth.example.test/register' => Http::response($body, $status)]);
+
+    expect(fn () => app(McpOAuthRegistrar::class)->clientFor(morDcrMetadata()))
+        ->toThrow(McpOAuthException::class, $message);
+
+    expect(ConnectorOAuthClient::query()->count())->toBe(0);
+})->with([
+    'rejected' => ['invalid_redirect_uri', 400, 'Dynamic client registration was rejected (400)'],
+    'no client id' => [['client_name' => 'Chatvia'], 201, 'Dynamic client registration returned no client_id.'],
+]);
 
 /**
  * A server without dynamic registration uses the OAuth app the admin set for
  * the connector (Settings → Connectors), read from config every time.
  */
-function googleMetadata(): OAuthServerMetadata
+function morGoogleMetadata(): OAuthServerMetadata
 {
     return OAuthServerMetadata::fromArray('https://accounts.google.com', [
         'authorization_endpoint' => 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -84,8 +113,8 @@ it('gives each connector its own OAuth app, even on a shared authorization serve
     $catalog = app(ConnectorCatalog::class);
     $registrar = app(McpOAuthRegistrar::class);
 
-    $gmail = $registrar->clientFor(googleMetadata(), $catalog->find('gmail'));
-    $drive = $registrar->clientFor(googleMetadata(), $catalog->find('google-drive'));
+    $gmail = $registrar->clientFor(morGoogleMetadata(), $catalog->find('gmail'));
+    $drive = $registrar->clientFor(morGoogleMetadata(), $catalog->find('google-drive'));
 
     expect($gmail->client_id)->toBe('gmail-app')
         ->and($drive->client_id)->toBe('drive-app')
@@ -96,9 +125,18 @@ it('gives each connector its own OAuth app, even on a shared authorization serve
 it('uses a rotated connector secret for the next connection', function (): void {
     config(['connectors.gmail.oauth_client_id' => 'gmail-app', 'connectors.gmail.oauth_client_secret' => 'old-secret']);
     $registrar = app(McpOAuthRegistrar::class);
-    $registrar->clientFor(googleMetadata(), app(ConnectorCatalog::class)->find('gmail'));
+    $registrar->clientFor(morGoogleMetadata(), app(ConnectorCatalog::class)->find('gmail'));
 
     config(['connectors.gmail.oauth_client_secret' => 'new-secret']);
 
-    expect($registrar->clientFor(googleMetadata(), app(ConnectorCatalog::class)->find('gmail'))->client_secret)->toBe('new-secret');
+    expect($registrar->clientFor(morGoogleMetadata(), app(ConnectorCatalog::class)->find('gmail'))->client_secret)->toBe('new-secret');
+});
+
+it('refuses a server without dynamic registration when the connector has no OAuth app', function (): void {
+    config(['connectors.gmail.oauth_client_id' => null]);
+
+    expect(fn () => app(McpOAuthRegistrar::class)->clientFor(morGoogleMetadata(), app(ConnectorCatalog::class)->find('gmail')))
+        ->toThrow(McpOAuthException::class, 'requires a pre-registered OAuth client')
+        ->and(fn () => app(McpOAuthRegistrar::class)->clientFor(morGoogleMetadata()))
+        ->toThrow(McpOAuthException::class, 'requires a pre-registered OAuth client');
 });

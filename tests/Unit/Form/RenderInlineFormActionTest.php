@@ -28,7 +28,7 @@ pest()->beforeEach(function (): void {
     ]);
 });
 
-function inlineForm(Agent $agent, array $attributes = []): FormDefinition
+function rifForm(Agent $agent, array $attributes = []): FormDefinition
 {
     return FormDefinition::factory()->forAgent($agent)->create([
         'name' => 'Book a demo',
@@ -39,7 +39,7 @@ function inlineForm(Agent $agent, array $attributes = []): FormDefinition
 }
 
 it('issues a pending form instance for the requested form', function (): void {
-    $form = inlineForm($this->agent, ['form_type' => FormType::Booking, 'subtitle' => 'Pick a time.', 'success_message' => 'See you soon.']);
+    $form = rifForm($this->agent, ['form_type' => FormType::Booking, 'subtitle' => 'Pick a time.', 'success_message' => 'See you soon.']);
 
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'book-a-demo');
 
@@ -67,7 +67,7 @@ it('issues a pending form instance for the requested form', function (): void {
 });
 
 it('falls back to the default success message', function (): void {
-    inlineForm($this->agent, ['success_message' => null]);
+    rifForm($this->agent, ['success_message' => null]);
 
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'book-a-demo');
 
@@ -75,7 +75,7 @@ it('falls back to the default success message', function (): void {
 });
 
 it('matches a form by its display name or a snake_case slug', function (string $requested): void {
-    inlineForm($this->agent);
+    rifForm($this->agent);
 
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, $requested);
 
@@ -83,10 +83,10 @@ it('matches a form by its display name or a snake_case slug', function (string $
 })->with(['Book a demo', 'BOOK A DEMO', 'book_a_demo']);
 
 it('lists the active slugs, oldest first, when nothing matches', function (): void {
-    inlineForm($this->agent);
-    inlineForm($this->agent, ['name' => 'Get a quote', 'slug' => 'get-a-quote']);
-    inlineForm($this->agent, ['name' => 'Retired', 'slug' => 'retired', 'is_active' => false]);
-    inlineForm(Agent::factory()->create(), ['name' => 'Newsletter', 'slug' => 'newsletter']);
+    rifForm($this->agent);
+    rifForm($this->agent, ['name' => 'Get a quote', 'slug' => 'get-a-quote']);
+    rifForm($this->agent, ['name' => 'Retired', 'slug' => 'retired', 'is_active' => false]);
+    rifForm(Agent::factory()->create(), ['name' => 'Newsletter', 'slug' => 'newsletter']);
 
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'newsletter');
 
@@ -98,7 +98,7 @@ it('lists the active slugs, oldest first, when nothing matches', function (): vo
 
 it('names at most eight active slugs', function (): void {
     foreach (range(1, 10) as $i) {
-        inlineForm($this->agent, ['name' => "Form {$i}", 'slug' => "form-{$i}"]);
+        rifForm($this->agent, ['name' => "Form {$i}", 'slug' => "form-{$i}"]);
     }
 
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'missing');
@@ -107,7 +107,7 @@ it('names at most eight active slugs', function (): void {
 });
 
 it('reports no active slugs when the agent has no active form', function (): void {
-    inlineForm($this->agent, ['is_active' => false]);
+    rifForm($this->agent, ['is_active' => false]);
 
     $outcome = app(RenderInlineFormAction::class)->execute($this->agent, $this->conversation, 'book-a-demo');
 
@@ -116,7 +116,7 @@ it('reports no active slugs when the agent has no active form', function (): voi
 });
 
 it('refuses a form the session already submitted in another conversation', function (): void {
-    $form = inlineForm($this->agent);
+    $form = rifForm($this->agent);
     $earlier = Conversation::factory()->create([
         'agent_id' => $this->agent->id,
         'chat_session_id' => $this->session->id,

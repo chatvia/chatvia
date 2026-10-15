@@ -8,6 +8,7 @@ use Domain\Integration\Mcp\Actions\Catalog\SyncMcpServerCatalogAction;
 use Domain\Integration\Mcp\Enums\McpAuthType;
 use Domain\Integration\Mcp\Enums\McpServerCategory;
 use Domain\Integration\Mcp\Exceptions\McpException;
+use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Collection;
  * that is free in the workspace, and nothing left behind when the first
  * catalog sync fails.
  */
-function customConnectorData(User $user, ConnectorAuthStrategy $strategy, ?string $token = null): AddCustomConnectorData
+function accData(User $user, ConnectorAuthStrategy $strategy, ?string $token = null): AddCustomConnectorData
 {
     return new AddCustomConnectorData(
         user: $user,
@@ -29,10 +30,10 @@ function customConnectorData(User $user, ConnectorAuthStrategy $strategy, ?strin
 it('adds a token-auth custom server under the workspace with a workspace-unique slug', function (): void {
     $owner = User::factory()->create();
     $teammate = User::factory()->employee($owner)->create();
-    $owner->workspace()->mcpServers()->create(['name' => 'My CRM', 'slug' => 'my_crm', 'url' => 'https://old.example.test/mcp', 'auth_type' => 'none']);
+    AgentMcpServer::factory()->forOwner($owner)->create(['name' => 'My CRM', 'slug' => 'my_crm']);
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
 
-    $result = app(AddCustomConnectorAction::class)->execute(customConnectorData($teammate, ConnectorAuthStrategy::Token, 'tok'));
+    $result = app(AddCustomConnectorAction::class)->execute(accData($teammate, ConnectorAuthStrategy::Token, 'tok'));
 
     expect($result->server->workspace_id)->toBe($owner->workspace()->id)
         ->and($result->server->category)->toBe(McpServerCategory::Custom)
@@ -47,7 +48,7 @@ it('adds a no-auth custom server without credentials', function (): void {
     $owner = User::factory()->create();
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
 
-    $result = app(AddCustomConnectorAction::class)->execute(customConnectorData($owner, ConnectorAuthStrategy::None, 'ignored'));
+    $result = app(AddCustomConnectorAction::class)->execute(accData($owner, ConnectorAuthStrategy::None, 'ignored'));
 
     expect($result->server->auth_type)->toBe(McpAuthType::None)
         ->and($result->server->auth_value)->toBeNull();
@@ -57,7 +58,7 @@ it('removes the server again when its first catalog sync fails', function (): vo
     $owner = User::factory()->create();
     $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andThrow(new McpException('unreachable'));
 
-    expect(fn () => app(AddCustomConnectorAction::class)->execute(customConnectorData($owner, ConnectorAuthStrategy::None)))
+    expect(fn () => app(AddCustomConnectorAction::class)->execute(accData($owner, ConnectorAuthStrategy::None)))
         ->toThrow(McpException::class);
 
     expect($owner->workspace()->mcpServers()->count())->toBe(0);

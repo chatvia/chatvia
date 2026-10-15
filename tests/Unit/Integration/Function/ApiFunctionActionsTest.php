@@ -44,10 +44,10 @@ it('rejects a duplicate name on create and on rename', function (): void {
     app(CreateAgentFunctionAction::class)->execute($owner, apiFunctionPayload(['internal_name' => 'taken'] + $base));
     $other = app(CreateAgentFunctionAction::class)->execute($owner, apiFunctionPayload(['internal_name' => 'other'] + $base));
 
-    expect(fn () => app(CreateAgentFunctionAction::class)->execute($owner, apiFunctionPayload(['internal_name' => 'taken'] + $base)))
+    expect(fn (): AgentFunction => app(CreateAgentFunctionAction::class)->execute($owner, apiFunctionPayload(['internal_name' => 'taken'] + $base)))
         ->toThrow(DomainValidationException::class);
 
-    expect(fn () => app(UpdateAgentFunctionAction::class)->execute($other, apiFunctionPayload(['internal_name' => 'taken'])))
+    expect(fn (): AgentFunction => app(UpdateAgentFunctionAction::class)->execute($other, apiFunctionPayload(['internal_name' => 'taken'])))
         ->toThrow(DomainValidationException::class);
 
     // Renaming to its own current name is not a clash.
@@ -56,16 +56,7 @@ it('rejects a duplicate name on create and on rename', function (): void {
 });
 
 it('only tightens approval when the verb changes', function (): void {
-    $owner = User::factory()->create();
-    $function = AgentFunction::query()->create([
-        'workspace_id' => $owner->workspace()->id,
-        'internal_name' => 'fn',
-        'description' => 'd',
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => 'https://example.com/webhook',
-        'webhook_method' => 'POST',
-        'requires_approval' => true,
-    ]);
+    $function = AgentFunction::factory()->requiringApproval()->create();
 
     // POST → GET keeps the gate the user had.
     expect(app(UpdateAgentFunctionAction::class)->execute($function, apiFunctionPayload(['webhook_method' => 'GET']))->requires_approval)

@@ -4,15 +4,13 @@ use App\Identity\Workspace\Models\User;
 use Domain\Form\Actions\SaveFormDefinitionAction;
 use Domain\Form\Data\FormDefinitionData;
 use Domain\Form\Models\FormDefinition;
-use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
     $this->user = User::factory()->create();
-    app(TeamService::class)->createDefaultTeam($this->user);
     $this->agent = makeTeamAgent($this->user, 'Bot');
 });
 
-function leadFormData(string $name = 'Get a quote'): FormDefinitionData
+function sfdLeadFormData(string $name = 'Get a quote'): FormDefinitionData
 {
     return new FormDefinitionData(
         external_id: null,
@@ -31,7 +29,7 @@ function leadFormData(string $name = 'Get a quote'): FormDefinitionData
 }
 
 it('creates a form definition with a derived slug', function (): void {
-    $form = app(SaveFormDefinitionAction::class)->execute($this->agent, leadFormData());
+    $form = app(SaveFormDefinitionAction::class)->execute($this->agent, sfdLeadFormData());
 
     expect($form->agent_id)->toBe($this->agent->id)
         ->and($form->slug)->toBe('get-a-quote')
@@ -42,14 +40,14 @@ it('creates a form definition with a derived slug', function (): void {
 });
 
 it('disambiguates duplicate slugs within an agent', function (): void {
-    app(SaveFormDefinitionAction::class)->execute($this->agent, leadFormData('Contact'));
-    $second = app(SaveFormDefinitionAction::class)->execute($this->agent, leadFormData('Contact'));
+    app(SaveFormDefinitionAction::class)->execute($this->agent, sfdLeadFormData('Contact'));
+    $second = app(SaveFormDefinitionAction::class)->execute($this->agent, sfdLeadFormData('Contact'));
 
     expect($second->slug)->toBe('contact-2');
 });
 
 it('updates an existing definition and keeps its slug', function (): void {
-    $form = app(SaveFormDefinitionAction::class)->execute($this->agent, leadFormData('Contact'));
+    $form = app(SaveFormDefinitionAction::class)->execute($this->agent, sfdLeadFormData('Contact'));
 
     $updated = app(SaveFormDefinitionAction::class)->execute(
         $this->agent,

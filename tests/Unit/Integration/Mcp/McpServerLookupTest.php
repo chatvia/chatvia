@@ -13,27 +13,9 @@ use Illuminate\Support\Facades\DB;
  * and its dispatch. The lookup is shared per request, so the row is loaded
  * once instead of three times per call (and per loop iteration).
  */
-function lookupServer(Agent $agent, bool $attached = true, bool $enabled = true): AgentMcpServer
-{
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'name' => 'Stripe',
-        'slug' => 'stripe',
-        'url' => 'https://mcp.example.test/stripe',
-        'auth_type' => 'none',
-        'is_enabled' => $enabled,
-    ]);
-
-    if ($attached) {
-        $agent->mcpServers()->attach($server->id);
-    }
-
-    return $server;
-}
-
 it('loads the server row once for display, approval and dispatch', function (): void {
     $agent = Agent::factory()->create();
-    lookupServer($agent);
+    AgentMcpServer::factory()->attachedTo($agent)->create(['slug' => 'stripe']);
 
     DB::enableQueryLog();
 
@@ -52,13 +34,13 @@ it('loads the server row once for display, approval and dispatch', function (): 
 
 it('only returns a server for dispatch when it is enabled and attached to the agent', function (): void {
     $agent = Agent::factory()->create();
-    lookupServer($agent, attached: false);
+    AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id, 'slug' => 'stripe']);
 
     expect(app(McpServerLookup::class)->attachedToAgent($agent, 'stripe'))->toBeNull()
         ->and(app(McpServerLookup::class)->forWorkspace((int) $agent->workspace_id, 'stripe'))->not->toBeNull();
 
     $other = Agent::factory()->create();
-    lookupServer($other, enabled: false);
+    AgentMcpServer::factory()->disabled()->attachedTo($other)->create(['slug' => 'stripe']);
 
     expect(app(McpServerLookup::class)->attachedToAgent($other, 'stripe'))->toBeNull();
 });

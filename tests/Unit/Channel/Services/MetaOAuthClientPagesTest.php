@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Channel\Services\MetaOAuthClient;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -78,11 +79,11 @@ it('sends the user and page tokens as bearer tokens, never in the URL', function
     (new MetaOAuthClient)->pagesWithInstagram('USER-TOKEN');
 
     Http::assertSentCount(5);
-    Http::assertNotSent(fn ($request): bool => str_contains($request->url(), 'access_token='));
-    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/me/accounts')
+    Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), 'access_token='));
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/me/accounts')
         && $request->header('Authorization') === ['Bearer USER-TOKEN']);
-    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/BIZ-1/owned_pages')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/BIZ-1/owned_pages')
         && $request->header('Authorization') === ['Bearer USER-TOKEN']);
-    Http::assertSent(fn ($request): bool => str_contains($request->url(), '/PAGE-1?')
+    Http::assertSent(fn (Request $request): bool => str_contains($request->url(), '/PAGE-1?')
         && $request->header('Authorization') === ['Bearer EAAG-page-token']);
 });

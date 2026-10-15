@@ -12,23 +12,9 @@ use Domain\Integration\Tool\Registry\ToolDisplayResolver;
  * widget + hosted chat suppress the "Calling …" indicator for them, since their
  * discovery/render is internal plumbing the visitor shouldn't see.
  */
-function displayServer(Agent $agent, string $slug, string $category): void
-{
-    AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'connector_slug' => $slug,
-        'category' => $category,
-        'name' => ucfirst($slug),
-        'slug' => $slug,
-        'url' => 'https://mcp.example.test/'.$slug,
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-}
-
 it('flags a builtin connector tool as internal', function (): void {
     $agent = Agent::factory()->create();
-    displayServer($agent, 'forms', 'builtin');
+    AgentMcpServer::factory()->builtin('forms')->create(['workspace_id' => $agent->workspace_id]);
 
     $display = app(ToolDisplayResolver::class)->resolve($agent, ToolName::parse('mcp__forms__render-form-tool'));
 
@@ -38,7 +24,7 @@ it('flags a builtin connector tool as internal', function (): void {
 
 it('does not flag an external connector tool as builtin', function (): void {
     $agent = Agent::factory()->create();
-    displayServer($agent, 'stripe', 'integration');
+    AgentMcpServer::factory()->preset('stripe')->create(['workspace_id' => $agent->workspace_id]);
 
     $display = app(ToolDisplayResolver::class)->resolve($agent, ToolName::parse('mcp__stripe__search'));
 

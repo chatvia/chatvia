@@ -4,25 +4,11 @@ use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Tool\Routing\ConnectorClassifier;
 use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 function attachClassifierConnector(Agent $agent, string $slug, string $name, string $description): void
 {
-    $server = AgentMcpServer::create([
-        'workspace_id' => $agent->workspace_id,
-        'connector_slug' => $slug,
-        'uses_central_catalog' => true,
-        'name' => $name,
-        'description' => $description,
-        'slug' => $slug,
-        'url' => "https://example.test/mcp/{$slug}",
-        'transport' => 'streamable_http',
-        'auth_type' => 'none',
-        'is_enabled' => true,
-    ]);
-
-    DB::table('agent_mcp_server')->insert(['agent_id' => $agent->id, 'mcp_server_id' => $server->id]);
+    AgentMcpServer::factory()->preset($slug)->attachedTo($agent)->create(['name' => $name, 'description' => $description]);
 }
 
 /** A classifier whose model answers with a fixed reply. */

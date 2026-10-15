@@ -7,9 +7,9 @@ use Domain\Integration\Tool\Enums\ToolKind;
 
 /**
  * ToolName is the single parse/compose point for the `mcp__{slug}__{tool}`
- * wire format. These cases pin the exact split rules the dispatchers, the
- * approval policy, the display resolver and the governance audit used to
- * implement by hand, so the format stays byte-identical.
+ * wire format. The dispatchers, the approval policy, the display resolver and
+ * the governance audit all read names through it, and names are stored on
+ * messages and checkpoints, so these cases pin the exact split rules.
  */
 it('recognises prefixed MCP tool names', function (string $value, string $slug, string $tool): void {
     $name = ToolName::parse($value);

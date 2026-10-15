@@ -11,7 +11,7 @@ use Domain\Widget\Data\Session\WidgetSessionInitData;
 /**
  * InitializeWidgetSessionAction sits at the multi-tenant boundary: the widget
  * presents an "existing_session_id" cookie value which we have to verify
- * belongs to THIS agent before reusing it. A regression here would let an
+ * belongs to THIS agent before reusing it. A mistake here would let an
  * attacker who got hold of any session id from any other agent on the
  * platform resurface conversations under their own widget mount.
  *  - Reusing a valid same-agent session does not mint a new one.
@@ -21,6 +21,8 @@ use Domain\Widget\Data\Session\WidgetSessionInitData;
  *  - is_new_session/is_new_conversation flags reflect what actually happened.
  *  - Accept-Language is parsed down to the 2-letter ISO code on a freshly
  *    minted session; default 'en' when absent.
+ *  - The visitor's referrer and page URLs are stored only when they are
+ *    http(s), so an operator never opens a javascript: link.
  */
 function iwsInitData(?string $existingSessionId = null, ?string $acceptLanguage = null): WidgetSessionInitData
 {
@@ -152,3 +154,49 @@ it('starts a new conversation when the remembered one belongs to another session
         ->and($again->is_new_conversation)->toBeTrue()
         ->and($conversation->session->external_id)->toBe($again->session_id);
 });
+
+it('stores the visitor\'s referrer and page URLs on a fresh session', function (): void {
+    $agent = Agent::factory()->create();
+
+    $result = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+        ...iwsInitData()->toArray(),
+        'referrerUrl' => 'https://search.example/?q=help',
+        'pageUrl' => 'http://shop.example/pricing',
+    ]));
+
+    $session = Session::query()->where('external_id', $result->session_id)->firstOrFail();
+    expect($session->referrer_url)->toBe('https://search.example/?q=help')
+        ->and($session->page_url)->toBe('http://shop.example/pricing');
+});
+
+it('uses the referrer as the page URL when the widget sends none', function (): void {
+    $agent = Agent::factory()->create();
+
+    $result = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+        ...iwsInitData()->toArray(),
+        'referrerUrl' => 'https://shop.example/pricing',
+        'pageUrl' => null,
+    ]));
+
+    expect(Session::query()->where('external_id', $result->session_id)->value('page_url'))->toBe('https://shop.example/pricing');
+});
+
+it('stores no referrer or page URL that is not http(s)', function (string $url): void {
+    $agent = Agent::factory()->create();
+
+    $result = app(InitializeWidgetSessionAction::class)->execute($agent, WidgetSessionInitData::from([
+        ...iwsInitData()->toArray(),
+        'referrerUrl' => $url,
+        'pageUrl' => $url,
+    ]));
+
+    $session = Session::query()->where('external_id', $result->session_id)->firstOrFail();
+    expect($session->referrer_url)->toBeNull()
+        ->and($session->page_url)->toBeNull();
+})->with([
+    'javascript' => 'javascript:alert(document.cookie)',
+    'upper-case javascript' => 'JavaScript:alert(1)',
+    'data' => 'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
+    'ftp' => 'ftp://files.example/report.pdf',
+    'no scheme' => 'shop.example/pricing',
+]);

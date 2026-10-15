@@ -11,24 +11,11 @@ use Domain\Integration\Function\Models\AgentFunction;
  * agent, sorted by name, and marks the ones this agent uses. Functions of other
  * workspaces never appear.
  */
-function listedFunction(int $workspaceId, string $name): AgentFunction
-{
-    return AgentFunction::query()->create([
-        'workspace_id' => $workspaceId,
-        'internal_name' => $name,
-        'description' => 'Function '.$name,
-        'parameters_schema' => ['type' => 'object', 'properties' => []],
-        'webhook_url' => 'https://example.com/'.$name,
-        'webhook_method' => 'POST',
-    ]);
-}
-
 it('lists the workspace functions by name and marks the attached ones', function (): void {
     $agent = Agent::factory()->create();
-    $refund = listedFunction($agent->workspace_id, 'refund_order');
-    $lookup = listedFunction($agent->workspace_id, 'lookup_order');
-    listedFunction(Workspace::factory()->create()->id, 'foreign_function');
-    $agent->functions()->attach($refund->id);
+    $refund = AgentFunction::factory()->attachedTo($agent)->create(['internal_name' => 'refund_order']);
+    $lookup = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id, 'internal_name' => 'lookup_order']);
+    AgentFunction::factory()->create(['workspace_id' => Workspace::factory()->create()->id, 'internal_name' => 'foreign_function']);
 
     $rows = app(ListAgentFunctionsAction::class)->execute($agent)->data->toCollection();
 

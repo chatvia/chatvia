@@ -2,30 +2,54 @@
 
 use Domain\Form\Jobs\EmbedFormDefinitionJob;
 use Domain\Form\Models\FormDefinition;
+use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\ConnectorTool;
+use Domain\Integration\Mcp\Models\McpTool;
 use Domain\Integration\Tool\Actions\Embedding\ReembedToolVectorsAction;
 use Domain\Integration\Tool\Jobs\EmbedConnectorToolsJob;
+use Domain\Integration\Tool\Jobs\EmbedFunctionJob;
+use Domain\Integration\Tool\Jobs\EmbedMcpToolsJob;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
+use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Bus;
 
 /**
  * Tool routing compares the question with the tools' vectors, so a new
  * embedding provider or model (Settings → AI models) embeds every tool again
- * (started with the knowledge re-index, see EmbeddingReindexTest).
+ * (started with the knowledge re-index, see EmbeddingReindexTest). The
+ * keyword (BM25) columns do not depend on the model, so they stay.
  */
-it('clears the tool vectors and queues an embed job for each connector and form', function (): void {
+
+/** Whether the row has lost its dense vector and kept its keyword vector. */
+function reembedClearedDenseOnly(Model $row): bool
+{
+    return $row->newQuery()->whereKey($row->getKey())->whereNull('embedding')->whereNotNull('embedding_bm25')->exists();
+}
+
+it('clears the dense vectors, keeps the keyword vectors and queues an embed job for every tool', function (): void {
     $vector = app(EmbeddingsProviderInterface::class)->embed('a tool', true);
-    $tool = ConnectorTool::factory()->create(['connector_slug' => 'acme', 'embedding' => $vector]);
+    $bm25 = Bm25Tokenizer::expression('a tool');
+    $connectorTool = ConnectorTool::factory()->create(['connector_slug' => 'acme']);
+    $mcpTool = McpTool::factory()->create();
+    // Creating a function embeds it (the observer's job runs on the sync queue).
+    $function = AgentFunction::factory()->create();
     $form = FormDefinition::factory()->create();
-    FormDefinition::query()->whereKey($form->id)->update(['embedding' => $vector]);
+    foreach ([$connectorTool, $mcpTool, $form] as $row) {
+        $row->newQuery()->whereKey($row->getKey())->update(['embedding' => $vector, 'embedding_bm25' => $bm25]);
+    }
 
     Bus::fake();
 
     app(ReembedToolVectorsAction::class)->execute();
 
-    expect(ConnectorTool::query()->whereKey($tool->id)->whereNull('embedding')->exists())->toBeTrue()
-        ->and(FormDefinition::query()->whereKey($form->id)->whereNull('embedding')->exists())->toBeTrue();
+    expect(reembedClearedDenseOnly($connectorTool))->toBeTrue()
+        ->and(reembedClearedDenseOnly($mcpTool))->toBeTrue()
+        ->and(reembedClearedDenseOnly($function))->toBeTrue()
+        ->and(reembedClearedDenseOnly($form))->toBeTrue();
 
     Bus::assertDispatched(EmbedConnectorToolsJob::class, fn (EmbedConnectorToolsJob $job): bool => $job->connectorSlug === 'acme');
+    Bus::assertDispatched(EmbedMcpToolsJob::class, fn (EmbedMcpToolsJob $job): bool => $job->mcpServerId === $mcpTool->mcp_server_id);
+    Bus::assertDispatched(EmbedFunctionJob::class, fn (EmbedFunctionJob $job): bool => $job->functionId === $function->id);
     Bus::assertDispatched(EmbedFormDefinitionJob::class, fn (EmbedFormDefinitionJob $job): bool => $job->formId === $form->id);
 });

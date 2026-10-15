@@ -131,3 +131,30 @@ it('saves a custom server under its carried name and slug', function (): void {
         ->and($server->slug)->toBe('my_server')
         ->and($server->oauth_expires_at)->toBeNull();
 });
+
+it('updates the workspace\'s existing server on a repeat connect', function (): void {
+    Http::fake(['auth.example.test/token' => Http::response(['access_token' => 'fresh-access', 'refresh_token' => 'fresh-refresh'])]);
+    $this->mock(SyncMcpServerCatalogAction::class)->shouldReceive('execute')->andReturn(new Collection);
+
+    $user = User::factory()->create();
+    $existing = AgentMcpServer::factory()->forOwner($user)->preset('notion')->create([
+        'auth_type' => McpAuthType::Bearer,
+        'auth_value' => 'expired-access',
+        'is_enabled' => false,
+        'last_error' => 'The access token expired.',
+    ]);
+    stashCompletablePendingState('abc', $user, 'binding');
+
+    $server = app(CompleteConnectorOAuthAction::class)->execute(
+        $user,
+        new ConnectorOAuthCallbackData(state: 'abc', code: 'code', sessionBinding: 'binding'),
+    );
+
+    expect($server->id)->toBe($existing->id)
+        ->and($user->workspace()->mcpServers()->count())->toBe(1)
+        ->and($server->auth_value)->toBe('fresh-access')
+        ->and($server->oauth_refresh_token)->toBe('fresh-refresh')
+        ->and($server->url)->toBe('https://mcp.example.test/rpc')
+        ->and($server->is_enabled)->toBeTrue()
+        ->and($server->last_error)->toBeNull();
+});

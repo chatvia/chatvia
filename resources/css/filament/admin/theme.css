@@ -139,12 +139,13 @@ html.fi:root {
             margin-block: 0.5rem;
             margin-inline-end: 0.5rem;
             border-radius: var(--cv-radius-panel);
+            /* A real border, not a box-shadow ring: the sidebar is positioned
+               above the panel and would paint over a ring on the side that
+               touches it. The strong grey because the panel and the canvas
+               are both near-white. */
+            border: 1px solid var(--cv-border-strong);
             background-color: var(--cv-surface);
-            /* The strong border: the panel and the canvas are both near-white,
-               so the normal border grey barely shows between them. */
-            box-shadow:
-                0 0 0 1px var(--cv-border-strong),
-                var(--cv-shadow-sm);
+            box-shadow: var(--cv-shadow-sm);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Form\Models\FormDefinition;
+use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Services\TeamService;
 
 beforeEach(function (): void {
@@ -34,6 +35,47 @@ it('gates source-training index/store routes by their permission', function (str
     $this->actingAs($blocked)->postJson(route($storeRoute, $this->agent), [])->assertForbidden();
     $this->actingAs($allowed)->postJson(route($storeRoute, $this->agent), [])->assertStatus(422);
 })->with('training routes');
+
+it('gates reading and editing a text or Q&A pair by its training permission', function (string $perm, string $showRoute, string $updateRoute): void {
+    $blocked = teammateWithPermissions($this->owner, []);
+    $allowed = teammateWithPermissions($this->owner, [$perm]);
+
+    // {id} is a plain int looked up after the gate: a blocked teammate stops
+    // at the gate (403), a permitted one passes it and then fails the lookup
+    // (404) or the validation (422).
+    $this->actingAs($blocked)->getJson(route($showRoute, [$this->agent, 999999]))->assertForbidden();
+    $this->actingAs($allowed)->getJson(route($showRoute, [$this->agent, 999999]))->assertNotFound();
+
+    $this->actingAs($blocked)->patchJson(route($updateRoute, [$this->agent, 999999]), [])->assertForbidden();
+    $this->actingAs($allowed)->patchJson(route($updateRoute, [$this->agent, 999999]), [])->assertStatus(422);
+})->with([
+    'text' => ['agent.sources.train.text', 'agents.sources.text.show', 'agents.sources.text.update'],
+    'qa' => ['agent.sources.train.qa', 'agents.sources.qa.show', 'agents.sources.qa.update'],
+]);
+
+it('gates training a website and its pages by agent.sources.train.web, and removing pages by agent.sources.delete', function (): void {
+    $website = SourceWebsite::create(['workspace_id' => $this->agent->workspace_id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
+    $this->agent->websites()->attach($website->id);
+    $page = $website->urls()->create(['url' => 'https://docs.example.test/page']);
+
+    $blocked = teammateWithPermissions($this->owner, []);
+    $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.web']);
+    $remover = teammateWithPermissions($this->owner, ['agent.sources.delete']);
+
+    $this->actingAs($blocked)->getJson(route('agents.sources.websites.links.index', [$this->agent, $website]))->assertForbidden();
+    $this->actingAs($trainer)->getJson(route('agents.sources.websites.links.index', [$this->agent, $website]))->assertOk();
+
+    $this->actingAs($blocked)->postJson(route('agents.sources.websites.train', [$this->agent, $website]))->assertForbidden();
+    $this->actingAs($blocked)->postJson(route('agents.sources.websites.links.retrain', [$this->agent, $website, $page]))->assertForbidden();
+
+    // Training a website does not let a teammate remove its pages.
+    $this->actingAs($trainer)->deleteJson(route('agents.sources.websites.links.destroy', [$this->agent, $website, $page]))->assertForbidden();
+    $this->actingAs($trainer)->postJson(route('agents.sources.websites.links.bulk-destroy', [$this->agent, $website]), ['ids' => [$page->id]])->assertForbidden();
+    expect($website->urls()->whereKey($page->id)->exists())->toBeTrue();
+
+    $this->actingAs($remover)->deleteJson(route('agents.sources.websites.links.destroy', [$this->agent, $website, $page]))->assertSuccessful();
+    expect($website->urls()->whereKey($page->id)->exists())->toBeFalse();
+});
 
 it('gates the qa delete route by agent.sources.delete', function (): void {
     $blocked = teammateWithPermissions($this->owner, []);

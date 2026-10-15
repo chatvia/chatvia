@@ -16,6 +16,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity Web Search Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true
@@ -42,6 +43,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity Fetch Url Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true
@@ -64,6 +66,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity Finance Search Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true
@@ -86,6 +89,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity People Search Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true
@@ -108,6 +112,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity Ask Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true
@@ -130,6 +135,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity Research Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true
@@ -152,6 +158,7 @@
             ]
         },
         "annotations": {
+            "title": "Perplexity Run Code Tool",
             "openWorldHint": true
         }
     }

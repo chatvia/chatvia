@@ -25,6 +25,7 @@
             ]
         },
         "annotations": {
+            "title": "Current Weather Tool",
             "readOnlyHint": true,
             "idempotentHint": true,
             "openWorldHint": true

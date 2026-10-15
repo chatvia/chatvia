@@ -153,7 +153,11 @@ services:
     command: ["php", "artisan", "pulse:check"]
     environment:
       PULSE_SERVER_NAME: ${PULSE_SERVER_NAME:-chatvia}
+    stop_signal: SIGTERM
     depends_on: *depends-on-migrate
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "pulse:check"]
+      start_period: 30s
 
 volumes:
   storage:

@@ -36,8 +36,8 @@ README (pandoc, catdoc, poppler, ffmpeg, WeasyPrint) are only needed for the
 features that use them.
 
 With only Docker on your machine, use Laravel Sail instead: it runs the app,
-the queue worker, the scheduler and Reverb in containers, with every system
-tool installed. See [Develop with Laravel Sail](README.md#develop-with-laravel-sail).
+the queue worker, the scheduler, Reverb and Pulse's server stats in
+containers, with every system tool installed. See [Develop with Laravel Sail](README.md#develop-with-laravel-sail).
 
 ## Making a change
 

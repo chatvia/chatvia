@@ -295,8 +295,8 @@ theme.
   panel, like Horizon. Pulse keeps its data in a database of its own
   (`DB_PULSE_DATABASE`, by default `pulse`), so its many small writes stay
   out of the app's database and its backups; the Docker stack creates it,
-  and runs `pulse:check` in a new `pulse` container. Data older than 7 days
-  is removed.
+  and runs `pulse:check` in a new `pulse` container (`./manage status`,
+  `restart` and `logs` include it). Data older than 7 days is removed.
 - **Spectra** logs every AI call at `/spectra`: the model, the tokens, the
   cost and the time it took, also for streamed replies. It opens for the
   same admins, and keeps its log in a database of its own

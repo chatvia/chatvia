@@ -25,16 +25,6 @@ it('deactivates every member when the workspace is deactivated', function (): vo
         ->and($chatter->fresh()->deactivation_reason)->toBe('Terms of service violation');
 });
 
-it('deactivates every chatter of the workspace', function (): void {
-    $workspace = User::factory()->create();
-    $chatters = Chatter::factory()->count(3)->ofWorkspace($workspace)->create();
-
-    app(DeactivateAccountAction::class)->execute($workspace, 'abuse');
-
-    expect($workspace->workspace()->chatters()->whereNull('deactivated_at')->exists())->toBeFalse()
-        ->and($chatters->every(fn (Chatter $chatter): bool => $chatter->fresh()->isDeactivated()))->toBeTrue();
-});
-
 it('keeps the original timestamp and reason of a chatter that was already off', function (): void {
     $workspace = User::factory()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create([
@@ -91,6 +81,27 @@ it('restores members when the workspace is reactivated', function (): void {
         ->and($member->fresh()->deactivation_reason)->toBeNull()
         ->and($chatter->fresh()->isDeactivated())->toBeFalse()
         ->and($chatter->fresh()->deactivation_reason)->toBeNull();
+});
+
+it('keeps a member banned on their own before the workspace was switched off banned after reactivation', function (): void {
+    $workspace = User::factory()->create();
+    $bannedChatter = Chatter::factory()->ofWorkspace($workspace)->create();
+    $bannedTeammate = User::factory()->employee($workspace)->create();
+    $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
+
+    $this->travelTo(now()->subWeek());
+    app(DeactivateAccountAction::class)->execute($bannedChatter, 'individual ban');
+    app(DeactivateAccountAction::class)->execute($bannedTeammate, 'left the company');
+    $this->travelBack();
+
+    app(DeactivateAccountAction::class)->execute($workspace, 'temporary');
+    app(ReactivateAccountAction::class)->execute($workspace->fresh());
+
+    expect($chatter->fresh()->isDeactivated())->toBeFalse()
+        ->and($bannedChatter->fresh()->isDeactivated())->toBeTrue()
+        ->and($bannedChatter->fresh()->deactivation_reason)->toBe('individual ban')
+        ->and($bannedTeammate->fresh()->isDeactivated())->toBeTrue()
+        ->and($bannedTeammate->fresh()->deactivation_reason)->toBe('left the company');
 });
 
 it('does not cascade when a chatter is deactivated', function (): void {

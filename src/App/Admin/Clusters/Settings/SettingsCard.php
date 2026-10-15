@@ -38,6 +38,9 @@ final class SettingsCard
     /** @var (Closure(): string)|null A line about the values in use, shown on the card. */
     public ?Closure $summary = null;
 
+    /** @var (Closure(): string)|null The color of a group of options' summary, such as "warning" while a change waits; null is gray. */
+    public ?Closure $tone = null;
+
     /** @var (Closure(): bool)|null */
     public ?Closure $visible = null;
 
@@ -117,6 +120,16 @@ final class SettingsCard
     public function summary(Closure $summary): self
     {
         $this->summary = $summary;
+
+        return $this;
+    }
+
+    /**
+     * @param  Closure(): string  $tone
+     */
+    public function tone(Closure $tone): self
+    {
+        $this->tone = $tone;
 
         return $this;
     }

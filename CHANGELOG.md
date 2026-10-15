@@ -100,6 +100,11 @@ theme.
 - Technical options on every page sit under a closed **Advanced** section:
   addresses, rate limits, queue workers, security headers, redirect URLs and
   the like. Each page has one **Save changes** button that stays in view.
+- **Settings → Platform → Queue workers** says "Restart needed" while the
+  queue (Horizon) runs other worker numbers than the saved ones, and has a
+  **Restart queue** button. It works in Docker too, where Horizon runs in its
+  own container. The running jobs finish first, then Docker (or Supervisor,
+  or systemd) starts Horizon again with the new numbers.
 - The overview's statuses are honest: "Optional" for sign-in buttons not set
   up, the connected providers, "Website import off", and so on.
 - The prompt editor (Settings → Prompts) is removed; prompts live in

@@ -6,6 +6,7 @@ namespace App\Admin\Clusters\Settings\Pages;
 
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCard;
+use App\Admin\Settings\HorizonWorkers;
 use App\Admin\Settings\PlatformSettings;
 use App\Admin\Settings\ServerProgram;
 use App\Admin\Settings\ServerProgramFinder;
@@ -14,6 +15,7 @@ use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Actions;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Arr;
@@ -25,6 +27,24 @@ use Illuminate\Support\Arr;
  */
 class ManagePlatformSettings extends AdminSettingsPage
 {
+    /** The Horizon supervisors of config/horizon.php, and the setting that holds the most workers of each. */
+    private const array WORKER_SETTINGS = [
+        'chat' => 'chat_workers',
+        'ingestion' => 'ingestion_workers',
+        'analytics' => 'analytics_workers',
+        'media' => 'media_workers',
+        'voice' => 'voice_workers',
+    ];
+
+    /** What the Queue workers card says about the queue ({@see horizonState()}). */
+    private const string ONLY_PRODUCTION = 'Production only';
+
+    private const string NOT_RUNNING = 'Queue not running';
+
+    private const string RESTARTING = 'Queue restarting';
+
+    private const string RESTART_NEEDED = 'Restart needed';
+
     #[\Override]
     protected static string $settings = PlatformSettings::class;
 
@@ -93,21 +113,92 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->email('horizon_notify_email', 'Alert email',
                     help: 'Gets an email when jobs wait too long in the queue. Applies after Horizon restarts.'),
             ])->summary(fn (): string => filled($this->valueInUse('horizon_notify_email')) ? 'To '.$this->valueInUse('horizon_notify_email') : 'No alerts'),
-            SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Applies when the app runs in production (APP_ENV=production, as in Docker), after Horizon restarts (with Docker: ./manage restart horizon).', Heroicon::OutlinedCog8Tooth, fn (): array => [
+            SettingsCard::make('queue_workers', 'Queue workers', 'How many background jobs run at once. Each worker uses about 80 MB of memory. Applies when the app runs in production (APP_ENV=production, as in Docker): save, then restart the queue.', Heroicon::OutlinedCog8Tooth, fn (): array => [
                 $this->integer('chat_workers', 'Chat', help: 'Replies on messaging channels, e-mails and other short jobs.', min: 2, max: 200),
                 $this->integer('ingestion_workers', 'Files and websites', help: 'Reading knowledge sources, then exports.', min: 1, max: 200),
                 $this->integer('analytics_workers', 'Analytics', help: 'Conversation analysis, evals and audit logs.', min: 1, max: 100),
                 $this->integer('media_workers', 'Audio and video', help: 'Transcribing recordings. Each one can take a long time.', min: 1, max: 50),
                 $this->integer('voice_workers', 'Live voice calls', help: 'Each voice conversation holds one worker for its whole length, so this is also the most calls at once.', min: 1, max: 200),
-            ])->summary(fn (): string => sprintf('Up to %d workers', array_sum(array_map(
-                fn (string $property): int => (int) $this->valueInUse($property),
-                ['chat_workers', 'ingestion_workers', 'analytics_workers', 'media_workers', 'voice_workers'],
-            ))))->advanced(),
+                Actions::make([$this->restartQueueAction()])->key('restart-queue'),
+            ])->summary(fn (): string => sprintf('Up to %d workers', array_sum($this->savedWorkers())).(($state = $this->horizonState()) !== null ? " · {$state}" : ''))
+                ->tone(fn (): string => in_array($this->horizonState(), [self::NOT_RUNNING, self::RESTART_NEEDED], true) ? 'warning' : 'gray')
+                ->advanced(),
             SettingsCard::make('programs', 'Programs', 'The programs on this server that read files and make PDFs. Enter a full path for a program that is not found.', Heroicon::OutlinedCommandLine, fn (): array => array_map(
                 $this->programField(...),
                 ServerProgram::cases(),
             ))->summary(fn (): string => $this->programsSummary())->advanced(),
         ];
+    }
+
+    /**
+     * The saved worker numbers (or the defaults), by Horizon supervisor.
+     *
+     * @return array<string, int>
+     */
+    private function savedWorkers(): array
+    {
+        return array_map(
+            fn (string $property): int => (int) $this->valueInUse($property),
+            self::WORKER_SETTINGS,
+        );
+    }
+
+    /**
+     * What the Queue workers card says about the queue (Horizon) after the
+     * worker total; null when Horizon runs the saved numbers. Outside production Horizon
+     * uses the numbers of its own environment in config/horizon.php, not
+     * these, so the card says so rather than nothing.
+     */
+    private function horizonState(): ?string
+    {
+        if (! app()->isProduction()) {
+            return self::ONLY_PRODUCTION;
+        }
+
+        $horizon = app(HorizonWorkers::class);
+
+        return match (true) {
+            $horizon->isStopping() => self::RESTARTING,
+            ! $horizon->isRunning() => self::NOT_RUNNING,
+            $horizon->differsFrom($this->savedWorkers()) => self::RESTART_NEEDED,
+            default => null,
+        };
+    }
+
+    /**
+     * Restarts the queue (Horizon), so it uses the saved worker numbers.
+     * Always shown, so the admin finds it; it works only in production while
+     * Horizon runs (elsewhere nothing may start Horizon again), and its
+     * tooltip says why it does not.
+     */
+    private function restartQueueAction(): Action
+    {
+        return Action::make('restart_queue')
+            ->label('Restart queue')
+            ->icon(Heroicon::OutlinedArrowPath)
+            ->color(fn (): string => $this->horizonState() === self::RESTART_NEEDED ? 'warning' : 'gray')
+            ->disabled(fn (): bool => ! in_array($this->horizonState(), [null, self::RESTART_NEEDED], true))
+            ->tooltip(fn (): ?string => match ($this->horizonState()) {
+                self::ONLY_PRODUCTION => 'The queue uses these numbers only in production (APP_ENV=production). Here it uses the numbers in config/horizon.php.',
+                self::NOT_RUNNING => 'The queue is not running. When it starts, it uses the saved numbers.',
+                self::RESTARTING => 'The queue is restarting. It starts again once its running jobs finish.',
+                default => null,
+            })
+            ->requiresConfirmation()
+            ->modalIcon(Heroicon::OutlinedArrowPath)
+            ->modalHeading('Restart the queue?')
+            ->modalDescription('The queue starts again with the saved worker numbers, so save your changes first. The jobs that are running now finish first, and new jobs wait until then. A live voice call or a long recording can make this take several minutes. Docker starts the queue again on its own; on another server, Supervisor or systemd must start Horizon again.')
+            ->modalSubmitActionLabel('Restart queue')
+            ->modalSubmitAction(fn (Action $action): Action => $action->color('warning'))
+            ->action(function (): void {
+                if (app(HorizonWorkers::class)->restart() === 0) {
+                    Notification::make()->warning()->title('The queue is not running')->body('Start it, and it uses the saved worker numbers.')->send();
+
+                    return;
+                }
+
+                Notification::make()->success()->title('The queue is restarting')->body('It starts again with the saved worker numbers once the running jobs finish.')->send();
+            });
     }
 
     /**

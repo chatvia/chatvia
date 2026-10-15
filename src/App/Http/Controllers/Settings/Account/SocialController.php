@@ -17,6 +17,10 @@ class SocialController
 {
     public function edit(Request $request): Response
     {
+        // No sign-in provider set up (Settings → Sign-in): nothing can be
+        // connected, and the account menu hides the page too.
+        abort_if(SocialProvider::configured() === [], 404);
+
         $linked = $request->user()
             ->socials()
             ->get(['provider', 'created_at'])

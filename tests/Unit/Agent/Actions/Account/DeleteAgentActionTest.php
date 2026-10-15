@@ -31,7 +31,7 @@ it('hides the agent at once and queues its purge on the exports queue', function
         // The data waits for the purge.
         ->and(Session::find($session->id))->not->toBeNull();
 
-    Bus::assertDispatched(PurgeAgentJob::class, fn (PurgeAgentJob $job): bool => $job->agentId === $agent->id && $job->queue === 'exports');
+    Bus::assertDispatched(PurgeAgentJob::class, fn (PurgeAgentJob $job): bool => $job->agentId === $agent->id && jobQueue($job) === 'exports');
 });
 
 it('frees the slug and the custom domain for another agent at once', function (): void {

@@ -237,8 +237,8 @@ it('runs from a job on the exports queue that skips a live or purged agent', fun
     // A live agent is never purged, and an id that is gone is a no-op.
     new PurgeAgentJob(PHP_INT_MAX)->handle(app(PurgeAgentAction::class));
 
-    expect($job->queue)->toBe('exports')
-        ->and($job->timeout)->toBe(1800)
+    expect(jobQueue($job))->toBe('exports')
+        ->and(jobTimeout($job))->toBe(1800)
         ->and(Agent::find($live->id))->not->toBeNull()
         ->and(Conversation::find($conversation->id))->not->toBeNull();
 });

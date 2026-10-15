@@ -12,6 +12,9 @@ use Domain\Conversation\Data\Messages\UserTurnData;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\UniqueFor;
 
 /**
  * Writes one chat message to the database off the streaming hot path, on the
@@ -19,18 +22,19 @@ use Illuminate\Foundation\Queue\Queueable;
  * the chat log, analytics and usage counters catch up. Unique per message id,
  * so a duplicate dispatch never stores a message twice.
  */
+#[Queue('messages')]
+// Outlasts a backed-up chat queue, yet frees a lock a dead worker left behind.
+#[UniqueFor(3600)]
+// An agent purged before the job runs has no chat log left to write to.
+#[DeleteWhenMissingModels]
 class StoreMessageJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
-    public bool $deleteWhenMissingModels = true;
-
     public function __construct(
         public Agent $agent,
         public UserTurnData|AssistantTurnData $payload,
-    ) {
-        $this->onQueue('messages');
-    }
+    ) {}
 
     public function handle(StoreUserMessageAction $storeUserMessage, StoreAssistantMessageAction $storeAssistantMessage): void
     {

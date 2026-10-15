@@ -26,9 +26,12 @@ use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\ReadsClassAttributes;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\RefreshTestDatabases;
 use Tests\Support\FakeLlmProviders;
@@ -224,4 +227,47 @@ function fakeLlmCompletion(string $content): void
 function sharedStaffAndChatterId(): int
 {
     return (int) DB::scalar("select greatest(nextval(pg_get_serial_sequence('users', 'id')), nextval(pg_get_serial_sequence('chatters', 'id')))");
+}
+
+/**
+ * A job setting as the queue reads it: a value set on the instance wins, then
+ * the class attribute (`#[Queue]`, `#[Timeout]` …), then the property. A class
+ * name is read without running its constructor.
+ *
+ * @param  object|class-string  $job
+ * @param  class-string  $attribute
+ */
+function jobSetting(object|string $job, string $attribute, string $property): mixed
+{
+    $job = is_string($job) ? new ReflectionClass($job)->newInstanceWithoutConstructor() : $job;
+
+    $reader = new class
+    {
+        use ReadsClassAttributes {
+            getAttributeValue as public;
+        }
+    };
+
+    return $reader->getAttributeValue($job, $attribute, $property);
+}
+
+/**
+ * The queue a job goes to when the dispatch names none; null for a class
+ * that picks its queue in the constructor.
+ *
+ * @param  object|class-string  $job
+ */
+function jobQueue(object|string $job): ?string
+{
+    return jobSetting($job, Queue::class, 'queue');
+}
+
+/**
+ * A job's timeout in seconds.
+ *
+ * @param  object|class-string  $job
+ */
+function jobTimeout(object|string $job): ?int
+{
+    return jobSetting($job, Timeout::class, 'timeout');
 }

@@ -57,7 +57,7 @@ it('queues a Messenger message once and ignores the Page’s own and unknown Pag
     $action->execute($messages); // re-delivery
 
     Bus::assertDispatchedTimes(HandleMessengerMessageJob::class, 1);
-    Bus::assertDispatched(HandleMessengerMessageJob::class, fn (HandleMessengerMessageJob $job): bool => $job->page->is($page) && $job->psid === 'USER-1' && $job->text === 'hello' && $job->queue === 'messages');
+    Bus::assertDispatched(HandleMessengerMessageJob::class, fn (HandleMessengerMessageJob $job): bool => $job->page->is($page) && $job->psid === 'USER-1' && $job->text === 'hello' && jobQueue($job) === 'messages');
 });
 
 it('queues an Instagram message once and ignores the account’s own', function (): void {
@@ -75,7 +75,7 @@ it('queues an Instagram message once and ignores the account’s own', function 
     $action->execute($messages);
 
     Bus::assertDispatchedTimes(HandleInstagramMessageJob::class, 1);
-    Bus::assertDispatched(HandleInstagramMessageJob::class, fn (HandleInstagramMessageJob $job): bool => $job->queue === 'messages');
+    Bus::assertDispatched(HandleInstagramMessageJob::class, fn (HandleInstagramMessageJob $job): bool => jobQueue($job) === 'messages');
 });
 
 it('queues a WhatsApp message once with the sender’s name', function (): void {
@@ -90,7 +90,7 @@ it('queues a WhatsApp message once with the sender’s name', function (): void 
     $action->execute($messages);
 
     Bus::assertDispatchedTimes(HandleWhatsappMessageJob::class, 1);
-    Bus::assertDispatched(HandleWhatsappMessageJob::class, fn (HandleWhatsappMessageJob $job): bool => $job->messageId === 'wamid.1' && $job->name === 'Sam' && $job->queue === 'messages');
+    Bus::assertDispatched(HandleWhatsappMessageJob::class, fn (HandleWhatsappMessageJob $job): bool => $job->messageId === 'wamid.1' && $job->name === 'Sam' && jobQueue($job) === 'messages');
 });
 
 it('parses WhatsApp text messages and drops statuses and media', function (): void {

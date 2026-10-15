@@ -9,6 +9,7 @@ use Domain\Channel\Slack\Jobs\HandleSlackEventJob;
 use Domain\Channel\Teams\Jobs\HandleTeamsActivityJob;
 use Domain\Channel\Telegram\Jobs\HandleTelegramUpdateJob;
 use Domain\Channel\Whatsapp\Jobs\HandleWhatsappMessageJob;
+use Domain\Conversation\Jobs\JoinVoiceCallJob;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Document\DocumentIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Media\MediaChunkIngestionJob;
@@ -18,6 +19,7 @@ use Domain\Knowledge\Ingestion\Jobs\Text\TextChunkIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\TextFile\TextFileIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteIngestionJob;
 use Domain\Knowledge\Ingestion\Jobs\Website\WebsiteUrlTrainJob;
+use Domain\Knowledge\Retrieval\Jobs\RebuildVectorIndexesJob;
 
 /**
  * Horizon's supervisors must cover every queue the app uses, and a queue
@@ -48,7 +50,7 @@ it('works on every queue the app uses, each in one supervisor', function (): voi
     $used = [
         'messages', 'default', config('chatvia.analytics.queue'), 'exports',
         'ingestion.chunks', 'ingestion.summary', 'ingestion.text', 'ingestion.pdf',
-        'ingestion.word', 'ingestion.website', 'ingestion.audio', 'ingestion.video',
+        'ingestion.word', 'ingestion.website', 'ingestion.audio', 'ingestion.video', 'voice',
     ];
     $configured = collect(horizonSupervisors())->flatMap(fn (array $supervisor): array => (array) $supervisor['queue']);
 
@@ -65,11 +67,15 @@ it('gives every supervisor a connection whose retry_after outlasts its timeout',
 });
 
 it('pops each long job through a connection whose retry_after outlasts the job', function (string $job, string $queue): void {
-    $timeout = new ReflectionClass($job)->getProperty('timeout')->getDefaultValue();
+    $timeout = jobTimeout($job);
     $supervisor = horizonSupervisorFor($queue);
     $retryAfter = config('queue.connections.'.horizonSupervisors()[$supervisor]['connection'].'.retry_after');
 
-    expect($retryAfter)->toBeGreaterThan($timeout);
+    // A job with a fixed queue is listed under it; one that picks its queue
+    // per file (pdf or word, audio or video) has none on the class.
+    expect(jobQueue($job))->toBeIn([$queue, null])
+        ->and($timeout)->toBeInt()
+        ->and($retryAfter)->toBeGreaterThan($timeout);
 })->with([
     [HandleSlackEventJob::class, 'messages'],
     [HandleTeamsActivityJob::class, 'messages'],
@@ -80,6 +86,7 @@ it('pops each long job through a connection whose retry_after outlasts the job',
     [MediaIngestionJob::class, 'ingestion.audio'],
     [MediaIngestionJob::class, 'ingestion.video'],
     [DocumentIngestionJob::class, 'ingestion.pdf'],
+    [DocumentIngestionJob::class, 'ingestion.word'],
     [DocumentChunkIngestionJob::class, 'ingestion.chunks'],
     [MediaChunkIngestionJob::class, 'ingestion.chunks'],
     [TextChunkIngestionJob::class, 'ingestion.chunks'],
@@ -90,6 +97,8 @@ it('pops each long job through a connection whose retry_after outlasts the job',
     [PrepareDataExportJob::class, 'exports'],
     [DeleteWorkspaceJob::class, 'exports'],
     [PurgeAgentJob::class, 'exports'],
+    [RebuildVectorIndexesJob::class, 'ingestion.chunks'],
+    [JoinVoiceCallJob::class, 'voice'],
 ]);
 
 it('fits production on a small server', function (): void {

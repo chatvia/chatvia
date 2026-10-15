@@ -10,6 +10,10 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Throwable;
@@ -19,18 +23,21 @@ use Throwable;
  * {@see IngestMediaAction}. Long recordings take hours to transcribe, hence the
  * long timeout and the dedicated audio and video queues.
  */
+// One retry, as a transcription that runs for hours can hit a passing service error.
+#[Tries(2)]
+// Below the `redis-media` connection's `retry_after`, so no second worker picks it up mid-run.
+#[Timeout(86000)]
+// Two days: outlasts both tries, yet frees a lock a dead worker left behind.
+#[UniqueFor(172800)]
+// A file deleted before the job runs needs no transcript.
+#[DeleteWhenMissingModels]
 class MediaIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public bool $deleteWhenMissingModels = true;
-
-    public int $tries = 2;
-
-    public int $timeout = 86000;
-
     public function __construct(public SourceFile $sourceFile, public Agent $agent)
     {
+        // Chosen per file (audio or video), so an attribute cannot name it.
         if ($sourceFile->isVideoFile()) {
             $this->onQueue('ingestion.video');
         } elseif ($sourceFile->isAudioFile()) {

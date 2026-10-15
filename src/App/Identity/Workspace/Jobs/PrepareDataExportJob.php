@@ -8,6 +8,10 @@ use App\Identity\Workspace\Models\DataExport;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 use Throwable;
@@ -15,19 +19,20 @@ use Throwable;
 /**
  * Builds a data export ZIP off the request, on the `exports` queue.
  */
+#[Queue('exports')]
+// One try: failed() marks the export failed, so the user sees it at once.
+#[Tries(1)]
+// Below the `redis-long` connection's `retry_after`, so no second worker picks it up mid-run.
+#[Timeout(1800)]
+// Longer than a run, so a worker that dies mid-run cannot hold the lock for good.
+#[UniqueFor(3600)]
 class PrepareDataExportJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public int $tries = 1;
-
-    public int $timeout = 1800;
-
     public function __construct(
         public int $dataExportId,
-    ) {
-        $this->onQueue('exports');
-    }
+    ) {}
 
     public function handle(BuildDataExportArchiveAction $action): void
     {

@@ -11,21 +11,21 @@ use Domain\Knowledge\Source\Text\Models\SourceText;
 use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Queue;
 use Throwable;
 
 /**
  * Splits a text source and starts its chunk batch. See {@see IngestTextAction}.
  */
+#[Queue('ingestion.text')]
+// A text deleted before the job runs needs no ingestion.
+#[DeleteWhenMissingModels]
 class TextIngestionJob implements ShouldQueue
 {
     use Batchable, Queueable;
 
-    public bool $deleteWhenMissingModels = true;
-
-    public function __construct(public SourceText $sourceText, public Agent $agent)
-    {
-        $this->onQueue('ingestion.text');
-    }
+    public function __construct(public SourceText $sourceText, public Agent $agent) {}
 
     public function handle(IngestTextAction $action): void
     {

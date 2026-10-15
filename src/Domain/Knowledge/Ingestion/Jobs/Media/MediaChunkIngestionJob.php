@@ -14,6 +14,12 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Illuminate\Support\Collection;
 use Throwable;
 
@@ -23,30 +29,29 @@ use Throwable;
  * see {@see IngestSourceChunkAction}. After its last failed try, the parts are
  * stored without enhancement so they stay searchable.
  */
+// A long-running ingestion queue: a page group with enhancement can
+// outlast the hand-over on `default`. Inside its batch the batch's
+// own queue wins, so DispatchSourceIngestionBatchAction names it too.
+#[Queue('ingestion.chunks')]
+// A model call that fails once often works on the next try.
+#[Tries(3)]
+// Longer and longer waits, so a busy model service can catch up.
+#[Backoff(10, 60, 300)]
+// An enhanced part waits on a model call.
+#[Timeout(800)]
+// Outlasts all three tries and their waits, yet frees a lock a dead worker left behind.
+#[UniqueFor(3600)]
+// A file deleted before the job runs needs no chunks.
+#[DeleteWhenMissingModels]
 class MediaChunkIngestionJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable;
-
-    public bool $deleteWhenMissingModels = true;
-
-    public int $tries = 3;
-
-    /** @var array<int, int> */
-    public array $backoff = [10, 60, 300];
-
-    /** An enhanced part waits on a model call. */
-    public int $timeout = 800;
 
     public function __construct(
         public Agent $agent,
         public SourceFile $sourceFile,
         public PageGroupData $group,
-    ) {
-        // A long-running ingestion queue: a page group with enhancement can
-        // outlast the hand-over on `default`. Inside its batch the batch's
-        // own queue wins, so DispatchSourceIngestionBatchAction names it too.
-        $this->onQueue('ingestion.chunks');
-    }
+    ) {}
 
     /**
      * @param  Collection<int, PageData>  $pages

@@ -13,6 +13,12 @@ use Illuminate\Bus\Batchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
+use Illuminate\Queue\Attributes\MaxExceptions;
+use Illuminate\Queue\Attributes\Queue;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\UniqueFor;
 use Throwable;
 
 /**
@@ -20,32 +26,28 @@ use Throwable;
  * FireCrawl calls are rate limited across all workers by
  * {@see ThrottleFirecrawl}.
  */
+// Inside its batch the batch's own queue wins, so
+// StartWebsiteIngestionAction names the same one.
+#[Queue('ingestion.website')]
+// Cap on genuine processing errors (scrape/embedding failures). FireCrawl
+// rate-limit releases from ThrottleFirecrawl go back to the queue without
+// throwing, so they don't count here — they're bounded by retryUntil()
+// instead. Keeps a throttled URL from being marked "failed" just because
+// the budget was busy.
+#[MaxExceptions(3)]
+// Longer and longer waits, so a busy scrape or model service can catch up.
+#[Backoff(10, 60, 300)]
+// A page waits on the scrape and on model calls for its chunks.
+#[Timeout(800)]
+// As long as retryUntil(), so a URL waiting on the FireCrawl throttle is never queued twice.
+#[UniqueFor(21600)]
+// A page deleted before the job runs needs no training.
+#[DeleteWhenMissingModels]
 class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable;
 
-    /**
-     * Cap on genuine processing errors (scrape/embedding failures). FireCrawl
-     * rate-limit releases from {@see ThrottleFirecrawl} go back to the queue
-     * without throwing, so they don't count here — they're bounded by
-     * {@see retryUntil()} instead. Keeps a throttled URL from being marked
-     * "failed" just because the budget was busy.
-     */
-    public int $maxExceptions = 3;
-
-    /** @var array<int, int> */
-    public array $backoff = [10, 60, 300];
-
-    public bool $deleteWhenMissingModels = true;
-
-    public int $timeout = 800;
-
-    public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent)
-    {
-        // Inside its batch the batch's own queue wins, so
-        // StartWebsiteIngestionAction names the same one.
-        $this->onQueue('ingestion.website');
-    }
+    public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent) {}
 
     /**
      * The FireCrawl throttle: a throttled job is released before any page is
@@ -60,10 +62,10 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
     /**
      * Throttle releases ({@see ThrottleFirecrawl}) re-queue the job repeatedly
-     * while the FireCrawl budget is saturated, so a fixed `$tries` would burn
-     * out before a busy URL ever ran. Bound retries by wall-clock instead — long
-     * enough to drain even a large site at the configured per-minute rate — and
-     * let `$maxExceptions` cap real failures.
+     * while the FireCrawl budget is saturated, so a fixed number of tries would
+     * burn out before a busy URL ever ran. Bound retries by wall-clock instead —
+     * long enough to drain even a large site at the configured per-minute rate —
+     * and let `#[MaxExceptions]` cap real failures.
      */
     public function retryUntil(): DateTimeInterface
     {

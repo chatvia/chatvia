@@ -179,7 +179,7 @@ it('runs the website batch on the website ingestion queue', function (): void {
     app(StartWebsiteIngestionAction::class)->execute($website, $agent);
 
     Bus::assertBatched(fn (PendingBatch $batch): bool => $batch->queue() === 'ingestion.website'
-        && $batch->jobs->every(fn (WebsiteUrlTrainJob $job): bool => $job->queue === $batch->queue()));
+        && $batch->jobs->every(fn (WebsiteUrlTrainJob $job): bool => jobQueue($job) === $batch->queue()));
 });
 
 it('finishes a website: ingested, text file saved, URL placeholders taken off the chunk count', function (): void {

@@ -7,17 +7,18 @@ namespace Domain\Integration\Tool\Jobs;
 use Domain\Integration\Tool\Actions\Embedding\EmbedMcpToolsAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Tries;
 
 /**
  * Embeds a custom MCP server's own `mcp_tools` rows after a catalog sync or a
  * server rename. Only rows missing an embedding are touched; the tokens bill
  * to the server's workspace.
  */
+// Only rows missing an embedding are touched, so a retry is safe.
+#[Tries(2)]
 class EmbedMcpToolsJob implements ShouldQueue
 {
     use Queueable;
-
-    public int $tries = 2;
 
     public function __construct(public int $mcpServerId) {}
 

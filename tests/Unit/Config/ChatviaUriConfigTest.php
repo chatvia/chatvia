@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Chatvia's own site comes from CHATVIA_URI, read when the config loads:
  * chatvia.ai unless a developer points it at a local copy of the site. The

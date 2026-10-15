@@ -662,7 +662,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $shared = $this->catalogName($this->valueInUse('task_model'));
         $own = count(array_filter(LlmTask::appTasks(), fn (LlmTask $task): bool => filled($this->valueInUse($task->settingsProperty()))));
 
-        return ($shared === null ? 'The default model' : $shared).' for every task'
+        return ($shared ?? 'The default model').' for every task'
             .($own === 0 ? '' : ' · '.$own.' '.Str::plural('task', $own).' with '.($own === 1 ? 'its' : 'their').' own model');
     }
 

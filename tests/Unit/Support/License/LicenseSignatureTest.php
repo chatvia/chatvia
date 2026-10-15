@@ -49,7 +49,7 @@ it('leaves out a feature this version does not know', function (): void {
     $terms = 'cvl1.'.rtrim(strtr(base64_encode((string) json_encode([
         'id' => 'x', 'licensee' => 'Acme Ltd', 'domains' => [], 'features' => ['hide_credit', 'something_new'], 'issued' => '2026-10-15',
     ])), '+/', '-_'), '=');
-    $signature = sodium_crypto_sign_detached($terms, (string) base64_decode(LicenseKeys::SECRET_KEY));
+    $signature = sodium_crypto_sign_detached($terms, base64_decode(LicenseKeys::SECRET_KEY));
     $key = $terms.'.'.rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
 
     expect(LicenseSignature::verify($key, LicenseKeys::PUBLIC_KEY)?->features)->toBe([LicenseFeature::HideCredit]);

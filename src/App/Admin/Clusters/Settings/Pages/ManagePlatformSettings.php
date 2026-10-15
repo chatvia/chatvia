@@ -66,8 +66,8 @@ class ManagePlatformSettings extends AdminSettingsPage
                 $this->integer('widget_stream_per_hour', 'Replies per agent per hour', min: 1),
             ])->summary(fn (): string => $this->valueInUse('widget_stream_per_minute').' replies per agent per minute'),
             SettingsCard::make('tracking', 'Tracking code', 'Code added to every page, such as the script of an analytics service. Nothing is added while it is empty.', Heroicon::OutlinedChartBar, fn (): array => [
-                $this->code('tracking_code', 'Code', placeholder: '<script defer src="https://…"></script>',
-                    help: 'Added to the <head> of the dashboard, the hosted chat and the sign-in pages, on a live (production) install only.'),
+                $this->code('tracking_code', 'Code',
+                    help: 'Added to the <head> of the dashboard, the hosted chat and the sign-in pages, on a live (production) install only.', placeholder: '<script defer src="https://…"></script>'),
             ])->summary(fn (): string => filled($this->valueInUse('tracking_code')) ? 'On' : 'Off'),
             SettingsCard::make('ip2location', 'IP2Location', 'Finds the country of a visitor from their IP address.', Heroicon::OutlinedMapPin, fn (): array => [
                 $this->secret('ip2location_api_key', 'API key'),

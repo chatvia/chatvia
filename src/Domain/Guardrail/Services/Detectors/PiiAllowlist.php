@@ -42,7 +42,7 @@ final readonly class PiiAllowlist
                 continue;
             }
 
-            $digits = self::significantDigits($value);
+            $digits = $this->significantDigits($value);
 
             if (strlen($digits) >= self::MIN_DIGITS) {
                 $numbers[] = $digits;
@@ -62,7 +62,7 @@ final readonly class PiiAllowlist
                 || (str_starts_with($entry, '@') && str_ends_with($email, $entry)));
         }
 
-        $digits = self::significantDigits($value);
+        $digits = $this->significantDigits($value);
 
         if (strlen($digits) < self::MIN_DIGITS) {
             return false;
@@ -74,7 +74,7 @@ final readonly class PiiAllowlist
     }
 
     /** The digits without the leading zeros of a trunk or `00` prefix. */
-    private static function significantDigits(string $value): string
+    private function significantDigits(string $value): string
     {
         return ltrim(preg_replace('/\D/', '', $value) ?? '', '0');
     }

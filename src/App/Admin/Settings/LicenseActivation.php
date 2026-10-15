@@ -10,6 +10,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Support\License\LicenseKey;
 use Support\License\LicenseSignature;
 
 /**
@@ -75,7 +76,7 @@ final readonly class LicenseActivation
     {
         $license = LicenseSignature::verify($key, $this->config->get('chatvia.license.public_key'));
 
-        if ($license === null) {
+        if (! $license instanceof LicenseKey) {
             return false;
         }
 

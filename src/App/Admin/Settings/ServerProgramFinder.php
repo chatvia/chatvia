@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Process;
  * It looks with the PATH of the web server. The queue worker may have
  * another PATH, which is why a full path is the safe choice.
  */
-final class ServerProgramFinder
+final readonly class ServerProgramFinder
 {
     /** Folders programs are often in, but which the PATH of a service may miss (Homebrew's on a Mac). */
     private const array USUAL_FOLDERS = [
@@ -31,7 +31,7 @@ final class ServerProgramFinder
      * @param  list<string>|null  $usualFolders  The folders {@see detect()} adds to the PATH; null for the usual ones.
      */
     public function __construct(
-        private readonly ?array $usualFolders = null,
+        private ?array $usualFolders = null,
     ) {}
 
     /**

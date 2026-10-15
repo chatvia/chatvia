@@ -6,8 +6,7 @@
  * Goal: prevent the Action-test coverage ratio from regressing. The explicit
  * allowlist below pins the set of currently-untested Actions; the live
  * tested/total ratio is printed to STDERR when this test runs, so the figure
- * can never drift out of sync with reality (it used to be a hand-typed comment
- * that went stale). Any NEW Action without a test fails CI loudly, forcing the
+ * always matches the code. Any NEW Action without a test fails CI loudly, forcing the
  * author to either write the test or make an explicit decision to add the new
  * name to the allowlist (which shows up in code review).
  *
@@ -15,12 +14,14 @@
  * test for an Action in the list, this test will tell you to remove it.
  *
  * Detection is name-based: an Action `Foo\BarAction` is considered tested
- * if a test file (`*Test.php`) under tests/ contains the whole-word
- * `BarAction` (use of the class, type-hint, or `BarAction::class` reference
- * all count). Helpers such as tests/Pest.php and tests/Support/ do not count:
- * an Action they call to set up other tests is not tested by that. Multi-Action
- * test files (e.g. TakeoverAndReturnConversationActionsTest covers two
- * Actions in one file) work without renaming.
+ * if the code of a test file (`*Test.php`) under tests/ names the whole-word
+ * `BarAction` (a call, a type-hint or `BarAction::class`). Comments and `use`
+ * lines do not count, since naming a class there tests nothing, and neither
+ * do helpers such as tests/Pest.php and tests/Support/: an Action they call
+ * to set up other tests is not tested by that. The Eval suite is left out
+ * too, as it skips itself without an API key. Multi-Action test files (e.g.
+ * TakeoverAndReturnConversationActionsTest covers two Actions in one file)
+ * work without renaming.
  */
 const UNTESTED_ACTIONS_ALLOWLIST = [];
 
@@ -40,7 +41,21 @@ function allActionClassNames(): array
     return $files;
 }
 
-/** Is there a test file (`*Test.php`) under tests/ that references this Action by name? */
+/** $source without its comments and its `use` import lines. */
+function actionTestCode(string $source): string
+{
+    $code = '';
+
+    foreach (PhpToken::tokenize($source) as $token) {
+        if (! $token->is([T_COMMENT, T_DOC_COMMENT])) {
+            $code .= $token->text;
+        }
+    }
+
+    return (string) preg_replace('/^use [^;]+;$/m', '', $code);
+}
+
+/** Does the code of a test file (`*Test.php`) under tests/ name this Action? */
 function actionHasTest(string $actionShortName): bool
 {
     // Cache the discovery of every test file's text once per process. EXCLUDE
@@ -56,10 +71,10 @@ function actionHasTest(string $actionShortName): bool
             if (! $file->isFile() || ! str_ends_with((string) $file, 'Test.php')) {
                 continue;
             }
-            if (realpath($file->getPathname()) === $self) {
+            if (realpath($file->getPathname()) === $self || str_contains($file->getPathname(), DIRECTORY_SEPARATOR.'Eval'.DIRECTORY_SEPARATOR)) {
                 continue;
             }
-            $combined .= file_get_contents($file->getPathname()).PHP_EOL;
+            $combined .= actionTestCode((string) file_get_contents($file->getPathname())).PHP_EOL;
         }
     }
 

@@ -109,7 +109,32 @@ it('says when live updates do not go through Reverb, or Reverb does not answer',
     $status = app(ServiceChecks::class)->check(Service::Realtime);
 
     expect($status->state)->toBe(ServiceState::Down)
-        ->and($status->summary)->toContain('http://127.0.0.1:1');
+        ->and($status->summary)->toContain('does not answer at http://127.0.0.1:1');
+});
+
+it('finds Reverb running with no open channels, and says when it refuses the keys', function (): void {
+    config([
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb.app_id' => 'test-app-id',
+        'broadcasting.connections.reverb.options' => ['host' => 'reverb.test', 'port' => 443, 'scheme' => 'https', 'useTLS' => true],
+    ]);
+
+    // Reverb lists no channels as [], not as an object.
+    Http::fakeSequence('reverb.test/*')
+        ->push(['channels' => []])
+        ->push('Invalid auth signature provided.', 401);
+
+    $running = app(ServiceChecks::class)->check(Service::Realtime);
+    expect($running->state)->toBe(ServiceState::Running)
+        ->and($running->facts)->toContain('0 open channels');
+
+    $refused = app(ServiceChecks::class)->check(Service::Realtime);
+    expect($refused->state)->toBe(ServiceState::Down)
+        ->and($refused->summary)->toContain('refused the request (401)');
+
+    Http::assertSent(fn ($request): bool => str_contains($request->url(), 'reverb.test')
+        && str_contains($request->url(), '/apps/test-app-id/channels?')
+        && str_contains($request->url(), 'auth_signature='));
 });
 
 it('warns when email goes to the log, and finds an SMTP server that does not answer', function (): void {

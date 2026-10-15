@@ -24,6 +24,7 @@ use App\Http\Controllers\Widget\Settings\WidgetSettingsController;
 use App\Http\Controllers\Widget\Stream\StreamController;
 use App\Http\Controllers\Widget\Voice\EndVoiceCallController;
 use App\Http\Controllers\Widget\Voice\StartVoiceCallController;
+use App\Http\Controllers\Widget\Voice\TranscribeAudioController;
 use App\Http\Middleware\Widget\EnsureWidgetIsAccessible;
 use App\Http\Middleware\Widget\VerifyWidgetOrigin;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -83,6 +84,12 @@ Route::prefix('widget')->middleware('throttle:widgets')->group(function (): void
                 ->middleware('throttle:widget-voice')
                 ->name('widget.voice.store');
             Route::delete('/voice/calls/{call}', EndVoiceCallController::class)->name('widget.voice.destroy');
+
+            // The composer's mic: speech to text is an AI call too, so it is
+            // under the stream's tighter limit.
+            Route::post('/transcribe', TranscribeAudioController::class)
+                ->middleware('throttle:widget-stream')
+                ->name('widget.transcribe');
 
             Route::post('/feedback', FeedbackController::class)->name('widget.feedback');
 

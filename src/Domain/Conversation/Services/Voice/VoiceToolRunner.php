@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Conversation\Services\Voice;
 
+use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Tooling\PendingToolCallData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
@@ -11,6 +12,7 @@ use Domain\Conversation\Services\Tooling\ToolCallAuditTrail;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Conversation\Services\Turn\KnowledgeEnricher;
 use Domain\Integration\Tool\Access\ToolAccessPolicy;
+use Domain\Integration\Tool\Access\ToolApprovalPolicy;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Data\ToolCallData;
 use Domain\Integration\Tool\Data\ToolDispatchResult;
@@ -28,13 +30,17 @@ use Illuminate\Support\Str;
  * other tool goes through the same governance as a typed turn — the access
  * decision, the rate limit, the dispatcher and the audit log.
  *
- * Only tools that needed no approval when the call started are offered. If
- * one needs approval by the time it is called, it is not run: approval is
- * a click, and a call has nothing to click.
+ * A tool that needs a person's approval runs only through {@see runApproved()},
+ * once the visitor has said yes out loud ({@see VoiceToolApprovals}); the
+ * call's session holds it until then.
  */
 final readonly class VoiceToolRunner
 {
-    public const string NEEDS_APPROVAL_RESULT = 'This action needs a person\'s approval, which cannot be given during a voice call, so it was not run. Tell the user they can ask for it in the text chat.';
+    /** What the model hears when a call is held for the visitor's yes. */
+    public const string CONFIRM_FIRST_RESULT = 'Not done yet: this action needs the user\'s OK. In one short sentence, say what you are about to do, with the details that matter, and ask the user to answer yes or no. Do not say it is done. Only if they clearly say yes, call the same tool again with exactly the same arguments. If they say no, do not call it. If they change a detail, call it with the new details: they will be asked again.';
+
+    /** A tool that started needing approval after the call checked it. */
+    public const string NEEDS_APPROVAL_RESULT = 'This action needs the user\'s OK and was not run. Ask the user whether to go ahead.';
 
     /** The answer to a search with an empty query: small talk needs no knowledge. */
     public const string SMALL_TALK_RESULT = 'No search was needed. Reply to the user naturally and briefly.';
@@ -50,8 +56,19 @@ final readonly class VoiceToolRunner
         private ToolDispatcherInterface $dispatcher,
         private ToolDisplayResolver $display,
         private ToolAccessPolicy $access,
+        private ToolApprovalPolicy $approvalPolicy,
         private ToolCallAuditTrail $audit,
     ) {}
+
+    /**
+     * Whether a tool the call offers needs the visitor's yes before it runs.
+     *
+     * @param  array<string, ToolEntry>  $tools  the call's tools, by name
+     */
+    public function requiresApproval(Agent $agent, array $tools, string $name): bool
+    {
+        return isset($tools[$name]) && $this->approvalPolicy->requiresApproval($agent, $tools[$name]->toolName());
+    }
 
     /**
      * @param  array<string, ToolEntry>  $tools  the call's tools, by name
@@ -82,27 +99,13 @@ final readonly class VoiceToolRunner
             return $message;
         }
 
-        $toolName = ToolName::parse($name);
-        $display = $this->display->resolve($agent, $toolName);
-        $decision = $this->access->decide($agent, $toolName);
+        $decision = $this->access->decide($agent, ToolName::parse($name));
 
         if ($decision === ToolAccessDecision::RequiresApproval) {
             return self::NEEDS_APPROVAL_RESULT;
         }
 
-        $call = new PendingToolCallData(
-            toolCallId: $callId,
-            name: $name,
-            arguments: $arguments,
-            requiresApproval: false,
-            access: $decision,
-            kind: $display->kind,
-            label: $display->label,
-            activityLabel: $display->activityLabel,
-            isBuiltin: $display->isBuiltin,
-            iconUrl: $display->iconUrl,
-            brandColor: $display->brandColor,
-        );
+        $call = $this->pendingCall($agent, $callId, $name, $arguments, $decision);
 
         if ($decision === ToolAccessDecision::Deny) {
             $this->audit->record($context, $call, ToolCallOutcome::RateLimited, ToolDispatchResult::error(ToolLoopRunner::RATE_LIMITED_RESULT));
@@ -110,18 +113,65 @@ final readonly class VoiceToolRunner
             return ToolLoopRunner::RATE_LIMITED_RESULT;
         }
 
+        return $this->dispatch($turn, $call, ToolCallOutcome::Auto);
+    }
+
+    /**
+     * Run a call the visitor said yes to. It is audited as approved by a
+     * person, with their words (as stored, after the guardrails) as the
+     * record of the yes. Like an approved typed call it is not rate limited:
+     * the person in the loop is the limit.
+     */
+    public function runApproved(VoiceTurn $turn, string $callId, string $name, string $arguments): string
+    {
+        $call = $this->pendingCall($turn->context->requestData->agent, $callId, $name, $arguments, ToolAccessDecision::RequiresApproval);
+
+        return $this->dispatch($turn, $call, ToolCallOutcome::Approved, $turn->words);
+    }
+
+    private function dispatch(VoiceTurn $turn, PendingToolCallData $call, ToolCallOutcome $outcome, ?string $decisionNote = null): string
+    {
+        $context = $turn->context;
         $startedAt = microtime(true);
-        $result = $this->dispatcher->dispatch($agent, ToolCallData::named(
-            $name,
-            $arguments,
+
+        $result = $this->dispatcher->dispatch($context->requestData->agent, ToolCallData::named(
+            $call->name,
+            $call->arguments,
             $context->requestData->conversationId,
             $context->requestData->chatterExternalId,
         ));
 
-        $context->toolCallNames[] = $name;
-        $this->audit->record($context, $call, ToolCallOutcome::Auto, $result, (int) round((microtime(true) - $startedAt) * 1000));
+        $context->toolCallNames[] = $call->name;
+        $this->audit->record(
+            $context,
+            $call,
+            $outcome,
+            $result,
+            (int) round((microtime(true) - $startedAt) * 1000),
+            decidedByPerson: $outcome->wasGated(),
+            decisionNote: $decisionNote,
+        );
 
         return Str::limit($result->text, self::MAX_RESULT_LENGTH);
+    }
+
+    private function pendingCall(Agent $agent, string $callId, string $name, string $arguments, ToolAccessDecision $access): PendingToolCallData
+    {
+        $display = $this->display->resolve($agent, ToolName::parse($name));
+
+        return new PendingToolCallData(
+            toolCallId: $callId,
+            name: $name,
+            arguments: $arguments,
+            requiresApproval: $access === ToolAccessDecision::RequiresApproval,
+            access: $access,
+            kind: $display->kind,
+            label: $display->label,
+            activityLabel: $display->activityLabel,
+            isBuiltin: $display->isBuiltin,
+            iconUrl: $display->iconUrl,
+            brandColor: $display->brandColor,
+        );
     }
 
     /**

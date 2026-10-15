@@ -3709,7 +3709,8 @@
             "outcome_approved": "approved",
             "outcome_denied": "denied",
             "outcome_rate_limited": "rate limited",
-            "outcome_not_offered": "not offered"
+            "outcome_not_offered": "not offered",
+            "detail_spoken_approval": "Spoken approval"
         },
         "attach_file": {
             "title": "Choose from Already Trained Files",

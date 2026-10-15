@@ -9,6 +9,7 @@ use Domain\Conversation\Data\Turn\KnowledgeLookupData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Voice\VoiceCallData;
 use Domain\Conversation\Events\AssistantReplyCompleted;
+use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
@@ -17,9 +18,16 @@ use Domain\Conversation\Services\Turn\KnowledgeEnricher;
 use Domain\Conversation\Services\Voice\VoiceCallSession;
 use Domain\Conversation\Services\Voice\VoiceCallSlots;
 use Domain\Conversation\Services\Voice\VoiceCallStore;
+use Domain\Conversation\Services\Voice\VoiceToolCatalog;
 use Domain\Conversation\Services\Voice\VoiceToolRunner;
 use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailService;
+use Domain\Integration\Tool\Access\ToolApprovalPolicy;
+use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
+use Domain\Integration\Tool\Data\ToolDispatchResult;
+use Domain\Integration\Tool\Data\ToolEntry;
+use Domain\Integration\Tool\Enums\ToolKind;
+use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Contracts\RealtimeCallHandler;
@@ -130,10 +138,10 @@ it('saves the visitor\'s words before the reply, and counts the reply', function
 });
 
 /** A finished response that only called a tool. */
-function toolCallResponse(string $id, string $name, string $arguments, string $callId = 'fc_1'): array
+function toolCallResponse(string $id, string $name, string $arguments, string $callId = 'fc_1', string $turn = 'item_1'): array
 {
     return ['type' => 'response.done', 'response' => [
-        'id' => $id, 'status' => 'completed', 'metadata' => ['turn' => 'item_1'],
+        'id' => $id, 'status' => 'completed', 'metadata' => ['turn' => $turn],
         'output' => [['type' => 'function_call', 'call_id' => $callId, 'name' => $name, 'arguments' => $arguments]],
     ]];
 }
@@ -144,11 +152,13 @@ function fillerDone(string $status = 'completed'): array
     return ['type' => 'response.done', 'response' => ['id' => 'resp_filler', 'status' => $status, 'metadata' => ['notice' => '1', 'filler' => '1'], 'output' => []]];
 }
 
-it('starts every reply with a knowledge search when the agent has knowledge', function (): void {
-    $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
-    $this->agent->files()->attach($file->id);
+/** Give the agent a file with one chunk, so its calls search knowledge. */
+function giveAgentKnowledge(Agent $agent): void
+{
+    $file = AgentFileFactory::new()->create(['workspace_id' => $agent->workspace_id]);
+    $agent->files()->attach($file->id);
     Chunk::query()->create([
-        'workspace_id' => $this->agent->workspace_id,
+        'workspace_id' => $agent->workspace_id,
         'chunkable_type' => $file->getMorphClass(),
         'chunkable_id' => $file->id,
         'chunk_index' => 1,
@@ -159,6 +169,10 @@ it('starts every reply with a knowledge search when the agent has knowledge', fu
         'checksum' => md5(uniqid()),
         'cost_in_micro_cents' => 0,
     ]);
+}
+
+it('starts every reply with a knowledge search when the agent has knowledge', function (): void {
+    giveAgentKnowledge($this->agent);
     $session = app(VoiceCallSession::class)->for($this->call, $this->agent);
     $session->opened($connection = new RecordingVoiceConnection);
 
@@ -328,6 +342,153 @@ it('saves a reply whose words were never written down, frees the worker and forg
 
     config(['horizon.defaults.voice.maxProcesses' => 1]);
     expect($slots->take('next-call', 60))->toBeTrue();
+});
+
+/** The visitor stops talking, and what they said is written down. */
+function visitorSays(VoiceCallSession $session, string $itemId, string $words): void
+{
+    $session->received(['type' => 'input_audio_buffer.committed', 'item_id' => $itemId]);
+    $session->received(['type' => 'conversation.item.input_audio_transcription.completed', 'item_id' => $itemId, 'transcript' => $words]);
+}
+
+describe('actions that need approval', function (): void {
+    beforeEach(function (): void {
+        Event::fake([AssistantReplyCompleted::class, ToolCallCompleted::class]);
+
+        $this->tool = 'mcp__stripe__send_stripe_feedback';
+        $this->mock(ToolRegistry::class)->shouldReceive('for')->andReturn([
+            new ToolEntry(ToolKind::Mcp, '1', $this->tool, 'Send feedback to Stripe.', ['type' => 'object', 'properties' => ['feedback' => ['type' => 'string']]]),
+        ]);
+        $this->mock(ToolApprovalPolicy::class)->shouldReceive('requiresApproval')->andReturn(true);
+        $this->dispatcher = $this->mock(ToolDispatcherInterface::class);
+
+        $this->session = app(VoiceCallSession::class)->for($this->call, $this->agent);
+        $this->session->opened($this->connection = new RecordingVoiceConnection);
+    });
+
+    it('offers them in the call', function (): void {
+        expect(app(VoiceToolCatalog::class)->for($this->agent, $this->conversation->external_id))->toHaveKey($this->tool);
+    });
+
+    it('holds the action and has the model ask first', function (): void {
+        $this->dispatcher->shouldNotReceive('dispatch');
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+
+        expect($this->connection->ofType('conversation.item.create')[0]['item']['output'])->toBe(VoiceToolRunner::CONFIRM_FIRST_RESULT)
+            // No "let me check" before a question: the model goes straight on to ask.
+            ->and(array_column($this->connection->ofType('response.create'), 'response'))->toBe([
+                ['metadata' => ['turn' => 'item_1']],
+                ['metadata' => ['turn' => 'item_1']],
+            ]);
+        Event::assertNotDispatched(ToolCallCompleted::class);
+    });
+
+    it('runs it when the model repeats it after the visitor\'s yes, and audits their words', function (): void {
+        $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::text('Feedback sent.'));
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        visitorSays($this->session, 'item_2', 'Yes, send it.');
+        // The same arguments, however the model spaces them.
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{ "feedback": "Thank you!" }', 'fc_2', 'item_2'));
+
+        $outputs = $this->connection->ofType('conversation.item.create');
+        expect(array_last($outputs)['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.']);
+        Event::assertDispatched(ToolCallCompleted::class, fn (ToolCallCompleted $event): bool => $event->approvalOutcome === 'approved'
+            && $event->gated
+            && $event->decidedAt !== null
+            && $event->decisionNote === 'Yes, send it.');
+    });
+
+    it('needs a new yes for every run', function (): void {
+        $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::text('Feedback sent.'));
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        visitorSays($this->session, 'item_2', 'Yes.');
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+        $this->session->received(toolCallResponse('resp_3', $this->tool, '{"feedback":"Thank you!"}', 'fc_3', 'item_2'));
+
+        expect(array_last($this->connection->ofType('conversation.item.create'))['item']['output'])->toBe(VoiceToolRunner::CONFIRM_FIRST_RESULT);
+    });
+
+    it('does not take a repeat before the visitor has spoken', function (): void {
+        $this->dispatcher->shouldNotReceive('dispatch');
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2'));
+
+        expect(array_column(array_column($this->connection->ofType('conversation.item.create'), 'item'), 'output'))
+            ->toBe([VoiceToolRunner::CONFIRM_FIRST_RESULT, VoiceToolRunner::CONFIRM_FIRST_RESULT]);
+    });
+
+    it('asks again when the details change', function (): void {
+        $this->dispatcher->shouldNotReceive('dispatch');
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        visitorSays($this->session, 'item_2', 'Yes, but say thanks a lot.');
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thanks a lot!"}', 'fc_2', 'item_2'));
+
+        expect(array_last($this->connection->ofType('conversation.item.create'))['item']['output'])->toBe(VoiceToolRunner::CONFIRM_FIRST_RESULT);
+    });
+
+    it('drops the question once the visitor has moved on', function (): void {
+        $this->dispatcher->shouldNotReceive('dispatch');
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        visitorSays($this->session, 'item_2', 'What else can you do?');
+        visitorSays($this->session, 'item_3', 'Okay.');
+        $this->session->received(toolCallResponse('resp_3', $this->tool, '{"feedback":"Thank you!"}', 'fc_3', 'item_3'));
+
+        expect(array_last($this->connection->ofType('conversation.item.create'))['item']['output'])->toBe(VoiceToolRunner::CONFIRM_FIRST_RESULT);
+    });
+
+    it('waits for the yes to be written down before it runs', function (): void {
+        $this->dispatcher->shouldReceive('dispatch')->once()->andReturn(ToolDispatchResult::text('Feedback sent.'));
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_2']);
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+
+        expect($this->connection->ofType('conversation.item.create'))->toHaveCount(1);
+
+        $this->session->received(['type' => 'conversation.item.input_audio_transcription.completed', 'item_id' => 'item_2', 'transcript' => 'Yes please.']);
+
+        expect(array_last($this->connection->ofType('conversation.item.create'))['item'])->toMatchArray(['call_id' => 'fc_2', 'output' => 'Feedback sent.']);
+    });
+
+    it('asks again when the answer could not be written down', function (): void {
+        $this->dispatcher->shouldNotReceive('dispatch');
+
+        visitorSays($this->session, 'item_1', 'Send Stripe a thank-you note.');
+        $this->session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        $this->session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_2']);
+        $this->session->received(toolCallResponse('resp_2', $this->tool, '{"feedback":"Thank you!"}', 'fc_2', 'item_2'));
+
+        $this->travel(6)->seconds();
+        $this->session->tick();
+
+        expect(array_last($this->connection->ofType('conversation.item.create'))['item'])
+            ->toMatchArray(['call_id' => 'fc_2', 'output' => VoiceToolRunner::CONFIRM_FIRST_RESULT]);
+    });
+
+    it('lets the model act on the answer instead of forcing a search', function (): void {
+        giveAgentKnowledge($this->agent);
+        $session = app(VoiceCallSession::class)->for($this->call, $this->agent);
+        $session->opened($connection = new RecordingVoiceConnection);
+
+        visitorSays($session, 'item_1', 'Send Stripe a thank-you note.');
+        $session->received(toolCallResponse('resp_1', $this->tool, '{"feedback":"Thank you!"}'));
+        $session->received(['type' => 'input_audio_buffer.committed', 'item_id' => 'item_2']);
+
+        expect(array_last($connection->ofType('response.create'))['response'])->toBe(['metadata' => ['turn' => 'item_2']]);
+    });
 });
 
 describe('RunVoiceCallAction', function (): void {

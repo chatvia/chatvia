@@ -44,6 +44,9 @@ return new class extends Migration
             $table->boolean('result_truncated')->default(false);
 
             $table->timestamp('decided_at')->nullable();
+            // What the person said when they decided out loud (a voice
+            // call's yes), as stored after the guardrails.
+            $table->text('decision_note')->nullable();
 
             $table->timestamp('created_at')->useCurrent();
 

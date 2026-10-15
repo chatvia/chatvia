@@ -3576,7 +3576,8 @@
             "outcome_approved": "承認済み",
             "outcome_denied": "拒否",
             "outcome_rate_limited": "レート制限",
-            "outcome_not_offered": "未提供"
+            "outcome_not_offered": "未提供",
+            "detail_spoken_approval": "音声での承認"
         },
         "attach_file": {
             "title": "学習済みファイルから選択",

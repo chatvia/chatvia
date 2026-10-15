@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "غير معروضة"
+            "outcome_not_offered": "غير معروضة",
+            "detail_spoken_approval": "موافقة صوتية"
         }
     }
 }

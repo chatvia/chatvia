@@ -3701,7 +3701,8 @@
             "outcome_approved": "approuvé",
             "outcome_denied": "refusé",
             "outcome_rate_limited": "limité en débit",
-            "outcome_not_offered": "non proposé"
+            "outcome_not_offered": "non proposé",
+            "detail_spoken_approval": "Approbation orale"
         },
         "attach_file": {
             "title": "Choisir parmi les fichiers déjà entraînés",

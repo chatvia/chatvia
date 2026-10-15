@@ -3709,7 +3709,8 @@
             "outcome_approved": "موافق عليه",
             "outcome_denied": "مرفوض",
             "outcome_rate_limited": "تجاوز الحد",
-            "outcome_not_offered": "غير معروضة"
+            "outcome_not_offered": "غير معروضة",
+            "detail_spoken_approval": "موافقة صوتية"
         },
         "attach_file": {
             "title": "اختر من الملفات المدربة مسبقًا",

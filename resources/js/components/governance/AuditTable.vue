@@ -272,6 +272,11 @@ const colspan = computed(() => (props.showAgent ? 6 : 5));
                         </div>
                     </div>
 
+                    <div v-if="selected.decision_note">
+                        <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.detail_spoken_approval') }}</div>
+                        <p class="bg-muted mt-1 rounded-md p-3 text-sm italic">{{ selected.decision_note }}</p>
+                    </div>
+
                     <div>
                         <div class="text-muted-foreground text-xs">{{ t('shared.audit_table.detail_arguments') }}</div>
                         <pre

@@ -21,6 +21,9 @@ use Support\Text\Utf8;
  */
 class RecordToolCallAuditAction
 {
+    /** Longest decision note stored, in bytes. */
+    private const int MAX_NOTE_BYTES = 1000;
+
     public function execute(ToolCallCompleted $event): void
     {
         [$arguments, $argsTruncated] = $this->redactAndCapArguments($event->arguments);
@@ -51,6 +54,7 @@ class RecordToolCallAuditAction
             'result_text' => $result,
             'result_truncated' => $resultTruncated,
             'decided_at' => $event->decidedAt,
+            'decision_note' => $this->cap($event->decisionNote, self::MAX_NOTE_BYTES)[0],
         ]);
     }
 

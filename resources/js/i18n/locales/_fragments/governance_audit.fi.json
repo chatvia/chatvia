@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "ei tarjottu"
+            "outcome_not_offered": "ei tarjottu",
+            "detail_spoken_approval": "Suullinen hyväksyntä"
         }
     }
 }

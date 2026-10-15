@@ -33,6 +33,9 @@ use Illuminate\Support\Facades\Log;
  *   the next part of the reply. While a real search or tool runs, the agent
  *   says a short "let me check" (not saved), and the reply follows once it
  *   has been said.
+ * - A tool that needs a person's approval is held: the agent asks, and the
+ *   tool runs only when the model calls it again in the reply to the
+ *   visitor's next words, once those are written down ({@see VoiceToolApprovals}).
  * - It saves the visitor's words and each finished reply, in that order
  *   ({@see VoiceTurnRecorder}).
  * - It hangs up when the visitor presses End, at the call's time limit, or
@@ -54,12 +57,18 @@ final class VoiceCallSession implements RealtimeCallHandler
     /** How long a reply waits for its "let me check" before it goes on anyway. */
     private const int FILLER_WAIT_SECONDS = 8;
 
+    /** The answer to a tool call of a turn that will not go on. */
+    private const string CANCELLED_RESULT = 'Tool error: this turn was cancelled.';
+
     private VoiceCallData $call;
 
     private StreamRequestData $request;
 
     /** @var array<string, ToolEntry> */
     private array $tools = [];
+
+    /** The actions held for the visitor's yes. */
+    private VoiceToolApprovals $approvals;
 
     private ?RealtimeConnection $connection = null;
 
@@ -106,6 +115,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         $session->call = $call;
         $session->request = $this->factory->request($call, $agent);
         $session->tools = $this->catalog->for($agent, $call->conversation_id);
+        $session->approvals = new VoiceToolApprovals;
         $session->searchesKnowledge = Chunk::query()->hasContentForAgent($agent);
 
         return $session;
@@ -218,15 +228,22 @@ final class VoiceCallSession implements RealtimeCallHandler
         $turn = $this->factory->turn($this->request, $itemId);
         $this->turns[$itemId] = $turn;
 
-        // The visitor spoke again: an earlier reply still waiting is dropped.
+        // The visitor spoke again: an earlier reply still waiting is dropped,
+        // and so is a yes still being written down. These words answer the
+        // question about a held action, if one waits.
         $this->stopWaiting();
+        $this->cancelParkedCalls();
+        $this->approvals->visitorSpoke($itemId);
 
         $refusal = $this->isHandedOff()
             ? VoiceCallRefusal::HandedOff
             : $this->gate->refusal($this->request->agent, $this->call->chatter_id);
 
         if (! $refusal instanceof VoiceCallRefusal) {
-            $this->createResponse($turn, $this->searchesKnowledge ? $this->knowledgeSearch() : null);
+            // An answer to "shall I…?" is not a question: a forced search
+            // would have the model reply instead of acting on the yes.
+            $search = $this->searchesKnowledge && ! $this->approvals->isAnswer($itemId);
+            $this->createResponse($turn, $search ? $this->knowledgeSearch() : null);
 
             return;
         }
@@ -250,10 +267,10 @@ final class VoiceCallSession implements RealtimeCallHandler
             return;
         }
 
-        $turn->words = trim($transcript);
         $guard = $this->recorder->visitorSaid($turn, $transcript);
 
         if (! $guard->blocked) {
+            $this->runParkedCalls($turn);
             $this->saveReplyWhenReady($turn);
 
             return;
@@ -270,6 +287,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         }
 
         $this->send(['type' => 'conversation.item.delete', 'item_id' => $itemId]);
+        $this->runParkedCalls($turn);
 
         $refusal = $guard->refusalMessage ?? __('Sorry, I can\'t help with that.');
         $this->recorder->refusal($turn, $refusal);
@@ -324,7 +342,7 @@ final class VoiceCallSession implements RealtimeCallHandler
         if ($turn->refused || $turn->replyStored) {
             // Every call gets an answer, so the conversation stays valid.
             foreach ($calls as $call) {
-                $this->sendToolOutput($call['call_id'], 'Tool error: this turn was cancelled.');
+                $this->sendToolOutput($call['call_id'], self::CANCELLED_RESULT);
             }
 
             return;
@@ -358,10 +376,18 @@ final class VoiceCallSession implements RealtimeCallHandler
         $this->recorder->reply($turn);
     }
 
-    /** A reply whose visitor words never came is saved with a placeholder. */
+    /**
+     * A reply whose visitor words never came is saved with a placeholder; a
+     * yes that never came is no yes, so its calls are held again.
+     */
     private function saveRepliesWaitingTooLong(float $now): void
     {
         foreach ($this->turns as $itemId => $turn) {
+            if ($turn->parkedAt !== null && ! $turn->userStored && $now - $turn->parkedAt >= self::TRANSCRIPT_WAIT_SECONDS) {
+                $this->recorder->visitorSaid($turn, '');
+                $this->runParkedCalls($turn);
+            }
+
             if ($turn->replyReadyAt !== null && ! $turn->userStored && $now - $turn->replyReadyAt >= self::TRANSCRIPT_WAIT_SECONDS) {
                 $this->recorder->visitorSaid($turn, '');
                 $this->saveReplyWhenReady($turn);
@@ -384,14 +410,24 @@ final class VoiceCallSession implements RealtimeCallHandler
      */
     private function runTools(VoiceTurn $turn, array $calls): void
     {
-        $filler = $turn->toolRounds === 0 && array_any($calls, $this->takesAMoment(...));
+        // A yes counts only once it is written down and the guardrails have
+        // read it: until then, the calls it confirms wait.
+        if (! $turn->userStored && array_any($calls, fn (array $call): bool => $this->confirms($turn, $call))) {
+            $turn->parkedCalls = $calls;
+            $turn->parkedAt = $this->clock();
+
+            return;
+        }
+
+        $filler = $turn->toolRounds === 0
+            && array_any($calls, fn (array $call): bool => $this->takesAMoment($call) && ! $this->isHeld($turn, $call));
 
         if ($filler) {
             $this->sayFiller($this->searchQuery($calls) ?? $turn->words);
         }
 
         foreach ($calls as $call) {
-            $this->sendToolOutput($call['call_id'], $this->toolRunner->run($turn, $this->tools, $call['call_id'], $call['name'], $call['arguments']));
+            $this->sendToolOutput($call['call_id'], $this->runTool($turn, $call));
         }
 
         $turn->toolRounds++;
@@ -406,6 +442,92 @@ final class VoiceCallSession implements RealtimeCallHandler
         $this->waitingTurn = $turn;
         $this->waitingSince = $this->clock();
         $this->waitingToolChoice = $toolChoice;
+    }
+
+    /**
+     * Run one call. One that needs a person's approval is held, and the
+     * model asks, unless it repeats a held call the visitor said yes to.
+     *
+     * @param  array{call_id: string, name: string, arguments: string}  $call
+     */
+    private function runTool(VoiceTurn $turn, array $call): string
+    {
+        if (! $this->isGated($call)) {
+            return $this->toolRunner->run($turn, $this->tools, $call['call_id'], $call['name'], $call['arguments']);
+        }
+
+        if ($this->isHeld($turn, $call)) {
+            $this->approvals->hold($call['name'], $call['arguments']);
+
+            return VoiceToolRunner::CONFIRM_FIRST_RESULT;
+        }
+
+        $this->approvals->release($call['name'], $call['arguments']);
+
+        return $this->toolRunner->runApproved($turn, $call['call_id'], $call['name'], $call['arguments']);
+    }
+
+    /** @param  array{call_id: string, name: string, arguments: string}  $call */
+    private function isGated(array $call): bool
+    {
+        return $this->toolRunner->requiresApproval($this->request->agent, $this->tools, $call['name']);
+    }
+
+    /**
+     * Whether the call repeats a held one in the reply to the visitor's
+     * answer (whether that answer was a yes is the model's call).
+     *
+     * @param  array{call_id: string, name: string, arguments: string}  $call
+     */
+    private function confirms(VoiceTurn $turn, array $call): bool
+    {
+        return $this->isGated($call) && $this->approvals->isConfirmedBy($turn->itemId, $call['name'], $call['arguments']);
+    }
+
+    /**
+     * Whether a call that needs approval waits for the visitor's yes: it
+     * confirms nothing, or the answer could not be written down.
+     *
+     * @param  array{call_id: string, name: string, arguments: string}  $call
+     */
+    private function isHeld(VoiceTurn $turn, array $call): bool
+    {
+        return $this->isGated($call) && (! $this->confirms($turn, $call) || ! filled($turn->words));
+    }
+
+    /** The visitor's words are written down: the calls waiting for them go on. */
+    private function runParkedCalls(VoiceTurn $turn): void
+    {
+        $calls = $turn->parkedCalls;
+        $turn->parkedCalls = [];
+        $turn->parkedAt = null;
+
+        if ($calls === []) {
+            return;
+        }
+
+        if ($turn->refused || $this->hangingUp) {
+            foreach ($calls as $call) {
+                $this->sendToolOutput($call['call_id'], self::CANCELLED_RESULT);
+            }
+
+            return;
+        }
+
+        $this->runTools($turn, $calls);
+    }
+
+    /** The visitor spoke again before their earlier answer was written down: it no longer counts. */
+    private function cancelParkedCalls(): void
+    {
+        foreach ($this->turns as $turn) {
+            foreach ($turn->parkedCalls as $call) {
+                $this->sendToolOutput($call['call_id'], self::CANCELLED_RESULT);
+            }
+
+            $turn->parkedCalls = [];
+            $turn->parkedAt = null;
+        }
     }
 
     /**

@@ -48,6 +48,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $result_text
  * @property bool $result_truncated
  * @property Carbon|null $decided_at
+ * @property string|null $decision_note
  * @property Carbon|null $created_at
  */
 #[Guarded(['id'])]
@@ -124,6 +125,7 @@ class AgentActivity extends Model
             'result_text' => $this->result_text,
             'conversation_external_id' => $this->conversation_external_id,
             'decided_at' => $this->decided_at?->toIso8601String(),
+            'decision_note' => $this->decision_note,
         ];
     }
 

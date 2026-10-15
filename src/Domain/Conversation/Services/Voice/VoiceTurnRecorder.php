@@ -54,6 +54,7 @@ final readonly class VoiceTurnRecorder
         $this->guardrailRecorder->record($context, $guard->text, $guard);
 
         $turn->userStored = true;
+        $turn->words = blank($text) ? '' : $guard->text;
 
         return $guard;
     }

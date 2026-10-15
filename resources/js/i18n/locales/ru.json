@@ -3576,7 +3576,8 @@
             "outcome_approved": "одобрено",
             "outcome_denied": "отклонено",
             "outcome_rate_limited": "ограничено по частоте",
-            "outcome_not_offered": "не предложен"
+            "outcome_not_offered": "не предложен",
+            "detail_spoken_approval": "Устное подтверждение"
         },
         "attach_file": {
             "title": "Выбрать из уже обученных файлов",

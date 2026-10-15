@@ -3576,7 +3576,8 @@
             "outcome_approved": "स्वीकृत",
             "outcome_denied": "अस्वीकृत",
             "outcome_rate_limited": "दर सीमित",
-            "outcome_not_offered": "पेश नहीं किया गया"
+            "outcome_not_offered": "पेश नहीं किया गया",
+            "detail_spoken_approval": "मौखिक स्वीकृति"
         },
         "attach_file": {
             "title": "पहले से प्रशिक्षित फ़ाइलों में से चुनें",

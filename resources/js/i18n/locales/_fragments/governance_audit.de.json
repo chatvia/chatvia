@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "nicht angeboten"
+            "outcome_not_offered": "nicht angeboten",
+            "detail_spoken_approval": "Mündliche Zustimmung"
         }
     }
 }

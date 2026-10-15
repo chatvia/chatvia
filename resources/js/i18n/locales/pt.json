@@ -3701,7 +3701,8 @@
             "outcome_approved": "aprovado",
             "outcome_denied": "recusado",
             "outcome_rate_limited": "limite de taxa atingido",
-            "outcome_not_offered": "não oferecida"
+            "outcome_not_offered": "não oferecida",
+            "detail_spoken_approval": "Aprovação verbal"
         },
         "attach_file": {
             "title": "Escolher de Ficheiros Já Treinados",

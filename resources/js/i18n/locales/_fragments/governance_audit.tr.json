@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "sunulmadı"
+            "outcome_not_offered": "sunulmadı",
+            "detail_spoken_approval": "Sözlü onay"
         }
     }
 }

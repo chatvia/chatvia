@@ -3701,7 +3701,8 @@
             "outcome_approved": "godkänd",
             "outcome_denied": "nekad",
             "outcome_rate_limited": "hastighetsbegränsad",
-            "outcome_not_offered": "inte erbjuden"
+            "outcome_not_offered": "inte erbjuden",
+            "detail_spoken_approval": "Muntligt godkännande"
         },
         "attach_file": {
             "title": "Välj från redan tränade filer",

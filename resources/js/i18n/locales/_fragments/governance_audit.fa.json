@@ -1,7 +1,8 @@
 {
     "shared": {
         "audit_table": {
-            "outcome_not_offered": "ارائه‌نشده"
+            "outcome_not_offered": "ارائه‌نشده",
+            "detail_spoken_approval": "تأیید شفاهی"
         }
     }
 }

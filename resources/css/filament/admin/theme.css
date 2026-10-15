@@ -2377,10 +2377,43 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
     box-shadow: inset 0 0 0 1px var(--cv-primary);
 }
 
+/* The card's icon; a service logo is made grey to match the icons, and dark
+ * mode inverts it (the cards do the same). */
+.cv-outline__icon {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--cv-text-subtle);
+    transition: color 150ms ease;
+}
+
+.cv-outline__link:hover .cv-outline__icon,
+.cv-outline__link--active .cv-outline__icon {
+    color: var(--cv-text);
+}
+
+.cv-outline__icon--logo {
+    object-fit: contain;
+    filter: grayscale(1);
+    opacity: 0.75;
+    transition: opacity 150ms ease;
+}
+
+.dark .cv-outline__icon--logo {
+    filter: grayscale(1) invert(1);
+}
+
+.cv-outline__link:hover .cv-outline__icon--logo,
+.cv-outline__link--active .cv-outline__icon--logo {
+    opacity: 1;
+}
+
+/* A service's status, at the end of its link. */
 .cv-outline__dot {
     flex: none;
-    width: 0.5rem;
-    height: 0.5rem;
+    width: 0.4375rem;
+    height: 0.4375rem;
+    margin-inline-start: auto;
     border-radius: var(--cv-radius-pill);
     background-color: var(--cv-border-strong);
 }
@@ -2395,11 +2428,6 @@ input[type='radio'].fi-radio-input:not(:checked):not(.fi-invalid) {
 
 .cv-outline__dot--primary {
     background-color: var(--cv-primary);
-}
-
-.cv-outline__dot--options {
-    background-color: transparent;
-    box-shadow: inset 0 0 0 1.5px var(--cv-border-strong);
 }
 
 .cv-outline__title {

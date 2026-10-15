@@ -12,13 +12,13 @@ use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Support\Pagination\CursorPage;
 
 /**
  * Workspace webhook functions over the public API — the same Actions as the
  * dashboard's Settings → Functions page. Credentials are encrypted at rest
- * and never returned.
+ * and never returned. `workspace.scope` turns another workspace's function
+ * into a 404.
  */
 #[Group(name: 'Functions', weight: 60)]
 class FunctionController
@@ -61,10 +61,8 @@ class FunctionController
      *
      * @return array{data: FunctionData}
      */
-    public function show(Request $request, AgentFunction $function): array
+    public function show(AgentFunction $function): array
     {
-        abort_if($request->user()->cannot('view', $function), 404);
-
         return ['data' => FunctionData::fromModel($function)];
     }
 
@@ -75,18 +73,14 @@ class FunctionController
      */
     public function update(UpdateApiFunctionRequest $request, AgentFunction $function, UpdateAgentFunctionAction $updateFunction): array
     {
-        abort_if($request->user()->cannot('update', $function), 404);
-
         return ['data' => FunctionData::fromModel($updateFunction->execute($function, $request->toData()))];
     }
 
     /**
      * Delete function
      */
-    public function destroy(Request $request, AgentFunction $function): JsonResponse
+    public function destroy(AgentFunction $function): JsonResponse
     {
-        abort_if($request->user()->cannot('delete', $function), 404);
-
         $function->delete();
 
         return response()->json(null, 204);

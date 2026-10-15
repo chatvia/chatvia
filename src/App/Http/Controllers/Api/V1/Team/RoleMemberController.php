@@ -15,7 +15,8 @@ use Illuminate\Http\JsonResponse;
 /**
  * Assign your users to a team role. The user joins the team under that role and
  * takes on its agent access and permissions. A user holds one role per team —
- * assigning again moves them to the new role.
+ * assigning again moves them to the new role. A role is looked up inside the
+ * team named in the URL, so another team's role is a 404.
  */
 #[Group(name: 'Teams', weight: 40)]
 class RoleMemberController
@@ -27,8 +28,6 @@ class RoleMemberController
      */
     public function store(AssignRoleMemberRequest $request, Team $team, Role $role, AssignUserToRoleAction $action): JsonResponse
     {
-        abort_unless($role->team_id === $team->id, 404);
-
         $user = $request->member();
 
         $action->execute($team, $role, $user);

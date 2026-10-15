@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Chatters;
 
-use App\Http\Controllers\Concerns\ResolvesAccountAgent;
+use App\Http\Requests\Api\V1\Chatter\StoreChatterSignInLinkRequest;
 use App\Http\Resources\Api\V1\Auth\SignInLinkData;
-use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Dedoc\Scramble\Attributes\Group;
-use Domain\Agent\Data\Api\SignInLinkPayloadData;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 /**
  * Mint a sign-in link that logs one of your end-users (chatters) into one of
@@ -21,8 +17,6 @@ use Illuminate\Support\Str;
 #[Group('Chatters', weight: 90)]
 class ChatterSignInLinkController
 {
-    use ResolvesAccountAgent;
-
     public function __construct(
         private readonly AgentSignInTokenService $tokens,
     ) {}
@@ -32,26 +26,14 @@ class ChatterSignInLinkController
      *
      * Mint a sign-in link for one of your end-users (chatters) into one of your agents.
      */
-    public function store(Request $request, SignInLinkPayloadData $payload): JsonResponse
+    public function store(StoreChatterSignInLinkRequest $request): JsonResponse
     {
-        $agent = $this->resolveAccountAgent($request, $payload->agent_id);
-
-        /** @var User $account */
-        $account = $request->user();
-        $workspace = $account->workspace();
-
-        // The link may sign in a chatter of this workspace or one of its staff
-        // (owner or teammate). Ids outside this workspace (or not ids at all)
-        // are 404s.
-        abort_unless(Str::isUuid($payload->user_id), 404);
-
-        $user = $workspace->chatters()->where('external_id', $payload->user_id)->first()
-            ?? $workspace->members()->where('users.external_id', $payload->user_id)->firstOrFail();
+        $agent = $request->agent();
 
         $result = $this->tokens->issue(
-            user: $user,
+            user: $request->signee(),
             agent: $agent,
-            ttlSeconds: $payload->ttl_seconds ?? AgentSignInTokenService::DEFAULT_TTL_SECONDS,
+            ttlSeconds: $request->ttlSeconds(),
         );
 
         return response()->json(['data' => new SignInLinkData(

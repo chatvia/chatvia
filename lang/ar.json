@@ -104,7 +104,6 @@
     "That doesn’t look like a Slack signing secret (find it under Basic Information in your Slack app).": "لا يبدو هذا signing secret من Slack (تجده في Basic Information داخل تطبيق Slack).",
     "That doesn’t look like a Telegram bot token — it should look like 123456789:ABCdef… (get one from @BotFather).": "لا يبدو هذا رمز بوت Telegram — يجب أن يكون بالشكل 123456789:ABCdef… (احصل عليه من @BotFather).",
     "That doesn’t look like a tenant ID — it’s the Directory (tenant) ID GUID in your app registration. Leave it empty for a multi-tenant bot.": "لا يبدو هذا tenant ID — إنه معرّف GUID المسمّى Directory (tenant) ID في تسجيل التطبيق. اتركه فارغًا لبوت متعدد المستأجرين.",
-    "Unknown agent(s): :ids.": "وكلاء غير معروفين: :ids.",
     ":provider connected.": "تم ربط :provider.",
     ":provider disconnected.": "تم فصل :provider.",
     "No account found!": "لم يتم العثور على حساب!",

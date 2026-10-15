@@ -104,7 +104,6 @@
     "That doesn’t look like a Slack signing secret (find it under Basic Information in your Slack app).": "این شبیه signing secret اسلک نیست (آن را در Basic Information برنامهٔ Slack پیدا کنید).",
     "That doesn’t look like a Telegram bot token — it should look like 123456789:ABCdef… (get one from @BotFather).": "این شبیه توکن ربات Telegram نیست — باید شبیه 123456789:ABCdef… باشد (آن را از @BotFather بگیرید).",
     "That doesn’t look like a tenant ID — it’s the Directory (tenant) ID GUID in your app registration. Leave it empty for a multi-tenant bot.": "این شبیه tenant ID نیست — همان GUID به نام Directory (tenant) ID در ثبت برنامهٔ شماست. برای ربات چندمستأجری خالی بگذارید.",
-    "Unknown agent(s): :ids.": "عامل‌های ناشناخته: :ids.",
     ":provider connected.": ":provider متصل شد.",
     ":provider disconnected.": "اتصال :provider قطع شد.",
     "No account found!": "حسابی پیدا نشد!",

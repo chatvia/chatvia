@@ -2,22 +2,21 @@
 
 namespace App\Http\Controllers\Api\V1\Team;
 
+use App\Http\Requests\Api\V1\Team\SaveApiTeamRoleRequest;
 use App\Http\Resources\Api\V1\Team\RoleData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Membership\Team\Actions\Roles\CreateTeamRoleAction;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
-use Domain\Membership\Team\Data\RolePayloadData;
-use Domain\Membership\Team\Data\SaveTeamRoleData;
 use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Roles live inside a team. A role grants access to a set of agents — all of
  * them or a specific list — and carries the dashboard permissions its members
  * hold. After creating a role, assign users to it via
- * `POST /api/v1/teams/{team}/roles/{role}/users`.
+ * `POST /api/v1/teams/{team}/roles/{role}/users`. A role is looked up inside
+ * the team named in the URL, so another team's role is a 404.
  */
 #[Group(name: 'Teams', weight: 40)]
 class RoleController
@@ -25,14 +24,9 @@ class RoleController
     /**
      * Create role
      */
-    public function store(Request $request, Team $team, RolePayloadData $payload, CreateTeamRoleAction $action): JsonResponse
+    public function store(SaveApiTeamRoleRequest $request, Team $team, CreateTeamRoleAction $action): JsonResponse
     {
-        // Same gate as the web side (SaveTeamRoleRequest): TeamPolicy::update.
-        abort_unless($request->user()->can('update', $team), 403);
-
-        $role = $action->execute($this->toSaveData($team, $payload));
-
-        return response()->json(['data' => RoleData::fromModel($role)], 201);
+        return response()->json(['data' => RoleData::fromModel($action->execute($request->toData($team)))], 201);
     }
 
     /**
@@ -43,24 +37,8 @@ class RoleController
      *
      * @return array{data: RoleData}
      */
-    public function update(Request $request, Team $team, Role $role, RolePayloadData $payload, UpdateTeamRoleAction $action): array
+    public function update(SaveApiTeamRoleRequest $request, Team $team, Role $role, UpdateTeamRoleAction $action): array
     {
-        abort_unless($request->user()->can('update', $team), 403);
-        abort_unless($role->team_id === $team->id, 404);
-
-        $updated = $action->execute($role, $this->toSaveData($team, $payload));
-
-        return ['data' => RoleData::fromModel($updated)];
-    }
-
-    private function toSaveData(Team $team, RolePayloadData $payload): SaveTeamRoleData
-    {
-        return new SaveTeamRoleData(
-            team: $team,
-            name: $payload->name,
-            permissions: $payload->permissions,
-            allAgents: $payload->all_agents,
-            agentExternalIds: $payload->agent_ids,
-        );
+        return ['data' => RoleData::fromModel($action->execute($role, $request->toData($team)))];
     }
 }

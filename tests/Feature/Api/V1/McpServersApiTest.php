@@ -79,6 +79,17 @@ describe('GET /api/v1/mcps/{mcp}', function (): void {
             ->getJson("/api/v1/mcps/{$theirs->external_id}")
             ->assertNotFound();
     });
+
+    it('404s for a catalog connector, the workspace’s own or a built-in one', function (): void {
+        $catalog = makeCustomMcpServer($this->user, ['connector_slug' => 'github', 'name' => 'GitHub']);
+        $builtin = makeCustomMcpServer($this->user, ['workspace_id' => null, 'connector_slug' => 'weather', 'name' => 'Weather']);
+
+        foreach ([$catalog, $builtin] as $server) {
+            $this->withHeaders(mcpHeaders($this->token))
+                ->getJson("/api/v1/mcps/{$server->external_id}")
+                ->assertNotFound();
+        }
+    });
 });
 
 describe('DELETE /api/v1/mcps/{mcp}', function (): void {
@@ -92,5 +103,18 @@ describe('DELETE /api/v1/mcps/{mcp}', function (): void {
             ->assertNotFound();
 
         expect(AgentMcpServer::whereKey($theirs->id)->exists())->toBeTrue();
+    });
+
+    it('404s without deleting for a catalog connector, the workspace’s own or a built-in one', function (): void {
+        $catalog = makeCustomMcpServer($this->user, ['connector_slug' => 'github', 'name' => 'GitHub']);
+        $builtin = makeCustomMcpServer($this->user, ['workspace_id' => null, 'connector_slug' => 'weather', 'name' => 'Weather']);
+
+        foreach ([$catalog, $builtin] as $server) {
+            $this->withHeaders(mcpHeaders($this->token))
+                ->deleteJson("/api/v1/mcps/{$server->external_id}")
+                ->assertNotFound();
+
+            expect(AgentMcpServer::whereKey($server->id)->exists())->toBeTrue();
+        }
     });
 });

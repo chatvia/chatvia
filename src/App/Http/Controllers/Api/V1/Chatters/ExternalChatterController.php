@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers\Api\V1\Chatters;
 
-use App\Http\Controllers\Api\V1\Chatters\Concerns\ResolvesWorkspaceAgents;
+use App\Http\Requests\Api\V1\Chatter\StoreApiChatterRequest;
 use App\Http\Resources\Api\V1\Auth\UserData;
 use App\Identity\Chatter\Actions\CreateChatterAction;
-use App\Identity\Chatter\Data\CreateChatterData;
-use App\Identity\Workspace\Data\Account\CreateUserPayloadData;
-use App\Identity\Workspace\Models\User;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 /**
  * Your end-users (chatters). Create one here for one or more agents (with an
@@ -22,8 +18,6 @@ use Illuminate\Http\Request;
 #[Group('Chatters', weight: 90)]
 class ExternalChatterController
 {
-    use ResolvesWorkspaceAgents;
-
     /**
      * Create chatter
      *
@@ -31,20 +25,8 @@ class ExternalChatterController
      * the agents named by `agent_ids`. Returns the chatter's `id` — pass it
      * when minting a sign-in link.
      */
-    public function store(Request $request, CreateUserPayloadData $payload, CreateChatterAction $createChatter): JsonResponse
+    public function store(StoreApiChatterRequest $request, CreateChatterAction $createChatter): JsonResponse
     {
-        /** @var User $account */
-        $account = $request->user();
-        $workspace = $account->workspace();
-
-        $chatter = $createChatter->execute(new CreateChatterData(
-            workspace: $workspace,
-            agents: $this->workspaceAgentsOrFail($workspace, $payload->agent_ids),
-            name: $payload->name,
-            email: $payload->email,
-            password: $payload->password,
-        ));
-
-        return response()->json(['data' => UserData::fromModel($chatter)], 201);
+        return response()->json(['data' => UserData::fromModel($createChatter->execute($request->toData()))], 201);
     }
 }

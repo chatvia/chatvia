@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace Domain\Integration\Function\Data;
 
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Function\Models\AgentFunction;
 use Spatie\LaravelData\Data;
 
 /**
- * Inputs for attaching an account-level function to an agent. `function_id` is
- * the function's `external_id` (not the internal primary key) — it's what the
- * API surface exposes to clients.
+ * Inputs for attaching an account-level function to an agent: the agent and
+ * one of its workspace's functions.
  */
 class AttachAgentFunctionData extends Data
 {
     public function __construct(
         public Agent $agent,
-        public string $function_id,
+        public AgentFunction $function,
     ) {}
 }

@@ -13,6 +13,7 @@ use Support\Pagination\CursorPage;
 
 /**
  * Attach / detach account-level functions to a specific agent.
+ * `can.access.agent` turns a function of another workspace into a 404.
  */
 #[Group(name: 'Functions', weight: 60)]
 class AgentFunctionAttachmentController
@@ -42,28 +43,19 @@ class AgentFunctionAttachmentController
     public function store(AttachAgentFunctionRequest $request, Agent $agent): JsonResponse
     {
         $data = $request->toData($agent);
-        $function = $this->resolveFunction($data->agent, $data->function_id);
 
-        $data->agent->attachFunction($function);
+        $data->agent->attachFunction($data->function);
 
-        return response()->json(['data' => FunctionData::fromModel($function->fresh())], 201);
+        return response()->json(['data' => FunctionData::fromModel($data->function)], 201);
     }
 
     /**
      * Detach function from agent
      */
-    public function destroy(Agent $agent, string $function): JsonResponse
+    public function destroy(Agent $agent, AgentFunction $function): JsonResponse
     {
-        $agent->detachFunction($this->resolveFunction($agent, $function));
+        $agent->detachFunction($function);
 
         return response()->json(null, 204);
-    }
-
-    private function resolveFunction(Agent $agent, string $externalId): AgentFunction
-    {
-        return AgentFunction::query()
-            ->where('workspace_id', $agent->workspace_id)
-            ->where('external_id', $externalId)
-            ->firstOrFail();
     }
 }

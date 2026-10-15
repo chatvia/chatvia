@@ -5,6 +5,7 @@ use App\Identity\Chatter\Data\CreateChatterData;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\AgentSignInTokenService;
 use Domain\Agent\Models\Agent;
+use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Actions\Team\CreateTeamAction;
 use Domain\Membership\Team\Data\CreateTeamData;
@@ -266,6 +267,47 @@ describe('Account-level MCPs + attach/detach', function (): void {
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Weather');
+    });
+
+    it('rejects attaching another account’s MCP server or function', function (): void {
+        $agent = createAgentForUser($this->user);
+        $other = tap(User::factory()->create(), fn (User $u) => app(TeamService::class)->createDefaultTeam($u));
+
+        $theirMcp = AgentMcpServer::create([
+            'workspace_id' => $other->workspace()->id,
+            'name' => 'Theirs',
+            'slug' => 'theirs',
+            'url' => 'https://mcp.example.test',
+            'transport' => 'streamable_http',
+            'auth_type' => 'none',
+        ]);
+        $theirFunction = AgentFunction::query()->create([
+            'workspace_id' => $other->workspace()->id,
+            'internal_name' => 'theirs',
+            'description' => 'Not yours',
+            'parameters_schema' => ['type' => 'object', 'properties' => []],
+            'webhook_url' => 'https://example.com/hook',
+            'webhook_method' => 'POST',
+        ]);
+
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => $theirMcp->external_id])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['mcp_id']);
+
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/functions", ['function_id' => $theirFunction->external_id])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['function_id']);
+
+        // A malformed id fails validation too, before any database lookup.
+        $this->withHeaders(authHeaders($this->token))
+            ->postJson("/api/v1/agents/{$agent->external_id}/mcps", ['mcp_id' => 'not-an-id'])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['mcp_id']);
+
+        expect($agent->mcpServers()->count())->toBe(0)
+            ->and($agent->functions()->count())->toBe(0);
     });
 });
 

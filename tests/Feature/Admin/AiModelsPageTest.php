@@ -7,6 +7,7 @@ use App\Admin\Settings\Jobs\ReindexEmbeddingsJob;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Actions\Settings\ReplaceAgentModelAction;
+use Domain\Agent\Models\Agent;
 use Domain\Integration\Tool\Jobs\ReembedToolVectorsJob;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
@@ -200,7 +201,7 @@ it('moves every agent of a model with one action', function (): void {
     $agents = [createAgent($this->admin, ['llm_id' => $from->id]), createAgent($this->admin, ['llm_id' => $from->id])];
 
     expect(app(ReplaceAgentModelAction::class)->execute($from, $to))->toBe(2)
-        ->and(array_map(fn ($agent): ?int => $agent->fresh()->llm_id, $agents))->toBe([$to->id, $to->id]);
+        ->and(array_map(fn (Agent $agent): ?int => $agent->fresh()->llm_id, $agents))->toBe([$to->id, $to->id]);
 });
 
 it('refuses a search service whose provider is not connected', function (): void {

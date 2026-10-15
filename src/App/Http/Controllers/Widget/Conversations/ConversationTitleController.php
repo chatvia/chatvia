@@ -10,6 +10,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\ChatViewerData;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Widget\Services\WidgetVerification;
 use Illuminate\Http\JsonResponse;
@@ -52,7 +53,7 @@ class ConversationTitleController
         $conversation = $verification->verifyConversationId($conversationId, $agent, $viewer);
         $scope = new ChatScopeData($agent, $sessionId, $conversationId, $viewer);
 
-        if ($conversation === null || ! $memory->withScope($scope)->conversationExists()) {
+        if (! $conversation instanceof Conversation || ! $memory->withScope($scope)->conversationExists()) {
             return response()->json(['error' => 'Invalid thread'], JsonResponse::HTTP_NOT_FOUND);
         }
 

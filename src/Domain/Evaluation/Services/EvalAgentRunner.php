@@ -11,6 +11,7 @@ use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\Tooling\Routing\ToolSelector;
 use Domain\Conversation\Services\Tooling\ToolLoopRunner;
 use Domain\Evaluation\Data\AgentRunResultData;
+use Domain\Llm\Models\Llm;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -57,7 +58,7 @@ class EvalAgentRunner
         $model = $this->models->for($agent);
         $started = microtime(true);
 
-        if ($model === null) {
+        if (! $model instanceof Llm) {
             return new AgentRunResultData('', [], [], null, 0, (string) Str::uuid(), 'Agent has no model, and no model can answer.');
         }
 

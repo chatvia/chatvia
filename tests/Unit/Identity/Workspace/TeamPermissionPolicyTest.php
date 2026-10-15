@@ -36,14 +36,14 @@ it('denies a team owner any permission on another workspace agent', function ():
 });
 
 it('gives a teammate only the agent permissions their role grants', function (): void {
-    $teammate = teammateWithPermissions($this->owner, team: $this->team, permissions: ['agent.setup']);
+    $teammate = teammateWithPermissions($this->owner, permissions: ['agent.setup'], team: $this->team);
 
     expect($this->policy->allowsOnAgent($teammate, $this->agent, 'agent.setup'))->toBeTrue()
         ->and($this->policy->allowsOnAgent($teammate, $this->agent, 'agent.delete'))->toBeFalse();
 });
 
 it('denies a teammate a granted permission on an agent their role does not reach', function (): void {
-    $teammate = teammateWithPermissions($this->owner, team: $this->team, permissions: ['agent.setup'], allAgents: false);
+    $teammate = teammateWithPermissions($this->owner, permissions: ['agent.setup'], team: $this->team, allAgents: false);
 
     expect($this->policy->allowsOnAgent($teammate, $this->agent, 'agent.setup'))->toBeFalse();
 });
@@ -54,7 +54,7 @@ it('grants a team owner every team-level permission', function (): void {
 });
 
 it('gives a teammate only the team-level permissions their role grants', function (): void {
-    $teammate = teammateWithPermissions($this->owner, team: $this->team, permissions: ['account.security']);
+    $teammate = teammateWithPermissions($this->owner, permissions: ['account.security'], team: $this->team);
 
     expect($this->policy->allows($teammate, 'account.security'))->toBeTrue()
         ->and($this->policy->allows($teammate, 'account.chatters.manage'))->toBeFalse();

@@ -30,7 +30,7 @@ final readonly class CreditLicense
         $license = $this->read($key);
 
         return match (true) {
-            $license === null || ! $license->allows(LicenseFeature::HideCredit) => LicenseStatus::Invalid,
+            ! $license instanceof LicenseKey || ! $license->allows(LicenseFeature::HideCredit) => LicenseStatus::Invalid,
             $license->domains === [] => LicenseStatus::NotActivated,
             ! $license->coversHost($this->host()) => LicenseStatus::OtherDomain,
             default => LicenseStatus::Valid,
@@ -46,7 +46,7 @@ final readonly class CreditLicense
     /** The terms of a key signed for Chatvia, whatever domain it names. */
     public function read(?string $key): ?LicenseKey
     {
-        return blank($key) ? null : LicenseSignature::verify((string) $key, $this->config->get('chatvia.license.public_key'));
+        return blank($key) ? null : LicenseSignature::verify($key, $this->config->get('chatvia.license.public_key'));
     }
 
     /** The host this install runs on, from `app.url`. */

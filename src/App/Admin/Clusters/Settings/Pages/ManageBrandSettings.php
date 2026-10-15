@@ -15,6 +15,7 @@ use Filament\Actions\Action;
 use Filament\Schemas\Components\Callout;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
+use Support\License\LicenseKey;
 
 /**
  * Settings → Branding: the "Powered by Chatvia" credit, and a link to hire
@@ -123,7 +124,7 @@ class ManageBrandSettings extends AdminSettingsPage
             return;
         }
 
-        if (is_string($previous) && $this->license()->read($previous) !== null) {
+        if (is_string($previous) && $this->license()->read($previous) instanceof LicenseKey) {
             app(LicenseActivation::class)->release($previous);
         }
 

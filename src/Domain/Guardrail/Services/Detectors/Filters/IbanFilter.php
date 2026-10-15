@@ -45,7 +45,7 @@ final class IbanFilter extends PiiFilter
         $remainder = 0;
 
         foreach (str_split($rearranged) as $char) {
-            $digits = ctype_alpha($char) ? (string) (ord($char) - 55) : $char;
+            $digits = ctype_alpha($char) ? (string) (ord($char[0]) - 55) : $char;
 
             foreach (str_split($digits) as $digit) {
                 $remainder = ($remainder * 10 + (int) $digit) % 97;

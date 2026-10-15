@@ -43,8 +43,8 @@ class ReembedChunksAction
         DB::transaction(function () use ($chunks, $vectors, $questionVectors): void {
             foreach ($chunks as $position => $chunk) {
                 Chunk::query()->whereKey($chunk->id)->toBase()->update([
-                    'embedding' => self::literal($vectors[$position]),
-                    'questions_embedding' => isset($questionVectors[$chunk->id]) ? self::literal($questionVectors[$chunk->id]) : null,
+                    'embedding' => $this->literal($vectors[$position]),
+                    'questions_embedding' => isset($questionVectors[$chunk->id]) ? $this->literal($questionVectors[$chunk->id]) : null,
                 ]);
             }
         });
@@ -75,7 +75,7 @@ class ReembedChunksAction
     /**
      * @param  array<int, float>  $vector
      */
-    private static function literal(array $vector): string
+    private function literal(array $vector): string
     {
         return '['.implode(',', $vector).']';
     }

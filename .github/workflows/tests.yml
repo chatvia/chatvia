@@ -83,6 +83,14 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
 
+      # The programs Chatvia reads knowledge files with, as the Dockerfile
+      # installs them. The tests that need one skip without it, so without
+      # this step CI would never run them.
+      - name: Install file readers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends poppler-utils pandoc catdoc ffmpeg
+
       - name: Create storage directories
         run: |
           mkdir -p storage/framework/cache

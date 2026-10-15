@@ -429,13 +429,13 @@ it('shows every card as a section of its page, with an outline', function (): vo
 });
 
 it('shows the S3 fields only while S3-compatible storage is chosen', function (): void {
-    config(['chatvia.storage.driver' => 'local']);
+    config(['filesystems.storage' => 'local']);
 
     settingsPage($this->admin, ManageStorageSettings::class)
         ->assertFormFieldHidden('s3_region')
         ->fillForm(['driver' => 's3'])
         ->assertFormFieldVisible('s3_region')
-        ->assertFormFieldVisible('private_bucket');
+        ->assertFormFieldVisible('s3_bucket');
 });
 
 it('refuses a security log floor above the days to keep it', function (): void {

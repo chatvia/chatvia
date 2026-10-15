@@ -41,7 +41,7 @@ it('removes a key that was deactivated at chatvia.ai', function (): void {
 
     expect(checkedLicenseKey())->toBeNull()
         ->and(app(BrandSettings::class)->powered_by_enabled)->toBeNull()
-        ->and(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
+        ->and(config('chatvia.powered_by'))->toBeTrue();
 
     Http::assertSent(fn (Request $request): bool => $request['id'] === LicenseKeys::ID
         && $request['domain'] === 'chat.acme.com'
@@ -53,7 +53,7 @@ it('keeps a key that is still active', function (): void {
 
     expect(app(CheckLicenseAction::class)->execute())->toBeFalse()
         ->and(checkedLicenseKey())->toBe(LicenseKeys::activatedFor('chat.acme.com'))
-        ->and(config('chatvia.brand.powered_by.enabled'))->toBeFalse();
+        ->and(config('chatvia.powered_by'))->toBeFalse();
 });
 
 it('keeps the key when chatvia.ai gives no answer', function (Closure $answer): void {

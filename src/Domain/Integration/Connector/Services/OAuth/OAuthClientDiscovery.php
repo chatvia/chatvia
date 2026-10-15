@@ -29,7 +29,7 @@ class OAuthClientDiscovery
         // could silently ignore our code_challenge, leaving a stolen code usable.
         if (! $metadata->supportsPkce()) {
             throw new McpOAuthException(
-                'This service does not support the secure sign-in method (PKCE with S256) that '.config('chatvia.brand.name').' requires, so it cannot be connected.'
+                'This service does not support the secure sign-in method (PKCE with S256) that Chatvia requires, so it cannot be connected.'
             );
         }
 

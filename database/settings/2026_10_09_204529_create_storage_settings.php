@@ -19,9 +19,7 @@ return new class extends SettingsMigration
             $group->add('s3_key');
             $group->addEncrypted('s3_secret');
             $group->add('s3_path_style');
-            $group->add('private_bucket');
-            $group->add('public_bucket');
-            $group->add('public_url');
+            $group->add('s3_bucket');
         });
     }
 

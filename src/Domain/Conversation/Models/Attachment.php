@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Support\Concerns\HasExternalId;
 use Throwable;
 
@@ -21,10 +22,10 @@ use Throwable;
  * Q&A (the document LLM gets the file inside each request); the shape is
  * generic enough to back image or audio attachments too.
  *
- * Stored on the public object-storage disk so URL-consuming MCP tools can
- * fetch the file directly. Deleting a row (including via the
- * conversation cascade in {@see Conversation::booted}) wipes the
- * underlying S3 object once the delete commits.
+ * Stored on the private disk and opened through a signed link (the
+ * `attachments.view` route). Deleting a row (including via the
+ * conversation cascade in {@see Conversation::booted}) wipes the stored
+ * file once the delete commits.
  *
  * @property int $id
  * @property string $external_id
@@ -37,7 +38,7 @@ use Throwable;
  * @property int|null $pages PDF page count (null for non-PDFs)
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read string $url Public URL on the public disk
+ * @property-read string $url Signed link that opens the file
  * @property-read Conversation|null $conversation
  * @property-read Message|null $message
  */
@@ -56,13 +57,8 @@ class Attachment extends Model
 {
     use HasExternalId, HasStorageFile;
 
-    /**
-     * Public bucket every chat attachment lives on. Hardcoded rather than a
-     * per-row column because we always want public URLs (MCP tools fetch
-     * them server-side); a private disk would need pre-signing per request,
-     * which is wasted overhead for the use case.
-     */
-    public const DISK = 'public';
+    /** The disk every chat attachment is stored on. */
+    public const DISK = 'private';
 
     /**
      * @return BelongsTo<Conversation, $this>
@@ -86,19 +82,19 @@ class Attachment extends Model
     }
 
     /**
-     * Derived public URL. HasStorageFile's read helpers operate on the
-     * default disk; ours live on the public disk, so we expose the URL via
-     * an accessor instead of storing it.
+     * The link that opens the file. It never expires (chat history keeps
+     * it) and its signature leaves out the host, so it works in the hosted
+     * chat, the widget on another site and the dashboard alike.
      *
      * @return Attribute<string, never>
      */
     public function url(): Attribute
     {
-        return Attribute::get(fn (): string => Storage::disk(self::DISK)->url($this->filepath));
+        return Attribute::get(fn (): string => url(URL::signedRoute('attachments.view', ['attachment' => $this], absolute: false)));
     }
 
     /**
-     * Wipe the S3 object whenever a row is deleted — including via the
+     * Wipe the stored file whenever a row is deleted — including via the
      * conversation cascade triggered in {@see Conversation::booted}. The
      * object goes only once the delete commits (at once when there is no
      * transaction), so a rolled-back delete keeps the file its row points to.

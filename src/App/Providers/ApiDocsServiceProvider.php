@@ -22,7 +22,7 @@ class ApiDocsServiceProvider extends ServiceProvider
         // Scramble copies its config while its own provider boots, before the
         // brand name saved in the admin panel is applied, so set it again.
         $config = (array) config('scramble');
-        data_set($config, 'ui.title', config('chatvia.brand.name').' API');
+        data_set($config, 'ui.title', 'Chatvia API');
 
         Scramble::configure()->useConfig($config)->withDocumentTransformers(function (OpenApi $openApi): void {
             $openApi->secure(

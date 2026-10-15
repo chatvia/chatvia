@@ -1,7 +1,5 @@
 <?php
 
-use App\Admin\Settings\StorageDisks;
-
 /**
  * A fresh install must work without the operator's cloud accounts, domains
  * or machine paths, while an install that sets the env keeps today's setup.
@@ -52,11 +50,7 @@ function configFileWith(string $file, array $env): array
 function noCloudStorageEnv(): array
 {
     return [
-        'SCALEWAY_BUCKET' => null,
-        'SCALEWAY_BUCKET_PUBLIC' => null,
         'BUNNYCDN_STORAGE_ZONE' => null,
-        'FILESYSTEM_PRIVATE_DRIVER' => null,
-        'FILESYSTEM_PUBLIC_DRIVER' => null,
         'FILESYSTEM_ASSETS_DRIVER' => null,
         'APP_URL' => 'https://files.example.org',
     ];
@@ -66,18 +60,15 @@ it('stores files on the local disk when no bucket or CDN zone is configured', fu
     $config = configFileWith('filesystems.php', noCloudStorageEnv());
     $disks = $config['disks'];
 
-    expect($disks['private'])->toMatchArray([
-        'driver' => 'local',
-        'root' => storage_path('app/private'),
-        'serve' => true,
-        'url' => 'https://files.example.org/private-storage',
-    ])
-        ->and($disks['public'])->toMatchArray([
+    expect($config['storage'])->toBe('local')
+        ->and($disks['private'])->toMatchArray([
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => 'https://files.example.org/storage',
-            'visibility' => 'public',
+            'root' => storage_path('app/private'),
+            'serve' => true,
+            'url' => 'https://files.example.org/private-storage',
         ])
+        ->and($disks['s3']['bucket'])->toBeNull()
+        ->and($disks)->not->toHaveKey('public')
         ->and($disks['assets'])->toMatchArray([
             'driver' => 'local',
             'root' => storage_path('app/public'),
@@ -87,47 +78,20 @@ it('stores files on the local disk when no bucket or CDN zone is configured', fu
         ->and($config['links'])->toBe([public_path('storage') => storage_path('app/public')]);
 });
 
-/**
- * The private and public disks built from `chatvia.storage` read with the
- * given env (the defaults while nothing is saved in Settings → Storage).
- *
- * @param  array<string, string|null>  $env
- * @return array<string, array<string, mixed>>
- */
-function storageDisksWith(array $env): array
-{
-    config(['chatvia.storage' => configFileWith('chatvia.php', [...noCloudStorageEnv(), ...$env])['storage']]);
-
-    return new StorageDisks(app('config'), app())->disks();
-}
-
-it('keeps object storage and the CDN when their env is set', function (): void {
-    $disks = storageDisksWith(['SCALEWAY_BUCKET' => 'acme-private', 'SCALEWAY_BUCKET_PUBLIC' => 'acme-public']);
+it('keeps the CDN when its env is set', function (): void {
     $assets = configFileWith('filesystems.php', [...noCloudStorageEnv(), 'BUNNYCDN_STORAGE_ZONE' => 'acme-zone'])['disks']['assets'];
 
-    expect($disks['private'])->toMatchArray(['driver' => 's3', 'bucket' => 'acme-private'])
-        ->and($disks['public'])->toMatchArray(['driver' => 's3', 'bucket' => 'acme-public', 'visibility' => 'public'])
-        ->and($assets)->toMatchArray(['driver' => 'bunnycdn', 'storage_zone' => 'acme-zone']);
-});
-
-it('has no default public bucket name', function (): void {
-    $disks = storageDisksWith(['SCALEWAY_BUCKET' => 'acme-private']);
-
-    expect($disks['public']['driver'])->toBe('s3')
-        ->and($disks['public']['bucket'])->toBeNull();
+    expect($assets)->toMatchArray(['driver' => 'bunnycdn', 'storage_zone' => 'acme-zone']);
 });
 
 it('lets an explicit driver override the detected one', function (): void {
-    $disks = storageDisksWith(['SCALEWAY_BUCKET' => 'acme-private', 'FILESYSTEM_PRIVATE_DRIVER' => 'local']);
     $assets = configFileWith('filesystems.php', [
         ...noCloudStorageEnv(),
         'BUNNYCDN_STORAGE_ZONE' => 'acme-zone',
         'FILESYSTEM_ASSETS_DRIVER' => 'local',
     ])['disks']['assets'];
 
-    expect($disks['private']['driver'])->toBe('local')
-        ->and($disks['public']['driver'])->toBe('local')
-        ->and($assets['driver'])->toBe('local');
+    expect($assets['driver'])->toBe('local');
 });
 
 it('derives passkey origins from APP_URL plus the www variant', function (): void {

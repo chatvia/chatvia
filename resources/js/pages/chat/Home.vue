@@ -14,7 +14,6 @@ import VoiceModeOverlay from '@/components/chat/voice/VoiceModeOverlay.vue';
 import HeroIcon from '@/components/common/HeroIcon.vue';
 import { chatPages } from '@/composables/chat/chatPages';
 import { useChatSurface } from '@/composables/chat/useChatSurface';
-import { useBrand } from '@/composables/useBrand';
 import { normalizeLocale } from '@/i18n';
 import { resolveStarters } from '@/lib/appearanceText';
 import { deleteMethod as deleteAttachment, store as storeAttachment } from '@/routes/chat/messages/attachments';
@@ -72,7 +71,6 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const { t, locale: i18nLocale } = useI18n();
-const { brand } = useBrand();
 const { resolvedAppearance, maxFilesPerChat, canSendMessages } = useChatSurface(props);
 
 const starters = ref<ConversationStarter[]>([]);
@@ -134,7 +132,7 @@ async function createNewConversation(message: string, attachments: ChatAttachmen
         :enabledLanguages="enabledLanguages"
         :embedded="embedded"
     >
-        <Head :title="brand.name" />
+        <Head title="Chatvia" />
         <template #content>
             <div class="relative flex h-full items-center justify-center px-4 py-8">
                 <div class="mx-auto -mt-8 w-full max-w-3xl">

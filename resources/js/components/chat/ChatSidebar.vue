@@ -26,7 +26,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { chatPages } from '@/composables/chat/chatPages';
 import { useChatConversations } from '@/composables/chat/useChatConversations';
-import { useBrand } from '@/composables/useBrand';
 import { useCurrentRoute } from '@/composables/useCurrentRoute';
 import { useIsMobile } from '@/composables/useIsMobile';
 import { safeStorage } from '@/lib/safeStorage';
@@ -57,7 +56,6 @@ const { params: routeParams } = useCurrentRoute();
 const SIDEBAR_STORAGE_KEY = 'sidebarOpen';
 
 const { t } = useI18n();
-const { brand } = useBrand();
 const page = usePage<SharedData>();
 const isMobileDevice = useIsMobile();
 const { conversations, isLoading: isLoadingConversations, search, rename, remove, removeAll } = useChatConversations();
@@ -166,13 +164,13 @@ function logout() {
                     <img
                         v-if="appearance?.logo"
                         :src="appearance.logo"
-                        :alt="appearance?.chat_window_title || brand.name"
+                        :alt="appearance?.chat_window_title || 'Chatvia'"
                         class="h-8 object-contain"
                     />
                     <template v-else>
                         <AppLogoIcon class="h-7 w-7" />
                         <span class="text-foreground text-sm font-semibold tracking-tight">
-                            {{ appearance?.chat_window_title || brand.name }}
+                            {{ appearance?.chat_window_title || 'Chatvia' }}
                         </span>
                     </template>
                 </Link>

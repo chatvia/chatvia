@@ -579,7 +579,7 @@ it('reads documents with the Mistral key of the first step', function (): void {
 })->skip(fn (): bool => app(EmbeddingStorage::class)->dimensions() !== 1024, 'Mistral embeddings are 1024 dimensions only.');
 
 it('starts every optional service on "Not now" and storage on this server, whatever .env suggests', function (): void {
-    config(['chatvia.storage.driver' => 's3', 'mail.default' => 'smtp', 'chatvia.ai.transcriber' => 'auto']);
+    config(['filesystems.storage' => 's3', 'mail.default' => 'smtp', 'chatvia.ai.transcriber' => 'auto']);
 
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway'])
@@ -728,17 +728,16 @@ it('asks for S3 details, and stops when the storage does not work', function ():
     setupPage($this->admin)
         ->fillForm(['provider' => 'scaleway', 'api_key' => 'scw-test', 'storage_driver' => 's3'])
         ->goToWizardStep(7)
-        ->assertHasFormErrors(['s3_region', 's3_key', 's3_secret', 'private_bucket', 'public_bucket'])
+        ->assertHasFormErrors(['s3_region', 's3_key', 's3_secret', 's3_bucket'])
         ->fillForm([
             's3_endpoint' => 'http://127.0.0.1:9',
             's3_region' => 'us-east-1',
             's3_key' => 'key',
             's3_secret' => 'secret',
-            'private_bucket' => 'private',
-            'public_bucket' => 'public',
+            's3_bucket' => 'files',
         ])
         ->goToWizardStep(7)
-        ->assertHasFormErrors(['private_bucket']);
+        ->assertHasFormErrors(['s3_bucket']);
 });
 
 it('sends email with the provider set up, or warns that nobody gets email', function (): void {

@@ -94,21 +94,19 @@ it('keeps the legacy plain-string bubble list working', function (): void {
         ->and($settings->bubble_translations[0])->toBe([]);
 });
 
-it('builds the powered-by credit from the brand config', function (): void {
-    config([
-        'chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat'],
-    ]);
+it('builds the powered-by credit', function (): void {
+    config(['chatvia.powered_by' => true]);
 
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 
     expect($settings->branding->enabled)->toBeTrue()
-        ->and($settings->branding->name)->toBe('Powered by Acme Chat')
+        ->and($settings->branding->name)->toBe('Powered by Chatvia')
         ->and($settings->branding->url)->toBe('https://chatvia.ai')
         ->and($settings->chatvia_branding)->toBeTrue();
 });
 
 it('shows the powered-by credit even when an agent saved it hidden', function (): void {
-    config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat']]);
+    config(['chatvia.powered_by' => true]);
 
     // Agents cannot hide the credit, whatever their settings hold.
     $agent = createAgent(User::factory()->create());
@@ -121,7 +119,7 @@ it('shows the powered-by credit even when an agent saved it hidden', function ()
 });
 
 it('always links the powered-by credit to chatvia.ai', function (): void {
-    config(['chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme Chat', 'url' => 'https://acme.example'], 'chatvia.uri' => 'http://elsewhere.test']);
+    config(['chatvia.powered_by' => true]);
 
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 
@@ -129,7 +127,7 @@ it('always links the powered-by credit to chatvia.ai', function (): void {
 });
 
 it('hides the powered-by credit when the install turns it off', function (): void {
-    config(['chatvia.brand.powered_by' => ['enabled' => false, 'label' => 'Acme Chat']]);
+    config(['chatvia.powered_by' => false]);
 
     $settings = app(BuildWidgetSettingsAction::class)->execute(createAgent(User::factory()->create()));
 

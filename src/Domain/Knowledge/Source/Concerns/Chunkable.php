@@ -8,8 +8,6 @@ use Domain\Knowledge\Source\Enums\SourceStatus;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Chunk relations and ingestion progress for a knowledge source model. Chunks
@@ -92,33 +90,5 @@ trait Chunkable
         return $this
             ->morphOne(Chunk::class, 'chunkable')
             ->where('chunk_index', 0);
-    }
-
-    /**
-     * Image URLs pulled out of `metadata->images` keys across this source's
-     * chunks. Filtered + projected in SQL so we only ship rows that actually
-     * have images, instead of loading every chunk's metadata into PHP.
-     *
-     * @return array<int, string>
-     */
-    public function images(): array
-    {
-        // Only this source's chunks are scanned (chunks_page_idx), so the
-        // containment test needs no index of its own.
-        return $this->chunks()
-            ->where('metadata', '@>', '{"images": {}}')
-            ->selectRaw("metadata->'images' AS images")
-            ->pluck('images')
-            ->flatMap(function (mixed $json): Collection {
-                // The containment filter above guarantees `images` is a JSON object.
-                /** @var array<string, mixed> $images */
-                $images = is_string($json) ? json_decode($json, true) : (array) $json;
-
-                return collect($images)->keys();
-            })
-            ->unique()
-            ->map(fn (string $path): string => Storage::disk('public')->url($path))
-            ->values()
-            ->toArray();
     }
 }

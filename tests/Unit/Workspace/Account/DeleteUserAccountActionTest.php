@@ -34,10 +34,9 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     // The teardown wipes workspaces/{external_id} and users/{external_id} on
-    // the default, public and assets disks; fake all three so the assertions stay hermetic and never
-    // hit real S3 / CDN storage.
+    // the default and assets disks; fake both so the assertions stay hermetic
+    // and never hit real S3 / CDN storage.
     Storage::fake();
-    Storage::fake('public');
     Storage::fake('assets');
 });
 
@@ -152,8 +151,6 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
     // chat_attachments rows go by FK cascade with their conversation, which
     // never fires the Attachment deleting-observer. The files live under the
     // workspace prefix, so the storage wipe removes them.
-    Storage::fake('public');
-
     $agent = Agent::factory()->create();
     $owner = $agent->workspace->owner;
 
@@ -167,7 +164,7 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
     ]);
 
     $filepath = "workspaces/{$agent->workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
-    Storage::disk('public')->put($filepath, 'data');
+    Storage::disk(Attachment::DISK)->put($filepath, 'data');
     $attachment = Attachment::create([
         'chat_conversation_id' => $conversation->id,
         'filepath' => $filepath,
@@ -176,11 +173,11 @@ it('wipes conversation attachment files that the FK cascade would otherwise orph
         'size_bytes' => 4,
     ]);
 
-    Storage::disk('public')->assertExists($filepath);
+    Storage::disk(Attachment::DISK)->assertExists($filepath);
 
     app(DeleteUserAccountAction::class)->execute($owner);
 
-    Storage::disk('public')->assertMissing($filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
 });
 

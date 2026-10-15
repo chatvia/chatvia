@@ -33,8 +33,7 @@ class DeleteAttachmentAction
                 return false;
             }
 
-            // Fires the model's `deleting` hook, which wipes the underlying
-            // S3 object on the public Scaleway bucket.
+            // Fires the model's `deleted` hook, which wipes the stored file.
             $fresh->delete();
 
             return true;

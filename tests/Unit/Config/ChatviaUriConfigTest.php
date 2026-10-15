@@ -27,21 +27,19 @@ function chatviaConfigWith(?string $uri): mixed
 it('points at chatvia.ai by default', function (): void {
     $config = chatviaConfigWith(null);
 
-    expect($config['uri'])->toBe('https://chatvia.ai')
-        ->and($config['license'])->toMatchArray([
-            'buy_url' => 'https://chatvia.ai/license',
-            'manage_url' => 'https://chatvia.ai/license/manage',
-            'api_url' => 'https://chatvia.ai/api/licenses',
-        ]);
+    expect($config['license'])->toMatchArray([
+        'buy_url' => 'https://chatvia.ai/license',
+        'manage_url' => 'https://chatvia.ai/license/manage',
+        'api_url' => 'https://chatvia.ai/api/licenses',
+    ]);
 });
 
 it('points at a local copy of the site when one is set', function (): void {
     $config = chatviaConfigWith('http://chatvia-landing.test');
 
-    expect($config['uri'])->toBe('http://chatvia-landing.test')
-        ->and($config['license'])->toMatchArray([
-            'buy_url' => 'http://chatvia-landing.test/license',
-            'manage_url' => 'http://chatvia-landing.test/license/manage',
-            'api_url' => 'http://chatvia-landing.test/api/licenses',
-        ]);
+    expect($config['license'])->toMatchArray([
+        'buy_url' => 'http://chatvia-landing.test/license',
+        'manage_url' => 'http://chatvia-landing.test/license/manage',
+        'api_url' => 'http://chatvia-landing.test/api/licenses',
+    ]);
 });

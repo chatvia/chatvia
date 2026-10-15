@@ -105,7 +105,7 @@ it('hides the credit only with a license key activated for this domain', functio
     $settings->license_key = $key;
     $settings->save();
 
-    expect(config('chatvia.brand.powered_by.enabled'))->toBe($shown);
+    expect(config('chatvia.powered_by'))->toBe($shown);
 })->with([
     'activated for this domain' => fn (): array => [LicenseKeys::activatedFor('chat.acme.com'), false],
     'no key' => [null, true],
@@ -123,12 +123,12 @@ it('keeps the credit on when the domain no longer matches the key', function ():
     $settings->license_key = LicenseKeys::activatedFor('chat.acme.com');
     $settings->save();
 
-    expect(config('chatvia.brand.powered_by.enabled'))->toBeFalse();
+    expect(config('chatvia.powered_by'))->toBeFalse();
 
     config(['app.url' => 'https://chat.moved.com']);
     settingsConfig()->apply();
 
-    expect(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
+    expect(config('chatvia.powered_by'))->toBeTrue();
 });
 
 it('shows the credit when it is on, with or without a key', function (): void {
@@ -140,7 +140,7 @@ it('shows the credit when it is on, with or without a key', function (): void {
     $settings->license_key = LicenseKeys::activatedFor('chat.acme.com');
     $settings->save();
 
-    expect(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
+    expect(config('chatvia.powered_by'))->toBeTrue();
 });
 
 it('stores secrets encrypted and other values in plain JSON', function (): void {

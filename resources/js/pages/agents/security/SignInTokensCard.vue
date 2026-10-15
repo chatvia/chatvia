@@ -5,7 +5,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useBrand } from '@/composables/useBrand';
+import { apiDocsUrl } from '@/lib/apiDocs';
 import { ArrowUpRight, Check, Copy } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -24,7 +24,6 @@ const props = defineProps<{
 const emit = defineEmits<{ copy: [text: string, key: string] }>();
 
 const { t } = useI18n();
-const { apiDocsUrl } = useBrand();
 
 const embedSnippet = computed(() =>
     [

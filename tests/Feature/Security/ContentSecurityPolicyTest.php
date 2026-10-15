@@ -3,7 +3,6 @@
 use App\Http\Middleware\Web\ContentSecurityPolicy;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
 // These tests pin the ContentSecurityPolicy middleware's header contract by
 // mounting it on probe routes. It is also registered globally in the `web`
@@ -76,8 +75,6 @@ describe('enforce mode', function (): void {
         config([
             'filesystems.disks.assets.pull_zone' => 'https://cdn-zone.example.net',
             'app.asset_url' => 'https://assets.example.net/build',
-            // A relative URL is same-origin, already covered by 'self'.
-            'filesystems.disks.public.url' => '/storage',
         ]);
 
         $imgSrc = collect(explode('; ', (string) $this->get('/_csp-chat-probe')->headers->get('Content-Security-Policy')))
@@ -104,24 +101,6 @@ describe('enforce mode', function (): void {
             ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
 
         expect($imgSrc)->toContain('https://files.example.org');
-    });
-
-    it('lets the chat load public files from an S3 bucket that has no public address set', function (): void {
-        config(['filesystems.disks.public' => [
-            'driver' => 's3',
-            'key' => 'key',
-            'secret' => 'secret',
-            'region' => 'fr-par',
-            'endpoint' => 'https://s3.fr-par.scw.cloud',
-            'bucket' => 'files-public',
-            'url' => null,
-        ]]);
-        Storage::forgetDisk('public');
-
-        $imgSrc = collect(explode('; ', (string) $this->get('/_csp-chat-probe')->headers->get('Content-Security-Policy')))
-            ->first(fn (string $directive): bool => str_starts_with($directive, 'img-src'));
-
-        expect($imgSrc)->toContain('s3.fr-par.scw.cloud');
     });
 
     it('adds the report-uri when one is configured', function (): void {

@@ -54,7 +54,7 @@ it('activates a bought key for this domain, then lets the credit be hidden', fun
 
     expect(savedBrand()->license_key)->toBe(LicenseKeys::activatedFor('chat.acme.com'))
         ->and(savedBrand()->powered_by_enabled)->toBeFalse()
-        ->and(config('chatvia.brand.powered_by.enabled'))->toBeFalse();
+        ->and(config('chatvia.powered_by'))->toBeFalse();
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://licenses.test/api/licenses/activate'
         && $request['key'] === LicenseKeys::BOUGHT_KEY
@@ -101,7 +101,7 @@ it('greys out the switch and keeps the credit on without a license', function ()
         ->assertHasNoFormErrors();
 
     expect(savedBrand()->powered_by_enabled)->toBeNull()
-        ->and(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
+        ->and(config('chatvia.powered_by'))->toBeTrue();
 });
 
 it('shows the switch on, greyed out, when the saved license stopped working', function (): void {
@@ -144,14 +144,14 @@ it('frees a removed key at chatvia.ai and shows the credit again', function (): 
     $settings->license_key = LicenseKeys::activatedFor('chat.acme.com');
     $settings->save();
 
-    expect(config('chatvia.brand.powered_by.enabled'))->toBeFalse();
+    expect(config('chatvia.powered_by'))->toBeFalse();
 
     brandPage($this->admin)
         ->callAction(TestAction::make('forget_license_key')->schemaComponent('license_key', schema: 'form'));
 
     expect(savedBrand()->license_key)->toBeNull()
         ->and(savedBrand()->powered_by_enabled)->toBeNull()
-        ->and(config('chatvia.brand.powered_by.enabled'))->toBeTrue();
+        ->and(config('chatvia.powered_by'))->toBeTrue();
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://licenses.test/api/licenses/deactivate'
         && $request['key'] === LicenseKeys::activatedFor('chat.acme.com')

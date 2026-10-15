@@ -42,8 +42,7 @@ it('stores registration secrets only in the encrypted columns', function (): voi
     expect($raw)->not->toContain('dcr-secret')->not->toContain('dcr-rat');
 });
 
-it('registers the client under the configured brand name', function (): void {
-    config(['chatvia.brand.name' => 'Acme Chat']);
+it('registers the client as Chatvia', function (): void {
 
     Http::fake([
         'auth.example.test/register' => Http::response(['client_id' => 'dcr-client'], 201),
@@ -59,7 +58,7 @@ it('registers the client under the configured brand name', function (): void {
     app(McpOAuthRegistrar::class)->clientFor($metadata);
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://auth.example.test/register'
-        && $request['client_name'] === 'Acme Chat');
+        && $request['client_name'] === 'Chatvia');
 });
 
 /**

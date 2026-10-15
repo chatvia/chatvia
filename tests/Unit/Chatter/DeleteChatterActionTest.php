@@ -25,9 +25,9 @@ use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     // Chatter deletion wipes the avatar tree on the assets disk and attachment
-    // files on the public bucket; fake both so the assertions stay hermetic and
+    // files on the private disk; fake both so the assertions stay hermetic and
     // never hit real S3 / CDN storage.
-    Storage::fake('public');
+    Storage::fake(Attachment::DISK);
     Storage::fake('assets');
 });
 
@@ -145,7 +145,7 @@ it('keeps the sessions of a staff account whose id equals the chatter id', funct
 
 it('wipes the deleted chatter conversation attachment files on S3', function (): void {
     config(['cache.stores.chat' => ['driver' => 'array']]);
-    Storage::fake('public');
+    Storage::fake(Attachment::DISK);
 
     $workspace = User::factory()->workspace()->create();
     $chatter = Chatter::factory()->ofWorkspace($workspace)->create();
@@ -161,7 +161,7 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
     ]);
 
     $filepath = "users/{$workspace->external_id}/agents/{$agent->external_id}/attachments/pending/doc.pdf";
-    Storage::disk('public')->put($filepath, 'data');
+    Storage::disk(Attachment::DISK)->put($filepath, 'data');
     $attachment = Attachment::create([
         'chat_conversation_id' => $conversation->id,
         'filepath' => $filepath,
@@ -170,11 +170,11 @@ it('wipes the deleted chatter conversation attachment files on S3', function ():
         'size_bytes' => 4,
     ]);
 
-    Storage::disk('public')->assertExists($filepath);
+    Storage::disk(Attachment::DISK)->assertExists($filepath);
 
     app(DeleteChatterAction::class)->execute($chatter);
 
-    Storage::disk('public')->assertMissing($filepath);
+    Storage::disk(Attachment::DISK)->assertMissing($filepath);
     expect(Attachment::whereKey($attachment->id)->exists())->toBeFalse();
 });
 

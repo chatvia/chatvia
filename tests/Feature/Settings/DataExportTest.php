@@ -64,8 +64,7 @@ it('lets the owner download a ready export', function (): void {
         ->assertOk();
 });
 
-it('names the download after the configured brand', function (): void {
-    config(['chatvia.brand.name' => 'Acme Chat']);
+it('names the download after Chatvia', function (): void {
     Storage::fake('local');
     Storage::disk('local')->put('data-exports/brand.zip', 'pretend-zip-bytes');
 
@@ -83,7 +82,7 @@ it('names the download after the configured brand', function (): void {
         ->assertOk()
         ->headers->get('Content-Disposition');
 
-    expect($disposition)->toContain('acme-chat-export-'.$this->user->id.'-');
+    expect($disposition)->toContain('chatvia-export-'.$this->user->id.'-');
 });
 
 it('hides another user\'s export from a download', function (): void {

@@ -7,14 +7,10 @@ use App\Identity\Workspace\Notifications\AccountDeletionConfirmationNotification
 use App\Identity\Workspace\Notifications\DataExportReadyNotification;
 
 /**
- * Transactional emails name the configured brand (`chatvia.brand.name`), in
- * English and in the translated copies, never a hard-coded product name.
+ * Transactional emails name Chatvia through the `:app` placeholder, in
+ * English and in the translated copies.
  */
-beforeEach(function (): void {
-    config(['chatvia.brand.name' => 'Acme Chat']);
-});
-
-it('names the brand in the data export and account deletion emails', function (): void {
+it('names Chatvia in the data export and account deletion emails', function (): void {
     $user = User::factory()->create();
     $export = DataExport::create([
         'user_id' => $user->id,
@@ -28,6 +24,6 @@ it('names the brand in the data export and account deletion emails', function ()
     $export = new DataExportReadyNotification($export)->toMail($user);
     $deletion = new AccountDeletionConfirmationNotification('https://app.example/confirm', 'Sam')->toMail($user);
 
-    expect($export->subject)->toBe('Your Acme Chat data export is ready')
-        ->and($deletion->introLines[0])->toBe('We received a request to permanently delete your Acme Chat account.');
+    expect($export->subject)->toBe('Your Chatvia data export is ready')
+        ->and($deletion->introLines[0])->toBe('We received a request to permanently delete your Chatvia account.');
 });

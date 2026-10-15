@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\Social\MicrosoftAuthController;
 use App\Http\Controllers\Auth\Social\MicrosoftCallbackAuthController;
 use App\Http\Controllers\Auth\Social\Slack\SlackAuthController;
 use App\Http\Controllers\Auth\Social\Slack\SlackCallbackController;
+use App\Http\Controllers\Chat\Messages\AttachmentViewController;
 use App\Http\Controllers\Connector\ConnectorOAuthCallbackController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\KnowledgeFiles\SourceFileViewController;
@@ -45,6 +46,13 @@ Route::get('/auth/slack', SlackAuthController::class)->middleware('throttle:10,1
 Route::get('/auth/slack/callback', SlackCallbackController::class)->middleware('throttle:30,1')->name('auth.slack.callback');
 
 Route::get('my/chunks/{chunkExternalId}/{imageIndex}.png', AgentChunkImageViewController::class)->name('chunks.image.view');
+
+// A file attached to a conversation. Public like the chunk images, so only
+// the signed link the attachment makes is accepted. The signature leaves out
+// the host, so the link works wherever the chat is shown.
+Route::get('attachments/{attachment}', AttachmentViewController::class)
+    ->middleware('signed:relative')
+    ->name('attachments.view');
 
 // Serves a tenant's uploaded knowledge-base file. Requires auth; the controller
 // additionally scopes the file to the caller's workspace (cross-tenant IDOR).

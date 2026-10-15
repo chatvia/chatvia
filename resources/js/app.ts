@@ -52,18 +52,12 @@ axios.interceptors.request.use((config) => {
 http.onRequest((config) => ({ ...config, headers: { ...config.headers, ...csrfHeaders() } }));
 
 /** Takes the agent segment and the CSRF token from each page the server sends. */
-// The brand name for page titles. The server-rendered
-// <title> holds it until the first page's props arrive.
-let appName = document.title || 'Chatvia';
+// The product name at the end of every page title.
+const appName = 'Chatvia';
 
 function syncPageContext(pageProps: Record<string, unknown>): void {
     agentSlug = typeof pageProps.agentSlug === 'string' && pageProps.agentSlug !== '' ? pageProps.agentSlug : null;
     setCsrfToken(pageProps.csrfToken);
-
-    const brand = pageProps.brand as { name?: unknown } | null | undefined;
-    if (typeof brand?.name === 'string' && brand.name !== '') {
-        appName = brand.name;
-    }
 }
 
 // The install's default language (Settings → Platform), shared by the server.

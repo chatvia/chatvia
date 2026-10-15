@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Support\Exceptions\UnsafeUrlException;
 use Support\Http\SafeUrl;
 use Support\Http\WebhookSignature;
@@ -181,7 +180,7 @@ class HttpToolDispatcher implements ToolDispatcherInterface
     {
         $headers = [
             'Accept' => 'application/json',
-            'User-Agent' => Str::studly((string) config('chatvia.brand.name')).'/Tools',
+            'User-Agent' => 'Chatvia/Tools',
         ];
 
         foreach ((array) ($function->webhook_headers ?? []) as $h) {

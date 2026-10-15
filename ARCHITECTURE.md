@@ -102,10 +102,11 @@ locators there; use constructor injection instead.
 
 | Test | What it checks |
 |---|---|
-| `tests/Architecture/ConventionsTest.php` | Domain does not import `Illuminate\Http\Request` (except the two bridges); Domain imports from App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App; Actions use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions are scoped; form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is registered in a service provider. |
-| `tests/Architecture/ActionsHaveTestsTest.php` | Every Action has a test, or is on a shrink-only allowlist. Prints the coverage. |
+| `tests/Architecture/ConventionsTest.php` | Domain does not use `Illuminate\Http\Request` (except the two bridges); Domain uses App only through `App\Identity`; Integration does not use Conversation; Support has no code reference to Domain or App (these read the code, not comments, so a fully-qualified name counts); Actions (in every layer, the admin panel's too) use `execute()` (never `handle()`), never return `redirect`, never use the `Auth` facade, never send notifications; Jobs have no transactions or row locks; listeners have no `Listener` suffix; Domain models have no `...Request` names; controllers never call `$request->validate()`; `external_id` lookups of conversations and sessions, on one line or split over several, go through `WidgetVerification` (an allowlist names the others and why each is safe); form requests use `WorkspaceRule` for `exists`/`unique` (shrink-only allowlist for install-wide values); every listener is passed to `Event::listen()`/`Event::subscribe()` in a service provider. |
+| `tests/Architecture/ActionsHaveTestsTest.php` | Every Action is named in the code of a test file (not a comment or a `use` line, not a helper in `tests/Pest.php` or `tests/Support/`), or is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/ClassesHaveDocblocksTest.php` | Every class, interface, trait and enum under `src/` has a docblock with at least one sentence of prose, or its file is on a shrink-only allowlist. Prints the coverage. |
 | `tests/Architecture/FrontendConventionsTest.php` | Frontend rules: no `hsl(var(--x))`, no third-party icon CDN or Google Fonts, no `console.log`, `safeStorage` on the boot and hosted-chat paths, one shared Echo connection, `AlertDialog` for delete confirmations. |
+| `tests/Architecture/Psr4PathCaseTest.php` | Every class file git tracks under `src/` has the exact case of its namespace and class name, as Linux autoloading needs (macOS forgives a wrong case). |
 
 The Architecture suite runs without the Laravel container or a database, so it
 takes about a second: `vendor/bin/pest tests/Architecture`.
@@ -1079,7 +1080,7 @@ See the widget's README for embed options.
 
 | Suite | Folder | Notes |
 |---|---|---|
-| Unit | `tests/Unit/` | Actions, services, DTOs. Grouped by context, following the source layout (`tests/Unit/Agent/Actions/Account/CreateAgentActionTest.php`). |
+| Unit | `tests/Unit/` | Actions, services, DTOs. In the folder of their context, following the source (`tests/Unit/Agent/Actions/Account/CreateAgentActionTest.php`, `tests/Unit/Knowledge/Retrieval/…`); App code under `tests/Unit/{Admin,Http,Identity,Mcp}/…`. |
 | Feature | `tests/Feature/` | HTTP-level tests, the safety net for routes, middleware and permissions. |
 | Architecture | `tests/Architecture/` | Framework-free rules (section 2). |
 | Eval | `tests/Eval/` | Quality checks with real models (group `eval`). They skip themselves without an API key. |
@@ -1092,7 +1093,13 @@ See the widget's README for embed options.
   outside call) gets a unit test: build the DTO, call `execute()`, check the
   result and the events with `Event::fake()`.
 - Tests never call real outside services. Use `Http::fake()` and the fakes in
-  `tests/Support/` (embeddings, reranker, channel clients).
+  `tests/Support/` (embeddings, reranker, channel clients). `TestCase` calls
+  `Http::preventStrayRequests()`, so a request no fake answers fails the test,
+  and it turns off Inertia's server-side rendering. The `chat` cache store,
+  Redis in every environment, is an array store in tests.
+- Shared set-up lives in `tests/Pest.php` (`createAgent()`,
+  `teammateWithPermissions()`, …) and the model factories. A helper declared
+  in a test file is a global function, so it gets a short per-file prefix.
 
 ### The ratchets
 

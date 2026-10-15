@@ -79,7 +79,7 @@
                             <p class="cv-service__description">{{ $service->description() }}</p>
                         </div>
 
-                        @include('filament.status.state', ['status' => $status])
+                        @include('filament.status.state', ['status' => $status, 'label' => $status?->state->label()])
                     </div>
 
                     @if ($status === null)
@@ -133,7 +133,7 @@
                         @endif
                     </div>
 
-                    @include('filament.status.state', ['status' => $status])
+                    @include('filament.status.state', ['status' => $status, 'label' => $status?->state->outsideServiceLabel()])
                 </div>
             @endforeach
         </div>

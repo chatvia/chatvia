@@ -1,13 +1,12 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Channel\Enums\MetaApp;
-use Domain\Channel\Instagram\Data\InstagramAccountData;
 use Domain\Channel\Instagram\Models\AgentInstagramAccount;
 use Domain\Channel\Instagram\Services\InstagramClient;
 use Domain\Channel\Services\MetaOAuthClient;
 use Domain\Membership\Team\Services\TeamService;
 use Tests\Support\Instagram\FakeInstagramClient;
+use Tests\Support\Instagram\FakeInstagramOAuthClient;
 
 /**
  * The Instagram connect flow is OAuth (Facebook Login for Business, Page-linked):
@@ -16,35 +15,6 @@ use Tests\Support\Instagram\FakeInstagramClient;
  * independent of the cache store). These tests pin that stash, the CSRF state
  * check, and the final connect.
  */
-class FakeInstagramOAuthClient extends MetaOAuthClient
-{
-    /** @var list<array{page_id: string, page_name: string, page_access_token: string, ig_id: string, ig_username: string}> */
-    public array $accountsList = [[
-        'page_id' => '998877',
-        'page_name' => 'Acme Support',
-        'page_access_token' => 'EAAG-page-token',
-        'ig_id' => '17840012345',
-        'ig_username' => 'acme.support',
-    ]];
-
-    public ?string $userToken = 'USER-LONG-TOKEN';
-
-    public function authorizeUrl(MetaApp $app, string $state, string $scopes): string
-    {
-        return 'https://www.facebook.com/dialog/oauth?state='.$state;
-    }
-
-    public function exchangeCodeForUserToken(MetaApp $app, string $code): ?string
-    {
-        return $this->userToken;
-    }
-
-    public function pagesWithInstagram(string $userToken): array
-    {
-        return array_map(InstagramAccountData::from(...), $this->accountsList);
-    }
-}
-
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);

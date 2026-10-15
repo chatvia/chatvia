@@ -6,6 +6,7 @@ use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Services\WhatsappClient;
 use Domain\Membership\Team\Services\TeamService;
 use Tests\Support\Whatsapp\FakeWhatsappClient;
+use Tests\Support\Whatsapp\FakeWhatsappOAuthClient;
 
 /**
  * WhatsApp connects via Embedded Signup: the Facebook JS SDK popup hands the
@@ -13,16 +14,6 @@ use Tests\Support\Whatsapp\FakeWhatsappClient;
  * (no redirect/callback/picker round-trip like Messenger). These tests pin the
  * public-agent gate, the duplicate-number guard, and the final connect.
  */
-class FakeWhatsappOAuthClient extends MetaOAuthClient
-{
-    public ?string $token = 'EAAG-business-token';
-
-    public function exchangeEmbeddedSignupCode(string $code): ?string
-    {
-        return $this->token;
-    }
-}
-
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
     app(TeamService::class)->createDefaultTeam($this->owner);

@@ -24,11 +24,11 @@ use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
-use Domain\Llm\Contracts\RealtimeConnection;
-use Domain\Llm\Data\Realtime\RealtimeCallData;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
+use Tests\Support\Voice\RecordingVoiceConnection;
+use Tests\Support\Voice\ScriptedRealtimeCalls;
 
 /**
  * The server's side of a voice call ({@see VoiceCallSession}, run by
@@ -38,71 +38,6 @@ use Illuminate\Support\Str;
  * limit), refuses a turn a guardrail blocks, and hangs up on End, at the time
  * limit or at the message limit.
  */
-
-/** A worker's connection that records what it sends. */
-final class RecordingVoiceConnection implements RealtimeConnection
-{
-    /** @var list<array<string, mixed>> */
-    public array $sent = [];
-
-    public bool $closed = false;
-
-    public function send(array $event): void
-    {
-        $this->sent[] = $event;
-    }
-
-    public function close(): void
-    {
-        $this->closed = true;
-    }
-
-    /** @return list<array<string, mixed>> */
-    public function ofType(string $type): array
-    {
-        return array_values(array_filter($this->sent, fn (array $event): bool => $event['type'] === $type));
-    }
-}
-
-/** Realtime calls that record hang-ups and play a scripted call on join. */
-final class ScriptedRealtimeCalls implements RealtimeCalls
-{
-    /** @var list<string> */
-    public array $hungUp = [];
-
-    /** @var list<string> */
-    public array $joined = [];
-
-    /** @param  Closure(RealtimeCallHandler): void|null  $script */
-    public function __construct(public ?Closure $script = null) {}
-
-    public function isEnabled(): bool
-    {
-        return true;
-    }
-
-    public function model(): string
-    {
-        return 'gpt-realtime-2.1';
-    }
-
-    public function create(string $offerSdp, array $session, string $safetyId): RealtimeCallData
-    {
-        return new RealtimeCallData('v=0 answer', 'rtc_test');
-    }
-
-    public function join(string $callId, RealtimeCallHandler $handler): void
-    {
-        $this->joined[] = $callId;
-        ($this->script)?->__invoke($handler);
-    }
-
-    public function hangUp(string $callId): void
-    {
-        $this->hungUp[] = $callId;
-    }
-}
-
 beforeEach(function (): void {
     Queue::fake();
     Event::fake([AssistantReplyCompleted::class]);

@@ -59,9 +59,11 @@ function sourceTitle(source: MessageSource, index: number): string {
                     <li v-for="(source, index) in sources" :key="source.id ?? index" class="flex min-w-0 items-center gap-3 rounded-lg border p-3">
                         <Badge variant="secondary" class="shrink-0 text-xs">{{ index + 1 }}</Badge>
                         <component :is="kindIcons[source.kind] ?? FileText" class="text-muted-foreground h-4 w-4 shrink-0" />
-                        <!-- dir="auto": a right-to-left name reads from the right and is cut at its own end. -->
-                        <span dir="auto" class="min-w-0 flex-1 truncate text-start text-sm font-medium" :title="sourceTitle(source, index)">
-                            {{ sourceTitle(source, index) }}
+                        <!-- The inner dir="auto" cuts a name at its own end (the left of an Arabic one); the outer span keeps the row's direction for me-auto. -->
+                        <span class="me-auto flex min-w-0">
+                            <span dir="auto" class="truncate text-sm font-medium" :title="sourceTitle(source, index)">
+                                {{ sourceTitle(source, index) }}
+                            </span>
                         </span>
                         <span v-if="(source.passages ?? 1) > 1" class="text-muted-foreground shrink-0 text-xs">
                             {{ t('sources.passage_count', { count: source.passages }, { plural: source.passages }) }}

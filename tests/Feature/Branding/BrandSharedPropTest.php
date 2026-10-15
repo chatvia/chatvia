@@ -14,7 +14,7 @@ beforeEach(function (): void {
         'chatvia.brand.name' => 'Acme Chat',
         'chatvia.brand.docs_url' => 'https://docs.example.com',
         'chatvia.brand.api_docs_url' => null,
-        'chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme', 'url' => null],
+        'chatvia.brand.powered_by' => ['enabled' => true, 'label' => 'Acme'],
     ]);
 });
 
@@ -25,8 +25,7 @@ it('shares the brand block with dashboard pages', function (): void {
             ->where('brand.name', 'Acme Chat')
             ->where('brand.docs_url', 'https://docs.example.com')
             ->where('brand.api_docs_url', null)
-            ->where('brand.powered_by.label', 'Acme')
-            ->where('brand.powered_by.url', null));
+            ->where('brand.powered_by.label', 'Acme'));
 });
 
 it('shares the brand block with the hosted chat', function (): void {
@@ -38,6 +37,5 @@ it('shares the brand block with the hosted chat', function (): void {
             ->component('chat/Home')
             ->where('brand.name', 'Acme Chat')
             ->where('brand.powered_by.enabled', true)
-            ->where('brand.powered_by.label', 'Acme')
-            ->where('brand.powered_by.url', null));
+            ->where('brand.powered_by.label', 'Acme'));
 });

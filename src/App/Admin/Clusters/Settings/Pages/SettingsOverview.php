@@ -7,11 +7,13 @@ namespace App\Admin\Clusters\Settings\Pages;
 use App\Admin\Clusters\Settings\AdminSettingsPage;
 use App\Admin\Clusters\Settings\SettingsCluster;
 use App\Admin\Clusters\Settings\SettingsSearch;
+use App\Admin\Settings\CreditLicense;
 use App\Admin\Settings\SetupRequirements;
 use App\Admin\Settings\SetupStatus;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -97,6 +99,7 @@ class SettingsOverview extends Page
     public function content(Schema $schema): Schema
     {
         return $schema->components([
+            $this->supportCallout(),
             View::make('filament.settings.tiles')->viewData(function (): array {
                 $search = app(SettingsSearch::class);
                 $terms = $search->terms($this->search);
@@ -110,6 +113,52 @@ class SettingsOverview extends Page
                 ];
             }),
         ]);
+    }
+
+    /**
+     * Asks the install to buy a license, which supports the developer and
+     * hides the "Powered by Chatvia" credit; thanks the install that has one.
+     */
+    private function supportCallout(): Callout
+    {
+        $license = app(CreditLicense::class);
+        $key = config('chatvia.license.key');
+        $key = is_string($key) ? $key : null;
+
+        if ($license->allowsHidingCredit($key)) {
+            return Callout::make('Thank you for your support')
+                ->description('Your license is active, licensed to '.$license->read($key)?->licensee.'. It helps me keep Chatvia free and open source.')
+                ->icon(Heroicon::OutlinedHeart)
+                ->success()
+                ->actions([$this->hireMeAction()]);
+        }
+
+        return Callout::make('Support Chatvia')
+            ->description('Chatvia is free and open source. A license costs $399, one time. It supports my work on Chatvia and removes the "Powered by Chatvia" credit from your chats.')
+            ->icon(Heroicon::OutlinedHeart)
+            ->color('primary')
+            ->extraAttributes(['class' => 'cv-link-dividers'])
+            ->actions([
+                Action::make('buyLicense')
+                    ->label('Buy a license')
+                    ->url((string) config('chatvia.license.buy_url'))
+                    ->openUrlInNewTab(),
+                Action::make('addLicenseKey')
+                    ->label('I have a key')
+                    ->url(ManageBrandSettings::getUrl())
+                    ->link(),
+                $this->hireMeAction(),
+            ]);
+    }
+
+    /** The developer's services (also on Settings → Branding). */
+    private function hireMeAction(): Action
+    {
+        return Action::make('hireMe')
+            ->label('Hire me')
+            ->url('https://mayahi.net/services')
+            ->openUrlInNewTab()
+            ->link();
     }
 
     /**

@@ -821,9 +821,9 @@ can reach or decrypt the database: APP_KEY, DB, Redis, drivers, Reverb,
 `VITE_*`, the embedding storage, the Bunny CDN `assets` disk, `FLARE_KEY`
 (error reports must work before the database loads), `BUILTIN_MCP_SECRET`
 and `BUILTIN_MCP_INTERNAL_URL` (a secret and a network address of each
-install), `TRUSTED_PROXIES`, and `CHATVIA_LICENSE_SERVER` (the site that
-sells and activates license keys, chatvia.ai by default; set it only to test
-against a local copy of that site). The license public key stays fixed in
+install), `TRUSTED_PROXIES`, and `CHATVIA_URI` (Chatvia's own site,
+chatvia.ai by default, read as `config('chatvia.uri')`: where license keys are
+sold and activated; set it only to test against a local copy of the site). The license public key stays fixed in
 `config/chatvia.php`: whoever could set it could sign their own keys. Program paths (pdfinfo, pandoc, ffmpeg,
 WeasyPrint…) are in **Settings → Platform → Programs** (`ServerProgram`). The
 panel accepts only a program's own name or a full path that ends in it and
@@ -929,7 +929,7 @@ Switches for a self-hosted install:
 | Open sign-up (admin panel, **Settings → Workspaces**) | Opens `/register`. On by default. |
 | Monthly message limit of new workspaces (admin panel, **Settings → Workspaces**) | Applied when someone signs up. 0 (the default) means no limit. Change one workspace's limit on its page under **Workspaces**. |
 | Days to keep conversations (admin panel, **Settings → Workspaces**) | The longest a conversation is kept (default 366). A workspace can choose fewer days in its security settings, never more. |
-| Brand (admin panel, **Settings → Brand**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `app:check-license` asks chatvia.ai daily whether the key is still active and removes it if the buyer deactivated it there. The product name and links are fixed. |
+| Branding (admin panel, **Settings → Branding**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `app:check-license` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
 The user guide has the full setup: <https://chatvia.ai/docs/guide/self-hosting/>.

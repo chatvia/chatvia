@@ -12,7 +12,7 @@ use Livewire\Livewire;
 use Tests\Support\LicenseKeys;
 
 /**
- * Settings → Brand: hiding the "Powered by" credit needs a license key. A new
+ * Settings → Branding: hiding the "Powered by" credit needs a license key. A new
  * key is activated at chatvia.ai for this install's domain before it is
  * saved, and a removed key is freed there again.
  */
@@ -156,4 +156,11 @@ it('frees a removed key at chatvia.ai and shows the credit again', function (): 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://licenses.test/api/licenses/deactivate'
         && $request['key'] === LicenseKeys::activatedFor('chat.acme.com')
         && $request['domain'] === 'chat.acme.com');
+});
+
+it('offers the developer\'s services', function (): void {
+    brandPage($this->admin)
+        ->assertSee('Hire me')
+        ->assertSee('See my services')
+        ->assertSee('https://mayahi.net/services');
 });

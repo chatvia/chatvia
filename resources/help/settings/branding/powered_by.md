@@ -5,4 +5,4 @@ Controls the small "Powered by Chatvia" line under hosted chats and chat widgets
 
 A key works on one domain at a time. When you save a key, this install sends it and its domain (the domain in `APP_URL`, such as `chat.example.com`) to chatvia.ai to activate it. A key that is active on another domain is refused. Saving the same key again on the same domain is fine.
 
-To move a key to another domain, remove it here (it is then deactivated at chatvia.ai), or deactivate it on the **Manage license** page at chatvia.ai/license. Once a day this install asks chatvia.ai whether its key is still active. If it is not, the key is removed and the credit shows again. If chatvia.ai can't be reached, nothing changes.
+To move a key to another install, remove it here (it is then revoked at chatvia.ai), or revoke it on the **Manage license** page at chatvia.ai/license/manage. Once a day this install asks chatvia.ai whether its key is still active. If it is not, the key is removed and the credit shows again. If chatvia.ai can't be reached, nothing changes.

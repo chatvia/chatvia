@@ -638,7 +638,7 @@ class Setup extends SimplePage
                             ->viewData(['rows' => [
                                 'Settings → Knowledge' => 'How texts are split into chunks, search, the AI enhancement of sources, follow-up questions, and the file types people can upload.',
                                 'Settings → AI models' => 'More chat models, and the models for app tasks.',
-                                'Settings → Brand' => 'The "Powered by Chatvia" credit under hosted chats and widgets.',
+                                'Settings → Branding' => 'The "Powered by Chatvia" credit under hosted chats and widgets.',
                                 'Settings → Workspaces' => 'Who can sign up, and how long conversations are kept.',
                                 'Settings → Sign-in and Security' => 'Sign-in with other accounts, and the bot check on public forms.',
                                 'Settings → Retention & limits' => 'Tool call limits, guardrails and the security log.',

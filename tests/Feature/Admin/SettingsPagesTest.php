@@ -77,7 +77,7 @@ it('shows every settings page, and the overview links to each one', function ():
     }
 
     expect(collect(SettingsCluster::getClusteredComponents())->map(fn (string $page): string => $page::getSlug())->sort()->values()->all())
-        ->toBe(['ai-models', 'ai-providers', 'brand', 'channels', 'connectors', 'email', 'knowledge', 'limits', 'overview', 'platform', 'security', 'sign-in', 'storage', 'workspaces']);
+        ->toBe(['ai-models', 'ai-providers', 'branding', 'channels', 'connectors', 'email', 'knowledge', 'limits', 'overview', 'platform', 'security', 'sign-in', 'storage', 'workspaces']);
 });
 
 it('shows a card for every service, with its status', function (): void {

@@ -27,7 +27,6 @@ export function useBrand(): { brand: ComputedRef<Brand>; apiDocsUrl: (operation?
             powered_by: {
                 enabled: shared?.powered_by?.enabled === true,
                 label: shared?.powered_by?.label || name,
-                url: urlOrNull(shared?.powered_by?.url),
             },
         };
     });

@@ -20,18 +20,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chatvia's site
+    |--------------------------------------------------------------------------
+    |
+    | https://chatvia.ai: where licenses are sold and activated, and the base
+    | for any other link the app makes to Chatvia's own site. Set CHATVIA_URI
+    | in .env (no trailing slash) only to test against a local copy of it.
+    |
+    */
+
+    'uri' => env('CHATVIA_URI', 'https://chatvia.ai'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Brand
     |--------------------------------------------------------------------------
     |
     | Everything that names or links to the product. Installs cannot change
     | these. Only `powered_by.enabled` is set in the admin panel (Settings →
-    | Brand); the value here is the default while nothing is saved there.
+    | Branding); the value here is the default while nothing is saved there.
     | Turning the credit off works only with a license key (see License
     | below). An empty URL hides its link.
     |
     | - name: product name in the UI, emails, file names and outbound headers.
     | - website_url / docs_url / api_docs_url: links shown in the app.
     | - powered_by: the "Powered by …" credit under hosted chats and widgets.
+    |   It always links to https://chatvia.ai, fixed in the hosted chat and
+    |   the widget, not here.
     |
     */
 
@@ -43,7 +58,6 @@ return [
         'powered_by' => [
             'enabled' => true,
             'label' => 'Chatvia',
-            'url' => null,
         ],
     ],
 
@@ -61,27 +75,26 @@ return [
     | removes the key, no answer keeps it. Without a valid key the credit
     | always shows, whatever the switch says.
     |
-    | - key: the activated key, set in the admin panel (Settings → Brand).
+    | - key: the activated key, set in the admin panel (Settings → Branding).
     | - public_key: checks the keys. Fixed here, never in .env or the panel:
     |   whoever sets it could sign their own keys. While it is empty, no key
     |   is valid.
     | - buy_url / manage_url: where to buy a license and where to see or
-    |   deactivate it, linked from Settings → Brand.
+    |   deactivate it, linked from Settings → Branding.
     | - api_url: where keys are activated, released and checked.
     |
-    | All three are on the site that sells and activates keys, chatvia.ai.
-    | Set CHATVIA_LICENSE_SERVER in .env (no trailing slash) only to test
-    | against a local copy of that site. A server of your own can't make keys
-    | this install accepts: they must be signed for public_key.
+    | All three are on Chatvia's site (CHATVIA_URI, see `uri` above). A site of
+    | your own can't make keys this install accepts: they must be signed for
+    | public_key.
     |
     */
 
     'license' => [
         'key' => null,
         'public_key' => 'Syv1BerjH1Daz/uepuAgSjxf0uyyzbjzKyc2osApnQc=',
-        'buy_url' => env('CHATVIA_LICENSE_SERVER', 'https://chatvia.ai').'/license',
-        'manage_url' => env('CHATVIA_LICENSE_SERVER', 'https://chatvia.ai').'/license/manage',
-        'api_url' => env('CHATVIA_LICENSE_SERVER', 'https://chatvia.ai').'/api/licenses',
+        'buy_url' => env('CHATVIA_URI', 'https://chatvia.ai').'/license',
+        'manage_url' => env('CHATVIA_URI', 'https://chatvia.ai').'/license/manage',
+        'api_url' => env('CHATVIA_URI', 'https://chatvia.ai').'/api/licenses',
     ],
 
     /*

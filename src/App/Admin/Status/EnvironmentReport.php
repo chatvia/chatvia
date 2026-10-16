@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Admin\Status;
 
+use App\Admin\Settings\SettingsConfig;
 use App\Admin\Status\Data\EnvironmentFactData;
 use App\Admin\Status\Data\EnvironmentGroupData;
 use Composer\InstalledVersions;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -87,13 +89,38 @@ final readonly class EnvironmentReport
     private function caches(): array
     {
         $views = File::glob($this->app->storagePath('framework/views/*.php')) !== [];
+        $settings = $this->settingsAreCached();
 
         return [
             $this->cache(__('Config'), $this->app->configurationIsCached()),
             $this->cache(__('Routes'), $this->app->routesAreCached()),
             $this->cache(__('Events'), $this->app->eventsAreCached()),
             $this->cache(__('Views'), $views),
+            new EnvironmentFactData(
+                __('Settings'),
+                $settings ? __('Cached') : __('Not cached'),
+                $settings ? 'success' : null,
+                action: 'reloadSettings',
+                actionLabel: __('Reload the saved settings and AI models'),
+            ),
         ];
+    }
+
+    /**
+     * Whether every admin settings class is in the settings cache. A copy
+     * left from before a save is the reason the row can be reloaded.
+     */
+    private function settingsAreCached(): bool
+    {
+        if (! config('settings.cache.enabled')) {
+            return false;
+        }
+
+        $store = Cache::store(config('settings.cache.store'));
+        $prefix = filled(config('settings.cache.prefix')) ? config('settings.cache.prefix').'.' : '';
+
+        return collect($this->app->make(SettingsConfig::class)->classes())
+            ->every(fn (string $class): bool => $store->has($prefix.'settings.'.$class::cacheKey()));
     }
 
     /**

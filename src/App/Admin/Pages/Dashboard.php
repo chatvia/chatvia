@@ -8,6 +8,7 @@ use App\Admin\Widgets\ChannelsChart;
 use App\Admin\Widgets\GrowthChart;
 use App\Admin\Widgets\MessagesChart;
 use App\Admin\Widgets\PlatformStatsOverview;
+use App\Admin\Widgets\ServiceStatusBanner;
 use App\Admin\Widgets\TopAgentsTable;
 use App\Admin\Widgets\TopWorkspacesTable;
 use App\Identity\Workspace\Models\Workspace;
@@ -94,6 +95,7 @@ class Dashboard extends BaseDashboard
         $wholePlatform = DashboardFilters::workspaceId($this->filters) === null;
 
         return array_values(array_filter([
+            ServiceStatusBanner::class,
             PlatformStatsOverview::class,
             MessagesChart::class,
             ChannelsChart::class,

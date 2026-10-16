@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "guardrails": {
+            "about_aria": "Giới thiệu về quy tắc kiểm soát",
+            "about_title": "Quy tắc kiểm soát là gì?",
+            "about_body": "Quy tắc kiểm soát là các bước kiểm tra an toàn trong cuộc trò chuyện của trợ lý AI. Chúng kiểm tra từng tin nhắn của khách trước khi trợ lý trả lời, và từng câu trả lời trợ lý viết ra. Chúng có thể ẩn dữ liệu cá nhân, chặn các cố gắng lừa trợ lý, chặn ngôn từ xúc phạm và giữ trợ lý đúng chủ đề.",
+            "about_ai_calls": "Phát hiện PII so khớp theo mẫu cố định và không thêm lệnh gọi AI nào. Các bước kiểm tra có nhãn “Kiểm tra AI” sẽ hỏi một mô hình AI: thêm một lệnh gọi cho tin nhắn của khách và một cho câu trả lời, tức tối đa hai lệnh gọi cho mỗi phản hồi.",
+            "about_cost": "Mọi bước kiểm tra AI dùng chung các lệnh gọi này, nên bật thêm cũng không làm tăng số lệnh gọi. Phản hồi có thể chậm hơn một chút và dùng nhiều token AI hơn.",
+            "ai_check": "Kiểm tra AI",
+            "test_off": "Quy tắc kiểm soát đang tắt. Hãy bật để thử một tin nhắn."
+        }
+    }
+}

@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "guardrails": {
+            "about_aria": "À propos des garde-fous",
+            "about_title": "Que sont les garde-fous ?",
+            "about_body": "Les garde-fous sont des contrôles de sécurité sur les conversations de votre agent. Ils vérifient chaque message du visiteur avant que l'agent réponde, ainsi que chaque réponse de l'agent. Ils peuvent masquer les données personnelles, arrêter les tentatives de manipuler l'agent, bloquer les propos injurieux et garder l'agent dans son sujet.",
+            "about_ai_calls": "La détection des données personnelles utilise des motifs fixes et n'ajoute aucun appel à l'IA. Les contrôles marqués « Contrôle IA » interrogent un modèle d'IA : un appel de plus pour le message du visiteur et un pour la réponse, soit deux au maximum par réponse.",
+            "about_cost": "Tous les contrôles IA partagent ces appels : en activer davantage n'ajoute pas d'appels. Les réponses peuvent prendre un peu plus de temps et consommer plus de jetons d'IA.",
+            "ai_check": "Contrôle IA",
+            "test_off": "Les garde-fous sont désactivés. Activez-les pour tester un message."
+        }
+    }
+}

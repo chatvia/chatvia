@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "guardrails": {
+            "about_aria": "Koruma kuralları hakkında",
+            "about_title": "Koruma kuralları nedir?",
+            "about_body": "Koruma kuralları, asistanınızın sohbetlerindeki güvenlik kontrolleridir. Asistan yanıt vermeden önce ziyaretçinin her mesajını ve asistanın yazdığı her yanıtı kontrol ederler. Kişisel verileri gizleyebilir, asistanı kandırma girişimlerini durdurabilir, hakaret içeren dili engelleyebilir ve asistanı konuda tutabilirler.",
+            "about_ai_calls": "PII algılama sabit kalıplar kullanır ve AI çağrısı eklemez. “AI kontrolü” ile işaretli kontroller bir AI modeline sorar: ziyaretçinin mesajı için bir ek çağrı ve yanıt için bir tane, yani yanıt başına en fazla iki.",
+            "about_cost": "Tüm AI kontrolleri bu çağrıları paylaşır, bu yüzden daha fazlasını açmak çağrı eklemez. Yanıtlar biraz daha uzun sürebilir ve daha fazla AI tokeni kullanabilir.",
+            "ai_check": "AI kontrolü",
+            "test_off": "Koruma kuralları kapalı. Bir mesajı test etmek için açın."
+        }
+    }
+}

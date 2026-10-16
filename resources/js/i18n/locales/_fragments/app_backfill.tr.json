@@ -7,7 +7,8 @@
         "search_group_yesterday": "Dün",
         "search_group_previous_7_days": "Önceki 7 gün",
         "search_group_previous_30_days": "Önceki 30 gün",
-        "search_group_older": "Daha eski"
+        "search_group_older": "Daha eski",
+        "agents_dialog_description": "AI asistanlarınıza erişin"
     },
     "chat": {
         "conversation_gone": "Bu konuşma artık mevcut değil."

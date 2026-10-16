@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "ex. Répondre uniquement aux questions sur nos produits, nos tarifs et notre livraison.",
             "allowed_scope_help": "Décrivez ce que l'agent est autorisé à traiter. Laissez vide pour autoriser toute question dans le sujet.",
             "refusal_message": "Message de refus",
-            "refusal_message_placeholder": "Je ne suis pas en mesure de vous aider avec ça.",
+            "refusal_message_placeholder": "Désolé, je ne peux pas vous aider avec cette demande.",
             "save": "Enregistrer",
             "saved": "Garde-fous enregistrés",
             "save_error": "Impossible d'enregistrer les garde-fous. Veuillez réessayer.",

@@ -33,7 +33,7 @@
             "tone": "Ton",
             "topics": "Sujets",
             "sources": "Sources",
-            "chat": "Chat",
+            "chat": "Journal de conversation",
             "chat_tooltip": "Inspectez les messages bruts par session",
             "audit": "Audit",
             "audit_tooltip": "Journal d'audit des appels d'outils pour cet agent",

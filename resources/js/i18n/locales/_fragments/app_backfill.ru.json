@@ -7,7 +7,8 @@
         "search_group_yesterday": "Вчера",
         "search_group_previous_7_days": "Предыдущие 7 дней",
         "search_group_previous_30_days": "Предыдущие 30 дней",
-        "search_group_older": "Ранее"
+        "search_group_older": "Ранее",
+        "agents_dialog_description": "Доступ к вашим ИИ-агентам"
     },
     "chat": {
         "conversation_gone": "Этот разговор больше не существует."

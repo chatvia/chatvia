@@ -33,7 +33,7 @@
             "tone": "Tonalität",
             "topics": "Themen",
             "sources": "Quellen",
-            "chat": "Chat",
+            "chat": "Chat-Protokoll",
             "chat_tooltip": "Rohe Chat-Nachrichten nach Sitzung einsehen",
             "audit": "Protokoll",
             "audit_tooltip": "Tool-Aufruf-Protokoll für diesen Agenten",

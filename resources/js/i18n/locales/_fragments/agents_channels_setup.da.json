@@ -39,7 +39,13 @@
                         "connect_2": "Send {command} og følg vejledningen",
                         "connect_3": "Indsæt token nedenfor — vi opretter forbindelsen automatisk"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "builtins_note": "Hver kommando svarer med en gemt besked eller kører en prompt gennem din agent.",
+                        "dialog_description": "Hver kommando svarer enten med en fast besked eller kører en prompt gennem din agent (som bruger sin viden og sine værktøjer). /start, /reset og /help er indbyggede — du kan redigere dem, men ikke fjerne dem.",
+                        "dialog_title": "Kommandoer",
+                        "empty": "Ingen kommandoer endnu"
+                    }
                 },
                 "slack": {
                     "steps": {

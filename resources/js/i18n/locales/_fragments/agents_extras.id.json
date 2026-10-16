@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "guardrails": {
+            "blocked_topics_dialog_description": "Topik yang tidak boleh dibahas agen. Deskripsi singkat dan beberapa contoh pertanyaan membantu pemeriksaan menemukannya."
+        }
+    }
+}

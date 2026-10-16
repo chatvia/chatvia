@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "guardrails": {
+            "blocked_topics_dialog_description": "에이전트가 다루면 안 되는 주제입니다. 짧은 설명과 질문 예시 몇 개를 추가하면 검사가 주제를 더 잘 찾아냅니다."
+        }
+    }
+}

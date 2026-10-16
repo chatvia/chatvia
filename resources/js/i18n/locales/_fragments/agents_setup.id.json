@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "setup": {
+            "bubbles_description": "Prompt pesan cepat yang ditampilkan di samping peluncur widget."
+        }
+    }
+}

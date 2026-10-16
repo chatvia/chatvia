@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "guardrails": {
+            "blocked_topics_dialog_description": "智能体不得讨论的主题。简短的描述和几个示例问题有助于检查识别它们。"
+        }
+    }
+}

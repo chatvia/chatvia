@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "setup": {
+            "bubbles_description": "위젯 런처 옆에 표시되는 빠른 메시지 프롬프트입니다."
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "guardrails": {
+            "blocked_topics_dialog_description": "エージェントが話してはいけないトピックです。短い説明と質問の例をいくつか加えると、チェックで見つけやすくなります。"
+        }
+    }
+}

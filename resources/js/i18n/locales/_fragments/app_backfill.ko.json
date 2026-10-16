@@ -7,7 +7,8 @@
         "search_group_yesterday": "어제",
         "search_group_previous_7_days": "지난 7일",
         "search_group_previous_30_days": "지난 30일",
-        "search_group_older": "이전"
+        "search_group_older": "이전",
+        "agents_dialog_description": "AI 에이전트에 액세스합니다"
     },
     "chat": {
         "conversation_gone": "이 대화는 더 이상 존재하지 않습니다."

@@ -33,7 +33,7 @@
             "tone": "Ton",
             "topics": "Ämnen",
             "sources": "Källor",
-            "chat": "Chatt",
+            "chat": "Chattlogg",
             "chat_tooltip": "Granska råa chattmeddelanden per session",
             "audit": "Revision",
             "audit_tooltip": "Revisionslogg för verktygsanrop för den här agenten",

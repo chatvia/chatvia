@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "guardrails": {
+            "injection_help": "检测并阻止在消息、知识库和工具结果中试图覆盖或泄露智能体指令的行为。",
+            "refusal_message_placeholder": "抱歉，我无法协助处理该请求。"
+        },
+        "security": {
+            "rate_limiting": {
+                "subtitle": "限制你的智能体每分钟回复的消息数量，以及单个访客可发送的消息数量。",
+                "card_description": "保护你的智能体免受滥用和意外费用。",
+                "messages_per_minute": "每分钟消息数（所有访客）",
+                "default_hint": "所有访客合计，智能体每分钟最多回复的消息数。",
+                "notify_hint": "当智能体达到此限制时接收一封电子邮件。"
+            }
+        }
+    }
+}

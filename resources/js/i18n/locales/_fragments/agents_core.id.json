@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "guardrails": {
+            "injection_help": "Deteksi dan blokir upaya untuk menimpa instruksi agen atau mengungkapkannya, dalam pesan, pengetahuan, dan hasil alat.",
+            "refusal_message_placeholder": "Maaf, saya tidak dapat membantu permintaan itu."
+        },
+        "security": {
+            "rate_limiting": {
+                "subtitle": "Batasi berapa banyak pesan yang dijawab agen Anda per menit, dan berapa banyak yang dapat dikirim satu pengunjung.",
+                "card_description": "Lindungi agen Anda dari penyalahgunaan dan biaya tak terduga.",
+                "messages_per_minute": "Pesan per menit (semua pengunjung)",
+                "default_hint": "Jumlah pesan terbanyak yang dijawab agen per menit, dari semua pengunjung.",
+                "notify_hint": "Terima email saat agen mencapai batas ini."
+            }
+        }
+    }
+}

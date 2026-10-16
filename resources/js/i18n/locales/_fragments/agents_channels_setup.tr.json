@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "telegram": {
+                    "commands": {
+                        "builtins_note": "Her komut kayıtlı bir mesajla yanıt verir ya da asistanınız üzerinden bir istem çalıştırır.",
+                        "dialog_description": "Her komut ya sabit bir mesajla yanıt verir ya da asistanınız üzerinden bir istem çalıştırır (asistan kendi bilgisini ve araçlarını kullanır). /start, /reset ve /help yerleşiktir — bunları düzenleyebilir ama kaldıramazsınız.",
+                        "dialog_title": "Komutlar",
+                        "empty": "Henüz komut yok"
+                    }
+                }
+            }
+        }
+    }
+}

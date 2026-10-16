@@ -1,0 +1,16 @@
+{
+    "agents": {
+        "channels": {
+            "setup": {
+                "telegram": {
+                    "commands": {
+                        "builtins_note": "Setiap perintah membalas dengan pesan tersimpan atau menjalankan prompt melalui agen Anda.",
+                        "dialog_description": "Setiap perintah membalas dengan pesan tetap atau menjalankan prompt melalui agen Anda (yang memakai pengetahuan dan alatnya). /start, /reset, dan /help sudah bawaan — Anda dapat mengeditnya, tetapi tidak dapat menghapusnya.",
+                        "dialog_title": "Perintah",
+                        "empty": "Belum ada perintah"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -95,7 +95,7 @@
             "all_outcomes": "Todos los resultados",
             "all_connectors": "Todos los conectores",
             "all_agents": "Todos los agentes",
-            "col_by": "Por",
+            "col_by": "Actor",
             "col_agent": "Agente",
             "col_tool": "Herramienta",
             "col_connector": "Conector",

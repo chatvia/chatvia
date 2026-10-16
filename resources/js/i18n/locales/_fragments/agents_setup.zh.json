@@ -1,0 +1,7 @@
+{
+    "agents": {
+        "setup": {
+            "bubbles_description": "显示在挂件启动器旁的快捷消息提示。"
+        }
+    }
+}

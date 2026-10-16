@@ -101,7 +101,7 @@
                 "topics_hint": "Oppdag og grupper automatisk hva besøkende spør om."
             },
             "bubbles_title": "Snakkebobler",
-            "bubbles_description": "Raske meldingsprompt som vises ved siden av widgetboblen. Trykk Enter for å legge til hver enkelt.",
+            "bubbles_description": "Raske meldingsprompt som vises ved siden av widgetens åpningsknapp.",
             "bubbles_placeholder": "f.eks., Hvordan kan jeg hjelpe deg?",
             "model_title": "Svarstil",
             "model_description": "Juster hvor fokusert eller kreativ agentens svar er. Lavere gir presise og konsistente svar; høyere gir mer variasjon.",

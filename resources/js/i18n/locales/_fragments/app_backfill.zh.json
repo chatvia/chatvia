@@ -7,7 +7,8 @@
         "search_group_yesterday": "昨天",
         "search_group_previous_7_days": "过去 7 天",
         "search_group_previous_30_days": "过去 30 天",
-        "search_group_older": "更早"
+        "search_group_older": "更早",
+        "agents_dialog_description": "访问你的 AI 智能体"
     },
     "chat": {
         "conversation_gone": "该会话已不存在。"

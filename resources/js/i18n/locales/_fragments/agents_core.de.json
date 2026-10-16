@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "z. B. Fragen zu unseren Produkten, Preisen und Versand beantworten.",
             "allowed_scope_help": "Beschreiben Sie, womit der Agent helfen darf. Leer lassen, um alle themenbezogenen Fragen zuzulassen.",
             "refusal_message": "Ablehnungsnachricht",
-            "refusal_message_placeholder": "Dabei kann ich leider nicht helfen.",
+            "refusal_message_placeholder": "Entschuldigung, bei dieser Anfrage kann ich nicht helfen.",
             "save": "Speichern",
             "saved": "Leitplanken gespeichert",
             "save_error": "Leitplanken konnten nicht gespeichert werden. Bitte versuchen Sie es erneut.",

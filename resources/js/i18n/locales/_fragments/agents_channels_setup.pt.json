@@ -39,13 +39,19 @@
                         "connect_2": "Envie {command} e siga as instruções",
                         "connect_3": "Cole o token abaixo — ligamos automaticamente"
                     },
-                    "botfather": "{'@'}BotFather"
+                    "botfather": "{'@'}BotFather",
+                    "commands": {
+                        "builtins_note": "Cada comando responde com uma mensagem guardada ou executa um prompt através do seu agente.",
+                        "dialog_description": "Cada comando responde com uma mensagem fixa ou executa um prompt através do seu agente (que usa o conhecimento e as ferramentas dele). /start, /reset e /help são integrados — pode editá-los, mas não removê-los.",
+                        "dialog_title": "Comandos",
+                        "empty": "Ainda não há comandos"
+                    }
                 },
                 "slack": {
                     "steps": {
                         "connected_1": "Em {link}, abra {event_subscriptions}, ative-o e cole o URL de pedido acima",
                         "connected_2": "Subscreva os eventos do bot {mention} e {im} e, em seguida, guarde",
-                        "connected_3": "Convide o bot para um canal com {invite} e mencione-o com {'@'}{'@'} {live}",
+                        "connected_3": "Convide o bot para um canal com {invite} e mencione-o com {'@'} {live}",
                         "connect_1": "Crie uma aplicação em {link} na sua área de trabalho",
                         "connect_2": "Em {oauth}, adicione os âmbitos do bot {scope1}, {scope2}, {scope3}, instale a aplicação e copie o token do bot",
                         "connect_3": "Copie o segredo de assinatura em {basic_info} e cole ambos abaixo"

@@ -309,7 +309,7 @@
             "allowed_scope_placeholder": "ex. Responder apenas a questões sobre os nossos produtos, preços e envios.",
             "allowed_scope_help": "Descreva o que o agente tem permissão para ajudar. Deixe em branco para permitir qualquer questão dentro do tema.",
             "refusal_message": "Mensagem de recusa",
-            "refusal_message_placeholder": "Não consigo ajudar com isso.",
+            "refusal_message_placeholder": "Desculpe, não posso ajudar com esse pedido.",
             "save": "Guardar",
             "saved": "Guardrails guardados",
             "save_error": "Não foi possível guardar os guardrails. Por favor tente novamente.",

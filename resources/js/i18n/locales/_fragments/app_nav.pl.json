@@ -33,7 +33,7 @@
             "tone": "Ton",
             "topics": "Tematy",
             "sources": "Źródła",
-            "chat": "Czat",
+            "chat": "Dziennik czatu",
             "chat_tooltip": "Przeglądaj surowe wiadomości czatu według sesji",
             "audit": "Audyt",
             "audit_tooltip": "Dziennik audytu wywołań narzędzi dla tego agenta",

@@ -33,7 +33,7 @@
             "tone": "Tone",
             "topics": "Emner",
             "sources": "Kilder",
-            "chat": "Chat",
+            "chat": "Chatlog",
             "chat_tooltip": "Gennemse rå chatbeskeder pr. session",
             "audit": "Revision",
             "audit_tooltip": "Værktøjskald-revisionslog for denne agent",

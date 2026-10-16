@@ -1,0 +1,17 @@
+{
+    "agents": {
+        "guardrails": {
+            "injection_help": "메시지, 지식, 도구 결과에서 에이전트의 지침을 무시하거나 노출하려는 시도를 탐지하고 차단합니다.",
+            "refusal_message_placeholder": "죄송합니다. 해당 요청은 도와드릴 수 없습니다."
+        },
+        "security": {
+            "rate_limiting": {
+                "subtitle": "에이전트가 분당 답변하는 메시지 수와 방문자 한 명이 보낼 수 있는 메시지 수를 제한합니다.",
+                "card_description": "에이전트를 악용과 예상치 못한 비용으로부터 보호하세요.",
+                "messages_per_minute": "분당 메시지 수 (전체 방문자)",
+                "default_hint": "모든 방문자를 합쳐 에이전트가 분당 답변하는 최대 메시지 수입니다.",
+                "notify_hint": "에이전트가 이 한도에 도달하면 이메일을 받습니다."
+            }
+        }
+    }
+}

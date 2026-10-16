@@ -101,7 +101,7 @@
                 "topics_hint": "Registrer og gruppér automatisk, hvad besøgende spørger om."
             },
             "bubbles_title": "Chatbobler",
-            "bubbles_description": "Hurtige beskedforslag vist ved siden af widget-boblen. Tryk Enter for at tilføje hver enkelt.",
+            "bubbles_description": "Hurtige beskedforslag, der vises ved siden af widgetens startknap.",
             "bubbles_placeholder": "F.eks., Hvordan kan jeg hjælpe dig?",
             "model_title": "Svarstil",
             "model_description": "Juster hvor fokuseret eller kreativ din agents svar er. Lavere giver præcise og ensartede svar; højere giver mere variation.",

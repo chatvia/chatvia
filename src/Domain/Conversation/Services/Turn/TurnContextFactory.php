@@ -5,6 +5,8 @@ namespace Domain\Conversation\Services\Turn;
 use Carbon\Carbon;
 use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\LlmMessageData;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Messages\UserTurnData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
@@ -42,7 +44,12 @@ class TurnContextFactory
         $scope = new ChatScopeData($data->agent, $data->externalSessionId, $data->conversationId);
         $memory = $this->memory->withScope($scope);
 
-        $history = $memory->getLlmMessages();
+        // The prompt assembly downstream speaks the OpenAI message shape, so
+        // the typed history turns into wire arrays here and nowhere else.
+        $history = array_map(
+            static fn (LlmMessageData $message): array => $message->toWire(),
+            $memory->getLlmMessages(),
+        );
 
         // The guard runs first: a blocked turn needs no rewrite, and the
         // rewrite reads the masked text, never a raw identifier. The guard's
@@ -211,9 +218,9 @@ class TurnContextFactory
     private function recordedFirstMessageId(ChatMemory $memory, string $storedMessage): ?string
     {
         $recorded = collect($memory->getMessagesForConversation())->last(
-            static fn (array $message): bool => $message['role'] === MessageRole::User->value && $message['content'] === $storedMessage,
+            static fn (MessageData $message): bool => $message->role === MessageRole::User && $message->content === $storedMessage,
         );
 
-        return $recorded['id'] ?? null;
+        return $recorded?->id;
     }
 }

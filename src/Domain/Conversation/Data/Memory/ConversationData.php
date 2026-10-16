@@ -22,4 +22,16 @@ class ConversationData extends Data
         public bool $is_visible,
         public array $messages = [],
     ) {}
+
+    /** The same conversation renamed and made visible; DTOs never mutate. */
+    public function renamedTo(string $title): self
+    {
+        return new self($this->id, $title, $this->timestamp, is_visible: true, messages: $this->messages);
+    }
+
+    /** The same conversation, visible in the list; DTOs never mutate. */
+    public function visible(): self
+    {
+        return new self($this->id, $this->title, $this->timestamp, is_visible: true, messages: $this->messages);
+    }
 }

@@ -51,7 +51,7 @@ readonly class ChatExportController
     /**
      * The whole history, or just the asked-for message.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<MessageData>
      */
     private function messages(?string $messageId): array
     {
@@ -63,7 +63,7 @@ readonly class ChatExportController
 
         abort_if(! $message instanceof MessageData, 404);
 
-        return [$message->toArray()];
+        return [$message];
     }
 
     private function download(string $content, string $filename): BinaryFileResponse

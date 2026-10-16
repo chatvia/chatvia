@@ -125,7 +125,7 @@ it('sends the sources of the answer before done when the client shows sources', 
     $sources = collect($events)->first(fn (StreamEvent $e): bool => $e->type === EventType::Sources);
 
     expect(lsTypes($events))->toBe([EventType::Start, EventType::Delta, EventType::Sources, EventType::Done])
-        ->and($sources->data['sources'])->toBe([[
+        ->and(collect($sources->data['sources'])->toArray())->toBe([[
             'id' => 'chunk-11',
             'label' => 'Returns policy',
             'kind' => 'website',
@@ -133,7 +133,8 @@ it('sends the sources of the answer before done when the client shows sources', 
             'page' => null,
             'passages' => 1,
         ]])
-        ->and(app(RequestDedupeStore::class)->find($context->requestData->requestId)->sources)->toBe($sources->data['sources']);
+        ->and(collect(app(RequestDedupeStore::class)->find($context->requestData->requestId)->sources)->toArray())
+        ->toBe(collect($sources->data['sources'])->toArray());
 });
 
 it('sends no sources event when the client does not show sources', function (): void {

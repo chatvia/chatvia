@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\ChatViewerData;
+use Domain\Conversation\Data\Memory\LlmMessageData;
 use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ConversationSource;
 use Domain\Conversation\Enums\MessageRole;
@@ -105,7 +106,7 @@ it('rebuilds from the database when the cache was stamped for another viewer', f
     $list = chatMemoryFor($agent, $session, ChatViewerData::chatter($chatterB->id))->visibleConversationsNewestFirst();
 
     expect($list)->toHaveCount(1)
-        ->and($list[0]['title'])->toBe('B-only chat');
+        ->and($list[0]->title)->toBe('B-only chat');
 });
 
 it('rebuilds from the database when the cache was stamped for a staff account with the viewer\'s id', function (): void {
@@ -122,7 +123,7 @@ it('rebuilds from the database when the cache was stamped for a staff account wi
     $list = chatMemoryFor($agent, $session, ChatViewerData::chatter($chatter->id))->visibleConversationsNewestFirst();
 
     expect($list)->toHaveCount(1)
-        ->and($list[0]['title'])->toBe('Chatter chat');
+        ->and($list[0]->title)->toBe('Chatter chat');
 });
 
 it('stamps the cached list with the viewer\'s kind and id', function (): void {
@@ -160,7 +161,7 @@ it('makes a conversation visible when its first message is added', function (): 
     ));
 
     expect(collect($memory->visibleConversationsNewestFirst())->pluck('id')->all())->toBe([$conversationId])
-        ->and($memory->getMessagesForConversation()[0]['role'])->toBe('user');
+        ->and($memory->getMessagesForConversation()[0]->role)->toBe(MessageRole::User);
 });
 
 it('keeps the private LLM text out of the history but feeds it to the LLM', function (): void {
@@ -177,7 +178,8 @@ it('keeps the private LLM text out of the history but feeds it to the LLM', func
         message_for_llm: 'price? [reference material]',
     ));
 
-    expect($memory->getMessagesForConversation()[0]['message_for_llm'])->toBeNull()
-        ->and($memory->getLlmMessages())->toBe([['role' => 'user', 'content' => 'price? [reference material]']])
+    expect($memory->getMessagesForConversation()[0]->message_for_llm)->toBeNull()
+        ->and(array_map(static fn (LlmMessageData $message): array => $message->toWire(), $memory->getLlmMessages()))
+        ->toBe([['role' => 'user', 'content' => 'price? [reference material]']])
         ->and($memory->llmTranscript(2))->toBe('price? [reference material]');
 });

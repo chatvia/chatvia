@@ -22,8 +22,8 @@ it('starts one widget conversation for a session that has none', function (): vo
 
     expect($started)->toBeTrue()
         ->and($conversations)->toHaveCount(1)
-        ->and($conversations[0]['title'])->toBe(Conversation::DEFAULT_TITLE)
-        ->and(Conversation::query()->where('external_id', $conversations[0]['id'])->value('source'))
+        ->and($conversations[0]->title)->toBe(Conversation::DEFAULT_TITLE)
+        ->and(Conversation::query()->where('external_id', $conversations[0]->id)->value('source'))
         ->toBe(ConversationSource::Widget);
 });
 

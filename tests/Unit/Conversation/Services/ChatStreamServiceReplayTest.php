@@ -3,6 +3,7 @@
 use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
 use Domain\Conversation\Jobs\StoreMessageJob;
@@ -48,7 +49,7 @@ function replayStream(string $requestId): array
 }
 
 it('replays the remembered answer of a retried request without asking the model', function (): void {
-    $sources = [['id' => 'chunk-1', 'label' => 'Opening hours', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 1]];
+    $sources = [new SourceRefData(id: 'chunk-1', label: 'Opening hours', kind: 'text', url: null, page: null, passages: 1)];
     app(RequestDedupeStore::class)->remember('req-retry', 'msg-earlier', 'We open at nine.', 'en', $sources);
     // Even a workspace at its limit gets the answer it was already given.
     MessageLimit::create(['workspace_id' => $this->agent->workspace_id, 'monthly_limit' => 1, 'messages_used' => 1, 'period_starts_at' => now()->startOfMonth()]);
@@ -58,7 +59,7 @@ it('replays the remembered answer of a retried request without asking the model'
     expect(array_map(static fn (StreamEvent $e): EventType => $e->type, $events))->toBe([EventType::Start, EventType::Delta, EventType::Sources, EventType::Done])
         ->and($events[0]->data)->toMatchArray(['assistant_message_id' => 'msg-earlier', 'request_id' => 'req-retry', 'language' => 'en', 'replayed' => true])
         ->and($events[1]->data['text'])->toBe('We open at nine.')
-        ->and($events[2]->data['sources'])->toBe($sources)
+        ->and(collect($events[2]->data['sources'])->toArray())->toBe(collect($sources)->toArray())
         ->and(collect($events)->every(fn (StreamEvent $e): bool => $e->id === 'msg-earlier'))->toBeTrue()
         ->and($this->runner->runs)->toBe([])
         ->and(app(ChatMemory::class)->withScope($this->scope)->getMessagesForConversation())->toBe([]);

@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Streaming\Sse;
 
+use Domain\Conversation\Data\Turn\SourceRefData;
 use JsonException;
 
 /**
@@ -37,7 +38,7 @@ final readonly class StreamEvent
         return new self(EventType::Meta, $assistantMessageId, ['key' => $key, 'value' => $value]);
     }
 
-    /** @param  array<int, array<string, mixed>>  $sources  the retrieved sources, one array per source */
+    /** @param  list<SourceRefData>  $sources  the retrieved sources, one array per source */
     public static function sources(string $assistantMessageId, array $sources): self
     {
         return new self(EventType::Sources, $assistantMessageId, ['sources' => $sources]);

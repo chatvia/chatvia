@@ -125,7 +125,7 @@ it('records the first message masked and starts a hosted-chat conversation in th
     expect($conversation->source)->toBe(ConversationSource::HostedChat)
         ->and($conversation->session->external_id)->toBe($sessionId)
         ->and($history)->toHaveCount(1)
-        ->and($history[0]['content'])->toBe('Where is my order? Mail me at [EMAIL_1]');
+        ->and($history[0]->content)->toBe('Where is my order? Mail me at [EMAIL_1]');
 
     Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof UserTurnData
         && $job->payload->message === 'Where is my order? Mail me at [EMAIL_1]'

@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
 
 /**
@@ -32,7 +33,7 @@ it('lists the chunks of one source once, with how many passages were used', func
         retrievedSource(4, 'source_text', 4, 'أعلن المتحدث العسكري', SourceKind::Text),
     ]);
 
-    expect(RetrievedSourceData::forClients($sources))->toBe([
+    expect(collect(RetrievedSourceData::forClients($sources))->toArray())->toBe([
         ['id' => 'chunk-1', 'label' => 'أعلن المتحدث العسكري', 'kind' => 'text', 'url' => null, 'page' => null, 'passages' => 3],
         ['id' => 'chunk-3', 'label' => 'guide.docx', 'kind' => 'file', 'url' => null, 'page' => null, 'passages' => 1],
     ]);
@@ -47,7 +48,7 @@ it('keeps each PDF page and each website page apart', function (): void {
         retrievedSource(5, 'source_website', 2, 'Shipping', SourceKind::Website, 'https://shop.test/shipping'),
     ]);
 
-    expect(array_map(static fn (array $entry): array => [$entry['id'], $entry['passages']], RetrievedSourceData::forClients($sources)))->toBe([
+    expect(array_map(static fn (SourceRefData $entry): array => [$entry->id, $entry->passages], RetrievedSourceData::forClients($sources)))->toBe([
         ['chunk-1', 2],
         ['chunk-2', 1],
         ['chunk-4', 1],

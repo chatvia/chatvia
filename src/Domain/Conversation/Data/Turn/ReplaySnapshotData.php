@@ -14,7 +14,7 @@ use Spatie\LaravelData\Data;
 class ReplaySnapshotData extends Data
 {
     /**
-     * @param  array<int, array<string, mixed>>  $sources  the RAG sources, as the `sources` event sends them
+     * @param  list<SourceRefData>  $sources  the RAG sources, as the `sources` event sends them
      */
     public function __construct(
         public string $assistant_message_id,

@@ -8,6 +8,7 @@ use Domain\Conversation\Data\Messages\AssistantTurnData;
 use Domain\Conversation\Data\Messages\MessageSourceData;
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Models\Conversation;
@@ -69,8 +70,8 @@ it('stores a completed answer and announces it', function (): void {
     Event::assertDispatched(AssistantReplyCompleted::class, fn (AssistantReplyCompleted $event): bool => $event->workspaceId === $context->requestData->agent->workspace_id
         && $event->assistantMessageId === $context->assistantMessageId);
 
-    expect(recorderHistory($context)[0]['content'])->toBe('Here is the summary.')
-        ->and(recorderHistory($context)[0]['role'])->toBe('assistant');
+    expect(recorderHistory($context)[0]->content)->toBe('Here is the summary.')
+        ->and(recorderHistory($context)[0]->role)->toBe(MessageRole::Assistant);
 });
 
 it('counts the reply against the workspace monthly message limit', function (): void {
@@ -150,7 +151,7 @@ it('remembers only what the clients may see, for a client that shows sources', f
         ->withScope(new ChatScopeData($request->agent, $request->externalSessionId, $request->conversationId))
         ->getSources();
 
-    expect($sources[$context->assistantMessageId])->toBe([['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null, 'passages' => 1]]);
+    expect(collect($sources[$context->assistantMessageId])->toArray())->toBe([['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null, 'passages' => 1]]);
 });
 
 it('remembers the chunks of one source as one source, but stores every chunk', function (): void {
@@ -169,7 +170,7 @@ it('remembers the chunks of one source as one source, but stores every chunk', f
         ->getSources();
 
     expect($sources[$context->assistantMessageId])->toHaveCount(1)
-        ->and($sources[$context->assistantMessageId][0])->toMatchArray(['id' => 'chunk-11', 'passages' => 2]);
+        ->and($sources[$context->assistantMessageId][0]->toArray())->toMatchArray(['id' => 'chunk-11', 'passages' => 2]);
 
     Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
         && array_map(static fn (MessageSourceData $source): ?int => $source->chunk_id, $job->payload->sources) === [11, 12]);

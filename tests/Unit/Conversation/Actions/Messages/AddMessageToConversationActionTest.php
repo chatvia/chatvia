@@ -8,6 +8,7 @@ use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Messages\AssistantTurnData;
 use Domain\Conversation\Data\Messages\UserTurnData;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Jobs\StoreMessageJob;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Bus;
@@ -79,10 +80,10 @@ it('keeps an answer’s artifacts and tool names in the live memory', function (
 
     $reply = app(ChatMemory::class)->withScope($scope)->cachedMessages()[0];
 
-    expect($reply['role'])->toBe('assistant')
-        ->and($reply['has_llm_found_answer'])->toBeFalse()
-        ->and($reply['message_for_llm'])->toBeNull()
-        ->and($reply['metadata'])->toBe([
+    expect($reply->role)->toBe(MessageRole::Assistant)
+        ->and($reply->has_llm_found_answer)->toBeFalse()
+        ->and($reply->message_for_llm)->toBeNull()
+        ->and($reply->metadata)->toBe([
             'artifacts' => [['kind' => 'echarts_option', 'data' => []]],
             'tool_calls' => ['mcp__charts__render'],
         ]);

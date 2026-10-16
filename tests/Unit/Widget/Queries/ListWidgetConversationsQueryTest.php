@@ -31,7 +31,7 @@ it('lists the session\'s conversations oldest first', function (): void {
 
     $list = app(ListWidgetConversationsQuery::class)->get($agent, $session->external_id);
 
-    expect($list)->toBe([
+    expect(collect($list)->toArray())->toBe([
         ['id' => $first->external_id, 'title' => 'Opening hours', 'timestamp' => $first->created_at->timestamp, 'is_visible' => true, 'messages' => []],
         ['id' => $second->external_id, 'title' => 'Refund', 'timestamp' => $second->created_at->timestamp, 'is_visible' => false, 'messages' => []],
     ]);

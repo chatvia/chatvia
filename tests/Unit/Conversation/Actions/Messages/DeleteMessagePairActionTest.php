@@ -85,7 +85,7 @@ it('deletes the files uploaded with the removed messages', function (): void {
 it('keeps the text meant for the model on the messages that stay', function (): void {
     [$scope, , $ids] = messagePairConversation();
     $memory = app(ChatMemory::class)->withScope($scope);
-    $memory->saveMessages(array_map(static fn (array $message): array => [...$message, 'message_for_llm' => "masked {$message['content']}"], $memory->cachedMessages()));
+    $memory->saveMessages(array_map(static fn (MessageData $message): MessageData => $message->withMessageForLlm("masked {$message->content}"), $memory->cachedMessages()));
 
     app(DeleteMessagePairAction::class)->execute($scope, $ids['a2']);
 

@@ -28,14 +28,14 @@ class DeleteMessagePairAction
         $removedIds = [];
 
         foreach ($messages as $index => $message) {
-            if (($message['id'] ?? null) !== $messageId) {
+            if ($message->id !== $messageId) {
                 continue;
             }
 
-            $removedIds[] = $message['id'];
+            $removedIds[] = $message->id;
 
-            if (isset($messages[$index - 1]['id'])) {
-                $removedIds[] = $messages[$index - 1]['id'];
+            if (isset($messages[$index - 1])) {
+                $removedIds[] = $messages[$index - 1]->id;
             }
 
             unset($messages[$index], $messages[$index - 1]);

@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Streaming\Sources;
 
 use Domain\Conversation\Data\Turn\RetrievedSourceData;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Enums\ToolApprovalDecision;
 use Domain\Conversation\Models\ToolApprovalCheckpoint;
 use Domain\Conversation\Services\ChatContext;
@@ -405,7 +406,7 @@ abstract class ToolLoopSource
     /**
      * The turn's sources as the chat clients show them.
      *
-     * @return list<array<string, mixed>>
+     * @return list<SourceRefData>
      */
     private function clientSources(ChatContext $context): array
     {

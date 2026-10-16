@@ -173,6 +173,8 @@
                 "confidence_help": "Kuinka hyvin agentin tietämys vastasi tätä kysymystä — ei sitä, kuinka hyvä vastaus on.",
                 "tokens": "{count} tokenia",
                 "tokens_breakdown": "Kehote: {prompt} · Täydennys: {completion}",
+                "trace": "Jäljitys",
+                "trace_help": "Katso kaikki tämän vastauksen taustalla olevat tekoälykutsut Spectrassa",
                 "playground": "Testiympäristö",
                 "positive_feedback": "Positiivinen palaute",
                 "negative_feedback": "Negatiivinen palaute",

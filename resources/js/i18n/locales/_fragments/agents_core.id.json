@@ -5,7 +5,9 @@
                 "load_more": "Muat lebih banyak"
             },
             "messages": {
-                "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya."
+                "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya.",
+                "trace": "Jejak",
+                "trace_help": "Lihat semua panggilan AI di balik balasan ini di Spectra"
             }
         },
         "security": {

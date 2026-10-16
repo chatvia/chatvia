@@ -125,6 +125,9 @@ return new class extends Migration
             $table->foreignIdFor(AgentQuestionAnswer::class)->nullable()->constrained()->nullOnDelete();
 
             $table->string('generation_id')->nullable();
+            // The Spectra trace of the turn that produced an assistant reply
+            // (W3C-compatible; display-only, so no index).
+            $table->uuid('trace_id')->nullable();
 
             $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'api', 'playground', 'handoff'])->nullable();
 

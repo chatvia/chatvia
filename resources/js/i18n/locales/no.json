@@ -468,7 +468,9 @@
                 "revised": "Revidert svar",
                 "revise": "Revider",
                 "voice": "Stemme",
-                "confidence_help": "Hvor godt agentens kunnskap samsvarte med dette spørsmålet — ikke hvor godt svaret er."
+                "confidence_help": "Hvor godt agentens kunnskap samsvarte med dette spørsmålet — ikke hvor godt svaret er.",
+                "trace": "Spor",
+                "trace_help": "Se alle AI-kall bak dette svaret i Spectra"
             },
             "details": {
                 "select_conversation": "Velg en samtale for å se detaljer",

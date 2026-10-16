@@ -468,7 +468,9 @@
                 "revised": "Jawaban yang direvisi",
                 "revise": "Revisi",
                 "voice": "Suara",
-                "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya."
+                "confidence_help": "Seberapa cocok pengetahuan agen dengan pertanyaan ini — bukan seberapa baik jawabannya.",
+                "trace": "Jejak",
+                "trace_help": "Lihat semua panggilan AI di balik balasan ini di Spectra"
             },
             "details": {
                 "select_conversation": "Pilih percakapan untuk melihat detail",

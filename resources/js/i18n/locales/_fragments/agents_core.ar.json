@@ -173,6 +173,8 @@
                 "confidence_help": "مدى تطابق معرفة الوكيل مع هذا السؤال — وليس مدى جودة الإجابة.",
                 "tokens": "{count} رمز",
                 "tokens_breakdown": "المطالبة: {prompt} · الإكمال: {completion}",
+                "trace": "التتبع",
+                "trace_help": "عرض كل استدعاءات الذكاء الاصطناعي وراء هذا الرد في Spectra",
                 "playground": "بيئة التجربة",
                 "positive_feedback": "تقييم إيجابي",
                 "negative_feedback": "تقييم سلبي",

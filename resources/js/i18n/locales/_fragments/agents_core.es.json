@@ -173,6 +173,8 @@
                 "confidence_help": "Qué tan bien coincidió el conocimiento del agente con esta pregunta, no qué tan buena es la respuesta.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Entrada: {prompt} · Salida: {completion}",
+                "trace": "Traza",
+                "trace_help": "Ver todas las llamadas de IA detrás de esta respuesta en Spectra",
                 "playground": "Playground",
                 "positive_feedback": "Opinión positiva",
                 "negative_feedback": "Opinión negativa",

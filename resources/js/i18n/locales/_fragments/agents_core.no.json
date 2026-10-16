@@ -173,6 +173,8 @@
                 "confidence_help": "Hvor godt agentens kunnskap samsvarte med dette spørsmålet — ikke hvor godt svaret er.",
                 "tokens": "{count} tokens",
                 "tokens_breakdown": "Forespørsel: {prompt} · Fullføring: {completion}",
+                "trace": "Spor",
+                "trace_help": "Se alle AI-kall bak dette svaret i Spectra",
                 "playground": "Playground",
                 "positive_feedback": "Positiv tilbakemelding",
                 "negative_feedback": "Negativ tilbakemelding",

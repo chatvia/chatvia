@@ -43,6 +43,9 @@ class ChatLogMessageData extends Data
         public ?float $confidence_score = null,
         // Spoken in a voice call (`metadata.voice` on the reply).
         public bool $voice = false,
+        // The Spectra trace behind an assistant reply; the UI links it only
+        // for a viewer who may open /spectra.
+        public ?string $trace_id = null,
     ) {}
 
     public static function fromMessage(Message $message): self
@@ -70,6 +73,7 @@ class ChatLogMessageData extends Data
             read_at: $message->read_at?->toISOString(),
             confidence_score: $message->confidence_score,
             voice: (bool) ($message->metadata['voice'] ?? false),
+            trace_id: $message->trace_id,
         );
     }
 }

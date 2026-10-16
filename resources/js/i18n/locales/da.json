@@ -468,7 +468,9 @@
                 "revised": "Revideret svar",
                 "revise": "Revidér",
                 "voice": "Stemme",
-                "confidence_help": "Hvor godt agentens viden matchede dette spørgsmål — ikke hvor godt svaret er."
+                "confidence_help": "Hvor godt agentens viden matchede dette spørgsmål — ikke hvor godt svaret er.",
+                "trace": "Spor",
+                "trace_help": "Se alle AI-kald bag dette svar i Spectra"
             },
             "details": {
                 "select_conversation": "Vælg en samtale for at se detaljer",

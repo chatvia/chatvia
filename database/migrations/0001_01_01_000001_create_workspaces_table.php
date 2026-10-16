@@ -19,6 +19,10 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
             $table->string('name');
+            // Admin-granted access to Spectra (the AI call log). Spectra is
+            // install-wide, so a granted workspace sees every workspace's
+            // AI calls; off unless staff grant it in the admin panel.
+            $table->boolean('spectra_access')->default(false);
             $table->timestamps();
         });
 

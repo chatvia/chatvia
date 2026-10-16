@@ -33,6 +33,7 @@ use Support\Concerns\HasExternalId;
  * @property int|null $llm_id
  * @property int|null $agent_question_answer_id
  * @property string|null $generation_id
+ * @property string|null $trace_id
  * @property MessageOrigin|null $source
  * @property string|null $content
  * @property array<array-key, mixed>|null $metadata
@@ -84,6 +85,7 @@ use Support\Concerns\HasExternalId;
  * @method static MessageQueryBuilder<static>|Message whereSentiment($value)
  * @method static MessageQueryBuilder<static>|Message whereSource($value)
  * @method static MessageQueryBuilder<static>|Message whereTone($value)
+ * @method static MessageQueryBuilder<static>|Message whereTraceId($value)
  * @method static MessageQueryBuilder<static>|Message whereUpdatedAt($value)
  *
  * @mixin \Eloquent
@@ -95,6 +97,7 @@ use Support\Concerns\HasExternalId;
     'llm_id',
     'agent_question_answer_id',
     'generation_id',
+    'trace_id',
     'source',
     'content',
     'metadata',

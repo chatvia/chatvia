@@ -468,7 +468,9 @@
                 "revised": "Überarbeitete Antwort",
                 "revise": "Überarbeiten",
                 "voice": "Sprache",
-                "confidence_help": "Wie gut das Wissen des Agenten zu dieser Frage passte — nicht, wie gut die Antwort ist."
+                "confidence_help": "Wie gut das Wissen des Agenten zu dieser Frage passte — nicht, wie gut die Antwort ist.",
+                "trace": "Trace",
+                "trace_help": "Alle KI-Aufrufe hinter dieser Antwort in Spectra ansehen"
             },
             "details": {
                 "select_conversation": "Wählen Sie ein Gespräch aus, um Details anzuzeigen",

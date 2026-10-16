@@ -97,6 +97,7 @@ class StoreAssistantMessageAction
             'llm_id' => $this->chatLog->llmId($turn->model),
             'response_time_ms' => $turn->response_time_ms,
             'generation_id' => $turn->generation_id,
+            'trace_id' => $turn->trace_id,
             'prompt_tokens' => $usage->promptTokens,
             'completion_tokens' => $usage->completionTokens,
             'cost_in_micro_cents' => $usage->costInMicroCents,

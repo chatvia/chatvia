@@ -468,7 +468,9 @@
                 "revised": "Resposta revista",
                 "revise": "Rever",
                 "voice": "Voz",
-                "confidence_help": "Quão bem o conhecimento do agente correspondeu a esta pergunta — não quão boa é a resposta."
+                "confidence_help": "Quão bem o conhecimento do agente correspondeu a esta pergunta — não quão boa é a resposta.",
+                "trace": "Rastreio",
+                "trace_help": "Ver todas as chamadas de IA por trás desta resposta no Spectra"
             },
             "details": {
                 "select_conversation": "Selecione uma conversa para ver os detalhes",

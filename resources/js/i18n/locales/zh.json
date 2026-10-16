@@ -468,7 +468,9 @@
                 "revised": "已修订的回答",
                 "revise": "修订",
                 "voice": "语音",
-                "confidence_help": "表示智能体的知识与此问题的匹配程度，而非回答本身的质量。"
+                "confidence_help": "表示智能体的知识与此问题的匹配程度，而非回答本身的质量。",
+                "trace": "追踪",
+                "trace_help": "在 Spectra 中查看此回复背后的所有 AI 调用"
             },
             "details": {
                 "select_conversation": "选择一个会话以查看详情",

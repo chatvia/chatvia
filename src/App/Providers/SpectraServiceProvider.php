@@ -13,8 +13,9 @@ use Illuminate\Support\ServiceProvider;
 
 /**
  * Spectra (the AI call log at /spectra): who may open it — staff signed in
- * to the admin panel ({@see StaffToolsAccess}), like Horizon and Pulse — and
- * how it sees the streamed replies.
+ * to the admin panel ({@see StaffToolsAccess}), like Horizon and Pulse, or
+ * the staff of a workspace an admin granted Spectra access — and how it sees
+ * the streamed replies.
  *
  * Spectra watches Laravel's HTTP client by itself. A streamed reply goes out
  * through a plain Guzzle client from the container instead, so that client
@@ -26,9 +27,12 @@ class SpectraServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        // The web-guard user Spectra passes in is ignored: only the admin
-        // panel's own session counts.
-        Gate::define('viewSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows());
+        // An admin-panel session always may; a dashboard (web-guard) session
+        // only when staff granted its workspace Spectra access in the admin
+        // panel — Spectra is install-wide, so that grant shows the workspace
+        // every workspace's AI calls and is off by default.
+        Gate::define('viewSpectra', fn (?User $user = null): bool => $this->app->make(StaffToolsAccess::class)->allows()
+            || ($user?->workspaceMembership?->workspace?->spectra_access ?? false));
 
         // Spectra binds its handler only when it booted installed
         // (SPECTRA_ENABLED) with its watchers on.

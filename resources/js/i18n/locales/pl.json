@@ -468,7 +468,9 @@
                 "revised": "Poprawiona odpowiedź",
                 "revise": "Popraw",
                 "voice": "Głos",
-                "confidence_help": "Jak dobrze wiedza agenta pasowała do tego pytania — a nie jak dobra jest odpowiedź."
+                "confidence_help": "Jak dobrze wiedza agenta pasowała do tego pytania — a nie jak dobra jest odpowiedź.",
+                "trace": "Ślad",
+                "trace_help": "Zobacz wszystkie wywołania AI stojące za tą odpowiedzią w Spectra"
             },
             "details": {
                 "select_conversation": "Wybierz rozmowę, aby wyświetlić szczegóły",

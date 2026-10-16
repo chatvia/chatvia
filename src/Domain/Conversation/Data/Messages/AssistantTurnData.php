@@ -32,6 +32,9 @@ class AssistantTurnData extends Data
         public string $model,
         public Carbon $sent_at,
         public ?string $generation_id = null,
+        // The Spectra trace that groups the turn's AI calls; null when Spectra
+        // was not recording or the turn made no AI call.
+        public ?string $trace_id = null,
         // Token usage reported inline by the streaming response: the
         // authoritative count, preferred over a provider lookup or an estimate.
         public ?int $prompt_tokens = null,

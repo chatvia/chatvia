@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Models\Conversation;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
@@ -71,6 +72,7 @@ class AppServiceProvider extends ServiceProvider
             'agent' => Agent::class,
             'user' => User::class,
             'chatter' => Chatter::class,
+            'conversation' => Conversation::class,
             'source_file' => SourceFile::class,
             'source_website' => SourceWebsite::class,
             'source_text' => SourceText::class,

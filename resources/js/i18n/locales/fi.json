@@ -468,7 +468,9 @@
                 "revised": "Tarkistettu vastaus",
                 "revise": "Tarkista",
                 "voice": "Puhe",
-                "confidence_help": "Kuinka hyvin agentin tietämys vastasi tätä kysymystä — ei sitä, kuinka hyvä vastaus on."
+                "confidence_help": "Kuinka hyvin agentin tietämys vastasi tätä kysymystä — ei sitä, kuinka hyvä vastaus on.",
+                "trace": "Jäljitys",
+                "trace_help": "Katso kaikki tämän vastauksen taustalla olevat tekoälykutsut Spectrassa"
             },
             "details": {
                 "select_conversation": "Valitse keskustelu nähdäksesi tiedot",

@@ -59,8 +59,8 @@ it('prices the call from the provider usage tokens', function (): void {
 
 it('prices the call with the model\'s catalog prices when it has them', function (): void {
     config(['chatvia.ai.tasks.enhancement' => testLlm('priced-model', attributes: [
-        'input_price_per_1m_tokens' => 3.0,
-        'output_price_per_1m_tokens' => 10.0,
+        'input_price_per_1m_tokens_in_micro_cents' => 300_000_000,
+        'output_price_per_1m_tokens_in_micro_cents' => 1_000_000_000,
     ])->external_name]);
 
     Http::fake(['*' => Http::response(chunkerResponse([

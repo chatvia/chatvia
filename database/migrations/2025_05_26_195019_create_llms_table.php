@@ -29,8 +29,11 @@ return new class extends Migration
             $table->enum('location', ['us', 'eu', 'cn'])->nullable();
             $table->boolean('is_reasoning')->default(false);
 
-            $table->decimal('input_price_per_1m_tokens', 10, 4)->nullable();
-            $table->decimal('output_price_per_1m_tokens', 10, 4)->nullable();
+            // Catalog prices in integer micro-cents per million tokens
+            // (1 dollar = 10^8 micro-cents), like chunks.cost_in_micro_cents.
+            // Null when the provider does not say.
+            $table->unsignedBigInteger('input_price_per_1m_tokens_in_micro_cents')->nullable();
+            $table->unsignedBigInteger('output_price_per_1m_tokens_in_micro_cents')->nullable();
 
             // A disabled model is hidden from the pickers; the agents that
             // already use it keep it.

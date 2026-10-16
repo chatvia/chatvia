@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\Cache;
  * @property array<string, bool> $features
  * @property string|null $location
  * @property bool $is_reasoning
- * @property numeric|null $input_price_per_1m_tokens
- * @property numeric|null $output_price_per_1m_tokens
+ * @property int|null $input_price_per_1m_tokens_in_micro_cents
+ * @property int|null $output_price_per_1m_tokens_in_micro_cents
  * @property bool $is_enabled
  * @property-read LlmProvider $provider
  * @property Carbon|null $created_at
@@ -42,10 +42,10 @@ use Illuminate\Support\Facades\Cache;
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereFeatures($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIcon($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInputPricePer1mTokens($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInputPricePer1mTokensInMicroCents($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereInternalName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLocation($value)
- * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereOutputPricePer1mTokens($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereOutputPricePer1mTokensInMicroCents($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereLlmProviderId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereIsReasoning($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Llm whereUpdatedAt($value)
@@ -72,8 +72,8 @@ class Llm extends Model
             'features' => 'json',
             'is_reasoning' => 'boolean',
             'context_window' => 'integer',
-            'input_price_per_1m_tokens' => 'decimal:4',
-            'output_price_per_1m_tokens' => 'decimal:4',
+            'input_price_per_1m_tokens_in_micro_cents' => 'integer',
+            'output_price_per_1m_tokens_in_micro_cents' => 'integer',
             'is_enabled' => 'boolean',
         ];
     }
@@ -91,6 +91,22 @@ class Llm extends Model
     public function provider(): BelongsTo
     {
         return $this->belongsTo(LlmProvider::class, 'llm_provider_id');
+    }
+
+    /** The catalog input price in dollars per million tokens, for cost math. */
+    public function inputPriceDollarsPerMilTokens(): ?float
+    {
+        return $this->input_price_per_1m_tokens_in_micro_cents === null
+            ? null
+            : $this->input_price_per_1m_tokens_in_micro_cents / 100_000_000;
+    }
+
+    /** The catalog output price in dollars per million tokens, for cost math. */
+    public function outputPriceDollarsPerMilTokens(): ?float
+    {
+        return $this->output_price_per_1m_tokens_in_micro_cents === null
+            ? null
+            : $this->output_price_per_1m_tokens_in_micro_cents / 100_000_000;
     }
 
     /** Whether the model may be picked: it and its provider are on, and the provider has its key. */

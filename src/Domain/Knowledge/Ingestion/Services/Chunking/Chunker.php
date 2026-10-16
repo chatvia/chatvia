@@ -73,8 +73,8 @@ class Chunker
             cost: $this->costCalculator->costInCentsFromUsage(
                 usage: $usage,
                 // The model's catalog prices when the admin set them.
-                pricePerInputMilToken: (float) ($model->input_price_per_1m_tokens ?? config('chatvia.ai.pricing.chunker_input_per_million_tokens')),
-                pricePerOutputMilToken: (float) ($model->output_price_per_1m_tokens ?? config('chatvia.ai.pricing.chunker_output_per_million_tokens')),
+                pricePerInputMilToken: $model->inputPriceDollarsPerMilTokens() ?? (float) config('chatvia.ai.pricing.chunker_input_per_million_tokens'),
+                pricePerOutputMilToken: $model->outputPriceDollarsPerMilTokens() ?? (float) config('chatvia.ai.pricing.chunker_output_per_million_tokens'),
             ),
         );
     }

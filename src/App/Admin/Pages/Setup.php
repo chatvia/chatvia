@@ -40,7 +40,7 @@ use Domain\Llm\Data\Catalog\CustomLlmServerData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ModelListing;
@@ -1457,9 +1457,9 @@ class Setup extends SimplePage
     /**
      * @param  array<string, mixed>  $state
      */
-    private function chatKind(array $state): LlmProviderEnum
+    private function chatKind(array $state): LlmProviderKind
     {
-        return $this->account($state)?->chatKind() ?? LlmProviderEnum::CUSTOM;
+        return $this->account($state)?->chatKind() ?? LlmProviderKind::Custom;
     }
 
     /**

@@ -13,7 +13,7 @@ use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswerQuestion;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Filament\Actions\Testing\TestAction;
@@ -75,7 +75,7 @@ it('adds a model from a connected provider\'s list', function (): void {
 
     $model = Llm::query()->where('internal_name', 'meta-llama/llama-4-maverick')->sole();
 
-    expect($model->provider->kind)->toBe(LlmProviderEnum::OPENROUTER)
+    expect($model->provider->kind)->toBe(LlmProviderKind::OpenRouter)
         ->and($model->provider->api_key)->toBeNull()
         ->and($model->features)->toBe(['vision' => true, 'function_calling' => true])
         ->and($model->isAvailable())->toBeTrue();

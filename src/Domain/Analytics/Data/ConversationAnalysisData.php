@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Analytics\Data;
 
-use Domain\Analytics\Enums\SentimentEnum;
-use Domain\Analytics\Enums\ToneEnum;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Spatie\LaravelData\Data;
 
 /**
@@ -23,8 +23,8 @@ class ConversationAnalysisData extends Data
     public function __construct(
         public array $topicIds,
         public array $suggestedTopics,
-        public SentimentEnum $sentiment,
-        public ToneEnum $tone,
+        public Sentiment $sentiment,
+        public Tone $tone,
         public ?string $language,
     ) {}
 }

@@ -35,7 +35,7 @@ use Domain\Llm\Data\Catalog\ModelListData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\LlmTask;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Enums\RealtimeVoice;
@@ -504,7 +504,7 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         $accounts = collect(AiProvider::cases())
             ->filter(fn (AiProvider $provider): bool => $provider->can(AiCapability::Chat) && $provider->isConnected())
             ->mapWithKeys(fn (AiProvider $provider): array => ["account:{$provider->value}" => $provider->label()]);
-        $servers = LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->where('is_enabled', true)->orderBy('id')->get()
+        $servers = LlmProvider::query()->where('kind', LlmProviderKind::Custom)->where('is_enabled', true)->orderBy('id')->get()
             ->mapWithKeys(fn (LlmProvider $server): array => ["server:{$server->id}" => $server->name]);
 
         return $accounts->merge($servers)->all();
@@ -516,10 +516,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         [$type, $value] = array_pad(explode(':', $source, 2), 2, '');
 
         return match ($type) {
-            'account' => ($kind = AiProvider::tryFrom($value)?->chatKind()) instanceof LlmProviderEnum && AiProvider::from($value)->isConnected()
+            'account' => ($kind = AiProvider::tryFrom($value)?->chatKind()) instanceof LlmProviderKind && AiProvider::from($value)->isConnected()
                 ? app(EnsureLlmProviderAction::class)->execute($kind)
                 : null,
-            'server' => LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->where('is_enabled', true)->find((int) $value),
+            'server' => LlmProvider::query()->where('kind', LlmProviderKind::Custom)->where('is_enabled', true)->find((int) $value),
             default => null,
         };
     }
@@ -530,10 +530,10 @@ class ManageAiModelSettings extends AdminSettingsPage implements HasTable
         [$type, $value] = array_pad(explode(':', (string) $source, 2), 2, '');
 
         return match ($type) {
-            'account' => ($kind = AiProvider::tryFrom($value)?->chatKind()) instanceof LlmProviderEnum
+            'account' => ($kind = AiProvider::tryFrom($value)?->chatKind()) instanceof LlmProviderKind
                 ? new LlmProvider(['kind' => $kind, 'name' => AiProvider::from($value)->label()])
                 : null,
-            'server' => LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->find((int) $value),
+            'server' => LlmProvider::query()->where('kind', LlmProviderKind::Custom)->find((int) $value),
             default => null,
         };
     }

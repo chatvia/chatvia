@@ -15,7 +15,7 @@ use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Services\EmbeddingStorage;
 use Domain\Knowledge\Ingestion\Models\Chunk;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Filament\Facades\Filament;
@@ -212,8 +212,8 @@ it('saves the Scaleway key once, for chat and for embeddings', function (): void
     $model = Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->sole();
     $provider = $model->provider;
 
-    expect($provider->kind)->toBe(LlmProviderEnum::SCALEWAY)
-        ->and(LlmProvider::query()->where('kind', LlmProviderEnum::SCALEWAY)->count())->toBe(1)
+    expect($provider->kind)->toBe(LlmProviderKind::Scaleway)
+        ->and(LlmProvider::query()->where('kind', LlmProviderKind::Scaleway)->count())->toBe(1)
         ->and($provider->api_key)->toBeNull()
         ->and($provider->base_url)->toBeNull()
         ->and($model->internal_name)->toBe('mistral-small-3.2-24b-instruct-2506')
@@ -254,7 +254,7 @@ it('makes the embeddings with the OpenRouter key, with a model from its list', f
 
     $model = Llm::query()->where('external_name', savedSetting(AiSettings::class, 'default_agent_model'))->sole();
 
-    expect($model->provider->kind)->toBe(LlmProviderEnum::OPENROUTER)
+    expect($model->provider->kind)->toBe(LlmProviderKind::OpenRouter)
         ->and($model->descriptive_name)->toBe('Llama 4 Maverick')
         ->and($model->features)->toBe(['vision' => true, 'function_calling' => true])
         ->and(savedSetting(AiProviderSettings::class, 'openrouter_api_key'))->toBe('sk-or-test')
@@ -438,7 +438,7 @@ it('adds a server of your own and takes a typed model name when it lists none', 
         ->call('complete')
         ->assertHasNoFormErrors();
 
-    $server = LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->sole();
+    $server = LlmProvider::query()->where('kind', LlmProviderKind::Custom)->sole();
 
     expect($server->name)->toBe('Office Ollama')
         ->and($server->base_url)->toBe('http://ollama.test:11434/v1')

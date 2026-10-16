@@ -9,7 +9,7 @@ use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
@@ -52,7 +52,7 @@ it('stores each key once, and the chat models and the reranker use it', function
         ->assertNotified('Settings saved');
 
     $model = app(AddLlmModelAction::class)->execute(
-        app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::OPENROUTER),
+        app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::OpenRouter),
         new RemoteModelData('openai/gpt-oss-120b', 'gpt-oss-120b'),
     );
 
@@ -113,7 +113,7 @@ it('says how many agents stop answering before a key is removed', function (): v
     $settings->scaleway_api_key = 'scw-key';
     $settings->save();
 
-    $model = testLlm('gpt-oss-120b', LlmProviderEnum::SCALEWAY);
+    $model = testLlm('gpt-oss-120b', LlmProviderKind::Scaleway);
     createAgent($this->admin, ['llm_id' => $model->id]);
 
     providersPage($this->admin)
@@ -137,7 +137,7 @@ it('adds, changes and removes a server of your own', function (): void {
         ->assertHasNoActionErrors()
         ->assertNotified('Server added');
 
-    $server = LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->where('name', 'Office Ollama')->sole();
+    $server = LlmProvider::query()->where('kind', LlmProviderKind::Custom)->where('name', 'Office Ollama')->sole();
 
     expect($server->base_url)->toBe('https://llm.office.test/v1')
         ->and($server->api_key)->toBe('local-key')

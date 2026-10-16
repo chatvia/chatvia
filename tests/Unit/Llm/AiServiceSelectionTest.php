@@ -20,7 +20,7 @@ use Domain\Knowledge\Ingestion\Services\Parsing\LocalDocumentParser;
 use Domain\Knowledge\Ingestion\Services\Parsing\MistralDocumentParser;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Contracts\Transcriber;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Operations\Media\NullTranscriber;
@@ -180,14 +180,14 @@ it('refuses a document LLM provider that cannot read PDF documents', function ()
 it('refuses a provider kind it has no client for, one that is off, or one without its key', function (LlmProvider $provider): void {
     expect(fn (): LlmProviderInterface => app(LlmProviders::class)->forProvider($provider))->toThrow(LlmProviderUnavailableException::class);
 })->with([
-    'no client yet' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderEnum::ANTHROPIC)->make(),
+    'no client yet' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Anthropic)->make(),
     'turned off' => fn (): LlmProvider => LlmProvider::factory()->disabled()->make(),
-    'no key' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(),
+    'no key' => fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->make(),
 ]);
 
 it('lets only a server of your own keep a key and an address on its row', function (): void {
     // In a savepoint, so the refused insert leaves the test's transaction usable.
-    expect(fn (): LlmProvider => DB::transaction(fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->create(['api_key' => 'scw-key'])))
+    expect(fn (): LlmProvider => DB::transaction(fn (): LlmProvider => LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->create(['api_key' => 'scw-key'])))
         ->toThrow(QueryException::class, 'llm_providers_key_on_custom_only');
 
     expect(LlmProvider::factory()->create(['api_key' => 'local-key'])->fresh()->api_key)->toBe('local-key');
@@ -195,9 +195,9 @@ it('lets only a server of your own keep a key and an address on its row', functi
 
 it('saves every provider kind past the CHECK constraint on llm_providers.kind', function (): void {
     // The column is an enum, which Postgres keeps as a CHECK constraint built
-    // from LlmProviderEnum when the table was created: a kind added later
+    // from LlmProviderKind when the table was created: a kind added later
     // cannot be saved until the schema is built again.
-    foreach (LlmProviderEnum::cases() as $kind) {
+    foreach (LlmProviderKind::cases() as $kind) {
         expect(LlmProvider::factory()->kind($kind)->create()->fresh()->kind)->toBe($kind);
     }
 });
@@ -205,8 +205,8 @@ it('saves every provider kind past the CHECK constraint on llm_providers.kind', 
 it('lets only Mistral read whole PDF documents', function (): void {
     $readers = array_filter(app(ProviderAdapters::class)->all(), fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments());
 
-    expect(array_map(fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(), array_values($readers)))
-        ->toBe([LlmProviderEnum::MISTRAL]);
+    expect(array_map(fn (ProviderAdapter $adapter): LlmProviderKind => $adapter->kind(), array_values($readers)))
+        ->toBe([LlmProviderKind::Mistral]);
 });
 
 it('fails fast when the embedding provider cannot return the size the database stores', function (string $provider, int $stored): void {

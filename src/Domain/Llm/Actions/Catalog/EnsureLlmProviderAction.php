@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Actions\Catalog;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ProviderAdapters;
 use InvalidArgumentException;
@@ -21,9 +21,9 @@ final readonly class EnsureLlmProviderAction
         private ProviderAdapters $adapters,
     ) {}
 
-    public function execute(LlmProviderEnum $kind): LlmProvider
+    public function execute(LlmProviderKind $kind): LlmProvider
     {
-        if ($kind === LlmProviderEnum::CUSTOM) {
+        if ($kind === LlmProviderKind::Custom) {
             throw new InvalidArgumentException('A server of your own needs an address: save it as a custom server.');
         }
 

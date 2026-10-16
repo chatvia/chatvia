@@ -47,7 +47,8 @@ enum EmbeddingProvider: string
     {
         return match ($this) {
             self::Qwen => new RelevanceThresholdsData(knowledge: 0.35, toolRead: 0.35, toolWrite: 0.40),
-            default => null,
+            self::OpenAi, self::OpenRouter, self::Google,
+            self::Cohere, self::Mistral, self::Jina => null,
         };
     }
 
@@ -64,7 +65,8 @@ enum EmbeddingProvider: string
             // every near-miss in the eval, including a cross-language wrong
             // match at 0.64 (qa.php's sweep — 0.80 matched nothing at all).
             self::Qwen => 0.65,
-            default => null,
+            self::OpenAi, self::OpenRouter, self::Google,
+            self::Cohere, self::Mistral, self::Jina => null,
         };
     }
 

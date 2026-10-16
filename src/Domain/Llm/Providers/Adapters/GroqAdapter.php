@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 
 /**
  * Groq's OpenAI-compatible API: open models with very fast answers. Its list
@@ -13,9 +13,9 @@ use Domain\Llm\Enums\LlmProviderEnum;
  */
 final class GroqAdapter extends OpenAiCompatibleAdapter
 {
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::GROQ;
+        return LlmProviderKind::Groq;
     }
 
     public function label(): string

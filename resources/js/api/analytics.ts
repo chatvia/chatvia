@@ -23,10 +23,10 @@ export interface AgentStatsRange {
 /** An analytics feature that can be switched on per agent (the `analytics` settings group). */
 export type AnalyticsFeature = 'tone' | 'sentiment' | 'topics';
 
-/** The tone values the analysis assigns to a visitor message (Domain\Analytics\Enums\ToneEnum). */
+/** The tone values the analysis assigns to a visitor message (Domain\Analytics\Enums\Tone). */
 export type ToneBucket = 'neutral' | 'frustrated' | 'urgent' | 'confused' | 'satisfied';
 
-/** The sentiment values the analysis assigns to a visitor message (Domain\Analytics\Enums\SentimentEnum). */
+/** The sentiment values the analysis assigns to a visitor message (Domain\Analytics\Enums\Sentiment). */
 export type SentimentBucket = 'positive' | 'negative' | 'neutral';
 
 /**

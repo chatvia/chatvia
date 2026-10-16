@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 
 /**
  * OpenAI's own API. Its model list carries ids only, and also lists its
@@ -12,9 +12,9 @@ use Domain\Llm\Enums\LlmProviderEnum;
  */
 final class OpenAiAdapter extends OpenAiCompatibleAdapter
 {
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::OPENAI;
+        return LlmProviderKind::OpenAi;
     }
 
     public function label(): string

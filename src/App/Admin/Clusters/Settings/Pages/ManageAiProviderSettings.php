@@ -17,7 +17,7 @@ use Domain\Llm\Actions\Catalog\SaveCustomLlmServerAction;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
@@ -190,7 +190,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
     {
         $provider = array_find(AiProvider::cases(), fn (AiProvider $provider): bool => AiProviderSettings::propertyFor($provider->apiKeyConfig()) === $property);
         $kind = $provider?->chatKind();
-        $agents = $kind instanceof LlmProviderEnum
+        $agents = $kind instanceof LlmProviderKind
             ? Agent::query()->whereHas('llm.provider', fn (Builder $query) => $query->where('kind', $kind))->count()
             : 0;
         $used = $provider instanceof AiProvider ? app(AiProviderUsage::class)->usedFor($provider) : [];
@@ -282,7 +282,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
      */
     private function servers(): Builder
     {
-        return LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->orderBy('id');
+        return LlmProvider::query()->where('kind', LlmProviderKind::Custom)->orderBy('id');
     }
 
     private function addServerAction(): Action
@@ -399,7 +399,7 @@ class ManageAiProviderSettings extends AdminSettingsPage implements HasTable
     {
         $key = filled($data['api_key'] ?? null) ? (string) $data['api_key'] : $server?->api_key;
         $draft = new LlmProvider([
-            'kind' => LlmProviderEnum::CUSTOM,
+            'kind' => LlmProviderKind::Custom,
             'name' => (string) $data['name'],
             'base_url' => rtrim((string) $data['base_url'], '/'),
             'api_key' => $key,

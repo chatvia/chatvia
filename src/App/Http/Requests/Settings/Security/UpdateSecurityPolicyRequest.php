@@ -66,7 +66,7 @@ class UpdateSecurityPolicyRequest extends FormRequest
             'ip_allowlist_mode' => ['required', 'string', Rule::in(IpAllowlistMode::selectable())],
             'ip_allowlist' => ['array'],
             'ip_allowlist.*' => ['string', new IpOrCidr],
-            'geo_mode' => ['required', 'string', Rule::in(GeoMode::values())],
+            'geo_mode' => ['required', 'string', Rule::enum(GeoMode::class)],
             'geo_countries' => ['array'],
             'geo_countries.*' => ['string', 'size:2'],
             'retention_conversations_days' => ['nullable', 'integer', "min:{$conversationsFloor}", "max:{$conversationsCeiling}"],

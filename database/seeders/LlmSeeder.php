@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Database\Seeder;
@@ -44,7 +44,7 @@ class LlmSeeder extends Seeder
         foreach ($llms as $llm) {
             // One row per provider; it calls with its account's key
             // (Settings → AI providers).
-            $provider = app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::from($llm['provider'] ?? 'scaleway'));
+            $provider = app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::from($llm['provider'] ?? 'scaleway'));
 
             $llm['features'] = [];
             $llm['is_reasoning'] = $llm['reasoning'] ?? false;

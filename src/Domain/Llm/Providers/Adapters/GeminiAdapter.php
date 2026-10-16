@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 
 /**
  * Google Gemini through its OpenAI-compatible endpoint. Its list names models
@@ -14,9 +14,9 @@ final class GeminiAdapter extends OpenAiCompatibleAdapter
 {
     protected const string NOT_CHAT = '/(embed|imagen|veo|aqa|tts|transcri)/i';
 
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::GOOGLE;
+        return LlmProviderKind::Google;
     }
 
     public function label(): string

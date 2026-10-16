@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Providers\Adapters;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Scaleway;
 
@@ -71,9 +71,9 @@ final class ScalewayAdapter extends OpenAiCompatibleAdapter
         'whisper-large-v3' => ['chat' => false],
     ];
 
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::SCALEWAY;
+        return LlmProviderKind::Scaleway;
     }
 
     public function label(): string

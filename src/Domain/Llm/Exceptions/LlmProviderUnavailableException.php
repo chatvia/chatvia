@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Exceptions;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use RuntimeException;
 
@@ -24,7 +24,7 @@ final class LlmProviderUnavailableException extends RuntimeException
         return new self("The LLM provider \"{$provider->name}\" has no API key. Add it in the admin panel (Settings → AI providers).");
     }
 
-    public static function unsupported(LlmProviderEnum $kind): self
+    public static function unsupported(LlmProviderKind $kind): self
     {
         return new self("Chatvia cannot call {$kind->value} providers yet.");
     }

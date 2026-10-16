@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +23,7 @@ class LlmProviderFactory extends Factory
     public function definition(): array
     {
         return [
-            'kind' => LlmProviderEnum::CUSTOM,
+            'kind' => LlmProviderKind::Custom,
             'name' => 'Test server',
             'base_url' => 'https://llm.test/v1',
             'api_key' => 'test-key',
@@ -37,13 +37,13 @@ class LlmProviderFactory extends Factory
      * test key, any other kind with neither (it calls with its account's key,
      * from config).
      */
-    public function kind(LlmProviderEnum $kind): static
+    public function kind(LlmProviderKind $kind): static
     {
         return $this->state(fn (): array => [
             'kind' => $kind,
             'name' => ucfirst($kind->value),
-            'base_url' => $kind === LlmProviderEnum::CUSTOM ? 'https://llm.test/v1' : null,
-            'api_key' => $kind === LlmProviderEnum::CUSTOM ? 'test-key' : null,
+            'base_url' => $kind === LlmProviderKind::Custom ? 'https://llm.test/v1' : null,
+            'api_key' => $kind === LlmProviderKind::Custom ? 'test-key' : null,
         ]);
     }
 

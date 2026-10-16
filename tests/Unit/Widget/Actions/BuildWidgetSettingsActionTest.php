@@ -1,7 +1,7 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Widget\Actions\BuildWidgetSettingsAction;
 
@@ -209,6 +209,6 @@ it('hides the widget upload button when no LLM can read PDF documents', function
     app()->instance(DocumentLlm::class, new DocumentLlm(null));
     expect(app(BuildWidgetSettingsAction::class)->execute($agent->fresh())->allow_file_uploads)->toBeFalse();
 
-    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderEnum::MISTRAL));
+    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
     expect(app(BuildWidgetSettingsAction::class)->execute($agent->fresh())->allow_file_uploads)->toBeTrue();
 });

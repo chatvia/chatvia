@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Actions\Catalog;
 
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 
 /**
@@ -18,7 +18,7 @@ final class SaveCustomLlmServerAction
 {
     public function execute(CustomLlmServerData $data, ?LlmProvider $server = null): LlmProvider
     {
-        $server ??= new LlmProvider(['kind' => LlmProviderEnum::CUSTOM]);
+        $server ??= new LlmProvider(['kind' => LlmProviderKind::Custom]);
 
         $server->fill([
             'name' => trim($data->name),

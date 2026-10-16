@@ -5,7 +5,7 @@ namespace Domain\Knowledge\Ingestion\Services\Clients;
 use Domain\Knowledge\Ingestion\Data\Ocr\PageData;
 use Domain\Knowledge\Source\File\Services\SourceFileTypes;
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\ProviderAdapters;
 use GrahamCampbell\Markdown\Facades\Markdown;
 use Illuminate\Http\Client\Response;
@@ -30,7 +30,7 @@ class MistralOcr
     public function __construct(ProviderAdapters $adapters)
     {
         // The Mistral account (Settings → AI providers), not a catalog model.
-        $adapter = $adapters->for(LlmProviderEnum::MISTRAL);
+        $adapter = $adapters->for(LlmProviderKind::Mistral);
         $connection = $adapter->standalone();
 
         $this->mistral = $adapter->client($connection);

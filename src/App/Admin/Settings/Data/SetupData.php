@@ -8,7 +8,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
 
@@ -31,7 +31,7 @@ final class SetupData extends Data
      * @param  list<RemoteModelData>  $chatModels  the models agents can use, at least one
      */
     public function __construct(
-        public LlmProviderEnum $chatKind,
+        public LlmProviderKind $chatKind,
         public ?string $apiKey,
         #[DataCollectionOf(RemoteModelData::class)]
         public array $chatModels,

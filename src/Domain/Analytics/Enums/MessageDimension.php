@@ -28,8 +28,8 @@ enum MessageDimension: string
     public function buckets(): array
     {
         return match ($this) {
-            self::Sentiment => array_column(SentimentEnum::cases(), 'value'),
-            self::Tone => ToneEnum::values(),
+            self::Sentiment => array_column(Sentiment::cases(), 'value'),
+            self::Tone => Tone::values(),
         };
     }
 }

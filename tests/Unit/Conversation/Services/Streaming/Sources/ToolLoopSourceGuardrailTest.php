@@ -18,7 +18,7 @@ use Domain\Guardrail\Enums\GuardType;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmProviders;
 use Domain\Security\Services\VisitorFingerprint;
@@ -104,7 +104,7 @@ function tlsStream(string $source, ChatContext $context, ToolLoopRunner $runner)
     $shared = [$replyRecorder, new RequestDedupeStore, new NoToolSelector, $runner, tlsGuard(), $recorder];
 
     $events = match ($source) {
-        'pdf' => new PdfSource(new DocumentLlm(LlmProviderEnum::MISTRAL), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
+        'pdf' => new PdfSource(new DocumentLlm(LlmProviderKind::Mistral), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']], collect()),
         default => new LlmSource(app(LlmProviders::class), ...$shared)->events($context, [['role' => 'user', 'content' => 'Hello']]),
     };
 

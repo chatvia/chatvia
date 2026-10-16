@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Admin\Settings\Actions;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +24,7 @@ final readonly class RemoveCustomLlmServerAction
 
     public function execute(LlmProvider $server, ?Llm $replacement = null): void
     {
-        if ($server->kind !== LlmProviderEnum::CUSTOM) {
+        if ($server->kind !== LlmProviderKind::Custom) {
             throw new InvalidArgumentException('Only a server of your own can be removed here.');
         }
 

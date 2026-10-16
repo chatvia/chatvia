@@ -84,7 +84,7 @@ it('sends the invitation email with the token link once the transaction commits'
     Notification::assertSentOnDemand(
         AgentChatterInvitationNotification::class,
         fn (AgentChatterInvitationNotification $notification, array $channels, object $notifiable): bool => ($notifiable->routes['mail'] ?? null) === 'new@example.com'
-            && $notification->acceptUrl() === route('agents.invitation.show', ['token' => $result->token]),
+            && $notification->acceptUrl() === route('agents.invitation.show', ['invitation' => $result->token]),
     );
 });
 

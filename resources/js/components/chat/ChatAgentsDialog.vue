@@ -34,7 +34,7 @@ async function loadAgents() {
 
         if (!selectedAgent.value && agents.value.length > 0) {
             const currentSlug = page.props.agentSlug;
-            const current = agents.value.find((agent) => agent.slug === currentSlug || agent.external_id === currentSlug);
+            const current = agents.value.find((agent) => agent.slug === currentSlug || agent.id === currentSlug);
             selectedAgent.value = current || agents.value[0];
         }
     } catch {
@@ -53,7 +53,7 @@ function switchToSelectedAgent() {
     if (!selectedAgent.value || isSwitching.value) return;
 
     isSwitching.value = true;
-    window.location.assign(chatHome.url({ agentSlug: selectedAgent.value.slug ?? selectedAgent.value.external_id }));
+    window.location.assign(chatHome.url({ agentSlug: selectedAgent.value.slug ?? selectedAgent.value.id }));
 }
 </script>
 

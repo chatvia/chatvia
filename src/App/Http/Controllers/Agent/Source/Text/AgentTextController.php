@@ -40,9 +40,9 @@ class AgentTextController
         ]);
     }
 
-    public function show(Agent $agent, int $id): SourceText
+    public function show(Agent $agent, SourceText $text): SourceText
     {
-        $text = $this->agentText($agent, $id);
+        $this->ensureAttached($agent, $text);
 
         // The text lives in storage; its path stays on the server.
         return $text
@@ -55,24 +55,29 @@ class AgentTextController
         $create->execute($agent, $request->textContent());
     }
 
-    public function update(AgentSourceTextRequest $request, Agent $agent, int $id, UpdateAgentSourceTextAction $update): void
+    public function update(AgentSourceTextRequest $request, Agent $agent, SourceText $text, UpdateAgentSourceTextAction $update): void
     {
-        $update->execute($agent, $this->agentText($agent, $id), $request->textContent());
+        $this->ensureAttached($agent, $text);
+
+        $update->execute($agent, $text, $request->textContent());
     }
 
-    public function destroy(Request $request, Agent $agent, int $id, DeleteAgentSourceTextAction $delete): void
+    public function destroy(Request $request, Agent $agent, SourceText $text, DeleteAgentSourceTextAction $delete): void
     {
-        $text = $this->agentText($agent, $id);
+        $this->ensureAttached($agent, $text);
 
         abort_if($request->user()->cannot('delete', $text), 403);
 
         $delete->execute($agent, $text);
     }
 
-    private function agentText(Agent $agent, int $id): SourceText
+    /**
+     * Texts are linked through `agent_sources`, which `can.access.agent` does
+     * not cover — a workspace text not attached to this agent stays a 404.
+     */
+    private function ensureAttached(Agent $agent, SourceText $text): void
     {
-        /** @var SourceText */
-        return $agent->texts()->where('source_texts.id', $id)->firstOrFail();
+        abort_unless($agent->texts()->whereKey($text->id)->exists(), 404);
     }
 
     /**

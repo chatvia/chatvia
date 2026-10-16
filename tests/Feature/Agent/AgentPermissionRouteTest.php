@@ -2,9 +2,14 @@
 
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
+use Domain\Agent\Models\Agent;
 use Domain\Form\Models\FormDefinition;
+use Domain\Knowledge\Source\Enums\SourceStatus;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
+use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Services\TeamService;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function (): void {
     $this->owner = User::factory()->create();
@@ -37,21 +42,25 @@ it('gates source-training index/store routes by their permission', function (str
     $this->actingAs($allowed)->postJson(route($storeRoute, $this->agent), [])->assertStatus(422);
 })->with('training routes');
 
-it('gates reading and editing a text or Q&A pair by its training permission', function (string $perm, string $showRoute, string $updateRoute): void {
+it('gates reading and editing a text or Q&A pair by its training permission', function (string $perm, string $showRoute, string $updateRoute, string $kind): void {
     $blocked = teammateWithPermissions($this->owner, []);
     $allowed = teammateWithPermissions($this->owner, [$perm]);
 
-    // {id} is a plain int looked up after the gate: a blocked teammate stops
-    // at the gate (403), a permitted one passes it and then fails the lookup
-    // (404) or the validation (422).
-    $this->actingAs($blocked)->getJson(route($showRoute, [$this->agent, 999999]))->assertForbidden();
-    $this->actingAs($allowed)->getJson(route($showRoute, [$this->agent, 999999]))->assertNotFound();
+    $record = $kind === 'text' ? aprText($this->agent) : aprQa($this->agent);
 
-    $this->actingAs($blocked)->patchJson(route($updateRoute, [$this->agent, 999999]), [])->assertForbidden();
-    $this->actingAs($allowed)->patchJson(route($updateRoute, [$this->agent, 999999]), [])->assertStatus(422);
+    // Route binding resolves the record before the gate, so an unknown id is
+    // a 404 for everyone; with a real record, a blocked teammate stops at the
+    // gate (403), a permitted one passes it and then fails the validation of
+    // an empty update body (422).
+    $this->actingAs($blocked)->getJson(route($showRoute, [$this->agent, $record->id]))->assertForbidden();
+    $this->actingAs($allowed)->getJson(route($showRoute, [$this->agent, 999999]))->assertNotFound();
+    $this->actingAs($allowed)->getJson(route($showRoute, [$this->agent, $record->id]))->assertOk();
+
+    $this->actingAs($blocked)->patchJson(route($updateRoute, [$this->agent, $record->id]), [])->assertForbidden();
+    $this->actingAs($allowed)->patchJson(route($updateRoute, [$this->agent, $record->id]), [])->assertStatus(422);
 })->with([
-    'text' => ['agent.sources.train.text', 'agents.sources.text.show', 'agents.sources.text.update'],
-    'qa' => ['agent.sources.train.qa', 'agents.sources.qa.show', 'agents.sources.qa.update'],
+    'text' => ['agent.sources.train.text', 'agents.sources.text.show', 'agents.sources.text.update', 'text'],
+    'qa' => ['agent.sources.train.qa', 'agents.sources.qa.show', 'agents.sources.qa.update', 'qa'],
 ]);
 
 it('gates training a website and its pages by agent.sources.train.web, and removing pages by agent.sources.delete', function (): void {
@@ -81,16 +90,21 @@ it('gates training a website and its pages by agent.sources.train.web, and remov
 it('gates the qa delete route by agent.sources.delete', function (): void {
     $blocked = teammateWithPermissions($this->owner, []);
     $allowed = teammateWithPermissions($this->owner, ['agent.sources.delete']);
+    $qa = aprQa($this->agent);
 
-    // {id} is a plain int, so route binding doesn't 404 before the gate runs.
+    // Route binding resolves `{qa}` before the gate, so probe with a real row:
+    // a blocked teammate stops at the gate; an unknown id 404s for everyone.
     $this->actingAs($blocked)
-        ->deleteJson(route('agents.sources.qa.destroy', [$this->agent, 999999]))
+        ->deleteJson(route('agents.sources.qa.destroy', [$this->agent, $qa->id]))
         ->assertForbidden();
 
-    // permitted passes the gate; the controller's findOrFail then 404s.
     $this->actingAs($allowed)
         ->deleteJson(route('agents.sources.qa.destroy', [$this->agent, 999999]))
         ->assertNotFound();
+
+    $this->actingAs($allowed)
+        ->deleteJson(route('agents.sources.qa.destroy', [$this->agent, $qa->id]))
+        ->assertOk();
 });
 
 it('gates the submissions list and bulk-delete by agent.leads.view', function (): void {
@@ -199,20 +213,72 @@ it('gates linking a trained file by agent.sources.train.files and unlinking it b
     expect($this->agent->files()->whereKey($file->id)->exists())->toBeFalse();
 });
 
-it('gates linking a trained text or website by its training permission and unlinking by agent.sources.delete', function (string $train, string $linkRoute, string $unlinkRoute, string $field): void {
+it('gates linking a trained text by agent.sources.train.text and unlinking by agent.sources.delete', function (): void {
     $blocked = teammateWithPermissions($this->owner, []);
-    $trainer = teammateWithPermissions($this->owner, [$train]);
+    $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.text']);
+    $remover = teammateWithPermissions($this->owner, ['agent.sources.delete']);
+
+    // Route binding resolves `{text}` before the gate, so probe with a real
+    // row: a blocked teammate stops at the gate, an unknown id 404s.
+    $text = aprText($this->agent, attach: false);
+
+    $this->actingAs($blocked)->postJson(route('agents.sources.texts.link', [$this->agent, $text->id]))->assertForbidden();
+    $this->actingAs($trainer)->postJson(route('agents.sources.texts.link', [$this->agent, 999999]))->assertNotFound();
+    $this->actingAs($trainer)->postJson(route('agents.sources.texts.link', [$this->agent, $text->id]))->assertSuccessful();
+    expect($this->agent->texts()->whereKey($text->id)->exists())->toBeTrue();
+
+    $this->actingAs($trainer)->postJson(route('agents.sources.text.unlink', [$this->agent, $text->id]))->assertForbidden();
+    $this->actingAs($remover)->postJson(route('agents.sources.text.unlink', [$this->agent, 999999]))->assertNotFound();
+    $this->actingAs($remover)->postJson(route('agents.sources.text.unlink', [$this->agent, $text->id]))->assertSuccessful();
+    expect($this->agent->texts()->whereKey($text->id)->exists())->toBeFalse();
+});
+
+it('gates linking a trained website by agent.sources.train.web and unlinking by agent.sources.delete', function (): void {
+    $blocked = teammateWithPermissions($this->owner, []);
+    $trainer = teammateWithPermissions($this->owner, ['agent.sources.train.web']);
     $remover = teammateWithPermissions($this->owner, ['agent.sources.delete']);
 
     // The ids are looked up after the gate: a blocked teammate stops at it
     // (403), a permitted one passes it and then fails the validation (422)
     // or finds no such source on the agent (404).
-    $this->actingAs($blocked)->postJson(route($linkRoute, [$this->agent, 999999]), [$field => 999999])->assertForbidden();
-    $this->actingAs($trainer)->postJson(route($linkRoute, [$this->agent, 999999]), [$field => 999999])->assertUnprocessable();
+    $this->actingAs($blocked)->postJson(route('agents.sources.trained-websites.link', [$this->agent, 999999]), ['website_id' => 999999])->assertForbidden();
+    $this->actingAs($trainer)->postJson(route('agents.sources.trained-websites.link', [$this->agent, 999999]), ['website_id' => 999999])->assertUnprocessable();
 
-    $this->actingAs($trainer)->postJson(route($unlinkRoute, [$this->agent, 999999]))->assertForbidden();
-    $this->actingAs($remover)->postJson(route($unlinkRoute, [$this->agent, 999999]))->assertNotFound();
-})->with([
-    'text' => ['agent.sources.train.text', 'agents.sources.texts.link', 'agents.sources.text.unlink', 'text_id'],
-    'website' => ['agent.sources.train.web', 'agents.sources.trained-websites.link', 'agents.sources.trained-websites.unlink', 'website_id'],
-]);
+    $this->actingAs($trainer)->postJson(route('agents.sources.trained-websites.unlink', [$this->agent, 999999]))->assertForbidden();
+    $this->actingAs($remover)->postJson(route('agents.sources.trained-websites.unlink', [$this->agent, 999999]))->assertNotFound();
+});
+
+/**
+ * A completed workspace text (with its stored content) for the gate probes,
+ * attached to the agent unless told otherwise.
+ */
+function aprText(Agent $agent, bool $attach = true): SourceText
+{
+    $text = SourceText::query()->create([
+        'workspace_id' => $agent->workspace_id,
+        'filepath' => 'users/x/train/text/'.uniqid().'.txt',
+        'excerpt' => 'An excerpt.',
+        'length' => 1,
+        'checksum' => md5(uniqid()),
+        'status' => SourceStatus::Completed,
+    ]);
+
+    Storage::put($text->filepath, 'Some trained text.');
+
+    if ($attach) {
+        $agent->texts()->attach($text->id);
+    }
+
+    return $text;
+}
+
+/** One curated Q&A entry of the agent for the gate probes. */
+function aprQa(Agent $agent): AgentQuestionAnswer
+{
+    return AgentQuestionAnswer::create([
+        'agent_id' => $agent->id,
+        'title' => 'Refunds',
+        'answer' => 'Refunds take 5 business days.',
+        'questions' => 'How long do refunds take?',
+    ]);
+}

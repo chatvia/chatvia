@@ -2,6 +2,8 @@
 
 namespace Domain\Security\Data;
 
+use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Models\SecurityAuditLog;
 use Spatie\LaravelData\Data;
 use Spatie\TypeScriptTransformer\Attributes\TypeScript;
@@ -20,10 +22,10 @@ class SecurityAuditRowData extends Data
     public function __construct(
         public int $id,
         public ?string $created_at,
-        public string $action,
+        public SecurityAuditAction $action,
         public string $action_label,
         public ?string $category,
-        public string $outcome,
+        public SecurityAuditOutcome $outcome,
         public ?int $user_id,
         public ?string $user_name,
         public ?string $user_email,
@@ -39,14 +41,12 @@ class SecurityAuditRowData extends Data
 
     public static function fromModel(SecurityAuditLog $row): self
     {
-        $action = $row->actionEnum();
-
         return new self(
             id: $row->id,
             created_at: $row->created_at?->toIso8601String(),
             action: $row->action,
-            action_label: $action?->label() ?? $row->action,
-            category: $action?->category()->value,
+            action_label: $row->action->label(),
+            category: $row->action->category()->value,
             outcome: $row->outcome,
             user_id: $row->user_id,
             user_name: $row->user_name,

@@ -14,10 +14,11 @@ use Illuminate\Http\Request;
  */
 class DetachAgentTextController
 {
-    public function __invoke(Request $request, Agent $agent, int $id, DetachSourceFromAgentAction $detach): JsonResponse
+    public function __invoke(Request $request, Agent $agent, SourceText $text, DetachSourceFromAgentAction $detach): JsonResponse
     {
-        /** @var SourceText $text */
-        $text = $agent->texts()->where('source_texts.id', $id)->firstOrFail();
+        // Texts are linked through `agent_sources`, which `can.access.agent`
+        // does not cover — a workspace text not attached to this agent is a 404.
+        abort_unless($agent->texts()->whereKey($text->id)->exists(), 404);
 
         abort_if($request->user()->cannot('delete', $text), 403);
 

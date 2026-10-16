@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Chat\Auth;
 
 use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
+use Domain\Agent\Data\Resources\Chat\ChatAgentRefData;
 use Domain\Agent\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -15,7 +16,7 @@ use Illuminate\Support\Collection;
 class ChatterAgentController
 {
     /**
-     * @return Collection<int, array{id: int, external_id: string, name: string, slug: string|null}>
+     * @return Collection<int, ChatAgentRefData>
      */
     public function __invoke(Request $request): Collection
     {
@@ -28,7 +29,7 @@ class ChatterAgentController
         };
 
         return $agents
-            ->map(fn (Agent $agent): array => $agent->only(['id', 'external_id', 'name', 'slug']))
+            ->map(fn (Agent $agent): ChatAgentRefData => ChatAgentRefData::fromModel($agent))
             ->values();
     }
 }

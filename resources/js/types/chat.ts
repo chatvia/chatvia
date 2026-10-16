@@ -80,10 +80,10 @@ export interface ChatConversationSummary {
 
 /** An agent the signed-in chatter may switch to. */
 export interface ChatterAgent {
-    id: number;
-    external_id: string;
+    /** The agent's external id. */
+    id: string;
     name: string;
-    slug: string;
+    slug: string | null;
 }
 
 /** A conversation starter as stored on the agent (resolved per locale on the client). */

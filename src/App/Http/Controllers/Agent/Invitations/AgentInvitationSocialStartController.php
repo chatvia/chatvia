@@ -11,21 +11,19 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Kick off the OAuth flow for a chatter accepting an agent invitation through
- * Google / Slack / etc. The URL carries the invitation `token`; we resolve
- * the {@see AgentChatterInvitation} row, stash its id in the session so the callback
- * can finalize against the same row, and redirect to the provider.
+ * Google / Slack / etc. The route binds the invitation by its opaque token
+ * (`{invitation:token}`); we stash its id in the session so the callback can
+ * finalize against the same row, and redirect to the provider.
  */
 class AgentInvitationSocialStartController
 {
-    public function __invoke(Request $request, string $token, string $provider): RedirectResponse
+    public function __invoke(Request $request, AgentChatterInvitation $invitation, string $provider): RedirectResponse
     {
         $providerEnum = SocialProvider::tryFrom($provider);
 
         abort_if($providerEnum === null, 404);
 
-        $invitation = AgentChatterInvitation::query()->where('token', $token)->first();
-
-        abort_if($invitation === null || $invitation->hasExpired(), 404);
+        abort_if($invitation->hasExpired(), 404);
 
         $request->session()->put('pending_agent_invitation', [
             'invitation_id' => $invitation->id,

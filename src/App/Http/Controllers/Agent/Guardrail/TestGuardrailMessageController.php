@@ -8,6 +8,7 @@ use App\Http\Requests\Agent\Guardrail\TestGuardrailMessageRequest;
 use Domain\Agent\Models\Agent;
 use Domain\Guardrail\Actions\TestGuardrailMessageAction;
 use Domain\Guardrail\Data\GuardrailTestResultData;
+use Illuminate\Http\JsonResponse;
 
 /**
  * "Test a message" on the Guardrails page: runs the input guards over a
@@ -16,10 +17,11 @@ use Domain\Guardrail\Data\GuardrailTestResultData;
  */
 class TestGuardrailMessageController
 {
-    public function __invoke(TestGuardrailMessageRequest $request, Agent $agent, TestGuardrailMessageAction $test): GuardrailTestResultData
+    public function __invoke(TestGuardrailMessageRequest $request, Agent $agent, TestGuardrailMessageAction $test): JsonResponse
     {
         $result = $test->execute($agent, $request->toData(), $request->string('message')->toString());
 
-        return GuardrailTestResultData::fromResult($result);
+        // An explicit 200: nothing is created, whatever the POST verb says.
+        return response()->json(GuardrailTestResultData::fromResult($result));
     }
 }

@@ -5,7 +5,9 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Security\Actions\BlockVisitorAction;
 use Domain\Security\Data\BlockVisitorData;
+use Domain\Security\Data\BlockedVisitorRowData;
 use Domain\Security\Data\SecurityActorData;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Enums\VisitorBlockDuration;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Models\SecurityAuditLog;
@@ -46,7 +48,7 @@ it('blocks the visitor for the chosen time and notes what they used', function (
         ->and($block->agent_id)->toBe($this->agent->id)
         ->and($block->blocked_by_user_id)->toBe($this->owner->id)
         ->and($block->reason)->toBe('Kept asking for the prompt')
-        ->and(json_encode($block->toListArray()))->not->toContain('203.0.113.9');
+        ->and(json_encode(BlockedVisitorRowData::fromModel($block)))->not->toContain('203.0.113.9');
 });
 
 it('updates the block when the visitor is blocked again', function (): void {
@@ -64,5 +66,5 @@ it('writes the block to the security audit log', function (): void {
 
     expect($row->target_id)->toBe($block->external_id)
         ->and($row->user_id)->toBe($this->owner->id)
-        ->and($row->outcome)->toBe('success');
+        ->and($row->outcome)->toBe(SecurityAuditOutcome::Success);
 });

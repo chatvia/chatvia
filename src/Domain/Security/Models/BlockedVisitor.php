@@ -111,26 +111,4 @@ class BlockedVisitor extends Model
     {
         return $this->expires_at === null || $this->expires_at->isFuture();
     }
-
-    /**
-     * Shape one block for the Security page's list. The relations are
-     * eager-loaded by the caller.
-     *
-     * @return array<string, mixed>
-     */
-    public function toListArray(): array
-    {
-        return [
-            'external_id' => $this->external_id,
-            'visitor' => substr($this->visitor_key, 0, 6),
-            'browser' => $this->browser,
-            'os' => $this->os,
-            'country' => $this->country?->localizedName(),
-            'agent_name' => $this->agent?->name,
-            'reason' => $this->reason,
-            'blocked_by' => $this->blockedBy?->name,
-            'created_at' => $this->created_at?->toIso8601String(),
-            'expires_at' => $this->expires_at?->toIso8601String(),
-        ];
-    }
 }

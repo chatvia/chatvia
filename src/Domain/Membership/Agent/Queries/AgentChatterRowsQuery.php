@@ -46,7 +46,7 @@ class AgentChatterRowsQuery
                     $invitation = $invitations->get(strtolower($chatter->email));
 
                     if ($invitation !== null && ! $invitation->hasExpired()) {
-                        $invitationUrl = route('agents.invitation.show', ['token' => $invitation->token]);
+                        $invitationUrl = route('agents.invitation.show', ['invitation' => $invitation->token]);
                         $invitationExpiresAt = $invitation->expires_at->toIso8601String();
                     }
                 }

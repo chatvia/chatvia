@@ -6,9 +6,13 @@ namespace App\Http\Controllers\Agent\Security;
 
 use App\Identity\Chatter\Models\Chatter;
 use Domain\Agent\Models\Agent;
+use Domain\Security\Data\BlockedVisitorRowData;
+use Domain\Security\Data\BlockListResourceData;
+use Domain\Security\Data\DeactivatedChatterRowData;
 use Domain\Security\Models\BlockedVisitor;
 use Domain\Security\Queries\ActiveVisitorBlocksQuery;
-use Illuminate\Http\JsonResponse;
+use Domain\Security\Queries\DeactivatedChattersQuery;
+use Spatie\LaravelData\DataCollection;
 
 /**
  * JSON for the Blocked list (Guardrails "Blocked" tab and Security → Blocked):
@@ -19,29 +23,19 @@ use Illuminate\Http\JsonResponse;
  */
 class ListAgentBlocksController
 {
-    /** The most switched-off chatters the list shows. */
-    private const int CHATTER_LIMIT = 200;
-
-    public function __invoke(Agent $agent, ActiveVisitorBlocksQuery $blocks): JsonResponse
+    public function __invoke(Agent $agent, ActiveVisitorBlocksQuery $blocks, DeactivatedChattersQuery $chatters): BlockListResourceData
     {
-        return response()->json([
-            'visitors' => $blocks->forWorkspace((int) $agent->workspace_id)
-                ->map(fn (BlockedVisitor $block): array => $block->toListArray())
-                ->values(),
-            'chatters' => Chatter::query()
-                ->where('workspace_id', $agent->workspace_id)
-                ->whereNotNull('deactivated_at')
-                ->whereHas('agents', fn ($query) => $query->whereKey($agent->id))
-                ->orderByDesc('deactivated_at')
-                ->limit(self::CHATTER_LIMIT)
-                ->get(['id', 'external_id', 'name', 'deactivation_reason', 'deactivated_at'])
-                ->map(fn (Chatter $chatter): array => [
-                    'external_id' => $chatter->external_id,
-                    'name' => $chatter->name,
-                    'reason' => $chatter->deactivation_reason,
-                    'deactivated_at' => $chatter->deactivated_at?->toIso8601String(),
-                ])
-                ->values(),
-        ]);
+        $visitors = $blocks->forWorkspace((int) $agent->workspace_id)
+            ->map(fn (BlockedVisitor $block): BlockedVisitorRowData => BlockedVisitorRowData::fromModel($block))
+            ->values();
+
+        $deactivated = $chatters->forAgent($agent)
+            ->map(fn (Chatter $chatter): DeactivatedChatterRowData => DeactivatedChatterRowData::fromModel($chatter))
+            ->values();
+
+        return new BlockListResourceData(
+            visitors: BlockedVisitorRowData::collect($visitors, DataCollection::class),
+            chatters: DeactivatedChatterRowData::collect($deactivated, DataCollection::class),
+        );
     }
 }

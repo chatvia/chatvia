@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Data\Resources;
 
 use Carbon\CarbonInterface;
+use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalResult;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
@@ -25,7 +26,7 @@ class EvalResultResourceData extends Data
         public string $external_id,
         public ?int $case_id,
         public string $case_name,
-        public string $scorer_type,
+        public ScorerType $scorer_type,
         public bool $pass,
         public ?float $score,
         public ?string $actual_output,
@@ -47,7 +48,7 @@ class EvalResultResourceData extends Data
             case_id: $result->case_id,
             case_name: $result->case_name,
             scorer_type: $result->scorer_type,
-            pass: $result->pass,
+            pass: $result->has_passed,
             score: $result->score,
             actual_output: $result->actual_output,
             actual_output_truncated: $result->actual_output_truncated,

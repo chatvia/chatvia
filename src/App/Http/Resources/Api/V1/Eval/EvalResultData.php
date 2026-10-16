@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Api\V1\Eval;
 
 use Carbon\CarbonInterface;
+use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalResult;
 use Spatie\LaravelData\Data;
 
@@ -26,7 +27,7 @@ class EvalResultData extends Data
         /**
          * How the case was scored (`contains`, `exact_match`, `llm_judge`…).
          */
-        public string $scorer_type,
+        public ScorerType $scorer_type,
         /**
          * Whether the case passed.
          */
@@ -79,7 +80,7 @@ class EvalResultData extends Data
             id: $result->external_id,
             case_name: $result->case_name,
             scorer_type: $result->scorer_type,
-            pass: $result->pass,
+            pass: $result->has_passed,
             score: $result->score,
             actual_output: $result->actual_output,
             actual_output_truncated: $result->actual_output_truncated,

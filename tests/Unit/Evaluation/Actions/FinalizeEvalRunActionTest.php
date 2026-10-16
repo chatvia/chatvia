@@ -33,7 +33,7 @@ function resultRow(EvalRun $run, bool $pass, float $score, int $tokens): EvalRes
         'case_id' => null,
         'case_name' => 'case',
         'scorer_type' => 'contains',
-        'pass' => $pass,
+        'has_passed' => $pass,
         'score' => $score,
         'tokens' => $tokens,
     ]);

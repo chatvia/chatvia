@@ -29,7 +29,7 @@ class BlockChatterAction
 
         $this->deactivate->execute($chatter, $data->reason);
 
-        event(new ChatterBlocked($chatter, $data->notice));
+        ChatterBlocked::dispatch($chatter, $data->notice);
 
         event(SecurityEventOccurred::for(
             SecurityAuditAction::ChatterBlocked,

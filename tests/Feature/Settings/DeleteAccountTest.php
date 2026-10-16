@@ -124,7 +124,7 @@ it('deletes the account and logs out once confirmed', function (): void {
         ->assertNoContent();
 
     expect(User::whereKey($this->workspace->id)->exists())->toBeFalse();
-    $this->assertGuest();
+    expect(auth()->check())->toBeFalse();
 });
 
 it('forbids an employee from deleting the account', function (): void {

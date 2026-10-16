@@ -37,7 +37,7 @@ use Support\Concerns\HasExternalId;
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
- * @property string|null $last_retrieved_at
+ * @property Carbon|null $last_retrieved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $content Dynamic attribute populated from storage at runtime
@@ -91,6 +91,7 @@ class SourceText extends Model implements ChunkableContract
     {
         return [
             'status' => SourceStatus::class,
+            'last_retrieved_at' => 'datetime',
         ];
     }
 

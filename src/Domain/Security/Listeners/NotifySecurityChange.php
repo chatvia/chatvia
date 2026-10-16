@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Notification;
  */
 class NotifySecurityChange implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     /** The audited changes worth a notification. */
     private const array NOTIFIED = [
         SecurityAuditAction::ApiKeyCreated,

@@ -5,6 +5,7 @@ use Domain\Channel\Whatsapp\Models\AgentWhatsappNumber;
 use Domain\Channel\Whatsapp\Models\WhatsappChat;
 use Domain\Channel\Whatsapp\Services\WhatsappChatResolver;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 
 /**
@@ -72,10 +73,10 @@ it('tags the conversation as a WhatsApp conversation', function (): void {
 
     $chat = app(WhatsappChatResolver::class)->resolve($number, '4915551234567', 'Lee');
 
-    $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $chat->conversation->external_id,
-        'source' => ConversationSource::Whatsapp->value,
-    ]);
+    expect(Conversation::query()
+        ->where('external_id', $chat->conversation->external_id)
+        ->where('source', ConversationSource::Whatsapp)
+        ->exists())->toBeTrue();
 });
 
 it('copes with a missing profile name', function (): void {

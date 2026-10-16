@@ -28,5 +28,5 @@ export async function detachConnector(agentId: string, slug: string): Promise<vo
 
 /** Ship (or stop shipping) an attached connector's tools on every turn. */
 export async function setConnectorAlwaysAvailable(agentId: string, slug: string, alwaysAvailable: boolean): Promise<void> {
-    await put(connectors.always_available.url({ agent: agentId, slug }), { always_available: alwaysAvailable });
+    await put(connectors.alwaysAvailable.url({ agent: agentId, slug }), { always_available: alwaysAvailable });
 }

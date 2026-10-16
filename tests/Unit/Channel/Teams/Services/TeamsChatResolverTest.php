@@ -6,6 +6,7 @@ use Domain\Channel\Teams\Models\TeamsChat;
 use Domain\Channel\Teams\Services\TeamsChatResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Support\Str;
 
@@ -94,10 +95,10 @@ it('tags the conversation as a Microsoft Teams conversation', function (): void 
 
     $chat = teamsResolver()->resolve($bot, 'a:1conv', 'https://smba.trafficmanager.net/emea/', 'personal', 'Lina');
 
-    $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $chat->conversation->external_id,
-        'source' => ConversationSource::MsTeams->value,
-    ]);
+    expect(Conversation::query()
+        ->where('external_id', $chat->conversation->external_id)
+        ->where('source', ConversationSource::MsTeams)
+        ->exists())->toBeTrue();
 });
 
 it('copes with group chats, channels, and a missing sender name', function (): void {

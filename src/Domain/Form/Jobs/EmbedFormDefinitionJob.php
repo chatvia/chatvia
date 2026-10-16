@@ -18,7 +18,7 @@ class EmbedFormDefinitionJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public int $formId) {}
+    public function __construct(public readonly int $formId) {}
 
     public function handle(EmbedFormDefinitionAction $action): void
     {

@@ -60,18 +60,22 @@ class UpdateTelegramCommandsRequest extends FormRequest
     /**
      * Every command needs a value except /help, which auto-lists the commands
      * when left blank.
+     *
+     * @return array<int, callable(Validator): void>
      */
-    public function withValidator(Validator $validator): void
+    public function after(): array
     {
-        $validator->after(function (Validator $validator): void {
-            foreach ((array) $this->input('commands', []) as $i => $command) {
-                $isHelp = ($command['command'] ?? '') === 'help';
+        return [
+            function (Validator $validator): void {
+                foreach ((array) $this->input('commands', []) as $i => $command) {
+                    $isHelp = ($command['command'] ?? '') === 'help';
 
-                if (! $isHelp && trim((string) ($command['value'] ?? '')) === '') {
-                    $validator->errors()->add("commands.{$i}.value", 'Add the message or prompt for this command.');
+                    if (! $isHelp && blank($command['value'] ?? '')) {
+                        $validator->errors()->add("commands.{$i}.value", __('Add the message or prompt for this command.'));
+                    }
                 }
-            }
-        });
+            },
+        ];
     }
 
     /**
@@ -80,8 +84,8 @@ class UpdateTelegramCommandsRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'commands.*.command.regex' => 'Use lowercase letters, digits, and underscores only (max 32 characters).',
-            'commands.*.command.distinct' => 'Each command can only be defined once.',
+            'commands.*.command.regex' => __('Use lowercase letters, digits, and underscores only (max 32 characters).'),
+            'commands.*.command.distinct' => __('Each command can only be defined once.'),
         ];
     }
 

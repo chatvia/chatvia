@@ -15,13 +15,15 @@ use Illuminate\Queue\Attributes\Tries;
  * SyncBuiltinConnectorsAction. NULL-guarded, so it's a no-op once a
  * connector's tools are already embedded.
  */
+// Covers a failure before the Action's own try/catch (a lost connection);
+// embedding-service errors are swallowed and logged by the Action itself.
 // NULL-guarded, so a retry embeds only the tools still missing a vector.
 #[Tries(2)]
 class EmbedConnectorToolsJob implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public string $connectorSlug) {}
+    public function __construct(public readonly string $connectorSlug) {}
 
     public function handle(EmbedConnectorToolsAction $action): void
     {

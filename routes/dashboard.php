@@ -21,7 +21,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
     // Owner-facing "Ask your data" analytics chat — ephemeral (stores nothing).
     Route::get('my/ask', AnalyticsChatController::class)->name('analytics.chat');
     Route::post('my/ask/stream', AnalyticsChatStreamController::class)
-        ->middleware('throttle:30,1')
+        ->middleware('throttle:30,1,analytics-chat')
         ->name('analytics.chat.stream');
 
     Route::get('my/knowledge-base/list', KnowledgeFilesListController::class)->name('knowledge-base.list');

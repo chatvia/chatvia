@@ -68,7 +68,8 @@ enum ConversationSource: string
     {
         return match ($this) {
             self::HostedChat, self::Widget, self::Bar => true,
-            default => false,
+            self::Telegram, self::Slack, self::Messenger,
+            self::Whatsapp, self::MsTeams, self::Instagram, self::Api => false,
         };
     }
 }

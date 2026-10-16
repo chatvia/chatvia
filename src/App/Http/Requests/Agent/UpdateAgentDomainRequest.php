@@ -57,8 +57,8 @@ class UpdateAgentDomainRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'domain.regex' => 'Enter a valid hostname (e.g. chat.example.com), without scheme or path.',
-            'domain.not_in' => 'You can\'t use the platform\'s own host as a custom domain.',
+            'domain.regex' => __('Enter a valid hostname (e.g. chat.example.com), without scheme or path.'),
+            'domain.not_in' => __("You can't use the platform's own host as a custom domain."),
         ];
     }
 

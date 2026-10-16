@@ -139,8 +139,8 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
     // Meta (Messenger/Instagram) channel OAuth callbacks. The Meta app whitelists a
     // single fixed redirect URI, so they sit outside the `agents/{agent}` group —
     // the agent rides in the OAuth `state` held in the session, not the URL.
-    Route::get('channels/messenger/oauth/callback', AgentMessengerOAuthCallbackController::class)->name('channels.messenger.callback');
-    Route::get('channels/instagram/oauth/callback', AgentInstagramOAuthCallbackController::class)->name('channels.instagram.callback');
+    Route::get('channels/messenger/oauth/callback', AgentMessengerOAuthCallbackController::class)->middleware('throttle:30,1,meta-oauth-callback')->name('channels.messenger.callback');
+    Route::get('channels/instagram/oauth/callback', AgentInstagramOAuthCallbackController::class)->middleware('throttle:30,1,meta-oauth-callback')->name('channels.instagram.callback');
 
     Route::prefix('agents/{agent}')->name('agents.')->middleware('can.access.agent')->group(function (): void {
         Route::get('home', AgentManagerController::class)->name('manager');
@@ -256,7 +256,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // "Always on": the connector's tools ship on every turn of this agent,
         // bypassing the relevance router, however many tools it has.
         Route::put('sources/connectors/{slug}/always-available', AgentConnectorAlwaysAvailableController::class)
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.always_available');
+            ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.always-available');
         Route::get('sources/connectors/{slug}/tools', AgentConnectorToolController::class)->name('sources.connectors.tools');
         Route::post('sources/connectors/{slug}/refresh', AgentConnectorRefreshController::class)
             ->middleware('agent.permission:agent.sources.train.connectors')->name('sources.connectors.refresh');
@@ -285,7 +285,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
 
         // AI-suggest starters from the agent's knowledge base (Setup → Starters).
         Route::post('starters/generate', GenerateStartersController::class)
-            ->middleware('agent.permission:agent.setup')->name('starters.generate');
+            ->middleware(['agent.permission:agent.setup', 'throttle:10,1,starters-generate'])->name('starters.generate');
 
         // Widget chat-bubble prompts (Setup → Chat Bubbles) — auto-translated.
         Route::put('bubbles', [AgentBubbleController::class, 'update'])
@@ -296,7 +296,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // Permissions reuse the agent.leads.* set.
         Route::patch('leads/settings', AgentLeadSettingsController::class)->middleware('agent.permission:agent.leads.settings')->name('leads.settings');
         Route::get('forms/{form}/submissions', [AgentSubmissionController::class, 'index'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.index');
-        Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware('agent.permission:agent.leads.export')->name('forms.submissions.export');
+        Route::get('forms/{form}/submissions/export', ExportFormSubmissionsController::class)->middleware(['agent.permission:agent.leads.export', 'throttle:10,1,submissions-export'])->name('forms.submissions.export');
         Route::delete('forms/{form}/submissions', [AgentSubmissionController::class, 'destroy'])->middleware('agent.permission:agent.leads.view')->name('forms.submissions.destroy');
 
         // Chatter members. index lists every workspace chatter (with a
@@ -322,7 +322,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // cases and triggers a run (async).
         Route::get('evals', AgentEvalController::class)->middleware('agent.permission:agent.evals.view')->name('evals');
         Route::get('evals/runs/{run}', [AgentEvalRunController::class, 'show'])->middleware('agent.permission:agent.evals.view')->name('evals.runs.show');
-        Route::post('evals/runs', RunAgentEvalController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.store');
+        Route::post('evals/runs', RunAgentEvalController::class)->middleware(['agent.permission:agent.evals.manage', 'throttle:6,1,eval-runs'])->name('evals.runs.store');
         Route::delete('evals/runs/{run}', [AgentEvalRunController::class, 'destroy'])->middleware('agent.permission:agent.evals.manage')->name('evals.runs.destroy');
         Route::delete('evals/runs', ClearAgentEvalRunsController::class)->middleware('agent.permission:agent.evals.manage')->name('evals.runs.clear');
         Route::post('evals/cases', [AgentEvalCaseController::class, 'store'])->middleware('agent.permission:agent.evals.manage')->name('evals.cases.store');
@@ -334,7 +334,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::get('guardrails', [AgentGuardrailController::class, 'show'])->middleware('agent.permission:agent.guardrails.view')->name('guardrails');
         Route::post('guardrails', [AgentGuardrailController::class, 'update'])->middleware('agent.permission:agent.guardrails.manage')->name('guardrails.update');
         // Try a sample message against the form's settings (runs the classifier, so rate limited).
-        Route::post('guardrails/test', TestGuardrailMessageController::class)->middleware(['agent.permission:agent.guardrails.manage', 'throttle:20,1'])->name('guardrails.test');
+        Route::post('guardrails/test', TestGuardrailMessageController::class)->middleware(['agent.permission:agent.guardrails.manage', 'throttle:20,1,guardrail-test'])->name('guardrails.test');
         // Block the chatter or visitor behind an abusive trigger; the request
         // checks the chatter or security permission that the block needs.
         Route::post('guardrails/events/{event}/block', BlockGuardrailOffenderController::class)->middleware('agent.permission:agent.guardrails.view')->name('guardrails.block');
@@ -351,7 +351,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::post('forms', [AgentFormController::class, 'store'])
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.store');
         Route::post('forms/rewrite-description', RewriteFormDescriptionController::class)
-            ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.rewrite-description');
+            ->middleware(['agent.permission:agent.sources.train.connectors', 'throttle:10,1,form-rewrite'])->name('forms.rewrite-description');
         Route::put('forms/{form}', [AgentFormController::class, 'update'])
             ->middleware('agent.permission:agent.sources.train.connectors')->name('forms.update');
         Route::delete('forms/{form}', [AgentFormController::class, 'destroy'])
@@ -372,7 +372,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // Messenger connects via Facebook Login for Business (one Chatvia Meta
         // app): redirect → Facebook consent → callback (outside this {agent}
         // group, see below) → select the Page. Disconnect is a single delete.
-        Route::get('channels/messenger/oauth/redirect', AgentMessengerOAuthRedirectController::class)->middleware('agent.permission:agent.channels')->name('channels.messenger.redirect');
+        Route::get('channels/messenger/oauth/redirect', AgentMessengerOAuthRedirectController::class)->middleware(['agent.permission:agent.channels', 'throttle:10,1,meta-oauth-start'])->name('channels.messenger.redirect');
         Route::post('channels/messenger/oauth/select', [AgentMessengerChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.messenger.select');
         Route::delete('channels/messenger', [AgentMessengerChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.messenger.disconnect');
         Route::post('channels/whatsapp', [AgentWhatsappChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.whatsapp.connect');
@@ -382,7 +382,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // Instagram connects via Facebook Login for Business (one Chatvia Meta
         // app): redirect → Facebook consent → callback (outside this {agent}
         // group, see below) → select the account. Disconnect is a single delete.
-        Route::get('channels/instagram/oauth/redirect', AgentInstagramOAuthRedirectController::class)->middleware('agent.permission:agent.channels')->name('channels.instagram.redirect');
+        Route::get('channels/instagram/oauth/redirect', AgentInstagramOAuthRedirectController::class)->middleware(['agent.permission:agent.channels', 'throttle:10,1,meta-oauth-start'])->name('channels.instagram.redirect');
         Route::post('channels/instagram/oauth/select', [AgentInstagramChannelController::class, 'store'])->middleware('agent.permission:agent.channels')->name('channels.instagram.select');
         Route::delete('channels/instagram', [AgentInstagramChannelController::class, 'destroy'])->middleware('agent.permission:agent.channels')->name('channels.instagram.disconnect');
         Route::get('logs/conversations/{conversation}/pulse', ChatLogConversationPulseController::class)->middleware('agent.permission:agent.chat.pulse')->name('logs.pulse');
@@ -453,7 +453,7 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         // can then hand-edit any language (stored as overrides that win over the
         // AI output). Both gate on agent.setup like the generic settings endpoint.
         Route::post('appearance/text', AppearanceTextController::class)
-            ->middleware('agent.permission:agent.setup')->name('appearance.text');
+            ->middleware(['agent.permission:agent.setup', 'throttle:10,1,appearance-text'])->name('appearance.text');
         Route::put('appearance/translations', UpdateAppearanceTranslationsController::class)
             ->middleware('agent.permission:agent.setup')->name('appearance.translations.update');
 

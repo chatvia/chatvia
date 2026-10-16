@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Agent\Source\File;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Lists the workspace's trained files of one kind that the agent does not use
@@ -23,7 +24,7 @@ class ListTrainedFilesRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', 'in:'.implode(',', ListSourceFilesRequest::FILE_TYPES)],
+            'type' => ['required', Rule::in(ListSourceFilesRequest::FILE_TYPES)],
         ];
     }
 

@@ -18,6 +18,7 @@ use App\Admin\Settings\SettingsConfig;
 use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageSettings;
 use Domain\Agent\Actions\Settings\AssignModelToAgentsWithoutOneAction;
+use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Actions\Catalog\AddLlmModelAction;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
@@ -64,7 +65,7 @@ final readonly class CompleteSetupAction
             throw new InvalidArgumentException('Pick at least one model for the agents.');
         }
 
-        return DB::transaction(function () use ($data): Llm {
+        $default = DB::transaction(function () use ($data): Llm {
             $account = AiProvider::forChatKind($data->chatKind);
 
             if ($account instanceof AiProvider) {
@@ -131,6 +132,12 @@ final readonly class CompleteSetupAction
 
             return $default;
         });
+
+        // Chatvia's own tools (charts, forms) need the embedding service that
+        // was just configured. After the transaction, so the job sees it.
+        SyncBuiltinConnectorsJob::dispatch();
+
+        return $default;
     }
 
     /** Keep a provider's key in Settings → AI providers; a blank one keeps the saved key. */

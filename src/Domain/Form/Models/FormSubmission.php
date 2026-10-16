@@ -242,9 +242,12 @@ class FormSubmission extends Model
         return Attribute::get(fn (): ?string => $this->field('location'));
     }
 
-    public function getMessageAttribute(): ?string
+    /**
+     * @return Attribute<string|null, never>
+     */
+    protected function message(): Attribute
     {
-        return $this->field('message');
+        return Attribute::get(fn (): ?string => $this->field('message'));
     }
 
     /**
@@ -272,9 +275,12 @@ class FormSubmission extends Model
     }
 
     /**
+     * The chat message the submission was captured from. Named after its key —
+     * `message` is the lead's message field ({@see self::message()} above).
+     *
      * @return BelongsTo<Message, $this>
      */
-    public function message(): BelongsTo
+    public function chatMessage(): BelongsTo
     {
         return $this->belongsTo(Message::class, 'chat_message_id');
     }

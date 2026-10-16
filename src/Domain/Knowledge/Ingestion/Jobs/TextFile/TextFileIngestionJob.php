@@ -7,16 +7,14 @@ use Domain\Knowledge\Ingestion\Actions\Documents\IngestTextFileAction;
 use Domain\Knowledge\Ingestion\Actions\Pipeline\MarkSourceFailedAction;
 use Domain\Knowledge\Source\File\Models\SourceFile;
 use Illuminate\Bus\Batchable;
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
 use Illuminate\Queue\Attributes\Queue;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\Attributes\UniqueFor;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
 use Throwable;
 
 /**
@@ -34,9 +32,9 @@ use Throwable;
 #[DeleteWhenMissingModels]
 class TextFileIngestionJob implements ShouldBeUnique, ShouldQueue
 {
-    use Batchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Batchable, Queueable;
 
-    public function __construct(public SourceFile $sourceFile, public Agent $agent) {}
+    public function __construct(public readonly SourceFile $sourceFile, public readonly Agent $agent) {}
 
     public function handle(IngestTextFileAction $action): void
     {

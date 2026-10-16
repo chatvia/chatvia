@@ -47,7 +47,7 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 {
     use Batchable, Queueable;
 
-    public function __construct(public AgentWebsiteUrl $websiteUrl, public Agent $agent) {}
+    public function __construct(public readonly AgentWebsiteUrl $websiteUrl, public readonly Agent $agent) {}
 
     /**
      * The FireCrawl throttle: a throttled job is released before any page is
@@ -74,6 +74,11 @@ class WebsiteUrlTrainJob implements ShouldBeUnique, ShouldQueue
 
     public function handle(TrainWebsiteUrlAction $action): void
     {
+        // A cancelled batch (the website was deleted) must train no more pages.
+        if ($this->batch()?->cancelled()) {
+            return;
+        }
+
         $action->execute($this->websiteUrl, $this->agent, BatchProgress::afterCurrentJob($this->batch()));
     }
 

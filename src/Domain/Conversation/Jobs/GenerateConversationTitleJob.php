@@ -9,6 +9,7 @@ use Domain\Conversation\Actions\Conversations\GenerateConversationTitleAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\DeleteWhenMissingModels;
 use Illuminate\Queue\Attributes\Queue;
 
 /**
@@ -16,14 +17,16 @@ use Illuminate\Queue\Attributes\Queue;
  * title call's tokens are attributed to the agent's workspace.
  */
 #[Queue('messages')]
+// The job is delayed a minute; an agent purged meanwhile needs no title.
+#[DeleteWhenMissingModels]
 class GenerateConversationTitleJob implements ShouldQueue
 {
     use Queueable;
 
     public function __construct(
-        public Agent $agent,
-        public string $externalSessionId,
-        public string $conversationId,
+        public readonly Agent $agent,
+        public readonly string $externalSessionId,
+        public readonly string $conversationId,
     ) {}
 
     public function handle(GenerateConversationTitleAction $generateTitle): void

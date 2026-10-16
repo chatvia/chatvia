@@ -15,6 +15,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  */
 class NotifyMessageLimitThreshold implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     public function handle(MessageLimitThresholdReached $event): void
     {
         $owner = $event->limit->workspace?->owner;

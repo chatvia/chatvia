@@ -3,15 +3,15 @@
 use Domain\Conversation\Actions\Attachments\StoreAttachmentAction;
 use Domain\Conversation\Data\Attachments\UploadAttachmentData;
 use Domain\Conversation\Models\Attachment;
-use Domain\Knowledge\Document\Conversion\PdfInfo;
+use Domain\Knowledge\Document\Contracts\PdfInspector;
 use Domain\Knowledge\Source\File\Data\FileAnalysisData;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * Unit coverage for the page-count capture of uploaded PDFs. The
- * upload + S3 write path is exercised end-to-end against a fake disk; PdfInfo is
- * stubbed so the body doesn't need real pages (same approach as MaxPdfPagesTest).
+ * upload + S3 write path is exercised end-to-end against a fake disk; the PDF
+ * inspector is stubbed so the body doesn't need real pages.
  */
 beforeEach(function (): void {
     Storage::fake(Attachment::DISK);
@@ -34,14 +34,18 @@ function staTextUpload(): UploadedFile
 
 function staPageCount(int $pages): void
 {
-    // PdfInfo is final; swap a duck-typed stand-in under the same container key.
-    app()->instance(PdfInfo::class, new readonly class($pages)
+    app()->instance(PdfInspector::class, new readonly class($pages) implements PdfInspector
     {
         public function __construct(private int $pages) {}
 
-        public function getInfo(string $path): FileAnalysisData
+        public function getInfo(string $pdfPath): FileAnalysisData
         {
             return new FileAnalysisData(length: $this->pages);
+        }
+
+        public function isLocked(string $pdfPath): bool
+        {
+            return false;
         }
     });
 }
@@ -60,7 +64,7 @@ it('stores the page count for a PDF upload', function (): void {
 });
 
 it('leaves pages null for a non-PDF upload', function (): void {
-    // No PdfInfo bound — a non-PDF must never reach the page-count path.
+    // No fake inspector bound — a non-PDF must never reach the page-count path.
     $attachment = app(StoreAttachmentAction::class)->execute(new UploadAttachmentData(
         file: staTextUpload(),
         directory: 'users/test-workspace/agents/test-agent/attachments/test',

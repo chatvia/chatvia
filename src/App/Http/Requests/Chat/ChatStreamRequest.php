@@ -54,8 +54,8 @@ class ChatStreamRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'message' => 'chat message',
-            'updated_message_info' => 'message update information',
+            'message' => __('chat message'),
+            'updated_message_info' => __('message update information'),
         ];
     }
 }

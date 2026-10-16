@@ -49,7 +49,7 @@ class SocialLoginAction
             return null;
         }
 
-        $user = User::where('email', $email)->first();
+        $user = User::query()->where('email', $email)->first();
 
         if (! $user) {
             return null;

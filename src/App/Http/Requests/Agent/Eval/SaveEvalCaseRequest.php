@@ -59,7 +59,7 @@ class SaveEvalCaseRequest extends FormRequest
             $decoded = json_decode($value, true);
 
             if (! is_array($decoded) || array_is_list($decoded)) {
-                $fail('The expected arguments must be a valid JSON object.');
+                $fail(__('The expected arguments must be a valid JSON object.'));
             }
         };
     }

@@ -97,6 +97,7 @@ class Chunk extends Model
         return [
             // chunk/summary/questions/search_text are plaintext text columns.
             'embedding' => HalfVector::class,
+            'is_enhanced' => 'boolean',
             'metadata' => 'json',
         ];
     }

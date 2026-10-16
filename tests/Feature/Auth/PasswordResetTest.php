@@ -105,7 +105,7 @@ describe('Password Reset', function (): void {
 
         $response->assertRedirect(route('login'));
         $response->assertSessionHas('status');
-        $this->assertGuest();
+        expect(auth()->check())->toBeFalse();
 
         // Verify password was changed
         expect(Hash::check('new-password', $user->fresh()->password))->toBeTrue();

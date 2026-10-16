@@ -6,6 +6,7 @@ use Domain\Channel\Messenger\Models\MessengerThread;
 use Domain\Channel\Messenger\Services\MessengerThreadResolver;
 use Domain\Conversation\Actions\Conversations\StartConversationAction;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Tests\Support\Messenger\FakeMessengerClient;
 
@@ -79,10 +80,10 @@ it('tags the conversation as a Messenger conversation', function (): void {
 
     $thread = messengerResolver(new FakeMessengerClient)->resolve($page, '24680');
 
-    $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $thread->conversation->external_id,
-        'source' => ConversationSource::Messenger->value,
-    ]);
+    expect(Conversation::query()
+        ->where('external_id', $thread->conversation->external_id)
+        ->where('source', ConversationSource::Messenger)
+        ->exists())->toBeTrue();
 });
 
 it('copes with a failed profile lookup', function (): void {

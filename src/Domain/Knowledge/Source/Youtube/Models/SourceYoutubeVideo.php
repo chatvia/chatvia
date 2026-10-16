@@ -41,7 +41,7 @@ use Support\Concerns\HasExternalId;
  * @property int $took_in_seconds
  * @property string|null $failure_reason
  * @property int $retrieval_count
- * @property string|null $last_retrieved_at
+ * @property Carbon|null $last_retrieved_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Agent> $agents
@@ -92,6 +92,7 @@ class SourceYoutubeVideo extends Model implements ChunkableContract
             'length' => 'integer',
             'metadata' => 'array',
             'status' => SourceStatus::class,
+            'last_retrieved_at' => 'datetime',
         ];
     }
 

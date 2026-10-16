@@ -26,7 +26,6 @@ use App\Admin\Settings\SetupStatus;
 use App\Admin\Settings\StorageCheck;
 use App\Admin\Settings\StorageSettings;
 use Closure;
-use Domain\Integration\Mcp\Jobs\SyncBuiltinConnectorsJob;
 use Domain\Knowledge\Embedding\Data\EmbeddingColumnData;
 use Domain\Knowledge\Embedding\Enums\EmbeddingCheckStatus;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
@@ -315,9 +314,6 @@ class Setup extends SimplePage
                 fromName: $this->filled($state, 'from_name'),
             ),
         ));
-
-        // Chatvia's own tools (charts, forms) need the embedding service.
-        SyncBuiltinConnectorsJob::dispatch();
 
         Cache::forget($this->modelCacheKey());
 

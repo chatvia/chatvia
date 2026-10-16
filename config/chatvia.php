@@ -620,6 +620,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | CRM Webhook
+    |--------------------------------------------------------------------------
+    |
+    | Captured leads are also sent, signed, to an agent's CRM endpoint. After
+    | `max_failures` failures in a row the webhook turns itself off.
+    |
+    */
+
+    'crm' => [
+        'max_failures' => (int) env('CRM_WEBHOOK_MAX_FAILURES', 15),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Agent Evaluation
     |--------------------------------------------------------------------------
     |

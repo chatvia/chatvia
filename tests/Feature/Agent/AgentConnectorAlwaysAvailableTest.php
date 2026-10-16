@@ -28,7 +28,7 @@ it('marks an attached connector always-on and reports it on the connectors list'
     McpTool::factory()->count(3)->allowed()->create(['mcp_server_id' => $this->server->id]);
 
     $this->actingAs($this->user)
-        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
+        ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
         ->assertOk()
         ->assertJsonPath('always_available', true);
 
@@ -46,7 +46,7 @@ it('turns always-on on however many tools the connector has', function (): void 
     McpTool::factory()->count(25)->allowed()->create(['mcp_server_id' => $this->server->id]);
 
     $this->actingAs($this->user)
-        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
+        ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), ['always_available' => true])
         ->assertOk()
         ->assertJsonPath('always_available', true);
 
@@ -55,7 +55,7 @@ it('turns always-on on however many tools the connector has', function (): void 
 
 it('validates the flag', function (): void {
     $this->actingAs($this->user)
-        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), [])
+        ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => 'hejly-tutor']), [])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['always_available']);
 });
@@ -64,7 +64,7 @@ it('404s for a connector of the workspace that is not attached to the agent', fu
     $unattached = AgentMcpServer::factory()->forOwner($this->user)->create(['slug' => 'not-attached']);
 
     $this->actingAs($this->user)
-        ->putJson(route('agents.sources.connectors.always_available', ['agent' => $this->agent->external_id, 'slug' => $unattached->slug]), ['always_available' => true])
+        ->putJson(route('agents.sources.connectors.always-available', ['agent' => $this->agent->external_id, 'slug' => $unattached->slug]), ['always_available' => true])
         ->assertNotFound();
 
     expect($this->agent->mcpServers()->whereKey($unattached->id)->exists())->toBeFalse();

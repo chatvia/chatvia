@@ -32,8 +32,8 @@ class StoreMessageJob implements ShouldBeUnique, ShouldQueue
     use Queueable;
 
     public function __construct(
-        public Agent $agent,
-        public UserTurnData|AssistantTurnData $payload,
+        public readonly Agent $agent,
+        public readonly UserTurnData|AssistantTurnData $payload,
     ) {}
 
     public function handle(StoreUserMessageAction $storeUserMessage, StoreAssistantMessageAction $storeAssistantMessage): void

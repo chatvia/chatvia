@@ -4,7 +4,9 @@ namespace App\Http\Requests\Analytics;
 
 use Domain\Analytics\Data\Chat\AnalyticsChatRequestData;
 use Domain\Analytics\Data\Chat\AnalyticsChatTurnData;
+use Domain\Llm\Enums\ChatRole;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * One "Ask your data" question plus the earlier turns the browser replays.
@@ -26,7 +28,7 @@ class AnalyticsChatStreamRequest extends FormRequest
         return [
             'message' => ['required', 'string', 'max:2000'],
             'history' => ['nullable', 'array', 'max:40'],
-            'history.*.role' => ['required', 'string', 'in:user,assistant'],
+            'history.*.role' => ['required', 'string', Rule::enum(ChatRole::class)->only([ChatRole::User, ChatRole::Assistant])],
             'history.*.content' => ['required', 'string', 'max:8000'],
             'user_message_id' => ['nullable', 'string', 'max:64'],
         ];

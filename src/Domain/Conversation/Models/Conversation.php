@@ -384,6 +384,14 @@ class Conversation extends Model
 
     public function canBeTakenOverBy(User $admin): bool
     {
+        // Live takeover streams staff replies into the embedded widget only.
+        // The hosted chat, the bar, the API and the messaging channels have no
+        // relay — their bot keeps answering — so a takeover there would leave
+        // two writers in one conversation. Mirrors the dashboard's gate.
+        if ($this->source !== ConversationSource::Widget) {
+            return false;
+        }
+
         if ($this->isHandedOff() && $this->handoff_user_id !== $admin->id) {
             return false;
         }

@@ -75,7 +75,7 @@ class InviteTeamMemberRequest extends FormRequest
             }
 
             if ($team->hasUser($user)) {
-                $fail('This user is already a member of the team.');
+                $fail(__('This user is already a member of the team.'));
             }
         };
     }
@@ -95,13 +95,13 @@ class InviteTeamMemberRequest extends FormRequest
             }
 
             if ($team->hasUserWithEmail($value)) {
-                $fail('This user is already a member of the team.');
+                $fail(__('This user is already a member of the team.'));
 
                 return;
             }
 
             if ($team->invitations()->where('email', strtolower($value))->exists()) {
-                $fail('An invitation has already been sent to this email.');
+                $fail(__('An invitation has already been sent to this email.'));
             }
         };
     }

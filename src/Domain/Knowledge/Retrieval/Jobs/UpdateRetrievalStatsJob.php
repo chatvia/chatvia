@@ -22,8 +22,8 @@ class UpdateRetrievalStatsJob implements ShouldQueue
      * @param  array<int, array{chunkable_type: string, chunkable_id: int|string}>  $results
      */
     public function __construct(
-        public array $results,
-        public int $agentId,
+        public readonly array $results,
+        public readonly int $agentId,
     ) {}
 
     public function handle(UpdateRetrievalStatsAction $action): void

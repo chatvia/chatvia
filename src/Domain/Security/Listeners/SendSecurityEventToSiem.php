@@ -35,6 +35,9 @@ class SendSecurityEventToSiem implements ShouldQueue
 {
     use InteractsWithQueue;
 
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     public function __construct(
         private readonly DeliverSecurityWebhookAction $action,
         private readonly RecordSiemDeliveryFailureAction $recordFailure,

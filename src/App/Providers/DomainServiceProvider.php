@@ -67,6 +67,8 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Integration\Mcp\Observers\AgentMcpServerObserver;
 use Domain\Integration\Tool\Contracts\ToolDispatcherInterface;
 use Domain\Integration\Tool\Dispatch\RoutingToolDispatcher;
+use Domain\Knowledge\Document\Contracts\PdfInspector;
+use Domain\Knowledge\Document\Conversion\PdfInfo;
 use Domain\Knowledge\Embedding\Cohere;
 use Domain\Knowledge\Embedding\Contracts\EmbeddingsProviderInterface;
 use Domain\Knowledge\Embedding\Contracts\Reranker;
@@ -158,6 +160,10 @@ class DomainServiceProvider extends ServiceProvider
         // tool loop streams through — ToolLoopRunnerTest injects fake transformers
         // to drive canned tool-call streams without a live upstream.
         $this->app->bind(StreamTransformer::class, OpenAiCompatibleTransformer::class);
+
+        // PdfInfo shells out to poppler; the contract is the seam tests fake
+        // for consumers outside Knowledge (chat attachments, upload rules).
+        $this->app->bind(PdfInspector::class, PdfInfo::class);
 
         $this->registerAiServices();
 

@@ -39,29 +39,34 @@ class InviteWorkspaceChatterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'agents.required' => 'Select at least one agent to give this member access to.',
-            'agents.min' => 'Select at least one agent to give this member access to.',
+            'agents.required' => __('Select at least one agent to give this member access to.'),
+            'agents.min' => __('Select at least one agent to give this member access to.'),
         ];
     }
 
-    public function withValidator(Validator $validator): void
+    /**
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
     {
-        $validator->after(function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty()) {
-                return;
-            }
+        return [
+            function (Validator $validator): void {
+                if ($validator->errors()->isNotEmpty()) {
+                    return;
+                }
 
-            $requested = $this->safe()->collect('agents')->filter()->unique();
+                $requested = $this->safe()->collect('agents')->filter()->unique();
 
-            // Every requested id must resolve to a protected agent in the
-            // workspace, otherwise the selection is stale or out of bounds.
-            if ($this->resolveAgents()->count() !== $requested->count()) {
-                $validator->errors()->add(
-                    'agents',
-                    'One or more selected agents are not available. Only protected agents in your workspace can be assigned.',
-                );
-            }
-        });
+                // Every requested id must resolve to a protected agent in the
+                // workspace, otherwise the selection is stale or out of bounds.
+                if ($this->resolveAgents()->count() !== $requested->count()) {
+                    $validator->errors()->add(
+                        'agents',
+                        __('One or more selected agents are not available. Only protected agents in your workspace can be assigned.'),
+                    );
+                }
+            },
+        ];
     }
 
     public function email(): string

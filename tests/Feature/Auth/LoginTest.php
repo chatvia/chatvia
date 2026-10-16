@@ -25,7 +25,7 @@ describe('User Login', function (): void {
         ]);
 
         $response->assertRedirect(route('dashboard'));
-        $this->assertAuthenticatedAs($user);
+        expect(auth()->user()?->is($user))->toBeTrue();
     });
 
     it('rejects login with invalid email', function (): void {
@@ -36,7 +36,7 @@ describe('User Login', function (): void {
 
         $response->assertRedirect(route('login'));
         $response->assertSessionHasErrors('email');
-        $this->assertGuest();
+        expect(auth()->check())->toBeFalse();
     });
 
     it('rejects login with invalid password', function (): void {
@@ -52,7 +52,7 @@ describe('User Login', function (): void {
 
         $response->assertRedirect(route('login'));
         $response->assertSessionHasErrors('email');
-        $this->assertGuest();
+        expect(auth()->check())->toBeFalse();
     });
 
     it('locks out repeated failed logins for the same email', function (): void {
@@ -77,7 +77,7 @@ describe('User Login', function (): void {
         ]);
 
         $response->assertStatus(429);
-        $this->assertGuest();
+        expect(auth()->check())->toBeFalse();
     });
 
     it('supports remember me functionality', function (): void {
@@ -93,7 +93,7 @@ describe('User Login', function (): void {
         ]);
 
         $response->assertRedirect(route('dashboard'));
-        $this->assertAuthenticatedAs($user);
+        expect(auth()->user()?->is($user))->toBeTrue();
 
         // Check if remember cookie is set
         $response->assertCookie(Auth::guard()->getRecallerName());
@@ -111,7 +111,7 @@ describe('User Login', function (): void {
         ]);
 
         $response->assertRedirect(route('dashboard'));
-        $this->assertAuthenticatedAs($user);
+        expect(auth()->user()?->is($user))->toBeTrue();
 
         // Ensure remember cookie is not set
         $recallerName = Auth::guard()->getRecallerName();

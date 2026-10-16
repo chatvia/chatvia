@@ -14,6 +14,7 @@ use Domain\Integration\Mcp\Exceptions\McpException;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Support\Exceptions\DomainValidationException;
 use Support\Pagination\CursorPage;
 use Throwable;
 
@@ -65,13 +66,13 @@ class McpServerController
             $result = $add->execute($request->toData());
         } catch (Throwable $e) {
             // The sync talks to the server, so failure is an input problem
-            // (wrong URL or token), not a field error — same 422 shape as the
-            // dashboard's connector screen.
+            // (wrong URL or token). Rethrown field-keyed, so the global
+            // handler renders the one {message, errors} 422 shape.
             $message = $e instanceof McpException
                 ? $e->getMessage()
                 : __('Could not connect to the MCP server: :reason', ['reason' => $e->getMessage()]);
 
-            return response()->json(['message' => $message], 422);
+            throw new DomainValidationException('url', $message);
         }
 
         return response()->json(['data' => McpServerData::fromModel($result->server)], 201);

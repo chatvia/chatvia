@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 // Everything lives under `my/account/*` with `account.*` route names. Workspace
 // administration (integrations, people, governance) lives in routes/workspace.php.
 Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(function (): void {
-    Route::redirect('my/account', '/my/account/profile');
+    Route::redirect('my/account', '/my/account/profile')->name('account.index');
 
     Route::prefix('my/account')->name('account.')->group(function (): void {
         Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -36,7 +36,7 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // FormRequest.
         Route::get('delete-account', [DeleteAccountController::class, 'edit'])->name('delete');
         Route::post('delete-account', RequestAccountDeletionController::class)
-            ->middleware('throttle:5,60')
+            ->middleware('throttle:5,60,account-deletion')
             ->name('delete.request');
         Route::get('delete-account/confirm/{userId}', ConfirmAccountDeletionController::class)
             ->whereNumber('userId')
@@ -52,10 +52,10 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
 
         Route::get('social', [SocialController::class, 'edit'])->name('social.edit');
         Route::get('social/{provider}/connect', ConnectSocialAccountController::class)
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,account-social')
             ->name('social.connect');
         Route::delete('social/{provider}', [SocialController::class, 'destroy'])
-            ->middleware('throttle:10,1')
+            ->middleware('throttle:10,1,account-social')
             ->name('social.disconnect');
 
         // GDPR Art. 15/20 — let the user request a copy of their personal data
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'can.access.dashboard', 'workspace.scope'])->group(fu
         // `app:prune-expired-data-exports`.
         Route::get('data-export', [DataExportController::class, 'edit'])->name('data-export.edit');
         Route::post('data-export', [DataExportController::class, 'store'])
-            ->middleware('throttle:5,60')
+            ->middleware('throttle:5,60,data-export')
             ->name('data-export.store');
         Route::get('data-export/{export}/download', DownloadDataExportController::class)->name('data-export.download');
         Route::delete('data-export/{export}', [DataExportController::class, 'destroy'])->name('data-export.destroy');

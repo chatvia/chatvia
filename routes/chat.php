@@ -63,17 +63,17 @@ Route::prefix('chat/{agentSlug}')
         Route::middleware('guest:chat,chat_staff')->group(function (): void {
             Route::get('login', ChatShowLoginController::class)->name('chat.login.show');
             Route::post('login', ChatLoginController::class)
-                ->middleware('throttle:5,1')
+                ->middleware('throttle:5,1,chat-login')
                 ->name('chat.login');
 
             Route::post('magic-link', ChatMagicLinkController::class)
-                ->middleware('throttle:6,1')
+                ->middleware('throttle:6,1,chat-magic-link')
                 ->name('chat.magic-link.send');
 
             // A chatter's emailed password reset link lands here.
             Route::get('reset-password/{token}', ChatShowResetPasswordController::class)->name('chat.password.reset');
             Route::post('reset-password', ChatResetPasswordController::class)
-                ->middleware('throttle:6,1')
+                ->middleware('throttle:6,1,chat-password-reset')
                 ->name('chat.password.update');
         });
 
@@ -89,7 +89,7 @@ Route::prefix('chat/{agentSlug}')
 
             // Resume a paused agent turn after the user approves/denies a gated
             // tool call. {approval} binds ToolApprovalCheckpoint by external_id.
-            Route::post('tools/{approval}/resolve', ResolveToolApprovalController::class)->name('chat.tools.resolve');
+            Route::post('tools/{approval}/resolve', ResolveToolApprovalController::class)->middleware('throttle:chat-stream')->name('chat.tools.resolve');
 
             // Inline-form submit. {formInstance} binds FormSubmission by external_id.
             // Stores a Lead and/or FormSubmission — never opens a new (billed) turn.
@@ -98,7 +98,8 @@ Route::prefix('chat/{agentSlug}')
 
             Route::post('conversations/create', ConversationCreateController::class)->name('conversations.create');
             Route::get('conversations/{conversationId}/messages', ConversationMessageController::class)->name('conversations.messages');
-            Route::post('conversations/{conversationId}/title', GenerateConversationTitleController::class)->name('conversations.title');
+            Route::post('conversations/{conversationId}/title', GenerateConversationTitleController::class)
+                ->middleware('throttle:chat-stream')->name('conversations.title');
             Route::get('conversations', ConversationController::class)->name('conversations.index');
             Route::get('conversations/search', ConversationSearchController::class)->name('conversations.search');
             Route::patch('conversations/{conversationId}', ConversationUpdate::class)->name('conversations.update');
@@ -118,7 +119,8 @@ Route::prefix('chat/{agentSlug}')
             Route::post('messages/attachments', AttachmentController::class)->middleware('throttle:chat-stream')->name('chat.messages.attachments.store');
             Route::delete('messages/attachments/{attachment}', AttachmentDeleteController::class)->name('chat.messages.attachments.delete');
 
-            Route::get('conversations/{conversationId}/export', ChatExportController::class)->name('conversations.export');
+            Route::get('conversations/{conversationId}/export', ChatExportController::class)
+                ->middleware('throttle:20,1,chat-export')->name('conversations.export');
             Route::get('conversations/{conversationId}/sources', ChatSourceController::class)->name('chat.sources');
 
             Route::get('c/{conversationId}', ChatController::class)->name('chat.show');

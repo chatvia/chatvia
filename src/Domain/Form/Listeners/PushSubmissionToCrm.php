@@ -3,9 +3,12 @@
 namespace Domain\Form\Listeners;
 
 use Domain\Agent\Models\Agent;
+use Domain\Form\Actions\RecordCrmDeliveryFailureAction;
 use Domain\Form\Data\CapturedSubmissionData;
 use Domain\Form\Events\FormSubmitted;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Support\Exceptions\UnsafeUrlException;
@@ -17,9 +20,15 @@ use Support\Http\SignedWebhookSender;
  * re-checks the URL against SSRF right before sending (save-time validation is
  * bypassable) and never follows redirects. No-op unless the agent has the
  * webhook enabled with a URL + secret. Throws on a non-2xx / transport error so
- * the queue retries; an unsafe URL is logged and dropped, since retrying cannot
- * fix it.
+ * the queue retries; an unsafe URL fails at once, since retrying cannot fix it.
+ * Once retries are used up, failed() counts the failure and
+ * {@see RecordCrmDeliveryFailureAction} switches a dead endpoint off; a
+ * successful delivery resets the counter.
  */
+// A CRM endpoint that fails once often answers on the next try.
+#[Tries(3)]
+// Longer and longer waits, so a restarting endpoint has time to come back.
+#[Backoff(10, 60, 300)]
 class PushSubmissionToCrm implements ShouldQueue
 {
     use InteractsWithQueue;
@@ -29,6 +38,7 @@ class PushSubmissionToCrm implements ShouldQueue
 
     public function __construct(
         private readonly SignedWebhookSender $sender,
+        private readonly RecordCrmDeliveryFailureAction $recordFailure,
     ) {}
 
     public function handle(FormSubmitted $event): void
@@ -54,10 +64,21 @@ class PushSubmissionToCrm implements ShouldQueue
                 secret: (string) $secret,
             );
         } catch (UnsafeUrlException $e) {
-            Log::warning('PushSubmissionToCrm refused an unsafe webhook URL', [
-                'agent_id' => $agent->id,
-                'error' => $e->getMessage(),
-            ]);
+            // Retrying cannot make the URL safe, so burn no tries: fail now,
+            // which counts towards the auto-disable threshold in failed().
+            if ($this->job === null) {
+                throw $e;
+            }
+
+            $this->fail($e);
+
+            return;
+        }
+
+        // A delivered webhook proves the endpoint lives again.
+        if ((int) ($crm['webhook_failures'] ?? 0) > 0) {
+            $crm['webhook_failures'] = 0;
+            $agent->setSetting('crm', $crm, 'leads');
         }
     }
 
@@ -68,6 +89,11 @@ class PushSubmissionToCrm implements ShouldQueue
             'submission_id' => $event->submission->submissionId,
             'error' => $e->getMessage(),
         ]);
+
+        $agent = Agent::find($event->submission->agentId);
+        if ($agent !== null) {
+            $this->recordFailure->execute($agent);
+        }
     }
 
     /**

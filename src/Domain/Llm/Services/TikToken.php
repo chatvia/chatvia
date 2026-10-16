@@ -24,9 +24,15 @@ class TikToken
         'r50k_base' => 'r50k_base (GPT-3)',
     ];
 
-    /** @var array<string, Encoder> */
+    /**
+     * Loaded BPE encoders by encoding name. Safe as a static cache on a
+     * long-lived worker: an encoder is immutable once built.
+     *
+     * @var array<string, Encoder>
+     */
     private static array $encoders = [];
 
+    /** One shared provider; it only loads vocabulary files, which never change. */
     private static ?EncoderProvider $provider = null;
 
     /** The configured encoding, or cl100k_base when it is not one of {@see ENCODINGS}. */

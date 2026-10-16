@@ -44,9 +44,9 @@ class DocumentChunkIngestionJob implements ShouldQueue
     use Batchable, Queueable;
 
     public function __construct(
-        public Agent $agent,
-        public SourceFile $sourceFile,
-        public PageGroupData $group,
+        public readonly Agent $agent,
+        public readonly SourceFile $sourceFile,
+        public readonly PageGroupData $group,
     ) {}
 
     /**

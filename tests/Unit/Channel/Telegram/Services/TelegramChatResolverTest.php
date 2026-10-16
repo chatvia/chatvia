@@ -6,6 +6,7 @@ use Domain\Channel\Telegram\Models\AgentTelegramBot;
 use Domain\Channel\Telegram\Models\TelegramChat;
 use Domain\Channel\Telegram\Services\TelegramChatResolver;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Illuminate\Support\Str;
 
@@ -74,8 +75,8 @@ it('tags the conversation as a Telegram conversation', function (): void {
 
     $chat = app(TelegramChatResolver::class)->resolve($bot, 777, new TelegramSenderData('Lee'));
 
-    $this->assertDatabaseHas('chat_conversations', [
-        'external_id' => $chat->conversation->external_id,
-        'source' => ConversationSource::Telegram->value,
-    ]);
+    expect(Conversation::query()
+        ->where('external_id', $chat->conversation->external_id)
+        ->where('source', ConversationSource::Telegram)
+        ->exists())->toBeTrue();
 });

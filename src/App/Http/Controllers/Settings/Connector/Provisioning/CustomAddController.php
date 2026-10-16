@@ -12,6 +12,7 @@ use Domain\Integration\Connector\Exceptions\McpOAuthException;
 use Domain\Integration\Mcp\Data\Resources\AgentMcpServerData;
 use Domain\Integration\Mcp\Exceptions\McpException;
 use Illuminate\Http\JsonResponse;
+use Support\Exceptions\DomainValidationException;
 use Throwable;
 
 /**
@@ -51,11 +52,14 @@ class CustomAddController
         try {
             $result = $add->execute($data);
         } catch (Throwable $e) {
+            // A failed sync is an input problem (wrong URL or token).
+            // Rethrown field-keyed, so the global handler renders the one
+            // {message, errors} 422 shape.
             $message = $e instanceof McpException
                 ? $e->getMessage()
                 : __('Could not connect to the MCP server: :reason', ['reason' => $e->getMessage()]);
 
-            return response()->json(['message' => $message], 422);
+            throw new DomainValidationException('url', $message);
         }
 
         return response()->json([

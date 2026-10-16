@@ -15,6 +15,9 @@ use Support\Localization\Country\Models\Country;
  */
 class LocateSession implements ShouldQueue
 {
+    /** Run only after the dispatching transaction has committed. */
+    public bool $afterCommit = true;
+
     public function __construct(
         private readonly IP2Country $ip2Country,
     ) {}

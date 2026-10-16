@@ -49,7 +49,7 @@ export function fetchAttachableFiles(agentId: string, fileType?: string): Promis
 }
 
 export function attachFile(agentId: string, fileId: number): Promise<void> {
-    return post(linkFile.url({ agent: agentId, fileId }), { file_id: fileId });
+    return post(linkFile.url({ agent: agentId, file: fileId }));
 }
 
 /** Trained texts the agent does not use yet. */
@@ -58,7 +58,7 @@ export function fetchAttachableTexts(agentId: string): Promise<AttachableText[]>
 }
 
 export function attachText(agentId: string, textId: number): Promise<void> {
-    return post(texts.link.url({ agent: agentId, textId }), { text_id: textId });
+    return post(texts.link.url({ agent: agentId, text: textId }));
 }
 
 /** Trained websites the agent does not use yet. */

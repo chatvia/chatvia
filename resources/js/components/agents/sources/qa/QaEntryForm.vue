@@ -64,7 +64,7 @@ function submit(): void {
     };
 
     if (props.entry) {
-        form.patch(updateQa.url({ agent: props.agentId, id: props.entry.id }), {
+        form.patch(updateQa.url({ agent: props.agentId, qa: props.entry.id }), {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success(t('agents.sources.qa.updated'));

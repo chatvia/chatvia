@@ -36,15 +36,15 @@ export function fetchTextSources(agentId: string, page: number): Promise<LengthA
 }
 
 export function fetchTextSource(agentId: string, id: number): Promise<TextSourceDetail> {
-    return get<TextSourceDetail>(text.show.url({ agent: agentId, id }));
+    return get<TextSourceDetail>(text.show.url({ agent: agentId, text: id }));
 }
 
 /** Removes the text from this agent only; other agents keep it. */
 export async function unlinkTextSource(agentId: string, id: number): Promise<void> {
-    await post(text.unlink.url({ agent: agentId, id }));
+    await post(text.unlink.url({ agent: agentId, text: id }));
 }
 
 /** Deletes the text for every agent that uses it. */
 export async function deleteTextSource(agentId: string, id: number): Promise<void> {
-    await del(text.destroy.url({ agent: agentId, id }));
+    await del(text.destroy.url({ agent: agentId, text: id }));
 }

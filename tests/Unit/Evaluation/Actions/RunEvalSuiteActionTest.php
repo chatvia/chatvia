@@ -43,7 +43,7 @@ function evalCaseFor(Agent $agent, bool $active): EvalCase
         'input' => 'ping',
         'scorer_type' => 'contains',
         'scorer_config' => ['value' => 'pong'],
-        'active' => $active,
+        'is_active' => $active,
     ]);
 }
 

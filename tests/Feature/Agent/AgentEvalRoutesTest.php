@@ -36,7 +36,7 @@ function evalRoutesCase(Agent $agent, array $attributes = []): EvalCase
         'input' => 'When do you open?',
         'scorer_type' => 'contains',
         'scorer_config' => ['value' => 'nine'],
-        'active' => true,
+        'is_active' => true,
         ...$attributes,
     ]);
 }
@@ -90,7 +90,7 @@ it('changes and deletes a case of the agent, and 404s one of another agent', fun
 
     expect($case->fresh())
         ->name->toBe('Renamed')
-        ->active->toBeFalse()
+        ->is_active->toBeFalse()
         ->and($elsewhere->fresh()->name)->toBe('Opening hours');
 
     $this->actingAs($this->owner)->deleteJson(route('agents.evals.cases.destroy', [$this->agent, $elsewhere]))->assertNotFound();
@@ -103,7 +103,7 @@ it('changes and deletes a case of the agent, and 404s one of another agent', fun
 it('starts a run of the active cases in the queue', function (): void {
     evalRoutesCase($this->agent);
     evalRoutesCase($this->agent, ['name' => 'Second']);
-    evalRoutesCase($this->agent, ['name' => 'Switched off', 'active' => false]);
+    evalRoutesCase($this->agent, ['name' => 'Switched off', 'is_active' => false]);
 
     $this->actingAs($this->owner)
         ->post(route('agents.evals.runs.store', $this->agent))

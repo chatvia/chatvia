@@ -90,7 +90,7 @@ it('creates an llm_judge case from a chunk question with the chunk text as refer
         ->and($case->scorer_type)->toBe(ScorerType::LlmJudge)
         ->and($case->scorer_config)->toBe(['criteria' => CreateEvalCasesFromQuestionsAction::DEFAULT_CRITERIA])
         ->and($case->expected_output)->toBe('Refunds are available within 30 days of purchase.')
-        ->and($case->active)->toBeTrue();
+        ->and($case->is_active)->toBeTrue();
 });
 
 it('uses the QA pair answer as the reference for a qa question', function (): void {
@@ -136,7 +136,7 @@ it('skips questions already present as a case input and intra-payload duplicates
         'input' => 'WHAT IS THE REFUND POLICY?',
         'scorer_type' => 'contains',
         'scorer_config' => ['value' => '30 days'],
-        'active' => true,
+        'is_active' => true,
     ]);
 
     $created = app(CreateEvalCasesFromQuestionsAction::class)->execute(

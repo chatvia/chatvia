@@ -2342,6 +2342,10 @@ native_run_steps() {
     run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
     run_step 'Installing Node.js 22' native_install_node || native_failed
     run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
+    if [ "$DRY_RUN" = 1 ]; then
+        section 'PostgreSQL settings' "/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
+        native_postgres_conf | quote
+    fi
     run_step 'Setting up PostgreSQL' native_configure_postgres || native_failed
     run_step "Creating the $NATIVE_USER user" native_create_user || native_failed
     run_step 'Setting up PHP-FPM' native_configure_php || native_failed
@@ -2479,19 +2483,114 @@ native_install_extensions() {
     if [ "${#files[@]}" -gt 0 ]; then apt_get install "${files[@]}"; fi
 }
 
-native_configure_postgres() {
-    local conf="/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
-    install -d "$(dirname "$conf")"
-    cat >"$conf" <<'EOF'
+# The tuned PostgreSQL settings for the memory, processors and connections it
+# gets: pgtune's numbers for a web application on SSD storage, as one
+# "name value" line each. docker/manage carries the same function for
+# ./manage postgres tune (the two files are shipped apart): change it there too.
+# pg_tune_settings RAM_MB PROCESSORS MAX_CONNECTIONS
+pg_tune_settings() {
+    local ram_mb=$1 cpus=$2 connections=$3
+    local shared_mb cache_mb maintenance_mb gather work_kb wal_kb pair name kb
+
+    # A quarter of the memory for PostgreSQL's own cache (at most 8 GB), and
+    # three quarters as the planner's guess of what the OS caches on top.
+    shared_mb=$((ram_mb / 4))
+    if [ "$shared_mb" -gt 8192 ]; then shared_mb=8192; fi
+    cache_mb=$((ram_mb * 3 / 4))
+
+    # Index builds work in maintenance_work_mem: the search indexes
+    # (VectorChord, bm25) build much faster with room here.
+    maintenance_mb=$((ram_mb / 16))
+    if [ "$maintenance_mb" -gt 2048 ]; then maintenance_mb=2048; fi
+
+    # Up to half the processors (at most 4) may serve one query together.
+    gather=$(((cpus + 1) / 2))
+    if [ "$gather" -gt 4 ]; then gather=4; fi
+
+    # The memory left after shared_buffers, shared over every connection
+    # running up to 3 sorts, each over its parallel workers. At least 64 kB.
+    work_kb=$(((ram_mb - shared_mb) * 1024 / (connections * 3) / gather))
+    if [ "$work_kb" -lt 64 ]; then work_kb=64; fi
+
+    # 3% of shared_buffers for the WAL, at most 16 MB (14 MB and up rounds
+    # to the usual 16 MB; wal_buffers counts in blocks of 8 kB).
+    wal_kb=$((shared_mb * 1024 * 3 / 100 / 8 * 8))
+    if [ "$wal_kb" -ge 14336 ]; then wal_kb=16384; fi
+
+    # Sizes print the way PostgreSQL shows them back (the largest whole
+    # unit), so a second run can see that nothing changed.
+    for pair in "shared_buffers $((shared_mb * 1024))" \
+        "effective_cache_size $((cache_mb * 1024))" \
+        "maintenance_work_mem $((maintenance_mb * 1024))" \
+        "work_mem $work_kb" \
+        "wal_buffers $wal_kb"; do
+        name=${pair% *} kb=${pair#* }
+        if [ $((kb % 1048576)) -eq 0 ]; then
+            printf '%s %sGB\n' "$name" $((kb / 1048576))
+        elif [ $((kb % 1024)) -eq 0 ]; then
+            printf '%s %sMB\n' "$name" $((kb / 1024))
+        else
+            printf '%s %skB\n' "$name" "$kb"
+        fi
+    done
+    printf 'min_wal_size 1GB\n'
+    printf 'max_wal_size 4GB\n'
+    # Spread each checkpoint's writes out, and tell the planner this is an
+    # SSD: random reads cost little, and many can be in flight.
+    printf 'checkpoint_completion_target 0.9\n'
+    printf 'random_page_cost 1.1\n'
+    printf 'effective_io_concurrency 200\n'
+    # Worker slots, never below PostgreSQL's default of 8: extensions take
+    # slots here too. How many actually run in parallel follows the
+    # processors.
+    printf 'max_worker_processes %s\n' $((cpus > 8 ? cpus : 8))
+    printf 'max_parallel_workers_per_gather %s\n' "$gather"
+    printf 'max_parallel_workers %s\n' "$cpus"
+    printf 'max_parallel_maintenance_workers %s\n' "$gather"
+}
+
+# The whole of PostgreSQL's conf.d/chatvia.conf: the search libraries, plus
+# sizes computed for this server's memory and processors (the same formulas
+# as ./manage postgres tune). The installer owns the file and writes it anew
+# on every run, so a server that grew gets new sizes; put your own settings
+# in a file read after it, like zz-mine.conf.
+native_postgres_conf() {
+    local ram_mb cpus name value
+    ram_mb=$(($(meminfo_kb MemTotal) / 1024))
+    if [ "$ram_mb" -eq 0 ]; then
+        # A dry run on macOS: /proc/meminfo is Linux-only.
+        ram_mb=$(($(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1048576))
+    fi
+    cpus=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null) || cpus=1
+    case $cpus in '' | *[!0-9]* | 0) cpus=1 ;; esac
+
+    cat <<'EOF'
 # Written by the Chatvia installer. Chatvia's search needs these libraries
 # loaded when PostgreSQL starts; add your own after them.
 shared_preload_libraries = 'vchord,vchord_bm25,vector,pg_tokenizer'
 EOF
+    # No memory reading, no tuning: PostgreSQL's own defaults stay.
+    if [ "$ram_mb" -eq 0 ]; then return 0; fi
+
+    printf '\n# Sized by the installer for %s of memory and %s processors: the usual\n' \
+        "$(awk -v mb="$ram_mb" 'BEGIN { printf "%.1f GB", mb / 1024 }')" "$cpus"
+    printf '# numbers for a web app on SSD storage. Every run of the installer computes\n'
+    printf '# them again; settings in a conf.d file read after this one win over them.\n'
+    pg_tune_settings "$ram_mb" "$cpus" 100 | while read -r name value; do
+        printf "%s = '%s'\t# set by Chatvia tune\n" "$name" "$value"
+    done
+}
+
+native_configure_postgres() {
+    local conf="/etc/postgresql/$NATIVE_PG/main/conf.d/chatvia.conf"
+    install -d "$(dirname "$conf")"
+    native_postgres_conf >"$conf"
     chmod 644 "$conf"
     systemctl enable postgresql
     systemctl restart postgresql
     wait_until 60 psql_admin -Atc 'SELECT 1'
     psql_admin -Atc 'SHOW shared_preload_libraries'
+    psql_admin -Atc 'SHOW shared_buffers'
 }
 
 native_create_user() {

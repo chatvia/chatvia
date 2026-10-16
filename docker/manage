@@ -2170,11 +2170,12 @@ cmd_postgres() {
     local action=${1:-}
     if [ $# -gt 0 ]; then shift; fi
     case $action in
+        tune) postgres_tune "$@" ;;
         edit) postgres_edit "$@" ;;
         apply) postgres_apply "$@" ;;
         export) postgres_export "$@" ;;
         '' | help | -h | --help) command_help postgres ;;
-        *) die "Unknown: ./manage postgres $action" 'Use edit, apply or export.' ;;
+        *) die "Unknown: ./manage postgres $action" 'Use tune, edit, apply or export.' ;;
     esac
 }
 
@@ -2258,6 +2259,246 @@ postgres_edit() {
     fi
     apply_postgres_settings
     outro 'Done.'
+}
+
+postgres_tune() {
+    no_options "$@"
+    intro 'PostgreSQL tuning' "$(pretty_path "$DIR")"
+    check_docker
+    lock
+    if [ ! -f "$(pg_conf)" ]; then
+        ensure_postgres
+        run_step 'Exporting the settings from the database container' export_postgres_config ||
+            die 'The settings were not exported.'
+    fi
+    ensure_override
+    ensure_postgres
+    detect_postgres_resources
+    local processors=processors
+    if [ "$TUNE_CPUS" = 1 ]; then processors=processor; fi
+    ok "PostgreSQL gets $(bold "$(human_size $((TUNE_RAM_MB * 1048576)))") of memory and $(bold "$TUNE_CPUS") $processors $(dim "($TUNE_SOURCE)")"
+
+    local connections settings
+    connections=$(sql_value 'SHOW max_connections' 2>/dev/null) || connections=''
+    case $connections in '' | *[!0-9]* | 0) connections=100 ;; esac
+    settings=$(pg_tune_settings "$TUNE_RAM_MB" "$TUNE_CPUS" "$connections")
+
+    # What the server runs with now, next to what the tune computed.
+    local in_list='' name value current before changes=0
+    while read -r name value; do
+        in_list="$in_list${in_list:+,}'$name'"
+    done <<<"$settings"
+    current=$(sql_value "SELECT name || ' ' || current_setting(name) FROM pg_settings WHERE name IN ($in_list)") ||
+        current=''
+    section 'The settings for that' "with $connections connections, on SSD storage"
+    while read -r name value; do
+        before=$(awk -v n="$name" '$1 == n { print $2 }' <<<"$current")
+        if [ "$before" = "$value" ]; then
+            info "$(printf '%-33s' "$name") $(dim "$value, no change")"
+        else
+            info "$(printf '%-33s' "$name") ${before:-?} $S_ARROW $(accent "$value")"
+            changes=$((changes + 1))
+        fi
+    done <<<"$settings"
+    tune_shm_warning
+
+    if [ "$changes" -eq 0 ] && [ "$(written_tune_settings)" = "$settings" ]; then
+        outro 'Already tuned. Run it again when the memory or processors change.'
+        return
+    fi
+    if ! confirm 'Write these settings to postgres/postgresql.conf and apply them?' y; then
+        outro 'Nothing was changed.'
+        return
+    fi
+    if [ "$(written_tune_settings)" != "$settings" ]; then
+        write_tune_block "$settings" || die 'The settings were not written.'
+        ok "Saved $(dim "$(pretty_path "$(pg_conf)")")"
+    fi
+    apply_postgres_settings
+    outro 'Done. Run it again when the memory or processors change.'
+}
+
+# The memory and processors PostgreSQL actually gets: its container's cgroup
+# limits when one is set, else the machine the containers run on (on macOS
+# and Windows that is Docker's own virtual machine). Sets TUNE_RAM_MB,
+# TUNE_CPUS and TUNE_SOURCE.
+detect_postgres_resources() {
+    local bytes kb quota period
+    TUNE_RAM_MB='' TUNE_CPUS='' TUNE_SOURCE='the machine the containers run on'
+
+    # cgroup v2, then v1; "max" or an enormous number means no limit.
+    bytes=$(compose exec -T postgres sh -c \
+        'cat /sys/fs/cgroup/memory.max 2>/dev/null || cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null' |
+        tr -d '[:space:]') || bytes=''
+    if [[ $bytes =~ ^[0-9]+$ ]] && [ "$bytes" -lt 4611686018427387904 ]; then
+        TUNE_RAM_MB=$((bytes / 1048576))
+        TUNE_SOURCE='a memory limit on the container'
+    else
+        kb=$(compose exec -T postgres awk '/^MemTotal:/ { print $2 }' /proc/meminfo | tr -d '[:space:]') || kb=''
+        if [[ $kb =~ ^[0-9]+$ ]]; then TUNE_RAM_MB=$((kb / 1024)); fi
+    fi
+    if [ -z "$TUNE_RAM_MB" ] || [ "$TUNE_RAM_MB" -eq 0 ]; then
+        if [ "$OS" = macos ]; then
+            TUNE_RAM_MB=$(($(sysctl -n hw.memsize 2>/dev/null || echo 0) / 1048576))
+        else
+            TUNE_RAM_MB=$(($(awk '/^MemTotal:/ { print $2 }' /proc/meminfo 2>/dev/null || echo 0) / 1024))
+        fi
+        TUNE_SOURCE='this machine'
+    fi
+    [ "$TUNE_RAM_MB" -gt 0 ] || die 'Could not read how much memory PostgreSQL gets.' \
+        'Tune by hand: ./manage postgres edit'
+
+    # A CPU quota ("150000 100000" means 1.5, so 2 processors), else the
+    # processors the container sees.
+    quota=$(compose exec -T postgres sh -c '
+        if [ -f /sys/fs/cgroup/cpu.max ]; then
+            cat /sys/fs/cgroup/cpu.max
+        elif [ -f /sys/fs/cgroup/cpu/cpu.cfs_quota_us ]; then
+            echo "$(cat /sys/fs/cgroup/cpu/cpu.cfs_quota_us) $(cat /sys/fs/cgroup/cpu/cpu.cfs_period_us)"
+        fi' | tr -s '[:space:]' ' ') || quota=''
+    quota=${quota# }
+    quota=${quota% }
+    period=${quota#* }
+    quota=${quota%% *}
+    if [[ $quota =~ ^[0-9]+$ ]] && [[ $period =~ ^[0-9]+$ ]] && [ "$period" -gt 0 ]; then
+        TUNE_CPUS=$(((quota + period - 1) / period))
+    else
+        TUNE_CPUS=$(compose exec -T postgres nproc | tr -d '[:space:]') || TUNE_CPUS=''
+    fi
+    if ! [[ $TUNE_CPUS =~ ^[0-9]+$ ]] || [ "$TUNE_CPUS" -eq 0 ]; then
+        if [ "$OS" = macos ]; then
+            TUNE_CPUS=$(sysctl -n hw.ncpu 2>/dev/null) || TUNE_CPUS=1
+        else
+            TUNE_CPUS=$(nproc 2>/dev/null) || TUNE_CPUS=1
+        fi
+    fi
+    case $TUNE_CPUS in '' | *[!0-9]* | 0) TUNE_CPUS=1 ;; esac
+}
+
+# The tuned PostgreSQL settings for the memory, processors and connections it
+# gets: pgtune's numbers for a web application on SSD storage, as one
+# "name value" line each. install.sh carries the same function for the
+# complete installation (the two files are shipped apart): change it there too.
+# pg_tune_settings RAM_MB PROCESSORS MAX_CONNECTIONS
+pg_tune_settings() {
+    local ram_mb=$1 cpus=$2 connections=$3
+    local shared_mb cache_mb maintenance_mb gather work_kb wal_kb pair name kb
+
+    # A quarter of the memory for PostgreSQL's own cache (at most 8 GB), and
+    # three quarters as the planner's guess of what the OS caches on top.
+    shared_mb=$((ram_mb / 4))
+    if [ "$shared_mb" -gt 8192 ]; then shared_mb=8192; fi
+    cache_mb=$((ram_mb * 3 / 4))
+
+    # Index builds work in maintenance_work_mem: the search indexes
+    # (VectorChord, bm25) build much faster with room here.
+    maintenance_mb=$((ram_mb / 16))
+    if [ "$maintenance_mb" -gt 2048 ]; then maintenance_mb=2048; fi
+
+    # Up to half the processors (at most 4) may serve one query together.
+    gather=$(((cpus + 1) / 2))
+    if [ "$gather" -gt 4 ]; then gather=4; fi
+
+    # The memory left after shared_buffers, shared over every connection
+    # running up to 3 sorts, each over its parallel workers. At least 64 kB.
+    work_kb=$(((ram_mb - shared_mb) * 1024 / (connections * 3) / gather))
+    if [ "$work_kb" -lt 64 ]; then work_kb=64; fi
+
+    # 3% of shared_buffers for the WAL, at most 16 MB (14 MB and up rounds
+    # to the usual 16 MB; wal_buffers counts in blocks of 8 kB).
+    wal_kb=$((shared_mb * 1024 * 3 / 100 / 8 * 8))
+    if [ "$wal_kb" -ge 14336 ]; then wal_kb=16384; fi
+
+    # Sizes print the way PostgreSQL shows them back (the largest whole
+    # unit), so a second run can see that nothing changed.
+    for pair in "shared_buffers $((shared_mb * 1024))" \
+        "effective_cache_size $((cache_mb * 1024))" \
+        "maintenance_work_mem $((maintenance_mb * 1024))" \
+        "work_mem $work_kb" \
+        "wal_buffers $wal_kb"; do
+        name=${pair% *} kb=${pair#* }
+        if [ $((kb % 1048576)) -eq 0 ]; then
+            printf '%s %sGB\n' "$name" $((kb / 1048576))
+        elif [ $((kb % 1024)) -eq 0 ]; then
+            printf '%s %sMB\n' "$name" $((kb / 1024))
+        else
+            printf '%s %skB\n' "$name" "$kb"
+        fi
+    done
+    printf 'min_wal_size 1GB\n'
+    printf 'max_wal_size 4GB\n'
+    # Spread each checkpoint's writes out, and tell the planner this is an
+    # SSD: random reads cost little, and many can be in flight.
+    printf 'checkpoint_completion_target 0.9\n'
+    printf 'random_page_cost 1.1\n'
+    printf 'effective_io_concurrency 200\n'
+    # Worker slots, never below PostgreSQL's default of 8: extensions take
+    # slots here too. How many actually run in parallel follows the
+    # processors.
+    printf 'max_worker_processes %s\n' $((cpus > 8 ? cpus : 8))
+    printf 'max_parallel_workers_per_gather %s\n' "$gather"
+    printf 'max_parallel_workers %s\n' "$cpus"
+    printf 'max_parallel_maintenance_workers %s\n' "$gather"
+}
+
+# The tune lines now in postgres/postgresql.conf, as "name value" lines.
+written_tune_settings() {
+    sed -n "s/^\([a-z_]*\) = '\(.*\)'[[:space:]]*# set by Chatvia tune\$/\1 \2/p" "$(pg_conf)"
+}
+
+# shared_buffers must fit in the container's shared memory (shm_size in
+# compose.yaml), where parallel queries put what they share.
+tune_shm_warning() {
+    local shm shared_mb
+    shared_mb=$((TUNE_RAM_MB / 4))
+    if [ "$shared_mb" -gt 8192 ]; then shared_mb=8192; fi
+    shm=$(docker_cmd inspect --format '{{.HostConfig.ShmSize}}' "$(compose ps -q postgres)" 2>/dev/null) || shm=''
+    case $shm in '' | *[!0-9]* | 0) return 0 ;; esac
+    if [ $((shared_mb * 1048576)) -le "$shm" ]; then return 0; fi
+    warn "shared_buffers is more than the container's shared memory ($(human_size "$shm"))."
+    info "Big parallel queries may fail for lack of it. Give the container more: set"
+    info "$(accent "shm_size: $(((shared_mb + 1023) / 1024))gb") on postgres in $(pretty_path "$DIR/compose.override.yaml") (there is"
+    info "a hint at the end of its postgres block), then ./manage restart postgres."
+}
+
+# Writes the tune block at the end of postgres/postgresql.conf: an earlier
+# block goes, every other line stays. PostgreSQL takes the last value it
+# reads, so the block wins over the same names above it.
+write_tune_block() {
+    local conf tmp name value
+    conf=$(pg_conf)
+    tmp=$(mktemp "$DIR/postgres/.postgresql.conf.XXXXXX") || return
+    {
+        awk '
+            /^# Chatvia tune begin/ { skip = 1 }
+            skip { if (/^# Chatvia tune end/) skip = 0; next }
+            /# set by Chatvia tune$/ { next }
+            { line[++n] = $0 }
+            END {
+                while (n > 0 && line[n] == "") n--
+                for (i = 1; i <= n; i++) print line[i]
+            }
+        ' "$conf"
+        printf '\n# Chatvia tune begin: written by ./manage postgres tune on %s, for\n' "$(date '+%Y-%m-%d')"
+        printf '# %s of memory and %s processors. These lines win over the same\n' \
+            "$(human_size $((TUNE_RAM_MB * 1048576)))" "$TUNE_CPUS"
+        printf '# settings above them; your own lines are never touched. Run the tune again\n'
+        printf '# when the memory or processors change.\n'
+        while read -r name value; do
+            printf "%s = '%s'\t# set by Chatvia tune\n" "$name" "$value"
+        done <<<"$1"
+        printf '# Chatvia tune end\n'
+    } >"$tmp" || {
+        rm -f "$tmp"
+        return 1
+    }
+    # A failed rewrite must not lose the file.
+    if ! grep -q 'PostgreSQL configuration file' "$tmp"; then
+        rm -f "$tmp"
+        echo 'The rewritten postgresql.conf is incomplete.' >&2
+        return 1
+    fi
+    chmod 644 "$tmp" && mv "$tmp" "$conf"
 }
 
 # Writes postgres/postgresql.conf: the file PostgreSQL made when it created
@@ -2516,6 +2757,7 @@ usage() {
     help_row 'password [EMAIL]' 'Set a new password for an account'
     help_row 'admin [EMAIL]' 'Create another admin account'
     help_section 'PostgreSQL'
+    help_row 'postgres tune' 'Size the settings to the memory and processors'
     help_row 'postgres edit' 'Edit the settings, then apply them'
     help_row 'postgres apply' 'Apply postgres/postgresql.conf after a change'
     help_row 'postgres export' 'Start over from the default settings'
@@ -2604,9 +2846,15 @@ command_help() {
             ;;
         postgres)
             info "PostgreSQL reads its settings from $(pretty_path "$(pg_conf)")."
+            help_option 'tune' 'Size the settings to the memory and processors it gets'
             help_option 'edit' 'Open the file in your editor ($EDITOR), then apply it'
             help_option 'apply' 'Check the file, reload it, and restart when needed'
             help_option 'export' 'Write the file again from the default settings'
+            info ''
+            info "The tune computes the usual sizes for a web app on SSD storage, like"
+            info "pgtune: shared_buffers, work_mem, the WAL sizes, the parallel workers."
+            info "It shows every change and asks first. Its lines are marked"
+            info "$(dim '# set by Chatvia tune'); a new run replaces them and never your own edits."
             ;;
         psql) info 'Opens psql on the Chatvia database. Arguments go to psql, like -c "SELECT 1".' ;;
         artisan) info 'Runs php artisan in the app container, like ./manage artisan about.' ;;

@@ -58,7 +58,7 @@ class ReceiveMessengerMessagesAction
         return AgentMessengerPage::query()
             ->with('agent')
             ->where('page_id', $pageId)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->first();
     }
 }

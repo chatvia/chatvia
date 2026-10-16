@@ -21,7 +21,7 @@ beforeEach(function (): void {
         'app_secret' => 'client-secret-value',
         'tenant_id' => null,
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $this->serviceUrl = 'https://smba.trafficmanager.net/emea/';
     $this->activities = 'https://smba.trafficmanager.net/emea/v3/conversations/a%3A1conv%3Bmessageid%3D7/activities';

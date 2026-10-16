@@ -25,7 +25,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $page_id
  * @property string|null $ig_id
  * @property string|null $username
- * @property bool $enabled
+ * @property bool $is_enabled
  */
 #[Guarded(['id'])]
 #[RouteKey('external_id')]
@@ -51,7 +51,7 @@ class AgentInstagramAccount extends Model
     {
         return [
             'page_access_token' => 'encrypted',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
         ];
     }
 }

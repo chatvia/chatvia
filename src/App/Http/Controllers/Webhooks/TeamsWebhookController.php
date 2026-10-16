@@ -28,7 +28,7 @@ class TeamsWebhookController
         $bot = AgentTeamsBot::query()
             ->with('agent')
             ->where('webhook_secret', $secret)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->first();
 
         if ($bot === null) {

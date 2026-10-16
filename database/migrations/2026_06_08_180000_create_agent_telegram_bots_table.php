@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('bot_token');
             $table->string('bot_username')->nullable();
             $table->string('webhook_secret', 64)->unique();
-            $table->boolean('enabled')->default(true);
+            $table->boolean('is_enabled')->default(true);
             $table->jsonb('commands')->nullable();
             $table->timestamps();
         });

@@ -28,7 +28,7 @@ beforeEach(function (): void {
         'page_access_token' => 'EAAG-page-token-value',
         'page_id' => '1234567890',
         'page_name' => 'Acme Support',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 
@@ -72,7 +72,7 @@ it('returns 200 for an unknown page id without dispatching', function (): void {
 });
 
 it('ignores a disabled page', function (): void {
-    $this->page->update(['enabled' => false]);
+    $this->page->update(['is_enabled' => false]);
 
     MetaWebhook::post(MetaApp::Messenger, messengerEnvelope(['mid' => 'm1', 'text' => 'hello']), $this->appSecret)->assertOk();
 

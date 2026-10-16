@@ -20,7 +20,7 @@ use Support\Concerns\HasExternalId;
  * @property string $bot_token
  * @property string|null $bot_username
  * @property string $webhook_secret
- * @property bool $enabled
+ * @property bool $is_enabled
  * @property list<array{command: string, description: string, type: string, value: string}>|null $commands
  */
 #[Guarded(['id'])]
@@ -47,7 +47,7 @@ class AgentTelegramBot extends Model
     {
         return [
             'bot_token' => 'encrypted',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
             'commands' => 'array',
         ];
     }

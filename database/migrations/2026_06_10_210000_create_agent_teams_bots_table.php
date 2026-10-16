@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('app_secret');
             $table->string('tenant_id')->nullable();
             $table->string('webhook_secret', 64)->unique();
-            $table->boolean('enabled')->default(true);
+            $table->boolean('is_enabled')->default(true);
             $table->timestamps();
         });
     }

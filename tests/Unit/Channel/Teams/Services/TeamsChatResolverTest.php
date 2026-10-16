@@ -27,7 +27,7 @@ function teamsResolverBot(): AgentTeamsBot
         'app_secret' => 'client-secret-value',
         'tenant_id' => null,
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 

@@ -59,7 +59,7 @@ class ConnectWhatsappNumberAction
                 'waba_id' => $data->wabaId,
                 'display_phone_number' => $info['display_phone_number'],
                 'verified_name' => $info['verified_name'],
-                'enabled' => true,
+                'is_enabled' => true,
             ],
         ));
     }

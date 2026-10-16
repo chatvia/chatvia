@@ -51,18 +51,18 @@ function metaWebhookMessage(MetaApp $app): array
     $agentId = Agent::factory()->create()->id;
 
     if ($app === MetaApp::Messenger) {
-        AgentMessengerPage::create(['agent_id' => $agentId, 'page_access_token' => 'EAAG-page-token', 'page_id' => '1234567890', 'page_name' => 'Acme', 'enabled' => true]);
+        AgentMessengerPage::create(['agent_id' => $agentId, 'page_access_token' => 'EAAG-page-token', 'page_id' => '1234567890', 'page_name' => 'Acme', 'is_enabled' => true]);
 
         return ['object' => 'page', 'entry' => [['id' => '1234567890', 'messaging' => [['sender' => ['id' => '24680'], 'message' => ['mid' => 'm1', 'text' => 'hello']]]]]];
     }
 
     if ($app === MetaApp::Instagram) {
-        AgentInstagramAccount::create(['agent_id' => $agentId, 'page_access_token' => 'EAAG-page-token', 'page_id' => '998877', 'ig_id' => '17840012345', 'username' => 'acme', 'enabled' => true]);
+        AgentInstagramAccount::create(['agent_id' => $agentId, 'page_access_token' => 'EAAG-page-token', 'page_id' => '998877', 'ig_id' => '17840012345', 'username' => 'acme', 'is_enabled' => true]);
 
         return ['object' => 'instagram', 'entry' => [['id' => '17840012345', 'messaging' => [['sender' => ['id' => '5550001234'], 'message' => ['mid' => 'm1', 'text' => 'hello']]]]]];
     }
 
-    AgentWhatsappNumber::create(['agent_id' => $agentId, 'access_token' => 'EAAG-wa-token', 'phone_number_id' => '111222333444555', 'waba_id' => '999888777666555', 'display_phone_number' => '+15551234567', 'verified_name' => 'Acme', 'enabled' => true]);
+    AgentWhatsappNumber::create(['agent_id' => $agentId, 'access_token' => 'EAAG-wa-token', 'phone_number_id' => '111222333444555', 'waba_id' => '999888777666555', 'display_phone_number' => '+15551234567', 'verified_name' => 'Acme', 'is_enabled' => true]);
 
     return ['object' => 'whatsapp_business_account', 'entry' => [['id' => '999888777666555', 'changes' => [['field' => 'messages', 'value' => [
         'metadata' => ['phone_number_id' => '111222333444555'],

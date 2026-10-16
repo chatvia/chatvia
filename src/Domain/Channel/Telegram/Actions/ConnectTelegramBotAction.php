@@ -47,7 +47,7 @@ class ConnectTelegramBotAction
                 'bot_token' => $data->botToken,
                 'bot_username' => $me['username'],
                 'webhook_secret' => $secret,
-                'enabled' => true,
+                'is_enabled' => true,
             ],
         );
 

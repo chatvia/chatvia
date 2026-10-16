@@ -40,7 +40,7 @@ it('stores the IG account and subscribes the linked page with its token', functi
         ->and($row->ig_id)->toBe('17840012345')
         ->and($row->username)->toBe('acme.support')
         ->and($row->page_id)->toBe('998877')
-        ->and($row->enabled)->toBeTrue();
+        ->and($row->is_enabled)->toBeTrue();
 
     expect($client->subscriptions)->toHaveCount(1)
         ->and($client->subscriptions[0]['pageId'])->toBe('998877')

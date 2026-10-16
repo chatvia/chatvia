@@ -24,7 +24,7 @@ beforeEach(function (): void {
         'bot_token' => '123:token',
         'bot_username' => 'demo_bot',
         'webhook_secret' => $this->secret,
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 
@@ -75,7 +75,7 @@ it('returns 200 for an unknown bot secret without dispatching', function (): voi
 });
 
 it('ignores a disabled bot', function (): void {
-    $this->bot->update(['enabled' => false]);
+    $this->bot->update(['is_enabled' => false]);
 
     tgPostUpdate($this->secret, $this->secret, tgUpdate())->assertOk();
 

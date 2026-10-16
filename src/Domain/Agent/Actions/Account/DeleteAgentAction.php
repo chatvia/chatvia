@@ -41,11 +41,11 @@ class DeleteAgentAction
      */
     private function silenceMessagingChannels(Agent $agent): void
     {
-        $agent->telegramBot()->update(['enabled' => false]);
-        $agent->slackApp()->update(['enabled' => false]);
-        $agent->messengerPage()->update(['enabled' => false]);
-        $agent->whatsappNumber()->update(['enabled' => false]);
-        $agent->teamsBot()->update(['enabled' => false]);
-        $agent->instagramAccount()->update(['enabled' => false]);
+        $agent->telegramBot()->update(['is_enabled' => false]);
+        $agent->slackApp()->update(['is_enabled' => false]);
+        $agent->messengerPage()->update(['is_enabled' => false]);
+        $agent->whatsappNumber()->update(['is_enabled' => false]);
+        $agent->teamsBot()->update(['is_enabled' => false]);
+        $agent->instagramAccount()->update(['is_enabled' => false]);
     }
 }

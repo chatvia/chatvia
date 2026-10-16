@@ -28,7 +28,7 @@ beforeEach(function (): void {
         'bot_user_id' => 'U0BOT',
         'team_name' => 'Acme Inc',
         'webhook_secret' => $this->secret,
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 
@@ -137,7 +137,7 @@ it('returns 200 for an unknown app secret without dispatching', function (): voi
 });
 
 it('ignores a disabled app', function (): void {
-    $this->slackApp->update(['enabled' => false]);
+    $this->slackApp->update(['is_enabled' => false]);
 
     postSlackEvent($this->secret, slackEnvelope(slackMention()), $this->signingSecret)->assertOk();
 

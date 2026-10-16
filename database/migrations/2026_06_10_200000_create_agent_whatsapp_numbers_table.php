@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('waba_id');
             $table->string('display_phone_number')->nullable();
             $table->string('verified_name')->nullable();
-            $table->boolean('enabled')->default(true);
+            $table->boolean('is_enabled')->default(true);
             $table->timestamps();
 
             $table->index('phone_number_id');
@@ -26,7 +26,7 @@ return new class extends Migration
 
         // One enabled connection per WhatsApp number, so an incoming message
         // reaches exactly one agent.
-        DB::statement('CREATE UNIQUE INDEX agent_whatsapp_numbers_phone_number_id_enabled_unique ON agent_whatsapp_numbers (phone_number_id) WHERE enabled');
+        DB::statement('CREATE UNIQUE INDEX agent_whatsapp_numbers_phone_number_id_enabled_unique ON agent_whatsapp_numbers (phone_number_id) WHERE is_enabled');
     }
 
     public function down(): void

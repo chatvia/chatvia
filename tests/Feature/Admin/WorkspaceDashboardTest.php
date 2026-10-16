@@ -123,7 +123,7 @@ it('lists the workspace\'s agents with model, channels, knowledge and traffic', 
         'bot_token' => '123:token',
         'bot_username' => 'acme_bot',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     DB::table('agent_sources')->insert([
         ['agent_id' => $agent->id, 'sourceable_type' => 'source_text', 'sourceable_id' => 1],

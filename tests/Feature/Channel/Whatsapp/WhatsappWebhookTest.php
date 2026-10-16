@@ -30,7 +30,7 @@ beforeEach(function (): void {
         'waba_id' => '999888777666555',
         'display_phone_number' => '+15551234567',
         'verified_name' => 'Acme Support',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 });
 
@@ -94,7 +94,7 @@ it('drops events for a phone number id no agent has connected', function (): voi
 });
 
 it('ignores a disabled number', function (): void {
-    $this->number->update(['enabled' => false]);
+    $this->number->update(['is_enabled' => false]);
 
     MetaWebhook::post(MetaApp::Whatsapp, whatsappEnvelope([whatsappText()]), $this->appSecret)->assertOk();
 

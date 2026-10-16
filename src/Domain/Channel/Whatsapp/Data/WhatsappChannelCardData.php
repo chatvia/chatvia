@@ -35,7 +35,7 @@ class WhatsappChannelCardData extends Data
             connected: $number !== null,
             display_phone_number: $number?->display_phone_number,
             verified_name: $number?->verified_name,
-            enabled: (bool) $number?->enabled,
+            enabled: (bool) $number?->is_enabled,
             app_id: MetaApp::Whatsapp->appId() ?: null,
             config_id: MetaApp::Whatsapp->configId(),
             graph_version: config('services.meta.graph_version'),

@@ -31,7 +31,7 @@ class SlackWebhookController
         $app = AgentSlackApp::query()
             ->with('agent')
             ->where('webhook_secret', $secret)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->first();
 
         if ($app === null || ! $this->hasValidSignature($request, $app)) {

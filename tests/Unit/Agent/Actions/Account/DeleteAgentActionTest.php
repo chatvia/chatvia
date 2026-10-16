@@ -60,11 +60,11 @@ it('switches off each of the agent messaging channels', function (string $model,
 
     $agent = Agent::factory()->create();
     /** @var Model $channel */
-    $channel = $model::create(['agent_id' => $agent->id, ...$attributes, 'enabled' => true]);
+    $channel = $model::create(['agent_id' => $agent->id, ...$attributes, 'is_enabled' => true]);
 
     app(DeleteAgentAction::class)->execute($agent);
 
-    expect($channel->fresh()->enabled)->toBeFalse();
+    expect($channel->fresh()->is_enabled)->toBeFalse();
 })->with([
     'telegram' => [AgentTelegramBot::class, ['bot_token' => '123:token', 'bot_username' => 'demo_bot', 'webhook_secret' => Str::random(48)]],
     'slack' => [AgentSlackApp::class, ['bot_token' => 'xoxb-token', 'signing_secret' => 'signing-secret-value-12345678', 'bot_user_id' => 'U0BOT', 'team_name' => 'Acme Inc', 'webhook_secret' => Str::random(48)]],

@@ -23,7 +23,7 @@ function whatsappResolverNumber(): AgentWhatsappNumber
         'access_token' => 'EAAG-token',
         'phone_number_id' => '111222333444555',
         'waba_id' => '999888777666555',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 

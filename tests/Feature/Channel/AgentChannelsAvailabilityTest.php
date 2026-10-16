@@ -65,7 +65,7 @@ it('still reports a connected channel whose app was cleared, so it can be discon
 
     AgentMessengerPage::create([
         'agent_id' => $this->agent->id, 'page_access_token' => 't', 'page_id' => 'PAGE-1',
-        'page_name' => 'Acme', 'enabled' => true,
+        'page_name' => 'Acme', 'is_enabled' => true,
     ]);
 
     $this->actingAs($this->owner)

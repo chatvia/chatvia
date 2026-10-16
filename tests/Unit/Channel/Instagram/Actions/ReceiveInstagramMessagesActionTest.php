@@ -21,7 +21,7 @@ it('remembers queued messages per Instagram account', function (): void {
         'page_id' => $pageId,
         'ig_id' => $igId,
         'username' => 'acme',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
     $first = $account('PAGE-1', 'IG-1');
     $second = $account('PAGE-2', 'IG-2');

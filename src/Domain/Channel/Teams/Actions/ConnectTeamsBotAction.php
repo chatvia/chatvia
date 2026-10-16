@@ -43,7 +43,7 @@ class ConnectTeamsBotAction
                 'app_secret' => $data->appSecret,
                 'tenant_id' => $data->tenantId,
                 'webhook_secret' => Str::random(48),
-                'enabled' => true,
+                'is_enabled' => true,
             ],
         );
     }

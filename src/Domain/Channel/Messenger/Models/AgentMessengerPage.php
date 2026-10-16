@@ -22,7 +22,7 @@ use Support\Concerns\HasExternalId;
  * @property string $page_access_token
  * @property string|null $page_id
  * @property string|null $page_name
- * @property bool $enabled
+ * @property bool $is_enabled
  */
 #[Guarded(['id'])]
 #[RouteKey('external_id')]
@@ -48,7 +48,7 @@ class AgentMessengerPage extends Model
     {
         return [
             'page_access_token' => 'encrypted',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
         ];
     }
 }

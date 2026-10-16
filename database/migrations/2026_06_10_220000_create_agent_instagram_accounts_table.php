@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('page_id')->nullable();
             $table->string('ig_id')->nullable()->unique();
             $table->string('username')->nullable();
-            $table->boolean('enabled')->default(true);
+            $table->boolean('is_enabled')->default(true);
             $table->timestamps();
         });
     }

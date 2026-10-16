@@ -37,7 +37,7 @@ it('stores the credential as ciphertext that decrypts to the token', function ()
         'bot_token' => '123456:ABCDEF_token_value_here',
         'bot_username' => 'demo_bot',
         'webhook_secret' => Str::random(48),
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 
     $raw = AgentTelegramBot::query()->whereKey($bot->id)->firstOrFail()->getRawOriginal('bot_token');

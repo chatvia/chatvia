@@ -23,7 +23,7 @@ use Support\Concerns\HasExternalId;
  * @property string|null $bot_user_id
  * @property string|null $team_name
  * @property string $webhook_secret
- * @property bool $enabled
+ * @property bool $is_enabled
  */
 #[Guarded(['id'])]
 #[RouteKey('external_id')]
@@ -50,7 +50,7 @@ class AgentSlackApp extends Model
         return [
             'bot_token' => 'encrypted',
             'signing_secret' => 'encrypted',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
         ];
     }
 }

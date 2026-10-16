@@ -25,7 +25,7 @@ use Support\Concerns\HasExternalId;
  * @property string $waba_id
  * @property string|null $display_phone_number
  * @property string|null $verified_name
- * @property bool $enabled
+ * @property bool $is_enabled
  */
 #[Guarded(['id'])]
 #[RouteKey('external_id')]
@@ -51,7 +51,7 @@ class AgentWhatsappNumber extends Model
     {
         return [
             'access_token' => 'encrypted',
-            'enabled' => 'boolean',
+            'is_enabled' => 'boolean',
         ];
     }
 }

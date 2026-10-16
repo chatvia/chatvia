@@ -50,7 +50,7 @@ it('connects the chosen WhatsApp number from the Embedded Signup payload', funct
         ->and($number->phone_number_id)->toBe('111222333444555')
         ->and($number->waba_id)->toBe('999888777666555')
         ->and($number->access_token)->toBe('EAAG-business-token')
-        ->and($number->enabled)->toBeTrue();
+        ->and($number->is_enabled)->toBeTrue();
 });
 
 it('refuses to connect a protected (non-public) agent', function (): void {
@@ -68,7 +68,7 @@ it('rejects a phone number already connected to another agent', function (): voi
         'access_token' => 'EAAG-other',
         'phone_number_id' => '111222333444555',
         'waba_id' => '999888777666555',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 
     postWhatsappConnect($this->agent)->assertSessionHasErrors('whatsapp');

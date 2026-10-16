@@ -54,7 +54,7 @@ class ReceiveWhatsappMessagesAction
         return AgentWhatsappNumber::query()
             ->with('agent')
             ->where('phone_number_id', $phoneNumberId)
-            ->where('enabled', true)
+            ->where('is_enabled', true)
             ->first();
     }
 }

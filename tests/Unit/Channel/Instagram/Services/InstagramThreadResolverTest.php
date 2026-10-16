@@ -26,7 +26,7 @@ function instagramResolverAccount(): AgentInstagramAccount
         'page_id' => '998877',
         'ig_id' => '17840012345',
         'username' => 'acme.support',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 

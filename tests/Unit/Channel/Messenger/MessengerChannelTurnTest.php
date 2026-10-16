@@ -25,7 +25,7 @@ function messengerTurnPage(): AgentMessengerPage
         'page_access_token' => 'EAAG-secret-token',
         'page_id' => '1234567890',
         'page_name' => 'Acme Support',
-        'enabled' => true,
+        'is_enabled' => true,
     ]);
 }
 

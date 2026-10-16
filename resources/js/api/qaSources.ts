@@ -34,9 +34,9 @@ export async function fetchQaEntries(agentId: string): Promise<QaEntry[]> {
 }
 
 export function fetchQaEntry(agentId: string, id: number): Promise<QaEntry> {
-    return get<QaEntry>(qa.show.url({ agent: agentId, id }));
+    return get<QaEntry>(qa.show.url({ agent: agentId, qa: id }));
 }
 
 export async function deleteQaEntry(agentId: string, id: number): Promise<void> {
-    await del(qa.destroy.url({ agent: agentId, id }));
+    await del(qa.destroy.url({ agent: agentId, qa: id }));
 }

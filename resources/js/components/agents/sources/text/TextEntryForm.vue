@@ -64,7 +64,7 @@ function save(): void {
     };
 
     if (props.entryId !== null) {
-        form.patch(updateText.url({ agent: props.agentId, id: props.entryId }), callbacks);
+        form.patch(updateText.url({ agent: props.agentId, text: props.entryId }), callbacks);
     } else {
         form.post(storeText.url(props.agentId), callbacks);
     }

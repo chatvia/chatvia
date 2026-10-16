@@ -58,7 +58,7 @@ it('stamps the workspace owner as agent owner when an employee creates the agent
     ));
 
     // agent.workspace_id keys every account-level stat (dashboard, analytics,
-    // quota), so it must resolve to the owner's workspace, also when a
+    // message limit), so it must resolve to the owner's workspace, also when a
     // teammate creates the agent.
     expect($agent->workspace_id)->toBe($owner->workspace()->id)
         ->and($employee->workspace()->is($owner->workspace()))->toBeTrue();

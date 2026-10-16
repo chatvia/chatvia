@@ -37,8 +37,7 @@ class RateLimitServiceProvider extends ServiceProvider
         // as the platform. The per-session key alone is forgeable (a client
         // mints unlimited session ids and can proxy across IPs), so a ceiling
         // per server-resolved agent is stacked on top: an attacker cannot drain
-        // a public agent's message quota (and trigger auto-recharge) by
-        // multiplying sessions. Applies to /widget/stream and attachments.
+        // a public agent's monthly message limit by multiplying sessions. Applies to /widget/stream and attachments.
         RateLimiter::for('widget-stream', function (Request $request): array {
             $sessionKey = $request->header(WidgetHeaders::SESSION_ID) ?: $request->ip();
 

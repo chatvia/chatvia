@@ -8,8 +8,8 @@ use Domain\Agent\Models\Agent;
 use Domain\Knowledge\Source\File\Actions\UploadKnowledgeSourceFileAction;
 
 /**
- * Uploads one knowledge file for the agent: checks the quota and duplicates,
- * then stores it in the "uploaded" state. Agent access and the
+ * Uploads one knowledge file for the agent: checks the type is supported and
+ * the file is not a duplicate, then stores it in the "uploaded" state. Agent access and the
  * `agent.sources.train.files` permission are checked by the route middleware.
  */
 class AgentKnowledgeFileUploadController

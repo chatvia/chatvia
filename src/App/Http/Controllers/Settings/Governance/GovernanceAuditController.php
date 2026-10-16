@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Settings\Governance;
 
 use App\Http\Controllers\Agent\Audit\AgentAuditController;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Audit\ToolCallAuditFiltersData;
+use Domain\Conversation\Data\Audit\ToolCallAuditRowData;
 use Domain\Conversation\Models\AgentActivity;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Conversation\Queries\ToolCallAuditQuery;
+use Domain\Integration\Mcp\Queries\ConnectorFilterOptionsQuery;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,19 +22,22 @@ use Inertia\Response;
  */
 class GovernanceAuditController
 {
-    public function __invoke(Request $request): Response
-    {
+    public function __invoke(
+        Request $request,
+        ToolCallAuditQuery $audit,
+        ConnectorFilterOptionsQuery $connectors,
+    ): Response {
         $workspaceId = $request->user()->workspace()->id;
 
-        $query = AgentActivity::query()
-            ->forWorkspace($workspaceId)
-            ->with(['user', 'agent:id,external_id'])
-            ->orderByDesc('id');
+        $filters = new ToolCallAuditFiltersData(
+            outcome: $request->filled('outcome') ? (string) $request->string('outcome') : null,
+            connector: $request->filled('connector') ? (string) $request->string('connector') : null,
+            agent_id: $request->filled('agent_id') ? $request->integer('agent_id') : null,
+        );
 
-        $this->applyFilters($query, $request);
-
-        // Cursor pagination pairs with the (workspace_id, id) index — no COUNT(*)/OFFSET over the unbounded log.
-        $rows = $query->cursorPaginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
+        $rows = $audit->forWorkspace($workspaceId, $filters)
+            ->withQueryString()
+            ->through(fn (AgentActivity $activity): ToolCallAuditRowData => ToolCallAuditRowData::fromModel($activity));
 
         $agents = Agent::query()
             ->where('workspace_id', $workspaceId)
@@ -44,49 +49,9 @@ class GovernanceAuditController
         return Inertia::render('workspace/governance/Governance', [
             'rows' => $rows,
             'agents' => $agents,
-            'connectors' => $this->connectorOptions($workspaceId),
+            'connectors' => $connectors->forWorkspace($workspaceId),
             'outcomes' => array_column(ToolCallOutcome::cases(), 'value'),
-            'filters' => [
-                'outcome' => $request->filled('outcome') ? (string) $request->string('outcome') : null,
-                'connector' => $request->filled('connector') ? (string) $request->string('connector') : null,
-                'agent_id' => $request->filled('agent_id') ? $request->integer('agent_id') : null,
-            ],
+            'filters' => $filters,
         ]);
-    }
-
-    /**
-     * @param  Builder<AgentActivity>  $query
-     */
-    private function applyFilters(Builder $query, Request $request): void
-    {
-        if ($request->filled('outcome')) {
-            $query->where('outcome', (string) $request->string('outcome'));
-        }
-        if ($request->filled('connector')) {
-            $query->where('connector_slug', (string) $request->string('connector'));
-        }
-        if ($request->filled('agent_id')) {
-            $query->where('agent_id', $request->integer('agent_id'));
-        }
-    }
-
-    /**
-     * Filter options from the workspace's configured MCP servers. A deleted
-     * connector drops out of the dropdown; its rows stay reachable unfiltered.
-     *
-     * @return array<int, array{slug: string, name: ?string}>
-     */
-    private function connectorOptions(int $workspaceId): array
-    {
-        return AgentMcpServer::query()
-            ->where('workspace_id', $workspaceId)
-            ->whereNotNull('connector_slug')
-            ->select('connector_slug', 'name')
-            ->orderBy('name')
-            ->get()
-            ->unique('connector_slug')
-            ->map(fn (AgentMcpServer $s): array => ['slug' => (string) $s->connector_slug, 'name' => $s->name])
-            ->values()
-            ->all();
     }
 }

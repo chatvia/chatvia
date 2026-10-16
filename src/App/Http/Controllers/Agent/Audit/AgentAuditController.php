@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Agent\Audit;
 use App\Http\Controllers\Agent\ChatLog\AgentChatLogController;
 use Domain\Agent\Data\Resources\Account\AgentResourceData;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Audit\ToolCallAuditFiltersData;
+use Domain\Conversation\Data\Audit\ToolCallAuditRowData;
 use Domain\Conversation\Models\AgentActivity;
-use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Conversation\Queries\ToolCallAuditQuery;
+use Domain\Integration\Mcp\Queries\ConnectorFilterOptionsQuery;
 use Domain\Integration\Tool\Enums\ToolCallOutcome;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,44 +22,27 @@ use Inertia\Response;
  */
 class AgentAuditController
 {
-    public function __invoke(Request $request, Agent $agent): Response
-    {
-        $query = AgentActivity::query()
-            ->forAgent($agent->id)
-            ->with(['user', 'agent:id,external_id'])
-            ->orderByDesc('id');
+    public function __invoke(
+        Request $request,
+        Agent $agent,
+        ToolCallAuditQuery $audit,
+        ConnectorFilterOptionsQuery $connectors,
+    ): Response {
+        $filters = new ToolCallAuditFiltersData(
+            outcome: $request->filled('outcome') ? (string) $request->string('outcome') : null,
+            connector: $request->filled('connector') ? (string) $request->string('connector') : null,
+        );
 
-        if ($request->filled('outcome')) {
-            $query->where('outcome', (string) $request->string('outcome'));
-        }
-        if ($request->filled('connector')) {
-            $query->where('connector_slug', (string) $request->string('connector'));
-        }
-
-        // Cursor pagination pairs with the (agent_id, id) index.
-        $rows = $query->cursorPaginate(25)->withQueryString()->through(fn (AgentActivity $a): array => $a->toAuditArray());
-
-        // Filter options from the workspace's configured connectors.
-        $connectors = AgentMcpServer::query()
-            ->where('workspace_id', $agent->workspace_id)
-            ->whereNotNull('connector_slug')
-            ->select('connector_slug', 'name')
-            ->orderBy('name')
-            ->get()
-            ->unique('connector_slug')
-            ->map(fn (AgentMcpServer $s): array => ['slug' => (string) $s->connector_slug, 'name' => $s->name])
-            ->values()
-            ->all();
+        $rows = $audit->forAgent($agent, $filters)
+            ->withQueryString()
+            ->through(fn (AgentActivity $activity): ToolCallAuditRowData => ToolCallAuditRowData::fromModel($activity));
 
         return Inertia::render('agents/Audit/index', [
             'agent' => AgentResourceData::fromModel($agent),
             'rows' => $rows,
-            'connectors' => $connectors,
+            'connectors' => $connectors->forWorkspace($agent->workspace_id),
             'outcomes' => array_column(ToolCallOutcome::cases(), 'value'),
-            'filters' => [
-                'outcome' => $request->filled('outcome') ? (string) $request->string('outcome') : null,
-                'connector' => $request->filled('connector') ? (string) $request->string('connector') : null,
-            ],
+            'filters' => $filters,
         ]);
     }
 }

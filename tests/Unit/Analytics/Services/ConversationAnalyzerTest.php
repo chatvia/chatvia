@@ -22,19 +22,8 @@ use Illuminate\Support\Facades\Http;
 function cazAgentWithTopics(array $names): array
 {
     $agent = Agent::factory()->create();
-    $ids = [];
 
-    foreach ($names as $name) {
-        $topic = Topic::create([
-            'workspace_id' => $agent->workspace_id,
-            'topic' => $name,
-            'description' => "About {$name}",
-        ]);
-        $agent->topics()->attach($topic->id);
-        $ids[$name] = $topic->id;
-    }
-
-    return [$agent, $ids];
+    return [$agent, attachAgentTopics($agent, $names)];
 }
 
 it('keeps only topic ids the agent actually has', function (): void {

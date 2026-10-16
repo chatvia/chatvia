@@ -44,33 +44,12 @@ function acaEnableTopics(Agent $agent): void
     $agent->setSetting('topics', true, 'analytics');
 }
 
-/**
- * @param  list<string>  $names
- * @return array<string, int>
- */
-function acaAttachTopics(Agent $agent, array $names): array
-{
-    $ids = [];
-
-    foreach ($names as $name) {
-        $topic = Topic::create([
-            'workspace_id' => $agent->workspace_id,
-            'topic' => $name,
-            'description' => "About {$name}",
-        ]);
-        $agent->topics()->attach($topic->id);
-        $ids[$name] = $topic->id;
-    }
-
-    return $ids;
-}
-
 it('assigns multiple topics, records a suggestion, sets fields and stamps analyzed_at', function (): void {
     Event::fake([ConversationTopicAssigned::class]);
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    $ids = acaAttachTopics($agent, ['Billing', 'Bug Report']);
+    $ids = attachAgentTopics($agent, ['Billing', 'Bug Report']);
     $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
@@ -115,7 +94,7 @@ it('is idempotent — a second run changes nothing', function (): void {
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    $ids = acaAttachTopics($agent, ['Billing']);
+    $ids = attachAgentTopics($agent, ['Billing']);
     $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
@@ -138,7 +117,7 @@ it('stores sentiment and tone but no topics when the agent has topics switched o
 
     $agent = Agent::factory()->create();
     $agent->setSetting('topics', false, 'analytics');
-    $ids = acaAttachTopics($agent, ['Billing']);
+    $ids = attachAgentTopics($agent, ['Billing']);
     $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
@@ -183,7 +162,7 @@ it('rolls the assigned topic into analytics_agent_topic_daily', function (): voi
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    $ids = acaAttachTopics($agent, ['Billing']);
+    $ids = attachAgentTopics($agent, ['Billing']);
     $conversation = acaConversation($agent);
 
     fakeLlmCompletion(json_encode([
@@ -214,7 +193,7 @@ it('leaves the conversation pending when the model output cannot be parsed', fun
 
     $agent = Agent::factory()->create();
     acaEnableTopics($agent);
-    acaAttachTopics($agent, ['Billing']);
+    attachAgentTopics($agent, ['Billing']);
     $conversation = acaConversation($agent);
 
     fakeLlmCompletion('Sorry, I could not analyze that.');

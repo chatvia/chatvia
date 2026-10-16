@@ -16,6 +16,7 @@ use App\Identity\Workspace\Actions\Account\ReactivateAccountAction;
 use App\Identity\Workspace\Models\User;
 use App\Identity\Workspace\Services\WorkspaceActivation;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Topic\Models\Topic;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
@@ -33,6 +34,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\ReadsClassAttributes;
 use Spatie\Permission\PermissionRegistrar;
+use Symfony\Component\Process\ExecutableFinder;
 use Tests\RefreshTestDatabases;
 use Tests\Support\FakeLlmProviders;
 use Tests\TestCase;
@@ -97,19 +99,10 @@ function createAgent(User $user, array $overrides = []): Agent
     ], $overrides));
 }
 
+/** A named agent on $team (the owner's first team when omitted). */
 function makeTeamAgent(User $user, string $name, ?Team $team = null): Agent
 {
-    $team ??= ownerTeam($user);
-
-    return Agent::create([
-        'workspace_id' => $user->workspace()->id,
-        'team_id' => $team->id,
-        'name' => $name,
-        'external_id' => Str::random(14),
-        'slug' => Str::random(14),
-        'is_public' => false,
-        'source' => 'api',
-    ]);
+    return createAgent($user, ['name' => $name, 'team_id' => ($team ?? ownerTeam($user))->id, 'source' => 'api']);
 }
 
 /**
@@ -324,4 +317,36 @@ function withApiToken(string $token): TestCase
     app('auth')->forgetGuards();
 
     return test()->withToken($token);
+}
+
+/**
+ * Whether the program set as `services.bin.{$name}` (an absolute path, or a
+ * name looked up on PATH) can run here. Tests of pdftotext, pandoc, catdoc
+ * and ffmpeg skip without it; CI installs them.
+ */
+function programInstalled(string $name): bool
+{
+    $binary = (string) config("services.bin.{$name}");
+
+    return $binary !== '' && (is_executable($binary) || (new ExecutableFinder)->find($binary) !== null);
+}
+
+/**
+ * Workspace topics with the given names, attached to the agent; their ids
+ * by name.
+ *
+ * @param  list<string>  $names
+ * @return array<string, int>
+ */
+function attachAgentTopics(Agent $agent, array $names): array
+{
+    $ids = [];
+
+    foreach ($names as $name) {
+        $topic = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => $name, 'description' => "About {$name}"]);
+        $agent->topics()->attach($topic->id);
+        $ids[$name] = $topic->id;
+    }
+
+    return $ids;
 }

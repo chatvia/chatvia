@@ -43,16 +43,10 @@ it('embeds the server name and description alongside each tool', function (): vo
     $server = embedTestServer('acme');
     embedTestMcpTool($server, 'lookup_customer');
 
-    $texts = [];
-    $recording = Mockery::mock(EmbeddingsProviderInterface::class);
-    $recording->shouldReceive('embed')->andReturnUsing(function (string $text) use (&$texts): array {
-        $texts[] = $text;
-
-        return (new FakeEmbeddingsProvider)->embed($text);
-    });
-    app()->instance(EmbeddingsProviderInterface::class, $recording);
+    $embedder = new FakeEmbeddingsProvider;
+    app()->instance(EmbeddingsProviderInterface::class, $embedder);
 
     app(EmbedMcpToolsAction::class)->execute($server->id);
 
-    expect($texts)->toBe(["Acme CRM\nCustomer records\n\nlookup_customer\n\nDoes lookup_customer"]);
+    expect($embedder->texts)->toBe(["Acme CRM\nCustomer records\n\nlookup_customer\n\nDoes lookup_customer"]);
 });

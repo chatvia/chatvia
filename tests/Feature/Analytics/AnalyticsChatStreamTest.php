@@ -111,13 +111,13 @@ it('redirects guests to login', function (): void {
     $this->post(route('analytics.chat.stream'), ['message' => 'hi'])->assertRedirect(route('login'));
 });
 
-it('opens the page, which holds no data, for a teammate too; only the stream is the owner\'s', function (): void {
+it('opens the page for the owner only, like its stream', function (): void {
     $owner = User::factory()->create(['email_verified_at' => now()]);
     $employee = User::factory()->employee($owner)->create(['email_verified_at' => now()]);
 
-    foreach ([$owner, $employee] as $user) {
-        $this->actingAs($user)
-            ->get(route('analytics.chat'))
-            ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('AnalyticsChat'));
-    }
+    $this->actingAs($owner)
+        ->get(route('analytics.chat'))
+        ->assertInertia(fn (AssertableInertia $page): AssertableInertia => $page->component('AnalyticsChat'));
+
+    $this->actingAs($employee)->get(route('analytics.chat'))->assertForbidden();
 });

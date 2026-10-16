@@ -168,18 +168,26 @@ describe('teammates', function (): void {
         expect($conversation->fresh()->handoff_status)->toBe(HandoffStatus::Ai);
     });
 
-    // The waiting list (visitor name, email and last message) and mark-read
-    // carry no permission of their own today: agent access is enough.
-    it('lets a teammate without permissions see the waiting list and mark it read, but not act on a conversation someone else holds', function (): void {
+    // The waiting list shows the visitor's name, email and last message, so it
+    // and mark-read need agent.chat.view, like the chat log.
+    it('needs agent.chat.view for the waiting list and mark-read, and keeps a teammate off a conversation someone else holds', function (): void {
         $teammate = teammateWithPermissions($this->owner, []);
+        $viewer = teammateWithPermissions($this->owner, ['agent.chat.view']);
         $waiting = pendingHandoff($this);
         $held = pendingHandoff($this, 'human', heldBy: $this->owner->id);
 
         $this->actingAs($teammate)
             ->getJson(route('agents.handoff.pending', ['agent' => $this->agent->external_id]))
+            ->assertForbidden();
+        $this->actingAs($teammate)
+            ->postJson(handoffRoute('agents.handoff.mark-read', $this, $waiting))
+            ->assertForbidden();
+
+        $this->actingAs($viewer)
+            ->getJson(route('agents.handoff.pending', ['agent' => $this->agent->external_id]))
             ->assertOk()
             ->assertJsonPath('pending.0.conversation_id', $waiting->external_id);
-        $this->actingAs($teammate)
+        $this->actingAs($viewer)
             ->postJson(handoffRoute('agents.handoff.mark-read', $this, $waiting))
             ->assertSuccessful()
             ->assertJsonPath('marked_count', 0);

@@ -67,7 +67,7 @@ set -euo pipefail
 shopt -s extglob
 
 readonly CHATVIA_REPO_RAW="https://raw.githubusercontent.com/chatvia/chatvia"
-readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/self-hosting/docker"
+readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/installation/docker"
 readonly COMPOSE_PROJECT="chatvia"
 readonly MIN_COMPOSE_VERSION="2.24.0"
 readonly DEFAULT_PORT=8899
@@ -77,7 +77,7 @@ readonly INSTALLER_URL="https://chatvia.ai/install.sh"
 
 # The complete installation. The extension versions are the ones in the
 # tensorchord/vchord-suite image that the Docker install uses.
-readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/self-hosting/ubuntu"
+readonly NATIVE_DOCS="https://chatvia.ai/docs/guide/installation/ubuntu"
 readonly NATIVE_UBUNTU="26.04"
 readonly NATIVE_REPO="https://github.com/chatvia/chatvia.git"
 readonly NATIVE_USER="chatvia"
@@ -2808,7 +2808,7 @@ native_deploy_file() {
 // It runs on this server (localhost), as chatvia. To deploy from your own
 // computer instead, copy this file there and replace localhost() with
 // host('chat.example.com')->set('remote_user', 'chatvia').
-// More: https://chatvia.ai/docs/guide/self-hosting/deployer
+// More: https://chatvia.ai/docs/guide/installation/deployer
 
 namespace Deployer;
 

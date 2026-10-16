@@ -51,7 +51,7 @@ body:
         - Channels (Slack, Teams, Telegram, WhatsApp, ...)
         - Public API
         - Billing
-        - Installation / self-hosting
+        - Installation
         - Other
     validations:
       required: true

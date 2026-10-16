@@ -402,8 +402,8 @@ theme.
 - `php artisan admin:create-user` creates an admin with its own workspace,
   the usual way to create the first account.
 - `.env.example` was rewritten: a fresh copy starts without paid services.
-- A self-hosting guide in the documentation
-  (<https://chatvia.ai/docs/guide/self-hosting/>).
+- An installation guide in the documentation
+  (<https://chatvia.ai/docs/guide/installation>).
 - The widget can be pointed at any server at runtime with `data-api-url` and
   `data-reverb-*` attributes on the embed tag.
 - YouTube sources are hidden unless `FEATURE_YOUTUBE_SOURCES=true` (they are

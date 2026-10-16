@@ -1092,6 +1092,7 @@ See the widget's README for embed options.
 | Feature | `tests/Feature/` | HTTP-level tests, the safety net for routes, middleware and permissions. |
 | Architecture | `tests/Architecture/` | Framework-free rules (section 2). |
 | Eval | `tests/Eval/` | Quality checks with real models (group `eval`). They skip themselves without an API key. |
+| Frontend | `resources/js/**/*.test.ts` | Vitest unit tests of plain TypeScript, next to the file they test (`npm run test`, `vitest.config.ts`). |
 
 - Tests use PostgreSQL with the same extensions as the app. The suite builds
   its own `testing` database: on the first run it installs the extensions,

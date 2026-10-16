@@ -79,8 +79,9 @@ changes a file**. It runs, in this order, and stops at the first failure:
 | 7 | `npm run format:check` (`prettier --check resources/`) | Frontend code style. |
 | 8 | `npm run lint:check` (`eslint .`) | ESLint rules for Vue and TypeScript. |
 | 9 | `npm run typecheck` (`vue-tsc --noEmit`) | TypeScript types in the frontend. |
-| 10 | `npm run i18n:check` | Every static `t('…')` key exists in `en.json`, and every locale's messages compile. |
-| 11 | `composer test` | The Pest suite (Unit, Feature, Architecture, Eval). |
+| 10 | `npm run test` (`vitest run`) | The frontend unit tests: `*.test.ts` files next to the code they test. |
+| 11 | `npm run i18n:check` | Every static `t('…')` key exists in `en.json`, and every locale's messages compile. |
+| 12 | `composer test` | The Pest suite (Unit, Feature, Architecture, Eval). |
 
 CI also checks the shell scripts and workflows in two small jobs of their
 own: ShellCheck on the installer, `docker/manage` and the scripts in the
@@ -117,6 +118,7 @@ want.
 | Prettier | `npm run format` or `npx prettier --write <files>` | `npm run format:check` |
 | ESLint | `npm run lint` or `npx eslint --fix <files>` | `npm run lint:check` |
 | vue-tsc | | `npm run typecheck` |
+| Vitest | | `npm run test` |
 | i18n | `npm run i18n:merge` | `npm run i18n:check` |
 
 ### The widget
@@ -146,6 +148,9 @@ then tag the widget release: every build takes the newest release.
 
 ## Tests
 
+- The frontend's plain TypeScript (helpers in `resources/js/lib`, say) is
+  tested with [Vitest](https://vitest.dev): a `name.test.ts` next to
+  `name.ts`, run by `npm run test`.
 - We use [Pest](https://pestphp.com). Unit tests live in `tests/Unit/`,
   feature (HTTP) tests in `tests/Feature/`, architecture rules in
   `tests/Architecture/`, and quality checks with real models in `tests/Eval/`

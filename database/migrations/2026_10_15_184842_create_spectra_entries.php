@@ -23,6 +23,13 @@ return new class extends Migration
     {
         $schema = Schema::connection($this->getConnection());
 
+        // On a dedicated connection the Spectra database survives the app's
+        // migrate:fresh (which only drops the default connection's tables),
+        // leaving this migration pending while the tables already exist.
+        if ($schema->hasTable('spectra_requests')) {
+            return;
+        }
+
         $schema->create('spectra_requests', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('batch_id')->nullable();

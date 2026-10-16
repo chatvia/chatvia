@@ -17,7 +17,10 @@ return new class extends PulseMigration
             return;
         }
 
-        Schema::create('pulse_values', function (Blueprint $table): void {
+        // The pulse database survives a `migrate:fresh` of the app database
+        // (fresh only drops the default connection's tables), so the tables
+        // may already exist while this migration shows as pending.
+        Schema::hasTable('pulse_values') || Schema::create('pulse_values', function (Blueprint $table): void {
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
@@ -34,7 +37,7 @@ return new class extends PulseMigration
             $table->unique(['type', 'key_hash']); // For data integrity and upserts...
         });
 
-        Schema::create('pulse_entries', function (Blueprint $table): void {
+        Schema::hasTable('pulse_entries') || Schema::create('pulse_entries', function (Blueprint $table): void {
             $table->id();
             $table->unsignedInteger('timestamp');
             $table->string('type');
@@ -52,7 +55,7 @@ return new class extends PulseMigration
             $table->index(['timestamp', 'type', 'key_hash', 'value']); // For aggregate queries...
         });
 
-        Schema::create('pulse_aggregates', function (Blueprint $table): void {
+        Schema::hasTable('pulse_aggregates') || Schema::create('pulse_aggregates', function (Blueprint $table): void {
             $table->id();
             $table->unsignedInteger('bucket');
             $table->unsignedMediumInteger('period');

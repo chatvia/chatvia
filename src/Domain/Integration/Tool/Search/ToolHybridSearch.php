@@ -33,7 +33,7 @@ use Illuminate\Support\Facades\Log;
  *     against `reachable_preset` — the agent's reachable catalog-tool
  *     ids, precomputed once from its handful of servers (attached via
  *     `agent_mcp_server` OR a global builtin) joined to their unblocked
- *     `mcp_server_tool` memberships. Driving from the agent's servers keeps
+ *     `connector_tool_mcp_server` memberships. Driving from the agent's servers keeps
  *     the per-candidate check a hashed set probe; a correlated EXISTS would
  *     instead walk every workspace's membership rows for each candidate,
  *     scaling with the connector's popularity. The final SELECT resolves one
@@ -192,7 +192,7 @@ reachable_preset AS (
     -- Catalog tools those servers advertise with an unblocked membership.
     SELECT DISTINCT mst.connector_tool_id
     FROM reachable_servers rs
-    INNER JOIN mcp_server_tool mst ON mst.mcp_server_id = rs.id
+    INNER JOIN connector_tool_mcp_server mst ON mst.mcp_server_id = rs.id
     WHERE mst.permission != 'blocked'
 ),
 preset_vector AS (
@@ -327,7 +327,7 @@ LEFT JOIN LATERAL (
     -- compiled name uses a slug the agent can actually dispatch to.
     SELECT rs.slug
     FROM reachable_servers rs
-    INNER JOIN mcp_server_tool mst
+    INNER JOIN connector_tool_mcp_server mst
         ON mst.mcp_server_id = rs.id AND mst.connector_tool_id = r.id
     WHERE mst.permission != 'blocked'
     ORDER BY rs.slug

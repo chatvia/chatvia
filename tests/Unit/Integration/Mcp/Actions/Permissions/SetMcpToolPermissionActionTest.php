@@ -44,7 +44,7 @@ it('throws McpToolNotFoundException for a tool id that belongs to a DIFFERENT se
 });
 
 /**
- * A preset/builtin server toggles the per-workspace `mcp_server_tool` membership
+ * A preset/builtin server toggles the per-workspace `connector_tool_mcp_server` membership
  * (the tool id is a connector_tools.id), not its own `mcp_tools` row.
  *
  * @return array{0: AgentMcpServer, 1: ConnectorTool}

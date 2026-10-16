@@ -15,7 +15,7 @@ use Domain\Integration\Tool\Registry\ToolRegistry;
  * variant: it must flip every tool in the targeted scope (read OR write) to the
  * requested permission while leaving the other scope untouched, and it must
  * branch on storage shape exactly like the single-tool action — custom servers
- * write `mcp_tools`, preset servers write the `mcp_server_tool` membership.
+ * write `mcp_tools`, preset servers write the `connector_tool_mcp_server` membership.
  * The attached agents' cached tool pools are dropped only when a row changed.
  */
 it('flips every custom tool in the targeted scope and leaves the other scope alone', function (): void {
@@ -59,7 +59,7 @@ it('does not touch tools belonging to a different server', function (): void {
 });
 
 /**
- * Preset/builtin: the action flips the per-workspace `mcp_server_tool`
+ * Preset/builtin: the action flips the per-workspace `connector_tool_mcp_server`
  * memberships for the scope, not any `mcp_tools` rows.
  */
 it('flips the memberships for a preset connector scope', function (): void {

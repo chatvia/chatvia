@@ -12,7 +12,7 @@ use Domain\Integration\Mcp\Models\McpTool;
  * Resolves a tool's stored permission (+ description) for a given server,
  * branching on the server's storage shape:
  *
- *   - preset/builtin → the per-workspace `mcp_server_tool` membership joined to
+ *   - preset/builtin → the per-workspace `connector_tool_mcp_server` membership joined to
  *     the shared `connector_tools` catalog.
  *   - custom         → the per-server `mcp_tools` row.
  *

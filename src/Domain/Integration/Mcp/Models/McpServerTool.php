@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  *
  * @mixin \Eloquent
  */
-#[Table(name: 'mcp_server_tool')]
+#[Table(name: 'connector_tool_mcp_server')]
 #[WithoutTimestamps]
 class McpServerTool extends Pivot
 {

@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Catalogs Chatvia's own MCP tools into the shared `connector_tools` catalog,
- * embeds them, and reconciles the `mcp_server_tool` memberships of EVERY
+ * embeds them, and reconciles the `connector_tool_mcp_server` memberships of EVERY
  * server that uses each builtin — the global row and every workspace's row.
  * Runs on deploy (after migrations) and is safe to re-run.
  *

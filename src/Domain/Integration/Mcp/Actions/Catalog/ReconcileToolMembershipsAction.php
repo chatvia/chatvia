@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Makes a server's `mcp_server_tool` memberships match the catalog tools it
+ * Makes a server's `connector_tool_mcp_server` memberships match the catalog tools it
  * advertises: a new tool gets a membership seeded with the catalog's default
  * permission, a tool the server stopped advertising loses its membership.
  *

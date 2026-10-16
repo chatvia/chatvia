@@ -25,7 +25,7 @@ use Throwable;
  *
  *   - SHARED (a catalog connector reached at its canonical URL) → the shared
  *     `connector_tools` catalog, stored and embedded once per connector, plus
- *     a per-workspace `mcp_server_tool` membership carrying that workspace's
+ *     a per-workspace `connector_tool_mcp_server` membership carrying that workspace's
  *     permission.
  *   - OWN (custom servers, and presets whose URL the workspace supplied) →
  *     rows in `mcp_tools`, each with its own embeddings. Tenant-specific

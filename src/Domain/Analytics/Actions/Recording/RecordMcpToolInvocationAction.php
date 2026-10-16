@@ -9,7 +9,7 @@ use Domain\Analytics\Services\AnalyticsDatabase;
 
 /**
  * Upserts the per-day MCP-tool-invocation rollup. Durable counterpart to the
- * live `mcp_server_tool.invocation_count` counter: keyed by (server slug, tool
+ * live `connector_tool_mcp_server.invocation_count` counter: keyed by (server slug, tool
  * name) with no FK, so a tool that's since been deleted or re-synced still
  * shows in usage insights, with labels captured at invocation time.
  */

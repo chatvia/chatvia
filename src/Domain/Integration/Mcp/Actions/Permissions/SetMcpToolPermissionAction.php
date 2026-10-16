@@ -14,7 +14,7 @@ use Domain\Integration\Tool\Registry\ToolRegistry;
 /**
  * Set a single tool's `permission` (allow / approval / blocked) inside a
  * connector. Branches on the server's storage shape: a shared-catalog server
- * changes its `mcp_server_tool` membership row (the tool id is a
+ * changes its `connector_tool_mcp_server` membership row (the tool id is a
  * connector_tools.id); a server with its own catalog changes its `mcp_tools`
  * row.
  *

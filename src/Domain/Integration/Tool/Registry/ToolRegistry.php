@@ -101,7 +101,7 @@ class ToolRegistry
     /**
      * Full attached-MCP pool, no ranking — the union of CUSTOM tools (per-server
      * `mcp_tools`) and PRESET tools (the shared `connector_tools` catalog reached
-     * through the `mcp_server_tool` membership). Used by the cache + fallback
+     * through the `connector_tool_mcp_server` membership). Used by the cache + fallback
      * path; per-turn ranked retrieval goes through `ToolHybridSearch`.
      *
      * @return array<int, ToolEntry>
@@ -159,7 +159,7 @@ class ToolRegistry
 
     /**
      * Preset/builtin servers — the shared `connector_tools` catalog, scoped to
-     * this agent through the `mcp_server_tool` membership (permission taken from
+     * this agent through the `connector_tool_mcp_server` membership (permission taken from
      * the membership row, not the catalog). A plain query-builder join rather
      * than relations: one round-trip for the whole pool, without hydrating a
      * model per catalog row and per pivot row.
@@ -170,7 +170,7 @@ class ToolRegistry
     {
         $rows = DB::table('connector_tools as ct')
             ->select(['ct.id as connector_tool_id', 'ct.name', 'ct.description', 'ct.input_schema', 'ct.scope', 'mcp_servers.slug as server_slug'])
-            ->join('mcp_server_tool as mst', 'mst.connector_tool_id', '=', 'ct.id')
+            ->join('connector_tool_mcp_server as mst', 'mst.connector_tool_id', '=', 'ct.id')
             ->join('mcp_servers', 'mcp_servers.id', '=', 'mst.mcp_server_id')
             ->leftJoin('agent_mcp_server', function ($join) use ($agentId): void {
                 $join->on('agent_mcp_server.mcp_server_id', '=', 'mcp_servers.id')

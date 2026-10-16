@@ -33,7 +33,7 @@ function attachCharts(Agent $agent): AgentMcpServer
     ]);
 
     foreach (ConnectorTool::where('connector_slug', 'charts')->get() as $tool) {
-        DB::table('mcp_server_tool')->insert([
+        DB::table('connector_tool_mcp_server')->insert([
             'mcp_server_id' => $server->id,
             'connector_tool_id' => $tool->id,
             'permission' => $tool->default_permission->value,

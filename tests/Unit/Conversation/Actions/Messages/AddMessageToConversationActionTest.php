@@ -1,5 +1,8 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
+use App\Identity\Workspace\Actions\MessageLimits\SetMessageLimitAction;
+use App\Identity\Workspace\Models\MessageLimit;
 use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Messages\AddMessageToConversationAction;
 use Domain\Conversation\Data\Memory\ChatScopeData;
@@ -12,7 +15,9 @@ use Illuminate\Support\Str;
 
 /**
  * A message lands in the live memory at once and in the chat log through the
- * queue — unless the agent's chat log is switched off.
+ * queue — unless the agent's chat log is switched off. A chatter's message is
+ * counted against their monthly limit here, on the turn itself, so the count
+ * never depends on the chat log.
  */
 beforeEach(function (): void {
     Bus::fake();
@@ -103,4 +108,60 @@ it('skips the chat-log copy when the agent’s chat log is off', function (): vo
 
     expect(app(ChatMemory::class)->withScope($scope)->cachedMessages())->toHaveCount(1);
     Bus::assertNotDispatched(StoreMessageJob::class);
+});
+
+it('counts a chatter message against their monthly limit even with the chat log off', function (): void {
+    // The chat log skips the queued database write, so counting there would
+    // give such an agent's chatters an uncounted month.
+    $agent = Agent::factory()->create();
+    $agent->setSetting(key: 'chatlog', value: false, group: 'analytics');
+    $agent = $agent->fresh();
+    $chatter = Chatter::factory()->grantedTo($agent)->create();
+    app(SetMessageLimitAction::class)->execute($chatter, 5);
+    app(SetMessageLimitAction::class)->execute($agent->workspace, 5);
+
+    $scope = addMessageScope($agent);
+
+    app(AddMessageToConversationAction::class)->execute($scope, new UserTurnData(
+        external_session_id: $scope->sessionId,
+        external_conversation_id: (string) $scope->conversationId,
+        external_message_id: 'user-3',
+        model: 'gpt-test',
+        message: 'Hi',
+        sent_at: now(),
+        chatter_id: $chatter->id,
+    ));
+
+    // The chatter's own limit counts it; the workspace's limit counts replies.
+    expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(1)
+        ->and(MessageLimit::query()->where('workspace_id', $agent->workspace_id)->value('messages_used'))->toBe(0);
+    Bus::assertNotDispatched(StoreMessageJob::class);
+});
+
+it('counts no anonymous message and no assistant reply against a chatter limit', function (): void {
+    $agent = Agent::factory()->create();
+    $chatter = Chatter::factory()->grantedTo($agent)->create();
+    app(SetMessageLimitAction::class)->execute($chatter, 5);
+
+    $scope = addMessageScope($agent);
+
+    app(AddMessageToConversationAction::class)->execute($scope, new UserTurnData(
+        external_session_id: $scope->sessionId,
+        external_conversation_id: (string) $scope->conversationId,
+        external_message_id: 'user-4',
+        model: 'gpt-test',
+        message: 'Hi',
+        sent_at: now(),
+    ));
+    app(AddMessageToConversationAction::class)->execute($scope, new AssistantTurnData(
+        external_session_id: $scope->sessionId,
+        external_conversation_id: (string) $scope->conversationId,
+        external_message_id: 'reply-4',
+        message: 'Hello!',
+        model: 'gpt-test',
+        sent_at: now(),
+        has_llm_found_answer: true,
+    ));
+
+    expect(MessageLimit::query()->where('chatter_id', $chatter->id)->value('messages_used'))->toBe(0);
 });

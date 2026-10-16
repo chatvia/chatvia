@@ -82,7 +82,7 @@ it('keeps the history when a conversation is started with a cold cache', functio
     $newId = app(StartConversationAction::class)->execute(
         new ChatScopeData($agent, $session->external_id),
         ConversationSource::HostedChat,
-    );
+    )->external_id;
 
     $list = chatMemoryFor($agent, $session)->getConversationsForCurrentSession();
 
@@ -146,7 +146,7 @@ it('makes a conversation visible when its first message is added', function (): 
     $conversationId = app(StartConversationAction::class)->execute(
         new ChatScopeData($agent, $session->external_id),
         ConversationSource::Widget,
-    );
+    )->external_id;
 
     $memory = chatMemoryFor($agent, $session);
     expect($memory->visibleConversationsNewestFirst())->toBe([]);

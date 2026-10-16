@@ -21,7 +21,7 @@ function renameScope(): ChatScopeData
 {
     $scope = new ChatScopeData(Agent::factory()->create(), (string) Str::uuid());
 
-    return $scope->forConversation(app(StartConversationAction::class)->execute($scope, ConversationSource::HostedChat));
+    return $scope->forConversation(app(StartConversationAction::class)->execute($scope, ConversationSource::HostedChat)->external_id);
 }
 
 it('renames the conversation in the memory and the database, without quotes', function (): void {

@@ -75,7 +75,7 @@ it('never lets a chatter open a staff member\'s conversation when their ids are 
     $conversationId = app(StartConversationAction::class)->execute(
         new ChatScopeData($this->agent, $sessionId, viewer: $viewer),
         ConversationSource::HostedChat,
-    );
+    )->external_id;
 
     $url = "/chat/{$this->agent->slug}/conversations/{$conversationId}/messages";
 

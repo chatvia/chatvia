@@ -455,16 +455,16 @@ Route::middleware(['auth', 'verified', 'can.access.dashboard', 'workspace.scope'
         Route::patch('rename', RenameAgentController::class)->middleware('agent.permission:agent.setup')->name('rename');
 
         // Linking / Unlinking Source Files
-        Route::get('sources/trained-files', [AgentTrainedFileController::class, 'index'])->name('sources.list');
+        Route::get('sources/trained-files', [AgentTrainedFileController::class, 'index'])->middleware('agent.permission:agent.sources.train.files')->name('sources.list');
         Route::post('sources/trained-files/{fileId}/link', [AgentTrainedFileController::class, 'store'])->middleware('agent.permission:agent.sources.train.files')->name('sources.files.link');
         Route::post('sources/trained-files/{file}/unlink', [AgentTrainedFileController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.files.unlink');
 
         // Text Sources
-        Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->name('sources.texts.list');
+        Route::get('sources/trained-texts', AgentSourcesTrainedTextsListController::class)->middleware('agent.permission:agent.sources.train.text')->name('sources.texts.list');
         Route::post('sources/trained-texts/{textId}/link', AgentSourcesLinkTextController::class)->middleware('agent.permission:agent.sources.train.text')->name('sources.texts.link');
 
         // Website Sources (cross-agent shared pool)
-        Route::get('sources/trained-websites', [AgentTrainedWebsiteController::class, 'index'])->name('sources.trained-websites.index');
+        Route::get('sources/trained-websites', [AgentTrainedWebsiteController::class, 'index'])->middleware('agent.permission:agent.sources.train.web')->name('sources.trained-websites.index');
         Route::post('sources/trained-websites/{websiteId}/link', [AgentTrainedWebsiteController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.trained-websites.link');
         Route::post('sources/trained-websites/{websiteId}/unlink', [AgentTrainedWebsiteController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.trained-websites.unlink');
 

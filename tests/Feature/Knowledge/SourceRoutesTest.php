@@ -46,10 +46,10 @@ it('does not delete a file the agent does not use', function (): void {
     expect(SourceFile::query()->find($file->id))->not->toBeNull();
 });
 
-it('lists the workspace pools to a teammate', function (): void {
+it('lists the workspace pools to a teammate who may train those kinds', function (): void {
     $file = AgentFileFactory::new()->create(['workspace_id' => $this->owner->workspace()->id, 'status' => 'ingested', 'filetype' => 'pdf']);
     $website = SourceWebsite::query()->create(['workspace_id' => $this->owner->workspace()->id, 'url' => 'https://docs.example.test', 'status' => 'ingested']);
-    $teammate = teammateWithPermissions($this->owner, []);
+    $teammate = teammateWithPermissions($this->owner, ['agent.sources.train.files', 'agent.sources.train.web']);
 
     $this->actingAs($teammate)
         ->getJson(route('agents.sources.list', [$this->agent, 'type' => 'pdf']))

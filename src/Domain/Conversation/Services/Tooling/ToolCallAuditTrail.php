@@ -13,7 +13,7 @@ use Domain\Integration\Tool\Enums\ToolKind;
 
 /**
  * Announces every resolved tool call for the governance audit. A queued
- * listener writes the immutable `agent_activity` row, so this never touches
+ * listener writes the immutable `agent_activities` row, so this never touches
  * the database on the streaming hot path. Agent, user and connector names are
  * copied in so the record survives their later deletion. First-party builtin
  * capabilities (charts, forms, leads) run directly and are not audited.

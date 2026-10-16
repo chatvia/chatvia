@@ -10,7 +10,7 @@ use Illuminate\Console\Command;
 /**
  * Daily sweep of old governance audit rows (see PruneAgentActivityAction).
  */
-#[Description('Delete governance audit rows (agent_activity) older than the retention window, keeping the tool-call audit log bounded.')]
+#[Description('Delete governance audit rows (agent_activities) older than the retention window, keeping the tool-call audit log bounded.')]
 #[Signature('app:prune-agent-activity {--days= : Retention in days; defaults to config(chatvia.governance.retention_days)}')]
 class PruneAgentActivity extends Command
 {

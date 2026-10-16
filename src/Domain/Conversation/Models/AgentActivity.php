@@ -7,14 +7,13 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Actions\Tools\RecordToolCallAuditAction;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Scope;
-use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
- * Immutable per-tool-call governance audit row (`agent_activity`) for the
+ * Immutable per-tool-call governance audit row (`agent_activities`) for the
  * Governed MCP Gateway — one row per tool decision (a ToolCallOutcome: auto /
  * approved / denied / rate_limited / not_offered). Written once by
  * {@see RecordToolCallAuditAction} off the
@@ -52,7 +51,6 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  */
 #[Guarded(['id'])]
-#[Table(name: 'agent_activity')]
 class AgentActivity extends Model
 {
     /** Insert-only audit log. */
@@ -98,7 +96,7 @@ class AgentActivity extends Model
     {
         return [
             'arguments' => 'array',
-            'gated' => 'boolean',
+            'is_gated' => 'boolean',
             'is_error' => 'boolean',
             'arguments_truncated' => 'boolean',
             'result_truncated' => 'boolean',

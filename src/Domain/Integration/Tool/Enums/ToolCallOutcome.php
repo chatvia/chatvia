@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Tool\Enums;
 
+use Spatie\TypeScriptTransformer\Attributes\TypeScript;
+
 /**
  * How one tool call was resolved, as recorded in the governance audit:
  *
@@ -14,10 +16,11 @@ namespace Domain\Integration\Tool\Enums;
  *   - NotOffered  → named a tool the agent was not offered on that turn (an
  *                   invented or stale name), so it never ran.
  *
- * The values are stored in `agent_activity` rows (a Postgres CHECK lists
+ * The values are stored in `agent_activities` rows (a Postgres CHECK lists
  * them, so a new case needs a migration) and filtered on in the audit
  * screens, so they must not change.
  */
+#[TypeScript]
 enum ToolCallOutcome: string
 {
     case Auto = 'auto';

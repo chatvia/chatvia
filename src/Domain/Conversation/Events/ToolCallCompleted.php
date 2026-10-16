@@ -17,7 +17,7 @@ use Illuminate\Foundation\Events\Dispatchable;
  *
  * It carries the full governance record as scalars (denormalized agent/user
  * names + connector) so the queued {@see RecordToolCallAudit} listener can
- * write one immutable `agent_activity` row without touching the streaming hot
+ * write one immutable `agent_activities` row without touching the streaming hot
  * path. `userName === null` means an anonymous visitor.
  */
 final readonly class ToolCallCompleted

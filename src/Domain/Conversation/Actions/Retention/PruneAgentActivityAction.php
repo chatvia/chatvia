@@ -7,7 +7,7 @@ namespace Domain\Conversation\Actions\Retention;
 use Domain\Conversation\Models\AgentActivity;
 
 /**
- * Deletes governance audit rows (`agent_activity`) older than the retention
+ * Deletes governance audit rows (`agent_activities`) older than the retention
  * window, so the tool-call audit log stays bounded. Rows go in batches, so
  * one run never holds a huge delete; the BRIN index on `created_at` finds
  * them.

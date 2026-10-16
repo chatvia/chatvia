@@ -16,7 +16,7 @@ tests in `tests/Architecture/`, so CI tells you when a change breaks one.
 5. [How a request flows](#5-how-a-request-flows)
 6. [Conventions](#6-conventions)
 7. [Glossary](#7-glossary)
-8. [External services and self-hosting switches](#8-external-services-and-self-hosting-switches)
+8. [External services and installation switches](#8-external-services-and-installation-switches)
 9. [Frontend](#9-frontend)
 10. [The widget package](#10-the-widget-package)
 11. [Tests](#11-tests)
@@ -815,7 +815,7 @@ Use these words in code, UI and docs. Do not invent synonyms.
 
 ---
 
-## 8. External services and self-hosting switches
+## 8. External services and installation switches
 
 Outside services sit behind contracts. `DomainServiceProvider` picks the driver
 from config, so the rest of the code never knows which service runs. Most steps
@@ -957,7 +957,7 @@ Switches for a self-hosted install:
 | Branding (admin panel, **Settings → Branding**) | Shows or hides the "Powered by Chatvia" credit. Hiding it needs a license key ($399, one time), bought at chatvia.ai. Saving a key activates it at chatvia.ai for the host of `APP_URL` (one domain at a time, `LicenseActivation`); the activated key is then checked offline (`CreditLicense`, enforced in `SettingsConfig`). `app:check-license` asks chatvia.ai daily whether the key is still active and removes it if the buyer revoked it there. The product name and links are fixed. |
 | `FEATURE_YOUTUBE_SOURCES` | Shows the unfinished YouTube source type (off by default). |
 
-The user guide has the full setup: <https://chatvia.ai/docs/guide/self-hosting/>.
+The user guide has the full setup: <https://chatvia.ai/docs/guide/installation>.
 
 ---
 

@@ -29,7 +29,7 @@ set -euo pipefail
 # For *([0-9;]) and +([ /]): stripping color codes, deleting a word.
 shopt -s extglob
 
-readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/self-hosting/manage"
+readonly CHATVIA_DOCS="https://chatvia.ai/docs/guide/installation/manage"
 readonly DEFAULT_INSTALLER_URL="https://chatvia.ai/install.sh"
 readonly DEFAULT_IMAGE="ghcr.io/chatvia/chatvia"
 readonly MIN_PASSWORD=12

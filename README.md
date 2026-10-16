@@ -156,7 +156,7 @@ cannot be uploaded. Text is split into chunks inside Chatvia, by tokens or by
 characters (**Settings → Knowledge**). Website import uses Firecrawl. Each
 API key is entered once in the admin panel (**Settings → AI providers**), and
 the models in **Settings → AI models**, not in `.env`; see
-[AI providers](https://chatvia.ai/docs/guide/self-hosting/ai-providers).
+[AI providers](https://chatvia.ai/docs/guide/installation#6-add-your-api-keys).
 
 ## Getting started
 
@@ -553,7 +553,7 @@ without it.
   (**Settings → Platform**).
 - Other websites load these files, so the web server must allow any origin
   for `/shakomako/`. The Docker image does this for you; for nginx without
-  Docker, see the [self-hosting guide](https://chatvia.ai/docs/guide/self-hosting/).
+  Docker, see the [installation guide](https://chatvia.ai/docs/guide/installation).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) to work on the widget and the app
 together.
@@ -574,7 +574,7 @@ curl -fsSL https://chatvia.ai/install.sh | bash
 On Linux it asks how to install Chatvia (macOS always uses Docker):
 
 - **With Docker:** it checks Docker and runs Chatvia in containers. See
-  [Run with Docker](https://chatvia.ai/docs/guide/self-hosting/docker).
+  [Run with Docker](https://chatvia.ai/docs/guide/installation/docker).
 - **Complete installation:** everything directly on a fresh Ubuntu 26.04
   LTS server, without Docker. It installs PostgreSQL 18 with the search
   extensions, Redis, PHP-FPM, nginx, a Let's Encrypt certificate,
@@ -587,7 +587,7 @@ On Linux it asks how to install Chatvia (macOS always uses Docker):
   installs without questions; `--help` lists every option.
 
 The
-[self-hosting guide](https://chatvia.ai/docs/guide/self-hosting/) has the
+[installation guide](https://chatvia.ai/docs/guide/installation) has the
 steps without Docker, done by hand. In short:
 
 - PHP-FPM behind nginx, with `APP_ENV=production` and `APP_DEBUG=false`.

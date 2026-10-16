@@ -14,7 +14,7 @@ use Support\Concerns\HasExternalId;
  * updated_at), mirroring AgentActivity.
  *
  * @property string $external_id
- * @property bool $pass
+ * @property bool $has_passed
  * @property float|null $score
  */
 #[Guarded(['id'])]
@@ -34,7 +34,7 @@ class EvalResult extends Model
     protected function casts(): array
     {
         return [
-            'pass' => 'boolean',
+            'has_passed' => 'boolean',
             'score' => 'float',
             'sources_used' => 'array',
             'tools_called' => 'array',

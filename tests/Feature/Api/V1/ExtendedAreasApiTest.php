@@ -43,7 +43,7 @@ function extAuditRow(Agent $agent, array $overrides = []): AgentActivity
         'tool_name' => 'get_weather',
         'tool_kind' => 'function',
         'outcome' => 'auto',
-        'gated' => false,
+        'is_gated' => false,
         'is_error' => false,
         'arguments_truncated' => false,
         'result_truncated' => false,
@@ -136,7 +136,7 @@ describe('eval runs', function (): void {
             'input' => 'How long do refunds take?',
             'scorer_type' => 'contains',
             'scorer_config' => ['value' => '5 days'],
-            'active' => true,
+            'is_active' => true,
         ]);
 
         $this->withToken($this->token)
@@ -162,7 +162,7 @@ describe('eval runs', function (): void {
             'case_id' => null,
             'case_name' => 'Refunds',
             'scorer_type' => 'contains',
-            'pass' => true,
+            'has_passed' => true,
             'score' => 1.0,
         ]);
 
@@ -384,7 +384,7 @@ describe('audit log', function (): void {
     });
 
     it('filters by outcome and connector, and rejects an unknown outcome', function (): void {
-        extAuditRow($this->agent, ['outcome' => 'denied', 'gated' => true]);
+        extAuditRow($this->agent, ['outcome' => 'denied', 'is_gated' => true]);
         extAuditRow($this->agent, ['outcome' => 'auto', 'connector_slug' => 'slack', 'connector_name' => 'Slack', 'tool_kind' => 'mcp']);
 
         $this->withToken($this->token)

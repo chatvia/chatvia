@@ -91,8 +91,8 @@ class ScoreEvalCaseAction
             'run_id' => $run->id,
             'case_id' => $case->id,
             'case_name' => $case->name,
-            'scorer_type' => $case->scorer_type->value,
-            'pass' => $score->pass,
+            'scorer_type' => $case->scorer_type,
+            'has_passed' => $score->pass,
             'score' => $score->score,
             'actual_output' => $output,
             'actual_output_sha256' => hash('sha256', $result->answer),
@@ -125,8 +125,8 @@ class ScoreEvalCaseAction
             return;
         }
 
-        $scored = $run->results()->get(['pass']);
-        $passed = $scored->where('pass', true)->count();
+        $scored = $run->results()->get(['has_passed']);
+        $passed = $scored->where('has_passed', true)->count();
 
         EvalCaseScored::dispatch(
             $result,

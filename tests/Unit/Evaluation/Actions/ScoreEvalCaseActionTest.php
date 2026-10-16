@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Evaluation\Actions\ScoreEvalCaseAction;
 use Domain\Evaluation\Data\AgentRunResultData;
 use Domain\Evaluation\Enums\EvalRunStatus;
+use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Events\EvalCaseScored;
 use Domain\Evaluation\Models\EvalCase;
 use Domain\Evaluation\Models\EvalRun;
@@ -56,7 +57,7 @@ function scoringFixtures(string $scorerType = 'contains', array $config = ['valu
         'input' => 'Capital of France?',
         'scorer_type' => $scorerType,
         'scorer_config' => $config,
-        'active' => true,
+        'is_active' => true,
     ]);
 
     return [$run, $case];
@@ -84,7 +85,7 @@ it('records a passing result with the captured run state', function (): void {
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect($result->pass)->toBeTrue()
+    expect($result->has_passed)->toBeTrue()
         ->and($result->score)->toBe(1.0)
         ->and($result->actual_output)->toBe('The capital is Paris.')
         ->and($result->sources_used)->toBe(['World Atlas'])
@@ -111,8 +112,8 @@ it('scores a tool_call case from the captured (never executed) tool call', funct
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect($result->pass)->toBeTrue()
-        ->and($result->scorer_type)->toBe('tool_call')
+    expect($result->has_passed)->toBeTrue()
+        ->and($result->scorer_type)->toBe(ScorerType::ToolCall)
         ->and($result->tools_called)->toBe(['send_email']);
 });
 
@@ -130,7 +131,7 @@ it('records a failing result when the scorer rejects the answer', function (): v
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect($result->pass)->toBeFalse();
+    expect($result->has_passed)->toBeFalse();
 });
 
 it('records a failing result (not an exception) when the agent run errored', function (): void {
@@ -148,7 +149,7 @@ it('records a failing result (not an exception) when the agent run errored', fun
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect($result->pass)->toBeFalse()
+    expect($result->has_passed)->toBeFalse()
         ->and($result->judge_rationale)->toContain('Agent run failed')
         ->and($result->judge_rationale)->toContain('model timeout');
 });
@@ -206,7 +207,7 @@ it('skips the LLM call when the workspace has reached its monthly message limit'
 
     $result = app(ScoreEvalCaseAction::class)->execute($run, $case);
 
-    expect($result->pass)->toBeFalse()
+    expect($result->has_passed)->toBeFalse()
         ->and($result->judge_rationale)->toContain('Message limit reached');
 });
 

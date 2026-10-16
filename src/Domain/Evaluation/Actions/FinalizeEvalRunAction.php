@@ -24,7 +24,7 @@ class FinalizeEvalRunAction
     {
         $results = $run->results()->get();
 
-        $passed = $results->where('pass', true)->count();
+        $passed = $results->where('has_passed', true)->count();
         $failed = $results->count() - $passed;
 
         $run->update([

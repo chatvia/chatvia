@@ -26,17 +26,12 @@ final readonly class TranslatableText
     ) {}
 
     /**
-     * Read a stored entry: the `{ text, translations, overrides }` shape, or a
-     * plain string (widget bubbles were a `string[]` before they became
-     * translatable).
+     * Read a stored entry in its `{ text, translations, overrides }` shape;
+     * anything else reads as empty text.
      */
     public static function fromStored(mixed $stored): self
     {
-        if (is_string($stored)) {
-            return new self($stored);
-        }
-
-        $stored = (array) $stored;
+        $stored = is_array($stored) ? $stored : [];
 
         return new self(
             base: (string) ($stored['text'] ?? ''),

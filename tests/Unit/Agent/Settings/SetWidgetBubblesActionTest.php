@@ -52,11 +52,7 @@ it('preserves manual overrides and skips re-translation when the text is unchang
         ->and($second[0]->overrides)->toBe(['de' => 'Servus?']);
 });
 
-it('resolves bubbles per locale (override > translation > base) and coerces legacy strings', function (): void {
-    // Legacy plain-string list still resolves to itself.
-    $this->agent->setSetting('bubbles', ['Plain one', 'Plain two'], 'widget');
-    expect($this->agent->fresh()->resolvedBubblesForLocale('de'))->toBe(['Plain one', 'Plain two']);
-
+it('resolves bubbles per locale (override > translation > base)', function (): void {
     $this->agent->setSetting('bubbles', [
         ['text' => 'Hello', 'translations' => ['de' => 'Hallo'], 'overrides' => ['de' => 'Servus']],
         ['text' => 'Bye', 'translations' => ['de' => 'Tschüss'], 'overrides' => []],
@@ -67,11 +63,14 @@ it('resolves bubbles per locale (override > translation > base) and coerces lega
         ->and($this->agent->fresh()->resolvedBubblesForLocale('auto'))->toBe(['Hello', 'Bye', 'Welcome']);
 });
 
-it('normalizes legacy string bubbles for the editor', function (): void {
-    $this->agent->setSetting('bubbles', ['One', 'Two'], 'widget');
+it('gives the editor every bubble in its full shape', function (): void {
+    $this->agent->setSetting('bubbles', [
+        ['text' => 'One', 'translations' => ['de' => 'Eins'], 'overrides' => []],
+        ['text' => 'Two', 'translations' => [], 'overrides' => ['de' => 'Zwo']],
+    ], 'widget');
 
     expect($this->agent->fresh()->normalizedBubbles())->toBe([
-        ['text' => 'One', 'translations' => [], 'overrides' => []],
-        ['text' => 'Two', 'translations' => [], 'overrides' => []],
+        ['text' => 'One', 'translations' => ['de' => 'Eins'], 'overrides' => []],
+        ['text' => 'Two', 'translations' => [], 'overrides' => ['de' => 'Zwo']],
     ]);
 });

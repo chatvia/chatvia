@@ -84,18 +84,6 @@ it('ships per-bubble translation maps parallel to the resolved bubble text', fun
         ->and($settings->bubble_translations[0]['fr'] ?? null)->toBe('Salut !');
 });
 
-it('reads a bubble stored as a plain string, with no translations', function (): void {
-    // A bubble can be a bare string instead of { text, translations, overrides }
-    // (TranslatableText::fromStored reads both), and the widget must still show it.
-    $agent = createAgent(User::factory()->create());
-    $agent->setSetting('bubbles', ['Just a string'], 'widget');
-
-    $settings = app(BuildWidgetSettingsAction::class)->execute($agent->fresh());
-
-    expect($settings->bubbles[0])->toBe('Just a string')
-        ->and($settings->bubble_translations[0])->toBe([]);
-});
-
 it('builds the powered-by credit', function (): void {
     config(['chatvia.powered_by' => true]);
 

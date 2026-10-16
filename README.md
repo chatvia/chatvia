@@ -629,7 +629,10 @@ steps without Docker, done by hand. In short:
   set in the admin panel (**Settings → Security**).
 - Go through the security settings in `.env.example` (for example
   `TRUSTED_PROXIES` and `SESSION_SECURE_COOKIE`) and set each one for your
-  environment. The content security policy and the sign-in bot check are in
+  environment. Behind Cloudflare, include the word `cloudflare` in
+  `TRUSTED_PROXIES` (it stands for Cloudflare's published IP ranges), or
+  visitor IPs, countries and rate limits see Cloudflare's edge instead of the
+  visitor. The content security policy and the sign-in bot check are in
   the admin panel (**Settings → Security**).
 
 ## Test the Docker install

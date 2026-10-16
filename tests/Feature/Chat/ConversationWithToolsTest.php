@@ -154,7 +154,7 @@ it('runs an auto-approved webhook tool mid-stream and persists the assistant rep
     expect($audit)->toHaveCount(1)
         ->and($audit[0]->tool_name)->toBe('get_order_status')
         ->and($audit[0]->outcome)->toBe('auto')
-        ->and((bool) $audit[0]->gated)->toBeFalse()
+        ->and((bool) $audit[0]->is_gated)->toBeFalse()
         ->and((bool) $audit[0]->is_error)->toBeFalse();
 
     // Invocation counters: global on the function row, per-agent on the pivot.

@@ -8,7 +8,7 @@ use Domain\Conversation\Models\AgentActivity;
 use Support\Text\Utf8;
 
 /**
- * Writes one immutable governance audit row (`agent_activity`) for a completed
+ * Writes one immutable governance audit row (`agent_activities`) for a completed
  * tool-call decision. Invoked from the queued
  * {@see RecordToolCallAudit} listener, off the
  * streaming hot path.
@@ -45,7 +45,7 @@ class RecordToolCallAuditAction
             'connector_slug' => $event->connectorSlug,
             'connector_name' => $event->connectorName,
             'outcome' => $event->approvalOutcome,
-            'gated' => $event->gated,
+            'is_gated' => $event->gated,
             'is_error' => $event->isError,
             'latency_ms' => $event->latencyMs,
             'arguments' => $arguments,

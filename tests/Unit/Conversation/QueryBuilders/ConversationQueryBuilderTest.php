@@ -21,10 +21,10 @@ it('matches conversations carrying the requested topic, multi-label aware', func
     $bug = Topic::create(['workspace_id' => $agent->workspace_id, 'topic' => 'Bug', 'description' => 'y']);
 
     $multi = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::Widget]);
-    $multi->topics()->attach([$billing->id, $bug->id]);
+    $multi->topics()->attach([$billing->id => ['workspace_id' => $agent->workspace_id], $bug->id => ['workspace_id' => $agent->workspace_id]]);
 
     $single = Conversation::factory()->create(['chat_session_id' => $session->id, 'source' => ConversationSource::Widget]);
-    $single->topics()->attach([$bug->id]);
+    $single->topics()->attach([$bug->id => ['workspace_id' => $agent->workspace_id]]);
 
     $billingMatches = Conversation::query()->filterByTopic((string) $billing->id)->pluck('id')->all();
     expect($billingMatches)->toContain($multi->id)

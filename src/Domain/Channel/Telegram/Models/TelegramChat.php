@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * messages. Created on first contact.
  *
  * @property string $chat_id
+ * @property int $workspace_id
  * @property int $chat_session_id
  * @property int $chat_conversation_id
  */

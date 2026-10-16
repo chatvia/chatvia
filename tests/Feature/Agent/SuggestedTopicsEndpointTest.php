@@ -29,12 +29,14 @@ it('returns grouped suggestions with capped examples', function (): void {
     // at 2); "shipping" in 1 (below threshold — dropped).
     foreach (['Refund one', 'Refund two', 'Refund three'] as $title) {
         ConversationTopic::create([
+            'workspace_id' => $agent->workspace_id,
             'chat_conversation_id' => suggestedTopicsConversation($agent, $title)->id,
             'suggested_label' => 'refunds',
         ]);
     }
 
     ConversationTopic::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => suggestedTopicsConversation($agent, 'Shipping one')->id,
         'suggested_label' => 'shipping',
     ]);
@@ -69,6 +71,7 @@ it('does not leak another agent\'s suggestions or examples', function (): void {
     $foreignAgent = createAgent($other);
 
     ConversationTopic::create([
+        'workspace_id' => $foreignAgent->workspace_id,
         'chat_conversation_id' => suggestedTopicsConversation($foreignAgent, 'Foreign')->id,
         'suggested_label' => 'foreign-only',
     ]);
@@ -89,6 +92,7 @@ it('only counts conversations from the suggestion window', function (): void {
 
     foreach (['Recent one', 'Recent two', 'Old one'] as $title) {
         ConversationTopic::create([
+            'workspace_id' => $agent->workspace_id,
             'chat_conversation_id' => suggestedTopicsConversation($agent, $title)->id,
             'suggested_label' => 'refunds',
         ]);
@@ -125,12 +129,12 @@ it('reads the examples of every label with the same number of queries', function
         return $queries;
     };
 
-    ConversationTopic::create(['chat_conversation_id' => suggestedTopicsConversation($agent, 'Refund')->id, 'suggested_label' => 'refunds']);
+    ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => suggestedTopicsConversation($agent, 'Refund')->id, 'suggested_label' => 'refunds']);
     $countQueries();
     $oneLabel = $countQueries();
 
     foreach (['shipping', 'returns'] as $label) {
-        ConversationTopic::create(['chat_conversation_id' => suggestedTopicsConversation($agent, ucfirst($label))->id, 'suggested_label' => $label]);
+        ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => suggestedTopicsConversation($agent, ucfirst($label))->id, 'suggested_label' => $label]);
     }
     $threeLabels = $countQueries();
 

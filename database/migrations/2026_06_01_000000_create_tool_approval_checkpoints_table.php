@@ -14,7 +14,10 @@ return new class extends Migration
             $table->id();
             $table->uuid('external_id')->unique();
 
-            $table->foreignIdFor(Agent::class)->constrained()->cascadeOnDelete();
+            // The key to the agent pairs it with the workspace: a checkpoint
+            // can never point at another workspace's agent.
+            $table->foreignId('workspace_id')->constrained()->cascadeOnDelete();
+            $table->foreignIdFor(Agent::class);
 
             $table->uuid('conversation_external_id');
             $table->uuid('assistant_message_id');
@@ -32,6 +35,8 @@ return new class extends Migration
 
             $table->timestamp('expires_at')->nullable();
             $table->timestamps();
+
+            $table->foreign(['workspace_id', 'agent_id'])->references(['workspace_id', 'id'])->on('agents')->cascadeOnDelete();
 
             $table->index(['conversation_external_id', 'status']);
             $table->index('agent_id');

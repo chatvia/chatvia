@@ -13,14 +13,18 @@ return new class extends Migration
             $table->foreignId('agent_telegram_bot_id')->constrained()->cascadeOnDelete();
             $table->string('chat_id');
 
-            $table->foreignId('chat_session_id')->index()
-                ->constrained('chat_sessions')->cascadeOnDelete();
-            $table->foreignId('chat_conversation_id')->index()
-                ->constrained('chat_conversations')->cascadeOnDelete();
+            // The session and conversation keys pair with the workspace: a
+            // mapping can never point at another workspace's chat.
+            $table->foreignId('workspace_id');
+            $table->foreignId('chat_session_id')->index();
+            $table->foreignId('chat_conversation_id')->index();
             $table->string('first_name')->nullable();
             $table->string('username')->nullable();
             $table->timestamp('last_message_at')->nullable();
             $table->timestamps();
+
+            $table->foreign(['workspace_id', 'chat_session_id'])->references(['workspace_id', 'id'])->on('chat_sessions')->cascadeOnDelete();
+            $table->foreign(['workspace_id', 'chat_conversation_id'])->references(['workspace_id', 'id'])->on('chat_conversations')->cascadeOnDelete();
 
             $table->unique(['agent_telegram_bot_id', 'chat_id']);
         });

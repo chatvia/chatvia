@@ -45,6 +45,7 @@ function topicManagementRows(Agent ...$agents): Builder
 function topicManagementSuggestion(Agent $agent, string $label): ConversationTopic
 {
     return ConversationTopic::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => Conversation::factory()->create(['agent_id' => $agent->id, 'source' => ConversationSource::Widget])->id,
         'suggested_label' => $label,
     ]);

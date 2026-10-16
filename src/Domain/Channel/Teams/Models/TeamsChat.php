@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property string $conversation_id
  * @property string $service_url
  * @property string|null $conversation_type
+ * @property int $workspace_id
  * @property int $chat_session_id
  * @property int $chat_conversation_id
  * @property string|null $peer_name

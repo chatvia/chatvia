@@ -81,7 +81,7 @@ it('shows the model the pending labels of recent conversations only', function (
     $conversation = function (Agent $agent, string $label, int $daysAgo): void {
         $conversation = Conversation::factory()->create(['agent_id' => $agent->id, 'created_at' => now()->subDays($daysAgo)]);
 
-        ConversationTopic::create(['chat_conversation_id' => $conversation->id, 'suggested_label' => $label]);
+        ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => $conversation->id, 'suggested_label' => $label]);
     };
 
     $conversation($agent, 'Recent Theme', 3);

@@ -133,7 +133,7 @@ class AnalyzeConversationAction
             $row = ConversationTopic::firstOrCreate([
                 'chat_conversation_id' => $conversation->id,
                 'topic_id' => $topicId,
-            ]);
+            ], ['workspace_id' => $conversation->workspace_id]);
 
             if ($row->wasRecentlyCreated) {
                 $assigned[] = $topicId;
@@ -144,7 +144,7 @@ class AnalyzeConversationAction
             ConversationTopic::firstOrCreate([
                 'chat_conversation_id' => $conversation->id,
                 'suggested_label' => $label,
-            ]);
+            ], ['workspace_id' => $conversation->workspace_id]);
         }
 
         return $assigned;

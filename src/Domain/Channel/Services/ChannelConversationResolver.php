@@ -97,6 +97,7 @@ abstract class ChannelConversationResolver
             return $this->createMapping([
                 ...$identity,
                 ...($context['attributes'] ?? []),
+                'workspace_id' => $agent->workspace_id,
                 'chat_session_id' => $session->id,
                 'chat_conversation_id' => $conversation->id,
                 'last_message_at' => now(),

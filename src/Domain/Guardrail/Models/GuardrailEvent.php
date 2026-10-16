@@ -85,38 +85,6 @@ class GuardrailEvent extends Model
         return $query->where('agent_id', $agentId);
     }
 
-    /**
-     * Shape one row for the per-agent Guardrails viewer. The live avatar comes
-     * from the eager-loaded `user` relation; visitor rows (no user) fall back to
-     * the denormalized name.
-     *
-     * @return array<string, mixed>
-     */
-    public function toLogArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'external_id' => $this->external_id,
-            'created_at' => $this->created_at?->toIso8601String(),
-            'agent_id' => $this->agent_id,
-            'agent_name' => $this->agent_name,
-            'agent_external_id' => $this->relationLoaded('agent') ? $this->agent?->external_id : null,
-            'user_id' => $this->user_id,
-            'user_name' => $this->user_name,
-            'avatar' => $this->relationLoaded('user') ? $this->user?->avatar : null,
-            'stage' => $this->stage->value,
-            'guard_type' => $this->guard_type->value,
-            'guard_label' => $this->guard_type->label(),
-            'outcome' => $this->outcome->value,
-            'severity' => $this->severity?->value,
-            'detail' => $this->detail,
-            'snippet' => $this->snippet,
-            'trace_id' => $this->trace_id,
-            'conversation_external_id' => $this->conversation_external_id,
-            'visitor_key' => $this->visitor_key,
-        ];
-    }
-
     protected function casts(): array
     {
         return [

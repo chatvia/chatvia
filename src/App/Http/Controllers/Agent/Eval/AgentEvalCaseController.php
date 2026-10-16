@@ -29,7 +29,7 @@ class AgentEvalCaseController
             'scorer_type' => $data->scorer_type->value,
             'scorer_config' => $data->scorer_config,
             'expected_output' => $data->expected_output,
-            'active' => $data->active,
+            'is_active' => $data->active,
         ]);
 
         return back();
@@ -47,7 +47,7 @@ class AgentEvalCaseController
             'scorer_type' => $data->scorer_type->value,
             'scorer_config' => $data->scorer_config,
             'expected_output' => $data->expected_output,
-            'active' => $data->active,
+            'is_active' => $data->active,
         ]);
 
         return back();

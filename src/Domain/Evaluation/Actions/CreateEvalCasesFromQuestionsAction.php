@@ -77,7 +77,7 @@ class CreateEvalCasesFromQuestionsAction
                     'scorer_type' => ScorerType::LlmJudge->value,
                     'scorer_config' => ['criteria' => self::DEFAULT_CRITERIA],
                     'expected_output' => mb_substr($reference, 0, self::MAX_REFERENCE_LENGTH),
-                    'active' => true,
+                    'is_active' => true,
                 ]));
             }
 

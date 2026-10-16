@@ -3,6 +3,7 @@
 namespace Domain\Evaluation\Data\Resources;
 
 use Carbon\CarbonInterface;
+use Domain\Evaluation\Enums\ScorerType;
 use Domain\Evaluation\Models\EvalCase;
 use Illuminate\Support\Collection;
 use Spatie\LaravelData\Data;
@@ -22,7 +23,7 @@ class EvalCaseResourceData extends Data
         public string $external_id,
         public string $name,
         public string $input,
-        public string $scorer_type,
+        public ScorerType $scorer_type,
         public ?array $scorer_config,
         public ?string $expected_output,
         public bool $active,
@@ -36,10 +37,10 @@ class EvalCaseResourceData extends Data
             external_id: $case->external_id,
             name: $case->name,
             input: $case->input,
-            scorer_type: $case->scorer_type->value,
+            scorer_type: $case->scorer_type,
             scorer_config: $case->scorer_config,
             expected_output: $case->expected_output,
-            active: $case->active,
+            active: $case->is_active,
             created_at: $case->created_at,
         );
     }

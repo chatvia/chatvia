@@ -84,7 +84,7 @@ it('omits knowledgeQuestions on first load and serves it on a partial reload wit
         'input' => 'what is a?',
         'scorer_type' => 'contains',
         'scorer_config' => ['value' => 'A'],
-        'active' => true,
+        'is_active' => true,
     ]);
 
     // Optional prop: absent from the initial page render.

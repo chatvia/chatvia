@@ -21,6 +21,7 @@ use Support\Concerns\HasExternalId;
  * @property int|null $agent_id
  * @property ScorerType $scorer_type
  * @property array<string, mixed>|null $scorer_config
+ * @property bool $is_active
  */
 #[Guarded(['id'])]
 #[RouteKey('external_id')]
@@ -61,7 +62,7 @@ class EvalCase extends Model
     #[Scope]
     protected function active(Builder $query): Builder
     {
-        return $query->where('active', true);
+        return $query->where('is_active', true);
     }
 
     protected function casts(): array
@@ -69,7 +70,7 @@ class EvalCase extends Model
         return [
             'scorer_type' => ScorerType::class,
             'scorer_config' => 'array',
-            'active' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
 }

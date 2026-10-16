@@ -29,7 +29,7 @@ it('lists QA-pair questions, deduped, and flags ones already used as a case inpu
         'input' => 'how long do refunds take?',
         'scorer_type' => 'contains',
         'scorer_config' => ['value' => '5 days'],
-        'active' => true,
+        'is_active' => true,
     ]);
 
     $candidates = array_map(fn (KnowledgeQuestionCandidateData $candidate): array => $candidate->toArray(), app(ListKnowledgeQuestionCandidatesAction::class)->execute($agent));

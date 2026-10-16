@@ -21,6 +21,7 @@ use Domain\Llm\Enums\AiProvider;
 use Domain\Llm\Enums\LlmProviderEnum;
 use Domain\Llm\Services\DocumentLlm;
 use Domain\Llm\Services\LlmProviders;
+use Domain\Security\Services\VisitorFingerprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Tests\Support\Conversation\NoToolSelector;
@@ -56,7 +57,7 @@ function tlsGuard(): GuardrailService
 
 function tlsRecorder(): GuardrailRecorder
 {
-    return new class extends GuardrailRecorder
+    return new class(new VisitorFingerprint) extends GuardrailRecorder
     {
         /** @var array<int, string> */
         public array $samples = [];

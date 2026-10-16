@@ -24,6 +24,7 @@ it('schedules every recurring command from routes/console.php', function (string
     ['app:prune-expired-forms', '*/10 * * * *'],
     ['app:prune-agent-activity', '0 4 * * *'],
     ['app:prune-guardrail-events', '15 4 * * *'],
+    ['app:prune-expired-visitor-blocks', '20 4 * * *'],
     ['app:prune-security-audit-log', '25 4 * * *'],
     ['app:prune-analytics-events', '45 4 * * *'],
     ['app:refresh-websites', '20 * * * *'],
@@ -46,7 +47,7 @@ it('checks the license daily in the 6 o\'clock hour, at a minute of the install\
 });
 
 it('schedules nothing the tests above do not name', function (): void {
-    expect(app(Schedule::class)->events())->toHaveCount(24);
+    expect(app(Schedule::class)->events())->toHaveCount(25);
 });
 
 it('prunes the Spectra log after the days kept', function (): void {

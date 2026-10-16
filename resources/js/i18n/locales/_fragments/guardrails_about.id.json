@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "guardrails": {
+            "about_aria": "Tentang pagar pengaman",
+            "about_title": "Apa itu pagar pengaman?",
+            "about_body": "Pagar pengaman adalah pemeriksaan keamanan pada chat agen Anda. Pagar pengaman memeriksa setiap pesan pengunjung sebelum agen menjawab, dan setiap jawaban yang ditulis agen. Pagar pengaman dapat menyembunyikan data pribadi, menghentikan upaya mengelabui agen, memblokir bahasa kasar, dan menjaga agen tetap pada topik.",
+            "about_ai_calls": "Deteksi PII mencocokkan pola tetap dan tidak menambah panggilan AI. Pemeriksaan bertanda “Pemeriksaan AI” bertanya ke model AI: satu panggilan tambahan untuk pesan pengunjung dan satu untuk jawaban, jadi paling banyak dua per balasan.",
+            "about_cost": "Semua pemeriksaan AI berbagi panggilan ini, jadi menyalakan lebih banyak pemeriksaan tidak menambah panggilan. Balasan bisa sedikit lebih lama dan memakai lebih banyak token AI.",
+            "ai_check": "Pemeriksaan AI",
+            "test_off": "Pagar pengaman nonaktif. Aktifkan untuk menguji pesan."
+        }
+    }
+}

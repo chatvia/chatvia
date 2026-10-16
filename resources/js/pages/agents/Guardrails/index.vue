@@ -1,9 +1,10 @@
 <script setup lang="ts">
-// Guardrails page for one agent: a Configuration tab with the safety settings
-// (PII redaction, injection and toxicity checks with their mode and
+// Guardrails page for one agent, in three tabs: Configuration with the safety
+// settings (PII redaction, injection and toxicity checks with their mode and
 // sensitivity, blocked topics, allowed scope, refusal message, holding answers
-// until checked, alert emails) and a "Test a message" card, and an Activity
-// tab with the trigger log.
+// until checked, alert emails), "Test a message" against those settings, and
+// Activity with the trigger log.
+import HelpPopover from '@/components/common/HelpPopover.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,9 +17,22 @@ import { Textarea } from '@/components/ui/textarea';
 import { useTeamPermissions } from '@/composables/useTeamPermissions';
 import AgentLayout from '@/layouts/AgentLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { Ban, History, LoaderCircle, MessageSquareOff, Save, ShieldAlert, Target, UserRound } from 'lucide-vue-next';
+import {
+    Ban,
+    FlaskConical,
+    History,
+    LoaderCircle,
+    MessageSquareOff,
+    Save,
+    ShieldAlert,
+    ShieldOff,
+    SlidersHorizontal,
+    Target,
+    UserRound,
+} from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import AiCheckBadge from './AiCheckBadge.vue';
 import BlockedTopicsDialog from './BlockedTopicsDialog.vue';
 import GuardrailTestCard from './GuardrailTestCard.vue';
 import GuardrailTriggerLog from './GuardrailTriggerLog.vue';
@@ -47,9 +61,15 @@ const canManage = computed(() => hasPermission('agent.guardrails.manage'));
 const canViewChats = computed(() => hasPermission('agent.chat.view'));
 
 // A filtered log link opens on the Activity tab.
-const activeTab = ref<'config' | 'activity'>(props.filters.guard_type || props.filters.outcome ? 'activity' : 'config');
+const activeTab = ref<'config' | 'test' | 'activity'>(props.filters.guard_type || props.filters.outcome ? 'activity' : 'config');
 
 const { form, save, toggle, piiEnabled, togglePii, selectedFilters } = useGuardrailSettings(props, canManage);
+
+// Underline tabs: one rule across the column with the active tab marked on it,
+// so the tabs read as part of the page, not as a control floating above it.
+const TABS_LIST_CLASS = 'h-auto w-full justify-start gap-1 rounded-none border-b bg-transparent p-0';
+const TAB_CLASS =
+    'text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:border-primary dark:data-[state=active]:border-primary -mb-px h-auto flex-none cursor-pointer rounded-none border-0 border-b-2 border-transparent bg-transparent px-3 pt-1 pb-2.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent';
 
 const MODES: GuardMode[] = ['block', 'monitor'];
 const SENSITIVITIES: GuardSensitivity[] = ['high', 'medium', 'low'];
@@ -67,12 +87,16 @@ const topicsOpen = ref(false);
         <div class="flex justify-center">
             <div class="min-h-[calc(100vh-220px)] w-full max-w-5xl">
                 <Tabs v-model="activeTab">
-                    <TabsList>
-                        <TabsTrigger value="config" class="cursor-pointer">
-                            <ShieldAlert class="h-4 w-4" />
+                    <TabsList :class="TABS_LIST_CLASS">
+                        <TabsTrigger value="config" :class="TAB_CLASS">
+                            <SlidersHorizontal class="h-4 w-4" />
                             {{ t('agents.guardrails.configuration') }}
                         </TabsTrigger>
-                        <TabsTrigger value="activity" class="cursor-pointer">
+                        <TabsTrigger v-if="canManage" value="test" :class="TAB_CLASS">
+                            <FlaskConical class="h-4 w-4" />
+                            {{ t('agents.guardrails.test_title') }}
+                        </TabsTrigger>
+                        <TabsTrigger value="activity" :class="TAB_CLASS">
                             <History class="h-4 w-4" />
                             {{ t('agents.guardrails.activity') }}
                         </TabsTrigger>
@@ -89,7 +113,21 @@ const topicsOpen = ref(false);
                                     @click="toggle('enabled')"
                                 >
                                     <div>
-                                        <Label class="pointer-events-none text-sm font-medium">{{ t('agents.guardrails.enable_guardrails') }}</Label>
+                                        <!-- The "?" says what guardrails are and which checks add AI calls. -->
+                                        <div class="flex items-center gap-1.5">
+                                            <Label class="pointer-events-none text-sm font-medium">{{
+                                                t('agents.guardrails.enable_guardrails')
+                                            }}</Label>
+                                            <HelpPopover
+                                                :label="t('agents.guardrails.about_aria')"
+                                                :title="t('agents.guardrails.about_title')"
+                                                :paragraphs="[
+                                                    t('agents.guardrails.about_body'),
+                                                    t('agents.guardrails.about_ai_calls'),
+                                                    t('agents.guardrails.about_cost'),
+                                                ]"
+                                            />
+                                        </div>
                                         <p class="text-muted-foreground text-sm">{{ t('agents.guardrails.master_switch') }}</p>
                                     </div>
                                     <Switch v-model="form.enabled" :disabled="!canManage" class="pointer-events-none" />
@@ -154,7 +192,10 @@ const topicsOpen = ref(false);
                                             @click="toggle(guard.key)"
                                         >
                                             <div>
-                                                <Label class="pointer-events-none text-sm font-medium">{{ t(guard.label) }}</Label>
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <Label class="pointer-events-none text-sm font-medium">{{ t(guard.label) }}</Label>
+                                                    <AiCheckBadge />
+                                                </div>
                                                 <p class="text-muted-foreground text-sm">{{ t(guard.help) }}</p>
                                             </div>
                                             <Switch v-model="form[guard.key]" :disabled="!canManage" class="pointer-events-none" />
@@ -188,7 +229,10 @@ const topicsOpen = ref(false);
                                     <!-- Blocked topics -->
                                     <div class="space-y-1.5 pt-2">
                                         <div class="flex flex-wrap items-center justify-between gap-2">
-                                            <Label>{{ t('agents.guardrails.blocked_topics') }}</Label>
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <Label>{{ t('agents.guardrails.blocked_topics') }}</Label>
+                                                <AiCheckBadge />
+                                            </div>
                                             <Select v-model="form.topics_mode" :disabled="!canManage">
                                                 <SelectTrigger class="h-8 w-44" :aria-label="t('agents.guardrails.mode')">
                                                     <SelectValue />
@@ -232,7 +276,10 @@ const topicsOpen = ref(false);
 
                                     <!-- Allowed scope -->
                                     <div class="space-y-1.5">
-                                        <Label for="scope">{{ t('agents.guardrails.allowed_scope') }}</Label>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <Label for="scope">{{ t('agents.guardrails.allowed_scope') }}</Label>
+                                            <AiCheckBadge />
+                                        </div>
                                         <div class="relative">
                                             <Target class="text-muted-foreground absolute start-3 top-3 h-4 w-4" />
                                             <Textarea
@@ -301,8 +348,19 @@ const topicsOpen = ref(false);
                                 </div>
                             </CardContent>
                         </Card>
+                    </TabsContent>
 
-                        <GuardrailTestCard v-if="canManage && form.enabled" class="mt-6" :agent-id="props.agent.external_id" :settings="form" />
+                    <!-- Test a message with the Configuration tab's settings, saved or not.
+                         With guardrails off the live chat runs no guards, so a test
+                         would mislead: say so instead. -->
+                    <TabsContent v-if="canManage" value="test" class="mt-6">
+                        <GuardrailTestCard v-if="form.enabled" :agent-id="props.agent.external_id" :settings="form" />
+                        <Card v-else>
+                            <CardContent class="text-muted-foreground flex items-center gap-2 text-sm">
+                                <ShieldOff class="h-4 w-4 shrink-0" />
+                                {{ t('agents.guardrails.test_off') }}
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
                     <!-- Trigger log -->

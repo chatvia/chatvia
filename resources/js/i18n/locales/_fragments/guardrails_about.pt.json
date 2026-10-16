@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "guardrails": {
+            "about_aria": "Sobre os guardrails",
+            "about_title": "O que são guardrails?",
+            "about_body": "Os guardrails são verificações de segurança nas conversas do seu agente. Verificam cada mensagem do visitante antes de o agente responder, e cada resposta que o agente escreve. Podem ocultar dados pessoais, travar tentativas de enganar o agente, bloquear linguagem ofensiva e manter o agente no tema.",
+            "about_ai_calls": "A deteção de PII usa padrões fixos e não acrescenta chamadas à IA. As verificações marcadas com «Verificação por IA» consultam um modelo de IA: uma chamada extra para a mensagem do visitante e outra para a resposta, ou seja, no máximo duas por resposta.",
+            "about_cost": "Todas as verificações por IA partilham estas chamadas, por isso ativar mais não acrescenta chamadas. As respostas podem demorar um pouco mais e usar mais tokens de IA.",
+            "ai_check": "Verificação por IA",
+            "test_off": "Os guardrails estão desativados. Ative-os para testar uma mensagem."
+        }
+    }
+}

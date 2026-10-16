@@ -1,0 +1,13 @@
+{
+    "agents": {
+        "guardrails": {
+            "about_aria": "Om skyddsräcken",
+            "about_title": "Vad är skyddsräcken?",
+            "about_body": "Skyddsräcken är säkerhetskontroller av agentens chattar. De kontrollerar varje meddelande från en besökare innan agenten svarar, och varje svar som agenten skriver. De kan dölja personuppgifter, stoppa försök att lura agenten, blockera kränkande språk och hålla agenten till ämnet.",
+            "about_ai_calls": "PII-identifiering använder fasta mönster och lägger inte till några AI-anrop. Kontroller märkta ”AI-kontroll” frågar en AI-modell: ett extra anrop för besökarens meddelande och ett för svaret, alltså högst två per svar.",
+            "about_cost": "Alla AI-kontroller delar på dessa anrop, så fler påslagna kontroller ger inte fler anrop. Svar kan ta lite längre tid och använda fler AI-tokens.",
+            "ai_check": "AI-kontroll",
+            "test_off": "Skyddsräckena är avstängda. Slå på dem för att testa ett meddelande."
+        }
+    }
+}

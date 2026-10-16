@@ -13,8 +13,9 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
  *
  * Only a shared file can be unlinked: one that at least one other agent of the
  * workspace still uses. The dashboard offers "Unlink" only for such a file and
- * "Delete" otherwise. A file no agent uses would stay in the pool but drop out
- * of the workspace's quota count, so the last link is never removed here.
+ * "Delete" otherwise. A file no agent uses would stay in the pool with no agent
+ * to show or delete it, yet still count as a duplicate on the next upload, so
+ * the last link is never removed here.
  */
 class UnlinkSourceFileFromAgentAction
 {

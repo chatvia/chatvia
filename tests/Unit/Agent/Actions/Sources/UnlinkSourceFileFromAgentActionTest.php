@@ -9,7 +9,7 @@ use Domain\Knowledge\Source\File\Models\SourceFile;
  * Unlinking takes a shared knowledge file away from one agent and keeps it for
  * the other agents and in the workspace pool. The dashboard only offers it for
  * a file another agent also uses; the last link is refused (the owner deletes
- * the file instead), so no file is left in the pool outside the quota count.
+ * the file instead), so no file is left in the pool that no agent shows.
  */
 it('unlinks a shared file from this agent only and keeps the file', function (): void {
     $agent = Agent::factory()->create();

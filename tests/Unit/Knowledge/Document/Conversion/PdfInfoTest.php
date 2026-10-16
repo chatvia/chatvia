@@ -5,9 +5,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 
 /**
- * PdfInfo turns `pdfinfo` text output into the page count the page quota
- * counts. A file without a readable page count must be rejected, never
- * measured as zero pages.
+ * PdfInfo turns `pdfinfo` text output into the PDF's page count. A file
+ * without a readable page count must be rejected, never measured as zero pages.
  */
 beforeEach(function (): void {
     $this->pdfPath = sys_get_temp_dir().'/pdfinfo-test-'.uniqid().'.pdf';

@@ -7,8 +7,8 @@ use Domain\Knowledge\Source\File\Services\FileAnalyzer;
 use Mockery\MockInterface;
 
 /**
- * FileAnalyzer routes a file to a "length" (pages or minutes) for quota at
- * upload time: images count as one page, office files and ebooks are counted
+ * FileAnalyzer routes a file to a "length" (pages or minutes) at upload time:
+ * images count as one page, office files and ebooks are counted
  * from their text (OfficeText and Pandoc are mocked here), and a file that
  * cannot be read is estimated from its size so the upload still goes on. A
  * genuinely unsupported type is rejected.

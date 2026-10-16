@@ -13,9 +13,10 @@ use LogicException;
 use Throwable;
 
 /**
- * Computes a file's "length" at upload time for quota enforcement — pages for
- * documents/images, minutes for audio/video. The document parser returns the
- * true page count only during ingestion, so this is a pre-flight estimate:
+ * Computes a file's "length" at upload time — pages for documents/images,
+ * minutes for audio/video. It is shown in the sources UI and stored on
+ * `source_files.length`. The document parser returns the true page count only
+ * during ingestion, so this is a pre-flight estimate:
  *
  *   - PDF            → pdfinfo (exact)
  *   - Office/text    → OfficeText pages (slides and sheets exact; other

@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Process;
 use RuntimeException;
 
 /**
- * Reads the duration of an audio or video file with ffprobe; the minute quota
- * counts it.
+ * Reads the duration of an audio or video file with ffprobe. The minutes are
+ * the file's length in the sources UI.
  */
 class AudioDurationExtractor
 {

@@ -8,7 +8,7 @@ use Domain\Agent\Data\Sources\KnowledgeAnalyzeResourceData;
 
 /**
  * Measures a file (pages or minutes) before it is uploaded, so the owner sees
- * whether it fits the quota.
+ * its length and kind.
  */
 class AgentKnowledgeFilesAnalyzeController
 {

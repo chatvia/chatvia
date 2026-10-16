@@ -10,7 +10,8 @@ use RuntimeException;
 
 /**
  * Reads a PDF's properties (page count, title, page size, …) with poppler's
- * `pdfinfo`. The page count is what the page quota counts.
+ * `pdfinfo`. The page count is the PDF's length in the sources UI and feeds the
+ * chat-attachment page cap (the `MaxPdfPages` rule).
  */
 final readonly class PdfInfo
 {
@@ -30,7 +31,7 @@ final readonly class PdfInfo
         $pages = $info['pages'] ?? null;
 
         // pdfinfo prints every value as text. Without a page count the file
-        // cannot be measured against the page quota, so it is rejected.
+        // has no length to show or check, so it is rejected.
         if (! is_numeric($pages)) {
             throw new RuntimeException('PDFInfo reported no page count.');
         }

@@ -17,8 +17,9 @@ use Throwable;
 
 /**
  * Stores an uploaded knowledge file and attaches it to the agent. The file is
- * keyed to the agent's owner (the workspace), measured for the quota (pages or
- * minutes), and left in the "uploaded" state until the owner starts training.
+ * keyed to the agent's owner (the workspace), measured (pages or minutes, kept
+ * as the file's length), and left in the "uploaded" state until the owner
+ * starts training.
  *
  * The stored object is written before the database rows, into the source's own
  * folder ({@see KnowledgeStoragePath}), so the source's external id is chosen

@@ -17,6 +17,8 @@ use Illuminate\Contracts\Queue\ShouldQueue;
  * when one is set. Only attacks go there: masked personal data and refused
  * topics are everyday events that belong in the Guardrails Activity log.
  * The metadata names the guard and where it ran, never the message text.
+ * The attempt is logged as `denied`, one of the outcomes the audit log's
+ * column allows.
  */
 class RecordGuardrailAttack implements ShouldQueue
 {
@@ -47,7 +49,7 @@ class RecordGuardrailAttack implements ShouldQueue
                 'tool' => $event->detail['tool'] ?? null,
                 'conversation_id' => $event->conversationExternalId,
             ]),
-            outcome: 'blocked',
+            outcome: 'denied',
         ));
     }
 }

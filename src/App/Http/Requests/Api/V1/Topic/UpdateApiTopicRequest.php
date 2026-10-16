@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1\Topic;
 
+use Domain\Conversation\Topic\Data\SaveTopicData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -28,5 +29,13 @@ class UpdateApiTopicRequest extends FormRequest
             // What conversations the topic covers — written for the analysis model.
             'description' => ['required', 'string', 'max:255'],
         ];
+    }
+
+    public function toData(): SaveTopicData
+    {
+        return new SaveTopicData(
+            topic: $this->string('topic')->toString(),
+            description: $this->string('description')->toString(),
+        );
     }
 }

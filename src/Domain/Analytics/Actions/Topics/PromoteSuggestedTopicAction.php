@@ -6,6 +6,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
+use Domain\Conversation\Topic\Data\SaveTopicData;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class PromoteSuggestedTopicAction
     {
         /** @var array{0: Topic, 1: list<\DateTimeInterface>} $result */
         $result = DB::transaction(function () use ($agent, $label): array {
-            $topic = $this->createAgentTopic->execute($agent, $label, '');
+            $topic = $this->createAgentTopic->execute($agent, new SaveTopicData(topic: $label, description: ''));
 
             $rows = ConversationTopic::query()
                 ->where('suggested_label', $label)
@@ -54,7 +55,7 @@ class PromoteSuggestedTopicAction
                 $committed = ConversationTopic::firstOrCreate([
                     'chat_conversation_id' => $conversation->id,
                     'topic_id' => $topic->id,
-                ]);
+                ], ['workspace_id' => $agent->workspace_id]);
 
                 if ($committed->wasRecentlyCreated) {
                     $occurredAt[] = $conversation->created_at;

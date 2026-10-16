@@ -3,6 +3,9 @@
 namespace App\Http\Requests\Agent\Topic;
 
 use App\Http\Rules\WorkspaceRule;
+use Domain\Agent\Models\Agent;
+use Domain\Conversation\Topic\Data\SaveTopicData;
+use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -13,6 +16,8 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class AttachOrCreateTopicRequest extends FormRequest
 {
+    private ?Topic $topic = null;
+
     public function authorize(): bool
     {
         $agent = $this->route('agent');
@@ -40,5 +45,26 @@ class AttachOrCreateTopicRequest extends FormRequest
     public function isAttach(): bool
     {
         return $this->has('topic_id');
+    }
+
+    /**
+     * The existing topic to attach — scoped through forWorkspace (global or
+     * owned by this workspace) so a body-supplied id can't reach another
+     * account's private topic. Mirrors the scope of the attachable-topics
+     * listing in AgentTopicController::index().
+     */
+    public function topic(Agent $agent): Topic
+    {
+        return $this->topic ??= Topic::query()
+            ->forWorkspace($agent->workspace)
+            ->findOrFail($this->integer('topic_id'));
+    }
+
+    public function toData(): SaveTopicData
+    {
+        return new SaveTopicData(
+            topic: $this->string('topic')->toString(),
+            description: $this->string('description')->toString(),
+        );
     }
 }

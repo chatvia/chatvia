@@ -9,11 +9,11 @@ import { del, get, patch, post } from './http';
 /** Topic counts per day and in total (Domain\Conversation\Topic\Data\TopicsResourceData). */
 export type TopicTrends = Domain.Conversation.Topic.Data.TopicsResourceData;
 
-/** A topic row as the topics endpoints return it (Domain\Conversation\Topic\Models\Topic). */
+/** A topic row as the topics endpoints return it (Domain\Conversation\Topic\Data\TopicRowData). */
 export interface Topic {
     id: number;
     /** Null for the built-in system topics. */
-    user_id: number | null;
+    workspace_id: number | null;
     topic: string;
     description: string;
     created_at: string | null;

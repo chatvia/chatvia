@@ -5,6 +5,7 @@ use Domain\Analytics\Actions\Topics\PromoteSuggestedTopicAction;
 use Domain\Analytics\Events\ConversationTopicAssigned;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
+use Domain\Conversation\Topic\Data\SaveTopicData;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Support\Facades\Event;
@@ -21,6 +22,7 @@ function pstConversation(Agent $agent, string $label): Conversation
     $conversation = Conversation::factory()->create(['agent_id' => $agent->id]);
 
     ConversationTopic::create([
+        'workspace_id' => $agent->workspace_id,
         'chat_conversation_id' => $conversation->id,
         'suggested_label' => $label,
     ]);
@@ -117,7 +119,7 @@ it('fires no event for a conversation that already has the topic', function (): 
     $agent->topics()->attach($topic->id);
 
     $tagged = pstConversation($agent, 'Refund Requests');
-    ConversationTopic::create(['chat_conversation_id' => $tagged->id, 'topic_id' => $topic->id]);
+    ConversationTopic::create(['workspace_id' => $agent->workspace_id, 'chat_conversation_id' => $tagged->id, 'topic_id' => $topic->id]);
     $untagged = pstConversation($agent, 'Refund Requests');
 
     // Hand back the existing topic, as when the conversation got it before
@@ -126,7 +128,7 @@ it('fires no event for a conversation that already has the topic', function (): 
     {
         public function __construct(private readonly Topic $existing) {}
 
-        public function execute(Agent $agent, string $topic, string $description): Topic
+        public function execute(Agent $agent, SaveTopicData $data): Topic
         {
             return $this->existing;
         }

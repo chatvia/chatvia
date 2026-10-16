@@ -67,18 +67,11 @@ class TopicController
         CreateAgentTopicAction $createTopic,
     ): JsonResponse {
         if ($request->isAttach()) {
-            $topic = Topic::query()
-                ->forWorkspace($agent->workspace)
-                ->where('external_id', (string) $request->validated('topic_id'))
-                ->firstOrFail();
+            $topic = $request->topic($agent);
 
             $attach->execute($agent, $topic);
         } else {
-            $topic = $createTopic->execute(
-                $agent,
-                (string) $request->validated('topic'),
-                (string) $request->validated('description'),
-            );
+            $topic = $createTopic->execute($agent, $request->toData());
         }
 
         return response()->json(['data' => TopicData::fromModel($topic)], 201);
@@ -97,12 +90,7 @@ class TopicController
         abort_unless($agent->topics()->where('topics.id', $topic->id)->exists(), 404);
         abort_if($topic->isSystem(), 403, __('System topics cannot be modified'));
 
-        $updateTopic->execute(
-            $agent,
-            $topic,
-            (string) $request->validated('topic'),
-            (string) $request->validated('description'),
-        );
+        $updateTopic->execute($agent, $topic, $request->toData());
 
         return ['data' => TopicData::fromModel($topic)];
     }

@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Topic\Actions;
 
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Topic\Data\SaveTopicData;
 use Domain\Conversation\Topic\Exceptions\SystemTopicProtectedException;
 use Domain\Conversation\Topic\Models\Topic;
 use Support\Exceptions\DomainValidationException;
@@ -18,7 +19,7 @@ class UpdateTopicAction
      * @throws SystemTopicProtectedException when the topic is a system topic
      * @throws DomainValidationException when the topic is not the workspace's, or the name is taken
      */
-    public function execute(Agent $agent, Topic $topic, string $newTopic, string $description): Topic
+    public function execute(Agent $agent, Topic $topic, SaveTopicData $data): Topic
     {
         if ($topic->isSystem()) {
             throw new SystemTopicProtectedException('topic', 'System topics cannot be modified');
@@ -32,7 +33,7 @@ class UpdateTopicAction
 
         $duplicate = Topic::query()
             ->where('workspace_id', $agent->workspace_id)
-            ->where('topic', $newTopic)
+            ->where('topic', $data->topic)
             ->where('id', '!=', $topic->id)
             ->exists();
 
@@ -40,7 +41,7 @@ class UpdateTopicAction
             throw new DomainValidationException('topic', 'You already have a topic with this name');
         }
 
-        $topic->update(['topic' => $newTopic, 'description' => $description]);
+        $topic->update(['topic' => $data->topic, 'description' => $data->description]);
 
         return $topic;
     }

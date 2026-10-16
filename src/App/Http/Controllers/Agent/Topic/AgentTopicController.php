@@ -10,6 +10,7 @@ use Domain\Conversation\Topic\Actions\AttachExistingTopicToAgentAction;
 use Domain\Conversation\Topic\Actions\CreateAgentTopicAction;
 use Domain\Conversation\Topic\Actions\DetachTopicFromAgentAction;
 use Domain\Conversation\Topic\Actions\UpdateTopicAction;
+use Domain\Conversation\Topic\Data\TopicRowData;
 use Domain\Conversation\Topic\Exceptions\SystemTopicProtectedException;
 use Domain\Conversation\Topic\Models\Topic;
 use Illuminate\Http\JsonResponse;
@@ -36,21 +37,15 @@ class AgentTopicController
                 $query = Topic::query()
                     ->forWorkspace($agent->workspace)
                     ->orderBy('topic');
-
-                if ($search) {
-                    $query->where('topic', 'ilike', "%{$search}%");
-                }
-
-                return response()->json($query->get());
+            } else {
+                $query = $agent->topics()->orderBy('topics.topic')->select('topics.*');
             }
-
-            $query = $agent->topics()->orderBy('topics.topic');
 
             if ($search) {
                 $query->where('topics.topic', 'ilike', "%{$search}%");
             }
 
-            return response()->json($query->get(['topics.*']));
+            return response()->json($query->get()->map(fn (Topic $topic): TopicRowData => TopicRowData::fromModel($topic)));
         }
 
         return Inertia::render('agents/topics/Manage', [
@@ -65,25 +60,16 @@ class AgentTopicController
         CreateAgentTopicAction $createTopic,
     ): JsonResponse {
         if ($request->isAttach()) {
-            // Scope through forUser (global or owned by this workspace) so a
-            // body-supplied id can't reach another account's private topic.
-            // Mirrors the same scope the attachable-topics listing in index() uses.
-            $topic = Topic::query()
-                ->forWorkspace($agent->workspace)
-                ->findOrFail((int) $request->validated('topic_id'));
+            $topic = $request->topic($agent);
 
             $attach->execute($agent, $topic);
 
-            return response()->json(['message' => __('Topic added successfully'), 'topic' => $topic]);
+            return response()->json(['message' => __('Topic added successfully'), 'topic' => TopicRowData::fromModel($topic)]);
         }
 
-        $topic = $createTopic->execute(
-            $agent,
-            (string) $request->validated('topic'),
-            (string) $request->validated('description'),
-        );
+        $topic = $createTopic->execute($agent, $request->toData());
 
-        return response()->json(['message' => __('Topic created successfully'), 'topic' => $topic]);
+        return response()->json(['message' => __('Topic created successfully'), 'topic' => TopicRowData::fromModel($topic)]);
     }
 
     public function update(
@@ -95,19 +81,14 @@ class AgentTopicController
         abort_unless($agent->topics()->where('topics.id', $topic->id)->exists(), 404, __('Topic not found for this agent'));
 
         try {
-            $updateTopic->execute(
-                $agent,
-                $topic,
-                (string) $request->validated('topic'),
-                (string) $request->validated('description'),
-            );
+            $updateTopic->execute($agent, $topic, $request->toData());
         } catch (SystemTopicProtectedException $e) {
             // Caught here because the global DomainValidationException mapping
             // would turn this subclass into a 422.
             return response()->json(['message' => $e->getMessage()], 403);
         }
 
-        return response()->json(['message' => __('Topic updated successfully'), 'topic' => $topic]);
+        return response()->json(['message' => __('Topic updated successfully'), 'topic' => TopicRowData::fromModel($topic)]);
     }
 
     public function destroy(

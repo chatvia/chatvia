@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Agent\Topic;
 
+use Domain\Conversation\Topic\Data\SaveTopicData;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -25,5 +26,13 @@ class UpdateAgentTopicRequest extends FormRequest
             'topic' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:500'],
         ];
+    }
+
+    public function toData(): SaveTopicData
+    {
+        return new SaveTopicData(
+            topic: $this->string('topic')->toString(),
+            description: $this->string('description')->toString(),
+        );
     }
 }

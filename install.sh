@@ -1342,6 +1342,13 @@ start_chatvia() {
     compose up -d
 }
 
+# The queue workers start sized to this machine's memory and processors
+# (Settings → Platform in the admin panel changes them later). Horizon picks
+# the numbers up through its restart command in Redis.
+tune_docker_workers() {
+    compose exec -T app php artisan app:tune-workers --restart --no-interaction
+}
+
 # Whether this start made the admin account (the setup log says so), read
 # before the setup container is removed.
 read_setup_result() {
@@ -1449,6 +1456,8 @@ start_and_finish() {
             "See why: cd $(pretty_path "$INSTALL_DIR") && ./manage status && ./manage logs app" \
             'Then run this installer again to finish.'
     fi
+    run_step 'Sizing the queue workers to this machine' tune_docker_workers ||
+        warn "The workers kept their defaults. Size them later: $(accent './manage artisan app:tune-workers --restart')"
     mark_finished
 
     show_finish
@@ -2339,6 +2348,7 @@ native_run_steps() {
         run_step 'Adding 4 GB of swap' native_add_swap || native_failed
     fi
     run_step 'Updating the system packages' native_update_system || native_failed
+    run_step 'Looking for a newer Redis at packages.redis.io' native_add_redis_repo || native_failed
     run_step 'Installing PHP, PostgreSQL, Redis, nginx and the other packages' native_install_packages || native_failed
     run_step 'Installing Node.js 22' native_install_node || native_failed
     run_step 'Installing the search extensions for PostgreSQL' native_install_extensions || native_failed
@@ -2356,6 +2366,7 @@ native_run_steps() {
     run_step 'Setting up Redis' native_configure_redis || native_failed
     run_step 'Installing Deployer' native_install_deployer || native_failed
     run_step "Deploying Chatvia $(native_version_text) (5 to 15 minutes)" native_first_deploy || native_failed
+    run_step 'Sizing the queue workers to this server' native_tune_workers || native_failed
     run_step 'Starting Horizon, Reverb and Pulse' native_configure_supervisor || native_failed
     run_step 'Starting the scheduler' native_configure_cron || native_failed
     run_step 'Creating the admin account' native_create_admin || native_failed
@@ -2363,6 +2374,7 @@ native_run_steps() {
     if [ "$FIREWALL" = yes ]; then
         run_step 'Turning on the firewall' native_configure_firewall || native_failed
     fi
+    run_step 'Banning addresses that keep failing SSH (fail2ban)' native_configure_fail2ban || native_failed
     if ! run_step 'Waiting for the web app' wait_until 120 native_app_is_up; then
         info "The admin account is ready: $(bold "$ADMIN_EMAIL"), password $(admin_password_text)"
         die 'The web app did not answer within 2 minutes.' \
@@ -2410,6 +2422,24 @@ native_update_system() {
     apt_get upgrade
 }
 
+# The newest Redis comes from packages.redis.io when it carries this Ubuntu
+# release; otherwise Ubuntu's own redis-server stays (26.04 ships Redis 8).
+# Best effort on purpose: any miss leaves the system repositories as they
+# are, and the install goes on.
+native_add_redis_repo() {
+    local release keyring=/usr/share/keyrings/redis-archive-keyring.asc
+    release=$(. /etc/os-release && printf '%s' "${VERSION_CODENAME:-}") || return 0
+    [ -n "$release" ] || return 0
+    curl -fsI --max-time 10 "https://packages.redis.io/deb/dists/$release/Release" >/dev/null 2>&1 || {
+        echo "packages.redis.io carries no $release packages yet: Ubuntu's own Redis it is."
+        return 0
+    }
+    curl -fsSL --max-time 30 https://packages.redis.io/gpg -o "$keyring" || return 0
+    printf 'deb [signed-by=%s] https://packages.redis.io/deb %s main\n' "$keyring" "$release" \
+        >/etc/apt/sources.list.d/redis.list
+    apt_get update
+}
+
 native_install_packages() {
     local php=php$NATIVE_PHP
     # Poppler, pandoc, catdoc and ffmpeg read file sources, WeasyPrint makes
@@ -2419,7 +2449,7 @@ native_install_packages() {
         git curl unzip ca-certificates cron ufw \
         "$php-fpm" "$php-cli" "$php-pgsql" "$php-redis" "$php-intl" "$php-mbstring" \
         "$php-curl" "$php-zip" "$php-gd" "$php-xml" composer \
-        nginx redis-server supervisor certbot python3-certbot-nginx \
+        nginx redis-server supervisor certbot python3-certbot-nginx fail2ban \
         "postgresql-$NATIVE_PG" "postgresql-$NATIVE_PG-pgvector" \
         poppler-utils pandoc catdoc ffmpeg weasyprint fonts-noto-core fonts-noto-cjk
     php -v
@@ -3062,6 +3092,13 @@ native_configure_cron() {
     systemctl start cron
 }
 
+# The queue workers start sized to this server's memory and processors
+# (Settings → Platform changes them later). Horizon reads the numbers when
+# it starts, and Supervisor starts it in the next step.
+native_tune_workers() {
+    as_chatvia "$NATIVE_ROOT/current" php artisan app:tune-workers --no-interaction
+}
+
 # The password goes through stdin, never the command line.
 native_create_admin() {
     printf '%s' "$ADMIN_PASS" | as_chatvia "$NATIVE_ROOT/current" \
@@ -3087,6 +3124,21 @@ native_configure_firewall() {
     ufw allow 443/tcp comment 'HTTPS'
     ufw --force enable
     ufw status verbose
+}
+
+# fail2ban bans an address after repeated failed SSH sign-ins. Ubuntu logs
+# SSH to the systemd journal, not auth.log, so the jail reads the journal.
+native_configure_fail2ban() {
+    install -d /etc/fail2ban/jail.d
+    cat >/etc/fail2ban/jail.d/chatvia.conf <<'EOF'
+# Written by the Chatvia installer.
+[sshd]
+enabled = true
+backend = systemd
+EOF
+    chmod 644 /etc/fail2ban/jail.d/chatvia.conf
+    systemctl enable fail2ban
+    systemctl restart fail2ban
 }
 
 # native_curl ARGS...: curl to the address people open, through nginx on

@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count سرویس از کار افتاده است|:count سرویس از کار افتاده است",
     ":count service needs a look|:count services need a look": ":count سرویس نیاز به بررسی دارد|:count سرویس نیاز به بررسی دارد",
     "Everything is running": "همه چیز در حال اجراست",
+    "All systems operational": "همه سامانه‌ها کار می‌کنند",
+    "View status": "مشاهده وضعیت",
     "Checked at :time": "بررسی در ساعت :time",
     "Still checking the AI services…": "هنوز در حال بررسی سرویس‌های هوش مصنوعی…",
     "Check again": "بررسی دوباره",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "نمی‌توانید میزبان خود پلتفرم را به‌عنوان دامنه سفارشی استفاده کنید.",
     "Your invitation link expired. Ask for a fresh one.": "پیوند دعوت شما منقضی شده است. پیوند تازه‌ای درخواست کنید.",
     "chat message": "پیام گفتگو",
-    "message update information": "اطلاعات به‌روزرسانی پیام"
+    "message update information": "اطلاعات به‌روزرسانی پیام",
+    "Settings": "تنظیمات",
+    "Reload the saved settings and AI models": "تنظیمات ذخیره‌شده و مدل‌های هوش مصنوعی را دوباره بارگیری کنید",
+    "Settings reloaded": "تنظیمات دوباره بارگیری شد"
 }

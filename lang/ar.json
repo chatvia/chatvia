@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count خدمة متوقفة|:count خدمة متوقفة|:count خدمتان متوقفتان|:count خدمات متوقفة|:count خدمةً متوقفة|:count خدمة متوقفة",
     ":count service needs a look|:count services need a look": ":count خدمة تحتاج إلى مراجعة|:count خدمة تحتاج إلى مراجعة|:count خدمتان تحتاجان إلى مراجعة|:count خدمات تحتاج إلى مراجعة|:count خدمةً تحتاج إلى مراجعة|:count خدمة تحتاج إلى مراجعة",
     "Everything is running": "كل شيء يعمل",
+    "All systems operational": "كل الأنظمة تعمل",
+    "View status": "عرض الحالة",
     "Checked at :time": "تم الفحص في :time",
     "Still checking the AI services…": "لا يزال فحص خدمات الذكاء الاصطناعي جاريًا…",
     "Check again": "إعادة الفحص",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "لا يمكنك استخدام مضيف المنصة نفسه كنطاق مخصص.",
     "Your invitation link expired. Ask for a fresh one.": "انتهت صلاحية رابط الدعوة. اطلب رابطًا جديدًا.",
     "chat message": "رسالة المحادثة",
-    "message update information": "معلومات تحديث الرسالة"
+    "message update information": "معلومات تحديث الرسالة",
+    "Settings": "الإعدادات",
+    "Reload the saved settings and AI models": "أعد تحميل الإعدادات المحفوظة ونماذج الذكاء الاصطناعي",
+    "Settings reloaded": "أعيد تحميل الإعدادات"
 }

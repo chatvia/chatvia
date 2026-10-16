@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count tjänst är nere|:count tjänster är nere",
     ":count service needs a look|:count services need a look": ":count tjänst bör kontrolleras|:count tjänster bör kontrolleras",
     "Everything is running": "Allt är igång",
+    "All systems operational": "Alla system är igång",
+    "View status": "Visa status",
     "Checked at :time": "Kontrollerat kl. :time",
     "Still checking the AI services…": "Kontrollerar fortfarande AI-tjänsterna…",
     "Check again": "Kontrollera igen",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "Du kan inte använda plattformens egen värd som anpassad domän.",
     "Your invitation link expired. Ask for a fresh one.": "Din inbjudningslänk har gått ut. Be om en ny.",
     "chat message": "chattmeddelande",
-    "message update information": "information om meddelandeuppdatering"
+    "message update information": "information om meddelandeuppdatering",
+    "Settings": "Inställningar",
+    "Reload the saved settings and AI models": "Läs in de sparade inställningarna och AI-modellerna igen",
+    "Settings reloaded": "Inställningar inlästa igen"
 }

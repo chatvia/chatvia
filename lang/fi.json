@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count palvelu ei toimi|:count palvelua ei toimi",
     ":count service needs a look|:count services need a look": ":count palvelu vaatii huomiota|:count palvelua vaatii huomiota",
     "Everything is running": "Kaikki on käynnissä",
+    "All systems operational": "Kaikki järjestelmät toimivat",
+    "View status": "Näytä tila",
     "Checked at :time": "Tarkistettu klo :time",
     "Still checking the AI services…": "Tekoälypalveluja tarkistetaan vielä…",
     "Check again": "Tarkista uudelleen",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "Alustan omaa isäntää ei voi käyttää mukautettuna verkkotunnuksena.",
     "Your invitation link expired. Ask for a fresh one.": "Kutsulinkkisi on vanhentunut. Pyydä uusi.",
     "chat message": "chat-viesti",
-    "message update information": "viestin päivitystiedot"
+    "message update information": "viestin päivitystiedot",
+    "Settings": "Asetukset",
+    "Reload the saved settings and AI models": "Lataa tallennetut asetukset ja tekoälymallit uudelleen",
+    "Settings reloaded": "Asetukset ladattu uudelleen"
 }

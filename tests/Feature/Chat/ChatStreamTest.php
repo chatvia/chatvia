@@ -94,7 +94,8 @@ it('does not email the owner when rate-limit alerts are disabled', function (): 
     chatStreamTurn($this->agent);
     $refused = collect(BufferedSseResponder::events(chatStreamTurn($this->agent)->streamedContent()));
 
-    // The second turn was over the cap, and still no email went out.
+    // The second turn was over the cap, and still no email went out. (The
+    // notification center may still get its own, mail-free notifications.)
     expect($refused->firstWhere('type', 'error')['data']['code'] ?? null)->toBe('rate_limited');
-    Notification::assertNothingSent();
+    Notification::assertNotSentTo($this->agent->workspace->owner, AgentRateLimitNotification::class);
 });

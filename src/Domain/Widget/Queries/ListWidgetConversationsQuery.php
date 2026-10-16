@@ -13,15 +13,15 @@ use Domain\Conversation\Services\Memory\ChatMemory;
  * session still shows, oldest first. Threads the visitor cleared are left out
  * (the chat memory never rebuilds them), so they cannot reappear in the widget.
  *
- * Each entry is the array form of {@see ConversationData}, exactly as the chat
- * memory caches it, because the widget reads these keys straight from the JSON.
+ * Each entry is a {@see ConversationData}, whose keys the widget reads
+ * straight from the JSON.
  */
 class ListWidgetConversationsQuery
 {
     public function __construct(private readonly ChatMemory $memory) {}
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return list<ConversationData>
      */
     public function get(Agent $agent, string $sessionExternalId): array
     {

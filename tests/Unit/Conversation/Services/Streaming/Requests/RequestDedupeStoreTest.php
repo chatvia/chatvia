@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Services\Streaming\Requests\RequestDedupeStore;
 use Illuminate\Support\Facades\Cache;
 
@@ -21,7 +22,7 @@ it('remembers and reads a snapshot', function (): void {
         assistantMessageId: 'msg-1',
         content: 'Hello world',
         language: 'en',
-        sources: [['id' => 7]],
+        sources: [$source = new SourceRefData(id: '7', label: 'Returns', kind: 'website', url: null, page: null, passages: 1)],
     );
 
     $snapshot = $store->find('req-1');
@@ -29,7 +30,7 @@ it('remembers and reads a snapshot', function (): void {
     expect($snapshot->assistant_message_id)->toBe('msg-1')
         ->and($snapshot->content)->toBe('Hello world')
         ->and($snapshot->language)->toBe('en')
-        ->and($snapshot->sources)->toBe([['id' => 7]]);
+        ->and(collect($snapshot->sources)->toArray())->toBe([$source->toArray()]);
 });
 
 it('forgets a snapshot', function (): void {

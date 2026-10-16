@@ -2,6 +2,7 @@
 
 use App\Http\Chat\HostedChatSession;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Illuminate\Support\Facades\Bus;
 
@@ -18,7 +19,7 @@ beforeEach(function (): void {
     $this->base = "/chat/{$this->agent->slug}";
     $this->conversationId = $this->postJson("{$this->base}/conversations/create", ['message' => 'How do I return an item?'])->json('id');
 
-    $this->source = ['id' => 'chunk-11', 'label' => 'Returns', 'kind' => 'website', 'url' => 'https://shop.test/returns', 'page' => null, 'passages' => 1];
+    $this->source = new SourceRefData(id: 'chunk-11', label: 'Returns', kind: 'website', url: 'https://shop.test/returns', page: null, passages: 1);
     app(ChatMemory::class)
         ->withScope(app(HostedChatSession::class)->scope($this->agent, $this->conversationId))
         ->storeSourcesForMessage('answer-1', [$this->source]);
@@ -35,7 +36,7 @@ it('returns the sources when the agent shows them', function (): void {
 
     $this->getJson("{$this->base}/conversations/{$this->conversationId}/sources")
         ->assertOk()
-        ->assertExactJson(['answer-1' => [$this->source]]);
+        ->assertExactJson(['answer-1' => [$this->source->toArray()]]);
 });
 
 it('hides sources remembered before the owner turned them off', function (): void {

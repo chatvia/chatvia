@@ -67,7 +67,7 @@ class StartConversationAction
                 title: $title,
                 timestamp: now()->timestamp,
                 is_visible: false,
-            )->toArray(),
+            ),
         ]);
 
         return $conversation;

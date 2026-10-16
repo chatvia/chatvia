@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Memory;
 
 use Domain\Conversation\Data\Attachments\AttachmentData;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Attachment;
 use Domain\Conversation\Models\Conversation;
@@ -23,12 +24,11 @@ use Domain\Form\Models\FormSubmission;
 class MessageAttachmentHydrator
 {
     /**
-     * Attach an `attachments` array to every message and return the augmented
-     * list. Assistant turns (and any message with no owned attachments) get an
-     * empty array.
+     * Attach each message's uploads and return the augmented list. Assistant
+     * turns (and any message with no owned attachments) get an empty list.
      *
-     * @param  array<int, array<string, mixed>>  $messages
-     * @return array<int, array<string, mixed>>
+     * @param  list<MessageData>  $messages
+     * @return list<MessageData>
      */
     public function hydrate(array $messages, Conversation $conversation): array
     {
@@ -36,7 +36,7 @@ class MessageAttachmentHydrator
         // submission status, so a reload shows a submitted form read-only
         // regardless of whether the on-submit metadata flip landed (it races the
         // async message persist). One query for all forms.
-        $this->enrichFormArtifactStatuses($messages);
+        $messages = $this->enrichFormArtifactStatuses($messages);
 
         $attachments = Attachment::query()
             ->where('chat_conversation_id', $conversation->id)
@@ -59,15 +59,14 @@ class MessageAttachmentHydrator
             $lastUserTimestamp,
         ));
 
-        foreach ($messages as &$message) {
-            $externalId = $message['id'] ?? null;
-            $message['attachments'] = $externalId && isset($attachmentsByMessageId[$externalId])
-                ? $attachmentsByMessageId[$externalId]->map(fn (Attachment $a): array => AttachmentData::fromModel($a)->toArray())->all()
-                : [];
-        }
-        unset($message);
-
-        return $messages;
+        return array_map(
+            static fn (MessageData $message): MessageData => $message->withAttachments(
+                isset($attachmentsByMessageId[$message->id])
+                    ? $attachmentsByMessageId[$message->id]->map(AttachmentData::fromModel(...))->values()->all()
+                    : [],
+            ),
+            $messages,
+        );
     }
 
     /**
@@ -76,13 +75,14 @@ class MessageAttachmentHydrator
      * artifact status can be stale (the on-submit flip races StoreMessageJob),
      * so the DB row is the authoritative source on reload. Batched: one query.
      *
-     * @param  array<int, array<string, mixed>>  $messages
+     * @param  list<MessageData>  $messages
+     * @return list<MessageData>
      */
-    private function enrichFormArtifactStatuses(array &$messages): void
+    private function enrichFormArtifactStatuses(array $messages): array
     {
         $instanceIds = [];
         foreach ($messages as $message) {
-            foreach (($message['metadata']['artifacts'] ?? []) as $artifact) {
+            foreach (($message->metadata['artifacts'] ?? []) as $artifact) {
                 if (($artifact['kind'] ?? null) === 'form' && isset($artifact['data']['form_instance_id'])) {
                     $instanceIds[] = $artifact['data']['form_instance_id'];
                 }
@@ -90,7 +90,7 @@ class MessageAttachmentHydrator
         }
 
         if ($instanceIds === []) {
-            return;
+            return $messages;
         }
 
         $statuses = FormSubmission::query()
@@ -104,22 +104,26 @@ class MessageAttachmentHydrator
             ->all();
 
         if ($statuses === []) {
-            return;
+            return $messages;
         }
 
-        foreach ($messages as &$message) {
-            if (! is_array($message['metadata']['artifacts'] ?? null)) {
-                continue;
+        return array_map(static function (MessageData $message) use ($statuses): MessageData {
+            $metadata = $message->metadata;
+
+            if (! is_array($metadata['artifacts'] ?? null)) {
+                return $message;
             }
-            foreach ($message['metadata']['artifacts'] as &$artifact) {
+
+            foreach ($metadata['artifacts'] as &$artifact) {
                 $id = ($artifact['kind'] ?? null) === 'form' ? ($artifact['data']['form_instance_id'] ?? null) : null;
                 if ($id !== null && isset($statuses[$id])) {
                     $artifact['data']['status'] = $statuses[$id];
                 }
             }
             unset($artifact);
-        }
-        unset($message);
+
+            return $message->withMetadata($metadata);
+        }, $messages);
     }
 
     /**
@@ -162,7 +166,7 @@ class MessageAttachmentHydrator
      * External id + unix timestamp of the most recent user message, or
      * [null, null] when the conversation has no user message yet.
      *
-     * @param  array<int, array<string, mixed>>  $messages
+     * @param  list<MessageData>  $messages
      * @return array{0: ?string, 1: ?int}
      */
     private function latestUserMessage(array $messages): array
@@ -171,11 +175,9 @@ class MessageAttachmentHydrator
         $timestamp = null;
 
         foreach ($messages as $message) {
-            if (($message['role'] ?? null) === MessageRole::User->value && isset($message['id'])) {
-                $externalId = $message['id'];
-                // MessageData::$timestamp is unix seconds; coerce defensively
-                // in case older cached rows are missing it.
-                $timestamp = isset($message['timestamp']) ? (int) $message['timestamp'] : null;
+            if ($message->role === MessageRole::User) {
+                $externalId = $message->id;
+                $timestamp = $message->timestamp;
             }
         }
 

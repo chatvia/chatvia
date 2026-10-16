@@ -36,7 +36,7 @@ class RegenerateMessageAction
         // When the answer never landed, the visitor message is still in the
         // history: it goes on its own, never with the answer before it.
         $messages = $memory->cachedMessages();
-        $remaining = array_values(array_filter($messages, static fn (array $message): bool => ($message['id'] ?? null) !== $userMessageId));
+        $remaining = array_values(array_filter($messages, static fn (MessageData $message): bool => $message->id !== $userMessageId));
 
         if (count($remaining) !== count($messages)) {
             $memory->saveMessages($remaining);

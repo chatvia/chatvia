@@ -9,6 +9,7 @@ use Domain\Conversation\Data\Turn\KnowledgeLookupData;
 use Domain\Conversation\Data\Turn\QaMatchData;
 use Domain\Conversation\Data\Voice\VoiceCallData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Events\ToolCallCompleted;
 use Domain\Conversation\Jobs\StoreMessageJob;
@@ -130,10 +131,10 @@ it('saves the visitor\'s words before the reply, and counts the reply', function
     $this->session->received(['type' => 'conversation.item.input_audio_transcription.completed', 'item_id' => 'item_1', 'transcript' => 'When do you open?']);
 
     $messages = voiceCallMessages();
-    expect(array_column($messages, 'role'))->toBe(['user', 'assistant'])
+    expect(array_column($messages, 'role'))->toBe([MessageRole::User, MessageRole::Assistant])
         ->and(array_column($messages, 'content'))->toBe(['When do you open?', 'We open at nine.'])
-        ->and($messages[1]['metadata'])->toBe(['voice' => true])
-        ->and($messages[1]['model'])->toBe('gpt-realtime-2.1');
+        ->and($messages[1]->metadata)->toBe(['voice' => true])
+        ->and($messages[1]->model)->toBe('gpt-realtime-2.1');
 
     Event::assertDispatchedTimes(AssistantReplyCompleted::class, 1);
     Queue::assertPushed(StoreMessageJob::class, 2);
@@ -345,8 +346,8 @@ it('saves a reply whose words were never written down, frees the worker and forg
     $this->session->received(spokenResponse('resp_1', 'Happy to help.', ['turn' => 'item_1']));
     $this->session->closed();
 
-    expect(array_column(voiceCallMessages(), 'role'))->toBe(['user', 'assistant'])
-        ->and(voiceCallMessages()[0]['content'])->toBe('(Voice message that could not be transcribed)')
+    expect(array_column(voiceCallMessages(), 'role'))->toBe([MessageRole::User, MessageRole::Assistant])
+        ->and(voiceCallMessages()[0]->content)->toBe('(Voice message that could not be transcribed)')
         ->and(app(VoiceCallStore::class)->find($this->call->call_id))->toBeNull();
 
     config(['horizon.defaults.voice.maxProcesses' => 1]);

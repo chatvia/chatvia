@@ -3,6 +3,7 @@
 namespace Domain\Conversation\Services\Streaming\Requests;
 
 use Domain\Conversation\Data\Turn\ReplaySnapshotData;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Services\Memory\CacheCipher;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Support\Facades\Cache;
@@ -30,7 +31,7 @@ class RequestDedupeStore
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $sources
+     * @param  list<SourceRefData>  $sources
      */
     public function remember(
         string $requestId,

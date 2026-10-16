@@ -44,24 +44,23 @@ class RecordMessageFeedbackAction
     private function updateLiveCopy(ChatScopeData $scope, string $conversationId, string $messageId, ?string $value): void
     {
         $memory = $this->memory->withScope($scope);
-        $messages = $memory->getMessagesForConversation();
+        // The cached copy, not the client view: saving the client view back
+        // would strip every message's LLM-facing text from the memory.
+        $messages = $memory->cachedMessages();
 
-        foreach ($messages as &$message) {
-            if ($message['id'] !== $messageId) {
+        foreach ($messages as $index => $message) {
+            if ($message->id !== $messageId) {
                 continue;
             }
 
-            // Read before overwriting, or the change check below always fails.
-            $priorValue = $message['feedback'] ?? null;
-            $message['feedback'] = $value;
+            $messages[$index] = $message->withFeedback($value);
 
             Message::query()->where('external_id', $messageId)->update(['feedback' => $value]);
 
-            if ($priorValue !== $value) {
-                $this->announce($conversationId, $messageId, $value, $message['model'] ?? null);
+            if ($message->feedback !== $value) {
+                $this->announce($conversationId, $messageId, $value, $message->model);
             }
         }
-        unset($message);
 
         $memory->saveMessages($messages);
     }

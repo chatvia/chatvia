@@ -1,7 +1,9 @@
 <?php
 
 use App\Identity\Workspace\Models\User;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Enums\ConversationSource;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
@@ -65,15 +67,18 @@ it('overwrites a form artifact status with the live submission status on reload'
     ]);
 
     // The stored metadata still says 'pending': the change made on submit did not reach it.
-    $messages = [[
-        'id' => 'msg-1',
-        'role' => 'assistant',
-        'metadata' => ['artifacts' => [
+    $messages = [new MessageData(
+        id: 'msg-1',
+        role: MessageRole::Assistant,
+        content: 'Here is the form.',
+        type: MessageData::TYPE_TEXT,
+        timestamp: now()->timestamp,
+        metadata: ['artifacts' => [
             ['kind' => 'form', 'data' => ['form_instance_id' => $submission->external_id, 'status' => 'pending']],
         ]],
-    ]];
+    )];
 
     $hydrated = (new MessageAttachmentHydrator)->hydrate($messages, $conversation);
 
-    expect($hydrated[0]['metadata']['artifacts'][0]['data']['status'])->toBe('submitted');
+    expect($hydrated[0]->metadata['artifacts'][0]['data']['status'])->toBe('submitted');
 });

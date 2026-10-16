@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Home;
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Services\Memory\ChatMemory;
 
 /**
@@ -15,7 +16,7 @@ use Domain\Conversation\Services\Memory\ChatMemory;
 class ChatSourceController
 {
     /**
-     * @return array<string, array<int, array<string, mixed>>>
+     * @return array<string, list<SourceRefData>>
      */
     public function __invoke(string $conversationId, #[HostedChatAgent] Agent $agent, ChatMemory $memory, HostedChatSession $session): array
     {

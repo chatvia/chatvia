@@ -55,8 +55,8 @@ it('adds the message to the conversation and broadcasts it with the visitor sess
         ->getMessagesForConversation();
 
     expect($messageId)->not->toBeNull()
-        ->and($history[0]['id'])->toBe($messageId)
-        ->and($history[0]['content'])->toBe('Still there?');
+        ->and($history[0]->id)->toBe($messageId)
+        ->and($history[0]->content)->toBe('Still there?');
 
     Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload->source === MessageOrigin::Handoff->value);
     Event::assertDispatched(MessagePosted::class, fn (MessagePosted $event): bool => $event->role === 'user'

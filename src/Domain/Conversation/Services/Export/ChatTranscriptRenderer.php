@@ -2,6 +2,7 @@
 
 namespace Domain\Conversation\Services\Export;
 
+use Domain\Conversation\Data\Memory\MessageData;
 use League\CommonMark\ConverterInterface;
 
 /**
@@ -23,31 +24,31 @@ class ChatTranscriptRenderer
     ) {}
 
     /**
-     * @param  array<int, array<string, mixed>>  $messages
+     * @param  list<MessageData>  $messages
      */
     public function toMarkdown(array $messages): string
     {
-        return $this->joined($messages, static fn (array $message): string => (string) $message['content']);
+        return $this->joined($messages, static fn (MessageData $message): string => $message->content);
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $messages
+     * @param  list<MessageData>  $messages
      */
     public function toText(array $messages): string
     {
-        return $this->joined($messages, fn (array $message): string => strip_tags($this->html($message)));
+        return $this->joined($messages, fn (MessageData $message): string => strip_tags($this->html($message)));
     }
 
     /**
      * The messages as the PDF view lays them out.
      *
-     * @param  array<int, array<string, mixed>>  $messages
-     * @return list<array{role: mixed, html: string}>
+     * @param  list<MessageData>  $messages
+     * @return list<array{role: string, html: string}>
      */
     public function toPdfMessages(array $messages): array
     {
-        return array_values(array_map(fn (array $message): array => [
-            'role' => $message['role'],
+        return array_values(array_map(fn (MessageData $message): array => [
+            'role' => $message->role->value,
             'html' => $this->html($message),
         ], $messages));
     }
@@ -55,22 +56,20 @@ class ChatTranscriptRenderer
     /**
      * A message's Markdown as HTML (raw HTML in it is stripped by the converter
      * settings, config/markdown.php).
-     *
-     * @param  array<string, mixed>  $message
      */
-    private function html(array $message): string
+    private function html(MessageData $message): string
     {
-        return $this->markdown->convert((string) $message['content'])->getContent();
+        return $this->markdown->convert($message->content)->getContent();
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $messages
-     * @param  callable(array<string, mixed>): string  $render
+     * @param  list<MessageData>  $messages
+     * @param  callable(MessageData): string  $render
      */
     private function joined(array $messages, callable $render): string
     {
         return collect($messages)
-            ->map(static fn (array $message): string => trim($render($message)))
+            ->map(static fn (MessageData $message): string => trim($render($message)))
             ->implode(self::MESSAGE_SEPARATOR)."\n";
     }
 }

@@ -6,7 +6,9 @@ use Domain\Agent\Models\Agent;
 use Domain\Conversation\Data\Memory\ChatScopeData;
 use Domain\Conversation\Data\Memory\ChatViewerData;
 use Domain\Conversation\Data\Memory\ConversationData;
+use Domain\Conversation\Data\Memory\LlmMessageData;
 use Domain\Conversation\Data\Memory\MessageData;
+use Domain\Conversation\Data\Turn\SourceRefData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use InvalidArgumentException;
@@ -19,6 +21,10 @@ use InvalidArgumentException;
  * Pure cache access: it never writes the database and never fires events. The
  * operations that change a conversation (start, rename, delete, clear,
  * feedback, read receipts, …) are Actions that use this repository.
+ *
+ * The cache holds plain arrays; every method takes and returns the Memory
+ * DTOs ({@see ConversationData}, {@see MessageData}), converted at the cache
+ * boundary and nowhere else.
  *
  * Bind it to a session with {@see withScope()} (or {@see withContext()}) first.
  * The conversation list falls back to `chat_conversations` when the cache is
@@ -66,10 +72,9 @@ class ChatMemory
     // --- Conversation list ------------------------------------------------
 
     /**
-     * Every conversation in the session, oldest first, as the cached arrays
-     * (the {@see ConversationData} shape the chat clients read).
+     * Every conversation in the session, oldest first.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<ConversationData>
      */
     public function getConversationsForCurrentSession(): array
     {
@@ -80,12 +85,12 @@ class ChatMemory
      * The conversations the visitor can see (named or already used), newest
      * first — the hosted chat's sidebar.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<ConversationData>
      */
     public function visibleConversationsNewestFirst(): array
     {
         return collect($this->visibleConversations())
-            ->sortByDesc('timestamp')
+            ->sortByDesc(static fn (ConversationData $conversation): int => $conversation->timestamp)
             ->values()
             ->all();
     }
@@ -93,9 +98,8 @@ class ChatMemory
     /** A visible conversation of this session by id, or null. */
     public function getConversationById(string $conversationId): ?ConversationData
     {
-        $conversation = collect($this->visibleConversations())->firstWhere('id', $conversationId);
-
-        return $conversation !== null ? ConversationData::from($conversation) : null;
+        return collect($this->visibleConversations())
+            ->first(static fn (ConversationData $conversation): bool => $conversation->id === $conversationId);
     }
 
     /**
@@ -106,7 +110,10 @@ class ChatMemory
     {
         $conversationId = $this->conversationId();
 
-        if (collect($this->conversations())->contains('id', $conversationId)) {
+        $listed = collect($this->conversations())
+            ->contains(static fn (ConversationData $conversation): bool => $conversation->id === $conversationId);
+
+        if ($listed) {
             return true;
         }
 
@@ -118,7 +125,7 @@ class ChatMemory
      * {@see saveConversations()} — reading first keeps a cold-cache rebuild
      * from counting a row the caller is about to add.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<ConversationData>
      */
     public function conversations(): array
     {
@@ -133,7 +140,10 @@ class ChatMemory
         $viewerMatches = empty($stampedFor) || $this->scope()->viewer?->key() === $stampedFor;
 
         if ($viewerMatches && $this->cache()->has($this->scope()->sessionId)) {
-            return $cached['conversations'] ?? [];
+            return array_map(
+                static fn (array $conversation): ConversationData => ConversationData::from($conversation),
+                array_values($cached['conversations'] ?? []),
+            );
         }
 
         $conversations = $this->loadConversationsFromDatabase();
@@ -145,13 +155,16 @@ class ChatMemory
     /**
      * Replace the session's conversation list, stamped with the current viewer.
      *
-     * @param  array<int, array<string, mixed>>  $conversations
+     * @param  list<ConversationData>  $conversations
      */
     public function saveConversations(array $conversations): void
     {
         $this->cache()->put($this->scope()->sessionId, [
             'viewer' => $this->scope()->viewer?->key(),
-            'conversations' => $conversations,
+            'conversations' => array_map(
+                static fn (ConversationData $conversation): array => $conversation->toArray(),
+                array_values($conversations),
+            ),
         ]);
     }
 
@@ -160,7 +173,7 @@ class ChatMemory
     {
         $remaining = array_filter(
             $this->conversations(),
-            static fn (array $conversation): bool => $conversation['id'] !== $conversationId,
+            static fn (ConversationData $conversation): bool => $conversation->id !== $conversationId,
         );
 
         $this->saveConversations(array_values($remaining));
@@ -170,8 +183,8 @@ class ChatMemory
     public function renameConversation(string $conversationId, string $title): void
     {
         $conversations = array_map(
-            static fn (array $conversation): array => $conversation['id'] === $conversationId
-                ? [...$conversation, 'title' => $title, 'is_visible' => true]
+            static fn (ConversationData $conversation): ConversationData => $conversation->id === $conversationId
+                ? $conversation->renamedTo($title)
                 : $conversation,
             $this->conversations(),
         );
@@ -201,22 +214,20 @@ class ChatMemory
      * The bound conversation's messages as the chat clients receive them —
      * without the private LLM-facing text.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<MessageData>
      */
     public function getMessagesForConversation(): array
     {
-        return array_map(static function (array $message): array {
-            unset($message['message_for_llm']);
-
-            return MessageData::from($message)->toArray();
-        }, $this->cachedMessages());
+        return array_map(
+            static fn (MessageData $message): MessageData => $message->forClient(),
+            $this->cachedMessages(),
+        );
     }
 
     public function getMessageById(string $messageId): ?MessageData
     {
-        $message = collect($this->getMessagesForConversation())->firstWhere('id', $messageId);
-
-        return $message !== null ? MessageData::from($message) : null;
+        return collect($this->getMessagesForConversation())
+            ->first(static fn (MessageData $message): bool => $message->id === $messageId);
     }
 
     /**
@@ -225,17 +236,17 @@ class ChatMemory
      * `chatvia.agent.history_messages` unless a limit is given, so the context
      * window stays small as the conversation grows.
      *
-     * @return array<int, array{role: string, content: string}>
+     * @return list<LlmMessageData>
      */
     public function getLlmMessages(?int $limit = null): array
     {
         $limit ??= (int) config('chatvia.agent.history_messages', 3);
 
         return collect($this->cachedMessages())
-            ->map(static fn (array $message): array => [
-                'role' => $message['role'],
-                'content' => $message['message_for_llm'] ?? $message['content'],
-            ])
+            ->map(static fn (MessageData $message): LlmMessageData => new LlmMessageData(
+                role: $message->role,
+                content: $message->message_for_llm ?? $message->content,
+            ))
             ->slice(-$limit)
             ->values()
             ->all();
@@ -244,7 +255,9 @@ class ChatMemory
     /** The last messages' LLM-facing text joined into one block (for titling). */
     public function llmTranscript(int $limit): string
     {
-        return collect($this->getLlmMessages($limit))->pluck('content')->join("\n");
+        return collect($this->getLlmMessages($limit))
+            ->map(static fn (LlmMessageData $message): string => $message->content)
+            ->join("\n");
     }
 
     /**
@@ -255,33 +268,40 @@ class ChatMemory
     {
         $conversationId = $this->conversationId();
 
-        $this->saveMessages([...$this->cachedMessages(), $message->toArray()]);
+        $this->saveMessages([...$this->cachedMessages(), $message]);
         $this->markConversationVisible($conversationId);
     }
 
     /**
-     * The bound conversation's raw cached messages, including the private
+     * The bound conversation's cached messages, including the private
      * LLM-facing text. For Actions that change and save the list.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<MessageData>
      */
     public function cachedMessages(): array
     {
         $conversationId = $this->conversationId();
 
-        return $this->cache()->get($this->cache()->generateConversationKey($conversationId), [], $conversationId);
+        return array_map(
+            static fn (array $message): MessageData => MessageData::from($message),
+            array_values($this->cache()->get($this->cache()->generateConversationKey($conversationId), [], $conversationId)),
+        );
     }
 
     /**
      * Replace the bound conversation's cached messages.
      *
-     * @param  array<int, array<string, mixed>>  $messages
+     * @param  list<MessageData>  $messages
      */
     public function saveMessages(array $messages): void
     {
         $conversationId = $this->conversationId();
 
-        $this->cache()->put($this->cache()->generateConversationKey($conversationId), $messages, $conversationId);
+        $this->cache()->put(
+            $this->cache()->generateConversationKey($conversationId),
+            array_map(static fn (MessageData $message): array => $message->toArray(), array_values($messages)),
+            $conversationId,
+        );
     }
 
     // --- Sources ----------------------------------------------------------
@@ -290,7 +310,7 @@ class ChatMemory
      * Remember the RAG sources one assistant message was answered from, so
      * the hosted chat can show them later.
      *
-     * @param  array<int, array<string, mixed>>  $sources
+     * @param  list<SourceRefData>  $sources
      */
     public function storeSourcesForMessage(string $messageId, array $sources): void
     {
@@ -298,7 +318,7 @@ class ChatMemory
         $key = $this->cache()->generateSourcesKey($conversationId);
 
         $cached = $this->cache()->get($key, [], $conversationId);
-        $cached[$messageId] = $sources;
+        $cached[$messageId] = array_map(static fn (SourceRefData $source): array => $source->toArray(), $sources);
 
         $this->cache()->put($key, $cached, $conversationId);
     }
@@ -306,25 +326,33 @@ class ChatMemory
     /**
      * Every remembered source of the bound conversation, keyed by message id.
      *
-     * @return array<string, array<int, array<string, mixed>>>
+     * @return array<string, list<SourceRefData>>
      */
     public function getSources(): array
     {
         $conversationId = $this->conversationId();
 
-        return $this->cache()->get($this->cache()->generateSourcesKey($conversationId), [], $conversationId);
+        $cached = $this->cache()->get($this->cache()->generateSourcesKey($conversationId), [], $conversationId);
+
+        return array_map(
+            static fn (array $sources): array => array_map(
+                static fn (array $source): SourceRefData => SourceRefData::from($source),
+                array_values($sources),
+            ),
+            $cached,
+        );
     }
 
     // --- Internals --------------------------------------------------------
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return list<ConversationData>
      */
     private function visibleConversations(): array
     {
         return array_values(array_filter(
             $this->conversations(),
-            static fn (array $conversation): bool => $conversation['is_visible'] === true,
+            static fn (ConversationData $conversation): bool => $conversation->is_visible,
         ));
     }
 
@@ -356,7 +384,7 @@ class ChatMemory
      * stay in the database for the workspace's chat log but are left out
      * here, so they never come back into the widget.
      *
-     * @return array<int, array<string, mixed>>
+     * @return list<ConversationData>
      */
     private function loadConversationsFromDatabase(): array
     {
@@ -375,12 +403,12 @@ class ChatMemory
             ->whereNull('cleared_at')
             ->orderBy('id')
             ->get()
-            ->map(static fn (Conversation $conversation): array => new ConversationData(
+            ->map(static fn (Conversation $conversation): ConversationData => new ConversationData(
                 id: $conversation->external_id,
                 title: $conversation->title ?? Conversation::DEFAULT_TITLE,
                 timestamp: $conversation->created_at?->timestamp ?? 0,
                 is_visible: (bool) $conversation->is_visible,
-            )->toArray())
+            ))
             ->all();
     }
 

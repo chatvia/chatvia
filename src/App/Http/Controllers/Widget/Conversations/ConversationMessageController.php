@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Widget\Conversations;
 use App\Http\Controllers\Widget\Concerns\InteractsWithWidgetRequest;
 use App\Http\Widget\WidgetAgent;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 use Domain\Widget\Services\WidgetVerification;
@@ -20,7 +21,7 @@ class ConversationMessageController
     use InteractsWithWidgetRequest;
 
     /**
-     * @return JsonResponse|array<int, array<string, mixed>>
+     * @return JsonResponse|list<MessageData>
      */
     public function __invoke(
         Request $request,

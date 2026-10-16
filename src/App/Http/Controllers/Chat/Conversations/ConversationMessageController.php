@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Chat\Conversations;
 use App\Http\Chat\HostedChatAgent;
 use App\Http\Chat\HostedChatSession;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
@@ -16,7 +17,7 @@ use Domain\Conversation\Services\Memory\MessageAttachmentHydrator;
 class ConversationMessageController
 {
     /**
-     * @return array<int, array<string, mixed>>
+     * @return list<MessageData>
      */
     public function __invoke(
         string $conversationId,

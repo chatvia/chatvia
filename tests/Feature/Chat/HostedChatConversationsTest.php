@@ -97,7 +97,7 @@ it('does not let another visitor rate, delete or erase the visitor\'s messages a
     $conversation = Conversation::query()->firstWhere('external_id', $id);
     $reply = Message::factory()->fromAssistant()->create(['chat_conversation_id' => $conversation->id, 'feedback' => null]);
     $scope = app(HostedChatSession::class)->scope($this->agent, $id);
-    $firstMessageId = app(ChatMemory::class)->withScope($scope)->getMessagesForConversation()[0]['id'];
+    $firstMessageId = app(ChatMemory::class)->withScope($scope)->getMessagesForConversation()[0]->id;
 
     // A fresh browser session is a different visitor.
     $this->flushSession();

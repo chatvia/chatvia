@@ -41,22 +41,20 @@ class RetrievedSourceData extends Data
      * same name again and again.
      *
      * @param  iterable<int, self>  $sources  best first
-     * @return list<array{id: string|null, label: string, kind: string, url: string|null, page: int|null, passages: int}>
+     * @return list<SourceRefData>
      */
     public static function forClients(iterable $sources): array
     {
+        /** @var array<string, SourceRefData> $entries */
         $entries = [];
 
         foreach ($sources as $source) {
             $key = implode('|', [$source->sourceable_type, $source->sourceable_id, $source->url, $source->page]);
 
-            if (isset($entries[$key])) {
-                $entries[$key]['passages']++;
-
-                continue;
-            }
-
-            $entries[$key] = [...$source->forClient(), 'passages' => 1];
+            // The first (best) chunk names the entry; later chunks only count.
+            $entries[$key] = isset($entries[$key])
+                ? $entries[$key]->withAnotherPassage()
+                : $source->forClient(passages: 1);
         }
 
         return array_values($entries);
@@ -65,17 +63,16 @@ class RetrievedSourceData extends Data
     /**
      * One chunk's source as the chat clients show it: no chunk text and no
      * internal ids.
-     *
-     * @return array{id: string|null, label: string, kind: string, url: string|null, page: int|null}
      */
-    public function forClient(): array
+    public function forClient(int $passages): SourceRefData
     {
-        return [
-            'id' => $this->external_id,
-            'label' => $this->label,
-            'kind' => $this->kind->value,
-            'url' => $this->url,
-            'page' => $this->page,
-        ];
+        return new SourceRefData(
+            id: $this->external_id,
+            label: $this->label,
+            kind: $this->kind->value,
+            url: $this->url,
+            page: $this->page,
+            passages: $passages,
+        );
     }
 }

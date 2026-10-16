@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Domain\Conversation\Services\Voice;
 
 use Domain\Conversation\Data\Memory\ChatScopeData;
+use Domain\Conversation\Data\Memory\MessageData;
 use Domain\Conversation\Data\Voice\VoiceCallerData;
+use Domain\Conversation\Enums\MessageRole;
 use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Turn\SystemPromptBuilder;
 use Domain\Integration\Tool\Data\ToolEntry;
@@ -110,11 +112,11 @@ final readonly class VoiceSessionConfig
             ->cachedMessages();
 
         return collect($messages)
-            ->filter(static fn (array $message): bool => in_array($message['role'] ?? null, ['user', 'assistant'], true) && filled($message['content'] ?? null))
+            ->filter(static fn (MessageData $message): bool => in_array($message->role, [MessageRole::User, MessageRole::Assistant], true) && filled($message->content))
             ->slice(-$limit)
-            ->map(static fn (array $message): array => [
-                'role' => (string) $message['role'],
-                'content' => Str::limit((string) $message['content'], self::HISTORY_MESSAGE_LENGTH),
+            ->map(static fn (MessageData $message): array => [
+                'role' => $message->role->value,
+                'content' => Str::limit($message->content, self::HISTORY_MESSAGE_LENGTH),
             ])
             ->values()
             ->all();

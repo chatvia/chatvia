@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Notifications",
+        "open": "Ouvrir les notifications",
+        "open_with_count": "Ouvrir les notifications ({count} non lue) | Ouvrir les notifications ({count} non lues)",
+        "unread": "Non lue",
+        "unread_count": "{count} nouvelle | {count} nouvelles",
+        "mark_read": "Marquer comme lue",
+        "mark_all_read": "Tout marquer comme lu",
+        "clear_all": "Tout effacer",
+        "settings": "Réglages des notifications",
+        "view_all": "Voir toutes les notifications",
+        "page_description": "Transferts, résultats d'entraînement, leads et alertes des derniers jours.",
+        "empty_title": "Vous êtes à jour",
+        "empty_body": "Les transferts, résultats d'entraînement, leads et alertes apparaîtront ici.",
+        "empty_unread": "Aucune notification non lue",
+        "filter_all": "Toutes",
+        "filter_unread": "Non lues",
+        "load_more": "Charger plus",
+        "load_failed": "Impossible de charger les notifications. Veuillez réessayer.",
+        "guards": {
+            "prompt_injection": "Quelqu'un a tenté de modifier les instructions de l'agent (injection de prompt).",
+            "prompt_leak": "Une réponse qui aurait montré les instructions de l'agent a été arrêtée."
+        },
+        "security_changes": {
+            "api_key_created": "Un nouveau jeton d'API a été créé",
+            "policy_changed": "Les réglages de sécurité de l'espace de travail ont été modifiés",
+            "ip_allowlist_changed": "La liste d'IP autorisées a été modifiée",
+            "retention_changed": "La conservation des données a été modifiée",
+            "webhook_disabled": "Le webhook d'audit a été désactivé"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Un visiteur veut parler à une personne",
+                "body": "Ouvrez la discussion avec {agent} pour prendre la main."
+            },
+            "source_trained": {
+                "title": "{subject} a fini son entraînement | {count} sources ont fini leur entraînement",
+                "body": "{agent} peut maintenant s'en servir pour répondre. | {agent} peut maintenant s'en servir pour répondre. La dernière : {subject}."
+            },
+            "source_training_failed": {
+                "title": "Échec de l'entraînement : {subject}",
+                "body": "Ouvrez les sources de {agent} pour voir pourquoi et réessayer."
+            },
+            "lead_captured": {
+                "title": "Nouveau lead depuis {subject} | {count} nouveaux leads depuis {subject}",
+                "body": "Un visiteur a rempli le formulaire sur {agent}."
+            },
+            "attack_blocked": {
+                "title": "Attaque bloquée sur {agent} | {count} attaques bloquées sur {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Un contrôle de sécurité n'a pas pu s'exécuter sur {agent} | Un contrôle de sécurité n'a pas pu s'exécuter {count} fois sur {agent}",
+                "body": "Les messages sont passés sans lui. Vérifiez le service de garde-fous."
+            },
+            "security_settings_changed": {
+                "by": "Modifié par {actor}.",
+                "automatic": "Modifié automatiquement. Ouvrez le journal d'audit pour les détails."
+            },
+            "new_device_sign_in": {
+                "title": "Nouvelle connexion à votre compte",
+                "body": "Si ce n'était pas vous, changez votre mot de passe maintenant.",
+                "body_device": "Depuis {subject}. Si ce n'était pas vous, changez votre mot de passe maintenant."
+            },
+            "message_limit_warning": {
+                "title": "Votre espace de travail a utilisé 80 % de ses messages",
+                "body": "La limite est de {subject} messages par mois."
+            },
+            "message_limit_reached": {
+                "title": "Votre espace de travail a atteint sa limite de messages",
+                "body": "Les agents ne répondront plus avant le mois prochain. La limite est de {subject} messages par mois."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} refuse des messages",
+                "body": "Il a atteint sa limite de {detail} messages par minute."
+            },
+            "eval_run_finished": {
+                "title": "Évaluation terminée sur {agent}",
+                "body": "{subject} cas réussis.",
+                "title_failed": "Évaluation arrêtée sur {agent}",
+                "body_failed": "Ouvrez l'exécution pour voir ce qui s'est passé."
+            },
+            "data_export_ready": {
+                "title": "Votre export de données est prêt",
+                "body": "Téléchargez-le dans les 24 heures."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Notifications"
+        },
+        "notifications": {
+            "title": "Notifications",
+            "heading": "Notifications",
+            "description": "Choisissez ce qui vous parvient, et comment.",
+            "category": "Catégorie",
+            "hint": "Les alertes de bureau et les sons nécessitent la cloche. Avec plusieurs onglets du tableau de bord ouverts, un seul vous alerte.",
+            "switches": {
+                "bell": "Cloche",
+                "desktop": "Bureau",
+                "sound": "Son"
+            },
+            "browser": {
+                "title": "Alertes de bureau dans ce navigateur",
+                "granted": "Autorisées. Les alertes s'affichent quand le tableau de bord n'est pas au premier plan.",
+                "denied": "Bloquées. Autorisez les notifications pour ce site dans les réglages du navigateur.",
+                "default": "Pas encore autorisées. Autorisez-les pour recevoir des alertes de bureau.",
+                "unsupported": "Ce navigateur ne peut pas afficher d'alertes de bureau.",
+                "allow": "Autoriser dans ce navigateur",
+                "test_sound": "Tester le son"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Transferts",
+                    "description": "Un visiteur demande à parler à une personne."
+                },
+                "security": {
+                    "label": "Sécurité",
+                    "description": "Attaques bloquées, contrôles de sécurité non exécutés, nouvelles connexions et changements de sécurité."
+                },
+                "training": {
+                    "label": "Entraînement",
+                    "description": "Fichiers, textes et sites web dont l'entraînement se termine ou échoue."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "Un visiteur remplit l'un de vos formulaires."
+                },
+                "usage": {
+                    "label": "Utilisation",
+                    "description": "Limites de messages et limites de débit."
+                },
+                "reports": {
+                    "label": "Rapports",
+                    "description": "Évaluations terminées et exports de données."
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Aviseringar",
+        "open": "Öppna aviseringar",
+        "open_with_count": "Öppna aviseringar ({count} oläst) | Öppna aviseringar ({count} olästa)",
+        "unread": "Oläst",
+        "unread_count": "{count} ny | {count} nya",
+        "mark_read": "Markera som läst",
+        "mark_all_read": "Markera alla som lästa",
+        "clear_all": "Rensa alla",
+        "settings": "Aviseringsinställningar",
+        "view_all": "Visa alla aviseringar",
+        "page_description": "Överlämningar, träningsresultat, leads och varningar från de senaste dagarna.",
+        "empty_title": "Du är i fas",
+        "empty_body": "Överlämningar, träningsresultat, leads och varningar visas här.",
+        "empty_unread": "Inga olästa aviseringar",
+        "filter_all": "Alla",
+        "filter_unread": "Olästa",
+        "load_more": "Läs in fler",
+        "load_failed": "Aviseringarna kunde inte läsas in. Försök igen.",
+        "guards": {
+            "prompt_injection": "Någon försökte ändra agentens instruktioner (prompt injection).",
+            "prompt_leak": "Ett svar som skulle ha visat agentens instruktioner stoppades."
+        },
+        "security_changes": {
+            "api_key_created": "En ny API-token skapades",
+            "policy_changed": "Arbetsytans säkerhetsinställningar ändrades",
+            "ip_allowlist_changed": "Listan över tillåtna IP-adresser ändrades",
+            "retention_changed": "Datalagringen ändrades",
+            "webhook_disabled": "Granskningswebhooken stängdes av"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "En besökare vill prata med en person",
+                "body": "Öppna chatten med {agent} för att ta över."
+            },
+            "source_trained": {
+                "title": "{subject} är färdigtränad | {count} källor är färdigtränade",
+                "body": "{agent} kan nu svara utifrån den. | {agent} kan nu svara utifrån dem. Den senaste: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Träningen misslyckades: {subject}",
+                "body": "Öppna källorna för {agent} för att se varför och försöka igen."
+            },
+            "lead_captured": {
+                "title": "Nytt lead från {subject} | {count} nya leads från {subject}",
+                "body": "En besökare fyllde i formuläret hos {agent}."
+            },
+            "attack_blocked": {
+                "title": "Attack blockerad på {agent} | {count} attacker blockerade på {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "En säkerhetskontroll kunde inte köras på {agent} | En säkerhetskontroll kunde inte köras {count} gånger på {agent}",
+                "body": "Meddelanden gick igenom utan den. Kontrollera guardrail-tjänsten."
+            },
+            "security_settings_changed": {
+                "by": "Ändrat av {actor}.",
+                "automatic": "Ändrat automatiskt. Öppna granskningsloggen för detaljer."
+            },
+            "new_device_sign_in": {
+                "title": "Ny inloggning på ditt konto",
+                "body": "Om det inte var du, byt lösenord nu.",
+                "body_device": "Från {subject}. Om det inte var du, byt lösenord nu."
+            },
+            "message_limit_warning": {
+                "title": "Din arbetsyta har använt 80 % av sina meddelanden",
+                "body": "Gränsen är {subject} meddelanden per månad."
+            },
+            "message_limit_reached": {
+                "title": "Din arbetsyta har nått sin meddelandegräns",
+                "body": "Agenterna svarar inte förrän nästa månad. Gränsen är {subject} meddelanden per månad."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} avvisar meddelanden",
+                "body": "Den har nått sin gräns på {detail} meddelanden per minut."
+            },
+            "eval_run_finished": {
+                "title": "Utvärderingen av {agent} är klar",
+                "body": "{subject} fall godkända.",
+                "title_failed": "Utvärderingen av {agent} stoppades",
+                "body_failed": "Öppna körningen för att se vad som hände."
+            },
+            "data_export_ready": {
+                "title": "Din dataexport är klar",
+                "body": "Ladda ner den inom 24 timmar."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Aviseringar"
+        },
+        "notifications": {
+            "title": "Aviseringar",
+            "heading": "Aviseringar",
+            "description": "Välj vad som når dig, och hur.",
+            "category": "Kategori",
+            "hint": "Skrivbordsaviseringar och ljud kräver klockan. Med flera flikar med instrumentpanelen öppna aviserar bara en.",
+            "switches": {
+                "bell": "Klocka",
+                "desktop": "Skrivbord",
+                "sound": "Ljud"
+            },
+            "browser": {
+                "title": "Skrivbordsaviseringar i den här webbläsaren",
+                "granted": "Tillåtna. Aviseringar visas när instrumentpanelen inte är i förgrunden.",
+                "denied": "Blockerade. Tillåt aviseringar för den här webbplatsen i webbläsarens inställningar.",
+                "default": "Inte tillåtna än. Tillåt dem för att få skrivbordsaviseringar.",
+                "unsupported": "Den här webbläsaren kan inte visa skrivbordsaviseringar.",
+                "allow": "Tillåt i den här webbläsaren",
+                "test_sound": "Spela testljud"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Överlämningar",
+                    "description": "En besökare ber att få prata med en person."
+                },
+                "security": {
+                    "label": "Säkerhet",
+                    "description": "Blockerade attacker, säkerhetskontroller som inte kunde köras, nya inloggningar och säkerhetsändringar."
+                },
+                "training": {
+                    "label": "Träning",
+                    "description": "Filer, texter och webbplatser som blir färdigtränade eller misslyckas."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "En besökare fyller i ett av dina formulär."
+                },
+                "usage": {
+                    "label": "Användning",
+                    "description": "Meddelandegränser och hastighetsgränser."
+                },
+                "reports": {
+                    "label": "Rapporter",
+                    "description": "Klara utvärderingar och dataexporter."
+                }
+            }
+        }
+    }
+}

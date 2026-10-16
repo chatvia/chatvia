@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Ilmoitukset",
+        "open": "Avaa ilmoitukset",
+        "open_with_count": "Avaa ilmoitukset ({count} lukematon) | Avaa ilmoitukset ({count} lukematonta)",
+        "unread": "Lukematon",
+        "unread_count": "{count} uusi | {count} uutta",
+        "mark_read": "Merkitse luetuksi",
+        "mark_all_read": "Merkitse kaikki luetuiksi",
+        "clear_all": "Tyhjennä kaikki",
+        "settings": "Ilmoitusasetukset",
+        "view_all": "Näytä kaikki ilmoitukset",
+        "page_description": "Siirrot, koulutuksen tulokset, liidit ja varoitukset viime päiviltä.",
+        "empty_title": "Kaikki on luettu",
+        "empty_body": "Siirrot, koulutuksen tulokset, liidit ja varoitukset näkyvät täällä.",
+        "empty_unread": "Ei lukemattomia ilmoituksia",
+        "filter_all": "Kaikki",
+        "filter_unread": "Lukemattomat",
+        "load_more": "Lataa lisää",
+        "load_failed": "Ilmoituksia ei voitu ladata. Yritä uudelleen.",
+        "guards": {
+            "prompt_injection": "Joku yritti muuttaa agentin ohjeita (prompt injection).",
+            "prompt_leak": "Vastaus, joka olisi näyttänyt agentin ohjeet, pysäytettiin."
+        },
+        "security_changes": {
+            "api_key_created": "Uusi API-tunnus luotiin",
+            "policy_changed": "Työtilan tietoturva-asetuksia muutettiin",
+            "ip_allowlist_changed": "Sallittujen IP-osoitteiden luetteloa muutettiin",
+            "retention_changed": "Tietojen säilytystä muutettiin",
+            "webhook_disabled": "Auditointi-webhook poistettiin käytöstä"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Vierailija haluaa puhua ihmisen kanssa",
+                "body": "Avaa keskustelu agentin {agent} kanssa ja ota se hoitaaksesi."
+            },
+            "source_trained": {
+                "title": "{subject} on koulutettu | {count} lähdettä on koulutettu",
+                "body": "{agent} voi nyt vastata sen avulla. | {agent} voi nyt vastata niiden avulla. Viimeisin: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Koulutus epäonnistui: {subject}",
+                "body": "Avaa agentin {agent} lähteet nähdäksesi syyn ja yritä uudelleen."
+            },
+            "lead_captured": {
+                "title": "Uusi liidi lomakkeelta {subject} | {count} uutta liidiä lomakkeelta {subject}",
+                "body": "Vierailija täytti lomakkeen agentilla {agent}."
+            },
+            "attack_blocked": {
+                "title": "Hyökkäys estettiin agentilla {agent} | {count} hyökkäystä estettiin agentilla {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Turvatarkistus ei toiminut agentilla {agent} | Turvatarkistus ei toiminut {count} kertaa agentilla {agent}",
+                "body": "Viestit menivät läpi ilman sitä. Tarkista guardrail-palvelu."
+            },
+            "security_settings_changed": {
+                "by": "Muuttaja: {actor}.",
+                "automatic": "Muutettu automaattisesti. Katso lisätiedot auditointilokista."
+            },
+            "new_device_sign_in": {
+                "title": "Uusi kirjautuminen tilillesi",
+                "body": "Jos se et ollut sinä, vaihda salasanasi nyt.",
+                "body_device": "Laitteesta {subject}. Jos se et ollut sinä, vaihda salasanasi nyt."
+            },
+            "message_limit_warning": {
+                "title": "Työtilasi on käyttänyt 80 % viesteistään",
+                "body": "Raja on {subject} viestiä kuukaudessa."
+            },
+            "message_limit_reached": {
+                "title": "Työtilasi on saavuttanut viestirajansa",
+                "body": "Agentit eivät vastaa ennen ensi kuuta. Raja on {subject} viestiä kuukaudessa."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} hylkää viestejä",
+                "body": "Se saavutti rajansa, {detail} viestiä minuutissa."
+            },
+            "eval_run_finished": {
+                "title": "Arviointi valmistui agentilla {agent}",
+                "body": "{subject} tapausta läpäisi.",
+                "title_failed": "Arviointi keskeytyi agentilla {agent}",
+                "body_failed": "Avaa ajo nähdäksesi, mitä tapahtui."
+            },
+            "data_export_ready": {
+                "title": "Tietojen vienti on valmis",
+                "body": "Lataa se 24 tunnin kuluessa."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Ilmoitukset"
+        },
+        "notifications": {
+            "title": "Ilmoitukset",
+            "heading": "Ilmoitukset",
+            "description": "Valitse, mitä sinulle tulee ja miten.",
+            "category": "Luokka",
+            "hint": "Työpöytäilmoitukset ja äänet tarvitsevat kellon. Kun useita hallintapaneelin välilehtiä on auki, vain yksi ilmoittaa.",
+            "switches": {
+                "bell": "Kello",
+                "desktop": "Työpöytä",
+                "sound": "Ääni"
+            },
+            "browser": {
+                "title": "Työpöytäilmoitukset tässä selaimessa",
+                "granted": "Sallittu. Ilmoitukset näkyvät, kun hallintapaneeli ei ole edessä.",
+                "denied": "Estetty. Salli tämän sivuston ilmoitukset selaimen asetuksista.",
+                "default": "Ei vielä sallittu. Salli ne saadaksesi työpöytäilmoituksia.",
+                "unsupported": "Tämä selain ei voi näyttää työpöytäilmoituksia.",
+                "allow": "Salli tässä selaimessa",
+                "test_sound": "Toista testiääni"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Siirrot",
+                    "description": "Vierailija pyytää päästä puhumaan ihmisen kanssa."
+                },
+                "security": {
+                    "label": "Tietoturva",
+                    "description": "Estetyt hyökkäykset, turvatarkistukset jotka eivät toimineet, uudet kirjautumiset ja tietoturvamuutokset."
+                },
+                "training": {
+                    "label": "Koulutus",
+                    "description": "Tiedostot, tekstit ja verkkosivustot, joiden koulutus valmistuu tai epäonnistuu."
+                },
+                "leads": {
+                    "label": "Liidit",
+                    "description": "Vierailija täyttää jonkin lomakkeistasi."
+                },
+                "usage": {
+                    "label": "Käyttö",
+                    "description": "Viestirajat ja nopeusrajat."
+                },
+                "reports": {
+                    "label": "Raportit",
+                    "description": "Valmiit arvioinnit ja tietojen viennit."
+                }
+            }
+        }
+    }
+}

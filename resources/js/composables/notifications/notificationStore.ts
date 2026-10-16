@@ -17,6 +17,7 @@ export const notificationPreferences = ref<NotificationPreferences | null>(null)
 interface NotificationChangeListener {
     pushed?: (notification: UserNotification, isNew: boolean) => void;
     read?: (ids: string[] | null) => void;
+    cleared?: () => void;
 }
 
 const listeners = new Set<NotificationChangeListener>();
@@ -50,6 +51,12 @@ export function notificationsRead(ids: string[] | null, unread: number): void {
     setUnreadCount(unread);
 
     listeners.forEach((listener) => listener.read?.(ids));
+}
+
+export function notificationsCleared(): void {
+    setUnreadCount(0);
+
+    listeners.forEach((listener) => listener.cleared?.());
 }
 
 // The tab title carries the unread count ("(3) Agents - Chatvia"). Inertia

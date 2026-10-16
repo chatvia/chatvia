@@ -3326,7 +3326,8 @@
             "passkeys": "通行密钥",
             "social": "社交账户",
             "data_export": "下载我的数据",
-            "delete": "删除账户"
+            "delete": "删除账户",
+            "notifications": "通知"
         },
         "profile": {
             "title": "个人资料设置",
@@ -3466,6 +3467,53 @@
             "password_dialog_description": "请输入密码以继续。我们将向您发送一个确认链接，用于完成账户删除。",
             "password_placeholder": "密码",
             "send_confirmation": "发送确认邮件"
+        },
+        "notifications": {
+            "title": "通知",
+            "heading": "通知",
+            "description": "选择你接收哪些通知，以及接收方式。",
+            "category": "类别",
+            "hint": "桌面提醒和提示音需要开启铃铛。打开多个控制台标签页时，只有一个会提醒。",
+            "switches": {
+                "bell": "铃铛",
+                "desktop": "桌面",
+                "sound": "声音"
+            },
+            "browser": {
+                "title": "此浏览器的桌面提醒",
+                "granted": "已允许。控制台不在前台时会显示提醒。",
+                "denied": "已阻止。请在浏览器设置中允许此网站的通知。",
+                "default": "尚未允许。允许后即可收到桌面提醒。",
+                "unsupported": "此浏览器无法显示桌面提醒。",
+                "allow": "在此浏览器中允许",
+                "test_sound": "播放测试音"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "转人工",
+                    "description": "访客请求与真人交谈。"
+                },
+                "security": {
+                    "label": "安全",
+                    "description": "已拦截的攻击、未能运行的安全检查、新的登录和安全设置变更。"
+                },
+                "training": {
+                    "label": "训练",
+                    "description": "完成训练或训练失败的文件、文本和网站。"
+                },
+                "leads": {
+                    "label": "线索",
+                    "description": "访客填写了你的某个表单。"
+                },
+                "usage": {
+                    "label": "用量",
+                    "description": "消息上限和频率限制。"
+                },
+                "reports": {
+                    "label": "报告",
+                    "description": "已完成的评估和数据导出。"
+                }
+            }
         }
     },
     "theme": {
@@ -4003,5 +4051,92 @@
             "failed": "失败",
             "cancelled": "已停止"
         }
+    },
+    "notifications": {
+        "title": "通知",
+        "open": "打开通知",
+        "open_with_count": "打开通知（{count} 条未读） | 打开通知（{count} 条未读）",
+        "unread": "未读",
+        "unread_count": "{count} 条新通知 | {count} 条新通知",
+        "mark_read": "标为已读",
+        "mark_all_read": "全部标为已读",
+        "settings": "通知设置",
+        "view_all": "查看全部通知",
+        "page_description": "最近几天的转人工请求、训练结果、线索和提醒。",
+        "empty_title": "全部看完了",
+        "empty_body": "转人工请求、训练结果、线索和提醒会显示在这里。",
+        "empty_unread": "没有未读通知",
+        "filter_all": "全部",
+        "filter_unread": "未读",
+        "load_more": "加载更多",
+        "load_failed": "无法加载通知，请重试。",
+        "guards": {
+            "prompt_injection": "有人试图修改智能体的指令（提示词注入）。",
+            "prompt_leak": "已拦截一条会泄露智能体指令的回答。"
+        },
+        "security_changes": {
+            "api_key_created": "创建了新的 API 令牌",
+            "policy_changed": "工作区的安全设置已更改",
+            "ip_allowlist_changed": "IP 允许列表已更改",
+            "retention_changed": "数据保留期限已更改",
+            "webhook_disabled": "审计 Webhook 已关闭"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "有访客想和真人交谈",
+                "body": "打开与 {agent} 的对话来接手。"
+            },
+            "source_trained": {
+                "title": "{subject} 已完成训练 | {count} 个来源已完成训练",
+                "body": "{agent} 现在可以据此回答。 | {agent} 现在可以据此回答。最新：{subject}。"
+            },
+            "source_training_failed": {
+                "title": "训练失败：{subject}",
+                "body": "打开 {agent} 的来源查看原因并重试。"
+            },
+            "lead_captured": {
+                "title": "来自 {subject} 的新线索 | 来自 {subject} 的 {count} 条新线索",
+                "body": "有访客在 {agent} 上填写了表单。"
+            },
+            "attack_blocked": {
+                "title": "已拦截针对 {agent} 的攻击 | 已拦截针对 {agent} 的 {count} 次攻击"
+            },
+            "guardrail_skipped": {
+                "title": "{agent} 上有一项安全检查未能运行 | {agent} 上有一项安全检查 {count} 次未能运行",
+                "body": "消息未经检查就通过了。请检查防护服务。"
+            },
+            "security_settings_changed": {
+                "by": "由 {actor} 更改。",
+                "automatic": "已自动更改。详情请查看审计日志。"
+            },
+            "new_device_sign_in": {
+                "title": "你的账户有新的登录",
+                "body": "如果不是你本人，请立即修改密码。",
+                "body_device": "来自 {subject}。如果不是你本人，请立即修改密码。"
+            },
+            "message_limit_warning": {
+                "title": "你的工作区已用掉 80% 的消息",
+                "body": "上限为每月 {subject} 条消息。"
+            },
+            "message_limit_reached": {
+                "title": "你的工作区已达到消息上限",
+                "body": "智能体在下个月之前不会回复。上限为每月 {subject} 条消息。"
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} 正在拒收消息",
+                "body": "已达到每分钟 {detail} 条消息的上限。"
+            },
+            "eval_run_finished": {
+                "title": "{agent} 的评估已完成",
+                "body": "通过 {subject} 个用例。",
+                "title_failed": "{agent} 的评估已停止",
+                "body_failed": "打开该次运行查看发生了什么。"
+            },
+            "data_export_ready": {
+                "title": "你的数据导出已就绪",
+                "body": "请在 24 小时内下载。"
+            }
+        },
+        "clear_all": "全部清除"
     }
 }

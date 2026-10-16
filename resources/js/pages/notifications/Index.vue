@@ -78,7 +78,10 @@ function openNotification(notification: UserNotification): void {
                     <TabsTrigger value="all">{{ t('notifications.filter_all') }}</TabsTrigger>
                     <TabsTrigger value="unread">
                         {{ t('notifications.filter_unread') }}
-                        <span v-if="unreadCount > 0" class="ms-1.5 rounded-full bg-red-500 px-1.5 text-[10px] leading-4 font-semibold text-white tabular-nums">
+                        <span
+                            v-if="unreadCount > 0"
+                            class="ms-1.5 rounded-full bg-red-500 px-1.5 text-[10px] leading-4 font-semibold text-white tabular-nums"
+                        >
                             {{ unreadCount > 99 ? '99+' : unreadCount }}
                         </span>
                     </TabsTrigger>
@@ -86,7 +89,10 @@ function openNotification(notification: UserNotification): void {
             </Tabs>
 
             <div class="bg-card overflow-hidden rounded-lg border">
-                <div v-if="list.loading.value && visible.length === 0" class="text-muted-foreground flex items-center justify-center gap-2 py-16 text-sm">
+                <div
+                    v-if="list.loading.value && visible.length === 0"
+                    class="text-muted-foreground flex items-center justify-center gap-2 py-16 text-sm"
+                >
                     <Loader2 class="size-4 animate-spin" />
                 </div>
 
@@ -94,7 +100,9 @@ function openNotification(notification: UserNotification): void {
                     <div class="bg-muted mx-auto flex size-12 items-center justify-center rounded-full">
                         <Bell class="text-muted-foreground size-5" />
                     </div>
-                    <p class="mt-3 text-sm font-medium">{{ filter === 'unread' ? t('notifications.empty_unread') : t('notifications.empty_title') }}</p>
+                    <p class="mt-3 text-sm font-medium">
+                        {{ filter === 'unread' ? t('notifications.empty_unread') : t('notifications.empty_title') }}
+                    </p>
                     <p class="text-muted-foreground mt-1 text-sm">{{ t('notifications.empty_body') }}</p>
                 </div>
 

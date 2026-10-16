@@ -229,10 +229,16 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return $this->hasMany(UserNotification::class);
     }
 
-    /** Which notifications ring the bell, alert the desktop or play a sound. */
+    /**
+     * Which notifications ring the bell, alert the desktop or play a sound. A
+     * model built in memory (a factory, before a refresh) does not hold the
+     * column yet; it has the defaults.
+     */
     public function notificationPreferences(): NotificationPreferencesData
     {
-        return NotificationPreferencesData::fromStored($this->notification_preferences);
+        return NotificationPreferencesData::fromStored(
+            array_key_exists('notification_preferences', $this->attributes) ? $this->notification_preferences : null,
+        );
     }
 
     /**

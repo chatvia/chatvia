@@ -3326,7 +3326,8 @@
             "passkeys": "Adgangsnøgler",
             "social": "Sociale konti",
             "data_export": "Download mine data",
-            "delete": "Slet konto"
+            "delete": "Slet konto",
+            "notifications": "Notifikationer"
         },
         "profile": {
             "title": "Profilindstillinger",
@@ -3466,6 +3467,53 @@
             "password_dialog_description": "Indtast din adgangskode for at fortsætte. Vi sender dig et bekræftelseslink til at fuldføre sletningen af din konto.",
             "password_placeholder": "Adgangskode",
             "send_confirmation": "Send bekræftelses-e-mail"
+        },
+        "notifications": {
+            "title": "Notifikationer",
+            "heading": "Notifikationer",
+            "description": "Vælg hvad der når dig, og hvordan.",
+            "category": "Kategori",
+            "hint": "Skrivebordsadvarsler og lyde kræver klokken. Med flere faner med dashboardet åbne giver kun én besked.",
+            "switches": {
+                "bell": "Klokke",
+                "desktop": "Skrivebord",
+                "sound": "Lyd"
+            },
+            "browser": {
+                "title": "Skrivebordsadvarsler i denne browser",
+                "granted": "Tilladt. Advarsler vises, når dashboardet ikke er i forgrunden.",
+                "denied": "Blokeret. Tillad notifikationer for dette websted i browserens indstillinger.",
+                "default": "Ikke tilladt endnu. Tillad dem for at få skrivebordsadvarsler.",
+                "unsupported": "Denne browser kan ikke vise skrivebordsadvarsler.",
+                "allow": "Tillad i denne browser",
+                "test_sound": "Afspil testlyd"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Overdragelser",
+                    "description": "En besøgende beder om at tale med en person."
+                },
+                "security": {
+                    "label": "Sikkerhed",
+                    "description": "Blokerede angreb, sikkerhedstjek der ikke kunne køre, nye logins og sikkerhedsændringer."
+                },
+                "training": {
+                    "label": "Træning",
+                    "description": "Filer, tekster og websteder, der bliver færdigtrænet eller fejler."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "En besøgende udfylder en af dine formularer."
+                },
+                "usage": {
+                    "label": "Forbrug",
+                    "description": "Beskedgrænser og hastighedsgrænser."
+                },
+                "reports": {
+                    "label": "Rapporter",
+                    "description": "Færdige evalueringer og dataeksporter."
+                }
+            }
         }
     },
     "theme": {
@@ -4003,5 +4051,92 @@
             "failed": "Mislykkedes",
             "cancelled": "Stoppet"
         }
+    },
+    "notifications": {
+        "title": "Notifikationer",
+        "open": "Åbn notifikationer",
+        "open_with_count": "Åbn notifikationer ({count} ulæst) | Åbn notifikationer ({count} ulæste)",
+        "unread": "Ulæst",
+        "unread_count": "{count} ny | {count} nye",
+        "mark_read": "Markér som læst",
+        "mark_all_read": "Markér alle som læst",
+        "settings": "Indstillinger for notifikationer",
+        "view_all": "Se alle notifikationer",
+        "page_description": "Overdragelser, træningsresultater, leads og advarsler fra de seneste dage.",
+        "empty_title": "Du er helt opdateret",
+        "empty_body": "Overdragelser, træningsresultater, leads og advarsler vises her.",
+        "empty_unread": "Ingen ulæste notifikationer",
+        "filter_all": "Alle",
+        "filter_unread": "Ulæste",
+        "load_more": "Indlæs flere",
+        "load_failed": "Notifikationerne kunne ikke indlæses. Prøv igen.",
+        "guards": {
+            "prompt_injection": "Nogen forsøgte at ændre agentens instruktioner (prompt injection).",
+            "prompt_leak": "Et svar, der ville have vist agentens instruktioner, blev stoppet."
+        },
+        "security_changes": {
+            "api_key_created": "Et nyt API-token blev oprettet",
+            "policy_changed": "Workspacets sikkerhedsindstillinger blev ændret",
+            "ip_allowlist_changed": "IP-tilladelseslisten blev ændret",
+            "retention_changed": "Dataopbevaringen blev ændret",
+            "webhook_disabled": "Audit-webhooken blev slået fra"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "En besøgende vil tale med en person",
+                "body": "Åbn chatten med {agent} for at overtage."
+            },
+            "source_trained": {
+                "title": "{subject} er færdigtrænet | {count} kilder er færdigtrænet",
+                "body": "{agent} kan nu svare ud fra den. | {agent} kan nu svare ud fra dem. Den seneste: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Træning mislykkedes: {subject}",
+                "body": "Åbn kilderne for {agent} for at se hvorfor og prøve igen."
+            },
+            "lead_captured": {
+                "title": "Nyt lead fra {subject} | {count} nye leads fra {subject}",
+                "body": "En besøgende udfyldte formularen hos {agent}."
+            },
+            "attack_blocked": {
+                "title": "Angreb blokeret på {agent} | {count} angreb blokeret på {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Et sikkerhedstjek kunne ikke køre på {agent} | Et sikkerhedstjek kunne ikke køre {count} gange på {agent}",
+                "body": "Beskeder gik igennem uden det. Tjek guardrail-tjenesten."
+            },
+            "security_settings_changed": {
+                "by": "Ændret af {actor}.",
+                "automatic": "Ændret automatisk. Åbn audit-loggen for detaljer."
+            },
+            "new_device_sign_in": {
+                "title": "Nyt login på din konto",
+                "body": "Hvis det ikke var dig, så skift din adgangskode nu.",
+                "body_device": "Fra {subject}. Hvis det ikke var dig, så skift din adgangskode nu."
+            },
+            "message_limit_warning": {
+                "title": "Dit workspace har brugt 80 % af sine beskeder",
+                "body": "Grænsen er {subject} beskeder om måneden."
+            },
+            "message_limit_reached": {
+                "title": "Dit workspace har nået sin beskedgrænse",
+                "body": "Agenterne svarer ikke før næste måned. Grænsen er {subject} beskeder om måneden."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} afviser beskeder",
+                "body": "Den har nået sin grænse på {detail} beskeder i minuttet."
+            },
+            "eval_run_finished": {
+                "title": "Evalueringen af {agent} er færdig",
+                "body": "{subject} cases bestået.",
+                "title_failed": "Evalueringen af {agent} blev stoppet",
+                "body_failed": "Åbn kørslen for at se, hvad der skete."
+            },
+            "data_export_ready": {
+                "title": "Din dataeksport er klar",
+                "body": "Download den inden for 24 timer."
+            }
+        },
+        "clear_all": "Ryd alle"
     }
 }

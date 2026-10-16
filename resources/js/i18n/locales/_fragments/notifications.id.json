@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Notifikasi",
+        "open": "Buka notifikasi",
+        "open_with_count": "Buka notifikasi ({count} belum dibaca) | Buka notifikasi ({count} belum dibaca)",
+        "unread": "Belum dibaca",
+        "unread_count": "{count} baru | {count} baru",
+        "mark_read": "Tandai sudah dibaca",
+        "mark_all_read": "Tandai semua sudah dibaca",
+        "clear_all": "Hapus semua",
+        "settings": "Pengaturan notifikasi",
+        "view_all": "Lihat semua notifikasi",
+        "page_description": "Pengalihan, hasil pelatihan, prospek, dan peringatan dari beberapa hari terakhir.",
+        "empty_title": "Semua sudah dibaca",
+        "empty_body": "Pengalihan, hasil pelatihan, prospek, dan peringatan akan muncul di sini.",
+        "empty_unread": "Tidak ada notifikasi yang belum dibaca",
+        "filter_all": "Semua",
+        "filter_unread": "Belum dibaca",
+        "load_more": "Muat lagi",
+        "load_failed": "Notifikasi tidak dapat dimuat. Coba lagi.",
+        "guards": {
+            "prompt_injection": "Seseorang mencoba mengubah instruksi agen (prompt injection).",
+            "prompt_leak": "Jawaban yang akan menampilkan instruksi agen telah dihentikan."
+        },
+        "security_changes": {
+            "api_key_created": "Token API baru dibuat",
+            "policy_changed": "Pengaturan keamanan workspace diubah",
+            "ip_allowlist_changed": "Daftar IP yang diizinkan diubah",
+            "retention_changed": "Masa simpan data diubah",
+            "webhook_disabled": "Webhook audit dimatikan"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Seorang pengunjung ingin bicara dengan orang",
+                "body": "Buka obrolan dengan {agent} untuk mengambil alih."
+            },
+            "source_trained": {
+                "title": "{subject} selesai dilatih | {count} sumber selesai dilatih",
+                "body": "{agent} sekarang bisa menjawab darinya. | {agent} sekarang bisa menjawab darinya. Terbaru: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Pelatihan gagal: {subject}",
+                "body": "Buka sumber {agent} untuk melihat penyebabnya dan coba lagi."
+            },
+            "lead_captured": {
+                "title": "Prospek baru dari {subject} | {count} prospek baru dari {subject}",
+                "body": "Seorang pengunjung mengisi formulir di {agent}."
+            },
+            "attack_blocked": {
+                "title": "Serangan diblokir di {agent} | {count} serangan diblokir di {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Pemeriksaan keamanan tidak berjalan di {agent} | Pemeriksaan keamanan tidak berjalan {count} kali di {agent}",
+                "body": "Pesan lolos tanpanya. Periksa layanan guardrail."
+            },
+            "security_settings_changed": {
+                "by": "Diubah oleh {actor}.",
+                "automatic": "Diubah otomatis. Buka log audit untuk detailnya."
+            },
+            "new_device_sign_in": {
+                "title": "Login baru ke akun Anda",
+                "body": "Jika itu bukan Anda, segera ganti kata sandi.",
+                "body_device": "Dari {subject}. Jika itu bukan Anda, segera ganti kata sandi."
+            },
+            "message_limit_warning": {
+                "title": "Workspace Anda sudah memakai 80% pesannya",
+                "body": "Batasnya {subject} pesan per bulan."
+            },
+            "message_limit_reached": {
+                "title": "Workspace Anda mencapai batas pesan",
+                "body": "Agen berhenti membalas sampai bulan depan. Batasnya {subject} pesan per bulan."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} menolak pesan",
+                "body": "Batas {detail} pesan per menit telah tercapai."
+            },
+            "eval_run_finished": {
+                "title": "Evaluasi {agent} selesai",
+                "body": "{subject} kasus lulus.",
+                "title_failed": "Evaluasi {agent} berhenti",
+                "body_failed": "Buka proses untuk melihat apa yang terjadi."
+            },
+            "data_export_ready": {
+                "title": "Ekspor data Anda sudah siap",
+                "body": "Unduh dalam 24 jam."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Notifikasi"
+        },
+        "notifications": {
+            "title": "Notifikasi",
+            "heading": "Notifikasi",
+            "description": "Pilih apa yang sampai ke Anda, dan caranya.",
+            "category": "Kategori",
+            "hint": "Peringatan desktop dan suara butuh lonceng. Jika beberapa tab dasbor terbuka, hanya satu yang memberi peringatan.",
+            "switches": {
+                "bell": "Lonceng",
+                "desktop": "Desktop",
+                "sound": "Suara"
+            },
+            "browser": {
+                "title": "Peringatan desktop di browser ini",
+                "granted": "Diizinkan. Peringatan muncul saat dasbor tidak di depan.",
+                "denied": "Diblokir. Izinkan notifikasi untuk situs ini di pengaturan browser.",
+                "default": "Belum diizinkan. Izinkan untuk mendapat peringatan desktop.",
+                "unsupported": "Browser ini tidak bisa menampilkan peringatan desktop.",
+                "allow": "Izinkan di browser ini",
+                "test_sound": "Putar suara uji"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Pengalihan",
+                    "description": "Seorang pengunjung minta bicara dengan orang."
+                },
+                "security": {
+                    "label": "Keamanan",
+                    "description": "Serangan yang diblokir, pemeriksaan keamanan yang tidak berjalan, login baru, dan perubahan keamanan."
+                },
+                "training": {
+                    "label": "Pelatihan",
+                    "description": "File, teks, dan situs web yang selesai dilatih atau gagal."
+                },
+                "leads": {
+                    "label": "Prospek",
+                    "description": "Seorang pengunjung mengisi salah satu formulir Anda."
+                },
+                "usage": {
+                    "label": "Penggunaan",
+                    "description": "Batas pesan dan batas laju."
+                },
+                "reports": {
+                    "label": "Laporan",
+                    "description": "Evaluasi yang selesai dan ekspor data."
+                }
+            }
+        }
+    }
+}

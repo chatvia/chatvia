@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Notificações",
+        "open": "Abrir notificações",
+        "open_with_count": "Abrir notificações ({count} não lida) | Abrir notificações ({count} não lidas)",
+        "unread": "Não lida",
+        "unread_count": "{count} nova | {count} novas",
+        "mark_read": "Marcar como lida",
+        "mark_all_read": "Marcar todas como lidas",
+        "clear_all": "Limpar tudo",
+        "settings": "Configurações de notificações",
+        "view_all": "Ver todas as notificações",
+        "page_description": "Transferências, resultados de treinamento, leads e alertas dos últimos dias.",
+        "empty_title": "Você está em dia",
+        "empty_body": "Transferências, resultados de treinamento, leads e alertas aparecerão aqui.",
+        "empty_unread": "Nenhuma notificação não lida",
+        "filter_all": "Todas",
+        "filter_unread": "Não lidas",
+        "load_more": "Carregar mais",
+        "load_failed": "Não foi possível carregar as notificações. Tente novamente.",
+        "guards": {
+            "prompt_injection": "Alguém tentou mudar as instruções do agente (injeção de prompt).",
+            "prompt_leak": "Uma resposta que mostraria as instruções do agente foi bloqueada."
+        },
+        "security_changes": {
+            "api_key_created": "Um novo token de API foi criado",
+            "policy_changed": "As configurações de segurança do workspace foram alteradas",
+            "ip_allowlist_changed": "A lista de IPs permitidos foi alterada",
+            "retention_changed": "A retenção de dados foi alterada",
+            "webhook_disabled": "O webhook de auditoria foi desligado"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Um visitante quer falar com uma pessoa",
+                "body": "Abra o chat com {agent} para assumir."
+            },
+            "source_trained": {
+                "title": "{subject} terminou o treinamento | {count} fontes terminaram o treinamento",
+                "body": "{agent} já pode responder com ela. | {agent} já pode responder com elas. A última: {subject}."
+            },
+            "source_training_failed": {
+                "title": "O treinamento falhou: {subject}",
+                "body": "Abra as fontes de {agent} para ver o motivo e tentar de novo."
+            },
+            "lead_captured": {
+                "title": "Novo lead de {subject} | {count} novos leads de {subject}",
+                "body": "Um visitante preencheu o formulário em {agent}."
+            },
+            "attack_blocked": {
+                "title": "Ataque bloqueado em {agent} | {count} ataques bloqueados em {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Uma verificação de segurança não rodou em {agent} | Uma verificação de segurança não rodou {count} vezes em {agent}",
+                "body": "As mensagens passaram sem ela. Verifique o serviço de guardrails."
+            },
+            "security_settings_changed": {
+                "by": "Alterado por {actor}.",
+                "automatic": "Alterado automaticamente. Abra o log de auditoria para ver os detalhes."
+            },
+            "new_device_sign_in": {
+                "title": "Novo login na sua conta",
+                "body": "Se não foi você, troque sua senha agora.",
+                "body_device": "De {subject}. Se não foi você, troque sua senha agora."
+            },
+            "message_limit_warning": {
+                "title": "Seu workspace usou 80% das mensagens",
+                "body": "O limite é de {subject} mensagens por mês."
+            },
+            "message_limit_reached": {
+                "title": "Seu workspace atingiu o limite de mensagens",
+                "body": "Os agentes param de responder até o próximo mês. O limite é de {subject} mensagens por mês."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} está recusando mensagens",
+                "body": "Atingiu o limite de {detail} mensagens por minuto."
+            },
+            "eval_run_finished": {
+                "title": "Avaliação concluída em {agent}",
+                "body": "{subject} casos aprovados.",
+                "title_failed": "Avaliação interrompida em {agent}",
+                "body_failed": "Abra a execução para ver o que aconteceu."
+            },
+            "data_export_ready": {
+                "title": "Sua exportação de dados está pronta",
+                "body": "Baixe em até 24 horas."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Notificações"
+        },
+        "notifications": {
+            "title": "Notificações",
+            "heading": "Notificações",
+            "description": "Escolha o que chega até você e como.",
+            "category": "Categoria",
+            "hint": "Alertas na área de trabalho e sons precisam do sino. Com várias abas do painel abertas, só uma avisa.",
+            "switches": {
+                "bell": "Sino",
+                "desktop": "Área de trabalho",
+                "sound": "Som"
+            },
+            "browser": {
+                "title": "Alertas na área de trabalho neste navegador",
+                "granted": "Permitidos. Os alertas aparecem quando o painel não está em primeiro plano.",
+                "denied": "Bloqueados. Permita notificações deste site nas configurações do navegador.",
+                "default": "Ainda não permitidos. Permita para receber alertas na área de trabalho.",
+                "unsupported": "Este navegador não mostra alertas na área de trabalho.",
+                "allow": "Permitir neste navegador",
+                "test_sound": "Testar som"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Transferências",
+                    "description": "Um visitante pede para falar com uma pessoa."
+                },
+                "security": {
+                    "label": "Segurança",
+                    "description": "Ataques bloqueados, verificações de segurança que não rodaram, novos logins e mudanças de segurança."
+                },
+                "training": {
+                    "label": "Treinamento",
+                    "description": "Arquivos, textos e sites que terminam o treinamento ou falham."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "Um visitante preenche um dos seus formulários."
+                },
+                "usage": {
+                    "label": "Uso",
+                    "description": "Limites de mensagens e limites de taxa."
+                },
+                "reports": {
+                    "label": "Relatórios",
+                    "description": "Avaliações concluídas e exportações de dados."
+                }
+            }
+        }
+    }
+}

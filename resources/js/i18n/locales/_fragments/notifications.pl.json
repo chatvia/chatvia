@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Powiadomienia",
+        "open": "Otwórz powiadomienia",
+        "open_with_count": "Otwórz powiadomienia ({count} nieprzeczytane) | Otwórz powiadomienia ({count} nieprzeczytanych)",
+        "unread": "Nieprzeczytane",
+        "unread_count": "{count} nowe | {count} nowych",
+        "mark_read": "Oznacz jako przeczytane",
+        "mark_all_read": "Oznacz wszystkie jako przeczytane",
+        "clear_all": "Wyczyść wszystkie",
+        "settings": "Ustawienia powiadomień",
+        "view_all": "Zobacz wszystkie powiadomienia",
+        "page_description": "Przekazania, wyniki trenowania, leady i alerty z ostatnich dni.",
+        "empty_title": "Wszystko przeczytane",
+        "empty_body": "Tutaj pojawią się przekazania, wyniki trenowania, leady i alerty.",
+        "empty_unread": "Brak nieprzeczytanych powiadomień",
+        "filter_all": "Wszystkie",
+        "filter_unread": "Nieprzeczytane",
+        "load_more": "Wczytaj więcej",
+        "load_failed": "Nie udało się wczytać powiadomień. Spróbuj ponownie.",
+        "guards": {
+            "prompt_injection": "Ktoś próbował zmienić instrukcje agenta (prompt injection).",
+            "prompt_leak": "Zatrzymano odpowiedź, która pokazałaby instrukcje agenta."
+        },
+        "security_changes": {
+            "api_key_created": "Utworzono nowy token API",
+            "policy_changed": "Zmieniono ustawienia bezpieczeństwa przestrzeni roboczej",
+            "ip_allowlist_changed": "Zmieniono listę dozwolonych adresów IP",
+            "retention_changed": "Zmieniono przechowywanie danych",
+            "webhook_disabled": "Wyłączono webhook audytu"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "Odwiedzający chce porozmawiać z człowiekiem",
+                "body": "Otwórz czat z {agent}, aby przejąć rozmowę."
+            },
+            "source_trained": {
+                "title": "Trenowanie {subject} zakończone | Trenowanie {count} źródeł zakończone",
+                "body": "{agent} może już z niego korzystać. | {agent} może już z nich korzystać. Ostatnie: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Trenowanie nie powiodło się: {subject}",
+                "body": "Otwórz źródła agenta {agent}, aby zobaczyć przyczynę i spróbować ponownie."
+            },
+            "lead_captured": {
+                "title": "Nowy lead z formularza {subject} | {count} nowych leadów z formularza {subject}",
+                "body": "Odwiedzający wypełnił formularz u agenta {agent}."
+            },
+            "attack_blocked": {
+                "title": "Zablokowano atak na {agent} | Zablokowano {count} ataków na {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "Kontrola bezpieczeństwa nie zadziałała u {agent} | Kontrola bezpieczeństwa nie zadziałała {count} razy u {agent}",
+                "body": "Wiadomości przeszły bez niej. Sprawdź usługę guardrails."
+            },
+            "security_settings_changed": {
+                "by": "Zmienione przez: {actor}.",
+                "automatic": "Zmienione automatycznie. Szczegóły znajdziesz w dzienniku audytu."
+            },
+            "new_device_sign_in": {
+                "title": "Nowe logowanie na Twoje konto",
+                "body": "Jeśli to nie Ty, zmień teraz hasło.",
+                "body_device": "Z {subject}. Jeśli to nie Ty, zmień teraz hasło."
+            },
+            "message_limit_warning": {
+                "title": "Twoja przestrzeń robocza wykorzystała 80% wiadomości",
+                "body": "Limit to {subject} wiadomości miesięcznie."
+            },
+            "message_limit_reached": {
+                "title": "Twoja przestrzeń robocza osiągnęła limit wiadomości",
+                "body": "Agenci nie odpowiedzą do przyszłego miesiąca. Limit to {subject} wiadomości miesięcznie."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} odrzuca wiadomości",
+                "body": "Osiągnięto limit {detail} wiadomości na minutę."
+            },
+            "eval_run_finished": {
+                "title": "Ewaluacja agenta {agent} zakończona",
+                "body": "Zaliczone przypadki: {subject}.",
+                "title_failed": "Ewaluacja agenta {agent} została przerwana",
+                "body_failed": "Otwórz przebieg, aby zobaczyć, co się stało."
+            },
+            "data_export_ready": {
+                "title": "Eksport Twoich danych jest gotowy",
+                "body": "Pobierz go w ciągu 24 godzin."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Powiadomienia"
+        },
+        "notifications": {
+            "title": "Powiadomienia",
+            "heading": "Powiadomienia",
+            "description": "Wybierz, co do Ciebie trafia i w jaki sposób.",
+            "category": "Kategoria",
+            "hint": "Alerty na pulpicie i dźwięki wymagają dzwonka. Przy kilku otwartych kartach panelu powiadamia tylko jedna.",
+            "switches": {
+                "bell": "Dzwonek",
+                "desktop": "Pulpit",
+                "sound": "Dźwięk"
+            },
+            "browser": {
+                "title": "Alerty na pulpicie w tej przeglądarce",
+                "granted": "Dozwolone. Alerty pojawiają się, gdy panel nie jest na wierzchu.",
+                "denied": "Zablokowane. Zezwól na powiadomienia tej witryny w ustawieniach przeglądarki.",
+                "default": "Jeszcze niedozwolone. Zezwól, aby dostawać alerty na pulpicie.",
+                "unsupported": "Ta przeglądarka nie może pokazywać alertów na pulpicie.",
+                "allow": "Zezwól w tej przeglądarce",
+                "test_sound": "Odtwórz dźwięk testowy"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Przekazania",
+                    "description": "Odwiedzający prosi o rozmowę z człowiekiem."
+                },
+                "security": {
+                    "label": "Bezpieczeństwo",
+                    "description": "Zablokowane ataki, kontrole bezpieczeństwa, które nie zadziałały, nowe logowania i zmiany bezpieczeństwa."
+                },
+                "training": {
+                    "label": "Trenowanie",
+                    "description": "Pliki, teksty i witryny, których trenowanie się kończy lub nie udaje."
+                },
+                "leads": {
+                    "label": "Leady",
+                    "description": "Odwiedzający wypełnia jeden z Twoich formularzy."
+                },
+                "usage": {
+                    "label": "Użycie",
+                    "description": "Limity wiadomości i limity częstotliwości."
+                },
+                "reports": {
+                    "label": "Raporty",
+                    "description": "Zakończone ewaluacje i eksporty danych."
+                }
+            }
+        }
+    }
+}

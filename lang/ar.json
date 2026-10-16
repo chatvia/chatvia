@@ -428,5 +428,6 @@
     "The team at :name turned off your access to chat with their assistants.": "أوقف فريق :name وصولك إلى المحادثة مع مساعديه.",
     "This happens when messages try to make an assistant break its rules or show its instructions.": "يحدث هذا عندما تحاول الرسائل دفع المساعد إلى مخالفة قواعده أو كشف تعليماته.",
     "If you think this is a mistake, please contact :name.": "إذا كنت تعتقد أن هذا خطأ، يُرجى التواصل مع :name.",
-    "You can block the person who sent them from the guardrails activity.": "يمكنك حظر الشخص الذي أرسلها من نشاط ضوابط الأمان."
+    "You can block the person who sent them from the guardrails activity.": "يمكنك حظر الشخص الذي أرسلها من نشاط ضوابط الأمان.",
+    "Notification settings saved.": "تم حفظ إعدادات الإشعارات."
 }

@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "Varsler",
+        "open": "Åpne varsler",
+        "open_with_count": "Åpne varsler ({count} ulest) | Åpne varsler ({count} uleste)",
+        "unread": "Ulest",
+        "unread_count": "{count} ny | {count} nye",
+        "mark_read": "Merk som lest",
+        "mark_all_read": "Merk alle som lest",
+        "clear_all": "Fjern alle",
+        "settings": "Varselinnstillinger",
+        "view_all": "Se alle varsler",
+        "page_description": "Overleveringer, treningsresultater, leads og advarsler fra de siste dagene.",
+        "empty_title": "Du er oppdatert",
+        "empty_body": "Overleveringer, treningsresultater, leads og advarsler vises her.",
+        "empty_unread": "Ingen uleste varsler",
+        "filter_all": "Alle",
+        "filter_unread": "Uleste",
+        "load_more": "Last inn flere",
+        "load_failed": "Varslene kunne ikke lastes inn. Prøv igjen.",
+        "guards": {
+            "prompt_injection": "Noen prøvde å endre agentens instruksjoner (prompt injection).",
+            "prompt_leak": "Et svar som ville vist agentens instruksjoner, ble stoppet."
+        },
+        "security_changes": {
+            "api_key_created": "Et nytt API-token ble opprettet",
+            "policy_changed": "Arbeidsområdets sikkerhetsinnstillinger ble endret",
+            "ip_allowlist_changed": "Listen over tillatte IP-adresser ble endret",
+            "retention_changed": "Datalagringen ble endret",
+            "webhook_disabled": "Revisjons-webhooken ble slått av"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "En besøkende vil snakke med en person",
+                "body": "Åpne chatten med {agent} for å ta over."
+            },
+            "source_trained": {
+                "title": "{subject} er ferdig trent | {count} kilder er ferdig trent",
+                "body": "{agent} kan nå svare ut fra den. | {agent} kan nå svare ut fra dem. Den siste: {subject}."
+            },
+            "source_training_failed": {
+                "title": "Treningen mislyktes: {subject}",
+                "body": "Åpne kildene til {agent} for å se hvorfor og prøve igjen."
+            },
+            "lead_captured": {
+                "title": "Nytt lead fra {subject} | {count} nye leads fra {subject}",
+                "body": "En besøkende fylte ut skjemaet hos {agent}."
+            },
+            "attack_blocked": {
+                "title": "Angrep blokkert på {agent} | {count} angrep blokkert på {agent}"
+            },
+            "guardrail_skipped": {
+                "title": "En sikkerhetssjekk kunne ikke kjøre på {agent} | En sikkerhetssjekk kunne ikke kjøre {count} ganger på {agent}",
+                "body": "Meldinger gikk gjennom uten den. Sjekk guardrail-tjenesten."
+            },
+            "security_settings_changed": {
+                "by": "Endret av {actor}.",
+                "automatic": "Endret automatisk. Åpne revisjonsloggen for detaljer."
+            },
+            "new_device_sign_in": {
+                "title": "Ny pålogging på kontoen din",
+                "body": "Hvis det ikke var deg, bytt passord nå.",
+                "body_device": "Fra {subject}. Hvis det ikke var deg, bytt passord nå."
+            },
+            "message_limit_warning": {
+                "title": "Arbeidsområdet ditt har brukt 80 % av meldingene",
+                "body": "Grensen er {subject} meldinger i måneden."
+            },
+            "message_limit_reached": {
+                "title": "Arbeidsområdet ditt har nådd meldingsgrensen",
+                "body": "Agentene svarer ikke før neste måned. Grensen er {subject} meldinger i måneden."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} avviser meldinger",
+                "body": "Den har nådd grensen på {detail} meldinger i minuttet."
+            },
+            "eval_run_finished": {
+                "title": "Evalueringen av {agent} er ferdig",
+                "body": "{subject} tilfeller bestått.",
+                "title_failed": "Evalueringen av {agent} ble stoppet",
+                "body_failed": "Åpne kjøringen for å se hva som skjedde."
+            },
+            "data_export_ready": {
+                "title": "Dataeksporten din er klar",
+                "body": "Last den ned innen 24 timer."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "Varsler"
+        },
+        "notifications": {
+            "title": "Varsler",
+            "heading": "Varsler",
+            "description": "Velg hva som når deg, og hvordan.",
+            "category": "Kategori",
+            "hint": "Skrivebordsvarsler og lyder krever bjellen. Med flere faner med kontrollpanelet åpne varsler bare én.",
+            "switches": {
+                "bell": "Bjelle",
+                "desktop": "Skrivebord",
+                "sound": "Lyd"
+            },
+            "browser": {
+                "title": "Skrivebordsvarsler i denne nettleseren",
+                "granted": "Tillatt. Varsler vises når kontrollpanelet ikke er i forgrunnen.",
+                "denied": "Blokkert. Tillat varsler for dette nettstedet i nettleserinnstillingene.",
+                "default": "Ikke tillatt ennå. Tillat dem for å få skrivebordsvarsler.",
+                "unsupported": "Denne nettleseren kan ikke vise skrivebordsvarsler.",
+                "allow": "Tillat i denne nettleseren",
+                "test_sound": "Spill av testlyd"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "Overleveringer",
+                    "description": "En besøkende ber om å snakke med en person."
+                },
+                "security": {
+                    "label": "Sikkerhet",
+                    "description": "Blokkerte angrep, sikkerhetssjekker som ikke kunne kjøre, nye pålogginger og sikkerhetsendringer."
+                },
+                "training": {
+                    "label": "Trening",
+                    "description": "Filer, tekster og nettsteder som blir ferdig trent eller feiler."
+                },
+                "leads": {
+                    "label": "Leads",
+                    "description": "En besøkende fyller ut et av skjemaene dine."
+                },
+                "usage": {
+                    "label": "Bruk",
+                    "description": "Meldingsgrenser og hastighetsgrenser."
+                },
+                "reports": {
+                    "label": "Rapporter",
+                    "description": "Ferdige evalueringer og dataeksporter."
+                }
+            }
+        }
+    }
+}

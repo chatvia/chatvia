@@ -360,6 +360,21 @@ it('refuses a fewest-days value above the days to keep conversations', function 
     expect(savedSetting(WorkspaceSettings::class, 'retention_floor_days'))->toBeNull();
 });
 
+it('keeps notifications for the days an admin chooses', function (): void {
+    settingsPage($this->admin, ManageWorkspaceSettings::class)
+        ->fillForm(['notification_retention_days' => 0])
+        ->call('save')
+        ->assertHasFormErrors(['notification_retention_days']);
+
+    settingsPage($this->admin, ManageWorkspaceSettings::class)
+        ->fillForm(['notification_retention_days' => 14])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect(savedSetting(WorkspaceSettings::class, 'notification_retention_days'))->toBe(14)
+        ->and(config('chatvia.notifications.retention_days'))->toBe(14);
+});
+
 it('refuses a choice that is not offered', function (): void {
     settingsPage($this->admin, ManageMailSettings::class)
         ->fillForm(['mailer' => 'carrier-pigeon'])

@@ -1,0 +1,141 @@
+{
+    "notifications": {
+        "title": "알림",
+        "open": "알림 열기",
+        "open_with_count": "알림 열기 (읽지 않음 {count}개) | 알림 열기 (읽지 않음 {count}개)",
+        "unread": "읽지 않음",
+        "unread_count": "새 알림 {count}개 | 새 알림 {count}개",
+        "mark_read": "읽음으로 표시",
+        "mark_all_read": "모두 읽음으로 표시",
+        "clear_all": "모두 지우기",
+        "settings": "알림 설정",
+        "view_all": "모든 알림 보기",
+        "page_description": "최근 며칠간의 상담 전환 요청, 학습 결과, 리드, 경고입니다.",
+        "empty_title": "모두 확인했습니다",
+        "empty_body": "상담 전환 요청, 학습 결과, 리드, 경고가 여기에 표시됩니다.",
+        "empty_unread": "읽지 않은 알림이 없습니다",
+        "filter_all": "전체",
+        "filter_unread": "읽지 않음",
+        "load_more": "더 보기",
+        "load_failed": "알림을 불러오지 못했습니다. 다시 시도하세요.",
+        "guards": {
+            "prompt_injection": "누군가 에이전트의 지시를 바꾸려고 했습니다(프롬프트 인젝션).",
+            "prompt_leak": "에이전트의 지시를 드러낼 답변을 막았습니다."
+        },
+        "security_changes": {
+            "api_key_created": "새 API 토큰이 만들어졌습니다",
+            "policy_changed": "워크스페이스 보안 설정이 바뀌었습니다",
+            "ip_allowlist_changed": "허용 IP 목록이 바뀌었습니다",
+            "retention_changed": "데이터 보관 기간이 바뀌었습니다",
+            "webhook_disabled": "감사 웹훅이 꺼졌습니다"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "방문자가 사람과 대화하고 싶어 합니다",
+                "body": "{agent}와의 채팅을 열어 직접 응대하세요."
+            },
+            "source_trained": {
+                "title": "{subject} 학습이 끝났습니다 | 소스 {count}개의 학습이 끝났습니다",
+                "body": "이제 {agent}가 이 내용으로 답할 수 있습니다. | 이제 {agent}가 이 내용들로 답할 수 있습니다. 최근: {subject}."
+            },
+            "source_training_failed": {
+                "title": "학습 실패: {subject}",
+                "body": "{agent}의 소스를 열어 원인을 확인하고 다시 시도하세요."
+            },
+            "lead_captured": {
+                "title": "{subject}에서 새 리드 | {subject}에서 새 리드 {count}개",
+                "body": "방문자가 {agent}의 양식을 작성했습니다."
+            },
+            "attack_blocked": {
+                "title": "{agent}에 대한 공격을 막았습니다 | {agent}에 대한 공격 {count}건을 막았습니다"
+            },
+            "guardrail_skipped": {
+                "title": "{agent}에서 안전 검사를 실행하지 못했습니다 | {agent}에서 안전 검사를 {count}번 실행하지 못했습니다",
+                "body": "메시지가 검사 없이 전달되었습니다. 가드레일 서비스를 확인하세요."
+            },
+            "security_settings_changed": {
+                "by": "변경한 사람: {actor}",
+                "automatic": "자동으로 변경되었습니다. 자세한 내용은 감사 로그를 여세요."
+            },
+            "new_device_sign_in": {
+                "title": "계정에 새 로그인이 있습니다",
+                "body": "본인이 아니라면 지금 비밀번호를 바꾸세요.",
+                "body_device": "{subject}에서 로그인. 본인이 아니라면 지금 비밀번호를 바꾸세요."
+            },
+            "message_limit_warning": {
+                "title": "워크스페이스가 메시지의 80%를 사용했습니다",
+                "body": "한도는 월 {subject}개입니다."
+            },
+            "message_limit_reached": {
+                "title": "워크스페이스가 메시지 한도에 도달했습니다",
+                "body": "다음 달까지 에이전트가 답하지 않습니다. 한도는 월 {subject}개입니다."
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent}가 메시지를 거절하고 있습니다",
+                "body": "분당 {detail}개 한도에 도달했습니다."
+            },
+            "eval_run_finished": {
+                "title": "{agent} 평가가 끝났습니다",
+                "body": "{subject}개 케이스를 통과했습니다.",
+                "title_failed": "{agent} 평가가 중단되었습니다",
+                "body_failed": "실행을 열어 무슨 일이 있었는지 확인하세요."
+            },
+            "data_export_ready": {
+                "title": "데이터 내보내기가 준비되었습니다",
+                "body": "24시간 안에 다운로드하세요."
+            }
+        }
+    },
+    "account": {
+        "nav": {
+            "notifications": "알림"
+        },
+        "notifications": {
+            "title": "알림",
+            "heading": "알림",
+            "description": "무엇을 어떻게 받을지 선택하세요.",
+            "category": "분류",
+            "hint": "데스크톱 알림과 소리는 종이 켜져 있어야 합니다. 대시보드 탭을 여러 개 열어도 한 탭에서만 알립니다.",
+            "switches": {
+                "bell": "종",
+                "desktop": "데스크톱",
+                "sound": "소리"
+            },
+            "browser": {
+                "title": "이 브라우저의 데스크톱 알림",
+                "granted": "허용됨. 대시보드가 앞에 없을 때 알림이 표시됩니다.",
+                "denied": "차단됨. 브라우저 설정에서 이 사이트의 알림을 허용하세요.",
+                "default": "아직 허용되지 않았습니다. 데스크톱 알림을 받으려면 허용하세요.",
+                "unsupported": "이 브라우저는 데스크톱 알림을 표시할 수 없습니다.",
+                "allow": "이 브라우저에서 허용",
+                "test_sound": "테스트 소리 재생"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "상담 전환",
+                    "description": "방문자가 사람과 대화를 요청합니다."
+                },
+                "security": {
+                    "label": "보안",
+                    "description": "막은 공격, 실행되지 못한 안전 검사, 새 로그인, 보안 변경."
+                },
+                "training": {
+                    "label": "학습",
+                    "description": "학습이 끝나거나 실패한 파일, 텍스트, 웹사이트."
+                },
+                "leads": {
+                    "label": "리드",
+                    "description": "방문자가 양식 중 하나를 작성합니다."
+                },
+                "usage": {
+                    "label": "사용량",
+                    "description": "메시지 한도와 속도 제한."
+                },
+                "reports": {
+                    "label": "보고서",
+                    "description": "끝난 평가와 데이터 내보내기."
+                }
+            }
+        }
+    }
+}

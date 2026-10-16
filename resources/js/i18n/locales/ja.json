@@ -3326,7 +3326,8 @@
             "passkeys": "パスキー",
             "social": "ソーシャルアカウント",
             "data_export": "データをダウンロード",
-            "delete": "アカウントを削除"
+            "delete": "アカウントを削除",
+            "notifications": "通知"
         },
         "profile": {
             "title": "プロフィール設定",
@@ -3466,6 +3467,53 @@
             "password_dialog_description": "続行するにはパスワードを入力してください。アカウント削除を完了するための確認リンクをメールで送信します。",
             "password_placeholder": "パスワード",
             "send_confirmation": "確認メールを送信"
+        },
+        "notifications": {
+            "title": "通知",
+            "heading": "通知",
+            "description": "何をどのように受け取るかを選びます。",
+            "category": "カテゴリ",
+            "hint": "デスクトップ通知とサウンドにはベルが必要です。ダッシュボードのタブを複数開いている場合、通知するのは 1 つだけです。",
+            "switches": {
+                "bell": "ベル",
+                "desktop": "デスクトップ",
+                "sound": "サウンド"
+            },
+            "browser": {
+                "title": "このブラウザーのデスクトップ通知",
+                "granted": "許可済みです。ダッシュボードが前面にないときに通知が表示されます。",
+                "denied": "ブロックされています。ブラウザーの設定でこのサイトの通知を許可してください。",
+                "default": "まだ許可されていません。デスクトップ通知を受け取るには許可してください。",
+                "unsupported": "このブラウザーはデスクトップ通知を表示できません。",
+                "allow": "このブラウザーで許可",
+                "test_sound": "テスト音を再生"
+            },
+            "categories": {
+                "handoffs": {
+                    "label": "引き継ぎ",
+                    "description": "訪問者が人との会話を求めています。"
+                },
+                "security": {
+                    "label": "セキュリティ",
+                    "description": "ブロックした攻撃、実行できなかった安全チェック、新しいサインイン、セキュリティの変更。"
+                },
+                "training": {
+                    "label": "学習",
+                    "description": "学習が完了した、または失敗したファイル、テキスト、ウェブサイト。"
+                },
+                "leads": {
+                    "label": "リード",
+                    "description": "訪問者がフォームのどれかに入力しました。"
+                },
+                "usage": {
+                    "label": "使用量",
+                    "description": "メッセージ上限とレート制限。"
+                },
+                "reports": {
+                    "label": "レポート",
+                    "description": "完了した評価とデータのエクスポート。"
+                }
+            }
         }
     },
     "theme": {
@@ -4003,5 +4051,92 @@
             "failed": "失敗",
             "cancelled": "中止"
         }
+    },
+    "notifications": {
+        "title": "通知",
+        "open": "通知を開く",
+        "open_with_count": "通知を開く（未読 {count} 件） | 通知を開く（未読 {count} 件）",
+        "unread": "未読",
+        "unread_count": "新着 {count} 件 | 新着 {count} 件",
+        "mark_read": "既読にする",
+        "mark_all_read": "すべて既読にする",
+        "settings": "通知の設定",
+        "view_all": "すべての通知を見る",
+        "page_description": "ここ数日の引き継ぎ依頼、学習結果、リード、アラートです。",
+        "empty_title": "すべて確認済みです",
+        "empty_body": "引き継ぎ依頼、学習結果、リード、アラートがここに表示されます。",
+        "empty_unread": "未読の通知はありません",
+        "filter_all": "すべて",
+        "filter_unread": "未読",
+        "load_more": "さらに読み込む",
+        "load_failed": "通知を読み込めませんでした。もう一度お試しください。",
+        "guards": {
+            "prompt_injection": "誰かがエージェントの指示を変えようとしました（プロンプトインジェクション）。",
+            "prompt_leak": "エージェントの指示が見えてしまう回答を止めました。"
+        },
+        "security_changes": {
+            "api_key_created": "新しい API トークンが作成されました",
+            "policy_changed": "ワークスペースのセキュリティ設定が変更されました",
+            "ip_allowlist_changed": "許可 IP リストが変更されました",
+            "retention_changed": "データの保存期間が変更されました",
+            "webhook_disabled": "監査 Webhook がオフになりました"
+        },
+        "kinds": {
+            "handoff_requested": {
+                "title": "訪問者が人との会話を希望しています",
+                "body": "{agent} とのチャットを開いて対応してください。"
+            },
+            "source_trained": {
+                "title": "{subject} の学習が完了しました | {count} 件のソースの学習が完了しました",
+                "body": "{agent} はこの内容で回答できます。 | {agent} はこれらの内容で回答できます。最新: {subject}。"
+            },
+            "source_training_failed": {
+                "title": "学習に失敗しました: {subject}",
+                "body": "{agent} のソースを開いて原因を確認し、もう一度お試しください。"
+            },
+            "lead_captured": {
+                "title": "{subject} から新しいリード | {subject} から新しいリード {count} 件",
+                "body": "訪問者が {agent} のフォームに入力しました。"
+            },
+            "attack_blocked": {
+                "title": "{agent} への攻撃をブロックしました | {agent} への攻撃を {count} 件ブロックしました"
+            },
+            "guardrail_skipped": {
+                "title": "{agent} で安全チェックを実行できませんでした | {agent} で安全チェックを {count} 回実行できませんでした",
+                "body": "メッセージはチェックなしで通過しました。ガードレールサービスを確認してください。"
+            },
+            "security_settings_changed": {
+                "by": "変更者: {actor}",
+                "automatic": "自動で変更されました。詳細は監査ログを開いてください。"
+            },
+            "new_device_sign_in": {
+                "title": "アカウントへの新しいサインイン",
+                "body": "心当たりがない場合は、すぐにパスワードを変更してください。",
+                "body_device": "{subject} から。心当たりがない場合は、すぐにパスワードを変更してください。"
+            },
+            "message_limit_warning": {
+                "title": "ワークスペースがメッセージの 80% を使いました",
+                "body": "上限は月 {subject} 件です。"
+            },
+            "message_limit_reached": {
+                "title": "ワークスペースがメッセージ上限に達しました",
+                "body": "来月までエージェントは返信しません。上限は月 {subject} 件です。"
+            },
+            "rate_limit_exceeded": {
+                "title": "{agent} がメッセージを断っています",
+                "body": "1 分あたり {detail} 件の上限に達しました。"
+            },
+            "eval_run_finished": {
+                "title": "{agent} の評価が完了しました",
+                "body": "{subject} 件のケースが合格しました。",
+                "title_failed": "{agent} の評価が停止しました",
+                "body_failed": "実行を開いて何が起きたか確認してください。"
+            },
+            "data_export_ready": {
+                "title": "データのエクスポートが完了しました",
+                "body": "24 時間以内にダウンロードしてください。"
+            }
+        },
+        "clear_all": "すべて消去"
     }
 }

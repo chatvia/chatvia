@@ -428,5 +428,6 @@
     "The team at :name turned off your access to chat with their assistants.": "El equipo de :name ha desactivado tu acceso para chatear con sus asistentes.",
     "This happens when messages try to make an assistant break its rules or show its instructions.": "Esto ocurre cuando los mensajes intentan que un asistente rompa sus reglas o muestre sus instrucciones.",
     "If you think this is a mistake, please contact :name.": "Si crees que es un error, ponte en contacto con :name.",
-    "You can block the person who sent them from the guardrails activity.": "Puedes bloquear a quien los envió desde la actividad de restricciones."
+    "You can block the person who sent them from the guardrails activity.": "Puedes bloquear a quien los envió desde la actividad de restricciones.",
+    "Notification settings saved.": "Ajustes de notificaciones guardados."
 }

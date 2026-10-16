@@ -24,6 +24,7 @@ use Domain\Knowledge\Source\Web\Models\AgentWebsiteUrl;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Knowledge\Source\Youtube\Models\SourceYoutubeVideo;
 use Domain\Membership\Team\Models\Team;
+use Domain\Notification\Models\UserNotification;
 use Domain\Security\Models\BlockedVisitor;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Middleware\ThrottleRequests;
@@ -185,6 +186,8 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
             'outcome' => 'blocked',
         ]),
         'blockedVisitor' => BlockedVisitor::factory()->create(['workspace_id' => $agent->workspace_id]),
+        // One person's own notification: anyone else, even in the same workspace, gets a 404.
+        'notification' => UserNotification::factory()->create(['user_id' => $owner->id]),
         default => null,
     };
 }
@@ -396,7 +399,7 @@ function isolationRecordParameters(): array
         'agent', 'conversation', 'conversationId', 'function', 'external_id', 'mcp', 'file', 'source', 'fileId',
         'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'youtube', 'topic',
         'chatter', 'form', 'run', 'case', 'team', 'role', 'roleId', 'invitationId', 'member', 'export', 'tokenId',
-        'event', 'blockedVisitor',
+        'event', 'blockedVisitor', 'notification',
     ];
 }
 

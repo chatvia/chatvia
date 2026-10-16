@@ -466,6 +466,42 @@ the chat to the team. Every decision is logged as a `GuardrailEvent`,
 including a check that was skipped because the classifier failed; attacks
 also go to the security audit log, and the owner can get alert emails.
 
+### Notification
+
+The dashboard's notification center: a bell with an unread badge in both
+dashboard headers, a popover, a full page (`my/notifications`) and per-person
+settings (`my/account/notifications`).
+
+- **Storage.** `UserNotification` (`user_notifications`) is one person's
+  inbox entry, with a foreign key to the user (deleting the account deletes
+  it). It is only ever read through `$user->userNotifications()`, so another
+  person's id is a 404. A row holds a `NotificationKind`, its
+  `NotificationCategory`, and `NotificationContentData` (agent, a name, a
+  code, who did it, the dashboard path): never the text, and never personal
+  data such as lead answers or messages. The frontend writes the sentence by
+  kind in the reader's language.
+- **Sending.** Each context owns its notification classes, which extend
+  `InboxNotification`. A hand-registered, queued listener picks the people
+  with `NotificationRecipients` (workspace members whose team role holds a
+  permission, on the agent when there is one) and calls
+  `Notification::send`. `InboxNotification::via()` adds `InboxChannel` only
+  when the person keeps the bell on for that category.
+- **Gathering.** A notification with a group key (for example
+  `training:{agent}`) gathers into the person's unread row with that key: one
+  `INSERT … ON CONFLICT` on a partial unique index raises its count and moves
+  it to the top. Once it is read, the next one starts a new row.
+- **Live.** `PushUserNotificationAction` broadcasts `UserNotificationPushed`
+  (with `is_new`), the read actions broadcast `UserNotificationsRead` and
+  "Clear all" (`ClearNotificationsAction`) broadcasts
+  `UserNotificationsCleared`, on the person's private channel
+  `App.Identity.Workspace.Models.User.{id}`.
+  The frontend store (`composables/notifications`) updates the badge, the tab
+  title and open lists. Desktop alerts and the chime play in one tab only
+  (a Web Locks lock), for the categories the person switched on.
+- **Retention.** `app:prune-notifications` deletes rows with no activity for
+  `chatvia.notifications.retention_days` (7 by default; admin Settings →
+  Workspaces → Notifications), every night.
+
 ### Security
 
 Workspace security settings and audit: IP allowlist and country rules
@@ -571,7 +607,10 @@ the frontend and are frozen: the conversation stream uses short lowercase names
 (`message`, `typing`, `handoff`), the ingestion and eval events use their class
 name (`FileIngestionProgressed`, `EvalRunProgressed`). A new broadcast event
 returns its class basename from `broadcastAs()`, unless it joins the lowercase
-conversation-stream family.
+conversation-stream family. A staff member's own channel,
+`App.Identity.Workspace.Models.User.{id}`, carries the notification center's
+`UserNotificationPushed`, `UserNotificationsRead` and
+`UserNotificationsCleared`.
 
 ### A chat turn
 

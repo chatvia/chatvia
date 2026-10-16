@@ -194,7 +194,7 @@
     "A role with this name already exists.": "نقشی با این نام از قبل وجود دارد.",
     "Access from your network is not permitted by this workspace.": "این فضای کاری اجازهٔ دسترسی از شبکهٔ شما را نمی‌دهد.",
     "Cannot change the owner's role.": "نقش مالک قابل تغییر نیست.",
-    "Cannot delete the owner or admin role.": "نقش مالک یا مدیر قابل حذف نیست.",
+    "Cannot delete the owner role.": "نقش مالک قابل حذف نیست.",
     "Cannot delete this role. :count member(s) are assigned to it.": "این نقش قابل حذف نیست. :count عضو این نقش را دارند.",
     "Cannot edit the owner role.": "نقش مالک قابل ویرایش نیست.",
     "Cannot modify the owner role.": "نقش مالک قابل تغییر نیست.",

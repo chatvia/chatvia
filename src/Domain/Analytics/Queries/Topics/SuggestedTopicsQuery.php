@@ -10,8 +10,8 @@ use Domain\Conversation\QueryBuilders\ConversationQueryBuilder;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Support\Casts\EncryptedTolerant;
 
 /**
  * The emergent topics the conversation analysis suggests for an agent, most
@@ -108,7 +108,7 @@ class SuggestedTopicsQuery
                 conversation_id: (string) $row->getAttribute('external_id'),
                 // Raw join bypasses the Conversation `title` cast, so the
                 // column comes back ciphertext — decrypt it by hand.
-                title: EncryptedTolerant::decrypt($row->getAttribute('title')),
+                title: ($title = $row->getAttribute('title')) === null ? null : Crypt::decryptString((string) $title),
             );
         }
 

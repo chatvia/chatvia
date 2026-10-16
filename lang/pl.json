@@ -194,7 +194,7 @@
     "A role with this name already exists.": "Rola o tej nazwie już istnieje.",
     "Access from your network is not permitted by this workspace.": "Ten obszar roboczy nie zezwala na dostęp z Twojej sieci.",
     "Cannot change the owner's role.": "Nie można zmienić roli właściciela.",
-    "Cannot delete the owner or admin role.": "Nie można usunąć roli właściciela ani administratora.",
+    "Cannot delete the owner role.": "Nie można usunąć roli właściciela.",
     "Cannot delete this role. :count member(s) are assigned to it.": "Nie można usunąć tej roli. Ma ją :count członek(ów).",
     "Cannot edit the owner role.": "Nie można edytować roli właściciela.",
     "Cannot modify the owner role.": "Nie można zmienić roli właściciela.",

@@ -531,7 +531,7 @@ describe('workspace audit log (account.governance)', function (): void {
             'tool_name' => 'get_weather',
             'tool_kind' => 'function',
             'outcome' => 'auto',
-            'gated' => false,
+            'is_gated' => false,
             'is_error' => false,
             'arguments_truncated' => false,
             'result_truncated' => false,

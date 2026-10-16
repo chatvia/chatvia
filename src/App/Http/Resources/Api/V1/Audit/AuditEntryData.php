@@ -109,7 +109,7 @@ class AuditEntryData extends Data
             connector_slug: $activity->connector_slug,
             connector_name: $activity->connector_name,
             outcome: $activity->outcome,
-            gated: $activity->gated,
+            gated: $activity->is_gated,
             is_error: $activity->is_error,
             latency_ms: $activity->latency_ms,
             arguments: $activity->arguments,

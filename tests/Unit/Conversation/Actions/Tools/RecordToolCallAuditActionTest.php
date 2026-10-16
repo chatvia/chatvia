@@ -40,7 +40,7 @@ function auditEvent(array $overrides = []): ToolCallCompleted
     ], $overrides));
 }
 
-it('writes one agent_activity row with denormalized names, redacted args + raw hash', function (): void {
+it('writes one agent_activities row with denormalized names, redacted args + raw hash', function (): void {
     $agent = Agent::factory()->create();
     $event = auditEvent(['agentId' => $agent->id, 'agentName' => $agent->name, 'workspaceId' => $agent->workspace_id]);
 
@@ -90,7 +90,7 @@ it('records decided_at for a gated approved call', function (): void {
     $row = AgentActivity::query()->latest('id')->first();
 
     expect($row->outcome)->toBe('approved')
-        ->and($row->gated)->toBeTrue()
+        ->and($row->is_gated)->toBeTrue()
         ->and($row->decided_at)->not->toBeNull();
 });
 

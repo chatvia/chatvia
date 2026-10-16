@@ -370,6 +370,7 @@ export function useChatLog() {
             read_at: null,
             confidence_score: null,
             voice: false,
+            trace_id: null,
         });
     }
 

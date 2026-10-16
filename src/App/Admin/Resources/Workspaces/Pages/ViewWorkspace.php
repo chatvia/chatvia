@@ -8,6 +8,7 @@ use App\Admin\Pages\Dashboard;
 use App\Admin\Pages\DashboardFilters;
 use App\Admin\Resources\Workspaces\WorkspaceResource;
 use App\Admin\Resources\Workspaces\WorkspaceStatus;
+use App\Admin\Settings\ToolRecording;
 use App\Admin\Widgets\MessagesChart;
 use App\Admin\Widgets\WorkspaceStatsOverview;
 use App\Identity\Workspace\Actions\Account\DeactivateAccountAction;
@@ -133,6 +134,7 @@ class ViewWorkspace extends ViewRecord
                 ActionGroup::make([
                     $this->openDashboardAction(),
                     $this->exportDataAction(),
+                    $this->spectraAccessAction(),
                 ])->dropdown(false),
                 ActionGroup::make([
                     $this->sendPasswordResetLinkAction(),
@@ -375,6 +377,34 @@ class ViewWorkspace extends ViewRecord
                 }
 
                 Notification::make()->success()->title('Export started')->body('The owner gets an email when it is ready.')->send();
+            });
+    }
+
+    /**
+     * Grant or take back the workspace's access to Spectra (the AI call log).
+     * Spectra is install-wide, so the grant modal warns that the workspace's
+     * staff will see every workspace's AI calls, not just their own.
+     */
+    private function spectraAccessAction(): Action
+    {
+        $granted = fn (): bool => $this->workspace()->spectra_access;
+
+        return Action::make('spectraAccess')
+            ->label(fn (): string => $granted() ? 'Take back Spectra access' : 'Allow Spectra access')
+            ->icon(Heroicon::OutlinedCpuChip)
+            ->requiresConfirmation()
+            ->modalHeading(fn (): string => $granted() ? 'Take back Spectra access?' : 'Allow this workspace to open Spectra?')
+            ->modalDescription(fn (): string => $granted()
+                ? 'The workspace\'s owner and teammates can no longer open Spectra or see trace links in their chat logs. Nothing already recorded is removed.'
+                : 'Everyone in this workspace can open Spectra and will see every AI call made on this install — every workspace\'s prompts, replies and costs, not just their own. Allow it only for a workspace you trust with that.')
+            ->modalSubmitActionLabel(fn (): string => $granted() ? 'Take back' : 'Allow')
+            ->color(fn (): string => $granted() ? 'gray' : 'warning')
+            ->visible(fn (): bool => app(ToolRecording::class)->spectraInstalled())
+            ->action(function () use ($granted): void {
+                $allow = ! $granted();
+                $this->workspace()->update(['spectra_access' => $allow]);
+
+                Notification::make()->success()->title($allow ? 'Spectra access allowed' : 'Spectra access taken back')->send();
             });
     }
 

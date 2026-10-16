@@ -61,6 +61,7 @@ function assistantTurn(Llm $llm, UserTurnData $userTurn, array $overrides = []):
         'model' => $llm->external_name,
         'sent_at' => Carbon::parse('2026-06-05 10:00:01'),
         'generation_id' => 'gen_'.Str::random(12),
+        'trace_id' => (string) Str::uuid(),
         'response_time_ms' => 1234,
         'source' => $userTurn->source,
     ], $overrides));
@@ -90,6 +91,7 @@ it('computes microcent cost from total_cost dollars (sub-cent precision boundary
         ->and($message->completion_tokens)->toBe(17)
         ->and($message->cost_in_micro_cents)->toBe(123)
         ->and($message->generation_id)->toBe($turn->generation_id)
+        ->and($message->trace_id)->toBe($turn->trace_id)
         ->and($message->response_time_ms)->toBe(1234);
 
     Event::assertDispatched(MessageSent::class, fn (MessageSent $event): bool => $event->role === 'assistant'

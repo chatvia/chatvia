@@ -5,7 +5,9 @@
                 "load_more": "더 불러오기"
             },
             "messages": {
-                "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다."
+                "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다.",
+                "trace": "트레이스",
+                "trace_help": "이 답변 뒤의 모든 AI 호출을 Spectra에서 보기"
             }
         },
         "security": {

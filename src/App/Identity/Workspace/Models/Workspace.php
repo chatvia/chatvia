@@ -35,6 +35,7 @@ use Support\Concerns\HasExternalId;
  * @property int $id
  * @property string $external_id
  * @property string $name
+ * @property bool $spectra_access
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User|null $owner
@@ -51,6 +52,14 @@ class Workspace extends Model
 {
     /** @use HasFactory<WorkspaceFactory> */
     use HasExternalId, HasFactory;
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return [
+            'spectra_access' => 'boolean',
+        ];
+    }
 
     /**
      * Every staff account of the workspace, owner included.

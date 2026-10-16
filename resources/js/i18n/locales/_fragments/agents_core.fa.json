@@ -173,6 +173,8 @@
                 "confidence_help": "میزان تطابق دانش عامل با این پرسش — نه کیفیت خود پاسخ.",
                 "tokens": "{count} توکن",
                 "tokens_breakdown": "پرامپت: {prompt} · تکمیل: {completion}",
+                "trace": "ردیابی",
+                "trace_help": "مشاهده همه فراخوانی‌های هوش مصنوعی پشت این پاسخ در Spectra",
                 "playground": "محیط آزمایشی",
                 "positive_feedback": "بازخورد مثبت",
                 "negative_feedback": "بازخورد منفی",

@@ -468,7 +468,9 @@
                 "revised": "Réponse révisée",
                 "revise": "Réviser",
                 "voice": "Vocal",
-                "confidence_help": "Dans quelle mesure les connaissances de l'agent correspondaient à cette question — pas la qualité de la réponse."
+                "confidence_help": "Dans quelle mesure les connaissances de l'agent correspondaient à cette question — pas la qualité de la réponse.",
+                "trace": "Trace",
+                "trace_help": "Voir tous les appels d'IA derrière cette réponse dans Spectra"
             },
             "details": {
                 "select_conversation": "Sélectionnez une conversation pour afficher les détails",

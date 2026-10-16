@@ -10,6 +10,8 @@ use Domain\Conversation\Data\Turn\RetrievedSourceData;
 use Domain\Conversation\Events\AssistantReplyCompleted;
 use Domain\Conversation\Services\ChatContext;
 use Domain\Conversation\Services\Memory\ChatMemory;
+use Illuminate\Support\Facades\Context;
+use Spectra\Support\Tracking\TraceContext;
 
 /**
  * Records the assistant's answer when a turn ends: adds it to the conversation
@@ -64,6 +66,7 @@ class AssistantReplyRecorder
             model: $request->message->model->external_name,
             sent_at: now(),
             generation_id: $context->generationId,
+            trace_id: $this->traceId(),
             prompt_tokens: $context->usage['prompt_tokens'] ?? null,
             completion_tokens: $context->usage['completion_tokens'] ?? null,
             response_time_ms: $context->getResponseTimeMs(),
@@ -78,6 +81,24 @@ class AssistantReplyRecorder
             sources: $context->sources->values()->map(static fn (RetrievedSourceData $source, int $rank): MessageSourceData => MessageSourceData::fromRetrieved($source, $rank))->all(),
             voice: $request->voice,
         ));
+    }
+
+    /**
+     * The Spectra trace that groups this turn's AI calls, read from the hidden
+     * Context entry Spectra's own watchers fill. Read, never created: an id
+     * exists only when at least one AI call was recorded this turn, so a stored
+     * id always has calls behind it. Null while Spectra is off (`spectra.enabled`
+     * is the install-and-recording switch, see ToolRecording).
+     */
+    private function traceId(): ?string
+    {
+        if (! config('spectra.enabled')) {
+            return null;
+        }
+
+        $traceId = Context::getHidden(TraceContext::TRACE_ID);
+
+        return is_string($traceId) && filled($traceId) ? $traceId : null;
     }
 
     /**

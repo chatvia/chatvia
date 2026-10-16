@@ -468,7 +468,9 @@
                 "revised": "Câu trả lời đã chỉnh sửa",
                 "revise": "Chỉnh sửa",
                 "voice": "Giọng nói",
-                "confidence_help": "Mức độ khớp giữa kiến thức của trợ lý với câu hỏi này — không phải chất lượng câu trả lời."
+                "confidence_help": "Mức độ khớp giữa kiến thức của trợ lý với câu hỏi này — không phải chất lượng câu trả lời.",
+                "trace": "Dấu vết",
+                "trace_help": "Xem tất cả lệnh gọi AI đằng sau câu trả lời này trong Spectra"
             },
             "details": {
                 "select_conversation": "Chọn một cuộc trò chuyện để xem chi tiết",

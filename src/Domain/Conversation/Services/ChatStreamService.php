@@ -24,6 +24,7 @@ use Domain\Conversation\Services\Streaming\Sources\ReplaySource;
 use Domain\Conversation\Services\Streaming\Sse\ErrorCode;
 use Domain\Conversation\Services\Streaming\Sse\StreamEvent;
 use Domain\Conversation\Services\Tooling\Approval\ToolApprovalStore;
+use Domain\Conversation\Services\Turn\SpectraTurnTagger;
 use Domain\Conversation\Services\Turn\TurnContextFactory;
 use Domain\Security\Services\VisitorBlocklist;
 use Generator;
@@ -65,6 +66,7 @@ readonly class ChatStreamService
         private WorkspaceActivation $activation,
         private RequestHandoffAction $requestHandoff,
         private VisitorBlocklist $blocklist,
+        private SpectraTurnTagger $spectraTagger,
     ) {}
 
     /**
@@ -90,6 +92,10 @@ readonly class ChatStreamService
         }
 
         $conversation = $this->conversation($data);
+
+        // From here the turn can call AI (guardrails, rewrite, retrieval, the
+        // model): every call Spectra records is attributed to the conversation.
+        $this->spectraTagger->tag($conversation);
 
         if ($conversation?->isHandedOff()) {
             return $this->relayToOperator($data, $conversation);
@@ -131,6 +137,8 @@ readonly class ChatStreamService
 
         $context = $this->contexts->forResume($checkpoint);
         $conversation = $this->conversation($context->requestData);
+
+        $this->spectraTagger->tag($conversation);
 
         if ($conversation instanceof Conversation && $conversation->pdfAttachments()->exists()) {
             return $this->pdfSource->resume($context, $checkpoint, $data->decisions);

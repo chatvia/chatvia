@@ -468,7 +468,9 @@
                 "revised": "Reviderat svar",
                 "revise": "Revidera",
                 "voice": "Röst",
-                "confidence_help": "Hur väl agentens kunskap matchade den här frågan — inte hur bra svaret är."
+                "confidence_help": "Hur väl agentens kunskap matchade den här frågan — inte hur bra svaret är.",
+                "trace": "Spår",
+                "trace_help": "Se alla AI-anrop bakom det här svaret i Spectra"
             },
             "details": {
                 "select_conversation": "Välj en konversation för att visa detaljer",

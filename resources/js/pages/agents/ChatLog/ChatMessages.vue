@@ -7,7 +7,8 @@
 import MessageCard from '@/components/chat/MessageCard.vue';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AudioLines, LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
+import { usePage } from '@inertiajs/vue3';
+import { Activity, AudioLines, LoaderCircle, MessageSquare, RotateCcw, Search, ThumbsDown, ThumbsUp } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useChatLog } from './useChatLog';
@@ -47,6 +48,16 @@ function getConfidenceScore(message: Message): number {
 
 function formatConfidenceScore(score: number): string {
     return score.toFixed(2);
+}
+
+// Null unless the viewer may open /spectra (an admin-panel session, or a
+// workspace granted Spectra access) and the reply carries a trace.
+const page = usePage();
+
+function getTraceUrl(message: Message): string | null {
+    const base = (page.props as { spectraTraceUrl?: string | null }).spectraTraceUrl;
+    if (!base || !message.trace_id) return null;
+    return `${base}?trace_id=${message.trace_id}`;
 }
 
 function getTotalTokens(message: Message): number | null {
@@ -175,6 +186,25 @@ function goToPage(offset: number) {
                                         }}
                                     </span>
                                 </span>
+                                <span class="text-muted-foreground/30">•</span>
+                            </template>
+
+                            <!-- Spectra trace (shown only to staff who may open /spectra) -->
+                            <template v-if="m.role === 'assistant' && getTraceUrl(m)">
+                                <a
+                                    :href="getTraceUrl(m)!"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="group hover:text-foreground relative inline-flex items-center gap-1 transition-colors"
+                                >
+                                    <Activity class="h-3 w-3" aria-hidden="true" />
+                                    {{ t('agents.chatlog.messages.trace') }}
+                                    <span
+                                        class="pointer-events-none absolute start-0 bottom-full z-50 mb-1.5 rounded bg-gray-900 px-2 py-1 text-[10px] whitespace-nowrap text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
+                                    >
+                                        {{ t('agents.chatlog.messages.trace_help') }}
+                                    </span>
+                                </a>
                                 <span class="text-muted-foreground/30">•</span>
                             </template>
 

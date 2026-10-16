@@ -108,10 +108,10 @@ return [
     |
     | Whether Pulse (the app's health, /pulse) and Spectra (the AI call log,
     | /spectra) record, and how many days Spectra keeps a call before
-    | `spectra:prune` removes it. Saved in Settings → Platform. Spectra is
-    | off until an admin turns it on, because it keeps what is sent to the
-    | AI. PULSE_ENABLED and SPECTRA_ENABLED in .env decide whether a tool is
-    | part of the install at all.
+    | `spectra:prune` removes it. Saved in Settings → Platform. Both record
+    | out of the box; an admin can switch them off there. PULSE_ENABLED and
+    | SPECTRA_ENABLED in .env decide whether a tool is part of the install
+    | at all.
     |
     */
 
@@ -120,7 +120,7 @@ return [
     ],
 
     'spectra' => [
-        'recording' => false,
+        'recording' => true,
         'retention_days' => 30,
     ],
 

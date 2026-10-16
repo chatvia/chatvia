@@ -468,7 +468,9 @@
                 "revised": "Revised answer",
                 "revise": "Revise",
                 "voice": "Voice",
-                "confidence_help": "How well the agent's knowledge matched this question — not how good the answer is."
+                "confidence_help": "How well the agent's knowledge matched this question — not how good the answer is.",
+                "trace": "Trace",
+                "trace_help": "View every AI call behind this reply in Spectra"
             },
             "details": {
                 "select_conversation": "Select a conversation to view details",

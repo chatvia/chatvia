@@ -62,6 +62,12 @@ abstract class TestCase extends BaseTestCase
         // The chat memory store is Redis in every environment. Tests use an
         // array store, so nothing outlives a test and none needs Redis.
         config(['cache.stores.chat' => ['driver' => 'array']]);
+
+        // Spectra stays installed (its dashboard routes are tested) but
+        // records nothing, although its admin switch now starts on: its
+        // watchers would otherwise write even faked AI calls to the testing
+        // database. A test covering the recording switches it on itself.
+        config(['spectra.enabled' => false, 'chatvia.spectra.recording' => false]);
     }
 
     public function faker(): Generator

@@ -12,12 +12,14 @@ use Domain\Channel\Services\Replies\StreamingReplyStrategy;
 use Domain\Channel\Services\Replies\TypingReplyStrategy;
 use Domain\Conversation\Data\Turn\StreamRequestData;
 use Domain\Conversation\Data\Turn\StreamRequestMessageData;
+use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Services\AgentChatRateLimiter;
 use Domain\Conversation\Services\ChatService;
 use Domain\Conversation\Services\ChatStreamService;
 use Domain\Conversation\Services\Streaming\Sources\GuardBlockSource;
 use Domain\Conversation\Services\Streaming\Sources\LlmSource;
 use Domain\Conversation\Services\Streaming\Sources\QaSource;
+use Domain\Conversation\Services\Turn\SpectraTurnTagger;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Log;
@@ -54,6 +56,7 @@ class ChannelReplyRunner
         private readonly AgentModel $models,
         private readonly WorkspaceActivation $activation,
         private readonly GuardrailService $guardrails,
+        private readonly SpectraTurnTagger $spectraTagger,
     ) {}
 
     /**
@@ -142,6 +145,14 @@ class ChannelReplyRunner
         $agent = $turn->agent;
         // refusal() has made sure one can answer.
         $model = $this->models->for($agent) ?? throw new RuntimeException("Agent {$agent->external_id} has no model, and no model can answer.");
+
+        // The channel resolvers create the conversation before the turn runs,
+        // so Spectra attributes the turn's AI calls to it — the closure keeps
+        // the lookup off the path while Spectra is not recording.
+        $this->spectraTagger->tag(fn (): ?Conversation => Conversation::query()
+            ->inSession($turn->sessionExternalId, $agent->id)
+            ->where('external_id', $turn->conversationExternalId)
+            ->first());
 
         $context = $this->chatService->initializeChatContext(new StreamRequestData(
             agent: $agent,

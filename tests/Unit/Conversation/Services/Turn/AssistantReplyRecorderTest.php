@@ -18,7 +18,9 @@ use Domain\Conversation\Services\Memory\ChatMemory;
 use Domain\Conversation\Services\Turn\AssistantReplyRecorder;
 use Domain\Knowledge\Retrieval\Enums\SourceKind;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Context;
 use Illuminate\Support\Facades\Event;
+use Spectra\Support\Tracking\TraceContext;
 use Tests\Support\Conversation\TestChatContext;
 
 /**
@@ -91,6 +93,38 @@ it('stores a refusal without counting it', function (): void {
 
     Event::assertNotDispatched(AssistantReplyCompleted::class);
     expect(recorderHistory($context))->toHaveCount(1);
+});
+
+it('stamps the reply with the Spectra trace of the turn', function (): void {
+    config(['spectra.enabled' => true]);
+    Context::addHidden(TraceContext::TRACE_ID, '6f1f9f58-4f42-4af0-9d4e-0b1a1f1c2d3e');
+    $context = recorderContext();
+
+    app(AssistantReplyRecorder::class)->recordCompletedReply($context);
+
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
+        && $job->payload->trace_id === '6f1f9f58-4f42-4af0-9d4e-0b1a1f1c2d3e');
+});
+
+it('stores no trace while Spectra is not recording', function (): void {
+    config(['spectra.enabled' => false]);
+    Context::addHidden(TraceContext::TRACE_ID, '6f1f9f58-4f42-4af0-9d4e-0b1a1f1c2d3e');
+    $context = recorderContext();
+
+    app(AssistantReplyRecorder::class)->recordCompletedReply($context);
+
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
+        && $job->payload->trace_id === null);
+});
+
+it('stores no trace for a turn that made no AI call', function (): void {
+    config(['spectra.enabled' => true]);
+    $context = recorderContext();
+
+    app(AssistantReplyRecorder::class)->recordCompletedReply($context);
+
+    Bus::assertDispatched(StoreMessageJob::class, fn (StoreMessageJob $job): bool => $job->payload instanceof AssistantTurnData
+        && $job->payload->trace_id === null);
 });
 
 function recorderSource(?float $relevance): RetrievedSourceData

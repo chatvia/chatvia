@@ -46,7 +46,7 @@
         <env name="DB_PULSE_DATABASE" value="testing"/>
         <env name="PULSE_ENABLED" value="false"/>
         <!-- Spectra stays installed (its dashboard routes are tested) but
-             records nothing: its admin switch is off by default. -->
+             records nothing: TestCase switches recording off. -->
         <env name="DB_SPECTRA_DATABASE" value="testing"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

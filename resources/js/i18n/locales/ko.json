@@ -468,7 +468,9 @@
                 "revised": "수정된 답변",
                 "revise": "수정",
                 "voice": "음성",
-                "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다."
+                "confidence_help": "에이전트의 지식이 이 질문과 얼마나 일치했는지를 나타냅니다. 답변의 품질이 아닙니다.",
+                "trace": "트레이스",
+                "trace_help": "이 답변 뒤의 모든 AI 호출을 Spectra에서 보기"
             },
             "details": {
                 "select_conversation": "세부 정보를 보려면 대화를 선택하세요",

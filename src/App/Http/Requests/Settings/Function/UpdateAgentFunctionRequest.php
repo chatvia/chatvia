@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Settings\Function;
 
 use App\Http\Rules\WorkspaceRule;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Rules\SafeWebhookUrl;
 use Domain\Integration\Function\Data\FunctionDefinitionData;
 use Domain\Integration\Function\Enums\FunctionAuthType;
@@ -16,19 +15,15 @@ use Illuminate\Validation\Validator;
 use Spatie\LaravelData\Optional;
 
 /**
- * The Settings → Functions edit form for one function (`{external_id}` in the
- * workspace). It replaces the whole definition, except that a blank
- * credential keeps the stored one when the auth type is unchanged.
+ * The Settings → Functions edit form for one function (the route-bound
+ * `{function}`; `workspace.scope` 404s another workspace's). It replaces the
+ * whole definition, except that a blank credential keeps the stored one when
+ * the auth type is unchanged.
  */
 class UpdateAgentFunctionRequest extends FormRequest
 {
-    private ?AgentFunction $function = null;
-
-    /** A function of another workspace does not exist for the caller: 404. */
     public function authorize(): bool
     {
-        abort_unless($this->findFunction() instanceof AgentFunction, 404);
-
         return true;
     }
 
@@ -44,14 +39,14 @@ class UpdateAgentFunctionRequest extends FormRequest
                 'max:64',
                 'regex:/^[a-zA-Z][a-zA-Z0-9_]*$/',
                 WorkspaceRule::unique('functions', $this->user()->workspace(), 'internal_name')
-                    ->ignore($this->route('external_id'), 'external_id'),
+                    ->ignore($this->function()->external_id, 'external_id'),
             ],
             'display_name' => ['nullable', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:1024'],
             'parameters_schema' => [
                 'required',
                 'string',
-                new ValidParametersSchema($this->findFunction()?->parameters_schema?->getArrayCopy()),
+                new ValidParametersSchema($this->function()->parameters_schema?->getArrayCopy()),
             ],
             'webhook_url' => ['required', 'url', 'max:2048', new SafeWebhookUrl],
             'webhook_method' => ['sometimes', Rule::enum(FunctionWebhookMethod::class)],
@@ -80,8 +75,8 @@ class UpdateAgentFunctionRequest extends FormRequest
                 if (filled($this->input('auth_value'))) {
                     return;
                 }
-                $function = $this->findFunction();
-                $canKeep = $function instanceof AgentFunction && $function->auth_type === $type && $function->auth_config !== null;
+                $function = $this->function();
+                $canKeep = $function->auth_type === $type && $function->auth_config !== null;
                 if (! $canKeep) {
                     $validator->errors()->add('auth_value', __('A credential value is required for this auth type.'));
                 }
@@ -109,28 +104,13 @@ class UpdateAgentFunctionRequest extends FormRequest
     }
 
     /**
-     * The function being edited. Authorization already 404s when it isn't one
-     * of the workspace's functions.
+     * The route-bound function being edited.
      */
     public function function(): AgentFunction
     {
-        $function = $this->findFunction();
-        abort_if(! $function instanceof AgentFunction, 404);
+        $function = $this->route('function');
+        abort_unless($function instanceof AgentFunction, 404);
 
         return $function;
-    }
-
-    private function findFunction(): ?AgentFunction
-    {
-        if ($this->function instanceof AgentFunction) {
-            return $this->function;
-        }
-
-        /** @var User $user */
-        $user = $this->user();
-
-        return $this->function = $user->workspace()->functions()
-            ->where('external_id', $this->route('external_id'))
-            ->first();
     }
 }

@@ -13,7 +13,7 @@ beforeEach(function (): void {
 
 it('lists accessible agents as available when none are attached', function (): void {
     $this->actingAs($this->user)
-        ->getJson(route('integrations.functions.agents.index', ['external_id' => $this->function->external_id]))
+        ->getJson(route('integrations.functions.agents.index', ['function' => $this->function->external_id]))
         ->assertOk()
         ->assertJsonCount(0, 'attached')
         ->assertJsonCount(1, 'available')
@@ -23,7 +23,7 @@ it('lists accessible agents as available when none are attached', function (): v
 it('attaches a function to an agent', function (): void {
     $this->actingAs($this->user)
         ->postJson(route('integrations.functions.agents.attach', [
-            'external_id' => $this->function->external_id,
+            'function' => $this->function->external_id,
             'agent' => $this->agent->external_id,
         ]))
         ->assertSuccessful()
@@ -39,7 +39,7 @@ it('detaches a function from an agent', function (): void {
 
     $this->actingAs($this->user)
         ->deleteJson(route('integrations.functions.agents.detach', [
-            'external_id' => $this->function->external_id,
+            'function' => $this->function->external_id,
             'agent' => $this->agent->external_id,
         ]))
         ->assertOk()
@@ -54,13 +54,13 @@ it('lists and attaches agents from another team in the same account', function (
     $otherTeamAgent = makeTeamAgent($this->user, 'Sales Bot', $otherTeam);
 
     $this->actingAs($this->user)
-        ->getJson(route('integrations.functions.agents.index', ['external_id' => $this->function->external_id]))
+        ->getJson(route('integrations.functions.agents.index', ['function' => $this->function->external_id]))
         ->assertOk()
         ->assertJsonCount(2, 'available');
 
     $this->actingAs($this->user)
         ->postJson(route('integrations.functions.agents.attach', [
-            'external_id' => $this->function->external_id,
+            'function' => $this->function->external_id,
             'agent' => $otherTeamAgent->external_id,
         ]))
         ->assertSuccessful();
@@ -82,7 +82,7 @@ it('cannot manage agents for a function owned by someone else', function (): voi
     ]);
 
     $this->actingAs($this->user)
-        ->getJson(route('integrations.functions.agents.index', ['external_id' => $foreign->external_id]))
+        ->getJson(route('integrations.functions.agents.index', ['function' => $foreign->external_id]))
         ->assertNotFound();
 });
 
@@ -93,7 +93,7 @@ it('cannot attach to an agent owned by another account', function (): void {
 
     $this->actingAs($this->user)
         ->postJson(route('integrations.functions.agents.attach', [
-            'external_id' => $this->function->external_id,
+            'function' => $this->function->external_id,
             'agent' => $strangerAgent->external_id,
         ]))
         ->assertNotFound();

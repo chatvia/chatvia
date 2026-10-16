@@ -52,7 +52,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(updateRole.url({ team: props.team.external_id, roleId: props.role.id }));
+    form.put(updateRole.url({ team: props.team.external_id, role: props.role.external_id }));
 };
 </script>
 

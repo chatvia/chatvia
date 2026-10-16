@@ -45,7 +45,7 @@ it('updates a prompt', function (): void {
     $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id]);
 
     $this->actingAs($this->user)
-        ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
+        ->patch(route('library.prompts.update', ['prompt' => $prompt->external_id]), [
             'name' => 'Renamed',
             'prompt' => 'New body',
         ])
@@ -61,7 +61,7 @@ it('hides a prompt of another workspace from an update', function (): void {
     $prompt = AgentPrompt::factory()->create(['workspace_id' => $other->workspace()->id]);
 
     $this->actingAs($this->user)
-        ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
+        ->patch(route('library.prompts.update', ['prompt' => $prompt->external_id]), [
             'name' => 'Hijack',
             'prompt' => 'x',
         ])
@@ -74,7 +74,7 @@ it('deletes a prompt and detaches it from agents', function (): void {
     $agent = createAgent($this->user, ['agent_prompt_id' => $prompt->id]);
 
     $this->actingAs($this->user)
-        ->delete(route('library.prompts.destroy', ['external_id' => $prompt->external_id]))
+        ->delete(route('library.prompts.destroy', ['prompt' => $prompt->external_id]))
         ->assertRedirect();
 
     expect(AgentPrompt::whereKey($prompt->id)->exists())->toBeFalse();
@@ -104,7 +104,7 @@ describe('teammates share the workspace prompt library', function (): void {
         $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id]);
 
         $this->actingAs($this->teammate)
-            ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
+            ->patch(route('library.prompts.update', ['prompt' => $prompt->external_id]), [
                 'name' => 'Edited by teammate',
                 'prompt' => 'New body',
             ])
@@ -114,7 +114,7 @@ describe('teammates share the workspace prompt library', function (): void {
         expect($prompt->fresh()->name)->toBe('Edited by teammate');
 
         $this->actingAs($this->teammate)
-            ->delete(route('library.prompts.destroy', ['external_id' => $prompt->external_id]))
+            ->delete(route('library.prompts.destroy', ['prompt' => $prompt->external_id]))
             ->assertRedirect();
 
         expect(AgentPrompt::whereKey($prompt->id)->exists())->toBeFalse();
@@ -125,7 +125,7 @@ describe('teammates share the workspace prompt library', function (): void {
         $prompt = AgentPrompt::factory()->create(['workspace_id' => $this->user->workspace()->id, 'name' => 'Mine']);
 
         $this->actingAs($this->teammate)
-            ->patch(route('library.prompts.update', ['external_id' => $prompt->external_id]), [
+            ->patch(route('library.prompts.update', ['prompt' => $prompt->external_id]), [
                 'name' => 'Taken',
                 'prompt' => 'x',
             ])
@@ -137,7 +137,7 @@ describe('teammates share the workspace prompt library', function (): void {
         $foreign = AgentPrompt::factory()->create(['workspace_id' => $other->workspace()->id]);
 
         $this->actingAs($this->teammate)
-            ->delete(route('library.prompts.destroy', ['external_id' => $foreign->external_id]))
+            ->delete(route('library.prompts.destroy', ['prompt' => $foreign->external_id]))
             ->assertNotFound();
 
         expect(AgentPrompt::whereKey($foreign->id)->exists())->toBeTrue();

@@ -17,9 +17,9 @@ export type AgentAttachments = Domain.Membership.Agent.Data.Resources.AgentMembe
 /** Functions and connectors live under Workspace → Integrations; chatters under People. */
 const attachmentRoutes = {
     function: {
-        index: (id: string) => functionAgents.index.url({ external_id: id }),
-        attach: (id: string, agent: string) => functionAgents.attach.url({ external_id: id, agent }),
-        detach: (id: string, agent: string) => functionAgents.detach.url({ external_id: id, agent }),
+        index: (id: string) => functionAgents.index.url({ function: id }),
+        attach: (id: string, agent: string) => functionAgents.attach.url({ function: id, agent }),
+        detach: (id: string, agent: string) => functionAgents.detach.url({ function: id, agent }),
     },
     connector: {
         index: (slug: string) => connectorAgents.index.url({ slug }),

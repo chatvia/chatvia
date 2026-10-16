@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Settings\Prompt;
 
 use App\Http\Requests\Settings\Prompt\CreatePromptRequest;
 use App\Http\Requests\Settings\Prompt\UpdatePromptRequest;
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Prompt\Actions\CreatePromptAction;
 use Domain\Agent\Prompt\Actions\UpdatePromptAction;
 use Domain\Agent\Prompt\Data\Resources\AgentPromptPickerData;
@@ -63,24 +62,18 @@ class PromptController
         return back();
     }
 
-    public function update(UpdatePromptRequest $request, string $external_id, UpdatePromptAction $updatePrompt): RedirectResponse
+    public function update(UpdatePromptRequest $request, AgentPrompt $prompt, UpdatePromptAction $updatePrompt): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
-        $updatePrompt->execute($user, $external_id, $request->toData());
+        $updatePrompt->execute($prompt, $request->toData());
 
         return back();
     }
 
-    public function destroy(Request $request, string $external_id): RedirectResponse
+    public function destroy(AgentPrompt $prompt): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
         // Library prompt delete. Agents referencing it have agent_prompt_id
         // nulled by the FK (nullOnDelete), falling back to their own instructions.
-        $user->workspace()->prompts()->where('external_id', $external_id)->firstOrFail()->delete();
+        $prompt->delete();
 
         return back();
     }

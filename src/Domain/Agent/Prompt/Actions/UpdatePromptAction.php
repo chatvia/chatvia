@@ -2,7 +2,6 @@
 
 namespace Domain\Agent\Prompt\Actions;
 
-use App\Identity\Workspace\Models\User;
 use Domain\Agent\Prompt\Data\UpdatePromptData;
 use Domain\Agent\Prompt\Models\AgentPrompt;
 
@@ -13,11 +12,8 @@ use Domain\Agent\Prompt\Models\AgentPrompt;
  */
 class UpdatePromptAction
 {
-    public function execute(User $user, string $externalId, UpdatePromptData $data): AgentPrompt
+    public function execute(AgentPrompt $prompt, UpdatePromptData $data): AgentPrompt
     {
-        /** @var AgentPrompt $prompt */
-        $prompt = $user->workspace()->prompts()->where('external_id', $externalId)->firstOrFail();
-
         $prompt->update([
             'name' => $data->name,
             'prompt' => $data->prompt,

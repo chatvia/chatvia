@@ -139,6 +139,7 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
         'external_id' => str_contains($route->uri(), '/prompts/')
             ? AgentPrompt::factory()->create(['workspace_id' => $agent->workspace_id])
             : isolationFunction($agent),
+        'prompt' => AgentPrompt::factory()->create(['workspace_id' => $agent->workspace_id]),
         'mcp' => isolationMcpServer($agent),
         'file', 'source', 'fileId', 'sourceFile', 'externalId' => isolationFile($agent),
         'website', 'websiteId' => isolationWebsite($agent),
@@ -166,11 +167,11 @@ function isolationRecordOf(Route $route, string $parameter, User $owner, Agent $
             'input' => 'How long do refunds take?',
             'scorer_type' => 'contains',
             'scorer_config' => ['value' => '5 days'],
-            'active' => true,
+            'is_active' => true,
         ]),
         'team' => $team(),
         'role', 'roleId' => $team()->roles()->oldest('id')->firstOrFail(),
-        'invitationId' => $team()->invitations()->create([
+        'invitation', 'invitationId' => $team()->invitations()->create([
             'email' => Str::lower(Str::random(8)).'@example.test',
             'role_id' => $team()->roles()->oldest('id')->value('id'),
         ]),
@@ -333,8 +334,8 @@ function isolationBody(Route $route, array $ofB): array
         'teams.update-role' => ['name' => 'Renamed', 'all_agents' => true],
         'agents.sources.text.update' => ['content' => str_repeat('Our new refund policy. ', 25)],
         'agents.sources.qa.update' => ['title' => 'Refunds', 'questions' => [['question' => 'How long?']], 'answer' => 'Five days.'],
-        'agents.sources.files.link' => ['file_id' => $ofB['fileId']->getKey()],
-        'agents.sources.texts.link' => ['text_id' => $ofB['textId']->getKey()],
+        'agents.sources.files.link' => ['file_id' => $ofB['file']->getKey()],
+        'agents.sources.texts.link' => ['text_id' => $ofB['text']->getKey()],
         'agents.sources.trained-websites.link' => ['website_id' => $ofB['websiteId']->getKey()],
         default => [],
     };
@@ -399,7 +400,7 @@ function isolationRecordParameters(): array
     return [
         'agent', 'conversation', 'conversationId', 'function', 'external_id', 'mcp', 'file', 'source', 'fileId',
         'sourceFile', 'externalId', 'website', 'websiteId', 'link', 'text', 'textId', 'id', 'qa', 'youtube', 'topic',
-        'chatter', 'form', 'run', 'case', 'team', 'role', 'roleId', 'invitationId', 'member', 'export', 'tokenId',
+        'chatter', 'form', 'run', 'case', 'team', 'role', 'roleId', 'invitation', 'invitationId', 'member', 'export', 'tokenId', 'prompt',
         'event', 'blockedVisitor', 'notification',
     ];
 }

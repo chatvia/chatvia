@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Team\Roles;
 use Domain\Membership\Team\Data\Resources\Roles\TeamRoleData;
 use Domain\Membership\Team\Data\Resources\Team\TeamAgentData;
 use Domain\Membership\Team\Data\Resources\Team\TeamData;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Domain\Membership\Team\Services\TeamPermissionCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -22,11 +23,11 @@ class TeamRoleEditShowController
         private readonly TeamPermissionCatalog $catalog,
     ) {}
 
-    public function __invoke(Request $request, Team $team, int $roleId): Response|RedirectResponse
+    public function __invoke(Request $request, Team $team, Role $role): Response|RedirectResponse
     {
         abort_if($request->user()->cannot('update', $team), 403, __('Only the team owner can edit roles.'));
 
-        $role = $team->roles()->with('permissions')->findOrFail($roleId);
+        $role->load('permissions');
 
         if ($role->isOwnerRole()) {
             return redirect()->route('teams.show', $team)->with('error', __('Cannot edit the owner role.'));

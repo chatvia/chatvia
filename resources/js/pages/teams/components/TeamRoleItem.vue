@@ -149,7 +149,7 @@ const hasPermission = (permission: string): boolean => {
                     <Tooltip>
                         <TooltipTrigger as-child>
                             <Button variant="ghost" size="icon" class="size-8" as-child :aria-label="t('teams.show.roles.edit_role')">
-                                <Link :href="editRole.url({ team: team.external_id, roleId: role.id })">
+                                <Link :href="editRole.url({ team: team.external_id, role: role.external_id })">
                                     <Edit class="size-4" />
                                 </Link>
                             </Button>

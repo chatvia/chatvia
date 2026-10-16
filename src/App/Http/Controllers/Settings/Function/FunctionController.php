@@ -8,6 +8,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Integration\Function\Actions\CreateAgentFunctionAction;
 use Domain\Integration\Function\Actions\UpdateAgentFunctionAction;
 use Domain\Integration\Function\Data\Resources\WorkspaceFunctionRowData;
+use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,21 +47,18 @@ class FunctionController
         return back();
     }
 
-    public function update(UpdateAgentFunctionRequest $request, UpdateAgentFunctionAction $update): RedirectResponse
+    public function update(UpdateAgentFunctionRequest $request, AgentFunction $function, UpdateAgentFunctionAction $update): RedirectResponse
     {
-        $update->execute($request->function(), $request->toData());
+        $update->execute($function, $request->toData());
 
         return back();
     }
 
-    public function destroy(Request $request, string $external_id): RedirectResponse
+    public function destroy(AgentFunction $function): RedirectResponse
     {
-        /** @var User $user */
-        $user = $request->user();
-
         // Deleted through the model (not a mass delete) so the observer drops
         // the cached tool pool of every agent that used the function.
-        $user->workspace()->functions()->where('external_id', $external_id)->firstOrFail()->delete();
+        $function->delete();
 
         return back();
     }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Team\Roles;
 
 use App\Http\Requests\Team\Roles\SaveTeamRoleRequest;
 use Domain\Membership\Team\Actions\Roles\UpdateTeamRoleAction;
+use Domain\Membership\Team\Models\Role;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 
@@ -15,11 +16,9 @@ class TeamRoleUpdateController
     public function __invoke(
         SaveTeamRoleRequest $request,
         Team $team,
-        int $roleId,
+        Role $role,
         UpdateTeamRoleAction $updateRole,
     ): RedirectResponse {
-        $role = $team->roles()->findOrFail($roleId);
-
         abort_if($role->isOwnerRole(), 403, __('Cannot modify the owner role.'));
 
         $updateRole->execute($role, $request->toData($team));

@@ -49,7 +49,7 @@ export function useTeamRemovals(team: MaybeRefOrGetter<TeamData>) {
 
         // A role that members still hold comes back as a validation error,
         // which the global handler shows as a toast; close the dialog either way.
-        deleteRoleForm.delete(deleteRoleRoute.url({ team: toValue(team).external_id, roleId: roleToDelete.value.id }), {
+        deleteRoleForm.delete(deleteRoleRoute.url({ team: toValue(team).external_id, role: roleToDelete.value.external_id }), {
             onFinish: () => {
                 roleToDelete.value = null;
             },

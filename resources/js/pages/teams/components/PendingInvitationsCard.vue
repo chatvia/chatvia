@@ -33,14 +33,14 @@ const roleName = (code: string | null): string | null => props.roles.find((r) =>
 
 const cancelInvitationForm = useForm({});
 const cancelInvitation = (invitationId: number) => {
-    cancelInvitationForm.delete(cancelInvitationRoute.url({ team: props.team.external_id, invitationId }));
+    cancelInvitationForm.delete(cancelInvitationRoute.url({ team: props.team.external_id, invitation: invitationId }));
 };
 
 const resendInvitationForm = useForm({});
 const resendingInvitationId = ref<number | null>(null);
 const resendInvitation = (invitationId: number) => {
     resendingInvitationId.value = invitationId;
-    resendInvitationForm.post(resendInvitationRoute.url({ team: props.team.external_id, invitationId }), {
+    resendInvitationForm.post(resendInvitationRoute.url({ team: props.team.external_id, invitation: invitationId }), {
         preserveScroll: true,
         onSuccess: () => toast.success(t('teams.show.invitations.toast_resent')),
         onError: (errors) => toast.error(errors.invitation || t('teams.show.invitations.toast_resend_failed')),

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Team\Member;
 
+use Domain\Membership\Team\Models\Invitation;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,11 +15,11 @@ class TeamCancelInvitationController
     public function __invoke(
         Request $request,
         Team $team,
-        int $invitationId,
+        Invitation $invitation,
     ): RedirectResponse {
         abort_if($request->user()->cannot('removeTeamMember', $team), 403, __('Only the team owner can cancel invitations.'));
 
-        $team->invitations()->findOrFail($invitationId)->delete();
+        $invitation->delete();
 
         return back()->with('success', __('Invitation cancelled.'));
     }

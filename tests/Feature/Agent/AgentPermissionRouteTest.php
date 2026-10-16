@@ -166,6 +166,18 @@ it('lets the owner through (owners hold every permission)', function (): void {
 // knows, so it needs that kind's training permission; unlinking takes
 // knowledge away, so it needs agent.sources.delete, as the dashboard's
 // remove dialog (unlink or delete) already does.
+it('lists the workspace\'s trained sources to link only with that kind\'s training permission', function (string $perm, string $route, array $query): void {
+    $blocked = teammateWithPermissions($this->owner, []);
+    $allowed = teammateWithPermissions($this->owner, [$perm]);
+
+    $this->actingAs($blocked)->getJson(route($route, [$this->agent, ...$query]))->assertForbidden();
+    $this->actingAs($allowed)->getJson(route($route, [$this->agent, ...$query]))->assertOk();
+})->with([
+    'files' => ['agent.sources.train.files', 'agents.sources.list', ['type' => 'pdf']],
+    'texts' => ['agent.sources.train.text', 'agents.sources.texts.list', []],
+    'websites' => ['agent.sources.train.web', 'agents.sources.trained-websites.index', []],
+]);
+
 it('gates linking a trained file by agent.sources.train.files and unlinking it by agent.sources.delete', function (): void {
     $file = AgentFileFactory::new()->create(['workspace_id' => $this->agent->workspace_id]);
     makeTeamAgent($this->owner, 'Other')->files()->attach($file->id);

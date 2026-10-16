@@ -5,6 +5,7 @@ use Domain\Guardrail\Events\GuardrailTriggered;
 use Domain\Guardrail\Listeners\RecordGuardrailAttack;
 use Domain\Guardrail\Listeners\SendGuardrailAlert;
 use Domain\Guardrail\Notifications\GuardrailAlertNotification;
+use Domain\Security\Actions\RecordSecurityEventAction;
 use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
@@ -71,4 +72,18 @@ it('records a blocked attack in the security audit log, without the message', fu
         && $event->workspaceId === (int) $this->agent->workspace_id
         && ! str_contains($event->metadata, 'sample')
         && json_decode($event->metadata, true)['stage'] === 'output');
+});
+
+it('writes a blocked attack to the audit log table with an outcome the table allows', function (): void {
+    Event::fake([SecurityEventOccurred::class]);
+
+    app(RecordGuardrailAttack::class)->handle(guardrailEvent($this->agent, 'prompt_injection', 'blocked'));
+
+    $recorded = Event::dispatched(SecurityEventOccurred::class)->first()[0];
+    $row = app(RecordSecurityEventAction::class)->execute($recorded);
+
+    expect($row->fresh())
+        ->action->toBe('guardrail.attack_blocked')
+        ->outcome->toBe('denied')
+        ->target_id->toBe((string) $this->agent->id);
 });

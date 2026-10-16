@@ -38,7 +38,7 @@ class SecurityAuditController
                 fn (SecurityAuditCategory $c): array => ['value' => $c->value, 'label' => $c->label()],
                 SecurityAuditCategory::cases(),
             ),
-            'outcomes' => ['success', 'failure'],
+            'outcomes' => ['success', 'failure', 'denied'],
             'filters' => [
                 'category' => $request->filled('category') ? (string) $request->string('category') : null,
                 'outcome' => $request->filled('outcome') ? (string) $request->string('outcome') : null,

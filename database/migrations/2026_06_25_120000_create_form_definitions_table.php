@@ -65,7 +65,8 @@ return new class extends Migration
 
             $table->foreignId('chat_message_id')->nullable()->index();
 
-            $table->string('status')->default('pending');
+            // FormSubmissionStatus; the values are stored, so the list only grows.
+            $table->enum('status', ['pending', 'submitted', 'expired'])->default('pending');
 
             $table->text('values')->nullable();
 
@@ -98,8 +99,6 @@ return new class extends Migration
         DB::statement("CREATE INDEX form_submissions_submitted_idx ON form_submissions (form_definition_id, id) WHERE status = 'submitted'");
         // The workspace lead-retention prune.
         DB::statement("CREATE INDEX form_submissions_workspace_submitted_idx ON form_submissions (workspace_id, submitted_at) WHERE status = 'submitted'");
-
-        Schema::dropIfExists('leads');
     }
 
     public function down(): void

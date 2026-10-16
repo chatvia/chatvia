@@ -20,19 +20,20 @@ return new class extends Migration
             $table->unsignedInteger('retention_analytics_days')->nullable();
             $table->unsignedInteger('anonymize_after_days')->nullable();
 
-            $table->string('ip_allowlist_mode')->default('off');
+            // IpAllowlistMode and GeoMode; the values are stored, so the lists only grow.
+            $table->enum('ip_allowlist_mode', ['off', 'dashboard', 'dashboard_api'])->default('off');
             $table->jsonb('ip_allowlist')->nullable();
-            $table->string('geo_mode')->default('off');
+            $table->enum('geo_mode', ['off', 'allow', 'deny'])->default('off');
             $table->jsonb('geo_countries')->nullable();
 
             $table->string('webhook_url')->nullable();
             $table->text('webhook_secret')->nullable();
-            $table->boolean('webhook_enabled')->default(false);
+            $table->boolean('is_webhook_enabled')->default(false);
             $table->jsonb('webhook_events')->nullable();
             $table->unsignedInteger('webhook_failures')->default(0);
             $table->timestamp('webhook_last_delivered_at')->nullable();
 
-            $table->boolean('scim_enabled')->default(false);
+            $table->boolean('is_scim_enabled')->default(false);
 
             $table->timestamps();
         });

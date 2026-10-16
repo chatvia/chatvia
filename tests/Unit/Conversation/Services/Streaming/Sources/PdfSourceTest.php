@@ -13,7 +13,7 @@ use Domain\Guardrail\Data\GuardResultData;
 use Domain\Guardrail\Services\GuardrailRecorder;
 use Domain\Guardrail\Services\GuardrailService;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
@@ -47,7 +47,7 @@ beforeEach(function (): void {
 function pdfSource(): PdfSource
 {
     return new PdfSource(
-        new DocumentLlm(LlmProviderEnum::MISTRAL),
+        new DocumentLlm(LlmProviderKind::Mistral),
         new class extends AssistantReplyRecorder
         {
             public function __construct() {}

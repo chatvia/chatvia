@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Knowledge\Embedding\Qwen3;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
 use Domain\Llm\Services\ProviderAdapters;
@@ -21,9 +21,9 @@ beforeEach(function (): void {
 it('builds the chat completion URL from the provider\'s address', function (): void {
     Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'hi']]]])]);
 
-    $provider = LlmProvider::factory()->kind(LlmProviderEnum::SCALEWAY)->make(['base_url' => 'https://api.scaleway.test/project-x/v1/']);
+    $provider = LlmProvider::factory()->kind(LlmProviderKind::Scaleway)->make(['base_url' => 'https://api.scaleway.test/project-x/v1/']);
 
-    app(ProviderAdapters::class)->for(LlmProviderEnum::SCALEWAY)->client($provider)->completion(['model' => 'mistral-small-3.2-24b-instruct-2506', 'messages' => []]);
+    app(ProviderAdapters::class)->for(LlmProviderKind::Scaleway)->client($provider)->completion(['model' => 'mistral-small-3.2-24b-instruct-2506', 'messages' => []]);
 
     Http::assertSent(fn (Request $request): bool => $request->url() === 'https://api.scaleway.test/project-x/v1/chat/completions');
 });

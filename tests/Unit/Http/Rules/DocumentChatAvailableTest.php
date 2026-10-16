@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Rules\DocumentChatAvailable;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
 
 /**
@@ -28,7 +28,7 @@ it('refuses a chat PDF upload when no LLM can read PDF documents', function (): 
 });
 
 it('accepts a chat PDF upload when an LLM can read PDF documents', function (): void {
-    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderEnum::MISTRAL));
+    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
 
     expect(dcaValidate())->toBeNull();
 });

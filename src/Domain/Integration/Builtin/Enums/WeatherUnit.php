@@ -8,7 +8,7 @@ namespace Domain\Integration\Builtin\Enums;
  * The unit system a weather lookup reports in. The backing values are the
  * ones OpenWeatherMap's `units` parameter takes.
  */
-enum WeatherUnits: string
+enum WeatherUnit: string
 {
     case Metric = 'metric';
     case Imperial = 'imperial';

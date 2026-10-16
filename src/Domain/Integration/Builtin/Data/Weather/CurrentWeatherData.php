@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Integration\Builtin\Data\Weather;
 
-use Domain\Integration\Builtin\Enums\WeatherUnits;
+use Domain\Integration\Builtin\Enums\WeatherUnit;
 
 /**
  * The current weather in one city, as OpenWeatherMap reports it. Numbers keep
@@ -23,6 +23,6 @@ final readonly class CurrentWeatherData
         public int|float|null $wind,
         /** A short description such as "light rain", or 'n/a'. */
         public string $conditions,
-        public WeatherUnits $units,
+        public WeatherUnit $units,
     ) {}
 }

@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
 use Illuminate\Http\Client\Request;
@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Http;
  * goes through the fakeable Http client and Scaleway::preparePayload(), which
  * stream() uses too.
  */
-function srClient(LlmProviderEnum $kind = LlmProviderEnum::SCALEWAY): LlmProviderInterface
+function srClient(LlmProviderKind $kind = LlmProviderKind::Scaleway): LlmProviderInterface
 {
     return app(LlmProviders::class)->forProvider(LlmProvider::factory()->kind($kind)->make());
 }
@@ -56,7 +56,7 @@ it('never sends reasoning_effort to non-qwen Scaleway models', function (string 
 ]);
 
 it('leaves non-Scaleway providers untouched', function (): void {
-    srClient(LlmProviderEnum::MISTRAL)->completion(['model' => 'mistral-small', 'messages' => []]);
+    srClient(LlmProviderKind::Mistral)->completion(['model' => 'mistral-small', 'messages' => []]);
 
     Http::assertSent(fn (Request $request): bool => ! array_key_exists('reasoning_effort', $request->data()));
 });

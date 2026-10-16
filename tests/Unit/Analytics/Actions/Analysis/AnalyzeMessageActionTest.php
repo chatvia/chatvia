@@ -2,8 +2,8 @@
 
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;
-use Domain\Analytics\Enums\SentimentEnum;
-use Domain\Analytics\Enums\ToneEnum;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Analytics\Events\MessageAnalyzed;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -55,12 +55,12 @@ it('analyzes a user message, persists sentiment+tone, and dispatches MessageAnal
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
     $message->refresh();
-    expect($message->sentiment)->toBe(SentimentEnum::NEGATIVE->value)
-        ->and($message->tone)->toBe(ToneEnum::FRUSTRATED->value);
+    expect($message->sentiment)->toBe(Sentiment::Negative->value)
+        ->and($message->tone)->toBe(Tone::Frustrated->value);
 
     Event::assertDispatched(MessageAnalyzed::class, fn (MessageAnalyzed $event): bool => $event->agentId === $agent->id
-        && $event->sentiment === SentimentEnum::NEGATIVE->value
-        && $event->tone === ToneEnum::FRUSTRATED->value);
+        && $event->sentiment === Sentiment::Negative->value
+        && $event->tone === Tone::Frustrated->value);
 });
 
 it('skips assistant messages without calling the LLM', function (): void {
@@ -88,15 +88,15 @@ it('is idempotent: skips a message that already has sentiment AND tone', functio
     amaEnableAnalytics($agent);
     $message = amaMakeMessage($agent);
     $message->update([
-        'sentiment' => SentimentEnum::POSITIVE->value,
-        'tone' => ToneEnum::SATISFIED->value,
+        'sentiment' => Sentiment::Positive->value,
+        'tone' => Tone::Satisfied->value,
     ]);
 
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
     $message->refresh();
-    expect($message->sentiment)->toBe(SentimentEnum::POSITIVE->value)
-        ->and($message->tone)->toBe(ToneEnum::SATISFIED->value);
+    expect($message->sentiment)->toBe(Sentiment::Positive->value)
+        ->and($message->tone)->toBe(Tone::Satisfied->value);
     Http::assertNothingSent();
     Event::assertNotDispatched(MessageAnalyzed::class);
 });
@@ -131,12 +131,12 @@ it('stores both dimensions but rolls up only the wanted one', function (bool $se
 
     app(AnalyzeMessageAction::class)->execute($message->external_id);
 
-    expect($message->refresh()->sentiment)->toBe(SentimentEnum::NEGATIVE->value)
-        ->and($message->tone)->toBe(ToneEnum::FRUSTRATED->value);
+    expect($message->refresh()->sentiment)->toBe(Sentiment::Negative->value)
+        ->and($message->tone)->toBe(Tone::Frustrated->value);
 
     Event::assertDispatched(MessageAnalyzed::class, fn (MessageAnalyzed $event): bool => $event->agentId === $agent->id
-        && $event->sentiment === ($sentiment ? SentimentEnum::NEGATIVE->value : null)
-        && $event->tone === ($tone ? ToneEnum::FRUSTRATED->value : null));
+        && $event->sentiment === ($sentiment ? Sentiment::Negative->value : null)
+        && $event->tone === ($tone ? Tone::Frustrated->value : null));
 })->with([
     'sentiment only' => [true, false],
     'tone only' => [false, true],

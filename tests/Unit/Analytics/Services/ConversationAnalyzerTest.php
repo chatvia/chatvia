@@ -1,8 +1,8 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Enums\SentimentEnum;
-use Domain\Analytics\Enums\ToneEnum;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Analytics\Services\ConversationAnalyzer;
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Topic\Models\ConversationTopic;
@@ -41,8 +41,8 @@ it('keeps only topic ids the agent actually has', function (): void {
 
     expect($result->topicIds)->toBe([$ids['Billing']])
         ->and($result->suggestedTopics)->toBe(['Refund Requests'])
-        ->and($result->sentiment)->toBe(SentimentEnum::NEGATIVE)
-        ->and($result->tone)->toBe(ToneEnum::FRUSTRATED)
+        ->and($result->sentiment)->toBe(Sentiment::Negative)
+        ->and($result->tone)->toBe(Tone::Frustrated)
         ->and($result->language)->toBe('en');
 });
 

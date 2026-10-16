@@ -1,7 +1,7 @@
 <?php
 
 use Database\Seeders\LlmSeeder;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 
@@ -19,7 +19,7 @@ it('adds the starter catalog to an install without providers', function (): void
     $provider = LlmProvider::query()->sole();
     $starter = collect(json_decode(file_get_contents(database_path('data/llms.json')), true));
 
-    expect($provider->kind)->toBe(LlmProviderEnum::SCALEWAY)
+    expect($provider->kind)->toBe(LlmProviderKind::Scaleway)
         ->and($provider->api_key)->toBeNull()
         ->and($provider->isConnected())->toBeTrue()
         ->and(Llm::query()->pluck('internal_name')->sort()->values()->all())->toBe($starter->pluck('internal_name')->sort()->values()->all());

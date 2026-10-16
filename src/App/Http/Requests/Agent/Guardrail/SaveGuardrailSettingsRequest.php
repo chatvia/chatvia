@@ -35,7 +35,7 @@ class SaveGuardrailSettingsRequest extends FormRequest
         return [
             'enabled' => ['required', 'boolean'],
             'filters' => ['nullable', 'array'],
-            'filters.*' => ['string', Rule::in(PiiFilterType::keys())],
+            'filters.*' => ['string', Rule::enum(PiiFilterType::class)],
             'pii_actions' => ['nullable', 'array'],
             'pii_actions.*' => [Rule::enum(PiiHandling::class)],
             'custom_patterns' => ['nullable', 'array', 'max:20'],

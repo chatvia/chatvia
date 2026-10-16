@@ -4,7 +4,7 @@ use Domain\Llm\Data\Chat\ChatMessageData;
 use Domain\Llm\Data\Chat\ChatRequestData;
 use Domain\Llm\Data\Chat\ChatResponseData;
 use Domain\Llm\Data\Chat\ResponseSchemaData;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Exceptions\InvalidStructuredReplyException;
 use Domain\Llm\Exceptions\LlmProviderUnavailableException;
 use Domain\Llm\Services\LlmChat;
@@ -20,8 +20,8 @@ use Illuminate\Support\Facades\Http;
 it('sends each request to the provider of its model, with its key', function (): void {
     Http::fake(['*' => Http::response(['choices' => [['message' => ['content' => 'ok']]]])]);
 
-    $groq = testLlm('llama-3.3-70b', LlmProviderEnum::GROQ);
-    $local = testLlm('qwen3:8b', LlmProviderEnum::CUSTOM);
+    $groq = testLlm('llama-3.3-70b', LlmProviderKind::Groq);
+    $local = testLlm('qwen3:8b', LlmProviderKind::Custom);
     $local->provider->update(['base_url' => 'http://ollama.test:11434/v1', 'api_key' => null]);
 
     app(LlmChat::class)->send(new ChatRequestData($groq, [ChatMessageData::user('Hi')]));

@@ -1,7 +1,7 @@
 <?php
 
 use Domain\Agent\Models\Agent;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\DocumentLlm;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -19,7 +19,7 @@ beforeEach(function (): void {
 });
 
 it('offers uploads when the owner allows them and a PDF-reading LLM is set up', function (): void {
-    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderEnum::MISTRAL));
+    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
 
     $this->get($this->chat)
         ->assertInertia(fn (Assert $page): Assert => $page
@@ -37,7 +37,7 @@ it('hides uploads when no LLM can read PDF files', function (): void {
 });
 
 it('hides uploads when the owner turned them off', function (): void {
-    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderEnum::MISTRAL));
+    app()->instance(DocumentLlm::class, new DocumentLlm(LlmProviderKind::Mistral));
     $this->agent->setSetting('allow_file_uploads', false, 'appearance');
 
     $this->get($this->chat)

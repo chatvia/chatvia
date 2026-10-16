@@ -9,11 +9,11 @@ namespace Domain\Analytics\Enums;
  * messages and conversations and in the daily sentiment rollup; the values
  * must not change.
  */
-enum SentimentEnum: string
+enum Sentiment: string
 {
-    case POSITIVE = 'positive';
+    case Positive = 'positive';
 
-    case NEGATIVE = 'negative';
+    case Negative = 'negative';
 
-    case NEUTRAL = 'neutral';
+    case Neutral = 'neutral';
 }

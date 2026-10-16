@@ -3,7 +3,7 @@
 namespace Domain\Integration\Builtin\Services;
 
 use Domain\Integration\Builtin\Data\Weather\CurrentWeatherData;
-use Domain\Integration\Builtin\Enums\WeatherUnits;
+use Domain\Integration\Builtin\Enums\WeatherUnit;
 use Domain\Integration\Builtin\Exceptions\WeatherLookupException;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -17,7 +17,7 @@ class OpenWeatherClient
     /**
      * @throws WeatherLookupException
      */
-    public function current(string $apiKey, string $location, WeatherUnits $units): CurrentWeatherData
+    public function current(string $apiKey, string $location, WeatherUnit $units): CurrentWeatherData
     {
         // The provider takes the key as a query parameter, and connection
         // errors carry the full URL in their message — keep that message away

@@ -6,7 +6,7 @@ namespace Domain\Llm\Providers\Adapters;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Data\Catalog\RemoteModelData;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\OpenRouter;
 
@@ -17,9 +17,9 @@ use Domain\Llm\Providers\OpenRouter;
  */
 final class OpenRouterAdapter extends OpenAiCompatibleAdapter
 {
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::OPENROUTER;
+        return LlmProviderKind::OpenRouter;
     }
 
     public function label(): string

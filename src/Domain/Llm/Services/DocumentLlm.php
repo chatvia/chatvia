@@ -3,7 +3,7 @@
 namespace Domain\Llm\Services;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Exceptions\DocumentLlmUnavailableException;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
@@ -21,12 +21,12 @@ use Domain\Llm\Models\LlmProvider;
 final readonly class DocumentLlm
 {
     public function __construct(
-        private ?LlmProviderEnum $provider,
+        private ?LlmProviderKind $provider,
     ) {}
 
     public function isAvailable(): bool
     {
-        return $this->provider instanceof LlmProviderEnum;
+        return $this->provider instanceof LlmProviderKind;
     }
 
     /**

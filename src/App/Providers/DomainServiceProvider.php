@@ -102,7 +102,7 @@ use Domain\Llm\Contracts\RealtimeCalls;
 use Domain\Llm\Contracts\Transcriber;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Operations\Media\NullTranscriber;
 use Domain\Llm\Operations\Media\OpenAiTranscriber;
 use Domain\Llm\Operations\Media\ScalewayTranscriber;
@@ -244,7 +244,7 @@ class DomainServiceProvider extends ServiceProvider
 
         $this->app->bind(function ($app): DocumentLlm {
             $readers = array_map(
-                static fn (ProviderAdapter $adapter): LlmProviderEnum => $adapter->kind(),
+                static fn (ProviderAdapter $adapter): LlmProviderKind => $adapter->kind(),
                 array_values(array_filter($app->make(ProviderAdapters::class)->all(), static fn (ProviderAdapter $adapter): bool => $adapter->readsDocuments())),
             );
 
@@ -257,10 +257,10 @@ class DomainServiceProvider extends ServiceProvider
                 return new DocumentLlm(null);
             }
 
-            $provider = LlmProviderEnum::tryFrom($driver);
+            $provider = LlmProviderKind::tryFrom($driver);
 
             if (! in_array($provider, $readers, true)) {
-                throw $this->unknownAiDriver('document_llm', [...array_map(static fn (LlmProviderEnum $kind): string => $kind->value, $readers), 'none']);
+                throw $this->unknownAiDriver('document_llm', [...array_map(static fn (LlmProviderKind $kind): string => $kind->value, $readers), 'none']);
             }
 
             return new DocumentLlm($provider);

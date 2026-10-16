@@ -16,7 +16,7 @@ use App\Identity\Workspace\Models\User;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Illuminate\Support\Facades\Bus;
 
@@ -40,7 +40,7 @@ beforeEach(function (): void {
 function completeSetupData(array $overrides = []): SetupData
 {
     return new SetupData(...[
-        'chatKind' => LlmProviderEnum::SCALEWAY,
+        'chatKind' => LlmProviderKind::Scaleway,
         'apiKey' => 'scw-key',
         'chatModels' => [
             new RemoteModelData(id: 'gpt-oss-120b', name: 'GPT OSS 120B', contextWindow: 128_000),
@@ -58,7 +58,7 @@ it('saves the key once, adds the chat models with the default, and marks the set
     $default = app(CompleteSetupAction::class)->execute(completeSetupData());
 
     expect($default->internal_name)->toBe('mistral-small')
-        ->and($default->provider->kind)->toBe(LlmProviderEnum::SCALEWAY)
+        ->and($default->provider->kind)->toBe(LlmProviderKind::Scaleway)
         ->and(Llm::query()->whereIn('internal_name', ['gpt-oss-120b', 'mistral-small'])->where('is_enabled', true)->count())->toBe(2)
         ->and(savedSetting(AiProviderSettings::class, 'scaleway_api_key'))->toBe('scw-key')
         ->and(savedSetting(AiSettings::class, 'default_agent_model'))->toBe($default->external_name)
@@ -152,7 +152,7 @@ it('refuses a setup without a chat model, and saves nothing', function (): void 
 });
 
 it('refuses a server of your own without its address, and saves nothing', function (): void {
-    expect(fn (): Llm => app(CompleteSetupAction::class)->execute(completeSetupData(['chatKind' => LlmProviderEnum::CUSTOM])))
+    expect(fn (): Llm => app(CompleteSetupAction::class)->execute(completeSetupData(['chatKind' => LlmProviderKind::Custom])))
         ->toThrow(InvalidArgumentException::class, 'A server of your own needs its address.');
 
     expect(savedSetting(PlatformSettings::class, 'setup_status'))->toBeNull()

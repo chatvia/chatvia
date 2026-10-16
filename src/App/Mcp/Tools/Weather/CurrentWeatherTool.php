@@ -3,10 +3,11 @@
 namespace App\Mcp\Tools\Weather;
 
 use App\Mcp\McpCallerContext;
-use Domain\Integration\Builtin\Enums\WeatherUnits;
+use Domain\Integration\Builtin\Enums\WeatherUnit;
 use Domain\Integration\Builtin\Exceptions\WeatherLookupException;
 use Domain\Integration\Builtin\Services\OpenWeatherClient;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\Validation\Rule;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\ResponseFactory;
@@ -30,13 +31,13 @@ class CurrentWeatherTool extends Tool
     {
         $validated = $request->validate([
             'location' => ['required', 'string', 'max:100'],
-            'units' => ['nullable', 'in:metric,imperial'],
+            'units' => ['nullable', Rule::enum(WeatherUnit::class)],
         ], [
             'location.required' => 'You must specify a city to get the weather for. For example, "Oslo" or "Tokyo".',
-            'units.in' => 'units must be either "metric" (Celsius) or "imperial" (Fahrenheit).',
+            'units.enum' => 'units must be either "metric" (Celsius) or "imperial" (Fahrenheit).',
         ]);
 
-        $units = WeatherUnits::from($validated['units'] ?? WeatherUnits::Metric->value);
+        $units = WeatherUnit::from($validated['units'] ?? WeatherUnit::Metric->value);
 
         // The customer supplies their own OpenWeatherMap key when they connect
         // this connector; McpClient forwards it as a Bearer token.

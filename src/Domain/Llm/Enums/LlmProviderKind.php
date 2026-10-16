@@ -23,16 +23,16 @@ use Domain\Llm\Providers\Contracts\ProviderAdapter;
  * Adding a provider means adding a case (the `llm_providers.kind` CHECK
  * constraint is built from the cases) and its adapter here.
  */
-enum LlmProviderEnum: string
+enum LlmProviderKind: string
 {
-    case OPENROUTER = 'openrouter';
-    case OPENAI = 'openai';
-    case ANTHROPIC = 'anthropic';
-    case GOOGLE = 'google';
-    case MISTRAL = 'mistral';
-    case GROQ = 'groq';
-    case SCALEWAY = 'scaleway';
-    case CUSTOM = 'custom';
+    case OpenRouter = 'openrouter';
+    case OpenAi = 'openai';
+    case Anthropic = 'anthropic';
+    case Google = 'google';
+    case Mistral = 'mistral';
+    case Groq = 'groq';
+    case Scaleway = 'scaleway';
+    case Custom = 'custom';
 
     /**
      * The adapter of this kind, or null while the app cannot call it yet.
@@ -42,14 +42,14 @@ enum LlmProviderEnum: string
     public function adapter(): ?string
     {
         return match ($this) {
-            self::OPENROUTER => OpenRouterAdapter::class,
-            self::OPENAI => OpenAiAdapter::class,
-            self::GOOGLE => GeminiAdapter::class,
-            self::MISTRAL => MistralAdapter::class,
-            self::GROQ => GroqAdapter::class,
-            self::SCALEWAY => ScalewayAdapter::class,
-            self::CUSTOM => CustomServerAdapter::class,
-            self::ANTHROPIC => null,
+            self::OpenRouter => OpenRouterAdapter::class,
+            self::OpenAi => OpenAiAdapter::class,
+            self::Google => GeminiAdapter::class,
+            self::Mistral => MistralAdapter::class,
+            self::Groq => GroqAdapter::class,
+            self::Scaleway => ScalewayAdapter::class,
+            self::Custom => CustomServerAdapter::class,
+            self::Anthropic => null,
         };
     }
 }

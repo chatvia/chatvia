@@ -4,7 +4,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Rerank\RerankerFactory;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Contracts\ProviderAdapter;
@@ -43,7 +43,7 @@ it('gives every chat provider an account with chat, and back', function (): void
         /** @var ProviderAdapter $adapter */
         $account = $adapter->account();
 
-        if ($adapter->kind() === LlmProviderEnum::CUSTOM) {
+        if ($adapter->kind() === LlmProviderKind::Custom) {
             expect($account)->toBeNull();
 
             continue;

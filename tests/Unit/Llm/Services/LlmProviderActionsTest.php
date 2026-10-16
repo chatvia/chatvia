@@ -3,7 +3,7 @@
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
 use Domain\Llm\Actions\Catalog\SaveCustomLlmServerAction;
 use Domain\Llm\Data\Catalog\CustomLlmServerData;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 
 /**
@@ -11,13 +11,13 @@ use Domain\Llm\Models\LlmProvider;
  * keeps its address and key on its row.
  */
 it('keeps one row per provider with an account, with no key', function (): void {
-    $first = app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::GROQ);
-    $again = app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::GROQ);
+    $first = app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::Groq);
+    $again = app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::Groq);
 
     expect($again->is($first))->toBeTrue()
         ->and($first->name)->toBe('Groq')
         ->and($first->api_key)->toBeNull()
-        ->and(fn (): LlmProvider => app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::CUSTOM))->toThrow(InvalidArgumentException::class);
+        ->and(fn (): LlmProvider => app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::Custom))->toThrow(InvalidArgumentException::class);
 });
 
 it('saves a server of your own, keeping its key when none is given', function (): void {

@@ -5,8 +5,8 @@ namespace Domain\Analytics\Services;
 use Domain\Agent\Models\Agent;
 use Domain\Analytics\Actions\Analysis\AnalyzeMessageAction;
 use Domain\Analytics\Data\ConversationAnalysisData;
-use Domain\Analytics\Enums\SentimentEnum;
-use Domain\Analytics\Enums\ToneEnum;
+use Domain\Analytics\Enums\Sentiment;
+use Domain\Analytics\Enums\Tone;
 use Domain\Analytics\Queries\Topics\SuggestedTopicsQuery;
 use Domain\Conversation\Topic\Models\ConversationTopic;
 use Domain\Conversation\Topic\Models\Topic;
@@ -192,7 +192,7 @@ class ConversationAnalyzer
         return [
             'type' => 'string',
             'description' => "The visitor's overall sentiment.",
-            'enum' => array_column(SentimentEnum::cases(), 'value'),
+            'enum' => array_column(Sentiment::cases(), 'value'),
         ];
     }
 
@@ -204,24 +204,24 @@ class ConversationAnalyzer
         return [
             'type' => 'string',
             'description' => "The visitor's overall tone.",
-            'enum' => ToneEnum::values(),
+            'enum' => Tone::values(),
         ];
     }
 
     /**
      * @param  array<array-key, mixed>  $data
      */
-    private function sentiment(array $data): SentimentEnum
+    private function sentiment(array $data): Sentiment
     {
-        return SentimentEnum::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? SentimentEnum::NEUTRAL;
+        return Sentiment::tryFrom(strtolower((string) ($data['sentiment'] ?? ''))) ?? Sentiment::Neutral;
     }
 
     /**
      * @param  array<array-key, mixed>  $data
      */
-    private function tone(array $data): ToneEnum
+    private function tone(array $data): Tone
     {
-        return ToneEnum::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? ToneEnum::NEUTRAL;
+        return Tone::tryFrom(strtolower((string) ($data['tone'] ?? ''))) ?? Tone::Neutral;
     }
 
     /**

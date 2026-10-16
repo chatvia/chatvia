@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Llm\Providers\Adapters;
 
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 
 /**
  * Any other server with an OpenAI-compatible API: one an admin runs (vLLM,
@@ -13,9 +13,9 @@ use Domain\Llm\Enums\LlmProviderEnum;
  */
 final class CustomServerAdapter extends OpenAiCompatibleAdapter
 {
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::CUSTOM;
+        return LlmProviderKind::Custom;
     }
 
     public function label(): string

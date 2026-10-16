@@ -46,7 +46,10 @@ enum LlmTask: string
     {
         return match ($this) {
             self::Chat => 'chatvia.agent.default_model',
-            default => "chatvia.ai.tasks.{$this->value}",
+            self::FollowUp, self::ToolRouting, self::Guardrails, self::Titles,
+            self::ConversationAnalysis, self::Starters, self::Translation,
+            self::FormText, self::ChatAddress, self::Enhancement, self::Tables,
+            self::Images, self::EvalJudge => "chatvia.ai.tasks.{$this->value}",
         };
     }
 
@@ -55,7 +58,10 @@ enum LlmTask: string
     {
         return match ($this) {
             self::Chat => 'default_agent_model',
-            default => "{$this->value}_model",
+            self::FollowUp, self::ToolRouting, self::Guardrails, self::Titles,
+            self::ConversationAnalysis, self::Starters, self::Translation,
+            self::FormText, self::ChatAddress, self::Enhancement, self::Tables,
+            self::Images, self::EvalJudge => "{$this->value}_model",
         };
     }
 

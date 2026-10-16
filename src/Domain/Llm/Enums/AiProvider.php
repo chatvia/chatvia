@@ -129,21 +129,21 @@ enum AiProvider: string
     }
 
     /** The kind of its chat provider rows, or null when it has no chat models. */
-    public function chatKind(): ?LlmProviderEnum
+    public function chatKind(): ?LlmProviderKind
     {
         return match ($this) {
-            self::Scaleway => LlmProviderEnum::SCALEWAY,
-            self::OpenRouter => LlmProviderEnum::OPENROUTER,
-            self::OpenAi => LlmProviderEnum::OPENAI,
-            self::Mistral => LlmProviderEnum::MISTRAL,
-            self::Google => LlmProviderEnum::GOOGLE,
-            self::Groq => LlmProviderEnum::GROQ,
+            self::Scaleway => LlmProviderKind::Scaleway,
+            self::OpenRouter => LlmProviderKind::OpenRouter,
+            self::OpenAi => LlmProviderKind::OpenAi,
+            self::Mistral => LlmProviderKind::Mistral,
+            self::Google => LlmProviderKind::Google,
+            self::Groq => LlmProviderKind::Groq,
             self::Cohere, self::Jina, self::Azure => null,
         };
     }
 
     /** The account of a chat provider kind, or null for a server of your own. */
-    public static function forChatKind(LlmProviderEnum $kind): ?self
+    public static function forChatKind(LlmProviderKind $kind): ?self
     {
         return array_find(self::cases(), fn (self $provider): bool => $provider->chatKind() === $kind);
     }

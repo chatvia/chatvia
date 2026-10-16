@@ -10,7 +10,7 @@ use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Knowledge\Embedding\Services\EmbeddingCheck;
 use Domain\Knowledge\Ingestion\Services\Clients\AzureDocumentIntelligence;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Enums\ModelListStatus;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\ModelListing;
@@ -52,7 +52,7 @@ final readonly class AiProviderCheck
 
         $kind = $provider->chatKind();
 
-        if ($kind instanceof LlmProviderEnum) {
+        if ($kind instanceof LlmProviderKind) {
             $draft = new LlmProvider(['kind' => $kind, 'name' => $provider->label(), 'api_key' => $key]);
             $list = $this->listing->list($draft);
 

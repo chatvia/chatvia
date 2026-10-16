@@ -6,7 +6,7 @@ namespace Domain\Llm\Providers\Adapters;
 
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Data\Catalog\RemoteModelData;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Providers\Mistral;
 
@@ -18,9 +18,9 @@ use Domain\Llm\Providers\Mistral;
  */
 final class MistralAdapter extends OpenAiCompatibleAdapter
 {
-    public function kind(): LlmProviderEnum
+    public function kind(): LlmProviderKind
     {
-        return LlmProviderEnum::MISTRAL;
+        return LlmProviderKind::Mistral;
     }
 
     public function label(): string

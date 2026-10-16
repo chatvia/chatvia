@@ -20,7 +20,7 @@ use Domain\Conversation\Topic\Models\Topic;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 use Domain\Llm\Services\LlmProviders;
@@ -181,7 +181,7 @@ function connectAiProviders(AiProvider ...$providers): void
  *
  * @param  array<string, mixed>  $attributes
  */
-function testLlm(string $internalName = 'test-model', LlmProviderEnum $kind = LlmProviderEnum::CUSTOM, array $attributes = []): Llm
+function testLlm(string $internalName = 'test-model', LlmProviderKind $kind = LlmProviderKind::Custom, array $attributes = []): Llm
 {
     if (($account = AiProvider::forChatKind($kind)) instanceof AiProvider) {
         connectAiProviders($account);

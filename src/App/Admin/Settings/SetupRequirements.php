@@ -7,7 +7,7 @@ namespace App\Admin\Settings;
 use Domain\Knowledge\Embedding\Enums\EmbeddingProvider;
 use Domain\Llm\Enums\AiCapability;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 
@@ -42,7 +42,7 @@ final class SetupRequirements
     private function chatConnected(): bool
     {
         return AiProvider::firstConnectedFor(AiCapability::Chat) instanceof AiProvider
-            || LlmProvider::query()->where('kind', LlmProviderEnum::CUSTOM)->where('is_enabled', true)->exists();
+            || LlmProvider::query()->where('kind', LlmProviderKind::Custom)->where('is_enabled', true)->exists();
     }
 
     /** The provider of the embedding service in use has its key. */

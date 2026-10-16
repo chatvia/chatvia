@@ -1,6 +1,6 @@
 <?php
 
-use Domain\Integration\Builtin\Enums\WeatherUnits;
+use Domain\Integration\Builtin\Enums\WeatherUnit;
 use Domain\Integration\Builtin\Exceptions\WeatherLookupException;
 use Domain\Integration\Builtin\Services\OpenWeatherClient;
 use Illuminate\Http\Client\ConnectionException;
@@ -20,7 +20,7 @@ it('reads the current weather with the caller\'s key and units', function (): vo
         'wind' => ['speed' => 7],
     ])]);
 
-    $report = app(OpenWeatherClient::class)->current('the-key', 'Oslo', WeatherUnits::Imperial);
+    $report = app(OpenWeatherClient::class)->current('the-key', 'Oslo', WeatherUnit::Imperial);
 
     expect($report->city)->toBe('Oslo')
         ->and($report->country)->toBe('NO')
@@ -29,7 +29,7 @@ it('reads the current weather with the caller\'s key and units', function (): vo
         ->and($report->humidity)->toBe(81)
         ->and($report->wind)->toBe(7)
         ->and($report->conditions)->toBe('snow')
-        ->and($report->units)->toBe(WeatherUnits::Imperial);
+        ->and($report->units)->toBe(WeatherUnit::Imperial);
 
     Http::assertSent(fn (ClientRequest $request): bool => $request->url() === 'https://weather.example.test/data/2.5/weather?q=Oslo&appid=the-key&units=imperial');
 });
@@ -37,7 +37,7 @@ it('reads the current weather with the caller\'s key and units', function (): vo
 it('fills the optional fields when the provider leaves them out', function (): void {
     Http::fake(['weather.example.test/*' => Http::response(['name' => 'Nowhere', 'main' => ['temp' => 1, 'feels_like' => 1, 'humidity' => 1]])]);
 
-    $report = app(OpenWeatherClient::class)->current('the-key', 'Nowhere', WeatherUnits::Metric);
+    $report = app(OpenWeatherClient::class)->current('the-key', 'Nowhere', WeatherUnit::Metric);
 
     expect($report->country)->toBe('')
         ->and($report->wind)->toBeNull()
@@ -47,7 +47,7 @@ it('fills the optional fields when the provider leaves them out', function (): v
 it('explains a lookup that failed', function (int $status, string $message): void {
     Http::fake(['weather.example.test/*' => Http::response([], $status)]);
 
-    expect(fn () => app(OpenWeatherClient::class)->current('the-key', 'Atlantis', WeatherUnits::Metric))
+    expect(fn () => app(OpenWeatherClient::class)->current('the-key', 'Atlantis', WeatherUnit::Metric))
         ->toThrow(WeatherLookupException::class, $message);
 })->with([
     'unknown city' => [404, "Couldn't find a city called \"Atlantis\"."],
@@ -58,7 +58,7 @@ it('hides connection errors, whose message carries the key-bearing URL', functio
     Http::fake(fn () => throw new ConnectionException('cURL error 28 for https://weather.example.test/data/2.5/weather?appid=the-key'));
 
     try {
-        app(OpenWeatherClient::class)->current('the-key', 'Oslo', WeatherUnits::Metric);
+        app(OpenWeatherClient::class)->current('the-key', 'Oslo', WeatherUnit::Metric);
         $this->fail('Expected a lookup failure.');
     } catch (WeatherLookupException $e) {
         expect($e->getMessage())->toBe('Could not reach the weather service — please try again.')

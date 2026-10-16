@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Domain\Llm\Models;
 
 use Database\Factories\LlmProviderFactory;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Services\ProviderAdapters;
 use Illuminate\Database\Eloquent\Attributes\Guarded;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
- * @property LlmProviderEnum $kind
+ * @property LlmProviderKind $kind
  * @property string $name
  * @property string|null $base_url
  * @property string|null $api_key
@@ -48,7 +48,7 @@ class LlmProvider extends Model
     protected function casts(): array
     {
         return [
-            'kind' => LlmProviderEnum::class,
+            'kind' => LlmProviderKind::class,
             'api_key' => 'encrypted',
             'headers' => 'encrypted:array',
             'is_enabled' => 'boolean',

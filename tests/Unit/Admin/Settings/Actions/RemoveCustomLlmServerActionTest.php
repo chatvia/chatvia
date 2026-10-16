@@ -3,7 +3,7 @@
 use App\Admin\Settings\Actions\RemoveCustomLlmServerAction;
 use App\Identity\Workspace\Models\User;
 use Domain\Llm\Actions\Catalog\EnsureLlmProviderAction;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\Llm;
 use Domain\Llm\Models\LlmProvider;
 
@@ -26,7 +26,7 @@ it('removes a server of your own and its models, moving their agents', function 
 });
 
 it('refuses to remove a provider with an account', function (): void {
-    $groq = app(EnsureLlmProviderAction::class)->execute(LlmProviderEnum::GROQ);
+    $groq = app(EnsureLlmProviderAction::class)->execute(LlmProviderKind::Groq);
 
     expect(function () use ($groq): void {
         app(RemoveCustomLlmServerAction::class)->execute($groq);

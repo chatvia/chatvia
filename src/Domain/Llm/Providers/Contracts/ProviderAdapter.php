@@ -7,7 +7,7 @@ namespace Domain\Llm\Providers\Contracts;
 use Domain\Llm\Contracts\LlmProviderInterface;
 use Domain\Llm\Data\Catalog\RemoteModelData;
 use Domain\Llm\Enums\AiProvider;
-use Domain\Llm\Enums\LlmProviderEnum;
+use Domain\Llm\Enums\LlmProviderKind;
 use Domain\Llm\Models\LlmProvider;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
@@ -16,13 +16,13 @@ use Illuminate\Support\Collection;
 /**
  * Everything the app knows about one kind of LLM provider: how it is shown to
  * an admin, its address and key, the chat client that calls it, and how its
- * model list is read. One class per {@see LlmProviderEnum} case
- * ({@see LlmProviderEnum::adapter()}); nothing outside an adapter branches on
+ * model list is read. One class per {@see LlmProviderKind} case
+ * ({@see LlmProviderKind::adapter()}); nothing outside an adapter branches on
  * the provider kind.
  */
 interface ProviderAdapter
 {
-    public function kind(): LlmProviderEnum;
+    public function kind(): LlmProviderKind;
 
     public function label(): string;
 

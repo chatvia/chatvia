@@ -2,7 +2,7 @@
 
 use App\Identity\Workspace\Models\User;
 use Domain\Agent\Models\Agent;
-use Domain\Analytics\Enums\ToneEnum;
+use Domain\Analytics\Enums\Tone;
 use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Llm\Models\Llm;
 use Illuminate\Database\Migrations\Migration;
@@ -85,7 +85,7 @@ return new class extends Migration
             $table->text('title')->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
-            $table->enum('tone', ToneEnum::values())->nullable();
+            $table->enum('tone', Tone::values())->nullable();
 
             $table->timestamp('analyzed_at')->nullable();
             // Model calls spent analysing this conversation; the hourly pass stops
@@ -136,7 +136,7 @@ return new class extends Migration
             $table->decimal('confidence_score', 3, 2)->nullable();
 
             $table->enum('sentiment', ['positive', 'neutral', 'negative'])->nullable();
-            $table->enum('tone', ToneEnum::values())->nullable();
+            $table->enum('tone', Tone::values())->nullable();
 
             $table->enum('feedback', ['positive', 'negative'])->nullable();
 

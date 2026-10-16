@@ -127,15 +127,17 @@ setup_output() {
     case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in
         *UTF-8* | *utf-8* | *UTF8* | *utf8*)
             S_BAR='│' S_START='┌' S_END='└' S_LINE='─' S_JOIN='├' S_TOP_RIGHT='╮' S_BOTTOM_RIGHT='╯'
+            S_TOP_LEFT='╭' S_BOTTOM_LEFT='╰'
             S_ACTIVE='◆' S_DONE='◇' S_WARN='▲' S_FAIL='■' S_INFO='●'
-            S_ON='●' S_OFF='○' S_MASK='▪' S_OK='✓' S_ARROW='→' S_UP='↑'
+            S_ON='●' S_OFF='○' S_MASK='▪' S_OK='✓' S_ARROW='→' S_UP='↑' S_MORE='…'
             S_UP_DOWN='↑/↓' S_LEFT_RIGHT='←/→'
             SPINNER=('◒' '◐' '◓' '◑') UNICODE=1
             ;;
         *)
             S_BAR='|' S_START='+' S_END='+' S_LINE='-' S_JOIN='+' S_TOP_RIGHT='+' S_BOTTOM_RIGHT='+'
+            S_TOP_LEFT='+' S_BOTTOM_LEFT='+'
             S_ACTIVE='*' S_DONE='o' S_WARN='!' S_FAIL='x' S_INFO='*'
-            S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_ARROW='->' S_UP='^'
+            S_ON='>' S_OFF=' ' S_MASK='*' S_OK='+' S_ARROW='->' S_UP='^' S_MORE='...'
             S_UP_DOWN='up/down' S_LEFT_RIGHT='left/right'
             # shellcheck disable=SC1003 # the last spinner frame is a backslash
             SPINNER=('|' '/' '-' '\') UNICODE=0
@@ -286,18 +288,26 @@ note() {
 # The app's logo (resources/js/components/AppLogoIcon.vue) in half blocks,
 # two square pixels per character, with the name beside the dot. It keeps the
 # terminal's text color, as the logo follows the theme in the app.
+#
+# The website, the license and the author sit beside the logo's foot.
 banner() {
-    local name tagline
+    local name tagline site author
     name=$(bold 'Chatvia')
     tagline=$(dim 'AI agents on your own server')
+    author=$(dim 'Created and maintained by Ahmad Mayahi')
     say ''
     if [ "$UNICODE" = 1 ]; then
+        site="$(accent 'https://chatvia.ai')$(dim ' · MIT License')"
         printf '  %s\n' '    ▄▄██████▄▄' '  ▄████████████' ' ▄███▀      ▀██'
         printf '  %s    %s\n' ' ████           ▄██▄' "$name"
         printf '  %s    %s\n' ' ████           ▀██▀' "$tagline"
-        printf '  %s\n' ' ▀███▄      ▄██' '  █████████████' ' ██████████▀▀▀' '██▀▀'
+        printf '  %s\n' ' ▀███▄      ▄██'
+        printf '  %s    %s\n' '  █████████████     ' "$site"
+        printf '  %s    %s\n' ' ██████████▀▀▀      ' "$author"
+        printf '  %s    %s\n' '██▀▀                ' "$(dim 'https://mayahi.net')"
     else
-        printf '  %s\n' "$name" "$tagline"
+        site="$(accent 'https://chatvia.ai')$(dim ' - MIT License')"
+        printf '  %s\n' "$name" "$tagline" "$site" "$author $(dim '(https://mayahi.net)')"
     fi
 }
 
@@ -378,6 +388,35 @@ answer_drawn() {
     keys_off
 }
 
+# input_room NOTE: how many columns the text in an input box may take, next
+# to NOTE, before the box grows. The box is 48 columns wide inside, or less
+# in a narrow terminal. Sets ROOM.
+input_room() {
+    local plain=${1//$'\033'\[*([0-9;])m/}
+    ROOM=$((COLS - 9))
+    if [ "$ROOM" -gt 48 ]; then ROOM=48; fi
+    if [ -n "$plain" ]; then ROOM=$((ROOM - 2 - ${#plain})); fi
+}
+
+# input_box TEXT NOTE COLOR: the field you type in, as three lines in BOX: a
+# box with rounded corners in COLOR, TEXT (with the cursor) in it, and NOTE
+# at its right end.
+input_box() {
+    local text=$1 note=$2 color=$3 plain extra=0 fill line
+    input_room "$note"
+    plain=${text//$'\033'\[*([0-9;])m/}
+    if [ "${#plain}" -gt "$ROOM" ]; then ROOM=${#plain}; fi
+    repeat_to fill ' ' $((ROOM - ${#plain}))
+    plain=${note//$'\033'\[*([0-9;])m/}
+    if [ -n "$plain" ]; then extra=$((2 + ${#plain})); fi
+    repeat_to line "$S_LINE" $((ROOM + extra + 2))
+    BOX=(
+        "$color$S_TOP_LEFT$line$S_TOP_RIGHT$C_RESET"
+        "$color$S_BAR$C_RESET $text$fill${note:+  $note} $color$S_BAR$C_RESET"
+        "$color$S_BOTTOM_LEFT$line$S_BOTTOM_RIGHT$C_RESET"
+    )
+}
+
 # ask VAR "Question" [--default TEXT] [--placeholder TEXT] [--hint TEXT]
 #     [--check FN] [--status FN] [--complete FN]
 #   --default      the answer when Enter is pressed on an empty line
@@ -402,7 +441,7 @@ ask() {
         shift 2
     done
 
-    local value='' answer='' error='' shown input help sym rail foot
+    local value='' answer='' error='' input help sym rail border foot
     local lines
     block question
 
@@ -428,18 +467,24 @@ ask() {
         STATUS=''
         if [ -n "$status" ]; then "$status" "${value:-$default}" || true; fi
 
-        shown=${default:-$placeholder}
-        if [ -n "$value" ]; then
+        # The default is a real answer, so it is shown like typed text; a
+        # placeholder is only an example, so it is greyed out. A long answer
+        # shows its end, where you type.
+        input_room "$STATUS"
+        if [ -n "$value" ] && [ "${#value}" -ge "$ROOM" ] && [ "$ROOM" -gt 10 ]; then
+            input="$C_DIM$S_MORE$C_RESET${value:$((${#value} - ROOM + 1 + ${#S_MORE}))}$C_INVERSE $C_NO_INVERSE"
+        elif [ -n "$value" ]; then
             input="$value$C_INVERSE $C_NO_INVERSE"
-        elif [ -n "$shown" ]; then
-            input="$C_INVERSE${shown:0:1}$C_NO_INVERSE$C_DIM${shown:1}$C_RESET"
+        elif [ -n "$default" ]; then
+            input="$C_INVERSE${default:0:1}$C_NO_INVERSE${default:1}"
+        elif [ -n "$placeholder" ]; then
+            input="$C_INVERSE${placeholder:0:1}$C_NO_INVERSE$C_DIM${placeholder:1}$C_RESET"
         else
             input="$C_INVERSE $C_NO_INVERSE"
         fi
-        if [ -n "$STATUS" ]; then input="$input  $STATUS"; fi
 
         if [ -n "$error" ]; then
-            sym=$WARN rail=$WARN_BAR foot="$WARN_END  $C_YELLOW$error$C_RESET"
+            sym=$WARN rail=$WARN_BAR border=$C_YELLOW foot="$WARN_END  $C_YELLOW$error$C_RESET"
         else
             help=''
             if [ -z "$value" ] && [ -n "$default" ]; then
@@ -447,12 +492,13 @@ ask() {
             elif [ -n "$value" ] && [ -n "$complete" ]; then
                 help='Tab to complete'
             fi
-            sym=$ACTIVE rail=$ACTIVE_BAR foot="$ACTIVE_END${help:+  $C_DIM$help$C_RESET}"
+            sym=$ACTIVE rail=$ACTIVE_BAR border=$C_ACCENT foot="$ACTIVE_END${help:+  $C_DIM$help$C_RESET}"
         fi
 
         lines=("  $sym  $C_BOLD$label$C_RESET")
         if [ -n "$hint" ]; then lines+=("  $rail  $C_DIM$hint$C_RESET"); fi
-        lines+=("  $rail  $input")
+        input_box "$input" "$STATUS" "$border"
+        lines+=("  $rail  ${BOX[0]}" "  $rail  ${BOX[1]}" "  $rail  ${BOX[2]}")
         if [ -n "$CHOICES" ]; then lines+=("  $rail  $C_DIM$CHOICES$C_RESET"); fi
         lines+=("  $foot")
         draw "${lines[@]}"
@@ -498,7 +544,7 @@ ask() {
 
 # ask_secret VAR "Question": a hidden password, typed twice.
 ask_secret() {
-    local var=$1 label=$2 first='' second='' again=0 error='' sym rail foot mask count
+    local var=$1 label=$2 first='' second='' again=0 error='' sym rail border foot mask count again_note
     local lines
     block question
 
@@ -526,9 +572,9 @@ ask_secret() {
     keys_on
     while true; do
         if [ -n "$error" ]; then
-            sym=$WARN rail=$WARN_BAR foot="$WARN_END  $C_YELLOW$error$C_RESET"
+            sym=$WARN rail=$WARN_BAR border=$C_YELLOW foot="$WARN_END  $C_YELLOW$error$C_RESET"
         else
-            sym=$ACTIVE rail=$ACTIVE_BAR foot="$ACTIVE_END  ${C_DIM}Enter to continue$C_RESET"
+            sym=$ACTIVE rail=$ACTIVE_BAR border=$C_ACCENT foot="$ACTIVE_END  ${C_DIM}Enter to continue$C_RESET"
         fi
         if [ "${#first}" -ge "$MIN_PASSWORD" ]; then
             count="$C_GREEN$S_OK$C_RESET"
@@ -536,14 +582,23 @@ ask_secret() {
             count="$C_DIM${#first}/$MIN_PASSWORD$C_RESET"
         fi
 
+        # One box per password; the first turns grey once it is typed. A long
+        # password fills its box, and no more.
         lines=("  $sym  $C_BOLD$label$C_RESET" "  $rail  ${C_DIM}At least $MIN_PASSWORD characters, typed twice.$C_RESET")
-        repeat_to mask "$S_MASK" "${#first}"
+        input_room "$count"
+        repeat_to mask "$S_MASK" $((${#first} < ROOM ? ${#first} : ROOM - 1))
         if [ "$again" = 0 ]; then
-            lines+=("  $rail  $mask$C_INVERSE $C_NO_INVERSE  $count")
+            input_box "$mask$C_INVERSE $C_NO_INVERSE" "$count" "$border"
         else
-            lines+=("  $rail  $mask  $count")
-            repeat_to mask "$S_MASK" "${#second}"
-            lines+=("  $rail  $mask$C_INVERSE $C_NO_INVERSE  ${C_DIM}again$C_RESET")
+            input_box "$mask" "$count" "$C_GRAY"
+        fi
+        lines+=("  $rail  ${BOX[0]}" "  $rail  ${BOX[1]}" "  $rail  ${BOX[2]}")
+        if [ "$again" = 1 ]; then
+            again_note="${C_DIM}again$C_RESET"
+            input_room "$again_note"
+            repeat_to mask "$S_MASK" $((${#second} < ROOM ? ${#second} : ROOM - 1))
+            input_box "$mask$C_INVERSE $C_NO_INVERSE" "$again_note" "$border"
+            lines+=("  $rail  ${BOX[0]}" "  $rail  ${BOX[1]}" "  $rail  ${BOX[2]}")
         fi
         lines+=("  $foot")
         draw "${lines[@]}"
@@ -3296,7 +3351,7 @@ main() {
     INSTALL_DIR=${CHATVIA_DIR:-$HOME/chatvia}
     if [ "$INTERACTIVE" = 1 ] && [ -z "${CHATVIA_DIR:-}" ]; then
         ask INSTALL_DIR 'Install folder' --default "$(pretty_path "$INSTALL_DIR")" \
-            --hint 'Holds compose.yaml, .env and the manage tool. Docker keeps your data.' \
+            --hint 'Your Chatvia settings and backups are kept here.' \
             --check check_folder --status folder_status --complete complete_folder
     fi
     INSTALL_DIR=$(resolve_dir "$INSTALL_DIR")

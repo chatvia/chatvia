@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count tjeneste er nede|:count tjenester er nede",
     ":count service needs a look|:count services need a look": ":count tjeneste bør sjekkes|:count tjenester bør sjekkes",
     "Everything is running": "Alt kjører",
+    "All systems operational": "Alle systemer kjører",
+    "View status": "Se status",
     "Checked at :time": "Sjekket kl. :time",
     "Still checking the AI services…": "Sjekker fortsatt AI-tjenestene…",
     "Check again": "Sjekk igjen",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "Du kan ikke bruke plattformens egen vert som egendefinert domene.",
     "Your invitation link expired. Ask for a fresh one.": "Invitasjonslenken din er utløpt. Be om en ny.",
     "chat message": "chatmelding",
-    "message update information": "informasjon om meldingsoppdatering"
+    "message update information": "informasjon om meldingsoppdatering",
+    "Settings": "Innstillinger",
+    "Reload the saved settings and AI models": "Last inn de lagrede innstillingene og AI-modellene på nytt",
+    "Settings reloaded": "Innstillinger lastet inn på nytt"
 }

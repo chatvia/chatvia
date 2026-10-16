@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count service est en panne|:count services sont en panne",
     ":count service needs a look|:count services need a look": ":count service est à vérifier|:count services sont à vérifier",
     "Everything is running": "Tout fonctionne",
+    "All systems operational": "Tous les systèmes fonctionnent",
+    "View status": "Voir le statut",
     "Checked at :time": "Vérifié à :time",
     "Still checking the AI services…": "Vérification des services d'IA en cours…",
     "Check again": "Vérifier à nouveau",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "Vous ne pouvez pas utiliser l'hôte de la plateforme comme domaine personnalisé.",
     "Your invitation link expired. Ask for a fresh one.": "Votre lien d'invitation a expiré. Demandez-en un nouveau.",
     "chat message": "message de chat",
-    "message update information": "informations de mise à jour du message"
+    "message update information": "informations de mise à jour du message",
+    "Settings": "Paramètres",
+    "Reload the saved settings and AI models": "Recharger les paramètres enregistrés et les modèles d'IA",
+    "Settings reloaded": "Paramètres rechargés"
 }

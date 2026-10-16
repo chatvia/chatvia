@@ -416,6 +416,8 @@
     ":count service is down|:count services are down": ":count tjeneste er nede|:count tjenester er nede",
     ":count service needs a look|:count services need a look": ":count tjeneste bør tjekkes|:count tjenester bør tjekkes",
     "Everything is running": "Alt kører",
+    "All systems operational": "Alle systemer kører",
+    "View status": "Se status",
     "Checked at :time": "Tjekket kl. :time",
     "Still checking the AI services…": "Tjekker stadig AI-tjenesterne…",
     "Check again": "Tjek igen",
@@ -453,5 +455,8 @@
     "You can't use the platform's own host as a custom domain.": "Du kan ikke bruge platformens egen vært som brugerdefineret domæne.",
     "Your invitation link expired. Ask for a fresh one.": "Dit invitationslink er udløbet. Bed om et nyt.",
     "chat message": "chatbesked",
-    "message update information": "oplysninger om beskedopdatering"
+    "message update information": "oplysninger om beskedopdatering",
+    "Settings": "Indstillinger",
+    "Reload the saved settings and AI models": "Genindlæs de gemte indstillinger og AI-modeller",
+    "Settings reloaded": "Indstillinger genindlæst"
 }

@@ -6,6 +6,8 @@ use Domain\Guardrail\Listeners\RecordGuardrailAttack;
 use Domain\Guardrail\Listeners\SendGuardrailAlert;
 use Domain\Guardrail\Notifications\GuardrailAlertNotification;
 use Domain\Security\Actions\RecordSecurityEventAction;
+use Domain\Security\Enums\SecurityAuditAction;
+use Domain\Security\Enums\SecurityAuditOutcome;
 use Domain\Security\Events\SecurityEventOccurred;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
@@ -83,7 +85,7 @@ it('writes a blocked attack to the audit log table with an outcome the table all
     $row = app(RecordSecurityEventAction::class)->execute($recorded);
 
     expect($row->fresh())
-        ->action->toBe('guardrail.attack_blocked')
-        ->outcome->toBe('denied')
+        ->action->toBe(SecurityAuditAction::GuardrailAttackBlocked)
+        ->outcome->toBe(SecurityAuditOutcome::Denied)
         ->target_id->toBe((string) $this->agent->id);
 });

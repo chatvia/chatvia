@@ -83,6 +83,43 @@ it('puts the system prompt first and replaces a trailing visitor message with th
         ->and($messages[3]['content'])->toBe('Hi [with reference material]');
 });
 
+it('tells the model to answer in the language of the visitor message, not the sources language', function (): void {
+    $agent = Agent::factory()->create();
+    $request = new StreamRequestData(
+        agent: $agent,
+        message: new StreamRequestMessageData(model: Llm::factory()->create(), message: 'Who is Dania?'),
+        externalSessionId: (string) Str::uuid(),
+        conversationId: (string) Str::uuid(),
+    );
+    $context = new ChatContext(
+        requestData: $request,
+        payload: new UserTurnData(
+            external_session_id: $request->externalSessionId,
+            external_conversation_id: $request->conversationId,
+            external_message_id: (string) Str::uuid(),
+            model: 'm',
+            message: 'Who is Dania?',
+            sent_at: now(),
+            message_for_llm: 'Who is Dania? [with reference material]',
+        ),
+        llmMessages: [],
+        userMessageId: null,
+        assistantMessageId: (string) Str::uuid(),
+        queryLanguage: 'en',
+    );
+
+    $messages = app(SystemPromptBuilder::class)->messagesFor($context);
+
+    expect($messages[0]['content'])->toContain('Write your whole answer in English');
+});
+
+it('keeps the generic language rule when no language was detected', function (): void {
+    $agent = Agent::factory()->create();
+
+    expect(systemPromptFor($agent, null))
+        ->toContain("Write your whole answer in the language of the user's message");
+});
+
 it('opens the system prompt with the guardrails leak marker', function (): void {
     $agent = Agent::factory()->create();
     $marker = app(GuardrailService::class)->leakMarker($agent);

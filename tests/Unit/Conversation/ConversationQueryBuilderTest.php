@@ -73,8 +73,7 @@ it('filters by the confidence band of an assistant answer, on the band floors', 
         ->and($ids)->not->toContain(...$idsOf($dropped), ...[$visitorOnly->id]);
 })->with([
     'low: below the medium floor' => ['low', ['0.64'], ['0.65', '0.79', '0.8', '0.95']],
-    // The high floor itself is left out here: the medium band's upper end includes it.
-    'medium: from the medium floor to the high floor' => ['medium', ['0.65', '0.79'], ['0.64', '0.95']],
+    'medium: from the medium floor up to, not including, the high floor' => ['medium', ['0.65', '0.79'], ['0.64', '0.8', '0.95']],
     'high: from the high floor up' => ['high', ['0.8', '0.95'], ['0.64', '0.65', '0.79']],
 ]);
 

@@ -80,7 +80,7 @@ return new class extends Migration
             $table->foreignId('agent_id');
             $table->foreignIdFor(Language::class)->nullable()->index()->constrained()->nullOnDelete();
 
-            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram']);
+            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'api']);
             $table->boolean('is_visible')->default(false);
             $table->text('title')->nullable();
 
@@ -126,7 +126,7 @@ return new class extends Migration
 
             $table->string('generation_id')->nullable();
 
-            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'playground', 'handoff'])->nullable();
+            $table->enum('source', ['hosted_chat', 'widget', 'bar', 'telegram', 'slack', 'messenger', 'whatsapp', 'msteams', 'instagram', 'api', 'playground', 'handoff'])->nullable();
 
             $table->text('content')->nullable();
 

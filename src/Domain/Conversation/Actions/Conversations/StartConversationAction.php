@@ -25,10 +25,7 @@ class StartConversationAction
         private readonly ChatMemory $memory,
     ) {}
 
-    /**
-     * @return string the new conversation's external id
-     */
-    public function execute(ChatScopeData $scope, ConversationSource $source, string $title = Conversation::DEFAULT_TITLE): string
+    public function execute(ChatScopeData $scope, ConversationSource $source, string $title = Conversation::DEFAULT_TITLE): Conversation
     {
         $agent = $scope->agent;
         $memory = $this->memory->withScope($scope);
@@ -49,6 +46,9 @@ class StartConversationAction
                 'agent_id' => $scope->agent->id,
                 'source' => $source,
                 'title' => $title,
+                // The column default, set explicitly so the returned model
+                // carries it without a refresh.
+                'is_visible' => false,
                 // Hidden until it is used, so it gets a short life: most are
                 // never used, and the daily prune sweeps them. The first
                 // message gives it the full window (ChatLogWriter).
@@ -70,6 +70,6 @@ class StartConversationAction
             )->toArray(),
         ]);
 
-        return $conversation->external_id;
+        return $conversation;
     }
 }

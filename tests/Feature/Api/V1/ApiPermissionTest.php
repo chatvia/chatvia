@@ -10,6 +10,7 @@ use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Session;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
+use Domain\Knowledge\Source\Qa\Models\AgentQuestionAnswer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Domain\Membership\Team\Services\TeamService;
@@ -397,7 +398,7 @@ describe('per-agent: every other mutating route is gated by its own permission',
 
             return ["mcps/{$server->external_id}", [], fn (): bool => $agent->mcpServers()->whereKey($server->id)->exists()];
         }],
-        'attach a function' => ['POST', 'agent.sources.train.functions', 201, function (Agent $agent): array {
+        'attach a function' => ['POST', 'agent.sources.train.functions', 200, function (Agent $agent): array {
             $function = AgentFunction::factory()->create(['workspace_id' => $agent->workspace_id]);
 
             return ['functions', ['function_id' => $function->external_id], fn (): bool => $agent->functions()->doesntExist()];
@@ -406,6 +407,14 @@ describe('per-agent: every other mutating route is gated by its own permission',
             $function = AgentFunction::factory()->attachedTo($agent)->create();
 
             return ["functions/{$function->external_id}", [], fn (): bool => $agent->functions()->whereKey($function->id)->exists()];
+        }],
+        'add a Q&A' => ['POST', 'agent.sources.train.qa', 422, fn (Agent $agent): array => [
+            'sources/qas', [], fn (): bool => AgentQuestionAnswer::query()->where('agent_id', $agent->id)->doesntExist(),
+        ]],
+        'delete a Q&A' => ['DELETE', 'agent.sources.delete', 204, function (Agent $agent): array {
+            $qa = AgentQuestionAnswer::create(['agent_id' => $agent->id, 'title' => 'Refunds', 'questions' => 'Can I get a refund?', 'answer' => 'Within 30 days, yes.']);
+
+            return ["sources/qas/{$qa->external_id}", [], fn (): bool => AgentQuestionAnswer::query()->whereKey($qa->id)->exists()];
         }],
         'delete a conversation' => ['DELETE', 'agent.chat.delete', 204, function (Agent $agent): array {
             $session = Session::factory()->create(['agent_id' => $agent->id]);

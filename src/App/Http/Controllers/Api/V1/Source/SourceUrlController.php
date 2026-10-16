@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Source;
 
 use App\Http\Requests\Api\V1\Source\CrawlSourceUrlRequest;
@@ -10,6 +12,7 @@ use Domain\Knowledge\Source\Web\Actions\Crawl\StartAgentWebsiteCrawlAction;
 use Domain\Knowledge\Source\Web\Actions\Source\DeleteSourceWebsiteAction;
 use Domain\Knowledge\Source\Web\Models\SourceWebsite;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 /**
  * Crawl a website and ingest its content. The crawler follows links inside
@@ -33,12 +36,12 @@ class SourceUrlController
     /**
      * Delete URL source
      */
-    public function destroy(Agent $agent, SourceWebsite $website, DeleteSourceWebsiteAction $deleteWebsite): JsonResponse
+    public function destroy(Agent $agent, SourceWebsite $website, DeleteSourceWebsiteAction $deleteWebsite): Response
     {
         // {website} is looked up through the agent's own websites, so a
         // website of another agent is a 404.
         $deleteWebsite->execute($website);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

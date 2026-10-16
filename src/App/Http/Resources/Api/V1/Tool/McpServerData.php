@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Resources\Api\V1\Tools;
+declare(strict_types=1);
+
+namespace App\Http\Resources\Api\V1\Tool;
 
 use Carbon\CarbonInterface;
 use Domain\Integration\Mcp\Enums\McpAuthType;
@@ -9,7 +11,8 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Spatie\LaravelData\Data;
 
 /**
- * A custom MCP server connected to your account. Pass `id` as `mcp_id` to
+ * An MCP server connected to your account: one of your custom entries, or a
+ * catalog connector you connected in the dashboard. Pass `id` as `mcp_id` to
  * attach the server to an agent. Auth secrets are never returned;
  * `has_auth_value` only signals whether one is set.
  */
@@ -20,6 +23,12 @@ class McpServerData extends Data
          * The MCP server's ID.
          */
         public string $id,
+        /**
+         * `custom` for your own entries; `catalog` for a connector from the
+         * catalog, connected in the dashboard. Only custom servers can be
+         * deleted here.
+         */
+        public string $kind,
         /**
          * Display name of the server.
          */
@@ -78,6 +87,7 @@ class McpServerData extends Data
     {
         return new self(
             id: $server->external_id,
+            kind: $server->isCustom() ? 'custom' : 'catalog',
             name: $server->name,
             slug: $server->slug,
             url: $server->url,

@@ -29,7 +29,6 @@ use Domain\Integration\Tool\Data\ToolEntry;
 use Domain\Integration\Tool\Enums\ToolKind;
 use Domain\Integration\Tool\Registry\ToolRegistry;
 use Domain\Knowledge\Ingestion\Models\Chunk;
-use Domain\Knowledge\Retrieval\Services\Bm25Tokenizer;
 use Domain\Llm\Contracts\RealtimeCallHandler;
 use Domain\Llm\Contracts\RealtimeCalls;
 use Illuminate\Support\Facades\Event;
@@ -168,7 +167,7 @@ function giveAgentKnowledge(Agent $agent): void
         'chunk' => 'We open at nine.',
         'tokens' => 4,
         'embedding' => '['.implode(',', array_fill(0, 1024, 0.1)).']',
-        'embedding_bm25' => Bm25Tokenizer::expression('We open at nine.'),
+        'search_text' => 'We open at nine.',
         'checksum' => md5(uniqid()),
         'cost_in_micro_cents' => 0,
     ]);

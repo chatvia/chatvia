@@ -5,8 +5,8 @@ use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Membership\Team\Services\TeamService;
 
 /**
- * The account API for MCP servers: only the workspace's custom servers (added
- * by URL) are listed, shown and deleted; catalog connectors are not.
+ * The account API for MCP servers: the workspace's connected servers (custom ones added
+ * by URL and connected catalog connectors); custom ones can be created and deleted here, built-ins never appear.
  */
 beforeEach(function (): void {
     // The account-level routes are gated by team permissions, so the owner
@@ -18,15 +18,18 @@ beforeEach(function (): void {
 
 describe('GET /api/v1/mcps', function (): void {
 
-    it('lists the account owner’s custom servers, excluding catalog connectors', function (): void {
+    it('lists the workspace’s servers — custom and connected catalog — with their kind', function (): void {
         $custom = AgentMcpServer::factory()->forOwner($this->user)->create();
-        AgentMcpServer::factory()->forOwner($this->user)->preset('github')->create();
+        $catalog = AgentMcpServer::factory()->forOwner($this->user)->preset('github')->create();
 
-        $this->withToken($this->token)
+        $list = $this->withToken($this->token)
             ->getJson('/api/v1/mcps')
             ->assertOk()
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.id', $custom->external_id);
+            ->assertJsonCount(2, 'data');
+
+        $kinds = collect($list->json('data'))->pluck('kind', 'id');
+        expect($kinds[$custom->external_id])->toBe('custom')
+            ->and($kinds[$catalog->external_id])->toBe('catalog');
     });
 });
 
@@ -41,15 +44,18 @@ describe('GET /api/v1/mcps/{mcp}', function (): void {
             ->assertJsonPath('data.id', $custom->external_id);
     });
 
-    it('404s for a catalog connector, the workspace’s own or a built-in one', function (): void {
+    it('returns the workspace’s own catalog connector but 404s a built-in one', function (): void {
         $catalog = AgentMcpServer::factory()->forOwner($this->user)->preset('github')->create();
         $builtin = AgentMcpServer::factory()->builtin('weather')->create(['workspace_id' => null]);
 
-        foreach ([$catalog, $builtin] as $server) {
-            $this->withToken($this->token)
-                ->getJson("/api/v1/mcps/{$server->external_id}")
-                ->assertNotFound();
-        }
+        $this->withToken($this->token)
+            ->getJson("/api/v1/mcps/{$catalog->external_id}")
+            ->assertOk()
+            ->assertJsonPath('data.kind', 'catalog');
+
+        $this->withToken($this->token)
+            ->getJson("/api/v1/mcps/{$builtin->external_id}")
+            ->assertNotFound();
     });
 });
 

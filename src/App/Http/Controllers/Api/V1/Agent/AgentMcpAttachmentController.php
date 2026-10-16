@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Agent;
 
 use App\Http\Requests\Api\V1\Agent\AttachAgentMcpRequest;
 use App\Http\Requests\Api\V1\CursorPageRequest;
-use App\Http\Resources\Api\V1\Tools\McpServerData;
+use App\Http\Resources\Api\V1\Tool\McpServerData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Support\Pagination\CursorPage;
 
 /**
@@ -46,16 +49,16 @@ class AgentMcpAttachmentController
 
         $data->agent->attachConnector($data->server);
 
-        return response()->json(['data' => McpServerData::fromModel($data->server)], 201);
+        return response()->json(['data' => McpServerData::fromModel($data->server)]);
     }
 
     /**
      * Detach connector from agent
      */
-    public function destroy(Agent $agent, AgentMcpServer $mcp): JsonResponse
+    public function destroy(Agent $agent, AgentMcpServer $mcp): Response
     {
         $agent->detachConnector($mcp);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

@@ -258,9 +258,11 @@ readonly class ChatStreamService
      */
     private function guardHandoff(ChatContext $context, ?Conversation $conversation): ?Conversation
     {
+        // The surface comes from the conversation row: the widget's
+        // per-message requests carry no source of their own.
         if ($context->guardHandoffMessage === null
             || ! $conversation instanceof Conversation
-            || $context->requestData->source !== ConversationSource::Widget->value) {
+            || ! $conversation->isSourceWidget()) {
             return null;
         }
 

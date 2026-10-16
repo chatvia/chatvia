@@ -1,21 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Chat;
 
+use App\Http\Requests\Api\V1\Chat\StoreApiConversationRequest;
 use App\Http\Requests\Api\V1\CursorPageRequest;
-use App\Http\Resources\Api\V1\Conversations\ConversationDetailData;
+use App\Http\Resources\Api\V1\Conversation\ConversationDetailData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
+use Domain\Conversation\Actions\Conversations\CreateApiConversationAction;
 use Domain\Conversation\Actions\Conversations\ListAgentConversationsAction;
 use Domain\Conversation\Actions\Removal\AdminDeleteConversationAction;
 use Domain\Conversation\Data\Conversations\ConversationSummaryData;
 use Domain\Conversation\Models\Conversation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 /**
- * Read and delete chat conversations attached to an agent.
+ * Create, read and delete chat conversations attached to an agent.
  * `can.access.agent` turns a conversation of another agent into a 404.
+ * Show and destroy accept a hidden conversation's id on purpose: an API
+ * conversation stays hidden until its first reply, and its creator must be
+ * able to read it back meanwhile.
  */
 #[Group(name: 'Conversations', weight: 80)]
 class ConversationController
@@ -41,9 +49,25 @@ class ConversationController
     }
 
     /**
+     * Create conversation
+     *
+     * Opens a conversation with the agent, ready for `POST …/messages`. It
+     * stays hidden from the conversation list until the agent's first reply,
+     * and expires after a day when it never gets one. Pass `chatter_id` to
+     * attribute the conversation to one of your chatters.
+     */
+    public function store(StoreApiConversationRequest $request, Agent $agent, CreateApiConversationAction $create): JsonResponse
+    {
+        $conversation = $create->execute($request->toData($agent));
+
+        return response()->json(['data' => ConversationSummaryData::fromModel($conversation)], 201);
+    }
+
+    /**
      * Get conversation
      *
-     * The conversation with its first 500 messages, oldest first.
+     * The conversation with its first 500 messages, oldest first. For longer
+     * conversations, page through `GET …/conversations/{id}/messages`.
      *
      * @return array{data: ConversationDetailData}
      */
@@ -55,10 +79,10 @@ class ConversationController
     /**
      * Delete conversation
      */
-    public function destroy(Request $request, Agent $agent, Conversation $conversation, AdminDeleteConversationAction $deleteConversation): JsonResponse
+    public function destroy(Request $request, Agent $agent, Conversation $conversation, AdminDeleteConversationAction $deleteConversation): Response
     {
         $deleteConversation->execute($agent, $conversation, $request->user());
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

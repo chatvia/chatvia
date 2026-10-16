@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Agent;
 
 use App\Http\Requests\Api\V1\Agent\ListApiAgentsRequest;
@@ -15,6 +17,7 @@ use Domain\Agent\Models\Agent;
 use Domain\Agent\Services\AgentVisibility;
 use Domain\Membership\Team\Models\Team;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Support\Pagination\CursorPage;
 
 /**
@@ -27,8 +30,10 @@ class AgentController
     /**
      * List agents
      *
-     * Returns the agents across all your teams, newest first. Pass `?team_id=`
-     * to list only one team's agents. The list is paged with a cursor: to get
+     * Returns the agents you can access, newest first: an owner sees every
+     * agent; a teammate sees their current team's granted agents. Pass
+     * `?team_id=` to list only one team's agents. The list is paged with a
+     * cursor: to get
      * the next page, send the `next_cursor` of the response as `cursor`. On
      * the last page `next_cursor` is null.
      *
@@ -103,10 +108,10 @@ class AgentController
      * the background. Account-level MCP servers and functions stay; only
      * their link to this agent is removed.
      */
-    public function destroy(Agent $agent, DeleteAgentAction $deleteAgent): JsonResponse
+    public function destroy(Agent $agent, DeleteAgentAction $deleteAgent): Response
     {
         $deleteAgent->execute($agent);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

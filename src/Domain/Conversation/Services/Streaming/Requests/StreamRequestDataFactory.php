@@ -120,6 +120,50 @@ class StreamRequestDataFactory
     }
 
     /**
+     * Build StreamRequestData for the public API's message endpoint. The
+     * conversation (and its session, possibly carrying a chatter) was created
+     * up front by CreateApiConversationAction, so the viewer comes from the
+     * session row, and the bearer token's account is the audit actor.
+     */
+    public function forApi(Request $request, Agent $agent, string $externalSessionId, string $conversationId, ?Chatter $chatter): StreamRequestData
+    {
+        $agent->loadMissing(['agentPrompt', 'llm']);
+
+        /** @var User|null $staff */
+        $staff = $request->user();
+
+        return new StreamRequestData(
+            agent: $agent,
+            message: new StreamRequestMessageData(
+                model: $this->resolveModel($agent),
+                message: $request->input('message'),
+            ),
+            externalSessionId: $externalSessionId,
+            conversationId: $conversationId,
+            // Stamp the session's chatter so their per-chatter limit applies
+            // and tools see their id; the API caller stays the audit actor.
+            chatterId: $chatter?->id,
+            chatterName: $chatter?->name,
+            chatterExternalId: $chatter?->external_id,
+            actorUserId: $staff?->id,
+            actorName: $chatter?->name ?? $staff?->name,
+            saveUserMessageImmediately: true,
+            streamSources: $agent->showsSources(),
+            streamLanguage: false,
+            source: ConversationSource::Api->value,
+            ipAddress: $request->ip(),
+            country: $request->country(),
+            userAgent: $request->userAgent(),
+            locale: $this->locale($request),
+            // Replay snapshots are keyed globally by request id, so scope the
+            // client's value to this conversation before it reaches the store.
+            requestId: filled($request->input('request_id'))
+                ? 'api.'.$conversationId.'.'.$request->input('request_id')
+                : null,
+        );
+    }
+
+    /**
      * Who asks for a voice call on the hosted chat: the same viewer and
      * request facts as a hosted-chat message.
      */

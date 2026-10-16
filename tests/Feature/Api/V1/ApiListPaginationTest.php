@@ -1,8 +1,13 @@
 <?php
 
+use App\Identity\Chatter\Models\Chatter;
 use App\Identity\Workspace\Models\User;
 use Database\Factories\AgentFileFactory;
 use Domain\Agent\Models\Agent;
+use Domain\Agent\Prompt\Models\AgentPrompt;
+use Domain\Conversation\Models\Conversation;
+use Domain\Conversation\Models\Message;
+use Domain\Conversation\Models\Session;
 use Domain\Integration\Function\Models\AgentFunction;
 use Domain\Integration\Mcp\Models\AgentMcpServer;
 use Domain\Knowledge\Source\Text\Models\SourceText;
@@ -50,18 +55,43 @@ function pagedRecords(string $list, User $owner, Agent $agent): array
         'mcps' => array_map(fn (): string => AgentMcpServer::factory()->create(['workspace_id' => $agent->workspace_id])->external_id, range(1, 3)),
         'agent functions' => array_map(fn (): string => AgentFunction::factory()->attachedTo($agent)->create()->external_id, range(1, 3)),
         'agent mcps' => array_map(fn (): string => AgentMcpServer::factory()->attachedTo($agent)->create()->external_id, range(1, 3)),
+        'users' => [
+            $owner->external_id,
+            ...array_map(fn (): string => User::factory()->employee($owner)->create()->external_id, range(1, 2)),
+        ],
+        'chatters' => array_map(fn (): string => Chatter::factory()->create(['workspace_id' => $owner->workspace()->id])->external_id, range(1, 3)),
+        'prompts' => array_map(fn (): string => AgentPrompt::factory()->create(['workspace_id' => $owner->workspace()->id])->external_id, range(1, 3)),
+        'conversation messages' => array_map(
+            fn (): string => Message::factory()->create(['chat_conversation_id' => pagedConversation($agent)->id])->external_id,
+            range(1, 3),
+        ),
     };
 
     $uri = match ($list) {
-        'agents', 'teams', 'functions', 'mcps' => '/api/v1/'.$list,
+        'agents', 'teams', 'functions', 'mcps', 'users', 'chatters', 'prompts' => '/api/v1/'.$list,
         'agent functions' => $agentPath.'/functions',
         'agent mcps' => $agentPath.'/mcps',
+        'conversation messages' => $agentPath.'/conversations/'.pagedConversation($agent)->external_id.'/messages',
     };
 
     return [$uri, array_reverse($ids)];
 }
 
-dataset('paged lists', ['agents', 'teams', 'functions', 'mcps', 'agent functions', 'agent mcps']);
+/** The one conversation these paging runs put messages in (made on first use). */
+function pagedConversation(Agent $agent): Conversation
+{
+    return Conversation::query()->firstOrCreate(
+        ['agent_id' => $agent->id],
+        [
+            'workspace_id' => $agent->workspace_id,
+            'chat_session_id' => Session::factory()->create(['agent_id' => $agent->id])->id,
+            'source' => 'api',
+            'is_visible' => true,
+        ],
+    );
+}
+
+dataset('paged lists', ['agents', 'teams', 'functions', 'mcps', 'agent functions', 'agent mcps', 'users', 'chatters', 'prompts', 'conversation messages']);
 
 it('pages a list newest first and walks it with the cursor', function (string $list): void {
     [$uri, $newestFirst] = pagedRecords($list, $this->owner, $this->agent);

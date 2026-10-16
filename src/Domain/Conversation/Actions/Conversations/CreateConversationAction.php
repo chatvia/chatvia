@@ -35,7 +35,7 @@ class CreateConversationAction
     {
         $agent = $data->scope->agent;
 
-        $conversationId = $this->startConversation->execute($data->scope, ConversationSource::HostedChat);
+        $conversationId = $this->startConversation->execute($data->scope, ConversationSource::HostedChat)->external_id;
         $scope = $data->scope->forConversation($conversationId);
 
         // PII is masked before anything is stored, so the record and the

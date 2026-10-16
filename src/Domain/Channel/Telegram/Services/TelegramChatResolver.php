@@ -57,7 +57,7 @@ class TelegramChatResolver extends ChannelConversationResolver
             new ChatScopeData($chat->bot->agent, $chat->session->external_id),
             ConversationSource::Telegram,
             $title,
-        );
+        )->external_id;
 
         $conversation = $chat->session->conversations()->where('external_id', $conversationId)->firstOrFail();
 

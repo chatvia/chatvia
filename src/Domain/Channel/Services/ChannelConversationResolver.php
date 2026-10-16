@@ -90,7 +90,7 @@ abstract class ChannelConversationResolver
                 new ChatScopeData($agent, $session->external_id),
                 $source,
                 $context['title'],
-            );
+            )->external_id;
 
             $conversation = $session->conversations()->where('external_id', $conversationId)->firstOrFail();
 

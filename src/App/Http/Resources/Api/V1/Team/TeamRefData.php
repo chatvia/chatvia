@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Api\V1\Team;
 
 use Domain\Membership\Team\Models\Team;

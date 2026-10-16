@@ -1,6 +1,8 @@
 <?php
 
-namespace App\Http\Resources\Api\V1\Conversations;
+declare(strict_types=1);
+
+namespace App\Http\Resources\Api\V1\Conversation;
 
 use Domain\Conversation\Models\Conversation;
 use Domain\Conversation\Models\Message;
@@ -14,13 +16,37 @@ use Spatie\LaravelData\DataCollection;
 class ConversationDetailData extends Data
 {
     public function __construct(
+        /**
+         * The conversation's ID.
+         */
         public string $id,
+        /**
+         * The conversation's title.
+         */
         public ?string $title,
+        /**
+         * The analyzed visitor sentiment: `positive`, `neutral` or
+         * `negative`. Null until the conversation is analyzed.
+         */
         public ?string $sentiment,
+        /**
+         * The analyzed conversation tone. Null until analyzed.
+         */
         public ?string $tone,
+        /**
+         * Who answers: `ai`, `pending`, `human` or `returned`.
+         */
         public ?string $handoff_status,
+        /**
+         * When the conversation was opened.
+         */
         public ?string $created_at,
-        /** @var DataCollection<int, ConversationMessageData> */
+        /**
+         * The first 500 messages, oldest first. Longer conversations page
+         * through `GET …/conversations/{id}/messages`.
+         *
+         * @var DataCollection<int, ConversationMessageData>
+         */
         #[DataCollectionOf(ConversationMessageData::class)]
         public DataCollection $messages,
     ) {}

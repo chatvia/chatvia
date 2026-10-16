@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Api\V1\Auth;
 
 use App\Identity\Chatter\Models\Chatter;
@@ -23,6 +25,10 @@ class UserData extends Data
          */
         public string $name,
         /**
+         * The user's email address.
+         */
+        public ?string $email,
+        /**
          * When the user was created.
          */
         public ?CarbonInterface $created_at,
@@ -33,6 +39,7 @@ class UserData extends Data
         return new self(
             id: $user->external_id,
             name: $user->name,
+            email: $user->email,
             created_at: $user->created_at,
         );
     }

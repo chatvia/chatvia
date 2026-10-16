@@ -5,20 +5,27 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V1\Agent\AgentController;
 use App\Http\Controllers\Api\V1\Agent\AgentFunctionAttachmentController;
 use App\Http\Controllers\Api\V1\Agent\AgentMcpAttachmentController;
+use App\Http\Controllers\Api\V1\Agent\PromptController;
 use App\Http\Controllers\Api\V1\Chat\ConversationController;
-use App\Http\Controllers\Api\V1\Chatters\ChatterSignInLinkController;
-use App\Http\Controllers\Api\V1\Chatters\DeleteChatterController;
-use App\Http\Controllers\Api\V1\Chatters\ExternalChatterController;
-use App\Http\Controllers\Api\V1\Chatters\RevokeChatterAgentsController;
+use App\Http\Controllers\Api\V1\Chat\ConversationMessageController;
+use App\Http\Controllers\Api\V1\Chatter\ChatterController;
+use App\Http\Controllers\Api\V1\Chatter\ChatterSignInLinkController;
+use App\Http\Controllers\Api\V1\Chatter\DeleteChatterController;
+use App\Http\Controllers\Api\V1\Chatter\ExternalChatterController;
+use App\Http\Controllers\Api\V1\Chatter\GrantChatterAgentsController;
+use App\Http\Controllers\Api\V1\Chatter\RevokeChatterAgentsController;
 use App\Http\Controllers\Api\V1\Function\FunctionController;
 use App\Http\Controllers\Api\V1\Mcp\McpServerController;
 use App\Http\Controllers\Api\V1\Source\SourceFileController;
 use App\Http\Controllers\Api\V1\Source\SourceListController;
+use App\Http\Controllers\Api\V1\Source\SourceQaController;
 use App\Http\Controllers\Api\V1\Source\SourceTextController;
 use App\Http\Controllers\Api\V1\Source\SourceUrlController;
 use App\Http\Controllers\Api\V1\Team\RoleController;
 use App\Http\Controllers\Api\V1\Team\RoleMemberController;
 use App\Http\Controllers\Api\V1\Team\TeamController;
+use App\Http\Controllers\Api\V1\Team\TeamMemberController;
+use App\Http\Controllers\Api\V1\Team\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -50,7 +57,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
     ->prefix('v1')
     ->name('api.v1.')
-    ->whereUuid(['chatter', 'conversation', 'file', 'function', 'mcp', 'role', 'team', 'text', 'website'])
+    ->whereUuid(['chatter', 'conversation', 'file', 'function', 'mcp', 'member', 'qa', 'role', 'team', 'text', 'website'])
     ->group(function (): void {
 
         // Listing agents is scoped per-caller in the controller (owners see
@@ -59,39 +66,64 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
         Route::get('agents', [AgentController::class, 'index'])->name('agents.index');
         Route::post('agents', [AgentController::class, 'store'])->middleware('api.owner')->name('agents.store');
 
-        // Provisioning end-users (chatters) + minting their sign-in links is the
+        // Managing end-users (chatters) + minting their sign-in links is the
         // API face of the workspace People page — gated by account.chatters.manage.
         Route::middleware('team.permission:account.chatters.manage')->group(function (): void {
+            Route::get('chatters', [ChatterController::class, 'index'])->name('chatters.index');
             Route::post('chatters', [ExternalChatterController::class, 'store'])->name('chatters.store');
-            // Mint a one-time sign-in link so one of your chatters can open one of
-            // your agents' chat. The link carries an opaque token consumed on first use.
+            // Mint a sign-in link so one of your chatters can open one of your
+            // agents' chat. The link's opaque token works until it expires.
             Route::post('chatters/sign', [ChatterSignInLinkController::class, 'store'])->name('chatters.sign');
+            Route::get('chatters/{chatter:external_id}', [ChatterController::class, 'show'])->name('chatters.show');
+            // Access controls: the monthly message cap and the deactivation switch.
+            Route::patch('chatters/{chatter:external_id}', [ChatterController::class, 'update'])->name('chatters.update');
             // Delete a chatter entirely — account, agent grants and chat history.
             Route::delete('chatters/{chatter:external_id}', DeleteChatterController::class)->name('chatters.destroy');
-            // Revoke a chatter's access to specific agents (the chatter account is kept).
+            // Grant / revoke a chatter's access to specific agents (the account is kept).
+            Route::post('chatters/{chatter:external_id}/agents', GrantChatterAgentsController::class)->name('chatters.agents.grant');
             Route::delete('chatters/{chatter:external_id}/agents', RevokeChatterAgentsController::class)->name('chatters.agents.revoke');
         });
 
         // Teams are owner-only (the dashboard blocks teammates from team
-        // management via DenyIfTeammate). `update` and the role endpoints
-        // additionally re-check ownership through TeamPolicy in their Form Requests.
+        // management via DenyIfTeammate); the team and role Form Requests
+        // re-check ownership through TeamPolicy as a second layer. The users
+        // list sits here too: it exists to pick a `user_id` for role
+        // assignment and sign-in links.
         Route::middleware('api.owner')->group(function (): void {
+            Route::get('users', [UserController::class, 'index'])->name('users.index');
+
             Route::get('teams', [TeamController::class, 'index'])->name('teams.index');
             Route::post('teams', [TeamController::class, 'store'])->name('teams.store');
+            Route::get('teams/{team:external_id}', [TeamController::class, 'show'])->name('teams.show');
+            Route::patch('teams/{team:external_id}', [TeamController::class, 'update'])->name('teams.update');
+            Route::delete('teams/{team:external_id}', [TeamController::class, 'destroy'])->name('teams.destroy');
+
+            // Removing a member detaches them from the team; their account stays.
+            Route::delete('teams/{team:external_id}/members/{member:external_id}', [TeamMemberController::class, 'destroy'])->name('teams.members.destroy');
+
+            // Team roles: grant agents + permissions, then assign users to the role.
+            Route::post('teams/{team:external_id}/roles', [RoleController::class, 'store'])->name('teams.roles.store');
+            Route::patch('teams/{team:external_id}/roles/{role:external_id}', [RoleController::class, 'update'])->name('teams.roles.update');
+            Route::delete('teams/{team:external_id}/roles/{role:external_id}', [RoleController::class, 'destroy'])->name('teams.roles.destroy');
+            Route::post('teams/{team:external_id}/roles/{role:external_id}/users', [RoleMemberController::class, 'store'])->name('teams.roles.users.store');
         });
-        Route::patch('teams/{team:external_id}', [TeamController::class, 'update'])->name('teams.update');
 
-        // Team roles: grant agents + permissions, then assign users to the role.
-        Route::post('teams/{team:external_id}/roles', [RoleController::class, 'store'])->name('teams.roles.store');
-        Route::patch('teams/{team:external_id}/roles/{role:external_id}', [RoleController::class, 'update'])->name('teams.roles.update');
-        Route::post('teams/{team:external_id}/roles/{role:external_id}/users', [RoleMemberController::class, 'store'])->name('teams.roles.users.store');
-
-        // Account-level MCP servers (CRUD on shared definitions). Attach to
-        // specific agents via /agents/{id}/mcps below. Gated by account.connectors.
+        // Account-level MCP servers: list and inspect every connected server
+        // (custom + catalog); add and delete custom ones (catalog connectors
+        // need the dashboard's OAuth flows). Attach to specific agents via
+        // /agents/{id}/mcps below. Gated by account.connectors.
         Route::middleware('team.permission:account.connectors')->group(function (): void {
             Route::get('mcps', [McpServerController::class, 'index'])->name('mcps.index');
+            Route::post('mcps', [McpServerController::class, 'store'])->name('mcps.store');
             Route::get('mcps/{mcp}', [McpServerController::class, 'show'])->name('mcps.show');
             Route::delete('mcps/{mcp}', [McpServerController::class, 'destroy'])->name('mcps.destroy');
+        });
+
+        // The prompt library, read-only: how an API client discovers the
+        // `prompt_id` the agent endpoints accept. Gated like the dashboard's
+        // Library page (404 to hide existence).
+        Route::middleware('team.permission:account.prompts,404')->group(function (): void {
+            Route::get('prompts', [PromptController::class, 'index'])->name('prompts.index');
         });
 
         // Account-level functions (CRUD on shared definitions). Attach to
@@ -126,6 +158,8 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
             Route::delete('sources/texts/{text:external_id}', [SourceTextController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.texts.destroy');
             Route::post('sources/urls', [SourceUrlController::class, 'store'])->middleware('agent.permission:agent.sources.train.web')->name('sources.urls.store');
             Route::delete('sources/urls/{website:external_id}', [SourceUrlController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.urls.destroy');
+            Route::post('sources/qas', [SourceQaController::class, 'store'])->middleware('agent.permission:agent.sources.train.qa')->name('sources.qas.store');
+            Route::delete('sources/qas/{qa:external_id}', [SourceQaController::class, 'destroy'])->middleware('agent.permission:agent.sources.delete')->name('sources.qas.destroy');
 
             // Attach / detach account-level MCP servers to this agent. The MCP
             // definitions themselves live at /api/v1/mcps; here we only manage
@@ -143,5 +177,13 @@ Route::middleware(['auth:sanctum', 'throttle:api', 'workspace.scope'])
             Route::get('conversations', [ConversationController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('conversations.index');
             Route::get('conversations/{conversation}', [ConversationController::class, 'show'])->middleware('agent.permission:agent.chat.view')->name('conversations.show');
             Route::delete('conversations/{conversation}', [ConversationController::class, 'destroy'])->middleware('agent.permission:agent.chat.delete')->name('conversations.destroy');
+
+            // Chatting with the agent. Like the dashboard's playground, this
+            // needs agent access but no extra permission; the message POST has
+            // the hosted chat's per-minute cap because each turn costs an LLM
+            // call. Replies stream as SSE or fold into one JSON response.
+            Route::post('conversations', [ConversationController::class, 'store'])->name('conversations.store');
+            Route::get('conversations/{conversation}/messages', [ConversationMessageController::class, 'index'])->middleware('agent.permission:agent.chat.view')->name('conversations.messages.index');
+            Route::post('conversations/{conversation}/messages', [ConversationMessageController::class, 'store'])->middleware('throttle:api-chat')->name('conversations.messages.store');
         });
     });

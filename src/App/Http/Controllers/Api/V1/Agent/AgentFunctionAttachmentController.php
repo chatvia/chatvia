@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api\V1\Agent;
 
 use App\Http\Requests\Api\V1\Agent\AttachAgentFunctionRequest;
 use App\Http\Requests\Api\V1\CursorPageRequest;
-use App\Http\Resources\Api\V1\Tools\FunctionData;
+use App\Http\Resources\Api\V1\Tool\FunctionData;
 use Dedoc\Scramble\Attributes\Group;
 use Domain\Agent\Models\Agent;
 use Domain\Integration\Function\Models\AgentFunction;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Support\Pagination\CursorPage;
 
 /**
@@ -46,16 +49,16 @@ class AgentFunctionAttachmentController
 
         $data->agent->attachFunction($data->function);
 
-        return response()->json(['data' => FunctionData::fromModel($data->function)], 201);
+        return response()->json(['data' => FunctionData::fromModel($data->function)]);
     }
 
     /**
      * Detach function from agent
      */
-    public function destroy(Agent $agent, AgentFunction $function): JsonResponse
+    public function destroy(Agent $agent, AgentFunction $function): Response
     {
         $agent->detachFunction($function);
 
-        return response()->json(null, 204);
+        return response()->noContent();
     }
 }

@@ -123,6 +123,9 @@ describe('PATCH /api/v1/teams/{team}/roles/{role}', function (): void {
         $this->withToken($this->token)
             ->patchJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}", [
                 'name' => 'New',
+                // PATCH is partial: switching off all-agents must be said,
+                // not implied by leaving it out.
+                'all_agents' => false,
                 'agent_ids' => [$agent->external_id],
             ])
             ->assertOk()
@@ -172,7 +175,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
             ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
                 'user_id' => $endUser->external_id,
             ])
-            ->assertCreated()
+            ->assertOk()
             ->assertJsonPath('data.id', $endUser->external_id);
 
         expect($this->team->members()->where('users.id', $endUser->id)->wherePivot('role_id', $role->id)->exists())->toBeTrue();
@@ -188,7 +191,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
                 ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
                     'user_id' => $endUser->external_id,
                 ])
-                ->assertCreated();
+                ->assertOk();
         }
 
         expect($this->team->members()->where('users.id', $endUser->id)->count())->toBe(1)
@@ -221,7 +224,7 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
             ->assertNotFound();
     });
 
-    it('404s for a chatter id: chatters are not staff and cannot join a team', function (): void {
+    it('rejects a chatter id with a validation error: chatters are not staff', function (): void {
         $role = rolesApiRole($this->user, 'Support');
         $agent = makeTeamAgent($this->user, 'Bot');
         $chatter = app(CreateChatterAction::class)->execute(new CreateChatterData($this->user->workspace(), $agent, 'Jane'));
@@ -230,12 +233,13 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
             ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
                 'user_id' => $chatter->external_id,
             ])
-            ->assertNotFound();
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['user_id']);
 
         expect($this->team->members()->where('users.external_id', $chatter->external_id)->exists())->toBeFalse();
     });
 
-    it('404s for a teammate of another workspace', function (): void {
+    it('rejects a teammate of another workspace with the same validation error', function (): void {
         $role = rolesApiRole($this->user, 'Support');
         $foreign = User::factory()->employee(User::factory()->create())->create();
 
@@ -243,7 +247,8 @@ describe('POST /api/v1/teams/{team}/roles/{role}/users', function (): void {
             ->postJson("/api/v1/teams/{$this->team->external_id}/roles/{$role->external_id}/users", [
                 'user_id' => $foreign->external_id,
             ])
-            ->assertNotFound();
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['user_id']);
 
         expect($this->team->members()->where('users.id', $foreign->id)->exists())->toBeFalse();
     });

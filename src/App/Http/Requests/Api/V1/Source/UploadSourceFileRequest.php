@@ -28,6 +28,9 @@ class UploadSourceFileRequest extends FormRequest
     public function rules(): array
     {
         return [
+            // The document to train on, as a multipart upload. Accepted
+            // formats and the size cap match the dashboard's uploader; a
+            // password-protected PDF is rejected.
             'file' => ['required', 'file', new UnlockedPdf],
         ];
     }

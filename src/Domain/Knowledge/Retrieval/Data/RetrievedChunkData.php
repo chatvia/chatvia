@@ -74,18 +74,31 @@ final class RetrievedChunkData extends Data
 
     public function withRelevance(float $relevance): self
     {
-        $copy = clone $this;
-        $copy->relevance = $relevance;
-
-        return $copy;
+        return $this->rebuild(relevance: $relevance);
     }
 
     /** The same chunk with other text, such as the text the model reads. */
     public function withText(string $chunk): self
     {
-        $copy = clone $this;
-        $copy->chunk = $chunk;
+        return $this->rebuild(chunk: $chunk);
+    }
 
-        return $copy;
+    /** The same chunk with one field replaced; DTOs never mutate. */
+    private function rebuild(?string $chunk = null, ?float $relevance = null): self
+    {
+        return new self(
+            id: $this->id,
+            external_id: $this->external_id,
+            chunk: $chunk ?? $this->chunk,
+            chunk_index: $this->chunk_index,
+            chunkable_type: $this->chunkable_type,
+            chunkable_id: $this->chunkable_id,
+            metadata: $this->metadata,
+            search_type: $this->search_type,
+            score: $this->score,
+            similarity: $this->similarity,
+            tokens: $this->tokens,
+            relevance: $relevance ?? $this->relevance,
+        );
     }
 }
